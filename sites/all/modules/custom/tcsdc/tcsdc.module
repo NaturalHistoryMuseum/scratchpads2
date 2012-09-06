@@ -216,8 +216,16 @@ function tcsdc_import_terms($vid, &$context){
       // Set unit names
       $unit_name_index = 1;
       foreach(explode(' ', $data['canonicalname']) as $unit_name){
-        $data['unit_name' . $unit_name_index] = $unit_name;
-        $unit_name_index++;
+        // Check whether or not we are an indicator for the next unit name.
+        $unit_indicators = itis_term_allowed_values(array(
+          'field_name' => 'field_unit_indicator' . $unit_name_index
+        ));
+        if(isset($unit_indicators[$unit_name])){
+          $data['unit_indicator' . $unit_name_index] = $unit_name;
+        }else{
+          $data['unit_name' . $unit_name_index] = $unit_name;
+          $unit_name_index++;
+        }
       }
       // Set authors
       $data['authors'] = trim(substr($term->name, strlen($data['canonicalname'])));

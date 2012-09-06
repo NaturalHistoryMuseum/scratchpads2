@@ -15,8 +15,8 @@ function mediafield_field_views_data($field) {
     $data[$table_name][$field['field_name'] . '_fid']['relationship'] = array(
       'handler' => 'views_handler_relationship',
       'base' => 'file_managed',
+      'entity type' => 'file',
       'base field' => 'fid',
-      'field' => $field['field_name'] . '_fid',
       'label' => t('file from !field_name', array('!field_name' => $field['field_name'])),
     );
   }

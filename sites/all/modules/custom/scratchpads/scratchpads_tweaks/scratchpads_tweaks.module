@@ -1,6 +1,59 @@
 <?php
 
 /**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function media_multiselect_form_file_entity_add_upload_multiple_alter(&$form, &$form_state, $form_id){
+  // Add an additional submit function if we're being called from a popup. This
+  // will prevent the redirect from being set to file/[fid]/edit and correctly
+  // show the library tab.
+  $form['#submit'][] = 'media_multiselect_temporary_submit_function';
+}
+
+/**
+ * Callback to ensure that the redirect for the media upload form is correctly
+ * set, and not being fucked up by the media module.
+ * Note, this is NOT dynamic, and is actually pretty shit.
+ */
+function media_multiselect_temporary_submit_function($form, &$form_state){
+  if($_GET['render'] == 'media-popup'){
+    $query = _scratchpads_tweaks_get_media_browser_query();
+    $query['enabledPlugins'] = array(
+      'media_default--media_browser_1' => 'media_default--media_browser_1'
+    );
+    $form_state['redirect'] = array(
+      'media/browser',
+      array(
+        'query' => $query
+      )
+    );
+  }else{
+    $form_state['redirect'] = 'admin/content';
+  }
+}
+
+/**
+ * Simple function to return the options for the media browser page.
+ */
+function _scratchpads_tweaks_get_media_browser_query(){
+  return array(
+    'render' => $_GET['render'] ? $_GET['render'] : '',
+    'types' => '',
+    'activePlugins' => '',
+    'enabledPlugins' => '',
+    'schemes' => array(
+      'public' => 'public'
+    ),
+    'file_directory' => '',
+    'file_extensions' => variable_get('upload_extensions_default', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp'),
+    'max_filesize' => file_upload_max_size(),
+    'uri_scheme' => 'public',
+    'multiselect' => 'true',
+    'plugins' => 'undefined'
+  );
+}
+
+/**
  * Implements hook_date_formats()
  */
 function scratchpads_tweaks_date_formats(){

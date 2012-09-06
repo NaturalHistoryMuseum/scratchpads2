@@ -96,15 +96,15 @@ function media_schema() {
         'default' => 0,
       ),
     ),
+    'primary key' => array('fid'),
+    'indexes' => array(
+      'timestamp' => array('timestamp'),
+    ),
     'foreign keys' => array(
       'file_managed' => array(
         'table' => 'file_managed',
         'columns' => array('fid' => 'fid'),
       ),
-    ),
-    'primary key' => array('fid'),
-    'indexes' => array(
-      'timestamp' => array('timestamp'),
     ),
   );
 
@@ -187,6 +187,20 @@ function media_uninstall() {
   foreach (media_variable_default() as $name => $value) {
     media_variable_del($name);
   }
+}
+
+/**
+ * Implements hook_update_dependencies().
+ */
+function media_update_dependencies() {
+  // This update function requires field_update_7002() to run before it since
+  // the field_bundle_settings variable has been split into separate variables
+  // per entity type and bundle.
+  $dependencies['mymodule'][7016] = array(
+    'field' => 7002,
+  );
+
+  return $dependencies;
 }
 
 /**
@@ -450,6 +464,13 @@ function media_update_7015() {
 
 /**
  * Convert Media entities to File entities.
+ *
+ * This update function requires field_update_7002() to run before it since
+ * the field_bundle_settings variable has been split into separate variables
+ * per entity type and bundle.
+ *
+ * @see http://drupal.org/node/1418708
+ * @see http://drupal.org/node/1211008
  */
 function media_update_7016() {
   // Allow File Entity module to take over the {file_managed}.type field. It
@@ -510,32 +531,31 @@ function media_update_7016() {
   // Update the field_bundle_settings configuration variable: move media bundle
   // settings to file bundles, and move settings of the old self-referencing
   // file field to the new file pseudo-field.
-  $settings = variable_get('field_bundle_settings', array());
-  if (!isset($settings['file'])) {
-    $settings['file'] = array();
-  }
-  if (isset($settings['media'])) {
-    $settings['file'] = array_merge($settings['file'], $settings['media']);
-    unset($settings['media']);
-  }
   foreach ($instances as $instance) {
     if ($instance['field_name'] === 'file' && !$instance['deleted']) {
+      $file_settings = field_bundle_settings('file', $instance['bundle']);
+      $media_settings = field_bundle_settings('media', $instance['bundle']);
+      $file_settings = array_merge($file_settings, $media_settings);
       if (isset($instance['widget']['weight'])) {
-        $settings['file'][$instance['bundle']]['extra_fields']['form']['file']['weight'] = $instance['widget']['weight'];
+        $file_settings['extra_fields']['form']['file']['weight'] = $instance['widget']['weight'];
       }
       if (isset($instance['display'])) {
         foreach ($instance['display'] as $view_mode => $display) {
           if (isset($display['weight'])) {
-            $settings['file'][$instance['bundle']]['extra_fields']['display']['file'][$view_mode]['weight'] = $display['weight'];
+            $file_settings['extra_fields']['display']['file'][$view_mode]['weight'] = $display['weight'];
           }
           if (isset($display['type'])) {
-            $settings['file'][$instance['bundle']]['extra_fields']['display']['file'][$view_mode]['visible'] = ($display['type'] != 'hidden');
+            $file_settings['extra_fields']['display']['file'][$view_mode]['visible'] = ($display['type'] != 'hidden');
           }
         }
       }
+      field_bundle_settings('file', $instance['bundle'], $file_settings);
     }
   }
-  variable_set('field_bundle_settings', $settings);
+  // Delete old media bundle settings.
+  db_delete('variable')
+    ->condition('name', db_like('field_bundle_settings_media__') . '%', 'LIKE')
+    ->execute();
 
   // Copy field formatter settings of old self-referencing file field to file
   // pseudo-field formatter settings.
@@ -688,4 +708,11 @@ function media_update_7201() {
  */
 function media_update_7202() {
   module_enable(array('views'));
+}
+
+/**
+ * Empty update function to trigger cache clear.
+ */
+function media_update_7203() {
+  // Do nothing.
 }

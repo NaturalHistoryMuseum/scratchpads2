@@ -61,10 +61,7 @@ function mediafield_field_instance_settings_form($field, $instance) {
  * Implements hook_field_is_empty().
  */
 function mediafield_field_is_empty($item, $field) {
-  if (!is_array($item) || (empty($item['fid']))) {
-    return TRUE;
-  }
-  return FALSE;
+  return empty($item['fid']);
 }
 
 /**
@@ -134,7 +131,9 @@ function mediafield_field_formatter_view($entity_type, $entity, $field, $instanc
 
   $files = array();
   foreach ($items as $delta => $item) {
-    $files[$item['fid']] = $item['file'];
+    if (!empty($item['file'])) {
+      $files[$item['fid']] = $item['file'];
+    }
   }
 
   if (!empty($files)) {
@@ -146,26 +145,30 @@ function mediafield_field_formatter_view($entity_type, $entity, $field, $instanc
 
 /**
  * Implements hook_field_prepare_view().
- *
- * @todo Get resolution on http://drupal.org/node/879034 regarding using this
- *   hook to load referenced entities.
  */
 function mediafield_field_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items) {
-  // Collect all file ids that need loading.
+  // Collect all file IDs that need loading.
   $fids = array();
   foreach ($entities as $id => $entity) {
+    // Load the files from the files table.
     foreach ($items[$id] as $delta => $item) {
-      if (is_array($item) && !empty($item['fid'])) {
-        $fids[$item['fid']] = $item['fid'];
+      if (!empty($item['fid'])) {
+        $fids[] = $item['fid'];
       }
     }
   }
 
-  // Load the files and add the loaded file entity to the item data.
-  $files = file_load_multiple(array_values($fids));
+  // Load the file entities.
+  $files = file_load_multiple($fids);
+
+  // Add the loaded file entities to the field item array.
   foreach ($entities as $id => $entity) {
     foreach ($items[$id] as $delta => $item) {
-      if (is_array($item) && !empty($item['fid'])) {
+      // If the file does not exist, mark the entire item as empty.
+      if (empty($files[$item['fid']])) {
+        unset($items[$id][$delta]);
+      }
+      else {
         $items[$id][$delta]['file'] = $files[$item['fid']];
       }
     }
@@ -176,30 +179,38 @@ function mediafield_field_prepare_view($entity_type, $entities, $field, $instanc
  * Implements hook_field_validate().
  *
  * Possible error codes:
- * - 'media_fid_illegal_value': The value is not part of the list of allowed values.
+ * - 'media_remote_file_type_not_allowed': The remote file is not an allowed
+ *   file type.
  */
 function mediafield_field_validate($obj_type, $object, $field, $instance, $langcode, $items, &$errors) {
   $allowed_types = array_keys(array_filter($instance['widget']['settings']['allowed_types']));
 
     // @TODO: merge in stuff from media_uri_value
   foreach ($items as $delta => $item) {
-    if ($item['fid'] == 0) {
+    if (empty($item['fid'])) {
       return TRUE;
       //@TODO: make support for submiting with just a URI here?
     }
-    $result = db_select('file_managed', 'f')
-      ->fields('f')
-      ->condition('fid', $item['fid'])
-      ->condition('type', $allowed_types, 'IN')
-      ->execute()
-      ->fetchField();
-    if (!$result) {
-      $errors[$field['field_name']][$langcode][$delta][] = array(
-        'error' => 'media_fid_illegal_value',
-        'message' => t('%name: illegal value.', array('%name' => t($instance['label']))),
-      );
+
+    $file = file_load($item['fid']);
+
+    // Only validate allowed types if the file is remote and not local.
+    if (!file_entity_file_is_local($file)) {
+      if (!in_array($file->type, $allowed_types)) {
+        $errors[$field['field_name']][$langcode][$delta][] = array(
+          'error' => 'media_remote_file_type_not_allowed',
+          'message' => t('%name: Only remote files with the following types are allowed: %types-allowed.', array('%name' => t($instance['label']), '%types-allowed' => !empty($allowed_types) ? implode(', ', $allowed_types) : t('no file types selected'))),
+        );
+      }
     }
   }
+}
+
+/**
+ * Implements_hook_field_widget_error().
+ */
+function mediafield_field_widget_error($element, $error, $form, &$form_state) {
+  form_error($element['fid'], $error['message']);
 }
 
 /**
@@ -316,6 +327,5 @@ function mediafield_field_update_instance($instance, $prior_instance) {
 function mediafield_views_api() {
   return array(
     'api' => 3,
-    'path' => drupal_get_path('module', 'media'),
   );
 }

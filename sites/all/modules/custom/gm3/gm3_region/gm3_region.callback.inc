@@ -82,7 +82,7 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
             $region_id = "{$result->level_1_code}";
             break;
         }
-        print json_encode($results->code);
+        print json_encode($region_id);
         // Perform end-of-request tasks.
         ajax_footer();
         exit();

@@ -49,6 +49,37 @@ function scratchpads_image_styles_image_default_styles(){
 }
 
 /**
+ * Implements hook_image_default_styles_alter().
+ */
+function scratchpads_image_styles_image_styles_alter(&$styles){
+  $styles_to_change = array(
+    'thumbnail',
+    'medium',
+    'large',
+    'linkit_thumb'
+  );
+  foreach($styles_to_change as $style_to_change){
+    if($styles[$style_to_change]['storage'] == IMAGE_STORAGE_DEFAULT){
+      $styles[$style_to_change]['effects'][] = array(
+        'label' => 'Change file format',
+        'help' => 'Choose to save the image as a different filetype.',
+        'effect callback' => 'coloractions_convert_image',
+        'dimensions passthrough' => TRUE,
+        'form callback' => 'coloractions_convert_form',
+        'summary theme' => 'coloractions_convert_summary',
+        'module' => 'imagecache_coloractions',
+        'name' => 'coloractions_convert',
+        'data' => array(
+          'format' => 'image/jpeg',
+          'quality' => '80',
+        ),
+        'weight' => '100',
+      );
+    }
+  }
+}
+
+/**
  * Implementation of hook_styles_default_styles().
  */
 function scratchpads_image_styles_styles_default_styles(){

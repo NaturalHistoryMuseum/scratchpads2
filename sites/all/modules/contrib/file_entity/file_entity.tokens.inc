@@ -43,6 +43,13 @@ function file_entity_token_info() {
 }
 
 /**
+ * Implements hook_token_info_alter().
+ */
+function file_entity_token_info_alter(&$info) {
+  $info['tokens']['file']['name']['description'] = t('The name of the file.');
+}
+
+/**
  * Implements hook_tokens().
  */
 function file_entity_tokens($type, $tokens, array $data = array(), array $options = array()) {

@@ -47,60 +47,99 @@ Drupal.behaviors.plupload = {
       // Initialize Plupload for this element.
       $this.pluploadQueue(pluploadSettings);
 
-      // Intercept the form submit to ensure all files are done uploading first.
-      var $form = $this.closest('form');
-      var originalFormAttributes = {
-        'method': $form.attr('method'),
-        'enctype': $form.attr('enctype'),
-        'action': $form.attr('action'),
-        'target': $form.attr('target')
-      };
-      $form.submit(function(e) {
-        var uploader = $('.plupload-element', this).pluploadQueue();
-
-        // Only allow the submit to proceed if there are files and they've all
-        // completed uploading.
-        // @todo Implement a setting for whether the field is required, rather
-        //   than assuming that all are.
-        if (uploader.files.length > 0 && uploader.total.uploaded == uploader.files.length) {
-          // Plupload's html4 runtime has a bug where it changes the attributes
-          // of the form to handle the file upload, but then fails to change
-          // them back after the upload is finished.
-          for (var attr in originalFormAttributes) {
-            $form.attr(attr, originalFormAttributes[attr]);
-          }
-          return;
-        }
-
-        // If we're here, stop the form submit, and perform logic as appropriate
-        // to the current upload state.
-        e.preventDefault();
-        if (uploader.files.length == 0) {
-          alert('You must at least upload one file.');
-        }
-        else if (uploader.state == plupload.STARTED) {
-          alert('Your files are currently being uploaded. Please wait until they are finished before submitting this form.');
-        }
-        else {
-          var stateChangedHandler = function() {
-            if (uploader.total.uploaded == uploader.files.length) {
-              // Plupload's html4 runtime has a bug where it changes the
-              // attributes of the form to handle the file upload, but then
-              // fails to change them back after the upload is finished.
-              for (var attr in originalFormAttributes) {
-                $form.attr(attr, originalFormAttributes[attr]);
-              }
-              uploader.unbind('StateChanged', stateChangedHandler);
-              $form.submit();
-            }
-          };
-          uploader.bind('StateChanged', stateChangedHandler);
-          uploader.start();
-        }
-      });
     });
   }
-}
+};
+
+ /**
+  * Attaches the Plupload behavior to each Plupload form element.
+  */
+Drupal.behaviors.pluploadform = {
+  attach: function(context, settings) {
+    $('form', context).once('plupload-form', function() {
+      if (0 < $(this).find('.plupload-element').length) {
+        var $form = $(this);
+        var originalFormAttributes = {
+            'method': $form.attr('method'),
+            'enctype': $form.attr('enctype'),
+            'action': $form.attr('action'),
+            'target': $form.attr('target')
+        };      
+  
+        $(this).submit(function(e) {
+          var completedPluploaders = 0;
+          var totalPluploaders = $(this).find('.plupload-element').length;
+          var errors = '';
+  
+          $(this).find('.plupload-element').each( function(index){
+            var uploader = $(this).pluploadQueue();
+  
+            var id = $(this).attr('id');
+            var defaultSettings = settings.plupload['_default'] ? settings.plupload['_default'] : {};
+            var elementSettings = (id && settings.plupload[id]) ? settings.plupload[id] : {};
+            var pluploadSettings = $.extend({}, defaultSettings, elementSettings);
+  
+            //Only allow the submit to proceed if there are files and they've all
+            //completed uploading.
+            //@todo Implement a setting for whether the field is required, rather
+            //than assuming that all are.
+            if (uploader.state == plupload.STARTED) {
+              errors += Drupal.t("Please wait while your files are being uploaded.");              
+            }
+            else if (uploader.files.length == 0 && !pluploadSettings.required) {
+              completedPluploaders++;
+            }       
+  
+            else if (uploader.files.length == 0) { 
+              errors += Drupal.t("@index: You must upload at least one file.\n",{'@index': (index + 1)});
+            }       
+  
+            else if (uploader.files.length > 0 && uploader.total.uploaded == uploader.files.length) {
+              completedPluploaders++;
+            }       
+  
+            else {  
+              var stateChangedHandler = function() {
+                if (uploader.total.uploaded == uploader.files.length) {
+                  uploader.unbind('StateChanged', stateChangedHandler);
+                  completedPluploaders++;
+                  if (completedPluploaders == totalPluploaders ) {
+                    //Plupload's html4 runtime has a bug where it changes the
+                    //attributes of the form to handle the file upload, but then
+                    //fails to change them back after the upload is finished.
+                    for (var attr in originalFormAttributes) {
+                      $form.attr(attr, originalFormAttributes[attr]);
+                    }
+                    $form.submit();
+                    return true;
+                  }
+                }
+              };
+              uploader.bind('StateChanged', stateChangedHandler);
+              uploader.start();
+            }
+
+          });
+          if (completedPluploaders == totalPluploaders) {
+            //Plupload's html4 runtime has a bug where it changes the
+            //attributes of the form to handle the file upload, but then
+            //fails to change them back after the upload is finished.
+            for (var attr in originalFormAttributes) {
+              $form.attr(attr, originalFormAttributes[attr]);
+            }
+            return true;
+          }
+          else if (0 < errors.length){
+            alert(errors);
+          }
+         
+          return false;
+        });
+      }
+    });
+  }
+};
+
 
 /**
  * Helper function to compare version strings.

@@ -27,6 +27,8 @@ Drupal.behaviors.experimentalMediaBrowser = {
 
     $('.media-browser-tab').each( Drupal.media.browser.validateButtons );
 
+    Drupal.media.browser.selectErrorTab();
+
   }
   // Wait for additional params to be passed in.
 };
@@ -97,5 +99,22 @@ Drupal.media.browser.resizeIframe = function (event) {
   var h = $('body').height();
   $(parent.window.document).find('#mediaBrowser').height(h);
 };
+
+Drupal.media.browser.selectErrorTab = function() {
+  //Find the ID of a tab with an error in it
+  var errorTabID = $('#media-browser-tabset')
+    .find('.error')
+    .parents('.media-browser-tab')
+    .attr('id');
+
+  if (errorTabID !== undefined) {
+    //Find the Tab Link with errorTabID
+    var tab = $('a[href="#' + errorTabID + '"]');
+    //Find the index of the tab
+    var index = $('#media-browser-tabset a').index(tab);
+    //Select the tab
+    $('#media-browser-tabset').tabs('select', index)
+  }
+}
 
 }(jQuery));

@@ -492,50 +492,50 @@ function scratchpads_front_styles_default_presets_alter(&$presets){
  * Implementation of hook_image_default_styles().
  */
 function scratchpads_front_image_default_styles(){
-  $styles = array();
-  // Exported image style: slideshow_large
-  $styles['slideshow_large'] = array(
-    'name' => 'slideshow_large',
-    'effects' => array(
-      2 => array(
-        'label' => 'Scale and crop',
-        'help' => 'Scale and crop will maintain the aspect-ratio of the original image, then crop the larger dimension. This is most useful for creating perfectly square thumbnails without stretching the image.',
-        'effect callback' => 'image_scale_and_crop_effect',
-        'dimensions callback' => 'image_resize_dimensions',
-        'form callback' => 'image_resize_form',
-        'summary theme' => 'image_resize_summary',
-        'module' => 'image',
-        'name' => 'image_scale_and_crop',
-        'data' => array(
-          'width' => '619',
-          'height' => '463'
+  return array(
+    'slideshow_large' => array(
+      'name' => 'slideshow_large',
+      'effects' => array(
+        array(
+          'name' => 'image_scale_and_crop',
+          'data' => array(
+            'width' => '619',
+            'height' => '463'
+          ),
+          'weight' => '1'
         ),
-        'weight' => '1'
+        array(
+          'name' => 'coloractions_convert',
+          'data' => array(
+            'format' => 'image/jpeg',
+            'quality' => '80'
+          ),
+          'weight' => '1'
+        )
+      )
+    ),
+    'slideshow_thumbnail' => array(
+      'name' => 'slideshow_thumbnail',
+      'effects' => array(
+        array(
+          'name' => 'image_scale_and_crop',
+          'data' => array(
+            'width' => '154',
+            'height' => '115'
+          ),
+          'weight' => '1'
+        ),
+        array(
+          'name' => 'coloractions_convert',
+          'data' => array(
+            'format' => 'image/jpeg',
+            'quality' => '80'
+          ),
+          'weight' => '1'
+        )
       )
     )
   );
-  // Exported image style: slideshow_thumbnail
-  $styles['slideshow_thumbnail'] = array(
-    'name' => 'slideshow_thumbnail',
-    'effects' => array(
-      1 => array(
-        'label' => 'Scale and crop',
-        'help' => 'Scale and crop will maintain the aspect-ratio of the original image, then crop the larger dimension. This is most useful for creating perfectly square thumbnails without stretching the image.',
-        'effect callback' => 'image_scale_and_crop_effect',
-        'dimensions callback' => 'image_resize_dimensions',
-        'form callback' => 'image_resize_form',
-        'summary theme' => 'image_resize_summary',
-        'module' => 'image',
-        'name' => 'image_scale_and_crop',
-        'data' => array(
-          'width' => '154',
-          'height' => '115'
-        ),
-        'weight' => '1'
-      )
-    )
-  );
-  return $styles;
 }
 
 

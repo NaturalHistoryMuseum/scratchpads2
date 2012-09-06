@@ -114,19 +114,21 @@ function media_variable_default($name = NULL) {
 
   if (!isset($defaults)) {
     $defaults = array(
-      'wysiwyg_title' => 'Media browser',
-      'wysiwyg_icon_title' => 'Add media',
+      'wysiwyg_title' => t('Media browser'),
+      'wysiwyg_icon_title' => t('Add media'),
       //@todo: We should do this per type actually.  For "other" it should be a link.
       'wysiwyg_default_view_mode' => 'media_large',
       // Types which can be selected when embedding media vs wysiwyg.
       'wysiwyg_allowed_types' => array('audio', 'image', 'video'),
       // Attributes which can be modified via the wysiwyg and persist.
       'wysiwyg_allowed_attributes' => array('height', 'width', 'hspace', 'vspace', 'border', 'align', 'style', 'alt', 'title', 'class', 'id'),
+      // WYSIWYG browser plugins in WYSIWYG config page
+      'wysiwyg_browser_plugins' => array(),
 
       // Name of the theme to use in media popup dialogs, defaults to admin_theme
       'dialog_theme' => '',
       // @TODO: Make a configuration form with this.
-      'file_extensions' => 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp mp3 mov m4v mp4 mpeg avi ogg oga ogv wmv ico',
+      'file_extensions' => FILE_DEFAULT_ALLOWED_EXTENSIONS . ' mp3 mov mp4 m4a m4v mpeg avi ogg oga ogv wmv ico',
       'max_filesize' => '',
       'debug' => FALSE,
 
@@ -134,11 +136,6 @@ function media_variable_default($name = NULL) {
 
       // Used in media.xml.inc: how long to cache retrieved remote data.
       'xml_cache_expire' => 3600,
-
-      // Browser defaults in media.browser.inc.
-      'browser_viewtype_default' => 'thumbnails',
-      'browser_pager_limit' => 40,
-      'browser_library_empty_message' => 'There are currently no media in this library to select.',
 
       'import_batch_size' => 20,
       'fromurl_supported_schemes' => array('http', 'https', 'ftp', 'smb', 'ftps'),
@@ -150,6 +147,9 @@ function media_variable_default($name = NULL) {
       'show_file_type_rebuild_nag' => NULL,
       'field_select_media_text' => NULL,
       'field_remove_media_text' => NULL,
+      'browser_library_empty_message' => NULL,
+      'browser_pager_limit' => NULL,
+      'browser_viewtype_default' => NULL,
     );
   }
 

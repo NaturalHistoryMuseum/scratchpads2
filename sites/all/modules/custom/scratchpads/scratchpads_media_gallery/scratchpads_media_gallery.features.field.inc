@@ -111,9 +111,10 @@ function scratchpads_media_gallery_field_default_fields(){
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'media',
+        'module' => 'media_multiselect',
         'settings' => array(
           'allowed_schemes' => array(
+            'module' => 0,
             'public' => 'public'
           ),
           'allowed_types' => array(
@@ -123,13 +124,13 @@ function scratchpads_media_gallery_field_default_fields(){
             'video' => 'video'
           ),
           'browser_plugins' => array(
-            'library' => 0,
             'media_default--media_browser_1' => 0,
+            'media_default--media_browser_my_files' => 0,
             'upload' => 0
           ),
           'progress_indicator' => 'throbber'
         ),
-        'type' => 'media_generic',
+        'type' => 'media_multiselect',
         'weight' => '-3'
       )
     )
@@ -171,9 +172,17 @@ function scratchpads_media_gallery_field_default_fields(){
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'file',
+          'module' => 'file_entity',
+          'settings' => array(
+            'file_view_mode' => 'file_styles_square_thumbnail'
+          ),
+          'type' => 'file_rendered',
+          'weight' => '12'
+        ),
+        'linked_node' => array(
+          'label' => 'above',
           'settings' => array(),
-          'type' => 'file_default',
+          'type' => 'hidden',
           'weight' => 1
         ),
         'teaser' => array(
@@ -196,9 +205,10 @@ function scratchpads_media_gallery_field_default_fields(){
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'media',
+        'module' => 'media_multiselect',
         'settings' => array(
           'allowed_schemes' => array(
+            'module' => 0,
             'public' => 'public'
           ),
           'allowed_types' => array(
@@ -208,13 +218,13 @@ function scratchpads_media_gallery_field_default_fields(){
             'video' => 'video'
           ),
           'browser_plugins' => array(
-            'library' => 0,
             'media_default--media_browser_1' => 0,
+            'media_default--media_browser_my_files' => 0,
             'upload' => 0
           ),
           'progress_indicator' => 'throbber'
         ),
-        'type' => 'media_generic',
+        'type' => 'media_multiselect',
         'weight' => '-3'
       )
     )
@@ -445,10 +455,10 @@ function scratchpads_media_gallery_field_default_fields(){
             'links_option' => 1,
             'separator_option' => ', ',
             'wrapper_class' => '',
-            'wrapper_option' => '- None -',
+            'wrapper_option' => '- None -'
           ),
           'type' => 'taxonomy_term_reference_csv',
-          'weight' => '1',
+          'weight' => '1'
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -500,10 +510,10 @@ function scratchpads_media_gallery_field_default_fields(){
             'links_option' => 1,
             'separator_option' => ', ',
             'wrapper_class' => '',
-            'wrapper_option' => '- None -',
+            'wrapper_option' => '- None -'
           ),
           'type' => 'taxonomy_term_reference_csv',
-          'weight' => '1',
+          'weight' => '1'
         ),
         'linked_node' => array(
           'label' => 'none',
@@ -555,10 +565,10 @@ function scratchpads_media_gallery_field_default_fields(){
             'links_option' => 1,
             'separator_option' => ', ',
             'wrapper_class' => '',
-            'wrapper_option' => '- None -',
+            'wrapper_option' => '- None -'
           ),
           'type' => 'taxonomy_term_reference_csv',
-          'weight' => '1',
+          'weight' => '1'
         ),
         'linked_node' => array(
           'label' => 'none',
@@ -1259,7 +1269,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'label' => 'Description',
       'required' => 0,
       'settings' => array(
-        'text_processing' => '0',
+        'text_processing' => '1',
         'user_register_form' => FALSE
       ),
       'widget' => array(
@@ -1421,7 +1431,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'label' => 'Description',
       'required' => 0,
       'settings' => array(
-        'text_processing' => '0',
+        'text_processing' => '1',
         'user_register_form' => FALSE
       ),
       'widget' => array(
@@ -1583,7 +1593,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'label' => 'Description',
       'required' => 0,
       'settings' => array(
-        'text_processing' => '0',
+        'text_processing' => '1',
         'user_register_form' => FALSE
       ),
       'widget' => array(

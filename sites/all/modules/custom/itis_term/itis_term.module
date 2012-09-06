@@ -283,8 +283,12 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
       );
     case 'field_unit_indicator1':
     case 'field_unit_indicator2':
+      if($biological_type){return array(
+          '×' => '×'
+        );}
       return array(
-        'x' => 'x'
+        'x' => 'x',
+        '×' => '×'
       );
     case 'field_unit_indicator3':
     case 'field_unit_indicator4':
@@ -306,7 +310,7 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
               'subf.' => 'subf.',
               'subvar.' => 'subvar.',
               'var.' => 'var.',
-              'x' => 'x'
+              '×' => '×'
             );
         }
       }
@@ -317,7 +321,8 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
         'subsp.' => 'subsp.',
         'subvar.' => 'subvar.',
         'var.' => 'var.',
-        'x' => 'x'
+        'x' => 'x',
+        '×' => '×'
       );
     case 'field_usage':
       if($biological_type){

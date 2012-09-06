@@ -23,7 +23,7 @@ Drupal.behaviors.mediaFormatForm = {
 
     $('<a class="button fake-ok">' + Drupal.t('Submit') + '</a>').appendTo($('#media-format-form')).bind('click', Drupal.media.formatForm.submit);
     $('<a class="button fake-cancel">' + Drupal.t('Cancel') + '</a>').appendTo($('#media-format-form')).bind('click', Drupal.media.formatForm.submit);
-    if (Drupal.settings.media_format_form.autosubmit) {
+    if (Drupal.settings.media_format_form != undefined && Drupal.settings.media_format_form.autosubmit) {
       $('.button.fake-ok').click();
     }
   }

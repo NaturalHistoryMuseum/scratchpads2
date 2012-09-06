@@ -7,6 +7,14 @@ body{
 	height:100%;
 }
 
+blockquote{
+	padding-left:10px;
+	font-style:italic;
+}
+blockquote em, blockquote i{
+	font-style:normal;
+}
+
 #page{
   min-height: 100%;
   position: relative;

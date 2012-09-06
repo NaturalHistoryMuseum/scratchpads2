@@ -6,6 +6,13 @@
  */
 
 /**
+ * The default list of file extensions allowed by file_save_upload().
+ *
+ * Adds support for docx, xlsx, pptx and ppsx.
+ */
+define('FILE_DEFAULT_ALLOWED_EXTENSIONS', 'jpg jpeg gif png txt doc docx xls xlsx pdf ppt pptx pps ppsx odt ods odp');
+
+/**
  * As part of extending Drupal core's file entity API, this module adds some
  * functions to the 'file' namespace. For organization, those are kept in the
  * 'file_entity.file_api.inc' file.
@@ -112,6 +119,21 @@ function file_entity_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   // general view, edit, delete for files
+  $items['file/add'] = array(
+    'title' => 'Add file',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('file_entity_add_upload', array()),
+    'access arguments' => array('administer files'),
+    'file' => 'file_entity.pages.inc',
+  );
+  if (module_exists('plupload') && module_exists('multiform')) {
+    $items['file/add']['page arguments'] = array('file_entity_add_upload_multiple');
+  }
+  $items['file/add/upload'] = array(
+    'title' => 'Upload',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
   $items['file/%file'] = array(
     'title callback' => 'entity_label',
     'title arguments' => array('file', 1),
@@ -245,6 +267,23 @@ function file_entity_menu() {
 }
 
 /**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function file_entity_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  // Add action link to 'file/add' on 'admin/content/file' page.
+  if ($root_path == 'admin/content/file') {
+    $item = menu_get_item('file/add');
+    if (!empty($item['access'])) {
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+        '#weight' => $item['weight'],
+      );
+    }
+  }
+}
+
+/**
  * Implement hook_permission().
  */
 function file_entity_permission() {
@@ -268,6 +307,8 @@ function file_entity_permission() {
  */
 function file_entity_admin_paths() {
   $paths = array(
+    'file/add' => TRUE,
+    'file/add/*' => TRUE,
     'file/*/edit' => TRUE,
     'file/*/delete' => TRUE,
   );
@@ -407,19 +448,17 @@ function file_entity_file_formatter_info() {
 
   // Allow file field formatters to be reused for displaying the file entity's
   // file pseudo-field.
-  if (module_exists('file')) {
-    foreach (field_info_formatter_types() as $field_formatter_type => $field_formatter_info) {
-      if (in_array('file', $field_formatter_info['field types'])) {
-        $formatters['file_field_' . $field_formatter_type] = array(
-          'label' => $field_formatter_info['label'],
-          'view callback' => 'file_entity_file_formatter_file_field_view',
+  foreach (field_info_formatter_types() as $field_formatter_type => $field_formatter_info) {
+    if (in_array('file', $field_formatter_info['field types'])) {
+      $formatters['file_field_' . $field_formatter_type] = array(
+        'label' => $field_formatter_info['label'],
+        'view callback' => 'file_entity_file_formatter_file_field_view',
+      );
+      if (!empty($field_formatter_info['settings'])) {
+        $formatters['file_field_' . $field_formatter_type] += array(
+          'default settings' => $field_formatter_info['settings'],
+          'settings callback' => 'file_entity_file_formatter_file_field_settings',
         );
-        if (isset($field_formatter_info['settings'])) {
-          $formatters['file_field_' . $field_formatter_type] += array(
-            'default settings' => $field_formatter_info['settings'],
-            'settings callback' => 'file_entity_file_formatter_file_field_settings',
-          );
-        }
       }
     }
   }
@@ -522,7 +561,7 @@ function file_entity_file_formatter_file_field_settings($form, &$form_state, $se
 function file_entity_file_formatter_file_image_view($file, $display, $langcode) {
   // Prevent PHP notices when trying to read empty files.
   // @see http://drupal.org/node/681042
-  if (!filesize($file->uri)) {
+  if (!$file->filesize) {
     return;
   }
 
@@ -656,10 +695,13 @@ function template_preprocess_file_entity(&$variables) {
   $variables['label']     = check_plain($label);
   $variables['page']      = $view_mode == 'full' && file_is_page($file);
 
-  // Disable the file name from being displayed as the title until we can
-  // figure out a better way to control this.
+  // Hide the file name from being displayed until we can figure out a better
+  // way to control this. We cannot simply not output the title since
+  // contextual links require $title_suffix to be output in the template.
   // @see http://drupal.org/node/1245266
-  $variables['page'] = TRUE;
+  if (!$variables['page']) {
+    $variables['title_attributes_array']['class'][] = 'element-invisible';
+  }
 
   // Flatten the file object's member fields.
   $variables = array_merge((array) $file, $variables);
@@ -866,4 +908,19 @@ function file_entity_file_is_local($file) {
   $scheme = file_uri_scheme($file->uri);
   $wrappers = file_get_stream_wrappers(STREAM_WRAPPERS_LOCAL);
   return !empty($wrappers[$scheme]) && empty($wrappers[$scheme]['remote']);
+}
+
+/**
+ * Pre-render callback for adding validation descriptions to file upload fields.
+ */
+function file_entity_upload_validators_pre_render($element) {
+  if (!empty($element['#upload_validators'])) {
+    if (!isset($element['#description'])) {
+      $element['#description'] = '';
+    }
+    if ($element['#description'] !== FALSE) {
+      $element['#description'] = theme('file_upload_help', array('description' => $element['#description'], 'upload_validators' => $element['#upload_validators']));
+    }
+  }
+  return $element;
 }

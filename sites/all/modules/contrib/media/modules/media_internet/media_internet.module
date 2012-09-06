@@ -1,6 +1,17 @@
 <?php
 
 /**
+ * Implements hook_hook_info().
+ */
+function media_internet_hook_info() {
+  $hooks = array(
+    'media_internet_providers',
+  );
+
+  return array_fill_keys($hooks, array('group' => 'media'));
+}
+
+/**
  * Implements hook_menu().
  */
 function media_internet_menu() {
@@ -17,38 +28,10 @@ function media_internet_menu() {
 }
 
 /**
- * Implements hook_ctools_plugin_api().
- */
-function media_internet_ctools_plugin_api($module, $api) {
-  if ($module == 'media' && $api == 'browser') {
-    return array(
-      'version' => 1,
-    );
-  }
-}
-
-/**
- * Implements hook_media_browser_plugin_info().
- */
-function media_internet_media_browser_plugin_info() {
-  $plugins = array();
-  $plugins['media_internet'] = array(
-    'title' => t('Web'),
-    'handler' => array(
-      'path' => drupal_get_path('module', 'media_internet') . '/includes',
-      'file' => 'MediaBrowserInternet.inc',
-      'class' => 'MediaBrowserInternet',
-    ),
-    'access callback' => 'media_internet_access',
-  );
-  return $plugins;
-}
-
-/**
  * Access callback for the media_internet media browser plugin.
  */
-function media_internet_access() {
-  return user_access('administer media') || user_access('add media from remote sources');
+function media_internet_access($account = NULL) {
+  return user_access('administer media', $account) || user_access('add media from remote sources', $account);
 }
 
 /**
@@ -65,6 +48,8 @@ function media_internet_permission() {
 
 /**
  * Provides a form for adding media items from 3rd party sources.
+ *
+ * @todo Convert the form arguments to just one array of options/parameters.
  */
 function media_internet_add($form, &$form_state = array(), $types = NULL) {
   $form['embed_code'] = array(
@@ -94,25 +79,25 @@ function media_internet_add($form, &$form_state = array(), $types = NULL) {
     $form['#validators']['media_file_validate_types'] = array($types);
   }
 
-  $form['providers'] = array();
-  $form['providers']['header'] = array('#markup' => '<h2>' . t('Supported Providers') . '</h2>');
+  $providers = array();
   foreach (media_internet_get_providers() as $key => $provider) {
     if (empty($provider['hidden']) || $provider['hidden'] != TRUE) {
-      if (isset($provider['image'])) {
-        $form['providers'][$key] = array('#markup' => theme('image', array('path' => $provider['image'], 'title' => $provider['title'])));
-      }
-      else {
-        $form['providers'][$key] = array('#markup' => $provider['title']);
-      }
-      // Wrap the provider in a div so we can make a nice list
-      $form['providers'][$key]['#prefix'] = '<div class="media-provider">';
-      $form['providers'][$key]['#suffix'] = '</div>';
+      // @todo Convert this to show provider images in a nice format.
+      $class = drupal_clean_css_identifier(drupal_strtolower($provider['title']));
+      $providers[] = array(
+        'data' => check_plain($provider['title']),
+        'class' => array($class),
+      );
     }
   }
-  if (count($form['providers']) == 1) {
-    // Just the header, no actual providers
-    unset($form['providers']['header']);
-  }
+  $form['providers'] = array(
+    '#theme' => 'item_list',
+    '#title' => t('Supported providers'),
+    '#items' => $providers,
+    '#attributes' => array(
+      'class' => array('media-internet-providers'),
+    ),
+  );
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -237,20 +222,30 @@ function media_internet_add_submit($form, &$form_state) {
  * and store it as a file object in file_managed.
  */
 function media_internet_get_providers() {
-  $providers = &drupal_static(__FUNCTION__, array());
-  if (!$providers) {
-    foreach (module_implements('media_internet_providers') as $module) {
-      foreach (module_invoke($module, 'media_internet_providers') as $key => $provider) {
-        // Store the module here too for convinience.
-        $providers[$key] = $provider;
-        $providers[$key]['module'] = $module;
-        if (!isset($providers[$key]['weight'])) {
-          $providers[$key]['weight'] = 0;
+  $providers = &drupal_static(__FUNCTION__);
+
+  if (!isset($providers)) {
+    $cid = 'media:internet:providers';
+    if ($cache = cache_get($cid)) {
+      $providers = $cache->data;
+    }
+    else {
+      $providers = array();
+      foreach (module_implements('media_internet_providers') as $module) {
+        foreach (module_invoke($module, 'media_internet_providers') as $key => $provider) {
+          // Store the module here too for convinience.
+          $providers[$key] = $provider;
+          $providers[$key]['module'] = $module;
+          if (!isset($providers[$key]['weight'])) {
+            $providers[$key]['weight'] = 0;
+          }
         }
       }
+      uasort($providers, 'drupal_sort_weight');
+      cache_set($cid, $providers);
     }
-    uasort($providers, 'drupal_sort_weight');
   }
+
   return $providers;
 }
 
@@ -272,23 +267,6 @@ function media_internet_get_provider($embed_string) {
     }
   }
   throw new MediaInternetNoHandlerException(t('Unable to handle the provided embed string or URL.'));
-}
-
-/**
- * Implements hook_media_internet_providers();
- *
- * Provides a very basic handler which coppies files from remote sources to the
- * local files directory.
- */
-function media_internet_media_internet_providers() {
-  return array(
-    'MediaInternetFileHandler' => array(
-      'title' => 'Files',
-      'hidden' => TRUE,
-      // Make it go last.
-      'weight' => 10000,
-    ),
-  );
 }
 
 class MediaInternetFileHandler extends MediaInternetBaseHandler {

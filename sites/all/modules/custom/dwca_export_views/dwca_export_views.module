@@ -5,7 +5,7 @@ function dwca_export_views_menu() {
 	
 	$items = array();	
 
-	$items['views_dwca_export'] = array(
+	$items['admin/config/system/views_dwca_export'] = array(
 		'title' => 'DarwinCore Archive (DwC-A) export mapping module',
 		'description' => t('Allow a use to select views for DwC-A and map terms to those views to create the metadata file meta.xml for the DwC-A archive.'),
 		'page callback' => 'drupal_get_form',
@@ -44,7 +44,6 @@ function dwca_export_views_select_view_form() {
 
 	$allviews = views_get_all_views();
 
-	//LORNA - DO I NEED THIS FIELDSET ARRAY!!!
 	$views = array(
 	    		'#type' => 'fieldset',
 	    		'#title' => t('DwC-A views'),
@@ -52,6 +51,7 @@ function dwca_export_views_select_view_form() {
 	);
 
 	foreach($allviews as $view){
+		// select only the views that are prefixed with dwca_export for the form
 		if(substr($view->name, 0, 11) == 'dwca_export' && substr($view->name, 0, 23) != 'dwca_export_description'){
 				
 			$dwca_filename = $view->name;
@@ -75,7 +75,7 @@ function dwca_export_views_select_view_form() {
 		print_r(t('key ') . $key . t('key ') . $value);
 	}*/
 	//$meta_string = file_get_contents('http://www.google.com/');
-	//drupal_set_message(t('The meta xml is ') . $meta_string);
+	//drupal_set_message(t('The meta - is ') . $meta_string);
 	//print_r($meta_string);
 	return $views;
 }
@@ -104,68 +104,14 @@ function dwca_export_views_fields_form($form, &$form_state) {
 	    		'#title' => t('Field to DwC-A term mapping'),
 	);
 	
+	$form['dwca_export_info'] = array(
+			'#markup' => '<p>Click on a view name below to expand the form to map field names to terms in DwC-A. </p>'
+	.'</p>'
+	);
+	
 	//TODO create an array containing the terms for the core and each extension
 
-	
-
-	//create a 2D array so that each extension or view name points to an array of terms
-	$meta_string = simplexml_load_file(drupal_get_path('module', 'dwca_export') . '/static/meta.xml');
-	//simplexml_load_string()
-	//archive
-	/////////////////////////echo $meta_string->getName() . "<br />";
-	
-	$core_string = $meta_string->core->files->location[0];
-	$classification_view_name = "dwca_export_" . substr($core_string, 0, -4);
-	echo $classification_view_name;
-
-	$views = array();
-	//the first postion in the dwca is always the id and this doesn't point to a term so use the empty string
-	$views[$classification_view_name][0] = '';
-	
-	foreach($meta_string->core->field as $field)
-	{
-		$term = (string)$field[@term];
-		
-		//$views[$classification_view_name][$term_array] = array($term);
-		$views[$classification_view_name][] = $term;
-		
-		
-		
-	}
-	print_r(t('TEH VIEWS ARRAY') . $views["dwca_export_classification"][1] . t('end'));
-
-	foreach($meta_string->extension as $extension)
-	{
-		//echo $extension->files->location[0] . "\n";
-		$extension_string = $extension->files->location[0] . "\n";
-		
-		$extension_view_name = "dwca_export_" . substr($extension_string, 0, -5);
-		echo "The ext view name is:" . $extension_view_name . "\n";
-		$views[$extension_view_name][0] = '';
-		
-		foreach($extension->field as $field)
-		{
-			$term = (string)$field[@term];
-			$views[$extension_view_name][] = $term;
-			//echo $field[@term] . "\n";
-		}
-	}
-
-	foreach($meta_string->children() as $child)
-	{
-		// core or extension
-		//echo $child->getName() . ": " . $child . "<br />";
-
-		//foreach($child->children() as $child2)
-		//{
-		// core or extension
-		//echo $child2->getName() . ": " . $child2 . "<br />";
-		//}
-
-
-	}
-	//$result = $meta_string->xpath("//archive/core/files/location");
-	//foreach ($result_array as )
+	$views = _dwca_export_views_meta_xml_map();
 
 	$count = 0;
 	$savedvariables = variable_get('VIEWS_MAP');
@@ -186,42 +132,224 @@ function dwca_export_views_fields_form($form, &$form_state) {
 		$form[$value] = array(
 			    		'#type' => 'fieldset',
 			    		'#title' => $value,
-		'#size' => 30,
-						//'#weight' => 3,
+						//'#size' => 30,
 						//'#collapsible' => $collapsed,
 						//'#collapsed' => $collapsed,
 						//'#tree' => $collapsed,
+						'#collapsible' => 1,
+						'#collapsed' => 1,
+						'#tree' => 1,
+		
 		);
 		// check whether there is a view named with this value
 		//if($view) {
 			//$fields = $view->display_handler->get_field_labels();
 			$fields =$view->display['default']->display_options['fields'];
 			
+			$handler->display->display_options['fields']['title']['exclude'] = TRUE;
+			
 			$field_index = 0;
+			$exclude_hidden_field = FALSE;
+			
 			foreach ($fields as $field_key => $field_label) {
 				
 				//display the field_keys as the names of each text box in this form
-				//print_r($field_key . t(' FIELD LABEL') . $field_label);
-				//drupal_set_message($field_key . t(' COUNT IS ZERO') . $field_label);
+								
+				/////drupal_set_message(t('value') . $field_key . t('value and field_index ') . $field_index . $value);
+				// the label is an array
+				foreach ($field_label as $key => $label) {				
 					
+					// if there is a key exclude and the value = TRUE exclude this field
+					if($key == 'exclude' && $label == TRUE){
+						$exclude_hidden_field = TRUE;
+					}
+					
+				}
+				
+				if ($exclude_hidden_field == FALSE) {	
 				$form[$value][$field_key] = array(
 				    '#type' => 'textfield',
 				    '#title' => $field_key,
 				    '#description' => t('Enter the DwC-A term for the field - ' . $field_key),
-				    //'#default_value' => !empty($form_state['values']['city']) ? $form_state['values']['city'] : '',
-				//'#default_value' => $views["dwca_export_classification"][$field_index],
-				'#default_value' => $views[$value][$field_index],
-				'#size' => 30,
-				//'#tree' => TRUE,
+					'#default_value' => $views[$value][$field_index],
+					'#size' => 60,
+					'#collapsible' => 1,
+					'#collapsed' => 1,
+					'#tree' => 1,
 				);
-																				
-			$field_index++;	
+				$field_index++;
+				}
+
+				$exclude_hidden_field = FALSE;
+		}		
+	}
+	$count++;	
+	return $form;
+}
+
+function _dwca_export_views_meta_xml_update($field_term_map){
+	
+	//convert the field_term_map to an array of terms. The order of the terms corresponds to the 
+	//order in the meta.xml. We don't need the keys (view field names)
+	
+	$term_array = array();
+		
+		foreach ($field_term_map as $key => $value) {
+			
+			$term_array[$key] = array();
+			
+			//drupal_set_message(t(' THE key... ') . $key);
+			//if the value is an array with key names dwca_export_
+			if ( (array) $value === $value ) {
+				
+				foreach ($value as $key2 => $value2) {
+					
+					/////////drupal_set_message(t(' THE key2... ') . $key2);
+					//$term_array[] = $key;
+					//////////////////////////////////////////////$term_array[$key] = array();
+					if (substr($key, 0, 11) == 'dwca_export') {
+						
+						$term_array[$key][] = $value2;
+					}
+			}
+		}		
+		
+}
+	
+	//check if the array size is the same as the number of fields in the meta.xml for either the
+	//core or the particular extension
+	
+	//if the view has more fields than the default meta.xml we can add a node to the meta.xml
+	//TODO: Need to work this out.
+	
+	//if the view has less fields we could either leave them blank e.g. <field index="21" term=""/>
+	//or simply remove them
+
+	$xml_file = drupal_get_path('module', 'dwca_export') . '/static/meta.xml';
+	$meta_string = simplexml_load_file($xml_file);	
+	
+	$meta_string->core->files->location[0] = 'classification.txt';
+	
+	$core_string = $meta_string->core->files->location[0];
+	$classification_view_name = "dwca_export_" . substr($core_string, 0, -4);
+	
+	//the first position in the dwca is always the id and this doesn't point to a term so use the empty string
+	$views[$classification_view_name][0] = '';
+	
+	//set the core node of the meta.xml with dwca_export_classifcation values from the form
+	//currently we're relying on the order of fields in the view to correspond to the order of fields in the meta.xml
+	
+	//in the meta.xml id index="0" fields start at index 1
+	$index = 1;
+	
+	foreach($meta_string->core->field as $field)
+	{
+		$term = (string)$field[@term];
+		
+		if (isset($term_array['dwca_export_classification'][$index])) {
+			$field[@term] = $term_array['dwca_export_classification'][$index];
 		}
 		
+		$index++;
+		//$views[$classification_view_name][] = $term;	
 	}
-	$count++;
 	
-	return $form;
+	
+	
+	//only modify the extensions which have been modified in the form	
+	foreach($meta_string->extension as $extension)
+	{
+		//echo $extension->files->location[0] . "\n";
+		$extension_string = $extension->files->location[0] . "\n";	
+		$extension_view_name = "dwca_export_" . substr($extension_string, 0, -5);
+		//echo "The ext view name is:" . $classification_view_name . "\n";
+		//drupal_set_message(t(' THE ext view name is ') . $extension_view_name);
+				
+		if ( array_key_exists($extension_view_name, $term_array)) {
+		$views[$extension_view_name][0] = '';
+		
+		$index2 = 1;
+	
+		foreach($extension->field as $field2)
+			{
+				$term = (string)$field2[@term];
+				//$views[$extension_view_name][] = $term;
+				if (isset($term_array[(string)$extension_view_name][$index2])) {
+					$field2[@term] = $term_array[(string)$extension_view_name][$index2];
+				}
+				$index2++;
+			}
+		}
+	}
+
+	// Saving the whole modified XML to a new filename
+	$meta_string->asXml('updated_meta.xml');
+	//$meta_string->asXml($xml_file);
+	
+	//drupal_set_message(t('VALUES: <pre>@result</pre>', array('@num' => 1, '@result' => print_r($term_array, TRUE))));
+}
+
+//TODO Lorna - could we modify this method with a boolean to indicate whether we want to create the map or whether we want to modify the xml with values in the map
+function _dwca_export_views_meta_xml_map(){
+	
+	//TODO: Should we store the map in the database so we don't need to keep reading in the XML file?
+	//static $file_map;
+	//if(!isset($file_map)){
+		//$file_map = variable_get(FILE_MAP);
+	//}
+	$views = array();
+
+//create a 2D array so that each extension or view name points to an array of terms
+	$meta_string = simplexml_load_file(drupal_get_path('module', 'dwca_export') . '/static/meta.xml');
+	//simplexml_load_string()
+	
+	$core_string = $meta_string->core->files->location[0];
+	$classification_view_name = "dwca_export_" . substr($core_string, 0, -4);
+	echo $classification_view_name;
+
+	//the first postion in the dwca is always the id and this doesn't point to a term so use the empty string
+	$views[$classification_view_name][0] = '';
+	
+	foreach($meta_string->core->field as $field)
+	{
+		$term = (string)$field[@term];
+		
+		//$views[$classification_view_name][$term_array] = array($term);
+		$views[$classification_view_name][] = $term;		
+		
+	}
+
+	foreach($meta_string->extension as $extension)
+	{
+		//echo $extension->files->location[0] . "\n";
+		$extension_string = $extension->files->location[0] . "\n";
+		
+		$extension_view_name = "dwca_export_" . substr($extension_string, 0, -5);
+		//echo "The ext view name is:" . $extension_view_name . "\n";
+		$views[$extension_view_name][0] = '';
+		
+		foreach($extension->field as $field)
+		{
+			$term = (string)$field[@term];
+			$views[$extension_view_name][] = $term;
+		}
+	}
+
+	foreach($meta_string->children() as $child)
+	{
+		// core or extension
+		//foreach($child->children() as $child2)
+		//{
+		// core or extension
+		//echo $child2->getName() . ": " . $child2 . "<br />";
+		//}
+
+
+	}
+	//$result = $meta_string->xpath("//archive/core/files/location");
+	//foreach ($result_array as )
+
+	return $views;
 }
 
 function dwca_export_views_wizard($form, &$form_state) {
@@ -376,7 +504,6 @@ function dwca_export_views_wizard_submit($form, &$form_state) {
 
 	// In this case we've completed the final page of the wizard, so process the
 	// submitted information.
-	drupal_set_message(t('This information was collected by this wizard:'));
 	foreach ($form_state['step_information'] as $index => $value) {
 		// Remove FAPI fields included in the values (form_token, form_id and form_build_id
 		// This is not required, you may access the values using $value['stored_values']
@@ -385,10 +512,17 @@ function dwca_export_views_wizard_submit($form, &$form_state) {
 		unset($value['stored_values']['form_id']);
 		unset($value['stored_values']['form_build_id']);
 		unset($value['stored_values']['form_token']);
+		
+		
+		//drupal_set_message(t('INFO COLLECTED @result'), array('@result' => print_r($value['stored_values'], TRUE)));
+		
 
 		// Now show all the values.
-		drupal_set_message(t('Step @num collected the following values: <pre>@result</pre>', array('@num' => $index, '@result' => print_r($value['stored_values'], TRUE))));
+		if ($index == 2) {
+			_dwca_export_views_meta_xml_update($value['stored_values']);
+		//drupal_set_message(t('Step @num collected the following values: <pre>@result</pre>', array('@num' => $index, '@result' => print_r($value['stored_values'], TRUE))));
 	}
+}
 }
 
 

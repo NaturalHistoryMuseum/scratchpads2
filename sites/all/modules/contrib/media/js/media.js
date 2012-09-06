@@ -28,12 +28,14 @@ Drupal.behaviors.mediaElement = {
 
       // Hide the edit and remove buttons if there is no file data yet.
       if (fidField.val() == 0) {
-        editButton.hide();
+        if (editButton.length) {
+          editButton.hide();
+        }
         removeButton.hide();
       }
 
       // When someone clicks the link to pick media (or clicks on an existing thumbnail)
-      $('.launcher', this).bind('click', function () {
+      $('.launcher', this).bind('click', function (e) {
         // Launch the browser, providing the following callback function
         // @TODO: This should not be an anomyous function.
         Drupal.media.popups.mediaBrowser(function (mediaFiles) {
@@ -47,35 +49,37 @@ Drupal.behaviors.mediaElement = {
           // Set the preview field HTML.
           previewField.html(mediaFile.preview);
         }, globalOptions);
-        return false;
+        e.preventDefault();
       });
 
       // When someone clicks the Remove button.
-      $('.remove', this).bind('click', function () {
+      $('.remove', this).bind('click', function (e) {
         // Set the value of the filefield fid (hidden) and trigger change.
         fidField.val(0);
         fidField.trigger('change');
         // Set the preview field HTML.
         previewField.html('');
-        return false;
+        e.preventDefault();
       });
 
       // Show or hide the edit/remove buttons if the field has a file or not.
       $('.fid', this).bind('change', function() {
         if (fidField.val() == 0) {
-          editButton.hide();
+          if (editButton.length) {
+            editButton.hide();
+          }
           removeButton.hide();
         }
         else {
-          editButton.attr('href', editButton.attr('href').replace(/media\/\d+\/edit/, 'media/' + fidField.val() + '/edit'));
-
-          // Re-process the edit link through CTools modal behaviors.
-          editButton.unbind('click');
-          editButton.removeClass('ctools-use-modal-processed');
-          // @todo Maybe add support for Drupal.detachBehaviors in Drupal.behaviors.ZZCToolsModal?
-          Drupal.attachBehaviors(editButton.parent(), Drupal.settings);
-
-          editButton.show();
+          if (editButton.length) {
+            editButton.attr('href', editButton.attr('href').replace(/media\/\d+\/edit/, 'media/' + fidField.val() + '/edit'));
+            // Re-process the edit link through CTools modal behaviors.
+            editButton.unbind('click');
+            editButton.removeClass('ctools-use-modal-processed');
+            // @todo Maybe add support for Drupal.detachBehaviors in Drupal.behaviors.ZZCToolsModal?
+            Drupal.attachBehaviors(editButton.parent(), Drupal.settings);
+            editButton.show();
+          }
           removeButton.show();
         }
       });
