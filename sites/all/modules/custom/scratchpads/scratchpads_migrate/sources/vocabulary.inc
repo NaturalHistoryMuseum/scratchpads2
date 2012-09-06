@@ -41,6 +41,7 @@ class DrupalVocabularyMigration extends DrupalMigration{
     ), 'IN');
     // We're not migrating image galleries vocabulary
     $query->condition('name', 'Image Galleries', '!=');
+    $query->condition('name', '', '!=');
     $query->leftJoin('scratchpads_migrate_biological_classification', 'mbc', 'v.vid = mbc.vid');
     $query->addField('mbc', 'type', 'classification_type');
     return $query;

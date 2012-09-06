@@ -30,10 +30,11 @@ class VariableMigration extends DrupalMigration{
    * D7 (just in case the name of the variable has changed).
    */
   public function variableNames(){
-    // TODO - add 'site_frontpage' => 'site_frontpage' based on settings
     $variable_names = array(
       'site_name' => 'site_name',
-      'site_mail' => 'site_mail'
+      'site_mail' => 'site_mail',
+      'site_frontpage' => 'site_frontpage',
+      'site_mission' => 'front_page_welcome_message'
     );
     $default_theme = Database::getConnection('default', 'scratchpad_1')->select('variable', 'v')->fields('v', array(
       'value'
@@ -54,6 +55,14 @@ class VariableMigration extends DrupalMigration{
     return Database::getConnection('default', $this->sourceConnection)->select('variable', 'v')->fields('v', array(
       'name',
       'value'
-    ))->condition('name', $this->variableNames());
+    ))->condition('name', array_keys($this->variableNames()));
+  }
+
+  public function prepareRow($row){
+    parent::prepareRow($row);
+    if($row->name == 'site_frontpage'){
+      // Do we want to use this front page?
+      if(!scratchpads_migrate_variable_get('keep_homepage')){return false;}
+    }
   }
 }

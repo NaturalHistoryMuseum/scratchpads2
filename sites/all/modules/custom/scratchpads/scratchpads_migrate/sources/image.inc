@@ -33,7 +33,7 @@ class DrupalImageMigration extends DrupalFileMigration{
    */
   public function __construct(array $arguments){
     parent::__construct($arguments);
-    $this->destination = new MigrateDestinationFile('image');
+    $this->destination = new MigrateDestinationFile('image', 'MigrateRemoteFileUri');
     $fields = $this->sourceFieldList();
     $this->source = new MigrateSourceSQL($this->sourceQuery(), $fields, $this->countQuery(), $this->sourceOptions);
     $destination_fields = $this->destination->fields();
@@ -101,10 +101,13 @@ class DrupalImageMigration extends DrupalFileMigration{
       'field_imagefield',
       'image_publication',
       'image_specimen',
-      'field_img_location',
+      //'field_img_location',
       'nid',
       'vid'
     ));
+    // Images get filename from the image node title
+    $this->removeFieldMapping('filename');
+    $this->addFieldMapping('filename', 'title');
   }
 
   public function sourceFieldList(){
@@ -127,7 +130,7 @@ class DrupalImageMigration extends DrupalFileMigration{
   protected function sourceQuery(){
     $query = Database::getConnection('default', $this->sourceConnection)->select('files', 'f');
     $query->fields('f', array(
-    	'fid',
+      'fid',
       'uid',
       'filepath',
       'timestamp',
@@ -142,7 +145,8 @@ class DrupalImageMigration extends DrupalFileMigration{
     $query->innerJoin('node', 'n', 'n.vid = i.vid');
     $query->fields('n', array(
       'nid',
-      'vid'
+      'vid',
+      'title'
     ));
     return $query;
   }

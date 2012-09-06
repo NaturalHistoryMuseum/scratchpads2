@@ -15,6 +15,7 @@ class DrupalContentTypeMigration extends DrupalMigration{
         'bundle' => 'spm'
       ),
       'forum' => MIGRATE_ALL, // migrate content only
+      'og' => MIGRATE_FIELD, // Handle groups elsewhere, but still migrate any fields
       'group' => MIGRATE_FIELD, // Handle groups elsewhere, but still migrate any fields
       'image' => MIGRATE_NONE, // do not migrate
       'ispecies' => MIGRATE_NONE, // do not migrate
