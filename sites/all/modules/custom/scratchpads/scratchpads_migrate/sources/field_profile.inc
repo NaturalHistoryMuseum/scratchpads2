@@ -10,7 +10,10 @@ class DrupalFieldProfileMigration extends DrupalMigration{
       'profile_real_name' => 'field_user_given_names',
       'profile_interest' => 'field_user_taxonomic_interest',
       'profile_webinterest' => 'field_user_taxonomic_interest',
-      'profile_homepage' => 'field_homepage'
+      'profile_homepage' => 'field_homepage',
+      'profile_affil' => 'field_user_institution',
+      'profile_forename' => 'field_user_given_names',
+      'profile_surname' => 'field_profile_surname',
     );
   }
 
@@ -80,11 +83,13 @@ class DrupalFieldProfileMigration extends DrupalMigration{
     if(parent::prepareRow($row) === FALSE){return FALSE;}
     switch($row->type){
       case 'textfield':
-        $row->widget_type = $row->type = 'text';
+        $row->type = 'text';
+        $row->widget_type = 'text_textfield';
         $row->module = $row->widget_module = 'text';
         break;
       case 'textarea':
-        $row->widget_type = $row->type = 'text_long';
+        $row->type = 'text';
+        $row->widget_type = 'text_textarea';
         $row->module = $row->widget_module = 'text';
         break;
       case 'url':
@@ -103,6 +108,7 @@ class DrupalFieldProfileMigration extends DrupalMigration{
         return false;
         break;
     }
+    $row->global_settings['text_processing'] = null;
     $row->name = 'field_' . $row->name;
   }
 }

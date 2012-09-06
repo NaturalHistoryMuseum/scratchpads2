@@ -320,6 +320,7 @@ function scratchpads_migrate_register_migrations(){
     'taxonomy'
   ), 'IN');
   $query->condition('name', 'Image Galleries', '!=');
+  $query->condition('name', '', '!=');
   $vocabularies = $query->execute();
   foreach($vocabularies as $vocabulary){
     $arguments = array(
@@ -428,10 +429,19 @@ function scratchpads_migrate_register_migrations(){
 }
 
 function scratchpads_migrate_get_term_vocabularies(){
+  $term_vocabularies = scratchpads_migrate_variable_get('term_node_vocabularies-contenttypes');
+  return array_filter($term_vocabularies);
+}
+
+/**
+ * Get a variable from the old DB
+ * @param string $name
+ */
+function scratchpads_migrate_variable_get($name){
   $query = Database::getConnection('default', 'scratchpad_1')->select('variable', 'v');
   $query->addField('v', 'value');
-  $query->condition('name', 'term_node_vocabularies-contenttypes');
-  return array_filter(unserialize($query->execute()->fetchField()));
+  $query->condition('name', $name);
+  return unserialize($query->execute()->fetchField());
 }
 
 /**
@@ -479,17 +489,3 @@ function scratchpads_migrate_unset_empty_fields($object){
     }
   }
 }
-
-function scratchpads_migrate_menu(){
-  $items['scratchpads-migrate'] = array(
-    'title' => 'Test Page',
-    'page callback' => 'scratchpads_migrate_page',
-    'access arguments' => array(
-      'access content'
-    )
-  );
-  return $items;
-}
-
-function scratchpads_migrate_page(){}
-

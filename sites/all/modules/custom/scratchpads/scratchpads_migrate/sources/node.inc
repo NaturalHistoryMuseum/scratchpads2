@@ -318,32 +318,37 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
 
   protected function parseImages($html){
     if(strpos($html, '<img') !== false){
-      $dom = new DOMDocument();
-      $dom->loadHTML($html);
-      $dom->normalizeDocument();
-      $items = $dom->getElementsByTagName('img');
-      for($i = 0; $i < $items->length; $i++){
-        // Does this img have a parent anchor tag
-        $parent_node = $items->item($i)->parentNode;
-        if($parent_node->tagName == 'a'){
-          $href = $parent_node->getAttribute('href');
-          if(strpos($href, 'files') !== false){
-            if($new_href = $this->saveFile($href)){
-              $new_href .= '?width=600&height=600';
-              $parent_node->removeAttribute('href');
-              $parent_node->setAttribute('href', $new_href);
-              $parent_node->setAttribute('class', 'colorbox-inline');
+      try{
+        $dom = new DOMDocument();
+        $dom->loadHTML($html);
+        $dom->normalizeDocument();
+        $items = $dom->getElementsByTagName('img');
+        for($i = 0; $i < $items->length; $i++){
+          // Does this img have a parent anchor tag
+          $parent_node = $items->item($i)->parentNode;
+          if($parent_node->tagName == 'a'){
+            $href = $parent_node->getAttribute('href');
+            if(strpos($href, 'files') !== false){
+              if($new_href = $this->saveFile($href)){
+                $new_href .= '?width=600&height=600';
+                $parent_node->removeAttribute('href');
+                $parent_node->setAttribute('href', $new_href);
+                $parent_node->setAttribute('class', 'colorbox-inline');
+              }
             }
           }
+          $src = $items->item($i)->getAttribute('src');
+          if($new_href = $this->saveFile($src)){
+            $items->item($i)->removeAttribute('src');
+            $items->item($i)->setAttribute('src', $new_href);
+          }
         }
-        $src = $items->item($i)->getAttribute('src');
-        if($new_href = $this->saveFile($src)){
-          $items->item($i)->removeAttribute('src');
-          $items->item($i)->setAttribute('src', $new_href);
-        }
+        $dom->encoding = 'UTF-8';
+        $html = $dom->saveHTML();
       }
-      $dom->encoding = 'UTF-8';
-      $html = $dom->saveHTML();
+      catch(Exception $e){
+        watchdog('scratchpads_migrate', t('Malformed HTML'), WATCHDOG_ERROR);
+      }
     }
     return $html;
   }

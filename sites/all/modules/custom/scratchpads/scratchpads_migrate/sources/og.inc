@@ -47,7 +47,10 @@ class ScratchpadsNodeOrganicGroupMigration extends ScratchpadsNodeMigration{
       'promote',
       'moderate',
       'sticky'
-    ))->condition('type', $this->sourceType);
+    ))->condition('type', array(
+      'og',
+      'group'
+    ), 'IN'); // Organic groups seems to have changed it's node type at some point
     $query->innerJoin('node_revisions', 'nr', 'n.vid=nr.vid');
     $query->fields('nr', array(
       'body',
@@ -61,8 +64,15 @@ class ScratchpadsNodeOrganicGroupMigration extends ScratchpadsNodeMigration{
     return $query;
   }
 
-  public function prepareRow($row){
-    parent::prepareRow($row);
-     // Doesn't seem to use the default value, unless it's unset
+  /**
+   * Enable the OG module
+   */
+  protected function preImport(){
+    parent::preImport();
+    if(!module_exists('og')){
+      module_enable(array(
+        'og'
+      ));
+    }
   }
 }

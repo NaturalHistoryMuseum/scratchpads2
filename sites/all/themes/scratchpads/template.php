@@ -276,6 +276,8 @@ function scratchpads_biblio_tabular($variables){
  * Implements hook_preprocess_page().
  */
 function scratchpads_preprocess_page(&$vars){
+	// Resize the logo so it uses the thumbnail image style
+  $vars['logo'] = image_style_url('thumbnail', basename($vars['logo']));
   if(isset($vars['tabs']) && empty($vars['tabs']['#primary'])){
     $vars['tabs'] = array();
   }

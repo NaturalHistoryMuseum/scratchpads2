@@ -13,8 +13,27 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
   }
 
   public function import(stdClass $node, stdClass $row){
+    // Hackery - add the missing TID for forum topics
+    if(property_exists($node, 'taxonomy_forums') && empty($node->taxonomy_forums[0]) && isset($row->tid)){
+      $node->taxonomy_forums[0] = $row->tid;
+    }
+    // More hackery, can't be arse to find out why this throws a notice
+    if(property_exists($node, 'body') && isset($node->body['arguments']['summary']) && !isset($node->body['arguments']['summary'][0])){
+      unset($node->body['arguments']['summary']);
+    }
     $migration = Migration::currentMigration();
     scratchpads_migrate_unset_empty_fields($node);
+    // Hackery to allow image gallery nodes to save without an error
+    if(!isset($node->original->uid)){
+      $node->original->uid = 1;
+    }
+    // If there's no VID set it to the NID
+    if(isset($node->nid) && !isset($node->vid)){
+      $node->vid = $node->nid;
+    }
+    if(!isset($node->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE])){
+      unset($node->{OG_AUDIENCE_FIELD});
+    }
     $status = parent::import($node, $row);
     // Save all the URL aliases
     if(isset($row->url_alias)){

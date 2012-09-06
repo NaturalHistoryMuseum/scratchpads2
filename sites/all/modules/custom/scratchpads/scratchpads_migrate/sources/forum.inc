@@ -20,15 +20,27 @@
 class ScratchpadsNodeForumMigration extends ScratchpadsNodeMigration{
 
   protected function preImport(){
-  	// Before importing, ensure the caches are cleared otherwise there's an error
+    // Before importing, ensure the caches are cleared otherwise there's an error
     parent::preImport();
     drupal_flush_all_caches();
+  }
+
+  public function __construct(array $arguments){
+    parent::__construct($arguments);
+    $this->addUnmigratedSources(array(
+      'tid'
+    ));
   }
 
   protected function nodeQuery(){
     // Only import nodes which are in the forum vocab
     $query = parent::nodeQuery();
     $query->innerJoin('forum', 'f', 'f.vid = n.vid');
+    $query->addField('f', 'tid');
     return $query;
+  }
+
+  public function prepareRow($row){
+    parent::prepareRow($row);
   }
 }

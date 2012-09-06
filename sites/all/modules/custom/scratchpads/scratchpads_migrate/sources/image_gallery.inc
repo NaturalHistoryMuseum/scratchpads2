@@ -3,11 +3,23 @@
 class DrupalImageGalleryMigration extends DrupalMigration{
 
   /**
+   * Explicity set the NID for image gallery nodes
+   * They're terms so we need to do something to prevent conflicts when the nodes are imported
+   *
+   * @var integer
+   */
+  protected static $nid;
+
+  /**
    * @param array $arguments
    */
   public function __construct(array $arguments){
     parent::__construct($arguments);
     // Create our three main objects - source, destination, and map
+    // Adding a dummy nid field
+    $this->sourceFields = array(
+      'nid' => 'nid'
+    );
     $this->source = new MigrateSourceSQL($this->sourceQuery(), $this->sourceFields, NULL, $this->sourceOptions);
     $this->map = new MigrateSQLMap($this->machineName, array(
       'tid' => array(
@@ -17,12 +29,13 @@ class DrupalImageGalleryMigration extends DrupalMigration{
         'description' => 'Source term ID'
       )
     ), MigrateDestinationNode::getKeySchema());
-    $this->destination = new MigrateDestinationNode('media_gallery');
+    $this->destination = new ScratchpadsMigrateDestinationNode('media_gallery');
     $this->addFieldMapping('title', 'name');
     $this->addFieldMapping('body', 'description');
     $this->addFieldMapping('language')->defaultValue('und');
     $this->addFieldMapping('uid')->defaultValue(1);
     $this->addFieldMapping('status')->defaultValue(1);
+    $this->addFieldMapping('nid', 'nid');
     $this->addUnmigratedDestinations(array(
       'is_new',
       'revision',
@@ -49,8 +62,12 @@ class DrupalImageGalleryMigration extends DrupalMigration{
       'field_media:preserve_files',
       'field_media:source_dir',
       'path',
-      'comment'
+      'comment',
+    	'menu',
+    	'auto_nodetitle_applied'
     ));
+    // Set the maximum NID value from the old site
+    $this->nid = $this->getMaxNID();
   }
 
   /**
@@ -64,5 +81,20 @@ class DrupalImageGalleryMigration extends DrupalMigration{
       'name',
       'description'
     ))->condition('vid', scratchpads_migrate_get_image_gallery_vid());
+  }
+
+  /**
+   * Get the maximum NID 
+   */
+  protected function getMaxNID(){
+    $query = Database::getConnection('default', $this->sourceConnection)->select('node', 'n');
+    $query->addExpression('MAX(nid)');
+    return $query->execute()->fetchField();
+  }
+
+  public function prepareRow($row){
+    // Populate the dummy nid field
+    $this->nid++;
+    $row->nid = $this->nid;
   }
 }

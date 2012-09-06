@@ -1,6 +1,5 @@
 name = Scratchpad 2 migrate
 description = Scratchpad 2 migration site
 core = 7.x
-dependencies[] = scratchpads_tweaks
 dependencies[] = scratchpads_migrate
 files[] = scratchpad_2_migrate.profile
