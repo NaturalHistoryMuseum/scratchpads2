@@ -1,0 +1,15 @@
+--- og.module	2012-07-03 14:34:51.000000000 -0400
++++ og_fix_create_error.module	2012-07-03 14:32:02.000000000 -0400
+@@ -1049,9 +1049,10 @@ function og_group_membership_invalidate_
+  */
+ function og_membership_create($gid, $entity_type, $etid, $values = array()) {
+   // Make sure the group membership doesn't already exist.
+-  if (og_get_group_membership($gid, $entity_type, $etid)) {
++  // If it does, return the membership data.
++  if ($membership = og_get_group_membership($gid, $entity_type, $etid)) {
+     $group = og_label($gid);
+-    throw new OgException('OG membership for entity ' . check_plain($entity_type) . ' with ID ' . check_plain($etid) . ' for group ID ' . $gid . ' (' . $group . ') already      exists.');
++    return $membership;
+   }
+   $values['entity_type'] = $entity_type;
+   $values['etid'] = $etid;
