@@ -635,7 +635,7 @@ function og_entity_presave_group_audience_diff($entity, $type) {
   $new_gids = array ();
   $original_gids = array();
 
-  if (isset($entity->{OG_AUDIENCE_FIELD}) && isset($entity->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE])){
+  if (isset($entity->{OG_AUDIENCE_FIELD}) && isset($entity->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE])){  	
     foreach ($entity->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE] as $item) {
       // Item is still no populated with default values.
       $item += array('state' => OG_STATE_ACTIVE, 'created' => time());
@@ -1039,9 +1039,10 @@ function og_group_membership_invalidate_cache() {
  */
 function og_membership_create($gid, $entity_type, $etid, $values = array()) {
   // Make sure the group membership doesn't already exist.
-  if (og_get_group_membership($gid, $entity_type, $etid)) {
-    $group = og_label($gid);
-    throw new OgException('OG membership for entity ' . check_plain($entity_type) . ' with ID ' . check_plain($etid) . ' for group ID ' . $gid . ' (' . $group . ') already exists.');
+  // BS: This has been patched
+  // http://drupal.org/node/1664832
+  if ($membership = og_get_group_membership($gid, $entity_type, $etid)) {
+  	return $membership;
   }
   $values['entity_type'] = $entity_type;
   $values['etid'] = $etid;
