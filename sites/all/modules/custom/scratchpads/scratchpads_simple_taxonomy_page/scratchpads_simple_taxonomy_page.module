@@ -30,3 +30,73 @@ function scratchpads_simple_taxonomy_page_theme(){
     )
   );
 }
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function scratchpads_simple_taxonomy_page_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id){
+  if(!isset($form_state['confirm_delete'])){
+    $vids = variable_get('none_biological_vids', array());
+    $form['display_tab'] = array(
+      '#title' => t('Display tab'),
+      '#description' => t('Check this box to add a menu item linking to this vocabulary.'),
+      '#type' => 'checkbox',
+      '#default_value' => (isset($form['vid']) && isset($vids[$form['vid']['#value']])) ? $vids[$form['vid']['#value']] : 1,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="biological_classification"]' => array(
+            'value' => ''
+          )
+        )
+      )
+    );
+    // Add an additional submit function so that we can tweak the vocabulary.
+    $form['#submit'][] = 'scratchpads_simple_taxonomy_page_taxonomy_form_vocabulary_submit';
+  }
+}
+
+/**
+ * Submit function to set the none_biological_vids variable.
+ */
+function scratchpads_simple_taxonomy_page_taxonomy_form_vocabulary_submit($form, &$form_state){
+  $none_biological_vids = variable_get('none_biological_vids', array());
+  foreach($none_biological_vids as $vid => $set){
+    if(!taxonomy_vocabulary_load($vid)){
+      unset($none_biological_vids[$vid]);
+    }
+  }
+  $none_biological_vids[$form_state['vid']] = $form_state['values']['display_tab'];
+  variable_set('none_biological_vids', $none_biological_vids);
+  menu_rebuild();
+}
+
+/**
+ * Implements hook_menu().
+ * 
+ * Note, PRIMARY_MENU_NAME is defined in the scratchpads_pages.module file, but
+ * should be installed/enabled on all sites.
+ */
+function scratchpads_simple_taxonomy_page_menu(){
+  $items = array();
+  foreach(variable_get('none_biological_vids', array()) as $vid => $display_tab){
+    if($display_tab){
+      $vocabulary = taxonomy_vocabulary_load($vid);
+      if(($tree = taxonomy_get_tree($vid, 0, 1)) != FALSE){
+        $term = array_shift($tree);
+        $items['classification/' . $vid] = array(
+          'title' => $vocabulary->name,
+          'page callback' => 'drupal_goto',
+          'page arguments' => array(
+            'term/' . $term->tid
+          ),
+          'access arguments' => array(
+            'access content'
+          ),
+          'menu_name' => PRIMARY_MENU_NAME,
+          'weight' => 1
+        );
+      }
+    }
+  }
+  return $items;
+}
