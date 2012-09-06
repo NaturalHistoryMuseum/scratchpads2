@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * Implements hook_scratchpads_solr_info().
+ */
+function scratchpads_simple_taxonomy_page_scratchpads_solr_info(){
+  return array(
+    'term' => array(
+      'theme' => 'scratchpads_simple_taxonomy_page',
+      'empty' => 'scratchpads_simple_taxonomy_page_empty'
+    )
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function scratchpads_simple_taxonomy_page_theme(){
+  return array(
+    'scratchpads_simple_taxonomy_page' => array(
+      'variables' => array(
+        'results' => NULL,
+        'module' => NULL
+      ),
+      'file' => 'scratchpads_simple_taxonomy_page.theme.inc'
+    ),
+    'scratchpads_simple_taxonomy_page_empty' => array(
+      'variables' => array(),
+      'file' => 'scratchpads_simple_taxonomy_page.theme.inc'
+    )
+  );
+}

@@ -1,0 +1,6 @@
+name = "Scratchpads Simple Taxonomy theme."
+description = "Themes the taxonomy search results pages."
+package = "Scratchpads"
+core = 7.x
+dependencies[] = "scratchpads_solr"
+dependencies[] = "taxonomy"
