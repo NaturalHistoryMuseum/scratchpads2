@@ -244,14 +244,8 @@ function scratchpads_species_term_page($term, $op = 'overview'){
     // term we're attempting to display.
     // Note, we don't redirect lexicon terms.
     $term = menu_get_object('taxonomy_term', 2);
-    if($term && variable_get('scratchpads_species_redirect_none_biological_vocabularies_to_the_search_page', TRUE) && !in_array($term->vid, variable_get('lexicon_vids', array()))){
-      drupal_goto('search/site', array(
-        'query' => array(
-          'f' => array(
-            'tid:' . arg(2)
-          )
-        )
-      ));
+    if($term && !in_array($term->vid, variable_get('lexicon_vids', array()))){
+      drupal_goto('term/' . arg(2));
     }
     $build = taxonomy_term_page($term);
   }
