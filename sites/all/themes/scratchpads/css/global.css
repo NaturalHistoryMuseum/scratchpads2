@@ -687,6 +687,14 @@ table.biblio td{
 .view-blog-page .views-row-odd{
 	background-color:#EDEDED;
 }
+/****************** SIMPLE TAXONOMY TERM PAGE ****************/
+.search-row-even,
+.search-row-odd{
+  padding:0 5px; 
+}
+.search-row-odd{
+  background-color:#EDEDED;
+}
 /****************** SPM *****************/
 .node-spm .field-name-field-spm-map{
   margin-top: 10px;
