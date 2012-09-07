@@ -17,7 +17,7 @@ function scratchpads_simple_taxonomy_page_context_default_contexts(){
       ));
       $context->tag = 'scratchpads';
       $context->conditions = array(
-        'simple_taxonomy_page' => array(
+        'scratchpads_simple_taxonomy_page_context_condition' => array(
           'values' => array(
             $vocabulary->machine_name => $vocabulary->machine_name
           )
