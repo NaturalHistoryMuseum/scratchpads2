@@ -8,7 +8,7 @@ function scratchpads_simple_taxonomy_page_install(){
     'page_id' => 'simple_taxonomy',
     'label' => t('Simple taxonomy page'),
     'description' => 'Browse the content associated with a taxonomy term.',
-    'search_path' => 'term/%',
+    'search_path' => 'nontaxonomy/term/%',
     'env_id' => 'solr',
     'page_title' => '%value',
     'settings' => serialize(array(
