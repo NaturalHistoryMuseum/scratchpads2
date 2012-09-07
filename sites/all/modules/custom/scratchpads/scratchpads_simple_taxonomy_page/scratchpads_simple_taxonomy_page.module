@@ -56,6 +56,18 @@ function scratchpads_simple_taxonomy_page_form_taxonomy_form_vocabulary_alter(&$
 }
 
 /**
+ * Implements hook_taxonomy_term_insert()
+ */
+function scratchpads_simple_taxonomy_page_taxonomy_term_insert($term){
+  // If this is a biological classification & there isn't yet a menu item for it, rebuild the menu
+  if(!scratchpads_species_term_is_biological_classification($term)){
+    if(!menu_get_item('classification/' . $term->vid)){
+      drupal_register_shutdown_function('menu_rebuild');
+    }
+  }
+}
+
+/**
  * Execute Context page conditions
  *
  * Allows modules to hook into Context's hook_page_build to execute their
@@ -139,7 +151,6 @@ function scratchpads_simple_taxonomy_page_taxonomy_form_vocabulary_submit($form,
   }
   $none_biological_vids[$form_state['vid']] = $form_state['values']['display_tab'];
   variable_set('none_biological_vids', $none_biological_vids);
-  menu_rebuild();
 }
 
 /**
