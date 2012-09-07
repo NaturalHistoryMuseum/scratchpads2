@@ -19,4 +19,3 @@ class scratchpads_simple_taxonomy_page_context_condition extends context_conditi
     }
   }
 }
-  
