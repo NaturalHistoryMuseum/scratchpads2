@@ -22,3 +22,12 @@ function scratchpads_simple_taxonomy_page_install(){
     ))
   ))->execute();
 }
+
+/**
+ * Change the URL of the search page from term/% to nontaxonomy/term/%
+ */
+function scratchpads_simple_taxonomy_page_update_7001(){
+  db_update('apachesolr_search_page')->fields(array(
+    'search_path' => 'nontaxonomy/term/%'
+  ))->condition('search_path', 'term/%')->execute();
+}
