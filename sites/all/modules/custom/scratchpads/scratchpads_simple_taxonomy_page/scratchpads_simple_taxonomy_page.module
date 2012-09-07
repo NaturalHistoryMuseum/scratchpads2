@@ -61,7 +61,8 @@ function scratchpads_simple_taxonomy_page_form_taxonomy_form_vocabulary_alter(&$
 function scratchpads_simple_taxonomy_page_taxonomy_term_insert($term){
   // If this is a biological classification & there isn't yet a menu item for it, rebuild the menu
   if(!scratchpads_species_term_is_biological_classification($term)){
-    if(!menu_get_item('classification/' . $term->vid)){
+    $display_tabs = variable_get('none_biological_vids', array());
+    if(!menu_get_item('classification/' . $term->vid) && isset($display_tabs[$term->vid]) && $display_tabs[$term->vid]){
       drupal_register_shutdown_function('menu_rebuild');
     }
   }
