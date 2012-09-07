@@ -5,7 +5,7 @@
  */
 function scratchpads_simple_taxonomy_page_scratchpads_solr_info(){
   return array(
-    'term' => array(
+    'nontaxonomy' => array(
       'theme' => 'scratchpads_simple_taxonomy_page',
       'empty' => 'scratchpads_simple_taxonomy_page_empty'
     )
@@ -62,8 +62,11 @@ function scratchpads_simple_taxonomy_page_form_taxonomy_form_vocabulary_alter(&$
  * conditions at an appropriate time before the firing of reactions.
  */
 function scratchpads_simple_taxonomy_page_context_page_condition(){
-  if(($plugin = context_get_plugin('condition', 'simple_taxonomy_page')) != FALSE && arg(0) == 'term' && is_numeric(arg(1))){
-    $plugin->execute(taxonomy_term_load(arg(1)));
+  if(($plugin = context_get_plugin('condition', 'scratchpads_simple_taxonomy_page_context_condition')) && arg(0) == 'nontaxonomy'){
+    $term = taxonomy_term_load(arg(2));
+    if($term){
+      $plugin->execute($term);
+    }
   }
 }
 
@@ -91,7 +94,7 @@ function scratchpads_simple_taxonomy_page_context_plugins(){
 function scratchpads_simple_taxonomy_page_context_registry(){
   return array(
     'conditions' => array(
-      'simple_taxonomy_page' => array(
+      'scratchpads_simple_taxonomy_page_context_condition' => array(
         'title' => t('Simple taxonomy page'),
         'plugin' => 'scratchpads_simple_taxonomy_page_context_condition'
       )
@@ -156,7 +159,7 @@ function scratchpads_simple_taxonomy_page_menu(){
           'title' => $vocabulary->name,
           'page callback' => 'drupal_goto',
           'page arguments' => array(
-            'term/' . $term->tid
+            'nontaxonomy/term/' . $term->tid
           ),
           'access arguments' => array(
             'access content'
