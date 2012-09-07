@@ -273,6 +273,7 @@ function scratchpads_tweaks_install(){
       )
     )
   ));
+  variable_set('shortcut_max_slots', 100);
   variable_set('node_options_page', array(
     'status'
   ));
@@ -914,4 +915,11 @@ function scratchpads_tweaks_update_7022(){
  */
 function scratchpads_tweaks_update_7023(){
   variable_set('imagemagick_convert', 'convert');
+}
+
+/**
+ * Set the maximum number of shortcut links to 100.
+ */
+function scratchpads_tweaks_update_7024(){
+  variable_set('shortcut_max_slots', 100);
 }
