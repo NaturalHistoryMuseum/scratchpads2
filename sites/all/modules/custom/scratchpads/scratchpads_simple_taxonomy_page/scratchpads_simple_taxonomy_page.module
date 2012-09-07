@@ -56,6 +56,75 @@ function scratchpads_simple_taxonomy_page_form_taxonomy_form_vocabulary_alter(&$
 }
 
 /**
+ * Execute Context page conditions
+ *
+ * Allows modules to hook into Context's hook_page_build to execute their
+ * conditions at an appropriate time before the firing of reactions.
+ */
+function scratchpads_simple_taxonomy_page_context_page_condition(){
+  if(($plugin = context_get_plugin('condition', 'simple_taxonomy_page')) != FALSE && arg(0) == 'term' && is_numeric(arg(1))){
+    $plugin->execute(taxonomy_term_load(arg(1)));
+  }
+}
+
+/**
+ * CTools plugin API hook for Context. Note that a proper entry in
+ * hook_ctools_plugin_api() must exist for this hook to be called.
+ */
+function scratchpads_simple_taxonomy_page_context_plugins(){
+  $plugins = array();
+  $plugins['scratchpads_simple_taxonomy_page_context_condition'] = array(
+    'handler' => array(
+      'path' => drupal_get_path('module', 'scratchpads_simple_taxonomy_page'),
+      'file' => 'scratchpads_simple_taxonomy_page.context_condition.inc',
+      'class' => 'scratchpads_simple_taxonomy_page_context_condition',
+      'parent' => 'context_condition'
+    )
+  );
+  return $plugins;
+}
+
+/**
+ * Implementation of hook_context_registry().
+ * Register the context plugins
+ */
+function scratchpads_simple_taxonomy_page_context_registry(){
+  return array(
+    'conditions' => array(
+      'simple_taxonomy_page' => array(
+        'title' => t('Simple taxonomy page'),
+        'plugin' => 'scratchpads_simple_taxonomy_page_context_condition'
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_ctools_plugin_type().
+ */
+function scratchpads_simple_taxonomy_page_ctools_plugin_type(){
+  return array(
+    'plugins' => array(
+      'cache' => TRUE,
+      'use hooks' => TRUE,
+      'classes' => array(
+        'handler'
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_ctools_plugin_api().
+ */
+function scratchpads_simple_taxonomy_page_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
+/**
  * Submit function to set the none_biological_vids variable.
  */
 function scratchpads_simple_taxonomy_page_taxonomy_form_vocabulary_submit($form, &$form_state){
