@@ -1,0 +1,98 @@
+<?php
+
+/**
+ * This module should follow http://drupal.org/node/1227706 as that issue looks
+ * to be solving this problem in a much better way.
+ */
+/**
+ * Implements hook_menu_alter().
+ */
+function scratchpads_fine_grained_file_access_menu_alter(&$items){
+  // We set a number of paths to have different access rights.
+  $items['file/%file/edit']['access callback'] = 'scratchpads_fine_grained_file_access_access';
+  $items['file/%file/delete']['access callback'] = 'scratchpads_fine_grained_file_access_access';
+  $items['file/add']['access callback'] = 'scratchpads_fine_grained_file_access_access';
+  $items['file/%file/edit']['access arguments'] = array(
+    'edit',
+    1
+  );
+  $items['file/%file/delete']['access arguments'] = array(
+    'delete',
+    1
+  );
+  $items['file/add']['access arguments'] = array(
+    'add'
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function scratchpads_fine_grained_file_access_permission(){
+  // Following permissions are required:
+  // create file
+  // edit all file
+  // edit own file
+  // delete all file
+  // delete own file
+  // 
+  // Following permission are not required:
+  // view file (already defined by file_entity)
+  return array(
+    'create file' => array(
+      'title' => 'Create file'
+    ),
+    'edit all file' => array(
+      'title' => 'Edit all files'
+    ),
+    'edit own file' => array(
+      'title' => 'Edit own files'
+    ),
+    'delete all file' => array(
+      'title' => 'Delete all files'
+    ),
+    'delete own file' => array(
+      'title' => 'Delete own files'
+    )
+  );
+}
+
+/**
+ * Access control callback for finer control.
+ */
+function scratchpads_fine_grained_file_access_access($op = 'view', $file = FALSE){
+  global $user;
+  switch($op){
+    case 'view':
+      return user_access('file view');
+    case 'edit':
+      if(user_access('edit all file')){return TRUE;}
+      if($file->uid == $user->uid){return user_access('edit own file');}
+      return FALSE;
+    case 'delete':
+      if(user_access('delete all file')){return TRUE;}
+      if($file->uid == $user->uid){return user_access('delete own file');}
+      return FALSE;
+    case 'add':
+      return user_access('create file');
+    default:
+      return FALSE;
+  }
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function scratchpads_fine_grained_file_access_scratchpads_default_permissions(){
+  return array(
+    'editor' => array(
+      'edit all file',
+      'delete all file'
+    ),
+    'contributor' => array(
+      'edit own file',
+      'delete own file',
+      'create file'
+    )
+  );
+}
