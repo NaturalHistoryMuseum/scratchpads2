@@ -184,63 +184,41 @@ function scratchpads_solr_context_default_contexts(){
 }
 
 /**
- * Implementation of hook_node_type_insert().
+ * Implements hook_cron().
  */
-function scratchpads_solr_node_type_insert($info){
-  $transaction = db_transaction();
-  try{
-    $entity_info = entity_get_info('node');
-    db_delete('apachesolr_index_bundles')->condition('entity_type', 'node')->execute();
-    $query = db_insert('apachesolr_index_bundles')->fields(array(
-      'env_id',
-      'entity_type',
-      'bundle'
-    ));
-    $env_id = apachesolr_default_environment();
-    foreach($entity_info['bundles'] as $key => $value){
-      $query->values(array(
+function scratchpads_solr_cron(){
+  // Ensure various bundles are being searched.
+  $entity_info = entity_get_info('node');
+  $env_id = apachesolr_default_environment();
+  foreach($entity_info['bundles'] as $key => $value){
+    try{
+      db_insert('apachesolr_index_bundles')->fields(array(
         'env_id' => $env_id,
         'entity_type' => 'node',
         'bundle' => $key
-      ));
-    }
-    $query->values(array(
-      'env_id' => $env_id,
-      'entity_type' => 'node',
-      'bundle' => $info->type
-    ));
-    $query->execute();
-  }
-  catch(Exception $e){
-    // This is thrown on install.  We don't do anything though!
-  }
-}
-
-/**
- * Implementation of hook_taxonomy_vocabulary_insert().
- */
-function scratchpads_solr_taxonomy_vocabulary_insert($vocabulary){
-  if(isset($vocabulary->biological_classification) && $vocabulary->biological_classification){
-    // We have a biological classification. We need to insert a record in the
-    // database.
-    try{
-      db_insert('apachesolr_index_bundles')->fields(array(
-        'env_id' => apachesolr_default_environment(),
-        'entity_type' => 'taxonomy_term',
-        'bundle' => $vocabulary->machine_name
       ))->execute();
     }
     catch(Exception $e){
       ; // Ignore.  Probably just a duplicate in the table.
     }
   }
-}
-
-/**
- * Implementation of hook_taxonomy_vocabulary_delete().
- */
-function scratchpads_solr_taxonomy_vocabulary_delete($vocabulary){
-  db_delete('apachesolr_index_bundles')->condition('entity_type', 'taxonomy_term')->condition('bundle', $vocabulary->machine_name)->execute();
+  foreach(variable_get('biological_vids', array()) as $vid => $type){
+    if($type){
+      // We have a biological classification. We need to insert a record in the
+      // database.
+      $vocabulary = taxonomy_vocabulary_load($vid);
+      try{
+        db_insert('apachesolr_index_bundles')->fields(array(
+          'env_id' => $env_id,
+          'entity_type' => 'taxonomy_term',
+          'bundle' => $vocabulary->machine_name
+        ))->execute();
+      }
+      catch(Exception $e){
+        ; // Ignore.  Probably just a duplicate in the table.
+      }
+    }
+  }
 }
 
 /**
