@@ -278,7 +278,7 @@ function scratchpads_tweaks_install(){
     'status'
   ));
   variable_set('comment_page', COMMENT_NODE_HIDDEN);
-  variable_set('node_submitted_page', FALSE);
+  variable_set('node_submitted_page', TRUE);
   // Enable user picture support and set the default to a square thumbnail option.
   variable_set('user_pictures', '1');
   variable_set('user_picture_dimensions', '1024x1024');
@@ -922,4 +922,11 @@ function scratchpads_tweaks_update_7023(){
  */
 function scratchpads_tweaks_update_7024(){
   variable_set('shortcut_max_slots', 100);
+}
+
+/**
+ * Display the node submission information for a page.
+ */
+function scratchpads_tweaks_update_7025(){
+  variable_set('node_submitted_page', TRUE);
 }
