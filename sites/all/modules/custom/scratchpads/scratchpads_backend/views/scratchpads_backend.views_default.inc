@@ -910,6 +910,12 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['type_1']['operator'] = '!=';
   $handler->display->display_options['filters']['type_1']['value'] = 'eolapi';
   $handler->display->display_options['filters']['type_1']['group'] = 2;
+  /* Filter criterion: File path not like "temporary" */
+  $handler->display->display_options['filters']['uri']['id'] = 'uri';
+  $handler->display->display_options['filters']['uri']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['uri']['field'] = 'uri';
+  $handler->display->display_options['filters']['uri']['operator'] = 'not_starts';
+  $handler->display->display_options['filters']['uri']['value'] = 'temporary';
   /* Display: Default */
   $handler = $view->new_display('page', 'Default', 'page');
   $handler->display->display_options['path'] = 'admin/file/%';
