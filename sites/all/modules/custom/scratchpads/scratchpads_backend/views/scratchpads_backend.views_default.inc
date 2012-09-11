@@ -1309,7 +1309,7 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
   $handler->display->display_options['query']['options']['query_comment'] = FALSE;
   $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['pager']['type'] = 'some';
-  $handler->display->display_options['pager']['options']['items_per_page'] = '200';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '0';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   // Slickgrid options
   $handler->display->display_options['style_plugin'] = 'slickgrid';
