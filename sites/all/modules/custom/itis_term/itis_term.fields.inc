@@ -439,9 +439,13 @@ function itis_term_fields(){
         ),
         'widget' => array(
           'active' => 1,
-          'module' => 'options',
-          'settings' => array(),
-          'type' => 'options_select',
+          'module' => 'node_reference',
+          'settings' => array(
+            'autocomplete_match' => 'contains',
+            'autocomplete_path' => 'node_reference/autocomplete',
+            'size' => 60
+          ),
+          'type' => 'node_reference_autocomplete',
           'weight' => '14'
         )
       )

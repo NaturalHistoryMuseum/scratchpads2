@@ -5,7 +5,7 @@
  */
 function scratchpads_simple_taxonomy_page_scratchpads_solr_info(){
   return array(
-    'term' => array(
+    'nontaxonomy' => array(
       'theme' => 'scratchpads_simple_taxonomy_page',
       'empty' => 'scratchpads_simple_taxonomy_page_empty'
     )
@@ -56,18 +56,104 @@ function scratchpads_simple_taxonomy_page_form_taxonomy_form_vocabulary_alter(&$
 }
 
 /**
+ * Implements hook_taxonomy_term_insert()
+ */
+function scratchpads_simple_taxonomy_page_taxonomy_term_insert($term){
+  // If this is a biological classification & there isn't yet a menu item for it, rebuild the menu
+  if(!scratchpads_species_term_is_biological_classification($term)){
+    $display_tabs = variable_get('none_biological_vids', array());
+    if(!menu_get_item('classification/' . $term->vid) && isset($display_tabs[$term->vid]) && $display_tabs[$term->vid]){
+      drupal_register_shutdown_function('menu_rebuild');
+    }
+  }
+}
+
+/**
+ * Execute Context page conditions
+ *
+ * Allows modules to hook into Context's hook_page_build to execute their
+ * conditions at an appropriate time before the firing of reactions.
+ */
+function scratchpads_simple_taxonomy_page_context_page_condition(){
+  if(($plugin = context_get_plugin('condition', 'scratchpads_simple_taxonomy_page_context_condition')) && arg(0) == 'nontaxonomy'){
+    $term = taxonomy_term_load(arg(2));
+    if($term){
+      $plugin->execute($term);
+    }
+  }
+}
+
+/**
+ * CTools plugin API hook for Context. Note that a proper entry in
+ * hook_ctools_plugin_api() must exist for this hook to be called.
+ */
+function scratchpads_simple_taxonomy_page_context_plugins(){
+  $plugins = array();
+  $plugins['scratchpads_simple_taxonomy_page_context_condition'] = array(
+    'handler' => array(
+      'path' => drupal_get_path('module', 'scratchpads_simple_taxonomy_page'),
+      'file' => 'scratchpads_simple_taxonomy_page.context_condition.inc',
+      'class' => 'scratchpads_simple_taxonomy_page_context_condition',
+      'parent' => 'context_condition'
+    )
+  );
+  return $plugins;
+}
+
+/**
+ * Implementation of hook_context_registry().
+ * Register the context plugins
+ */
+function scratchpads_simple_taxonomy_page_context_registry(){
+  return array(
+    'conditions' => array(
+      'scratchpads_simple_taxonomy_page_context_condition' => array(
+        'title' => t('Simple taxonomy page'),
+        'plugin' => 'scratchpads_simple_taxonomy_page_context_condition'
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_ctools_plugin_type().
+ */
+function scratchpads_simple_taxonomy_page_ctools_plugin_type(){
+  return array(
+    'plugins' => array(
+      'cache' => TRUE,
+      'use hooks' => TRUE,
+      'classes' => array(
+        'handler'
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_ctools_plugin_api().
+ */
+function scratchpads_simple_taxonomy_page_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
+/**
  * Submit function to set the none_biological_vids variable.
  */
 function scratchpads_simple_taxonomy_page_taxonomy_form_vocabulary_submit($form, &$form_state){
-  $none_biological_vids = variable_get('none_biological_vids', array());
-  foreach($none_biological_vids as $vid => $set){
-    if(!taxonomy_vocabulary_load($vid)){
-      unset($none_biological_vids[$vid]);
+  if(!isset($form_state['confirm_delete']) && isset($form_state['vid'])){
+    $none_biological_vids = variable_get('none_biological_vids', array());
+    foreach($none_biological_vids as $vid => $set){
+      if(!taxonomy_vocabulary_load($vid)){
+        unset($none_biological_vids[$vid]);
+      }
     }
+    $none_biological_vids[$form_state['vid']] = $form_state['values']['display_tab'];
+    variable_set('none_biological_vids', $none_biological_vids);
   }
-  $none_biological_vids[$form_state['vid']] = $form_state['values']['display_tab'];
-  variable_set('none_biological_vids', $none_biological_vids);
-  menu_rebuild();
 }
 
 /**
@@ -87,7 +173,7 @@ function scratchpads_simple_taxonomy_page_menu(){
           'title' => $vocabulary->name,
           'page callback' => 'drupal_goto',
           'page arguments' => array(
-            'term/' . $term->tid
+            'nontaxonomy/term/' . $term->tid
           ),
           'access arguments' => array(
             'access content'

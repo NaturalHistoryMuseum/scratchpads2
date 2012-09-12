@@ -438,9 +438,9 @@ function file_entity_scratchpads_default_permissions(){
     'anonymous user' => array(
       'view file'
     ),
-    'editor' => array(
-      'administer files',
-      'edit file'
+    'contributor' => array(
+      'edit file',
+      'administer files'
     )
   );
 }

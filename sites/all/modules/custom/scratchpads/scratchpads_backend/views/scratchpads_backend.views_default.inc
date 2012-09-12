@@ -910,6 +910,12 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['type_1']['operator'] = '!=';
   $handler->display->display_options['filters']['type_1']['value'] = 'eolapi';
   $handler->display->display_options['filters']['type_1']['group'] = 2;
+  /* Filter criterion: File path not like "temporary" */
+  $handler->display->display_options['filters']['uri']['id'] = 'uri';
+  $handler->display->display_options['filters']['uri']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['uri']['field'] = 'uri';
+  $handler->display->display_options['filters']['uri']['operator'] = 'not_starts';
+  $handler->display->display_options['filters']['uri']['value'] = 'temporary';
   /* Display: Default */
   $handler = $view->new_display('page', 'Default', 'page');
   $handler->display->display_options['path'] = 'admin/file/%';
@@ -1303,7 +1309,7 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
   $handler->display->display_options['query']['options']['query_comment'] = FALSE;
   $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['pager']['type'] = 'some';
-  $handler->display->display_options['pager']['options']['items_per_page'] = '200';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '0';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   // Slickgrid options
   $handler->display->display_options['style_plugin'] = 'slickgrid';

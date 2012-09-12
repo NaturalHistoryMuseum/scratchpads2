@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * Update all the field_reference fields to be autocomplete fields.
+ */
+function itis_term_update_7001(){
+  $field_info = field_info_field('field_reference');
+  if($field_info && isset($field_info['bundles']) && is_array($field_info['bundles'])){
+    foreach($field_info['bundles'] as $entity_type => $bundle_names){
+      foreach($bundle_names as $bundle_name){
+        $instance = field_info_instance($entity_type, 'field_reference', $bundle_name);
+        $instance['widget'] = array(
+          'active' => 1,
+          'module' => 'node_reference',
+          'settings' => array(
+            'autocomplete_match' => 'contains',
+            'autocomplete_path' => 'node_reference/autocomplete',
+            'size' => 60
+          ),
+          'type' => 'node_reference_autocomplete',
+          'weight' => '14'
+        );
+        field_update_instance($instance);
+      }
+    }
+  }
+}

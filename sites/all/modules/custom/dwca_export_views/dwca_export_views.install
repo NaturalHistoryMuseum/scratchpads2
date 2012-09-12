@@ -1,0 +1,81 @@
+<?php
+
+	
+	/**
+ * @file
+ * Install, update and uninstall functions for the foo module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function dwca_export_views_install() {
+
+}
+
+
+/**
+ * Implements hook_schema().
+ */
+function dwca_export_views_schema() {
+  //$schema = array();
+  
+  $schema['dwca_extension_view_mapping'] = array(
+    'description' => 'Maps dwca extension - defined by the rowType attribute in the extension node of the dwca meta xml, to Scratchpad view.',
+    'fields' => array(
+      'evid' => array(
+        'description' => 'The primary identifier for a row in the table that maps dwca extension to Scratchpad view.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+	),
+	'extension' => array(
+        'description' => 'The value of the rowType attribute in the extension node of the dwca meta xml.',
+        'type' => 'varchar',
+        'length' => 80,
+	),
+	'view_name' => array(
+        'description' => 'The name of the Scratchpad view that the extension maps to.',
+        'type' => 'varchar',
+        'length' => 50,
+	),
+	),
+	'unique keys' => array(
+    'ext_view' => array('extension', 'view_name'),
+  ),
+	'primary key' => array('evid'),
+	);  
+	
+	$schema['dwca_term_field_mapping'] = array(
+    'description' => 'Maps a term within the dwca extension meta xml to the name of a Scratchpad field.',
+    'fields' => array(
+      'term' => array(
+        'description' => 'The URL for a term from the dwca meta XML file',
+        'type' => 'varchar',
+        'length' => 80,
+      ),
+      'field_name' => array(
+        'description' => "The field name from the dwca Scratchpad view.",
+        'type' => 'varchar',
+        'length' => 80,
+      ),
+      'evid' => array(
+        'description' => 'The {dwca_extension_view_mapping}.evid this mapping is associated with.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('term', 'field_name', 'evid'),
+    'foreign keys' => array(
+      'extension_to_view' => array(
+        'table' => 'dwca_extension_view_mapping',
+        'columns' => array('evid' => 'evid'),
+      ),
+     ),
+  );
+  return $schema;
+}
+
+

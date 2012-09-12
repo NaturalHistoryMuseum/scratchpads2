@@ -8,7 +8,7 @@ function scratchpads_simple_taxonomy_page_install(){
     'page_id' => 'simple_taxonomy',
     'label' => t('Simple taxonomy page'),
     'description' => 'Browse the content associated with a taxonomy term.',
-    'search_path' => 'term/%',
+    'search_path' => 'nontaxonomy/term/%',
     'env_id' => 'solr',
     'page_title' => '%value',
     'settings' => serialize(array(
@@ -21,4 +21,13 @@ function scratchpads_simple_taxonomy_page_install(){
       'apachesolr_search_allow_user_input' => 0
     ))
   ))->execute();
+}
+
+/**
+ * Change the URL of the search page from term/% to nontaxonomy/term/%
+ */
+function scratchpads_simple_taxonomy_page_update_7001(){
+  db_update('apachesolr_search_page')->fields(array(
+    'search_path' => 'nontaxonomy/term/%'
+  ))->condition('search_path', 'term/%')->execute();
 }

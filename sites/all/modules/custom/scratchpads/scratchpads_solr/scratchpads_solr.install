@@ -64,3 +64,12 @@ function scratchpads_solr_update_7001(){
     }
   }
 }
+
+/**
+ * Install the apachesolr_access module which is now a dependency.
+ */
+function scratchpads_solr_update_7002(){
+  module_enable(array(
+    'apachesolr_access'
+  ));
+}

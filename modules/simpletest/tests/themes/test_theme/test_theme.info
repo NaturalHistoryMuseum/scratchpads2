@@ -15,6 +15,8 @@ hidden = TRUE
 ; file within the theme folder.
 stylesheets[all][] = system.base.css
 
+settings[theme_test_setting] = default value
+
 ; Information added by drupal.org packaging script on 2012-05-02
 version = "7.14"
 project = "drupal"
