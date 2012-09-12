@@ -238,15 +238,23 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     }
     // Get the group ID
     if(!empty($row->group_nid)){
-      $group_id = db_query('SELECT gid FROM {og} WHERE og.etid = :group_nid', array(
-        ':group_nid' => $row->group_nid
-      ))->fetchField();
-      if($group_id){
-        $row->group_nid = $group_id;
-      }else{
-        watchdog('scratchpads_migrate', 'Could not find group id for group node %group_nid', array(
-          '%group_nid' => $row->group_nid
-        ), WATCHDOG_ERROR);
+      // Get the group type
+      $query = Database::getConnection('default', $this->sourceConnection)->select('node', 'n');
+      $query->addField('n', 'type');
+      $query->condition('n.nid', $row->group_nid);
+      $group_type = $query->execute()->fetchField();
+      // Skip publication group types. May need to add other ones here too
+      if($group_type != 'publication'){
+        $group_id = db_query('SELECT gid FROM {og} WHERE og.etid = :group_nid', array(
+          ':group_nid' => $row->group_nid
+        ))->fetchField();
+        if($group_id){
+          $row->group_nid = $group_id;
+        }else{
+          watchdog('scratchpads_migrate', 'Could not find group id for group node %group_nid', array(
+            '%group_nid' => $row->group_nid
+          ), WATCHDOG_ERROR);
+        }
       }
     }
     if(isset($row->og_public)){
@@ -407,7 +415,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       '%source_id' => $nid
     ));
     $node->type = $this->destination->getBundle();
-    $node->uid = 1;
+    $node->uid = 0;
     $node->status = 0;
     $node->nid = $nid;
     $node->vid = $nid;

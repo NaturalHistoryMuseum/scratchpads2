@@ -98,7 +98,13 @@ abstract class DrupalNodeMigration extends DrupalMigration {
 
     $this->addFieldMapping(NULL, 'format')
          ->description(t('Translated in prepareRow()'));
-
+    if (!empty($arguments['default_uid'])) {
+      $default_uid = $arguments['default_uid'];
+    }
+    else {
+      $default_uid = 0;
+    }
+         
     $arguments = MigrateTextFieldHandler::arguments(array('source_field' => 'teaser'),
                                                     array('source_field' => 'format'));
     $this->addFieldMapping('body', 'body')
@@ -107,13 +113,7 @@ abstract class DrupalNodeMigration extends DrupalMigration {
     $this->addUnmigratedSources(array('vid', 'moderate', 'teaser'));
     $this->addUnmigratedDestinations(array('is_new', 'revision',
       'revision_uid', 'log', 'tnid'));
-
-    if (!empty($arguments['default_uid'])) {
-      $default_uid = $arguments['default_uid'];
-    }
-    else {
-      $default_uid = 1;
-    }
+    
     if (isset($user_migration)) {
       $this->addFieldMapping('uid', 'uid')
            ->sourceMigration($user_migration)
