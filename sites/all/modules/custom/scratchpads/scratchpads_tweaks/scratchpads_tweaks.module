@@ -37,7 +37,7 @@ function media_multiselect_temporary_submit_function($form, &$form_state){
  */
 function _scratchpads_tweaks_get_media_browser_query(){
   return array(
-    'render' => $_GET['render'] ? $_GET['render'] : '',
+    'render' => isset($_GET['render']) ? $_GET['render'] : '',
     'types' => '',
     'activePlugins' => '',
     'enabledPlugins' => '',
