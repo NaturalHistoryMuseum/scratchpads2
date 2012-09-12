@@ -288,6 +288,7 @@ function scratchpads_migrate_register_migrations(){
   // Define node arguments here so all term migrations can be added as depenencies
   $common_node_arguments = $common_arguments + array(
     'user_migration' => 'User',
+    'default_uid' => 0,
     'dependencies' => array( // Content types & fields must be migrated first 
       'ContentType',
       'Field',
@@ -482,6 +483,9 @@ function scratchpads_migrate_unset_empty_fields($object){
   // Loop through and unset NULL fields, otherwise they are populated with empty values
   $properties = array_keys((array)$object);
   foreach($properties as $property){
+    if($property == 'uid'){
+      continue;
+    }
     if((is_array($object->{$property}) && array_key_exists(0, $object->{$property}) && empty($object->{$property}[0])) || empty($object->{$property})){
       unset($object->{$property});
     }

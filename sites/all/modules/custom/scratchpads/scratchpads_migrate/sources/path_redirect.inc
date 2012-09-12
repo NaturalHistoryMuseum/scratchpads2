@@ -36,4 +36,12 @@ class PathRedirectMigration extends DrupalMigration{
       'type'
     ))->condition('last_used', time() - 31556926, '>'); // Seconds in one year (Google).
   }
+
+  /**
+   * Rebuild the node access permissions
+   */
+  protected function preImport(){
+		parent::preImport();
+		node_access_rebuild(TRUE);
+  }
 }

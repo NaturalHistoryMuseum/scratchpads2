@@ -18,14 +18,14 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
       $node->taxonomy_forums[0] = $row->tid;
     }
     // More hackery, can't be arse to find out why this throws a notice
-    if(property_exists($node, 'body') && isset($node->body['arguments']['summary']) && !isset($node->body['arguments']['summary'][0])){
+    if(property_exists($node, 'body') && !empty($node->body) && isset($node->body['arguments']['summary']) && !isset($node->body['arguments']['summary'][0])){
       unset($node->body['arguments']['summary']);
     }
     $migration = Migration::currentMigration();
     scratchpads_migrate_unset_empty_fields($node);
     // Hackery to allow image gallery nodes to save without an error
     if(!isset($node->original->uid)){
-      $node->original->uid = 1;
+      $node->original->uid = $node->uid;
     }
     // If there's no VID set it to the NID
     if(isset($node->nid) && !isset($node->vid)){
