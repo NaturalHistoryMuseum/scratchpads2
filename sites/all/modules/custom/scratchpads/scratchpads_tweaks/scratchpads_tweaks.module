@@ -60,7 +60,7 @@ function _scratchpads_tweaks_get_media_browser_query(){
  * enabled) that displays the full trace of a PHP error.
  */
 function scratchpads_tweaks_watchdog(array $log_entry){
-  if($log_entry['type'] == 'php' && module_exists('dblog')){
+  if($log_entry['type'] == 'php' && module_exists('dblog') && $_SERVER['REMOTE_ADDR'] == '157.140.127.252'){
     if(module_exists('devel')){
       $trace = kpr(debug_backtrace(), TRUE);
     }else{
