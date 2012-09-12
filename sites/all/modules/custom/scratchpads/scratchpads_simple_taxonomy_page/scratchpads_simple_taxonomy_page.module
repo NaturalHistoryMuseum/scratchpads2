@@ -144,14 +144,16 @@ function scratchpads_simple_taxonomy_page_ctools_plugin_api(){
  * Submit function to set the none_biological_vids variable.
  */
 function scratchpads_simple_taxonomy_page_taxonomy_form_vocabulary_submit($form, &$form_state){
-  $none_biological_vids = variable_get('none_biological_vids', array());
-  foreach($none_biological_vids as $vid => $set){
-    if(!taxonomy_vocabulary_load($vid)){
-      unset($none_biological_vids[$vid]);
+  if(!isset($form_state['confirm_delete']) && isset($form_state['vid'])){
+    $none_biological_vids = variable_get('none_biological_vids', array());
+    foreach($none_biological_vids as $vid => $set){
+      if(!taxonomy_vocabulary_load($vid)){
+        unset($none_biological_vids[$vid]);
+      }
     }
+    $none_biological_vids[$form_state['vid']] = $form_state['values']['display_tab'];
+    variable_set('none_biological_vids', $none_biological_vids);
   }
-  $none_biological_vids[$form_state['vid']] = $form_state['values']['display_tab'];
-  variable_set('none_biological_vids', $none_biological_vids);
 }
 
 /**
