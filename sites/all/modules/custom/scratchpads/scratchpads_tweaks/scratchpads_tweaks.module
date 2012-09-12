@@ -60,7 +60,7 @@ function _scratchpads_tweaks_get_media_browser_query(){
  * enabled) that displays the full trace of a PHP error.
  */
 function scratchpads_tweaks_watchdog(array $log_entry){
-  if($log_entry['type'] == 'php' && module_exists('dblog')){
+  if($log_entry['type'] == 'php' && module_exists('dblog') && variable_get('scratchpads_tweaks_extra_debug', FALSE)){
     Database::getConnection('default', 'default')->insert('watchdog')->fields(array(
       'uid' => $log_entry['uid'],
       'type' => substr($log_entry['type'], 0, 64),
