@@ -6,12 +6,247 @@ define('FEEDS_EXCEL_CREATOR', 'Drupal - Excel parser');
  * 
  */
 /**
+ * Callback function to actually retrieve the file.
+ */
+function feeds_xls_get_populated_template(){
+  // The path of the XLS file should be saved to a session.
+  if(isset($_SESSION['feeds_xls']) && is_array($_SESSION['feeds_xls'])){
+    // We should have the file path in the $results array, so we will output it
+    // to the browser.
+    header('Content-Type: application/vnd.ms-excel');
+    header('Content-Disposition: attachment;filename="' . $_SESSION['feeds_xls']['filename'] . '"');
+    header('Cache-Control: max-age=0');
+    readfile($_SESSION['feeds_xls']['xls_path']);
+    // delete the file
+    drupal_unlink($_SESSION['feeds_xls']['xls_path']);
+    unset($_SESSION['feeds_xls']);
+    exit();
+  }else{
+    drupal_set_message(t('Generation of the populated Excel template has failed'), 'error');
+    drupal_goto();
+  }
+}
+
+/**
+ * Callback function to provide the populated template.
+ */
+function feeds_xls_download_populated_template($feeds_importer, $bid = FALSE){
+  get_class($feeds_importer->processor);
+  if(get_class($feeds_importer->parser) == 'FeedsExcelParser'){
+    if(!$feeds_importer->parser->config['no_headers']){
+      // We can go ahead, so here we create the batch and start it.
+      $batch = array(
+        'title' => t('Creating Populated Excel template'),
+        'operations' => array(
+          array(
+            'feeds_xls_populate_template_with_data',
+            array(
+              $feeds_importer
+            )
+          )
+        ),
+        'finished' => 'feeds_xls_redirect_to_populated_file',
+        'file' => drupal_get_path('module', 'feeds_xls') . '/feeds_xls.template.inc'
+      );
+      batch_set($batch);
+      batch_process();
+    }else{
+      drupal_set_message(t('The current configuration for this importer is set to use no headers.'), 'error');
+      drupal_goto(arg(0) . '/' . arg(1));
+    }
+  }else{
+    // This isn't an Excel importer.  Give an error message.
+    drupal_set_message(t('The requested Feeds importer does not appear to be using the Excel parser.'), 'error');
+    drupal_goto(arg(0) . '/' . arg(1));
+  }
+}
+
+/**
+ * Populate the XLS file with data.
+ */
+function feeds_xls_populate_template_with_data($feeds_importer, &$context){
+  if(!isset($context['sandbox']['progress'])){
+    // Calculate the total number of rows to add to this file.
+    // Use the processor class to guess what entity type we're importing (this
+    // relies on other coders following a similar convention to the feeds
+    // module).
+    $processor_class = get_class($feeds_importer->processor);
+    $entity_guess = strtolower(substr($processor_class, 5, strpos($processor_class, 'Processor') - 5));
+    $bundle = '';
+    $context['sandbox']['entity'] = '';
+    $context['sandbox']['entity_ids'] = array();
+    $context['sandbox']['row'] = 0;
+    switch($entity_guess){
+      case 'node':
+        $bundle = $feeds_importer->processor->config['content_type'];
+        $bundle_key = 'type';
+        $table = 'node';
+        $entity_key = 'nid';
+        $context['sandbox']['entity'] = 'node';
+        break;
+      case 'term':
+        // The bundle for a term is actually the vid.
+        $vocabulary = taxonomy_vocabulary_machine_name_load($feeds_importer->processor->config['vocabulary']);
+        $bundle = $vocabulary->vid;
+        $entity_key = 'tid';
+        $bundle_key = 'vid';
+        $entity_guess = 'taxonomy_term';
+        $table = 'taxonomy_term_data';
+        $context['sandbox']['entity'] = 'taxonomy_term';
+        break;
+    }
+    $context['sandbox']['progress'] = 0;
+    $results = db_select($table, 'e')->fields('e', array(
+      $entity_key
+    ))->condition($bundle_key, $bundle)->execute();
+    foreach($results as $row){
+      $context['sandbox']['entity_ids'][] = $row->{$entity_key};
+    }
+    $context['sandbox']['max'] = count($context['sandbox']['entity_ids']);
+    // Create the template before adding any rows to it.
+    $context['sandbox']['xls_path'] = drupal_tempnam(file_directory_temp(), $feeds_importer->id);
+    $context['results']['xls_path'] = $context['sandbox']['xls_path'];
+    $context['results']['filename'] = $feeds_importer->id . '.xls';
+    feeds_xls_download_template_helper($feeds_importer, $context['sandbox']['xls_path']);
+    $context['finished'] = FALSE;
+    $context['progress'] = 0;
+    return;
+  }
+  // Load the library.
+  if(function_exists('libraries_get_path')){
+    $path = libraries_get_path('PHPExcel');
+    $path = "$path/PHPExcel/IOFactory.php";
+  }else{
+    $path = drupal_get_path('module', 'feeds_xls') . '/PHPExcel/PHPExcel/IOFactory.php';
+  }
+  require_once $path;
+  // Open the file.
+  $objPHPExcel = PHPExcel_IOFactory::load($context['sandbox']['xls_path']);
+  // Set active sheet index to the first sheet, so Excel opens this as the first sheet
+  $objPHPExcel->setActiveSheetIndex(0);
+  // Add the data.
+  $loop = 0;
+  $ids_to_load = array();
+  while(($id = array_pop($context['sandbox']['entity_ids'])) != FALSE && $loop < 500){
+    $ids_to_load[] = $id;
+    $loop++;
+  }
+  $entities = entity_load($context['sandbox']['entity'], $ids_to_load);
+  foreach($entities as $entity_id => $entity){
+    foreach($feeds_importer->processor->config['mappings'] as $key => $mapping){
+      $first_letter = floor(($key) / 26);
+      $second_letter = ($key % 26) + 1;
+      $column = chr(64 + $second_letter);
+      if($first_letter){
+        $column = chr(64 + $first_letter) . $column;
+      }
+      $cell = $column . ($context['sandbox']['row'] + 2);
+      if(strpos($mapping['target'], ':')){
+        // We currently know of two mappings (node:title and node:nid) that use
+        // this format.  We'll try to work out which this one is.        
+        $target = $mapping['target'];
+        $target = explode(':', $target);
+        // First we check to see if we have a value, and proceed if we do.
+        if(isset($entity->{$target[0]}) && is_array($entity->{$target[0]}) && count($entity->{$target[0]})){
+          // Next, if this is the "nid" mapping, we don't need to retrieve any
+          // values, else if it is the title mapping, we need to retrieve the
+          // node's title.
+          // Loop through each of the values
+          foreach($entity->{$target[0]} as $language => $values){
+            foreach($entity->{$target[0]}[$language] as $value){
+              if($target[1] == 'nid'){
+                $objPHPExcel->getActiveSheet()->setCellValue($cell, $value['nid']);
+              }
+            }
+          }
+        }
+      }else{
+        switch($mapping['target']){
+          case 'guid':
+            // Look for this entity in the feeds_item table.  If not there, we
+            // generate an entry for it.
+            $guid = FALSE;
+            if(isset($entity->uuid)){
+              $guid = $entity->uuid;
+            }
+            $feeds_item = feeds_xls_get_or_generate_feeds_item_entry($context['sandbox']['entity'], $entity_id, $feeds_importer->id, $guid);
+            $objPHPExcel->getActiveSheet()->setCellValue($cell, $feeds_item['guid']);
+            break;
+          case 'parentguid':
+            // For some unknown reason, we don't have the parent of this entity,
+            // so we need to query the taxonomy_term_hierarchy table.
+            $row = db_select('taxonomy_term_hierarchy', 't')->fields('t')->condition('tid', $entity_id)->execute()->fetch();
+            if($row && $row->parent){
+              $parent_term = taxonomy_term_load($row->parent);
+              $guid = FALSE;
+              if(isset($parent_term->uuid)){
+                $guid = $parent_term->uuid;
+              }
+              $feeds_item = feeds_xls_get_or_generate_feeds_item_entry($context['sandbox']['entity'], $parent_term->tid, $feeds_importer->id, $guid);
+              $objPHPExcel->getActiveSheet()->setCellValue($cell, $feeds_item['guid']);
+            }
+            break;
+          case 'parent':
+            // We don't do anything for parent, as we use parentguid instead.
+            break;
+          default:
+            if(isset($entity->{$mapping['target']})){
+              if(is_array($entity->{$mapping['target']}) && count($entity->{$mapping['target']})){
+                foreach($entity->{$mapping['target']} as $language => $values){
+                  foreach($entity->{$mapping['target']}[$language] as $value){
+                    if(isset($value['value'])){
+                      // Set the value
+                      $objPHPExcel->getActiveSheet()->setCellValue($cell, $value['value']);
+                    }elseif(isset($value['tid'])){
+                      // Links to a term.  We need to load the term, and get the
+                      // value
+                      $term = taxonomy_term_load($value['tid']);
+                      $objPHPExcel->getActiveSheet()->setCellValue($cell, $term->name);
+                    }
+                  }
+                }
+              }elseif(is_string($entity->{$mapping['target']})){
+                $objPHPExcel->getActiveSheet()->setCellValue($cell, $entity->{$mapping['target']});
+              }
+            }
+        }
+      }
+    }
+    // Increase the row number
+    $context['sandbox']['row']++;
+  }
+  // Close the file.
+  $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+  $objWriter->save($context['sandbox']['xls_path']);
+  // Set the progress
+  $context['progress'] = $context['sandbox']['row'] / $context['sandbox']['max'];
+  $context['finished'] = $context['progress'];
+  if(!count($context['sandbox']['entity_ids'])){
+    $context['finished'] = TRUE;
+  }
+}
+
+/**
+ * Finish function for populate data.
+ */
+function feeds_xls_redirect_to_populated_file($success, $results, $operations){
+  if($success){
+    $_SESSION['feeds_xls'] = $results;
+    drupal_goto('feeds_xls/getfile');
+  }
+}
+
+/**
+ * 
+ */
+/**
  * Callback function to provide the template.
  */
 function feeds_xls_download_template($feeds_importer){
   if(get_class($feeds_importer->parser) == 'FeedsExcelParser'){
     if(!$feeds_importer->parser->config['no_headers']){
       feeds_xls_download_template_helper($feeds_importer);
+      exit();
     }else{
       drupal_set_message(t('The current configuration for this importer is set to use no headers.'), 'error');
       drupal_goto(arg(0) . '/' . arg(1));
@@ -54,7 +289,7 @@ POLYGON:POLYGON ((-33.0029296875 60.37170546875135,-20.5224609375 60.84616839706
   }
 }
 
-function feeds_xls_download_template_helper($feeds_importer){
+function feeds_xls_download_template_helper($feeds_importer, $output = 'php://output'){
   // Load the library.
   if(function_exists('libraries_get_path')){
     $path = libraries_get_path('PHPExcel');
@@ -241,6 +476,5 @@ function feeds_xls_download_template_helper($feeds_importer){
   header('Content-Disposition: attachment;filename="TEMPLATE-' . $filename . '.xls"');
   header('Cache-Control: max-age=0');
   $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-  $objWriter->save('php://output');
-  exit();
+  $objWriter->save($output);
 }
