@@ -99,7 +99,7 @@ function scratchpads_tweaks_date_formats(){
  */
 function scratchpads_tweaks_cron(){
   // Don't report if we're a "dev" or D6 upgrade site.
-  if(substr($_SERVER['HTTP_HOST'], 0, 3) != 's2.' && substr($_SERVER['HTTP_HOST'], 0, 4) != 'dev.' && !strpos($_SERVER['HTTP_HOST'], 'training') && !strpos($_SERVER['HTTP_HOST'], 'taxon.name')){
+  if(substr($_SERVER['HTTP_HOST'], 0, 3) != 's2.' && substr($_SERVER['HTTP_HOST'], 0, 4) != 'dev.' && strpos($_SERVER['HTTP_HOST'], 'training') === FALSE && strpos($_SERVER['HTTP_HOST'], 'taxon.name') === FALSE){
     // Once a day we'll report that we exist to a central repository which can
     // then build a list of all Scratchpads.
     if(variable_get('scratchpad_last_reported', 0) < time() - 86400){ // Seconds in a day
