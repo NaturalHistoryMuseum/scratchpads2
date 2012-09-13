@@ -32,7 +32,7 @@ css[omega-visuals.css][options][weight] = '10'
 
 
 stylesheets[all][] = css/tabs.css
-
+stylesheets[all][] = css/sites.css
 
 
 
