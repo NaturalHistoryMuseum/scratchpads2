@@ -42,7 +42,6 @@ class PathRedirectMigration extends DrupalMigration{
    */
   protected function preImport(){
 		parent::preImport();
-		
 		node_access_rebuild(TRUE);
   }
 }
