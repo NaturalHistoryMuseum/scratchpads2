@@ -92,11 +92,6 @@ class DrupalFieldMigration extends DrupalMigration{
     }
     // Does an instance of this field already exists?
     if(field_read_instance($row->entity_type, $row->field_name, $row->type_name)){
-      watchdog('scratchpads_migrate', t('Skipped field %name - already exists %entity_type:%bundle'), array(
-        '%name' => $row->field_name,
-        '%entity_type' => $row->entity_type,
-        '%bundle' => $row->type_name
-      ), WATCHDOG_NOTICE);
       return false; // Instance already exists, so skip it
     }
   }
