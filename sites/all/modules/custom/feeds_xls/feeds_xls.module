@@ -34,6 +34,27 @@ function feeds_xls_menu(){
       ),
       'file' => 'feeds_xls.template.inc',
       'type' => MENU_CALLBACK
+    ),
+    'import/%feeds_importer/populated-template' => array(
+      'title' => 'Populated Excel template',
+      'page callback' => 'feeds_xls_download_populated_template',
+      'page arguments' => array(
+        1
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'file' => 'feeds_xls.template.inc',
+      'type' => MENU_CALLBACK
+    ),
+    'feeds_xls/getfile' => array(
+      'title' => 'Download Populated Excel template',
+      'page callback' => 'feeds_xls_get_populated_template',
+      'access arguments' => array(
+        'access content'
+      ),
+      'file' => 'feeds_xls.template.inc',
+      'type' => MENU_CALLBACK
     )
   );
 }
@@ -51,6 +72,34 @@ function feeds_xls_module_implements_alter(&$implementations, $hook){
     $set = $implementations['feeds_xls'];
     unset($implementations['feeds_xls']);
     $implementations['feeds_xls'] = $set;
+  }
+}
+
+/**
+ * Generate an entry in the feeds_item table that can be used by the populated
+ * Excel template (or any other import).
+ */
+function feeds_xls_get_or_generate_feeds_item_entry($entity_type, $entity_id, $id, $guid = FALSE){
+  $row = db_select('feeds_item', 'f')->fields('f')->condition('entity_type', $entity_type)->condition('entity_id', $entity_id)->execute()->fetchAssoc();
+  if($row){
+    return $row;
+  }else{
+    if(!$guid){
+      // Generate an appropriate guid
+      $guid = microtime(TRUE);
+    }
+    $record = array(
+      'entity_type' => $entity_type,
+      'entity_id' => $entity_id,
+      'id' => $id,
+      'feed_nid' => 0,
+      'imported' => time(),
+      'url' => '',
+      'guid' => $guid,
+      'hash' => 'd41d8cd98f00b204e9800998ecf8427e'
+    );
+    drupal_write_record('feeds_item', $record);
+    return $record;
   }
 }
 

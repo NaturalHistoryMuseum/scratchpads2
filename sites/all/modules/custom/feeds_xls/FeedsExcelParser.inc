@@ -241,13 +241,25 @@ class FeedsExcelParser extends FeedsParser{
         $uniques[] = check_plain($mapping['source']);
       }
     }
-    $form['help']['#markup'] = '<div class="help"><p style="font-size:110%">' . t('<a href="!url">Download</a> an Excel template file for this import.  Your template file should contain the following column headers:', array(
-      '!url' => url('import/' . $this->id . '/template', array(
-        'attributes' => array(
-          'target' => '_blank'
-        )
-      ))
-    )) . '<br/><span style="font-size:80%">' . implode(", ", $sources) . '</span></p></div>';
+    $form['help'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Template'),
+      'text' => array(
+        '#markup' => '<div class="help"><p>' . t('<a href="!url" target="_blank">Excel template file</a> for this import.  Your template file should contain the following column headers:', array(
+          '!url' => url('import/' . $this->id . '/template', array(
+            'attributes' => array(
+              'target' => '_blank'
+            )
+          ))
+        )) . '<br/><span style="font-size:80%">' . implode(", ", $sources) . '</span></p><p>' . t('<a href="!popurl" target="_blank">Excel template file for updating</a> data already present on your Scratchpad.</p>', array(
+          '!popurl' => url('import/' . $this->id . '/populated-template', array(
+            'attributes' => array(
+              'target' => '_blank'
+            )
+          ))
+        )) . '</div>'
+      )
+    );
     $form['no_headers'] = array(
       '#prefix' => '<div style="display:none">',
       '#suffix' => '</div>',
