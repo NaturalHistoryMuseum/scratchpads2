@@ -1,6 +1,6 @@
 core = "7.x"
 dependencies[] = "image"
-dependencies[] = "imagecache_coloractions"
+dependencies[] = "convert_image_format"
 description = "Scratchpad default image styles"
 name = "scratchpads_image_styles"
 package = "Scratchpads"

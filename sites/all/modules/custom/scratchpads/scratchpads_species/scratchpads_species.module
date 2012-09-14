@@ -750,7 +750,7 @@ function scratchpads_species_image_default_styles(){
           'weight' => '1'
         ),
         array(
-          'name' => 'coloractions_convert',
+          'name' => 'convert_image_format',
           'data' => array(
             'format' => 'image/jpeg',
             'quality' => '80'
@@ -771,7 +771,7 @@ function scratchpads_species_image_default_styles(){
           'weight' => '1'
         ),
         array(
-          'name' => 'coloractions_convert',
+          'name' => 'convert_image_format',
           'data' => array(
             'format' => 'image/jpeg',
             'quality' => '80'

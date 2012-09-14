@@ -1,0 +1,142 @@
+<?php
+
+/**
+ * hook_image_effect_info()
+ */
+function convert_image_format_image_effect_info(){
+  return array(
+    'convert_image_format' => array(
+      'label' => t('Change file format'),
+      'help' => t('Choose to save the image as a different filetype.'),
+      'effect callback' => 'convert_image_format_image',
+      'dimensions passthrough' => TRUE,
+      'form callback' => 'convert_image_format_form',
+      'summary theme' => 'convert_image_format_summary'
+    )
+  );
+}
+
+/**
+ * Implementation of imagecache_hook_form()
+ *
+ * @param $action array of settings for this action
+ * @return a form definition
+ */
+function convert_image_format_form($action){
+  $form = array(
+    'help' => array(
+      '#type' => 'markup',
+      '#value' => t("If you've been using transparencies in the process, the result may get saved as a PNG (as the image was treated as a one in in-between processes). If this is not desired (file sizes may get too big) you should use this process to force a flatten action before saving. ")
+    ),
+    'help2' => array(
+      '#type' => 'markup',
+      '#value' => t("For technical reasons, changing the file format within imagecache does <em>not</em> change the filename suffix. A png may be saved as a *.jpg or vice versa. This may confuse some browsers and image software, but most of them have no trouble. ")
+    ),
+    'format' => array(
+      '#title' => t("File format"),
+      '#type' => 'select',
+      '#default_value' => isset($action['format']) ? $action['format'] : 'image/png',
+      '#options' => convert_image_format_file_formats()
+    ),
+    'quality' => array(
+      '#type' => 'textfield',
+      '#title' => t('Quality'),
+      '#description' => t('Override the default image quality. Works for Imagemagick only. Ranges from 0 to 100. For jpg, higher values mean better image quality but bigger files. For png it is a combination of compression and filter'),
+      '#size' => 10,
+      '#maxlength' => 3,
+      '#default_value' => isset($action['quality']) ? $action['quality'] : '75',
+      '#field_suffix' => '%'
+    )
+  );
+  return $form;
+}
+
+/**
+ * Implementation of theme_hook() for imagecache_ui.module
+ */
+function theme_convert_image_format_summary($variables){
+  $data = $variables['data'];
+  $formats = convert_image_format_file_formats();
+  if($formats[$data['format']] == 'jpg'){
+    return t('Convert to: @format, quality: @quality%', array(
+      '@format' => $formats[$data['format']],
+      '@quality' => $data['quality']
+    ));
+  }else{
+    return t("Convert to") . ": " . $formats[$data['format']];
+  }
+}
+
+/**
+ * Implementation of hook_image()
+ *
+ * Process the imagecache action on the passed image
+ */
+function convert_image_format_image($image, $data = array()){
+  $file_formats = convert_image_format_file_formats();
+  if(!isset($file_formats[$image->info['mime_type']])){
+    $formats = convert_image_format_file_formats();
+    $image->info['mime_type'] = $data['format'];
+    $image->info['extension'] = $formats[$data['format']];
+    image_toolkit_invoke('convert_image', $image, array(
+      $data
+    ));
+  }
+  return TRUE;
+}
+/**
+ * Implementation of hook_{toolkit}_{effect}()
+ *
+ * image_toolkit_invoke will exit with an error when no implementation is
+ * provided for the active toolkit so provide an empty operation for the GD
+ * tookit
+ */
+if(!function_exists('image_gd_convert_image')){
+
+  function image_gd_convert_image($image, $data){
+    return TRUE;
+  }
+}
+/**
+ * Implements hook_{toolkit}_{effect}().
+ *
+ * Converting the image format with imagemagick is done by prepending the output
+ * format to the target file separated by a colon (:). This is done with
+ * hook_imagemagick_arguments_alter(), see below.
+ */
+if(!function_exists('image_imagemagick_convert_image')){
+
+  function image_imagemagick_convert_image($image, $data){
+    $image->ops['output_format'] = $image->info['extension'];
+    $image->ops['custom_quality_value'] = (int)$data['quality'];
+    return TRUE;
+  }
+}
+
+/**
+ * Implements hook_imagemagick_arguments_alter.
+ *
+ * This hook moves a change in output format from the args (action list) to the
+ * destination format setting within the context.
+ */
+function convert_image_format_imagemagick_arguments_alter(&$args, &$context){
+  if(isset($args['output_format'])){
+    $context['destination_format'] = $args['output_format'];
+    unset($args['output_format']);
+  }
+  if(isset($args['custom_quality_value'])){
+    $args['quality'] = sprintf('-quality %d', $args['custom_quality_value']);
+    unset($args['custom_quality_value']);
+  }
+}
+
+/**
+ * Mini mime-type list
+ */
+function convert_image_format_file_formats(){
+  return array(
+    'image/jpeg' => 'jpg',
+    'image/gif' => 'gif',
+    'image/png' => 'png'
+  );
+}
