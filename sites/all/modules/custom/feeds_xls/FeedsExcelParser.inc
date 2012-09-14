@@ -251,13 +251,14 @@ class FeedsExcelParser extends FeedsParser{
               'target' => '_blank'
             )
           ))
-        )) . '<br/><span style="font-size:80%">' . implode(", ", $sources) . '</span></p><p>' . t('<a href="!popurl" target="_blank">Excel template file for updating</a> data already present on your Scratchpad.</p>', array(
+        )) . '<br/><span style="font-size:80%">' . implode(", ", $sources) . '</span></p>'.
+          /*'<p>' . t('<a href="!popurl" target="_blank">Excel template file for updating</a> data already present on your Scratchpad.</p>', array(
           '!popurl' => url('import/' . $this->id . '/populated-template', array(
             'attributes' => array(
               'target' => '_blank'
             )
           ))
-        )) . '</div>'
+        )) .*/ '</div>'
       )
     );
     $form['no_headers'] = array(
