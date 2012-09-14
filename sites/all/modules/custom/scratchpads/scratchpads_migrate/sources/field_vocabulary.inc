@@ -13,7 +13,9 @@ class DrupalFieldVocabularyMigration extends DrupalFieldMigration{
     $this->removeFieldMapping('bundle');
     // Load the vocabulary to get the classifcation name to use as bundle
     $this->vocabulary = taxonomy_vocabulary_load($arguments['vid']);
-    $this->addFieldMapping('bundle')->defaultValue($this->vocabulary->machine_name);
+    if($this->vocabulary){
+      $this->addFieldMapping('bundle')->defaultValue($this->vocabulary->machine_name);
+    }
   }
 
   /**
