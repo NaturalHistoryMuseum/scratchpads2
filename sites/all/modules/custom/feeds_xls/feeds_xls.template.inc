@@ -152,13 +152,15 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
           // values, else if it is the title mapping, we need to retrieve the
           // node's title.
           // Loop through each of the values
+          $cell_values = array();
           foreach($entity->{$target[0]} as $language => $values){
             foreach($entity->{$target[0]}[$language] as $value){
               if($target[1] == 'nid'){
-                $objPHPExcel->getActiveSheet()->setCellValue($cell, $value['nid']);
+                $cell_values[] = $value['nid'];
               }
             }
           }
+          $objPHPExcel->getActiveSheet()->setCellValue($cell, implode('|', $cell_values));
         }
       }else{
         switch($mapping['target']){
@@ -193,17 +195,19 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
             if(isset($entity->{$mapping['target']})){
               if(is_array($entity->{$mapping['target']}) && count($entity->{$mapping['target']})){
                 foreach($entity->{$mapping['target']} as $language => $values){
+                  $cell_values = array();
                   foreach($entity->{$mapping['target']}[$language] as $value){
                     if(isset($value['value'])){
                       // Set the value
-                      $objPHPExcel->getActiveSheet()->setCellValue($cell, $value['value']);
+                      $cell_values[] = $value['value'];
                     }elseif(isset($value['tid'])){
                       // Links to a term.  We need to load the term, and get the
                       // value
                       $term = taxonomy_term_load($value['tid']);
-                      $objPHPExcel->getActiveSheet()->setCellValue($cell, $term->name);
+                      $cell_values[] = $term->name;
                     }
                   }
+                  $objPHPExcel->getActiveSheet()->setCellValue($cell, implode('|', $cell_values));
                 }
               }elseif(is_string($entity->{$mapping['target']})){
                 $objPHPExcel->getActiveSheet()->setCellValue($cell, $entity->{$mapping['target']});
