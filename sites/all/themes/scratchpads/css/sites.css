@@ -5,7 +5,19 @@
   padding-top: 0!important;
 }
 
-.site-s2-sciaroidea-info #zone-header .section-header #region-menu,
-.site-sciaroidea-info #zone-header .section-header #region-menu{
+.site-s2-sciaroidea-info #zone-header #region-menu,
+.site-sciaroidea-info #zone-header #region-menu{
   margin-top: 0!important;
+}
+
+.site-s2-sciaroidea-info #region-header #search-block-form,
+.site-sciaroidea-info #region-header #search-block-form{
+  margin-top: 20px!important;
+}
+
+.site-s2-sciaroidea-info #region-header h1.site-name,
+.site-sciaroidea-info #region-header h1.site-name,
+.site-s2-sciaroidea-info #region-header h2.site-name,
+.site-sciaroidea-info #region-header h2.site-name{
+  margin-top: 34px!important;
 }
