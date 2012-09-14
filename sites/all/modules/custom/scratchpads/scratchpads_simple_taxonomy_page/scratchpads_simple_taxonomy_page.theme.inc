@@ -6,6 +6,13 @@
 function theme_scratchpads_simple_taxonomy_page($variables){
   $entity_ids = array();
   $content_array = array();
+  $term = taxonomy_term_load(arg(2));
+  if($term){
+    $content = entity_view('taxonomy_term', array(
+      $term
+    ));
+    $content_array[] = $content;
+  }
   foreach($variables['results'] as $result){
     $entities = entity_load($result['entity_type'], array(
       $result['fields']['entity_id']
@@ -26,5 +33,14 @@ function theme_scratchpads_simple_taxonomy_page($variables){
  * 
  */
 function theme_scratchpads_simple_taxonomy_page_empty(){
-  return t('<p>There is currently no content associated with this term.</p>');
+  $content_array = array();
+  $term = taxonomy_term_load(arg(2));
+  if($term){
+    $content = entity_view('taxonomy_term', array(
+      $term
+    ));
+    $content_array[] = $content;
+  }
+  $content_array[] = array('#markup' => t('<p>There is currently no content associated with this term.</p>'));
+  return drupal_render($content_array);
 }
