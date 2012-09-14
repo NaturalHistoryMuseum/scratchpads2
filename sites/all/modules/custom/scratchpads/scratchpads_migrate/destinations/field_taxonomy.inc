@@ -30,7 +30,8 @@ class MigrateDestinationFieldTaxonomy extends MigrateDestination{
         'cardinality' => ($object->multiple == 0 ? 1 : -1),
         'deleted' => '0',
         'entity_types' => array(
-          $object->entity_type
+          'file', // Hard code these so they can be used for both
+      		'node'
         ),
         'field_name' => $row->field_name,
         'module' => 'taxonomy',

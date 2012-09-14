@@ -27,7 +27,8 @@ class MigrateDestinationVocabulary extends MigrateDestinationEntity{
       'name' => t('Vocabulary: Name'),
       'description' => t('Vocabulary: Description'),
       'hierarchy' => t('Vocabulary: Hierarchy level'),
-      'weight' => t('Term: Weight')
+      'weight' => t('Term: Weight'),
+    	'biological_classification' => t('Biological classification')
     );
   }
 
