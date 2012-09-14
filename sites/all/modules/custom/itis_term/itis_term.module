@@ -217,6 +217,8 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
           case 3:
             return array(
               'junior synonym' => 'junior synonym',
+              'objective synonym' => 'objective synonym',
+              'subjective synonym' => 'subjective synonym',
               'original name/combination' => 'original name/combination',
               'subsequent name/combination' => 'subsequent name/combination',
               'junior homonym' => 'junior homonym',
@@ -238,6 +240,8 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
           case 2:
             return array(
               'synonym' => 'synonym',
+              'homotypic (nomenclatural) synonym' => 'homotypic (nomenclatural) synonym',
+              'heterotypic (taxonomic) synonym' => 'heterotypic (taxonomic) synonym',
               'homonym (illegitimate)' => 'homonym (illegitimate)',
               'superfluous renaming (illegitimate)' => 'superfluous renaming (illegitimate)',
               'rejected name' => 'rejected name',
@@ -254,8 +258,10 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
       }
       return array(
         'database artifact' => 'database artifact',
+        'heterotypic (taxonomic) synonym' => 'heterotypic (taxonomic) synonym',
         'homonym (illegitimate)' => 'homonym (illegitimate)',
         'homonym & junior synonym' => 'homonym & junior synonym',
+        'homotypic (nomenclatural) synonym' => 'homotypic (nomenclatural) synonym',
         'horticultural' => 'horticultural',
         'invalidly published, nomen nudum' => 'invalidly published, nomen nudum',
         'invalidly published, other' => 'invalidly published, other',
@@ -264,11 +270,13 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
         'misapplied' => 'misapplied',
         'nomen dubium' => 'nomen dubium',
         'nomen oblitum' => 'nomen oblitum',
+        'objective synonym' => 'objective synonym',
         'original name/combination' => 'original name/combination',
         'orthographic variant (misspelling)' => 'orthographic variant (misspelling)',
         'other' => 'other',
         'pro parte' => 'pro parte',
         'rejected name' => 'rejected name',
+        'subjective synonym' => 'subjective synonym',
         'subsequent name/combination' => 'subsequent name/combination',
         'superfluous renaming (illegitimate)' => 'superfluous renaming (illegitimate)',
         'synonym' => 'synonym',
