@@ -211,6 +211,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     }
     // Overide auto node title - we want to use the old titles
     $this->addFieldMapping('auto_nodetitle_applied')->defaultValue(true);
+    $fields['path'] = t('Node: Path alias');
+    $this->source = new MigrateSourceSQL($this->nodeQuery(), $fields, $this->countQuery(), $this->sourceOptions);
   }
 
   protected function nodeQuery(){
@@ -221,6 +223,14 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->leftJoin('og_access_post', 'ogap', 'ogap.nid = n.nid');
     $query->addField('ogap', 'og_public', 'og_public');
     $query->condition('n.title', 'Taskguide', '!=');
+    return $query;
+  }
+
+  // Allow overiding count query
+  protected function countQuery(){
+    $query = Database::getConnection('default', $this->sourceConnection)->select('node', 'n');
+    $query->addExpression('COUNT(DISTINCT(n.nid))');
+    $query->condition('type', $this->sourceType);
     return $query;
   }
 
@@ -255,6 +265,9 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
             '%group_nid' => $row->group_nid
           ), WATCHDOG_ERROR);
         }
+      }else{ // This is part of a publication group so unset it
+      	unset($row->og_public);
+      	unset($row->group_nid);
       }
     }
     if(isset($row->og_public)){
