@@ -232,6 +232,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->addExpression('COUNT(DISTINCT(n.nid))');
     $query->innerJoin('node_revisions', 'nr', 'n.vid=nr.vid');
     $query->condition('type', $this->sourceType);
+    $query->condition('n.title', 'Taskguide', '!=');
     return $query;
   }
 
