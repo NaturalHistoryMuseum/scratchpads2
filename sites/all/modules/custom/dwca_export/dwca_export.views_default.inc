@@ -1692,7 +1692,7 @@ function _dwca_export_view_description($desc_type){
   //Array to translate our field names into DwC/SPM accepted terms
   $replacements = array(
     'general_description' => 'general',
-    'behaviours' => 'behaviour',
+    'behavious' => 'behaviour',
     'conservation_status' => 'conservation',
     'diagnostic_description' => 'diagnostic',
     'life_cycle' => 'lifecycle',
