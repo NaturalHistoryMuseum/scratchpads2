@@ -16,7 +16,7 @@ function scratchpads_image_styles_image_default_styles(){
           'weight' => 0
         ),
         array(
-          'name' => 'coloractions_convert',
+          'name' => 'convert_image_format',
           'data' => array(
             'format' => 'image/jpeg',
             'quality' => '80'
@@ -36,7 +36,7 @@ function scratchpads_image_styles_image_default_styles(){
           'weight' => 0
         ),
         array(
-          'name' => 'coloractions_convert',
+          'name' => 'convert_image_format',
           'data' => array(
             'format' => 'image/jpeg',
             'quality' => '80'
@@ -63,12 +63,12 @@ function scratchpads_image_styles_image_styles_alter(&$styles){
       $styles[$style_to_change]['effects'][] = array(
         'label' => 'Change file format',
         'help' => 'Choose to save the image as a different filetype.',
-        'effect callback' => 'coloractions_convert_image',
+        'effect callback' => 'convert_image_format_image',
         'dimensions passthrough' => TRUE,
-        'form callback' => 'coloractions_convert_form',
-        'summary theme' => 'coloractions_convert_summary',
-        'module' => 'imagecache_coloractions',
-        'name' => 'coloractions_convert',
+        'form callback' => 'convert_image_format_form',
+        'summary theme' => 'convert_image_format_summary',
+        'module' => 'convert_image_format',
+        'name' => 'convert_image_format',
         'data' => array(
           'format' => 'image/jpeg',
           'quality' => '80',
