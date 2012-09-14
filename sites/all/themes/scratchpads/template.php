@@ -319,8 +319,9 @@ function scratchpads_preprocess_html(&$vars){
     'width' => 77,
     'height' => 77
   ));
+
   // Add a class for a specific domain to allow for some site only CSS (eg, Vlads logo)
-  $vars['attributes_array']['class'][] = 'site-' . parse_url($base_url, PHP_URL_HOST);
+  $vars['attributes_array']['class'][] = 'site-' . str_replace('.', '-', parse_url($base_url, PHP_URL_HOST));
 }
 
 function scratchpads_user_login_block($variables){
