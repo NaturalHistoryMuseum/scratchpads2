@@ -15,9 +15,9 @@
   margin-top: 20px!important;
 }
 
-.site-s2-sciaroidea-info #region-header h1.site-name,
-.site-sciaroidea-info #region-header h1.site-name,
-.site-s2-sciaroidea-info #region-header h2.site-name,
-.site-sciaroidea-info #region-header h2.site-name{
+.site-s2-sciaroidea-info h1.site-name,
+.site-sciaroidea-info h1.site-name,
+.site-s2-sciaroidea-info h2.site-name,
+.site-sciaroidea-info h2.site-name{
   margin-top: 34px!important;
 }
