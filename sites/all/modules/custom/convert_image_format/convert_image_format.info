@@ -1,0 +1,6 @@
+name = Convert image format
+description = Convert non-web-friendly images to web-friendly images.
+package = Media
+core = 7.x
+dependencies[] = imagecache_actions
+dependencies[] = image
