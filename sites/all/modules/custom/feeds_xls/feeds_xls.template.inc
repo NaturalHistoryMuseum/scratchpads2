@@ -197,14 +197,17 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
                 foreach($entity->{$mapping['target']} as $language => $values){
                   $cell_values = array();
                   foreach($entity->{$mapping['target']}[$language] as $value){
-                    if(isset($value['value'])){
-                      // Set the value
-                      $cell_values[] = $value['value'];
-                    }elseif(isset($value['tid'])){
-                      // Links to a term.  We need to load the term, and get the
-                      // value
-                      $term = taxonomy_term_load($value['tid']);
-                      $cell_values[] = $term->name;
+                    foreach($value as $key => $item){
+                      switch($key){
+                        case 'tid':
+                          // Links to a term.  We need to load the term, and get the
+                          // value
+                          $term = taxonomy_term_load($item);
+                          $cell_values[] = $term->name;
+                        default:
+                          $cell_values[] = $item;
+                          break;
+                      }
                     }
                   }
                   $objPHPExcel->getActiveSheet()->setCellValue($cell, implode('|', $cell_values));
