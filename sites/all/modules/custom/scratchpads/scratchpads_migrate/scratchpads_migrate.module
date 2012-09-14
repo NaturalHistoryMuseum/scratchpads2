@@ -29,6 +29,7 @@ global $s1_domain;
 // The domain of this site should be s2.blah-blah, so we remove the first three
 // characters.
 $s1_domain = substr(parse_url($base_url, PHP_URL_HOST), 3);
+//$s1_domain = 'iczn.org';
 $filename = '/var/aegir/scratchpad_1_db_settings/' . $s1_domain . '.scratchpad_1.php';
 if(file_exists($filename)){
   require_once ($filename);
@@ -69,6 +70,14 @@ function scratchpads_migrate_migrate_api(){
  * Register all of the migrations for this module.
  */
 function scratchpads_migrate_register_migrations(){
+  // Enable blog module
+  if(scratchpads_migrate_source_table_exists('content_type_blog')){
+    if(!module_exists('blog')){
+      module_enable(array(
+        'blog'
+      ));
+    }
+  }
   // The database connection to the Scratchpad 1 site.
   $common_arguments = array(
     'source_connection' => 'scratchpad_1',

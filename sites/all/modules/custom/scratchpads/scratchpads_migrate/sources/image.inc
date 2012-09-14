@@ -115,7 +115,9 @@ class DrupalImageMigration extends DrupalFileMigration{
       'source_connection' => $this->sourceConnection,
       'source_version' => $this->sourceVersion,
       'source_type' => 'image',
-      'destination_type' => 'image'
+      'destination_type' => 'image',
+    	'machine_name' => 'DummyImageMigration',
+    	'description' => 'Dummy migration used to get access to functions'
     ));
     $fields = $this->nodeMigration->sourceFieldList();
     $this->sourceFieldTypes = $this->nodeMigration->getSourceFieldTypes();
