@@ -17,7 +17,10 @@ Drupal.behaviors.mediaViews = {
     });
     // We loop through the views listed in Drupal.settings.media.browser.views
     // and set them up individually.
-    var views_ids = Object.keys(Drupal.settings.media.browser.views);
+    var views_ids = [];
+    for(var i in Drupal.settings.media.browser.views){
+      views_ids[views_ids.length] = i;
+    }
     for( var i = 0; i < views_ids.length; i++) {
       var views_id = views_ids[i];
       for ( var j= 0; j < Drupal.settings.media.browser.views[views_id].length; j++) {
