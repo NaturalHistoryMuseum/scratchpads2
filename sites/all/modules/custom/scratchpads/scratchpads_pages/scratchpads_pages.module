@@ -404,14 +404,19 @@ function scratchpads_pages_variable_default($name = NULL){
 function scratchpads_pages_pluralise_node_name($name){
   switch($name){
     case 'image_gallery':
-      return 'image_galleries';
+      $name = 'image_galleries';
       break;
     case 'Blog entry':
-      return 'blog';
+      $name = 'blog';
       break;
     default:
       $last_char = substr($name, -1);
-      if($last_char != 's' || $last_char != 'y'){return $name . 's';}
+      if(!in_array($last_char, array(
+        's',
+        'y'
+      ))){
+        $name .= 's';
+      }
       break;
   }
   return $name;

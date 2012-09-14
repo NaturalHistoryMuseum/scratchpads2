@@ -178,7 +178,7 @@ function scratchpads_migrate_register_migrations(){
    ********************************************************************************************/
   $user_dependencies = array();
   // If profile_fields table exists, add the FieldProfile migration
-  if(Database::getConnection('default', $common_arguments['source_connection'])->schema()->tableExists('profile_fields')){
+  if(scratchpads_migrate_source_table_exists('profile_fields')){
     $arguments = $common_arguments + array(
       'description' => t('Migration of profile fields from Drupal 6'),
       'machine_name' => 'FieldProfile',
@@ -369,6 +369,16 @@ function scratchpads_migrate_register_migrations(){
     if($mapping == MIGRATE_NONE || $mapping == MIGRATE_FIELD){
       continue;
     }
+    // Perform a table check for these nodes to ensure the module is turned on
+    if(in_array($type, array(
+      'spm',
+      'darwincorelocation',
+      'darwincore'
+    ))){
+      if(!scratchpads_migrate_source_table_exists($type)){
+        continue;
+      }
+    }
     if(is_array($mapping)){
       if(isset($mapping['entity_type']) && $mapping['entity_type'] != 'node'){
         // Only do nodes at the moment
@@ -465,6 +475,10 @@ function scratchpads_migrate_get_image_gallery_vid(){
   return $query->execute()->fetchField();
 }
 
+function scratchpads_migrate_source_table_exists($table){
+  return Database::getConnection('default', 'scratchpad_1')->schema()->tableExists($table);
+}
+
 function scratchpads_migrate_get_class_name($machine_name){
   return 'Drupal' . $machine_name . 'Migration';
 }
@@ -476,6 +490,11 @@ function scratchpads_migrate_get_machine_name($type, $name){
   $name = str_replace('_', ' ', $name);
   $name = ucwords($name);
   $name = str_replace(' ', '', $name);
+  $name = str_replace(array(
+    '(',
+    ')',
+    '/'
+  ), '', $name);
   return $type . $name;
 }
 
