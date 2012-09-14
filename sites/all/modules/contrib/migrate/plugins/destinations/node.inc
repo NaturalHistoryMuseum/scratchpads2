@@ -61,6 +61,11 @@ class MigrateDestinationNode extends MigrateDestinationEntity {
     $fields['nid'] = t('Node: <a href="@doc">Existing node ID</a>',
                 array('@doc' => 'http://drupal.org/node/1349696#nid'));
     $node_type = node_type_load($this->bundle);
+    
+		// Hack to prevent error messages
+		if(!$node_type){
+			return;
+		}    
     if ($node_type->has_title) {
       $fields['title'] = t('Node: <a href="@doc">',
                            array('@doc' => 'http://drupal.org/node/1349696#title'))
