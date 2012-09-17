@@ -268,8 +268,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
           ), WATCHDOG_ERROR);
         }
       }else{ // This is part of a publication group so unset it
-      	unset($row->og_public);
-      	unset($row->group_nid);
+        unset($row->og_public);
+        unset($row->group_nid);
       }
     }
     if(isset($row->og_public)){

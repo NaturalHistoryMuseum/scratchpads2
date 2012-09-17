@@ -114,6 +114,7 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
       'latestdatecollected',
       'locationnode'
     ));
+    $query->condition('n.nid', 44730);
     return $query;
   }
 
@@ -148,6 +149,18 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
         $collected_date['to'] = str_replace('-', '/', $row->latestdatecollected);
       }
       $row->earliestdatecollected = drupal_json_encode($collected_date);
+    }
+    // Sometimes taxonomic name field is missing
+    // Check it's not in the classification  
+    if(!isset($row->taxonomicname)){
+      $vids = array_keys(variable_get('biological_vids', array()));
+      if(count($vids)){
+        foreach($vids as $vid){
+          if(isset($row->{$vid})){
+            $row->taxonomicname = reset($row->{$vid});
+          }
+        }
+      }
     }
   }
 }
