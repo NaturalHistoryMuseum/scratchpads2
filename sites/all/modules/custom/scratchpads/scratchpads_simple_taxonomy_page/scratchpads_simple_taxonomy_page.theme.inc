@@ -26,6 +26,10 @@ function theme_scratchpads_simple_taxonomy_page($variables){
     $content['#suffix'] = '</div>';
     $content_array[] = $content;
   }
+  $content_array[] = array(
+    '#theme' => 'pager',
+    '#tags' => NULL
+  );
   return drupal_render($content_array);
 }
 

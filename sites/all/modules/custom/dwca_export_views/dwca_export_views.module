@@ -66,7 +66,7 @@ function dwca_export_views_select_view_form() {
 		}
 	}
 
-	$savedvariables = variable_get('VIEWS_MAP');
+	$dwca_views_to_map = variable_get('VIEWS_MAP');
 
 	/*foreach ($savedvariables as $key => $value) {
 
@@ -85,17 +85,48 @@ function _dwca_export_views_steps() {
       1 => array(
         'form' => 'dwca_export_views_config_form',
       ),
-      2 => array(
+  2 => array(
+          'form' => 'dwca_export_views_extension_form',
+  ),
+      3 => array(
         'form' => 'dwca_export_views_fields_form',
       ),
     );
 }
+
+
+//add this intermediate step which displays the view_name to extension mapping
+function dwca_export_views_extension_form($form, &$form_state) {
+
+	$form = array(
+	    		'#type' => 'fieldset',
+	    		'#title' => t('Extension to view mapping'),
+	);
+
+
+	//TODO create an array containing the terms for the core and each extension
+	//TODO Do values exist in the database for the views we want to map
+	$ext_view_map = _dwca_export_views_meta_xml_map_new(); //store data in database for the first time
+	
+	foreach ($ext_view_map as $ext => $view_name) {
+		
+		$form[$ext] = array(
+					    		
+				    '#type' => 'textfield',
+				    '#title' => $ext,
+				    '#description' => t('Enter the mapping between extension and - ' . $view_name),
+					'#default_value' => $view_name,
+					'#size' => 60,
+		
+		);
+	}
+	return $form;
+	
+}
+
 /**
-* Returns form elements for the 'location info' page of the wizard. This is the
-* second step of the wizard. This step asks for a textfield value: a City. This
-* step also includes a validation declared later.
+* Creates the form to map DWCA elements to fields
 *
-* @ingroup form_example
 */
 function dwca_export_views_fields_form($form, &$form_state) {
 	
@@ -110,15 +141,16 @@ function dwca_export_views_fields_form($form, &$form_state) {
 	);
 	
 	//TODO create an array containing the terms for the core and each extension
-
+	//TODO Do values exist in the database for the views we want to map
+	//$views = _dwca_export_views_meta_xml_map_new(); //store data in database for the first time
 	$views = _dwca_export_views_meta_xml_map();
 
 	$count = 0;
-	$savedvariables = variable_get('VIEWS_MAP');
+	$dwca_views_to_map = variable_get('VIEWS_MAP');
 	
 	//lorna TODO create a collapsable form for each view
 	// A FORM OF FORMS
-	foreach ($savedvariables as $key => $value) {
+	foreach ($dwca_views_to_map as $key => $value) {
 	
 		//print_r(t('key') . $key . t(' value') . $value);
 		
@@ -146,17 +178,13 @@ function dwca_export_views_fields_form($form, &$form_state) {
 			//$fields = $view->display_handler->get_field_labels();
 			$fields =$view->display['default']->display_options['fields'];
 			
-			$handler->display->display_options['fields']['title']['exclude'] = TRUE;
-			
-			$field_index = 0;
+			$field_index = 0;//// we should use the index attribute in the XML file to associate a particular value with a field name (field_key)
 			$exclude_hidden_field = FALSE;
 			
 			foreach ($fields as $field_key => $field_label) {
 				
 				//display the field_keys as the names of each text box in this form
 								
-				/////drupal_set_message(t('value') . $field_key . t('value and field_index ') . $field_index . $value);
-				// the label is an array
 				foreach ($field_label as $key => $label) {				
 					
 					// if there is a key exclude and the value = TRUE exclude this field
@@ -187,6 +215,7 @@ function dwca_export_views_fields_form($form, &$form_state) {
 	return $form;
 }
 
+// TODO 4th Sept the parameter $field_term_map should contain the values from the database
 function _dwca_export_views_meta_xml_update($field_term_map){
 	
 	//convert the field_term_map to an array of terms. The order of the terms corresponds to the 
@@ -289,50 +318,304 @@ function _dwca_export_views_meta_xml_update($field_term_map){
 	//drupal_set_message(t('VALUES: <pre>@result</pre>', array('@num' => 1, '@result' => print_r($term_array, TRUE))));
 }
 
-//TODO Lorna - could we modify this method with a boolean to indicate whether we want to create the map or whether we want to modify the xml with values in the map
+//_dwca_export_views_insert
+function hook_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items) {
+	if (variable_get('taxonomy_maintain_index_table', TRUE) && $field['storage']['type'] == 'field_sql_storage' && $entity_type == 'node' && $entity->status) {
+		$query = db_insert('taxonomy_index')->fields(array('nid', 'tid', 'sticky', 'created'));
+		foreach ($items as $item) {
+			$query->values(array(
+        'nid' => $entity->nid, 
+        'tid' => $item['tid'], 
+        'sticky' => $entity->sticky, 
+        'created' => $entity->created,
+			));
+		}
+		$query->execute();
+	}
+}
+
+
+
+//save the extension to view mapping if it does not alreayd exist
+function dwca_export_views_save_ext_view($items) {
+
+	$query = db_insert('dwca_extension_view_mapping')->fields(array('extension', 'view_name'));
+	
+	foreach ($items as $key => $value) {		
+			
+		//$results = db_query("SELECT * FROM {dwca_extension_view_mapping} WHERE extension = :extn AND view_name = :view", array(':extn' => $key, ':view' => $value))->fetchAll();
+		$evid = _dwca_export_views_get_extension_view_mapping_id($key, $value);
+		
+		if (count($evid) < 1) {		
+			
+			$query->values(array(
+	        	'extension' => $key, 
+	        	'view_name' => $value, 
+			));
+			$query->execute();
+		}		
+	}	
+}
+
+
+// fri 14th call this from above method
+// and when we're checking if the values already exist in database
+//then create the map from the database
+function _dwca_export_views_get_extension_view_mapping_id($extension, $view_name) {
+	
+	return db_query("SELECT evid FROM {dwca_extension_view_mapping} WHERE extension = :extn AND view_name = :view", array(':extn' => $extension, ':view' => $view_name))->fetchField();
+}
+
+function _dwca_export_views_get_rowType_extension_for_view($view_name) {
+
+	return db_query("SELECT extension FROM {dwca_extension_view_mapping} WHERE view_name = :view", array(':view' => $view_name))->fetchCol();
+}
+
+function dwca_export_views_save_field_mapping($extension, $rowType, $view_name) {
+//function dwca_export_views_save_field_mapping($xmlfield, $rowType, $view_name) {
+	
+	//If there are hidden fields then the field index in the XML file does not correpond to the column index in the view so we need to account for this
+	$hidden_field_count = 0;
+	
+	$evid = _dwca_export_views_get_extension_view_mapping_id($rowType, $view_name); 
+	
+	foreach($extension->field as $xmlfield)
+	{
+	
+	$term = (string)$xmlfield[@term];
+	$field_index = (string)$xmlfield[@index];//// we should use the index attribute in the XML file to associate a particular term with a field name (field_key)
+	$view = views_get_view($view_name);
+	
+	// the column index in the view correspondS to the index in the xml file so we can match it up with the term in this way
+	$fields =$view->display['default']->display_options['fields'];
+
+	//iterate through fields in a view and associate each with a term from the meta xml file
+	//associate the field at correct index with the term from the meta xml file
+	//field_name e.g. uuid term = http://purl.org...
+	$position = 0;
+	
+	if ( (array) $fields === $fields ) {
+		foreach ($fields as $field_key => $field_label) {
+			
+		$exclude_hidden_field = FALSE;
+		
+		//TODO:Can't we just select the field at the appropriate index instead of looping
+		if ($field_index == ($position - $hidden_field_count) ) {
+		
+			//drupal_set_message(t('The field key is =@fkAND field_label = @fl', array('@fk' => $field_key, '@fl' => $field_label)));
+				
+			//the field_keys are the names of each field in the view
+			foreach ($field_label as $key => $label) {
+					
+				// if there is a key exclude and the value = TRUE exclude this field
+				if($key == 'exclude' && $label == TRUE){
+					$exclude_hidden_field = TRUE;
+					$hidden_field_count++;
+				}
+			}
+		
+			if ($exclude_hidden_field == FALSE) {
+
+				//drupal_set_message(t('The position is ') . $position . t(' AND field_index ') . $field_index . t(' AND hidden field count ') . $hidden_field_count);
+							
+				$query = db_insert('dwca_term_field_mapping')->fields(array('term', 'field_name', 'evid'));
+				
+					//select the evid from dwca_extension_view_mapping					
+					if (count($evid) > 0) {
+						
+						//drupal_set_message(t('SELECT evid FROM {dwca_extension_view_mapping} WHERE extension = @r AND view_name = @v', array('@r' => $rowType, '@v' => $view_name)));
+						$results = db_query("SELECT * FROM {dwca_term_field_mapping} WHERE evid = :evid AND term = :term AND field_name = :fn", array(':evid' => $evid, ':term' => $term, ':fn' => $field_key))->fetchAll();
+						
+						if (count($results) < 1) {
+							
+						
+							$query->values(array(
+						        	'term' => $term, 
+						        	'field_name' => $field_key,
+									'evid' => $evid,
+							));
+							$query->execute();
+						}
+					}
+			}	
+		}
+		$position++;
+		}
+	}
+	}	
+}
+
+
+// a user may want to add a new extension  or different mappings to existing view (as in the case of EOL)
+// the rowType attribute specfies a new extension
+//this method now stores the data from the meta xml into the database
+function _dwca_export_views_meta_xml_map_new(){
+
+	//TODO: Should we store the map in the database so we don't need to keep reading in the XML file?
+	// 4th Sept if all the database fields are empty shall we read in file?
+
+	//1. Query database to see if there are values existing for the rowTypes in the meta.xml
+	//2. If values exists populate map
+	//3. If values don't exist read in XML file
+	
+	// the first time the module is installed the database tables should be populated from the meta.xml
+	$views = array();///////////remove this ////////////
+	$ext_to_view_map = array();
+	
+	//create a 2D array so that each extension or view name points to an array of terms
+	$meta_string = simplexml_load_file(drupal_get_path('module', 'dwca_export') . '/static/meta.xml');
+	
+	$core_string = $meta_string->core->files->location[0];
+	$rowType = (string)$meta_string->core[@rowType];
+	
+	$classification_view_name = "dwca_export_" . substr($core_string, 0, -4);	
+	
+	$ext_view_map = array( $rowType => $classification_view_name );
+	dwca_export_views_save_ext_view($ext_view_map);
+	
+	//the first postion in the dwca is always the id and this doesn't point to a term so use the empty string
+	$views[$classification_view_name][0] = '';///////remove this
+	
+	foreach($meta_string->core->field as $xmlfield)
+	{
+		$term = (string)$xmlfield[@term]; ///////////remove this ///////////////
+		$views[$classification_view_name][] = $term; //////remove this//////  ///////////////////////////get from database	
+	}
+	
+	dwca_export_views_save_field_mapping($meta_string->core, $rowType, $classification_view_name);
+	
+	foreach($meta_string->extension as $extension)
+	{
+		$rowType = (string)$extension[@rowType];	
+		$extension_string = $extension->files->location[0] . "\n";	
+		$extension_view_name = "dwca_export_" . substr($extension_string, 0, -5);
+		//echo "The ext view name is:" . $extension_view_name . "\n";
+		$ext_view_map = array( $rowType => $extension_view_name);
+		dwca_export_views_save_ext_view($ext_view_map);
+	
+		$views[$extension_view_name][0] = '';//////////remove this
+	
+		// call method on each field
+		foreach($extension->field as $field)
+		{
+			$term = (string)$field[@term];///////////remove this ///////////////
+			$views[$extension_view_name][] = $term;//////remove this//////  ///////////////////////////get from database
+		}
+		dwca_export_views_save_field_mapping($extension, $rowType, $extension_view_name);
+	}
+	
+	$dwca_views_to_map = variable_get('VIEWS_MAP');	
+	foreach ($dwca_views_to_map as $key => $dwca_view_name) {
+		
+		//select the rowType from the database
+		$saved_extensions = _dwca_export_views_get_rowType_extension_for_view($dwca_view_name);
+		
+		foreach($saved_extensions as $key => $value) {
+			drupal_set_message(t('Saved extensions ') . $value);
+			$ext_view_map[$value] = $dwca_view_name; //Do we want this map the other way around
+		}
+		
+		
+		// else ask the user to provide a rowType for this new extension (user may want to create a new mapping anyway e.g. more than one mapping for reference)
+	}
+
+ //14th sept - instead of returning $views which map the view name to the terms in the meta xml
+ //we are now going to return the extension - i.e. rowType view mapping
+
+return $ext_view_map;
+	//return $views;
+}
+
+
+//TODO: This method now populates the database tables from the default meta xml.
 function _dwca_export_views_meta_xml_map(){
 	
 	//TODO: Should we store the map in the database so we don't need to keep reading in the XML file?
+	// 4th Sept if all the database fields are empty shall we need in file?
+	
+	//1. Query database
+	//2. If values exists populate map
+	//3. If values don't exist read in XML file
+	//4. populate database
+	//5. goto 1
+	
+	//(1 and 2 create map by reading values from DB)
+	//(3 AND 4 as below except we need to write to db)
+	
 	//static $file_map;
 	//if(!isset($file_map)){
 		//$file_map = variable_get(FILE_MAP);
 	//}
 	$views = array();
+	//$ext_view_map = array(); // to add to dwca_extension_view_mapping table
 
 //create a 2D array so that each extension or view name points to an array of terms
 	$meta_string = simplexml_load_file(drupal_get_path('module', 'dwca_export') . '/static/meta.xml');
 	//simplexml_load_string()
 	
 	$core_string = $meta_string->core->files->location[0];
+	$rowType = (string)$meta_string->core[@rowType];
+	
 	$classification_view_name = "dwca_export_" . substr($core_string, 0, -4);
+	echo $rowType;
 	echo $classification_view_name;
+	//$ext_view_map[$rowType] = $classification_view_name;
+
+	
+	$ext_view_map = array( $rowType => $classification_view_name );
+	dwca_export_views_save_ext_view($ext_view_map);
+	
+	/*$a = array(); // array of columns
+	for($c=0; $c<5; $c++){
+		$a[$c] = array(); // array of cells for column $c
+		for($r=0; $r<3; $r++){
+			$a[$c][$r] = rand();
+		}
+	}*/
+	
 
 	//the first postion in the dwca is always the id and this doesn't point to a term so use the empty string
 	$views[$classification_view_name][0] = '';
 	
-	foreach($meta_string->core->field as $field)
-	{
-		$term = (string)$field[@term];
-		
-		//$views[$classification_view_name][$term_array] = array($term);
-		$views[$classification_view_name][] = $term;		
+	//get the classification view
+	$view = views_get_view($classification_view_name); //do we use view anywhere else?
+	
+	//extract this method out as we need to do it for the extensions as well as the core
+	//TODO: In new method pass in the field and index
+	//instead of iterating through each field go directly to the (integer)$field[@index] corresponding to the position of the field in the view
+	foreach($meta_string->core->field as $xmlfield)
+	{	
+		$term = (string)$xmlfield[@term]; ///////////remove this ///////////////
+		$views[$classification_view_name][] = $term; //////remove this//////  ///////////////////////////get from database
 		
 	}
+	
+	/////  pass in the meta_string as we need to select which we exclude within the method
+	dwca_export_views_save_field_mapping($meta_string->core, $rowType, $classification_view_name);
 
 	foreach($meta_string->extension as $extension)
 	{
 		//echo $extension->files->location[0] . "\n";
+		$rowType = (string)$extension[@rowType];
+		
+		
 		$extension_string = $extension->files->location[0] . "\n";
 		
 		$extension_view_name = "dwca_export_" . substr($extension_string, 0, -5);
 		//echo "The ext view name is:" . $extension_view_name . "\n";
+		$ext_view_map = array( $rowType => $extension_view_name);
+		dwca_export_views_save_ext_view($ext_view_map);
+		
 		$views[$extension_view_name][0] = '';
 		
+		
+		// call method on each field
 		foreach($extension->field as $field)
 		{
 			$term = (string)$field[@term];
 			$views[$extension_view_name][] = $term;
 		}
+		dwca_export_views_save_field_mapping($extension, $rowType, $extension_view_name);
 	}
 
 	foreach($meta_string->children() as $child)
@@ -347,7 +630,6 @@ function _dwca_export_views_meta_xml_map(){
 
 	}
 	//$result = $meta_string->xpath("//archive/core/files/location");
-	//foreach ($result_array as )
 
 	return $views;
 }
@@ -473,7 +755,7 @@ function _dwca_export_views_step1_submit($form, &$form_state) {
 	variable_del('VIEWS_MAP');
 	variable_set('VIEWS_MAP', $views_to_map);
 	
-	$savedvariables = variable_get('VIEWS_MAP');
+	$dwca_views_to_map = variable_get('VIEWS_MAP');
 	
 	//foreach ($variables as $key => $value) {	
 		

@@ -51,6 +51,10 @@ function theme_scratchpads_media_gallery($variables){
       )
     ), $content_array);
   }
+  $content_array[] = array(
+    '#theme' => 'pager',
+    '#tags' => NULL
+  );
   return drupal_render($content_array);
 }
 
