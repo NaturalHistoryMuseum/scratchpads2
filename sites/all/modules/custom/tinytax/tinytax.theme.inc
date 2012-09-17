@@ -32,6 +32,7 @@ function theme_tinytax_block($variables){
 function theme_tinytax_branch($variables){
   // Get the terms to render
   $terms = taxonomy_get_tree($variables['vid'], $variables['tid'], 1, TRUE);
+  uasort($terms, '_tinytax_sort_terms');
   $output = '<ul>';
   foreach($terms as $term){
     $output .= theme('tinytax_term', array(
@@ -41,6 +42,24 @@ function theme_tinytax_branch($variables){
     ));
   }
   return $output . '</ul>';
+}
+
+/**
+ * Sort the terms in a branch.  Do this according to weight, but also according
+ * to the validity of the term (tight link here to the ITIS module which is a 
+ * little shitty).
+ */
+function _tinytax_sort_terms($a, $b){
+  $a_usage = isset($a->field_usage[LANGUAGE_NONE][0]['value']) ? $a->field_usage[LANGUAGE_NONE][0]['value'] : 'valid';
+  $b_usage = isset($b->field_usage[LANGUAGE_NONE][0]['value']) ? $b->field_usage[LANGUAGE_NONE][0]['value'] : 'valid';
+  if($a_usage != $b_usage){
+    if($a_usage == 'invalid' || $a_usage == 'unaccepted'){
+      return FALSE;
+    }else{
+      return TRUE;
+    }
+  }
+  return strcmp($a->name, $b->name);
 }
 
 /**
