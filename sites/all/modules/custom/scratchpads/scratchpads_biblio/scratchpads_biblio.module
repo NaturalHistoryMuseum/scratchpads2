@@ -29,6 +29,7 @@ function scratchpads_biblio_module_implements_alter(&$implementations, $hook){
  */
 function scratchpads_biblio_menu_alter(&$items){
   $items['admin/config/content/biblio'] = $items['admin/config/content/biblio/iomap'];
+  $items['admin/config/content/biblio']['title'] = 'Biblio settings';
   $items['admin/config/content/biblio']['type'] = MENU_NORMAL_ITEM;
   $items['admin/config/content/biblio/iomap'] = array(
     'title' => 'Import/Export Mapping',
