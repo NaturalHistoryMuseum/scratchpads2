@@ -10,7 +10,6 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
   public function __construct(array $arguments){
     // Remap destination vocabulary to machine name
     $vocabulary = taxonomy_vocabulary_load($arguments['destination_vocabulary']);
-    if($vocabulary){
     $arguments['destination_vocabulary'] = $vocabulary->machine_name;
     $term_nodes = scratchpads_migrate_get_term_vocabularies();
     // Added in DrupalTerm6Migration::prepareRow()
@@ -19,38 +18,36 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
     );
     // Added in this::prepareRow()
     $this->sourceFields['path'] = t("Path");
-    
-      // Does this taxonomy have a term node to migrate at the same time?
-      if(array_key_exists($vocabulary->vid, $term_nodes)){
-        $this->termNode = $term_nodes[$vocabulary->vid];
-        // See if we have a migration class with field mappings?
-        $machine_name = scratchpads_migrate_get_machine_name('FieldVocabulary', $this->termNode);
-        $class_name = scratchpads_migrate_get_class_name($machine_name);
-        if(class_exists($class_name) && method_exists($class_name, 'getFieldNameMappings')){
-          $field_mappings = $class_name::getFieldNameMappings();
-        }
-        // Get the fields for ITIS term
-        $query = Database::getConnection('default', $arguments['source_connection'])->select('content_node_field_instance', 'i');
-        $query->addField('i', 'field_name');
-        $query->condition('i.widget_active', 1);
-        $query->condition('i.type_name', $this->termNode);
-        $query->innerJoin('content_node_field', 'f', 'i.field_name = f.field_name');
-        $query->fields('f', array(
-          'type'
-        ));
-        $source_fields = $query->execute()->fetchAllKeyed();
-        // Add source fields (needs to come before parent::__construct()
-        foreach($source_fields as $source_field => $source_field_type){
-          $this->sourceFields[$source_field] = $source_field_type;
-        }
-        if($this->termNode == 'itis_term'){
-          // Add the field_aan_x field
-          $aan_field = 'field_aan_' . $vocabulary->vid;
-          $this->addFieldMapping($aan_field, 'field_accepted_name');
-          $this->addFieldMapping($aan_field . ':source_type')->defaultValue('tid');
-          $this->addFieldMapping($aan_field . ':create_term')->defaultValue(false);
-          unset($source_fields['field_accepted_name']);
-        }
+    // Does this taxonomy have a term node to migrate at the same time?
+    if(array_key_exists($vocabulary->vid, $term_nodes)){
+      $this->termNode = $term_nodes[$vocabulary->vid];
+      // See if we have a migration class with field mappings?
+      $machine_name = scratchpads_migrate_get_machine_name('FieldVocabulary', $this->termNode);
+      $class_name = scratchpads_migrate_get_class_name($machine_name);
+      if(class_exists($class_name) && method_exists($class_name, 'getFieldNameMappings')){
+        $field_mappings = $class_name::getFieldNameMappings();
+      }
+      // Get the fields for ITIS term
+      $query = Database::getConnection('default', $arguments['source_connection'])->select('content_node_field_instance', 'i');
+      $query->addField('i', 'field_name');
+      $query->condition('i.widget_active', 1);
+      $query->condition('i.type_name', $this->termNode);
+      $query->innerJoin('content_node_field', 'f', 'i.field_name = f.field_name');
+      $query->fields('f', array(
+        'type'
+      ));
+      $source_fields = $query->execute()->fetchAllKeyed();
+      // Add source fields (needs to come before parent::__construct()
+      foreach($source_fields as $source_field => $source_field_type){
+        $this->sourceFields[$source_field] = $source_field_type;
+      }
+      if($this->termNode == 'itis_term'){
+        // Add the field_aan_x field
+        $aan_field = 'field_aan_' . $vocabulary->vid;
+        $this->addFieldMapping($aan_field, 'field_accepted_name');
+        $this->addFieldMapping($aan_field . ':source_type')->defaultValue('tid');
+        $this->addFieldMapping($aan_field . ':create_term')->defaultValue(false);
+        unset($source_fields['field_accepted_name']);
       }
     }
     parent::__construct($arguments);
