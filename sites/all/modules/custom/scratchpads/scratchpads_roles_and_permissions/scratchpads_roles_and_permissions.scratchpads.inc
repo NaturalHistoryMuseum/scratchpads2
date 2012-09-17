@@ -550,6 +550,9 @@ function biblio_scratchpads_default_permissions(){
       'import from file',
       'edit biblio authors',
       'edit by all biblio authors'
+    ),
+    'maintainer' => array(
+      'administer biblio'
     )
   );
 }
