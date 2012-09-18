@@ -447,7 +447,6 @@ function file_entity_scratchpads_default_permissions(){
 
 /**
  * Feeds XLS module (Possibly may release it to Drupal).
- */
 function feeds_xls_scratchpads_default_permissions(){
   return array(
     'editor' => array(
@@ -455,6 +454,7 @@ function feeds_xls_scratchpads_default_permissions(){
     )
   );
 }
+ */
 
 /**
  * Field group module
