@@ -446,6 +446,17 @@ function file_entity_scratchpads_default_permissions(){
 }
 
 /**
+ * Feeds XLS module (Possibly may release it to Drupal).
+ */
+function feeds_xls_scratchpads_default_permissions(){
+  return array(
+    'editor' => array(
+      'feeds xls allow download'
+    )
+  );
+}
+
+/**
  * Field group module
  *
  * Implements hook_scratchpads_default_permissions().
