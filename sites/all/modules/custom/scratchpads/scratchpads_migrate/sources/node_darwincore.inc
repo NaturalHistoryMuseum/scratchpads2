@@ -114,7 +114,6 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
       'latestdatecollected',
       'locationnode'
     ));
-    $query->condition('n.nid', 44730);
     return $query;
   }
 
