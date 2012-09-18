@@ -185,8 +185,7 @@ function silver_feeds_importer_default(){
               'target' => 'filename',
               'unique' => FALSE
             )
-          ),
-          'update_existing' => '2'
+          )
         )
       ),
       'update' => 0,
