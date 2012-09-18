@@ -60,6 +60,18 @@ function feeds_xls_menu(){
 }
 
 /**
+ * Implements hook_permission().
+ */
+function feeds_xls_permission(){
+  return array(
+    'feeds xls allow download' => array(
+      'title' => t('Feeds XLS allow download'),
+      'description' => t('Allow the user to download all of the site\'s data in an Excel template.')
+    )
+  );
+}
+
+/**
  * Implements hook_module_implements_alter
  * 
  * Until the feeds module stops using its own feeds_alter, and instead uses the
