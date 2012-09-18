@@ -144,7 +144,9 @@ function scratchpads_migrate_register_migrations(){
       'dependencies' => array(
         'Vocabulary'
       ),
-      'group' => MigrateGroup::getInstance('fields')
+      'group' => MigrateGroup::getInstance('fields', array(
+        'setup'
+      ))
     );
     $term_dependencies[] = $arguments['machine_name'];
     Migration::registerMigration($class_name, $arguments['machine_name'], $arguments);
@@ -271,7 +273,9 @@ function scratchpads_migrate_register_migrations(){
     'description' => t('Migration of users from Drupal 6'),
     'machine_name' => 'User',
     'dependencies' => $user_dependencies,
-  	'group' => MigrateGroup::getInstance('content')
+    'group' => MigrateGroup::getInstance('content', array(
+      'fields'
+    ))
   );
   Migration::registerMigration('ScratchpadsUserMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
@@ -333,7 +337,7 @@ function scratchpads_migrate_register_migrations(){
    ********************************************************************************************/
   $common_term_arguments = $common_arguments + array(
     'dependencies' => $term_dependencies,
-  	'group' => MigrateGroup::getInstance('terms')
+    'group' => MigrateGroup::getInstance('terms')
   );
   // Get vocabularies to register the term migrations
   $query = Database::getConnection('default', 'scratchpad_1')->select('vocabulary', 'v');
@@ -451,7 +455,7 @@ function scratchpads_migrate_register_migrations(){
       'user_migration' => 'User',
       'destination_type' => $destination_type,
       'source_type' => $type,
-    	'group' => MigrateGroup::getInstance('content')
+      'group' => MigrateGroup::getInstance('content')
     );
     Migration::registerMigration('ScratchpadsCommentMigration', $arguments['machine_name'], $arguments);
   }
@@ -462,7 +466,7 @@ function scratchpads_migrate_register_migrations(){
     'description' => t('Migration of URL redirects from Drupal 6'),
     'machine_name' => 'PathRedirect',
     'dependencies' => $path_dependencies,
-  	'group' => MigrateGroup::getInstance('content')
+    'group' => MigrateGroup::getInstance('content')
   );
   Migration::registerMigration('PathRedirectMigration', $arguments['machine_name'], $arguments);
 }
