@@ -310,6 +310,10 @@ a.scratchpads-slide-toggle{
   font-size: 0.9em;
 }
 
+.site-name-slogan{
+  float: none!important;
+}
+
 h1.site-name, 
 h2.site-name {
   font-size: 40px;
