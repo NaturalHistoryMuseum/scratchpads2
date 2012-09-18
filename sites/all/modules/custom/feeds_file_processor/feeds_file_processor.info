@@ -1,0 +1,8 @@
+name = Feeds file processor
+description = Enables feeds to import into a file entity.
+package = Feeds
+dependencies[] = feeds
+dependencies[] = file_entity
+dependencies[] = entity
+files[] = FeedsFileProcessor.inc
+core = 7.x
