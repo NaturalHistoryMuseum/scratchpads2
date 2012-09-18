@@ -10,6 +10,104 @@
 class FeedsFileProcessor extends FeedsProcessor{
 
   /**
+   * Process the result of the parsing stage.
+   *
+   * @param FeedsSource $source
+   *   Source information about this import.
+   * @param FeedsParserResult $parser_result
+   *   The result of the parsing stage.
+   */
+  public function process(FeedsSource $source, FeedsParserResult $parser_result){
+    $state = $source->state(FEEDS_PROCESS);
+    while($item = $parser_result->shiftItem()){
+      if($entity_id = $this->existingEntityId($source, $parser_result)){
+        // Only proceed if item has actually changed.
+        $hash = $this->hash($item);
+        if(!empty($entity_id) && $hash == $this->getHash($entity_id)){
+          continue;
+        }
+        try{
+          // Assemble node, map item to it, save.
+          if(empty($entity_id)){
+            $entity = $this->newEntity($source);
+            $this->newItemInfo($entity, $source->feed_nid, $hash);
+          }else{
+            $entity = $this->entityLoad($source, $entity_id);
+            // The feeds_item table is always updated with the info for the most recently processed entity.
+            // The only carryover is the entity_id.
+            $this->newItemInfo($entity, $source->feed_nid, $hash);
+            $entity->feeds_item->entity_id = $entity_id;
+          }
+          $this->map($source, $parser_result, $entity);
+          $this->entityValidate($entity);
+          // Allow modules to alter the entity before saving.
+          module_invoke_all('feeds_presave', $source, $entity);
+          if(module_exists('rules')){
+            rules_invoke_event('feeds_import_' . $source->importer()->id, $entity);
+          }
+          // Enable modules to skip saving at all.
+          if(empty($entity->feeds_item->skip)){
+            $this->entitySave($entity);
+            // Track progress.
+            $state->updated++;
+          }
+        }
+        catch(Exception $e){
+          $state->failed++;
+          drupal_set_message($e->getMessage(), 'warning');
+          $message = $e->getMessage();
+          $message .= '<h3>Original item</h3>';
+          $message .= '<pre>' . var_export($item, TRUE) . '</pre>';
+          $message .= '<h3>Entity</h3>';
+          $message .= '<pre>' . var_export($entity, TRUE) . '</pre>';
+          $source->log('import', $message, array(), WATCHDOG_ERROR);
+        }
+      }
+    }
+    // Set messages if we're done.
+    if($source->progressImporting() != FEEDS_BATCH_COMPLETE){return;}
+    $info = $this->entityInfo();
+    $tokens = array(
+      '@entity' => strtolower($info['label']),
+      '@entities' => strtolower($info['label plural'])
+    );
+    $messages = array();
+    if($state->created){
+      $messages[] = array(
+        'message' => format_plural($state->created, 'Created @number @entity.', 'Created @number @entities.', array(
+          '@number' => $state->created
+        ) + $tokens)
+      );
+    }
+    if($state->updated){
+      $messages[] = array(
+        'message' => format_plural($state->updated, 'Updated @number @entity.', 'Updated @number @entities.', array(
+          '@number' => $state->updated
+        ) + $tokens)
+      );
+    }
+    if($state->failed){
+      $messages[] = array(
+        'message' => format_plural($state->failed, 'Failed importing @number @entity.', 'Failed importing @number @entities.', array(
+          '@number' => $state->failed
+        ) + $tokens),
+        'level' => WATCHDOG_ERROR
+      );
+    }
+    if(empty($messages)){
+      $messages[] = array(
+        'message' => t('There are no new @entities.', array(
+          '@entities' => strtolower($info['label plural'])
+        ))
+      );
+    }
+    foreach($messages as $message){
+      drupal_set_message($message['message']);
+      $source->log('import', $message['message'], array(), isset($message['level']) ? $message['level'] : WATCHDOG_INFO);
+    }
+  }
+
+  /**
    * Define entity type.
    */
   public function entityType(){
@@ -42,9 +140,6 @@ class FeedsFileProcessor extends FeedsProcessor{
 
   /**
    * Loads an existing node.
-   *
-   * If the update existing method is not FEEDS_UPDATE_EXISTING, only the node
-   * table will be loaded, foregoing the node_load API for better performance.
    */
   protected function entityLoad(FeedsSource $source, $fid){
     return entity_load_single('file', $fid);
@@ -153,11 +248,6 @@ class FeedsFileProcessor extends FeedsProcessor{
       '#description' => t('Select after how much time nodes should be deleted. The node\'s published date will be used for determining the node\'s age, see Mapping settings.'),
       '#default_value' => $this->config['expire']
     );
-    $form['update_existing']['#options'] = array(
-      FEEDS_SKIP_EXISTING => 'Do not update existing files',
-      FEEDS_REPLACE_EXISTING => 'Replace existing files',
-      FEEDS_UPDATE_EXISTING => 'Update existing files (slower than replacing them)'
-    );
     return $form;
   }
 
@@ -182,34 +272,6 @@ class FeedsFileProcessor extends FeedsProcessor{
     parent::configFormSubmit($values);
   }
 
-  /**
-   * Override setTargetElement to operate on a target item that is a node.
-   * 
-   * I have no idea what this function is actually doing.  Need to check if it
-   * is actually required.
-   * 
-  public function setTargetElement(FeedsSource $source, $target_node, $target_element, $value){
-    switch($target_element){
-      case 'created':
-        $target_node->created = feeds_to_unixtime($value, REQUEST_TIME);
-        break;
-      case 'feeds_source':
-        // Get the class of the feed node importer's fetcher and set the source
-        // property. See feeds_node_update() how $file->feeds gets stored.
-        if($id = feeds_get_importer_id($this->config['bundle'])){
-          $class = get_class(feeds_importer($id)->fetcher);
-          $target_node->feeds[$class]['source'] = $value;
-          // This effectively suppresses 'import on submission' feature.
-          // See feeds_node_insert().
-          $target_node->feeds['suppress_import'] = TRUE;
-        }
-        break;
-      default:
-        parent::setTargetElement($source, $target_node, $target_element, $value);
-        break;
-    }
-  }
-   */
   /**
    * Return available mapping targets.
    */
