@@ -53,7 +53,7 @@ function scratchpads_backend_entity_info_alter(&$entity_info){
   // Remove the "default" file type - it does not appear to be used.
   unset($entity_info['file']['bundles']['default']);
   // Relabel "Application (multipurpose)" to "Others".
-  $entity_info['file']['bundles']['application']['label'] = t('Others');
+  $entity_info['file']['bundles']['application']['label'] = t('Other');
 }
 
 /**
