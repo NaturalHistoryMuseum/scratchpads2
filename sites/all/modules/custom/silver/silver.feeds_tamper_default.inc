@@ -15,7 +15,7 @@ function silver_feeds_tamper_default(){
       switch($entity_guess){
         case 'term':
           $entity_guess = 'taxonomy';
-        case 'node':
+        default:
           foreach($importer->processor->config['mappings'] as $mapping){
             // Load the field that the mapping is associated with
             $field = field_info_field($mapping['target']);

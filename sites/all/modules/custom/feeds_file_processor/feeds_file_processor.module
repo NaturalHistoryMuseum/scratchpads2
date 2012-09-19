@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * Implements hook_feeds_plugin().
+ */
+function feeds_file_processor_feeds_plugins(){
+  return array(
+    'FeedsFileProcessor' => array(
+      'name' => t('File processor.'),
+      'description' => 'Process file metadata.',
+      'help' => 'Process metadata associated with a file already on your site.  This processor is useful for updating content when using a GUID.',
+      'handler' => array(
+        'parent' => 'FeedsProcessor',
+        'class' => 'FeedsFileProcessor',
+        'file' => 'FeedsFileProcessor.inc',
+        'path' => drupal_get_path('module', 'feeds_file_processor')
+      )
+    )
+  );
+}

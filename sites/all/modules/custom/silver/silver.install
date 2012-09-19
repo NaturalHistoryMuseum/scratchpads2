@@ -1,0 +1,10 @@
+<?php
+
+/**
+ * Install the feeds_file_processor module.
+ */
+function silver_update_7001(){
+  module_enable(array(
+    'feeds_file_processor'
+  ));
+}

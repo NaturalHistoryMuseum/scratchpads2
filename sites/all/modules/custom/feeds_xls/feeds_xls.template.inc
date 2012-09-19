@@ -94,6 +94,13 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
         $table = 'taxonomy_term_data';
         $context['sandbox']['entity'] = 'taxonomy_term';
         break;
+      case 'file':
+        $bundle = $feeds_importer->processor->config['bundle'];
+        $bundle_key = 'type';
+        $table = 'file_managed';
+        $entity_key = 'fid';
+        $context['sandbox']['entity'] = 'file';
+        break;
     }
     $context['sandbox']['progress'] = 0;
     $results = db_select($table, 'e')->fields('e', array(

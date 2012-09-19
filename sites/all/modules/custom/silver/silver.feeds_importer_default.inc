@@ -142,6 +142,62 @@ function silver_feeds_importer_default(){
     _silver_feeds_importer_default_helper($field_info, $feeds_importer);
     $export['node_importer_' . $node_type] = $feeds_importer;
   }
+  // Get a list of the file types.
+  $entity_info = entity_get_info('file');
+  foreach($entity_info['bundles'] as $file_type => $file_type_info){
+    $feeds_importer = new stdClass();
+    $feeds_importer->disabled = FALSE;
+    $feeds_importer->api_version = 1;
+    $feeds_importer->id = 'file_importer_' . $file_type;
+    $feeds_importer->config = array(
+      'name' => t('Import into: @file_type_name', array(
+        '@file_type_name' => $file_type_info['label']
+      )),
+      'description' => t('Update the metadata for a specific file type.'),
+      'fetcher' => array(
+        'plugin_key' => 'FeedsFileFetcher',
+        'config' => array(
+          'allowed_extensions' => 'xls xlsx',
+          'direct' => 0
+        )
+      ),
+      'parser' => array(
+        'plugin_key' => 'FeedsExcelParser',
+        'config' => array(
+          'no_headers' => 0,
+          'all_worksheets' => 1
+        )
+      ),
+      'processor' => array(
+        'plugin_key' => 'FeedsFileProcessor',
+        'config' => array(
+          'bundle' => $file_type,
+          'expire' => '-1',
+          'author' => 0,
+          'mappings' => array(
+            array(
+              'source' => 'GUID',
+              'target' => 'guid',
+              'unique' => TRUE
+            ),
+            array(
+              'source' => 'Filename',
+              'target' => 'filename',
+              'unique' => FALSE
+            )
+          )
+        )
+      ),
+      'update' => 0,
+      'import_period' => -1,
+      'expire_period' => 3600,
+      'import_on_create' => TRUE,
+      'process_in_background' => FALSE
+    );
+    $field_info = field_info_instances('file', $file_type);
+    _silver_feeds_importer_default_helper($field_info, $feeds_importer);
+    $export['file_importer_' . $file_type] = $feeds_importer;
+  }
   return $export;
 }
 
