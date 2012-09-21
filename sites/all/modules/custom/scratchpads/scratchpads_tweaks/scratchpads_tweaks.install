@@ -241,20 +241,6 @@ function scratchpads_tweaks_install(){
   variable_set('user_picture_style', 'square_thumbnail');
   // Allow visitor account creation with administrative approval.
   variable_set('user_register', USER_REGISTER_VISITORS_ADMINISTRATIVE_APPROVAL);
-  // Enable default permissions for system roles.
-  $filtered_html_permission = filter_permission_name($filtered_html_format);
-  user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array(
-    'access content',
-    'access comments',
-    $filtered_html_permission
-  ));
-  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array(
-    'access content',
-    'access comments',
-    'post comments',
-    'skip comment approval',
-    $filtered_html_permission
-  ));
   // Create a Home link in the main menu.
   $item = array(
     'link_title' => st('Home'),
@@ -291,7 +277,8 @@ function scratchpads_tweaks_install(){
   variable_set('imagemagick_convert', 'convert');
   // Set the logging level
   variable_set('error_level', ERROR_REPORTING_HIDE);
-  if($_SERVER['SERVER_ADDR'] == '157.140.127.10' || $_SERVER['SERVER_ADDR'] == '157.140.127.252'){
+  // Display warnings on development machines.
+  if(strpos($_SERVER['SERVER_ADDR'], '157.140.127') === 0){
     variable_set('error_level', ERROR_REPORTING_DISPLAY_ALL);
   }
   // Set the comment form defaults.
