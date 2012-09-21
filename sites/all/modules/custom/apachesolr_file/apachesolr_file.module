@@ -1,4 +1,14 @@
 <?php
+if(module_exists('apachesolr_access')){
+
+  /**
+   * Implements hook_apachesolr_index_document_build_node()
+   */
+  function apachesolr_file_apachesolr_index_document_build_file($document, $file, $env_id){
+    // Grant access to all files.
+    $document->setMultiValue('access__all', 0);
+  }
+}
 
 /**
  * Indexer for the userhook_apachesolr_entity_info_alter entities for the Apachesolr module.
