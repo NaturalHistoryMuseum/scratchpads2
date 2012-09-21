@@ -17,4 +17,11 @@ function twitterscript_filter_info(){
 /**
  * Callback for the filter defined above.
  */
-function twitterscript_filter_twitterscript_filter_process($text, $filter, $format, $langcode, $cache, $cache_id){}
+function twitterscript_filter_twitterscript_filter_process($text, $filter, $format, $langcode, $cache, $cache_id){
+  $matches = array();
+  preg_match('/\[(twitter|TWITTER):([^\]]*)\]/', $text, $matches);
+  if(count($matches)){
+    $text = str_replace($matches[0], '<div class="twitterscript">' . $matches[2] . '</div>', $text);
+  }
+  return $text;
+}
