@@ -406,7 +406,6 @@ function scratchpads_migrate_register_migrations(){
     if(!in_array($type, $source_node_types)){
       continue;
     }
-    dd($type);
     // Perform a table check for these nodes to ensure the module is turned on
     //    if(in_array($type, array(
     //      'spm',
