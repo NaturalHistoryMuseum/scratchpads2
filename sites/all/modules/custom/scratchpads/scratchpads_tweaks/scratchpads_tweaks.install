@@ -4,53 +4,8 @@
 define('SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS', '<iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6> <u>');
 
 function scratchpads_tweaks_install(){
-  // Add text formats.
-  $filtered_html_format = array(
-    'format' => 'filtered_html',
-    'name' => 'Filtered HTML',
-    'weight' => 0,
-    'filters' => array(
-      // URL filter.
-      'filter_url' => array(
-        'weight' => 0,
-        'status' => 1
-      ),
-      // HTML filter.
-      'filter_html' => array(
-        'weight' => 1,
-        'status' => 1,
-        'settings' => array(
-          'allowed_html' => SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS,
-          'filter_html_help' => 0,
-          'filter_html_nofollow' => 0
-        )
-      ),
-      // Line break filter.
-      'filter_autop' => array(
-        'weight' => 2,
-        'status' => 1
-      ),
-      // HTML corrector filter.
-      'filter_htmlcorrector' => array(
-        'weight' => 10,
-        'status' => 1
-      ),
-      'media_filter' => array(
-        'weight' => 11,
-        'status' => 1
-      ),
-      'emptyparagraphkiller' => array(
-        'weight' => 12,
-        'status' => 1
-      )
-    )
-  );
-  $filtered_html_format = (object)$filtered_html_format;
-  filter_format_save($filtered_html_format);
-  $filtered_html_format->format = 'comment_filtered_html';
-  $filtered_html_format->name = 'Comment Filtered HTML';
-  $filtered_html_format->weight = 1;
-  filter_format_save($filtered_html_format);
+  // NOTE, this should be updated if it is changed below.
+  scratchpads_tweaks_update_7027();
   // Set the default theme to be "scratchpads".
   variable_set('theme_default', 'scratchpads');
   // Disable default theme.
@@ -504,31 +459,9 @@ function scratchpads_tweaks_update_7008(){
 }
 
 /**
- * Enable media filter
+ * REMOVED 7011 - REPLACED BY 7026.
+ * REMOVED 7012 - REPLACED BY 7026.
  */
-function scratchpads_tweaks_update_7009(){
-  $filtered_html_format = filter_format_load('filtered_html');
-  $filtered_html_format->filters['media_filter'] = array(
-    'weight' => 11,
-    'status' => 1
-  );
-  filter_format_save($filtered_html_format);
-}
-
-/**
- * Update the filtered HTML format (add <hr>).
- * 
- * scratchpads_tweaks_update_7010 & ...7011 removed as they were almost identical to this one.
- */
-function scratchpads_tweaks_update_7012(){
-  $filtered_html_format = filter_format_load('filtered_html');
-  $filtered_html_format->filters['filter_html']['settings']['allowed_html'] = SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS;
-  filter_format_save($filtered_html_format);
-  $filtered_html_format = filter_format_load('comment_filtered_html');
-  $filtered_html_format->filters['filter_html']['settings']['allowed_html'] = SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS;
-  filter_format_save($filtered_html_format);
-}
-
 /**
  * Disable the wysiwyg module and enable the ckeditor module.
  * 
@@ -788,26 +721,8 @@ function scratchpads_tweaks_update_7014(){
 }
 
 /**
- * Add the emptyparagraphkiller module.
+ * REMOVED 7015 - REPLACED BY 7026.
  */
-function scratchpads_tweaks_update_7015(){
-  module_enable(array(
-    'emptyparagraphkiller'
-  ));
-  $filtered_html_format = filter_format_load('filtered_html');
-  $filtered_html_format->filters['emptyparagraphkiller'] = array(
-    'weight' => 12,
-    'status' => 1
-  );
-  filter_format_save($filtered_html_format);
-  $filtered_html_format = filter_format_load('comment_filtered_html');
-  $filtered_html_format->filters['emptyparagraphkiller'] = array(
-    'weight' => 12,
-    'status' => 1
-  );
-  filter_format_save($filtered_html_format);
-}
-
 /**
  * Install the Scratchpads cleanup module
  */
@@ -818,56 +733,8 @@ function scratchpads_tweaks_update_7016(){
 }
 
 /**
- * De-fuck-up the filter formats.
+ * REMOVED 7018 - REPLACED BY 7026.
  */
-function scratchpads_tweaks_update_7018(){
-  $filters = array(
-    // URL filter.
-    'filter_url' => array(
-      'weight' => 0,
-      'status' => 1
-    ),
-    // HTML filter.
-    'filter_html' => array(
-      'weight' => 1,
-      'status' => 1,
-      'settings' => array(
-        'allowed_html' => SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS,
-        'filter_html_help' => 0,
-        'filter_html_nofollow' => 0
-      )
-    ),
-    // Line break filter.
-    'filter_autop' => array(
-      'weight' => 2,
-      'status' => 1
-    ),
-    // HTML corrector filter.
-    'filter_htmlcorrector' => array(
-      'weight' => 10,
-      'status' => 1
-    ),
-    'media_filter' => array(
-      'weight' => 11,
-      'status' => 1
-    ),
-    'emptyparagraphkiller' => array(
-      'weight' => 12,
-      'status' => 1
-    )
-  );
-  $filtered_html_format = filter_format_load('filtered_html');
-  $filtered_html_format->filters = $filters;
-  filter_format_save($filtered_html_format);
-  $filtered_html_format = filter_format_load('comment_filtered_html');
-  $filtered_html_format->filters = $filters;
-  filter_format_save($filtered_html_format);
-  if(module_exists('scratchpads_lexicon')){
-    module_load_include('install', 'scratchpads_lexicon');
-    scratchpads_lexicon_install();
-  }
-}
-
 /**
  * Fix the date/time formats across all Scratchpads - no flexibility.
  */
@@ -878,19 +745,8 @@ function scratchpads_tweaks_update_7019(){
 }
 
 /**
- * Update the filtered HTML format (add <u>).
+ * REMOVED 7020 - REPLACED BY 7026.
  */
-function scratchpads_tweaks_update_7020(){
-  $settings = array(
-    'allowed_html' => SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS,
-    'filter_html_help' => 0,
-    'filter_html_nofollow' => 0
-  );
-  db_update('filter')->fields(array(
-    'settings' => serialize($settings)
-  ))->condition('module', 'filter')->condition('name', 'filter_html')->condition('format', 'plain_text', '!=')->execute();
-}
-
 /**
  * Update field_quick_delete field to long blob 
  */
@@ -929,4 +785,79 @@ function scratchpads_tweaks_update_7024(){
  */
 function scratchpads_tweaks_update_7025(){
   variable_set('node_submitted_page', TRUE);
+}
+
+/**
+ * Enable the twitterscript module.
+ */
+function scratchpads_tweaks_update_7026(){
+  module_enable(array(
+    'twitterscript'
+  ));
+}
+
+/**
+ * Add the twitterscript filter.
+ * 
+ * NOTE, This update should be renumbered and altered when wanting to update the
+ * filters.  The hook_install function will also need to be changed to reflect
+ * the renumber.
+ */
+function scratchpads_tweaks_update_7027(){
+  // Add text formats.
+  $filtered_html_format = array(
+    'format' => 'filtered_html',
+    'name' => 'Filtered HTML',
+    'weight' => 0,
+    'filters' => array(
+      // URL filter.
+      'filter_url' => array(
+        'weight' => 0,
+        'status' => 1
+      ),
+      // HTML filter.
+      'filter_html' => array(
+        'weight' => 1,
+        'status' => 1,
+        'settings' => array(
+          'allowed_html' => SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS,
+          'filter_html_help' => 0,
+          'filter_html_nofollow' => 0
+        )
+      ),
+      // Line break filter.
+      'filter_autop' => array(
+        'weight' => 2,
+        'status' => 1
+      ),
+      // HTML corrector filter.
+      'filter_htmlcorrector' => array(
+        'weight' => 10,
+        'status' => 1
+      ),
+      'media_filter' => array(
+        'weight' => 11,
+        'status' => 1
+      ),
+      'emptyparagraphkiller' => array(
+        'weight' => 12,
+        'status' => 1
+      ),
+      'twitterscript_filter' => array(
+        'weight' => 100,
+        'status' => 1
+      )
+    )
+  );
+  $filtered_html_format = (object)$filtered_html_format;
+  filter_format_save($filtered_html_format);
+  unset($filtered_html_format->filters['twitterscript_filter']);
+  $filtered_html_format->format = 'comment_filtered_html';
+  $filtered_html_format->name = 'Comment Filtered HTML';
+  $filtered_html_format->weight = 1;
+  filter_format_save($filtered_html_format);
+  if(module_exists('scratchpads_lexicon')){
+    module_load_include('install', 'scratchpads_lexicon');
+    scratchpads_lexicon_install();
+  }
 }
