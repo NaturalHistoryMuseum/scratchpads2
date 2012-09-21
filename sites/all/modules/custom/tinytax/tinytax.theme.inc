@@ -53,7 +53,7 @@ function _tinytax_sort_terms($a, $b){
   $a_usage = isset($a->field_usage[LANGUAGE_NONE][0]['value']) ? $a->field_usage[LANGUAGE_NONE][0]['value'] : 'valid';
   $b_usage = isset($b->field_usage[LANGUAGE_NONE][0]['value']) ? $b->field_usage[LANGUAGE_NONE][0]['value'] : 'valid';
   if($a_usage != $b_usage){
-    if($a_usage == 'invalid' || $a_usage == 'unaccepted'){
+    if($a_usage == 'invalid' || $a_usage == 'not accepted'){
       return FALSE;
     }else{
       return TRUE;
