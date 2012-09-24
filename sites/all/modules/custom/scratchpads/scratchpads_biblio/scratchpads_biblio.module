@@ -36,3 +36,15 @@ function scratchpads_biblio_menu_alter(&$items){
     'type' => MENU_DEFAULT_LOCAL_TASK
   );
 }
+
+/**
+ * Implements hook_node_presave().
+ * 
+ * Prevent biblio nodes from being saved with a title.
+ */
+function scratchpads_biblio_node_presave($node){
+  if($node->type == 'biblio' && !isset($node->title)){
+    $node->title = t('[TITLE BLANK]');
+  }
+  return $node;
+}
