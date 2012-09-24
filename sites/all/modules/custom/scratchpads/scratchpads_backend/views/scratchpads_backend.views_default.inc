@@ -61,7 +61,7 @@ function scratchpads_backend_views_default_views(){
       'separator' => '',
       'empty_column' => 0
     ),
-    'title_field' => array(
+    'title' => array(
       'sortable' => 1,
       'default_sort_order' => 'asc',
       'align' => '',
