@@ -27,6 +27,24 @@ function itis_term_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $fo
 }
 
 /**
+ * Implements hook_feeds_after_parse().
+ * 
+ * Allow the user to leave the term name field empty so that it is generated
+ * automatically by combining unit_name[x] and unit_indicator[x] fields.
+ */
+function itis_term_feeds_after_parse(FeedsSource $source, FeedsParserResult $result){
+  foreach($result->items as $key => $item){
+    if(isset($item['Unit name 1'])){
+      $value = '';
+      for($i = 1; $i <= 4; $i++){
+        $value .= (isset($item['Unit indicator ' . $i]) ? $item['Unit indicator ' . $i] . ' ' : '') . (isset($item['Unit name ' . $i]) ? $item['Unit name ' . $i] . ' ' : '');
+      }
+      $result->items[$key]['Term name'] = trim($value);
+    }
+  }
+}
+
+/**
  * Submit function to alter a vocabulary.
  */
 function itis_term_taxonomy_form_vocabulary_submit($form, &$form_state){
