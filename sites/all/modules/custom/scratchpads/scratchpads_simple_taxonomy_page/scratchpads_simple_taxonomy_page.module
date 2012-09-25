@@ -37,11 +37,22 @@ function scratchpads_simple_taxonomy_page_theme(){
 function scratchpads_simple_taxonomy_page_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id){
   if(!isset($form_state['confirm_delete'])){
     $vids = variable_get('none_biological_vids', array());
+    $default_value = 0;
+    if(isset($form['vid'])){
+      // Vocabulary already exists, default to off
+      if(isset($vids[$form['vid']['#value']])){
+        // Set before, use the setting.
+        $default_value = $vids[$form['vid']['#value']];
+      }
+    }else{
+      // New vocabulary, default to on.
+      $default_value = 1;
+    }
     $form['display_tab'] = array(
       '#title' => t('Display tab'),
       '#description' => t('Check this box to add a menu item linking to this vocabulary.'),
       '#type' => 'checkbox',
-      '#default_value' => (isset($form['vid']) && isset($vids[$form['vid']['#value']])) ? $vids[$form['vid']['#value']] : 1,
+      '#default_value' => $default_value,
       '#states' => array(
         'visible' => array(
           ':input[name="biological_classification"]' => array(
