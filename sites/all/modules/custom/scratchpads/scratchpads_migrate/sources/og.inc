@@ -64,6 +64,17 @@ class ScratchpadsNodeOrganicGroupMigration extends ScratchpadsNodeMigration{
     return $query;
   }
 
+  protected function countQuery(){
+    $query = Database::getConnection('default', $this->sourceConnection)->select('node', 'n');
+    $query->addExpression('COUNT(DISTINCT(n.nid))');
+    $query->innerJoin('og', 'og', 'og.nid = n.nid');
+    $query->condition('type', array(
+      'og',
+      'group'
+    ), 'IN');
+    return $query;
+  }
+
   /**
    * Enable the OG module
    */

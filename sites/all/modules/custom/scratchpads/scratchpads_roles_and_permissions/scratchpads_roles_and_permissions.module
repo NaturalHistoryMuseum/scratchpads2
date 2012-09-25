@@ -39,7 +39,8 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'webform' => FALSE,
       'role_delegation' => FALSE,
       'legal' => FALSE,
-      'forum' => FALSE
+      'forum' => FALSE,
+      'feeds_xls' => FALSE
     ));
   }
 }

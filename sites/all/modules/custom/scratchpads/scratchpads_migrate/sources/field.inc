@@ -7,9 +7,7 @@ class DrupalFieldMigration extends DrupalMigration{
    */
   public function __construct(array $arguments){
     parent::__construct($arguments);
-    
     $this->sourceFields['entity_type'] = t('Entity type');
-    
     $this->source = new MigrateSourceSQL($this->sourceQuery(), $this->sourceFields, NULL, $this->sourceOptions);
     $this->map = new MigrateSQLMap($this->machineName, array(
       'field_name' => array(
@@ -91,14 +89,8 @@ class DrupalFieldMigration extends DrupalMigration{
       $row->field_name = 'field_media';
     }
     // Does an instance of this field already exists?
-    if(field_read_instance($row->entity_type, $row->field_name, $row->type_name)){
-      watchdog('scratchpads_migrate', t('Skipped field %name - already exists %entity_type:%bundle'), array(
-        '%name' => $row->field_name,
-        '%entity_type' => $row->entity_type,
-        '%bundle' => $row->type_name
-      ), WATCHDOG_NOTICE);
-      return false; // Instance already exists, so skip it
-    }
+    if(field_read_instance($row->entity_type, $row->field_name, $row->type_name)){return false;// Instance already exists, so skip it
+}
   }
 
   /**

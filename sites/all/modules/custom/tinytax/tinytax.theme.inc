@@ -12,7 +12,9 @@ function theme_tinytax_block($variables){
   // Check the total number of terms in this taxonomy.  If too many, and we're
   // set to display ancestors, then disable the display of ancestors.
   if($variables['ancestors']){
-    $row = db_query('SELECT COUNT(*) AS num_terms FROM {taxonomy_term_data} WHERE vid = :vid', array(':vid' => $variables['vid']))->fetch();
+    $row = db_query('SELECT COUNT(*) AS num_terms FROM {taxonomy_term_data} WHERE vid = :vid', array(
+      ':vid' => $variables['vid']
+    ))->fetch();
     if($row->num_terms > 2000){
       $variables['ancestors'] = 0;
     }
@@ -30,6 +32,7 @@ function theme_tinytax_block($variables){
 function theme_tinytax_branch($variables){
   // Get the terms to render
   $terms = taxonomy_get_tree($variables['vid'], $variables['tid'], 1, TRUE);
+  uasort($terms, '_tinytax_sort_terms');
   $output = '<ul>';
   foreach($terms as $term){
     $output .= theme('tinytax_term', array(
@@ -39,6 +42,24 @@ function theme_tinytax_branch($variables){
     ));
   }
   return $output . '</ul>';
+}
+
+/**
+ * Sort the terms in a branch.  Do this according to weight, but also according
+ * to the validity of the term (tight link here to the ITIS module which is a 
+ * little shitty).
+ */
+function _tinytax_sort_terms($a, $b){
+  $a_usage = isset($a->field_usage[LANGUAGE_NONE][0]['value']) ? $a->field_usage[LANGUAGE_NONE][0]['value'] : 'valid';
+  $b_usage = isset($b->field_usage[LANGUAGE_NONE][0]['value']) ? $b->field_usage[LANGUAGE_NONE][0]['value'] : 'valid';
+  if($a_usage != $b_usage){
+    if($a_usage == 'invalid' || $a_usage == 'not accepted'){
+      return FALSE;
+    }else{
+      return TRUE;
+    }
+  }
+  return strcmp($a->name, $b->name);
 }
 
 /**
@@ -126,7 +147,14 @@ function theme_tinytax_term($variables){
       'invalid',
       'not accepted'
     ))){
-      $output .= "= ";
+      if(@in_array($variables['term']->field_unacceptability_reason[LANGUAGE_NONE][0]['value'], array(
+        'objective synonym',
+        'homotypic (nomenclatural) synonym'
+      ))){
+        $output .= '&equiv; ';
+      }else{
+        $output .= '= ';
+      }
     }
   }
   $term_uri = taxonomy_term_uri($variables['term']);

@@ -144,17 +144,21 @@ function taxonomy_formatter_field_formatter_view($entity_type, $entity, $field, 
     $termid = $item['tid'];
     $term[] = $termid;
     $actterm = entity_load('taxonomy_term', $term);
-    $uri = entity_uri('taxonomy_term', $actterm[$termid]);
-    if ($settings['links_option']) {
-      $formatted .= $elementwrap[0] . l($actterm[$termid]->name, $uri['path'], $uri['options']) . $elementwrap[1] . $separator;
-    }
-    else {
-      $formatted .= $elementwrap[0] . check_plain($actterm[$termid]->name) . $elementwrap[1] . $separator;
+    if (isset($actterm[$termid])) {
+      $uri = entity_uri('taxonomy_term', $actterm[$termid]);
+      if ($settings['links_option']) {
+        $formatted .= $elementwrap[0] . l($actterm[$termid]->name, $uri['path'], $uri['options']) . $elementwrap[1] . $separator;
+      }
+      else {
+        $formatted .= $elementwrap[0] . check_plain($actterm[$termid]->name) . $elementwrap[1] . $separator;
+      }
     }
   }
   $length = strlen($separator);
   $formatted = substr($formatted, 0 , -($length));
   $formatted = $wrapper[0] . $formatted . $wrapper[1];
-  $element[0]['#markup'] = $formatted;
+  if($formatted){
+    $element[0]['#markup'] = $formatted;
+  }
   return $element;
 }

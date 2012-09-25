@@ -151,10 +151,15 @@ function scratchpads_front_page_view(){
   $page = array();
   $path = drupal_get_path('module', 'scratchpads_front');
   $welcome_message = '<h1 id="front-page-title" class="title"> ';
-  $welcome_message .= t('Welcome to @site-name', array(
+  $default_welcome_message = t('Welcome to @site-name', array(
     '@site-name' => variable_get('site_name', 'Drupal')
   ));
-  $welcome_message .= '</h2>';
+  if(variable_get('front_page_override_welcome_title', 0)){
+    $welcome_message .= variable_get('front_page_welcome_title', $default_welcome_message);
+  }else{
+    $welcome_message .= $default_welcome_message;
+  }
+  $welcome_message .= '</h1>';
   $welcome_message .= check_markup(variable_get('front_page_welcome_message'), 'filtered_html');
   switch(scratchpads_front_variable_get('front_page_main_block_type')){
     case 'images':
@@ -197,6 +202,26 @@ function scratchpads_front_page_view(){
  */
 function scratchpads_front_page_edit($form, &$form_state){
   $node_types = scratchpads_front_node_types();
+  $form['front_page_override_welcome_title'] = array(
+    '#title' => t('Override welcome title'),
+    '#type' => 'checkbox',
+    '#default_value' => variable_get('front_page_override_welcome_title', 0)
+  );
+  $form['front_page_welcome_title'] = array(
+    '#title' => t('Welcome title'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('front_page_welcome_title', t('Welcome to @site-name', array(
+      '@site-name' => variable_get('site_name', 'Drupal')
+    ))),
+    '#description' => t('Setting the welcome title will prevent it from being translated on multi-lingual sites.'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="front_page_override_welcome_title"]' => array(
+          'checked' => TRUE
+        )
+      )
+    )
+  );
   $form['front_page_welcome_message'] = array(
     '#title' => t('Welcome message'),
     '#type' => 'text_format',
@@ -275,6 +300,8 @@ function scratchpads_front_page_edit($form, &$form_state){
  * Edit the home page
  */
 function scratchpads_front_page_edit_submit($form, &$form_state){
+  variable_set('front_page_override_welcome_title', $form_state['values']['front_page_override_welcome_title']);
+  variable_set('front_page_welcome_title', $form_state['values']['front_page_welcome_title']);
   variable_set('front_page_welcome_message', $form_state['values']['front_page_welcome_message']['value']);
   variable_set('front_page_main_block_type', $form_state['values']['front_page_main_block_type']);
   variable_set('front_page_main_block_node_type', $form_state['values']['front_page_main_block_node_type']);
@@ -505,7 +532,7 @@ function scratchpads_front_image_default_styles(){
           'weight' => '1'
         ),
         array(
-          'name' => 'coloractions_convert',
+          'name' => 'convert_image_format',
           'data' => array(
             'format' => 'image/jpeg',
             'quality' => '80'
@@ -526,7 +553,7 @@ function scratchpads_front_image_default_styles(){
           'weight' => '1'
         ),
         array(
-          'name' => 'coloractions_convert',
+          'name' => 'convert_image_format',
           'data' => array(
             'format' => 'image/jpeg',
             'quality' => '80'

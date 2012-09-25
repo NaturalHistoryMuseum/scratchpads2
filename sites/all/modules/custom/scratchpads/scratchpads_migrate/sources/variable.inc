@@ -31,8 +31,10 @@ class VariableMigration extends DrupalMigration{
    */
   public function variableNames(){
     $variable_names = array(
+    	'site_type' => 'site_type',
       'site_name' => 'site_name',
       'site_mail' => 'site_mail',
+    	'site_slogan' => 'site_slogan',
       'site_frontpage' => 'site_frontpage',
       'site_mission' => 'front_page_welcome_message'
     );

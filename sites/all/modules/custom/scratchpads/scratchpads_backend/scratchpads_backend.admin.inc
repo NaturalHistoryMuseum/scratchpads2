@@ -129,7 +129,6 @@ function scratchpads_backend_admin_content(){
         break;
       case 'file':
         $statistics = scratchpads_backend_statistics($entity_info);
-        $file_types = file_info_file_types();
         foreach(array_keys($entity_info['bundles']) as $bundle){
           $view_url = 'admin/file/' . $bundle;
           $operations = array(
@@ -147,7 +146,7 @@ function scratchpads_backend_admin_content(){
           ));
           $rows[] = array(
             'data' => array(
-              l($file_types[$bundle]['label'], $view_url),
+              l($entity_info['bundles'][$bundle]['label'], $view_url),
               (isset($statistics[$bundle]['published']) ? $statistics[$bundle]['published'] : 0),
               (isset($statistics[$bundle]['unpublished']) ? $statistics[$bundle]['unpublished'] : 0),
               $operations

@@ -23,33 +23,34 @@ function gm3_region_install(){
     $fields = array();
     while($line = fgets($f)){
       if(substr($line, 0, 2) == "  "){
+        $line_parts = explode("=", $line);
         switch(substr($line, 0, 11)){
           case '  CONTINENT':
-            $fields['continent'] = trim(array_pop(explode("=", $line)));
+            $fields['continent'] = trim(array_pop($line_parts));
             break;
           case '  ISO_CODE ':
-            $fields['iso_code'] = trim(array_pop(explode("=", $line)));
+            $fields['iso_code'] = trim(array_pop($line_parts));
             break;
           case '  LEVEL1_CO':
           case '  LEVEL_1_C':
-            $fields['level_1_code'] = (int)trim(array_pop(explode("=", $line)));
+            $fields['level_1_code'] = (int)trim(array_pop($line_parts));
             break;
           case '  LEVEL2_CO':
           case '  LEVEL_2_R':
-            $fields['level_2_code'] = (int)trim(array_pop(explode("=", $line)));
+            $fields['level_2_code'] = (int)trim(array_pop($line_parts));
             break;
           case '  LEVEL3_CO':
           case '  LEVEL_3_C':
-            $fields['level_3_code'] = trim(array_pop(explode("=", $line)));
+            $fields['level_3_code'] = trim(array_pop($line_parts));
             break;
           case '  LEVEL_4_C':
-            $fields['level_4_code'] = trim(array_pop(explode("=", $line)));
+            $fields['level_4_code'] = trim(array_pop($line_parts));
             break;
           case '  LEVEL_4_N':
           case '  LEVEL3_NA':
           case '  LEVEL2_NA':
           case '  LEVEL1_NA':
-            $fields['name'] = trim(array_pop(explode("=", $line)));
+            $fields['name'] = trim(array_pop($line_parts));
             break;
           case '  MULTIPOLY':
           case '  POLYGON (':

@@ -82,12 +82,8 @@ class DrupalFieldTaxonomyMigration extends DrupalMigration{
     }
     if(!isset($row->entity_type)){
       $row->entity_type = 'node';
-    }
+    }    
     if(field_read_instance($row->entity_type, $row->field_name, $row->type)){ // Instance already exists, so skip it
-      watchdog('scratchpads_migrate', t('Field %name already exists for %type'), array(
-        '%name' => $row->field_name,
-        '%type' => $row->type
-      ), WATCHDOG_NOTICE);
       return false;
     }
   }

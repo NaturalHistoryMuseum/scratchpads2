@@ -13,7 +13,7 @@ class DrupalFieldProfileMigration extends DrupalMigration{
       'profile_homepage' => 'field_homepage',
       'profile_affil' => 'field_user_institution',
       'profile_forename' => 'field_user_given_names',
-      'profile_surname' => 'field_profile_surname',
+      'profile_surname' => 'field_user_family_name'
     );
   }
 
@@ -110,5 +110,7 @@ class DrupalFieldProfileMigration extends DrupalMigration{
     }
     $row->global_settings['text_processing'] = null;
     $row->name = 'field_' . $row->name;
+    if(field_read_instance('user', $row->name, 'user')){// Instance already exists, so skip it
+      return false;}
   }
 }

@@ -27,6 +27,24 @@ function itis_term_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $fo
 }
 
 /**
+ * Implements hook_feeds_after_parse().
+ * 
+ * Allow the user to leave the term name field empty so that it is generated
+ * automatically by combining unit_name[x] and unit_indicator[x] fields.
+ */
+function itis_term_feeds_after_parse(FeedsSource $source, FeedsParserResult $result){
+  foreach($result->items as $key => $item){
+    if(isset($item['Unit name 1'])){
+      $value = '';
+      for($i = 1; $i <= 4; $i++){
+        $value .= (isset($item['Unit indicator ' . $i]) ? $item['Unit indicator ' . $i] . ' ' : '') . (isset($item['Unit name ' . $i]) ? $item['Unit name ' . $i] . ' ' : '');
+      }
+      $result->items[$key]['Term name'] = trim($value);
+    }
+  }
+}
+
+/**
  * Submit function to alter a vocabulary.
  */
 function itis_term_taxonomy_form_vocabulary_submit($form, &$form_state){
@@ -217,6 +235,8 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
           case 3:
             return array(
               'junior synonym' => 'junior synonym',
+              'objective synonym' => 'objective synonym',
+              'subjective synonym' => 'subjective synonym',
               'original name/combination' => 'original name/combination',
               'subsequent name/combination' => 'subsequent name/combination',
               'junior homonym' => 'junior homonym',
@@ -238,6 +258,8 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
           case 2:
             return array(
               'synonym' => 'synonym',
+              'homotypic (nomenclatural) synonym' => 'homotypic (nomenclatural) synonym',
+              'heterotypic (taxonomic) synonym' => 'heterotypic (taxonomic) synonym',
               'homonym (illegitimate)' => 'homonym (illegitimate)',
               'superfluous renaming (illegitimate)' => 'superfluous renaming (illegitimate)',
               'rejected name' => 'rejected name',
@@ -254,8 +276,10 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
       }
       return array(
         'database artifact' => 'database artifact',
+        'heterotypic (taxonomic) synonym' => 'heterotypic (taxonomic) synonym',
         'homonym (illegitimate)' => 'homonym (illegitimate)',
         'homonym & junior synonym' => 'homonym & junior synonym',
+        'homotypic (nomenclatural) synonym' => 'homotypic (nomenclatural) synonym',
         'horticultural' => 'horticultural',
         'invalidly published, nomen nudum' => 'invalidly published, nomen nudum',
         'invalidly published, other' => 'invalidly published, other',
@@ -264,11 +288,13 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
         'misapplied' => 'misapplied',
         'nomen dubium' => 'nomen dubium',
         'nomen oblitum' => 'nomen oblitum',
+        'objective synonym' => 'objective synonym',
         'original name/combination' => 'original name/combination',
         'orthographic variant (misspelling)' => 'orthographic variant (misspelling)',
         'other' => 'other',
         'pro parte' => 'pro parte',
         'rejected name' => 'rejected name',
+        'subjective synonym' => 'subjective synonym',
         'subsequent name/combination' => 'subsequent name/combination',
         'superfluous renaming (illegitimate)' => 'superfluous renaming (illegitimate)',
         'synonym' => 'synonym',
