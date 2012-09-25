@@ -25,6 +25,17 @@ function scratchpads_media_gallery_scratchpads_solr_info(){
 }
 
 /**
+ * Implements hook_file_load()
+ */
+function scratchpads_media_gallery_file_load($files){
+  foreach($files as $key => $file){
+    if(isset($file->type) && $file->type == 'image'){
+      $files[$key]->title = $file->filename;
+    }
+  }
+}
+
+/**
  * Implementation of hook_context_default_contexts().
  */
 function scratchpads_media_gallery_context_default_contexts(){
