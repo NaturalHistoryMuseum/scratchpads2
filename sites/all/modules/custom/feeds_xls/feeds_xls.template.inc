@@ -211,8 +211,12 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
                           // value
                           $term = taxonomy_term_load($item);
                           $cell_values[] = $term->name;
+                          break;
                         default:
                           $cell_values[] = $item;
+                          break;
+                        // The following cases should not be saved to the file
+                        case 'format':
                           break;
                       }
                     }
