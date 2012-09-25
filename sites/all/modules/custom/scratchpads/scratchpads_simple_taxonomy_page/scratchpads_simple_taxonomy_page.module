@@ -80,6 +80,13 @@ function scratchpads_simple_taxonomy_page_taxonomy_term_insert($term){
 }
 
 /**
+ * Implements hook_taxonomy_term_update()
+ */
+function scratchpads_simple_taxonomy_page_taxonomy_term_update($term){
+  scratchpads_simple_taxonomy_page_taxonomy_term_insert($term);
+}
+
+/**
  * Execute Context page conditions
  *
  * Allows modules to hook into Context's hook_page_build to execute their
