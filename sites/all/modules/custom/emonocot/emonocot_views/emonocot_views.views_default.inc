@@ -136,7 +136,7 @@ function emonocot_views_nomenclature($vid){
   $handler->display->display_options['fields']['name_2']['relationship'] = 'parent_1';
   $handler->display->display_options['fields']['name_2']['label'] = '';
   $handler->display->display_options['fields']['name_2']['alter']['alter_text'] = 1;
-  $handler->display->display_options['fields']['name_2']['alter']['text'] = '<strong>[field_rank]:</strong> <a href="taxonomy/term/[tid_1]" title="[name_2]">[name_2]</a>';
+  $handler->display->display_options['fields']['name_2']['alter']['text'] = '<strong>[field_rank]:</strong> <a href="[tid_1]" title="[name_2]">[name_2]</a>';
   $handler->display->display_options['fields']['name_2']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['name_2']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['name_2']['alter']['external'] = 0;
@@ -216,7 +216,7 @@ function emonocot_views_nomenclature($vid){
   $handler->display->display_options['fields']['name_1']['relationship'] = 'parent';
   $handler->display->display_options['fields']['name_1']['label'] = '';
   $handler->display->display_options['fields']['name_1']['alter']['alter_text'] = 1;
-  $handler->display->display_options['fields']['name_1']['alter']['text'] = '<strong>[field_rank_1]:</strong> <a href="taxonomy/term/[tid]" title="[name_1]">[name_1]</a>';
+  $handler->display->display_options['fields']['name_1']['alter']['text'] = '<strong>[field_rank_1]:</strong> <a href="[tid]" title="[name_1]">[name_1]</a>';
   $handler->display->display_options['fields']['name_1']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['name_1']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['name_1']['alter']['external'] = 0;
