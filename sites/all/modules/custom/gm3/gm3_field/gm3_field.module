@@ -175,7 +175,7 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
     case 'gm3_polyline':
       $new_items = array();
       if(is_string($items[0])){
-        $items[0] = str_replace(substr($field['type'], 4) . ':', '', strtolower($items[0]));
+        $items[0] = str_replace(substr(strtoupper($field['type']), 4) . ':', '', strtoupper($items[0]));
         _gm3_field_get_array_from_poly_string($items[0], $new_items, substr($field['type'], 4));
       }
       if(count($items)){
@@ -299,7 +299,7 @@ function _gm3_field_get_array_from_poly_string($value, &$items, $poly_type, $typ
 function _gm3_field_get_array_from_points_string($value, &$items, $type = FALSE){
   if(is_array($value) || strlen(trim($value))){
     if(is_string($value)){
-      if(strpos($value, '|', $value)){
+      if(strpos($value, '|')){
         $value = explode("|", $value);
       }else{
         $value = preg_split("/[\n\r]+/", $value);

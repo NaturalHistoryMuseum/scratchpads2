@@ -232,10 +232,16 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
                           case 'gm3_type':
                             $field = field_info_field($mapping['target']);
                             switch($field['type']){
+                              // Polygon data.
+                              case 'gm3_polygon':
+                                $implosion = "\n";
+                                $cell_values[] = $item;
+                                break;
                               case 'gm3_point':
                                 // Only enter the data once!
                                 if($key == 'latitude'){
-                                  
+                                  $implosion = "\n";
+                                  $cell_values[] = "POINT:({$value['latitude']},{$value['longitude']})";
                                 }
                                 break 2;
                               case 'gm3_combination':
