@@ -970,7 +970,8 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
           'placeholder' => '(' . t('Latitude') . ', ' . t('Longitude') . ')'
         ),
         '#default_value' => _gm3_field_get_points_string_from_array($items),
-        '#type' => $data_field_type
+        '#type' => $data_field_type,
+        '#maxlength' => 10000000
       );
       break;
     case 'gm3_polyline_gm3':
@@ -1021,7 +1022,8 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
           )
         ),
         '#default_value' => $default_value_string,
-        '#type' => $data_field_type
+        '#type' => $data_field_type,
+        '#maxlength' => 10000000
       );
       break;
     case 'gm3_combination_gm3':
@@ -1085,6 +1087,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             ));
             $widget['children']['gm3_point'] = array(
               '#type' => $data_field_type,
+              '#maxlength' => 10000000,
               '#title' => t('Point'),
               '#attributes' => array(
                 'class' => array(
