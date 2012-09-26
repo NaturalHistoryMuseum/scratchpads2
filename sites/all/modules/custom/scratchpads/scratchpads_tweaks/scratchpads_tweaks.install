@@ -1,10 +1,7 @@
 <?php
-// List of tags that are allowed to be entered by our users.  If this list is
-// changed, an update must be written to actually change the input format.
-define('SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS', '<iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6> <u>');
 
 function scratchpads_tweaks_install(){
-  // NOTE, this should be updated if it is changed below.
+  // Install the filters.
   scratchpads_tweaks_install_help_install_filters();
   // Set the default theme to be "scratchpads".
   variable_set('theme_default', 'scratchpads');
@@ -313,7 +310,7 @@ function scratchpads_tweaks_install_help_install_filters(){
         'weight' => 1,
         'status' => 1,
         'settings' => array(
-          'allowed_html' => SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS,
+          'allowed_html' => '<div> <iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h1> <h2> <h3> <h4> <h5> <h6> <u>',
           'filter_html_help' => 0,
           'filter_html_nofollow' => 0
         )
@@ -853,5 +850,12 @@ function scratchpads_tweaks_update_7026(){
  * Add the twitterscript filter.
  */
 function scratchpads_tweaks_update_7027(){
+  scratchpads_tweaks_install_help_install_filters();
+}
+
+/**
+ * Add h1, h2 and div tags.
+ */
+function scratchpads_tweaks_update_7028(){
   scratchpads_tweaks_install_help_install_filters();
 }
