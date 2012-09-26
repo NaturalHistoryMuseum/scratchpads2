@@ -80,7 +80,7 @@ function gm3_region_field_field_insert($entity_type, $entity, $field, $instance,
   switch($field['type']){
     case 'gm3_region':
       if(is_string($items[0])){
-        $items = explode('|', $items[0]);
+        $items = preg_split('/[\r\n|]+/', str_replace('REGION:', '', strtoupper($items[0])));
       }else{
         $items = array_keys($items[0]['map']);
       }
