@@ -233,6 +233,7 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
                             $field = field_info_field($mapping['target']);
                             switch($field['type']){
                               // Polygon data.
+                              case 'gm3_rectangle':
                               case 'gm3_polygon':
                                 $implosion = "\n";
                                 $cell_values[] = $item;
