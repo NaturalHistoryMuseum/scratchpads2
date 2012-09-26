@@ -812,6 +812,7 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
           'map' => array(
             'id' => $id,
             'libraries' => array(
+              'polygon' => array(),
               substr($field['type'], 4) => array(
                 substr($field['type'], 4) . 's' => $polys
               )
@@ -996,6 +997,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
           'map' => array(
             'id' => $element['#field_name'],
             'libraries' => array(
+              'polygon' => array(),
               $poly_type => array(
                 $poly_type . 's' => $polys
               ),
