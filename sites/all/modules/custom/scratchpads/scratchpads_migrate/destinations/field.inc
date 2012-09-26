@@ -114,6 +114,11 @@ class MigrateDestinationField extends MigrateDestination{
         // Parse allowed values into
         if(isset($field_config['settings']['allowed_values'])){
           $allowed_values = explode(PHP_EOL, $field_config['settings']['allowed_values']);
+          $allowed_values = str_replace(array(
+            "\r",
+            "\r\n",
+            "\n"
+          ), '', $allowed_values);
           $field_config['settings']['allowed_values'] = array_combine($allowed_values, $allowed_values);
         }
         break;

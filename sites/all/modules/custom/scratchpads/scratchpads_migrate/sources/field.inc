@@ -70,9 +70,15 @@ class DrupalFieldMigration extends DrupalMigration{
   public function prepareRow($row){
     if(parent::prepareRow($row) === FALSE){return FALSE;}
     // Unserialize field & widget serttings
-    $row->widget_settings = unserialize($row->widget_settings);
-    $row->display_settings = unserialize($row->display_settings);
-    $row->global_settings = unserialize($row->global_settings);
+    if(!is_array($row->widget_settings)){
+      $row->widget_settings = unserialize($row->widget_settings);
+    }
+    if(!is_array($row->display_settings)){
+      $row->display_settings = unserialize($row->display_settings);
+    }
+    if(!is_array($row->global_settings)){
+      $row->global_settings = unserialize($row->global_settings);
+    }
     // Check if this field has a different destination entity type / bundle
     $mapping = DrupalContentTypeMigration::getContentTypeMappings($row->type_name);
     if($mapping && is_array($mapping)){
