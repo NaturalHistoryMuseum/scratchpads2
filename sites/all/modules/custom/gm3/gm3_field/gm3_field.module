@@ -165,8 +165,7 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
         // Strip point: from the string first.
         $items[0] = str_replace('point:', '', strtolower($items[0]));
         _gm3_field_get_array_from_points_string($items[0], $new_items);
-      }
-      if(count($items)){
+      }else if(count($items)){
         _gm3_field_get_array_from_points_string($items[0]['map'], $new_items);
       }
       $items = $new_items;
@@ -300,7 +299,11 @@ function _gm3_field_get_array_from_poly_string($value, &$items, $poly_type, $typ
 function _gm3_field_get_array_from_points_string($value, &$items, $type = FALSE){
   if(is_array($value) || strlen(trim($value))){
     if(is_string($value)){
-      $value = explode("|", $value);
+      if(strpos($value, '|', $value)){
+        $value = explode("|", $value);
+      }else{
+        $value = preg_split("/[\n\r]+/", $value);
+      }
     }
     foreach($value as $lat_lng){
       $lat_lng = preg_replace('/[)(]/', '', $lat_lng);

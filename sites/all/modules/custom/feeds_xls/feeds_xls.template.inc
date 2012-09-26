@@ -164,6 +164,8 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
             foreach($entity->{$target[0]}[$language] as $value){
               if($target[1] == 'nid'){
                 $cell_values[] = $value['nid'];
+              }elseif($target[1] == 'uid'){
+                $cell_values[] = $value['uid'];
               }
             }
           }
@@ -214,32 +216,46 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
                             $term = taxonomy_term_load($item);
                             $cell_values[] = $term->name;
                             break;
-                          case 'gm3_type':
-                            $implosion = "\n";
-                            $type = array_pop(explode("_", $item));
-                            if($type == 'region'){
-                              // Fuck me, I am SHIT!
-                              if(isset($value['region_id']) && $value['region_id']){
-                                $cell_values[] = 'REGION:' . $value['region_id'];
-                              }
-                            }else{
-                              if(isset($value[$type]) && $value[$type]){
-                                $cell_values[] = strtoupper($type) . ':' . $value[$type];
-                              }
-                            }
-                            break;
                           default:
                             $cell_values[] = $item;
                             break;
                           // The following cases should not be saved to the file
                           case 'format':
-                          case 'region_id':
+                            break;
+                          // Handle gm3 fields together.
                           case 'latitude':
                           case 'longitude':
+                          case 'region_id':
                           case 'polygon':
                           case 'polyline':
                           case 'rectangle':
-                            break;
+                          case 'gm3_type':
+                            $field = field_info_field($mapping['target']);
+                            switch($field['type']){
+                              case 'gm3_point':
+                                // Only enter the data once!
+                                if($key == 'latitude'){
+                                  
+                                }
+                                break 2;
+                              case 'gm3_combination':
+                                if($key == 'gm3_type'){
+                                  // Get the field, and work out which one we have.
+                                  $implosion = "\n";
+                                  $type = array_pop(explode("_", $item));
+                                  if($type == 'region'){
+                                    // Fuck me, I am SHIT!
+                                    if(isset($value['region_id']) && $value['region_id']){
+                                      $cell_values[] = 'REGION:' . $value['region_id'];
+                                    }
+                                  }else{
+                                    if(isset($value[$type]) && $value[$type]){
+                                      $cell_values[] = strtoupper($type) . ':' . $value[$type];
+                                    }
+                                  }
+                                }
+                                break 2;
+                            }
                         }
                       }
                     }
