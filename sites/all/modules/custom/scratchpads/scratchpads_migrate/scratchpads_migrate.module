@@ -252,6 +252,21 @@ function scratchpads_migrate_register_migrations(){
   );
   Migration::registerMigration('DrupalFieldImageTaxonomyMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
+   * Attached file field
+   ********************************************************************************************/
+  // The description and the migration machine name are also required arguments,
+  // which will be unique for each migration you register.
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of fields from Drupal 6'),
+    'machine_name' => 'FieldFileAttachment',
+    'dependencies' => array(
+      'ContentType'
+    ),
+    'group' => MigrateGroup::getInstance('fields')
+  );
+  // We just use the migrate_d2d D6 migration class as-is.
+  Migration::registerMigration('DrupalFieldFileAttachmentMigration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
    * Field groups
    ********************************************************************************************/
   $arguments = $common_arguments + array(
@@ -278,6 +293,20 @@ function scratchpads_migrate_register_migrations(){
     ))
   );
   Migration::registerMigration('ScratchpadsUserMigration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * User
+   ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of profile-only users from Drupal 6'),
+    'machine_name' => 'Profile',
+    'dependencies' => array(
+      'User'
+    ),
+    'group' => MigrateGroup::getInstance('content', array(
+      'fields'
+    ))
+  );
+  Migration::registerMigration('ScratchpadsProfileMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
    * Image galleries
    ********************************************************************************************/

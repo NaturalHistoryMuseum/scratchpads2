@@ -294,7 +294,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query = Database::getConnection('default', $this->sourceConnection)->select('upload', 'u');
     $query->addField('u', 'fid');
     $query->condition('u.vid', $row->vid);
-    $row->file_attachment = $query->execute()->fetchField();
+    $row->file_attachment = $query->execute()->fetchCol();
     // Unset null rows, necessary for dwc location
     $properties = array_keys((array)$row);
     foreach($properties as $property){
