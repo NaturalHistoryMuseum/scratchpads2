@@ -5,7 +5,7 @@ define('SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS', '<iframe> <hr> <i> <a> <em> <stro
 
 function scratchpads_tweaks_install(){
   // NOTE, this should be updated if it is changed below.
-  scratchpads_tweaks_update_7027();
+  scratchpads_tweaks_install_help_install_filters();
   // Set the default theme to be "scratchpads".
   variable_set('theme_default', 'scratchpads');
   // Disable default theme.
@@ -286,6 +286,72 @@ function scratchpads_tweaks_install(){
     if($type != 'forum'){
       variable_set('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
     }
+  }
+}
+
+/**
+ * Add the twitterscript filter.
+ *
+ * NOTE, This update should be renumbered and altered when wanting to update the
+ * filters.  The hook_install function will also need to be changed to reflect
+ * the renumber.
+ */
+function scratchpads_tweaks_install_help_install_filters(){
+  // Add text formats.
+  $filtered_html_format = array(
+    'format' => 'filtered_html',
+    'name' => 'Filtered HTML',
+    'weight' => 0,
+    'filters' => array(
+      // URL filter.
+      'filter_url' => array(
+        'weight' => 0,
+        'status' => 1
+      ),
+      // HTML filter.
+      'filter_html' => array(
+        'weight' => 1,
+        'status' => 1,
+        'settings' => array(
+          'allowed_html' => SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS,
+          'filter_html_help' => 0,
+          'filter_html_nofollow' => 0
+        )
+      ),
+      // Line break filter.
+      'filter_autop' => array(
+        'weight' => 2,
+        'status' => 1
+      ),
+      // HTML corrector filter.
+      'filter_htmlcorrector' => array(
+        'weight' => 10,
+        'status' => 1
+      ),
+      'media_filter' => array(
+        'weight' => 11,
+        'status' => 1
+      ),
+      'emptyparagraphkiller' => array(
+        'weight' => 12,
+        'status' => 1
+      ),
+      'twitterscript_filter' => array(
+        'weight' => 100,
+        'status' => 1
+      )
+    )
+  );
+  $filtered_html_format = (object)$filtered_html_format;
+  filter_format_save($filtered_html_format);
+  unset($filtered_html_format->filters['twitterscript_filter']);
+  $filtered_html_format->format = 'comment_filtered_html';
+  $filtered_html_format->name = 'Comment Filtered HTML';
+  $filtered_html_format->weight = 1;
+  filter_format_save($filtered_html_format);
+  if(module_exists('scratchpads_lexicon')){
+    module_load_include('install', 'scratchpads_lexicon');
+    scratchpads_lexicon_install();
   }
 }
 
@@ -785,66 +851,7 @@ function scratchpads_tweaks_update_7026(){
 
 /**
  * Add the twitterscript filter.
- * 
- * NOTE, This update should be renumbered and altered when wanting to update the
- * filters.  The hook_install function will also need to be changed to reflect
- * the renumber.
  */
 function scratchpads_tweaks_update_7027(){
-  // Add text formats.
-  $filtered_html_format = array(
-    'format' => 'filtered_html',
-    'name' => 'Filtered HTML',
-    'weight' => 0,
-    'filters' => array(
-      // URL filter.
-      'filter_url' => array(
-        'weight' => 0,
-        'status' => 1
-      ),
-      // HTML filter.
-      'filter_html' => array(
-        'weight' => 1,
-        'status' => 1,
-        'settings' => array(
-          'allowed_html' => SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS,
-          'filter_html_help' => 0,
-          'filter_html_nofollow' => 0
-        )
-      ),
-      // Line break filter.
-      'filter_autop' => array(
-        'weight' => 2,
-        'status' => 1
-      ),
-      // HTML corrector filter.
-      'filter_htmlcorrector' => array(
-        'weight' => 10,
-        'status' => 1
-      ),
-      'media_filter' => array(
-        'weight' => 11,
-        'status' => 1
-      ),
-      'emptyparagraphkiller' => array(
-        'weight' => 12,
-        'status' => 1
-      ),
-      'twitterscript_filter' => array(
-        'weight' => 100,
-        'status' => 1
-      )
-    )
-  );
-  $filtered_html_format = (object)$filtered_html_format;
-  filter_format_save($filtered_html_format);
-  unset($filtered_html_format->filters['twitterscript_filter']);
-  $filtered_html_format->format = 'comment_filtered_html';
-  $filtered_html_format->name = 'Comment Filtered HTML';
-  $filtered_html_format->weight = 1;
-  filter_format_save($filtered_html_format);
-  if(module_exists('scratchpads_lexicon')){
-    module_load_include('install', 'scratchpads_lexicon');
-    scratchpads_lexicon_install();
-  }
+  scratchpads_tweaks_install_help_install_filters();
 }
