@@ -201,6 +201,11 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
             $line_parts = explode(':', $line);
             if(count($line_parts) > 1){
               $type = "gm3_" . strtolower(array_shift($line_parts));
+              foreach($line_parts as $key => $part){
+                if(!trim($part)){
+                  unset($line_parts[$key]);
+                }
+              }
               $items[0]['map']['children'][$type][] = implode(':', $line_parts);
             }
           }
@@ -262,6 +267,7 @@ function gm3_field_feeds_processor_targets_alter(&$targets, $entity_type, $bundl
  * Callback to set the value for a GM3 field.
  */
 function gm3_field_feeds_set_target_text($source, $entity, $target, $value){
+  $value = $value[0];
   $info = field_info_field($target);
   $field = isset($entity->$target) ? $entity->$target : array();
   $field['und'][] = $value;

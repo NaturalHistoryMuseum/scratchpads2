@@ -203,6 +203,7 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
               if(is_array($entity->{$mapping['target']}) && count($entity->{$mapping['target']})){
                 foreach($entity->{$mapping['target']} as $language => $values){
                   $cell_values = array();
+                  $implosion = '|';
                   foreach($entity->{$mapping['target']}[$language] as $value){
                     foreach($value as $key => $item){
                       if($item){
@@ -213,17 +214,37 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
                             $term = taxonomy_term_load($item);
                             $cell_values[] = $term->name;
                             break;
+                          case 'gm3_type':
+                            $implosion = "\n";
+                            $type = array_pop(explode("_", $item));
+                            if($type == 'region'){
+                              // Fuck me, I am SHIT!
+                              if(isset($value['region_id']) && $value['region_id']){
+                                $cell_values[] = 'REGION:' . $value['region_id'];
+                              }
+                            }else{
+                              if(isset($value[$type]) && $value[$type]){
+                                $cell_values[] = strtoupper($type) . ':' . $value[$type];
+                              }
+                            }
+                            break;
                           default:
                             $cell_values[] = $item;
                             break;
                           // The following cases should not be saved to the file
                           case 'format':
+                          case 'region_id':
+                          case 'latitude':
+                          case 'longitude':
+                          case 'polygon':
+                          case 'polyline':
+                          case 'rectangle':
                             break;
                         }
                       }
                     }
                   }
-                  $objPHPExcel->getActiveSheet()->setCellValue($cell, implode('|', $cell_values));
+                  $objPHPExcel->getActiveSheet()->setCellValue($cell, implode($implosion, $cell_values));
                 }
               }elseif(is_string($entity->{$mapping['target']})){
                 $objPHPExcel->getActiveSheet()->setCellValue($cell, $entity->{$mapping['target']});

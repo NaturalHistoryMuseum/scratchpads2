@@ -127,12 +127,13 @@ function gm3_region_gm3_combination_insert(&$new_items, $value){
           $val = "{$row->level_1_code}:{$row->level_2_code}:$val";
         }else{
           // Region 4
+          $val = explode("-", $val);
           $row = db_select('gm3_region_data', 'g')->fields('g', array(
             'level_1_code',
             'level_2_code',
             'level_3_code'
-          ))->condition('level_4_code', $val)->execute()->fetch();
-          $val = "{$row->level_1_code}:{$row->level_2_code}:{$row->level_3_code}:$val";
+          ))->condition('level_4_code', $val[1])->condition('level_3_code', $val[0])->execute()->fetch();
+          $val = "{$row->level_1_code}:{$row->level_2_code}:{$row->level_3_code}:{$val[0]}-{$val[1]}";
         }
       }
     }
