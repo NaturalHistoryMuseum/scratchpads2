@@ -49,7 +49,7 @@ function creative_commons_field_settings_form($field, $instance, $has_data){
   $form['allowed_values'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Allowed values list'),
-    '#default_value' => (isset($settings['allowed_values']) ? $settings['allowed_values'] : array()),
+    '#default_value' => (isset($settings['allowed_values']) ? $settings['allowed_values'] : array_keys(creative_commons_get_licence_types())),
     '#options' => creative_commons_get_licence_types(),
     '#description' => t("Please select which creative commons licence types are available for this field. If none are selected, all licence types will be available.")
   );
@@ -99,15 +99,6 @@ function creative_commons_field_formatter_view($entity_type, $entity, $field, $i
     $element[$delta] = creative_commons_display($item['licence'], $field['settings']['jurisdiction'], ($display['type'] == 'creative_commons_small_image' ? CC_SMALL_IMAGE : CC_LARGE_IMAGE));
   }
   return $element;
-}
-
-/**
- * Always set default licence to creative_commons_block_licence_type
- */
-function creative_commons_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items){
-  foreach($items as $delta => $item){
-    $items[$delta]['licence'] = variable_get('creative_commons_block_licence_type', CC_BY);
-  }
 }
 
 /**
@@ -231,6 +222,39 @@ function creative_commons_form_field_ui_field_edit_form_alter(&$form, &$form_sta
     $form['field']['cardinality']['#default_value'] = 1;
     $form['field']['#access'] = FALSE;
   }
+}
+
+/*********************************************************************************************
+ * 
+ * FEEDS
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_feeds_processor_targets_alter().
+ */
+function creative_commons_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name){
+  foreach(field_info_instances($entity_type, $bundle_name) as $name => $instance){
+    $info = field_info_field($name);
+    if($info['type'] == 'creative_commons'){
+      $targets[$name] = array(
+        'name' => check_plain($instance['label']),
+        'callback' => '_creative_commons_feeds_set_target_value',
+        'description' => t('The @label field of the node.', array(
+          '@label' => $instance['label']
+        ))
+      );
+    }
+  }
+}
+
+/**
+ * Callback to set the value for a CC field.
+ */
+function _creative_commons_feeds_set_target_value($source, $entity, $target, $value){
+  $field = isset($entity->$target) ? $entity->$target : array();
+  $value = array_search($value, creative_commons_get_licence_types());
+  $field['und'][] = array('licence' => $value);
+  $entity->{$target} = $field;
 }
 
 /*********************************************************************************************

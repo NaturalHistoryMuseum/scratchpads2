@@ -221,6 +221,10 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
                             $term = taxonomy_term_load($item);
                             $cell_values[] = $term->name;
                             break;
+                          case 'licence':
+                            $licences = creative_commons_get_licence_types();
+                            $cell_values[] = $licences[$item];
+                            break;
                           default:
                             $cell_values[] = $item;
                             break;
@@ -430,6 +434,11 @@ function feeds_xls_download_template_helper($feeds_importer, $output = 'php://ou
           $allowed_values = call_user_func($field['settings']['allowed_values_function'], $field);
         }else if(isset($field['settings']['allowed_values']) && is_array($field['settings']['allowed_values'])){
           $allowed_values = $field['settings']['allowed_values'];
+          // Especially for the creative_commons module
+          // FIXME - there must be a nicer way of doing this.
+          if($field['type'] == 'creative_commons'){
+            $allowed_values = creative_commons_get_licence_types();
+          }
         }else if($field['type'] == 'node_reference'){
           // If the view name is set, we can not do anything.
           if(!$field['settings']['view']['view_name']){

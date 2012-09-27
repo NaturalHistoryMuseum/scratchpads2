@@ -175,6 +175,32 @@ function scratchpads_simple_taxonomy_page_taxonomy_form_vocabulary_submit($form,
 }
 
 /**
+ * Implementation of hook_page_alter().
+ * 
+ * FIXME - We need to check for the presence of a facet filter.
+ */
+function scratchpads_simple_taxonomy_page_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  if($router_item['path'] == 'nontaxonomy/term/%' && $term = taxonomy_term_load(arg(2))){
+    if(taxonomy_term_edit_access($term)){
+      $data['tabs'][0]['output'][] = array(
+        '#theme' => 'menu_local_task',
+        '#link' => array(
+          'title' => t('Edit'),
+          'href' => 'taxonomy/term/' . $term->tid . '/edit',
+          'localized_options' => array(
+            'attributes' => array(
+              'title' => t('Edit this term')
+            )
+          )
+        )
+      );
+      $data['tabs'][0]['output'][0]['#active'] = TRUE;
+      $data['tabs'][0]['count'] = 2;
+    }
+  }
+}
+
+/**
  * Implements hook_menu().
  * 
  * Note, PRIMARY_MENU_NAME is defined in the scratchpads_pages.module file, but
