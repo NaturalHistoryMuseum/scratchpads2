@@ -1,6 +1,5 @@
 /**
- * @file
- * switch javascript file 
+ * @file switch javascript file
  */
 (function ($) {
   Drupal.behaviors.Switch = {
@@ -28,11 +27,13 @@
 
       		img.mouseout(function(){
       			img.css("background", Drupal.settings.switch.mouse_out);
-      		});  
+      		});
       		
       		// click handling
-      		container.click(function() {
+      		container.mousedown(function() {
       		  img = $('img', $(this));
+      		  // Prevent dragging the image.
+            img.bind('dragstart', function(event) { event.preventDefault(); });
       			if(state == 'on') {
       				img.animate({backgroundPosition: -53}, "slow", function() {
       					img.attr('src', Drupal.settings.switch.switch_off_container_path);      					
