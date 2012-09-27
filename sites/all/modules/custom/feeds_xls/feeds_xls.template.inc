@@ -208,6 +208,11 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
                   $implosion = '|';
                   foreach($entity->{$mapping['target']}[$language] as $value){
                     foreach($value as $key => $item){
+                      // Change to the allowed values array().
+                      $field = field_info_field($mapping['target']);
+                      if($field && @isset($field['settings']['allowed_values'][$item])){
+                        $item = $field['settings']['allowed_values'][$item];
+                      }
                       if($item){
                         switch($key){
                           case 'tid':
