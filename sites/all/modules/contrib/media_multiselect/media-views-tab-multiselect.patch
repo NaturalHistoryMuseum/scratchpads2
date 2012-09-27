@@ -1,8 +1,8 @@
 diff --git a/js/media.js b/js/media.js
-index 7112281..cd9a60f 100644
+index 2151eef..9463def 100644
 --- a/js/media.js
 +++ b/js/media.js
-@@ -33,7 +33,7 @@ Drupal.behaviors.mediaElement = {
+@@ -35,7 +35,7 @@ Drupal.behaviors.mediaElement = {
        }
  
        // When someone clicks the link to pick media (or clicks on an existing thumbnail)
@@ -11,7 +11,7 @@ index 7112281..cd9a60f 100644
          // Launch the browser, providing the following callback function
          // @TODO: This should not be an anomyous function.
          Drupal.media.popups.mediaBrowser(function (mediaFiles) {
-@@ -47,17 +47,17 @@ Drupal.behaviors.mediaElement = {
+@@ -49,17 +49,17 @@ Drupal.behaviors.mediaElement = {
            // Set the preview field HTML.
            previewField.html(mediaFile.preview);
          }, globalOptions);
@@ -33,7 +33,7 @@ index 7112281..cd9a60f 100644
  
        // Show or hide the edit/remove buttons if the field has a file or not.
 diff --git a/js/plugins/media.views.js b/js/plugins/media.views.js
-index aec2323..9fd6889 100644
+index 95b673b..9fd6889 100644
 --- a/js/plugins/media.views.js
 +++ b/js/plugins/media.views.js
 @@ -7,6 +7,7 @@
@@ -44,7 +44,7 @@ index aec2323..9fd6889 100644
  Drupal.behaviors.mediaViews = {
    attach: function (context, settings) {
  
-@@ -15,28 +16,104 @@ Drupal.behaviors.mediaViews = {
+@@ -15,34 +16,104 @@ Drupal.behaviors.mediaViews = {
        return false;
      });
  
@@ -65,6 +65,12 @@ index aec2323..9fd6889 100644
 -      for (index in Drupal.settings.media.files) {
 -        if (Drupal.settings.media.files[index].fid == fid) {
 -          selectedFiles.push(Drupal.settings.media.files[index]);
+-
+-          // If multiple tabs contains the same file, it will be present in the
+-          // files-array multiple times, so we break out early so we don't have
+-          // it in the selectedFiles array multiple times.
+-          // This would interfer with multi-selection, so...
+-          break;
 +    // We loop through the views listed in Drupal.settings.media.browser.views
 +    // and set them up individually.
 +    var views_ids = Object.keys(Drupal.settings.media.browser.views);
@@ -169,7 +175,7 @@ index aec2323..9fd6889 100644
 +
  }(jQuery));
 diff --git a/media.views.inc b/media.views.inc
-index 778c1f4..6e418ce 100644
+index 58fd75e..f9d913c 100644
 --- a/media.views.inc
 +++ b/media.views.inc
 @@ -70,6 +70,20 @@ function template_preprocess_media_views_view_media_browser(&$vars) {
