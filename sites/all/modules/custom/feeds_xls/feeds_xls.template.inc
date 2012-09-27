@@ -221,6 +221,10 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
                             $term = taxonomy_term_load($item);
                             $cell_values[] = $term->name;
                             break;
+                          case 'licence':
+                            $licences = creative_commons_get_licence_types();
+                            $cell_values[] = $licences[$item];
+                            break;
                           default:
                             $cell_values[] = $item;
                             break;
