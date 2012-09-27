@@ -1,5 +1,5 @@
 name = Feeds file processor
-description = Enables feeds to import into a file entity.
+description = Enables feeds to update file entities.
 package = Feeds
 dependencies[] = feeds
 dependencies[] = file_entity
