@@ -31,3 +31,22 @@ function scratchpads_simple_taxonomy_page_update_7001(){
     'search_path' => 'nontaxonomy/term/%'
   ))->condition('search_path', 'term/%')->execute();
 }
+
+/**
+ * Change the URL of the search page from term/% to nontaxonomy/term/%
+ */
+function scratchpads_simple_taxonomy_page_update_7002(){
+  $none_bio = variable_get('none_biological_vids', array());
+  $bio = variable_get('biological_vids', array());
+  $rebuild_menu = FALSE;
+  foreach($none_bio as $key => $value){
+    if($value && isset($bio[$key]) && $bio[$key]){
+      $none_bio[$key] = 0;
+      $rebuild_menu = TRUE;
+    }
+  }
+  if($rebuild_menu){
+    variable_set('none_biological_vids', $none_bio);
+    menu_rebuild();
+  }
+}

@@ -169,7 +169,7 @@ function scratchpads_simple_taxonomy_page_taxonomy_form_vocabulary_submit($form,
         unset($none_biological_vids[$vid]);
       }
     }
-    $none_biological_vids[$form_state['vid']] = $form_state['values']['display_tab'];
+    $none_biological_vids[$form_state['vid']] = !$form_state['values']['biological_classification'] ? $form_state['values']['display_tab'] : 0;
     variable_set('none_biological_vids', $none_biological_vids);
   }
 }
