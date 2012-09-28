@@ -10,7 +10,8 @@ class ScratchpadsNodeImageMigration extends DrupalNode6Migration{
 class DrupalImageMigration extends DrupalFileMigration{
 
   /**
-   * Allow for multiple biological classifications which need to be merged into the taxon name field
+   * Allow for multiple biological classifications which need to be merged into
+   * the taxon name field
    *
    * @var array
    */
@@ -29,12 +30,16 @@ class DrupalImageMigration extends DrupalFileMigration{
   protected $nodeMigration;
 
   /**
-   * @param array $arguments
+   *
+   * @param array $arguments          
    */
   public function __construct(array $arguments){
     parent::__construct($arguments);
     $this->destination = new MigrateDestinationFile('image', 'MigrateRemoteFileUri');
     $fields = $this->sourceFieldList();
+    $fields['nid'] = 'nid';
+    $fields['vid'] = 'vid';
+    $fields['title'] = 'title';
     $this->source = new MigrateSourceSQL($this->sourceQuery(), $fields, $this->countQuery(), $this->sourceOptions);
     $destination_fields = $this->destination->fields();
     foreach($fields as $delta => $field){
@@ -60,7 +65,8 @@ class DrupalImageMigration extends DrupalFileMigration{
           // Handle multiple biological classifications
           if($field_name == 'field_taxonomic_name'){
             $this->biologicalClassifications[] = $delta;
-            // If we already have a mapped biological classification, add as unmapped source, we'll merge in perpareRow
+            // If we already have a mapped biological classification, add as
+            // unmapped source, we'll merge in perpareRow
             if(count($this->biologicalClassifications) > 1){
               $this->addUnmigratedSources(array(
                 $delta
@@ -95,13 +101,15 @@ class DrupalImageMigration extends DrupalFileMigration{
       'field_creator:language',
       'field_promote_to_home_page',
       'path',
-      'field_cc_licence' // Can't be bothered to write a destination handler as it's always the same value - see prepare()
+      'field_cc_licence'
     ));
+    // Can't be bothered to write a destination handler as it's always the same
+    // value - see prepare()
     $this->addUnmigratedSources(array(
       'field_imagefield',
       'image_publication',
       'image_specimen',
-      //'field_img_location',
+      // 'field_img_location',
       'nid',
       'vid'
     ));
@@ -116,8 +124,8 @@ class DrupalImageMigration extends DrupalFileMigration{
       'source_version' => $this->sourceVersion,
       'source_type' => 'image',
       'destination_type' => 'image',
-    	'machine_name' => 'DummyImageMigration',
-    	'description' => 'Dummy migration used to get access to functions'
+      'machine_name' => 'DummyImageMigration',
+      'description' => 'Dummy migration used to get access to functions'
     ));
     $fields = $this->nodeMigration->sourceFieldList();
     $this->sourceFieldTypes = $this->nodeMigration->getSourceFieldTypes();
@@ -143,13 +151,6 @@ class DrupalImageMigration extends DrupalFileMigration{
     ));
     $query->orderBy('f.fid');
     $query->condition('filemime', $this->imageFileMime(), 'IN');
-    $query->innerJoin('content_field_imagefield', 'i', 'i.field_imagefield_fid = f.fid');
-    $query->innerJoin('node', 'n', 'n.vid = i.vid');
-    $query->fields('n', array(
-      'nid',
-      'vid',
-      'title'
-    ));
     return $query;
   }
 
@@ -162,12 +163,30 @@ class DrupalImageMigration extends DrupalFileMigration{
     $query = Database::getConnection('default', $this->sourceConnection)->select('files', 'f');
     $query->addExpression('COUNT(DISTINCT(f.fid))');
     $query->condition('filemime', $this->imageFileMime(), 'IN');
-    $query->innerJoin('content_field_imagefield', 'i', 'i.field_imagefield_fid = f.fid');
     return $query;
   }
 
   public function prepareRow($row){
     if(parent::prepareRow($row) === FALSE){return FALSE;}
+    // Is there an image node for this image? If there is, add it!
+    $query = Database::getConnection('default', $this->sourceConnection)->select('node', 'n');
+    $query->fields('n', array(
+      'nid',
+      'vid',
+      'title'
+    ));
+    $query->innerJoin('content_field_imagefield', 'i', 'i.vid = n.vid');
+    $query->condition('i.field_imagefield_fid', $row->fid);
+    $result = $query->execute();
+    if($result->rowCount()){
+      $node = $result->fetchObject();
+      $row->nid = $node->nid;
+      $row->vid = $node->vid;
+      $row->title = $node->title;
+    }else{
+      $row->nid = 0;
+      $row->vid = 0;
+    }
     $this->nodeMigration->prepareRow($row);
   }
 

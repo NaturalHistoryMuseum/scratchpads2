@@ -20,7 +20,8 @@
 class ScratchpadsNodeMigration extends DrupalNode6Migration{
 
   /**
-   * Allow for multiple biological classifications which need to be merged into the taxon name field
+   * Allow for multiple biological classifications which need to be merged into
+   * the taxon name field
    *
    * @var array
    */
@@ -89,7 +90,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
           // Handle multiple biological classifications
           if($field_name == 'field_taxonomic_name'){
             $this->biologicalClassifications[] = $delta;
-            // If we already have a mapped biological classification, add as unmapped source, we'll merge in perpareRow
+            // If we already have a mapped biological classification, add as
+            // unmapped source, we'll merge in perpareRow
             if(count($this->biologicalClassifications) > 1){
               $this->addUnmigratedSources(array(
                 $delta
@@ -113,7 +115,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       }elseif($delta == 'file_attachment'){
         // Does this node type have a file_field?
         if(array_key_exists('field_file', $destination_fields)){
-          // Does have field file mapping so add a simple mapping. 
+          // Does have field file mapping so add a simple mapping.
           // We'll get the files in prepareRow
           $this->addFieldMapping('field_file', $delta)->sourceMigration('File');
           $this->addFieldMapping('field_file:file_class')->defaultValue('MigrateFileFid');
@@ -133,9 +135,10 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
           ));
         }
       }else{ // Other field types
-        // Load the field
+             // Load the field
         $field = field_info_field($delta);
-        // If we don't have a field with the same name, check if it's a media field
+        // If we don't have a field with the same name, check if it's a media
+        // field
         if($field){
           $type = $field['type'];
         }else{
@@ -146,7 +149,14 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
             case 'image':
             case 'file':
             case 'filefield':
-              $this->addFieldMapping('field_media', $delta)->sourceMigration('File');
+              // Fucking D6 doesn't seperate type of file fields, so chceck the
+              // widget here
+              $widget_type = $this->getFieldWidgetType($delta);
+              if($widget_type == 'imagefield_widget'){
+                $this->addFieldMapping('field_media', $delta)->sourceMigration('Image');
+              }else{
+                $this->addFieldMapping('field_media', $delta)->sourceMigration('File');
+              }
               $this->addFieldMapping('field_media:file_class')->defaultValue('MigrateFileFid');
               $this->addFieldMapping('field_media:file_replace')->defaultValue(FILE_EXISTS_REPLACE);
               $this->addUnmigratedDestinations(array(
@@ -161,7 +171,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
               break;
             default:
               if($type == 'text_long'){
-                // Keep a record of long text fields, as we need to extract files
+                // Keep a record of long text fields, as we need to extract
+                // files
                 $this->longTextFields[] = $delta;
               }
               if(!$destination_field = $this->getManualFieldMapping($delta)){
@@ -193,7 +204,9 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $this->addFieldMapping('nid', 'nid');
     $this->removeFieldMapping('is_new');
     $this->addFieldMapping('is_new', NULL)->defaultValue(true);
-    $this->addFieldMapping('group_audience', 'group_nid'); // Remap this in prepare row - needs to use OG id
+    $this->addFieldMapping('group_audience', 'group_nid'); // Remap this in
+                                                           // prepare row -
+                                                           // needs to use OG id
     $this->addFieldMapping('group_content_access', 'og_public')->defaultValue(0);
     // Does this node have a body field?
     if(field_read_instance('node', 'body', $this->destinationType)){
@@ -225,7 +238,6 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->condition('n.title', 'Taskguide', '!=');
     return $query;
   }
-
   // Allow overiding count query
   protected function countQuery(){
     $query = Database::getConnection('default', $this->sourceConnection)->select('node', 'n');
@@ -240,6 +252,12 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     return Database::getConnection('default', $this->sourceConnection)->select('content_node_field', 'cnf')->fields('cnf', array(
       'type'
     ))->condition('field_name', $field_name)->execute()->fetchField();
+  }
+
+  protected function getFieldWidgetType($field_name){
+    return Database::getConnection('default', $this->sourceConnection)->select('content_node_field_instance', 'cnfi')->fields('cnfi', array(
+      'widget_type'
+    ))->condition('field_name', $field_name)->distinct()->execute()->fetchField();
   }
 
   public function prepareRow($row){
@@ -314,7 +332,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->condition('link_path', 'node/' . $row->nid);
     $menu_title = $query->execute()->fetchField();
     // All we want to get is the menu title
-    // We'll add this to the top level main menu and re-organise by hand afterwards
+    // We'll add this to the top level main menu and re-organise by hand
+    // afterwards
     if($menu_title){
       $row->menu = array(
         'menu_name' => PRIMARY_MENU_NAME,
@@ -447,7 +466,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     // Get source_id from args
     $args = func_get_args();
     $nid = $args[1][0];
-    // Check the node doesn't already exist - otherwise as we're passing in nid and create new, we'll get integrity constraint violations
+    // Check the node doesn't already exist - otherwise as we're passing in nid
+    // and create new, we'll get integrity constraint violations
     if($this->nodeExists($nid)){
       return array(
         $nid
