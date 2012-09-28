@@ -114,22 +114,24 @@ function eolapi_taxonomy_vocabulary_insert($vocabulary){
 function eolapi_taxonomy_vocabulary_delete($vocabulary){
   // We have a biological classification.  We need to update the field.
   $field = field_info_field('eolapi_taxonomy');
-  $update = FALSE;
-  foreach($field['settings']['allowed_values'] as $key => $value){
-    if($value['vocabulary'] == $vocabulary->machine_name){
-      $update = TRUE;
-      unset($field['settings']['allowed_values'][$key]);
-      if(!count($field['settings']['allowed_values'])){
-        $field['settings']['allowed_values'][0] = array(
-          'parent' => 0,
-          'vocabulary' => $vocabulary->machine_name
-        );
+  if($field){
+    $update = FALSE;
+    foreach($field['settings']['allowed_values'] as $key => $value){
+      if($value['vocabulary'] == $vocabulary->machine_name){
+        $update = TRUE;
+        unset($field['settings']['allowed_values'][$key]);
+        if(!count($field['settings']['allowed_values'])){
+          $field['settings']['allowed_values'][0] = array(
+            'parent' => 0,
+            'vocabulary' => $vocabulary->machine_name
+          );
+        }
+        break;
       }
-      break;
     }
-  }
-  if($update){
-    field_update_field($field);
+    if($update){
+      field_update_field($field);
+    }
   }
 }
 
@@ -297,6 +299,9 @@ function eolapi_page_view($eolapi){
  * Implement hook_taxonomy_term_delete().
  */
 function eolapi_taxonomy_term_delete($term = FALSE){
+  // Don't go any further if the field does not exist.
+  $field = field_info_field('eolapi_taxonomy');
+  if(!$field){return;}
   // Delete the field data.  Looks like there is a bug somewhere with my code,
   // as I would expect the field module to do this for me!
   if($term){
