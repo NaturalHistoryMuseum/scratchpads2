@@ -859,3 +859,12 @@ function scratchpads_tweaks_update_7027(){
 function scratchpads_tweaks_update_7028(){
   scratchpads_tweaks_install_help_install_filters();
 }
+
+/**
+ * Ensure scratchpads_forum is enabled if forum is enabled
+ */
+function scratchpads_tweaks_update_7029() {
+  if(module_exists('forum')){
+    module_enable(array('scratchpads_forum'));
+  }
+}

@@ -235,17 +235,6 @@ function scratchpads_tweaks_preprocess_comment(&$variables){
 }
 
 /**
- * Implementation of hook_form_FORM_ID_alter.
- *
- * Hide the forums vocabulary from the taxonomy editor.
- */
-function scratchpads_tweaks_form_taxonomy_overview_vocabularies_alter(&$form, &$form_state, $form_id){
-  if($tid = variable_get('forum_nav_vocabulary', FALSE)){
-    unset($form[$tid]);
-  }
-}
-
-/**
  * Implementation of hook_form_alter()
  */
 function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
@@ -321,13 +310,6 @@ function scratchpads_tweaks_menu_alter(&$items){
 }
 
 /**
- * Specifies the argument that should be used on forum/% links.
- */
-function forum_forum_to_arg($arg, $map, $index){
-  return FALSE;
-}
-
-/**
  * Implements hook_form_FORM_ID_alter().
  */
 function scratchpads_tweaks_form_user_profile_form_alter(&$form, &$form_state, $form_id){
@@ -381,10 +363,6 @@ function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
       $info['tool'] = TRUE;
       $info['name'] = 'Pretty URLs';
       $info['description'] = 'Automatically generates pretty URLs based on the title of the content being edited/created. e.g. A page titled "About this site" will be given the URL content/about-this-site, instead of node/x.';
-      break;
-    case 'forum':
-      $info['tool'] = TRUE;
-      $info['package'] = 'Forum';
       break;
     case 'rules':
       $info['dependencies'][] = 'trigger';

@@ -1,0 +1,14 @@
+name = "Scratchpads Forum"
+description = "Provides discussion forums."
+configure = admin/structure/forum
+
+core = "7.x"
+dependencies[] = "forum"
+dependencies[] = "context"
+dependencies[] = "ctools"
+features[context][] = "forum_node"
+features[ctools][] = "context:context:3"
+
+package = Forum
+tool = true
+php = "5.2.4"
