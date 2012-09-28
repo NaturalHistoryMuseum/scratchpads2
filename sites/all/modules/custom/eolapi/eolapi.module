@@ -101,7 +101,7 @@ function eolapi_taxonomy_vocabulary_insert($vocabulary){
       );
       field_update_field($field);
     }else{
-      watchdog('eolapi', 'The field "eolapi_taxonomy" has been deleted - recreating!', NULL, 'error');
+      watchdog('eolapi', 'The field "eolapi_taxonomy" has been deleted - recreating!', NULL, WATCHDOG_NOTICE);
       module_load_include('install', 'eolapi');
       eolapi_enable();
     }
