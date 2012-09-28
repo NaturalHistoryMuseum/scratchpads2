@@ -229,6 +229,7 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
                             $cell_values[] = $item;
                             break;
                           // The following cases should not be saved to the file
+                          case 'safe_value':
                           case 'format':
                             break;
                           // Handle gm3 fields together.
