@@ -1,6 +1,17 @@
 <?php
 
 /**
+ * Implements hook_init()
+ */
+function scratchpads_tweaks_init(){
+  if($_GET['q'] == 'admin/config' && !user_access('scratchpad team')){
+    // Set the REQUIREMENT_ERROR variable so that no errors are displayed when
+    // viewing the admin/config page as a non-admin user.
+    define('REQUIREMENT_ERROR', 'Hide requirement error');
+  }
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  */
 function media_multiselect_form_file_entity_add_upload_multiple_alter(&$form, &$form_state, $form_id){
