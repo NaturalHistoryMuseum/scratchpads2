@@ -6,11 +6,19 @@ define('EOL_REQUEST_URL', 'http://services.eol.org/lifedesk/service.php?function
  * Implementation of hook_tcsdc_form
  */
 function eol_tcsdc_form($form, $form_state){
-  $eol_service_status = @strlen(file_get_contents(EOL_REQUEST_URL, 0, stream_context_create(array(
+  // Request for Phthiraptera or Pediculus!
+  $xml = file_get_contents(EOL_REQUEST_URL . '34238633', 0, stream_context_create(array(
     'http' => array(
       'timeout' => 3
     )
-  ))));
+  )));
+  $eol_service_status = FALSE;
+  try{
+    $eol_service_status = new SimpleXMLElement($xml);
+  }
+  catch(Exception $e){
+    ;
+  }
   return array(
     'eol' => array(
       '#type' => 'fieldset',
