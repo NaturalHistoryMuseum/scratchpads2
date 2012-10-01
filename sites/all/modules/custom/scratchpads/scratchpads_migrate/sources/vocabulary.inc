@@ -40,6 +40,8 @@ class DrupalVocabularyMigration extends DrupalMigration{
       'taxonomy'
     ), 'IN');
     // We're not migrating image galleries vocabulary
+    dd(scratchpads_migrate_get_image_gallery_vid());
+    dd('hey');
     $query->condition('v.vid', scratchpads_migrate_get_image_gallery_vid(), '!=');
     $query->condition('name', '', '!=');
     $query->leftJoin('scratchpads_migrate_biological_classification', 'mbc', 'v.vid = mbc.vid');
