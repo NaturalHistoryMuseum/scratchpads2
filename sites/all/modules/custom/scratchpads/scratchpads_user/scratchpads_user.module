@@ -264,7 +264,8 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
   $form['create_user_account'] = array(
     '#type' => 'checkbox',
     '#title' => t('Allow user login?'),
-    '#description' => t("Do you want to create a user account for this user so they can log into the website?")
+    '#description' => t("Do you want to create a user account for this user so they can log into the website?"),
+    '#default_value' => 1,
   );
   $form['#fields'] = field_info_instances($form['#entity_type'], $form['#bundle']);
   // Add the theme function to make this form look better
@@ -277,11 +278,9 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
       )
     );
     foreach($form['#fields'] as $field_name => $field){
-      if($field['required']){
-        $form['actions']['submit']['#limit_validation_errors'][] = array(
-          $field_name
-        );
-      }
+      $form['actions']['submit']['#limit_validation_errors'][] = array(
+        $field_name
+      );
     }
   }
 }
