@@ -82,218 +82,218 @@ function scratchpads_migrate_register_migrations(){
     'source_connection' => 'scratchpad_1',
     'source_version' => 6
   );
-  /*********************************************************************************************
-   * Citation
-   ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of citations from Drupal 6'),
-    'machine_name' => 'Citations',
-    'group' => MigrateGroup::getInstance('setup')
-  );
-  Migration::registerMigration('CitationMigration', $arguments['machine_name'], $arguments);
-  /*********************************************************************************************
-   * Variables
-   ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of variables from Drupal 6'),
-    'machine_name' => 'Variable',
-    'group' => MigrateGroup::getInstance('setup')
-  );
-  Migration::registerMigration('VariableMigration', $arguments['machine_name'], $arguments);
-  /*********************************************************************************************
-   * ContentTypes
-   ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of content types from Drupal 6'),
-    'machine_name' => 'ContentType',
-    'dependencies' => array(
-      'Vocabulary' // Vocabulary throws an error if not run first, so make content type dependent on it
-    ),
-    'group' => MigrateGroup::getInstance('setup')
-  );
-  Migration::registerMigration('DrupalContentTypeMigration', $arguments['machine_name'], $arguments);
-  /*********************************************************************************************
-   * Vocabularies
-   ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of vocabularies from Drupal 6'),
-    'machine_name' => 'Vocabulary',
-    'group' => MigrateGroup::getInstance('setup')
-  );
-  Migration::registerMigration('DrupalVocabularyMigration', $arguments['machine_name'], $arguments);
-  /*********************************************************************************************
-   * Vocabulary fields
-   ********************************************************************************************/
-  $term_dependencies = array(
-    'Vocabulary'
-  );
-  foreach(scratchpads_migrate_get_term_vocabularies() as $vid => $term_node_type){
-    $machine_name = scratchpads_migrate_get_machine_name('FieldVocabulary', $term_node_type);
-    // Allow bespokes classes for different term nodes (with different fields)
-    // We override the ITIS term class with our own as we know the field mappings
-    $class_name = scratchpads_migrate_get_class_name($machine_name);
-    if(!class_exists($class_name)){
-      $class_name = 'DrupalFieldVocabularyMigration';
-    }
-    $arguments = $common_arguments + array(
-      'description' => t('Migration of vocabulary fields from Drupal 6'),
-      'machine_name' => $machine_name . $vid,
-      'content_type' => $term_node_type,
-      'vid' => $vid,
-      'dependencies' => array(
-        'Vocabulary'
-      ),
-      'group' => MigrateGroup::getInstance('fields', array(
-        'setup'
-      ))
-    );
-    $term_dependencies[] = $arguments['machine_name'];
-    Migration::registerMigration($class_name, $arguments['machine_name'], $arguments);
-  }
-  /*********************************************************************************************
-   * Fields
-   ********************************************************************************************/
-  // The description and the migration machine name are also required arguments,
-  // which will be unique for each migration you register.
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of fields from Drupal 6'),
-    'machine_name' => 'Field',
-    'dependencies' => array(
-      'ContentType'
-    ),
-    'group' => MigrateGroup::getInstance('fields')
-  );
-  // We just use the migrate_d2d D6 migration class as-is.
-  Migration::registerMigration('DrupalFieldMigration', $arguments['machine_name'], $arguments);
-  /*********************************************************************************************
-   * Body fields
-   ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of body fields from Drupal 6'),
-    'machine_name' => 'FieldBody',
-    'dependencies' => array(
-      'ContentType'
-    ),
-    'group' => MigrateGroup::getInstance('fields')
-  );
-  // We just use the migrate_d2d D6 migration class as-is.
-  Migration::registerMigration('DrupalFieldBodyMigration', $arguments['machine_name'], $arguments);
-  /*********************************************************************************************
-   * Taxonomy fields
-   ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of taxonomy fields from Drupal 6'),
-    'machine_name' => 'FieldTaxonomy',
-    'dependencies' => array(
-      'ContentType',
-      'Vocabulary'
-    ),
-    'group' => MigrateGroup::getInstance('fields')
-  );
-  Migration::registerMigration('DrupalFieldTaxonomyMigration', $arguments['machine_name'], $arguments);
-  /*********************************************************************************************
-   * Profile fields
-   ********************************************************************************************/
-  $user_dependencies = array();
-  // If profile_fields table exists, add the FieldProfile migration
-  if(scratchpads_migrate_source_table_exists('profile_fields')){
-    $arguments = $common_arguments + array(
-      'description' => t('Migration of profile fields from Drupal 6'),
-      'machine_name' => 'FieldProfile',
-      'dependencies' => array(
-        'ContentType'
-      ),
-      'group' => MigrateGroup::getInstance('fields')
-    );
-    // We just use the migrate_d2d D6 migration class as-is.
-    Migration::registerMigration('DrupalFieldProfileMigration', $arguments['machine_name'], $arguments);
-    $user_dependencies[] = $arguments['machine_name'];
-  }
-  /*********************************************************************************************
-   * Profile CCK fields
-   ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of profile CCK fields from Drupal 6'),
-    'machine_name' => 'FieldContentProfile',
-    'dependencies' => array(
-      'ContentType'
-    ),
-    'group' => MigrateGroup::getInstance('fields')
-  );
-  // We just use the migrate_d2d D6 migration class as-is.
-  Migration::registerMigration('DrupalFieldContentProfileMigration', $arguments['machine_name'], $arguments);
-  $user_dependencies[] = $arguments['machine_name'];
-  /*********************************************************************************************
-   * Image fields
-   ********************************************************************************************/
-  // Special handling for image fields
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of image fields from Drupal 6'),
-    'machine_name' => 'FieldImage',
-    'dependencies' => array(
-      'ContentType'
-    ),
-    'group' => MigrateGroup::getInstance('fields')
-  );
-  // We just use the migrate_d2d D6 migration class as-is.
-  Migration::registerMigration('DrupalFieldImageMigration', $arguments['machine_name'], $arguments);
-  /*********************************************************************************************
-   * Image taxonomy fields
-   ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of taxonomy fields from Drupal 6'),
-    'machine_name' => 'FieldImageTaxonomy',
-    'dependencies' => array(
-      'ContentType',
-      'Vocabulary'
-    ),
-    'group' => MigrateGroup::getInstance('fields')
-  );
-  Migration::registerMigration('DrupalFieldImageTaxonomyMigration', $arguments['machine_name'], $arguments);
-  /*********************************************************************************************
-   * Attached file field
-   ********************************************************************************************/
-  // The description and the migration machine name are also required arguments,
-  // which will be unique for each migration you register.
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of fields from Drupal 6'),
-    'machine_name' => 'FieldFileAttachment',
-    'dependencies' => array(
-      'ContentType'
-    ),
-    'group' => MigrateGroup::getInstance('fields')
-  );
-  // We just use the migrate_d2d D6 migration class as-is.
-  Migration::registerMigration('DrupalFieldFileAttachmentMigration', $arguments['machine_name'], $arguments);
-  /*********************************************************************************************
-   * Field groups
-   ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of field groups from Drupal 6'),
-    'machine_name' => 'FieldGroup',
-    'dependencies' => array(
-      'Field',
-      'FieldBody',
-      'FieldTaxonomy'
-    ),
-    'group' => MigrateGroup::getInstance('fields')
-  );
-  // We just use the migrate_d2d D6 migration class as-is.
-  Migration::registerMigration('DrupalFieldGroupMigration', $arguments['machine_name'], $arguments);
-  /*********************************************************************************************
-   * User
-   ********************************************************************************************/
+//   /*********************************************************************************************
+//    * Citation
+//    ********************************************************************************************/
+//   $arguments = $common_arguments + array(
+//     'description' => t('Migration of citations from Drupal 6'),
+//     'machine_name' => 'Citations',
+//     'group' => MigrateGroup::getInstance('setup')
+//   );
+//   Migration::registerMigration('CitationMigration', $arguments['machine_name'], $arguments);
+//   /*********************************************************************************************
+//    * Variables
+//    ********************************************************************************************/
+//   $arguments = $common_arguments + array(
+//     'description' => t('Migration of variables from Drupal 6'),
+//     'machine_name' => 'Variable',
+//     'group' => MigrateGroup::getInstance('setup')
+//   );
+//   Migration::registerMigration('VariableMigration', $arguments['machine_name'], $arguments);
+//   /*********************************************************************************************
+//    * ContentTypes
+//    ********************************************************************************************/
+//   $arguments = $common_arguments + array(
+//     'description' => t('Migration of content types from Drupal 6'),
+//     'machine_name' => 'ContentType',
+//     'dependencies' => array(
+//       'Vocabulary' // Vocabulary throws an error if not run first, so make content type dependent on it
+//     ),
+//     'group' => MigrateGroup::getInstance('setup')
+//   );
+//   Migration::registerMigration('DrupalContentTypeMigration', $arguments['machine_name'], $arguments);
+//   /*********************************************************************************************
+//    * Vocabularies
+//    ********************************************************************************************/
+//   $arguments = $common_arguments + array(
+//     'description' => t('Migration of vocabularies from Drupal 6'),
+//     'machine_name' => 'Vocabulary',
+//     'group' => MigrateGroup::getInstance('setup')
+//   );
+//   Migration::registerMigration('DrupalVocabularyMigration', $arguments['machine_name'], $arguments);
+//   /*********************************************************************************************
+//    * Vocabulary fields
+//    ********************************************************************************************/
+//   $term_dependencies = array(
+//     'Vocabulary'
+//   );
+//   foreach(scratchpads_migrate_get_term_vocabularies() as $vid => $term_node_type){
+//     $machine_name = scratchpads_migrate_get_machine_name('FieldVocabulary', $term_node_type);
+//     // Allow bespokes classes for different term nodes (with different fields)
+//     // We override the ITIS term class with our own as we know the field mappings
+//     $class_name = scratchpads_migrate_get_class_name($machine_name);
+//     if(!class_exists($class_name)){
+//       $class_name = 'DrupalFieldVocabularyMigration';
+//     }
+//     $arguments = $common_arguments + array(
+//       'description' => t('Migration of vocabulary fields from Drupal 6'),
+//       'machine_name' => $machine_name . $vid,
+//       'content_type' => $term_node_type,
+//       'vid' => $vid,
+//       'dependencies' => array(
+//         'Vocabulary'
+//       ),
+//       'group' => MigrateGroup::getInstance('fields', array(
+//         'setup'
+//       ))
+//     );
+//     $term_dependencies[] = $arguments['machine_name'];
+//     Migration::registerMigration($class_name, $arguments['machine_name'], $arguments);
+//   }
+//   /*********************************************************************************************
+//    * Fields
+//    ********************************************************************************************/
+//   // The description and the migration machine name are also required arguments,
+//   // which will be unique for each migration you register.
+//   $arguments = $common_arguments + array(
+//     'description' => t('Migration of fields from Drupal 6'),
+//     'machine_name' => 'Field',
+//     'dependencies' => array(
+//       'ContentType'
+//     ),
+//     'group' => MigrateGroup::getInstance('fields')
+//   );
+//   // We just use the migrate_d2d D6 migration class as-is.
+//   Migration::registerMigration('DrupalFieldMigration', $arguments['machine_name'], $arguments);
+//   /*********************************************************************************************
+//    * Body fields
+//    ********************************************************************************************/
+//   $arguments = $common_arguments + array(
+//     'description' => t('Migration of body fields from Drupal 6'),
+//     'machine_name' => 'FieldBody',
+//     'dependencies' => array(
+//       'ContentType'
+//     ),
+//     'group' => MigrateGroup::getInstance('fields')
+//   );
+//   // We just use the migrate_d2d D6 migration class as-is.
+//   Migration::registerMigration('DrupalFieldBodyMigration', $arguments['machine_name'], $arguments);
+//   /*********************************************************************************************
+//    * Taxonomy fields
+//    ********************************************************************************************/
+//   $arguments = $common_arguments + array(
+//     'description' => t('Migration of taxonomy fields from Drupal 6'),
+//     'machine_name' => 'FieldTaxonomy',
+//     'dependencies' => array(
+//       'ContentType',
+//       'Vocabulary'
+//     ),
+//     'group' => MigrateGroup::getInstance('fields')
+//   );
+//   Migration::registerMigration('DrupalFieldTaxonomyMigration', $arguments['machine_name'], $arguments);
+//   /*********************************************************************************************
+//    * Profile fields
+//    ********************************************************************************************/
+//   $user_dependencies = array();
+//   // If profile_fields table exists, add the FieldProfile migration
+//   if(scratchpads_migrate_source_table_exists('profile_fields')){
+//     $arguments = $common_arguments + array(
+//       'description' => t('Migration of profile fields from Drupal 6'),
+//       'machine_name' => 'FieldProfile',
+//       'dependencies' => array(
+//         'ContentType'
+//       ),
+//       'group' => MigrateGroup::getInstance('fields')
+//     );
+//     // We just use the migrate_d2d D6 migration class as-is.
+//     Migration::registerMigration('DrupalFieldProfileMigration', $arguments['machine_name'], $arguments);
+//     $user_dependencies[] = $arguments['machine_name'];
+//   }
+//   /*********************************************************************************************
+//    * Profile CCK fields
+//    ********************************************************************************************/
+//   $arguments = $common_arguments + array(
+//     'description' => t('Migration of profile CCK fields from Drupal 6'),
+//     'machine_name' => 'FieldContentProfile',
+//     'dependencies' => array(
+//       'ContentType'
+//     ),
+//     'group' => MigrateGroup::getInstance('fields')
+//   );
+//   // We just use the migrate_d2d D6 migration class as-is.
+//   Migration::registerMigration('DrupalFieldContentProfileMigration', $arguments['machine_name'], $arguments);
+//   $user_dependencies[] = $arguments['machine_name'];
+//   /*********************************************************************************************
+//    * Image fields
+//    ********************************************************************************************/
+//   // Special handling for image fields
+//   $arguments = $common_arguments + array(
+//     'description' => t('Migration of image fields from Drupal 6'),
+//     'machine_name' => 'FieldImage',
+//     'dependencies' => array(
+//       'ContentType'
+//     ),
+//     'group' => MigrateGroup::getInstance('fields')
+//   );
+//   // We just use the migrate_d2d D6 migration class as-is.
+//   Migration::registerMigration('DrupalFieldImageMigration', $arguments['machine_name'], $arguments);
+//   /*********************************************************************************************
+//    * Image taxonomy fields
+//    ********************************************************************************************/
+//   $arguments = $common_arguments + array(
+//     'description' => t('Migration of taxonomy fields from Drupal 6'),
+//     'machine_name' => 'FieldImageTaxonomy',
+//     'dependencies' => array(
+//       'ContentType',
+//       'Vocabulary'
+//     ),
+//     'group' => MigrateGroup::getInstance('fields')
+//   );
+//   Migration::registerMigration('DrupalFieldImageTaxonomyMigration', $arguments['machine_name'], $arguments);
+//   /*********************************************************************************************
+//    * Attached file field
+//    ********************************************************************************************/
+//   // The description and the migration machine name are also required arguments,
+//   // which will be unique for each migration you register.
+//   $arguments = $common_arguments + array(
+//     'description' => t('Migration of fields from Drupal 6'),
+//     'machine_name' => 'FieldFileAttachment',
+//     'dependencies' => array(
+//       'ContentType'
+//     ),
+//     'group' => MigrateGroup::getInstance('fields')
+//   );
+//   // We just use the migrate_d2d D6 migration class as-is.
+//   Migration::registerMigration('DrupalFieldFileAttachmentMigration', $arguments['machine_name'], $arguments);
+//   /*********************************************************************************************
+//    * Field groups
+//    ********************************************************************************************/
+//   $arguments = $common_arguments + array(
+//     'description' => t('Migration of field groups from Drupal 6'),
+//     'machine_name' => 'FieldGroup',
+//     'dependencies' => array(
+//       'Field',
+//       'FieldBody',
+//       'FieldTaxonomy'
+//     ),
+//     'group' => MigrateGroup::getInstance('fields')
+//   );
+//   // We just use the migrate_d2d D6 migration class as-is.
+//   Migration::registerMigration('DrupalFieldGroupMigration', $arguments['machine_name'], $arguments);
+//   /*********************************************************************************************
+//    * User
+//    ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of users from Drupal 6'),
     'machine_name' => 'User',
-    'dependencies' => $user_dependencies,
+//     'dependencies' => $user_dependencies,
     'group' => MigrateGroup::getInstance('content', array(
       'fields'
     ))
   );
   Migration::registerMigration('ScratchpadsUserMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
-   * User
+   * Profile
    ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of profile-only users from Drupal 6'),
@@ -301,11 +301,12 @@ function scratchpads_migrate_register_migrations(){
     'dependencies' => array(
       'User'
     ),
-    'group' => MigrateGroup::getInstance('content', array(
-      'fields'
-    ))
+//     'group' => MigrateGroup::getInstance('content', array(
+//       'fields'
+//     ))
   );
   Migration::registerMigration('ScratchpadsProfileMigration', $arguments['machine_name'], $arguments);
+  return;
   /*********************************************************************************************
    * Image galleries
    ********************************************************************************************/

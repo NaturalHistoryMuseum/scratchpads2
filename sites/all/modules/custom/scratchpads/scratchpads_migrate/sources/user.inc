@@ -18,8 +18,9 @@ class ScratchpadsUserMigration extends DrupalUser6Migration{
     // Add country (derived from associated location node)
     $this->sourceFields['location_country'] = t("Country (derived from associated location node)");
     $this->addFieldMapping('field_user_country', 'location_country');
-    // Handle the profile (drupal core) fields 
-    // Need to use source connection argument as we're using it before calling __construct
+    // Handle the profile (drupal core) fields
+    // Need to use source connection argument as we're using it before calling
+    // __construct
     // This needs to go before profile fields so the field re-writing works
     if(Database::getConnection('default', $arguments['source_connection'])->schema()->tableExists('profile_fields')){
       $query = Database::getConnection('default', $arguments['source_connection'])->select('profile_fields', 'pf');
@@ -42,7 +43,8 @@ class ScratchpadsUserMigration extends DrupalUser6Migration{
       'md5_passwords' => TRUE
     ));
     $this->removeFieldMapping('path');
-    // Not all fields have format & title so match unmigrated destinations against desination fields
+    // Not all fields have format & title so match unmigrated destinations
+    // against desination fields
     $this->unmigratedDesinations = array_intersect($this->unmigratedDesinations, array_keys($this->getDestination()->fields()));
     $this->unmigratedDesinations[] = 'group_audience';
     $this->unmigratedDesinations[] = 'path';
@@ -50,11 +52,11 @@ class ScratchpadsUserMigration extends DrupalUser6Migration{
     // Path isn't used
     // Add legal accept
     $this->addFieldMapping('legal_accept')->defaultValue(1);
-     // Map any fields created
+    // Map any fields created
   }
 
   /**
-   * Get a new field name 
+   * Get a new field name
    */
   protected function getDestinationField($name){
     if(array_key_exists($name, $this->profileFields)){
@@ -65,17 +67,17 @@ class ScratchpadsUserMigration extends DrupalUser6Migration{
   }
 
   /**
-   * Map fields from a query result 
+   * Map fields from a query result
    */
   protected function mapFields($result){
     foreach($result as $row){
       // Add this to the list of source fields
       $this->sourceFields[$row->field_name] = $row->label;
-      // Add a field mapping if we know the new name 
+      // Add a field mapping if we know the new name
       if($field = $this->getDestinationField($row->field_name)){
         // Allow for duplicate destination fields
         $field_mappings = $this->getFieldMappings();
-        // Have we already mapped this field? 
+        // Have we already mapped this field?
         // Special use case for email field - do not map
         if(array_key_exists($field, $field_mappings) || $row->field_name == 'field_email'){
           // Already mapped so add as an unmigrated source
@@ -114,11 +116,14 @@ class ScratchpadsUserMigration extends DrupalUser6Migration{
   public function prepareRow($row){
     if(parent::prepareRow($row) === FALSE){return FALSE;}
     // Add the profiel node
-    $this->getProfileNode($row, array(
-      'n.uid' => $row->uid,
-      'n.language' => ''
+    $content_profile = $this->getProfileNode($row, array(
+      'n.uid' => $row->uid
     ));
-    // Get the location node for the content profile - this has the country location
+    if($content_profile){
+      $this->updateProfileNids($content_profile['nid']);
+    }
+    // Get the location node for the content profile - this has the country
+    // location
     $query = Database::getConnection('default', $this->sourceConnection)->select('location', 'l');
     $query->innerJoin('location_instance', 'li', 'l.lid = li.lid');
     $query->fields('l', array(
@@ -126,7 +131,9 @@ class ScratchpadsUserMigration extends DrupalUser6Migration{
     ));
     $query->condition('li.uid', $row->uid);
     $query->range(0, 1);
-    $row->location_country = strtoupper($query->execute()->fetchField());
+    if($location = $query->execute()->fetchField()){
+      $row->location_country = strtoupper($location);
+    }
     // Get the core profile fields
     if(Database::getConnection('default', $this->sourceConnection)->schema()->tableExists('profile_values')){
       $query = Database::getConnection('default', $this->sourceConnection)->select('profile_values', 'pv');
@@ -138,7 +145,6 @@ class ScratchpadsUserMigration extends DrupalUser6Migration{
       foreach($profile_fields as $profile_field){
         $row->{$profile_field->name} = $profile_field->value;
       }
-      return $profile_fields;
     }
     // Get the user roles
     $query = Database::getConnection('default', $this->sourceConnection)->select('users_roles', 'ur');
@@ -181,5 +187,17 @@ class ScratchpadsUserMigration extends DrupalUser6Migration{
         }
       }
     }
+    return $content_profile;
+  }
+
+  public function updateProfileNids($nid){
+    $profile_nids = variable_get('profile_nids', array());
+    $profile_nids[] = $nid;
+    variable_set('profile_nids', $profile_nids);
+  }
+
+  protected function preRollback(){
+    parent::preRollback();
+    variable_del('profile_nids');
   }
 }
