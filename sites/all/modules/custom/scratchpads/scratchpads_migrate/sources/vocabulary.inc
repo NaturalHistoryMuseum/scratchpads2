@@ -40,7 +40,7 @@ class DrupalVocabularyMigration extends DrupalMigration{
       'taxonomy'
     ), 'IN');
     // We're not migrating image galleries vocabulary
-    $query->condition('name', 'Image Galleries', '!=');
+    $query->condition('vid', scratchpads_migrate_get_image_gallery_vid(), '!=');
     $query->condition('name', '', '!=');
     $query->leftJoin('scratchpads_migrate_biological_classification', 'mbc', 'v.vid = mbc.vid');
     $query->addField('mbc', 'type', 'classification_type');
@@ -50,7 +50,8 @@ class DrupalVocabularyMigration extends DrupalMigration{
   public function beginProcess($newStatus){
     parent::beginProcess($newStatus);
     if($newStatus == Migration::STATUS_IMPORTING){
-      // Here we move asside the VIDs of existing vocabularies (that haven't been
+      // Here we move asside the VIDs of existing vocabularies (that haven't
+      // been
       // imported by this module).
       $current_migration = Migration::currentMigration();
       $machine_name = $current_migration->getMachineName();
