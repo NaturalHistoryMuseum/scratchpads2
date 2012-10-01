@@ -46,6 +46,7 @@ class ScratchpadsProfileMigration extends ScratchpadsUserMigration{
         'alias' => 'n'
       )
     ), MigrateDestinationUser::getKeySchema());
+    $this->profileNids = variable_get('profile_nids', array());
   }
 
   protected function userQuery(){
@@ -53,7 +54,7 @@ class ScratchpadsProfileMigration extends ScratchpadsUserMigration{
     $query = Database::getConnection('default', $this->sourceConnection)->select('node', 'n')->fields('n', array(
       'nid',
       'title'
-    ))->condition('type', 'profile')->condition('language', 'en');
+    ))->condition('type', 'profile');
     return $query;
   }
 
@@ -61,12 +62,14 @@ class ScratchpadsProfileMigration extends ScratchpadsUserMigration{
    * Implementation of Migration::prepareRow().
    */
   public function prepareRow($row){
+    // Have we already processed this profile as part of the user migration?
+    if(in_array($row->nid, $this->profileNids)){return false;}
+    // Do we already have a profile for this user?
+    // We create some profiles as part of the user migration
     $row->uid = 0;
-    if(parent::prepareRow($row) === FALSE){return FALSE;}
     $content_profile = ScratchpadsUserMigration::getProfileNode($row, array(
       'n.nid' => $row->nid
     ));
     $row->name = $row->title;
-    unset($row->location_country);
   }
 }

@@ -293,7 +293,7 @@ function scratchpads_migrate_register_migrations(){
   );
   Migration::registerMigration('ScratchpadsUserMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
-   * User
+   * Profile
    ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of profile-only users from Drupal 6'),
