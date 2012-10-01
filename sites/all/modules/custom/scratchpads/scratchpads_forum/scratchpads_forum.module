@@ -1,0 +1,102 @@
+<?php
+
+include_once('scratchpads_forum.features.inc');
+
+/**
+ * Specifies the argument that should be used on forum/% links.
+ */
+function forum_forum_to_arg($arg, $map, $index){
+  return FALSE;
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter.
+ *
+ * Hide the forums vocabulary from the taxonomy editor.
+ */
+function scratchpads_forum_form_taxonomy_overview_vocabularies_alter(&$form, &$form_state, $form_id){
+  if($tid = variable_get('forum_nav_vocabulary', FALSE)){
+    unset($form[$tid]);
+  }
+}
+
+/**
+ * Implementation of hook_menu_local_tasks_alter
+ * 
+ * We use this to hide the default forum action links
+ * 
+ */
+function scratchpads_forum_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  if ($root_path == 'forum' || $root_path == 'forum/%') {
+    _scratchpads_forum_action_links($data['actions']['output']);
+    $data['actions']['output'] = array();
+  }
+}
+
+/**
+ * Implementation of hook_module_implements_alter
+ * 
+ * Forum adds it's action links in hook_menu_local_tasks_alter
+ * rather than hook_menu_local_tasks, so we must ensure our
+ * hook is called later to get a chance to modify them.
+ * 
+ */
+function scratchpads_forum_module_implements_alter(&$implementations, $hook) {
+  if ($hook == 'menu_local_tasks_alter') {
+    $forum = $implementations['scratchpads_forum'];
+    unset($implementations['scratchpads_forum']);
+    $implementations['scratchpads_forum'] = $forum;
+  }
+}
+
+/**
+ * Get/set the current action links
+ * 
+ */
+function _scratchpads_forum_action_links($v = NULL) {
+  static $links = NULL;
+  if ($v !== NULL) {
+    $links = $v;
+  }
+  
+  return $links;
+}
+
+/**
+ * Implementation of hook_block_info
+ * 
+ * Define the scratchpadsforum block which displays
+ * forum action links
+ * 
+ */
+function scratchpads_forum_block_info() {
+  $blocks['scratchpadsforum'] = array(
+      'info' => t('Scratchpads forum links'),
+      'status' => 0
+  );
+  return $blocks;  
+}
+
+/**
+ * Implementation of hook_block_view
+ */
+function scratchpads_forum_block_view($delta = '') {
+  $content = array(
+      'subject' => NULL,
+      'content' => '',
+  );
+  
+  switch($delta) {
+    case 'scratchpadsforum':
+      global $user;
+      $actions = _scratchpads_forum_action_links();
+      $links = array();
+      foreach ($actions as $a) {
+        $links[] = theme('menu_local_action', array('element' => $a));
+      }
+      $content['content'] = '<ul class="menu action-links">'.implode('', $links).'</ul>';
+      break;
+  }
+  
+  return $content;
+}
