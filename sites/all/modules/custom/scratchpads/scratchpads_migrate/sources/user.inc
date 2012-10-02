@@ -195,9 +195,4 @@ class ScratchpadsUserMigration extends DrupalUser6Migration{
     $profile_nids[] = $nid;
     variable_set('profile_nids', $profile_nids);
   }
-
-  protected function preRollback(){
-    parent::preRollback();
-    variable_del('profile_nids');
-  }
 }
