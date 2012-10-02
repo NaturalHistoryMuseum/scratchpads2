@@ -213,11 +213,17 @@ function scratchpads_user_user_load($entities){
 function scratchpads_user_form_user_register_form_alter(&$form, &$form_state){
   _scratchpads_user_form_alter($form, $form_state);
   if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
-    $form['actions']['submit']['#submit'] = array(
+    $handlers = array(
       'scratchpads_user_register_form_pre_submit',
       'user_register_submit',
       'scratchpads_user_register_form_post_submit'
     );
+    $pos = array_search('user_register_submit', $form['actions']['submit']['#submit']);
+    if ($pos === FALSE) {
+      $form['actions']['submit']['#submit'] = array_merge($handlers, $form['actions']['submit']['#submit']);
+    } else {
+      array_splice($form['actions']['submit']['#submit'], $pos, 1, $handlers);
+    }
   }
 }
 
@@ -237,10 +243,16 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
     }
   }
   if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
-    $form['actions']['submit']['#submit'] = array(
-      'user_register_submit',
-      'scratchpads_user_register_form_post_submit_clear_error'
+    $handlers = array(
+        'user_register_submit',
+        'scratchpads_user_register_form_post_submit_clear_error'
     );
+    $pos = array_search('user_register_submit', $form['actions']['submit']['#submit']);
+    if ($pos === FALSE) {
+      $form['actions']['submit']['#submit'] = array_merge($handlers, $form['actions']['submit']['#submit']);
+    } else {
+      array_splice($form['actions']['submit']['#submit'], $pos, 1, $handlers);
+    }
   }
 }
 
@@ -275,6 +287,9 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
     $form['actions']['submit']['#limit_validation_errors'] = array(
       array(
         'mail'
+      ),
+      array(
+        'parent_build_cache_id'      
       )
     );
     foreach($form['#fields'] as $field_name => $field){
