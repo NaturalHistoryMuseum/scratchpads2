@@ -536,10 +536,13 @@ function scratchpads_migrate_get_terms($name){
 }
 
 function scratchpads_migrate_get_image_gallery_vid(){
-  $query = Database::getConnection('default', 'scratchpad_1')->select('vocabulary', 'v');
-  $query->addField('v', 'vid');
-  $query->condition('name', 'Image Galleries');
-  return $query->execute()->fetchField();
+  if(!$vid = scratchpads_migrate_variable_get('image_gallery_vid')){
+    $query = Database::getConnection('default', 'scratchpad_1')->select('vocabulary', 'v');
+    $query->addField('v', 'vid');
+    $query->condition('name', 'Image Galleries');
+    $vid = $query->execute()->fetchField();
+  }
+  return $vid;
 }
 
 function scratchpads_migrate_source_table_exists($table){
