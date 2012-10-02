@@ -126,7 +126,7 @@ function taxon_stats_get_overall_data($term){
             . "INNER JOIN taxonomy_index i ON t.tid = i.tid "
             . "INNER JOIN node n ON n.nid = i.nid "
             . "WHERE t.vid = :vid AND n.type = :type";
-  $types = array('Descriptions' => 'spm', 'Specimens/Observations' => 'specimen_observation', 'References' => 'bilbio', 'Images' => 'media_gallery');
+  $types = array('Descriptions' => 'spm', 'Specimens/Observations' => 'specimen_observation', 'References' => 'biblio', 'Images' => 'media_gallery');
   foreach ($types as $key => $value){
   	$result = db_query($sql, array(':vid' => $term->vid, ':type' => $value))->fetchAll();
   	$return[$key] = $result[0]->Total;
