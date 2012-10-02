@@ -18,6 +18,12 @@ class MigrateDestinationScratchpadsUser extends MigrateDestinationUser{
         $account->{$d7_field} = $row->{$d6_field};
       }
     }
+    scratchpads_migrate_unset_empty_fields($account, array(
+      'legal_accept',
+      'pass'
+    ));
+    // Max account name length 60 chars
+    $account->name = substr($account->name, 0, 60);
     return parent::import($account, $row);
   }
 }

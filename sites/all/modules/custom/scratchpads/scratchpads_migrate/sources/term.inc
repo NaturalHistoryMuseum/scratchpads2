@@ -60,11 +60,13 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
         }else{
           $d7_field = $source_field;
         }
-        // If this is a node reference field add a source migration to use for stubs
+        // If this is a node reference field add a source migration to use for
+        // stubs
         if($source_field_type == 'nodereference'){
           switch($source_field){
             case 'field_reference':
             case 'field_type_references':
+            case 'field_type_action_ref':
               $this->addFieldMapping($d7_field, $source_field)->sourceMigration(array(
                 'Biblio'
               ));
@@ -73,6 +75,9 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
               $this->addFieldMapping($d7_field, $source_field)->sourceMigration(array(
                 'Darwincore'
               ));
+              break;
+            case 'field_basionym':
+              // ITIS term - how can we handle this?
               break;
             default:
               drupal_set_message(t('Unknown node reference field %source_field in vocabulary %vocabulary.', array(
@@ -98,7 +103,8 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
         }
       }
     }
-    // DrupalTermMigration::__construct() specifies current machine name as being sourceMigration
+    // DrupalTermMigration::__construct() specifies current machine name as
+    // being sourceMigration
     // So a parent term is lost if it hasn't been previously imported
     $this->removeFieldMapping('parent');
     $this->addFieldMapping('parent', 'parent');
@@ -165,7 +171,8 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
             }
           }
         }
-         // If there isn't a term node associated with a term, set unit name 1 to default to the term name  
+        // If there isn't a term node associated with a term, set unit name 1 to
+        // default to the term name
       }elseif($this->termNode == 'itis_term'){
         $row->field_unit_name1 = $row->name;
       }
