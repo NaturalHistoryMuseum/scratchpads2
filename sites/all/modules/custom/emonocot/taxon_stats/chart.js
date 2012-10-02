@@ -9,7 +9,7 @@
             function() { 
               drawChart(jQuery(this).attr('id'), 
                         parseInt(jQuery(this).data('numerator')), 
-                        parseInt(jQuery(this).data('denominator')));
+                        parseInt(jQuery(this).data('denominator')) - parseInt(jQuery(this).data('numerator')));
               } 
             );
         
@@ -18,7 +18,7 @@
       
       function drawChart(elementID, done, notdone) {
         var data = google.visualization.arrayToDataTable([
-          ['Done', 'Not Done'],
+          ['Status', 'Number'],
           ['Done',     done],
           ['No content',      notdone]
         ]);
