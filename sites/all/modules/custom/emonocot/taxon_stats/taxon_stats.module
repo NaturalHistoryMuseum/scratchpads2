@@ -1,0 +1,136 @@
+<?php
+
+function taxon_stats_menu(){
+  $items = array();
+  $items['taxonomy/term/%taxonomy_term/stats'] = array(
+    'title' => 'Stats',
+    'page callback' => 'taxon_stats_view',
+    'page arguments' => array(
+      2,
+    ),
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 24,
+    'file' => 'taxonomy.pages.inc',
+    'file path' => drupal_get_path('module', 'taxonomy')
+  );
+  return $items;
+}
+
+
+function taxon_stats_view($term){
+ //include Google Charts necessaries
+ $script = '<script type="text/javascript" src="https://www.google.com/jsapi"></script>';
+ $element = array(
+   '#type' => 'markup',
+   '#markup' => $script,
+ );
+ drupal_add_html_head($element, 'google-charts-api');
+ drupal_add_js(drupal_get_path('module', 'taxon_stats').'/chart.js');
+ drupal_add_css(drupal_get_path('module', 'taxon_stats').'/taxon_stats.css');
+	
+ $content_counts =  taxon_stats_get_taxon_data($term);
+ $overall_content_counts = taxon_stats_get_overall_data($term);
+ $output = '<table id="taxon_stats_table">'
+         . '<thead>'
+         . '<tr><td></td><td >Descriptions</td><td >Media</td><td >Specimens/Observations</td><td>References</td></tr>'
+         . '</thead>'
+         
+         . '<tr>'
+         . '<td>'
+         . $term->name
+         . '</td>'
+         . '<td >'.$content_counts['Descriptions'].'</td>'
+         . '<td >'.$content_counts['Images'].'</td>'
+         . '<td >'.$content_counts['Specimens/Observations'].'</td>'
+         . '<td >'.$content_counts['References'].'</td>'
+         . '</tr>'
+         
+         . '<tr>'
+         . '<td>'
+         . 'Fraction of all taxa with content'
+         . '</td>'
+         . '<td><div class="ts_chart" data-numerator="'.$overall_content_counts['Descriptions'].'" data-denominator="'.$overall_content_counts['Total'].'" id="chart_desc"></div>'.$overall_content_counts['Descriptions'].'/'.$overall_content_counts['Total'].'</td>'
+         . '<td><div class="ts_chart" data-numerator="'.$overall_content_counts['Iamges'].'" data-denominator="'.$overall_content_counts['Total'].'" id="chart_imgs"></div>'.$overall_content_counts['Images'].'/'.$overall_content_counts['Total'].'</td>'
+         . '<td><div class="ts_chart" data-numerator="'.$overall_content_counts['Specimens/Observations'].'" data-denominator="'.$overall_content_counts['Total'].'" id="chart_spob"></div>'.$overall_content_counts['Specimens/Observations'].'/'.$overall_content_counts['Total'].'</td>'
+         . '<td><div class="ts_chart" data-numerator="'.$overall_content_counts['References'].'" data-denominator="'.$overall_content_counts['Total'].'" id="chart_bibl"></div>'.$overall_content_counts['References'].'/'.$overall_content_counts['Total'].'</td>'
+         . '</tr>'
+         
+         . '</table>'
+  ;
+
+ 
+ 
+ return $output;
+}
+
+function taxon_stats_views_api(){
+  $path = drupal_get_path('module', 'taxon_stats');
+  return array(
+    'api' => '3',
+    'path' => $path
+  );
+}
+
+function taxon_stats_context_default_contexts(){
+  $export = array();
+  $context = new stdClass();
+  $context->disabled = FALSE; /* Edit this to true to make a default context disabled initially */
+  $context->api_version = 3;
+  $context->name = 'species_statistics';
+  $context->description = 'Statistics species page.';
+  $context->tag = 'Species';
+  $context->conditions = array(
+    'path' => array(
+      'values' => array(
+        'taxonomy/term/*/checklist' => 'taxonomy/term/*/stats',
+      )
+    )
+  );
+  $context->condition_mode = 0;
+  // Translatables
+  // Included for use with string extractors like potx.
+  t('Statistics species page.');
+  t('Species');
+  $export['species_checklist'] = $context;
+  return $export;
+}
+
+
+function taxon_stats_get_taxon_data($term){
+  $return = array();
+    $view = views_get_view('taxon_stats');
+    $displays = $view->display;
+    unset($view);
+    foreach ($displays as $id => $display){
+  	  if ($id != 'default'){
+  	    $view = views_get_view('taxon_stats');
+        $view->set_arguments(array($term->tid));
+        $view->set_display($display->id);
+        $view->pre_execute();
+        $view->execute();
+        $return[$display->display_title] = $view->result[0]->taxonomy_term_data_name;
+        unset($view);
+  	  }
+    }
+  return $return;
+}
+
+function taxon_stats_get_overall_data($term){
+  $return = array();
+  $sql = "SELECT COUNT(*) AS 'Total' FROM taxonomy_term_data WHERE vid = :vid";
+  $result = db_query($sql, array(':vid' => $term->vid))->fetchAll();
+  $return['Total'] = $result[0]->Total;
+  
+  $sql = "SELECT COUNT(DISTINCT(t.tid)) AS 'Total' FROM taxonomy_term_data t "
+            . "INNER JOIN taxonomy_index i ON t.tid = i.tid "
+            . "INNER JOIN node n ON n.nid = i.nid "
+            . "WHERE t.vid = :vid AND n.type = :type";
+  $types = array('Descriptions' => 'spm', 'Specimens/Observations' => 'specimen_observation', 'References' => 'biblio', 'Images' => 'media_gallery');
+  foreach ($types as $key => $value){
+  	$result = db_query($sql, array(':vid' => $term->vid, ':type' => $value))->fetchAll();
+  	$return[$key] = $result[0]->Total;
+  }
+  
+  return $return;
+}
