@@ -18,6 +18,7 @@ class MigrateDestinationScratchpadsUser extends MigrateDestinationUser{
         $account->{$d7_field} = $row->{$d6_field};
       }
     }
+    scratchpads_migrate_unset_empty_fields($account);
     return parent::import($account, $row);
   }
 }
