@@ -6,6 +6,25 @@
  * 
  ********************************************************************************************/
 /**
+ * Implements hook_menu()
+ */
+function scratchpads_backend_menu(){
+  $items = array();
+  $items['admin/config/content/comments'] = array(
+    'title' => t('Comment settings'),
+    'description' => t('Set the comment settings for each content type'),
+    'type' => MENU_NORMAL_ITEM,
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'administer comments'
+    ),
+    'page callback' => 'scratchpads_backend_comments_page',
+    'file' => 'scratchpads_backend.pages.inc'
+  );
+  return $items;
+}
+
+/**
  * Implements hook_menu_alter().
  */
 function scratchpads_backend_menu_alter(&$items){
