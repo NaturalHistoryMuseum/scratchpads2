@@ -9,7 +9,8 @@
  * Implements hook_menu_alter().
  */
 function scratchpads_backend_menu_alter(&$items){
-  // Overwite the admin/content callback node_admin_content() with one showing all entity types 
+  // Overwite the admin/content callback node_admin_content() with one showing
+  // all entity types
   $items['admin/content']['page callback'] = 'scratchpads_backend_admin_content';
   $items['admin/content']['module'] = 'scratchpads_backend';
   unset($items['admin/content']['page arguments']);
@@ -58,9 +59,9 @@ function scratchpads_backend_entity_info_alter(&$entity_info){
 
 /**
  * scratchpads_admin_goto
- * 
+ *
  * This was added, as simply changing the callback of node/add to drupal_goto
- * resulted in an error when accessing node/add/unknown_path.  The second 
+ * resulted in an error when accessing node/add/unknown_path. The second
  * argument to drupal_goto must be an array.
  */
 function scratchpads_backend_goto($path = ''){
@@ -105,16 +106,15 @@ function scratchpads_backend_admin_paths(){
  * Implements hook_menu_local_tasks_alter().
  */
 function scratchpads_backend_menu_local_tasks_alter(&$data, $router_item, $root_path){
-  $node_type = str_replace('_', '-', arg(2));
   $local_tasks = array();
   switch($root_path){
     case 'admin/content/%':
-      $local_tasks[] = 'node/add/' . arg(2);
+      $local_tasks[] = 'node/add/' . str_replace('_', '-', arg(2));
     case 'node/add/' . arg(2):
       if(arg(2) == 'biblio'){
         $local_tasks[] = 'biblio/import';
       }else{
-        $local_tasks[] = 'import/node_importer_' . $node_type;
+        $local_tasks[] = 'import/node_importer_' . str_replace('-', '_', arg(2));
       }
       break;
     case 'admin/file/%':
@@ -145,11 +145,13 @@ function scratchpads_backend_ctools_plugin_api(){
     );}
 }
 
-/*********************************************************************************************
- * 
+/**
+ * *******************************************************************************************
+ *
  * VIEWS
- * 
- ********************************************************************************************/
+ *
+ * ******************************************************************************************
+ */
 /**
  * Implementation of hook_views_api
  */
@@ -190,10 +192,15 @@ function scratchpads_backend_views_pre_view(&$view, &$display_id, &$args){
 }
 
 /**
- * 
+ *
+ *
+ *
+ *
+ *
  * Usort comparison function for ordering field groups
- * @param object $a
- * @param object $b
+ *
+ * @param object $a          
+ * @param object $b          
  */
 function scratchpads_backend_usort_comparison($a, $b){
   if($a->weight == $b->weight){
