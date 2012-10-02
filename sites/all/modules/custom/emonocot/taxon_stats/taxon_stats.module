@@ -51,7 +51,7 @@ function taxon_stats_view($term){
          . 'Fraction of all taxa with content'
          . '</td>'
          . '<td><div class="ts_chart" data-numerator="'.$overall_content_counts['Descriptions'].'" data-denominator="'.$overall_content_counts['Total'].'" id="chart_desc"></div>'.$overall_content_counts['Descriptions'].'/'.$overall_content_counts['Total'].'</td>'
-         . '<td><div class="ts_chart" data-numerator="'.$overall_content_counts['Iamges'].'" data-denominator="'.$overall_content_counts['Total'].'" id="chart_imgs"></div>'.$overall_content_counts['Images'].'/'.$overall_content_counts['Total'].'</td>'
+         . '<td><div class="ts_chart" data-numerator="'.$overall_content_counts['Images'].'" data-denominator="'.$overall_content_counts['Total'].'" id="chart_imgs"></div>'.$overall_content_counts['Images'].'/'.$overall_content_counts['Total'].'</td>'
          . '<td><div class="ts_chart" data-numerator="'.$overall_content_counts['Specimens/Observations'].'" data-denominator="'.$overall_content_counts['Total'].'" id="chart_spob"></div>'.$overall_content_counts['Specimens/Observations'].'/'.$overall_content_counts['Total'].'</td>'
          . '<td><div class="ts_chart" data-numerator="'.$overall_content_counts['References'].'" data-denominator="'.$overall_content_counts['Total'].'" id="chart_bibl"></div>'.$overall_content_counts['References'].'/'.$overall_content_counts['Total'].'</td>'
          . '</tr>'
@@ -72,6 +72,13 @@ function taxon_stats_views_api(){
   );
 }
 
+function taxon_stats_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
 function taxon_stats_context_default_contexts(){
   $export = array();
   $context = new stdClass();
@@ -83,7 +90,7 @@ function taxon_stats_context_default_contexts(){
   $context->conditions = array(
     'path' => array(
       'values' => array(
-        'taxonomy/term/*/checklist' => 'taxonomy/term/*/stats',
+        'taxonomy/term/*/stats' => 'taxonomy/term/*/stats',
       )
     )
   );
@@ -92,8 +99,35 @@ function taxon_stats_context_default_contexts(){
   // Included for use with string extractors like potx.
   t('Statistics species page.');
   t('Species');
-  $export['species_checklist'] = $context;
+  $export['species_statistics'] = $context;
   return $export;
+}
+
+function taxon_stats_context_load_alter(&$context){
+  if($context->name == 'species_statistics'){
+    //Get vid
+    global $_GET;
+    $args = explode('/', $_GET['q']);
+    if($args[0] == 'taxonomy' && $args[1] == 'term' && is_int((int)$args[2])){
+      $result = db_query("SELECT vid FROM {taxonomy_term_data} WHERE tid = :tid", array(
+        ':tid' => $args[2]
+      ));
+      $vid = $result->fetchObject()->vid;
+      $context->reactions = array(
+        'block' => array(
+          'blocks' => array(
+            'tinytax-' . $vid => array(
+              'module' => 'tinytax',
+              'delta' => $vid,
+              'region' => 'sidebar',
+              'weight' => '0'
+            )
+          )
+        ),
+        'menu' => 'classification/' . $vid
+      );
+    }
+  }
 }
 
 
