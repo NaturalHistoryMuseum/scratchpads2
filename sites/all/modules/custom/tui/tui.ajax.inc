@@ -32,7 +32,7 @@ function tui_ajax_form_callback(){
 
 /**
  * Callback function to return HTML
- * 
+ *
  * FIXME - We need to reload part of the tree too.
  */
 function tui_ajax_form_callback_callback(&$form, &$form_state){
@@ -200,7 +200,8 @@ function tui_search_form_submit(&$form, &$form_state){
     'tids' => $open_tids,
     'highlight_tids' => $highlight_tids
   ));
-  //$('#tui-tree-subcontainer').animate({scrollTop:$(element).position().top+$('#tui-tree-subcontainer').scrollTop()-50}, 500);
+  // $('#tui-tree-subcontainer').animate({scrollTop:$(element).position().top+$('#tui-tree-subcontainer').scrollTop()-50},
+  // 500);
   $form_state['tui-ajax'] = array(
     ajax_command_html('#tui-tree-subcontainer', $html),
     ajax_command_invoke('#tui-tree', 'resize')
@@ -305,6 +306,6 @@ function tui_taxonomy_form_term_delete_submit(&$form, &$form_state){
     taxonomy_term_delete($tid);
   }
   $form_state['tui-ajax'] = array(
-    ajax_command_remove('.tui-highlight')
+    ajax_command_invoke('.tui-highlight', 'hide')
   );
 }
