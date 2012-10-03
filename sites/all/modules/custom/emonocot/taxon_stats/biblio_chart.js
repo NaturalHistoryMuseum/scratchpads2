@@ -10,7 +10,7 @@ google.load("visualization", "1", {packages:["corechart"]});
                    ];
         jQuery('#biblio_chart_data span').each(
             function() { 
-              data.push([jQuery(this).data('year').toString(), parseInt(jQuery(this).data('count'))]);
+              data.push([parseInt(jQuery(this).data('year')), parseInt(jQuery(this).data('count'))]);
               } 
             );
         var data = google.visualization.arrayToDataTable(data);
@@ -18,6 +18,7 @@ google.load("visualization", "1", {packages:["corechart"]});
         var options = {
           title: 'Publications per year',
           legend: {position: 'none'},
+          hAxis: {format: '####'},
         };
 
         var chart = new google.visualization.ColumnChart(document.getElementById('biblio_chart'));
