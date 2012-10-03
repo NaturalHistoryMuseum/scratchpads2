@@ -35,7 +35,7 @@ function taxon_stats_overall_pubs(){
   drupal_add_js(drupal_get_path('module', 'taxon_stats').'/biblio_chart.js');
   
     //Publications overall
-	$sql = "SELECT biblio_year AS year, COUNT(biblio_year) AS count FROM biblio GROUP BY biblio_year";
+	$sql = "SELECT b.biblio_year AS year, COUNT(b.biblio_year) AS count FROM biblio b INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name != 'Botanical Protologue' GROUP BY biblio_year";
 	$results = db_query($sql)->fetchAllAssoc('year');
     $output = '<div class="biblio_charts" id="biblio_chart"></div>'
             . '<div id="biblio_chart_data" data-title="Publications by Year">';
