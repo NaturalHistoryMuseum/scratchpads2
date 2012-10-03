@@ -443,7 +443,7 @@ function entityconnect_return_form_alter(&$form, &$form_state, $form_id, $cache_
           break;
 
         case 'user':
-          if (($data['target_id'] != NULL || $data['target_id'] != 0) && $user = user_load_by_name($data['target_id'])) {
+          if (isset($data['target_id']) && $user = user_load_by_name($data['target_id'])) {
             switch ($widget_container_type) {
               // Autocomplete tags style.
               case 'textfield':

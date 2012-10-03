@@ -144,10 +144,10 @@ function entityconnect_form_alter(&$form, &$form_state, $form_id) {
     }
   }
 
-  // If this form is a child form let's add alter for that purpose
+  // If this for is a child form lets add alter for that purpose
   // Note that we are doing this here becuase when we retrun to a form it gets
-  // rebuilt so this will get caught in the rebuilt.
-  if (isset($form_state['#entityconnect_child_form']) && $form_state['#entityconnect_child_form']) {
+  // rebuild so this will get caught in the rebuild.
+  if (isset($form_state['#entityconnect_child_form'])) {
     $cache = $form_state['#entityconnect_child_form'];
     module_load_include('inc', 'entityconnect', 'includes/entityconnect.form');
     entityconnect_child_form_alter($form, $form_state, $form_id, $cache->cid, $cache);
