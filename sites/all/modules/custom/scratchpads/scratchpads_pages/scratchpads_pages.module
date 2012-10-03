@@ -277,9 +277,13 @@ function scratchpads_pages_block_view($delta = ''){
       global $conf;
       if(arg(0) == 'node' && is_numeric($nid = arg(1)) && $node = node_load($nid)){
         $node_type_info = node_type_load($node->type);
+        $display_name = $node_type_info->name;
+        if ($node->type == 'biblio') {
+          $display_name = 'literature';
+        }
         $items = array(
           l(t('View all !type', array(
-            '!type' => scratchpads_pages_pluralise_node_name($node_type_info->name)
+            '!type' => scratchpads_pages_pluralise_node_name($display_name)
           )), $node->type)
         );
         // If this node has a location, provide a link back to all filtered by location title
@@ -287,7 +291,7 @@ function scratchpads_pages_block_view($delta = ''){
           $location = array_shift($node->field_location[LANGUAGE_NONE]);
           $items[] = l(t('!location !type', array(
             '!location' => $location['node']->title,
-            '!type' => scratchpads_pages_pluralise_node_name($node_type_info->name)
+            '!type' => scratchpads_pages_pluralise_node_name($display_name)
           )), $node->type, array(
             'query' => array(
               'field_location' => $location['node']->title
@@ -298,7 +302,7 @@ function scratchpads_pages_block_view($delta = ''){
           'links' => array(
             '#theme' => 'item_list',
             '#items' => $items,
-            '#title' => $node_type_info->name
+            '#title' => $display_name
           )
         );
         if(count($terms = scratchpads_pages_node_get_terms($node))){
@@ -408,6 +412,8 @@ function scratchpads_pages_pluralise_node_name($name){
       break;
     case 'Blog entry':
       $name = 'blog';
+      break;
+    case 'literature':
       break;
     default:
       $last_char = substr($name, -1);
