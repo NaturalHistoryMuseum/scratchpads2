@@ -28,6 +28,18 @@ function scratchpads_roles_and_permissions_scratchpads_default_permissions(){
 }
 
 /**
+ * EntityConnect module
+ */
+function entityconnect_scratchpads_default_permissions(){
+  return array(
+    'contributor' => array(
+      'entityconnect add button',
+      'entityconnect edit button'
+    )
+  );
+}
+
+/**
  * Contact module
  */
 function contact_scratchpads_default_permissions(){

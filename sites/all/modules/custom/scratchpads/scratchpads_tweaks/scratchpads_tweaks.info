@@ -33,6 +33,7 @@ dependencies[] = ckeditor
 dependencies[] = clone
 dependencies[] = emptyparagraphkiller
 dependencies[] = entitycache
+dependencies[] = entityconnect
 dependencies[] = feeds_oai_pmh
 dependencies[] = globalredirect
 dependencies[] = imagemagick
