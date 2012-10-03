@@ -7,7 +7,8 @@ function emonocot_views_views_default_views(){
   $bio_vids = variable_get('biological_vids', array());
   $views = array();
   foreach($bio_vids as $vid => $value){
-    $views[] = emonocot_views_nomenclature($vid);
+    $view = emonocot_views_nomenclature($vid);
+    $views[$view->name] = $view;
   }
   return $views;
 }
