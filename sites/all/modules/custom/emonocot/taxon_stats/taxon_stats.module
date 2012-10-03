@@ -38,7 +38,25 @@ function taxon_stats_menu(){
 }
 
 function taxon_stats_overall(){
-	$output = '<p>Overall site statistics';
+	$output = '<p>Overall site statistics</p>';
+	
+	$script = '<script type="text/javascript" src="https://www.google.com/jsapi"></script>';
+  $element = array(
+   '#type' => 'markup',
+   '#markup' => $script,
+  );
+  drupal_add_html_head($element, 'google-charts-api');
+  drupal_add_js(drupal_get_path('module', 'taxon_stats').'/overview_chart.js');
+  
+  
+	$sql = 'SELECT t.name AS type, COUNT(nid) AS Total FROM node n INNER JOIN node_type t ON n.type = t.type GROUP BY t.type';
+	$results = db_query($sql)->fetchAllAssoc('type');
+	 $output .= '<div id="content-by-type"></div>'
+	         .  '<div id="content-by-type-data">';
+	 foreach ($results as $result){
+	 	$output .= '<span data-type="'.$result->type.'" data-count="'.$result->Total.'"></span>';
+	 }
+	 $output .= '</div>';
 	return $output;
 }
 
