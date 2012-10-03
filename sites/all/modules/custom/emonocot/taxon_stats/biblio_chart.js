@@ -5,15 +5,15 @@
 google.load("visualization", "1", {packages:["corechart"]});
       google.setOnLoadCallback(drawChart);
       function drawChart() {
-        var data = [
-                     ['Year', 'Publications'],
-                   ];
+        var data = new google.visualization.DataTable();
+        data.addColumn('number', 'Year');
+        data.addColumn('number', 'Number of Publications');
         jQuery('#biblio_chart_data span').each(
             function() { 
-              data.push([parseInt(jQuery(this).data('year')), parseInt(jQuery(this).data('count'))]);
+              data.addRows([ [ parseInt(jQuery(this).data('year')), parseInt(jQuery(this).data('count'))]]);
               } 
             );
-        var data = google.visualization.arrayToDataTable(data);
+
 
         var options = {
           title: 'Publications per year',
