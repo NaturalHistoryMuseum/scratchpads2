@@ -14,9 +14,35 @@ function taxon_stats_menu(){
     'file' => 'taxonomy.pages.inc',
     'file path' => drupal_get_path('module', 'taxonomy')
   );
+  $items['taxon_stats/biblio'] = array(
+    'title' => 'Publication Statistics',
+    'page callback' => 'taxon_stats_overall_pubs',
+    'access callback' => true,
+    'type' => MENU_NORMAL_ITEM,
+  );
   return $items;
 }
 
+
+function taxon_stats_overall_pubs(){
+	 //include Google Charts necessaries
+  $script = '<script type="text/javascript" src="https://www.google.com/jsapi"></script>';
+  $element = array(
+   '#type' => 'markup',
+   '#markup' => $script,
+  );
+  drupal_add_html_head($element, 'google-charts-api');
+  drupal_add_js(drupal_get_path('module', 'taxon_stats').'/biblio_chart.js');
+	$sql = "SELECT biblio_year AS year, COUNT(biblio_year) AS count FROM bioblitz.biblio GROUP BY biblio_year";
+	$results = db_query($sql)->fetchAllAssoc('year');
+    $output = '<div id="biblio_chart"></div>'
+            . '<div id="biblio_chart_data">';
+    foreach ($results as $result){
+    	$output .= '<span data-year="'.$result->year.'" data-count="'.$result->count.'"></span>';
+    }
+    $output .= '</div>';
+    return $output;
+}
 
 function taxon_stats_view($term){
  //include Google Charts necessaries
