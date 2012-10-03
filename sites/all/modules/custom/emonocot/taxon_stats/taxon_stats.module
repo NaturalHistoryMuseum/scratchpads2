@@ -33,14 +33,28 @@ function taxon_stats_overall_pubs(){
   );
   drupal_add_html_head($element, 'google-charts-api');
   drupal_add_js(drupal_get_path('module', 'taxon_stats').'/biblio_chart.js');
-	$sql = "SELECT biblio_year AS year, COUNT(biblio_year) AS count FROM biblio GROUP BY biblio_year";
+  
+    //Publications overall
+	$sql = "SELECT b.biblio_year AS year, COUNT(b.biblio_year) AS count FROM biblio b INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name != 'Botanical Protologue' GROUP BY biblio_year";
 	$results = db_query($sql)->fetchAllAssoc('year');
-    $output = '<div id="biblio_chart"></div>'
-            . '<div id="biblio_chart_data">';
+    $output = '<div class="biblio_charts" id="biblio_chart"></div>'
+            . '<div id="biblio_chart_data" data-title="Publications by Year">';
     foreach ($results as $result){
     	$output .= '<span data-year="'.$result->year.'" data-count="'.$result->count.'"></span>';
     }
     $output .= '</div>';
+    $output .= '<p>This graph shows only publications that have been added to the bibliography on this site, excluding Botanical Protologues</p>';
+    
+    //Protologues
+    $sql = "SELECT b.biblio_year AS year, COUNT(b.biblio_year) AS count, t.name  FROM biblio b INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name = 'Botanical Protologue' GROUP BY biblio_year";
+    $results = db_query($sql)->fetchAllAssoc('year');
+    $output .= '<div class="biblio_charts" id="protologue_chart"></div>'
+             . '<div id="protologue_chart_data" data-title="Species Descriptions by Year">';
+    foreach ($results as $result){
+    	$output .= '<span data-year="'.$result->year.'" data-count="'.$result->count.'"></span>';
+    }
+    $output .= '</div>';
+    $output .= '<p>This graph shows only descritpions that have been added to this site as Botanical Protologues in the bibliography tool.</p>';
     return $output;
 }
 
