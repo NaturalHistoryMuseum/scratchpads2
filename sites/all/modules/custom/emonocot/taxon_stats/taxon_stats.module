@@ -33,7 +33,7 @@ function taxon_stats_overall_pubs(){
   );
   drupal_add_html_head($element, 'google-charts-api');
   drupal_add_js(drupal_get_path('module', 'taxon_stats').'/biblio_chart.js');
-	$sql = "SELECT biblio_year AS year, COUNT(biblio_year) AS count FROM bioblitz.biblio GROUP BY biblio_year";
+	$sql = "SELECT biblio_year AS year, COUNT(biblio_year) AS count FROM biblio GROUP BY biblio_year";
 	$results = db_query($sql)->fetchAllAssoc('year');
     $output = '<div id="biblio_chart"></div>'
             . '<div id="biblio_chart_data">';
