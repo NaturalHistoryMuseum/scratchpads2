@@ -868,3 +868,12 @@ function scratchpads_tweaks_update_7029() {
     module_enable(array('scratchpads_forum'));
   }
 }
+
+/**
+ * Enable the entityconnect module
+ */
+function scratchpads_tweaks_update_7030(){
+  module_enable(array(
+    'entityconnect'
+  ));
+}

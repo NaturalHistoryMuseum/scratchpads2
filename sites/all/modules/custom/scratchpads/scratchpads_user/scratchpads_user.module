@@ -208,6 +208,23 @@ function scratchpads_user_user_load($entities){
 }
 
 /**
+ * Helper function to replace a submit handler in a form with any other number of handlers
+ * 
+ */
+function _scratchpads_user_replace_submit_handler(&$form, $origin_handler, $handlers){
+  if(!isset($form['actions']['submit']['#submit'])){
+    $form['actions']['submit']['#submit'] = $handlers;
+  }else{
+    $pos = array_search($origin_handler, $form['actions']['submit']['#submit']);
+    if($pos === FALSE){
+      $form['actions']['submit']['#submit'] = array_merge($handlers, $form['actions']['submit']['#submit']);
+    }else{
+      array_splice($form['actions']['submit']['#submit'], $pos, 1, $handlers);
+    }
+  }
+}
+
+/**
  * Implement hook_form_FORM_ID_alter().
  */
 function scratchpads_user_form_user_register_form_alter(&$form, &$form_state){
@@ -218,12 +235,7 @@ function scratchpads_user_form_user_register_form_alter(&$form, &$form_state){
       'user_register_submit',
       'scratchpads_user_register_form_post_submit'
     );
-    $pos = array_search('user_register_submit', $form['actions']['submit']['#submit']);
-    if ($pos === FALSE) {
-      $form['actions']['submit']['#submit'] = array_merge($handlers, $form['actions']['submit']['#submit']);
-    } else {
-      array_splice($form['actions']['submit']['#submit'], $pos, 1, $handlers);
-    }
+    _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
   }
 }
 
@@ -244,15 +256,10 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
   }
   if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
     $handlers = array(
-        'user_register_submit',
-        'scratchpads_user_register_form_post_submit_clear_error'
+      'user_register_submit',
+      'scratchpads_user_register_form_post_submit_clear_error'
     );
-    $pos = array_search('user_register_submit', $form['actions']['submit']['#submit']);
-    if ($pos === FALSE) {
-      $form['actions']['submit']['#submit'] = array_merge($handlers, $form['actions']['submit']['#submit']);
-    } else {
-      array_splice($form['actions']['submit']['#submit'], $pos, 1, $handlers);
-    }
+    _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
   }
 }
 
