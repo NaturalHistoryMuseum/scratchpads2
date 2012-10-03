@@ -10,9 +10,11 @@ google.load("visualization", "1", {packages:["corechart"]});
         data.addColumn('number', 'Number of Publications');
         jQuery('#biblio_chart_data span').each(
             function() { 
-              data.addRows([ [ parseInt(jQuery(this).data('year')), parseInt(jQuery(this).data('count'))]]);
-              } 
-            );
+              if (parseInt(jQuery(this).data('year')) != 0) {
+                data.addRows([ [ parseInt(jQuery(this).data('year')), parseInt(jQuery(this).data('count'))]]);
+              }
+            } 
+          );
 
 
         var options = {
