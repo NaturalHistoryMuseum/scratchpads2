@@ -43,6 +43,7 @@ function taxon_stats_overall_pubs(){
     	$output .= '<span data-year="'.$result->year.'" data-count="'.$result->count.'"></span>';
     }
     $output .= '</div>';
+    $output .= '<p>This graph shows only publications that have been added to the bibliography on this site, excluding Botanical Protologues</p>';
     
     //Protologues
     $sql = "SELECT b.biblio_year AS year, COUNT(b.biblio_year) AS count, t.name  FROM biblio b INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name = 'Botanical Protologue' GROUP BY biblio_year";
@@ -53,6 +54,7 @@ function taxon_stats_overall_pubs(){
     	$output .= '<span data-year="'.$result->year.'" data-count="'.$result->count.'"></span>';
     }
     $output .= '</div>';
+    $output .= '<p>This graph shows only descritpions that have been added to this site as Botanical Protologues in the bibliography tool.</p>';
     return $output;
 }
 
