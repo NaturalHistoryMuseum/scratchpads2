@@ -21,7 +21,7 @@
         
         
         var options = {
-            
+           height: 400,
         };
 
         var chart = new google.visualization.PieChart(document.getElementById('content-by-type'));
