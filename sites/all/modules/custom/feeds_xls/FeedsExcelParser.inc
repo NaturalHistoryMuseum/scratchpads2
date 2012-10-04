@@ -1,4 +1,33 @@
 <?php
+// Load the PHPExcel library.
+if(function_exists('libraries_get_path')){
+  $path = libraries_get_path('PHPExcel');
+  $path = "$path/PHPExcel/IOFactory.php";
+}else{
+  $path = drupal_get_path('module', 'feeds_xls') . '/PHPExcel/PHPExcel/IOFactory.php';
+}
+require_once $path;
+
+/**
+ * Chunk reader for reading data from an Excel file.
+ */
+class chunkReadFilter implements PHPExcel_Reader_IReadFilter{
+  // Start row
+  private $start_row = 0;
+  // End row
+  private $end_row = 0;
+  // Set the rows to parse.
+  public function setRows($start, $size){
+    $this->start_row = $start;
+    $this->end_row = $start + $size;
+  }
+  // Implements function.  Define whether or not we should read the contents of
+  // the cell.
+  public function readCell($column, $row, $worksheetName = ''){
+    if($row >= $this->start_row && $row <= $this->end_row){return TRUE;}
+    return FALSE;
+  }
+}
 
 /**
  * Parses a given file as a Excel file.  This is heavily inspired by Feeds
@@ -6,17 +35,13 @@
  */
 class FeedsExcelParser extends FeedsParser{
 
-  private $PHPExcel_object;
-
-  private $PHPExcel_ws;
-
-  private $current_worksheet;
-
-  private $limit;
-
-  private $row_counts;
-
   private $state;
+
+  private $chunk_size = 50;
+
+  private $chunk_filter;
+
+  private $reader;
 
   /**
    * Parse content fetched by fetcher.
@@ -31,152 +56,77 @@ class FeedsExcelParser extends FeedsParser{
     // Get config and current state
     $source_config = $source->getConfigFor($this);
     $this->state = $source->state(FEEDS_PARSE);
+    // Set the total rows to process
+    $this->state->total = 65536;
+    // Get the filepath of the submitted file.
+    $import_file_path = drupal_realpath($fetcher_result->getFilePath());
     // Load the PHPExcel shenanigans
-    if(is_null($this->PHPExcel_object)){
-      if(function_exists('libraries_get_path')){
-        $path = libraries_get_path('PHPExcel');
-        $path = "$path/PHPExcel/IOFactory.php";
-      }else{
-        $path = drupal_get_path('module', 'feeds_xls') . '/PHPExcel/PHPExcel/IOFactory.php';
-      }
-      require_once $path;
-      // We use drupal_realpath here as it appears that the ZipArchive class is
-      // not able to handle our use of public://... Stream URIs.  This will need
-      // to be fixed before Drupal 8.
-      $import_file_path = drupal_realpath($fetcher_result->getFilePath());
-      $file_type = PHPExcel_IOFactory::identify($import_file_path);
-      $reader = PHPExcel_IOFactory::createReader($file_type);
-      if(method_exists($reader, 'setReadDataOnly')){
-        $reader->setReadDataOnly(true);
-      }
-      $this->PHPExcel_object = $reader->load($import_file_path);
-      $PHPExcel_ws = array();
-      foreach($this->PHPExcel_object->getWorksheetIterator() as $worksheet){
-        if($worksheet->getTitle() != 'PermittedValues'){
-          $this->PHPExcel_ws[] = $worksheet;
-        }
-        if(!$source_config['all_worksheets']){
-          break;
-        }
-      }
-      // Get the number of rows per sheet
-      $this->row_counts = array();
-      foreach($this->PHPExcel_ws as $sheet){
-        $number_of_rows = $sheet->getHighestRow();
-        if(isset($source_config['no_headers'])){
-          $number_of_rows--;
-        }
-        if($number_of_rows >= 1){
-          $this->row_counts[] = $number_of_rows;
-        }else{
-          // We stop at the first empty sheet, to make things simpler.
-          break;
-        }
-      }
+    // We use drupal_realpath here as it appears that the ZipArchive class is
+    // not able to handle our use of public://... Stream URIs.  This will need
+    // to be fixed before Drupal 8.
+    $file_type = PHPExcel_IOFactory::identify($import_file_path);
+    $this->reader = PHPExcel_IOFactory::createReader($file_type);
+    // No need to check for the presence of the chunkReadFilter function, if
+    // it doesn't exist, we're screwed anyway.
+    //if(method_exists($this->reader, 'setReadFilter'))
+    $this->chunk_filter = new chunkReadFilter();
+    $this->reader->setReadFilter($this->chunk_filter);
+    if(method_exists($this->reader, 'setReadDataOnly')){
+      $this->reader->setReadDataOnly(true);
     }
-    // Work out what sheet we are on.
-    $total = 0;
-    $this->current_worksheet = 0;
-    foreach($this->row_counts as $count){
-      $total += $count;
-      if($this->state->pointer >= $total){
-        $this->current_worksheet++;
-        // Check that this worksheet exists, if it doesn't we should return
-        if(!isset($this->PHPExcel_ws[$this->current_worksheet])){return new FeedsParserResult(array(), $source->feed_nid);}
-      }
-    }
-    // We stop if we don't have any sheets with data in.
-    if(!count($this->row_counts)){
-      drupal_set_message(t('The Excel file you uploaded appears to be empty. Ensure the first sheet has data in it.'), 'error');
-      return new FeedsParserResult(array(), $source->feed_nid);
-    }
-    // Set the limit
-    $this->limit = $source->importer->getLimit();
     // P A R S E !
-    $rows = $this->parseItems($source_config);
-    // Report progress.
-    $this->state->total = array_sum($this->row_counts);
-    $this->state->pointer += count($rows);
-    $this->state->progress($this->state->total, $this->state->pointer);
-    return new FeedsParserResult($rows, $source->feed_nid);
-  }
-
-  /**
-   * Get first line, and return as an array
-   */
-  protected function parseHeader(){
-    $headers = array();
-    foreach($this->PHPExcel_ws[$this->current_worksheet]->getRowIterator() as $row){
-      $row_index = $row->getRowIndex();
+    $rows = array();
+    $this->chunk_filter->setRows($this->state->pointer, $this->chunk_size);
+    // Excel object for doing the do.
+    $excel_obj = $this->reader->load($import_file_path);
+    $excel_obj->setActiveSheetIndex();
+    foreach($excel_obj->getActiveSheet()->getRowIterator() as $row){
       $cellIterator = $row->getCellIterator();
       $cellIterator->setIterateOnlyExistingCells(false); // Loop all cells, even if it is not set
+      $column = 0;
+      $row_values = array();
       foreach($cellIterator as $cell){
         if(!is_null($cell)){
-          $headers[] = trim($cell->getCalculatedValue());
-        }
-      }
-      break;
-    }
-    return $headers;
-  }
-
-  /**
-   * Parse all of the items from the Excel file.
-   *
-   * @param ParserExcel $parser
-   * @param ParserExcelIterator $iterator
-   * @return
-   * An array of rows of the Excel file keyed by the column names previously set
-   */
-  protected function parseItems($source_config){
-    // We get the headers of the sheet we are working on, if required.
-    if(empty($source_config['no_headers'])){
-      $column_names = $this->parseHeader();
-    }
-    $rows = array();
-    foreach($this->PHPExcel_ws[$this->current_worksheet]->getRowIterator() as $row){
-      $row_index = $row->getRowIndex();
-      $start_row = $this->getRowPosition($source_config);
-      if($row_index >= $start_row){
-        $cellIterator = $row->getCellIterator();
-        $cellIterator->setIterateOnlyExistingCells(false); // Loop all cells, even if it is not set
-        $column = 0;
-        $row_values = array();
-        foreach($cellIterator as $cell){
-          if(!is_null($cell)){
-            // FIXME - This isn't ideal, why does the GUID field need to be empty.
-            if(trim('' . $cell->getCalculatedValue()) || (count($column_names) ? $column_names[$column] : $column) == 'GUID'){
-              $row_values[count($column_names) ? $column_names[$column] : $column] = '' . $cell->getCalculatedValue();
+          if(!isset($this->state->column_names)){
+            $row_values[] = trim($cell->getCalculatedValue());
+          }else{
+            if(trim('' . $cell->getCalculatedValue()) || (count($this->state->column_names) ? $this->state->column_names[$column] : $column) == 'GUID'){
+              $row_values[count($this->state->column_names) ? $this->state->column_names[$column] : $column] = '' . $cell->getCalculatedValue();
             }
           }
-          $column++;
         }
-        $rows[] = $row_values;
-        if(count($rows) >= $this->limit){
-          break;
+        $column++;
+      }
+      if(!isset($this->state->column_names)){
+        $this->state->column_names = $row_values;
+      }else{
+        if($this->isRowNotEmpty($row_values)){
+          $rows[] = $row_values;
         }
       }
     }
-    return $rows;
+    // Try to regain some memory!
+    $excel_obj->disconnectWorksheets();
+    unset($excel_obj);
+    if(function_exists('gc_collect_cycles')){
+      gc_collect_cycles();
+    }
+    // Report progress.
+    $this->state->pointer += count($rows);
+    $this->state->progress($this->state->total, $this->state->pointer);
+    return new FeedsParserResult($rows);
   }
 
   /**
-   * Calculate what row to start from.  Used by parseItems function
+   * Check to see if an array is all empty.
    */
-  protected function getRowPosition($source_config){
-    // Total imported - Total of previous worksheets
-    // Note, we add one due to the fact that Excel sheets are numbered from 1
-    // and not 0.
-    $start_row = $this->state->pointer ? $this->state->pointer + 1 : 1;
-    if($this->current_worksheet){
-      for($i = 0; $i < $this->current_worksheet; $i++){
-        $start_row -= $this->row_counts[$i];
+  protected function isRowNotEmpty($row){
+    if(is_array($row)){
+      foreach($row as $key => $value){
+        if($value){return TRUE;}
       }
     }
-    if(empty($source_config['no_headers'])){
-      $start_row++;
-    }
-    return $start_row;
+    return FALSE;
   }
 
   /**
