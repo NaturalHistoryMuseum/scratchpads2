@@ -51,6 +51,7 @@ google.load("visualization", "1", {packages:["corechart"]});
             var chart = new google.visualization.PieChart(document.getElementById(elementID));
             var options = {
                 title: jQuery(query).data('title'),
+                height: 600,
             };
             break;
         }
