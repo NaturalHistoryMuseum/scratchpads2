@@ -48,10 +48,7 @@ function drawChart(elementID) {
       //Need to handle things different if first column is a string or number
       switch(jQuery(jq_data_element).data('chart-first-column-type')){
         case 'number':
-          //Ignore colums where the title field is 0 (fix for biblio entries imported with year=0)
-          if (parseInt(jQuery(this).data('title')) != 0) {
-            data.addRows([ [ parseInt(jQuery(this).data('title')), parseInt(jQuery(this).data('value'))]]);
-          }
+          data.addRows([ [ parseInt(jQuery(this).data('title')), parseInt(jQuery(this).data('value'))]]);
           break;
         case 'string':
           data.addRows([ [ jQuery(this).data('title'), parseInt(jQuery(this).data('value'))]]);

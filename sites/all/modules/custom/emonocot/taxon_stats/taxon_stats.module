@@ -88,7 +88,7 @@ function taxon_stats_overall_pubs(){
   taxon_stats_add_javascript('ts_chart');
   
   //Publications by year
-  $sql = "SELECT b.biblio_year AS year, COUNT(b.biblio_year) AS count FROM biblio b INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name != 'Botanical Protologue' GROUP BY biblio_year";
+  $sql = "SELECT b.biblio_year AS year, COUNT(b.biblio_year) AS count FROM biblio b INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name != 'Botanical Protologue' AND b.biblio_year > 0 AND b.biblio_year < 9000 GROUP BY biblio_year";
   $results = db_query($sql)->fetchAllAssoc('year');
   $output = '<div class="ts-charts" id="ts-chart-biblio-chart"></div>' . '<div id="ts-chart-biblio-chart-data" data-chart-title="Publications by Year" data-chart-type="column" data-chart-first-column-type="number">';
   foreach($results as $result){
@@ -102,7 +102,7 @@ function taxon_stats_overall_pubs(){
   }
   if ($has_protologues){
     //Protologues by year (i.e. New names by year)
-    $sql = "SELECT b.biblio_year AS year, COUNT(b.biblio_year) AS count, t.name  FROM biblio b INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name = 'Botanical Protologue' GROUP BY biblio_year";
+    $sql = "SELECT b.biblio_year AS year, COUNT(b.biblio_year) AS count, t.name  FROM biblio b INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name = 'Botanical Protologue' AND b.biblio_year > 0 AND b.biblio_year < 9000 GROUP BY biblio_year";
     $results = db_query($sql)->fetchAllAssoc('year');
     $output .= '<div class="ts-charts" id="ts-chart-protologue"></div>' . '<div id="ts-chart-protologue-data" data-chart-title="New published names by Year" data-chart-type="column" data-chart-first-column-type="number">';
     foreach($results as $result){
@@ -113,7 +113,7 @@ function taxon_stats_overall_pubs(){
   }
   
   //Publications by author
-  $sql = "SELECT d.name AS Name, COUNT(c.nid) as Total FROM biblio_contributor c INNER JOIN biblio_contributor_data d ON c.cid = d.cid INNER JOIN biblio b on b.nid = c.nid INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name != 'Botanical Protologue' GROUP BY c.cid";
+  $sql = "SELECT d.name AS Name, COUNT(c.nid) as Total FROM biblio_contributor c INNER JOIN biblio_contributor_data d ON c.cid = d.cid INNER JOIN biblio b on b.nid = c.nid INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name != 'Botanical Protologue' AND b.biblio_year > 0 AND b.biblio_year < 9000 GROUP BY c.cid";
   $results = db_query($sql)->fetchAllAssoc('Name');
   $output .= '<div class="ts-charts" id="ts-chart-authors"></div>' . '<div id="ts-chart-authors-data" data-chart-title="Publications by author" data-chart-type="pie" data-chart-first-column-type="string">';
   foreach($results as $result){
@@ -123,7 +123,7 @@ function taxon_stats_overall_pubs(){
   
   if ($has_protologues) {
     //Protologues by author (i.e. New names by author)
-    $sql = "SELECT d.name AS Name, COUNT(c.nid) as Total FROM biblio_contributor c INNER JOIN biblio_contributor_data d ON c.cid = d.cid INNER JOIN biblio b on b.nid = c.nid INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name = 'Botanical Protologue' GROUP BY c.cid";
+    $sql = "SELECT d.name AS Name, COUNT(c.nid) as Total FROM biblio_contributor c INNER JOIN biblio_contributor_data d ON c.cid = d.cid INNER JOIN biblio b on b.nid = c.nid INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name = 'Botanical Protologue' AND b.biblio_year > 0 AND b.biblio_year < 9000 GROUP BY c.cid";
     $results = db_query($sql)->fetchAllAssoc('Name');
     $output .= '<div class="ts-charts" id="ts-chart-protologue-authors"></div>' . '<div id="ts-chart-protologue-authors-data" data-chart-title="New names by author" data-chart-type="pie" data-chart-first-column-type="string">';
     foreach($results as $result){
