@@ -14,15 +14,66 @@ function taxon_stats_menu(){
     'file' => 'taxonomy.pages.inc',
     'file path' => drupal_get_path('module', 'taxonomy')
   );
+  $items['taxon_stats'] = array(
+    'title' => 'Statistics',
+    'page callback' => 'taxon_stats_overall',
+    'access callback' =>  true,
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['taxon_stats/overview'] = array(
+    'title' => 'Statistics',
+    'page callback' => 'taxon_stats_overall',
+    'access callback' =>  true,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
   $items['taxon_stats/biblio'] = array(
     'title' => 'Publication Statistics',
     'page callback' => 'taxon_stats_overall_pubs',
     'access callback' => true,
-    'type' => MENU_NORMAL_ITEM,
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
   );
   return $items;
 }
 
+function taxon_stats_overall(){
+	$output = '<p>Overall site statistics</p>';
+	
+	$script = '<script type="text/javascript" src="https://www.google.com/jsapi"></script>';
+  $element = array(
+   '#type' => 'markup',
+   '#markup' => $script,
+  );
+  drupal_add_html_head($element, 'google-charts-api');
+  drupal_add_js(drupal_get_path('module', 'taxon_stats').'/overview_chart.js');
+  
+  
+	$sql = 'SELECT t.name AS type, COUNT(nid) AS Total FROM node n INNER JOIN node_type t ON n.type = t.type GROUP BY t.type';
+	$results = db_query($sql)->fetchAllAssoc('type');
+	 $output .= '<div class="ts_charts" id="content-by-type"></div>'
+	         .  '<div id="content-by-type-data" data-title="Content by type">';
+	 foreach ($results as $result){
+	 	$output .= '<span data-type="'.$result->type.'" data-count="'.$result->Total.'"></span>';
+	 }
+	 $output .= '</div>';
+	 
+	 	$sql = 'SELECT u.name as Name, COUNT(nid) as Total FROM node n INNER JOIN users u on n.uid = u.uid';
+	$results = db_query($sql)->fetchAllAssoc('Name');
+	 $output .= '<div class="ts_charts" id="content-by-user"></div>'
+	         .  '<div id="content-by-user-data" data-title="Content by user">';
+	 foreach ($results as $result){
+	 	$output .= '<span data-type="'.$result->Name.'" data-count="'.$result->Total.'"></span>';
+	 }
+	 $output .= '</div>';
+	 
+	 
+	 
+	 
+	 
+	 
+	return $output;
+}
 
 function taxon_stats_overall_pubs(){
 	 //include Google Charts necessaries
@@ -49,12 +100,12 @@ function taxon_stats_overall_pubs(){
     $sql = "SELECT b.biblio_year AS year, COUNT(b.biblio_year) AS count, t.name  FROM biblio b INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name = 'Botanical Protologue' GROUP BY biblio_year";
     $results = db_query($sql)->fetchAllAssoc('year');
     $output .= '<div class="biblio_charts" id="protologue_chart"></div>'
-             . '<div id="protologue_chart_data" data-title="Species Descriptions by Year">';
+             . '<div id="protologue_chart_data" data-title="New published names by Year">';
     foreach ($results as $result){
     	$output .= '<span data-year="'.$result->year.'" data-count="'.$result->count.'"></span>';
     }
     $output .= '</div>';
-    $output .= '<p>This graph shows only descritpions that have been added to this site as Botanical Protologues in the bibliography tool.</p>';
+    $output .= '<p>This graph shows only descriptions that have been added to this site as Botanical Protologues in the bibliography tool.</p>';
     return $output;
 }
 
