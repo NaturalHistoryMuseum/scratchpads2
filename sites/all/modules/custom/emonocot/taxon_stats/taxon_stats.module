@@ -108,7 +108,7 @@ function taxon_stats_overall_pubs(){
     $output .= '<p>This graph shows only descriptions that have been added to this site as Botanical Protologues in the bibliography tool.</p>';
     
     //Authors
-    $sql = "SELECT d.name AS Name, COUNT(c.nid) as Total FROM biblio_contributor c INNER JOIN biblio_contributor_data d ON c.cid = d.cid GROUP BY c.cid";
+    $sql = "SELECT d.name AS Name, COUNT(c.nid) as Total FROM biblio_contributor c INNER JOIN biblio_contributor_data d ON c.cid = d.cid INNER JOIN biblio b on b.nid = c.nid INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name != 'Botanical Protologue' GROUP BY c.cid";
     $results = db_query($sql)->fetchAllAssoc('Name');
     $output .= '<div class="biblio_charts" id="authors_chart"></div>'
              . '<div id="authors_chart_data" data-title="Publications by author" data-chart-type="pie" data-first-column-type="string">';
