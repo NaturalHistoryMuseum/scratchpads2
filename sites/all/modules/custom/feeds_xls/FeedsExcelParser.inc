@@ -57,22 +57,33 @@ class FeedsExcelParser extends FeedsParser{
     $source_config = $source->getConfigFor($this);
     $this->state = $source->state(FEEDS_PARSE);
     // Set the total rows to process
-    $this->state->total = 65536;
+    $this->state->total = 300;
     // Get the filepath of the submitted file.
     $import_file_path = drupal_realpath($fetcher_result->getFilePath());
     // Load the PHPExcel shenanigans
-    // We use drupal_realpath here as it appears that the ZipArchive class is
-    // not able to handle our use of public://... Stream URIs.  This will need
-    // to be fixed before Drupal 8.
-    $file_type = PHPExcel_IOFactory::identify($import_file_path);
-    $this->reader = PHPExcel_IOFactory::createReader($file_type);
-    // No need to check for the presence of the chunkReadFilter function, if
-    // it doesn't exist, we're screwed anyway.
-    //if(method_exists($this->reader, 'setReadFilter'))
-    $this->chunk_filter = new chunkReadFilter();
-    $this->reader->setReadFilter($this->chunk_filter);
-    if(method_exists($this->reader, 'setReadDataOnly')){
-      $this->reader->setReadDataOnly(true);
+    // Note, we're caching this in a file as PDO/MySQL complain when it is 
+    // included in the $this->state object (dodgy characters).
+    if(!$this->state->reader_object_cache_path || !file_exists($this->state->reader_object_cache_path)){
+      // We use drupal_realpath here as it appears that the ZipArchive class is
+      // not able to handle our use of public://... Stream URIs.  This will need
+      // to be fixed before Drupal 8.
+      $file_type = PHPExcel_IOFactory::identify($import_file_path);
+      $this->reader = PHPExcel_IOFactory::createReader($file_type);
+      // No need to check for the presence of the chunkReadFilter function, if
+      // it doesn't exist, we're screwed anyway.
+      //if(method_exists($this->reader, 'setReadFilter'))
+      $this->chunk_filter = new chunkReadFilter();
+      $this->reader->setReadFilter($this->chunk_filter);
+      if(method_exists($this->reader, 'setReadDataOnly')){
+        $this->reader->setReadDataOnly(true);
+      }
+      $tempnam = drupal_tempnam('temporary://', 'feeds_xls_data_');
+      file_put_contents($tempnam, serialize($this));
+      $this->state->reader_object_cache_path = $tempnam;
+    }else{
+      $previous_this = unserialize(file_get_contents($this->state->reader_object_cache_path));
+      $this->reader = $previous_this->reader;
+      $this->chunk_filter = $previous_this->chunk_filter;
     }
     // P A R S E !
     $rows = array();
@@ -105,6 +116,11 @@ class FeedsExcelParser extends FeedsParser{
         }
       }
     }
+    // Set the total here, most likely we've finished!
+    if(!count($rows)){
+      $this->state->total = $this->state->pointer;
+      @drupal_unlink($this->state->reader_object_cache_path);
+    }
     // Try to regain some memory!
     $excel_obj->disconnectWorksheets();
     unset($excel_obj);
@@ -114,7 +130,8 @@ class FeedsExcelParser extends FeedsParser{
     // Report progress.
     $this->state->pointer += count($rows);
     $this->state->progress($this->state->total, $this->state->pointer);
-    return new FeedsParserResult($rows);
+    // FIXME - does this need $source->feed_nid ??
+    return new FeedsParserResult($rows, $source->feed_nid);
   }
 
   /**
@@ -145,6 +162,24 @@ class FeedsExcelParser extends FeedsParser{
         '#title' => t('All worksheets'),
         '#description' => t('Check this box if you would like to import data from all worksheets, and not just the first sheet.'),
         '#default_value' => $this->config['all_worksheets']
+      ),
+      'max_rows' => array(
+        '#type' => 'select',
+        '#title' => t('Maximum number of rows'),
+        '#description' => t('Select the maximum number of rows your Excel file contains.  This number MUST be greater than the total number of rows in your file.  Selecting this value will improve the progress bar feedback.'),
+        '#default_value' => $this->config['all_worksheets'],
+        '#options' => array(
+          100 => 100,
+          1000 => 1000,
+          5000 => 5000,
+          10000 => 10000,
+          20000 => 20000,
+          30000 => 30000,
+          40000 => 40000,
+          50000 => 50000,
+          65535 => t('65535 XLS Maximum'),
+          1000000000000 => t('Unlimited. NO PROGRESS FEEDBACK')
+        )
       )
     );
   }
@@ -155,7 +190,8 @@ class FeedsExcelParser extends FeedsParser{
   public function configDefaults(){
     return array(
       'no_headers' => 0,
-      'all_worksheets' => 0
+      'all_worksheets' => 0,
+      'max_rows' => 65535
     );
   }
 
@@ -165,7 +201,8 @@ class FeedsExcelParser extends FeedsParser{
   public function sourceDefaults(){
     return array(
       'no_headers' => $this->config['no_headers'],
-      'all_worksheets' => $this->config['all_worksheets']
+      'all_worksheets' => $this->config['all_worksheets'],
+      'max_rows' => $this->config['max_rows']
     );
   }
 
@@ -225,6 +262,24 @@ class FeedsExcelParser extends FeedsParser{
       '#title' => t('All worksheets'),
       '#description' => t('Check this box if you would like to import data from all worksheets, and not just the first sheet.'),
       '#default_value' => $this->config['all_worksheets']
+    );
+    $form['max_rows'] = array(
+      '#type' => 'select',
+      '#title' => t('Maximum number of rows'),
+      '#description' => t('Select the maximum number of rows your Excel file contains.  This number MUST be greater than the total number of rows in your file.  Selecting this value will improve the progress bar feedback.'),
+      '#default_value' => 65535,
+      '#options' => array(
+        100 => 100,
+        1000 => 1000,
+        5000 => 5000,
+        10000 => 10000,
+        20000 => 20000,
+        30000 => 30000,
+        40000 => 40000,
+        50000 => 50000,
+        65535 => t('65535 XLS Maximum'),
+        1000000000000 => t('Unlimited. NO PROGRESS FEEDBACK')
+      )
     );
     return $form;
   }
