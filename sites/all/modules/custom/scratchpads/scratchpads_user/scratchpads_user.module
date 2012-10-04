@@ -271,22 +271,30 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
  * @param array $form_state
  */
 function _scratchpads_user_form_alter(&$form, &$form_state){
+  global $user;
   $form['account']['#type'] = 'fieldset';
   $form['account']['#title'] = t('User account settings');
-  $form['account']['#states'] = array(
-    // Hide the settings when the cancel notify checkbox is disabled.
-    'invisible' => array(
-      'input[name="create_user_account"]' => array(
-        'checked' => FALSE
+  if($user->uid > 0){
+    $form['account']['#states'] = array(
+      // Hide the settings when the cancel notify checkbox is disabled.
+      'invisible' => array(
+        'input[name="create_user_account"]' => array(
+          'checked' => FALSE
+        )
       )
-    )
-  );
-  $form['create_user_account'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Allow user login?'),
-    '#description' => t("Do you want to create a user account for this user so they can log into the website?"),
-    '#default_value' => 1,
-  );
+    );
+    $form['create_user_account'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Allow user login?'),
+      '#description' => t("Do you want to create a user account for this user so they can log into the website?"),
+      '#default_value' => 1
+    );
+  }else{
+    $form['create_user_account'] = array(
+      '#type' => 'hidden',
+      '#value' => 1
+    );
+  }
   $form['#fields'] = field_info_instances($form['#entity_type'], $form['#bundle']);
   // Add the theme function to make this form look better
   array_unshift($form['#theme'], 'scratchpads_user_register_form');
@@ -326,6 +334,9 @@ function scratchpads_user_register_form_post_submit_clear_error($form, &$form_st
   if(isset($form_state['values']['uid']) && $form_state['values']['uid']){
     $form_state['redirect'] = 'user/' . $form_state['values']['uid'];
   }
+  // Ensure that no password is set
+  $form['#user']->pass = '';
+  user_save($form['#user']);
 }
 
 /**
@@ -347,6 +358,9 @@ function scratchpads_user_register_form_post_submit($form, &$form_state){
   )));
   // Give a warning that no user account was created
   drupal_set_message('No user account was created so this person will not be able to log into the website!', 'warning');
+  // Ensure that no password is set
+  $form['#user']->pass = '';
+  user_save($form['#user']);
 }
 
 function theme_scratchpads_user_register_form($variables){

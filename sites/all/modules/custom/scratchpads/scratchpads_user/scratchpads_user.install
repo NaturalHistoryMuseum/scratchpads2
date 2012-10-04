@@ -9,3 +9,22 @@ function scratchpads_user_update_7001(){
   field_create_field($fields['user-user-field_homepage']['field_config']);
   field_create_instance($fields['user-user-field_homepage']['field_instance']);
 }
+
+/**
+ * Ensure existing stub users have an empty password
+ */
+function scratchpads_user_update_7002(){
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'user')
+    ->propertyCondition('status', 0)
+    ->propertyCondition('uid', 0, '<>')
+    ->propertyCondition('uid', 1, '<>');
+  $result = $query->execute();
+  $users = user_load_multiple(array_keys($result['user']));
+  foreach($users as $user){
+    if(preg_match('/^[0-9a-zA-Z.]{13}$/', $user->name)){
+      $user->pass = '';
+      user_save($user);
+    }
+  }
+}
