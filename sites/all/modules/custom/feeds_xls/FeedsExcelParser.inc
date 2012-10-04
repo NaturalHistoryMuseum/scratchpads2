@@ -53,11 +53,12 @@ class FeedsExcelParser extends FeedsParser{
   public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result){
     // Increase the memory limit
     ini_set('memory_limit', '1024M');
+    ini_set('max_execution_time', 120);
     // Get config and current state
     $source_config = $source->getConfigFor($this);
     $this->state = $source->state(FEEDS_PARSE);
-    // Set the total rows to process
-    $this->state->total = 300;
+    // Set the total rows to process based on the configuration.
+    $this->state->total = $source_config['max_rows'];
     // Get the filepath of the submitted file.
     $import_file_path = drupal_realpath($fetcher_result->getFilePath());
     // Load the PHPExcel shenanigans
