@@ -3,14 +3,23 @@
  */
 
       google.load("visualization", "1", {packages:["corechart"]});
-      google.setOnLoadCallback(drawChart);
+      google.setOnLoadCallback(drawCharts);
+      
+      function drawCharts(){
+        jQuery('.ts_charts').each(
+            function() { 
+              drawChart(jQuery(this).attr('id'));
+              } 
+            );
+        
+      }
 
-      function drawChart() {
+      function drawChart(elementID) {
         var data = new google.visualization.DataTable();
         data.addColumn('string', 'Type');
         data.addColumn('number', 'Count');
 
-        jQuery('#content-by-type-data span').each(
+        jQuery('#'+elementID+'-data span').each(
             function() { 
               if (parseInt(jQuery(this).data('year')) != 0) {
                 data.addRows([ [ jQuery(this).data('type'), parseInt(jQuery(this).data('count'))/*, $tooltip*/]]);
@@ -18,13 +27,14 @@
             } 
           );
         
-        
+        alert(jQuery('#'+elementID+'-data').data('title'));
         
         var options = {
-           height: 400,
-           chartArea: {height: 400},
+           height: 600,
+           //chartArea: {height: 380},
+           title: jQuery('#'+elementID+'-data').data('title'),
         };
 
-        var chart = new google.visualization.PieChart(document.getElementById('content-by-type'));
+        var chart = new google.visualization.PieChart(document.getElementById(elementID));
         chart.draw(data, options);
       }

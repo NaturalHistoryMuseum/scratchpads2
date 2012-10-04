@@ -51,12 +51,27 @@ function taxon_stats_overall(){
   
 	$sql = 'SELECT t.name AS type, COUNT(nid) AS Total FROM node n INNER JOIN node_type t ON n.type = t.type GROUP BY t.type';
 	$results = db_query($sql)->fetchAllAssoc('type');
-	 $output .= '<div id="content-by-type"></div>'
-	         .  '<div id="content-by-type-data">';
+	 $output .= '<div class="ts_charts" id="content-by-type"></div>'
+	         .  '<div id="content-by-type-data" data-title="Content by type">';
 	 foreach ($results as $result){
 	 	$output .= '<span data-type="'.$result->type.'" data-count="'.$result->Total.'"></span>';
 	 }
 	 $output .= '</div>';
+	 
+	 	$sql = 'SELECT u.name as Name, COUNT(nid) as Total FROM node n INNER JOIN users u on n.uid = u.uid';
+	$results = db_query($sql)->fetchAllAssoc('Name');
+	 $output .= '<div class="ts_charts" id="content-by-user"></div>'
+	         .  '<div id="content-by-user-data" data-title="Content by user">';
+	 foreach ($results as $result){
+	 	$output .= '<span data-type="'.$result->Name.'" data-count="'.$result->Total.'"></span>';
+	 }
+	 $output .= '</div>';
+	 
+	 
+	 
+	 
+	 
+	 
 	return $output;
 }
 
