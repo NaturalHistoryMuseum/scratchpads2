@@ -27,8 +27,6 @@
             } 
           );
         
-        alert(jQuery('#'+elementID+'-data').data('title'));
-        
         var options = {
            height: 600,
            //chartArea: {height: 380},
