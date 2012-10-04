@@ -262,3 +262,29 @@ form.formflow input.form-submit{
 	position:relative !important;
 	top:-9px;
 }
+
+/* Entity connect form elements */
+form div.entityconnect-add,
+form div.entityconnect-edit {
+  width: auto;
+  height: auto;
+  min-width: 0;
+  float: none;
+}
+form div.entityconnect-edit {
+  float: left;
+}
+form div.entityconnect-add input,
+form div.entityconnect-edit input {
+  width: auto;
+  height: auto;
+  font-size: 9pt;
+  padding-left: 18px;
+  text-indent: 0;
+  color: #AAA;
+  margin-right: 16px;
+}
+form div.entityconnect-add input:hover,
+form div.entityconnect-edit input:hover {
+  border-bottom: 1px solid #AAA;
+}
