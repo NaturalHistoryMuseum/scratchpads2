@@ -37,7 +37,7 @@ class FeedsExcelParser extends FeedsParser{
 
   private $state;
 
-  private $chunk_size = 20;
+  private $chunk_size = 50;
 
   private $chunk_filter;
 
@@ -53,7 +53,7 @@ class FeedsExcelParser extends FeedsParser{
   public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result){
     // Increase the memory limit
     ini_set('memory_limit', '1024M');
-    ini_set('max_execution_time', 120);
+    ini_set('max_execution_time', 240);
     // Get config and current state
     $source_config = $source->getConfigFor($this);
     $this->state = $source->state(FEEDS_PARSE);
