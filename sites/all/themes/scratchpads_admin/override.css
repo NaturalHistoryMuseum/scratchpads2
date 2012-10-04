@@ -288,3 +288,7 @@ form div.entityconnect-add input:hover,
 form div.entityconnect-edit input:hover {
   border-bottom: 1px solid #AAA;
 }
+#tui-form-container div.entityconnect-edit,
+#tui-form-container div.entityconnect-add {
+  display: none;
+}
