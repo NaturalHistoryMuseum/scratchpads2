@@ -15,25 +15,45 @@ google.load("visualization", "1", {packages:["corechart"]});
       }
       
       function drawChart(elementID) {
+        var query = '#'+elementID+'_data';
         var data = new google.visualization.DataTable();
-        data.addColumn('number', 'Year');
+        data.addColumn(jQuery(query).data('first-column-type'), 'Year');
         data.addColumn('number', 'Number of Publications');
         //data.addColumn({type:'string', role:'tooltip'})
-        var query = '#'+elementID+'_data';
         jQuery(query+' span').each(
             function() { 
-              if (parseInt(jQuery(this).data('year')) != 0) {
-                data.addRows([ [ parseInt(jQuery(this).data('year')), parseInt(jQuery(this).data('count'))/*, $tooltip*/]]);
+              switch(jQuery(query).data('first-column-type')){
+                case 'number':
+                  if (parseInt(jQuery(this).data('year')) != 0) {
+                    data.addRows([ [ parseInt(jQuery(this).data('year')), parseInt(jQuery(this).data('count'))/*, $tooltip*/]]);
+                  }
+                  break;
+                case 'string':
+                  data.addRows([ [ jQuery(this).data('year'), parseInt(jQuery(this).data('count'))/*, $tooltip*/]]);
+                  break;
               }
+              
             } 
           );
 
-        var options = {
-          title: jQuery(query).data('title'),
-          legend: {position: 'none'},
-          hAxis: {format: '####'},
-        };
+        
 
-        var chart = new google.visualization.ColumnChart(document.getElementById(elementID));
+        switch(jQuery(query).data('chart-type')){
+          case 'column':
+            var chart = new google.visualization.ColumnChart(document.getElementById(elementID));
+            var options = {
+                title: jQuery(query).data('title'),
+                legend: {position: 'none'},
+                hAxis: {format: '####'},
+              };
+            break;
+          case 'pie':
+            var chart = new google.visualization.PieChart(document.getElementById(elementID));
+            var options = {
+                title: jQuery(query).data('title'),
+                height: 600,
+            };
+            break;
+        }
         chart.draw(data, options);
       }

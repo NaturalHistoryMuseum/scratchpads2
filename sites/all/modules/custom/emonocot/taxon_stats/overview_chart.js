@@ -31,6 +31,7 @@
            height: 600,
            //chartArea: {height: 380},
            title: jQuery('#'+elementID+'-data').data('title'),
+           sliceVisibilityThreshold: 0.0000001,
         };
 
         var chart = new google.visualization.PieChart(document.getElementById(elementID));
