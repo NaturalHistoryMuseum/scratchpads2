@@ -72,6 +72,7 @@ function drawChart(elementID) {
       var options = {
         title: jQuery(jq_data_element).data('chart-title'),
         height: 600,
+        sliceVisibilityThreshold: 0,
       };
       break;
   }
