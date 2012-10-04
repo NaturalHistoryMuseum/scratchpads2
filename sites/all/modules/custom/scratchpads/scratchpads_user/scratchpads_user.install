@@ -17,7 +17,7 @@ function scratchpads_user_update_7002(){
   $query = new EntityFieldQuery();
   $query->entityCondition('entity_type', 'user')->propertyCondition('status', 0)->propertyCondition('uid', 0, '<>')->propertyCondition('uid', 1, '<>');
   $result = $query->execute();
-  if(is_array($result)){
+  if(is_array($result['user'])){
     $users = user_load_multiple(array_keys($result['user']));
     foreach($users as $user){
       if(preg_match('/^[0-9a-zA-Z.]{13}$/', $user->name)){
