@@ -78,34 +78,31 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
     $context['sandbox']['row'] = 0;
     switch($entity_guess){
       case 'node':
-        $bundle = $feeds_importer->processor->config['content_type'];
-        $bundle_key = 'type';
-        $table = 'node';
+        $results = db_select('node', 'e')->fields('e', array(
+          'nid'
+        ))->condition('type', $feeds_importer->processor->config['content_type'])->execute();
         $entity_key = 'nid';
         $context['sandbox']['entity'] = 'node';
         break;
       case 'term':
         // The bundle for a term is actually the vid.
         $vocabulary = taxonomy_vocabulary_machine_name_load($feeds_importer->processor->config['vocabulary']);
-        $bundle = $vocabulary->vid;
+        $results = db_select('taxonomy_term_data', 'e')->fields('e', array(
+          'tid'
+        ))->condition('vid', $vocabulary->vid)->execute();
         $entity_key = 'tid';
-        $bundle_key = 'vid';
         $entity_guess = 'taxonomy_term';
-        $table = 'taxonomy_term_data';
         $context['sandbox']['entity'] = 'taxonomy_term';
         break;
       case 'file':
-        $bundle = $feeds_importer->processor->config['bundle'];
-        $bundle_key = 'type';
-        $table = 'file_managed';
+        $results = db_select('file_managed', 'e')->fields('e', array(
+          'fid'
+        ))->condition('type', $feeds_importer->processor->config['bundle'])->condition('uri', 'public://eolapi/%', 'NOT LIKE')->execute();
         $entity_key = 'fid';
         $context['sandbox']['entity'] = 'file';
         break;
     }
     $context['sandbox']['progress'] = 0;
-    $results = db_select($table, 'e')->fields('e', array(
-      $entity_key
-    ))->condition($bundle_key, $bundle)->execute();
     foreach($results as $row){
       $context['sandbox']['entity_ids'][] = $row->{$entity_key};
     }
