@@ -84,14 +84,16 @@ function scratchpads_user_admin_account(){
   $query = db_select('users', 'u');
   $query->condition('u.uid', 0, '<>');
   $query->condition('u.uid', 1, '<>');
-  $query->leftJoin('field_revision_field_user_family_name', 'fn', 'u.uid = fn.revision_id');
-  $query->addField('fn', 'field_user_family_name_value', 'family_name');
-  $query->leftJoin('field_revision_field_user_given_names', 'fgn', 'u.uid = fgn.revision_id');
-  $query->addField('fgn', 'field_user_given_names_value', 'given_names');
   user_build_filter_query($query);
   $count_query = clone $query;
   $count_query->addExpression('COUNT(u.uid)');
   $query = $query->extend('PagerDefault')->extend('TableSort');
+  // Note, the Joins must appear after the "extend('PagerDefault') code
+  // http://drupal.stackexchange.com/questions/36907/pager-query-with-join
+  $query->leftJoin('field_revision_field_user_family_name', 'fn', 'u.uid = fn.revision_id');
+  $query->addField('fn', 'field_user_family_name_value', 'family_name');
+  $query->leftJoin('field_revision_field_user_given_names', 'fgn', 'u.uid = fgn.revision_id');
+  $query->addField('fgn', 'field_user_given_names_value', 'given_names');
   $query->fields('u', array(
     'uid',
     'name',
@@ -305,7 +307,7 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
         'mail'
       ),
       array(
-        'parent_build_cache_id'      
+        'parent_build_cache_id'
       )
     );
     foreach($form['#fields'] as $field_name => $field){
