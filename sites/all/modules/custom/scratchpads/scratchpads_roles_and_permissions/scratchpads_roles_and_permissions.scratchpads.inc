@@ -461,8 +461,6 @@ function file_entity_scratchpads_default_permissions(){
  * Feeds XLS module (Possibly may release it to Drupal).
  */
 function feeds_xls_scratchpads_default_permissions(){
-  // FIXME - Uncomment the following line once happy with the update functionality.
-  return array();
   return array(
     'editor' => array(
       'feeds xls allow download'
