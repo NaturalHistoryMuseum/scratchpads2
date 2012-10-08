@@ -233,18 +233,10 @@ class FeedsExcelParser extends FeedsParser{
       '#type' => 'fieldset',
       '#title' => t('Template'),
       'text' => array(
-        '#markup' => '<div class="help"><p>' . t('<a href="!url" target="_blank">Excel template file</a> for this import.  Your template file should contain the following column headers:', array(
-          '!url' => url('import/' . $this->id . '/template', array(
-            'attributes' => array(
-              'target' => '_blank'
-            )
-          ))
-        )) . '<br/><span style="font-size:80%">' . implode(", ", $sources) . '</span></p>' . (user_access('feeds xls allow download') ? '<p>' . t('<a href="!popurl" target="_blank">Excel template file for updating</a> data already present on your site. <span class="error">Please ensure all data from you site is present in your downloaded file.</span></p>', array(
-          '!popurl' => url('import/' . $this->id . '/populated-template', array(
-            'attributes' => array(
-              'target' => '_blank'
-            )
-          ))
+        '#markup' => '<div class="help"><p>' . t('<a href="!url" target="_blank" class="overlay-exclude">Excel template file</a> for this import.  Your template file should contain the following column headers:', array(
+          '!url' => url('import/' . $this->id . '/template')
+        )) . '<br/><span style="font-size:80%">' . implode(", ", $sources) . '</span></p>' . (user_access('feeds xls allow download') ? '<p>' . t('<a href="!popurl" target="_blank" class="overlay-exclude">Excel template file for updating</a> data already present on your site. <span class="error">Please ensure all data from you site is present in your downloaded file.</span></p>', array(
+          '!popurl' => url('import/' . $this->id . '/populated-template')
         )) : '') . '</div>'
       )
     );
