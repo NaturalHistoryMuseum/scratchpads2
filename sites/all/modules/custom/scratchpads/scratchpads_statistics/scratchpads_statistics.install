@@ -6,15 +6,22 @@
 function scratchpads_statistics_install(){
   // Quick and simple insert into scratchpads_statistics__term
   db_query('INSERT INTO {scratchpads_statistics_term} (term) SELECT DISTINCT name FROM {taxonomy_term_data}');
-  // Guess this site's owner (this could perhaps be changed later.
-  $uid = db_select('users', 'u')->fields('u', array(
+  // Insert into scratchpads_statistics_user, ensuring the site owner is first.
+  $results = db_select('users', 'u')->fields('u', array(
     'uid'
-  ))->condition('uid', 1, '>')->orderBy('uid')->range(0, 1)->execute()->fetchCol();
-  $owner = user_load(array_pop($uid));
-  db_insert('scratchpads_statistics_user')->fields(array(
-    'name' => @isset($owner->field_user_family_name[LANGUAGE_NONE][0]['value']) ? trim($owner->field_user_given_names[LANGUAGE_NONE][0]['value'] . ' ' . $owner->field_user_family_name[LANGUAGE_NONE][0]['value']) : $owner->name,
-    'email' => $owner->mail
-  ))->execute();
+  ))->condition('uid', 1, '>')->orderBy('uid')->execute();
+  $query = db_insert('scratchpads_statistics_user')->fields(array(
+    'name',
+    'email'
+  ));
+  foreach($results as $row){
+    $user = user_load($row->uid);
+    $query->values(array(
+      'name' => @isset($user->field_user_family_name[LANGUAGE_NONE][0]['value']) ? trim($user->field_user_given_names[LANGUAGE_NONE][0]['value'] . ' ' . $user->field_user_family_name[LANGUAGE_NONE][0]['value']) : $user->name,
+      'email' => $user->mail
+    ));
+  }
+  $query->execute();
   // Insert this site.
   $url = url('', array(
     'absolute' => TRUE
@@ -38,12 +45,11 @@ function scratchpads_statistics_install(){
   ));
   foreach(entity_get_info() as $entity => $entity_info){
     foreach($entity_info['bundles'] as $bundle => $bundle_info){
-      $values = array(
+      $query->values(array(
         'entity' => $entity,
         'bundle' => $bundle,
         'name' => $bundle_info['label']
-      );
-      $query->values($values);
+      ));
     }
   }
   $query->execute();
@@ -273,6 +279,7 @@ function scratchpads_statistics_schema(){
           'default' => 0
         ),
         'term' => array(
+          // Note, we use 0 to represent NONE
           'type' => 'int',
           'unsigned' => TRUE,
           'not null' => TRUE,
