@@ -66,23 +66,22 @@ function _scratchpads_statistics_cron(){
           ))->condition('vid', $vids)->execute();
         }
         foreach($terms as $term){
-          if(@isset($counts[$entity][$bundle][$row->mail][$term->tid])){
-            continue;
-          }
-          $counts[$entity][$bundle][$row->mail][$term->tid]['number_created'] = _scratchpads_statistics_cron_get_count($entity, $bundle, $row->uid, $term->tid);
+          _scratchpads_statistics_cron_set_count($entity, $bundle, $row->uid, $row->mail, $term->tid);
         }
-        $counts[$entity][$bundle][$row->mail][0]['number_created'] = _scratchpads_statistics_cron_get_count($entity, $bundle, $row->uid);
+        _scratchpads_statistics_cron_set_count($entity, $bundle, $row->uid, $row->mail);
       }
     }
   }
-  print_r($counts);
   echo "Finished";
 }
 
 /**
  * Helper function to do the counting.
  */
-function _scratchpads_statistics_cron_get_count($entity, $bundle, $uid, $tid = FALSE){
+function _scratchpads_statistics_cron_set_count($entity, $bundle, $uid, $mail, $tid = FALSE){
+  if($entity == 'node' && $bundle == 'page'){
+    $pants = 'pokey';
+  }
   try{
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', $entity);
@@ -96,15 +95,45 @@ function _scratchpads_statistics_cron_get_count($entity, $bundle, $uid, $tid = F
         break;
     }
     $query->propertyCondition('uid', $uid);
-    if($term){
-      $query->
+    $term_id = 0;
+    if($tid){
+      $query->fieldCondition('field_taxonomic_name', 'tid', $tid);
+      // Get the stats term id
+      $term = taxonomy_term_load($tid);
+      $term_id = db_select('scratchpads_statistics_term', 's')->fields('s', array(
+        'id'
+      ))->condition('term', $term->name)->execute()->fetchCol();
+      $term_id = array_pop($term_id);
     }
     $query->count();
-    return $query->execute();
+    $count = $query->execute();
+    if($count){
+      // Get the entity/bundle ID
+      $entity_bundle_id = db_select('scratchpads_statistics_entity_bundle', 's')->fields('s', array(
+        'id'
+      ))->condition('entity', $entity)->condition('bundle', $bundle)->execute()->fetchCol();
+      $entity_bundle_id = array_pop($entity_bundle_id);
+      // Get the stats user id
+      $user_id = db_select('scratchpads_statistics_user', 's')->fields('s', array(
+        'id'
+      ))->condition('email', $mail)->execute()->fetchCol();
+      $user_id = array_pop($user_id);
+      // Insert a row.
+      db_insert('scratchpads_statistics_data')->fields(array(
+        'user' => $user_id,
+        'term' => $term_id,
+        'site' => 1,
+        'entity_bundle' => $entity_bundle_id,
+        'number_created' => $count,
+        'number_edited' => $count,
+        'number_views' => 0,
+        'captured' => time()
+      ))->execute();
+    }
   }
   catch(Exception $e){
     // Error no doubt as a result of us not being able to associate this
     // particular entity with a UID or similar
-    ;
+    return 0;
   }
 }

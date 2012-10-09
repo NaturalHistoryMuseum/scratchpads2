@@ -329,13 +329,8 @@ function scratchpads_statistics_schema(){
         'entity_bundle'
       ),
       'indexes' => array(
-        'scratchpads_statistics_term_term_index' => array(
-          'term'
-        )
-      ),
-      'unique keys' => array(
-        'scratchpads_statistics_term_term_unique' => array(
-          'term'
+        'scratchpads_statistics_data_captured_index' => array(
+          'captured'
         )
       )
     )
