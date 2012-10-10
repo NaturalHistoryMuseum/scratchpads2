@@ -55,6 +55,9 @@ function scratchpads_statistics_menu(){
  * Based on ajax_delver (see documentation there).
  */
 function json_deliver($json){
+  if($json == MENU_ACCESS_DENIED){
+    $json = array('ACCESS DENIED');
+  }
   $iframe_upload = !empty($_POST['ajax_iframe_upload']);
   if(is_null(drupal_get_http_header('Content-Type'))){
     if(!$iframe_upload){
