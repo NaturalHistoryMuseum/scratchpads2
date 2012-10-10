@@ -111,3 +111,21 @@ function emonocot_spm_update_7007(){
   //Run again to fix vertical tabs
   emonocot_spm_update_7006();
 }
+
+function emonocot_spm_update_7801(){
+  module_load_include('features.field.inc', 'emonocot_spm');
+  $em_fields = emonocot_spm_field_default_fields();
+  foreach($em_fields as $em_field){
+  	if ($em_field['field_instance']['display']['default']['type'] == 'biblio_ref'){
+      $field = field_read_field($em_field['field_config']['field_name']);
+      $field['settings']['view']['args'] = array();
+      $field['settings']['view']['display_name'] = '';
+      $field['settings']['view']['view_name'] = '';
+      field_update_field($field);
+  	}
+  }
+  foreach($em_fields as $em_field){
+    $instance = field_read_instance('node', $em_field['field_config']['field_name'], 'spm');
+    $i=0;
+  }
+}
