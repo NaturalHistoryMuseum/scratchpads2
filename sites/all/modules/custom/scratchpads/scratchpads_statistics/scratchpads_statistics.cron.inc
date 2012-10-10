@@ -82,6 +82,8 @@ function _scratchpads_statistics_cron_set_count($entity, $bundle, $uid, $mail, $
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', $entity);
     switch($entity){
+      case 'countries':
+        return 0;
       case 'file':
         // propertyCondition does not appear to work as expected on the
         // file entity type.  May need to look at the file_entity module to fix
