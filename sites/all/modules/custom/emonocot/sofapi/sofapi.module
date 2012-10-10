@@ -73,8 +73,8 @@ function sofapi_process_data_object($data_object, $tid, $age = 604800){
   $eolapi->license = $data_object->license = 'Swiss Orchid Foundation. All rights reserved.';
   //$eolapi->rating = '';
   $eolapi->label = $data_object->identifier;
-  //$data_object->agents[$data_object->COLLECTOR]->full_name = $data_object->COLLECTOR;
-  //$data_object->agents[$data_object->COLLECTOR]->role = 'Collector';
+  $data_object->agents[$data_object->COLLECTOR]->full_name = $data_object->COLLECTOR;
+  $data_object->agents[$data_object->COLLECTOR]->role = 'Photograher';
   $data_object->mediaURL = $data_object->MLINK;
   $eolapi->data = $data = serialize(json_decode(json_encode($data_object))); //can't serialize built in objects
   $eolapi->eolapi_taxonomy = array(
