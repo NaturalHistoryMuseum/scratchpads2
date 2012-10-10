@@ -64,6 +64,7 @@ function json_deliver($json){
     }
   }
   drupal_alter('json', $json);
+  watchdog('scratchpads_statistics', print_r($json, 1));
   $json = drupal_json_encode($json);
   if(!$iframe_upload){
     print $json;
