@@ -192,6 +192,7 @@ function scratchpads_tweaks_cron(){
   }
   if(count($modules_to_enable)){
     module_enable($modules_to_enable);
+    menu_rebuild();
   }
   // Rebuild caches
   _scratchpads_tweaks_register_shutdown();
