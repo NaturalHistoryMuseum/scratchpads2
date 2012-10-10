@@ -148,7 +148,7 @@ function sofapi_footer_logos_alter(&$links){
     'absolute' => true
   );
   $links[] = l(theme('image', array(
-    'path' => drupal_get_path('module', 'sofapi') . '/images/sof_logo.gif',
+    'path' => drupal_get_path('module', 'sofapi') . '/images/sof_logo2.gif',
     'alt' => 'Swiss Orchid Foundation logo',
     'title' => 'Swiss Orchid Foundation'
   )), 'http://orchid.unibas.ch', $options);
