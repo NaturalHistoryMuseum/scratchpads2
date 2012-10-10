@@ -63,7 +63,6 @@ function json_deliver($json){
       drupal_add_http_header('Content-Type', 'text/html; charset=utf-8');
     }
   }
-  watchdog('scratchpads_statistics', print_r($json, 1));
   drupal_alter('json', $json);
   $json = drupal_json_encode($json);
   if(!$iframe_upload){

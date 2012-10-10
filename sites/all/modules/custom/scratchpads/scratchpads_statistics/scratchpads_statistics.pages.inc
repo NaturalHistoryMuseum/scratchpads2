@@ -2,7 +2,9 @@
 
 function scratchpads_statistics_stats_page_json(){
   // Get the content, and build it.
-  return _scratchpads_statistics_build_from_time(isset($_GET['since']) ? $_GET['since'] : 0);
+  $content = _scratchpads_statistics_build_from_time(isset($_GET['since']) ? $_GET['since'] : 0);
+  watchdog('scratchpads_statistics', print_r($content, 1));
+  return $content;
 }
 
 function scratchpads_statistics_stats_page(){
