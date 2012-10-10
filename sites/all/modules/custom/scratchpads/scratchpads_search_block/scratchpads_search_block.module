@@ -12,9 +12,9 @@ function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_st
   $options = array(
     '_all' => t('All'),
     '_taxonomy' => t('Taxonomy')
-  )// FIXME - Possibly add a search by user option in the future.
+  );  // FIXME - Possibly add a search by user option in the future.
   //'_user' => t('User')
-  ;
+  
   $default_value = '_all';
   if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2))){
     // If we're on a taxonomy page, we add additional options.
@@ -116,14 +116,7 @@ function scratchpads_search_block_form_submit($form, &$form_state){
         $terms = taxonomy_get_term_by_name(trim($form_state['values'][$form_id]));
         if($terms){
           $term = array_shift($terms);
-          $query = array(
-            'query' => array(
-              'f' => array(
-                'im_field_taxonomic_name:' . $term->tid
-              )
-            )
-          );
-          $search_string = '';
+          drupal_goto('taxonomy/term/' . $term->tid);
         }else{
           $search_string = trim($form_state['values'][$form_id]);
         }

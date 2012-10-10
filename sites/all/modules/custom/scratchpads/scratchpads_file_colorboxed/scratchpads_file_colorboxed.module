@@ -56,10 +56,15 @@ function scratchpads_file_colorboxed_entity_simple_view($fid){
   $content = entity_view('file', array(
     $entity
   ), $view_type);
-  echo '<div style="' . $width . 'padding:10px">' . drupal_render($content) . ($entity->type == 'image' ? '<p>' . l(t('Download original'), file_create_url($entity->uri), array(
-    'attributes' => array(
-      'target' => '_blank'
-    )
-  )) . '</p>' : '') . '</div>';
+  $image_links = '';
+  if($entity->type == 'image'){
+    $image_user = user_load($entity->uid);
+    $image_links = '<p>' . l(t('Download the original'), file_create_url($entity->uri), array(
+      'attributes' => array(
+        'target' => '_blank'
+      )
+    )) . ' ' . t('uploaded by:') . ' ' . l($image_user->name, 'user/' . $image_user->uid) . '</p>';
+  }
+  echo '<div style="' . $width . 'padding:10px">' . drupal_render($content) . $image_links . '</div>';
   exit();
 }

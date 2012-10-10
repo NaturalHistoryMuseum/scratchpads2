@@ -18,7 +18,12 @@ function silver_feeds_tamper_default(){
         default:
           foreach($importer->processor->config['mappings'] as $mapping){
             // Load the field that the mapping is associated with
-            $field = field_info_field($mapping['target']);
+            if(strpos($mapping['target'], ':')){
+              $field_name = explode(':', $mapping['target']);
+              $field = field_info_field($field_name[0]);
+            }else{
+              $field = field_info_field($mapping['target']);
+            }
             if($field && ($field['cardinality'] == -1 || $field['cardinality'] > 1)){
               if(!in_array($mapping['target'], array(
                 'guid',
