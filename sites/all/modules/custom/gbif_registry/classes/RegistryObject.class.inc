@@ -58,7 +58,6 @@ class RegistryObject extends RegistryChild{
   protected $hostingOrganization;
 
   protected $contacts = array();
-
   // Endpoints can be associated with a node/organization/technical_installation
   protected $endpoints = array();
 
@@ -82,6 +81,9 @@ class RegistryObject extends RegistryChild{
               // FIXME - Remove this code once complete.
               //echo "$key\n";
             }
+            break;
+          case 'hostingOrganizationKey':
+            $this->hostingOrganization = $value;
             break;
           case 'hostingOrganization':
           case 'endorsingNode':
