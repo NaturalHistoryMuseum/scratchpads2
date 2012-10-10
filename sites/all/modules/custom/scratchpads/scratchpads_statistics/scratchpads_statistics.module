@@ -92,7 +92,8 @@ function scratchpads_statistics_access(){
   // authenticate using a hash.
   if(in_array($_SERVER['REMOTE_ADDR'], array(
     '127.0.0.1',
-    '157.140.2.32'
+    '157.140.2.32',
+    '157.140.127.252'
   )) || (isset($_GET['hash']) && md5($_GET['hash']) == variable_get('scratchpads_statistics_hash', uniqid(NULL, TRUE)))){return TRUE;}
   return FALSE;
 }
