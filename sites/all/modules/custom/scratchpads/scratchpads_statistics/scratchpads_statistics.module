@@ -7,3 +7,87 @@ function scratchpads_statistics_cron(){
   module_load_include('cron.inc', 'scratchpads_statistics');
   _scratchpads_statistics_cron();
 }
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_statistics_menu(){
+  return array(
+    'stats' => array(
+      'title' => 'Scratchpad statistics',
+      'description' => 'Display statistics related to the content created on this site.',
+      'page callback' => 'scratchpads_statistics_stats_page',
+      'access arguments' => array(
+        'access content'
+      ),
+      'file' => 'scratchpads_statistics.pages.inc',
+      'type' => MENU_SUGGESTED_ITEM
+    ),
+    'stats.json' => array(
+      'title' => 'Scratchpad statistics (JSON)',
+      'description' => 'Allow a sites statistics to be accessed externally for aggregation by the <a href="http://scratchpads.eu">http://scratchpads.eu</a> site.',
+      'page callback' => 'scratchpads_statistics_stats_page_json',
+      'delivery callback' => 'json_deliver',
+      'access callback' => 'scratchpads_statistics_access',
+      'file' => 'scratchpads_statistics.pages.inc',
+      'type' => MENU_SUGGESTED_ITEM
+    ),
+    'admin/config/search/scratchpads-statistics' => array(
+      'title' => 'Scratchpads statistics',
+      'description' => 'Set the password hash required to access data',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchapds_statistics_config_page'
+      ),
+      'access arguments' => array(
+        'administer scratchpads statistics'
+      ),
+      'file' => 'scratchpads_statistics.pages.inc',
+      'type' => MENU_NORMAL_ITEM
+    )
+  );
+}
+
+/**
+ * Basic function that seems to be missing to deliver JSON to the browser or to
+ * another service.
+ * 
+ * Based on ajax_delver (see documentation there).
+ */
+function json_deliver($json){
+  $iframe_upload = !empty($_POST['ajax_iframe_upload']);
+  if(is_null(drupal_get_http_header('Content-Type'))){
+    if(!$iframe_upload){
+      drupal_add_http_header('Content-Type', 'application/json; charset=utf-8');
+    }else{
+      drupal_add_http_header('Content-Type', 'text/html; charset=utf-8');
+    }
+  }
+  drupal_alter('json', $json);
+  $json = drupal_json_encode($json);
+  if(!$iframe_upload){
+    print $json;
+  }else{
+    print '<textarea>' . $json . '</textarea>';
+  }
+  ajax_footer();
+}
+
+/**
+ * Implements hook_permission().
+ */
+function scratchpads_statistics_permission(){
+  return array(
+    'administer scratchpads statistics' => array(
+      'title' => t('Administer scratchpads statistics')
+    )
+  );
+}
+
+/**
+ * Access callback for the JSON page.
+ */
+function scratchpads_statistics_access(){
+  if(isset($_GET['hash']) && $_GET['hash'] == md5(variable_get('scratchpads_statistics_hash', ''))){return TRUE;}
+  return FALSE;
+}

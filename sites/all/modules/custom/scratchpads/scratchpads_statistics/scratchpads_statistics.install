@@ -56,6 +56,13 @@ function scratchpads_statistics_install(){
 }
 
 /**
+ * Implements hook_uninstall().
+ */
+function scratchpads_statistics_uninstall(){
+  variable_del('scratchpads_statistics_hash');
+}
+
+/**
  * Implements hook_schema().
  */
 function scratchpads_statistics_schema(){
@@ -326,7 +333,8 @@ function scratchpads_statistics_schema(){
         'user',
         'term',
         'site',
-        'entity_bundle'
+        'entity_bundle',
+        'captured'
       ),
       'indexes' => array(
         'scratchpads_statistics_data_captured_index' => array(

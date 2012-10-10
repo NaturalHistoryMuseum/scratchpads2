@@ -72,7 +72,6 @@ function _scratchpads_statistics_cron(){
       }
     }
   }
-  echo "Finished";
 }
 
 /**
@@ -118,6 +117,22 @@ function _scratchpads_statistics_cron_set_count($entity, $bundle, $uid, $mail, $
         'id'
       ))->condition('email', $mail)->execute()->fetchCol();
       $user_id = array_pop($user_id);
+      $number_views = 0;
+      $number_edited = $count;
+      if($entity == 'node' && !$tid){
+        // Get the number of views if this is a node and tid = 0
+        $col = db_query("SELECT SUM(totalcount) FROM {node_counter} WHERE nid IN (SELECT nid FROM {node} WHERE type = :bundle AND uid = :uid)", array(
+          ':bundle' => $bundle,
+          ':uid' => $uid
+        ))->fetchCol();
+        $number_views = array_pop($col);
+        // Get the number edited if this is a node and tid = 0
+        $col = db_query("SELECT COUNT(*) FROM {node_revision} WHERE nid IN (SELECT nid FROM {node} WHERE type = :bundle) AND uid = :uid", array(
+          ':bundle' => $bundle,
+          ':uid' => $uid
+        ))->fetchCol();
+        $number_edited = array_pop($col);
+      }
       // Insert a row.
       db_insert('scratchpads_statistics_data')->fields(array(
         'user' => $user_id,
@@ -125,8 +140,8 @@ function _scratchpads_statistics_cron_set_count($entity, $bundle, $uid, $mail, $
         'site' => 1,
         'entity_bundle' => $entity_bundle_id,
         'number_created' => $count,
-        'number_edited' => $count,
-        'number_views' => 0,
+        'number_edited' => $number_edited,
+        'number_views' => $number_views,
         'captured' => time()
       ))->execute();
     }
