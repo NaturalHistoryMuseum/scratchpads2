@@ -5,7 +5,7 @@
  */
 function scratchpads_statistics_install(){
   // Quick and simple insert into scratchpads_statistics__term
-  db_query('INSERT INTO {scratchpads_statistics_term} (term) SELECT DISTINCT name FROM {taxonomy_term_data}');
+  db_query('INSERT INTO {scratchpads_statistics_term} (term) SELECT DISTINCT LOWER(name) FROM {taxonomy_term_data}');
   // Insert into scratchpads_statistics_user, ensuring the site owner is first.
   $results = db_select('users', 'u')->fields('u', array(
     'uid'

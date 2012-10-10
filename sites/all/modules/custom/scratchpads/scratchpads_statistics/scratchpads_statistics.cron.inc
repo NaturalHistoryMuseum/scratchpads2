@@ -39,7 +39,7 @@ function _scratchpads_statistics_cron(){
     ))->execute();
   }
   // Ensure we have a comprehensive list of terms
-  db_query('INSERT INTO {scratchpads_statistics_term} (term) SELECT DISTINCT name FROM {taxonomy_term_data} WHERE name NOT IN (SELECT name FROM {scratchpads_statistics_term})');
+  db_query('INSERT INTO {scratchpads_statistics_term} (term) SELECT DISTINCT LOWER(name) FROM {taxonomy_term_data} WHERE name NOT IN (SELECT name FROM {scratchpads_statistics_term})');
   //
   // Create the data.
   //
@@ -78,22 +78,28 @@ function _scratchpads_statistics_cron(){
  * Helper function to do the counting.
  */
 function _scratchpads_statistics_cron_set_count($entity, $bundle, $uid, $mail, $tid = FALSE){
-  if($entity == 'node' && $bundle == 'page'){
-    $pants = 'pokey';
-  }
   try{
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', $entity);
     switch($entity){
+      case 'file':
+        // propertyCondition does not appear to work as expected on the
+        // file entity type.  May need to look at the file_entity module to fix
+        // this.
+        //$query->propertyCondition('uid', $uid);
+        $query->entityCondition('bundle', $bundle);
+        break;
       case 'comment':
       case 'taxonomy_term':
+      case 'user':
+        $query->propertyCondition('uid', $uid);
         $bundle = $entity;
         break;
       default:
+        $query->propertyCondition('uid', $uid);
         $query->entityCondition('bundle', $bundle);
         break;
     }
-    $query->propertyCondition('uid', $uid);
     $term_id = 0;
     if($tid){
       $query->fieldCondition('field_taxonomic_name', 'tid', $tid);

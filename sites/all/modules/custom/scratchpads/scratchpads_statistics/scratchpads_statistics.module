@@ -88,6 +88,11 @@ function scratchpads_statistics_permission(){
  * Access callback for the JSON page.
  */
 function scratchpads_statistics_access(){
-  if(isset($_GET['hash']) && $_GET['hash'] == md5(variable_get('scratchpads_statistics_hash', ''))){return TRUE;}
+  // We allow access from Quartz and from localhost.  Anybody else must
+  // authenticate using a hash.
+  if(in_array($_SERVER['REMOTE_ADDR'], array(
+    '127.0.0.1',
+    '157.140.2.32'
+  )) || (isset($_GET['hash']) && md5($_GET['hash']) == variable_get('scratchpads_statistics_hash', uniqid(NULL, TRUE)))){return TRUE;}
   return FALSE;
 }
