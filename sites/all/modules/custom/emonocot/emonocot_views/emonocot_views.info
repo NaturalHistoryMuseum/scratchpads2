@@ -3,4 +3,5 @@ description = "Provides custom views and customises for eMonocot Scratchpads"
 name = "eMonocot Views"
 package = "eMonocot"
 dependencies[] = scratchpads_species
+dependencies[] = emonocot_itis
 
