@@ -47,54 +47,80 @@ function _scratchpads_statistics_cron(){
   // set the maximum execution time to 60 seconds.
   $timer = time();
   $counts = array();
-  // Loop each entity
-  foreach($info as $entity => $entity_info){
-    // Loop each bundle
-    foreach($entity_info['bundles'] as $bundle => $bundle_info){
-      // Loop each user
-      $results = db_select('users', 'u')->fields('u', array(
-        'uid',
-        'mail'
-      ))->condition('uid', 1, '>')->execute();
-      foreach($results as $row){
-        $vids = array();
-        foreach(variable_get('biological_vids', array()) as $vid => $status){
-          if($status){
-            $vids[] = $vid;
+  // We loop from most to least.  We most likely to have the following
+  // # terms > # users > #entities > #bundles
+  // Loop each Biological term.
+  $vids = array();
+  foreach(variable_get('biological_vids', array()) as $vid => $status){
+    if($status){
+      $vids[] = $vid;
+    }
+  }
+  if(count($vids)){
+    $terms = db_select('taxonomy_term_data', 't')->fields('t', array(
+      'tid'
+    ))->condition('vid', $vids)->execute();
+  }
+  foreach($terms as $term){
+    // Load the actual term
+    $term = taxonomy_term_load($term->tid);
+    // Loop each user
+    $results = db_select('users', 'u')->fields('u', array(
+      'uid',
+      'mail'
+    ))->condition('uid', 1, '>')->execute();
+    foreach($results as $row){
+      // We complete for each term/user combination, so we only check here if we
+      // have already completed this query.
+      if(_scratchpads_statistics_not_already_collected($term, $row->mail)){
+        // Loop each entity
+        foreach($info as $entity => $entity_info){
+          // Loop each bundle
+          foreach($entity_info['bundles'] as $bundle => $bundle_info){
+            if(!isset($position[$entity][$bundle][$row->uid][$term->tid])){
+              _scratchpads_statistics_cron_set_count($entity, $bundle, $row->uid, $row->mail, $term);
+            }
           }
+          _scratchpads_statistics_cron_set_count($entity, $bundle, $row->uid, $row->mail);
         }
-        if(count($vids)){
-          $terms = db_select('taxonomy_term_data', 't')->fields('t', array(
-            'tid'
-          ))->condition('vid', $vids)->execute();
+        // Stop if we've gone over time.
+        if(time() > ($timer + 60)){
+          echo "TIMED OUT";
+          return;
         }
-        foreach($terms as $term){
-          if(!isset($position[$entity][$bundle][$row->uid][$term->tid])){
-            _scratchpads_statistics_cron_set_count($entity, $bundle, $row->uid, $row->mail, $term->tid);
-            $position[$entity][$bundle][$row->uid][$term->tid] = TRUE;
-          }
-        }
-        _scratchpads_statistics_cron_set_count($entity, $bundle, $row->uid, $row->mail);
       }
-      // Stop if we've gone over time.
-      if(time() > ($timer + 6)){return;}
     }
   }
   // Copy the data across
-  db_query('INSERT INTO {scratchpads_statistics_data} SELECT * FROM {scratchpads_statistics_data_temp}');
+  db_query('INSERT INTO {scratchpads_statistics_data} SELECT * FROM {scratchpads_statistics_data_temp} WHERE number_created > 0');
   db_delete('scratchpads_statistics_data_temp')->execute();
+}
+
+/**
+ * Get whether or not we should collect data for this term/mail combination
+ */
+function _scratchpads_statistics_not_already_collected($term, $email){
+  $query = db_select('scratchpads_statistics_data_temp', 's');
+  $query->innerJoin('scratchpads_statistics_user', 'u', 's.user = u.id');
+  $query->innerJoin('scratchpads_statistics_term', 't', 's.term = t.id');
+  $query->condition('t.term', strtolower($term->name));
+  $query->condition('email', $email);
+  $query = $query->countQuery();
+  $results = $query->execute()->fetchCol();
+  $results = array_pop($results);
+  return !$results;
 }
 
 /**
  * Helper function to do the counting.
  */
-function _scratchpads_statistics_cron_set_count($entity, $bundle, $uid, $mail, $tid = FALSE){
+function _scratchpads_statistics_cron_set_count($entity, $bundle, $uid, $mail, $term = FALSE){
   try{
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', $entity);
     switch($entity){
       case 'countries':
-        return 0;
+        return;
       case 'file':
         // propertyCondition does not appear to work as expected on the
         // file entity type.  May need to look at the file_entity module to fix
@@ -114,10 +140,9 @@ function _scratchpads_statistics_cron_set_count($entity, $bundle, $uid, $mail, $
         break;
     }
     $term_id = 0;
-    if($tid){
-      $query->fieldCondition('field_taxonomic_name', 'tid', $tid);
+    if($term){
+      $query->fieldCondition('field_taxonomic_name', 'tid', $term->tid);
       // Get the stats term id
-      $term = taxonomy_term_load($tid);
       $term_id = db_select('scratchpads_statistics_term', 's')->fields('s', array(
         'id'
       ))->condition('term', $term->name)->execute()->fetchCol();
@@ -125,49 +150,58 @@ function _scratchpads_statistics_cron_set_count($entity, $bundle, $uid, $mail, $
     }
     $query->count();
     $count = $query->execute();
-    if($count){
-      // Get the entity/bundle ID
-      $entity_bundle_id = db_select('scratchpads_statistics_entity_bundle', 's')->fields('s', array(
-        'id'
-      ))->condition('entity', $entity)->condition('bundle', $bundle)->execute()->fetchCol();
-      $entity_bundle_id = array_pop($entity_bundle_id);
-      // Get the stats user id
-      $user_id = db_select('scratchpads_statistics_user', 's')->fields('s', array(
-        'id'
-      ))->condition('email', $mail)->execute()->fetchCol();
-      $user_id = array_pop($user_id);
-      $number_views = 0;
-      $number_edited = $count;
-      if($entity == 'node' && !$tid){
-        // Get the number of views if this is a node and tid = 0
-        $col = db_query("SELECT SUM(totalcount) FROM {node_counter} WHERE nid IN (SELECT nid FROM {node} WHERE type = :bundle AND uid = :uid)", array(
-          ':bundle' => $bundle,
-          ':uid' => $uid
-        ))->fetchCol();
-        $number_views = array_pop($col);
-        // Get the number edited if this is a node and tid = 0
-        $col = db_query("SELECT COUNT(*) FROM {node_revision} WHERE nid IN (SELECT nid FROM {node} WHERE type = :bundle) AND uid = :uid", array(
-          ':bundle' => $bundle,
-          ':uid' => $uid
-        ))->fetchCol();
-        $number_edited = array_pop($col);
-      }
-      // Insert a row.
-      db_insert('scratchpads_statistics_data_temp')->fields(array(
-        'user' => $user_id,
-        'term' => $term_id,
-        'site' => 1,
-        'entity_bundle' => $entity_bundle_id,
-        'number_created' => $count,
-        'number_edited' => $number_edited,
-        'number_views' => $number_views,
-        'captured' => time()
-      ))->execute();
+    // Get the entity/bundle ID
+    $entity_bundle_id = db_select('scratchpads_statistics_entity_bundle', 's')->fields('s', array(
+      'id'
+    ))->condition('entity', $entity)->condition('bundle', $bundle)->execute()->fetchCol();
+    $entity_bundle_id = array_pop($entity_bundle_id);
+    // Get the stats user id
+    $user_id = db_select('scratchpads_statistics_user', 's')->fields('s', array(
+      'id'
+    ))->condition('email', $mail)->execute()->fetchCol();
+    $user_id = array_pop($user_id);
+    $number_views = 0;
+    $number_edited = $count;
+    if($entity == 'node' && !$term){
+      // Get the number of views if this is a node and tid = 0
+      $col = db_query("SELECT SUM(totalcount) FROM {node_counter} WHERE nid IN (SELECT nid FROM {node} WHERE type = :bundle AND uid = :uid)", array(
+        ':bundle' => $bundle,
+        ':uid' => $uid
+      ))->fetchCol();
+      $number_views = array_pop($col);
+      // Get the number edited if this is a node and tid = 0
+      $col = db_query("SELECT COUNT(*) FROM {node_revision} WHERE nid IN (SELECT nid FROM {node} WHERE type = :bundle) AND uid = :uid", array(
+        ':bundle' => $bundle,
+        ':uid' => $uid
+      ))->fetchCol();
+      $number_edited = array_pop($col);
     }
+    static $time = FALSE;
+    if(!$time){
+      $results = db_select('scratchpads_statistics_data_temp', 's')->fields('s', array(
+        'captured'
+      ))->range(0, 1)->execute()->fetchCol();
+      if($results){
+        $time = array_pop($results);
+      }else{
+        $time = time();
+      }
+    }
+    // Insert a row.
+    db_insert('scratchpads_statistics_data_temp')->fields(array(
+      'user' => $user_id,
+      'term' => $term_id,
+      'site' => 1,
+      'entity_bundle' => $entity_bundle_id,
+      'number_created' => $count,
+      'number_edited' => $number_edited,
+      'number_views' => $number_views,
+      'captured' => $time
+    ))->execute();
   }
   catch(Exception $e){
     // Error no doubt as a result of us not being able to associate this
     // particular entity with a UID or similar
-    return 0;
+    return;
   }
 }
