@@ -341,6 +341,80 @@ function scratchpads_statistics_schema(){
           'captured'
         )
       )
+    ),
+    // Data item temp (to be loaded into the proper table later).
+    'scratchpads_statistics_data_temp' => array(
+      'fields' => array(
+        'user' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'term' => array(
+          // Note, we use 0 to represent NONE
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'site' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'entity_bundle' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'number_created' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'number_edited' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'number_views' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'captured' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        )
+      ),
+      'primary key' => array(
+        'user',
+        'term',
+        'site',
+        'entity_bundle',
+        'captured'
+      ),
+      'indexes' => array(
+        'scratchpads_statistics_data_captured_index' => array(
+          'captured'
+        )
+      )
     )
   );
+}
+
+/**
+ * Add the scratchpads_statistics_data_temp table.
+ */
+function scratchpads_statistics_update_7001(){
+  $schema = scratchpads_statistics_schema();
+  db_create_table('scratchpads_statistics_data_temp', $schema['scratchpads_statistics_data_temp']);
 }

@@ -43,6 +43,9 @@ function _scratchpads_statistics_cron(){
   //
   // Create the data.
   //
+  // Set a timer to prevent us from taking too long on a single run.  We will
+  // set the maximum execution time to 60 seconds.
+  $timer = time();
   $counts = array();
   // Loop each entity
   foreach($info as $entity => $entity_info){
@@ -66,12 +69,20 @@ function _scratchpads_statistics_cron(){
           ))->condition('vid', $vids)->execute();
         }
         foreach($terms as $term){
-          _scratchpads_statistics_cron_set_count($entity, $bundle, $row->uid, $row->mail, $term->tid);
+          if(!isset($position[$entity][$bundle][$row->uid][$term->tid])){
+            _scratchpads_statistics_cron_set_count($entity, $bundle, $row->uid, $row->mail, $term->tid);
+            $position[$entity][$bundle][$row->uid][$term->tid] = TRUE;
+          }
         }
         _scratchpads_statistics_cron_set_count($entity, $bundle, $row->uid, $row->mail);
       }
+      // Stop if we've gone over time.
+      if(time() > ($timer + 6)){return;}
     }
   }
+  // Copy the data across
+  db_query('INSERT INTO {scratchpads_statistics_data} SELECT * FROM {scratchpads_statistics_data_temp}');
+  db_delete('scratchpads_statistics_data_temp')->execute();
 }
 
 /**
@@ -142,7 +153,7 @@ function _scratchpads_statistics_cron_set_count($entity, $bundle, $uid, $mail, $
         $number_edited = array_pop($col);
       }
       // Insert a row.
-      db_insert('scratchpads_statistics_data')->fields(array(
+      db_insert('scratchpads_statistics_data_temp')->fields(array(
         'user' => $user_id,
         'term' => $term_id,
         'site' => 1,
