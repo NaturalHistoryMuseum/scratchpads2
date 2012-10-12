@@ -37,10 +37,14 @@ function _scratchpads_statistics_cron(){
   ))->condition('uid', 1, '>')->orderBy('uid')->execute();
   foreach($results as $row){
     $user = user_load($row->uid);
+    $name = $user->name;
+    if(@isset($user->field_user_family_name[LANGUAGE_NONE][0]['value']) && isset($user->field_user_given_names[LANGUAGE_NONE][0]['value'])){
+      $name = trim($user->field_user_given_names[LANGUAGE_NONE][0]['value'] . ' ' . $user->field_user_family_name[LANGUAGE_NONE][0]['value']);
+    }
     $query = db_merge('scratchpads_statistics_user')->key(array(
       'email' => $user->mail
     ))->fields(array(
-      'name' => @isset($user->field_user_family_name[LANGUAGE_NONE][0]['value']) ? trim($user->field_user_given_names[LANGUAGE_NONE][0]['value'] . ' ' . $user->field_user_family_name[LANGUAGE_NONE][0]['value']) : $user->name,
+      'name' => $name,
       'email' => $user->mail
     ))->execute();
   }
@@ -53,7 +57,7 @@ function _scratchpads_statistics_cron(){
   $timer = time();
   $col = db_select('scratchpads_statistics_data_temp', 's')->fields('s', array(
     'captured'
-  ))->range(0, 1)->orderBy('captured')->execute()->fetch();
+  ))->range(0, 1)->orderBy('captured')->execute()->fetchCol();
   if($col){
     $time = array_pop($col);
   }else{
@@ -69,6 +73,11 @@ function _scratchpads_statistics_cron(){
         switch($entity){
           case 'country':
           case 'eolapi':
+          case 'og_membership_type':
+          case 'og_membership':
+          case 'group':
+          case 'taxonomy_vocabulary':
+          case 'taxonomy_term':
             // We don't bother with these entities.
             break 2;
           case 'comment':
@@ -95,70 +104,72 @@ function _scratchpads_statistics_cron(){
         $query->execute();
         $counts = array();
         $previous_entity_id = FALSE;
-        foreach($query->ordered_results as $result){
-          $tid = isset($result->ss_term_id) ? $result->ss_term_id : 0;
-          // Number created
-          if(!isset($counts[$result->ss_user_id])){
-            $counts[$result->ss_user_id] = array(
-              0 => array(
+        if(isset($query->ordered_results)){
+          foreach($query->ordered_results as $result){
+            $tid = isset($result->ss_term_id) ? $result->ss_term_id : 0;
+            // Number created
+            if(!isset($counts[$result->ss_user_id])){
+              $counts[$result->ss_user_id] = array(
+                0 => array(
+                  'number_created' => 0,
+                  'number_edited' => 0,
+                  'number_views' => 0
+                )
+              );
+            }
+            if(!isset($counts[$result->ss_user_id][$tid])){
+              $counts[$result->ss_user_id][$tid] = array(
                 'number_created' => 0,
                 'number_edited' => 0,
                 'number_views' => 0
-              )
-            );
+              );
+            }
+            if($tid){
+              $counts[$result->ss_user_id][$tid]['number_created']++;
+              $counts[$result->ss_user_id][$tid]['number_edited']++;
+            }
+            if($result->entity_id != $previous_entity_id){
+              $previous_entity_id = $result->entity_id;
+              $counts[$result->ss_user_id][0]['number_created']++;
+              $counts[$result->ss_user_id][0]['number_edited']++;
+            }
+            // Number edited (most likely the same as created).
+            if(isset($result->ss_revision_user_id) && $result->ss_revision_user_id != $result->ss_user_id){
+              $counts[$result->ss_revision_user_id][$tid]['number_edited']++;
+            }
+            // Number of views
+            if(isset($result->totalcount)){
+              $counts[$result->ss_user_id][$tid]['number_views'] = $result->totalcount;
+            }
           }
-          if(!isset($counts[$result->ss_user_id][$tid])){
-            $counts[$result->ss_user_id][$tid] = array(
-              'number_created' => 0,
-              'number_edited' => 0,
-              'number_views' => 0
-            );
+          $query = db_insert('scratchpads_statistics_data_temp')->fields(array(
+            'user',
+            'term',
+            'site',
+            'entity_bundle',
+            'number_created',
+            'number_edited',
+            'number_views',
+            'captured'
+          ));
+          foreach($counts as $user_id => $values){
+            foreach($values as $term_id => $count){
+              $query->values(array(
+                'user' => $user_id,
+                'term' => $term_id,
+                'site' => 1,
+                'entity_bundle' => $id,
+                'number_created' => $count['number_created'],
+                'number_edited' => $count['number_edited'],
+                'number_views' => $count['number_views'],
+                'captured' => $time
+              ));
+            }
           }
-          if($tid){
-            $counts[$result->ss_user_id][$tid]['number_created']++;
-            $counts[$result->ss_user_id][$tid]['number_edited']++;
-          }
-          if($result->entity_id != $previous_entity_id){
-            $previous_entity_id = $result->entity_id;
-            $counts[$result->ss_user_id][0]['number_created']++;
-            $counts[$result->ss_user_id][0]['number_edited']++;
-          }
-          // Number edited (most likely the same as created).
-          if(isset($result->ss_revision_user_id) && $result->ss_revision_user_id != $result->ss_user_id){
-            $counts[$result->ss_revision_user_id][$tid]['number_edited']++;
-          }
-          // Number of views
-          if(isset($result->totalcount)){
-            $counts[$result->ss_user_id][$tid]['number_views'] = $result->totalcount;
-          }
+          $query->execute();
+          // Run for no more than sixty seconds.
+          if(time() > $timer + 60){return;}
         }
-        $query = db_insert('scratchpads_statistics_data_temp')->fields(array(
-          'user',
-          'term',
-          'site',
-          'entity_bundle',
-          'number_created',
-          'number_edited',
-          'number_views',
-          'captured'
-        ));
-        foreach($counts as $user_id => $values){
-          foreach($values as $term_id => $count){
-            $query->values(array(
-              'user' => $user_id,
-              'term' => $term_id,
-              'site' => 1,
-              'entity_bundle' => $id,
-              'number_created' => $count['number_created'],
-              'number_edited' => $count['number_edited'],
-              'number_views' => $count['number_views'],
-              'captured' => $time
-            ));
-          }
-        }
-        $query->execute();
-        // Run for no more than sixty seconds.
-        if(time() > $timer + 60){return;}
       }
       catch(Exception $e){
         watchdog('scratchpads_statistics', 'Failed to calculate data for @entity/@bundle', array(
@@ -169,4 +180,6 @@ function _scratchpads_statistics_cron(){
     }
   }
   // Finally, move the temp data to the permanent data table.
+  db_query('INSERT INTO {scratchpads_statistics_data} SELECT * FROM {scratchpads_statistics_data_temp}');
+  db_delete('scratchpads_statistics_data_temp')->execute();
 }
