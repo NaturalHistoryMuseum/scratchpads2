@@ -50,6 +50,56 @@ function scratchpads_statistics_menu(){
 }
 
 /**
+ * Implements hook_query_TAG_alter().
+ */
+function scratchpads_statistics_query_scratchpads_statistics_alter(QueryAlterableInterface $query){
+  // If we're here, we should have one table, and possibly one field.  We look
+  // through each of the fields for the "entity_id" field, and this is then used
+  // to left-join to the field_taxonomic_name table. 
+  foreach($query->getTables() as $table){
+    // Add all the fields.
+    $query->fields($table['alias']);
+    // Join to the field_data_field_taxonomic_name table to allow us to count
+    // terms.
+    foreach($query->getFields() as $field){
+      if($field['alias'] == 'entity_id'){
+        break;
+      }
+    }
+    // Join to the field taxonomic name table.
+    $query->leftJoin('field_data_field_taxonomic_name', 'f', "f.entity_id = {$table['alias']}.{$field['field']}");
+    $query->fields('f', array(
+      'field_taxonomic_name_tid'
+    ));
+    $query->leftJoin('taxonomy_term_data', 't', 't.tid = f.field_taxonomic_name_tid');
+    $query->leftJoin('scratchpads_statistics_term', 'sst', 'sst.term LIKE t.name');
+    $query->addField('sst', 'id', 'ss_term_id');
+    // Join to the scratchpads_statistics_user table via the user table.
+    $query->innerJoin('users', 'u', "u.uid = {$table['alias']}.uid");
+    $query->innerJoin('scratchpads_statistics_user', 'ssu', 'ssu.email = u.mail');
+    $query->addField('ssu', 'id', 'ss_user_id');
+    if($table['table'] == 'node'){
+      // Join to the counter table, allowing it to not include a count for all
+      // nodes.
+      $query->leftJoin('node_counter', 'nc', "nc.nid = {$table['alias']}.nid");
+      $query->fields('nc', array(
+        'totalcount'
+      ));
+      // Join to the revisions table.
+      // FIXME this should work with all entities that support revisions (e.g.
+      // the character project).
+      $query->innerJoin('node_revision', 'nr', "nr.nid = {$table['alias']}.nid");
+      $query->addField('nr', 'uid', 'revision_uid');
+      // Join to the scratchpads_statistics_user table again, but for the revision
+      // user
+      $query->innerJoin('users', 'ru', 'ru.uid = nr.uid');
+      $query->innerJoin('scratchpads_statistics_user', 'ssu_r', 'ssu_r.email = ru.mail');
+      $query->addField('ssu_r', 'id', 'ss_revision_user_id');
+    }
+  }
+}
+
+/**
  * Basic function that seems to be missing to deliver JSON to the browser or to
  * another service.
  * 
@@ -57,7 +107,9 @@ function scratchpads_statistics_menu(){
  */
 function json_deliver($json){
   if($json == MENU_ACCESS_DENIED){
-    $json = array('ACCESS DENIED');
+    $json = array(
+      'ACCESS DENIED'
+    );
   }
   $iframe_upload = !empty($_POST['ajax_iframe_upload']);
   if(is_null(drupal_get_http_header('Content-Type'))){
