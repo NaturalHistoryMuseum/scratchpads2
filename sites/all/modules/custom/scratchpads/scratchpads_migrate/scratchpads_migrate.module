@@ -224,6 +224,20 @@ function scratchpads_migrate_register_migrations(){
   Migration::registerMigration('DrupalFieldContentProfileMigration', $arguments['machine_name'], $arguments);
   $user_dependencies[] = $arguments['machine_name'];
   /*********************************************************************************************
+   * Profile body field
+  ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of profile body field from Drupal 6'),
+    'machine_name' => 'FieldContentProfileBody',
+    'dependencies' => array(
+      'ContentType'
+    ),
+    'group' => MigrateGroup::getInstance('fields')
+  );
+  // We just use the migrate_d2d D6 migration class as-is.
+  Migration::registerMigration('DrupalFieldContentProfileBodyMigration', $arguments['machine_name'], $arguments);
+  $user_dependencies[] = $arguments['machine_name'];
+  /*********************************************************************************************
      * Image fields
      ********************************************************************************************/
   // Special handling for image fields

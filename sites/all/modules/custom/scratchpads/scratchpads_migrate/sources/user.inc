@@ -14,6 +14,7 @@ class ScratchpadsUserMigration extends DrupalUser6Migration{
     $this->profileFields = array_merge(DrupalFieldContentProfileMigration::getFieldNameMappings(), DrupalFieldProfileMigration::getFieldNameMappings());
     // Add role names
     $this->sourceFields['role_names'] = t('User role');
+    $this->sourceFields['body'] = t('Body');
     $this->addFieldMapping('role_names', 'role_names');
     // Add country (derived from associated location node)
     $this->sourceFields['location_country'] = t("Country (derived from associated location node)");
@@ -43,6 +44,14 @@ class ScratchpadsUserMigration extends DrupalUser6Migration{
       'md5_passwords' => TRUE
     ));
     $this->removeFieldMapping('path');
+    if(array_key_exists('field_body', $this->getDestination()->fields())){
+      $this->addFieldMapping('field_body', 'body');
+      $this->addFieldMapping('field_body:format')->defaultValue('filtered_html');
+      $this->addUnmigratedDestinations(array(
+        'field_body:summary',
+        'field_body:language'
+      ));
+    }
     // Not all fields have format & title so match unmigrated destinations
     // against desination fields
     $this->unmigratedDesinations = array_intersect($this->unmigratedDesinations, array_keys($this->getDestination()->fields()));
@@ -155,11 +164,16 @@ class ScratchpadsUserMigration extends DrupalUser6Migration{
       'name'
     ));
     $row->role_names = $query->execute()->fetchAllKeyed();
+    if(isset($row->body)){
+      $row->body = ScratchpadsNodeMigration::parseImages($row->body);
+    }
   }
 
   public static function getProfileNode(&$row, $conditions){
     // Get the profile node
     $query = Database::getConnection('default', 'scratchpad_1')->select('node', 'n');
+    $query->innerJoin('node_revisions', 'nr', 'nr.vid = n.vid');
+    $query->addField('nr', 'body');
     $query->innerJoin('content_type_profile', 'p', 'p.vid = n.vid');
     $query->fields('p');
     foreach($conditions as $field => $condition){

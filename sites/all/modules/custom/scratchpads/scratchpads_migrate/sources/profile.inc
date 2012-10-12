@@ -71,5 +71,8 @@ class ScratchpadsProfileMigration extends ScratchpadsUserMigration{
       'n.nid' => $row->nid
     ));
     $row->name = $row->title;
+    if(isset($row->body)){
+      $row->body = ScratchpadsNodeMigration::parseImages($row->body);
+    }
   }
 }

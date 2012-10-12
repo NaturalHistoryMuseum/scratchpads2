@@ -25,6 +25,7 @@ files[] = sources/content_type.inc
 files[] = sources/field.inc
 files[] = sources/field_body.inc
 files[] = sources/field_content_profile.inc
+files[] = sources/field_content_profile_body.inc
 files[] = sources/field_profile.inc
 files[] = sources/field_group.inc
 files[] = sources/field_image.inc

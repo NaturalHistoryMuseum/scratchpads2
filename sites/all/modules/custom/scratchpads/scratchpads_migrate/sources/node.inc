@@ -323,7 +323,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     // Extract any files
     foreach($this->getLongTextFields() as $longTextField){
       if(isset($row->{$longTextField})){
-        $row->{$longTextField} = $this->parseImages($row->{$longTextField});
+        $row->{$longTextField} = ScratchpadsNodeMigration::parseImages($row->{$longTextField});
       }
     }
     // Is there a menu item for this node?
@@ -358,7 +358,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     }
   }
 
-  protected function parseImages($html){
+  public static function parseImages($html){
     if(strpos($html, '<img') !== false){
       try{
         $dom = new DOMDocument();
@@ -371,7 +371,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
           if($parent_node->tagName == 'a'){
             $href = $parent_node->getAttribute('href');
             if(strpos($href, 'files') !== false){
-              if($new_href = $this->saveFile($href)){
+              if($new_href = ScratchpadsNodeMigration::saveFile($href)){
                 $new_href .= '?width=600&height=600';
                 $parent_node->removeAttribute('href');
                 $parent_node->setAttribute('href', $new_href);
@@ -380,7 +380,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
             }
           }
           $src = $items->item($i)->getAttribute('src');
-          if($new_href = $this->saveFile($src)){
+          if($new_href = ScratchpadsNodeMigration::saveFile($src)){
             $items->item($i)->removeAttribute('src');
             $items->item($i)->setAttribute('src', $new_href);
           }
@@ -398,7 +398,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   /**
    * Copy across a file
    */
-  protected function saveFile($src){
+  public static function saveFile($src){
     global $s1_domain;
     $parsed_url = parse_url($src);
     // If this is an external file, leave it alone
@@ -414,7 +414,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       }
     }
     if(isset($html_img_src)){
-      return $this->fileCreateUrl($html_img_src);
+      return ScratchpadsNodeMigration::fileCreateUrl($html_img_src);
     }else{
       watchdog('scratchpads_migrate', t('Could not save file for %source'), array(
         '%source' => $source
@@ -426,7 +426,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
    * Create a full path URL for a file (rewrite public:// etc.,)
    * Suitable for an html img src
    */
-  protected function fileCreateUrl($file){
+  public static function fileCreateUrl($file){
     $wrapper = file_stream_wrapper_get_instance_by_uri($file);
     $url = base_path() . $wrapper->getDirectoryPath() . '/' . basename($file);
     return $url;
