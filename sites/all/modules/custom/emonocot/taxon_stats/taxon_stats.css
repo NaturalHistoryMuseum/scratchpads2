@@ -1,9 +1,9 @@
 @CHARSET "UTF-8";
 
-.ts_chart div{
-	float:left;
+.ts_chart div {
+	float: left;
 }
 
-#taxon_stats_table td{
-	width:20%;
+#taxon_stats_table td {
+	width: 20%;
 }

@@ -26,6 +26,7 @@ function scratchpads_user_menu_alter(&$items){
 function scratchpads_user_admin($callback_arg = ''){
   $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
   switch($op){
+    case t('Cancel'):
     case t('Create new account'):
     case 'create':
       $build['user_register'] = drupal_get_form('user_register_form');
@@ -83,14 +84,16 @@ function scratchpads_user_admin_account(){
   $query = db_select('users', 'u');
   $query->condition('u.uid', 0, '<>');
   $query->condition('u.uid', 1, '<>');
-  $query->leftJoin('field_revision_field_user_family_name', 'fn', 'u.uid = fn.revision_id');
-  $query->addField('fn', 'field_user_family_name_value', 'family_name');
-  $query->leftJoin('field_revision_field_user_given_names', 'fgn', 'u.uid = fgn.revision_id');
-  $query->addField('fgn', 'field_user_given_names_value', 'given_names');
   user_build_filter_query($query);
   $count_query = clone $query;
   $count_query->addExpression('COUNT(u.uid)');
   $query = $query->extend('PagerDefault')->extend('TableSort');
+  // Note, the Joins must appear after the "extend('PagerDefault') code
+  // http://drupal.stackexchange.com/questions/36907/pager-query-with-join
+  $query->leftJoin('field_revision_field_user_family_name', 'fn', 'u.uid = fn.revision_id');
+  $query->addField('fn', 'field_user_family_name_value', 'family_name');
+  $query->leftJoin('field_revision_field_user_given_names', 'fgn', 'u.uid = fgn.revision_id');
+  $query->addField('fgn', 'field_user_given_names_value', 'given_names');
   $query->fields('u', array(
     'uid',
     'name',
@@ -208,16 +211,34 @@ function scratchpads_user_user_load($entities){
 }
 
 /**
+ * Helper function to replace a submit handler in a form with any other number of handlers
+ * 
+ */
+function _scratchpads_user_replace_submit_handler(&$form, $origin_handler, $handlers){
+  if(!isset($form['actions']['submit']['#submit'])){
+    $form['actions']['submit']['#submit'] = $handlers;
+  }else{
+    $pos = array_search($origin_handler, $form['actions']['submit']['#submit']);
+    if($pos === FALSE){
+      $form['actions']['submit']['#submit'] = array_merge($handlers, $form['actions']['submit']['#submit']);
+    }else{
+      array_splice($form['actions']['submit']['#submit'], $pos, 1, $handlers);
+    }
+  }
+}
+
+/**
  * Implement hook_form_FORM_ID_alter().
  */
 function scratchpads_user_form_user_register_form_alter(&$form, &$form_state){
   _scratchpads_user_form_alter($form, $form_state);
   if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
-    $form['actions']['submit']['#submit'] = array(
+    $handlers = array(
       'scratchpads_user_register_form_pre_submit',
       'user_register_submit',
       'scratchpads_user_register_form_post_submit'
     );
+    _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
   }
 }
 
@@ -237,10 +258,11 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
     }
   }
   if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
-    $form['actions']['submit']['#submit'] = array(
+    $handlers = array(
       'user_register_submit',
       'scratchpads_user_register_form_post_submit_clear_error'
     );
+    _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
   }
 }
 
@@ -251,22 +273,30 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
  * @param array $form_state
  */
 function _scratchpads_user_form_alter(&$form, &$form_state){
+  global $user;
   $form['account']['#type'] = 'fieldset';
   $form['account']['#title'] = t('User account settings');
-  $form['account']['#states'] = array(
-    // Hide the settings when the cancel notify checkbox is disabled.
-    'invisible' => array(
-      'input[name="create_user_account"]' => array(
-        'checked' => FALSE
+  if($user->uid > 0){
+    $form['account']['#states'] = array(
+      // Hide the settings when the cancel notify checkbox is disabled.
+      'invisible' => array(
+        'input[name="create_user_account"]' => array(
+          'checked' => FALSE
+        )
       )
-    )
-  );
-  $form['create_user_account'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Allow user login?'),
-    '#description' => t("Do you want to create a user account for this user so they can log into the website?"),
-    '#default_value' => 1,
-  );
+    );
+    $form['create_user_account'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Allow user login?'),
+      '#description' => t("Do you want to create a user account for this user so they can log into the website?"),
+      '#default_value' => 1
+    );
+  }else{
+    $form['create_user_account'] = array(
+      '#type' => 'hidden',
+      '#value' => 1
+    );
+  }
   $form['#fields'] = field_info_instances($form['#entity_type'], $form['#bundle']);
   // Add the theme function to make this form look better
   array_unshift($form['#theme'], 'scratchpads_user_register_form');
@@ -275,6 +305,9 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
     $form['actions']['submit']['#limit_validation_errors'] = array(
       array(
         'mail'
+      ),
+      array(
+        'parent_build_cache_id'
       )
     );
     foreach($form['#fields'] as $field_name => $field){
@@ -303,6 +336,9 @@ function scratchpads_user_register_form_post_submit_clear_error($form, &$form_st
   if(isset($form_state['values']['uid']) && $form_state['values']['uid']){
     $form_state['redirect'] = 'user/' . $form_state['values']['uid'];
   }
+  // Ensure that no password is set
+  $form['#user']->pass = '';
+  user_save($form['#user']);
 }
 
 /**
@@ -324,6 +360,9 @@ function scratchpads_user_register_form_post_submit($form, &$form_state){
   )));
   // Give a warning that no user account was created
   drupal_set_message('No user account was created so this person will not be able to log into the website!', 'warning');
+  // Ensure that no password is set
+  $form['#user']->pass = '';
+  user_save($form['#user']);
 }
 
 function theme_scratchpads_user_register_form($variables){

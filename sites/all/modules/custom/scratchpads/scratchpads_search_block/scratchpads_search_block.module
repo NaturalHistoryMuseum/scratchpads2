@@ -12,16 +12,15 @@ function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_st
   $options = array(
     '_all' => t('All'),
     '_taxonomy' => t('Taxonomy')
-  )// FIXME - Possibly add a search by user option in the future.
+  ); // FIXME - Possibly add a search by user option in the future.
   //'_user' => t('User')
-  ;
   $default_value = '_all';
   if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2))){
     // If we're on a taxonomy page, we add additional options.
     switch(arg(3)){
       case 'media':
-        $options['entity_type:file'] = t('Media');
-        $default_value = 'entity_type:file';
+        $options['_media'] = t('Media');
+        $default_value = '_media';
         break;
       default:
         $info = entity_get_info('node');
@@ -33,6 +32,9 @@ function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_st
         }
         break;
     }
+  }else if(arg(0) == 'gallery'){
+    $options['_media'] = t('Media');
+    $default_value = '_media';
   }else if(arg(0) == 'node' && is_numeric(arg(1))){
     // If we're viewing a node, we add the content type
     $node = node_load(arg(1));
@@ -56,8 +58,8 @@ function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_st
           break;
         case 'entity_type':
           if($facet_parts[1] == 'file'){
-            $options['entity_type:file'] = t('Media');
-            $default_value = 'entity_type:file';
+            $options['_media'] = t('Media');
+            $default_value = '_media';
           }
           break;
         case 'im_field_taxonomic_name':
@@ -116,17 +118,13 @@ function scratchpads_search_block_form_submit($form, &$form_state){
         $terms = taxonomy_get_term_by_name(trim($form_state['values'][$form_id]));
         if($terms){
           $term = array_shift($terms);
-          $query = array(
-            'query' => array(
-              'f' => array(
-                'im_field_taxonomic_name:' . $term->tid
-              )
-            )
-          );
-          $search_string = '';
+          drupal_goto('taxonomy/term/' . $term->tid);
         }else{
           $search_string = trim($form_state['values'][$form_id]);
         }
+        break;
+      case '_media':
+        drupal_goto('gallery/' . $form_state['values']['search_block_form']);
         break;
       default:
         $query = array(

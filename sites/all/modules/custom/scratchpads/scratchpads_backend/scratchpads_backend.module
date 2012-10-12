@@ -155,6 +155,43 @@ function scratchpads_backend_menu_local_tasks_alter(&$data, $router_item, $root_
 }
 
 /**
+ * Implement hook_form_alter
+ */
+function scratchpads_backend_form_alter(&$form, &$form_state, $form_id){
+  // Theme the entity connect elements if any are present
+  foreach(_entityconnect_get_ref_fields() as $field_name => $field){
+    if(isset($form[$field_name])){
+      $type = $form[$field_name][$form[$field_name]['#language']]['#title'];
+      $fix_type = array(
+        t('Identified by') => t('Person')
+      );
+      if(isset($fix_type[$type])){
+        $type = $fix_type[$type];
+      }
+      foreach(element_children($form[$field_name]) as $child_field_name){
+        if(preg_match('/^add_entityconnect__' . $field_name . '_/', $child_field_name)){
+          $form[$field_name][$child_field_name]['#value'] = t('Create a new @type and use it here', array(
+            '@type' => ucfirst($type)
+          ));
+          $form[$field_name][$child_field_name]['#weight'] = 50;
+        }else if(preg_match('/^edit_entityconnect__' . $field_name . '_/', $child_field_name)){
+          $form[$field_name][$child_field_name]['#value'] = t('Edit the currently selected @type', array(
+            '@type' => ucfirst($type)
+          ));
+          $form[$field_name][$child_field_name]['#weight'] = 40;
+          $id = 'edit-' . str_replace('_', '-', $field_name) . '-' . $form[$field_name]['#language'];
+          $form[$field_name][$child_field_name]['#states'] = array(
+            'invisible' => array(
+              '#' . $id => array('value' => '_none')
+            )
+          );
+        }
+      }
+    }
+  }
+}
+
+/**
  * Implementation of hook_ctools_plugin_api().
  */
 function scratchpads_backend_ctools_plugin_api(){

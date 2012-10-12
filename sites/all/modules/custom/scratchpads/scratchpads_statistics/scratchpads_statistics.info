@@ -1,0 +1,5 @@
+core = "7.x"
+name = "Scratchpads Statistics"
+description = "Provides the statistics webservice, and also the front end statistics pages for Scratchpads."
+package = "Scratchpads"
+dependencies[] = statistics

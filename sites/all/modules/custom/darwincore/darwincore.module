@@ -2,6 +2,15 @@
 include_once ('darwincore.features.inc');
 
 /**
+ * Implementation of hook_views_api
+ */
+function darwincore_views_api(){
+  return array(
+    'api' => '3'
+  );
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  */
 function darwincore_form_specimen_observation_node_form_alter(&$form, &$form_state, $form_id){
@@ -32,21 +41,21 @@ function darwincore_specimen_observation_node_form_validate($form, &$form_state)
     ':nid' => isset($form_state['values']['nid']) ? $form_state['values']['nid'] : 0
   ))->fetchCol();
   if(array_pop($count)){
-    // We have a matching catalogue number.  Now we need to check the
+    // We have a matching catalogue number. Now we need to check the
     // collection code
     $count = db_query('SELECT COUNT(*) FROM {field_data_field_institution_code} WHERE field_institution_code_value = :value AND entity_id != :nid', array(
       ':value' => $form_state['values']['field_institution_code'][LANGUAGE_NONE][0]['value'],
       ':nid' => isset($form_state['values']['nid']) ? $form_state['values']['nid'] : 0
     ))->fetchCol();
     if(array_pop($count)){
-      // We have a matching institution code number.  Now we need to check the
+      // We have a matching institution code number. Now we need to check the
       // institution code.
       $count = db_query('SELECT COUNT(*) FROM {field_data_field_collection_code} WHERE field_collection_code_value = :value AND entity_id != :nid', array(
         ':value' => $form_state['values']['field_collection_code'][LANGUAGE_NONE][0]['value'],
         ':nid' => isset($form_state['values']['nid']) ? $form_state['values']['nid'] : 0
       ))->fetchCol();
       if(array_pop($count)){
-        // A match.  Set an error.
+        // A match. Set an error.
         form_set_error('field_catalogue_number', t('The "Institution code/Collection code/Catalogue number" combination is not unique.'));
         // The following is one almightly cludge!
         form_set_error('field_collection_code', 'REMOVETHISMESSAGE');

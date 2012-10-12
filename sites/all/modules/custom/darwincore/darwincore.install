@@ -28,7 +28,7 @@ function darwincore_update_7002(){
 
 /**
  * Update the specimen/observation instance of the field_media field to alter
- * its display. 
+ * its display.
  */
 function darwincore_update_7003(){
   $field_instance = field_info_instance('node', 'field_media', 'specimen_observation');
@@ -89,4 +89,26 @@ function darwincore_update_7004(){
     'weight' => '-3'
   );
   field_update_instance($field_instance);
+}
+
+/**
+ * Update the user_reference fields so that they can actually be used!
+ */
+function darwincore_update_7005(){
+  foreach(array(
+    'field_collector',
+    'field_identified_by'
+  ) as $field_name){
+    $field = field_info_field($field_name);
+    $field['settings'] = array(
+      'referenceable_roles' => array(),
+      'referenceable_status' => array(),
+      'view' => array(
+        'view_name' => 'users_references',
+        'display_name' => 'references_1',
+        'args' => array()
+      )
+    );
+    field_update_field($field);
+  }
 }
