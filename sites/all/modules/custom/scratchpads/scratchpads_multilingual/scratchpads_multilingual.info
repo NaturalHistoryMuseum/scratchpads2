@@ -1,0 +1,10 @@
+name = "Scratchpads Localisation"
+description = "Provides multilingual localisation of the user interface"
+configure = admin/config/regional
+
+core = "7.x"
+dependencies[] = "locale"
+
+package = Other
+tool = true
+php = "5.2.4"

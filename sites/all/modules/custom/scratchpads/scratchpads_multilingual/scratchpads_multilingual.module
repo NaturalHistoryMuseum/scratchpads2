@@ -1,0 +1,91 @@
+<?php
+
+/**
+ * Implements hook_multilingual_settings_changed
+ */
+function scratchpads_multilingual_multilingual_settings_changed(){
+  // we want to do this just once, but have to wait until after a
+  // language has been enabled
+  if(variable_get('scratchpads_multilingual_init', 0) == 0){
+    variable_set('scratchpads_multilingual_init', 1);
+    include_once DRUPAL_ROOT . '/includes/language.inc';
+    $negotiation_all = language_negotiation_info();
+    $negotiation = array(
+      'locale-session' => $negotiation_all['locale-session'],
+      'language-default' => $negotiation_all['language-default']
+    );
+    language_negotiation_set('language', $negotiation);
+  }
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function scratchpads_multilingual_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer languages',
+      'translate interface'
+    )
+  );
+}
+
+/**
+ * Implements hook_block_info
+ */
+function scratchpads_multilingual_block_info(){
+  $blocks = array();
+  $blocks['language_switcher'] = array(
+    'info' => t('Scratchpads language switcher'),
+    'region' => 'slide_top',
+    'weight' => 1,
+    'theme' => SCRATCHPADS_THEME_NAME,
+    'status' => 1
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function scratchpads_multilingual_block_view($delta = ''){
+  $block = array();
+  switch($delta){
+    case 'language_switcher':
+      if(drupal_multilingual()){
+        $path = drupal_is_front_page() ? '<front>' : $_GET['q'];
+        $links = language_negotiation_get_switch_links('language', $path);
+        if(isset($links->links)){
+          $class = "language-switcher-{$links->provider} scratchpads-slide-toggle-body";
+          $variables = array(
+            'links' => $links->links,
+            'attributes' => array(
+              'class' => array(
+                $class
+              )
+            )
+          );
+          $link = l(t('Language'), $path, array(
+            'attributes' => array(
+              'class' => array(
+                'scratchpads-slide-toggle'
+              )
+            )
+          ));
+          $block['content'] = '<div class="scratchpads-slide-toggle-container">' . theme('links__locale_block', $variables) . $link . '</div>';
+          $block['subject'] = t('Languages');
+        }
+      }
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_preprocess_html
+ */
+function scratchpads_multilingual_preprocess_html(&$variables){
+  if(drupal_multilingual()){
+    $variables['classes_array'][] = "multilingual";
+  }
+}
