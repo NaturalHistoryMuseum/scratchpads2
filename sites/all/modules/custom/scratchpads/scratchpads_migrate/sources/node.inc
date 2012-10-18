@@ -135,7 +135,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
           ));
         }
       }else{ // Other field types
-             // Load the field
+        // Load the field
         $field = field_info_field($delta);
         // If we don't have a field with the same name, check if it's a media
         // field
@@ -205,8 +205,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $this->removeFieldMapping('is_new');
     $this->addFieldMapping('is_new', NULL)->defaultValue(true);
     $this->addFieldMapping('group_audience', 'group_nid'); // Remap this in
-                                                           // prepare row -
-                                                           // needs to use OG id
+    // prepare row -
+    // needs to use OG id
     $this->addFieldMapping('group_content_access', 'og_public')->defaultValue(0);
     // Does this node have a body field?
     if(field_read_instance('node', 'body', $this->destinationType)){
@@ -229,7 +229,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   }
 
   protected function nodeQuery(){
-    // Only import nodes which are in the forum vocab
+    // Get organic groups info
     $query = parent::nodeQuery();
     $query->leftJoin('og_ancestry', 'oga', 'oga.nid = n.nid');
     $query->addField('oga', 'group_nid', 'group_nid');
