@@ -737,6 +737,35 @@ table.biblio td{
   margin-top: 10px;
 }
 
+/****************** EVENTS *****************/
+body.page-event #region-content div.view-event-calendar div.item-list div.views-field-title{
+  font-size: 1.6em;
+  font-family: 'FontinSansRegular', Gerogia, serif;
+  font-weight: normal;
+  letter-spacing: -0.05em;
+}
+
+body.page-event #region-content div.view-event-calendar div.item-list div.views-field-field-event-date {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+body.page-event #region-content div.view-event-calendar div.item-list div.views-field-created,
+body.page-event #region-content div.view-event-calendar div.item-list div.views-field-name{
+  float: right;
+  color: #888;
+  font-size: 0.9em;  
+}
+
+body.page-event #region-content div.view-event-calendar div.item-list div.views-field-created:after{
+  content: "-- ";
+}
+
+article.node-event div.field-name-field-event-date {
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
 /****************** Overlay *****************/
   
 .field-name-field-image-caption,
