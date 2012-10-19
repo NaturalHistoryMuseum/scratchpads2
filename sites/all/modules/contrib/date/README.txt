@@ -1,7 +1,7 @@
 INFORMATION FOR DEVELOPERS
 
-Once the Date API is installed, all functions in the API are available to be used
-anywhere by any module.
+Once the Date API is installed, all functions in the API are available to be
+used anywhere by any module.
 
 The API uses the PHP 5.2 date functions to create and manipulate dates.
 
@@ -24,11 +24,11 @@ print 'It was '. $berlin_time .' in Berlin when it
 print 'At that time in Berlin, the timezone offset in seconds was
   '. date_offset_get($date);
 
-A helper class is available, new DateObject($string, $timezone, $format),
-where $string is a unixtimestamp, an ISO date, or a string like YYYY-MM-DD HH:MM:SS,
+A helper class is available, new DateObject($string, $timezone, $format), where
+$string is a unixtimestamp, an ISO date, or a string like YYYY-MM-DD HH:MM:SS,
 $timezone is the name of the timezone this date is in, and $format is the format
-of date it is (DATE_FORMAT_UNIX, DATE_FORMAT_ISO, or DATE_FORMAT_DATETIME).
-It creates and return a date object set to the right date and timezone.
+of date it is (DATE_FORMAT_UNIX, DATE_FORMAT_ISO, or DATE_FORMAT_DATETIME). It
+creates and return a date object set to the right date and timezone.
 
 Simpletest tests for these functions are included in the package.
 
@@ -38,10 +38,11 @@ the files):
 ============================================================================
 Preconfigured arrays
 ============================================================================
-Both translated and untranslated values are available. The date_week_days_ordered()
-function will shift an array of week day names so it starts with the site's
-first day of the week, otherwise the weekday names start with Sunday as the first
-value, the expected order for many php and sql functions.
+Both translated and untranslated values are available. The
+date_week_days_ordered() function will shift an array of week day names so it
+starts with the site's first day of the week, otherwise the weekday names start
+with Sunday as the first value, which is the expected order for many php and sql
+functions.
 
 date_month_names();
 date_month_names_abbr();
@@ -140,8 +141,8 @@ date_ical_date_format();
 ============================================================================
 Helpers for portable date SQL
 ============================================================================
-The SQL functions are found in date_api_sql.inc, which is not included by default.
-Include that file if you want to use these functions:
+The SQL functions are found in date_api_sql.inc, which is not included by
+default. Include that file if you want to use these functions:
 
 date_sql();
 date_server_zone_adj();
@@ -157,9 +158,9 @@ if you want to use these elements. To use them, create a form element
 and set the '#type' to one of the following:
 
 date_select
-  The date_select element will create a collection of form elements, with a
-  separate select or textfield for each date part. The whole collection will
-  get re-formatted back into a date value of the requested type during validation.
+ The date_select element will create a collection of form elements, with a
+ separate select or textfield for each date part. The whole collection will
+ get reformatted back into a date value of the requested type during validation.
 
 date_text
  The date_text element will create a textfield that can contain a whole
@@ -220,4 +221,3 @@ If the result is not quite what you need, you should be able to implement your
 own theme preprocess functions, e.g. MYTHEME_preprocess_date_display_single()
 or MYTHEME_preprocess_date_display_range() and alter the attributes to use the
 values you want.
-

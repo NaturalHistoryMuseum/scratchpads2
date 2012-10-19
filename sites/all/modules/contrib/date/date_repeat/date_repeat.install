@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_install().
+ * Implements hook_install().
  */
 function date_repeat_install() {
   // Make sure this module loads after date_api.
@@ -14,19 +14,19 @@ function date_repeat_install() {
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
 function date_repeat_uninstall() {
 }
 
 /**
- * Implementation of hook_enable().
+ * Implements hook_enable().
  */
 function date_repeat_enable() {
 }
 
 /**
- * Implementation of hook_disable().
+ * Implements hook_disable().
  */
 function date_repeat_disable() {
 }

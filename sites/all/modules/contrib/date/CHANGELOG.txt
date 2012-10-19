@@ -5,6 +5,190 @@ Date Module 7.x
 Version 7.x-2.x-dev
 ===================
 
+======================
+Version 7.x-2.6
+======================
+
+- Issue #1423364 by catmat, Add file and path to hook_context_plugins().
+- Issue #1713248, Remove incorrect use of date_popup() function in previous commit.
+- Issue #1143680 by kristiaanvandeneynde, Make Date Popup widget able to accept custom settings.
+- Issue #1596546 by applicity_sam, Make sure incorrect month name creates validation error.
+- Issue #1432702, Fix some miscellaneous problems with date example dates and formats.
+- Issue #1512464 by Liam Moreland, Allow for undefined formatter in Date upgrade handling.
+- Issue #1659638 by bojanz, Hide install message if Drupal is not installed (i.e. in install profiles).
+- Issue #1605158 by covenantd, Be sure value2 is initiated in Date Context handler.
+- Issue #1355256 by barraponto develCuy and KarenS, set default value for date text widget increment to 1, and update existing fields.
+- Issue #1561306 by Cyberwolf, Date pager replacement was not working correctly when used with multiple dates.
+- Issue #1541740 by hass, Make Date requirements more easily translatable.
+- Issue #1543524 by iamEAP, Add update hook to remove the D6 date_timezone field from users.
+- Issue #1603640 by bevan, Don't return anything for empty date interval.
+- Issue #1235508, Make sure that ISO strings with '00' in the month and/or day don't create dates for the previous month and day.
+- Issue #1289270 by pdrake: Fixed date arguments and filters do not work with relationships.
+- Issue #895760 by Reinette: Added RFC2447 option 'STATUS' to date_api_ical().inc.
+- Issue #606658 by johnmunro and KarenS, Make sure ical import processes multi-day all-day events correctly.
+- Issue #1408216 follow up, Need to be sure that NULL is the default state for the sql functions.
+- Issue #1540410, Update the Date Tools calendar creation wizard to use the new calendar path.
+
+======================
+Version 7.x-2.5
+======================
+
+- Fix nasty errors on views that have no row indexes, like the frontage view.
+
+======================
+Version 7.x-2.4
+======================
+
+- Issue #1534342 by bass, Make name of clean pager option easier to translate.
+- Add a hook to alter the default date for a Date argument.
+- Issue #1531904, Make sure that multiple value dates that have the delta set only display the selected value.
+- Revert Issue #1266688 by fago, This change broke Entity token support.
+
+======================
+Version 7.x-2.3
+======================
+
+- Issue #1444804, Remove html placeholder on text widget.
+- Issue #1286230, Clean up date pager documentation, it contains deprecated information.
+- Issue #1469020, Make sure page not found is working right for dates outside the specified range.
+- Issue #1111626, Fix some problems caused by passing in a date string with an offset.
+- Issue #1477860, Avoid undefined index errors in date_views_select_validate().
+- Issue #1469038, Add some clarity to the BYDAY description options and make sure a valid value is selected.
+- Issue #1405364 by snufkin, Add display options to format_interval to match Views interval options.
+- Issue #1266688 by linclark, Add microdata support to Date metadata.
+- Issue #1509434 by casey, Add timezone info in hook_field_presave() instead of hook_field_insert() and hook_field_update().
+- Issue #1509012, Fix fatal error when viewing repeat tab.
+- Issue #1037174 by dealancer, More work to allow ajax to work on other widgets.
+- Issue #1473592 by zabelc, Make sure migrated date with missing end date still gets imported correctly.
+- Issue #1442718 by jastraat and bones, Make sure show end date checkbox does not display when end date is empty.
+- Issue #1504556, Fix invalid access permission name in Date API configuration menu.
+- Issue #1484458, Vega timepicker code was incorrectly computing the default date because of the wrong format for the value passed to it.
+- Issue #1459668, Add back Remove date_field_get_sql_handler() function temporarily since Signup module is still using it. Mark it deprecated.
+- Issue #1478296, Display longer abbreviations for day names in date repeat widget so they can be translated.
+- Issue #1488662 by martin.heidegger, Make error message more easily translatable.
+- Issue #1478848 by onelittleant, Don't set default values on new translation entities.
+- Issue #1360672, Fix limit format code to remove leftover non-ascii text as well as leftover ascii text.
+- Issue #1464280 by geerlingguy Georgique and dealancer: Fix notice when using exposed between filter.
+- Issue #1484640 by onelittleant, Some entities may not have base tables.
+- Issue #1472966, Get rid of notice that appears for entities without repeats.
+- Move pager css around. Some code in Calendar and Date API belongs in Date Views.
+- Fix Date Popup default format which was ending up using 24 hour time no matter what format was used for short format.
+- Remove outdated _repeat widget name from Date Tools.
+- Date Tools is defaulting to creating a calendar even if Calendar module is not enabled.
+- Issue #1472148 by arlinsandbulte: wvega jQuery time-picker doesn't show scrollbar.
+- Issue #1392128 by kidrobot, tim.plunkett, willvincent: Fixed Repeats tab shows on nodes with non-repeating dates.
+- Issue #1452882 by coredumperror: Fixed Date Migrate Example doesn't deregister it's migration when disabled.
+- Issue #1452408 by reglogge: Fixed Trailing dots are removed from date formats even if they are needed for the format.
+- Issue #1285260 by Steven Jones: Fixed 'Starting from' display option.
+- Issue #1467244 by bluetegu: Fixed Recurring Sunday errors.
+- Issue #1442718, Empty default values were getting populated by the code that tried to fix default values on hidden fields.
+- Make sure date_handler->placeholders gets initialized even for queries that don't execute so the pager won't throw an exception if the value is missing.
+
+======================
+Version 7.x-2.2
+======================
+
+NOTES:
+The iCal templates were removed and moved to the new Date iCal module (http://drupal.org/project/date_ical).
+
+- Issue #1423364 by emptyvoid, Move Date context plugin into its own file.
+- Issue #1447372 by yched, Memory friendlier version of date_repeat_field_bundles().
+- Issue #1447140 by tim.plunkett: Remove iCal-related theme functions/files.
+- Issue #1284170 by benjifisher, Lots of cleanup of the iCal export and its template to be sure all day items are exported correctly.
+- Issue #1346424, The calendar title got left out of the latest ical template changes.
+- Add more information to the date_views_base_tables() function about why we can't use the entity type from views_fetch_data().
+- Additional handling is needed so that revisions are handled correctly in Views.
+- Remove date_field_get_sql_handler() function which isn't being used anywhere.
+- Rework the Date Views hooks that queue up the right fields and base tables so they work better across all types of entities.
+- Fix the hooks for file tables, it is file_managed, not files.
+- Add a helper function to map entity types to Views base tables to make it easier to know what type of entity is being used on a view.
+- Add status information to Date help screen, hide the non-working change tab on the Date Tools screen, and remove some code that goes to the calendar module from Date Tools.
+
+======================
+Version 7.x-2.1
+======================
+
+- Issue #1437242 by zerbash, Remove extraneous leading slashes in module_load_include().
+- Issue #1436722 by hefox: Fixed Undefined variable $form_set_error() used as function.
+- Issue #1250626 by Gábor Hojtsy, B-Prod, hefox: Added start date and end date labels.
+- Issue #1253482, Make sure $argument->is_default gets reset by the Date pager when altering results.
+- Adjust Date Tools to work with changes to use Views templates to create calendars.
+- Issue #1398584 by dhalbert and , Make sure groupby times is initialized.
+- Issue #1394248, Make sure all date parts are selected when using an exposed select filter.
+- Issue #1425774 by sgabe, Fix error in exposed filter, array_filter() -- first argument should be an array in date_select_input_date().
+- Issue #1432992 by bart.hanssens, Fix typo in php documentation.
+- Issue #323852 by tim.plunkett and arlinsandbulte, Dropdowns shouldn't include a blank option when required.
+- Issue #323852, Validation was broken for unlimited value select widgets with required dates, they were incorrectly getting their end dates cleared out.
+- Issue #1424656 by tim.plunkett, Unify signature and alters of #process callbacks.
+- Issue #1408014 by dasjo, We no longer need the $error_element value to display errors properly, second follow-up.
+- Issue #1299030 by Vincent B: Ensure that 'To Date' is properly marked when required.
+
+======================
+Version 7.x-2.0-rc2
+======================
+
+New Features/Major Changes
+
+- Issue #1358790 by tim.plunkett and redndahead, Store date objects in field_load to speed up processing, with a field setting option to control it.
+
+Bugfixes
+
+- Issue #1423598, Found a way to flag items that are new so we know when to add default values.
+- Made some fixes to find and test the right entities when checking whether to use default values. More work is needed.
+- Issue #1422600, Make sure end date cannot cause validation errors when show end date checkbox is not checked.
+- Issue #1417872, Remove code to compute missing date parts from empty values now that the new validation prevents that from working.
+- Issue #1417872, Make sure empty year field is validated in the same way other date parts are validated.
+- Alter date field test to test with a complete end date instead of using empty elements.
+- Fix broken logic in repeat additions.
+- Fix test broken by date repeat clean up.
+- Issue #1419106 by hanoii: Added more info to hook_date_text_process_alter().
+- Issue #1209026, When date validation fails, Date Popup value is getting cleared.
+- Issue #1017216 by tim.plunkett, arlinsandbulte: Added custom date format without time shows 'all day'.
+- Issue #1408014 by dasjo, We no longer need the $error_element value to display errors properly.
+- Issue #554546 by master-of-magic: Fix Timezone list translation
+- Issue #1411038 by jhodgdon: Fixed Date formatting is not obeying granularity.
+- Issue #1359464, Make sure that default values on hidden elements have the same construct as loaded values to avoid errors.
+- Issue #1399744 by tim.plunkett, Rework the way filter groups are used to be sure the Date filter group does not clobber the Views filter group.
+- Issue #1411862, Move the date_views_fields() function into date_view.module to be sure it is always available.
+- Issue #1380350, Rework SQL query handling to pass in a comparison date for computing offsets to better handle dates affected by DST adjustments.
+- Issue #1359464, Temporary fix for broken handling of repeating dates on users with a TODO to figure out where it's coming from.
+- Issue #1404494 by byrond, Make sure hidden formatters don't get switched to date_default in update hook.
+- Issue #1386012, Order weekdays in Date Repeat form to match the site first day of week settings.
+- Issue #1376476 by pbfleetwood, Add commas to default formatting of week and day headers.
+- Issue #1408430, Views pagination with exposed, unset, filters, results in invalid default values. Treat them as empty input.
+- Issue #1408996, Exposed Date Popup widget with time not correctly initialized.
+- Issue #1271726, Text widgets in exposed filters used with pagers produce unexpected results.
+- Issue #1096000, Custom date formats not working right.
+- Issue #1405364, Format interval settings were getting overridden by missing break.
+- Issue #1387890, Make sure disabled fields are shown and retain their original values.
+- Issue #1402232 by timplunkett, Switch 'Implementation of' to 'Implements'
+- Issue #1402236 by timplunkett, All functions should be prefixed with your module name to avoid name clashes
+- Issue #1402238 by timplumkett, Remove references to CCK
+- Issue #1011624, Filters and arguments were not always using the right base table to select field options, causing 'column missing' errors.
+- Issue #1397822, Fix 'Undefined index: field' error on line 207 of date_views_filter_handler_simple.inc.
+- Issue #1396536, Repeating fields weren't getting created with Devel Generate because of the change in widgets. Add new hooks so Date Repeat Field can add the repeats.
+- Issue #1397126 follow-up by arlinsandbulte, Fix broken tests.
+- Issue #1397158, The default value for the end date was using the wrong timezone setting.
+- Issue #1392128 by kidrobot and tim.plunkett, Don't show repeat tab unless the date is repeating.
+- Issue #1397126, Add Date API section to administration menu and consolidate Date Popup and Date Tools settings there.
+- Follow up to Issue #1302052 by benjifisher, More clean up of ical line endings.
+- Issue #1388174 by travist, Remove redundant use of date_default_timezone().
+- Issue #1388586 by Moloc, Don't use check_plain() on system messages with links.
+- Issue #1302052 by benjifisher, penguin25, and helmo, Fix linespace ending problems in ical files.
+- Issue #1357216, The Date Views field list was including the Date Views filter itself, creating errors about missing node.date_filter values.
+- Issue #1259870, Reinstate the test for a missing date argument for the pager.
+- The new option to hide the add_delta for simple fields needs to be adjusted to work right where there is no field.
+- Tweak the all day formula to check for 59:59 even for items that use increments, to help fix problems when the calendar creates all day values.
+- Our test for whether this is a Date argument or filter needs to include a check that the field was actually processed by Date Views. Some dates are not.
+- Revert the change to 7.8. It breaks the modules page.
+- Issue #1379172 by deviantpixel, Note that the Date Repeat form uses a function that was re-named in 7.8.
+- Store the locale format in a static cache to avoid re-computing it dozens of times on calendar views.
+- Sheesh. Fix syntax error in api.date.php.
+
+======================
+Version 7.x-2.0-rc1
+======================
+
 Notes:
 The Date Browser has been removed. Please use the Date Pager instead. If you have existing views using the Date
 Browser the navigation will just disappear from them. If you add a Date Pager to the view you should get it back.
@@ -23,7 +207,8 @@ use Repeating dates you can disable it.
 
 New Features/Major Changes
 
-- Issue #1236216, Start the process of moving the repeating date integration out of the Date module and into a separate, Date Repeat Field module.
+- Issue #1229378 by ksenzee, Sync the end date with the start date on new dates using select widgets.
+- Issue #1236216, Move the repeating date integration out of the Date module and into a separate, Date Repeat Field module.
 - Issue #874322, The All Day functionality has been moved into a separate module and hooks were added to make it easier for other modules to inject steps into date processing.
 - Issue #1267046, Include the UNTIL date in repeating results..
 - Issue #1354606 by temaruk, Rework the repeating date UI to make it more user-friendly.
@@ -33,6 +218,9 @@ New Features/Major Changes
 
 Bugfixes
 
+- Fix to new default date handling, the default date has to set a date in the database timezone, not the display timezone.
+- Issue #1245106 by Gábor Hojtsy, Hide the option to add the delta into the view for single value fields.
+- Issue #1370876, Make sure new Date All Day code does not try to set the popup values if Date Popup is disabled.
 - Issue #874322, Add back the date_field_all_day() function to avoid breaking other modules that are using it.
 - Fix Date text placeholder to display a formatted date instead of a format. Follow up to Date repeat UI changes.
 - Issue #1248520 by fearlsgroove, Use attribute selector on all day and end day checkboxes.

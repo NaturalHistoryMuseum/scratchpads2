@@ -43,7 +43,7 @@ class date_views_argument_handler extends date_views_argument_handler_simple {
    */
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
-    $fields = date_views_fields($this->view->base_table);
+    $fields = date_views_fields($this->base_table);
     $options = array();
     foreach ($fields['name'] as $name => $field) {
       $options[$name] = $field['label'];
@@ -68,10 +68,14 @@ class date_views_argument_handler extends date_views_argument_handler_simple {
       '#type' => 'hidden',
       '#value' => $this->options['date_group'],
     );
-
   }
 
   function options_validate(&$form, &$form_state) {
+
+    // Views will whine if we don't have something for the these values even though we removed the option for summaries.
+    $form_state['values']['options']['summary']['format'] = 'none';
+    $form_state['values']['options']['summary']['options']['none'] = array();
+
     // It is very important to call the parent function here:
     parent::options_validate($form, $form_state);
 
@@ -93,11 +97,13 @@ class date_views_argument_handler extends date_views_argument_handler_simple {
 
   // Update the summary values to show selected granularity.
   function admin_summary() {
-    $fields = date_views_fields($this->view->base_table);
+    $fields = date_views_fields($this->base_table);
     if (!empty($this->options['date_fields'])) {
       $output = array();
       foreach ($this->options['date_fields'] as $field) {
-        $output[] = $fields['name'][$field]['label'];
+        if (array_key_exists($field, $fields['name'])) {
+          $output[] = $fields['name'][$field]['label'];
+        }
       }
       return implode('<br />' . $this->options['date_method'] . ' ', $output);
     }
@@ -144,6 +150,9 @@ class date_views_argument_handler extends date_views_argument_handler_simple {
     $this->query->set_where_group($this->options['date_method'], $this->options['date_group']);
     $this->granularity = $this->date_handler->arg_granularity($this->argument);
     $format = $this->date_handler->views_formats($this->granularity, 'sql');
+
+    $this->placeholders = array();
+
     if (!empty($this->query_fields)) {
       // Use set_where_group() with the selected date_method
       // of 'AND' or 'OR' to create the where clause.
@@ -155,7 +164,7 @@ class date_views_argument_handler extends date_views_argument_handler_simple {
         $this->table = $field['table_name'];
         $this->original_table = $field['table_name'];
         if ($field['table_name'] != $this->table || !empty($this->relationship)) {
-          $this->table = $this->query->queue_table($field['table_name'], $this->relationship);
+          $this->table = $this->query->ensure_table($field['table_name'], $this->relationship);
         }
         // $this->table_alias gets set when the first field is processed if otherwise empty.
         // For subsequent fields, we need to be sure it is emptied again.
@@ -163,6 +172,8 @@ class date_views_argument_handler extends date_views_argument_handler_simple {
           $this->table_alias = NULL;
         }
         parent::query($group_by);
+
+        $this->placeholders = array_merge($this->placeholders, $this->date_handler->placeholders);
       }
     }
   }
@@ -171,7 +182,7 @@ class date_views_argument_handler extends date_views_argument_handler_simple {
    * Collect information about our fields we will need to create the right query.
    */
   function get_query_fields() {
-    $fields = date_views_fields($this->view->base_table);
+    $fields = date_views_fields($this->base_table);
     $fields = $fields['name'];
     $this->query_fields = array();
     foreach ($this->options['date_fields'] as $delta => $name) {

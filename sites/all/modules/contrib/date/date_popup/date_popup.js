@@ -1,4 +1,3 @@
-
 /**
  * Attaches the calendar behavior to all required fields
  */
@@ -31,13 +30,20 @@ Drupal.behaviors.date_popup = {
           case 'timepicker':
             // Translate the PHP date format into the style the timepicker uses.
             datePopup.settings.timeFormat = datePopup.settings.timeFormat
-              .replace('h', 'hh')  // 12-hour, leading zero
-              .replace('g', 'h')   // 12-hour, no leading zero
-              .replace('H', 'HH')  // 24-hour, leading zero
-              .replace('G', 'H')   // 24-hour, no leading zero
-              .replace('A', 'p')   // AM/PM
-              .replace('i', 'mm')  // minutes with leading zero
-              .replace('s', 'ss'); // seconds with leading zero
+              // 12-hour, leading zero,
+              .replace('h', 'hh')
+              // 12-hour, no leading zero.
+              .replace('g', 'h')
+              // 24-hour, leading zero.
+              .replace('H', 'HH')
+              // 24-hour, no leading zero.
+              .replace('G', 'H')
+              // AM/PM.
+              .replace('A', 'p')
+              // Minutes with leading zero.
+              .replace('i', 'mm')
+              // Seconds with leading zero.
+              .replace('s', 'ss');
 
             datePopup.settings.startTime = new Date(datePopup.settings.startTime);
             $(this)

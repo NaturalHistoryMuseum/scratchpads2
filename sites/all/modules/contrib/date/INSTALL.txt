@@ -1,9 +1,9 @@
-==================================================================================
+================================================================================
 Date API Installation instructions:
-==================================================================================
+================================================================================
 1) If you have an earlier version of the Date module on your system, empty the
-   date folder out completely. The files in later versions have different names and are
-   located in different places.
+   date folder out completely. The files in later versions have different names
+   and are located in different places.
 
 2) Download the whole package of files from http://drupal.org/project/date.
 
@@ -24,22 +24,24 @@ You should end up with a structure like:
    /drupal/sites/all/modules/date/date_api/date_api.module
    ...
 
-==================================================================================
+================================================================================
 Install Date Fields:
-==================================================================================
+================================================================================
 
-1) The date field type is included in the Date files at http://drupal.org/project/date.
+1) The date field type is included in the Date files at
+   http://drupal.org/project/date.
 
-2) Go to admin/modules and enable the Date module. Be sure that the Date API module,
-   the Date Timezone module, and the core Field module are also enabled.
+2) Go to admin/modules and enable the Date module. Be sure that the Date API
+   module, the Date Timezone module, and the core Field module are also enabled.
 
 3) Go to admin/structure/types to view content types and edit a content type.
 
-4) Make sure the default timezone name has been set at /admin/config/regional/settings.
+4) Make sure the default timezone name has been set at
+   admin/config/regional/settings.
 
-5) While viewing a content type, select the option to add a new field from the tabs at
-   the top of the page. Several options for date fields should be visible.
+5) While viewing a content type, select the option to add a new field from the
+   tabs at the top of the page. Several options for date fields will be visible.
 
-==================================================================================
+================================================================================
 More documentation is available at http://drupal.org/node/92460.
-==================================================================================
+================================================================================

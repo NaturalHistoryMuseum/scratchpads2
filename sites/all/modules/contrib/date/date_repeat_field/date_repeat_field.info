@@ -6,13 +6,10 @@ dependencies[] = date_repeat
 stylesheets[all][] = date_repeat_field.css
 package = Date/Time
 core = 7.x
-files[] = date_repeat_field.module
 
-
-
-; Information added by drupal.org packaging script on 2011-12-15
-version = "7.x-2.x-dev"
+; Information added by drupal.org packaging script on 2012-08-13
+version = "7.x-2.6"
 core = "7.x"
 project = "date"
-datestamp = "1323908289"
+datestamp = "1344850024"
 

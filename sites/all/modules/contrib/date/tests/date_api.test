@@ -1,8 +1,14 @@
 <?php
+
 /**
+ * @file
  * Test Date API functions
  */
+
 class DateAPITestCase extends DrupalWebTestCase {
+  /**
+   * @todo.
+   */
   public static function getInfo() {
     return array(
       'name' => t('Date API'),
@@ -11,6 +17,9 @@ class DateAPITestCase extends DrupalWebTestCase {
     );
   }
 
+  /**
+   * @todo.
+   */
   public function setUp() {
     // Load the date_api module.
     parent::setUp('date_api');
@@ -18,6 +27,9 @@ class DateAPITestCase extends DrupalWebTestCase {
     variable_set('date_first_day', 1);
   }
 
+  /**
+   * @todo.
+   */
   public function testDateAPI() {
     // Test date_format_date().
     $formatters = array(
@@ -66,13 +78,14 @@ class DateAPITestCase extends DrupalWebTestCase {
       $this->assertEqual($date_api_format, $php_format, 'Test that the "' . $formatter . '" formatter is formatted correctly by date_format_date()');
     }
 
-    // Test the order of the weeks days for a calendar that starts on Monday and one that starts on Sunday.
+    // Test the order of the weeks days for a calendar that starts on Monday and
+    // one that starts on Sunday.
     variable_set('date_first_day', 1);
-    $expected = array ( 0 => t('Mon'), 1 => t('Tue'), 2 => t('Wed'), 3 => t('Thu'), 4 => t('Fri'), 5 => t('Sat'), 6 => t('Sun'), );
+    $expected = array(0 => t('Mon'), 1 => t('Tue'), 2 => t('Wed'), 3 => t('Thu'), 4 => t('Fri'), 5 => t('Sat'), 6 => t('Sun'));
     $days = date_week_days_ordered(date_week_days_abbr(1));
     $this->assertEqual($expected, $days, 'Test that date_week_days_ordered() array starts on Monday when the site first day is on Monday.');
     variable_set('date_first_day', 0);
-    $expected = array ( 0 => t('Sun'), 1 => t('Mon'), 2 => t('Tue'), 3 => t('Wed'), 4 => t('Thu'), 5 => t('Fri'), 6 => t('Sat'), );
+    $expected = array(0 => t('Sun'), 1 => t('Mon'), 2 => t('Tue'), 3 => t('Wed'), 4 => t('Thu'), 5 => t('Fri'), 6 => t('Sat'));
     $days = date_week_days_ordered(date_week_days_abbr(1));
     $this->assertEqual($expected, $days, 'Test that date_week_days_ordered() array starts on Sunday when the site first day is on Sunday.');
 
@@ -121,11 +134,11 @@ class DateAPITestCase extends DrupalWebTestCase {
     variable_set('date_api_use_iso8601', FALSE);
     $expected = '2008-01-27 to 2008-02-03';
     $result = date_week_range(5, 2008);
-    $value = $result[0]->format(DATE_FORMAT_DATE) .' to '. $result[1]->format(DATE_FORMAT_DATE);
+    $value = $result[0]->format(DATE_FORMAT_DATE) . ' to ' . $result[1]->format(DATE_FORMAT_DATE);
     $this->assertEqual($expected, $value, "Test calendar date_week_range(5, 2008): should be $expected, found $value.");
     $expected = '2009-01-25 to 2009-02-01';
     $result = date_week_range(5, 2009);
-    $value = $result[0]->format(DATE_FORMAT_DATE) .' to '. $result[1]->format(DATE_FORMAT_DATE);
+    $value = $result[0]->format(DATE_FORMAT_DATE) . ' to ' . $result[1]->format(DATE_FORMAT_DATE);
     $this->assertEqual($expected, $value, "Test calendar date_week_range(5, 2009): should be $expected, found $value.");
 
     // And now with ISO weeks.
@@ -133,11 +146,11 @@ class DateAPITestCase extends DrupalWebTestCase {
     variable_set('date_api_use_iso8601', TRUE);
     $expected = '2008-01-28 to 2008-02-04';
     $result = date_week_range(5, 2008);
-    $value = $result[0]->format(DATE_FORMAT_DATE) .' to '. $result[1]->format(DATE_FORMAT_DATE);
+    $value = $result[0]->format(DATE_FORMAT_DATE) . ' to ' . $result[1]->format(DATE_FORMAT_DATE);
     $this->assertEqual($expected, $value, "Test ISO date_week_range(5, 2008): should be $expected, found $value.");
     $expected = '2009-01-26 to 2009-02-02';
     $result = date_week_range(5, 2009);
-    $value = $result[0]->format(DATE_FORMAT_DATE) .' to '. $result[1]->format(DATE_FORMAT_DATE);
+    $value = $result[0]->format(DATE_FORMAT_DATE) . ' to ' . $result[1]->format(DATE_FORMAT_DATE);
     $this->assertEqual($expected, $value, "Test ISO date_week_range(5, 2009): should be $expected, found $value.");
     variable_set('date_api_use_iso8601', FALSE);
 
@@ -200,7 +213,6 @@ class DateAPITestCase extends DrupalWebTestCase {
 
     // 0 = January 1, 1970 00:00:00 (UTC);
     // 1000000000 = September 9, 2001 01:46:40 (UTC);
-
     // Create date object from unix timestamp and convert it to a local date.
     $input = 0;
     $timezone = 'UTC';
@@ -376,12 +388,22 @@ class DateAPITestCase extends DrupalWebTestCase {
     foreach ($invalid as $range) {
       $this->assertFalse(date_range_valid($range), "$range recognized as an invalid date range.");
     }
+
+    // Test for invalid month names when we are using a short version of the month
+    $input = '23 abc 2012';
+    $timezone = NULL;
+    $format = 'd M Y';
+    $date = new dateObject($input, $timezone, $format);
+    $this->assertNotEqual(count($date->errors), 0, '23 abc 2012 should be an invalid date');
+
   }
 
+  /**
+   * @todo.
+   */
   public function tearDown() {
     variable_del('date_first_day');
     variable_del('date_api_use_iso8601');
     parent::tearDown();
   }
-
 }
