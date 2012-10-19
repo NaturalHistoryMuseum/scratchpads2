@@ -1,7 +1,10 @@
 <?php
+
 /**
+ * @file
  * Test Date Repeat form.
  */
+
 class DateRepeatFormTestCase extends DrupalWebTestCase {
   protected $privileged_user;
 
@@ -14,7 +17,7 @@ class DateRepeatFormTestCase extends DrupalWebTestCase {
   }
 
   /**
-   * Implementation of setUp().
+   * Implements setUp().
    */
   public function setUp() {
     // Load the date_repeat module.

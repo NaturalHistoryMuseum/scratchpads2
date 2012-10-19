@@ -61,6 +61,7 @@ function _date_repeat_rrule_process($element, &$form_state, $form) {
 
   $parts = date_repeat_split_rrule($rrule);
   $rrule = $parts[0];
+
   $exceptions = $parts[1];
   $additions = $parts[2];
   $timezone = !empty($element['#date_timezone']) ? $element['#date_timezone'] : date_default_timezone();
@@ -82,7 +83,7 @@ function _date_repeat_rrule_process($element, &$form_state, $form) {
     '#type' => 'select',
     '#title' => t('Repeats', array(), array('context' => 'Date repeat')),
     '#default_value' => !empty($rrule['FREQ']) ? $rrule['FREQ'] : 'WEEKLY',
-    '#options' => FREQ_options(),
+    '#options' => date_repeat_freq_options(),
     '#prefix' => '<div class="date-repeat-input">',
     '#suffix' => '</div>',
   );
@@ -196,12 +197,13 @@ function _date_repeat_rrule_process($element, &$form_state, $form) {
     '#field_prefix' => $prefix,
     '#field_suffix' => $suffix,
   );
-
+  $options = date_repeat_dow_day_options_abbr(TRUE);
+  $options = date_repeat_dow_day_options_ordered($options);
   $element['weekly']['BYDAY'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Repeat on', array(), array('context' => 'Date repeat')),
     '#default_value' => !empty($rrule['BYDAY']) && $rrule['FREQ'] === 'WEEKLY' ? $rrule['BYDAY'] : array(),
-    '#options' => date_repeat_dow_day_options_abbr(TRUE, 1),
+    '#options' => $options,
     '#attributes' => array('class' => array('container-inline byday')),
     '#multiple' => TRUE,
     '#prefix' => '<div class="date-clear">',
@@ -752,7 +754,7 @@ function date_repeat_merge($form_values, $element) {
         if (array_key_exists('weekly', $form_values)) {
           $form_values = array_merge($form_values, (array) $form_values['weekly']);
           if (array_key_exists('BYDAY', $form_values)) {
-            $form_values['BYDAY'] = transform_checkbox_values_to_select_values($form_values['BYDAY']);
+            $form_values['BYDAY'] = date_repeat_transform_checkbox_values_to_select_values($form_values['BYDAY']);
           }
         }
         break;
@@ -771,7 +773,7 @@ function date_repeat_merge($form_values, $element) {
           unset($form_values['monthly']['BYMONTHDAY_BYMONTH_child']);
           $form_values = array_merge($form_values, (array) $form_values['monthly']);
           if (array_key_exists('BYMONTH', $form_values)) {
-            $form_values['BYMONTH'] = transform_checkbox_values_to_select_values($form_values['BYMONTH']);
+            $form_values['BYMONTH'] = date_repeat_transform_checkbox_values_to_select_values($form_values['BYMONTH']);
           }
           if (array_key_exists('BYMONTHDAY', $form_values) && !is_array($form_values['BYMONTHDAY'])) {
             $form_values['BYMONTHDAY'] = (array) $form_values['BYMONTHDAY'];
@@ -796,7 +798,7 @@ function date_repeat_merge($form_values, $element) {
           unset($form_values['yearly']['BYMONTHDAY_BYMONTH_child']);
           $form_values = array_merge($form_values, (array) $form_values['yearly']);
           if (array_key_exists('BYMONTH', $form_values)) {
-            $form_values['BYMONTH'] = transform_checkbox_values_to_select_values($form_values['BYMONTH']);
+            $form_values['BYMONTH'] = date_repeat_transform_checkbox_values_to_select_values($form_values['BYMONTH']);
           }
           if (array_key_exists('BYMONTHDAY', $form_values) && !is_array($form_values['BYMONTHDAY'])) {
             $form_values['BYMONTHDAY'] = (array) $form_values['BYMONTHDAY'];
@@ -860,12 +862,13 @@ function date_repeat_merge($form_values, $element) {
     unset($form_values['RDATE']);
   }
   if (array_key_exists('RDATE', $form_values) && is_array($form_values['RDATE'])) {
-    $function = $element['#date_repeat_widget'] .'_input_date';
+    $function = $element['#date_repeat_widget'] . '_input_date';
     $rdate_element = $element;
     foreach ($form_values['RDATE'] as $delta => $value) {
       if (is_array($value['datetime'])) {
         $rdate_element['#date_format'] = !empty($element['#date_format']) ? date_limit_format($element['#date_format'], array('year', 'month', 'day')) : 'Y-m-d';
-        $form_values['RDATE'][$delta]['datetime'] = $function($rdate_element, $form_values['RDATE'][$delta]['datetime']);
+        $date = $function($rdate_element, $form_values['RDATE'][$delta]['datetime']);
+        $form_values['RDATE'][$delta]['datetime'] = is_object($date) ? $date->format(DATE_FORMAT_DATETIME) : '';
       }
     }
   }
@@ -959,7 +962,7 @@ function theme_date_repeat_rrule($vars) {
   return drupal_render($fieldset);
 }
 
-function filter_non_zero_value($value) {
+function date_repeat_filter_non_zero_value($value) {
   return $value !== 0;
 }
 
@@ -969,6 +972,6 @@ function filter_non_zero_value($value) {
  * Can be used for transforming the returned value of checkbox(es) element
  * to the format of returned value of multiple select element.
  */
-function transform_checkbox_values_to_select_values($values) {
-  return array_filter($values, 'filter_non_zero_value');
+function date_repeat_transform_checkbox_values_to_select_values($values) {
+  return array_filter($values, 'date_repeat_filter_non_zero_value');
 }

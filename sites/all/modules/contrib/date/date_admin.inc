@@ -1,9 +1,10 @@
 <?php
+
 /**
  * @file
  * Date administration code.
- * Moved to separate file since there is a lot of code here that is not needed often.
  */
+
 /**
  * Settings for the default formatter.
  */
@@ -29,7 +30,7 @@ function date_default_formatter_settings_form($field, $instance, $view_mode, $fo
       'both' => t('Both Start and End dates'),
       'value' => t('Start date only'),
       'value2' => t('End date only'),
-      ),
+    ),
     '#access' => $field['settings']['todate'],
     '#default_value' => $settings['fromto'],
     '#weight' => 1,
@@ -58,7 +59,7 @@ function date_default_formatter_settings_form($field, $instance, $view_mode, $fo
     '#field_suffix' => $suffix,
     '#default_value' => $settings['multiple_from'],
     '#weight' => 3,
-    '#access' => ($field['cardinality'] === FIELD_CARDINALITY_UNLIMITED) || ($field['cardinality'] > 1),
+    '#access' => ($field['cardinality'] == FIELD_CARDINALITY_UNLIMITED) || ($field['cardinality'] > 1),
   );
 
   list($prefix, $suffix) = explode('@isodate', t('ending with @isodate'));
@@ -69,19 +70,8 @@ function date_default_formatter_settings_form($field, $instance, $view_mode, $fo
     '#field_suffix' => $suffix,
     '#default_value' => $settings['multiple_to'],
     '#weight' => 4,
-    '#access' => ($field['cardinality'] === FIELD_CARDINALITY_UNLIMITED) || ($field['cardinality'] > 1),
+    '#access' => ($field['cardinality'] == FIELD_CARDINALITY_UNLIMITED) || ($field['cardinality'] > 1),
     '#description' => t('Identify specific start and/or end dates in the format YYYY-MM-DDTHH:MM:SS, or leave blank for all available dates.'),
-   );
-
-  $form['show_repeat_rule'] = array(
-    '#title' => t('Repeat rule:'),
-    '#type' => 'select',
-    '#options' => array(
-      'show' => t('Display repeat rule'),
-      'hide' => t('Hide repeat rule')),
-    '#default_value' => $settings['show_repeat_rule'],
-    '#access' => $field['settings']['repeat'],
-    '#weight' => 5,
   );
 
   return $form;
@@ -102,6 +92,24 @@ function date_interval_formatter_settings_form($field, $instance, $view_mode, $f
     '#default_value' => $settings['interval'],
     '#weight' => 0,
   );
+  // Uses the same options used by Views format_interval.
+  $options = array(
+    'raw time ago' => t('Time ago'),
+    'time ago' => t('Time ago (with "ago" appended)'),
+    'raw time hence' => t('Time hence'),
+    'time hence' => t('Time hence (with "hence" appended)'),
+    'raw time span' => t('Time span (future dates have "-" prepended)'),
+    'inverse time span' => t('Time span (past dates have "-" prepended)'),
+    'time span' => t('Time span (with "ago/hence" appended)'),
+  );
+  $form['interval_display'] = array(
+    '#title' => t('Display'),
+    '#description' => t("How to display the time ago or time hence for this field."),
+    '#type' => 'select',
+    '#options' => $options,
+    '#default_value' => $settings['interval_display'],
+    '#weight' => 0,
+  );
   return $form;
 }
 
@@ -114,7 +122,8 @@ function date_default_formatter_settings_summary($field, $instance, $view_mode) 
   $formatter = $display['type'];
   $format_types = date_format_type_options();
   $summary = array();
-  switch($formatter) {
+  $format = FALSE;
+  switch ($formatter) {
     case 'date_plain':
       $format = t('Plain');
       break;
@@ -122,9 +131,16 @@ function date_default_formatter_settings_summary($field, $instance, $view_mode) 
       $format = t('Interval');
       break;
     default:
-      $format = $format_types[$settings['format_type']];
+      if (!empty($format_types[$settings['format_type']])) {
+        $format = $format_types[$settings['format_type']];
+      }
   }
-  $summary[] = t('Display dates using the @format format', array('@format' => $format));
+  if ($format) {
+    $summary[] = t('Display dates using the @format format', array('@format' => $format));
+  }
+  else {
+    $summary[] = t('Display dates using the default format because the specified format (@format) is not defined', array('@format' => $settings['format_type']));
+  }
 
   if (array_key_exists('fromto', $settings) && $field['settings']['todate']) {
     $options = array(
@@ -143,20 +159,12 @@ function date_default_formatter_settings_summary($field, $instance, $view_mode) 
     ));
   }
 
-  if (array_key_exists('show_repeat_rule', $settings) && !empty($field['repeat'])) {
-    if (!empty($settings['show_repeat_rule'])) {
-      $summary[] = t('Show repeat rule');
-    }
-    else {
-      $summary[] = t('Do not show repeat rule');
-    }
-  }
-
-  return implode('<br />', $summary);
+  return $summary;
 }
 
 /**
  * Settings summary for the interval formatter.
+ *
  * @TODO Add settings later.
  */
 function date_interval_formatter_settings_summary($field, $instance, $view_mode) {
@@ -164,10 +172,16 @@ function date_interval_formatter_settings_summary($field, $instance, $view_mode)
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
   $formatter = $display['type'];
-  return t('Display time ago, showing @interval units.', array('@interval' => $settings['interval']));
+  $summary[] = t('Display time ago, showing @interval units.', array('@interval' => $settings['interval']));
 
+  return $summary;
 }
 
+/**
+ * Helper function for date_field_instance_settings_form().
+ *
+ * @see date_field_instance_settings_form_validate()
+ */
 function _date_field_instance_settings_form($field, $instance) {
   $widget = $instance['widget'];
   $settings = $instance['settings'];
@@ -180,7 +194,7 @@ function _date_field_instance_settings_form($field, $instance) {
     '#options' => array('blank' => t('No default value'), 'now' => t('Now'), 'strtotime' => t('Relative')),
     '#weight' => 1,
     '#fieldset' => 'default_values',
-    );
+  );
 
   $description = t("Describe a time by reference to the current day, like '+90 days' (90 days from the day the field is created) or '+1 Saturday' (the next Saturday). See !strtotime for more details.", array('!strtotime' => l(t('strtotime'), 'http://www.php.net/manual/en/function.strtotime.php')));
   $form['default_value_code'] = array(
@@ -190,11 +204,11 @@ function _date_field_instance_settings_form($field, $instance) {
     '#default_value' => $settings['default_value_code'],
     '#states' => array(
       'visible' => array(
-        ':input[name="instance[settings][default_value]"]' => array('value' => 'strtotime'))
+        ':input[name="instance[settings][default_value]"]' => array('value' => 'strtotime')),
       ),
     '#weight' => 1.1,
     '#fieldset' => 'default_values',
-    );
+  );
   $form['default_value2'] = array(
     '#type' => !empty($field['settings']['todate']) ? 'select' : 'hidden',
     '#title' => t('Default end date'),
@@ -202,7 +216,7 @@ function _date_field_instance_settings_form($field, $instance) {
     '#options' => array('same' => t('Same as Default date'), 'blank' => t('No default value'), 'now' => t('Now'), 'strtotime' => t('Relative')),
     '#weight' => 2,
     '#fieldset' => 'default_values',
-    );
+  );
   $form['default_value_code2'] = array(
     '#type' => !empty($field['settings']['todate']) ? 'textfield' : 'hidden',
     '#title' => t('Relative default value for end date'),
@@ -210,18 +224,27 @@ function _date_field_instance_settings_form($field, $instance) {
     '#default_value' => $settings['default_value_code2'],
     '#states' => array(
       'visible' => array(
-        ':input[name="instance[settings][default_value2]"]' => array('value' => 'strtotime'))
+        ':input[name="instance[settings][default_value2]"]' => array('value' => 'strtotime')),
       ),
     '#weight' => 2.1,
     '#fieldset' => 'default_values',
-    );
+  );
 
   $form['#element_validate'] = array('date_field_instance_settings_form_validate');
+
+  $context = array(
+    'field' => $field,
+    'instance' => $instance,
+  );
+  drupal_alter('date_field_instance_settings_form', $form, $context);
+
   return $form;
 }
 
+/**
+ * Form validation handler for _date_field_instance_settings_form().
+ */
 function date_field_instance_settings_form_validate(&$form, &$form_state) {
-
   $settings = $form_state['values']['instance']['settings'];
 
   if ($settings['default_value'] == 'strtotime') {
@@ -238,20 +261,25 @@ function date_field_instance_settings_form_validate(&$form, &$form_state) {
   }
 }
 
+/**
+ * Helper function for date_field_widget_settings_form().
+ *
+ * @see date_field_widget_settings_form_validate()
+ */
 function _date_field_widget_settings_form($field, $instance) {
   $widget = $instance['widget'];
   $settings = $widget['settings'];
 
   $form = array(
     '#element_validate' => array('date_field_widget_settings_form_validate'),
-    );
+  );
 
   $options = array();
   if ($widget['type'] == 'date_popup' && module_exists('date_popup')) {
     $formats = date_popup_formats();
   }
   else {
-    // example input formats must show all possible date parts, so add seconds.
+    // Example input formats must show all possible date parts, so add seconds.
     $formats = str_replace('i', 'i:s', array_keys(system_get_date_formats('short')));
     $formats = drupal_map_assoc($formats);
   }
@@ -268,7 +296,7 @@ function _date_field_widget_settings_form($field, $instance) {
     '#weight' => 3,
     '#fieldset' => 'date_format',
   );
-  // Only a limited set of formats is available for the Date Popup module
+  // Only a limited set of formats is available for the Date Popup module.
   if ($widget['type'] != 'date_popup') {
     $form['input_format']['#options']['custom'] = t('Custom format');
     $form['input_format_custom'] = array(
@@ -281,7 +309,7 @@ function _date_field_widget_settings_form($field, $instance) {
       '#attributes' => array('class' => array('indent')),
       '#states' => array(
         'visible' => array(
-          ':input[name="instance[widget][settings][input_format]"]' => array('value' => 'custom')
+          ':input[name="instance[widget][settings][input_format]"]' => array('value' => 'custom'),
         ),
       ),
     );
@@ -290,7 +318,7 @@ function _date_field_widget_settings_form($field, $instance) {
     $form['input_format_custom'] = array(
       '#type' => 'hidden',
       '#value' => '',
-      );
+    );
   }
 
   if (in_array($widget['type'], array('date_select', 'date_popup'))) {
@@ -327,11 +355,11 @@ function _date_field_widget_settings_form($field, $instance) {
   $form['label_position'] = array(
     '#type' => 'value',
     '#value' => $settings['label_position'],
-    );
+  );
   $form['text_parts'] = array(
     '#type' => 'value',
     '#value' => $settings['text_parts'],
-    );
+  );
   $form['advanced'] = array(
     '#type' => 'fieldset',
     '#title' => t('Advanced settings'),
@@ -339,7 +367,7 @@ function _date_field_widget_settings_form($field, $instance) {
     '#collapsed' => TRUE,
     '#fieldset' => 'date_format',
     '#weight' => 9,
-    );
+  );
   if (in_array($widget['type'], array('date_select'))) {
     $options = array('above' => t('Above'), 'within' => t('Within'), 'none' => t('None'));
     $description = t("The location of date part labels, like 'Year', 'Month', or 'Day' . 'Above' displays the label as titles above each date part. 'Within' inserts the label as the first option in the select list and in blank textfields. 'None' doesn't label any of the date parts. Theme functions like 'date_part_label_year' and 'date_part_label_month' control label text.");
@@ -354,10 +382,10 @@ function _date_field_widget_settings_form($field, $instance) {
     '#default_value' => $settings['label_position'],
     '#title' => t('Position of date part labels'),
     '#description' => $description,
-    );
+  );
   $form['advanced']['text_parts'] = array(
     '#theme' => $widget['type'] == 'date_select' ? 'date_text_parts' : '',
-    );
+  );
   $text_parts = (array) $settings['text_parts'];
   foreach (date_granularity_names() as $key => $value) {
     if ($widget['type'] == 'date_select') {
@@ -365,40 +393,31 @@ function _date_field_widget_settings_form($field, $instance) {
         '#type' => 'radios',
         '#default_value' => in_array($key, $text_parts) ? 1 : 0,
         '#options' => array(0 => '', 1 => ''),
-        );
+      );
     }
     else {
       $form['advanced']['text_parts'][$key] = array(
         '#type' => 'value',
-        '#value' => in_array($key, (array) $settings['text_parts']) ? 1 : 0,
-        );
-    }
-  }
-  if (module_exists('date_repeat') && date_is_repeat_field($field, $instance)) {
-    $form['repeat_collapsed'] = array(
-      '#type' => 'value',
-      '#default_value' => 1,
-      '#options' => array(
-        0 => t('Expanded', array(), array('context' => 'Date repeat')),
-        1 => t('Collapsed', array(), array('context' => 'Date repeat'))
-      ),
-      '#title' => t('Repeat display', array(), array('context' => 'Date repeat')),
-      '#description' => t("Should the repeat options form start out expanded or collapsed? Set to 'Collapsed' to make those options less obtrusive.", array(), array('context' => 'Date repeat')),
-      '#fieldset' => 'date_format',
+        '#value' => (int) in_array($key, (array) $settings['text_parts']),
       );
+    }
   }
 
   $context = array(
     'field' => $field,
     'instance' => $instance,
   );
-  drupal_alter('date_field_settings_form', $form, $context);
+  drupal_alter('date_field_widget_settings_form', $form, $context);
 
   return $form;
 }
 
+/**
+ * Form validation handler for _date_field_widget_settings_form().
+ */
 function date_field_widget_settings_form_validate(&$form, &$form_state) {
-  // The widget settings are in the wrong place in the form because of #tree on the top level.
+  // The widget settings are in the wrong place in the form because of #tree on
+  // the top level.
   $settings = $form_state['values']['instance']['widget']['settings'];
   $settings = array_merge($settings, $settings['advanced']);
   unset($settings['advanced']);
@@ -415,30 +434,17 @@ function date_field_widget_settings_form_validate(&$form, &$form_state) {
   }
 }
 
+/**
+ * Helper function for date_field_settings_form().
+ *
+ * @see date_field_settings_validate()
+ */
 function _date_field_settings_form($field, $instance, $has_data) {
   $settings = $field['settings'];
 
   $form = array(
     '#element_validate' => array('date_field_settings_validate'),
   );
-
-  if (module_exists('date_repeat')) {
-    $form['repeat'] = array(
-      '#type' => 'select',
-      '#title' => t('Repeating date'),
-      '#default_value' => $field['settings']['repeat'],
-      '#options' => array(0 => t('No'), 1 => t('Yes')),
-      '#attributes' => array('class' => array('container-inline')),
-      '#description' => t("Repeating dates use an 'Unlimited' number of values. Instead of the 'Add more' button, they include a form to select when and how often the date should repeat."),
-      '#disabled' => $has_data,
-    );
-  }
-  else {
-    $form['repeat'] = array(
-      '#type' => 'hidden',
-      '#value' => 0,
-    );
-  }
 
   // Make sure granularity is in the right format and has no empty values.
   if (!empty($settings['granularity']) && is_array($settings['granularity'])) {
@@ -450,7 +456,7 @@ function _date_field_settings_form($field, $instance, $has_data) {
   $options = date_granularity_names();
   $checkbox_year = array(
     '#type' => 'checkbox',
-    '#title' => $options['year'],
+    '#title' => check_plain($options['year']),
     '#value' => 'year',
     '#return_value' => 'year',
     '#disabled' => TRUE,
@@ -482,7 +488,7 @@ function _date_field_settings_form($field, $instance, $has_data) {
     '#disabled' => $has_data,
     '#states' => array(
       'invisible' => array(
-        'input[name="field[settings][enddate_get]"]' => array('checked' => FALSE)
+        'input[name="field[settings][enddate_get]"]' => array('checked' => FALSE),
       ),
     ),
   );
@@ -498,18 +504,46 @@ function _date_field_settings_form($field, $instance, $has_data) {
       'js' => array(drupal_get_path('module', 'date') . '/date_admin.js'),
     ),
   );
-  // Force this value to hidden because we don't want to allow it to be changed right now,
-  // but allow it to be a variable if needed.
+  // Force this value to hidden because we don't want to allow it to be changed
+  // right now, but allow it to be a variable if needed.
   $form['timezone_db'] = array(
     '#type' => 'hidden',
     '#value' => date_get_timezone_db($tz_handling),
-    );
+  );
+
+  $form['cache_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Cache dates'),
+    '#description' => t('Date objects can be created and cached as date fields are loaded rather than when they are displayed to improve performance.'),
+    '#default_value' => !empty($settings['cache_enabled']),
+    '#weight' => 10,
+  );
+  $form['cache_count'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Maximum dates per field'),
+    '#default_value' => (isset($settings['cache_count'])) ? $settings['cache_count'] : 4,
+    '#description' => t("If set to '0', all date values on every entity will be cached. Note that caching every date on fields that may have a large number of multiple or repeating values may create a significant performance penalty when the cache is cleared. The suggested setting for multiple value and repeating fields is no more than 4 values per field."),
+    '#size' => 3,
+    '#weight' => 11,
+    '#states' => array(
+      'visible' => array(
+        'input[name="field[settings][cache_enabled]"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+
+  $context = array(
+    'field' => $field,
+    'instance' => $instance,
+    'has_data' => $has_data,
+  );
+  drupal_alter('date_field_settings_form', $form, $context);
 
   return $form;
 }
 
 /**
- * Custom field settings manipulation.
+ * Form validation handler for _date_field_settings_form().
  */
 function date_field_settings_validate(&$form, &$form_state) {
   $field = &$form_state['values']['field'];
@@ -520,9 +554,11 @@ function date_field_settings_validate(&$form, &$form_state) {
   else {
     form_set_value($form['timezone_db'], date_get_timezone_db($field['settings']['tz_handling']), $form_state);
   }
+
   if ($field['settings']['tz_handling'] != 'none' && !in_array('hour', array_filter($field['settings']['granularity']))) {
-    form_set_error('field][settings][tz_handling', t('Dates without hours granularity must not use any timezone handling.'));
+    form_set_error('field[settings][tz_handling]', t('Dates without hours granularity must not use any timezone handling.'));
   }
+
   // Extract the correct 'todate' value out of the two end date checkboxes.
   if ($field['settings']['enddate_get']) {
     if ($field['settings']['enddate_required']) {
@@ -535,17 +571,28 @@ function date_field_settings_validate(&$form, &$form_state) {
   else {
     $field['settings']['todate'] = '';
   }
+
   // Don't save the pseudo values created in the UI.
   unset($field['settings']['enddate_get'], $field['settings']['enddate_required']);
+
+  if (!empty($field['settings']['cache_enabled'])) {
+    if (!is_numeric($field['settings']['cache_count'])) {
+      form_set_error('field[settings][cache_count]', t('The number of cache values must be a number.'));
+    }
+    elseif ($field['settings']['cache_count'] < 0) {
+      form_set_error('field[settings][cache_count]', t('The number of cache values must be a number 0 or greater.'));
+    }
+  }
 }
 
 /**
- *  Timezone handling options
+ * Timezone handling options.
  *
- *  the 'none' option will do no timezone conversions and will store and display dates exactly as entered
- *  useful in locales or situations where timezone conversions are not working reliably,
- *  for dates with no times, for historical dates where timezones are irrelevant,
- *  or anytime conversion is unnecessary or undesirable
+ * The 'none' option will do no timezone conversions and will store and display
+ * dates exactly as entered useful in locales or situations where timezone
+ * conversions are not working reliably, for dates with no times, for historical
+ * dates where timezones are irrelevant, or anytime conversion is unnecessary or
+ * undesirable.
  */
 function date_timezone_handling_options() {
   return array(
@@ -554,6 +601,5 @@ function date_timezone_handling_options() {
     'user' => t("User's time zone"),
     'utc' => 'UTC',
     'none' => t('No time zone conversion'),
-    );
+  );
 }
-

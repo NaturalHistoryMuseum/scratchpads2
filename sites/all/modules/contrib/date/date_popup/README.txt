@@ -4,18 +4,18 @@ Drupal date_popup.module README.txt
 Javascript popup calendar and timeentry using the
 jquery UI calendar and a choice of jquery-timeentry libraries.
 
-==================================================================================
+================================================================================
 Datepicker
-==================================================================================
+================================================================================
 
 This code uses the jQuery UI datepicker that is included in core. Localization
 of the interface is handled by core.
 
 The popup will use the site default for the first day of the week.
 
-==================================================================================
+================================================================================
 Timepicker
-==================================================================================
+================================================================================
 
 There are three ways to let users select time in the Date Popup widgets.
 You can choose between them by going to admin/config/content/date_popup.
@@ -23,20 +23,22 @@ You can choose between them by going to admin/config/content/date_popup.
 The options are:
 
 1) Manual time entry - a plain textfield where users can type in the time.
-2) A 'default' jQuery timepicker, included in the code (http://keith-wood.name/timeEntry.html).
+2) A 'default' jQuery timepicker, included in the code
+   (http://keith-wood.name/timeEntry.html).
 3) The wvega timepicker (https://github.com/wvega/timepicker).
 
 To install the alternate dropdown (wvega) timepicker:
 
-Create a 'sites/all/libraries/wvega-timepicker' directory in your site installation.
-Then visit https://github.com/wvega/timepicker/archives/master, download the latest copy
-and unzip it. You will see files with names like jquery.timepicker-1.1.2.js and
-jquery.timepicker-1.1.2.css. Rename them to jquery.timepicker.js and jquery.timepicker.css
-and copy them into 'sites/all/libraries/wvega-timepicker'.
+Create a 'sites/all/libraries/wvega-timepicker' directory in your site
+installation.  Then visit https://github.com/wvega/timepicker/archives/master,
+download the latest copy and unzip it. You will see files with names like
+jquery.timepicker-1.1.2.js and jquery.timepicker-1.1.2.css. Rename them to
+jquery.timepicker.js and jquery.timepicker.css and copy them into
+'sites/all/libraries/wvega-timepicker'.
 
-==================================================================================
+================================================================================
 Usage
-==================================================================================
+================================================================================
 
 To include a popup calendar in a form, use the type 'date_popup':
 
@@ -57,16 +59,17 @@ NOTE - Converting a date stored in the database from UTC to the local zone
 and converting it back to UTC before storing it is not handled by this
 element and must be done in pre-form and post-form processing!!
 
-==================================================================================
+================================================================================
 Customization
-==================================================================================
+================================================================================
 
 To change the default display and functionality of the calendar, set startup
 parameters by adding selectors to your element. The configurable options
 are:
 
 #date_type
-  The type of date to convert the input value to, DATE_DATETIME, DATE_ISO, or DATE_UNIX
+  The type of date to convert the input value to, DATE_DATETIME, DATE_ISO, or
+  DATE_UNIX
 
 #date_format
   a standard PHP date format string that represents the way the month, day,
@@ -90,9 +93,9 @@ are:
 #date_increment
    increment minutes and seconds by this amount, default is 1
 
-==================================================================================
+================================================================================
 Example:
-==================================================================================
+================================================================================
 
 $form['date'] = array(
   '#type' => 'date_popup',
@@ -103,4 +106,3 @@ $form['date'] = array(
   '#date_increment' => 1,
   '#date_year_range' => '-3:+3',
 );
-

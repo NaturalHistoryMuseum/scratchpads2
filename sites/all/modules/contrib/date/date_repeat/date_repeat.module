@@ -14,7 +14,7 @@
  *
  */
 /**
- * Implement hook_element_info().
+ * Implements hook_element_info().
  */
 function date_repeat_element_info() {
   $type['date_repeat_rrule'] = array(
@@ -46,7 +46,7 @@ function date_repeat_theme() {
 /**
  * Helper function for FREQ options.
  */
-function FREQ_options() {
+function date_repeat_freq_options() {
   return array(
     'DAILY' => t('Daily', array(), array('context' => 'datetime_singular')),
     'WEEKLY' => t('Weekly', array(), array('context' => 'datetime_singular')),
@@ -55,7 +55,7 @@ function FREQ_options() {
   );
 }
 
-function INTERVAL_options() {
+function date_repeat_interval_options() {
   $options = range(0, 366);
   unset($options[0]);
 
@@ -115,14 +115,16 @@ function date_repeat_dow_day_untranslated() {
   return $date_repeat_weekdays;
 }
 
-function date_repeat_dow_day_options_ordered($week_start) {
-  $unordered = date_repeat_dow_day_options(FALSE);
-  if (variable_get('date_first_day', 0) > 0) {
-    for ($i = 1; $i <= variable_get('date_first_day', 0); $i++) {
-      $last = array_shift($weekdays);
-      array_push($weekdays, $last);
-    }
+function date_repeat_dow_day_options_ordered($weekdays) {
+  $day_keys = array_keys($weekdays);
+  $day_values = array_values($weekdays);
+  for ($i = 1; $i <= variable_get('date_first_day', 0); $i++) {
+    $last_key = array_shift($day_keys);
+    array_push($day_keys, $last_key);
+    $last_value = array_shift($day_values);
+    array_push($day_values, $last_value);
   }
+  $weekdays = array_combine($day_keys, $day_values);
   return $weekdays;
 }
 
@@ -211,7 +213,7 @@ function date_repeat_rrule_description($rrule, $format = 'D M d Y') {
     '!additional' => '',
     '!week_starts_on' => '',
     );
-  $interval = INTERVAL_options();
+  $interval = date_repeat_interval_options();
   switch ($rrule['FREQ']) {
     case 'WEEKLY':
       $description['!interval'] = format_plural($rrule['INTERVAL'], 'every week', 'every @count weeks') . ' ';
@@ -232,10 +234,13 @@ function date_repeat_rrule_description($rrule, $format = 'D M d Y') {
     $counts = date_repeat_dow_count_options();
     $results = array();
     foreach ($rrule['BYDAY'] as $byday) {
+      // Get the numeric part of the BYDAY option, i.e. +3 from +3MO.
       $day = substr($byday, -2);
-      $count = intval(str_replace(' ' . $day, '', $byday));
-      if ($count = intval(str_replace(' ' . $day, '', $byday))) {
-        $results[] = trim(t('!repeats_every_interval on the !date_order !day_of_week', array('!repeats_every_interval ' => '', '!date_order' => strtolower($counts[substr($byday, 0, 2)]), '!day_of_week' => $days[$day])));
+      $count = str_replace($day, '', $byday);
+      if (!empty($count)) {
+        // See if there is a 'pretty' option for this count, i.e. +1 => First.
+        $order = array_key_exists($count, $counts) ? strtolower($counts[$count]) : $count;
+        $results[] = trim(t('!repeats_every_interval on the !date_order !day_of_week', array('!repeats_every_interval ' => '', '!date_order' => $order, '!day_of_week' => $days[$day])));
       }
       else {
         $results[] = trim(t('!repeats_every_interval every !day_of_week', array('!repeats_every_interval ' => '', '!day_of_week' => $days[$day])));

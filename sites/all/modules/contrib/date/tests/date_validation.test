@@ -1,5 +1,13 @@
 <?php
+/**
+ * @file
+ * Date validation tests.
+ */
 class DateValidationTestCase extends DateFieldBasic {
+
+  /**
+   * @todo.
+   */
   public static function getInfo() {
     return array(
       'name' => 'Date Validation',
@@ -8,10 +16,12 @@ class DateValidationTestCase extends DateFieldBasic {
     );
   }
 
+  /**
+   * @todo.
+   */
   public function testValidation() {
-
-    // Attempts to create text date field stored as a date with default settings (from input which is not valid).
-
+    // Attempts to create text date field stored as a date with default settings
+    // (from input which is not valid).
     foreach (array('date', 'datestamp', 'datetime') as $field_type) {
       foreach (array('date_select', 'date_popup', 'date_text') as $widget_type) {
         $field_name = 'field_test';
@@ -25,7 +35,8 @@ class DateValidationTestCase extends DateFieldBasic {
         );
         $this->createDateField($options);
 
-        // Malformed date test won't work on date_select, which won't allow invalid input.
+        // Malformed date test won't work on date_select, which won't allow
+        // invalid input.
         if ($widget_type != 'date_select') {
           $this->malFormedDate($field_name, $field_type, $widget_type);
         }
@@ -36,6 +47,9 @@ class DateValidationTestCase extends DateFieldBasic {
     }
   }
 
+  /**
+   * @todo.
+   */
   function malFormedDate($field_name, $field_type, $widget_type) {
     // Tests that date field filters improper dates.
     $edit = array();
@@ -56,12 +70,12 @@ class DateValidationTestCase extends DateFieldBasic {
       $edit[$field_name . '[und][0][value][time]'] = '10:30';
     }
     $this->drupalPost('node/add/story', $edit, t('Save'));
-    $should_not_be = $edit['title']  . "has been created";
+    $should_not_be = $edit['title'] . "has been created";
     $this->assertNoText($should_not_be, "Correctly blocked creation of node with invalid month and day for a $field_type field using the $widget_type widget.");
     $this->assertText('The month is invalid.', "Correctly blocked invalid month for a $field_type field using the $widget_type widget.");
     $this->assertText('The day is invalid.', "Correctly blocked invalid day for a $field_type field using the $widget_type widget.");
 
-    // Test two-digit entry for year where 4-digit is expected
+    // Test two-digit entry for year where 4-digit is expected.
     if ($widget_type == 'date_select') {
       $edit[$field_name . '[und][0][value][year]'] = '11';
       $edit[$field_name . '[und][0][value][month]'] = '12';
@@ -77,12 +91,12 @@ class DateValidationTestCase extends DateFieldBasic {
       $edit[$field_name . '[und][0][value][time]'] = '10:30';
     }
     $this->drupalPost('node/add/story', $edit, t('Save'));
-    $should_not_be = $edit['title']  . " has been created";
+    $should_not_be = $edit['title'] . " has been created";
     $this->assertNoText($should_not_be, "Correctly blocked creation of node with invalid year for a $field_type field using the $widget_type widget.");
     $should_be = 'The year is invalid. Please check that entry includes four digits.';
     $this->assertText($should_be, "Correctly blocked two digit year for a $field_type field using the $widget_type widget.");
 
-    // Test invalid hour/minute entry for time
+    // Test invalid hour/minute entry for time.
     if ($widget_type == 'date_select') {
       $edit[$field_name . '[und][0][value][year]'] = '2011';
       $edit[$field_name . '[und][0][value][month]'] = '12';
@@ -98,7 +112,7 @@ class DateValidationTestCase extends DateFieldBasic {
       $edit[$field_name . '[und][0][value][time]'] = '29:95';
     }
     $this->drupalPost('node/add/story', $edit, t('Save'));
-    $should_not_be = $edit['title']  . " has been created";
+    $should_not_be = $edit['title'] . " has been created";
     $this->assertNoText($should_not_be, "Correctly blocked creation of node with invalid time for a $field_type field using the $widget_type widget.");
     $should_be = 'The hour is invalid.';
     $this->assertText($should_be, "Correctly blocked invalid hour for a $field_type field using the $widget_type widget.");
@@ -107,6 +121,9 @@ class DateValidationTestCase extends DateFieldBasic {
 
   }
 
+  /**
+   * @todo.
+   */
   public function wrongGranularity($field_name, $field_type, $widget_type) {
     // Create a node with incorrect granularity -- missing time.
     $edit = array();
@@ -127,7 +144,7 @@ class DateValidationTestCase extends DateFieldBasic {
       $edit[$field_name . '[und][0][value][time]'] = '';
     }
     $this->drupalPost('node/add/story', $edit, t('Save'));
-    $should_not_be = $edit['title']  . " has been created";
+    $should_not_be = $edit['title'] . " has been created";
     $this->assertNoText($should_not_be, "Correctly blocked creation of node with missing time for a $field_type field using the $widget_type widget.");
     $this->assertText('invalid', "Marked form with missing time as invalid for a $field_type field using the $widget_type widget.");
   }

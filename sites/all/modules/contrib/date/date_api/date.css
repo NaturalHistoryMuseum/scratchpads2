@@ -13,14 +13,10 @@
   padding: 0;
 }
 .container-inline-date > .form-item {
-  border: 1px #dedede solid;
   display: inline-block;
   margin-right: 0.5em; /* LTR */
   margin-bottom: 10px;
   vertical-align: top;
-}
-.views-exposed-form .container-inline-date > .form-item {
-  border:none;
 }
 .container-inline-date .form-item .form-item {
   float: left; /* LTR */
@@ -94,43 +90,6 @@ span.date-display-end {
 
 .date-prefix-inline {
   display: inline-block;
-}
-
-.date-views-filter-wrapper {
-  min-width: 250px;
-}
-.date-views-filter input {
-  float: left !important; /* LTR */
-  margin-right: 2px !important; /* LTR */
-  min-width: 12em;
-  padding: 0 !important;
-  width: 12em;
-}
-
-/* Give the navigation bar a little extra padding below so it will clear the new contextual links overlay of the teasers below it. */
-.date-nav {
-  clear: both;
-  padding-bottom: 1.5em;
-  width: 100%;
-}
-.date-nav div.date-prev {
-  float: left; /* LTR */
-  text-align: left; /* LTR */
-  width: 24%;
-}
-.date-nav div.date-next {
-  float: right; /* LTR */
-  text-align: right; /* LTR */
-  width: 24%;
-}
-.date-nav div.date-heading {
-  float: left; /* LTR */
-  text-align: center;
-  width: 50%;
-}
-.date-nav div.date-heading h3 {
-  margin: 0;
-  padding: 0;
 }
 
 .date-clear {
