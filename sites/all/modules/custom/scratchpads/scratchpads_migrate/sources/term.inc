@@ -52,6 +52,7 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
     }
     parent::__construct($arguments);
     $this->destination = new ScratchpadsMigrateDestinationTerm($this->destinationVocabulary);
+    $destination_fields = $this->getDestination()->fields();
     // Add field mappings
     if(isset($source_fields) && count($source_fields)){
       foreach($source_fields as $source_field => $source_field_type){
@@ -76,14 +77,22 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
                 'Darwincore'
               ));
               break;
-            case 'field_basionym':
-              // ITIS term - how can we handle this?
-              break;
             default:
-              drupal_set_message(t('Unknown node reference field %source_field in vocabulary %vocabulary.', array(
-                '%source_field' => $source_field,
-                '%vocabulary' => $this->destinationVocabulary
-              )), 'error');
+              // Has this been mapped to a taxonomy term field?
+              // If it has, it was an ITIS term node reference & a straight mapping is allowed
+              if(strpos($destination_fields[$d7_field], 'taxonomy_term_reference')){
+                $this->addFieldMapping($d7_field . ':source_type')->defaultValue('tid');
+                $this->addFieldMapping($d7_field . ':create_term')->defaultValue(false);
+                // TODO - NEED TO MAP NID TO TERM
+                $this->addFieldMapping($d7_field, $source_field)->callbacks(array(
+                  'scratchpads_migrate_itis_nid_to_tid'
+                ));
+              }else{
+                drupal_set_message(t('Unknown node reference field %source_field in vocabulary %vocabulary.', array(
+                  '%source_field' => $source_field,
+                  '%vocabulary' => $this->destinationVocabulary
+                )), 'error');
+              }
               break;
           }
         }elseif($source_field_type == 'content_taxonomy'){

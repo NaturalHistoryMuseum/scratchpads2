@@ -29,6 +29,7 @@ global $s1_domain;
 // The domain of this site should be s2.blah-blah, so we remove the first three
 // characters.
 $s1_domain = substr(parse_url($base_url, PHP_URL_HOST), 3);
+// $s1_domain = 'arcticplants.myspecies.info';
 $filename = '/var/aegir/scratchpad_1_db_settings/' . $s1_domain . '.scratchpad_1.php';
 if(file_exists($filename)){
   require_once ($filename);
@@ -69,8 +70,9 @@ function scratchpads_migrate_migrate_api(){
  * Register all of the migrations for this module.
  */
 function scratchpads_migrate_register_migrations(){
+  $node_types = scratchpads_migrate_source_node_types();
   // Enable blog module
-  if(scratchpads_migrate_source_table_exists('content_type_blog')){
+  if(in_array('blog', $node_types)){
     if(!module_exists('blog')){
       module_enable(array(
         'blog'
@@ -393,8 +395,8 @@ function scratchpads_migrate_register_migrations(){
       'destination_vocabulary' => $vocabulary->vid
     );
     $arguments = array_merge_recursive($arguments, $common_term_arguments);
-//     Migration::registerMigration($arguments['class_name'], $arguments['machine_name'], $arguments);
-//     $common_node_arguments['dependencies'][] = $arguments['machine_name'];
+    Migration::registerMigration($arguments['class_name'], $arguments['machine_name'], $arguments);
+    $common_node_arguments['dependencies'][] = $arguments['machine_name'];
   }
   /****************************************************************************
    * Dependencies for the PathRedirect migration
@@ -595,7 +597,7 @@ function scratchpads_migrate_unset_empty_fields($object, $skip = array('uid')){
  */
 function scratchpads_migrate_menu(){
   $items = array();
-  $items['admin/content/migrate/scratchpads'] = array(
+  $items['admin/content/migrate/status'] = array(
     'title' => 'Scratchpads',
     'type' => MENU_LOCAL_TASK,
     'description' => 'View all error messages',
@@ -611,7 +613,14 @@ function scratchpads_migrate_menu(){
 function scratchpads_migrate_status_page(){
   $output = '';
   $migrations = migrate_migrations();
-  foreach($migrations as $migration){
+  //   foreach(array_keys($migrations) as $key){
+  //     if($key == 'FieldVocabularyItisTerm13'){
+  //       continue;
+  //     }
+  //     unset($migrations[$key]);
+  //   }
+  $error = false;
+  foreach($migrations as $migration_name => $migration){
     if(method_exists($migration, 'sourceCount')){
       $total = $migration->sourceCount();
       // If we don't have any records don't validate the migration
@@ -622,17 +631,25 @@ function scratchpads_migrate_status_page(){
     }
     $items = array();
     $has_mappings = method_exists($migration, 'getFieldMappings');
+    $destination = $migration->getDestination();
+    $destination_fields = $destination->fields($migration);
+    $source = $migration->getSource();
+    $source_key = $migration->getMap()->getSourceKey();
+    $source_fields = $source->fields();
     if($has_mappings){
       $field_mappings = $migration->getFieldMappings();
-      $destination = $migration->getDestination();
-      $source = $migration->getSource();
-      $source_key = $migration->getMap()->getSourceKey();
-      $source_fields = $source->fields();
-      $destination_fields = $destination->fields($migration);
+      $mapped_destination_fields = array();
+      $mapped_source_fields = array();
+      foreach(array_keys($source_key) as $key){
+        $mapped_destination_fields[] = $key;
+        $mapped_source_fields[] = $key;
+      }
       foreach($field_mappings as $mapping){
         // Validate source and destination fields actually exist
         $source_field = $mapping->getSourceField();
+        $mapped_source_fields[] = $source_field;
         $destination_field = $mapping->getDestinationField();
+        $mapped_destination_fields[] = $destination_field;
         if(!is_null($source_field) && !isset($source_fields[$source_field])){
           $items[] = t('"!source" was used as source field in the
           "!destination" mapping but is not in list of source fields', array(
@@ -648,6 +665,28 @@ function scratchpads_migrate_status_page(){
           ));
         }
       }
+      // Check for any missing destination fields
+      $unmapped_destination_fields = array_diff(array_keys($destination_fields), $mapped_destination_fields);
+      if(count($unmapped_destination_fields)){
+        foreach($unmapped_destination_fields as $unmapped_destination_field){
+          drupal_set_message(t('Destination field "!migration.!destination" is unmapped', array(
+            '!migration' => $migration_name,
+            '!destination' => $unmapped_destination_field
+          )), 'error');
+          $error = true;
+        }
+      }
+      // Check for any missing source fields
+      $unmapped_source_fields = array_diff(array_keys($source_fields), $mapped_source_fields);
+      if(count($unmapped_source_fields)){
+        foreach($unmapped_source_fields as $unmapped_source_field){
+          drupal_set_message(t('Source field "!migration.!destination" is unmapped', array(
+            '!migration' => $migration_name,
+            '!destination' => $unmapped_source_field
+          )), 'error');
+          $error = true;
+        }
+      }
     }
     if(count($items)){
       $output .= theme('item_list', array(
@@ -656,9 +695,14 @@ function scratchpads_migrate_status_page(){
       ));
     }
   }
-  if(strlen($output) == 0){
+  if($error){
+    $output = "ERRORS";
+  }else if(strlen($output) == 0){
     $output = 'WOOP WOOP WOOP';
   }
   return $output;
 }
 
+function scratchpads_migrate_itis_nid_to_tid(&$destination_values){
+  return $destination_values;
+}

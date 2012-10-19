@@ -75,6 +75,21 @@ class MigrateDestinationField extends MigrateDestination{
         $field_config['module'] = 'image';
         $field_config['type'] = 'image';
         break;
+      case 'content_taxonomy':
+        $vid = $object->widget_settings['vid'];
+        if($vocabulary = taxonomy_vocabulary_load($vid)){
+          $field_config['settings']['allowed_values'] = array(
+            array(
+              'vocabulary' => $vocabulary->machine_name,
+              'parent' => 0
+            )
+          );
+        }else{
+          drupal_set_message(t('Unknown vocabulary for !field_name (field.inc:88).', array(
+            '!field_name' => $object->field_name
+          )), 'error');
+        }
+        break;
     }
     switch($field_instance['widget']['type']){
       case 'image':

@@ -9,7 +9,7 @@ class DrupalImageGalleryMigration extends DrupalMigration{
    * @var integer
    */
   protected static $nid;
-  
+
   /**
    * @param array $arguments
    */
@@ -63,8 +63,11 @@ class DrupalImageGalleryMigration extends DrupalMigration{
       'field_media:source_dir',
       'path',
       'comment',
-    	'menu',
-    	'auto_nodetitle_applied'
+      'menu',
+      'auto_nodetitle_applied',
+      'totalcount',
+      'daycount',
+      'timestamp'
     ));
     // Set the maximum NID value from the old site
     self::$nid = $this->getMaxNID();

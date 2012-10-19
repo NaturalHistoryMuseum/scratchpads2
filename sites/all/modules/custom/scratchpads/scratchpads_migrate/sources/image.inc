@@ -100,7 +100,6 @@ class DrupalImageMigration extends DrupalFileMigration{
       'field_creator:format',
       'field_creator:language',
       'field_promote_to_home_page',
-      'path',
       'field_cc_licence'
     ));
     // Can't be bothered to write a destination handler as it's always the same

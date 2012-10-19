@@ -170,6 +170,23 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
               ));
               break;
             default:
+              // Special use case for taxonomicname field - (darwincore)
+              // Need to add taxonomicname field to biologicalClassifications array
+              if($delta == 'taxonomicname'){
+                $this->biologicalClassifications[] = $delta;
+                // If we already have a mapped biological classification, add as
+                // unmapped source, we'll merge in perpareRow
+                if(count($this->biologicalClassifications) > 1){
+                  $this->addUnmigratedSources(array(
+                    $delta
+                  ));
+                }else{
+                  $this->addFieldMapping($field_name, $delta);
+                  $this->addFieldMapping($field_name . ':source_type')->defaultValue('tid');
+                  $this->addFieldMapping($field_name . ':create_term')->defaultValue(false);
+                }
+                continue;
+              }
               if($type == 'text_long'){
                 // Keep a record of long text fields, as we need to extract
                 // files
@@ -181,16 +198,14 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
               $delta = strtolower($delta);
               $this->addFieldMapping($destination_field, $delta);
               foreach(array(
-                'format',
-                'language'
-              ) as $subfield_type){
+                'format' => 'filtered_html',
+                'language' => NULL,
+                'source_type' => 'tid',
+                'create_term' => FALSE
+              ) as $subfield_type => $default_value){
                 $subfield = $destination_field . ':' . $subfield_type;
                 if(array_key_exists($subfield, $this->destination->fields())){
-                  if($subfield_type == 'format'){
-                    $this->addFieldMapping($subfield)->defaultValue('filtered_html');
-                  }else{
-                    $this->addFieldMapping($subfield, NULL);
-                  }
+                  $this->addFieldMapping($subfield)->defaultValue($default_value);
                 }
               }
               break;
@@ -226,6 +241,12 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $this->addFieldMapping('auto_nodetitle_applied')->defaultValue(true);
     $fields['path'] = t('Node: Path alias');
     $this->source = new MigrateSourceSQL($this->nodeQuery(), $fields, $this->countQuery(), $this->sourceOptions);
+    // New fields added?
+    $this->addUnmigratedDestinations(array(
+      'totalcount',
+      'daycount',
+      'timestamp'
+    ));
   }
 
   protected function nodeQuery(){
