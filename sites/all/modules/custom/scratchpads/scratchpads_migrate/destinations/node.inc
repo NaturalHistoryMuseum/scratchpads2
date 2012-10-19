@@ -39,16 +39,6 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
       unset($node->{OG_AUDIENCE_FIELD});
     }
     $status = parent::import($node, $row);
-    // Save all the URL aliases
-    if(isset($row->url_alias)){
-      foreach($row->url_alias as $url_alias){
-        $path = array(
-          'alias' => $url_alias,
-          'source' => 'node/' . $node->nid,
-          'language' => isset($node->language) ? $node->language : LANGUAGE_NONE
-        );
-      }
-    }
     return $status;
   }
 

@@ -404,83 +404,83 @@ function scratchpads_user_field_default_fields() {
 
   // Exported field: 'user-user-field_user_title'
   $fields['user-user-field_user_title'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_user_title',
-      'foreign keys' => array(),
-      'indexes' => array(
-        'value' => array(
-          0 => 'value',
-        ),
+      'field_config' => array(
+          'active' => '1',
+          'cardinality' => '1',
+          'deleted' => '0',
+          'entity_types' => array(),
+          'field_name' => 'field_user_title',
+          'foreign keys' => array(),
+          'indexes' => array(
+              'value' => array(
+                  0 => 'value',
+              ),
+          ),
+          'module' => 'list',
+          'settings' => array(
+              'allowed_values' => array(
+                  'Dr' => 'Dr',
+                  'Miss' => 'Miss',
+                  'Mr' => 'Mr',
+                  'Mrs' => 'Mrs',
+                  'Ms' => 'Ms',
+                  'Prof.' => 'Prof.',
+                  'other' => 'Other',
+              ),
+              'allowed_values_function' => '',
+              'profile2_private' => FALSE,
+          ),
+          'translatable' => '0',
+          'type' => 'list_text',
       ),
-      'module' => 'list',
-      'settings' => array(
-        'allowed_values' => array(
-          'Dr' => 'Dr',
-          'Miss' => 'Miss',
-          'Mr' => 'Mr',
-          'Mrs' => 'Mrs',
-          'Ms' => 'Ms',
-          'Prof.' => 'Prof.',
-          'other' => 'Other',
-        ),
-        'allowed_values_function' => '',
-        'profile2_private' => FALSE,
-      ),
-      'translatable' => '0',
-      'type' => 'list_text',
-    ),
-    'field_instance' => array(
-      'bundle' => 'user',
-      'default_value' => array(
-        0 => array(
-          'select_other_list' => 'Mr',
-          'select_other_text_input' => '',
-          'value' => 'Mr',
-        ),
-      ),
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
+      'field_instance' => array(
+          'bundle' => 'user',
+          'default_value' => NULL,
+          'deleted' => '0',
+          'description' => '',
+          'display' => array(
+          'default' => array(
           'label' => 'above',
           'module' => 'list',
           'settings' => array(),
           'type' => 'list_default',
           'weight' => 0,
-        ),
+      ),
+      'linked_node' => array(
+      'label' => 'above',
+      'settings' => array(),
+      'type' => 'hidden',
+      'weight' => 0,
+      ),
       ),
       'entity_type' => 'user',
       'field_name' => 'field_user_title',
       'label' => 'Title',
-      'required' => 1,
+      'required' => 0,
       'settings' => array(
-        'user_register_form' => 1,
+      'user_register_form' => 1,
       ),
       'widget' => array(
-        'active' => 1,
-        'module' => 'cck_select_other',
-        'settings' => array(
-          'select_list_options' => 'Mr|Mr
+      'active' => 1,
+      'module' => 'cck_select_other',
+      'settings' => array(
+      'select_list_options' => 'Mr|Mr
 Mrs|Mrs
 Ms|Ms
 Miss|Miss
 Dr|Dr
 Prof.|Prof.
 other|Other',
-          'select_list_options_fieldset' => array(
-            'advanced_options' => array(
-              'select_list_options_php' => '',
-            ),
-          ),
-        ),
-        'type' => 'cck_select_other',
-        'weight' => '2',
+  'select_list_options_fieldset' => array(
+  'advanced_options' => array(
+  'select_list_options_php' => '',
       ),
-    ),
+      ),
+      ),
+      'type' => 'cck_select_other',
+      'weight' => '2',
+      ),
+      ),
   );
 
   // Translatables
