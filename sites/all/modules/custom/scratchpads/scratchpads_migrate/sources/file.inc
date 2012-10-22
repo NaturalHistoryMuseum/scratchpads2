@@ -29,6 +29,7 @@ class DrupalFileMigration extends DrupalMigration{
       'timestamp'
     ));
     $this->addUnmigratedDestinations(array(
+      'path',
       'destination_dir',
       'destination_file',
       'source_dir',
