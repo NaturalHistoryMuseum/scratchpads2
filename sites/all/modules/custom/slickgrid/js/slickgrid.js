@@ -128,7 +128,12 @@ var dataView;
                                         // Otherwise all rows will be deselected on edit
             }));
             
-
+            // Ensure links are not followed when clicking on cell in edit mode
+            grid.onClick.subscribe(function(eventData, gridData) {
+              if (options.editable) {
+                eventData.preventDefault();
+              }
+            });
 
             // If row checkboxes are enabled, add row selection to the grid & register the plugin
             if (checkboxSelector) {
