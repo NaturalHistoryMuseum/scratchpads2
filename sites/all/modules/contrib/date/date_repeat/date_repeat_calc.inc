@@ -94,7 +94,7 @@ function _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additi
   if (!empty($rrule['BYMONTHDAY']) && !in_array($rrule['FREQ'], array('MONTHLY', 'YEARLY'))) {
     $rrule['FREQ'] = 'MONTHLY';
   }
-  else if (!empty($rrule['BYDAY']) && !in_array($rrule['FREQ'], array('MONTHLY', 'WEEKLY', 'YEARLY'))) {
+  elseif (!empty($rrule['BYDAY']) && !in_array($rrule['FREQ'], array('MONTHLY', 'WEEKLY', 'YEARLY'))) {
     $rrule['FREQ'] = 'WEEKLY';
    }
 
@@ -156,7 +156,7 @@ function _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additi
           }
           // Back up to first of month and jump.
           $current_day = date_repeat_set_month_day($current_day, NULL, 1, '+', $timezone, $modify_time);
-          date_modify($current_day, '+'. $jump . $modify_time);
+          date_modify($current_day, '+' . $jump . $modify_time);
         }
         // If it's yearly, break out of the loop at the
         // end of every year, and jump one INTERVAL in years.
@@ -174,7 +174,7 @@ function _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additi
       if ($rrule['FREQ'] == 'YEARLY') {
         // Back up to first of year and jump.
         $current_day = date_repeat_set_year_day($current_day, NULL, 1, '+', $timezone, $modify_time);
-        date_modify($current_day, '+'. $jump . $modify_time);
+        date_modify($current_day, '+' . $jump . $modify_time);
       }
       $finished = date_repeat_is_finished($current_day, $days, $count, $end_date);
     }
@@ -192,7 +192,7 @@ function _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additi
     while (!$finished) {
       date_repeat_add_dates($days, $current_day, $start_date, $end_date, $exceptions, $rrule);
       $finished = date_repeat_is_finished($current_day, $days, $count, $end_date);
-      date_modify($current_day, '+'. $jump . $modify_time);
+      date_modify($current_day, '+' . $jump . $modify_time);
     }
   }
 
@@ -364,7 +364,7 @@ function _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additi
   }
 
   // add additional dates
-  foreach($additions as $addition) {
+  foreach ($additions as $addition) {
     $date = new dateObject($addition . ' ' . $start_date->format('H:i:s'), $timezone);
     $days[] = date_format($date, DATE_FORMAT_DATETIME);
   }

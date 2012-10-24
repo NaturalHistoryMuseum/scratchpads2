@@ -70,5 +70,6 @@ files[] = destinations/node_biblio.inc
 files[] = destinations/path_redirect.inc
 files[] = destinations/term.inc
 files[] = destinations/user.inc
+files[] = destinations/profile.inc
 files[] = destinations/variable.inc
 files[] = destinations/vocabulary.inc

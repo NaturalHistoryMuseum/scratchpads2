@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Scratchpads Events feature.
+ */
+
+include_once('scratchpads_events.features.inc');

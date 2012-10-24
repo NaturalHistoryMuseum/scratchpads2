@@ -94,8 +94,31 @@ class DrupalFieldMigration extends DrupalMigration{
     if($row->type == 'image' || $row->type == 'filefield'){
       $row->field_name = 'field_media';
     }
+    // Need to make sure node reference fields referencing itis terms are chnaged to taxonomy reference fields
+    if($row->type == 'nodereference'){
+      $ref_types = array_filter($row->global_settings['referenceable_types']);
+      // Change it to a taxonomy field
+      if(in_array('itis_term', $ref_types)){
+        $row->widget_type = 'content_taxonomy_autocomplete';
+        $itis_vocabs = scratchpads_migrate_get_term_vocabularies();
+        if(count($itis_vocabs) > 1){
+          drupal_set_message(t('Multiple ITIS fields for !field_name (field.inc:109).', array(
+            '!field_name' => $row->field_name
+          )), 'error');
+          $row->widget_settings = array();
+        }else{
+          $row->widget_settings = array(
+            'vid' => key($itis_vocabs)
+          );
+        }
+        $row->widget_module = 'content_taxonomy_autocomplete';
+        $row->type = 'content_taxonomy';
+        $row->module = 'content_taxonomy';
+        $row->global_settings = array();
+      }
+    }
     // Does an instance of this field already exists?
-    if(field_read_instance($row->entity_type, $row->field_name, $row->type_name)){return false;// Instance already exists, so skip it
+    if(field_read_instance($row->entity_type, $row->field_name, $row->type_name)){return false;    // Instance already exists, so skip it
 }
   }
 

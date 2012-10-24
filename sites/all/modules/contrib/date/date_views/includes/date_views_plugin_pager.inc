@@ -105,8 +105,8 @@ class date_views_plugin_pager extends views_plugin_pager {
     $form['link_format'] = array(
       '#title' => t('Link format'),
       '#type' => 'select',
-      '#options' => array('pager' => t('Pager'), 'clean' => t('Clean')),
-      '#description' => t("The format for pager link urls. With the Pager format, the links look like 'calendar/?date=2020-05'. The Clean format links look like 'calendar/2020-05'. The Clean format links look nicer but the Pager format links are likely to work better if the calendar is used in blocks or panels."),
+      '#options' => array('pager' => t('Pager'), 'clean' => t('Clean URL')),
+      '#description' => t("The format for pager link urls. With the Pager format, the links look like 'calendar/?date=2020-05'. The Clean URL format links look like 'calendar/2020-05'. The Clean format links look nicer but the Pager format links are likely to work better if the calendar is used in blocks or panels."),
       '#default_value' => $this->options['link_format'],
       '#required' => TRUE,
     );
@@ -132,7 +132,7 @@ class date_views_plugin_pager extends views_plugin_pager {
 
     // Bring the argument information into the view so our theme can access it.
     $i = 0;
-    foreach ($this->view->argument as $id => $argument) {
+    foreach ($this->view->argument as $id => &$argument) {
       if (date_views_handler_is_date($argument, 'argument')) {
 
         // If the argument is empty, nothing to do. This could be from
@@ -154,11 +154,21 @@ class date_views_plugin_pager extends views_plugin_pager {
           $argument->date_range = $argument->date_handler->arg_range($value);
           $argument->min_date = $argument->date_range[0];
           $argument->max_date = $argument->date_range[1];
+          // $argument->is_default works correctly for normal arguments, but does not
+          // work correctly if we are swapping in a new value from the pager.
+          $argument->is_default = FALSE;
         }
+
+        // The pager value might move us into a forbidden range, so test it.
+        if ($this->date_forbid($argument)) {
+          $this->view->build_info['fail'] = TRUE;
+          return;
+        }
+
         if (empty($this->view->date_info)) $this->view->date_info = new stdClass();
         $this->view->date_info->granularity = $argument->date_handler->granularity;
         $format = $this->view->date_info->granularity == 'week' ? DATE_FORMAT_DATETIME : $argument->sql_format;
-        $this->view->date_info->placeholders = $argument->date_handler->placeholders;
+        $this->view->date_info->placeholders = isset($argument->placeholders) ? $argument->placeholders : $argument->date_handler->placeholders;
         $this->view->date_info->date_arg = $argument->argument;
         $this->view->date_info->date_arg_pos = $i;
         $this->view->date_info->year = date_format($argument->min_date, 'Y');
@@ -201,6 +211,19 @@ class date_views_plugin_pager extends views_plugin_pager {
       }
     }
   }
+
+  /**
+   * Add a callback to determine if we have moved outside the valid date range for this argument.
+   */
+  function date_forbid($argument) {
+    // See if we're outside the allowed date range for our argument.
+    $limit = date_range_years($argument->options['year_range']);
+    if (date_format($argument->min_date, 'Y') < $limit[0] || date_format($argument->max_date, 'Y') > $limit[1]) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+
 
   function render($input) {
     // This adds all of our template suggestions based upon the view name and display id.

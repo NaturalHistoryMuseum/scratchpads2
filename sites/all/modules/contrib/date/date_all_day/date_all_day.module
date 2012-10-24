@@ -43,7 +43,7 @@ function date_all_day_theme() {
 }
 
 /**
- * Implementation of hook_date_formatter_dates_alter().
+ * Implements hook_date_formatter_dates_alter().
  *
  * This allows us to alter the $dates array created
  * by date_formatter_process.
@@ -117,25 +117,24 @@ function theme_date_all_day($vars) {
     $date2 = $date1;
   }
 
+  $suffix = '';
   if (!date_has_time($field['settings']['granularity'])) {
     $format = date_limit_format($format, array('year', 'month', 'day'));
-    return date_format_date($$which, 'custom', $format);
-  }
-
-  $format_granularity = date_format_order($format);
-  $format_has_time = FALSE;
-  if (in_array('hour', $format_granularity)) {
-    $format_has_time = TRUE;
-  }
-  $all_day = date_all_day_field($field, $instance, $date1, $date2);
-
-  if ($all_day && $format_has_time) {
-    $format = date_limit_format($format, array('year', 'month', 'day'));
-    return trim(date_format_date($$which, 'custom', $format) .' '. theme('date_all_day_label'));
   }
   else {
-    return date_format_date($$which, 'custom', $format);
+    $format_granularity = date_format_order($format);
+    $format_has_time = FALSE;
+    if (in_array('hour', $format_granularity)) {
+      $format_has_time = TRUE;
+    }
+    $all_day = date_all_day_field($field, $instance, $date1, $date2);
+    if ($all_day && $format_has_time) {
+      $format = date_limit_format($format, array('year', 'month', 'day'));
+      $suffix = ' ' . theme('date_all_day_label');
+    }
   }
+
+  return trim(date_format_date($$which, 'custom', $format) . $suffix);
 
 }
 
@@ -184,7 +183,7 @@ function date_all_day_date_combo_process_alter(&$element, &$form_state, $context
   // Add the all_day checkbox to the combo element.
   if (!empty($instance['widget']['settings']['display_all_day'])) {
 
-    $parents = $element['#array_parents'];
+    $parents = $element['#parents'];
     $first_parent = array_shift($parents);
     $all_day_id = $first_parent . '[' . implode('][', $parents) . '][all_day]';;
     foreach (array('value', 'value2') as $key) {
@@ -220,7 +219,7 @@ function date_all_day_date_combo_process_alter(&$element, &$form_state, $context
  *
  * This hook lets us make changes to the date_select widget.
  */
-function date_all_day_date_text_process_alter(&$element) {
+function date_all_day_date_text_process_alter(&$element, &$form_state, $context) {
   $all_day_id = !empty($element['#date_all_day_id']) ? $element['#date_all_day_id'] : '';
   if ($all_day_id != '') {
     // All Day handling on text dates works only if the user leaves the time out of the input value.
@@ -233,7 +232,7 @@ function date_all_day_date_text_process_alter(&$element) {
  *
  * This hook lets us make changes to the date_select widget.
  */
-function date_all_day_date_select_process_alter(&$element) {
+function date_all_day_date_select_process_alter(&$element, &$form_state, $context) {
 
   // Hide or show this element in reaction to the all_day status for this element.
   $all_day_id = !empty($element['#date_all_day_id']) ? $element['#date_all_day_id'] : '';
@@ -254,7 +253,7 @@ function date_all_day_date_select_process_alter(&$element) {
  *
  * This hook lets us make changes to the date_popup element.
  */
-function date_all_day_date_popup_process_alter(&$element) {
+function date_all_day_date_popup_process_alter(&$element, &$form_state, $context) {
 
   // Hide or show this element in reaction to the all_day status for this element.
   $all_day_id = !empty($element['#date_all_day_id']) ? $element['#date_all_day_id'] : '';
@@ -383,18 +382,20 @@ function date_all_day_field_widget_info_alter(&$info) {
   $info['date_text']['settings'] += array(
     'display_all_day' => 0,
   );
-  $info['date_popup']['settings'] += array(
-    'display_all_day' => 0,
-  );
+  if (module_exists('date_popup')) {
+    $info['date_popup']['settings'] += array(
+      'display_all_day' => 0,
+    );
+  }
 }
 
 /**
- * Implements hook_date_field_settings_form_alter().
+ * Implements hook_date_field_widget_settings_form_alter().
  *
  * This hook lets us alter the field settings form by adding a place
  * to set the value added above.
  */
-function date_all_day_date_field_settings_form_alter(&$form, $context) {
+function date_all_day_date_field_widget_settings_form_alter(&$form, $context) {
 
   $field = $context['field'];
   $instance = $context['instance'];

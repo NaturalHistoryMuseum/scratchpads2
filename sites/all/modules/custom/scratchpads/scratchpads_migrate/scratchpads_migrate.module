@@ -29,6 +29,7 @@ global $s1_domain;
 // The domain of this site should be s2.blah-blah, so we remove the first three
 // characters.
 $s1_domain = substr(parse_url($base_url, PHP_URL_HOST), 3);
+// $s1_domain = 'arcticplants.myspecies.info';
 $filename = '/var/aegir/scratchpad_1_db_settings/' . $s1_domain . '.scratchpad_1.php';
 if(file_exists($filename)){
   require_once ($filename);
@@ -69,8 +70,9 @@ function scratchpads_migrate_migrate_api(){
  * Register all of the migrations for this module.
  */
 function scratchpads_migrate_register_migrations(){
+  $node_types = scratchpads_migrate_source_node_types();
   // Enable blog module
-  if(scratchpads_migrate_source_table_exists('content_type_blog')){
+  if(in_array('blog', $node_types)){
     if(!module_exists('blog')){
       module_enable(array(
         'blog'
@@ -92,8 +94,8 @@ function scratchpads_migrate_register_migrations(){
   );
   Migration::registerMigration('CitationMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
-     * Variables
-     ********************************************************************************************/
+       * Variables
+       ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of variables from Drupal 6'),
     'machine_name' => 'Variable',
@@ -101,8 +103,17 @@ function scratchpads_migrate_register_migrations(){
   );
   Migration::registerMigration('VariableMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
-     * ContentTypes
-     ********************************************************************************************/
+     * User
+    ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of users from Drupal 6'),
+    'machine_name' => 'User',
+    'group' => MigrateGroup::getInstance('setup')
+  );
+  Migration::registerMigration('ScratchpadsUserMigration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+       * ContentTypes
+       ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of content types from Drupal 6'),
     'machine_name' => 'ContentType',
@@ -113,8 +124,8 @@ function scratchpads_migrate_register_migrations(){
   );
   Migration::registerMigration('DrupalContentTypeMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
-     * Vocabularies
-     ********************************************************************************************/
+       * Vocabularies
+       ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of vocabularies from Drupal 6'),
     'machine_name' => 'Vocabulary',
@@ -122,8 +133,8 @@ function scratchpads_migrate_register_migrations(){
   );
   Migration::registerMigration('DrupalVocabularyMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
-     * Vocabulary fields
-     ********************************************************************************************/
+       * Vocabulary fields
+       ********************************************************************************************/
   $term_dependencies = array(
     'Vocabulary'
   );
@@ -151,8 +162,8 @@ function scratchpads_migrate_register_migrations(){
     Migration::registerMigration($class_name, $arguments['machine_name'], $arguments);
   }
   /*********************************************************************************************
-     * Fields
-     ********************************************************************************************/
+       * Fields
+       ********************************************************************************************/
   // The description and the migration machine name are also required arguments,
   // which will be unique for each migration you register.
   $arguments = $common_arguments + array(
@@ -166,8 +177,8 @@ function scratchpads_migrate_register_migrations(){
   // We just use the migrate_d2d D6 migration class as-is.
   Migration::registerMigration('DrupalFieldMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
-     * Body fields
-     ********************************************************************************************/
+       * Body fields
+       ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of body fields from Drupal 6'),
     'machine_name' => 'FieldBody',
@@ -179,8 +190,8 @@ function scratchpads_migrate_register_migrations(){
   // We just use the migrate_d2d D6 migration class as-is.
   Migration::registerMigration('DrupalFieldBodyMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
-     * Taxonomy fields
-     ********************************************************************************************/
+       * Taxonomy fields
+       ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of taxonomy fields from Drupal 6'),
     'machine_name' => 'FieldTaxonomy',
@@ -192,8 +203,8 @@ function scratchpads_migrate_register_migrations(){
   );
   Migration::registerMigration('DrupalFieldTaxonomyMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
-     * Profile fields
-     ********************************************************************************************/
+       * Profile fields
+       ********************************************************************************************/
   $user_dependencies = array();
   // If profile_fields table exists, add the FieldProfile migration
   if(scratchpads_migrate_source_table_exists('profile_fields')){
@@ -210,8 +221,8 @@ function scratchpads_migrate_register_migrations(){
     $user_dependencies[] = $arguments['machine_name'];
   }
   /*********************************************************************************************
-     * Profile CCK fields
-     ********************************************************************************************/
+       * Profile CCK fields
+       ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of profile CCK fields from Drupal 6'),
     'machine_name' => 'FieldContentProfile',
@@ -224,8 +235,8 @@ function scratchpads_migrate_register_migrations(){
   Migration::registerMigration('DrupalFieldContentProfileMigration', $arguments['machine_name'], $arguments);
   $user_dependencies[] = $arguments['machine_name'];
   /*********************************************************************************************
-   * Profile body field
-  ********************************************************************************************/
+     * Profile body field
+    ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of profile body field from Drupal 6'),
     'machine_name' => 'FieldContentProfileBody',
@@ -238,8 +249,8 @@ function scratchpads_migrate_register_migrations(){
   Migration::registerMigration('DrupalFieldContentProfileBodyMigration', $arguments['machine_name'], $arguments);
   $user_dependencies[] = $arguments['machine_name'];
   /*********************************************************************************************
-     * Image fields
-     ********************************************************************************************/
+       * Image fields
+       ********************************************************************************************/
   // Special handling for image fields
   $arguments = $common_arguments + array(
     'description' => t('Migration of image fields from Drupal 6'),
@@ -252,8 +263,8 @@ function scratchpads_migrate_register_migrations(){
   // We just use the migrate_d2d D6 migration class as-is.
   Migration::registerMigration('DrupalFieldImageMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
-     * Image taxonomy fields
-     ********************************************************************************************/
+       * Image taxonomy fields
+       ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of taxonomy fields from Drupal 6'),
     'machine_name' => 'FieldImageTaxonomy',
@@ -265,8 +276,8 @@ function scratchpads_migrate_register_migrations(){
   );
   Migration::registerMigration('DrupalFieldImageTaxonomyMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
-     * Attached file field
-     ********************************************************************************************/
+       * Attached file field
+       ********************************************************************************************/
   // The description and the migration machine name are also required arguments,
   // which will be unique for each migration you register.
   $arguments = $common_arguments + array(
@@ -280,8 +291,8 @@ function scratchpads_migrate_register_migrations(){
   // We just use the migrate_d2d D6 migration class as-is.
   Migration::registerMigration('DrupalFieldFileAttachmentMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
-     * Field groups
-     ********************************************************************************************/
+       * Field groups
+       ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of field groups from Drupal 6'),
     'machine_name' => 'FieldGroup',
@@ -295,32 +306,6 @@ function scratchpads_migrate_register_migrations(){
   // We just use the migrate_d2d D6 migration class as-is.
   Migration::registerMigration('DrupalFieldGroupMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
-   * User
-   ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of users from Drupal 6'),
-    'machine_name' => 'User',
-    'dependencies' => $user_dependencies,
-    'group' => MigrateGroup::getInstance('content', array(
-      'fields'
-    ))
-  );
-  Migration::registerMigration('ScratchpadsUserMigration', $arguments['machine_name'], $arguments);
-  /*********************************************************************************************
-   * Profile
-   ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of profile-only users from Drupal 6'),
-    'machine_name' => 'Profile',
-    'dependencies' => array(
-      'User'
-    ),
-    'group' => MigrateGroup::getInstance('content', array(
-      'fields'
-    ))
-  );
-  Migration::registerMigration('ScratchpadsProfileMigration', $arguments['machine_name'], $arguments);
-  /*********************************************************************************************
    * Image galleries
    ********************************************************************************************/
   $arguments = $common_arguments + array(
@@ -329,7 +314,7 @@ function scratchpads_migrate_register_migrations(){
     'dependencies' => array(
       'User'
     ),
-    'group' => MigrateGroup::getInstance('content')
+    'group' => MigrateGroup::getInstance('files')
   );
   Migration::registerMigration('DrupalImageGalleryMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
@@ -341,7 +326,7 @@ function scratchpads_migrate_register_migrations(){
     'dependencies' => array(
       'User'
     ),
-    'group' => MigrateGroup::getInstance('content')
+    'group' => MigrateGroup::getInstance('files')
   );
   Migration::registerMigration('DrupalFileMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
@@ -354,7 +339,7 @@ function scratchpads_migrate_register_migrations(){
       'User',
       'ImageGallery'
     ),
-    'group' => MigrateGroup::getInstance('content')
+    'group' => MigrateGroup::getInstance('files')
   );
   Migration::registerMigration('DrupalImageMigration', $arguments['machine_name'], $arguments);
   // Define node arguments here so all term migrations can be added as depenencies
@@ -372,14 +357,18 @@ function scratchpads_migrate_register_migrations(){
       'File',
       'Image'
     ),
-    'group' => MigrateGroup::getInstance('content')
+    'group' => MigrateGroup::getInstance('content', array(
+      'terms'
+    ))
   );
   /*********************************************************************************************
    * Terms
    ********************************************************************************************/
   $common_term_arguments = $common_arguments + array(
     'dependencies' => $term_dependencies,
-    'group' => MigrateGroup::getInstance('terms')
+    'group' => MigrateGroup::getInstance('terms', array(
+      'files'
+    ))
   );
   // Get vocabularies to register the term migrations
   $query = Database::getConnection('default', 'scratchpad_1')->select('vocabulary', 'v');
@@ -448,16 +437,6 @@ function scratchpads_migrate_register_migrations(){
     if(!in_array($type, $source_node_types)){
       continue;
     }
-    // Perform a table check for these nodes to ensure the module is turned on
-    //    if(in_array($type, array(
-    //      'spm',
-    //      'darwincorelocation',
-    //      'darwincore'
-    //    ))){
-    //      if(!scratchpads_migrate_source_table_exists($type)){
-    //        continue;
-    //      }
-    //    }
     if(is_array($mapping)){
       if(isset($mapping['entity_type']) && $mapping['entity_type'] != 'node'){
         // Only do nodes at the moment
@@ -491,6 +470,16 @@ function scratchpads_migrate_register_migrations(){
       $arguments['dependencies'][] = 'Darwincorelocation';
     }
     Migration::registerMigration($arguments['class_name'], $arguments['machine_name'], $arguments);
+    /*********************************************************************************************
+     * Profile
+    ********************************************************************************************/
+    $arguments = array(
+      'description' => t('Migration of profile-only users from Drupal 6'),
+      'machine_name' => 'Profile',
+      'source_type' => 'profile'
+    );
+    $arguments = array_merge_recursive($arguments, $common_node_arguments);
+    Migration::registerMigration('ScratchpadsProfileMigration', $arguments['machine_name'], $arguments);
     /*********************************************************************************************
      * Comments
      ********************************************************************************************/
@@ -560,7 +549,8 @@ function scratchpads_migrate_get_image_gallery_vid(){
 }
 
 function scratchpads_migrate_source_table_exists($table){
-  return Database::getConnection('default', 'scratchpad_1')->schema()->tableExists($table);
+  $query = Database::getConnection('default', 'scratchpad_1')->query("SHOW TABLES LIKE '{$table}'");
+  return $query->rowCount();
 }
 
 function scratchpads_migrate_source_node_types(){
@@ -607,7 +597,7 @@ function scratchpads_migrate_unset_empty_fields($object, $skip = array('uid')){
  */
 function scratchpads_migrate_menu(){
   $items = array();
-  $items['admin/content/migrate/scratchpads'] = array(
+  $items['admin/content/migrate/status'] = array(
     'title' => 'Scratchpads',
     'type' => MENU_LOCAL_TASK,
     'description' => 'View all error messages',
@@ -623,7 +613,14 @@ function scratchpads_migrate_menu(){
 function scratchpads_migrate_status_page(){
   $output = '';
   $migrations = migrate_migrations();
-  foreach($migrations as $migration){
+  //   foreach(array_keys($migrations) as $key){
+  //     if($key == 'FieldVocabularyItisTerm13'){
+  //       continue;
+  //     }
+  //     unset($migrations[$key]);
+  //   }
+  $error = false;
+  foreach($migrations as $migration_name => $migration){
     if(method_exists($migration, 'sourceCount')){
       $total = $migration->sourceCount();
       // If we don't have any records don't validate the migration
@@ -634,17 +631,25 @@ function scratchpads_migrate_status_page(){
     }
     $items = array();
     $has_mappings = method_exists($migration, 'getFieldMappings');
+    $destination = $migration->getDestination();
+    $destination_fields = $destination->fields($migration);
+    $source = $migration->getSource();
+    $source_key = $migration->getMap()->getSourceKey();
+    $source_fields = $source->fields();
     if($has_mappings){
       $field_mappings = $migration->getFieldMappings();
-      $destination = $migration->getDestination();
-      $source = $migration->getSource();
-      $source_key = $migration->getMap()->getSourceKey();
-      $source_fields = $source->fields();
-      $destination_fields = $destination->fields($migration);
+      $mapped_destination_fields = array();
+      $mapped_source_fields = array();
+      foreach(array_keys($source_key) as $key){
+        $mapped_destination_fields[] = $key;
+        $mapped_source_fields[] = $key;
+      }
       foreach($field_mappings as $mapping){
         // Validate source and destination fields actually exist
         $source_field = $mapping->getSourceField();
+        $mapped_source_fields[] = $source_field;
         $destination_field = $mapping->getDestinationField();
+        $mapped_destination_fields[] = $destination_field;
         if(!is_null($source_field) && !isset($source_fields[$source_field])){
           $items[] = t('"!source" was used as source field in the
           "!destination" mapping but is not in list of source fields', array(
@@ -660,6 +665,28 @@ function scratchpads_migrate_status_page(){
           ));
         }
       }
+      // Check for any missing destination fields
+      $unmapped_destination_fields = array_diff(array_keys($destination_fields), $mapped_destination_fields);
+      if(count($unmapped_destination_fields)){
+        foreach($unmapped_destination_fields as $unmapped_destination_field){
+          drupal_set_message(t('Destination field "!migration.!destination" is unmapped', array(
+            '!migration' => $migration_name,
+            '!destination' => $unmapped_destination_field
+          )), 'error');
+          $error = true;
+        }
+      }
+      // Check for any missing source fields
+      $unmapped_source_fields = array_diff(array_keys($source_fields), $mapped_source_fields);
+      if(count($unmapped_source_fields)){
+        foreach($unmapped_source_fields as $unmapped_source_field){
+          drupal_set_message(t('Source field "!migration.!destination" is unmapped', array(
+            '!migration' => $migration_name,
+            '!destination' => $unmapped_source_field
+          )), 'error');
+          $error = true;
+        }
+      }
     }
     if(count($items)){
       $output .= theme('item_list', array(
@@ -668,9 +695,14 @@ function scratchpads_migrate_status_page(){
       ));
     }
   }
-  if(strlen($output) == 0){
+  if($error){
+    $output = "ERRORS";
+  }else if(strlen($output) == 0){
     $output = 'WOOP WOOP WOOP';
   }
   return $output;
 }
 
+function scratchpads_migrate_itis_nid_to_tid(&$destination_values){
+  return $destination_values;
+}

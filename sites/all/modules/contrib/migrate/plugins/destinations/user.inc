@@ -170,7 +170,9 @@ class MigrateDestinationUser extends MigrateDestinationEntity {
           array('!uid' => $account->uid)));
       }
     }
-    else {
+    elseif(isset($account->original)) {
+      $old_account = $account->original;
+    }else{
       $old_account = $account;
     }
 
@@ -228,7 +230,7 @@ class MigrateDestinationUser extends MigrateDestinationEntity {
       $account->login = MigrationBase::timestamp($account->login);
     }
 
-    migrate_instrument_start('user_save');
+    migrate_instrument_start('user_save');    
     $newaccount = user_save($old_account, (array)$account);
     migrate_instrument_stop('user_save');
     if ($newaccount) {

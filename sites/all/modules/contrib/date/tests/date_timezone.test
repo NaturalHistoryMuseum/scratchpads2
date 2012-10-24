@@ -1,5 +1,13 @@
 <?php
+/**
+ * @file
+ * Timezone tests.
+ */
 class DateTimezoneTestCase extends DateFieldBasic {
+
+  /**
+   * @todo.
+   */
   public static function getInfo() {
     return array(
       'name' => 'Timezone & Granularity',
@@ -8,8 +16,12 @@ class DateTimezoneTestCase extends DateFieldBasic {
     );
   }
 
+  /**
+   * @todo.
+   */
   public function testTimezone() {
-    // Create a date fields with combinations of various timezone handling and granularity.
+    // Create a date fields with combinations of various timezone handling and
+    // granularity.
     foreach (array('date', 'datestamp', 'datetime') as $field_type) {
       foreach (array('site', 'none', 'date', 'user', 'utc') as $tz_handling) {
         foreach (array('year', 'month', 'day', 'hour', 'minute', 'second') as $max_granularity) {
@@ -38,6 +50,9 @@ class DateTimezoneTestCase extends DateFieldBasic {
     }
   }
 
+  /**
+   * @todo.
+   */
   public function dateForm($field_name, $field_type, $max_granularity, $tz_handling) {
     variable_set('date_format_long', 'D, m/d/Y - H:i:s');
     $edit = array();
@@ -80,4 +95,3 @@ class DateTimezoneTestCase extends DateFieldBasic {
     $this->assertText($should_be, "Found the correct date for a $field_type field using $max_granularity granularity with $tz_handling timezone handling.");
   }
 }
-
