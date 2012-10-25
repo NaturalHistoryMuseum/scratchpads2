@@ -97,7 +97,8 @@ function emonocot_biblio_get_volume($protologue){
 }
 
 function emonocot_biblio_get_start_page($protologue){
-  $start_page = substr($protologue, strpos($protologue, ':') + 1, strpos($protologue, '(') - strpos($protologue, ':') - 1);
+  $protologue = substr($protologue, strpos($protologue, ':') + 1);
+  $start_page = substr($protologue, 0, strpos($protologue, '(') - strpos($protologue, ':') - 1);
   $start_page = trim($start_page);
   return $start_page;
 }
