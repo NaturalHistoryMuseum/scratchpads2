@@ -181,6 +181,8 @@ function scratchpads_species_access_callback($term, $op = 'overview'){
     )) || scratchpads_blocks_show_placeholders()){
       return user_access('access content');
     }else{ // Check if there is content before displaying these tabs
+      // FIXME: temporarily disable this functionality. See #860
+      return user_access('access content');
       $context = 'species_' . $op;
       if(count($views = scratchpads_species_get_context_views($context))){
         foreach($views as $view_name){
