@@ -94,7 +94,7 @@ class DrupalFieldMigration extends DrupalMigration{
     if($row->type == 'image' || $row->type == 'filefield'){
       $row->field_name = 'field_media';
     }
-    // Need to make sure node reference fields referencing itis terms are chnaged to taxonomy reference fields
+    // Need to make sure node reference fields referencing itis terms are changed to taxonomy reference fields
     if($row->type == 'nodereference'){
       $ref_types = array_filter($row->global_settings['referenceable_types']);
       // Change it to a taxonomy field
