@@ -13,6 +13,8 @@ function _scratchpads_statistics_aggregator_cron(){
   $gbif_registry = GBIFRegistry::singleton();
   // foreach($gbif_registry->getTechnicalInstallations('scratchpad') as
   // $technical_installation){
+  // Start a timer so that we don't go over 60 seconds.
+  $timer = time();
   foreach($gbif_registry->getTechnicalInstallations() as $ti){
     // Get this site from the list of sites.
     //$technical_installation = $technical_installation->getAsArray();
@@ -34,8 +36,8 @@ function _scratchpads_statistics_aggregator_cron(){
         $last_capture = $row->capture;
       }
       // FIXME - Need to add the hash if we need to use it.
-      $data = json_decode(file_get_contents($url . 'stats.json?since=' . $last_capture), TRUE);
-      if($data){
+      $data = @json_decode(@file_get_contents($url . 'stats.json?since=' . $last_capture), TRUE);
+      if($data && is_array($data) && count($data)){
         _scratchpads_statistics_aggregator_insert_data($data);
       }
     }
@@ -46,29 +48,46 @@ function _scratchpads_statistics_aggregator_cron(){
  * Insert the data into the database.
  */
 function _scratchpads_statistics_aggregator_insert_data($data){
+  $query = db_insert('scratchpads_statistics_data')->fields(array(
+    'user',
+    'term',
+    'site',
+    'entity_bundle',
+    'number_created',
+    'number_edited',
+    'number_views',
+    'captured'
+  ));
+  $site = FALSE;
+  $count = 0;
   foreach($data as $record){
+    $count++;
     $user = _scratchpads_statistics_insert_item(array(
       'name' => $record['owner_name'],
       'email' => $record['owner_email']
     ), 'scratchpads_statistics_user', 'email');
-    $site = _scratchpads_statistics_insert_item(array(
-      'title' => $record['title'],
-      'owner' => $user,
-      'url' => $record['url'],
-      'created' => $record['created']
-    ), 'scratchpads_statistics_site', 'url');
+    if(!$site){
+      // For one set of data, we always have the same site, so we can avoid
+      // checking it for every record.
+      $site = _scratchpads_statistics_insert_item(array(
+        'title' => $record['title'],
+        'owner' => $user,
+        'url' => $record['url'],
+        'created' => $record['created']
+      ), 'scratchpads_statistics_site', 'url');
+    }
     $term = _scratchpads_statistics_insert_item(array(
       'term' => $record['term']
     ), 'scratchpads_statistics_term', 'term');
     $entity_bundle = _scratchpads_statistics_insert_item(array(
       'entity' => $record['entity'],
       'bundle' => $record['bundle'],
-      'label' => $record['label']
+      'name' => $record['bundle_label']
     ), 'scratchpads_statistics_entity_bundle', array(
       'entity',
       'bundle'
     ));
-    db_insert('scratchpads_statistics_data')->fields(array(
+    $query->values(array(
       'user' => $user,
       'term' => $term,
       'site' => $site,
@@ -76,9 +95,14 @@ function _scratchpads_statistics_aggregator_insert_data($data){
       'number_created' => $record['number_created'],
       'number_edited' => $record['number_edited'],
       'number_views' => $record['number_views'],
-      'captured' => $record['captured']
-    ))->execute();
+      'captured' => isset($record['captured']) ? $record['captured'] : time()
+    ));
+    if($user == 3 && $term == 1806 && $site == 2 && $entity_bundle == 13){
+      //print_r($record);
+    }
   }
+  //exit();
+  $query->execute();
 }
 
 /**
@@ -87,16 +111,25 @@ function _scratchpads_statistics_aggregator_insert_data($data){
 function _scratchpads_statistics_insert_item($item, $table, $key){
   // Keep a static cache of the users.
   $items = drupal_static(__FUNCTION__, array());
-  $array_key = $key;
-  if(is_array($array_key)){
-    $array_key = implode("|", $array_key);
+  if(is_array($key)){
+    $itemkey = '';
+    foreach($key as $k){
+      $itemkey .= '---' . $item[$k];
+    }
   }else{
+    $itemkey = $item[$key];
     $key = array(
       $key
     );
   }
-  if(@isset($users[$table][$item[$array_key]])){return $items[$table][$item[$array_key]];}
-  drupal_write_record($table, $item, $key);
+  if(@isset($items[$table][$itemkey])){return $items[$table][$itemkey];}
+  $query = db_merge($table);
+  foreach($key as $k){
+    $query->key(array(
+      $k => $item[$k]
+    ));
+  }
+  $output = $query->fields($item)->execute();
   $query = db_select($table, 's')->fields('s', array(
     'id'
   ));
@@ -105,6 +138,9 @@ function _scratchpads_statistics_insert_item($item, $table, $key){
   }
   $col = $query->execute()->fetchCol();
   $id = array_pop($col);
-  $users[$table][$item[$array_key]] = $id;
+  if(!isset($items[$table])){
+    $items[$table] = array();
+  }
+  $items[$table][$itemkey] = $id;
   return $id;
 }
