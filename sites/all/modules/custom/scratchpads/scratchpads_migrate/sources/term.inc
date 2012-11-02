@@ -91,6 +91,7 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
                   $this->addFieldMapping($d7_field . ':create_term')->defaultValue(false);
                 }
               }else{
+                // NB: If this meesage appears AFTER the fields have been added, there's a prob
                 drupal_set_message(t('Unknown node reference field %source_field in vocabulary %vocabulary.', array(
                   '%source_field' => $source_field,
                   '%vocabulary' => $this->destinationVocabulary

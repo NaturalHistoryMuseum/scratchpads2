@@ -381,7 +381,7 @@ function scratchpads_migrate_register_migrations(){
     'scratchpadify',
     'taxonomy'
   ), 'IN');
-  $query->condition('name', 'Image Galleries', '!=');
+  $query->condition('vid', scratchpads_migrate_get_image_gallery_vid(), '!=');
   $query->condition('name', '', '!=');
   $vocabularies = $query->execute();
   foreach($vocabularies as $vocabulary){
