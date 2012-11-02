@@ -255,6 +255,9 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
     $form['create_user_account']['#default_value'] = 1;
     if($user->uid == 1){
       $form['create_user_account']['#disabled'] = true;
+      if (count($form_state['input'])) {
+        $form_state['input']['create_user_account'] = 1;
+      }
     }
   }
   if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){

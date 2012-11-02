@@ -33,7 +33,7 @@ function emonocot_citation_field_default_fields() {
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '1000',
       ),
       'translatable' => '0',
       'type' => 'text',

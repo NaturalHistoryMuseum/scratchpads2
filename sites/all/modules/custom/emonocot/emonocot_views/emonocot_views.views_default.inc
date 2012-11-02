@@ -372,7 +372,7 @@ $handler->display->display_options['fields']['field_usage']['field_api_classes']
 $handler->display->display_options['fields']['field_itis_em_other_ref']['id'] = 'field_itis_em_other_ref';
 $handler->display->display_options['fields']['field_itis_em_other_ref']['table'] = 'field_data_field_itis_em_other_ref';
 $handler->display->display_options['fields']['field_itis_em_other_ref']['field'] = 'field_itis_em_other_ref';
-$handler->display->display_options['fields']['field_itis_em_other_ref']['label'] = 'Protologue Citation';
+$handler->display->display_options['fields']['field_itis_em_other_ref']['label'] = 'Original Publication';
 $handler->display->display_options['fields']['field_itis_em_other_ref']['exclude'] = TRUE;
 $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['alter_text'] = 0;
 $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['make_link'] = 0;
@@ -398,7 +398,7 @@ $handler->display->display_options['fields']['title']['id'] = 'title';
 $handler->display->display_options['fields']['title']['table'] = 'node';
 $handler->display->display_options['fields']['title']['field'] = 'title';
 $handler->display->display_options['fields']['title']['relationship'] = 'field_reference_nid';
-$handler->display->display_options['fields']['title']['label'] = 'Protologue Citation';
+$handler->display->display_options['fields']['title']['label'] = 'Original Publication';
 $handler->display->display_options['fields']['title']['alter']['alter_text'] = 1;
 $handler->display->display_options['fields']['title']['alter']['text'] = '[field_itis_em_other_ref]';
 $handler->display->display_options['fields']['title']['alter']['make_link'] = 0;
