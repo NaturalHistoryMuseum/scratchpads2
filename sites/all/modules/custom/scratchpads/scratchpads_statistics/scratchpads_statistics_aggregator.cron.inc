@@ -28,12 +28,14 @@ function _scratchpads_statistics_aggregator_cron(){
       // Get the SS site for this Scratchpad
       $query = db_select('scratchpads_statistics_data', 'd');
       $query->innerJoin('scratchpads_statistics_site', 's', 'd.site = s.id');
-      $row = $query->fields('s')->condition('url', $url)->range(0, 1)->orderBy('captured', 'DESC')->execute()->fetch();
+      $row = $query->fields('d', array(
+        'captured'
+      ))->condition('url', $url)->range(0, 1)->orderBy('captured', 'DESC')->execute()->fetch();
       $last_capture = 0;
       if($row){
         // We have harvested this site before, all we need is a most recent 
         // capture value.
-        $last_capture = $row->capture;
+        $last_capture = $row->captured;
       }
       // FIXME - Need to add the hash if we need to use it.
       $data = @json_decode(@file_get_contents($url . 'stats.json?since=' . $last_capture), TRUE);
@@ -41,6 +43,8 @@ function _scratchpads_statistics_aggregator_cron(){
         _scratchpads_statistics_aggregator_insert_data($data);
       }
     }
+    // Whoa, we're taking too long, we should stop!
+    if($timer < time() - 60){return;}
   }
 }
 
