@@ -319,6 +319,9 @@ function feeds_xls_redirect_to_populated_file($success, $results, $operations){
  * Callback function to provide the template.
  */
 function feeds_xls_download_template($feeds_importer){
+  // Increase the memory limit
+  ini_set('memory_limit', '1024M');
+  ini_set('max_execution_time', 240);
   if(get_class($feeds_importer->parser) == 'FeedsExcelParser'){
     if(!$feeds_importer->parser->config['no_headers']){
       feeds_xls_download_template_helper($feeds_importer);
