@@ -59,16 +59,14 @@ function _scratchpads_statistics_aggregator_insert_data($data){
     'captured'
   ));
   $site = FALSE;
-  $count = 0;
   foreach($data as $record){
-    $count++;
-    $user = _scratchpads_statistics_insert_item(array(
-      'name' => $record['owner_name'],
-      'email' => $record['owner_email']
-    ), 'scratchpads_statistics_user', 'email');
     if(!$site){
       // For one set of data, we always have the same site, so we can avoid
       // checking it for every record.
+      $user = _scratchpads_statistics_insert_item(array(
+        'name' => $record['owner_name'],
+        'email' => $record['owner_email']
+      ), 'scratchpads_statistics_user', 'email');
       $site = _scratchpads_statistics_insert_item(array(
         'title' => $record['title'],
         'owner' => $user,
@@ -76,6 +74,10 @@ function _scratchpads_statistics_aggregator_insert_data($data){
         'created' => $record['created']
       ), 'scratchpads_statistics_site', 'url');
     }
+    $user = _scratchpads_statistics_insert_item(array(
+      'name' => $record['name'],
+      'email' => $record['email']
+    ), 'scratchpads_statistics_user', 'email');
     $term = _scratchpads_statistics_insert_item(array(
       'term' => $record['term']
     ), 'scratchpads_statistics_term', 'term');
@@ -97,11 +99,7 @@ function _scratchpads_statistics_aggregator_insert_data($data){
       'number_views' => $record['number_views'],
       'captured' => isset($record['captured']) ? $record['captured'] : time()
     ));
-    if($user == 3 && $term == 1806 && $site == 2 && $entity_bundle == 13){
-      //print_r($record);
-    }
   }
-  //exit();
   $query->execute();
 }
 
