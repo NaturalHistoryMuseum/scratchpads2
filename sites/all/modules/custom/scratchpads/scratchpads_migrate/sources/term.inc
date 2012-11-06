@@ -44,7 +44,7 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
       if($this->termNode == 'itis_term'){
         // Add the field_aan_x field
         $aan_field = 'field_aan_' . $vocabulary->vid;
-        $this->addFieldMapping($aan_field, 'field_accepted_name');
+        $this->addFieldMapping($aan_field, 'field_accepted_name')->sourceMigration($arguments['machine_name']);
         $this->addFieldMapping($aan_field . ':source_type')->defaultValue('tid');
         $this->addFieldMapping($aan_field . ':create_term')->defaultValue(false);
         unset($source_fields['field_accepted_name']);
@@ -78,16 +78,20 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
               ));
               break;
             default:
-              // Has this been mapped to a taxonomy term field?
-              // If it has, it was an ITIS term node reference & a straight mapping is allowed
+              // Has this node ref field been mapped to a taxonomy term field?
+              // If it has, it was an ITIS term node reference so we need to map to the term field and set source migration
               if(strpos($destination_fields[$d7_field], 'taxonomy_term_reference')){
-                $this->addFieldMapping($d7_field . ':source_type')->defaultValue('tid');
-                $this->addFieldMapping($d7_field . ':create_term')->defaultValue(false);
-                // TODO - NEED TO MAP NID TO TERM
-                $this->addFieldMapping($d7_field, $source_field)->callbacks(array(
-                  'scratchpads_migrate_itis_nid_to_tid'
-                ));
+                $itis_vocabs = scratchpads_migrate_get_term_vocabularies();
+                $vocabulary = taxonomy_vocabulary_load(key($itis_vocabs));
+                if($vocabulary){
+                  $this->addFieldMapping($d7_field, $source_field)->arguments(array(
+                    'itis_node_ref' => true // Set flag to note this is an itis node ref
+                  ))->sourceMigration(scratchpads_migrate_get_machine_name('Term', $vocabulary->name));
+                  $this->addFieldMapping($d7_field . ':source_type')->defaultValue('tid');
+                  $this->addFieldMapping($d7_field . ':create_term')->defaultValue(false);
+                }
               }else{
+                // NB: If this meesage appears AFTER the fields have been added, there's a prob
                 drupal_set_message(t('Unknown node reference field %source_field in vocabulary %vocabulary.', array(
                   '%source_field' => $source_field,
                   '%vocabulary' => $this->destinationVocabulary
@@ -96,8 +100,12 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
               break;
           }
         }elseif($source_field_type == 'content_taxonomy'){
-          // TODO - Check handling of interlinking reference fields is working!
-          $this->addFieldMapping($d7_field, $source_field);
+          $field = field_read_field($d7_field);
+          $allowed_values = reset($field['settings']['allowed_values']);
+          $vocabulary_name = $allowed_values['vocabulary'];
+          $this->addFieldMapping($d7_field, $source_field)->sourceMigration(scratchpads_migrate_get_machine_name('Term', $vocabulary_name));
+          $this->addFieldMapping($d7_field . ':source_type')->defaultValue('tid');
+          $this->addFieldMapping($d7_field . ':create_term')->defaultValue(false);
         }else{
           $this->addFieldMapping($d7_field, $source_field);
         }
@@ -146,7 +154,7 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
     if(!taxonomy_term_load($row->tid)){
       $term = new StdClass();
       $term->tid = $row->tid;
-      $term->name = 'Stub term: ' . $row->tid;
+      $term->name = 'Presave stub term: ' . $row->tid;
       $term->description = '';
       $term->vid = $row->tid;
       $status = drupal_write_record('taxonomy_term_data', $term);
@@ -191,6 +199,15 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
     $query->addField('a', 'dst');
     $query->condition('a.src', 'taxonomy/term/' . $row->tid);
     $row->path = $query->execute()->fetchField();
+    // Loop through the filed amppaings to check for any itis term nodes
+    $field_mappings = $this->getFieldMappings();
+    foreach($field_mappings as $field_mapping){
+      $arguments = $field_mapping->getArguments();
+      if(is_array($arguments) && count($arguments) && array_key_exists('itis_node_ref', $arguments)){
+        $source_field = $field_mapping->getSourceField();
+        $row->{$source_field} = scratchpads_migrate_itis_noderef_get_tid($row->{$source_field});
+      }
+    }
     scratchpads_migrate_unset_empty_fields($row);
   }
 
@@ -198,5 +215,60 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
     if(method_exists($this->destination, 'postImport')){
       $this->destination->postImport();
     }
+  }
+
+  /**
+   * Build a basic stub node
+   */
+  protected function createStubTerm($tid){
+    // You cannot create new term with a specified TID so create placeholder
+    // And then call taxonomy_term_save() to get the UUID and other defaults populated 
+    $term = new stdClass();
+    $term->name = t('Stub term !source_id', array(
+      '!source_id' => $tid
+    ));
+    $term->tid = $tid;
+    $vocabulary = taxonomy_vocabulary_machine_name_load($this->destinationVocabulary);
+    $term->vid = $vocabulary->vid;
+    $term->vocabulary_machine_name = $vocabulary->machine_name;
+    $status = drupal_write_record('taxonomy_term_data', $term);
+    if($status){
+      taxonomy_term_save($term);
+    }
+    return $status;
+  }
+
+  /**
+   * Create stubs (for node reference fields)
+   */
+  protected function createStub($migration){
+    // Working on creating stubs;
+    // Also need to add the create stub to aan3 fields.
+    // And mapping itis nid to tid
+    // Get source_id from args
+    $args = func_get_args();
+    $tid = $args[1][0];
+    // Check the term doesn't already exist - otherwise as we're passing in nid
+    // and create new, we'll get integrity constraint violations
+    if($this->termExists($tid)){
+      return array(
+        $tid
+      );
+    }else{
+      if($this->createStubTerm($tid)){
+        return array(
+          $tid
+        );
+      }else{
+        return FALSE;
+      }
+    }
+  }
+
+  protected function termExists($tid){
+    $result = db_query('SELECT COUNT(*) FROM {taxonomy_term_data} td WHERE td.tid = :tid', array(
+      ':tid' => $tid
+    ));
+    return $result->fetchField() > 0;
   }
 }

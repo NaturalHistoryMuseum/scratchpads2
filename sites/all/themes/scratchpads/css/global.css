@@ -713,6 +713,25 @@ table.biblio th{
 table.biblio td{
   min-width: 100px;
 }
+
+/* biblio export block */
+#block-scratchpads-biblio-search-search-export {
+  margin-bottom: 1em;
+}
+#block-scratchpads-biblio-search-search-export div.biblio-links-info {
+  float: left;
+  margin: 0 0.5em 0 0;
+}
+#block-scratchpads-biblio-search-search-export ul {
+  margin: 0;
+  padding: 0;
+}
+#block-scratchpads-biblio-search-search-export ul li {
+  margin: 0 0.5em 0 0;
+  padding: 0;
+  float: left;
+}
+
 /****************** BLOG ****************/
 .view-blog-page .views-row-odd,
 .view-blog-page .views-row-even{
