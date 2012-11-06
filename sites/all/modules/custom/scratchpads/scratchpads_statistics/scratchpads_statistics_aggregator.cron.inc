@@ -25,22 +25,24 @@ function _scratchpads_statistics_aggregator_cron(){
       // be an issue when hosting of sites external to the NHM becomes more
       // prevalent).
       $url = $ti->getHomePage();
-      // Get the SS site for this Scratchpad
-      $query = db_select('scratchpads_statistics_data', 'd');
-      $query->innerJoin('scratchpads_statistics_site', 's', 'd.site = s.id');
-      $row = $query->fields('d', array(
-        'captured'
-      ))->condition('url', $url)->range(0, 1)->orderBy('captured', 'DESC')->execute()->fetch();
-      $last_capture = 0;
-      if($row){
-        // We have harvested this site before, all we need is a most recent 
-        // capture value.
-        $last_capture = $row->captured;
-      }
-      // FIXME - Need to add the hash if we need to use it.
-      $data = @json_decode(@file_get_contents($url . 'stats.json?since=' . $last_capture), TRUE);
-      if($data && is_array($data) && count($data)){
-        _scratchpads_statistics_aggregator_insert_data($data);
+      if(!strpos($url, '/s2.')){
+        // Get the SS site for this Scratchpad
+        $query = db_select('scratchpads_statistics_data', 'd');
+        $query->innerJoin('scratchpads_statistics_site', 's', 'd.site = s.id');
+        $row = $query->fields('d', array(
+          'captured'
+        ))->condition('url', $url)->range(0, 1)->orderBy('captured', 'DESC')->execute()->fetch();
+        $last_capture = 0;
+        if($row){
+          // We have harvested this site before, all we need is a most recent 
+          // capture value.
+          $last_capture = $row->captured;
+        }
+        // FIXME - Need to add the hash if we need to use it.
+        $data = @json_decode(@file_get_contents($url . 'stats.json?since=' . $last_capture), TRUE);
+        if($data && is_array($data) && count($data)){
+          _scratchpads_statistics_aggregator_insert_data($data);
+        }
       }
     }
     // Whoa, we're taking too long, we should stop!
