@@ -143,7 +143,7 @@ function scratchpads_front_views_default_views(){
   $handler->display->display_options['arguments']['type']['table'] = 'node';
   $handler->display->display_options['arguments']['type']['field'] = 'type';
   $handler->display->display_options['arguments']['type']['title_enable'] = 1;
-  $handler->display->display_options['arguments']['type']['title'] = 'Recent %1s';
+  $handler->display->display_options['arguments']['type']['title'] = t('Recent %1s');
   $handler->display->display_options['arguments']['type']['default_argument_type'] = 'fixed';
   $handler->display->display_options['arguments']['type']['default_argument_skip_url'] = 0;
   $handler->display->display_options['arguments']['type']['summary']['number_of_records'] = '0';

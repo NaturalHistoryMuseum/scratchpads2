@@ -65,6 +65,9 @@ function feeds_xls_download_populated_template($feeds_importer, $bid = FALSE){
  * Populate the XLS file with data.
  */
 function feeds_xls_populate_template_with_data($feeds_importer, &$context){
+  // Increase the memory limit
+  ini_set('memory_limit', '1024M');
+  ini_set('max_execution_time', 240);
   if(!isset($context['sandbox']['progress'])){
     // Calculate the total number of rows to add to this file.
     // Use the processor class to guess what entity type we're importing (this
@@ -316,6 +319,9 @@ function feeds_xls_redirect_to_populated_file($success, $results, $operations){
  * Callback function to provide the template.
  */
 function feeds_xls_download_template($feeds_importer){
+  // Increase the memory limit
+  ini_set('memory_limit', '1024M');
+  ini_set('max_execution_time', 240);
   if(get_class($feeds_importer->parser) == 'FeedsExcelParser'){
     if(!$feeds_importer->parser->config['no_headers']){
       feeds_xls_download_template_helper($feeds_importer);

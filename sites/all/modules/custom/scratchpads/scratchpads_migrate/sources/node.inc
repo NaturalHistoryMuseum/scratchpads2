@@ -466,8 +466,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
    */
   protected function buildStubNode($migration, $nid){
     $node = new stdClass();
-    $node->title = t('Stub for %source_id', array(
-      '%source_id' => $nid
+    $node->title = t('Stub for !source_id', array(
+      '!source_id' => $nid
     ));
     $node->type = $this->destination->getBundle();
     $node->uid = 0;

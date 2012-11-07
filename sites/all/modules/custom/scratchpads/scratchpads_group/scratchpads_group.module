@@ -26,6 +26,33 @@ function scratchpads_group_node_type_insert($info){
 }
 
 /**
+ * Implements hook_page_alter()
+ */
+function scratchpads_group_page_alter(&$page){
+  if(count($_GET) == 1 && $_GET['q'] == 'group'){
+    // We're on the front page of the "Group content" tab.  We need to show a 
+    // list of all the groups, and also empty some blocks in the sidebar.
+    $number_of_groups = 0;
+    foreach($page['sidebar'] as $key => $value){
+      if($page['sidebar'][$key]['#block']->subject != t('Group')){
+        unset($page['sidebar'][$key]);
+      }else{
+        // The group block - lets check it out to see if we have groups!
+        $number_of_groups = count($page['sidebar'][$key]['content']['im_group_audience']['#items']);
+      }
+      if($number_of_groups){
+        $content = t('Please select a group on the left to filter by.');
+      }else{
+        $content = t('There does not appear to be any content associated with groups on this site.');
+      }
+      $page['content']['system_main']['search_results'] = array(
+        '#markup' => '<p>' . $content . '</p>'
+      );
+    }
+  }
+}
+
+/**
  * Implements hook_meun_alter().
  */
 function scratchpads_group_menu_alter(&$items){

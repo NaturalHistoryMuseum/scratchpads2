@@ -381,7 +381,7 @@ function scratchpads_migrate_register_migrations(){
     'scratchpadify',
     'taxonomy'
   ), 'IN');
-  $query->condition('name', 'Image Galleries', '!=');
+  $query->condition('vid', scratchpads_migrate_get_image_gallery_vid(), '!=');
   $query->condition('name', '', '!=');
   $vocabularies = $query->execute();
   foreach($vocabularies as $vocabulary){
@@ -703,6 +703,16 @@ function scratchpads_migrate_status_page(){
   return $output;
 }
 
-function scratchpads_migrate_itis_nid_to_tid(&$destination_values){
-  return $destination_values;
+/**
+ * The migration field contains the itis NID - need to map it to the tid
+ * @param nid $destination_values
+ * @return tid
+ */
+function scratchpads_migrate_itis_noderef_get_tid($nid){
+  // We know the nid at this point - but we need to get the tid
+  $query = Database::getConnection('default', 'scratchpad_1')->select('term_node', 'tn');
+  $query->addField('tn', 'tid');
+  $query->condition('tn.nid', $nid);
+  $tid = $query->execute()->fetchField();
+  return $tid;
 }

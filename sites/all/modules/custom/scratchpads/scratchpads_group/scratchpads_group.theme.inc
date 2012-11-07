@@ -11,7 +11,8 @@ function theme_scratchpads_group($variables){
     foreach($_GET['f'] as $facet){
       $facet = explode(':', $facet);
       if($facet[0] == 'im_group_audience'){
-        $group_node = node_load($facet[1]);
+        $group_node = og_load($facet[1]);
+        $group_node = node_load($group_node->etid);
       }
     }
   }
