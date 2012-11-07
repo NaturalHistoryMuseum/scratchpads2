@@ -4,6 +4,7 @@
  * Implements hook_init()
  */
 function scratchpads_tweaks_init(){
+  setlocale(LC_ALL, 'C.UTF-8');
   if($_GET['q'] == 'admin/config' && !user_access('scratchpad team')){
     // Set the REQUIREMENT_ERROR variable so that no errors are displayed when
     // viewing the admin/config page as a non-admin user.
@@ -249,10 +250,9 @@ function scratchpads_tweaks_preprocess_comment(&$variables){
 /**
  * Implements hook_preprocess_block
  */
-function scratchpads_preprocess_block(&$variables) {
+function scratchpads_preprocess_block(&$variables){
   $block = $variables['block'];
-  if (preg_match('/^views-front_page_blocks/', $block->bid) &&
-      $block->subject == 'Recent Biblios') {
+  if(preg_match('/^views-front_page_blocks/', $block->bid) && $block->subject == 'Recent Biblios'){
     $block->subject = 'Latest Literature';
   }
 }
