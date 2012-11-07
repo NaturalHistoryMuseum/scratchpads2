@@ -47,7 +47,7 @@ function emonocot_biblio_create_biblio_from_protologue($term){
     $data_array['term_data'] = array(
       'tid' => $term->tid
     );
-    $data_array['title'] = 'Original description of ' . $term->name;
+    $data_array['title'] = 'Original publication of ' . $term->name;
     return emonocot_biblio_create_node($data_array);
   }
   return FALSE; //TODO: Return something meaningful
@@ -97,7 +97,8 @@ function emonocot_biblio_get_volume($protologue){
 }
 
 function emonocot_biblio_get_start_page($protologue){
-  $start_page = substr($protologue, strpos($protologue, ':') + 1, strpos($protologue, '(') - strpos($protologue, ':') - 1);
+  $protologue = substr($protologue, strpos($protologue, ':') + 1);
+  $start_page = substr($protologue, 0, strpos($protologue, '(') - strpos($protologue, ':') - 1);
   $start_page = trim($start_page);
   return $start_page;
 }

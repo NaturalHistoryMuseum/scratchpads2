@@ -188,7 +188,14 @@ function scratchpads_biblio_search_context_default_contexts(){
   );
   $context->reactions = array(
     'block' => array(
-      'blocks' => array()
+      'blocks' => array(
+        'scratchpads_biblio_search-search_export' => array(
+          'module' => 'scratchpads_biblio_search',
+          'delta' => 'search_export',
+          'region' => 'sidebar',
+          'weight' => '-28'
+        )
+      )
     )
   );
   $map = facetapi_get_delta_map();
@@ -400,4 +407,109 @@ function scratchpads_biblio_search_apachesolr_index_document_build(ApacheSolrDoc
       'style_name' => $style
     )));
   }
+}
+
+
+/**
+ * Implements hook_menu
+ */
+function scratchpads_biblio_search_menu() {
+  $items = array();
+  
+  $items['biblio_search_export'] = array(
+    'title' => 'Export',
+    'type' => MENU_CALLBACK,
+    'access callback'   => 'user_access',
+    'access arguments'  => array('show export links'),
+    'page callback' => '_scratchpads_biblio_search_export'
+  );
+  
+  return $items;
+}
+
+/**
+ * Implements hook_block_info
+ */
+function scratchpads_biblio_search_block_info() {
+  return array(
+    'search_export' => array(
+      'info' => t('Display links to export biblio content filtered with Solr facets'),
+      'cache' => DRUPAL_NO_CACHE,
+  ));
+}
+
+/**
+ * Implements hook_block_view
+ */
+function scratchpads_biblio_search_block_view($delta = '') {
+  switch($delta) {
+  case 'search_export':
+    $export_links = module_invoke_all('biblio_export_link', NULL, array());
+    $final_links = array();
+    $is_node = ((arg(0) == 'node') && arg(1));
+    
+    if (!$is_node) {
+      $query = drupal_get_query_parameters();
+      $info = t('Export selection as');
+    } else {
+      $query = NULL;
+      $info = t('Export entry as');
+    }
+    
+    foreach ($export_links as $link) {
+      $options = array(
+        'query' => $query,
+        'attributes' => $link['attributes']
+      );
+      $href = str_replace('biblio/export', 'biblio_search_export', $link['href']);
+      if ($is_node) {
+        $href = preg_replace('/\/?$/', '/' . arg(1), $href);
+      }
+      $final_links[] = l($link['title'], $href, $options);
+    }
+    return array(
+      'subject' => '',
+      'content' => array(
+        'info' => array(
+          '#prefix' => '<div class="biblio-links-info">',
+          '#markup' => $info,
+          '#suffix' => '</div>'
+        ),
+        'links' => array(
+          '#items' => $final_links,
+          '#theme' => 'item_list'
+        )
+      )
+    );
+    break;
+  }
+}
+
+/**
+ * Export filtered biblio entries
+ */
+function _scratchpads_biblio_search_export($format = "tagged", $nid = NULL, $popup = FALSE) {
+  $nids = array();
+  if ($nid) {
+    $nids[] = $nid;
+  } else {
+    $search_page = apachesolr_search_page_load('biblio_search');
+    $search_page->search_path = str_replace('%', '', $search_page->search_path);
+    $conditions = apachesolr_search_conditions_default($search_page);
+    $results = apachesolr_search_search_results('', $conditions, $search_page);
+    
+    foreach ($results as $row) {
+      $nids[] = $row['fields']['entity_id'];
+    }
+  }
+  
+  if (empty($nids)) {
+    return;
+  }
+  
+  module_load_include('inc', 'biblio', 'includes/biblio.contributors');
+  
+  module_invoke('biblio_' . $format, 'biblio_export', $nids);
+  // Not ideal, but as long as poormanscron is enabled, it is best to leave early.
+  exit();
 }
