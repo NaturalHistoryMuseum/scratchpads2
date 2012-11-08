@@ -460,6 +460,13 @@ function scratchpads_media_gallery_field_default_fields(){
           'type' => 'taxonomy_term_reference_csv',
           'weight' => '1'
         ),
+        'file_styles_colorbox' => array(
+          'label' => 'above',
+          'module' => 'taxonomy',
+          'settings' => array(),
+          'type' => 'taxonomy_term_reference_plain',
+          'weight' => 0
+        ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
