@@ -72,15 +72,14 @@ function globalredirect_init() {
   $request_path = globalredirect_request_path();
 
 
-  // Let the locale_language_url_rewrite_url() do it's magic, if preset.
-  // TODO: Is this needed anymore?
-  if (function_exists('locale_language_url_rewrite_url')) {
-    // Note 1 : the locale_language_url_rewrite_url() takes path (by reference)
-    //          as the first argument but does not use it at all
-    // Note 2 : We use $request_path here as we want the path in an untouched
-    //          form (current_path() gets modified by core)
-    locale_language_url_rewrite_url($request_path, $options);
-  }
+  // Allow Drupal to rewrite the URL
+  // Most commonly this will be used to invoke locale_language_url_rewrite_url().
+  // Via the locale_url_outbound_alter() implementation of hook_url_outbound_alter().
+  // NOTE: We use $request_path here as current_path() is $_GET['q'] which gets
+  //       altered by core, whereas $request_path is untouched
+  drupal_alter('url_outbound', $request_path, $options, $request_path);
+
+  // Extract the prefix from the options.
   $prefix = rtrim($options['prefix'], '/');
 
   // Do a check if this is a front page
@@ -127,7 +126,7 @@ function globalredirect_init() {
 
 
   // If the feature is enabled, check and redirect taxonomy/term/* requests to their proper handler defined by hook_term_path().
-  if ($settings['term_path_handler'] && module_exists('taxonomy') && preg_match('/^taxonomy\/term\/([0-9]+)$/', $current_path, $matches)) {
+  if ($settings['term_path_handler'] && module_exists('taxonomy') && preg_match('/taxonomy\/term\/([0-9]+)$/', $current_path, $matches)) {
     // So the feature is enabled, as is taxonomy module and the current request is a taxonomy term page.
     // NOTE: This will only match taxonomy term pages WITHOUT a depth modifier
     $term = taxonomy_term_load($matches[1]);
@@ -343,6 +342,15 @@ function _globalredirect_is_active($settings) {
   }
 
   /**
+   * If we're going to ignore the admin path, return false.
+   * This is added to allow people to continue to get to the 'admin*' paths,
+   * even if the module is misbehaving.
+   */
+  if ($settings['ignore_admin_path'] && (arg(0) == 'admin' || arg(0) == 'batch')) {
+    return FALSE;
+  }
+
+  /**
    * We seem to have passed all the tests - let say we're active
    */
   return TRUE;
@@ -363,6 +371,7 @@ function _globalredirect_get_settings($default_only = FALSE) {
     'content_location_header' => 0,
     'term_path_handler' => 1,
     'frontpage_redirect' => 1,
+    'ignore_admin_path' => 1,
   );
 
   if ($default_only) {
