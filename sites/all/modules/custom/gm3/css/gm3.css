@@ -41,6 +41,13 @@
  padding:0;
  margin:0;
 }
+.gm3_infobubble span.views-label{
+  font-weight: bold;
+  float: left;
+}
+.gm3_infobubble div.field-content {
+  margin-left: 100px;
+}
 .gm3-container{
  padding:0;
  margin:0;

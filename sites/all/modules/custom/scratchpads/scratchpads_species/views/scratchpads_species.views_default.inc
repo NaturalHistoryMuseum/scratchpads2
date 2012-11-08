@@ -1403,7 +1403,7 @@ function scratchpads_species_views_default_views(){
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
-      $handler = $view->new_display('default', 'Master', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Literature';
   $handler->display->display_options['css_class'] = 'grid-8 alpha omega biblio';
   $handler->display->display_options['use_ajax'] = TRUE;
@@ -1421,32 +1421,32 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['style_options']['group_rendered'] = 1;
   $handler->display->display_options['style_options']['columns'] = array(
     'biblio_authors' => 'biblio_authors',
+    'title' => 'title',
     'biblio_year' => 'biblio_year',
-    'title' => 'title'
   );
-  $handler->display->display_options['style_options']['default'] = 'biblio_authors';
+  $handler->display->display_options['style_options']['default'] = 'biblio_year';
   $handler->display->display_options['style_options']['info'] = array(
     'biblio_authors' => array(
-      'sortable' => 1,
+      'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0
-    ),
-    'biblio_year' => array(
-      'sortable' => 1,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
+      'empty_column' => 0,
     ),
     'title' => array(
       'sortable' => 1,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0
-    )
+      'empty_column' => 0,
+    ),
+    'biblio_year' => array(
+      'sortable' => 1,
+      'default_sort_order' => 'desc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0,
+    ),
   );
   $handler->display->display_options['style_options']['override'] = 1;
   $handler->display->display_options['style_options']['sticky'] = 0;

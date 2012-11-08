@@ -301,6 +301,27 @@ function gm3_theme(){
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter().
+ * 
+ * This function ensures the user can only select the "Fields" type for a 
+ * Google map view.
+ */
+function gm3_form_views_ui_add_form_alter(&$form, &$form_state, $form_id){
+  foreach(array(
+    'page',
+    'block'
+  ) as $type){
+    if(@isset($form_state['values'][$type]['style']['style_plugin']) && $form_state['values'][$type]['style']['style_plugin'] == 'gmap'){
+      $form['displays'][$type]['options']['style']['row_plugin'] = array(
+        '#markup' => '<span>' . t('of fields') . '</span>'
+      );
+      unset($form['displays'][$type]['options']['style']['row_options']['comments']);
+      unset($form['displays'][$type]['options']['style']['row_options']['links']);
+    }
+  }
+}
+
+/**
  * Load the geoPHP library.  This could be made optional, as not all features
  * require the library.
  * 
