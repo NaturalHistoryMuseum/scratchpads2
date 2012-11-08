@@ -21,6 +21,29 @@ function scratchpads_file_colorboxed_menu(){
 }
 
 /**
+ * Implements hook_contextual_links_view_alter().
+ */
+function scratchpads_file_colorboxed_contextual_links_view_alter(&$element, $items){
+  if(arg(0) == 'file-colorboxed'){
+    $redirect_to = 'gallery';
+    if(isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER']){
+      // We edit the links so that the edit form does not point back to the popup.
+      // NOTE, this will NOT work with servers that do not have clean urls enabled
+      // FUCK 'EM!
+      $redirect_to = substr($_SERVER['HTTP_REFERER'], strpos($_SERVER['HTTP_REFERER'], '/', 10) + 1);
+    }
+    foreach(array_keys($element['#links']) as $key){
+      $element['#links'][$key]['query'] = array(
+        'destination' => $redirect_to
+      );
+      $element['#links'][$key]['attributes']['class'] = array(
+        'overlay-exclude'
+      );
+    }
+  }
+}
+
+/**
  * Callback for the above menu entry.
  */
 function scratchpads_file_colorboxed_entity_simple_view($fid){
@@ -57,6 +80,7 @@ function scratchpads_file_colorboxed_entity_simple_view($fid){
     $entity
   ), $view_type);
   $image_links = '';
+  //unset($content[1]['#contextual_links']);
   if($entity->type == 'image'){
     $image_user = user_load($entity->uid);
     $image_links = '<p>' . l(t('Download the original'), file_create_url($entity->uri), array(
