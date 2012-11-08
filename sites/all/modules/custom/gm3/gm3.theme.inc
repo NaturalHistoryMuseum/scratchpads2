@@ -196,8 +196,28 @@ function theme_gm3_view_gm3($variables){
   $map = array(
     'libraries' => array()
   );
-  foreach($variables['view']->result as $index => $row){
-    $content = $variables['rows'][$index];
+  // foreach($variables['view']->result as $index => $row){
+  // FIXME - This is not using Views to do the rendering - this needs FIXING HARD!
+  foreach($variables['rows'] as $index => $row){
+    $content = '';
+    foreach($none_geo_fields as $key){
+      if($key == 'title'){
+        // Need a way of setting the title on all entity types.
+        if(isset($row->node_title)){
+          $content .= '<h2>' . $row->node_title . '</h2>';
+        }
+      }else{
+        if(isset($row->{"field_$key"})){
+          foreach($row->{"field_$key"} as $key => $value){
+            if(is_array($value['rendered'])){
+              $content .= drupal_render($value['rendered']);
+            }else{
+              $content .= $value['rendered'];
+            }
+          }
+        }
+      }
+    }
     foreach($geo_fields as $key => $type){
       switch($type){
         case 'gm3_rectangle':
