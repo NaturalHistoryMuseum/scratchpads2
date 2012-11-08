@@ -90,9 +90,12 @@ function _scratchpads_statistics_aggregator_insert_data($data){
       'latitude' => $record['latitude'],
       'longitude' => $record['longitude']
     ), 'scratchpads_statistics_user', 'email');
-    $term = _scratchpads_statistics_insert_item(array(
-      'term' => $record['term']
-    ), 'scratchpads_statistics_term', 'term');
+    $term = 0;
+    if($record['term']){
+      $term = _scratchpads_statistics_insert_item(array(
+        'term' => $record['term']
+      ), 'scratchpads_statistics_term', 'term');
+    }
     $entity_bundle = _scratchpads_statistics_insert_item(array(
       'entity' => $record['entity'],
       'bundle' => $record['bundle'],
