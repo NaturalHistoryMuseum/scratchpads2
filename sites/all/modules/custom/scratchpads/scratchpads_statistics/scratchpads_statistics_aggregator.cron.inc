@@ -71,7 +71,10 @@ function _scratchpads_statistics_aggregator_insert_data($data){
       // checking it for every record.
       $user = _scratchpads_statistics_insert_item(array(
         'name' => $record['owner_name'],
-        'email' => $record['owner_email']
+        'email' => $record['owner_email'],
+        'country' => $record['owner_country'],
+        'latitude' => $record['owner_latitude'],
+        'longitude' => $record['owner_longitude']
       ), 'scratchpads_statistics_user', 'email');
       $site = _scratchpads_statistics_insert_item(array(
         'title' => $record['title'],
@@ -82,7 +85,10 @@ function _scratchpads_statistics_aggregator_insert_data($data){
     }
     $user = _scratchpads_statistics_insert_item(array(
       'name' => $record['name'],
-      'email' => $record['email']
+      'email' => $record['email'],
+      'country' => $record['country'],
+      'latitude' => $record['latitude'],
+      'longitude' => $record['longitude']
     ), 'scratchpads_statistics_user', 'email');
     $term = _scratchpads_statistics_insert_item(array(
       'term' => $record['term']
