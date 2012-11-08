@@ -96,6 +96,14 @@ function globalredirect_settings() {
     '#default_value' => $settings['frontpage_redirect'],
   );
 
+  $form['settings']['ignore_admin_path'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Ignore Admin Path'),
+    '#description' => t('If enabled, any request to the admin section of the site will be ignored by Global Redirect.<br />
+                         This is useful if you are experiencing problems with Global Redirect and want to protect the admin section of your website. NOTE: This may not be desirable if you are using path aliases for certain admin URLs.'),
+    '#default_value' => $settings['ignore_admin_path'],
+  );
+
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#submit' => array('globalredirect_settings_submit_save'),
