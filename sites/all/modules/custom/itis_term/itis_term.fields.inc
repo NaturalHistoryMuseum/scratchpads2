@@ -188,7 +188,7 @@ function itis_term_fields_per_vocabulary(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'taxonomy',
             'settings' => array(),
             'type' => 'taxonomy_term_reference_link',
@@ -255,7 +255,7 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'text',
             'settings' => array(),
             'type' => 'text_default',
@@ -313,7 +313,7 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'text',
             'settings' => array(),
             'type' => 'text_default',
@@ -364,7 +364,7 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'list',
             'settings' => array(),
             'type' => 'list_default',
@@ -423,7 +423,7 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'node_reference',
             'settings' => array(),
             'type' => 'node_reference_default',
@@ -477,7 +477,7 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'list',
             'settings' => array(),
             'type' => 'list_default',
@@ -527,7 +527,7 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'list',
             'settings' => array(),
             'type' => 'list_default',
@@ -577,7 +577,7 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'list',
             'settings' => array(),
             'type' => 'list_default',
@@ -627,7 +627,7 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'list',
             'settings' => array(),
             'type' => 'list_default',
@@ -677,7 +677,7 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'list',
             'settings' => array(),
             'type' => 'list_default',
@@ -734,7 +734,7 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'text',
             'settings' => array(),
             'type' => 'text_default',
@@ -792,7 +792,7 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'text',
             'settings' => array(),
             'type' => 'text_default',
@@ -850,7 +850,7 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'text',
             'settings' => array(),
             'type' => 'text_default',
@@ -908,7 +908,7 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'text',
             'settings' => array(),
             'type' => 'text_default',
@@ -959,7 +959,7 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'list',
             'settings' => array(),
             'type' => 'list_default',
@@ -1016,7 +1016,7 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'text',
             'settings' => array(),
             'type' => 'text_default',
