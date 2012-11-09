@@ -23,9 +23,13 @@ function _scratchpads_autotag_save_defaults_for_node_type($node_type){
     variable_set("tagtag_replace_$node_type", '1');
     variable_set("tagtag_field_$node_type", 'field_taxonomic_name');
     variable_set("tagtag_ui_$node_type", 'tag_on_save');
-    variable_set("tagtag_search_$node_type", array(
+    $value = array(
       'autotag'
-    ));
+    );
+    if($node_type == 'spm'){
+      $value = array();
+    }
+    variable_set("tagtag_search_$node_type", $value);
     $search_fields = array();
     foreach($instances as $key => $instance){
       if(in_array($instance['widget']['module'], array(
