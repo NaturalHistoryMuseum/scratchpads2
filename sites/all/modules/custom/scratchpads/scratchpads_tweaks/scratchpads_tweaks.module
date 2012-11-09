@@ -302,6 +302,17 @@ function scratchpads_tweaks_form_system_theme_settings_submit($form, &$form_stat
   variable_set('resize_logo', $form_state['values']['resize_logo']);
 }
 
+/**
+ * Implements hook_process_page
+ */
+function scratchpads_tweaks_process_page(&$variables){
+  if($_GET['q'] == 'media/browser'){
+    if(@isset($variables['title_suffix']['add_or_remove_shortcut'])){
+      unset($variables['title_suffix']['add_or_remove_shortcut']);
+    }
+  }
+}
+
 function scratchpads_tweaks_taxonomy_description_after_build($element, &$form_state){
   if(@isset($element['format']['format'])){
     foreach($element['#pre_render'] as $key => $value){
