@@ -10,6 +10,13 @@ function scratchpads_tweaks_init(){
     // viewing the admin/config page as a non-admin user.
     define('REQUIREMENT_ERROR', 'Hide requirement error');
   }
+  // Check to see if we're trying to view the admin/appearance/settings/scratchpads
+  // page, and if so we redirect to the general settings page.
+  if($_GET['q'] == 'admin/appearance/settings/scratchpads'){
+    if(!user_access('scratchpad team')){
+      drupal_goto('admin/appearance/settings');
+    }
+  }
 }
 
 /**
@@ -267,6 +274,20 @@ function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
         $form['description']['#after_build'][] = 'scratchpads_tweaks_taxonomy_description_after_build';
       }
       break;
+    case 'system_theme_settings':
+      $form['logo']['resize_logo'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Resize logo.'),
+        '#default_value' => variable_get('resize_logo', 1),
+        '#states' => array(
+          'visible' => array(
+            ':input[name="default_logo"]' => array(
+              'checked' => FALSE
+            )
+          )
+        )
+      );
+      $form['#submit'][] = 'scratchpads_tweaks_form_system_theme_settings_submit';
     default:
       // Only use the "comment_filtered_html" input type for comment bodies!
       if(substr($form_id, 0, 8) == 'comment_'){
@@ -275,6 +296,10 @@ function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
         }
       }
   }
+}
+
+function scratchpads_tweaks_form_system_theme_settings_submit($form, &$form_state){
+  variable_set('resize_logo', $form_state['values']['resize_logo']);
 }
 
 function scratchpads_tweaks_taxonomy_description_after_build($element, &$form_state){
