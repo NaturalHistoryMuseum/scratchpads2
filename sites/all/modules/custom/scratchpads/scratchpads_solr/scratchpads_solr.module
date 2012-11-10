@@ -241,13 +241,8 @@ function scratchpads_solr_theme(){
  */
 function scratchpads_solr_page_alter(&$page){
   // FIXME - Here we should add the empty results themes (if they're required).
-  try{
-    if(isset($page['content']['system_main']['search_results']['#theme'])){
-      $page['content']['system_main']['search_results']['#theme'] = 'scratchpads_solr_search';
-    }
-  }
-  catch(Exception $e){
-    ;
+  if(@isset($page['content']['system_main']['search_results']['#theme'])){
+    $page['content']['system_main']['search_results']['#theme'] = 'scratchpads_solr_search';
   }
 }
 

@@ -12,6 +12,7 @@ function scratchpads_multilingual_multilingual_settings_changed(){
     $negotiation_all = language_negotiation_info();
     $negotiation = array(
       'locale-session' => $negotiation_all['locale-session'],
+      'locale-user' => $negotiation_all['locale-user'],
       'language-default' => $negotiation_all['language-default']
     );
     language_negotiation_set('language', $negotiation);

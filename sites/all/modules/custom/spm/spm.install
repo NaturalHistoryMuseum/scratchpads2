@@ -107,3 +107,10 @@ function spm_update_7006(){
   );
   field_update_instance($field_instance);
 }
+
+/**
+ * Set the Autotag options so that this content type is NOT autotaged.
+ */
+function spm_update_7007(){
+  variable_set('tagtag_search_spm', array());
+}

@@ -1,5 +1,5 @@
-name = "Scratchpads Localisation"
-description = "Provides multilingual localisation of the user interface"
+name = "Interface Language"
+description = "Provides and allows for the translation of the user interface"
 configure = admin/config/regional
 
 core = "7.x"

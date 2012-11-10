@@ -12,3 +12,12 @@ function scratchpads_biblio_update_7001(){
     'title' => $blank
   ))->condition('type', 'biblio')->condition('title', '')->execute();
 }
+
+/**
+ * Set the field_file field to allow extra extensions (images).
+ */
+function scratchpads_biblio_update_7002(){
+  $field_instance = field_info_instance('node', 'field_file', 'biblio');
+  $field_instance['settings']['file_extensions'] = 'txt pdf doc png jpg gif';
+  field_update_instance($field_instance);
+}

@@ -279,3 +279,19 @@ function scratchpads_media_gallery_update_7005(){
     field_update_instance($field_instance);
   }
 }
+
+/**
+ * Update the image instance of the field_taxonomic_name field to set it to
+ * display in the colorbox style.
+ */
+function scratchpads_media_gallery_update_7006(){
+  $field_instance = field_info_instance('file', 'field_taxonomic_name', 'image');
+  $field_instance['display']['file_styles_colorbox'] = array(
+    'label' => 'above',
+    'module' => 'taxonomy',
+    'settings' => array(),
+    'type' => 'taxonomy_term_reference_plain',
+    'weight' => 0
+  );
+  field_update_instance($field_instance);
+}

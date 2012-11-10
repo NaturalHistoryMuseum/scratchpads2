@@ -1,12 +1,8 @@
 <?php
 global $base_url;
-//define('EMONOCOT_QUERY_URL', 'http://apps.kew.org/wcsTaxonExtractor/endpoint?scratchpad=' . urlencode($base_url) . '&function=search&search=');
-//define('EMONOCOT_REQUEST_URL', 'http://apps.kew.org/wcsTaxonExtractor/endpoint?function=details_tcs&id=%s&scratchpad=' . str_replace('%', '%%', urlencode($base_url)));
-define('EMONOCOT_QUERY_URL', 'http://build.e-monocot.org/uat/portal/endpoint?scratchpad=' . urlencode($base_url) . '&function=search&search=');
-//define('EMONOCOT_REQUEST_URL', 'http://build.e-monocot.org/uat/portal/endpoint?function=details_tcs&id=%s&scratchpad=' . str_replace('%', '%%', urlencode($base_url)));
-define('EMONOCOT_REQUEST_URL', 'http://build.e-monocot.org/uat/portal//endpoint?function=details_tcs&id=%s&scratchpad=' . str_replace('%', '%%', urlencode($base_url)));
-//define('EMONOCOT_QUERY_URL', 'http://test.e-monocot.org/wcsTaxonExtractor/endpoint?scratchpad=' . urlencode($base_url) . '&function=search&search=');
-//define('EMONOCOT_REQUEST_URL', 'http://test.e-monocot.org/wcsTaxonExtractor/endpoint?function=details_tcs&id=%s&scratchpad=' . str_replace('%', '%%', urlencode($base_url)));
+define('EMONOCOT_QUERY_URL', ' http://e-monocot.org/endpoint?scratchpad=' . urlencode($base_url) . '&function=search&search=');
+define('EMONOCOT_REQUEST_URL', ' http://e-monocot.org/endpoint?function=details_tcs&id=%s&scratchpad=' . str_replace('%', '%%', urlencode($base_url)));
+
 
 /**
  * Implementation of hook_classification_import_form

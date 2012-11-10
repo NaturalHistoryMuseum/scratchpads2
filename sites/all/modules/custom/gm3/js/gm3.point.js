@@ -63,18 +63,18 @@
         this.clusterer.repaint();
         break;
       case 'click':
-        switch(event_object.getClass()){
-          case 'Map':
-            if(this.GM3.active_class == 'point') {
+        if (this.GM3.active_class == 'point') {
+          switch(event_object.getClass()){
+            case 'Map':
               this.add_marker(event.latLng, true, true);
               if(this.update_field) {
                 this.update_field();
               }
-            }
-            break;
-          case 'Marker':
-            this.GM3.message(event_object.position.toString(), 'status', 10000);
-            break;
+              break;
+            case 'Marker':
+              this.GM3.message(event_object.position.toString(), 'status', 10000);
+              break;
+          }
         }
         break;
       case 'rightclick':

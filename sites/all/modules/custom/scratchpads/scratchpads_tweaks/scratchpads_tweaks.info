@@ -82,7 +82,6 @@ dependencies[] = scratchpads_width_and_height
 
 ; Custom modules
 dependencies[] = eol
-dependencies[] = eolapi
 dependencies[] = eol_gbif_maps
 dependencies[] = hashcash
 dependencies[] = silver
