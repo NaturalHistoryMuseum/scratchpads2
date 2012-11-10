@@ -600,12 +600,9 @@ function scratchpads_migrate_source_table_exists($table){
 
 function scratchpads_migrate_source_node_exists($nid){
   $query = Database::getConnection('default', 'scratchpad_1')->select('node', 'n');
-  $query->addField('n', 'nid');
+  $query->addExpression('COUNT(*)');
   $query->condition('nid', $nid);
-  
-  dd($query->rowCount());
-  
-  return $query->rowCount() > 0;
+  return $query->execute()->fetchField() > 0;
 }
 
 function scratchpads_migrate_source_node_types(){
@@ -668,9 +665,6 @@ function scratchpads_migrate_menu(){
 }
 
 function scratchpads_migrate_status_page(){
-  
-  scratchpads_migrate_source_node_exists(12020200);
-  
   $output = '';
   $migrations = migrate_migrations();
   //   foreach(array_keys($migrations) as $key){
