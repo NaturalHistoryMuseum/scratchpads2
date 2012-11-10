@@ -87,7 +87,7 @@ class DrupalFieldMigration extends DrupalMigration{
       if(isset($mapping['fields']) && isset($mapping['fields'][$row->field_name])){
         $row->field_name = $mapping['fields'][$row->field_name];
       }
-    }else{
+    }elseif(!isset($row->entity_type)){
       $row->entity_type = 'node';
     }
     // We want all image fields to use the media field

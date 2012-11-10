@@ -49,6 +49,9 @@ class DrupalFieldContentProfileMigration extends DrupalFieldMigration{
    * Implementation of Migration::prepareRow().
    */
   public function prepareRow($row){
+    
+    $row->entity_type = 'user';
+    
     if(parent::prepareRow($row) === FALSE){return FALSE;}
     // D7 has user picture, so we'll use that for images
     if($row->widget_module == 'imagefield'){

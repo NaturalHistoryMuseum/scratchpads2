@@ -10,14 +10,16 @@ class ScratchpadsProfileMigration extends ScratchpadsNodeMigration{
   public function sourceFieldList(){
     $fields = parent::sourceFieldList();
     $fields['location_country'] = t("Country (derived from associated location node)");
-    // Merge in the actual profile fields
-    $query = Database::getConnection('default', $this->sourceConnection)->select('profile_fields', 'pf');
-    $query->fields('pf', array(
-      'name',
-      'title'
-    ));
-    $query->condition('pf.name', array_keys(DrupalFieldProfileMigration::getFieldNameMappings()), 'NOT IN');
-    $fields += $query->execute()->fetchAllKeyed();
+    if(scratchpads_migrate_source_table_exists('profile_fields')){
+      // Merge in the actual profile fields
+      $query = Database::getConnection('default', $this->sourceConnection)->select('profile_fields', 'pf');
+      $query->fields('pf', array(
+        'name',
+        'title'
+      ));
+      $query->condition('pf.name', array_keys(DrupalFieldProfileMigration::getFieldNameMappings()), 'NOT IN');
+      $fields += $query->execute()->fetchAllKeyed();
+    }
     return $fields;
   }
 
@@ -69,7 +71,7 @@ class ScratchpadsProfileMigration extends ScratchpadsNodeMigration{
           $this->addFieldMapping($key, $key);
         }elseif(strpos($key, 'profile') !== false){ // Profile fields are prefixed with profile
           $this->addFieldMapping('field_' . $key, $key);
-        }        
+        }
       }
     }
     $this->addFieldMapping('name', 'title');
