@@ -526,9 +526,6 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       // Check the node exists in the source database
       // There's a lot of nodes still referenced by NIDs which have been deleted
       if(scratchpads_migrate_source_node_exists($nid)){
-        
-        dd("EXISTS:". $nid);
-        
         $node = $this->buildStubNode($migration, $nid);
         node_save($node);
         if(isset($node->nid)){return array(
