@@ -38,6 +38,7 @@ files[] = sources/file.inc
 files[] = sources/image.inc
 files[] = sources/image_gallery.inc
 files[] = sources/forum.inc
+files[] = sources/language.inc
 files[] = sources/node.inc
 files[] = sources/node_blog.inc
 files[] = sources/node_countriesmap.inc
@@ -50,6 +51,7 @@ files[] = sources/profile.inc
 files[] = sources/path_redirect.inc
 files[] = sources/term.inc
 files[] = sources/user.inc
+files[] = sources/user_picture.inc
 files[] = sources/variable.inc
 files[] = sources/vocabulary.inc
 

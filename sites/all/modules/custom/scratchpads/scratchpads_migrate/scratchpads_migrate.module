@@ -29,6 +29,7 @@ global $s1_domain;
 // The domain of this site should be s2.blah-blah, so we remove the first three
 // characters.
 $s1_domain = substr(parse_url($base_url, PHP_URL_HOST), 3);
+$s1_domain = 'sciaroidea.info';
 // $s1_domain = 'arcticplants.myspecies.info';
 $filename = '/var/aegir/scratchpad_1_db_settings/' . $s1_domain . '.scratchpad_1.php';
 if(file_exists($filename)){
@@ -79,6 +80,14 @@ function scratchpads_migrate_register_migrations(){
       ));
     }
   }
+  // Enable the lexicon module if glossary module is installed
+  if(scratchpads_migrate_source_module_exists('glossary')){
+    if(!module_exists('scratchpads_lexicon')){
+      module_enable(array(
+        'scratchpads_lexicon'
+      ));
+    }
+  }
   // The database connection to the Scratchpad 1 site.
   $common_arguments = array(
     'source_connection' => 'scratchpad_1',
@@ -103,12 +112,44 @@ function scratchpads_migrate_register_migrations(){
   );
   Migration::registerMigration('VariableMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
+   * Multi language
+  ********************************************************************************************/
+  if(scratchpads_migrate_source_table_exists('languages')){
+    // Firstly, we ensure that the locale module is enabled.
+    if(!module_exists('scratchpads_multilingual')){
+      module_enable(array(
+        'scratchpads_multilingual'
+      ));
+    }
+    $arguments = $common_arguments + array(
+      'description' => t('Migration of languages from Drupal 6'),
+      'machine_name' => 'Language',
+      'group' => MigrateGroup::getInstance('setup'),
+      'dependencies' => array(
+        'Variable'
+      )
+    );
+    Migration::registerMigration('LanguageMigration', $arguments['machine_name'], $arguments);
+  }
+  /*********************************************************************************************
+   * User pictures
+  ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of user pictures from Drupal 6'),
+    'machine_name' => 'UserPicture',
+    'group' => MigrateGroup::getInstance('setup')
+  );
+  Migration::registerMigration('ScratchpadsUserPictureMigration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
      * User
     ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of users from Drupal 6'),
     'machine_name' => 'User',
-    'group' => MigrateGroup::getInstance('setup')
+    'group' => MigrateGroup::getInstance('setup'),
+    'dependencies' => array(
+      'UserPicture'
+    )
   );
   Migration::registerMigration('ScratchpadsUserMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
@@ -312,7 +353,8 @@ function scratchpads_migrate_register_migrations(){
     'description' => t('Migration of image galleries from Drupal 6'),
     'machine_name' => 'ImageGallery',
     'dependencies' => array(
-      'User'
+      'User',
+      'Language'
     ),
     'group' => MigrateGroup::getInstance('files')
   );
@@ -324,7 +366,8 @@ function scratchpads_migrate_register_migrations(){
     'description' => t('Migration of files from Drupal 6'),
     'machine_name' => 'File',
     'dependencies' => array(
-      'User'
+      'User',
+      'Language'
     ),
     'group' => MigrateGroup::getInstance('files')
   );
@@ -337,7 +380,8 @@ function scratchpads_migrate_register_migrations(){
     'machine_name' => 'Image',
     'dependencies' => array(
       'User',
-      'ImageGallery'
+      'ImageGallery',
+      'Language'
     ),
     'group' => MigrateGroup::getInstance('files')
   );
@@ -354,8 +398,9 @@ function scratchpads_migrate_register_migrations(){
       'FieldGroup',
       'User',
       'Vocabulary',
-      'File',
-      'Image'
+      'File', 
+      'Image',
+      'Language'
     ),
     'group' => MigrateGroup::getInstance('content', array(
       'terms'
@@ -574,7 +619,8 @@ function scratchpads_migrate_get_machine_name($type, $name){
   $name = str_replace(array(
     '(',
     ')',
-    '/'
+    '/',
+    '\''
   ), '', $name);
   return $type . $name;
 }
@@ -715,4 +761,77 @@ function scratchpads_migrate_itis_noderef_get_tid($nid){
   $query->condition('tn.nid', $nid);
   $tid = $query->execute()->fetchField();
   return $tid;
+}
+
+function scratchpads_migrate_source_module_exists($module){
+  // We know the nid at this point - but we need to get the tid
+  $query = Database::getConnection('default', 'scratchpad_1')->select('system', 's');
+  $query->addExpression('COUNT(*)');
+  $query->condition('name', $module);
+  $query->condition('type', 'module');
+  $query->condition('status', 1);
+  return $query->execute()->fetchField();
+}
+
+/**
+ * Field APi doesn't allow you to update field entity type
+ * Clone of field_update_field() with the entity type check removed
+ */
+function scratchpads_migrate_update_field_entity_type($field){
+  // Check that the specified field exists.
+  $prior_field = field_read_field($field['field_name']);
+  if(empty($prior_field)){throw new FieldException('Attempt to update a non-existent field.');}
+  // Use the prior field values for anything not specifically set by the new
+  // field to be sure that all values are set.
+  $field += $prior_field;
+  $field['settings'] += $prior_field['settings'];
+  // Some updates are always disallowed.
+  if($field['type'] != $prior_field['type']){throw new FieldException("Cannot change an existing field's type.");}
+  if($field['storage']['type'] != $prior_field['storage']['type']){throw new FieldException("Cannot change an existing field's storage type.");}
+  // Collect the new storage information, since what is in
+  // $prior_field may no longer be right.
+  module_load_install($field['module']);
+  $schema = (array)module_invoke($field['module'], 'field_schema', $field);
+  $schema += array(
+    'columns' => array(),
+    'indexes' => array()
+  );
+  // 'columns' are hardcoded in the field type.
+  $field['columns'] = $schema['columns'];
+  // 'indexes' can be both hardcoded in the field type, and specified in the
+  // incoming $field definition.
+  $field += array(
+    'indexes' => array()
+  );
+  $field['indexes'] += $schema['indexes'];
+  $has_data = field_has_data($field);
+  // See if any module forbids the update by throwing an exception.
+  foreach(module_implements('field_update_forbid') as $module){
+    $function = $module . '_field_update_forbid';
+    $function($field, $prior_field, $has_data);
+  }
+  // Tell the storage engine to update the field. Do this before
+  // saving the new definition since it still might fail.
+  $storage_type = field_info_storage_types($field['storage']['type']);
+  module_invoke($storage_type['module'], 'field_storage_update_field', $field, $prior_field, $has_data);
+  // Save the new field definition. @todo: refactor with
+  // field_create_field.
+  // The serialized 'data' column contains everything from $field that does not
+  // have its own column and is not automatically populated when the field is
+  // read.
+  $data = $field;
+  unset($data['columns'], $data['field_name'], $data['type'], $data['locked'], $data['module'], $data['cardinality'], $data['active'], $data['deleted']);
+  // Additionally, do not save the 'bundles' property populated by
+  // field_info_field().
+  unset($data['bundles']);
+  $field['data'] = $data;
+  // Store the field and create the id.
+  $primary_key = array(
+    'id'
+  );
+  drupal_write_record('field_config', $field, $primary_key);
+  // Clear caches
+  field_cache_clear(TRUE);
+  // Invoke external hooks after the cache is cleared for API consistency.
+  module_invoke_all('field_update_field', $field, $prior_field, $has_data);
 }

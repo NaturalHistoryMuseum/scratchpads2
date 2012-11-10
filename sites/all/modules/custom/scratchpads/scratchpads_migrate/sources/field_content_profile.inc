@@ -24,7 +24,7 @@ class DrupalFieldContentProfileMigration extends DrupalFieldMigration{
     parent::__construct($arguments);
     // Map to user:user entity
     $this->removeFieldMapping('entity_type');
-    $this->addFieldMapping('entity_type')->defaultValue('user');
+    $this->addFieldMapping('entity_type', 'entity_type')->defaultValue('user');
     $this->removeFieldMapping('bundle');
     $this->addFieldMapping('bundle')->defaultValue('user');
   }

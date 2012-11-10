@@ -24,6 +24,9 @@ class ScratchpadsUserMigration extends DrupalUser6Migration{
     $this->addFieldMapping('legal_accept')->defaultValue(1);
     //Keep UID
     $this->addFieldMapping('uid', 'uid');
+    // Handle picture
+    $this->removeFieldMapping('picture');
+    $this->addFieldMapping('picture', 'picture')->sourceMigration('UserPicture');
   }
 
   /**

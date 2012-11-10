@@ -31,12 +31,13 @@ class VariableMigration extends DrupalMigration{
    */
   public function variableNames(){
     $variable_names = array(
-    	'site_type' => 'site_type',
+      'site_type' => 'site_type',
       'site_name' => 'site_name',
       'site_mail' => 'site_mail',
-    	'site_slogan' => 'site_slogan',
+      'site_slogan' => 'site_slogan',
       'site_frontpage' => 'site_frontpage',
-      'site_mission' => 'front_page_welcome_message'
+      'site_mission' => 'front_page_welcome_message',
+      'language_default' => 'language_default'
     );
     $default_theme = Database::getConnection('default', 'scratchpad_1')->select('variable', 'v')->fields('v', array(
       'value'
@@ -44,6 +45,12 @@ class VariableMigration extends DrupalMigration{
     if($default_theme){
       $theme_var = 'theme_' . unserialize($default_theme) . '_settings';
       $variable_names[$theme_var] = $theme_var;
+    }
+    $result = Database::getConnection('default', 'scratchpad_1')->select('filters', 'f')->fields('f', array(
+      'format'
+    ))->distinct()->execute();
+    foreach($result as $record){
+      $variable_names['glossary_vids_' . $record->format] = 'lexicon_vids';
     }
     return $variable_names;
   }

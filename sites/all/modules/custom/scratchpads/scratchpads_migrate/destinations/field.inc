@@ -85,10 +85,16 @@ class MigrateDestinationField extends MigrateDestination{
             )
           );
         }else{
-          drupal_set_message(t('Unknown vocabulary for !field_name (field.inc:88).', array(
+          drupal_set_message(t('Unknown vocabulary !vid for !bundle:!field_name (field.inc:88).', array(
+            '!vid' => $vid,
+            '!bundle' => $object->bundle,
             '!field_name' => $object->field_name
           )), 'error');
         }
+        break;
+      case 'node_reference':
+        $field_instance['widget']['type'] = 'node_reference_autocomplete';
+        $field_instance['widget']['module'] = 'node_reference';
         break;
     }
     switch($field_instance['widget']['type']){
@@ -110,6 +116,23 @@ class MigrateDestinationField extends MigrateDestination{
             $field_instance['widget']['settings'][$new_setting] = $field_instance['widget']['settings'][$old_setting];
           }
         }
+        // Set default display settings
+        $field_instance['display'] = array(
+          'default' => array(
+            'label' => 'above',
+            'module' => 'file',
+            'settings' => array(),
+            'type' => 'styles_file_medium',
+            'weight' => 2
+          ),
+          'teaser' => array(
+            'label' => 'above',
+            'module' => 'file',
+            'settings' => array(),
+            'type' => 'styles_file_thumbnail',
+            'weight' => 2
+          )
+        );
         break;
       case 'content_taxonomy_autocomplete':
         $field_config['module'] = 'taxonomy';
@@ -128,18 +151,30 @@ class MigrateDestinationField extends MigrateDestination{
         $field_instance['widget']['module'] = 'options';
         // Parse allowed values into
         if(isset($field_config['settings']['allowed_values'])){
-          $allowed_values = explode(PHP_EOL, $field_config['settings']['allowed_values']);
+          if(!is_array($field_config['settings']['allowed_values'])){
+            $allowed_values = explode(PHP_EOL, $field_config['settings']['allowed_values']);
+          }else{
+            $allowed_values = $field_config['settings']['allowed_values'];
+          }
           $allowed_values = str_replace(array(
+            "<p>", // FFS!!!! Some muppets have wrapped <p> tags around allowed values!! Strip them out
+            "</p>",
             "\r",
             "\r\n",
             "\n"
           ), '', $allowed_values);
+          foreach($allowed_values as $delta => $allowed_value){
+            if(empty($allowed_value)){
+              unset($allowed_values[$delta]);
+            }
+          }
           $field_config['settings']['allowed_values'] = array_combine($allowed_values, $allowed_values);
         }
         break;
     }
     // Fix missing max length bug
-    if(isset($field_config['settings']['max_length']) && empty($field_config['settings']['max_length'])){
+    // ERROR: Invalid field/widget combination: The field 'field_page' in the bundle 'citation' is an unlimited length field using a textfield widget, not allowed in D7. The field length will be set to 255.
+    if($field_config['type'] == 'text' && $field_instance['widget']['type'] != 'text_textarea' && isset($field_config['settings']['max_length']) && empty($field_config['settings']['max_length'])){
       $field_config['settings']['max_length'] = 256;
     }
     // Only create if the field does not already exist
@@ -167,6 +202,12 @@ class MigrateDestinationField extends MigrateDestination{
       catch(FieldException $e){
         throw new MigrateException($e->getMessage());
         return false;
+      }
+    }else{
+      // Need to ensure this entity type is allowed in the field settings
+      if(!in_array($object->entity_type, $field['entity_types'])){
+        $field['entity_types'][] = $object->entity_type;
+        scratchpads_migrate_update_field_entity_type($field);
       }
     }
     if(isset($field_instance['widget']['settings']['default_value'])){

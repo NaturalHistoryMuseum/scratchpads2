@@ -154,6 +154,10 @@ class DrupalImageMigration extends DrupalFileMigration{
     ));
     $query->orderBy('f.fid');
     $query->condition('filemime', $this->imageFileMime(), 'IN');
+    $query->condition('filename', array(
+      'thumbnail',
+      'preview'
+    ), 'NOT IN');
     return $query;
   }
 
@@ -166,6 +170,10 @@ class DrupalImageMigration extends DrupalFileMigration{
     $query = Database::getConnection('default', $this->sourceConnection)->select('files', 'f');
     $query->addExpression('COUNT(DISTINCT(f.fid))');
     $query->condition('filemime', $this->imageFileMime(), 'IN');
+    $query->condition('filename', array(
+      'thumbnail',
+      'preview'
+    ), 'NOT IN');
     return $query;
   }
 
@@ -196,7 +204,6 @@ class DrupalImageMigration extends DrupalFileMigration{
       $row->vid = 0;
     }
     $this->nodeMigration->prepareRow($row);
-    dd($row);
   }
 
   public function prepare($file, $row){

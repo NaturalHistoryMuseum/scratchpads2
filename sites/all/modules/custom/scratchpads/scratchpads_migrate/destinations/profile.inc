@@ -5,6 +5,7 @@ class MigrateDestinationScratchpadsProfile extends MigrateDestinationScratchpads
   public function fields($migration = NULL){
     $fields = array();
     $fields['name'] = t("Name");
+    $fields['mail'] = t("Email");
     $fields['uid'] = t("User ID");
     $fields['created'] = t("Created");
     $fields['legal_accept'] = t("Legal accept");
@@ -32,6 +33,10 @@ class MigrateDestinationScratchpadsProfile extends MigrateDestinationScratchpads
     // If we have remove the UID
     $users_with_profiles = variable_get('migrate_user_profiles', array());
     if($row->uid && !in_array($row->uid, $users_with_profiles) && $user = user_load($row->uid)){
+      // Do not overwrite the user email address with one from the profile
+      if(isset($user->mail) && !empty($user->mail)){
+        unset($account->mail);
+      }
       $account->original = $user;
       $account->uid = $user->uid;
       $account->name = $user->name;
