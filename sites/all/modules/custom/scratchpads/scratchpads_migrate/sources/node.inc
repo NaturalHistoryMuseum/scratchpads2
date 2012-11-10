@@ -187,7 +187,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
               }
               // Get the source migration
               $referenceable_types = array_filter($field['settings']['referenceable_types']);
-              $sourceMigration = ucfirst(current($referenceable_types));              
+              $sourceMigration = ucfirst(current($referenceable_types));
               // We don't care about the node type - just need to specify any node migration to use to create a stub
               $this->addFieldMapping($destination_field, $delta)->sourceMigration(array(
                 $sourceMigration
@@ -523,15 +523,16 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         $nid
       );
     }else{
-      $node = $this->buildStubNode($migration, $nid);
-      node_save($node);
-      if(isset($node->nid)){
-        return array(
-          $node->nid
-        );
-      }else{
-        return FALSE;
+      // Check the node exists in the source database
+      // There's a lot of nodes still referenced by NIDs which have been deleted
+      if(scratchpads_migrate_source_node_exists($nid)){
+        $node = $this->buildStubNode($migration, $nid);
+        node_save($node);
+        if(isset($node->nid)){return array(
+            $node->nid
+          );}
       }
+      return FALSE;
     }
   }
 

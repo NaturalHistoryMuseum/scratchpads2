@@ -598,6 +598,13 @@ function scratchpads_migrate_source_table_exists($table){
   return $query->rowCount();
 }
 
+function scratchpads_migrate_source_node_exists($nid){
+  $query = Database::getConnection('default', 'scratchpad_1')->select('node', 'n');
+  $query->addField('n', 'nid');
+  $query->condition('nid', $nid);
+  return $query->rowCount() > 0;
+}
+
 function scratchpads_migrate_source_node_types(){
   $query = Database::getConnection('default', 'scratchpad_1')->select('node_type', 'nt');
   $query->addField('nt', 'type');
@@ -617,6 +624,7 @@ function scratchpads_migrate_get_machine_name($type, $name){
   $name = ucwords($name);
   $name = str_replace(' ', '', $name);
   $name = str_replace(array(
+    '-',  
     '(',
     ')',
     '/',
