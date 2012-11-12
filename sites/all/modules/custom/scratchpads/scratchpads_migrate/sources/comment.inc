@@ -15,6 +15,9 @@ class ScratchpadsCommentMigration extends DrupalComment6Migration{
       'comment_body:language',
       'path'
     ));
+    $this->addUnmigratedSources(array(
+      'format'
+    ));
   }
 
   public function prepareRow($row){

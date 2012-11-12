@@ -49,6 +49,10 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       if(isset($this->manualFieldMapping[$field_name])){
         return $this->manualFieldMapping[$field_name];
       }else{
+        // Check if a lower case version of the field mapping exists
+        foreach(array_keys($this->manualFieldMapping) as $field_mapping){
+          if($field_name == strtolower($field_mapping)){return $this->manualFieldMapping[$field_mapping];}
+        }
         return false;
       }
     }else{
@@ -69,7 +73,15 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $this->destination = new ScratchpadsMigrateDestinationNode($this->destinationType);
     $destination_fields = $this->destination->fields();
     $fields = $this->sourceFieldList();
-    $fields += $this->getManualFieldMapping();
+    // Add the manual field mappings to the fields array
+    // We can't just use $fields += $this->getManualFieldMapping(); here
+    // As SPM has uppercase field name problems
+    foreach($this->getManualFieldMapping() as $delta => $field_mapping){
+      $lc_delta = strtolower($delta);
+      if(!array_key_exists($lc_delta, $fields)){
+        $fields[$lc_delta] = $field_mapping;
+      }
+    }
     foreach($fields as $delta => $field){
       // Numeric keys are vocabulary fields
       if(is_numeric($delta)){
@@ -169,11 +181,24 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
                 'field_media:source_dir'
               ));
               break;
+            case 'node_reference':
+              if(!$destination_field = $this->getManualFieldMapping($delta)){
+                $destination_field = $delta;
+              }
+              // Get the source migration
+              $referenceable_types = array_filter($field['settings']['referenceable_types']);
+              $sourceMigration = ucfirst(current($referenceable_types));
+              // We don't care about the node type - just need to specify any node migration to use to create a stub
+              $this->addFieldMapping($destination_field, $delta)->sourceMigration(array(
+                $sourceMigration
+              ));
+              break;
             default:
               // Special use case for taxonomicname field - (darwincore)
               // Need to add taxonomicname field to biologicalClassifications array
               if($delta == 'taxonomicname'){
                 $this->biologicalClassifications[] = $delta;
+                $field_name = 'field_taxonomic_name';
                 // If we already have a mapped biological classification, add as
                 // unmapped source, we'll merge in perpareRow
                 if(count($this->biologicalClassifications) > 1){
@@ -195,7 +220,6 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
               if(!$destination_field = $this->getManualFieldMapping($delta)){
                 $destination_field = $delta;
               }
-              $delta = strtolower($delta);
               $this->addFieldMapping($destination_field, $delta);
               foreach(array(
                 'format' => 'filtered_html',
@@ -344,7 +368,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     // Extract any files
     foreach($this->getLongTextFields() as $longTextField){
       if(isset($row->{$longTextField})){
-        $row->{$longTextField} = ScratchpadsNodeMigration::parseImages($row->{$longTextField});
+        $row->{$longTextField} = ScratchpadsNodeMigration::parseImages($row->{$longTextField}, $row);
       }
     }
     // Is there a menu item for this node?
@@ -379,10 +403,11 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     }
   }
 
-  public static function parseImages($html){
+  public static function parseImages($html, $row){
     if(strpos($html, '<img') !== false){
       try{
         $dom = new DOMDocument();
+        $html = mb_convert_encoding($html, 'html-entities', 'utf-8');
         $dom->loadHTML($html);
         $dom->normalizeDocument();
         $items = $dom->getElementsByTagName('img');
@@ -392,7 +417,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
           if($parent_node->tagName == 'a'){
             $href = $parent_node->getAttribute('href');
             if(strpos($href, 'files') !== false){
-              if($new_href = ScratchpadsNodeMigration::saveFile($href)){
+              if($new_href = ScratchpadsNodeMigration::saveFile($href, $row->uid)){
                 $new_href .= '?width=600&height=600';
                 $parent_node->removeAttribute('href');
                 $parent_node->setAttribute('href', $new_href);
@@ -401,7 +426,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
             }
           }
           $src = $items->item($i)->getAttribute('src');
-          if($new_href = ScratchpadsNodeMigration::saveFile($src)){
+          if($new_href = ScratchpadsNodeMigration::saveFile($src, $row->uid)){
             $items->item($i)->removeAttribute('src');
             $items->item($i)->setAttribute('src', $new_href);
           }
@@ -419,8 +444,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   /**
    * Copy across a file
    */
-  public static function saveFile($src){
-    global $s1_domain;
+  public static function saveFile($src, $uid){
+    global $s1_domain, $user;
     $parsed_url = parse_url($src);
     // If this is an external file, leave it alone
     if(isset($parsed_url['host']) && $parsed_url['host'] != $s1_domain){return;}
@@ -430,9 +455,13 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     if(file_exists($destination)){
       $html_img_src = $destination;
     }else if($file_contents = @file_get_contents($source)){
+      // Aaargh nasty hackery so the created file inherits the UID of the person who created the node
+      $user->uid = $uid;
       if($file = file_save_data($file_contents, $destination, FILE_EXISTS_REPLACE)){
         $html_img_src = $destination;
       }
+      // Change back to user 1
+      $user->uid = 1;
     }
     if(isset($html_img_src)){
       return ScratchpadsNodeMigration::fileCreateUrl($html_img_src);
@@ -494,15 +523,16 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         $nid
       );
     }else{
-      $node = $this->buildStubNode($migration, $nid);
-      node_save($node);
-      if(isset($node->nid)){
-        return array(
-          $node->nid
-        );
-      }else{
-        return FALSE;
+      // Check the node exists in the source database
+      // There's a lot of nodes still referenced by NIDs which have been deleted
+      if(scratchpads_migrate_source_node_exists($nid)){
+        $node = $this->buildStubNode($migration, $nid);
+        node_save($node);
+        if(isset($node->nid)){return array(
+            $node->nid
+          );}
       }
+      return FALSE;
     }
   }
 

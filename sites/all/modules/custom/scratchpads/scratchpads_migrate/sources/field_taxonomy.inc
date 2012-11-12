@@ -92,6 +92,15 @@ class DrupalFieldTaxonomyMigration extends DrupalMigration{
    * Generate a field name from the vocabulary name
    */
   static public function getFieldName($name){
-    return 'field_' . preg_replace('/[^a-z0-9]/', '_', strtolower($name));
+    $field_name = 'field_' . preg_replace('/[^a-z0-9]/', '_', strtolower($name));
+    
+    // Field anme can't be longer than 32 chars
+    if(strlen($field_name) > 32){
+      $field_name = substr($field_name, 0, 32);
+    }
+    
+    return $field_name;
+    
+    
   }
 }

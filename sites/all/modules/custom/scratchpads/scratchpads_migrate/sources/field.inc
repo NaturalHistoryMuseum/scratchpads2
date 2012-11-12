@@ -87,7 +87,7 @@ class DrupalFieldMigration extends DrupalMigration{
       if(isset($mapping['fields']) && isset($mapping['fields'][$row->field_name])){
         $row->field_name = $mapping['fields'][$row->field_name];
       }
-    }else{
+    }elseif(!isset($row->entity_type)){
       $row->entity_type = 'node';
     }
     // We want all image fields to use the media field
@@ -115,6 +115,30 @@ class DrupalFieldMigration extends DrupalMigration{
         $row->type = 'content_taxonomy';
         $row->module = 'content_taxonomy';
         $row->global_settings = array();
+      }else{
+        $referenceable_types = array_filter($row->global_settings['referenceable_types']);
+        $referenceable_types_count = count($referenceable_types);
+        // Do we not have any referencable types and a view is defined
+        if($referenceable_types_count == 0 && isset($row->global_settings['advanced_view']) && $row->global_settings['advanced_view'] != '--'){
+          switch($row->global_settings['advanced_view']){
+            case 'biblio_nodes':
+              $row->global_settings['referenceable_types']['biblio'] = 'biblio';
+              break;
+            default:
+              drupal_set_message(t('ERROR: Node reference field !type:!field_name using views - requires manual intervention', array(
+                '!type' => $row->type_name,
+                '!field_name' => $row->field_name
+              )), 'error');
+              break;
+          }
+        }elseif($referenceable_types_count > 1){
+          drupal_set_message(t('ERROR: Node reference field !type:!field_name has multiple node types - requires manual intervention', array(
+            '!type' => $row->type_name,
+            '!field_name' => $row->field_name
+          )), 'error');
+        }
+        // Always unset advanced view here - if we have one with a ref typ we don't want it
+        unset($row->global_settings['advanced_view']);
       }
     }
     // Does an instance of this field already exists?

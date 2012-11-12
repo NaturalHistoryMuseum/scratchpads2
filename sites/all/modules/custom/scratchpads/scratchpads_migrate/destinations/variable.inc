@@ -40,6 +40,13 @@ class MigrateDestinationVariable extends MigrateDestination{
           }
         }
       }
+    }elseif($map[$row->name] == 'lexicon_vids'){
+      $unserialized_value = unserialize($row->value);
+      if(!empty($unserialized_value)){
+        $lexicon_vids = variable_get($row->name, array());
+        $lexicon_vids += $unserialized_value;
+        variable_set($map[$row->name], $lexicon_vids);
+      }
     }else{
       variable_set($map[$row->name], unserialize($row->value));
     }
@@ -58,7 +65,7 @@ class MigrateDestinationVariable extends MigrateDestination{
 
   public function rollback(array $ids){
     // We don't do anything here.  Once variables are set, they're set and have
-  // overridden the previous value that may or may not have been set.  We can
-  // not simply delete the variable.
+    // overridden the previous value that may or may not have been set.  We can
+    // not simply delete the variable.
   }
 }

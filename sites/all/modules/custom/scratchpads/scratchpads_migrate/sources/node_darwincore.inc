@@ -51,14 +51,6 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
       'earliestdatecollected' => 'field_date_collected'
     );
     parent::__construct($arguments);
-    foreach(array(
-      'field_taxonomic_name:source_type' => 'tid',
-      'field_taxonomic_name:create_term' => false
-    ) as $subfield => $default_value){
-      if(!array_key_exists($subfield, $this->fieldMappings)){
-        $this->addFieldMapping($subfield)->defaultValue($default_value);
-      }
-    }
     // Add location
     $this->addFieldMapping('field_location', 'locationnode')->sourceMigration('Darwincorelocation');
     // There isn't a media field

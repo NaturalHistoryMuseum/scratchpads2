@@ -121,5 +121,9 @@ class ScratchpadsNodeDarwincorelocationMigration extends ScratchpadsNodeMigratio
         $row->location_latlong = $location->latitude . ',' . $location->longitude;
       }
     }
+    // If lat/long is 0 remove the field so we don't get an empty map
+    if($row->location_latlong == '0.000000,0.000000'){
+      unset($row->location_latlong);
+    }
   }
 }

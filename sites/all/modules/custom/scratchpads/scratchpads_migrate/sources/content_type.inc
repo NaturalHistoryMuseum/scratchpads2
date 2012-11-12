@@ -49,6 +49,10 @@ class DrupalContentTypeMigration extends DrupalMigration{
     foreach($term_nodes as $term_node){
       $mappings[$term_node] = MIGRATE_NONE; // do not migrate
     }
+    // If the user has no itis_term vocabularies, need to manually add itis term
+    if(!array_key_exists('itis_term', $mappings)){
+      $mappings['itis_term'] = MIGRATE_NONE;
+    }
     if($type){
       if(isset($mappings[$type])){
         return $mappings[$type];
@@ -98,7 +102,7 @@ class DrupalContentTypeMigration extends DrupalMigration{
       'help'
     ));
     // BUG FIX: removed, we do want node types even if there's no nodes
-		// $query->innerJoin('node', 'n', 'n.type = nt.type');
+    // $query->innerJoin('node', 'n', 'n.type = nt.type');
     $query->groupBy('nt.type');
     $query->condition('nt.module', 'node');
     $query->condition('nt.type', array_keys($this->getContentTypeMappings()), 'NOT IN');

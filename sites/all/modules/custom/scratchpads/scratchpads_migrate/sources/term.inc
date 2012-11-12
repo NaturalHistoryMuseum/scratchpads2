@@ -64,48 +64,46 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
         // If this is a node reference field add a source migration to use for
         // stubs
         if($source_field_type == 'nodereference'){
-          switch($source_field){
-            case 'field_reference':
-            case 'field_type_references':
-            case 'field_type_action_ref':
+          // Has this node ref field been mapped to a taxonomy term field?
+          // If it has, it was an ITIS term node reference so we need to map to the term field and set source migration
+          if(strpos($destination_fields[$d7_field], 'taxonomy_term_reference')){
+            $itis_vocabs = scratchpads_migrate_get_term_vocabularies();
+            $vocabulary = taxonomy_vocabulary_load(key($itis_vocabs));
+            if($vocabulary){
+              $this->addFieldMapping($d7_field, $source_field)->arguments(array(
+                'itis_node_ref' => true // Set flag to note this is an itis node ref
+              ))->sourceMigration(scratchpads_migrate_get_machine_name('Term', $vocabulary->name));
+              $this->addFieldMapping($d7_field . ':source_type')->defaultValue('tid');
+              $this->addFieldMapping($d7_field . ':create_term')->defaultValue(false);
+            }
+          }else{
+            $field = field_info_field($d7_field);
+            if($field){
+              $referenceable_types = array_filter($field['settings']['referenceable_types']);
+              $sourceMigration = ucfirst(current($referenceable_types));
               $this->addFieldMapping($d7_field, $source_field)->sourceMigration(array(
-                'Biblio'
+                $sourceMigration
               ));
-              break;
-            case 'field_type_specimen':
-              $this->addFieldMapping($d7_field, $source_field)->sourceMigration(array(
-                'Darwincore'
-              ));
-              break;
-            default:
-              // Has this node ref field been mapped to a taxonomy term field?
-              // If it has, it was an ITIS term node reference so we need to map to the term field and set source migration
-              if(strpos($destination_fields[$d7_field], 'taxonomy_term_reference')){
-                $itis_vocabs = scratchpads_migrate_get_term_vocabularies();
-                $vocabulary = taxonomy_vocabulary_load(key($itis_vocabs));
-                if($vocabulary){
-                  $this->addFieldMapping($d7_field, $source_field)->arguments(array(
-                    'itis_node_ref' => true // Set flag to note this is an itis node ref
-                  ))->sourceMigration(scratchpads_migrate_get_machine_name('Term', $vocabulary->name));
-                  $this->addFieldMapping($d7_field . ':source_type')->defaultValue('tid');
-                  $this->addFieldMapping($d7_field . ':create_term')->defaultValue(false);
-                }
-              }else{
-                // NB: If this meesage appears AFTER the fields have been added, there's a prob
-                drupal_set_message(t('Unknown node reference field %source_field in vocabulary %vocabulary.', array(
-                  '%source_field' => $source_field,
-                  '%vocabulary' => $this->destinationVocabulary
-                )), 'error');
-              }
-              break;
+            }else{
+              drupal_set_message(t('Could not load node reference destination field %d7_field in vocabulary %vocabulary. This is only an issue after fields have been added.', array(
+                '%d7_field' => $d7_field,
+                '%vocabulary' => $this->destinationVocabulary
+              )), 'error');
+            }
           }
         }elseif($source_field_type == 'content_taxonomy'){
           $field = field_read_field($d7_field);
-          $allowed_values = reset($field['settings']['allowed_values']);
-          $vocabulary_name = $allowed_values['vocabulary'];
-          $this->addFieldMapping($d7_field, $source_field)->sourceMigration(scratchpads_migrate_get_machine_name('Term', $vocabulary_name));
-          $this->addFieldMapping($d7_field . ':source_type')->defaultValue('tid');
-          $this->addFieldMapping($d7_field . ':create_term')->defaultValue(false);
+          if($field){
+            $allowed_values = reset($field['settings']['allowed_values']);
+            $vocabulary_name = $allowed_values['vocabulary'];
+            $this->addFieldMapping($d7_field, $source_field)->sourceMigration(scratchpads_migrate_get_machine_name('Term', $vocabulary_name));
+            $this->addFieldMapping($d7_field . ':source_type')->defaultValue('tid');
+            $this->addFieldMapping($d7_field . ':create_term')->defaultValue(false);
+          }else{
+            drupal_set_message(t('Missing destination term field !field. This is only a problem if the message still exists after fields have been created', array(
+              '!field' => $d7_field
+            )), 'warning');
+          }
         }else{
           $this->addFieldMapping($d7_field, $source_field);
         }
