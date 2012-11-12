@@ -1392,6 +1392,12 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
   $handler->display->display_options['filters']['type']['value'] = array(
     $bundle => $bundle
   );
+  /* Filter criterion: File: Path */
+  $handler->display->display_options['filters']['uri']['id'] = 'uri';
+  $handler->display->display_options['filters']['uri']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['uri']['field'] = 'uri';
+  $handler->display->display_options['filters']['uri']['operator'] = 'not';
+  $handler->display->display_options['filters']['uri']['value'] = '/eolapi/';
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
   $handler->display->display_options['path'] = $base_path . '/' . $bundle;
