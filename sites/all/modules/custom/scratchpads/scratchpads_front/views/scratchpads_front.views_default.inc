@@ -340,6 +340,12 @@ function scratchpads_front_views_default_views(){
   $handler->display->display_options['filters']['uri']['field'] = 'uri';
   $handler->display->display_options['filters']['uri']['operator'] = 'not';
   $handler->display->display_options['filters']['uri']['value'] = '/eolapi/';
+  /* Filter criterion: File: Path */
+  $handler->display->display_options['filters']['uri_1']['id'] = 'uri_1';
+  $handler->display->display_options['filters']['uri_1']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['uri_1']['field'] = 'uri';
+  $handler->display->display_options['filters']['uri_1']['operator'] = 'not';
+  $handler->display->display_options['filters']['uri_1']['value'] = '/pictures/';
   /* Display: Latest images */
   $handler = $view->new_display('block', 'Latest images', 'block_1');
   $views['front_page_slideshow'] = $view;
