@@ -12,7 +12,7 @@ function scratchpads_tweaks_init(){
   }
   // Check to see if we're trying to view the admin/appearance/settings/scratchpads
   // page, and if so we redirect to the general settings page.
-  if($_GET['q'] == 'admin/appearance/settings/scratchpads'){
+  if($_GET['q'] == 'admin/appearance/settings/scratchpads' || $_GET['q'] == 'admin/appearance/settings/scratchpads_em'){
     if(!user_access('scratchpad team')){
       drupal_goto('admin/appearance/settings');
     }
