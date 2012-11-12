@@ -29,7 +29,7 @@ global $s1_domain;
 // The domain of this site should be s2.blah-blah, so we remove the first three
 // characters.
 $s1_domain = substr(parse_url($base_url, PHP_URL_HOST), 3);
-$s1_domain = 'sciaroidea.info';
+$s1_domain = 'guaminsects.myspecies.info';
 // $s1_domain = 'arcticplants.myspecies.info';
 $filename = '/var/aegir/scratchpad_1_db_settings/' . $s1_domain . '.scratchpad_1.php';
 if(file_exists($filename)){
@@ -398,7 +398,7 @@ function scratchpads_migrate_register_migrations(){
       'FieldGroup',
       'User',
       'Vocabulary',
-      'File', 
+      'File',
       'Image',
       'Language'
     ),
@@ -612,6 +612,12 @@ function scratchpads_migrate_source_node_types(){
   return $query->execute()->fetchCol();
 }
 
+function scratchpads_migrate_source_biological_classifications(){
+  $query = Database::getConnection('default', 'scratchpad_1')->select('scratchpads_migrate_biological_classification', 'b');
+  $query->addField('b', 'vid');
+  return $query->execute()->fetchCol();
+}
+
 function scratchpads_migrate_get_class_name($machine_name){
   return 'Drupal' . $machine_name . 'Migration';
 }
@@ -624,7 +630,7 @@ function scratchpads_migrate_get_machine_name($type, $name){
   $name = ucwords($name);
   $name = str_replace(' ', '', $name);
   $name = str_replace(array(
-    '-',  
+    '-',
     '(',
     ')',
     '/',
