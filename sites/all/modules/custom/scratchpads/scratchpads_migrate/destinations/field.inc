@@ -63,6 +63,12 @@ class MigrateDestinationField extends MigrateDestination{
       'type' => $object->type,
       'required' => $object->required
     );
+    // Make any alterations priot to calling drupal_later
+    switch($field_config['type']){
+      case 'date':
+        $field_instance['default_value'] = $field_instance['widget_settings']['default_value'];
+        break;
+    }
     // Instance alterations
     drupal_alter('content_migrate_instance', $field_instance, $field_config);
     // Let content migrate module change all the field settings for D7 
@@ -171,6 +177,15 @@ class MigrateDestinationField extends MigrateDestination{
           $field_config['settings']['allowed_values'] = array_combine($allowed_values, $allowed_values);
         }
         break;
+      case 'date_popup':
+        if(!module_exists('date_popup')){
+          module_enable(array(
+            'date_popup'
+          ));
+          _field_info_collate_types(TRUE);
+          _field_info_collate_fields(TRUE);
+        }
+        break;
     }
     // Fix missing max length bug
     // ERROR: Invalid field/widget combination: The field 'field_page' in the bundle 'citation' is an unlimited length field using a textfield widget, not allowed in D7. The field length will be set to 255.
@@ -211,7 +226,11 @@ class MigrateDestinationField extends MigrateDestination{
       }
     }
     if(isset($field_instance['widget']['settings']['default_value'])){
-      $field_instance['default_value'] = array_shift($field_instance['widget']['settings']['default_value'][0]);
+      if(is_array($field_instance['widget']['settings']['default_value'])){
+        $field_instance['default_value'] = array_shift($field_instance['widget']['settings']['default_value'][0]);
+      }else if(is_string($field_instance['widget']['settings']['default_value'])){
+        $field_instance['default_value'] = $field_instance['widget']['settings']['default_value'];
+      }
     }
     try{
       $field_instance = field_create_instance($field_instance);

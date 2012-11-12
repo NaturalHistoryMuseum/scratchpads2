@@ -116,6 +116,12 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
     return $query;
   }
 
+  protected function countQuery(){
+    $query = parent::countQuery();
+    $query->innerJoin('darwincore', 'd', 'd.vid = n.vid');
+    return $query;
+  }
+
   public function prepareRow($row){
     parent::prepareRow($row);
     foreach($this->termMappings as $delta => $term_mapping){

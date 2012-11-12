@@ -62,7 +62,6 @@ class ScratchpadsNodeDarwincorelocationMigration extends ScratchpadsNodeMigratio
   }
 
   protected function nodeQuery(){
-    // Only import nodes which are in the forum vocab
     $query = parent::nodeQuery();
     $query->innerJoin('darwincorelocation', 'dl', 'dl.vid = n.vid');
     $query->fields('dl', array(
@@ -82,6 +81,11 @@ class ScratchpadsNodeDarwincorelocationMigration extends ScratchpadsNodeMigratio
       'mindepth',
       'maxdepth'
     ));
+    return $query;
+  }
+  protected function countQuery(){
+    $query = parent::countQuery();
+    $query->innerJoin('darwincorelocation', 'dl', 'dl.vid = n.vid');
     return $query;
   }
 
