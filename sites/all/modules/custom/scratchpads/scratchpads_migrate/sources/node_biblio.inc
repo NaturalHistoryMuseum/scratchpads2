@@ -77,6 +77,13 @@ class ScratchpadsNodeBiblioMigration extends ScratchpadsNodeMigration{
     while($record = $result->fetchAssoc()){
       $row->biblio_contributors[] = $record;
     }
+    // Biblio abstracts are filtered html
+    if(isset($row->biblio_abst_e)){
+      $row->biblio_abst_e = array(
+        'value' => $row->biblio_abst_e,
+        'format' => 'filtered_html'
+      );
+    }
   }
 
   protected function buildStubNode($migration, $nid){

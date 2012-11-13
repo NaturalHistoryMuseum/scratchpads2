@@ -114,6 +114,7 @@ class MigrateDestinationField extends MigrateDestination{
         $field_instance['widget']['module'] = 'node_reference';
         break;
     }
+    // Make alterations based on widget type
     switch($field_instance['widget']['type']){
       case 'image':
         $field_instance['widget']['type'] = 'media_generic';
@@ -162,8 +163,20 @@ class MigrateDestinationField extends MigrateDestination{
         );
         break;
       case 'options_select':
-        $field_config['module'] = 'list';
-        $field_config['type'] = 'list_text';
+      case 'options_buttons':
+      case 'options_onoff':
+        switch($field_config['type']){
+          case 'number_integer':
+            $field_config['type'] = 'list_integer';
+            break;
+          case 'number_float':
+          case 'number_decimal':
+            $field_config['type'] = 'list_float';
+            break;
+          default:
+            $field_config['type'] = 'list_text';
+            break;
+        }
         $field_instance['widget']['type'] = 'options_select';
         $field_instance['widget']['module'] = 'options';
         // Parse allowed values into
