@@ -83,7 +83,18 @@ class MigrateDestinationField extends MigrateDestination{
         break;
       case 'content_taxonomy':
         $vid = $object->widget_settings['vid'];
-        if($vocabulary = taxonomy_vocabulary_load($vid)){
+        // If VID is 0 the d6 field is set to ANY
+        // This isn't an option in D7 - so load all taxonomy VIDs and set as allowed values
+        if($vid == 0){
+          $field_config['settings']['allowed_values'] = array();
+          $vocabularies = taxonomy_vocabulary_load_multiple(FALSE);
+          foreach($vocabularies as $vid => $vocabulary){
+            $field_config['settings']['allowed_values'][$vid] = array(
+              'vocabulary' => $vocabulary->machine_name,
+              'parent' => 0
+            );
+          }
+        }else if($vocabulary = taxonomy_vocabulary_load($vid)){
           $field_config['settings']['allowed_values'] = array(
             array(
               'vocabulary' => $vocabulary->machine_name,

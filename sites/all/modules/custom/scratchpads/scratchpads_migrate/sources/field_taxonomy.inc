@@ -82,10 +82,9 @@ class DrupalFieldTaxonomyMigration extends DrupalMigration{
     }
     if(!isset($row->entity_type)){
       $row->entity_type = 'node';
-    }    
-    if(field_read_instance($row->entity_type, $row->field_name, $row->type)){ // Instance already exists, so skip it
-      return false;
     }
+    if(field_read_instance($row->entity_type, $row->field_name, $row->type)){      // Instance already exists, so skip it
+return false;}
   }
 
   /**
@@ -93,14 +92,10 @@ class DrupalFieldTaxonomyMigration extends DrupalMigration{
    */
   static public function getFieldName($name){
     $field_name = 'field_' . preg_replace('/[^a-z0-9]/', '_', strtolower($name));
-    
     // Field anme can't be longer than 32 chars
     if(strlen($field_name) > 32){
       $field_name = substr($field_name, 0, 32);
     }
-    
     return $field_name;
-    
-    
   }
 }
