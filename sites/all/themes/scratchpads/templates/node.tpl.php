@@ -1,6 +1,4 @@
 <article<?php print $attributes; ?>>
-  <?php print $user_picture; ?>
-  
   <?php if ($title): ?>
   <header>
     <?php print render($title_prefix); ?>
@@ -23,7 +21,7 @@
     ?>
   </div>
     <?php if ($display_submitted): ?>
-  <footer class="submitted"><?php print $date; ?> -- <?php print $name; ?></footer>
+  <footer class="submitted"><?php print $date; ?> -- <?php print $name . $user_picture; ?></footer>
   <?php endif; ?> 
   
   <div class="clearfix">
