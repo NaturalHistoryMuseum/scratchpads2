@@ -66,7 +66,7 @@ function scratchpads_width_and_height_theme_image($variables){
     'alt',
     'title'
   ) as $key){
-    if(isset($variables[$key])){
+    if(isset($variables[$key]) && !isset($attributes[$key])){
       $attributes[$key] = $variables[$key];
     }
   }
