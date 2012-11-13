@@ -593,6 +593,10 @@ h2.site-name {
   text-align: right;
 }
 
+.node .submitted .user-picture{
+  display:inline;
+}
+
 /* STRIPY DIV GROUPS */
 
 .node .stripy-div-group{
