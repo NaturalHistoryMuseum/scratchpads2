@@ -112,7 +112,7 @@ class DrupalNode6Migration extends DrupalNodeMigration {
                             ->fields('f', array($field_field))
                             ->condition('vid', $row->vid)
                             ->execute()
-                            ->fetchField();
+                            ->fetchCol();
         // Allow for field-type translation
         $method = "handle_type_$field_type";
         if (method_exists($this, $method)) {
@@ -123,6 +123,13 @@ class DrupalNode6Migration extends DrupalNodeMigration {
         if (method_exists($this, $method)) {
           $row->$field_name = $this->$method($row->$field_name);
         }
+        
+        if(count($row->$field_name) == 1){
+          $row->$field_name = current($row->$field_name);
+        }elseif(count($row->$field_name) == 0){
+          $row->$field_name = NULL;
+        }
+        
       }
       else if ($field_type != 'taxonomy_term') {
         // Only report once per field type
