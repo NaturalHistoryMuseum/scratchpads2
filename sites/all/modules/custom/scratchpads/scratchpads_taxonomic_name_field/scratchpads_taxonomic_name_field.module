@@ -102,7 +102,6 @@ function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed 
   }
   drupal_json_output($term_matches);
 }
-
 // -- Update the field functions ----------------------------------------------
 /**
  * Implementation of hook_taxonomy_vocabulary_insert().
@@ -196,7 +195,6 @@ function scratchpads_taxonomic_name_field_cron(){
   }
   field_update_field($field);
 }
-
 // -- End of Update the field functions-----------------------------------------
 /**
  * Implements hook_form_alter()
@@ -278,8 +276,8 @@ function scratchpads_taxonomic_name_field_facetapi_default_facet_settings(){
       ),
       'sort_weight' => array(
         'active' => -50,
-        'count' => -49,
-        'display' => -48
+        'display' => -49,
+        'count' => -48
       ),
       'sort_order' => array(
         'active' => 3,
@@ -295,6 +293,24 @@ function scratchpads_taxonomic_name_field_facetapi_default_facet_settings(){
       'show_expanded' => 0
     );
     $facets[$facet_id] = $facet;
+    $facet = new stdClass();
+    $facet->disabled = FALSE; /* Edit this to true to make a default facet disabled initially */
+    $facet->api_version = 1;
+    $facet->name = 'apachesolr@solr::' . $facet_id;
+    $facet->searcher = 'apachesolr@solr';
+    $facet->realm = '';
+    $facet->facet = $facet_id;
+    $facet->enabled = FALSE;
+    $facet->settings = array(
+      'operator' => 'and',
+      'hard_limit' => '-1',
+      'dependencies' => array(),
+      'facet_mincount' => 1,
+      'facet_missing' => 0,
+      'flatten' => 0,
+      'query_type' => 'term'
+    );
+    $facets[$facet_id . '_global'] = $facet;
   }
   return $facets;
 }
