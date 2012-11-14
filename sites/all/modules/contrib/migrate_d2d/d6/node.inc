@@ -104,15 +104,26 @@ class DrupalNode6Migration extends DrupalNodeMigration {
           ->schema()->tableExists($table)) {
         $table = 'content_type_' . $this->sourceType;
       }
+      
       if (isset($this->fieldSuffixes[$field_type])) {
         $suffix = $this->fieldSuffixes[$field_type];
         $field_field = $field_name .'_'. $suffix;
+ 
         $row->$field_name = Database::getConnection('default', $this->sourceConnection)
                             ->select($table, 'f')
                             ->fields('f', array($field_field))
                             ->condition('vid', $row->vid)
                             ->execute()
                             ->fetchCol();
+        
+        if(is_array($row->$field_name)){
+          if(count($row->$field_name) == 1){
+            $row->$field_name = current($row->$field_name);
+          }elseif(count($row->$field_name) == 0){
+            $row->$field_name = NULL;
+          }          
+        }
+        
         // Allow for field-type translation
         $method = "handle_type_$field_type";
         if (method_exists($this, $method)) {
@@ -122,12 +133,6 @@ class DrupalNode6Migration extends DrupalNodeMigration {
         $method = "handle_$field_name";
         if (method_exists($this, $method)) {
           $row->$field_name = $this->$method($row->$field_name);
-        }
-        
-        if(count($row->$field_name) == 1){
-          $row->$field_name = current($row->$field_name);
-        }elseif(count($row->$field_name) == 0){
-          $row->$field_name = NULL;
         }
         
       }
@@ -143,8 +148,10 @@ class DrupalNode6Migration extends DrupalNodeMigration {
         unset($row->$field_name);
       }
     }
+    
 
-    // And. load up the data for taxonomy terms
+
+    // And load up the data for taxonomy terms
     $query = Database::getConnection('default', $this->sourceConnection)
              ->select('term_node', 'tn')
              ->fields('tn', array('tid'))
