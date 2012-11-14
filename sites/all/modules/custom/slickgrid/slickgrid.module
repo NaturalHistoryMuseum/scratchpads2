@@ -547,7 +547,7 @@ function slickgrid_editor_form($form, &$form_state){
         '#required' => TRUE
       );
       $form['#entity_property'] = true;
-       // Create an instance of the field
+      // Create an instance of the field
     }elseif(!$instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
       $editor->set_error($id, t('Field doesn\'t exist'), 'form');
       return;
@@ -639,6 +639,25 @@ function slickgrid_editor_form_validate($form, &$form_state){
       $editor->set_error($id, $error);
       // Set form error to prevent form submission
       form_set_error($editor->field_id, t('Validation error'));
+    }
+  }
+}
+
+/**
+ * Implements hook_field_attach_validate().
+ * 
+ * This is simply here to prevent errors when editing an entity that was 
+ * associated with a term that has been deleted.
+ */
+function slickgrid_field_attach_validate($entity_type, $entity, &$errors){
+  if($_GET['q'] == 'slickgrid/callback/update'){
+    foreach($errors as $key => $value){
+      // Check if the $key is a taxonomy field, and if it is, we remove the
+      // error.
+      $field = field_info_field($key);
+      if($field['type'] == 'taxonomy_term_reference'){
+        unset($errors[$key]);
+      }
     }
   }
 }
