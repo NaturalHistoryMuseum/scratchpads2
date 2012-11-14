@@ -105,8 +105,6 @@ function scratchpads_hands_off_menu_alter(&$items){
     'admin/config/content/biblio/basic',
     'admin/config/content/biblio/fields',
     'admin/config/content/biblio/pubtype',
-    'admin/config/content/biblio/author',
-    'admin/config/content/biblio/keywords',
     'admin/config/content/biblio/export',
     'admin/config/content/biblio/citeproc',
     'admin/config/regional/date-time',
