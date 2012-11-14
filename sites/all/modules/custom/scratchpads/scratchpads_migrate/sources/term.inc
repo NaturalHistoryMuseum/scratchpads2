@@ -7,9 +7,14 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
 
   protected $termNode = false;
 
+  protected $vid;
+
   public function __construct(array $arguments){
+    $new_biological_classification = false; // Flag denoting of this is a new bio
     // Remap destination vocabulary to machine name
     $vocabulary = taxonomy_vocabulary_load($arguments['destination_vocabulary']);
+    $this->vid = $vocabulary->vid;
+    // DrupalTerm6Migration expects a machine name, not a vid
     $arguments['destination_vocabulary'] = $vocabulary->machine_name;
     $term_nodes = scratchpads_migrate_get_term_vocabularies();
     // Added in DrupalTerm6Migration::prepareRow()
@@ -19,6 +24,8 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
     // Added in this::prepareRow()
     $this->sourceFields['path'] = t("Path");
     // Does this taxonomy have a term node to migrate at the same time?
+    $biological_classifications = scratchpads_migrate_source_biological_classifications();
+    // Is this an itis term vocabulary?    
     if(array_key_exists($vocabulary->vid, $term_nodes)){
       $this->termNode = $term_nodes[$vocabulary->vid];
       // See if we have a migration class with field mappings?
@@ -49,6 +56,18 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
         $this->addFieldMapping($aan_field . ':create_term')->defaultValue(false);
         unset($source_fields['field_accepted_name']);
       }
+    }else if(in_array($vocabulary->vid, $biological_classifications)){
+      // User has selected this is a biological classifcation
+      // But it wasn't in the D6 site
+      // Map the unit name fields
+      for($x = 1; $x <= 4; $x++){
+        $unit_field_name = 'field_unit_name' . $x;
+        $this->sourceFields[$unit_field_name] = 'text';
+        $this->addFieldMapping($unit_field_name, $unit_field_name);
+        $this->addFieldMapping($unit_field_name . ':format')->defaultValue('filtered_html');
+        $this->addFieldMapping($unit_field_name . ':language')->defaultValue(NULL);
+      }
+      $new_biological_classification = true;
     }
     parent::__construct($arguments);
     $this->destination = new ScratchpadsMigrateDestinationTerm($this->destinationVocabulary);
@@ -64,48 +83,46 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
         // If this is a node reference field add a source migration to use for
         // stubs
         if($source_field_type == 'nodereference'){
-          switch($source_field){
-            case 'field_reference':
-            case 'field_type_references':
-            case 'field_type_action_ref':
+          // Has this node ref field been mapped to a taxonomy term field?
+          // If it has, it was an ITIS term node reference so we need to map to the term field and set source migration
+          if(strpos($destination_fields[$d7_field], 'taxonomy_term_reference')){
+            $itis_vocabs = scratchpads_migrate_get_term_vocabularies();
+            $vocabulary = taxonomy_vocabulary_load(key($itis_vocabs));
+            if($vocabulary){
+              $this->addFieldMapping($d7_field, $source_field)->arguments(array(
+                'itis_node_ref' => true // Set flag to note this is an itis node ref
+              ))->sourceMigration(scratchpads_migrate_get_machine_name('Term', $vocabulary->name));
+              $this->addFieldMapping($d7_field . ':source_type')->defaultValue('tid');
+              $this->addFieldMapping($d7_field . ':create_term')->defaultValue(false);
+            }
+          }else{
+            $field = field_info_field($d7_field);
+            if($field){
+              $referenceable_types = array_filter($field['settings']['referenceable_types']);
+              $sourceMigration = ucfirst(current($referenceable_types));
               $this->addFieldMapping($d7_field, $source_field)->sourceMigration(array(
-                'Biblio'
+                $sourceMigration
               ));
-              break;
-            case 'field_type_specimen':
-              $this->addFieldMapping($d7_field, $source_field)->sourceMigration(array(
-                'Darwincore'
-              ));
-              break;
-            default:
-              // Has this node ref field been mapped to a taxonomy term field?
-              // If it has, it was an ITIS term node reference so we need to map to the term field and set source migration
-              if(strpos($destination_fields[$d7_field], 'taxonomy_term_reference')){
-                $itis_vocabs = scratchpads_migrate_get_term_vocabularies();
-                $vocabulary = taxonomy_vocabulary_load(key($itis_vocabs));
-                if($vocabulary){
-                  $this->addFieldMapping($d7_field, $source_field)->arguments(array(
-                    'itis_node_ref' => true // Set flag to note this is an itis node ref
-                  ))->sourceMigration(scratchpads_migrate_get_machine_name('Term', $vocabulary->name));
-                  $this->addFieldMapping($d7_field . ':source_type')->defaultValue('tid');
-                  $this->addFieldMapping($d7_field . ':create_term')->defaultValue(false);
-                }
-              }else{
-                // NB: If this meesage appears AFTER the fields have been added, there's a prob
-                drupal_set_message(t('Unknown node reference field %source_field in vocabulary %vocabulary.', array(
-                  '%source_field' => $source_field,
-                  '%vocabulary' => $this->destinationVocabulary
-                )), 'error');
-              }
-              break;
+            }else{
+              drupal_set_message(t('Could not load node reference destination field %d7_field in vocabulary %vocabulary. This is only an issue after fields have been added.', array(
+                '%d7_field' => $d7_field,
+                '%vocabulary' => $this->destinationVocabulary
+              )), 'error');
+            }
           }
         }elseif($source_field_type == 'content_taxonomy'){
           $field = field_read_field($d7_field);
-          $allowed_values = reset($field['settings']['allowed_values']);
-          $vocabulary_name = $allowed_values['vocabulary'];
-          $this->addFieldMapping($d7_field, $source_field)->sourceMigration(scratchpads_migrate_get_machine_name('Term', $vocabulary_name));
-          $this->addFieldMapping($d7_field . ':source_type')->defaultValue('tid');
-          $this->addFieldMapping($d7_field . ':create_term')->defaultValue(false);
+          if($field){
+            $allowed_values = reset($field['settings']['allowed_values']);
+            $vocabulary_name = $allowed_values['vocabulary'];
+            $this->addFieldMapping($d7_field, $source_field)->sourceMigration(scratchpads_migrate_get_machine_name('Term', $vocabulary_name));
+            $this->addFieldMapping($d7_field . ':source_type')->defaultValue('tid');
+            $this->addFieldMapping($d7_field . ':create_term')->defaultValue(false);
+          }else{
+            drupal_set_message(t('Missing destination term field !field. This is only a problem if the message still exists after fields have been created', array(
+              '!field' => $d7_field
+            )), 'warning');
+          }
         }else{
           $this->addFieldMapping($d7_field, $source_field);
         }
@@ -143,12 +160,19 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
       'nodereference' => 'nid',
       'content_taxonomy' => 'value'
     );
+    // If this is a new biological classifcation, there'll be a lot of unmapped desitnation fields
+    if($new_biological_classification){
+      $field_mappings = $this->getFieldMappings();
+      $unmapped = array_diff_key($destination_fields, $field_mappings);
+      $this->addUnmigratedDestinations(array_keys($unmapped));
+    }
   }
 
   /**
    * Implementation of Migration::prepareRow().
    */
   public function prepareRow($row){
+    $biological_classifications = scratchpads_migrate_source_biological_classifications();
     if(parent::prepareRow($row) === FALSE){return FALSE;}
     // Cannot specify a TID in taxonomy_term_save unless term already exists so create a stub term
     if(!taxonomy_term_load($row->tid)){
@@ -192,6 +216,12 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
         // default to the term name
       }elseif($this->termNode == 'itis_term'){
         $row->field_unit_name1 = $row->name;
+      }
+    }else if(in_array($this->vid, $biological_classifications)){
+      $unit_names = explode(' ', $row->name);
+      foreach($unit_names as $i => $unit_name){
+        $unit_field_name = 'field_unit_name' . ($i + 1);
+        $row->{$unit_field_name} = $unit_name;
       }
     }
     // Add the url alias

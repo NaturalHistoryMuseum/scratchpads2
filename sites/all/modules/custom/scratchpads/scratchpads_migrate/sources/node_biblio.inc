@@ -23,9 +23,14 @@ class ScratchpadsNodeBiblioMigration extends ScratchpadsNodeMigration{
     parent::__construct($arguments);
     $this->destination = new ScratchpadsMigrateDestinationNodeBiblio($this->destinationType);
     $this->addUnmigratedDestinations(array(
-      'vid',
-      'biblio_other_author_affiliations'
+      'vid'
     ));
+    $source_fields = $this->sourceFieldList();
+    if(!array_key_exists('biblio_other_author_affiliations', $source_fields)){
+      $this->addUnmigratedDestinations(array(
+        'biblio_other_author_affiliations'
+      ));
+    }
   }
 
   public function sourceFieldList(){
@@ -59,7 +64,7 @@ class ScratchpadsNodeBiblioMigration extends ScratchpadsNodeMigration{
     $row->biblio_keywords = $query->execute()->fetchCol();
     // Add the authors
     $query = Database::getConnection('default', $this->sourceConnection)->select('biblio_contributor_data', 'bcd')->fields('bcd', array(
-      'name',
+      'name'
     ));
     $query->innerJoin('biblio_contributor', 'bc', 'bc.cid=bcd.cid');
     $query->fields('bc', array(
@@ -70,7 +75,14 @@ class ScratchpadsNodeBiblioMigration extends ScratchpadsNodeMigration{
     $query->condition('bc.vid', $row->vid);
     $result = $query->execute();
     while($record = $result->fetchAssoc()){
-    	$row->biblio_contributors[] = $record;
+      $row->biblio_contributors[] = $record;
+    }
+    // Biblio abstracts are filtered html
+    if(isset($row->biblio_abst_e)){
+      $row->biblio_abst_e = array(
+        'value' => $row->biblio_abst_e,
+        'format' => 'filtered_html'
+      );
     }
   }
 

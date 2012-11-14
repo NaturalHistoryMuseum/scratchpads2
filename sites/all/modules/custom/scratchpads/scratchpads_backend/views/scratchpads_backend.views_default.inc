@@ -25,8 +25,7 @@ function scratchpads_backend_views_default_views(){
   $view->human_name = 'Admin VBO node';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-  /* Display: Master */
+  $view->disabled = FALSE;
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Admin node';
   $handler->display->display_options['use_ajax'] = TRUE;
@@ -498,8 +497,7 @@ function scratchpads_backend_views_default_views(){
   $view->human_name = 'Admin VBO file';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-  /* Display: Master */
+  $view->disabled = FALSE;
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Admin VBO view';
   $handler->display->display_options['access']['type'] = 'perm';
@@ -1296,8 +1294,7 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
   $view->human_name = $label . ' grid editor';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-  /* Display: Master */
+  $view->disabled = FALSE;
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = t('Edit !type', array(
     '!type' => $bundle
@@ -1356,7 +1353,7 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
         $default_group = t('Default');
         $handler->display->display_options['style_options']['tabs'] .= $default_group . PHP_EOL;
       }
-      scratchpads_backend_views_add_field($handler, $entity_type, $entity_info['base table'], $entity_info['entity keys']['label'], $entity_info['entity keys']['label'], $default_group);
+      scratchpads_backend_views_add_field($handler, $entity_type, $entity_info['base table'], $entity_info['entity keys']['label'], $entity_info['entity keys']['label'], FALSE, $default_group);
     }
   }
   // If groups, display this content type in a tab
@@ -1370,7 +1367,7 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
           if(array_key_exists($field, $fields)){
             $table = 'field_data_' . $field;
             $module = $fields[$field]['widget']['module'];
-            scratchpads_backend_views_add_field($handler, $module, $table, $field, $fields[$field]['label'], $group->label);
+            scratchpads_backend_views_add_field($handler, $module, $table, $field, $fields[$field]['label'], $fields[$field], $group->label);
             unset($fields[$field]);
           }
         }
@@ -1382,7 +1379,7 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
     foreach(array_keys($fields) as $field){
       $table = 'field_data_' . $field;
       $module = $fields[$field]['widget']['module'];
-      scratchpads_backend_views_add_field($handler, $module, $table, $field, $fields[$field]['label'], $default_group);
+      scratchpads_backend_views_add_field($handler, $module, $table, $field, $fields[$field]['label'], $fields[$field], $default_group);
     }
   }
   /* Filter criterion: Content: Type */
@@ -1392,13 +1389,34 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
   $handler->display->display_options['filters']['type']['value'] = array(
     $bundle => $bundle
   );
+  /* Filter criterion: File: Path */
+  $handler->display->display_options['filters']['uri']['id'] = 'uri';
+  $handler->display->display_options['filters']['uri']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['uri']['field'] = 'uri';
+  $handler->display->display_options['filters']['uri']['operator'] = 'not';
+  $handler->display->display_options['filters']['uri']['value'] = '/eolapi/';
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
   $handler->display->display_options['path'] = $base_path . '/' . $bundle;
   return $view;
 }
 
-function scratchpads_backend_views_add_field(&$handler, $module, $table, $field_id, $field_label, $tab = null, $width = 120, $sortable = 1, $filter = 'textFilter'){
+/**
+ * 
+ * 
+ * @param unknown_type $handler
+ * @param unknown_type $module
+ * @param unknown_type $table
+ * @param unknown_type $field_id
+ * @param unknown_type $field_label
+ * @param unknown_type $tab
+ * @param unknown_type $width
+ * @param unknown_type $sortable
+ * @param unknown_type $filter
+ * @param unknown_type $field An instance of the field.
+ * @return boolean
+ */
+function scratchpads_backend_views_add_field(&$handler, $module, $table, $field_id, $field_label, $field = FALSE, $tab = null, $width = 120, $sortable = 1, $filter = 'textFilter'){
   // Ignore all GM3 fields
   if($module == 'gm3_field'){return false;}
   $handler->display->display_options['fields'][$field_id]['id'] = $field_id;
@@ -1424,6 +1442,9 @@ function scratchpads_backend_views_add_field(&$handler, $module, $table, $field_
   $handler->display->display_options['fields'][$field_id]['hide_empty'] = 0;
   $handler->display->display_options['fields'][$field_id]['empty_zero'] = 0;
   $handler->display->display_options['fields'][$field_id]['hide_alter_empty'] = 1;
+  if($field && @isset($field['widget']['type']) && $field['widget']['type'] == 'options_onoff'){
+    $handler->display->display_options['fields'][$field_id]['type'] = 'list_key';
+  }
   $handler->display->display_options['fields'][$field_id]['field_api_classes'] = 0;
   $handler->display->display_options['style_options']['columns'][$field_id] = array(
     'width' => $width,

@@ -3,14 +3,6 @@
 class DrupalImageGalleryMigration extends DrupalMigration{
 
   /**
-   * Explicity set the NID for image gallery nodes
-   * They're terms so we need to do something to prevent conflicts when the nodes are imported
-   *
-   * @var integer
-   */
-  protected static $nid;
-
-  /**
    * @param array $arguments
    */
   public function __construct(array $arguments){
@@ -69,8 +61,6 @@ class DrupalImageGalleryMigration extends DrupalMigration{
       'daycount',
       'timestamp'
     ));
-    // Set the maximum NID value from the old site
-    self::$nid = $this->getMaxNID();
   }
 
   /**
@@ -87,17 +77,28 @@ class DrupalImageGalleryMigration extends DrupalMigration{
   }
 
   /**
-   * Get the maximum NID 
+   * Get the maximum NID - needs to be greatwer than all other NIDs to prevent conflicts later
    */
-  protected function getMaxNID(){
-    $query = Database::getConnection('default', $this->sourceConnection)->select('node', 'n');
-    $query->addExpression('MAX(nid)');
-    return $query->execute()->fetchField();
+  protected function getNID(){
+    // Do we already have media gallery nodes (if eg: the import has looped to a new batch)
+    $result = db_query("SELECT MAX(nid) FROM node WHERE type=:type", array(
+      ':type' => 'media_gallery'
+    ));
+    if(!$nid = $result->fetchField()){
+      $query = Database::getConnection('default', $this->sourceConnection)->select('node', 'n');
+      $query->addExpression('MAX(nid)');
+      $nid = $query->execute()->fetchField();
+    }
+    // Increment max nid by 1
+    $nid++;
+    return $nid;
   }
 
   public function prepareRow($row){
-    // Populate the dummy nid field
-    $this->nid++;
-    $row->nid = $this->nid;
+    // Explicity set the NID for image gallery nodes
+    // They're terms so we need to do something to prevent conflicts when the nodes are imported
+    // BUG fix - keeping this as a static vars isn't working with batches
+    // Look it up each time - not many anyway so it shouldn't be too much of a performance hit
+    $row->nid = $this->getNID();
   }
 }

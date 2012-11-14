@@ -18,7 +18,7 @@ function _scratchpads_statistics_build_from_time($time){
   $query = db_select('scratchpads_statistics_data', 'd');
   $query->innerJoin('scratchpads_statistics_site', 's', 'd.site = s.id');
   $query->innerJoin('scratchpads_statistics_user', 'u', 'd.user = u.id');
-  $query->innerJoin('scratchpads_statistics_term', 't', 'd.term = t.id');
+  $query->leftJoin('scratchpads_statistics_term', 't', 'd.term = t.id');
   $query->innerJoin('scratchpads_statistics_entity_bundle', 'e', 'd.entity_bundle = e.id');
   $query->innerJoin('scratchpads_statistics_user', 'o', 's.owner = o.id');
   $query->fields('d', array(
@@ -34,9 +34,15 @@ function _scratchpads_statistics_build_from_time($time){
   ));
   $query->addField('o', 'name', 'owner_name');
   $query->addField('o', 'email', 'owner_email');
+  $query->addField('o', 'country', 'owner_country');
+  $query->addField('o', 'latitude', 'owner_latitude');
+  $query->addField('o', 'longitude', 'owner_longitude');
   $query->fields('u', array(
     'name',
-    'email'
+    'email',
+    'country',
+    'latitude',
+    'longitude'
   ));
   $query->fields('t', array(
     'term'

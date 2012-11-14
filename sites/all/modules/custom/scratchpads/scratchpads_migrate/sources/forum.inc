@@ -40,6 +40,12 @@ class ScratchpadsNodeForumMigration extends ScratchpadsNodeMigration{
     return $query;
   }
 
+  protected function countQuery(){
+    $query = parent::countQuery();
+    $query->innerJoin('forum', 'f', 'f.vid = n.vid');
+    return $query;
+  }
+
   public function prepareRow($row){
     parent::prepareRow($row);
   }

@@ -62,7 +62,6 @@ class ScratchpadsNodeDarwincorelocationMigration extends ScratchpadsNodeMigratio
   }
 
   protected function nodeQuery(){
-    // Only import nodes which are in the forum vocab
     $query = parent::nodeQuery();
     $query->innerJoin('darwincorelocation', 'dl', 'dl.vid = n.vid');
     $query->fields('dl', array(
@@ -82,6 +81,11 @@ class ScratchpadsNodeDarwincorelocationMigration extends ScratchpadsNodeMigratio
       'mindepth',
       'maxdepth'
     ));
+    return $query;
+  }
+  protected function countQuery(){
+    $query = parent::countQuery();
+    $query->innerJoin('darwincorelocation', 'dl', 'dl.vid = n.vid');
     return $query;
   }
 
@@ -120,6 +124,10 @@ class ScratchpadsNodeDarwincorelocationMigration extends ScratchpadsNodeMigratio
       if($location->latitude && $location->longitude){
         $row->location_latlong = $location->latitude . ',' . $location->longitude;
       }
+    }
+    // If lat/long is 0 remove the field so we don't get an empty map
+    if($row->location_latlong == '0.000000,0.000000'){
+      unset($row->location_latlong);
     }
   }
 }

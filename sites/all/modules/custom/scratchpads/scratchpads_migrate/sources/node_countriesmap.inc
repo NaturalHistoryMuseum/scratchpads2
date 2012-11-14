@@ -7,6 +7,12 @@ class ScratchpadsNodeCountriesmapMigration extends ScratchpadsNodeMigration{
       'country' => 'field_spm_map'
     );
     parent::__construct($arguments);
+    // This migration maps the old countries map node to the spm content type with the smp_map field
+    // All spm fields need to be ignored - loop through all desintation fields and unset them
+    $field_mappings = $this->getFieldMappings();
+    $destination_fields = $this->destination->fields();
+    $unmapped = array_diff_key($destination_fields, $field_mappings);
+    $this->addUnmigratedDestinations(array_keys($unmapped));
   }
 
   public function sourceFieldList(){
@@ -23,7 +29,6 @@ class ScratchpadsNodeCountriesmapMigration extends ScratchpadsNodeMigration{
 
   public function prepareRow($row){
     parent::prepareRow($row);
-
     // Get the TDGW region data
     // Add the location data
     $query = Database::getConnection('default', $this->sourceConnection)->select('countriesmap_tdwg', 't');

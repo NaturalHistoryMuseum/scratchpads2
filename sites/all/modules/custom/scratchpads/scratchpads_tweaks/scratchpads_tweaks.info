@@ -36,6 +36,7 @@ dependencies[] = entitycache
 dependencies[] = entityconnect
 dependencies[] = feeds_oai_pmh
 dependencies[] = globalredirect
+dependencies[] = hide_submit
 dependencies[] = imagemagick
 dependencies[] = link
 dependencies[] = linkit
@@ -82,7 +83,6 @@ dependencies[] = scratchpads_width_and_height
 
 ; Custom modules
 dependencies[] = eol
-dependencies[] = eolapi
 dependencies[] = eol_gbif_maps
 dependencies[] = hashcash
 dependencies[] = silver

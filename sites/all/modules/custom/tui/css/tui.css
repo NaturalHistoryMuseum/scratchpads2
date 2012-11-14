@@ -1,17 +1,3 @@
-/* AJAX */
-#tui-tree .progress-disabled,#tui-tree .ajax-progress,#tui-tree .throbber,#tui-tree .edit-term-link{
- float:right !important;
-}
-#tui-tree .ajax-progress-throbber{
- display:none;
-}
-#tui-tree-form .progress-disabled{
- float:none !important;
-}
-#tui-tree-links .throbber, #tui-tree-links .ajax-progress{
- float:left !important;
-}
-
 /* MAIN TUI ELEMENT */
 #tui{
  position:relative;
@@ -248,4 +234,28 @@ input.button-no{
  background-color:white;
  color:black;
  z-index:1000;
+}
+/* AJAX */
+#tui-tree .progress-disabled,#tui-tree .ajax-progress,#tui-tree .throbber,#tui-tree .edit-term-link{
+ float:right !important;
+}
+#tui-tree .ajax-progress-throbber{
+ background-color: transparent !important;
+ border:none;
+}
+#tui-tree-form .progress-disabled{
+ float:none !important;
+}
+#tui-tree-links .throbber, #tui-tree-links .ajax-progress{
+ float:left !important;
+}
+.ajax-progress .throbber {
+ background-color: transparent !important;  
+ background: transparent url(images/throbber.gif) no-repeat 0px -18px;
+ float:left; /* LTR */
+ border:none !important;
+ height:15px;
+ margin:0 !important;
+ width:13px;
+ padding:0 1px !important;
 }

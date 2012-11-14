@@ -49,6 +49,43 @@ function scratchpads_statistics_menu(){
 }
 
 /**
+ * Implements hook_user_login().
+ */
+function scratchpads_statistics_user_login(&$edit, $account){
+  // Check to see if we already have this user's details.
+  $row = db_select('scratchpads_statistics_user', 'u')->fields('u')->condition('email', $account->mail)->execute()->fetch();
+  // Stop if we already have the data.
+  if($row && $row->latitude){return;}
+  // We're here, we need to save the data.
+  $name = $account->name;
+  $country = NULL;
+  $latitude = NULL;
+  $longitude = NULL;
+  if(@isset($account->field_user_family_name[LANGUAGE_NONE][0]['value']) && isset($account->field_user_given_names[LANGUAGE_NONE][0]['value'])){
+    $name = trim($account->field_user_given_names[LANGUAGE_NONE][0]['value'] . ' ' . $account->field_user_family_name[LANGUAGE_NONE][0]['value']);
+  }
+  if(@isset($account->field_user_country[LANGUAGE_NONE][0]['iso2'])){
+    $country = $account->field_user_country[LANGUAGE_NONE][0]['iso2'];
+  }
+  // Do a GeoIP lookup on the remote hostname.
+  $data = file_get_contents('http://freegeoip.net/json/' . $_SERVER['REMOTE_ADDR']);
+  if($data){
+    $geoip = json_decode($data, 1);
+    $latitude = $geoip['latitude'];
+    $longitude = $geoip['longitude'];
+  }
+  $query = db_merge('scratchpads_statistics_user')->key(array(
+    'email' => $account->mail
+  ))->fields(array(
+    'name' => $name,
+    'email' => $account->mail,
+    'country' => $country,
+    'latitude' => $latitude,
+    'longitude' => $longitude
+  ))->execute();
+}
+
+/**
  * Implements hook_query_TAG_alter().
  */
 function scratchpads_statistics_query_scratchpads_statistics_alter(QueryAlterableInterface $query){

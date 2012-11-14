@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * @file
+ * Hide the submit button after clicked to prevent/reduce duplicate postings.
+ *
+ * Installation and update procedures are defined in this file
+ */
+
+/**
+ * Implement hook uninstall
+ */
+function hide_submit_uninstall() {
+  // Delete any variables that have been set.
+  variable_del('hide_submit_method');
+  variable_del('hide_submit_css');
+  variable_del('hide_submit_abtext');
+  variable_del('hide_submit_atext');
+  variable_del('hide_submit_hide_css');
+  variable_del('hide_submit_hide_text');
+  variable_del('hide_submit_hide_fx');
+}

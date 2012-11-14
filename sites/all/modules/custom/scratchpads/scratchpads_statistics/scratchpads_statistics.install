@@ -183,6 +183,18 @@ function scratchpads_statistics_schema(){
           'length' => 255,
           'not null' => TRUE,
           'default' => ''
+        ),
+        'country' => array(
+          'type' => 'varchar',
+          'length' => 2
+        ),
+        'latitude' => array(
+          'type' => 'varchar',
+          'length' => 10
+        ),
+        'longitude' => array(
+          'type' => 'varchar',
+          'length' => 10
         )
       ),
       'primary key' => array(
@@ -417,4 +429,27 @@ function scratchpads_statistics_schema(){
 function scratchpads_statistics_update_7001(){
   $schema = scratchpads_statistics_schema();
   db_create_table('scratchpads_statistics_data_temp', $schema['scratchpads_statistics_data_temp']);
+}
+
+/**
+ * Add the latitude/longitude/country fields to the s..s.._user table
+ */
+function scratchpads_statistics_update_7002(){
+  $fields = array(
+    'country' => array(
+      'type' => 'varchar',
+      'length' => 2
+    ),
+    'latitude' => array(
+      'type' => 'varchar',
+      'length' => 10
+    ),
+    'longitude' => array(
+      'type' => 'varchar',
+      'length' => 10
+    )
+  );
+  foreach($fields as $field => $spec){
+    db_add_field('scratchpads_statistics_user', $field, $spec);
+  }
 }

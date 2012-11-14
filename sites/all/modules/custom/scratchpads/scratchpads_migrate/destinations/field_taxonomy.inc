@@ -31,7 +31,7 @@ class MigrateDestinationFieldTaxonomy extends MigrateDestination{
         'deleted' => '0',
         'entity_types' => array(
           'file', // Hard code these so they can be used for both
-      		'node'
+          'node'
         ),
         'field_name' => $row->field_name,
         'module' => 'taxonomy',
@@ -54,6 +54,9 @@ class MigrateDestinationFieldTaxonomy extends MigrateDestination{
         return false;
       }
     }else{
+      if($field['type'] != 'taxonomy_term_reference'){throw new MigrateException(t('Cannot create taxonomy field !field_name - a non-taxonomy field already exists. Rename the conflicting non-taxonomy-field.', array(
+          '!field_name' => $field['field_name']
+        )));}
       // Do not update biological vids
       if(!in_array($vocabulary->vid, $biological_vids)){
         // Update field with VID

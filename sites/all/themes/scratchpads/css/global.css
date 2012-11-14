@@ -593,6 +593,10 @@ h2.site-name {
   text-align: right;
 }
 
+.node .submitted .user-picture{
+  display:inline;
+}
+
 /* STRIPY DIV GROUPS */
 
 .node .stripy-div-group{
@@ -854,7 +858,10 @@ div.contextual-links-wrapper ul.contextual-links{
    z-index:2!important;
 }
 
-
+#cboxLoadedContent .contextual-links-wrapper{
+  right:26px;
+  top:15px;
+}
 
 /****************** CONTACT FORMS *****************/
 

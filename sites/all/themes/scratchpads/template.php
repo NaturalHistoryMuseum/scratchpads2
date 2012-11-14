@@ -98,6 +98,61 @@ function scratchpads_preprocess_breadcrumb(&$variables){
   }
 }
 
+function scratchpads_preprocess_user_picture(&$variables){
+  $variables['user_picture'] = '';
+  if(variable_get('user_pictures', 0)){
+    $account = $variables['account'];
+    if(!empty($account->picture)){
+      if(is_numeric($account->picture)){
+        $account->picture = file_load($account->picture);
+      }
+      if(!empty($account->picture->uri)){
+        $filepath = $account->picture->uri;
+      }
+    }elseif(variable_get('user_picture_default', '')){
+      $filepath = variable_get('user_picture_default', '');
+    }
+    if(isset($filepath)){
+      $alt = t("@user's picture", array(
+        '@user' => format_username($account)
+      ));
+      // If the image does not have a valid Drupal scheme (for eg. HTTP),
+      // don't load image styles.
+      if(module_exists('image') && file_valid_uri($filepath) && $style = variable_get('user_picture_style', '')){
+        $image_style_args = array(
+          'style_name' => $style,
+          'path' => $filepath,
+          'alt' => $alt,
+          'title' => $alt
+        );
+        // We don't reduce the image size on a user's page.
+        if(arg(0) != 'user'){
+          $image_style_args['attributes'] = array(
+            'width' => '20px',
+            'height' => '20px'
+          );
+        }
+        $variables['user_picture'] = theme('image_style', $image_style_args);
+      }else{
+        $variables['user_picture'] = theme('image', array(
+          'path' => $filepath,
+          'alt' => $alt,
+          'title' => $alt
+        ));
+      }
+      if(!empty($account->uid) && user_access('access user profiles')){
+        $attributes = array(
+          'attributes' => array(
+            'title' => t('View user profile.')
+          ),
+          'html' => TRUE
+        );
+        $variables['user_picture'] = l($variables['user_picture'], "user/$account->uid", $attributes);
+      }
+    }
+  }
+}
+
 /**
  * Implements hook_process_region().
  */
@@ -278,7 +333,7 @@ function scratchpads_biblio_tabular($variables){
 function scratchpads_preprocess_page(&$vars){
   // Resize the logo so it uses the thumbnail image style
   if(variable_get('resize_logo', 1) && $vars['logo']){
-    $vars['logo'] = image_style_url('thumbnail', basename($vars['logo']));
+    $vars['logo'] = image_style_url('thumbnail', urldecode(basename($vars['logo'])));
   }
   if(isset($vars['tabs']) && empty($vars['tabs']['#primary'])){
     $vars['tabs'] = array();
@@ -319,7 +374,6 @@ function scratchpads_preprocess_html(&$vars){
     'width' => 77,
     'height' => 77
   ));
-
   // Add a class for a specific domain to allow for some site only CSS (eg, Vlads logo)
   $vars['attributes_array']['class'][] = 'site-' . str_replace('.', '-', parse_url($base_url, PHP_URL_HOST));
 }

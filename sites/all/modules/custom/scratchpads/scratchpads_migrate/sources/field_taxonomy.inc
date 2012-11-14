@@ -63,7 +63,7 @@ class DrupalFieldTaxonomyMigration extends DrupalMigration{
     $query->leftJoin('scratchpads_migrate_biological_classification', 'mbc', 'v.vid = mbc.vid');
     $query->addField('mbc', 'type', 'classification_type');
     // We're not migrating image galleries vocabulary
-    $query->condition('name', 'Image Galleries', '!=');
+    $query->condition('v.vid', scratchpads_migrate_get_image_gallery_vid(), '!=');
     return $query;
   }
 
@@ -82,16 +82,20 @@ class DrupalFieldTaxonomyMigration extends DrupalMigration{
     }
     if(!isset($row->entity_type)){
       $row->entity_type = 'node';
-    }    
-    if(field_read_instance($row->entity_type, $row->field_name, $row->type)){ // Instance already exists, so skip it
-      return false;
     }
+    if(field_read_instance($row->entity_type, $row->field_name, $row->type)){      // Instance already exists, so skip it
+return false;}
   }
 
   /**
    * Generate a field name from the vocabulary name
    */
   static public function getFieldName($name){
-    return 'field_' . preg_replace('/[^a-z0-9]/', '_', strtolower($name));
+    $field_name = 'field_' . preg_replace('/[^a-z0-9]/', '_', strtolower($name));
+    // Field anme can't be longer than 32 chars
+    if(strlen($field_name) > 32){
+      $field_name = substr($field_name, 0, 32);
+    }
+    return $field_name;
   }
 }

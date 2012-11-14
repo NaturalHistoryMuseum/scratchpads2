@@ -41,6 +41,7 @@ class DrupalFieldContentProfileBodyMigration extends DrupalMigration{
    * Implementation of Migration::prepareRow().
    */
   public function prepareRow($row){
+    $row->entity_type = 'user';
     if(parent::prepareRow($row) === FALSE){return FALSE;}
     $row->type = 'user';
   }
