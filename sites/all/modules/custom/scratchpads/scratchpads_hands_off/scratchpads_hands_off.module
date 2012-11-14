@@ -118,7 +118,8 @@ function scratchpads_hands_off_menu_alter(&$items){
     'admin/config/development/modal_forms',
     'admin/config/development/strongarm',
     'admin/dashboard/configure',
-    'admin/structure/file-types',
+    'admin/structure/file-types/manage/%/display',
+    'admin/structure/file-types/manage/%/file-display',
     'user/1/edit'
   ) as $hidden_url){
     $length = strlen($hidden_url);
@@ -131,6 +132,23 @@ function scratchpads_hands_off_menu_alter(&$items){
       }
     }
   }
+  // Change the callback for admin/structure/file-types so that we can remove
+  // links to paths the user does not have access to.
+  $items['admin/structure/file-types']['page callback'] = 'scratchpads_hands_off_file_entity_list_types_page';
+}
+
+/**
+ * Tweak the file overview page.
+ */
+function scratchpads_hands_off_file_entity_list_types_page(){
+  $build = file_entity_list_types_page();
+  if(user_access('scratchpad team')){return $build;}
+  foreach(array_keys($build['file_type_table']['#rows']) as $key){
+    unset($build['file_type_table']['#rows'][$key][2]);
+    unset($build['file_type_table']['#rows'][$key][3]);
+  }
+  unset($build['file_type_table']['#header'][1]['colspan']);
+  return $build;
 }
 
 /**
