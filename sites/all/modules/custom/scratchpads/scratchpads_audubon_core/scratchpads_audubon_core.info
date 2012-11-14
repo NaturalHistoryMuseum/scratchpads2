@@ -1,5 +1,5 @@
-name = "Scratchpads Audubon Core"
-description = "Provides image metadata"
+name = "Image Metadata Extension"
+description = "Provides additional fields on Images, based on the TDWG Audubon Core standard."
 core = "7.x"
 package = "Scratchpads"
 php = "5.2.4"
@@ -40,3 +40,4 @@ features[field_group][] = "group_img_location|file|image|form"
 features[field_group][] = "group_img_misc|file|image|form"
 features[field_group][] = "group_img_taxa|file|image|form"
 features[field_group][] = "group_rights|file|image|form"
+tool=yes
