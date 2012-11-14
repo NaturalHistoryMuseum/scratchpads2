@@ -91,9 +91,7 @@ return false;}
    * Generate a field name from the vocabulary name
    */
   static public function getFieldName($name){
-    // Bug fix - add _term to prevent conflicts with retarded sites who have defined both a taxonomy
-    // And a select list field with the same name and the same fucking values
-    $field_name = 'field_' . preg_replace('/[^a-z0-9]/', '_', strtolower($name)) . '_term';
+    $field_name = 'field_' . preg_replace('/[^a-z0-9]/', '_', strtolower($name));
     // Field anme can't be longer than 32 chars
     if(strlen($field_name) > 32){
       $field_name = substr($field_name, 0, 32);
