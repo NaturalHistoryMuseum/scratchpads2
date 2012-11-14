@@ -98,7 +98,7 @@ class DrupalNode6Migration extends DrupalNodeMigration {
       // Find the data. Simple unshared unmultiple fields will be in
       // content_type_{$this->sourceType}. Others will be in
       // content_$field_name.
-      // TODO: Handle multi-value fields
+      // TODO: Handle multi-value fields - BS: this should now work
       $table = "content_$field_name";
       if (!Database::getConnection('default', $this->sourceConnection)
           ->schema()->tableExists($table)) {
