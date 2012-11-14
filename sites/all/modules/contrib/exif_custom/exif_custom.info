@@ -1,0 +1,12 @@
+name = Custom EXIF mapping
+description = "Save EXIF data to custom fields"
+package = Image
+core = 7.x
+
+tool=true
+; Information added by drupal.org packaging script on 2012-11-14
+version = "7.x-1.0"
+core = "7.x"
+project = "exif_custom"
+datestamp = "1352902004"
+
