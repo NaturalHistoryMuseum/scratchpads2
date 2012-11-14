@@ -6,6 +6,7 @@
 function scratchpads_roles_and_permissions_module_implements_alter(&$implementations, $hook){
   if($hook == 'scratchpads_default_permissions'){
     $implementations = array_merge($implementations, array(
+      'aggregator' => FALSE,
       'biblio' => FALSE,
       'block' => FALSE,
       'comment' => FALSE,

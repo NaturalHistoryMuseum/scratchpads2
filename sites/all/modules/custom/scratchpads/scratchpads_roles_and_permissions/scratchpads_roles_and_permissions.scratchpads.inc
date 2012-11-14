@@ -552,6 +552,22 @@ function comment_scratchpads_default_permissions(){
 }
 
 /**
+ * Aggregator module
+ *
+ * Implements hook_scratchpads_default_permissions().
+ */
+function aggregator_scratchpads_default_permissions(){
+  return array(
+    'anonymous user' => array(
+      'access news feeds'
+    ),
+    'editor' => array(
+      'administer news feeds'
+    )
+  );
+}
+
+/**
  * Biblio module
  *
  * Implements hook_scratchpads_default_permissions().
