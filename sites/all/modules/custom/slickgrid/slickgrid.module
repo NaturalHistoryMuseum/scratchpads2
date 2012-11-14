@@ -648,6 +648,14 @@ function slickgrid_editor_form_validate($form, &$form_state){
  * 
  * This is simply here to prevent errors when editing an entity that was 
  * associated with a term that has been deleted.
+ * 
+ * This error is to prevent errors being thrown under the following situation:
+ * - Create term
+ * - Associate term with entity
+ * - Delete term
+ * - Edit term in slickgrid, but editing a different field.
+ * These would normally be prevented because the values in a taxonomy field do
+ * not include links to terms that have been deleted.
  */
 function slickgrid_field_attach_validate($entity_type, $entity, &$errors){
   if($_GET['q'] == 'slickgrid/callback/update'){
