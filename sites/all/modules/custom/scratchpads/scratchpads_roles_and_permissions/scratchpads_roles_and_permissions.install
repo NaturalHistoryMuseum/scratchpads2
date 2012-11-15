@@ -4,12 +4,12 @@
  * Implements hook_install().
  */
 function scratchpads_roles_and_permissions_install(){
-  // Firstly, we get the admin role and update the weight to 0 (just for OCD reasons).
+  // Firstly, we get the admin role and delete it.
   $role = user_role_load_by_name('administrator');
   if($role){
     user_role_delete($role);
   }
-  // Now we create the two additional roles.
+  // Now we create the roles we're used to.
   foreach(array(
     'contributor',
     'editor',
@@ -21,12 +21,12 @@ function scratchpads_roles_and_permissions_install(){
       user_role_save($role);
     }
   }
-  // We also add user 1 to this role, to ensure that all functions are available
-  // to us if module's are checking permissions directly (and not using 
-  // user_access).
-  // Assign user 1 the "administrator" role.
-  db_insert('users_roles')->fields(array(
-    'uid' => 1,
-    'rid' => $role->rid
-  ))->execute();
+}
+
+/**
+ * Remove all roles from user 1.  We do this so that any rules/triggers that
+ * send messages based on a role does not send a message to scratchpad team.
+ */
+function scratchpads_roles_and_permissions_update_7001(){
+  db_delete('users_roles')->condition('uid', 1)->execute();
 }
