@@ -29,9 +29,7 @@ function scratchpad_2_training_install_configure_form(){
     'mail' => 'scratchpads@nhm.ac.uk',
     'status' => 1,
     'init' => '',
-    'roles' => array(
-      5 => TRUE
-    ),
+    'roles' => array(),
     'timezone' => 'UTC',
     'legal_accept' => FALSE
   );
