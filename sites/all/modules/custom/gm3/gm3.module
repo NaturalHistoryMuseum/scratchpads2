@@ -440,7 +440,7 @@ function gm3_settings(){
     'rotateControlOptions' => array(
       'position' => 'google.maps.ControlPosition.TOP_LEFT'
     ),
-    'scaleControl' => FALSE,
+    'scaleControl' => TRUE,
     'scaleControlOptions' => array(
       'position' => 'google.maps.ControlPosition.BOTTOM_LEFT',
       'style' => 'google.maps.ScaleControlStyle.DEFAULT'

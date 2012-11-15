@@ -227,7 +227,8 @@ function scratchpads_tweaks_install(){
   ));
   variable_set('shortcut_max_slots', 100);
   variable_set('node_options_page', array(
-    'status'
+    'status',
+    'revision'
   ));
   variable_set('comment_page', COMMENT_NODE_HIDDEN);
   variable_set('node_submitted_page', TRUE);
@@ -863,8 +864,27 @@ function scratchpads_tweaks_update_7028(){
 /**
  * Ensure scratchpads_forum is enabled if forum is enabled
  */
-function scratchpads_tweaks_update_7029() {
+function scratchpads_tweaks_update_7029(){
   if(module_exists('forum')){
-    module_enable(array('scratchpads_forum'));
+    module_enable(array(
+      'scratchpads_forum'
+    ));
+  }
+}
+
+/**
+ * Turn on revisions for page nodes.
+ */
+function scratchpads_tweaks_update_7030(){
+  $entity_info = entity_get_info('node');
+  foreach(array_keys($entity_info['bundles']) as $bundle){
+    $options = variable_get('node_options_' . $bundle, array());
+    foreach($options as $value){
+      if($value == 'revision'){
+        continue;
+      }
+    }
+    $options[] = 'revision';
+    variable_set('node_options_'.$bundle, $options);
   }
 }

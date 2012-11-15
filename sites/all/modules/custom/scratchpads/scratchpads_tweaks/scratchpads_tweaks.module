@@ -245,6 +245,12 @@ function scratchpads_tweaks_shutdown($reset = FALSE){
 function scratchpads_tweaks_node_type_insert($info){
   // Set the default for all comment forms to be on separate pages.
   variable_get('comment_form_location_' . $info->type, COMMENT_FORM_SEPARATE_PAGE);
+  $options = variable_get('node_options_' . $info->type, array());
+  foreach($options as $value){
+    if($value == 'revision'){return;}
+  }
+  $options[] = 'revision';
+  variable_set('node_options_' . $info->type, $options);
 }
 
 /**

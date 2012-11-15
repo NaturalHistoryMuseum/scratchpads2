@@ -121,7 +121,8 @@ function scratchpads_events_strongarm() {
   $strongarm->name = 'node_options_event';
   $strongarm->value = array(
     0 => 'status',
-    1 => 'promote',
+    1 => 'revision',
+    2 => 'promote',
   );
   $export['node_options_event'] = $strongarm;
 
