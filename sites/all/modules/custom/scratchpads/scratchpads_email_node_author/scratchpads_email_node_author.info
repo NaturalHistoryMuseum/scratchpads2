@@ -1,0 +1,8 @@
+name = "Comment Email"
+description = "Email a node author when a new comment is received."
+core = "7.x"
+package = "Features"
+dependencies[] = "comment"
+dependencies[] = "entity"
+dependencies[] = "rules"
+features[rules_config][] = "rules_comment_email"
