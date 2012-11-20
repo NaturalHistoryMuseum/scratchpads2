@@ -10,6 +10,7 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'biblio' => FALSE,
       'block' => FALSE,
       'comment' => FALSE,
+      'comment_notify' => FALSE,
       'contextual' => FALSE,
       'dashboard' => FALSE,
       'entityconnect' => FALSE,

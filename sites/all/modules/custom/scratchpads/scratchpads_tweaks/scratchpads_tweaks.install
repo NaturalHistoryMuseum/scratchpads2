@@ -17,6 +17,8 @@ function scratchpads_tweaks_install(){
   scratchpads_tweaks_update_7008();
   // Setup the CKEditor module
   scratchpads_tweaks_update_7014();
+  // Set the comment_notify content types.
+  scratchpads_tweaks_update_7032();
   // Enable some standard blocks.
   $values = array(
     array(
@@ -885,6 +887,20 @@ function scratchpads_tweaks_update_7030(){
       }
     }
     $options[] = 'revision';
-    variable_set('node_options_'.$bundle, $options);
+    variable_set('node_options_' . $bundle, $options);
   }
+}
+
+/**
+ * Enable comment_notify for ALL content types.
+ * 
+ * DO NOT RENAME THIS FUNCTION WITHOUT UPDATING THE CALL ABOVE.
+ */
+function scratchpads_tweaks_update_7032(){
+  $array_node_types = array();
+  foreach(node_type_get_names() as $type => $name){
+    $array_node_types[$type] = $type;
+  }
+  variable_set('comment_notify_node_types', $array_node_types);
+  variable_set('comment_notify_node_notify_default_mailalert', 1);
 }

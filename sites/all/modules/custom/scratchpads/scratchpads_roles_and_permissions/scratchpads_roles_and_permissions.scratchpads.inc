@@ -552,6 +552,22 @@ function comment_scratchpads_default_permissions(){
 }
 
 /**
+ * Comment notify module
+ *
+ * Implements hook_scratchpads_default_permissions().
+ */
+function comment_notify_scratchpads_default_permissions(){
+  return array(
+    'authenticated user' => array(
+      'subscribe to comments'
+    ),
+    'maintainer' => array(
+      'administer comment notify'
+    )
+  );
+}
+
+/**
  * Aggregator module
  *
  * Implements hook_scratchpads_default_permissions().
