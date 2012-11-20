@@ -364,6 +364,7 @@ function exif_custom_file_insert($file){
 
 function exif_custom_process_entity($file){
   if($file->type != 'image'){return;}
+  if(arg(3) == 'exif_custom'){return;}
   $mappings = exif_custom_get_mapping();
   $data = exif_custom_get_exif_fields($file->uri, TRUE);
   foreach($mappings as $field => $values){
