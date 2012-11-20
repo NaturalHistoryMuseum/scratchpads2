@@ -376,13 +376,15 @@ function exif_custom_process_entity($file){
         $vids = array();
         foreach($field_info['settings']['allowed_values'] as $allowed_value){
           $vocabulary = taxonomy_vocabulary_machine_name_load($allowed_value['vocabulary']);
+          if ($allowed_value['vocabulary'] === 0){break;}
           $vids[$vocabulary->vid] = $vocabulary;
+          
         }
         $element = array();
         $element['#value'] = $data[$values->exif_field];
         $form_state = array();
         $array = array();
-        $array['und'] = _exif_custom_taxonomy_autocomplete_validate($element, $form_state, $vids);
+        $array['und'] = _exif_custom_taxonomy_autocomplete_validate($element,  $vids);
         break;
       default:
         $array['und']['0']['value'] = $data[$values->exif_field];
