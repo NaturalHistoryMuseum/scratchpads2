@@ -251,6 +251,10 @@ function scratchpads_tweaks_node_type_insert($info){
   }
   $options[] = 'revision';
   variable_set('node_options_' . $info->type, $options);
+  // Add this node type to the comment notify variable
+  $comment_notify_node_types = variable_get('comment_notify_node_types', array());
+  $comment_notify_node_types[$info->type] = $info->type;
+  variable_set('comment_notify_node_types', $comment_notify_node_types);
 }
 
 /**
