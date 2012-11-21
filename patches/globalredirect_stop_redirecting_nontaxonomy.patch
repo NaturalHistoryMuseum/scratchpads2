@@ -1,8 +1,8 @@
 diff --git a/sites/all/modules/contrib/globalredirect/globalredirect.module b/sites/all/modules/contrib/globalredirect/globalredirect.module
-index cd9a4bf..6c76e0f 100644
+index 961c1ce..b8c76d7 100644
 --- a/sites/all/modules/contrib/globalredirect/globalredirect.module
 +++ b/sites/all/modules/contrib/globalredirect/globalredirect.module
-@@ -127,7 +127,7 @@ function globalredirect_init() {
+@@ -126,7 +126,7 @@ function globalredirect_init() {
  
  
    // If the feature is enabled, check and redirect taxonomy/term/* requests to their proper handler defined by hook_term_path().
