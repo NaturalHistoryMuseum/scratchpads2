@@ -198,7 +198,13 @@ class MigrateDestinationField extends MigrateDestination{
               unset($allowed_values[$delta]);
             }
           }
-          $field_config['settings']['allowed_values'] = array_combine($allowed_values, $allowed_values);
+          // array_combine need to have an element in the array
+          if(is_array($allowed_values) && count($allowed_values)){
+            // Use same values for keys and values
+            $field_config['settings']['allowed_values'] = array_combine($allowed_values, $allowed_values);
+          }else{
+            $field_config['settings']['allowed_values'] = NULL;
+          }
         }
         break;
       case 'date_popup':
