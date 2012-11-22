@@ -23,7 +23,7 @@ function relation_select_add_relation_form($form, &$form_state, $entity_type, $e
     if(isset($form_state['values']['relation_type'])){
       $default_relation_type = $form_state['values']['relation_type'];
     }
-    $relation_types = relation_select_get_relation_types($entity_type, $form_state['bundle']);
+    $relation_types = relation_get_available_types($entity_type, $form_state['bundle']);
     $form['relation_type'] = array(
       '#type' => 'select',
       '#title' => t('Relation type'),

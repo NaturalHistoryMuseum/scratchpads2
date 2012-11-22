@@ -436,7 +436,7 @@ function relation_select_field_formatter_info(){
  */
 function relation_select_field_instance_settings_form($field, $instance){
   $form = array();
-  $relation_types = relation_select_get_relation_types($instance['entity_type'], $instance['bundle']);
+  $relation_types = relation_get_available_types($instance['entity_type'], $instance['bundle']);
   $form['relation_type'] = array(
     '#type' => 'select',
     '#title' => t('Relation type'),
