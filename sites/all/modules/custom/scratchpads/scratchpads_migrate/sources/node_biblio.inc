@@ -84,10 +84,6 @@ class ScratchpadsNodeBiblioMigration extends ScratchpadsNodeMigration{
         'format' => 'filtered_html'
       );
     }
-    // FIXME - Remove this
-    watchdog('migrate_debug', '!row', array(
-      '!row' => print_r($row, true)
-    ), WATCHDOG_DEBUG);
   }
 
   protected function buildStubNode($migration, $nid){
