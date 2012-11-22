@@ -522,7 +522,7 @@ function pensoft_publication_field_default_fields() {
   $fields['publication-pensoft-field_publication_treatments'] = array(
     'field_config' => array(
       'active' => '1',
-      'cardinality' => '1',
+      'cardinality' => '-1',
       'deleted' => '0',
       'entity_types' => array(),
       'field_name' => 'field_publication_treatments',
@@ -566,7 +566,7 @@ function pensoft_publication_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'relation_type' => 'publication_treatments',
-        'relation_view' => 'publication_taxon_description:default',
+        'relation_view' => 'relation_select_publication_taxo:default',
         'user_register_form' => FALSE,
       ),
       'widget' => array(
