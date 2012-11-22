@@ -10,7 +10,7 @@
       function init(){
         
          var element_settings = {
-           url: '/pensoft/ajax',
+           url: Drupal.settings.basePath + 'pensoft/ajax',
            event: 'selectItem',
          }
         
