@@ -441,6 +441,21 @@ function scratchpads_migrate_register_migrations(){
     Migration::registerMigration($arguments['class_name'], $arguments['machine_name'], $arguments);
     $common_node_arguments['dependencies'][] = $arguments['machine_name'];
   }
+  /*********************************************************************************************
+   * Blocks
+  ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of blocks from Drupal 6'),
+    'machine_name' => 'Blocks',
+    'dependencies' => array( // Files must be migrated first
+      'File',
+      'Image'
+    ),
+    'group' => MigrateGroup::getInstance('content', array(
+      'terms'
+    ))
+  );
+  Migration::registerMigration('BlockMigration', $arguments['machine_name'], $arguments);
   /****************************************************************************
    * Dependencies for the PathRedirect migration
    ****************************************************************************/
