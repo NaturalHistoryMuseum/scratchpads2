@@ -21,10 +21,10 @@ function pensoft_publication_menu(){
   return $items;
 }
 
-function pensoft_publication_preprocess_relation_select_field(&$variables){
+function pensoft_publication_process_relation_select_field(&$variables){
   if($variables['entity_type'] == 'publication' && $variables['bundle'] == 'pensoft'){
     // Pass the processing to individual field processors
-    $func = 'pensoft_publication_preprocess_' . $variables['field_name'];
+    $func = 'pensoft_publication_process_' . $variables['field_name'];
     if(function_exists($func)){
       $func($variables);
     }
@@ -35,7 +35,7 @@ function pensoft_publication_preprocess_relation_select_field(&$variables){
  * Preprocess the author field
  * We want to have the author real name, instiution etc.,
  */
-function pensoft_publication_preprocess_field_publication_authors(&$variables){
+function pensoft_publication_process_field_publication_authors(&$variables){
   $variables['items'] = array();
   $variables['list_type'] = 'ol';
   $conjunction = '';
@@ -54,7 +54,7 @@ function pensoft_publication_preprocess_field_publication_authors(&$variables){
   }
 }
 
-function pensoft_publication_preprocess_field_publication_treatments(&$variables){
+function pensoft_publication_process_field_publication_treatments(&$variables){
   $variables['items'] = array();
   $variables['list_type'] = 'ul';
   $relation = $variables['relation'];
@@ -102,6 +102,7 @@ function pensoft_publication_form_alter(&$form, &$form_state, $form_id){
           );
         }else{
           $form['field_publication_treatments'] = array(
+            '#type' => 'markup',
             '#markup' => '<div class="messages warning">' . t('You can add taxon treatments after the publication has been created.') . '</div>',
             '#weight' => 100
           );
@@ -192,7 +193,7 @@ function pensoft_publication_edit_form_submit(&$form, &$form_state){
     'relation-select/add/publication/' . $form_state['pid'] . '/publication_treatments/relation_select_publication_taxo',
     array(
       'query' => array(
-        'destination' => request_uri()
+        'destination' => request_path() . '?step=group_publication_systematics'
       )
     )
   );
