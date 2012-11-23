@@ -2,21 +2,17 @@
 
 function scratchpad_admin_openids(){
   return array(
-    'Developers' => array(
-      'http://vbrant.eu/users/alice-heaton/openid' => 'Alice Heaton (http://vbrant.eu/users/alice-heaton/openid)',
-      'http://vbrant.eu/user/57/identity' => 'Ben Scott (http://vbrant.eu/user/57/identity)',
-      'http://edwbaker.myopenid.com/' => 'Edward Baker (http://edwbaker.myopenid.com)',
-      'http://vbrant.eu/users/katherine-bouton/openid' => 'Katherine Bouton (http://vbrant.eu/users/katherine-bouton/openid)',
-      'http://openid.simon.rycroft.name/' => 'Simon Rycroft (http://openid.simon.rycroft.name/)'
-    ),
-    'Support' => array(
-      'http://vbrant.eu/users/dave-roberts/openid' => 'Dave Roberts (http://vbrant.eu/users/dave-roberts/openid)',
-      'http://vbrant.eu/users/dimitris-koureas/openid' => 'Dimitris Koureas (http://vbrant.eu/users/dimitris-koureas/openid)',
-      'http://vbrant.eu/users/isa-vandevelde/openid' => 'Isa Vandevelde (http://vbrant.eu/users/isa-vandevelde/openid)',
-      'http://vbrant.eu/users/laurence-livermore/openid' => 'Laurence Livermore (http://vbrant.eu/users/laurence-livermore/openid)',
-      'http://vbrant.eu/users/vince-smith/openid' => 'Vince Smith (http://vbrant.eu/users/vince-smith/openid)',
-      'http://vsmithuk.myopenid.com/' => 'Vincent Smith (http://vsmithuk.myopenid.com)'
-    )
+    'http://vbrant.eu/users/alice-heaton/openid' => 'Alice Heaton (http://vbrant.eu/users/alice-heaton/openid)',
+    'http://vbrant.eu/user/57/identity' => 'Ben Scott (http://vbrant.eu/user/57/identity)',
+    'http://vbrant.eu/users/dave-roberts/openid' => 'Dave Roberts (http://vbrant.eu/users/dave-roberts/openid)',
+    'http://vbrant.eu/users/dimitris-koureas/openid' => 'Dimitris Koureas (http://vbrant.eu/users/dimitris-koureas/openid)',
+    'http://edwbaker.myopenid.com/' => 'Edward Baker (http://edwbaker.myopenid.com)',
+    'http://vbrant.eu/users/isa-vandevelde/openid' => 'Isa Vandevelde (http://vbrant.eu/users/isa-vandevelde/openid)',
+    'http://vbrant.eu/users/katherine-bouton/openid' => 'Katherine Bouton (http://vbrant.eu/users/katherine-bouton/openid)',
+    'http://vbrant.eu/users/laurence-livermore/openid' => 'Laurence Livermore (http://vbrant.eu/users/laurence-livermore/openid)',
+    'http://openid.simon.rycroft.name/' => 'Simon Rycroft (http://openid.simon.rycroft.name/)',
+    'http://vbrant.eu/users/vince-smith/openid' => 'Vince Smith (http://vbrant.eu/users/vince-smith/openid)',
+    'http://vsmithuk.myopenid.com/' => 'Vincent Smith (http://vsmithuk.myopenid.com)'
   );
 }
 
@@ -80,18 +76,11 @@ function scratchpad_logins(){
       '#options' => $users,
       '#default_value' => $lowest_maintainer_uid
     ),
-    'logins' => array(
+    'submit' => array(
       '#type' => 'submit',
       '#value' => t('Login')
     )
   );
-}
-
-function scratchpad_logins_validate($form, &$form_state){
-  $allowed_openids = variable_get('scratchpad_administrator_openids', scratchpad_admin_openids());
-  if((integer)$form_state['values']['uid'] === 1 && !isset($allowed_openids['Developers'][$form_state['values']['openid']])){
-    form_set_error('uid', 'Only "Developers" may login as Scratchpad Team');
-  }
 }
 
 function scratchpad_logins_submit(){
@@ -114,7 +103,6 @@ function scratchpad_do_openid_login($uid){
   $result = openid_complete();
   // Ensure that the Openid returned, is one of the ones we're allowing
   $allowed_openids = variable_get('scratchpad_administrator_openids', scratchpad_admin_openids());
-  $allowed_openids = array_merge($allowed_openids['Developers'], $allowed_openids['Support']);
   if($result['status'] == 'success' && isset($allowed_openids[$result['openid.claimed_id']])){
     global $user;
     $user = user_load($uid);
