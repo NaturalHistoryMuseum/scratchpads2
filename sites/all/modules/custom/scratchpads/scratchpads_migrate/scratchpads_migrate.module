@@ -29,7 +29,6 @@ global $s1_domain;
 // The domain of this site should be s2.blah-blah, so we remove the first three
 // characters.
 $s1_domain = substr(parse_url($base_url, PHP_URL_HOST), 3);
-// $s1_domain = 'arcticplants.myspecies.info';
 $filename = '/var/aegir/scratchpad_1_db_settings/' . $s1_domain . '.scratchpad_1.php';
 if(file_exists($filename)){
   require_once ($filename);
@@ -442,6 +441,21 @@ function scratchpads_migrate_register_migrations(){
     Migration::registerMigration($arguments['class_name'], $arguments['machine_name'], $arguments);
     $common_node_arguments['dependencies'][] = $arguments['machine_name'];
   }
+  /*********************************************************************************************
+   * Blocks
+  ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of blocks from Drupal 6'),
+    'machine_name' => 'Blocks',
+    'dependencies' => array( // Files must be migrated first
+      'File',
+      'Image'
+    ),
+    'group' => MigrateGroup::getInstance('content', array(
+      'terms'
+    ))
+  );
+  Migration::registerMigration('BlockMigration', $arguments['machine_name'], $arguments);
   /****************************************************************************
    * Dependencies for the PathRedirect migration
    ****************************************************************************/
