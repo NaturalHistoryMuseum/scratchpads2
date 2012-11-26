@@ -18,6 +18,7 @@ define('CC_LARGE_IMAGE', '88x31.png');
 define('CC_IMAGE_URI', 'http://i.creativecommons.org/l');
 define('CC_LICENCE_URI', 'http://creativecommons.org/licences');
 define('CC_DEFAULT_VERSION', '3.0');
+define('CC_URL', 'cc_url');
 
 /*********************************************************************************************
  * 
@@ -76,17 +77,23 @@ function creative_commons_field_is_empty($item, $field){
 function creative_commons_field_formatter_info(){
   return array(
     'creative_commons_small_image' => array(
-      'label' => t('Creative commons small image'),
+      'label' => t('Creative Commons small image'),
       'field types' => array(
         'creative_commons'
       )
     ),
     'creative_commons_large_image' => array(
-      'label' => t('Creative commons large image'),
+      'label' => t('Creative Commons large image'),
       'field types' => array(
         'creative_commons'
       )
-    )
+    ),
+    'creative_commons_url' => array(
+      'label' => t('Creative Commons URL'),
+      'field types' => array(
+        'creative_commons'
+      )
+    ),
   );
 }
 
@@ -96,7 +103,17 @@ function creative_commons_field_formatter_info(){
 function creative_commons_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
   $element = array();
   foreach($items as $delta => $item){
-    $element[$delta] = creative_commons_display($item['licence'], $field['settings']['jurisdiction'], ($display['type'] == 'creative_commons_small_image' ? CC_SMALL_IMAGE : CC_LARGE_IMAGE));
+  	switch ($display['type']){
+  	  case 'creative_commons_small_image':
+  		$element[$delta] = creative_commons_display($item['licence'], $field['settings']['jurisdiction'], CC_SMALL_IMAGE);
+  		break;
+  	  case 'creative_commons_large_image':
+  	    $element[$delta] = creative_commons_display($item['licence'], $field['settings']['jurisdiction'], CC_LARGE_IMAGE);
+  	    break;
+  	  case 'creative_commons_url':
+  	  	$element[$delta] = creative_commons_display($item['licence'], $field['settings']['jurisdiction'], CC_URL);
+  	  	break;
+  	}
   }
   return $element;
 }
@@ -151,6 +168,7 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
   if(!isset($url)){
     $url = CC_LICENCE_URI . '/' . $licence . '/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
   }
+  if($display_type == CC_LARGE_IMAGE || $display_type == CC_SMALL_IMAGE){
   return array(
     '#type' => 'html_tag',
     '#tag' => 'a',
@@ -167,6 +185,10 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
       'height' => $display_type == CC_LARGE_IMAGE ? '31px' : '15px'
     ))
   );
+  }
+  if ($display_type == CC_URL){
+  	return array('#markup' => $url);
+  }
 }
 
 /**
