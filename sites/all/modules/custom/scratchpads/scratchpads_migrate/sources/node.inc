@@ -480,6 +480,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
    */
   public static function fileCreateUrl($file){
     $wrapper = file_stream_wrapper_get_instance_by_uri($file);
+    $file = drupal_encode_path($file);
     $url = base_path() . $wrapper->getDirectoryPath() . '/' . basename($file);
     return $url;
   }
