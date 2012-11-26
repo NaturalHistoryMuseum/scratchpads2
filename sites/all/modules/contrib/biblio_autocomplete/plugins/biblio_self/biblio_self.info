@@ -1,0 +1,7 @@
+; $Id$
+name = Biblio self autocomplete
+description = Allows autocompletion of Biblio fields from previously used entries.
+core = 7.x
+dependencies[] = biblio_autocomplete
+package = Biblio
+
