@@ -134,7 +134,7 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
   // Add the data.
   $loop = 0;
   $ids_to_load = array();
-  while(($id = array_pop($context['sandbox']['entity_ids'])) != FALSE && $loop < 500){
+  while($loop < 500 && ($id = array_pop($context['sandbox']['entity_ids'])) != FALSE){
     $ids_to_load[] = $id;
     $loop++;
   }

@@ -124,4 +124,18 @@ class DrupalContentTypeMigration extends DrupalMigration{
     }
     return TRUE;
   }
+
+  protected function postImport(){
+    parent::postImport();
+    // Turn on weight settings for all nodes types
+    foreach(array_keys(node_type_get_types()) as $node_type){
+      $query = db_insert('weight_settings')->fields(array(
+        'type' => $node_type,
+        'weight_enabled' => 1,
+        'weight_range' => 100,
+        'menu_weight' => 0,
+        'weight_default' => 0
+      ))->execute();
+    }
+  }
 }
