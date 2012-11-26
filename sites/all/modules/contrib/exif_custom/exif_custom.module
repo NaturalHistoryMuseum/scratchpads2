@@ -83,6 +83,23 @@ function exif_custom_menu(){
   return $items;
 }
 
+function exif_custom_permission(){
+	return array(
+	  'have default image metadata profile' => array(
+	    'title' => t('Have default image metadata profile'),
+	    'description' => t('Allow users to override teh site default image metadata profile.')
+	  ),
+	  'view image metadata' => array(
+	    'title' => t('View iamge metadata'),
+	    'description' => t('See what image metdata import profiles have been created.'),
+	 ),
+	  'administer image metadata' => array(
+	    'title' => 'Administer image metadata',
+	    'description' => 'Administer image metadata import profiles',
+	  ),
+	);
+} 
+
 /**
  * 
  * General settings page for exif_custom module
