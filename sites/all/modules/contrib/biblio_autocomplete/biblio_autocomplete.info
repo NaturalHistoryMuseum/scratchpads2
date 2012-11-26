@@ -1,0 +1,6 @@
+; $Id$
+name = Biblio Autocomplete
+description = Allows other modules to provide autocomplete functionality to Biblio nodes
+core = 7.x
+dependencies[] = biblio
+package = Biblio

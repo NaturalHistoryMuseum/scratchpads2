@@ -1,0 +1,105 @@
+<?php
+
+// $Id$
+/**
+ * @file
+ * Add Google Scholar metatags to Biblio node pages
+ */
+function biblio_scholar_preprocess_node($variables){
+  if($variables['type'] == 'biblio'){
+    drupal_add_html_head(array(
+      '#tag' => 'meta',
+      '#attributes' => array(
+        'name' => 'citation_title',
+        'content' => $variables['title']
+      )
+    ), 'biblio_scholar_title');
+    //Sort out the authors
+    $i = 0;
+    foreach($variables['biblio_contributors'] as $author){
+      $author_types = array(1,2,3,4);
+      if(in_array($author['auth_type'], $author_types) ){
+        drupal_add_html_head(array(
+          '#tag' => 'meta',
+          '#attributes' => array(
+            'name' => 'citation_author',
+            'content' => $author['name']
+          ),
+          '#weight' => $i,
+        ), 'biblio_scholar_author' . $i);
+        $i++;
+      }
+    }
+    if($variables['biblio_year'] != ''){
+      drupal_add_html_head(array(
+        '#tag' => 'meta',
+        '#attributes' => array(
+          'name' => 'citation_publication_date',
+          'content' => $variables['biblio_year']
+        )
+      ), 'biblio_scholar_publication_date');
+    }
+    if($variables['biblio_secondary_title'] != ''){
+      drupal_add_html_head(array(
+        '#tag' => 'meta',
+        '#attributes' => array(
+          'name' => 'citation_journal_title',
+          'content' => $variables['biblio_secondary_title']
+        )
+      ), 'biblio_scholar_secondary_title');
+    }
+    if($variables['biblio_volume'] != ''){
+      drupal_add_html_head(array(
+        '#tag' => 'meta',
+        '#attributes' => array(
+          'name' => 'citation_volume',
+          'content' => $variables['biblio_volume']
+        )
+      ), 'biblio_scholar_volume');
+    }
+    if($variables['biblio_issue'] != ''){
+      drupal_add_html_head(array(
+        '#tag' => 'meta',
+        '#attributes' => array(
+          'name' => 'citation_issue',
+          'content' => $variables['biblio_issue']
+        )
+      ), 'biblio_scholar_issue');
+    }
+    if($variables['biblio_isbn'] != ''){
+      drupal_add_html_head(array(
+        '#tag' => 'meta',
+        '#attributes' => array(
+          'name' => 'citation_isbn',
+          'content' => $variables['biblio_isbn']
+        )
+      ), 'biblio_scholar_isbn');
+    }
+    if($variables['biblio_issn'] != ''){
+      // drupal_set_html_head('<meta name="citation_issn" content="' . $variables['biblio_issn'] . '"/>');
+      drupal_add_html_head(array(
+        '#tag' => 'meta',
+        '#attributes' => array(
+          'name' => 'citation_issn',
+          'content' => $variables['biblio_issn']
+        )
+      ), 'biblio_scholar_issn');
+    }
+    
+    foreach ($variables as $key => $field){
+      if (is_array($field) && isset($field[0]['fid'])){
+      	foreach ($field as $file){
+      	  if ($file['filemime'] == 'application/pdf'){
+    		drupal_add_html_head(array(
+    		  '#tag' => 'meta',
+    		  '#attributes' => array(
+    		    'name' => 'citation_pdf_url',
+    		    'content' => url(file_create_url($file['uri']), array('absolute' => TRUE))
+    		)
+    		), 'biblio_scholar_url');
+    	  }
+      	}
+      }
+    }
+  }
+}
