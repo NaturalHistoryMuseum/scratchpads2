@@ -5,12 +5,6 @@
  */
 function scratchpads_migrate_install(){
   scratchpads_migrate_update_7001();
-  // Set the Solr server to a dummy URL
-  // Will reset back in scratchpads_migrate_drush_tidy_up()
-  db_update('apachesolr_environment')->fields(array(
-    'name' => 'Scratchpad solr server',
-    'url' => 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads2-xxx'
-  ))->condition('env_id', 'solr')->execute();
 }
 
 /**
