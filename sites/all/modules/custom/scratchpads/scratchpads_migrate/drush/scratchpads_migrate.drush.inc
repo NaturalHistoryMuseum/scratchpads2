@@ -16,10 +16,6 @@ function scratchpads_migrate_drush_command(){
 
 function scratchpads_migrate_drush_tidy_up(){
   if(!drush_confirm(dt('Are you sure you want to run the scratchpad tidy up migration functions?'))){return drush_user_abort();}
-  db_update('apachesolr_environment')->fields(array(
-    'name' => 'Scratchpad solr server',
-    'url' => 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads2'
-  ))->condition('env_id', 'solr')->execute();
   drupal_flush_all_caches();
   node_access_rebuild();
 }
