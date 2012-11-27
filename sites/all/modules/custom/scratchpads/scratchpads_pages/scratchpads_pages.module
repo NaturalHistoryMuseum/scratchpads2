@@ -278,7 +278,7 @@ function scratchpads_pages_block_view($delta = ''){
       if(arg(0) == 'node' && is_numeric($nid = arg(1)) && $node = node_load($nid)){
         $node_type_info = node_type_load($node->type);
         $display_name = $node_type_info->name;
-        if ($node->type == 'biblio') {
+        if($node->type == 'biblio'){
           $display_name = 'literature';
         }
         $items = array(
@@ -428,8 +428,20 @@ function scratchpads_pages_pluralise_node_name($name){
   return $name;
 }
 
+/**
+ * Get a list of all node types
+ */
 function scratchpads_pages_get_node_types(){
   return _node_types_build(true)->types;
+}
+
+/**
+ * Does a node of this type exist?
+ */
+function scratchpads_pages_node_exists_of_type($type){
+  return db_query("SELECT count(nid) FROM {node} where type=:type", array(
+    ':type' => $type
+  ))->fetchField() >= 1;
 }
 
 /**
