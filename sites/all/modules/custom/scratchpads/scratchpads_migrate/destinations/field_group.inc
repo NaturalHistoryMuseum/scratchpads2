@@ -29,7 +29,7 @@ class MigrateDestinationFieldGroup extends MigrateDestination{
   public function import(stdClass $object, stdClass $row){
     // Ensure the node type exists
     $node_info = node_entity_info();
-    if(!isset($node_info['node']['bundles'][$object->bundle])){// If it doesn't throw an exception
+    if(!isset($node_info['node']['bundles'][$object->bundle])){      // If it doesn't throw an exception
 throw new MigrateException(t("Node type %type does not exist", array(
         '%type' => $object->bundle
       )));}
@@ -40,13 +40,24 @@ throw new MigrateException(t("Node type %type does not exist", array(
       $object->mode = $mode;
       $object->identifier = $object->group_name . '|' . $object->entity_type . '|' . $object->bundle . '|' . $mode;
       $object->disabled = false;
+      $object->collapsed = false;
       switch($mode){
         case 'form':
-          $object->format_type = $settings['form']['style'];
+          $object->format_type = 'fieldset';
+          $object->format_settings = array(
+            'formatter' => 'collapsible',
+            'instance_settings' => array()
+          );
           break;
         // For front end 
         case 'default':
           $object->format_type = 'div';
+          $object->format_settings = array(
+            'formatter' => 'collapsible',
+            'instance_settings' => array(
+              'show_label' => 1
+            )
+          );
           break;
       }
       // Save the group

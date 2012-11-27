@@ -239,6 +239,10 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         }
       }
     }
+    // In D6 sticky is actually node weight
+    $this->removeFieldMapping('sticky');
+    $this->addFieldMapping('sticky')->defaultValue(0);
+    $this->addFieldMapping('weight_weight', 'sticky');
     // Use english as the default language
     $this->removeFieldMapping('language');
     $this->addFieldMapping('language', 'language')->defaultValue('en');

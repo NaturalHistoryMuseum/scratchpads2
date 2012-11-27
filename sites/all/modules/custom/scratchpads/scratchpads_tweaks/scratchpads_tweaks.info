@@ -45,6 +45,7 @@ dependencies[] = media_multiselect
 dependencies[] = plupload
 dependencies[] = role_delegation
 dependencies[] = uuid
+dependencies[] = weight
 
 ; Scratchpads modules
 dependencies[] = scratchpads_apachesolr_instant
