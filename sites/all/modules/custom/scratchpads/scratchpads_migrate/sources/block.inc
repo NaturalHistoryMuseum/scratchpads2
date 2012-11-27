@@ -47,7 +47,6 @@ class BlockMigration extends DrupalMigration{
       'info'
     ));
     $query->condition('status', 1);
-    $query->condition('visibility', 1);
     $query->condition('module', 'block');
     $query->condition('theme', 'garland');
     return $query;
