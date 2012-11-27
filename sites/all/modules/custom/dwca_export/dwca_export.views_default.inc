@@ -1766,7 +1766,7 @@ function _dwca_export_view_description($desc_type){
   $handler->display->display_options['fields'][t('field_' . $desc_type . '_1')]['empty_zero'] = 0;
   $handler->display->display_options['fields'][t('field_' . $desc_type . '_1')]['hide_alter_empty'] = 1;
   $handler->display->display_options['fields'][t('field_' . $desc_type . '_1')]['field_api_classes'] = 0;
-  /* Field: Global: Custom text */
+  /* Field: Global: Custom text (Rights Statement) */
 $handler->display->display_options['fields']['nothing']['id'] = 'nothing';
 $handler->display->display_options['fields']['nothing']['table'] = 'views';
 $handler->display->display_options['fields']['nothing']['field'] = 'nothing';
@@ -1788,6 +1788,53 @@ $handler->display->display_options['fields']['nothing']['element_default_classes
 $handler->display->display_options['fields']['nothing']['hide_empty'] = 0;
 $handler->display->display_options['fields']['nothing']['empty_zero'] = 0;
 $handler->display->display_options['fields']['nothing']['hide_alter_empty'] = 0;
+/* Field: Content: Path (DC Reference) */
+$handler->display->display_options['fields']['path']['id'] = 'path';
+$handler->display->display_options['fields']['path']['table'] = 'node';
+$handler->display->display_options['fields']['path']['field'] = 'path';
+$handler->display->display_options['fields']['path']['relationship'] = 'field_spm_em_gd_ref_nid';
+$handler->display->display_options['fields']['path']['label'] = 'DC Reference';
+$handler->display->display_options['fields']['path']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['path']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['path']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['path']['alter']['external'] = 0;
+$handler->display->display_options['fields']['path']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['path']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['path']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['path']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['path']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['path']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['path']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['path']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['path']['alter']['html'] = 0;
+$handler->display->display_options['fields']['path']['element_label_colon'] = 1;
+$handler->display->display_options['fields']['path']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['path']['hide_empty'] = 0;
+$handler->display->display_options['fields']['path']['empty_zero'] = 0;
+$handler->display->display_options['fields']['path']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['path']['absolute'] = 1;
+/* Field: Global: Custom text (DC Source) */
+$handler->display->display_options['fields']['nothing_1']['id'] = 'nothing_1';
+$handler->display->display_options['fields']['nothing_1']['table'] = 'views';
+$handler->display->display_options['fields']['nothing_1']['field'] = 'nothing';
+$handler->display->display_options['fields']['nothing_1']['label'] = 'DC Source';
+$handler->display->display_options['fields']['nothing_1']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['nothing_1']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['nothing_1']['alter']['external'] = 0;
+$handler->display->display_options['fields']['nothing_1']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['nothing_1']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['nothing_1']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['nothing_1']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['nothing_1']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['nothing_1']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['nothing_1']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['nothing_1']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['nothing_1']['alter']['html'] = 0;
+$handler->display->display_options['fields']['nothing_1']['element_label_colon'] = 1;
+$handler->display->display_options['fields']['nothing_1']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['nothing_1']['hide_empty'] = 0;
+$handler->display->display_options['fields']['nothing_1']['empty_zero'] = 0;
+$handler->display->display_options['fields']['nothing_1']['hide_alter_empty'] = 0;
   /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
