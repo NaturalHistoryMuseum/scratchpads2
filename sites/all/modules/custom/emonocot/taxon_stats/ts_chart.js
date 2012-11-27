@@ -22,8 +22,7 @@ function drawCharts(){
       drawChart(jQuery(this).attr('id'));
     } 
   );
-        
-      }
+}
 
 /**
  *  Draws a chart in the element passed as elementID

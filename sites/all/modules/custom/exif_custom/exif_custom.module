@@ -384,6 +384,7 @@ function exif_custom_process_entity($file){
   if(arg(3) == 'exif_custom'){return;}
   $mappings = exif_custom_get_mapping();
   $data = exif_custom_get_exif_fields($file->uri, TRUE);
+  if ($data == FALSE){return;}
   foreach($mappings as $field => $values){
     $array = array();
     $field_info = field_info_field($field);
@@ -444,6 +445,7 @@ function exif_custom_get_exif_fields($uri, $concatenate_arrays = TRUE){
   if(isset($info['APP13'])){
     $iptc = iptcparse($info['APP13']);
   }
+  if (isset($iptc)){
   //IPTC:2#254 can contain name=value pairs
   if(isset($iptc['2#254']) && is_array($iptc['2#254'])){
     $i = 0;
@@ -453,12 +455,14 @@ function exif_custom_get_exif_fields($uri, $concatenate_arrays = TRUE){
     }
     unset($iptc['2#254']);
   }
-  foreach($iptc as $key => $value){
-    if($concatenate_arrays && is_array($value)){
-      $value = implode(', ', $value);
+    foreach($iptc as $key => $value){
+      if($concatenate_arrays && is_array($value)){
+        $value = implode(', ', $value);
+      }
+      $fields['IPTC:' . $key] = exif_custom_check_plain($value);
     }
-    $fields['IPTC:' . $key] = exif_custom_check_plain($value);
   }
+  if (!is_array($exif) && !isset($iptc)){return FALSE;}
   return $fields;
 }
 
