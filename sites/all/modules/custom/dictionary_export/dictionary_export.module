@@ -6,7 +6,7 @@
  * @return $items
  * A menu array
  */
- 
+ function dictionary_export_menu(){
   $items['admin/structure/taxonomy/%/dictionary_export'] = array(
     'title' => 'Download Dictionary',
     'page callback' => 'dictionary_export',
