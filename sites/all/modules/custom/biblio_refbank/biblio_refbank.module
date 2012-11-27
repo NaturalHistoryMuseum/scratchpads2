@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function biblio_refbank_menu(){
+  return array(
+    'biblio_refbank' => array(
+      'title' => 'Biblio refbank',
+      'page callback' => 'biblio_refbank_autocomplete',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK
+    )
+  );
+}
+
+/**
+ * Biblio refbank callback.
+ */
+function biblio_refbank_autocomplete($first, $second){}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ * 
+ * Tweak the biblio node form so that we can add our fieldset.
+ */
+function biblio_refbank_form_biblio_node_form_alter(&$form, &$form_state){
+  if(!$form_state['submitted'] && !isset($form['#node']->nid)){
+    $form['biblio_refbank'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('RefBank Lookup'),
+      '#weight' => -20,
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      'refbank_data' => array(
+        '#type' => 'textfield',
+        '#title' => t('DOI'),
+        '#required' => FALSE,
+        '#default_value' => (isset($form_state['values']['doi_data']) ? $form_state['values']['doi_data'] : ''),
+        '#description' => t('Enter an author name, and optionally a year in the form: <b>Author Year</b>'),
+        '#size' => 60,
+        '#maxlength' => 255,
+        '#weight' => -4
+      ),
+      'refbank_submit' => array(
+        '#type' => 'submit',
+        '#value' => t('Populate using RefBank'),
+        '#submit' => array(
+          'biblio_refbank_form_biblio_node_form_submit'
+        )
+      )
+    );
+  }
+  $biblio_refbank_id = (isset($form_state['values']['biblio_refbank_id'])) ? $form_state['values']['biblio_refbank_id'] : '';
+  $biblio_refbank_md5 = (isset($form_state['values']['biblio_refbank_md5'])) ? $form_state['values']['biblio_refbank_md5'] : '';
+  $form['biblio_refbank_id'] = array(
+    '#type' => 'value',
+    '#value' => $biblio_refbank_id
+  );
+  $form['biblio_refbank_md5'] = array(
+    '#type' => 'value',
+    '#value' => $biblio_refbank_md5
+  );
+}
+
+/**
+ * Submit function for the above tweak.
+ */
+function biblio_refbank_form_biblio_node_form_submit($form, &$form_state){
+  global $user;
+  $node_data = array();
+  if(strlen($doi = $form_state['values']['doi_data'])){
+    if(($doi_start = strpos($form_state['values']['doi_data'], '10.')) !== FALSE){
+      $crossref_pid = variable_get('biblio_refbank_pid', '');
+      $user_pid = (isset($user->data['biblio_refbank_pid']) && !empty($user->data['biblio_refbank_pid'])) ? $user->data['biblio_refbank_pid'] : '';
+      if(variable_get('biblio_show_crossref_profile_form', '1') && !empty($user_pid)){
+        $crossref_pid = $user_pid;
+      }
+      if(empty($crossref_pid)){
+        form_set_error('doi_data', t(l('You need to register with CrossRef', 'http://www.crossref.org/requestaccount/', array(
+          'attributes' => array(
+            'target' => '_blank'
+          ),
+          'absolue' => TRUE
+        )) . t(' and then enter your CrossRef UserID in the "<i>CrossRef Login Information</i>" section of your account profile !url', array(
+          '!url' => l('here...', "user/$user->uid/edit")
+        ))));
+        return;
+      }
+      module_load_include('php', 'biblio_refbank', 'biblio.crossref.client');
+      $client = new BiblioCrossRefClient($doi, $crossref_pid);
+      $node_data = $client->fetch();
+      if(!empty($node_data)){
+        $form_state['values'] = array_merge($form_state['values'], $node_data);
+        $form_state['input']['biblio_type'] = $form_state['biblio_type'] = $node_data['biblio_type'];
+      }else{
+        form_set_error('doi_data', '');
+      }
+    }else{
+      form_set_error('doi_data', t('This does not appear to be a valid DOI name, it should start with "10."'));
+    }
+  }
+  $form_state['rebuild'] = TRUE;
+  return;
+}
