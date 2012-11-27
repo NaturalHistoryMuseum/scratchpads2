@@ -1,0 +1,11 @@
+<?php
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function taxonomy_batch_form_taxonomy_form_term_alter(){}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+//function taxonomy_batch_form_taxonomy_form_term_alter(){}
