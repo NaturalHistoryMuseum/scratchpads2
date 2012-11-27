@@ -32,6 +32,7 @@ dependencies[] = boost
 dependencies[] = ckeditor
 dependencies[] = clone
 dependencies[] = comment_notify
+dependencies[] = dictionary_export
 dependencies[] = emptyparagraphkiller
 dependencies[] = entitycache
 dependencies[] = entityconnect
