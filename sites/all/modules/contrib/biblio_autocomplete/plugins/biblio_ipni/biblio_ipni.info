@@ -1,7 +1,0 @@
-; $Id$
-name = Biblio IPNI autocomplete
-description = Allows autocompletion of Biblio fields from IPNI.
-core = 7.x
-dependencies[] = biblio_autocomplete
-package = Biblio
-
