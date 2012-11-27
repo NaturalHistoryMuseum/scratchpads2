@@ -28,6 +28,7 @@ class DrupalImageGalleryMigration extends DrupalMigration{
     $this->addFieldMapping('uid')->defaultValue(1);
     $this->addFieldMapping('status')->defaultValue(1);
     $this->addFieldMapping('is_new')->defaultValue(1);
+    $this->addFieldMapping('weight_weight')->defaultValue(0);
     $this->addFieldMapping('nid', 'nid');
     $this->addUnmigratedDestinations(array(
       'revision',
