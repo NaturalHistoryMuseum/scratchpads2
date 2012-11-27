@@ -81,6 +81,7 @@
 		<coreid index="0" />
 		<field index="1" term="http://purl.org/dc/terms/type" />
 		<field index="2" term="http://purl.org/dc/terms/description" />
+		<field index="3" term="http://purl.org/dc/terms/rights" />
 	</extension>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
