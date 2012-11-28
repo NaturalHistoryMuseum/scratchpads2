@@ -38,7 +38,40 @@ function emonocot_dwca_views_default_views_alter(&$views){
     //For description references change Rights field to associated Biblio nodes rights
     if(substr($view->name, 0, 23) == 'dwca_export_description'){
       $field_matching = array(
-        'dwca_export_description_genera' => 'field_spm_em_gd_ref'
+        'dwca_export_description_genera' => 'field_spm_em_gd_ref',
+        'dwca_export_description_morpho' => 'field_spm_em_morph_ref',
+        'dwca_export_description_behavi' => 'field_spm_em_beha_ref',
+        'dwca_export_description_biolog' => 'field_spm_em_bio_ref',
+        'dwca_export_description_conser' => 'field_spm_em_cs_ref',
+        'dwca_export_description_legisl' => 'field_spm_em_leg_ref',
+        'dwca_export_description_manage' => 'field_spm_em_manage_ref',
+        'dwca_export_description_proced' => 'field_spm_em_proc_ref',
+        'dwca_export_description_threat' => 'field_spm_em_threats_ref',
+        'dwca_export_description_associ' => 'field_spm_em_assoc',
+        'dwca_export_description_cyclic' => 'field_spm_em_cyclicity_ref',
+        'dwca_export_description_diagno' => 'field_spm_em_dd_ref',
+        'dwca_export_description_diseas' => 'field_spm_em_diseases_ref',
+        'dwca_export_description_disper' => 'field_spm_em_dispersal_ref',
+        'dwca_export_description_distri' => 'field_spm_em_distribution_ref',
+        'dwca_export_description_ecolog' => 'field_spm_em_ecology_ref',
+        'dwca_export_description_evolut' => 'field_spm_em_evo_ref',
+        'dwca_export_description_geneti' => 'field_spm_em_genetics_ref',
+        'dwca_export_description_growth' => 'field_spm_em_growth_ref',
+        'dwca_export_description_habita' => 'field_spm_em_habitat_ref',
+        'dwca_export_description_life_c' => 'field_spm_em_lc_ref',
+        'dwca_export_description_life_e' => 'field_spm_em_le_ref',
+        'dwca_export_description_look_a' => 'field_spm_em_la_ref',
+        'dwca_export_description_migrat' => 'field_spm_em_migration_ref',
+        'dwca_export_description_molecu' => 'field_spm_em_mb_ref',
+        'dwca_export_description_pysiol' => 'field_sm_em_phys_ref',
+        'dwca_export_description_popula' => 'field_spm_em_popbio_ref',
+        'dwca_export_description_reprod' => 'field_spm_em_popbio_ref',
+        'dwca_export_description_risk_s' => 'field_spm_em_rs_ref',
+        'dwca_export_description_size'   => 'field_spm_em_size_ref',
+        'dwca_export_description_taxonb' => 'field_spm_em_tb_ref',
+        'dwca_export_description_trophi' => 'field_spm_em_ts_ref',
+        'dwca_export_description_uses'   => 'field_spm_em_uses_ref',
+        
       );
       if(isset($field_matching[$view->name])){
         $view->display['default']->display_options['fields']['nothing']['exclude'] = TRUE;
