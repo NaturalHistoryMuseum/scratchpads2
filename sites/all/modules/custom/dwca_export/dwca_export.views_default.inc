@@ -1987,6 +1987,12 @@ function _dwca_export_view_description($desc_type){
   $handler->display->display_options['filters']['type']['value'] = array(
     'spm' => 'spm'
   );
+  /* Filter criterion: Content: Trophic strategy (field_trophic_strategy) */
+$handler->display->display_options['filters']['field_'.$desc_type.'_value']['id'] = 'field_'.$desc_type.'_value';
+$handler->display->display_options['filters']['field_'.$desc_type.'_value']['table'] = 'field_data_field_'.$desc_type.'';
+$handler->display->display_options['filters']['field_'.$desc_type.'_value']['field'] = 'field_'.$desc_type.'_value';
+$handler->display->display_options['filters']['field_'.$desc_type.'_value']['operator'] = 'longerthan';
+$handler->display->display_options['filters']['field_'.$desc_type.'_value']['value'] = '2';
   /* Display: Page  */
   /*$handler = $view->new_display('page', 'Page', 'page');
 	$handler->display->display_options['path'] = t('dwca-export/description-' . $desc_type . '/page');*/
