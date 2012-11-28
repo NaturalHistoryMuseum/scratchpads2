@@ -41,6 +41,7 @@ class DrupalImageMigration extends DrupalFileMigration{
     $fields['vid'] = 'vid';
     $fields['title'] = 'title';
     $fields['body'] = 'body';
+    $fields['sticky'] = 'sticky';
     $this->source = new MigrateSourceSQL($this->sourceQuery(), $fields, $this->countQuery(), $this->sourceOptions);
     $destination_fields = $this->destination->fields();
     foreach($fields as $delta => $field){
@@ -113,6 +114,7 @@ class DrupalImageMigration extends DrupalFileMigration{
     // Images get filename from the image node title
     $this->removeFieldMapping('filename');
     $this->addFieldMapping('filename', 'title');
+    $this->addFieldMapping('field_weight', 'sticky')->defaultValue(0);
     // Add body field if it exists
     $this->addFieldMapping('field_description', 'body');
     $this->addFieldMapping('field_description:format')->defaultValue('filtered_html');
@@ -184,7 +186,8 @@ class DrupalImageMigration extends DrupalFileMigration{
     $query->fields('n', array(
       'nid',
       'vid',
-      'title'
+      'title',
+      'sticky'
     ));
     $query->innerJoin('node_revisions', 'nr', 'nr.nid = n.nid');
     $query->fields('nr', array(
@@ -199,6 +202,7 @@ class DrupalImageMigration extends DrupalFileMigration{
       $row->vid = $node->vid;
       $row->title = $node->title;
       $row->body = $node->body;
+      $row->sticky = $node->sticky;
     }else{
       $row->nid = 0;
       $row->vid = 0;
