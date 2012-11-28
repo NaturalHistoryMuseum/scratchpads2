@@ -68,9 +68,9 @@
 		</files>
 		<coreid index="0" />
 		<field index="2" term="http://purl.org/dc/terms/identifier" />
-		<field index="2" term="http://purl.org/dc/terms/title" />
-		<field index="3" term="http://purl.org/dc/terms/format" />
-		<field index="4" term="http://purl.org/dc/terms/license" />
+		<field index="3" term="http://purl.org/dc/terms/title" />
+		<field index="4" term="http://purl.org/dc/terms/format" />
+		<field index="5" term="http://purl.org/dc/terms/license" />
 	</extension>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
@@ -115,10 +115,11 @@
 		</files>
 		<coreid index="0" />
 		<field index="0" term="http://rs.tdwg.org/dwc/terms/taxonID" />
-		<field index="1" term="http://rs.tdwg.org/ac/terms/accessURI" />
-		<field index="8" term="http://purl.org/dc/terms/identifier" />
-		<field index="2" term="http://purl.org/dc/terms/title" />
+		<field index="2" term="http://rs.tdwg.org/ac/terms/accessURI" />
+		<field index="1" term="http://purl.org/dc/terms/identifier" />
+		<field index="3" term="http://purl.org/dc/terms/title" />
 		<field index="4" term="http://purl.org/dc/terms/format" />
+		<field index="5" term="http://purl.org/dc/terms/license" />
 		<field index="6" term="http://eol.org/schema/agent/agentID" />
 		<field index="7" term="http://purl.org/dc/terms/type" />
 	</extension>
