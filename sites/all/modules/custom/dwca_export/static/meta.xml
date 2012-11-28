@@ -39,17 +39,17 @@
 		<field index="3" term="http://purl.org/ontology/bibo/doi" />
 		<field index="4" term="http://purl.org/ontology/bibo/isbn" />
 		<field index="5" term="http://purl.org/ontology/bibo/issn" />                                                                     
-		<field index="8" term="http://purl.org/dc/terms/bibliographicCitation" />
-		<field index="9" term="http://purl.org/dc/terms/title" />
-		<field index="10" term="http://purl.org/dc/terms/creator" />
-		<field index="11" term="http://purl.org/dc/terms/source" />
-		<field index="12" term="http://purl.org/dc/terms/description" />
-		<field index="13" term="http://purl.org/dc/terms/subject" />
-		<field index="14" term="http://purl.org/dc/terms/language" />
-		<field index="15" term="http://purl.org/dc/terms/type" />
-		<field index="16" term="http://purl.org/dc/terms/date" />
-		<field index="17" term="http://purl.org/dc/terms/created" />
-		<field index="18" term="http://purl.org/dc/terms/modified" />
+		<field index="6" term="http://purl.org/dc/terms/bibliographicCitation" />
+		<field index="7" term="http://purl.org/dc/terms/title" />
+		<field index="8" term="http://purl.org/dc/terms/creator" />
+		<field index="9" term="http://purl.org/dc/terms/source" />
+		<field index="10" term="http://purl.org/dc/terms/description" />
+		<field index="11" term="http://purl.org/dc/terms/subject" />
+		<field index="12" term="http://purl.org/dc/terms/language" />
+		<field index="13" term="http://purl.org/dc/terms/type" />
+		<field index="14" term="http://purl.org/dc/terms/date" />
+		<field index="15" term="http://purl.org/dc/terms/created" />
+		<field index="16" term="http://purl.org/dc/terms/modified" />
 	</extension>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
