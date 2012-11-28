@@ -157,7 +157,7 @@ function emonocot_dwca_add_description_fields(&$view, $ref_field){
   $new_field['alter']['html'] = 0;
   $new_field['element_label_colon'] = 1;
   $new_field['element_default_classes'] = 1;
-  $new_field['hide_empty'] = 0;
+  $new_field['hide_empty'] = 1;
   $new_field['empty_zero'] = 0;
   $new_field['hide_alter_empty'] = 1;
   $new_field['absolute'] = 1;
