@@ -2,4 +2,4 @@ name = Biblio - RefBank
 description = Provides RefBank lookup and import into the Biblio module.
 core = 7.x
 package = Biblio
-dependencies[] = biblio
+dependencies[] = biblio_bibtex
