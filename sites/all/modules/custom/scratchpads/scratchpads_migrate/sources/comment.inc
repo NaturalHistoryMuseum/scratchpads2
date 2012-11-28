@@ -1,6 +1,12 @@
 <?php
 
 class ScratchpadsCommentMigration extends DrupalComment6Migration{
+  // Turn of comment notifcation
+  protected function preImport(){
+    parent::preImport();
+    variable_set('comment_notify_node_types', array());
+    variable_set('comment_notify_node_notify_default_mailalert', 0);
+  }
 
   /**
    * @param array $arguments
@@ -24,5 +30,15 @@ class ScratchpadsCommentMigration extends DrupalComment6Migration{
     // WTF! D6 comments has 1 for unpublished, 0 for published
     // Invert it
     $row->status = ($row->status == 1 ? 0 : 1);
+  }
+  // Turn on comment notifcation
+  protected function postImport(){
+    parent::postImport();
+    $array_node_types = array();
+    foreach(node_type_get_names() as $type => $name){
+      $array_node_types[$type] = $type;
+    }
+    variable_set('comment_notify_node_types', $array_node_types);
+    variable_set('comment_notify_node_notify_default_mailalert', 1);
   }
 }

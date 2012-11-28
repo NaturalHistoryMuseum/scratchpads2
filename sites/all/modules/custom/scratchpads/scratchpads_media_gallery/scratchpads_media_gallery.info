@@ -44,6 +44,7 @@ features[field][] = "file-image-field_description"
 features[field][] = "file-video-field_description"
 features[field][] = "file-image-field_sticky"
 features[field][] = "file-image-field_creator"
+features[field][] = "file-image-field_weight"
 
 features[node][] = "media_gallery"
 features[ctools][] = "file_entity:file_default_displays:1"

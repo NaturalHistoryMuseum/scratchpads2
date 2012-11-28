@@ -63,7 +63,7 @@ class DrupalFieldFileAttachmentMigration extends DrupalFieldMigration{
     $row->widget_module = 'file';
     $row->display_settings = array();
     $row->global_settings = array(
-      'file_extensions' => 'txt pdf doc'
+      'file_extensions' => 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp'
     );
     $row->type = 'file';
     $row->label = t('File attachments');
