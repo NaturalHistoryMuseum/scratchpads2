@@ -28,6 +28,7 @@ dependencies[] = toolbar
 
 ; Contrib
 dependencies[] = advanced_help
+dependencies[] = biblio_refbank
 dependencies[] = boost
 dependencies[] = ckeditor
 dependencies[] = clone
