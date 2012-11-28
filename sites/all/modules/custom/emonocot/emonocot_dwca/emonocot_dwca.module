@@ -140,7 +140,7 @@ function emonocot_dwca_add_description_fields(&$view, $ref_field){
   $new_field['id'] = 'path_1';
   $new_field['table'] = 'node';
   $new_field['field'] = 'path';
-  $new_field['relationship'] = 'field_spm_em_gd_ref';
+  $new_field['relationship'] = $ref_field;
   $new_field['label'] = 'DC Source';
   $new_field['alter']['alter_text'] = 0;
   $new_field['alter']['make_link'] = 0;
