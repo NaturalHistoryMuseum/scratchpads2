@@ -908,6 +908,11 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['relationships']['field_taxonomic_name_tid_1']['relationship'] = 'file_to_node';
   $handler->display->display_options['relationships']['field_taxonomic_name_tid_1']['label'] = 'term from content from field_taxonomic_name';
   $handler->display->display_options['relationships']['field_taxonomic_name_tid_1']['required'] = 0;
+  /* Relationship: File: User who uploaded */
+  $handler->display->display_options['relationships']['uid']['id'] = 'uid';
+  $handler->display->display_options['relationships']['uid']['table'] = 'file_managed';
+  $handler->display->display_options['relationships']['uid']['field'] = 'uid';
+  $handler->display->display_options['relationships']['uid']['required'] = 0;
   /* Field: Taxonomy term: Taxonomy term UUID */
   $handler->display->display_options['fields']['uuid']['id'] = 'uuid';
   $handler->display->display_options['fields']['uuid']['table'] = 'taxonomy_term_data';
@@ -1080,6 +1085,58 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_cc_licence']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['field_cc_licence']['type'] = 'creative_commons_url';
   $handler->display->display_options['fields']['field_cc_licence']['field_api_classes'] = 0;
+  /* Field: User: User UUID */
+  $handler->display->display_options['fields']['uuid_3']['id'] = 'uuid_3';
+  $handler->display->display_options['fields']['uuid_3']['table'] = 'users';
+  $handler->display->display_options['fields']['uuid_3']['field'] = 'uuid';
+  $handler->display->display_options['fields']['uuid_3']['relationship'] = 'uid';
+  $handler->display->display_options['fields']['uuid_3']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['uuid_3']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['uuid_3']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['uuid_3']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['uuid_3']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['uuid_3']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['uuid_3']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['uuid_3']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['uuid_3']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['uuid_3']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['uuid_3']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['uuid_3']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['uuid_3']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['uuid_3']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['uuid_3']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['uuid_3']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['uuid_3']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['uuid_3']['hide_alter_empty'] = 1;
+  /* Field: Global: Custom text */
+  $handler->display->display_options['fields']['nothing']['id'] = 'nothing';
+  $handler->display->display_options['fields']['nothing']['table'] = 'views';
+  $handler->display->display_options['fields']['nothing']['field'] = 'nothing';
+  $handler->display->display_options['fields']['nothing']['alter']['text'] = 'http://purl.org/dc/dcmitype/StillImage';
+  $handler->display->display_options['fields']['nothing']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['nothing']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['nothing']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['nothing']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['nothing']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['nothing']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['nothing']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['nothing']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['nothing']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['nothing']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['nothing']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['nothing']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['nothing']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['nothing']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['nothing']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['nothing']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['nothing']['hide_alter_empty'] = 0;
+  /* Filter criterion: File: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'image' => 'image'
+  );
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'some';
