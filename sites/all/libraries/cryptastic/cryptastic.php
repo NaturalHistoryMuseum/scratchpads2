@@ -31,7 +31,7 @@ class cryptastic{
       return false;
     $msg = serialize($msg); // serialize
     $iv = mcrypt_create_iv(32, MCRYPT_RAND); // create iv
-    if(mcrypt_generic_init($td, $k, $iv) !== 0) // initialize buffers
+    if(@mcrypt_generic_init($td, $k, $iv) !== 0) // initialize buffers
       return false;
     $msg = mcrypt_generic($td, $msg); // encrypt
     $msg = $iv . $msg; // prepend iv
