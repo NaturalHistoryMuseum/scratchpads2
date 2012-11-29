@@ -318,7 +318,9 @@ function context_ui_edit_name_validate($element, &$form_state) {
   }
 
   // Check for name collision
-  if (@$form_state['item']->export_ui_allow_overwrite === 0 && $exists = ctools_export_crud_load($plugin['schema'], $element['#value'])) {
-    form_error($element, t('A @plugin with this name already exists. Please choose another name or delete the existing item before creating a new one.', array('@plugin' => $plugin['title singular'])));
+  if ($form_state['op'] != 'edit') {
+    if (empty($form_state['item']->export_ui_allow_overwrite) && $exists = ctools_export_crud_load($plugin['schema'], $element['#value'])) {
+      form_error($element, t('A @plugin with this name already exists. Please choose another name or delete the existing item before creating a new one.', array('@plugin' => $plugin['title singular'])));
+    }
   }
 }

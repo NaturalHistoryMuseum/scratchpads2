@@ -31,8 +31,8 @@ class context_condition_node_taxonomy extends context_condition_node {
         $options[$vocabulary->name] = array();
         foreach ($tree as $term) {
           $options[$vocabulary->name][$term->tid] = str_repeat('-', $term->depth) . $term->name;
-        }   
-      }   
+        }
+      }
     }
     $form['#options'] = $options;
     return $form;
@@ -51,8 +51,8 @@ class context_condition_node_taxonomy extends context_condition_node {
 
     if ($this->condition_used() && !empty($check_fields)) {
       foreach ($check_fields as $field) {
-        if (isset($node->{$field}[$node->language])) {
-          foreach ($node->{$field}[$node->language] as $term) {
+        if ($terms = field_get_items('node', $node, $field)) {
+          foreach ($terms as $term) {
             foreach ($this->get_contexts($term['tid']) as $context) {
               // Check the node form option.
               if ($op === 'form') {

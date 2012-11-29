@@ -173,6 +173,9 @@ DrupalContextBlockEditor.prototype.initBlocks = function(blocks) {
   var self = this;
   this.blocks = blocks;
   blocks.each(function() {
+    if($(this).hasClass('context-block-empty')) {
+      $(this).removeClass('context-block-hidden');
+    }
     $(this).addClass('draggable');
     $(this).prepend($('<a class="context-block-handle"></a>'));
     $(this).prepend($('<a class="context-block-remove"></a>').click(function() {
@@ -419,6 +422,9 @@ DrupalContextBlockEditor.prototype.editFinish = function() {
   // Remove UI elements.
   $(this.blocks).each(function() {
     $('a.context-block-handle, a.context-block-remove', this).remove();
+    if($(this).hasClass('context-block-empty')) {
+      $(this).addClass('context-block-hidden');
+    }
     $(this).removeClass('draggable');
   });
   this.regions.sortable('destroy');

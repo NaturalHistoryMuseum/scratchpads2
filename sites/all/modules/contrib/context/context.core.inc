@@ -121,14 +121,24 @@ function context_node_view($node, $view_mode) {
  * Implementation of hook_form_alter().
  */
 function context_form_alter(&$form, $form_state, $form_id) {
-  // Prevent this from firing on admin pages... damn form driven apis...
-  if (!empty($form['#node_edit_form']) && arg(0) != 'admin') {
-    context_node_condition($form['#node'], 'form');
-  }
   // If the form is an admin for, flag it so that we can force a rebuild if needed.
   if (path_is_admin($_GET['q'])) {
     $form['#submit'][] = 'context_admin_form_submit';
   }
+  // Trigger the condition in an after_build function to avoid being skipped
+  // when there are validation errors.
+  $form['#after_build'][] = 'context_form_alter_node_after_build';
+}
+
+/**
+ * Form #after_build callback for context_form_alter().
+ */
+function context_form_alter_node_after_build($form, &$form_state) {
+  // Prevent this from firing on admin pages... damn form driven apis...
+  if (!empty($form['#node_edit_form']) && arg(0) != 'admin') {
+    context_node_condition($form['#node'], 'form');
+  }
+  return $form;
 }
 
 /**
@@ -184,7 +194,7 @@ function context_form_user_profile_form_alter(&$form, $form_state) {
 /**
  * Implementation of hook_form_alter() for user_register_form.
  */
-function context_form_user_register_form(&$form, $form_state) {
+function context_form_user_register_form_alter(&$form, $form_state) {
   if ($plugin = context_get_plugin('condition', 'user_page')) {
     $plugin->execute($form['#user'], 'register');
   }
