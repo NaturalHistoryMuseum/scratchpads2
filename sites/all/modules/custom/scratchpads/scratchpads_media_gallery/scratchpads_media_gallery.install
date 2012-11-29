@@ -295,3 +295,12 @@ function scratchpads_media_gallery_update_7006(){
   );
   field_update_instance($field_instance);
 }
+
+/**
+ * Add weight field to image files
+ */
+function scratchpads_media_gallery_update_7007(){
+  module_load_include('inc', 'features', 'features.export');
+  features_include();
+  field_features_rebuild('scratchpads_media_gallery');
+}

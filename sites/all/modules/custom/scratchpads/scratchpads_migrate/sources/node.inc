@@ -64,6 +64,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $fields = parent::sourceFieldList();
     $fields['file_attachment'] = t('Attached files');
     $fields['menu'] = t('Menu');
+    $fields['node_weight'] = t('Node weight');
     return $fields;
   }
 
@@ -148,6 +149,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
             'file_attachment'
           ));
         }
+      }elseif($delta == 'node_weight'){
+        $this->addFieldMapping('weight_weight', $delta);
       }else{ // Other field types
         // Load the field
         $field = field_info_field($delta);
@@ -241,8 +244,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     }
     // In D6 sticky is actually node weight
     $this->removeFieldMapping('sticky');
-    $this->addFieldMapping('sticky')->defaultValue(0);
-    $this->addFieldMapping('weight_weight', 'sticky');
+    $this->addFieldMapping('sticky', 'sticky')->defaultValue(0);
     // Use english as the default language
     $this->removeFieldMapping('language');
     $this->addFieldMapping('language', 'language')->defaultValue('en');
@@ -406,7 +408,9 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
           $row->{$mapped_classification} = array_merge($row->{$mapped_classification}, $row->{$unmapped_classifcation});
         }
       }
-    }
+    }    
+    // Row weight
+    $this->weightDecode($row);
   }
 
   public static function parseImages($html, $row){
@@ -548,5 +552,22 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       ':nid' => $nid
     ));
     return $result->fetchField() > 0;
+  }
+
+  /**
+   * Decode the fucking weight to get stickiness
+   */
+  public static function weightDecode(&$row){
+    if($row->sticky == 0 || $row->sticky == 1){
+      $row->node_weight = 0;
+      return;
+    }
+    if($row->sticky > 0){
+      $row->node_weight = 100 - $row->sticky;
+      $row->sticky = 1;
+    }else{
+      $row->node_weight = -($row->sticky + 100);
+      $row->sticky = 0;
+    }
   }
 }
