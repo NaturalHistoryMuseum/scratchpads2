@@ -207,6 +207,7 @@ class DrupalImageMigration extends DrupalFileMigration{
     }else{
       $row->nid = 0;
       $row->vid = 0;
+      $row->sticky = 0;
     }
     // ScratchpadsNodeImageMigration::prepareRow()
     $this->nodeMigration->prepareRow($row);
