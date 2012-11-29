@@ -42,10 +42,10 @@ class MigrateDestinationBlock extends MigrateDestination{
       'module' => 'block',
       'theme' => 'scratchpads',
       'status' => $object->status,
-      'weight' => 1,
+      'weight' => 35,
       'delta' => $delta,
       'cache' => DRUPAL_NO_CACHE,
-      'region' => ($object->status ? 'content' : '-1') // Add all blocks to the content region - this is the only place for them
+      'region' => ($object->status ? 'sidebar' : '-1') // Add all blocks to the sidebar region - this is the only place for them
     ));
     $query->execute();
     $this->numCreated++;

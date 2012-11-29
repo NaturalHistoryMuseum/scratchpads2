@@ -116,6 +116,7 @@ class context_reaction_menu extends context_reaction {
   function menu_navigation_links($menu_name, $level = 0) {
     // Retrieve original path so we can repair it after our hack.
     $original_path = $_GET['q'];
+    $original_menu_trail = drupal_static('menu_set_active_trail');
 
     // Retrieve the first active menu path found.
     if ($active_paths = $this->get_active_paths()) {
@@ -130,6 +131,8 @@ class context_reaction_menu extends context_reaction {
 
     // Repair and get out
     menu_set_active_item($original_path);
+    $repair_menu_trail = &drupal_static('menu_set_active_trail');
+    $repair_menu_trail = $original_menu_trail;
     return $links;
   }
 }

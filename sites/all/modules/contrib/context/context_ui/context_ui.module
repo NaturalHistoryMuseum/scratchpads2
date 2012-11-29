@@ -106,7 +106,7 @@ function context_ui_help($path, $arg) {
  */
 function context_ui_editor($form, &$form_state, $contexts) {
   $form = array(
-    '#attributes' => array('class' => 'context-editor'),
+    '#attributes' => array('class' => array('context-editor')),
     '#theme' => array('context_ui_editor'),
     'editables' => array(),
     'contexts' => array('#tree' => TRUE),
@@ -241,10 +241,10 @@ function context_ui_settings($form, &$form_state) {
     if ($plugin = context_get_plugin('condition', $condition)) {
       $settings_form = $plugin->settings_form();
       if ($settings_form) {
-        $form['conditions'][$reaction] = $settings_form;
-        $form['conditions'][$reaction]['#tree'] = FALSE;
-        $form['conditions'][$reaction]['#type'] = 'fieldset';
-        $form['conditions'][$reaction]['#title'] = $info['title'];
+        $form['conditions'][$condition] = $settings_form;
+        $form['conditions'][$condition]['#tree'] = FALSE;
+        $form['conditions'][$condition]['#type'] = 'fieldset';
+        $form['conditions'][$condition]['#title'] = $info['title'];
       }
     }
   }

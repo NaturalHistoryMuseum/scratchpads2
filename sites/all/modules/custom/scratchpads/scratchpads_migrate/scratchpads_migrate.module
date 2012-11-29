@@ -28,7 +28,13 @@ global $base_url;
 global $s1_domain;
 // The domain of this site should be s2.blah-blah, so we remove the first three
 // characters.
-$s1_domain = substr(parse_url($base_url, PHP_URL_HOST), 3);
+$host = parse_url($base_url, PHP_URL_HOST);
+if(strpos($host, 's2') !== false){
+  // Is this a normal S2.* domain?
+  $s1_domain = substr($host, 3);
+}else{ // Domain is structured like DOMAIN.myspecies.info 
+  $s1_domain = str_replace('.myspecies.info', '', $host);
+}
 $filename = '/var/aegir/scratchpad_1_db_settings/' . $s1_domain . '.scratchpad_1.php';
 if(file_exists($filename)){
   require_once ($filename);

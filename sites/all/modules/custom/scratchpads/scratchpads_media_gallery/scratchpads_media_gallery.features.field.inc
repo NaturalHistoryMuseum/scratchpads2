@@ -2174,11 +2174,10 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'above',
-          'module' => 'list',
+          'label' => 'hidden',
           'settings' => array(),
-          'type' => 'list_default',
-          'weight' => 8
+          'type' => 'hidden',
+          'weight' => '8'
         ),
         'file_styles_colorbox' => array(
           'label' => 'above',
