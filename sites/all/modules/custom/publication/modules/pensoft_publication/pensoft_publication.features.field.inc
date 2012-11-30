@@ -207,7 +207,129 @@ function pensoft_publication_field_default_fields() {
           'rows' => '5',
         ),
         'type' => 'text_textarea',
-        'weight' => '7',
+        'weight' => '3',
+      ),
+    ),
+  );
+
+  // Exported field: 'publication-pensoft-field_publication_authors'
+  $fields['publication-pensoft-field_publication_authors'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '-1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_authors',
+      'foreign keys' => array(),
+      'indexes' => array(),
+      'module' => 'relation_select',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'relation',
+    ),
+    'field_instance' => array(
+      'bundle' => 'pensoft',
+      'default_value' => array(
+        0 => array(
+          'exposed_filters' => array(
+            'element_id' => 'edit-field-publication-authors-und-0',
+            'field_user_family_name-value' => '',
+            'field_user_given_names-value' => '',
+            'form_build_id' => 'form-ivfSi_mk2S4FkqSlfMBf2foKAwrH9CVsuBM6ldWaQDg',
+            'form_id' => 'relation_select_views_exposed_form',
+            'form_token' => 'jD6P-etEmP9enwLVmGQFHRlh3-NtwZC05NR6hGczy2Q',
+            'view_display_id' => 'default',
+            'view_name' => 'publication_user',
+          ),
+        ),
+      ),
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'relation_select',
+          'settings' => array(),
+          'type' => 'relation_select',
+          'weight' => 17,
+        ),
+      ),
+      'entity_type' => 'publication',
+      'field_name' => 'field_publication_authors',
+      'label' => 'Authors',
+      'required' => 0,
+      'settings' => array(
+        'relation_type' => 'publication_users',
+        'relation_view' => 'publication_user:default',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 0,
+        'module' => 'relation_select',
+        'settings' => array(),
+        'type' => 'relation_select',
+        'weight' => '5',
+      ),
+    ),
+  );
+
+  // Exported field: 'publication-pensoft-field_publication_contributors'
+  $fields['publication-pensoft-field_publication_contributors'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '-1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_contributors',
+      'foreign keys' => array(),
+      'indexes' => array(),
+      'module' => 'relation_select',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'relation',
+    ),
+    'field_instance' => array(
+      'bundle' => 'pensoft',
+      'default_value' => array(
+        0 => array(
+          'exposed_filters' => array(
+            'element_id' => 'edit-field-publication-contributors-und-0',
+            'field_user_family_name-value' => '',
+            'field_user_given_names-value' => '',
+            'form_build_id' => 'form-t2VCIYzf_Vn8cvTJ-6Au5t_2FKIjjA-NZu9AYHTrVGY',
+            'form_id' => 'relation_select_views_exposed_form',
+            'form_token' => 'jD6P-etEmP9enwLVmGQFHRlh3-NtwZC05NR6hGczy2Q',
+            'view_display_id' => 'default',
+            'view_name' => 'publication_user',
+          ),
+        ),
+      ),
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'relation_select',
+          'settings' => array(),
+          'type' => 'relation_select',
+          'weight' => 18,
+        ),
+      ),
+      'entity_type' => 'publication',
+      'field_name' => 'field_publication_contributors',
+      'label' => 'Contributors',
+      'required' => 0,
+      'settings' => array(
+        'relation_type' => 'publication_contributors',
+        'relation_view' => 'publication_user:default',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 0,
+        'module' => 'relation_select',
+        'settings' => array(),
+        'type' => 'relation_select',
+        'weight' => '6',
       ),
     ),
   );
@@ -391,7 +513,7 @@ function pensoft_publication_field_default_fields() {
           'rows' => '5',
         ),
         'type' => 'text_textarea',
-        'weight' => '8',
+        'weight' => '4',
       ),
     ),
   );
@@ -513,7 +635,7 @@ function pensoft_publication_field_default_fields() {
           'rows' => '5',
         ),
         'type' => 'text_textarea',
-        'weight' => '6',
+        'weight' => '2',
       ),
     ),
   );
@@ -815,6 +937,8 @@ function pensoft_publication_field_default_fields() {
   // Included for use with string extractors like potx.
   t('Abstract');
   t('Acknowledgments');
+  t('Authors');
+  t('Contributors');
   t('Description');
   t('Discussion');
   t('Final name');

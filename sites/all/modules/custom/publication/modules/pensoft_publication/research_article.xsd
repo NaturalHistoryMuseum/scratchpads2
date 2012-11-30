@@ -1,0 +1,1538 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:element name="document" type="documentType"/>
+  <xsd:complexType name="documentType">
+    <xsd:sequence>
+      <xsd:element name="document_info"/>
+      <xsd:element name="objects" type="objectsType"/>
+      <xsd:element name="figures" type="figuresType"/>
+      <xsd:element name="tables"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="objectsType">
+    <xsd:sequence>
+      <xsd:element name="article_metadata" type="article_metadataType" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="introduction" type="introductionType" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="material_and_methods" type="material_and_methodsType" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="data_resources" type="data_resourcesType" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="results" type="resultsType" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="systematics" type="systematicsType" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="discussions" type="discussionsType" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="identification_keys" type="identification_keysType" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="acknowledgements" type="acknowledgementsType" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="references" type="referencesType" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="supplementary_files" type="supplementary_filesType" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="checklist" type="checklistType" minOccurs="1" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="article_metadataType">
+    <xsd:sequence>
+      <xsd:element name="title_and_authors" type="title_and_authorsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="abstract_and_keywords" type="abstract_and_keywordsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="contributors" type="contributorsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="nomenclature_metadata" type="nomenclature_metadataType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="funding_agencies" type="funding_agenciesType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="title_and_authorsType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="title_and_authorsFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="author" type="authorType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="title_and_authorsFieldsType">
+    <xsd:sequence>
+      <xsd:element name="title"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="authorType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="authorFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="secondary_address" type="secondary_addressType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="author_name_search" type="author_name_searchType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="authorFieldsType">
+    <xsd:sequence>
+      <xsd:element name="e-mail"/>
+      <xsd:element name="salutation"/>
+      <xsd:element name="first_name"/>
+      <xsd:element name="middle_name"/>
+      <xsd:element name="last_name"/>
+      <xsd:element name="corresponding_author"/>
+      <xsd:element name="rights"/>
+      <xsd:element name="submitting_author"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="secondary_addressType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="secondary_addressFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="secondary_addressFieldsType">
+    <xsd:sequence>
+      <xsd:element name="affiliation"/>
+      <xsd:element name="city"/>
+      <xsd:element name="country"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="author_name_searchType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="author_name_searchFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="author_name_searchFieldsType">
+    <xsd:sequence>
+      <xsd:element name="name_search"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="abstract_and_keywordsType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="abstract_and_keywordsFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="abstract_and_keywordsFieldsType">
+    <xsd:sequence>
+      <xsd:element name="abstract"/>
+      <xsd:element name="keywords"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="contributorsType">
+    <xsd:sequence>
+      <xsd:element name="contributor" type="contributorType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="contributorType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="contributorFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="author_address" type="author_addressType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="contributorFieldsType">
+    <xsd:sequence>
+      <xsd:element name="e-mail"/>
+      <xsd:element name="salutation"/>
+      <xsd:element name="first_name"/>
+      <xsd:element name="middle_name"/>
+      <xsd:element name="last_name"/>
+      <xsd:element name="rights"/>
+      <xsd:element name="role"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="author_addressType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="author_addressFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="author_addressFieldsType">
+    <xsd:sequence>
+      <xsd:element name="affiliation"/>
+      <xsd:element name="city"/>
+      <xsd:element name="country"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="nomenclature_metadataType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="nomenclature_metadataFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="nomenclature_metadataFieldsType">
+    <xsd:sequence>
+      <xsd:element name="taxon_classification"/>
+      <xsd:element name="subject_classification"/>
+      <xsd:element name="chronological_classification"/>
+      <xsd:element name="geographical_classification"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="funding_agenciesType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="funding_agenciesFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="funding_agenciesFieldsType">
+    <xsd:sequence>
+      <xsd:element name="open_aire_1"/>
+      <xsd:element name="open_aire_2"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="introductionType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="introductionFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="subsection" type="subsectionType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="introductionFieldsType">
+    <xsd:sequence>
+      <xsd:element name="introduction"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="subsectionType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="subsectionFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="subsectionFieldsType">
+    <xsd:sequence>
+      <xsd:element name="enter_title_of_this_subsection"/>
+      <xsd:element name="content"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="material_and_methodsType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="material_and_methodsFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="material_and_methodsFieldsType">
+    <xsd:sequence>
+      <xsd:element name="materials"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="data_resourcesType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="data_resourcesFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="data_resourcesFieldsType">
+    <xsd:sequence>
+      <xsd:element name="data_resources"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="resultsType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="resultsFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="resultsFieldsType">
+    <xsd:sequence>
+      <xsd:element name="results"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="systematicsType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="systematicsFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="treatment" type="treatmentType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="systematicsFieldsType">
+    <xsd:sequence>
+      <xsd:element name="systematics"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="treatmentType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="treatmentFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="taxon_name" type="taxon_nameType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="external_links" type="external_linksType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="nomenclature" type="nomenclatureType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="taxon_treatment_sections1" type="taxon_treatment_sections1Type" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="materials" type="materialsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="taxon_treatment_sections2" type="taxon_treatment_sections2Type" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="treatmentFieldsType">
+    <xsd:sequence>
+      <xsd:element name="classification"/>
+      <xsd:element name="rank"/>
+      <xsd:element name="type_of_treatment"/>
+      <xsd:element name="select_type"/>
+      <xsd:element name="habitat"/>
+      <xsd:element name="parasite_of"/>
+      <xsd:element name="classification_root_id"/>
+      <xsd:element name="taxon_treatment_host_of"/>
+      <xsd:element name="taxon_treatment_simbiotic_with"/>
+      <xsd:element name="taxon_treatment_feeds_on"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_nameType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="taxon_nameFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="tt_name_species_fields" type="tt_name_species_fieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="tt_name_family_fields" type="tt_name_family_fieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_nameFieldsType">
+    <xsd:sequence>
+      <xsd:element name="taxon_authors"/>
+      <xsd:element name="year"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="tt_name_species_fieldsType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="tt_name_species_fieldsFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="tt_name_species_fieldsFieldsType">
+    <xsd:sequence>
+      <xsd:element name="genus"/>
+      <xsd:element name="species"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="tt_name_family_fieldsType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="tt_name_family_fieldsFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="tt_name_family_fieldsFieldsType">
+    <xsd:sequence>
+      <xsd:element name="family"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="external_linksType">
+    <xsd:sequence>
+      <xsd:element name="external_link" type="external_linkType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="external_linkType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="external_linkFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="external_linkFieldsType">
+    <xsd:sequence>
+      <xsd:element name="link_type"/>
+      <xsd:element name="link"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="nomenclatureType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="nomenclatureFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="type_genus" type="type_genusType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="assigned_genera" type="assigned_generaType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="original_or_subsequent_citation" type="original_or_subsequent_citationType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="original_or_subsequent_citation_of_the_new_synonym" type="original_or_subsequent_citation_of_the_new_synonymType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="nomenclatureFieldsType">
+    <xsd:sequence>
+      <xsd:element name="original_rank_of_the_synonym"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="type_genusType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="type_genusFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="citation" type="citationType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="type_genusFieldsType">
+    <xsd:sequence>
+      <xsd:element name="status"/>
+      <xsd:element name="genus"/>
+      <xsd:element name="taxon_authors"/>
+      <xsd:element name="year"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="citationType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="citationFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="citationFieldsType">
+    <xsd:sequence>
+      <xsd:element name="from_reference_list"/>
+      <xsd:element name="pages_figures"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="assigned_generaType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="assigned_generaFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="citation" type="citationType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="assigned_generaFieldsType">
+    <xsd:sequence>
+      <xsd:element name="status"/>
+      <xsd:element name="genus"/>
+      <xsd:element name="taxon_authors"/>
+      <xsd:element name="year"/>
+      <xsd:element name="nomenclature_status"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="original_or_subsequent_citationType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="original_or_subsequent_citationFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="citation" type="citationType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="original_or_subsequent_citationFieldsType">
+    <xsd:sequence>
+      <xsd:element name="family"/>
+      <xsd:element name="taxon_authors"/>
+      <xsd:element name="year"/>
+      <xsd:element name="nomenclature_status"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="original_or_subsequent_citation_of_the_new_synonymType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="original_or_subsequent_citation_of_the_new_synonymFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="citation" type="citationType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="tribus_name" type="tribus_nameType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="superfamily_name" type="superfamily_nameType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="subfamily_name" type="subfamily_nameType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="original_or_subsequent_citation_of_the_new_synonymFieldsType">
+    <xsd:sequence>
+      <xsd:element name="taxon_authors"/>
+      <xsd:element name="year"/>
+      <xsd:element name="nomenclature_status"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="tribus_nameType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="tribus_nameFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="tribus_nameFieldsType">
+    <xsd:sequence>
+      <xsd:element name="tribus"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="superfamily_nameType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="superfamily_nameFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="superfamily_nameFieldsType">
+    <xsd:sequence>
+      <xsd:element name="superfamily"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="subfamily_nameType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="subfamily_nameFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="subfamily_nameFieldsType">
+    <xsd:sequence>
+      <xsd:element name="subfamily"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_sections1Type">
+    <xsd:sequence>
+      <xsd:element name="taxon_treatment_distribution_section" type="taxon_treatment_distribution_sectionType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="taxon_treatment_discussion_section" type="taxon_treatment_discussion_sectionType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="taxon_treatment_diagnosis_section" type="taxon_treatment_diagnosis_sectionType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="taxon_treatment_ecology_section" type="taxon_treatment_ecology_sectionType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="taxon_treatment_biology_section" type="taxon_treatment_biology_sectionType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="taxon_treatment_conservation_section" type="taxon_treatment_conservation_sectionType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="taxon_treatment_notes_section" type="taxon_treatment_notes_sectionType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="taxon_treatment_custom_section" type="taxon_treatment_custom_sectionType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_distribution_sectionType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="taxon_treatment_distribution_sectionFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="subsection" type="subsectionType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_distribution_sectionFieldsType">
+    <xsd:sequence>
+      <xsd:element name="distribution"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_discussion_sectionType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="taxon_treatment_discussion_sectionFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="subsection" type="subsectionType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_discussion_sectionFieldsType">
+    <xsd:sequence>
+      <xsd:element name="discussion"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_diagnosis_sectionType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="taxon_treatment_diagnosis_sectionFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="subsection" type="subsectionType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_diagnosis_sectionFieldsType">
+    <xsd:sequence>
+      <xsd:element name="diagnosis"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_ecology_sectionType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="taxon_treatment_ecology_sectionFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="subsection" type="subsectionType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_ecology_sectionFieldsType">
+    <xsd:sequence>
+      <xsd:element name="ecology"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_biology_sectionType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="taxon_treatment_biology_sectionFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="subsection" type="subsectionType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_biology_sectionFieldsType">
+    <xsd:sequence>
+      <xsd:element name="biology"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_conservation_sectionType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="taxon_treatment_conservation_sectionFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="subsection" type="subsectionType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_conservation_sectionFieldsType">
+    <xsd:sequence>
+      <xsd:element name="conservation"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_notes_sectionType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="taxon_treatment_notes_sectionFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="subsection" type="subsectionType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_notes_sectionFieldsType">
+    <xsd:sequence>
+      <xsd:element name="notes"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_custom_sectionType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="taxon_treatment_custom_sectionFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="subsection" type="subsectionType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_custom_sectionFieldsType">
+    <xsd:sequence>
+      <xsd:element name="content"/>
+      <xsd:element name="title"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="materialsType">
+    <xsd:sequence>
+      <xsd:element name="material" type="materialType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="materialType">
+    <xsd:sequence>
+      <xsd:element name="priority_dc" type="priority_dcType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="extended_dc" type="extended_dcType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="priority_dcType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="priority_dcFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_extant_na_priority_dc" type="ttm_extant_na_priority_dcType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_extant_terrestrial_priority_dc" type="ttm_extant_terrestrial_priority_dcType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_extant_marine_priority_dc" type="ttm_extant_marine_priority_dcType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_extant_freshwater_priority_dc" type="ttm_extant_freshwater_priority_dcType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_fossil_priority_dc" type="ttm_fossil_priority_dcType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="priority_dcFieldsType">
+    <xsd:sequence>
+      <xsd:element name="search_dc_term"/>
+      <xsd:element name="type_status"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_extant_na_priority_dcType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ttm_extant_na_priority_dcFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_extant_na_priority_dcFieldsType">
+    <xsd:sequence>
+      <xsd:element name="recordedby"/>
+      <xsd:element name="individualcount"/>
+      <xsd:element name="sex"/>
+      <xsd:element name="country"/>
+      <xsd:element name="stateprovince"/>
+      <xsd:element name="verbatimlocality"/>
+      <xsd:element name="verbatimlatitude"/>
+      <xsd:element name="verbatimlongitude"/>
+      <xsd:element name="samplingprotocol"/>
+      <xsd:element name="eventdate"/>
+      <xsd:element name="collectionid"/>
+      <xsd:element name="institutioncode"/>
+      <xsd:element name="collectioncode"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_extant_terrestrial_priority_dcType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ttm_extant_terrestrial_priority_dcFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_extant_terrestrial_priority_dcFieldsType">
+    <xsd:sequence>
+      <xsd:element name="recordedby"/>
+      <xsd:element name="individualcount"/>
+      <xsd:element name="sex"/>
+      <xsd:element name="country"/>
+      <xsd:element name="stateprovince"/>
+      <xsd:element name="verbatimlocality"/>
+      <xsd:element name="verbatimelevation"/>
+      <xsd:element name="verbatimlatitude"/>
+      <xsd:element name="verbatimlongitude"/>
+      <xsd:element name="samplingprotocol"/>
+      <xsd:element name="eventdate"/>
+      <xsd:element name="collectionid"/>
+      <xsd:element name="institutioncode"/>
+      <xsd:element name="collectioncode"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_extant_marine_priority_dcType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ttm_extant_marine_priority_dcFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_extant_marine_priority_dcFieldsType">
+    <xsd:sequence>
+      <xsd:element name="recordedby"/>
+      <xsd:element name="individualcount"/>
+      <xsd:element name="sex"/>
+      <xsd:element name="waterbody"/>
+      <xsd:element name="country"/>
+      <xsd:element name="stateprovince"/>
+      <xsd:element name="verbatimlocality"/>
+      <xsd:element name="verbatimdepth"/>
+      <xsd:element name="verbatimlatitude"/>
+      <xsd:element name="verbatimlongitude"/>
+      <xsd:element name="samplingprotocol"/>
+      <xsd:element name="eventdate"/>
+      <xsd:element name="collectionid"/>
+      <xsd:element name="institutioncode"/>
+      <xsd:element name="collectioncode"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_extant_freshwater_priority_dcType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ttm_extant_freshwater_priority_dcFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_extant_freshwater_priority_dcFieldsType">
+    <xsd:sequence>
+      <xsd:element name="recordedby"/>
+      <xsd:element name="individualcount"/>
+      <xsd:element name="sex"/>
+      <xsd:element name="waterbody"/>
+      <xsd:element name="country"/>
+      <xsd:element name="stateprovince"/>
+      <xsd:element name="verbatimlocality"/>
+      <xsd:element name="verbatimdepth"/>
+      <xsd:element name="verbatimlatitude"/>
+      <xsd:element name="verbatimlongitude"/>
+      <xsd:element name="samplingprotocol"/>
+      <xsd:element name="eventdate"/>
+      <xsd:element name="collectionid"/>
+      <xsd:element name="institutioncode"/>
+      <xsd:element name="collectioncode"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_fossil_priority_dcType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ttm_fossil_priority_dcFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_fossil_priority_dcFieldsType">
+    <xsd:sequence>
+      <xsd:element name="recordedby"/>
+      <xsd:element name="individualcount"/>
+      <xsd:element name="sex"/>
+      <xsd:element name="country"/>
+      <xsd:element name="stateprovince"/>
+      <xsd:element name="verbatimlocality"/>
+      <xsd:element name="verbatimlatitude"/>
+      <xsd:element name="verbatimlongitude"/>
+      <xsd:element name="geologicalcontextid"/>
+      <xsd:element name="earliesteonorlowesteonothem"/>
+      <xsd:element name="latesteonorhighesteonothem"/>
+      <xsd:element name="earliesteraorlowesterathem"/>
+      <xsd:element name="latesteraorhighesterathem"/>
+      <xsd:element name="earliestperiodorlowestsystem"/>
+      <xsd:element name="latestperiodorhighestsystem"/>
+      <xsd:element name="earliestepochorlowestseries"/>
+      <xsd:element name="latestepochorhighestseries"/>
+      <xsd:element name="earliestageorloweststage"/>
+      <xsd:element name="latestageorhigheststage"/>
+      <xsd:element name="lowestbiostratigraphiczone"/>
+      <xsd:element name="highestbiostratigraphiczone"/>
+      <xsd:element name="lithostratigraphicterms"/>
+      <xsd:element name="group"/>
+      <xsd:element name="formation"/>
+      <xsd:element name="member"/>
+      <xsd:element name="bed"/>
+      <xsd:element name="samplingprotocol"/>
+      <xsd:element name="eventdate"/>
+      <xsd:element name="collectionid"/>
+      <xsd:element name="institutioncode"/>
+      <xsd:element name="collectioncode"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="extended_dcType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="extended_dcFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_extant_na_extended_dc" type="ttm_extant_na_extended_dcType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_extant_terrestrial_extended_dc" type="ttm_extant_terrestrial_extended_dcType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_extant_marine_extended_dc" type="ttm_extant_marine_extended_dcType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_extant_freshwater_extended_dc" type="ttm_extant_freshwater_extended_dcType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_fossil_extended_dc" type="ttm_fossil_extended_dcType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="extended_dcFieldsType">
+    <xsd:sequence>
+      <xsd:element name="search_dc_term"/>
+      <xsd:element name="type_status"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_extant_na_extended_dcType">
+    <xsd:sequence>
+      <xsd:element name="ttm_occurrence" type="ttm_occurrenceType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_taxon" type="ttm_taxonType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_location" type="ttm_locationType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_identification" type="ttm_identificationType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_event" type="ttm_eventType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_record_level" type="ttm_record_levelType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_occurrenceType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ttm_occurrenceFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_occurrenceFieldsType">
+    <xsd:sequence>
+      <xsd:element name="occurrencedetails"/>
+      <xsd:element name="catalognumber"/>
+      <xsd:element name="occurrenceremarks"/>
+      <xsd:element name="recordnumber"/>
+      <xsd:element name="recordedby"/>
+      <xsd:element name="individualid"/>
+      <xsd:element name="individualcount"/>
+      <xsd:element name="sex"/>
+      <xsd:element name="lifestage"/>
+      <xsd:element name="reproductivecondition"/>
+      <xsd:element name="behavior"/>
+      <xsd:element name="establishmentmeans"/>
+      <xsd:element name="occurrencestatus"/>
+      <xsd:element name="preparations"/>
+      <xsd:element name="disposition"/>
+      <xsd:element name="othercatalognumbers"/>
+      <xsd:element name="previousidentifications"/>
+      <xsd:element name="associatedmedia"/>
+      <xsd:element name="associatedreferences"/>
+      <xsd:element name="associatedoccurrences"/>
+      <xsd:element name="associatedsequences"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_taxonType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ttm_taxonFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_taxonFieldsType">
+    <xsd:sequence>
+      <xsd:element name="taxonid"/>
+      <xsd:element name="scientificnameid"/>
+      <xsd:element name="acceptednameusageid"/>
+      <xsd:element name="parentnameusageid"/>
+      <xsd:element name="originalnameusageid"/>
+      <xsd:element name="nameaccordingtoid"/>
+      <xsd:element name="namepublishedinid"/>
+      <xsd:element name="taxonconceptid"/>
+      <xsd:element name="scientificname"/>
+      <xsd:element name="acceptednameusage"/>
+      <xsd:element name="parentnameusage"/>
+      <xsd:element name="originalnameusage"/>
+      <xsd:element name="nameaccordingto"/>
+      <xsd:element name="namepublishedin"/>
+      <xsd:element name="higherclassification"/>
+      <xsd:element name="kingdom"/>
+      <xsd:element name="phylum"/>
+      <xsd:element name="class"/>
+      <xsd:element name="order"/>
+      <xsd:element name="family"/>
+      <xsd:element name="genus"/>
+      <xsd:element name="subgenus"/>
+      <xsd:element name="specificepithet"/>
+      <xsd:element name="infraspecificepithet"/>
+      <xsd:element name="taxonrank"/>
+      <xsd:element name="verbatimtaxonrank"/>
+      <xsd:element name="scientificnameauthorship"/>
+      <xsd:element name="vernacularname"/>
+      <xsd:element name="nomenclaturalcode"/>
+      <xsd:element name="taxonomicstatus"/>
+      <xsd:element name="nomenclaturalstatus"/>
+      <xsd:element name="taxonremarks"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_locationType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ttm_locationFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_locationFieldsType">
+    <xsd:sequence>
+      <xsd:element name="locationid"/>
+      <xsd:element name="highergeographyid"/>
+      <xsd:element name="highergeography"/>
+      <xsd:element name="continent"/>
+      <xsd:element name="waterbody"/>
+      <xsd:element name="islandgroup"/>
+      <xsd:element name="island"/>
+      <xsd:element name="country"/>
+      <xsd:element name="countrycode"/>
+      <xsd:element name="stateprovince"/>
+      <xsd:element name="county"/>
+      <xsd:element name="municipality"/>
+      <xsd:element name="locality"/>
+      <xsd:element name="verbatimlocality"/>
+      <xsd:element name="verbatimelevation"/>
+      <xsd:element name="minimumelevationinmeters"/>
+      <xsd:element name="maximumelevationinmeters"/>
+      <xsd:element name="verbatimdepth"/>
+      <xsd:element name="minimumdepthinmeters"/>
+      <xsd:element name="maximumdepthinmeters"/>
+      <xsd:element name="minimumdistanceabovesurfaceinmeters"/>
+      <xsd:element name="maximumdistanceabovesurfaceinmeters"/>
+      <xsd:element name="locationaccordingto"/>
+      <xsd:element name="locationremarks"/>
+      <xsd:element name="verbatimcoordinates"/>
+      <xsd:element name="verbatimlatitude"/>
+      <xsd:element name="verbatimlongitude"/>
+      <xsd:element name="verbatimcoordinatesystem"/>
+      <xsd:element name="verbatimsrs"/>
+      <xsd:element name="decimallatitude"/>
+      <xsd:element name="decimallongitude"/>
+      <xsd:element name="geodeticdatum"/>
+      <xsd:element name="coordinateuncertaintyinmeters"/>
+      <xsd:element name="coordinateprecision"/>
+      <xsd:element name="pointradiusspatialfit"/>
+      <xsd:element name="footprintwkt"/>
+      <xsd:element name="footprintsrs"/>
+      <xsd:element name="footprintspatialfit"/>
+      <xsd:element name="georeferencedby"/>
+      <xsd:element name="georeferenceprotocol"/>
+      <xsd:element name="georeferencesources"/>
+      <xsd:element name="georeferenceverificationstatus"/>
+      <xsd:element name="georeferenceremarks"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_identificationType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ttm_identificationFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_identificationFieldsType">
+    <xsd:sequence>
+      <xsd:element name="identificationid"/>
+      <xsd:element name="identifiedby"/>
+      <xsd:element name="dateidentified"/>
+      <xsd:element name="identificationreferences"/>
+      <xsd:element name="identificationremarks"/>
+      <xsd:element name="identificationqualifier"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_eventType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ttm_eventFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_eventFieldsType">
+    <xsd:sequence>
+      <xsd:element name="eventid"/>
+      <xsd:element name="samplingprotocol"/>
+      <xsd:element name="samplingeffort"/>
+      <xsd:element name="eventdate"/>
+      <xsd:element name="eventtime"/>
+      <xsd:element name="startdayofyear"/>
+      <xsd:element name="enddayofyear"/>
+      <xsd:element name="year"/>
+      <xsd:element name="month"/>
+      <xsd:element name="day"/>
+      <xsd:element name="verbatimeventdate"/>
+      <xsd:element name="habitat"/>
+      <xsd:element name="fieldnumber"/>
+      <xsd:element name="fieldnotes"/>
+      <xsd:element name="eventremarks"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_record_levelType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ttm_record_levelFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_record_levelFieldsType">
+    <xsd:sequence>
+      <xsd:element name="type"/>
+      <xsd:element name="modified"/>
+      <xsd:element name="language"/>
+      <xsd:element name="rights"/>
+      <xsd:element name="rightsholder"/>
+      <xsd:element name="accessrights"/>
+      <xsd:element name="bibliographiccitation"/>
+      <xsd:element name="institutionid"/>
+      <xsd:element name="collectionid"/>
+      <xsd:element name="datasetid"/>
+      <xsd:element name="institutioncode"/>
+      <xsd:element name="collectioncode"/>
+      <xsd:element name="datasetname"/>
+      <xsd:element name="ownerinstitutioncode"/>
+      <xsd:element name="basisofrecord"/>
+      <xsd:element name="informationwithheld"/>
+      <xsd:element name="datageneralizations"/>
+      <xsd:element name="dynamicproperties"/>
+      <xsd:element name="source"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_extant_terrestrial_extended_dcType">
+    <xsd:sequence>
+      <xsd:element name="ttm_occurrence" type="ttm_occurrenceType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_taxon" type="ttm_taxonType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_location" type="ttm_locationType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_identification" type="ttm_identificationType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_event" type="ttm_eventType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_record_level" type="ttm_record_levelType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_extant_marine_extended_dcType">
+    <xsd:sequence>
+      <xsd:element name="ttm_occurrence" type="ttm_occurrenceType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_taxon" type="ttm_taxonType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_location" type="ttm_locationType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_identification" type="ttm_identificationType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_event" type="ttm_eventType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_record_level" type="ttm_record_levelType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_extant_freshwater_extended_dcType">
+    <xsd:sequence>
+      <xsd:element name="ttm_occurrence" type="ttm_occurrenceType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_taxon" type="ttm_taxonType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_location" type="ttm_locationType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_identification" type="ttm_identificationType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_event" type="ttm_eventType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_record_level" type="ttm_record_levelType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_fossil_extended_dcType">
+    <xsd:sequence>
+      <xsd:element name="ttm_occurrence" type="ttm_occurrenceType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_taxon" type="ttm_taxonType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_location" type="ttm_locationType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_identification" type="ttm_identificationType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_geological_context" type="ttm_geological_contextType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_event" type="ttm_eventType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ttm_record_level" type="ttm_record_levelType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_geological_contextType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ttm_geological_contextFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ttm_geological_contextFieldsType">
+    <xsd:sequence>
+      <xsd:element name="geologicalcontextid"/>
+      <xsd:element name="earliesteonorlowesteonothem"/>
+      <xsd:element name="latesteonorhighesteonothem"/>
+      <xsd:element name="earliesteraorlowesterathem"/>
+      <xsd:element name="latesteraorhighesterathem"/>
+      <xsd:element name="earliestperiodorlowestsystem"/>
+      <xsd:element name="latestperiodorhighestsystem"/>
+      <xsd:element name="earliestepochorlowestseries"/>
+      <xsd:element name="latestepochorhighestseries"/>
+      <xsd:element name="earliestageorloweststage"/>
+      <xsd:element name="latestageorhigheststage"/>
+      <xsd:element name="lowestbiostratigraphiczone"/>
+      <xsd:element name="highestbiostratigraphiczone"/>
+      <xsd:element name="lithostratigraphicterms"/>
+      <xsd:element name="group"/>
+      <xsd:element name="formation"/>
+      <xsd:element name="member"/>
+      <xsd:element name="bed"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="taxon_treatment_sections2Type">
+    <xsd:sequence>
+      <xsd:element name="new_tt_species_sections" type="new_tt_species_sectionsType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="new_tt_family_sections" type="new_tt_family_sectionsType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="new_tt_species_phytokeys_sections" type="new_tt_species_phytokeys_sectionsType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="new_tt_species_sectionsType">
+    <xsd:sequence>
+      <xsd:element name="tt_description_section" type="tt_description_sectionType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="tt_diagnosis_section" type="tt_diagnosis_sectionType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="section" type="sectionType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="biology" type="biologyType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="etymology" type="etymologyType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="ecology" type="ecologyType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="distribution" type="distributionType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="notes" type="notesType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="conservation" type="conservationType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="discussion" type="discussionType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="tt_description_sectionType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="tt_description_sectionFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="tt_description_sectionFieldsType">
+    <xsd:sequence>
+      <xsd:element name="description"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="tt_diagnosis_sectionType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="tt_diagnosis_sectionFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="tt_diagnosis_sectionFieldsType">
+    <xsd:sequence>
+      <xsd:element name="diagnosis"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="sectionType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="sectionFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="sectionFieldsType">
+    <xsd:sequence>
+      <xsd:element name="content"/>
+      <xsd:element name="title"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="biologyType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="biologyFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="biologyFieldsType">
+    <xsd:sequence>
+      <xsd:element name="biology"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="etymologyType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="etymologyFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="etymologyFieldsType">
+    <xsd:sequence>
+      <xsd:element name="etimology"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ecologyType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ecologyFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ecologyFieldsType">
+    <xsd:sequence>
+      <xsd:element name="ecology"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="distributionType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="distributionFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="distributionFieldsType">
+    <xsd:sequence>
+      <xsd:element name="distribution"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="notesType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="notesFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="notesFieldsType">
+    <xsd:sequence>
+      <xsd:element name="notes"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="conservationType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="conservationFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="conservationFieldsType">
+    <xsd:sequence>
+      <xsd:element name="conservation"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="discussionType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="discussionFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="discussionFieldsType">
+    <xsd:sequence>
+      <xsd:element name="discussion"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="new_tt_family_sectionsType">
+    <xsd:sequence/>
+  </xsd:complexType>
+  <xsd:complexType name="new_tt_species_phytokeys_sectionsType">
+    <xsd:sequence/>
+  </xsd:complexType>
+  <xsd:complexType name="discussionsType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="discussionsFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="section" type="sectionType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="discussionsFieldsType">
+    <xsd:sequence>
+      <xsd:element name="discussions"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="identification_keysType">
+    <xsd:sequence>
+      <xsd:element name="identification_key" type="identification_keyType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="identification_keyType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="identification_keyFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="key_couplet" type="key_coupletType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="identification_keyFieldsType">
+    <xsd:sequence>
+      <xsd:element name="title"/>
+      <xsd:element name="rank"/>
+      <xsd:element name="key_notes"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="key_coupletType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="key_coupletFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+    <xsd:attribute name="id" type="xsd:integer"/>
+  </xsd:complexType>
+  <xsd:complexType name="key_coupletFieldsType">
+    <xsd:sequence>
+      <xsd:element name="thesis"/>
+      <xsd:element name="thesis_next_couplet"/>
+      <xsd:element name="thesis_taxon_name"/>
+      <xsd:element name="antithesis"/>
+      <xsd:element name="antithesis_next_couplet"/>
+      <xsd:element name="antithesis_taxon_name"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="acknowledgementsType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="acknowledgementsFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="section" type="sectionType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="acknowledgementsFieldsType">
+    <xsd:sequence>
+      <xsd:element name="acknowledgements"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="referencesType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="referencesFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="single_reference" type="single_referenceType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="referencesFieldsType">
+    <xsd:sequence>
+      <xsd:element name="reference_type"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="single_referenceType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="single_referenceFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="biblio_reference_wrapper" type="biblio_reference_wrapperType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="single_referenceFieldsType">
+    <xsd:sequence>
+      <xsd:element name="reference_type"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="biblio_reference_wrapperType">
+    <xsd:sequence>
+      <xsd:element name="book_biblio_reference" type="book_biblio_referenceType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="book_chapter_biblio_reference" type="book_chapter_biblio_referenceType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="journal_article_biblio_reference" type="journal_article_biblio_referenceType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="conference_paper_biblio_reference" type="conference_paper_biblio_referenceType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="conference_proceedings_biblio_reference" type="conference_proceedings_biblio_referenceType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="thesis_biblio_reference" type="thesis_biblio_referenceType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="software_biblio_reference" type="software_biblio_referenceType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="website_biblio_reference" type="website_biblio_referenceType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="book_biblio_referenceType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="book_biblio_referenceFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="authors" type="authorsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="parse_reference" type="parse_referenceType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="book_biblio_referenceFieldsType">
+    <xsd:sequence>
+      <xsd:element name="year_of_publication"/>
+      <xsd:element name="book_title"/>
+      <xsd:element name="edition"/>
+      <xsd:element name="volume"/>
+      <xsd:element name="publisher"/>
+      <xsd:element name="city"/>
+      <xsd:element name="number_of_pages"/>
+      <xsd:element name="publication_language"/>
+      <xsd:element name="url"/>
+      <xsd:element name="isbn"/>
+      <xsd:element name="doi"/>
+      <xsd:element name="translated_title"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="authorsType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="authorsFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ref_author" type="ref_authorType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="authorsFieldsType">
+    <xsd:sequence>
+      <xsd:element name="authorship"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ref_authorType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ref_authorFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ref_authorFieldsType">
+    <xsd:sequence>
+      <xsd:element name="name"/>
+      <xsd:element name="first_name"/>
+      <xsd:element name="last_name"/>
+      <xsd:element name="middle_name"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="parse_referenceType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="parse_referenceFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="parse_referenceFieldsType">
+    <xsd:sequence>
+      <xsd:element name="reference_text"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="book_chapter_biblio_referenceType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="book_chapter_biblio_referenceFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ref_authors_2type_authorship" type="ref_authors_2type_authorshipType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ref_series_editors" type="ref_series_editorsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="parse_reference" type="parse_referenceType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="book_chapter_biblio_referenceFieldsType">
+    <xsd:sequence>
+      <xsd:element name="doi"/>
+      <xsd:element name="year_of_publication"/>
+      <xsd:element name="book_title"/>
+      <xsd:element name="edition"/>
+      <xsd:element name="volume"/>
+      <xsd:element name="publisher"/>
+      <xsd:element name="city"/>
+      <xsd:element name="number_of_pages"/>
+      <xsd:element name="publication_language"/>
+      <xsd:element name="url"/>
+      <xsd:element name="isbn"/>
+      <xsd:element name="chapter_title"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ref_authors_2type_authorshipType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ref_authors_2type_authorshipFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ref_author" type="ref_authorType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ref_authors_2type_authorshipFieldsType">
+    <xsd:sequence>
+      <xsd:element name="authorship"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ref_series_editorsType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ref_series_editorsFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ref_editor" type="ref_editorType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ref_series_editorsFieldsType">
+    <xsd:sequence>
+      <xsd:element name="authorship"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ref_editorType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ref_editorFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ref_editorFieldsType">
+    <xsd:sequence>
+      <xsd:element name="name"/>
+      <xsd:element name="first_name"/>
+      <xsd:element name="last_name"/>
+      <xsd:element name="middle_name"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="journal_article_biblio_referenceType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="journal_article_biblio_referenceFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ref_authors_2type_authorship" type="ref_authors_2type_authorshipType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="search_external_db" type="search_external_dbType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="parse_reference" type="parse_referenceType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="journal_article_biblio_referenceFieldsType">
+    <xsd:sequence>
+      <xsd:element name="year_of_publication"/>
+      <xsd:element name="article_title"/>
+      <xsd:element name="volume"/>
+      <xsd:element name="journal"/>
+      <xsd:element name="issue"/>
+      <xsd:element name="first_page"/>
+      <xsd:element name="last_page"/>
+      <xsd:element name="publication_language"/>
+      <xsd:element name="url"/>
+      <xsd:element name="doi"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="search_external_dbType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="search_external_dbFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="search_external_dbFieldsType">
+    <xsd:sequence>
+      <xsd:element name="crossref_doi"/>
+      <xsd:element name="pubmed_id"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="conference_paper_biblio_referenceType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="conference_paper_biblio_referenceFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ref_authors_2type_authorship" type="ref_authors_2type_authorshipType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ref_series_editors" type="ref_series_editorsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="reference_conference_optional_fields" type="reference_conference_optional_fieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="parse_reference" type="parse_referenceType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="conference_paper_biblio_referenceFieldsType">
+    <xsd:sequence>
+      <xsd:element name="year_of_publication"/>
+      <xsd:element name="title"/>
+      <xsd:element name="book_title"/>
+      <xsd:element name="volume"/>
+      <xsd:element name="conference_name"/>
+      <xsd:element name="conference_location"/>
+      <xsd:element name="conference_date"/>
+      <xsd:element name="number_of_pages"/>
+      <xsd:element name="publication_language"/>
+      <xsd:element name="url"/>
+      <xsd:element name="isbn"/>
+      <xsd:element name="doi"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="reference_conference_optional_fieldsType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="reference_conference_optional_fieldsFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="reference_conference_optional_fieldsFieldsType">
+    <xsd:sequence>
+      <xsd:element name="publisher"/>
+      <xsd:element name="city"/>
+      <xsd:element name="journal_name"/>
+      <xsd:element name="journal_volume"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="conference_proceedings_biblio_referenceType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="conference_proceedings_biblio_referenceFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ref_authors_3type_authorship" type="ref_authors_3type_authorshipType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="reference_conference_optional_fields" type="reference_conference_optional_fieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="parse_reference" type="parse_referenceType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="conference_proceedings_biblio_referenceFieldsType">
+    <xsd:sequence>
+      <xsd:element name="year_of_publication"/>
+      <xsd:element name="book_title"/>
+      <xsd:element name="volume"/>
+      <xsd:element name="conference_name"/>
+      <xsd:element name="conference_location"/>
+      <xsd:element name="conference_date"/>
+      <xsd:element name="number_of_pages"/>
+      <xsd:element name="publication_language"/>
+      <xsd:element name="url"/>
+      <xsd:element name="isbn"/>
+      <xsd:element name="doi"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ref_authors_3type_authorshipType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ref_authors_3type_authorshipFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ref_author" type="ref_authorType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ref_authors_3type_authorshipFieldsType">
+    <xsd:sequence>
+      <xsd:element name="authorship"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="thesis_biblio_referenceType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="thesis_biblio_referenceFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ref_authors_single_type_authorship" type="ref_authors_single_type_authorshipType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="parse_reference" type="parse_referenceType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="thesis_biblio_referenceFieldsType">
+    <xsd:sequence>
+      <xsd:element name="year_of_publication"/>
+      <xsd:element name="book_title"/>
+      <xsd:element name="translated_title"/>
+      <xsd:element name="publisher"/>
+      <xsd:element name="city"/>
+      <xsd:element name="number_of_pages"/>
+      <xsd:element name="publication_language"/>
+      <xsd:element name="url"/>
+      <xsd:element name="isbn"/>
+      <xsd:element name="doi"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ref_authors_single_type_authorshipType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="ref_authors_single_type_authorshipFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ref_author" type="ref_authorType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ref_authors_single_type_authorshipFieldsType">
+    <xsd:sequence>
+      <xsd:element name="authorship"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="software_biblio_referenceType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="software_biblio_referenceFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ref_authors_2type_authorship" type="ref_authors_2type_authorshipType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="parse_reference" type="parse_referenceType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="software_biblio_referenceFieldsType">
+    <xsd:sequence>
+      <xsd:element name="year_of_publication"/>
+      <xsd:element name="title"/>
+      <xsd:element name="version"/>
+      <xsd:element name="publisher"/>
+      <xsd:element name="release_date"/>
+      <xsd:element name="url"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="website_biblio_referenceType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="website_biblio_referenceFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="parse_reference" type="parse_referenceType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="website_biblio_referenceFieldsType">
+    <xsd:sequence>
+      <xsd:element name="url"/>
+      <xsd:element name="title"/>
+      <xsd:element name="access_date"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="supplementary_filesType">
+    <xsd:sequence>
+      <xsd:element name="supplementary_file" type="supplementary_fileType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="supplementary_fileType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="supplementary_fileFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+    <xsd:attribute name="id" type="xsd:integer"/>
+  </xsd:complexType>
+  <xsd:complexType name="supplementary_fileFieldsType">
+    <xsd:sequence>
+      <xsd:element name="title"/>
+      <xsd:element name="authors"/>
+      <xsd:element name="type"/>
+      <xsd:element name="brief_description"/>
+      <xsd:element name="file"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="checklistType">
+    <xsd:sequence>
+      <xsd:element name="checklist_taxon" type="checklist_taxonType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="checklist_taxonType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="checklist_taxonFieldsType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="localities" type="localitiesType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="notes" type="notesType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="checklist_taxonFieldsType">
+    <xsd:sequence>
+      <xsd:element name="rank"/>
+      <xsd:element name="taxon_authors"/>
+      <xsd:element name="year"/>
+      <xsd:element name="synonyms"/>
+      <xsd:element name="genus"/>
+      <xsd:element name="species"/>
+      <xsd:element name="subgenus"/>
+      <xsd:element name="subspecies"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="localitiesType">
+    <xsd:sequence/>
+  </xsd:complexType>
+<!--  <xsd:complexType name="notesType">
+    <xsd:sequence>
+      <xsd:element name="fields" type="notesFieldsType" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="notesFieldsType">
+    <xsd:sequence>
+      <xsd:element name="notes"/>
+    </xsd:sequence>
+  </xsd:complexType>-->
+  <xsd:complexType name="figuresType">
+    <xsd:sequence>
+      <xsd:element name="figure" type="figureType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="figureType">
+    <xsd:sequence>
+      <xsd:element name="caption" minOccurs="0" maxOccurs="1"/>
+      <xsd:sequence minOccurs="0" maxOccurs="unbounded">
+        <xsd:element name="url" minOccurs="0" maxOccurs="1">
+          <xsd:complexType>
+            <xsd:simpleContent>
+              <xsd:extension base="xsd:string">
+                <xsd:attribute name="id" type="xsd:integer"/>
+              </xsd:extension>
+            </xsd:simpleContent>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="photo_description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+    </xsd:sequence>
+    <xsd:attribute name="id" type="xsd:integer"/>
+    <xsd:attribute name="is_plate" type="xsd:integer"/>
+    <xsd:attribute name="type" type="xsd:integer"/>
+  </xsd:complexType>
+</xsd:schema>

@@ -96,7 +96,7 @@ function pensoft_publication_form_alter(&$form, &$form_state, $form_id){
             '#value' => t('Add new treatment'),
             '#submit' => array(
               'publication_edit_form_submit',
-              'pensoft_publication_edit_form_submit'
+              'pensoft_publication_treatments_edit_form_submit'
             ),
             '#formflow' => 1
           );
@@ -107,6 +107,37 @@ function pensoft_publication_form_alter(&$form, &$form_state, $form_id){
             '#weight' => 100
           );
         }
+      } else if ($form['#current_group'] == 'group_publication_metadata') {
+        if($form['#display_mode'] == 'edit'){
+          $form['field_publication_authors']['#after_build'][] = 'pensoft_publication_field_publication_authors_after_build';
+          $form['formflow_actions']['add_new_author'] = array(
+            '#type' => 'submit',
+            '#value' => t('Add new author'),
+            '#submit' => array(
+              'publication_edit_form_submit',
+              'pensoft_publication_authors_edit_form_submit'
+            ),
+            '#formflow' => 1
+          );
+          
+          $form['field_publication_contributors']['#after_build'][] = 'pensoft_publication_field_publication_contributors_after_build';
+          $form['formflow_actions']['add_new_contributor'] = array(
+            '#type' => 'submit',
+            '#value' => t('Add new contributor'),
+            '#submit' => array(
+              'publication_edit_form_submit',
+              'pensoft_publication_contributors_edit_form_submit'
+            ),
+            '#formflow' => 1
+          );
+        }else{
+          $form['field_publication_authors'] = array(
+            '#type' => 'markup',
+            '#markup' => '<div class="messages warning">' . t('You can add authors and contributors after the publication has been created.') . '</div>',
+            '#weight' => 100
+          );
+          unset($form['field_publication_contributors']);
+        }        
       }
       break;
     case 'relation_select_add_relation_form':
@@ -172,7 +203,34 @@ function pensoft_publication_form_alter(&$form, &$form_state, $form_id){
       }
       $form['#submit'][] = 'pensoft_publication_relation_select_add_relation_form_submit';
       break;
+    case 'publication_type_form':
+      $form['pensoft_submit_url'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Pensoft API URL',
+        '#required' => TRUE,
+        '#default_value' => variable_get('pensoft_submit_url', 'http://test.pwt.pensoft.eu/api.php'),
+        '#weight' => 10
+      );
+      $form['#submit'][] = 'pensoft_publication_type_form_submit';
+      $form['#validate'][] = 'pensoft_publication_type_form_validate';
+      break;
   }
+}
+
+/**
+ * Own validation for th ePensoft publication type form settings submit
+ */
+function pensoft_publication_type_form_validate($form, &$form_state) {
+  if (!valid_url($form_state['values']['pensoft_submit_url'])) {
+    form_set_error('pensoft_submit_url', t('You must enter a valid URL'));
+  }
+}
+
+/**
+ * Own handler for the Pensoft publication type form settings submit
+ */
+function pensoft_publication_type_form_submit($form, &$form_state) {
+  variable_set('pensoft_submit_url', $form_state['values']['pensoft_submit_url']);  
 }
 
 function pensoft_publication_field_publication_treatments_after_build($element){
@@ -188,7 +246,33 @@ function pensoft_publication_field_publication_treatments_after_build($element){
   return $element;
 }
 
-function pensoft_publication_edit_form_submit(&$form, &$form_state){
+function pensoft_publication_field_publication_authors_after_build($element){
+  $element['#prefix'] = '<label id="publication-authors">Authors</label>';
+  foreach(element_children($element[LANGUAGE_NONE]) as $field_id){
+    if(isset($element[LANGUAGE_NONE][$field_id]['#default_value'])){
+      unset($element[LANGUAGE_NONE][$field_id]['exposed_filters']);
+      unset($element[LANGUAGE_NONE][$field_id]['#title']);
+    }else{
+      unset($element[LANGUAGE_NONE][$field_id]);
+    }
+  }
+  return $element;
+}
+
+function pensoft_publication_field_publication_contributors_after_build($element){
+  $element['#prefix'] = '<label id="publication-authors">Contributors</label>';
+  foreach(element_children($element[LANGUAGE_NONE]) as $field_id){
+    if(isset($element[LANGUAGE_NONE][$field_id]['#default_value'])){
+      unset($element[LANGUAGE_NONE][$field_id]['exposed_filters']);
+      unset($element[LANGUAGE_NONE][$field_id]['#title']);
+    }else{
+      unset($element[LANGUAGE_NONE][$field_id]);
+    }
+  }
+  return $element;
+}
+
+function pensoft_publication_treatments_edit_form_submit(&$form, &$form_state){
   $form_state['redirect'] = array(
     'relation-select/add/publication/' . $form_state['pid'] . '/publication_treatments/relation_select_publication_taxo',
     array(
@@ -199,6 +283,27 @@ function pensoft_publication_edit_form_submit(&$form, &$form_state){
   );
 }
 
+function pensoft_publication_authors_edit_form_submit(&$form, &$form_state){
+  $form_state['redirect'] = array(
+    'relation-select/add/publication/' . $form_state['pid'] . '/publication_users/publication_user',
+    array(
+      'query' => array(
+        'destination' => request_path() . '?step=group_publication_metadata'
+      )
+    )
+  );
+}
+
+function pensoft_publication_contributors_edit_form_submit(&$form, &$form_state){
+  $form_state['redirect'] = array(
+    'relation-select/add/publication/' . $form_state['pid'] . '/publication_contributors/publication_user',
+    array(
+      'query' => array(
+        'destination' => request_path() . '?step=group_publication_metadata'
+      )
+    )
+  );
+}
 /**
  * Menu ajax callback
  */
@@ -252,5 +357,160 @@ function pensoft_publication_entity_presave($entity, $type){
   }
 }
 
+/**
+ * Implements hook_forms
+ */
+function pensoft_publication_forms($form_id, $args) {
+  return array(
+    'pensoft_publication_new_form' => array(
+      'callback' => 'pensoft_publication_publication_new_form'
+    ),
+    'pensoft_publication_update_form' => array(
+      'callback' => 'pensoft_publication_publication_update_form'
+    )
+  );
+}
 
+/**
+ * Form for publishing a publication
+ */
+function pensoft_publication_new_form($form, &$form_state, $publication) {
+  $form = array();
+  
+  $form['pensoft_publication'] = array(
+    '#type' => 'value',
+    '#value' => $publication
+  );
 
+  $form['pensoft_username'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Pensoft username'),
+    '#default_value' => 'a.heaton@nhm.ac.uk',
+    '#required' => TRUE
+  );
+
+  $form['pensoft_password'] = array(
+    '#type' => 'password',
+    '#title' => t('Pensoft password'),
+    '#default_value' => '720b05',
+    '#required' => TRUE
+  );
+  
+  $form['pensoft_return_xml'] = array(
+    '#type' => 'radios',
+    '#title' => 'Data handling',
+    '#default_value' => 1,
+    '#options' => array(1 => t('Return XML file'), 2 => t('Post XML file to Pensoft'), 3 => t('Just valiate the process')),
+  );
+  
+  $form['pensoft_publish'] = array(
+    '#type' => 'submit',
+    '#value' => 'Publish'
+  );
+  
+  return $form;
+}
+
+/**
+ * Validate form submit handler
+ */
+function pensoft_publication_new_form_validate($form, &$form_state) {
+  $publication = $form_state['values']['pensoft_publication'];
+  
+  if ($publication->published) {
+    form_set_error('pensoft_publication', t('This publication has already been published'));
+  }
+}
+
+/**
+ * Publish page form submit handler
+ */
+function pensoft_publication_new_form_submit($form, &$form_state) {
+  module_load_include('xml.inc', 'pensoft_publication');
+
+  $publication = $form_state['values']['pensoft_publication'];
+  $xml = _pensoft_publication_build_xml($publication);
+  $mode = $form_state['values']['pensoft_return_xml'];
+  
+  if ($mode == 3) {
+    drupal_set_message('XML contains ' . strlen($xml) . " bytes", 'status');    
+    return;
+  } else if ($mode == 1) {
+    header('Content-type: application/xml');
+    echo $xml;
+    exit();    
+  } else if (empty($xml)) {
+    drupal_set_message('Could not process XML as required', 'error');
+    return;
+  }
+
+  $url = variable_get('pensoft_submit_url', 'http://test.pwt.pensoft.eu/api.php');
+  
+  $data = array(
+    'username' => $form_state['values']['pensoft_username'],
+    'password' => $form_state['values']['pensoft_password'],
+    'action' => 'process_document',
+    'xml' => $xml
+  );
+
+  /**
+   * This was just used so I can see the headers being sent, etc.
+  
+  echo '<html><head></head><body>';
+  echo "<form action='$url' method='POST'>";
+  echo "<input type='text' name='username' value='" . $form_state['values']['pensoft_username'] . "'/>";
+  echo "<input type='text' name='password' value='" . $form_state['values']['pensoft_password'] . "'/>";
+  echo "<input type='text' name='action' value = 'process_document' />";
+  echo "<textarea name='xml'>" . $xml . '</textarea>';
+  echo '<input type="submit" value="submit" />';
+  echo '</body></html>';
+  exit();
+*/  
+  
+  
+  $options = array(
+    'http' => array(
+      'method' => 'POST',
+      'content' => http_build_query($data),
+      'header' => 'Content-Type: application/x-www-form-urlencoded'
+    )
+  );
+  
+  $context = stream_context_create($options);
+  $result = file_get_contents($url, false, $context);
+  header('Content-type: application/xml');
+  echo $result;
+  exit();
+  
+  /*
+  $xml_result = new SimpleXMLElement($result);
+  if ($xml_result->result->returnCode == 0) {
+    $publisher_data = array(
+      'document_id' => $xml_result->result->document_id,
+      'document_link' => $xml_result->result->document_link
+    );
+    $publication->published = 1;
+    $publication->publisher_data = serialize($publisher_data);
+    publication_save($publication);
+    
+    drupal_set_message('notice', 'The document was succesfully published');
+    drupal_goto($_GET['q']);
+  } else {
+    drupal_set_message('error', 'The publication failed :' . $xml_result->result->errorMsg);
+  }
+  */
+}
+
+/**
+ * Form for a publication that has already been published
+ */
+function pensoft_publication_action_form($form, &$form_state, $publication) {
+  
+}
+
+/**
+ * Publish page form submit handler
+ */
+function pensoft_publication_action_form_submit($form, &$form_state) {
+
+}
