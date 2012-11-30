@@ -115,8 +115,9 @@ function biblio_refbank_form_biblio_node_form_submit($form, &$form_state){
           $form_state['input']['biblio_type'] = $form_state['biblio_type'] = $node_data[0]->biblio_type;
           $form_state['storage']['biblio_type'] = $node_data[0]->biblio_type;
         }elseif(!empty($dups)){
+          $dup_node = node_load($dups[0]);
           $message = t('The bibtex node that you are trying to paste into the form already exists in the database, see !url', array(
-            '!url' => l('node/' . $dups[0], 'node/' . $dups[0])
+            '!url' => l($dup_node->title, 'node/' . $dups[0])
           ));
           form_set_error('biblio_refbank', $message);
         }
