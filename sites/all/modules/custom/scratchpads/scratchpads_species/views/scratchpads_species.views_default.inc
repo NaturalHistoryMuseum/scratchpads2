@@ -18,7 +18,7 @@ function scratchpads_species_views_default_views(){
   $view->context = 'species_overview';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
+    $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Nomenclature';
   $handler->display->display_options['css_class'] = 'alpha grid-4';
   $handler->display->display_options['access']['type'] = 'perm';
@@ -453,7 +453,7 @@ function scratchpads_species_views_default_views(){
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
+    $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Media';
   $handler->display->display_options['css_class'] = 'omega grid-4';
   $handler->display->display_options['access']['type'] = 'perm';
@@ -590,6 +590,10 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['sorts']['field_sticky_value']['table'] = 'field_data_field_sticky';
   $handler->display->display_options['sorts']['field_sticky_value']['field'] = 'field_sticky_value';
   $handler->display->display_options['sorts']['field_sticky_value']['order'] = 'DESC';
+  /* Sort criterion: File: Weight (field_weight) */
+  $handler->display->display_options['sorts']['field_weight_value']['id'] = 'field_weight_value';
+  $handler->display->display_options['sorts']['field_weight_value']['table'] = 'field_data_field_weight';
+  $handler->display->display_options['sorts']['field_weight_value']['field'] = 'field_weight_value';
   /* Contextual filter: Field: Taxonomic name (field_taxonomic_name) */
   $handler->display->display_options['arguments']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
   $handler->display->display_options['arguments']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
@@ -632,7 +636,7 @@ function scratchpads_species_views_default_views(){
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
+    $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'SUMMARY';
   $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
   $handler->display->display_options['access']['type'] = 'perm';
@@ -724,7 +728,7 @@ function scratchpads_species_views_default_views(){
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
+    $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Distribution';
   $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
   $handler->display->display_options['access']['type'] = 'perm';
@@ -879,7 +883,7 @@ function scratchpads_species_views_default_views(){
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
-      $handler = $view->new_display('default', 'Master', 'default');
+        $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Literature';
   $handler->display->display_options['css_class'] = 'grid-8 alpha omega biblio';
   $handler->display->display_options['use_ajax'] = TRUE;
@@ -1045,7 +1049,7 @@ function scratchpads_species_views_default_views(){
     $view->context = 'species_overview';
     $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
     /* Display: Master */
-            $handler = $view->new_display('default', 'Master', 'default');
+                $handler = $view->new_display('default', 'Master', 'default');
     $handler->display->display_options['title'] = 'Specimen count';
     $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
     $handler->display->display_options['group_by'] = TRUE;
@@ -1430,7 +1434,7 @@ function scratchpads_species_views_default_views(){
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
+    $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Literature';
   $handler->display->display_options['css_class'] = 'grid-8 alpha omega biblio';
   $handler->display->display_options['use_ajax'] = TRUE;
@@ -1449,7 +1453,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['style_options']['columns'] = array(
     'biblio_authors' => 'biblio_authors',
     'title' => 'title',
-    'biblio_year' => 'biblio_year',
+    'biblio_year' => 'biblio_year'
   );
   $handler->display->display_options['style_options']['default'] = 'biblio_year';
   $handler->display->display_options['style_options']['info'] = array(
@@ -1458,22 +1462,22 @@ function scratchpads_species_views_default_views(){
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'title' => array(
       'sortable' => 1,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'biblio_year' => array(
       'sortable' => 1,
       'default_sort_order' => 'desc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
-    ),
+      'empty_column' => 0
+    )
   );
   $handler->display->display_options['style_options']['override'] = 1;
   $handler->display->display_options['style_options']['sticky'] = 0;
@@ -1602,7 +1606,7 @@ function scratchpads_species_views_default_views(){
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
+    $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Distribution';
   $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
   $handler->display->display_options['access']['type'] = 'perm';
@@ -1704,7 +1708,7 @@ function scratchpads_species_views_default_views(){
   $view->context = 'species_specimens';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
-      $handler = $view->new_display('default', 'Master', 'default');
+        $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Specimens';
   $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
   $handler->display->display_options['access']['type'] = 'perm';
@@ -1951,7 +1955,7 @@ function scratchpads_species_views_default_views(){
     $view->api_version = '3.0';
     $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
     /* Display: Master */
-            $handler = $view->new_display('default', 'Master', 'default');
+                $handler = $view->new_display('default', 'Master', 'default');
     $handler->display->display_options['title'] = 'Species media';
     $handler->display->display_options['css_class'] = 'view-inline-filters';
     $handler->display->display_options['use_ajax'] = TRUE;
