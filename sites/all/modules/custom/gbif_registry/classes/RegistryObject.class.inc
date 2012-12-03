@@ -84,12 +84,15 @@ class RegistryObject extends RegistryChild{
             break;
           case 'hostingOrganizationKey':
             $this->hostingOrganization = $value;
+            $this->hostingOrganizationKey = $value;
             break;
           case 'hostingOrganization':
           case 'endorsingNode':
             // We get a complex object here, but we only actually need to save
             // the key, so that's all we're saving.
             if(isset($value['key'])){
+              $this->{$key} = $value['key'];
+              $key = $key . 'Key';
               $this->{$key} = $value['key'];
             }
             break;
