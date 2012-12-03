@@ -883,7 +883,7 @@ function scratchpads_tweaks_update_7030(){
     $options = variable_get('node_options_' . $bundle, array());
     foreach($options as $value){
       if($value == 'revision'){
-        continue;
+        continue 2;
       }
     }
     $options[] = 'revision';
@@ -903,4 +903,21 @@ function scratchpads_tweaks_update_7032(){
   }
   variable_set('comment_notify_node_types', $array_node_types);
   variable_set('comment_notify_node_notify_default_mailalert', 1);
+}
+
+/**
+ * Turn on revisions for page nodes, and also enable "published".
+ */
+function scratchpads_tweaks_update_7033(){
+  $entity_info = entity_get_info('node');
+  foreach(array_keys($entity_info['bundles']) as $bundle){
+    $options = variable_get('node_options_' . $bundle, array());
+    foreach($options as $value){
+      if($value == 'status'){
+        continue 2;
+      }
+    }
+    $options[] = 'status';
+    variable_set('node_options_' . $bundle, $options);
+  }
 }
