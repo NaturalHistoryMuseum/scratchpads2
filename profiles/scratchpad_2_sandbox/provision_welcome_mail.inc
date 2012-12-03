@@ -8,3 +8,7 @@ db_update('users')->fields(array(
   'pass' => ''
 ))->condition('uid', 1)->execute();
 $mail = array();
+// Uninstall the scratchpads_statistics module that is not needed on this site.
+module_disable(array(
+  'scratchpads_statistics'
+));
