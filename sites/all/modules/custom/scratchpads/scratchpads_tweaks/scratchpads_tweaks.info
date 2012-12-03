@@ -92,6 +92,7 @@ dependencies[] = hashcash
 dependencies[] = silver
 dependencies[] = spm
 dependencies[] = subpermissions
+dependencies[] = taxonomy_batch
 dependencies[] = taxonomy_breadcrumb_lite
 dependencies[] = tools
 dependencies[] = tree_widget
