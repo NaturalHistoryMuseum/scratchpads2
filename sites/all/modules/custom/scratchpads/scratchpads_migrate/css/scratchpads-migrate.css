@@ -1,0 +1,18 @@
+@CHARSET "UTF-8";
+
+tr.error {
+	background: #FFE4E0!important;
+}
+
+tr.error td{
+	background: transparent!important;
+	border: 1px solid #FFD4D0;
+}
+
+tr.ok {
+	background: #DFD!important;
+}
+
+tr.ok td{
+	background: transparent!important;
+}

@@ -12,6 +12,7 @@ dependencies[] = date
 dependencies[] = forum
 dependencies[] = scratchpads_group
 dependencies[] = path
+configure = admin/config/content/scratchpads-migrate
 
 ; Base classes
 files[] = vocabulary.inc

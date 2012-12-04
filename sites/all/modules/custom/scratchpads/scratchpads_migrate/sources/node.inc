@@ -408,9 +408,11 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
           $row->{$mapped_classification} = array_merge($row->{$mapped_classification}, $row->{$unmapped_classifcation});
         }
       }
-    }    
+    }
     // Row weight
     $this->weightDecode($row);
+    // Remove node teaser
+    unset($row->teaser);
   }
 
   public static function parseImages($html, $row){
@@ -445,7 +447,10 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         $html = $dom->saveHTML();
       }
       catch(Exception $e){
-        watchdog('scratchpads_migrate', t('Malformed HTML'), WATCHDOG_ERROR);
+        scratchpads_migrate_task_insert('node', $row->nid, t('The html in this node is malformed, so we cannot extract the images.'), t('If the node has images they will need to be manually copied to the new site.'));
+        watchdog('scratchpads_migrate', t('Malformed HTML for node %nid', array(
+          '%nid' => $row->nid
+        )), WATCHDOG_ERROR);
       }
     }
     return $html;
@@ -460,15 +465,27 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     // If this is an external file, leave it alone
     if(isset($parsed_url['host']) && $parsed_url['host'] != $s1_domain){return;}
     $file_name = basename($parsed_url['path']);
-    $source = 'http://' . $s1_domain . '/' . ltrim($parsed_url['path'], '/');
+    $source = 'http://' . $s1_domain . '/' . ltrim(str_replace(' ', ' ', $parsed_url['path']), '/');
     $destination = file_default_scheme() . '://' . $file_name;
     if(file_exists($destination)){
       $html_img_src = $destination;
-    }else if($file_contents = @file_get_contents($source)){
+    }else{
       // Aaargh nasty hackery so the created file inherits the UID of the person who created the node
       $user->uid = $uid;
-      if($file = file_save_data($file_contents, $destination, FILE_EXISTS_REPLACE)){
+      // Is this a data file?
+      if(ScratchpadsNodeMigration::isDataImage($src)){
+        // Get the extenion
+        $fp = fopen($src, 'r');
+        $meta = stream_get_meta_data($fp);
+        $extension = str_replace('image/', '', $meta['mediatype']);
+        // Generate a unique ID for the file name
+        $destination = file_default_scheme() . '://data-' . uniqid() . '.' . $extension;
+        $file = file_save_data($fp, $destination, FILE_EXISTS_REPLACE);
         $html_img_src = $destination;
+      }else if($file_contents = @file_get_contents($source)){
+        if($file = file_save_data($file_contents, $destination, FILE_EXISTS_REPLACE)){
+          $html_img_src = $destination;
+        }
       }
       // Change back to user 1
       $user->uid = 1;
@@ -476,6 +493,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     if(isset($html_img_src)){
       return ScratchpadsNodeMigration::fileCreateUrl($html_img_src);
     }else{
+      scratchpads_migrate_task_insert('node', $row->nid, t('The file could not be saved, probably because the image is missing on the source site.'), t('Check the old site and update the new node accordingly.'));
       watchdog('scratchpads_migrate', t('Could not save file for %source'), array(
         '%source' => $source
       ), WATCHDOG_ERROR);
@@ -483,13 +501,19 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   }
 
   /**
+   * Is this a data image
+   */
+  protected function isDataImage($href){
+    return strpos($href, 'data:image') !== false;
+  }
+
+  /**
    * Create a full path URL for a file (rewrite public:// etc.,)
    * Suitable for an html img src
    */
   public static function fileCreateUrl($file){
-    $wrapper = file_stream_wrapper_get_instance_by_uri($file);
     $file = drupal_encode_path($file);
-    $url = base_path() . $wrapper->getDirectoryPath() . '/' . basename($file);
+    $url = '/files/' . basename($file);
     return $url;
   }
 
