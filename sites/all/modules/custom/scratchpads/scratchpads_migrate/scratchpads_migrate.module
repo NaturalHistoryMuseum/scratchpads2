@@ -695,7 +695,7 @@ function scratchpads_migrate_menu(){
       'scratchpads_migrate_tasks_form'
     ),
     'access arguments' => array(
-      'administer content'
+      'administer site configuration'
     ),
     'file' => 'scratchpads_migrate.admin.inc'
   );
