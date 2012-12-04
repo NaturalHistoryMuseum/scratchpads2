@@ -1,4 +1,5 @@
 <?php
+define('SCRATCHPAD_ORGANIZATION', '315b3c03-4a0a-424e-83a5-d25aa748e666');
 
 /**
  * Weekly cron
@@ -15,39 +16,64 @@ function _scratchpads_statistics_aggregator_cron(){
   // $technical_installation){
   // Start a timer so that we don't go over 60 seconds.
   $timer = time();
+  $urls = array();
   foreach($gbif_registry->getTechnicalInstallations() as $ti){
     // Get this site from the list of sites.
     //$technical_installation = $technical_installation->getAsArray();
     $organization = $ti->getHostingOrganization();
-    if($organization->getTitle() == "Scratchpads"){
+    if($organization->getKey() == SCRATCHPAD_ORGANIZATION){
       // We haven't actually registered an endpoint for each of the Scratchpads,
       // so for now will assume the location of the end point (this will only
       // be an issue when hosting of sites external to the NHM becomes more
       // prevalent).
       $url = $ti->getHomePage();
-      if(!strpos($url, '/s2.')){
-        // Get the SS site for this Scratchpad
-        $query = db_select('scratchpads_statistics_data', 'd');
-        $query->innerJoin('scratchpads_statistics_site', 's', 'd.site = s.id');
-        $row = $query->fields('d', array(
-          'captured'
-        ))->condition('url', $url)->range(0, 1)->orderBy('captured', 'DESC')->execute()->fetch();
-        $last_capture = 0;
-        if($row){
-          // We have harvested this site before, all we need is a most recent 
-          // capture value.
-          $last_capture = $row->captured;
-        }
-        // FIXME - Need to add the hash if we need to use it.
-        $data = @json_decode(@file_get_contents($url . 'stats.json?since=' . $last_capture), TRUE);
-        if($data && is_array($data) && count($data)){
-          _scratchpads_statistics_aggregator_insert_data($data);
-        }
+      if(!strpos($url, '/s2.') && !strpos($url, 'taxon.name') && !strpos($url, 'training')){
+        $urls[] = $url;
       }
     }
+  }
+  // Random order the URLs so that we stand a chance of getting all of the sites
+  // over a six day period.
+  shuffle($urls);
+  foreach($urls as $url){
     // Whoa, we're taking too long, we should stop!
     if($timer < time() - 60){return;}
+    // Get the greated captured value for this Scratchpad
+    $query = db_select('scratchpads_statistics_data', 'd');
+    $query->innerJoin('scratchpads_statistics_site', 's', 'd.site = s.id');
+    $row = $query->fields('d', array(
+      'captured'
+    ))->condition('url', $url)->range(0, 1)->orderBy('captured', 'DESC')->execute()->fetch();
+    $last_capture = 0;
+    if($row){
+      // We have harvested this site before, all we need is a most recent
+      // capture value.
+      $last_capture = $row->captured;
+      // If the last_captured value is less than six days old, then we don't
+      // need to go any further.
+      if($last_capture > $timer - 518400){
+        continue;
+      }
+    }
+    // FIXME - Need to add the hash if we need to use it.
+    $data = @json_decode(_scratchpads_statistics_aggregator_file_get_contents($url . 'stats.json?since=' . $last_capture), TRUE);
+    if($data && is_array($data) && count($data)){
+      _scratchpads_statistics_aggregator_insert_data($data);
+    }
   }
+}
+
+/**
+ * Simple file_get_contents without following redirects as we can end up with
+ * duplicate records if we do.
+ */
+function _scratchpads_statistics_aggregator_file_get_contents($url){
+  $context = stream_context_create(array(
+    'http' => array(
+      'follow_location' => false
+    )
+  ));
+  return @file_get_contents($url, false, $context);
 }
 
 /**
