@@ -411,9 +411,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     }
     // Row weight
     $this->weightDecode($row);
-    
-    dd($row);
-    
+    // Remove node teaser
+    unset($row->teaser);
   }
 
   public static function parseImages($html, $row){
@@ -448,6 +447,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         $html = $dom->saveHTML();
       }
       catch(Exception $e){
+        scratchpads_migrate_task_insert('node', $row->nid, t('The html in this node is malformed, so we cannot extract the images.'), t('If the node has images they will need to be manually copied to the new site.'));
         watchdog('scratchpads_migrate', t('Malformed HTML for node %nid', array(
           '%nid' => $row->nid
         )), WATCHDOG_ERROR);
@@ -465,7 +465,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     // If this is an external file, leave it alone
     if(isset($parsed_url['host']) && $parsed_url['host'] != $s1_domain){return;}
     $file_name = basename($parsed_url['path']);
-    $source = 'http://' . $s1_domain . '/' . ltrim(str_replace(' ', '%20', $parsed_url['path']), '/');
+    $source = 'http://' . $s1_domain . '/' . ltrim(str_replace(' ', ' ', $parsed_url['path']), '/');
     $destination = file_default_scheme() . '://' . $file_name;
     if(file_exists($destination)){
       $html_img_src = $destination;
@@ -493,6 +493,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     if(isset($html_img_src)){
       return ScratchpadsNodeMigration::fileCreateUrl($html_img_src);
     }else{
+      scratchpads_migrate_task_insert('node', $row->nid, t('The file could not be saved, probably because the image is missing on the source site.'), t('Check the old site and update the new node accordingly.'));
       watchdog('scratchpads_migrate', t('Could not save file for %source'), array(
         '%source' => $source
       ), WATCHDOG_ERROR);

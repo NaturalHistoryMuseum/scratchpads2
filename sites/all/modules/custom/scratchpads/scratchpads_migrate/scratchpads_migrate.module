@@ -686,6 +686,19 @@ function scratchpads_migrate_menu(){
     ),
     'weight' => 10
   );
+  // For managing different types of media and the fields associated with them.
+  $items['admin/config/content/scratchpads-migrate'] = array(
+    'title' => 'Scratchpads migrate tasks',
+    'description' => 'Follow up tasks for scratchpads migrate.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'scratchpads_migrate_tasks_form'
+    ),
+    'access arguments' => array(
+      'administer content'
+    ),
+    'file' => 'scratchpads_migrate.admin.inc'
+  );
   return $items;
 }
 
@@ -868,3 +881,16 @@ function scratchpads_migrate_update_field_entity_type($field){
   // Invoke external hooks after the cache is cleared for API consistency.
   module_invoke_all('field_update_field', $field, $prior_field, $has_data);
 }
+
+/**
+ * Insert a task
+ */
+function scratchpads_migrate_task_insert($entity_type, $entity_id, $error, $action){
+  $task = new stdClass();
+  $task->entity = $entity_type;
+  $task->entity_id = $entity_id;
+  $task->error = $error;
+  $task->action = $action;
+  drupal_write_record('scratchpads_migrate_task', $task);
+}
+
