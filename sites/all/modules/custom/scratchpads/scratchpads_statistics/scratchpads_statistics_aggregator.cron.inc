@@ -56,9 +56,9 @@ function _scratchpads_statistics_aggregator_cron(){
       }
     }
     // FIXME - Need to add the hash if we need to use it.
-    $data = @json_decode(_scratchpads_statistics_aggregator_file_get_contents($url . 'stats.json?since=' . $last_capture), TRUE);
+    $data = _scratchpads_statistics_aggregator_get_data($url . 'stats.json?since=' . $last_capture);
     if($data && is_array($data) && count($data)){
-      _scratchpads_statistics_aggregator_insert_data($data);
+      _scratchpads_statistics_aggregator_insert_data($data, $url);
     }
   }
 }
@@ -67,19 +67,23 @@ function _scratchpads_statistics_aggregator_cron(){
  * Simple file_get_contents without following redirects as we can end up with
  * duplicate records if we do.
  */
-function _scratchpads_statistics_aggregator_file_get_contents($url){
+function _scratchpads_statistics_aggregator_get_data($url){
   $context = stream_context_create(array(
     'http' => array(
       'follow_location' => false
     )
   ));
-  return @file_get_contents($url, false, $context);
+  $data = @file_get_contents($url, false, $context);
+  if($data){
+    $data = @json_decode($data, TRUE);
+  }
+  return $data;
 }
 
 /**
  * Insert the data into the database.
  */
-function _scratchpads_statistics_aggregator_insert_data($data){
+function _scratchpads_statistics_aggregator_insert_data($data, $url){
   $query = db_insert('scratchpads_statistics_data')->fields(array(
     'user',
     'term',
@@ -92,6 +96,11 @@ function _scratchpads_statistics_aggregator_insert_data($data){
   ));
   $site = FALSE;
   foreach($data as $record){
+    // For sanity sake, we ensure that the URL in the data record matches the
+    // URL we are expecting.
+    if($url != $record['url']){
+      continue;
+    }
     if(!$site){
       // For one set of data, we always have the same site, so we can avoid
       // checking it for every record.
