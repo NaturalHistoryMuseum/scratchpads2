@@ -42,9 +42,8 @@
                       '.field-type-relation'), relationType);
 
                   // Hide fields until an entity is selected
-                  if ($('div', $(this)).length == 0) {
-                    getEntityFields($(this)).hide();
-                  }
+                  toggleRelationFields($(this).attr("id"));
+                  toggleSearchForm($(this).attr("id"));
 
                 }).addClass('processed');
 
@@ -133,9 +132,10 @@
       function handleRemoveClick(){
         $input = $('input', $(this).parents('.rs-wrapper'));
         id = $(this).parents('.relation-select-entities').attr("id");
-        getEntityFields($(this).parents('.relation-select-entities')).hide();
         entitydata = $input.val();
         deselectItem($input, id, entitydata);
+        toggleRelationFields(id);
+        toggleSearchForm(id);
         return false;
       }
 
@@ -176,6 +176,7 @@
           // If max arity has been reached, close the popup
           if(countArity(id) == relationSelectItems[id]['maxArity']) {
             close();
+            toggleSearchForm(id);
           }
 
         }
@@ -215,7 +216,7 @@
         $input.append(themeValue($row, entitydata));
         addInputRemoveLink($input);
         relationSelectItems[id]['element'].append($input);
-        getEntityFields(relationSelectItems[id]['element']).show();
+        toggleRelationFields(id);
       }
 
       /**
@@ -284,12 +285,30 @@
       }
 
       /**
-       * Given an entity div, return the div matching it's fields
+       * Hide/show a field's relation fields depending on whether an entity has been selected
        */
-      function getEntityFields($entity) {
-        return $entity.parent().find('div').filter(function() {
-          return this.id.match(/^relation-select-relation-fields/);}
-        );
+      function toggleRelationFields(id) {
+        console.log(id + ':' + countArity(id));
+        if (countArity(id) > 1) {
+          $('#' + id).parent().find('div').filter(function() {
+            return this.id.match(/^relation-select-relation-fields/);
+          }).show();
+        } else {
+          $('#' + id).parent().find('div').filter(function() {
+            return this.id.match(/^relation-select-relation-fields/);
+          }).hide();          
+        }
+      }
+      
+      /**
+       * Hide/show a search form depending on whether arity has been reached
+       */
+      function toggleSearchForm(id) {
+        if (countArity(id) == relationSelectItems[id]['maxArity']) {
+          $('#' + id).parent().find('div.views-exposed-form').hide();
+        } else {
+          $('#' + id).parent().find('div.views-exposed-form').show();          
+        }
       }
 
       init();
