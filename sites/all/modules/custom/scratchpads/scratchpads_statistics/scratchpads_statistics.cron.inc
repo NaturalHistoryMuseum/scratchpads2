@@ -1,6 +1,6 @@
 <?php
 
-function _scratchpads_statistics_cron(){
+function _scratchpads_statistics_cron($force_update = FALSE){
   // Check the last time we saved data for this site (should always be site 1),
   // and only progress if it was more than six days ago.
   $last_capture = 0;
@@ -10,7 +10,7 @@ function _scratchpads_statistics_cron(){
   if(count($col)){
     $last_capture = array_pop($col);
   }
-  if($last_capture + 518400 > time()){return;}
+  if($last_capture + 518400 > time() && !$force_update){return;}
   // Ensure we have a comprehensive list of entities and bundles.
   $info = entity_get_info();
   foreach(entity_get_info() as $entity => $entity_info){
@@ -168,7 +168,7 @@ function _scratchpads_statistics_cron(){
           }
           $query->execute();
           // Run for no more than sixty seconds.
-          if(time() > $timer + 60){return;}
+          if(time() > $timer + 60 && !$force_update){return;}
         }
       }
       catch(Exception $e){
