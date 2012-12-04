@@ -41,6 +41,11 @@
                   addFilterBundleEventHandlers($(this).parents(
                       '.field-type-relation'), relationType);
 
+                  // Hide fields until an entity is selected
+                  if ($('div', $(this)).length == 0) {
+                    getEntityFields($(this)).hide();
+                  }
+
                 }).addClass('processed');
 
         addCloseEventHandlers(context);
@@ -128,6 +133,7 @@
       function handleRemoveClick(){
         $input = $('input', $(this).parents('.rs-wrapper'));
         id = $(this).parents('.relation-select-entities').attr("id");
+        getEntityFields($(this).parents('.relation-select-entities')).hide();
         entitydata = $input.val();
         deselectItem($input, id, entitydata);
         return false;
@@ -209,6 +215,7 @@
         $input.append(themeValue($row, entitydata));
         addInputRemoveLink($input);
         relationSelectItems[id]['element'].append($input);
+        getEntityFields(relationSelectItems[id]['element']).show();
       }
 
       /**
@@ -274,6 +281,15 @@
         $bundleSelect
             .val($('option:not(:disabled)', $bundleSelect).eq(0).val());
 
+      }
+
+      /**
+       * Given an entity div, return the div matching it's fields
+       */
+      function getEntityFields($entity) {
+        return $entity.parent().find('div').filter(function() {
+          return this.id.match(/^relation-select-relation-fields/);}
+        );
       }
 
       init();
