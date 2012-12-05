@@ -17,9 +17,9 @@ function scratchpads_statistics_stats_page_login_json(){
   ));
   $query->fields('s', array(
     'title',
-    'url',
-    'created'
+    'url'
   ));
+  $query->addField('s', 'created', 'site_created');
   $query->addField('o', 'name', 'owner_name');
   $query->addField('o', 'email', 'owner_email');
   $query->addField('o', 'country', 'owner_country');

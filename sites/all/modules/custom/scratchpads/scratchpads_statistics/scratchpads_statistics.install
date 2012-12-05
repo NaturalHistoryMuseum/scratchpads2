@@ -30,7 +30,7 @@ function scratchpads_statistics_install(){
     'title' => variable_get('site_name', $url),
     'owner' => 1,
     'url' => $url,
-    'created' => variable_get('install_time', 0)
+    'created' => variable_get('install_time', time())
   ))->execute();
   // Insert a list of site types.
   // FIXME - Add site types.
@@ -511,4 +511,13 @@ function scratchpads_statistics_update_7003(){
   $select->addField('u', 'access');
   $query = db_insert('scratchpads_statistics_login')->from($select)->execute();
   menu_rebuild();
+}
+
+/**
+ * Update the created times of sites which do not have a value set.
+ */
+function scratchpads_statistics_update_7004(){
+  db_update('scratchpads_statistics_site')->fields(array(
+    'created' => variable_get('install_time', time())
+  ))->condition('created', 0)->condition('id', 1)->execute();
 }
