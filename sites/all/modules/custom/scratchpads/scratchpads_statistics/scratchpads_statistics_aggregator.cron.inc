@@ -38,7 +38,12 @@ function _scratchpads_statistics_aggregator_cron(){
   foreach($urls as $url){
     // Whoa, we're taking too long, we should stop!
     if($timer < time() - 60){return;}
-    // Get the greated captured value for this Scratchpad
+    // We get the login data first and add that.
+    $data = _scratchpads_statistics_aggregator_get_data($url . 'login.json');
+    if($data && is_array($data) && count($data)){
+      _scratchpads_statistics_aggregator_insert_login_data($data, $url);
+    }
+    // Get the greater captured value for this Scratchpad
     $query = db_select('scratchpads_statistics_data', 'd');
     $query->innerJoin('scratchpads_statistics_site', 's', 'd.site = s.id');
     $row = $query->fields('d', array(
@@ -78,6 +83,57 @@ function _scratchpads_statistics_aggregator_get_data($url){
     $data = @json_decode($data, TRUE);
   }
   return $data;
+}
+
+/**
+ * Insert the login data into the database.
+ */
+function _scratchpads_statistics_aggregator_insert_login_data($data, $url){
+  $query = db_merge('scratchpads_statistics_login')->fields(array(
+    'site',
+    'user',
+    'created',
+    'access'
+  ));
+  $site = FALSE;
+  foreach($data as $record){
+    // For sanity sake, we ensure that the URL in the data record matches the
+    // URL we are expecting.
+    if($url != $record['url']){
+      continue;
+    }
+    if(!$site){
+      // For one set of data, we always have the same site, so we can avoid
+      // checking it for every record.
+      $user = _scratchpads_statistics_insert_item(array(
+        'name' => $record['owner_name'],
+        'email' => $record['owner_email'],
+        'country' => $record['owner_country'],
+        'latitude' => $record['owner_latitude'],
+        'longitude' => $record['owner_longitude']
+      ), 'scratchpads_statistics_user', 'email');
+      $site = _scratchpads_statistics_insert_item(array(
+        'title' => $record['title'],
+        'owner' => $user,
+        'url' => $record['url'],
+        'created' => $record['site_created']
+      ), 'scratchpads_statistics_site', 'url');
+    }
+    $user = _scratchpads_statistics_insert_item(array(
+      'name' => $record['name'],
+      'email' => $record['email'],
+      'country' => $record['country'],
+      'latitude' => $record['latitude'],
+      'longitude' => $record['longitude']
+    ), 'scratchpads_statistics_user', 'email');
+    $query->values(array(
+      'site' => $site,
+      'user' => $user,
+      'created' => $record['created'],
+      'access' => $record['access']
+    ));
+  }
+  $query->execute();
 }
 
 /**
