@@ -415,7 +415,10 @@ function exif_custom_process_entity($file){
         $array['und'] = _exif_custom_taxonomy_autocomplete_validate($element,  $vids);
         break;
       case 'country':
-      	
+      	$countries = array_flip(countries_get_countries('name'));
+      	if (isset($countries[$data[$values->exif_field]])){
+      	  $array['und'][0]['iso2'] = ($countries[$data[$values->exif_field]]);
+      	}
       	break;
       default:
         $array['und']['0']['value'] = $data[$values->exif_field];
