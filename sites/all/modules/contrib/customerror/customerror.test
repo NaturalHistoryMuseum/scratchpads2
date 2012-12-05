@@ -1,0 +1,76 @@
+<?php
+
+class CustomErrorTestCas extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => t('Custom Error'),
+      'description' => t('Check that the custom error messages are displayed.'),
+      'group' => t('Custom Error'),
+    );
+  }
+
+  function setUp() {
+    parent::setUp(array('variable', 'customerror'));
+  }
+
+  function testPageNotFoundMessage() {
+    // Set title and text of error message.
+    $error_code = 404;
+    $title = $this->randomName($number = 10, $prefix = 'simpletest_');
+    variable_set('customerror_'. $error_code .'_title', $title);
+    $description = array(
+      'value' => $this->randomName($number = 512, $prefix = 'simpletest_'),
+      'format' =>  filter_default_format(),
+    );
+    variable_set('customerror_'. $error_code, $description);
+
+    // Access error page directly, check for title and text of error message.
+    $this->drupalGet('customerror/'. $error_code);
+    $this->assertText($title, 'Title on '. $error_code .' error page set when accessed directly');
+    $this->assertText($description['value'], 'Description on '. $error_code .' error page set when accessed directly');
+
+    // Point Drupal to the new error message.
+    variable_set('site_'. $error_code, 'customerror/'. $error_code);
+
+    // Access a non-existing page, check for title and text of error message.
+    $this->drupalGet('foo/bar');
+
+    /* Check for response code, title and text of error message */
+    $this->assertResponse($error_code, 'Response code on '. $error_code .' error page set when accessed at non-existent URL');
+    $this->assertText($title, 'Title on '. $error_code .' error page set when accessed at non-existent URL');
+    $this->assertText($description['value'], 'Description on '. $error_code .' error page set when accessed at non-existent URL');
+  }
+
+  /**
+   * Tests 403 pages.
+   */
+  function testAccessDeniedMessage() {
+    /* Set title and text of error message */
+    $error_code = 403;
+    $title = $this->randomName($number = 10, $prefix = 'simpletest_');
+    variable_set('customerror_'. $error_code .'_title', $title);
+    $description = array(
+      'value' => $this->randomName($number = 512, $prefix = 'simpletest_'),
+      'format' =>  filter_default_format(),
+    );
+    variable_set('customerror_'. $error_code, $description);
+
+    // Access error page directly, check for title and text of error message.
+    $this->drupalGet('customerror/'. $error_code);
+    $this->assertText($title, 'Title on '. $error_code .' error page set when accessed directly');
+    $this->assertText($description['value'], 'Description on '. $error_code .' error page set when accessed directly');
+
+    // Point Drupal to the new error message.
+    variable_set('site_'. $error_code, 'customerror/'. $error_code);
+
+    // Access admin page as un anonymous user, check for title and text of error message.
+    $this->drupalGet('admin');
+
+    /* Check for response code, title and text of error message */
+    $this->assertResponse($error_code, 'Response code on '. $error_code .' error page set when accessed at non-existent URL');
+    $this->assertText($title, 'Title on '. $error_code .' error page set when accessed at non-existent URL');
+    $this->assertText($description['value'], 'Description on '. $error_code .' error page set when accessed at non-existent URL');
+  }
+
+}
