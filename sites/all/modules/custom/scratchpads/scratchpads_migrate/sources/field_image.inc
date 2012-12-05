@@ -15,8 +15,11 @@ class DrupalFieldImageMigration extends DrupalFieldMigration{
     $query->condition('i.widget_active', 1);
     $query->condition('i.type_name', 'image');
     $query->condition('f.type', array(
-      'nodereference',
       'filefield'
+    ), 'NOT IN');
+    $query->condition('f.field_name', array(
+      'image_publication',
+      'image_specimen'
     ), 'NOT IN');
     return $query;
   }
