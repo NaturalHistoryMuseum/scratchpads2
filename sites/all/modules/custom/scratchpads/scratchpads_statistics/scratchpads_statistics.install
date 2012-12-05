@@ -510,4 +510,5 @@ function scratchpads_statistics_update_7003(){
   $select->addField('u', 'created');
   $select->addField('u', 'access');
   $query = db_insert('scratchpads_statistics_login')->from($select)->execute();
+  menu_rebuild();
 }
