@@ -2,7 +2,7 @@
   google.load('visualization', '1.0', {'packages': ['corechart']});
   google.setOnLoadCallback(scratchpadsStatisticsDrawChart);
   function scratchpadsStatisticsDrawChart(){
-    $('div.google_chart').once(function(){
+    $('div.google_chart_pie').once(function(){
       var chart_id = $(this).attr('id');
       var chart_data = Drupal.settings.scratchpads_statistics[chart_id];
       var data = new google.visualization.DataTable();

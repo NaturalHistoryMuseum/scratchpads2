@@ -69,11 +69,12 @@ function scratchpads_statistics_stats_page(){
     $i++;
   }
   $content[] = array(
-    '#markup' => _scratchpads_statistics_chart(t('Content types'), t('Percent'), $counts, t('Scratchpads 2.0 Content (% of !total)', array(
+    '#markup' => _scratchpads_statistics_chart_pie(t('Content types'), t('Percent'), $counts, t('Content (% of !total)', array(
       '!total' => $total
     )))
   );
-  // Next we look for the number of
+  // Next we look for the number of users that have logged in in the past week,
+  // and then the number of users that have logged in in the past month.
   return $content;
 }
 
@@ -82,7 +83,7 @@ function scratchpads_statistics_stats_page(){
  *
  * Returns the HTML wrapper that will contain the chart on a web page.
  */
-function _scratchpads_statistics_chart($column_name, $value_name, $values, $title = '', $width = '400', $height = '300'){
+function _scratchpads_statistics_chart_pie($column_name, $value_name, $values, $title = '', $width = '400', $height = '300'){
   $id = md5(mt_rand());
   $id = "google_chart-$id";
   drupal_add_js('https://www.google.com/jsapi', array(
@@ -103,7 +104,7 @@ function _scratchpads_statistics_chart($column_name, $value_name, $values, $titl
   ), array(
     'type' => 'setting'
   ));
-  return '<div id="' . $id . '" class="google_chart"></div>';
+  return '<div id="' . $id . '" class="google_chart_pie"></div>';
 }
 
 /**
