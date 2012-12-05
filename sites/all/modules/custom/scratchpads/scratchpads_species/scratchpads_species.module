@@ -401,6 +401,8 @@ function scratchpads_species_preprocess_views_view_field(&$vars){
 //  }
 //}
 function theme_scratchpads_species_name($vars){
+  // FIXME - the unit_indicators are not being displayed on all ranks if they
+  // are present.
   $term = $vars['term'];
   // Give the default name as the term name, we will try and overwite this below
   $name = $term->name;
@@ -409,6 +411,10 @@ function theme_scratchpads_species_name($vars){
   $unit2 = (isset($term->field_unit_name2[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name2[LANGUAGE_NONE][0]['value'] : null);
   $unit3 = (isset($term->field_unit_name3[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name3[LANGUAGE_NONE][0]['value'] : null);
   $unit4 = (isset($term->field_unit_name4[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name4[LANGUAGE_NONE][0]['value'] : null);
+  $unit_ind1 = (isset($term->field_unit_indicator1[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator1[LANGUAGE_NONE][0]['value'] . ' ' : '');
+  $unit_ind2 = (isset($term->field_unit_indicator2[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator2[LANGUAGE_NONE][0]['value'] . ' ' : '');
+  $unit_ind3 = (isset($term->field_unit_indicator3[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator3[LANGUAGE_NONE][0]['value'] . ' ' : '');
+  $unit_ind4 = (isset($term->field_unit_indicator4[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator4[LANGUAGE_NONE][0]['value'] . ' ' : '');
   switch($rank){
     case 'genus':
       if($unit1){
@@ -441,18 +447,29 @@ function theme_scratchpads_species_name($vars){
       }
       break;
     case 'subspecies':
+    case 'variety':
+    case 'subvariety':
+    case 'form':
+    case 'subform':
       if($unit1 && $unit2 && $unit3 && $unit4){
-        $name = t('<em>!unit1</em> (<em>!unit2</em>) <em>!unit3</em> <em>!unit4</em>', array(
+        $name = t('!unit_ind1<em>!unit1</em> !unit_ind2(<em>!unit2</em>) !unit_ind3<em>!unit3</em> !unit_ind4<em>!unit4</em>', array(
           '!unit1' => $unit1,
           '!unit2' => $unit2,
           '!unit3' => $unit3,
-          '!unit4' => $unit4
+          '!unit4' => $unit4,
+          '!unit_ind1' => $unit_ind1,
+          '!unit_ind2' => $unit_ind2,
+          '!unit_ind3' => $unit_ind3,
+          '!unit_ind4' => $unit_ind4
         ));
       }elseif($unit1 && $unit2 && $unit3){
-        $name = t('<em>!unit1</em> <em>!unit2</em> <em>!unit3</em>', array(
+        $name = t('!unit_ind1<em>!unit1</em> !unit_ind2<em>!unit2</em> !unit_ind3<em>!unit3</em>', array(
           '!unit1' => $unit1,
           '!unit2' => $unit2,
-          '!unit3' => $unit3
+          '!unit3' => $unit3,
+          '!unit_ind1' => $unit_ind1,
+          '!unit_ind2' => $unit_ind2,
+          '!unit_ind3' => $unit_ind3
         ));
       }
       break;
