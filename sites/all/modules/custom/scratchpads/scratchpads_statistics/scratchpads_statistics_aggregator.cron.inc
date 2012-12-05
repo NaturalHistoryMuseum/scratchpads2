@@ -89,7 +89,7 @@ function _scratchpads_statistics_aggregator_get_data($url){
  * Insert the login data into the database.
  */
 function _scratchpads_statistics_aggregator_insert_login_data($data, $url){
-  $query = db_merge('scratchpads_statistics_login')->fields(array(
+  $query = db_insert('scratchpads_statistics_login')->fields(array(
     'site',
     'user',
     'created',
@@ -133,6 +133,8 @@ function _scratchpads_statistics_aggregator_insert_login_data($data, $url){
       'access' => $record['access']
     ));
   }
+  // First we delete from scratchpads_statistics_login based on the site.
+  db_delete('scratchpads_statistics_login')->condition('site', $site)->execute();
   $query->execute();
 }
 
