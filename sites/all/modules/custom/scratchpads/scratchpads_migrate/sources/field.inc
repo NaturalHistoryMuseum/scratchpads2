@@ -96,9 +96,16 @@ class DrupalFieldMigration extends DrupalMigration{
     }
     // Need to make sure node reference fields referencing itis terms are changed to taxonomy reference fields
     if($row->type == 'nodereference'){
-      $ref_types = array_filter($row->global_settings['referenceable_types']);
+      if(!isset($row->global_settings['referenceable_types']) || !is_array($row->global_settings['referenceable_types'])){
+        watchdog('scratchpads_migrate', 'There are no referenceable types for node reference field !entity_type.!field_name', array(
+          '!entity_type' => $row->entity_type,
+          '!field_name' => $row->field_name
+        ), WATCHDOG_ERROR);
+        return false;
+      }
+      $referenceable_types = array_filter($row->global_settings['referenceable_types']);
       // Change it to a taxonomy field
-      if(in_array('itis_term', $ref_types)){
+      if(in_array('itis_term', $referenceable_types)){
         $row->widget_type = 'content_taxonomy_autocomplete';
         $itis_vocabs = scratchpads_migrate_get_term_vocabularies();
         if(count($itis_vocabs) > 1){
@@ -116,7 +123,6 @@ class DrupalFieldMigration extends DrupalMigration{
         $row->module = 'content_taxonomy';
         $row->global_settings = array();
       }else{
-        $referenceable_types = array_filter($row->global_settings['referenceable_types']);
         $referenceable_types_count = count($referenceable_types);
         // Do we not have any referencable types and a view is defined
         if($referenceable_types_count == 0 && isset($row->global_settings['advanced_view']) && $row->global_settings['advanced_view'] != '--'){
