@@ -96,8 +96,6 @@ class DrupalImageMigration extends DrupalFileMigration{
     }
     $this->addUnmigratedDestinations(array(
       'field_creator',
-      'field_creator:format',
-      'field_creator:language',
       'field_promote_to_home_page',
       'field_cc_licence'
     ));
@@ -118,10 +116,19 @@ class DrupalImageMigration extends DrupalFileMigration{
     $this->addFieldMapping('field_sticky', 'sticky')->defaultValue(0);
     // Add body field if it exists
     $this->addFieldMapping('field_description', 'body');
-    $this->addFieldMapping('field_description:format')->defaultValue('filtered_html');
-    $this->addUnmigratedDestinations(array(
-      'field_description:language'
-    ));
+    foreach($destination_fields as $key => $field){
+      if(strpos($key, ':')){
+        $subfield = end(explode(':', $key));
+        switch($subfield){
+          case 'format':
+            $this->addFieldMapping($key)->defaultValue('filtered_html');
+            break;
+          case 'language':
+            $this->addFieldMapping($key)->defaultValue('en');
+            break;
+        }
+      }
+    }
   }
 
   public function sourceFieldList(){
