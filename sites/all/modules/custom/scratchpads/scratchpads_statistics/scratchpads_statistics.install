@@ -354,6 +354,47 @@ function scratchpads_statistics_schema(){
         )
       )
     ),
+    // Login details
+    'scratchpads_statistics_login' => array(
+      'fields' => array(
+        'user' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'site' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 1
+        ),
+        'created' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'access' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        )
+      ),
+      'primary key' => array(
+        'user',
+        'site'
+      ),
+      'indexes' => array(
+        'scratchpads_statistics_login_created_index' => array(
+          'created'
+        ),
+        'scratchpads_statistics_login_access_index' => array(
+          'access'
+        )
+      )
+    ),
     // Data item temp (to be loaded into the proper table later).
     'scratchpads_statistics_data_temp' => array(
       'fields' => array(
@@ -452,4 +493,12 @@ function scratchpads_statistics_update_7002(){
   foreach($fields as $field => $spec){
     db_add_field('scratchpads_statistics_user', $field, $spec);
   }
+}
+
+/**
+ * Add the scratchpads_statistics_login table.
+ */
+function scratchpads_statistics_update_7003(){
+  $schema = scratchpads_statistics_schema();
+  db_create_table('scratchpads_statistics_login', $schema['scratchpads_statistics_login']);
 }

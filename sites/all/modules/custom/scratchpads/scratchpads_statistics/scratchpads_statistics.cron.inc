@@ -48,6 +48,18 @@ function _scratchpads_statistics_cron($force_update = FALSE){
       'email' => $user->mail
     ))->execute();
   }
+  // Sadly the MergeQuery class does not have a "from" method, so we need to
+  // delete the items in the login table relating to this site.
+  db_delete('scratchpads_statistics_login')->condition('site', 1);
+  // Update the login table.
+  $select = db_select('scratchpads_statistics_user', 'ssu');
+  $select->innerJoin('users', 'u', 'u.mail = ssu.email');
+  $select->condition('u.uid', 1, '>');
+  $select->condition('u.status', 1);
+  $select->addField('ssu', 'id', 'user');
+  $select->addField('u', 'created');
+  $select->addField('u', 'access');
+  $query = db_insert('scratchpads_statistics_login')->from($select)->execute();
   // Ensure we have a comprehensive list of terms
   db_query('INSERT INTO {scratchpads_statistics_term} (term) SELECT DISTINCT LOWER(name) FROM {taxonomy_term_data} WHERE name NOT IN (SELECT name FROM {scratchpads_statistics_term})');
   //
