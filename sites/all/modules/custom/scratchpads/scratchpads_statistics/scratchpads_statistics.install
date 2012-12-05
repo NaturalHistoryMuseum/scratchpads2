@@ -30,7 +30,7 @@ function scratchpads_statistics_install(){
     'title' => variable_get('site_name', $url),
     'owner' => 1,
     'url' => $url,
-    'created' => variable_get('install_time', 0)
+    'created' => variable_get('install_time', time())
   ))->execute();
   // Insert a list of site types.
   // FIXME - Add site types.
