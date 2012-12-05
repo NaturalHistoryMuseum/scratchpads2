@@ -200,6 +200,10 @@ function exif_custom_map_edit_form(){
   //Load fields possible to map to
   $fields = field_info_instances('file', 'image');
   $select_fields = array();
+  //Allow mapping to title field
+  $select_fields['filename'] = 'File name';
+  
+  //Allow no field to be selected
   $select_fields['none'] = 'none';
   foreach($fields as $field => $field_data){
     $select_fields[$field] = $field_data['label'];
@@ -380,12 +384,18 @@ function exif_custom_file_insert($file){
 }
 
 function exif_custom_process_entity($file){
+	$file = file_load($file->fid);
   if($file->type != 'image'){return;}
   if(arg(3) == 'exif_custom'){return;}
   $mappings = exif_custom_get_mapping();
   $data = exif_custom_get_exif_fields($file->uri, TRUE);
   if ($data == FALSE){return;}
   foreach($mappings as $field => $values){
+  	//File name is special case
+  	if ($field == 'filename'){
+  	  $file->filename = $data[$values->exif_field];
+  	  continue;
+  	}
     $array = array();
     $field_info = field_info_field($field);
     $instance_info = field_info_instance('file', $field, 'image');
@@ -404,12 +414,19 @@ function exif_custom_process_entity($file){
         $array = array();
         $array['und'] = _exif_custom_taxonomy_autocomplete_validate($element,  $vids);
         break;
+      case 'country':
+      	$countries = array_flip(countries_get_countries('name'));
+      	if (isset($countries[$data[$values->exif_field]])){
+      	  $array['und'][0]['iso2'] = ($countries[$data[$values->exif_field]]);
+      	}
+      	break;
       default:
         $array['und']['0']['value'] = $data[$values->exif_field];
     }
     //$array = array('und' => array($i => array('value' => $data[$values->exif_field])));
     $file->$field = $array;
   }
+  file_save($file);
 }
 
 function exif_custom_get_mapping(){

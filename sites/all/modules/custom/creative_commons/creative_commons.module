@@ -187,6 +187,8 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
   );
   }
   if ($display_type == CC_URL){
+  	//For DwC-A reasons need to change licences to licenses - bloody Americans ;)
+  	$url = str_replace('licences', 'licenses', $url);
   	return array('#markup' => $url);
   }
 }

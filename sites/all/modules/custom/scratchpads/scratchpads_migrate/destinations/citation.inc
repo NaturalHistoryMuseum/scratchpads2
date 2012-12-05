@@ -27,8 +27,7 @@ class MigrateDestinationCitation extends MigrateDestination{
     }
     // We also copy accross the citation folder if we haven't already done so
     if(!file_exists('public://citations')){
-      global $base_url;
-      $s1_domain = substr(parse_url($base_url, PHP_URL_HOST), 3);
+      global $s1_domain;
       copy_directory('/var/lib/aegir/quartz.nhm.ac.uk_scratchpads-1/' . $s1_domain . '/files/citations', drupal_realpath('public://citations/'));
     }
     // Write to the citation table.
