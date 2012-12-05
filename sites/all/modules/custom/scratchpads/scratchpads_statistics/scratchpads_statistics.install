@@ -501,4 +501,13 @@ function scratchpads_statistics_update_7002(){
 function scratchpads_statistics_update_7003(){
   $schema = scratchpads_statistics_schema();
   db_create_table('scratchpads_statistics_login', $schema['scratchpads_statistics_login']);
+  // Add data to the table.
+  $select = db_select('scratchpads_statistics_user', 'ssu');
+  $select->innerJoin('users', 'u', 'u.mail = ssu.email');
+  $select->condition('u.uid', 1, '>');
+  $select->condition('u.status', 1);
+  $select->addField('ssu', 'id', 'user');
+  $select->addField('u', 'created');
+  $select->addField('u', 'access');
+  $query = db_insert('scratchpads_statistics_login')->from($select)->execute();
 }
