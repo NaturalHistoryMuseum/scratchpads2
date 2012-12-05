@@ -119,8 +119,9 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
             $this->addFieldMapping($d7_field . ':source_type')->defaultValue('tid');
             $this->addFieldMapping($d7_field . ':create_term')->defaultValue(false);
           }else{
-            drupal_set_message(t('Missing destination term field !field. This is only a problem if the message still exists after fields have been created', array(
-              '!field' => $d7_field
+            drupal_set_message(t('Missing destination term field !d7_field for source field !source_field. This is only a problem if the message still exists after fields have been created', array(
+              '!d7_field' => $d7_field,
+              '!source_field' => $source_field
             )), 'warning');
           }
         }else{
