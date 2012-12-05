@@ -46,6 +46,7 @@ class DrupalContentTypeMigration extends DrupalMigration{
     );
     // Do not migrate term nodes
     $term_nodes = scratchpads_migrate_get_term_vocabularies();
+    // NB: Itis fields are handled in DrupalFieldVocabularyItisTermMigration 
     foreach($term_nodes as $term_node){
       $mappings[$term_node] = MIGRATE_NONE; // do not migrate
     }
