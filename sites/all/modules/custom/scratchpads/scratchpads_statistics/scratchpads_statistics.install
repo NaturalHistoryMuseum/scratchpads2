@@ -519,5 +519,5 @@ function scratchpads_statistics_update_7003(){
 function scratchpads_statistics_update_7004(){
   db_update('scratchpads_statistics_site')->fields(array(
     'created' => time()
-  ))->condition('created', 0)->execute();
+  ))->condition('created', 0)->condition('id', 1)->execute();
 }
