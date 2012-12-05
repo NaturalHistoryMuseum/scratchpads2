@@ -97,13 +97,11 @@ class DrupalFieldMigration extends DrupalMigration{
     // Need to make sure node reference fields referencing itis terms are changed to taxonomy reference fields
     if($row->type == 'nodereference'){
       if(!isset($row->global_settings['referenceable_types']) || !is_array($row->global_settings['referenceable_types'])){
-        watchdog('scratchpads_migrate', 'There are no referenceable types for node reference field !entity_type.!field_name', array(
-          '!entity_type' => $row->entity_type,
-          '!field_name' => $row->field_name
-        ), WATCHDOG_ERROR);
-        return false;
+        // If referenceable_types is not set, prevent error
+        $referenceable_types = array();
+      }else{
+        $referenceable_types = array_filter($row->global_settings['referenceable_types']);
       }
-      $referenceable_types = array_filter($row->global_settings['referenceable_types']);
       // Change it to a taxonomy field
       if(in_array('itis_term', $referenceable_types)){
         $row->widget_type = 'content_taxonomy_autocomplete';
