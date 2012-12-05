@@ -829,6 +829,28 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['changed']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['changed']['date_format'] = 'custom';
   $handler->display->display_options['fields']['changed']['custom_date_format'] = 'c';
+  /* Field: Biblio: Type of Publication */
+  $handler->display->display_options['fields']['name']['id'] = 'name';
+  $handler->display->display_options['fields']['name']['table'] = 'biblio_types';
+  $handler->display->display_options['fields']['name']['field'] = 'name';
+  $handler->display->display_options['fields']['name']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['name']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['name']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['name']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['name']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['name']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['name']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['name']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['name']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['name']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['name']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['name']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['name']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['name']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['name']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['name']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['name']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['name']['hide_alter_empty'] = 1;
   /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
@@ -1988,11 +2010,11 @@ function _dwca_export_view_description($desc_type){
     'spm' => 'spm'
   );
   /* Filter criterion: Content: Trophic strategy (field_trophic_strategy) */
-$handler->display->display_options['filters']['field_'.$desc_type.'_value']['id'] = 'field_'.$desc_type.'_value';
-$handler->display->display_options['filters']['field_'.$desc_type.'_value']['table'] = 'field_data_field_'.$desc_type.'';
-$handler->display->display_options['filters']['field_'.$desc_type.'_value']['field'] = 'field_'.$desc_type.'_value';
-$handler->display->display_options['filters']['field_'.$desc_type.'_value']['operator'] = 'longerthan';
-$handler->display->display_options['filters']['field_'.$desc_type.'_value']['value'] = '2';
+  $handler->display->display_options['filters']['field_' . $desc_type . '_value']['id'] = 'field_' . $desc_type . '_value';
+  $handler->display->display_options['filters']['field_' . $desc_type . '_value']['table'] = 'field_data_field_' . $desc_type . '';
+  $handler->display->display_options['filters']['field_' . $desc_type . '_value']['field'] = 'field_' . $desc_type . '_value';
+  $handler->display->display_options['filters']['field_' . $desc_type . '_value']['operator'] = 'longerthan';
+  $handler->display->display_options['filters']['field_' . $desc_type . '_value']['value'] = '2';
   /* Display: Page  */
   /*$handler = $view->new_display('page', 'Page', 'page');
 	$handler->display->display_options['path'] = t('dwca-export/description-' . $desc_type . '/page');*/
