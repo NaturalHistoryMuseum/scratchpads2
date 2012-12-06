@@ -4,6 +4,7 @@ dependencies[] = "list"
 dependencies[] = "node_reference"
 dependencies[] = "taxonomy"
 dependencies[] = "scratchpads_media_gallery"
+files[] = itis_term.test
 description = "ITIS term"
 name = "ITIS Term"
 package = "Taxonomy"

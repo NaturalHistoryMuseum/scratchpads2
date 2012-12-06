@@ -1,0 +1,42 @@
+<?php
+
+/**
+ * @file
+ * 
+ * Scratchpads Tweaks tests.  This enables us to test components on a "FULL"
+ * Scratchpad.
+ */
+class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
+
+  protected $anonymous_user;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Tweaks',
+      'description' => 'Enable all of the modules associated with a Scratchpad to see where errors occur.',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  function setUp(){
+    parent::setUp('scratchpads_tweaks');
+    // Create users.
+    $this->anonymous_user = $this->drupalCreateUser(array(
+      'access content'
+    ));
+  }
+
+  /**
+   * Confirm that the front page is accessible when this module is installed.
+   * This is a very simple test, but allows us to install all of the necessary
+   * modules for testing other modules against a "full" Scratchpad.
+   */
+  function testAccessFrontPage(){
+    $this->drupalLogin($this->itis_term_user);
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $this->assertResponse(200);
+  }
+}
