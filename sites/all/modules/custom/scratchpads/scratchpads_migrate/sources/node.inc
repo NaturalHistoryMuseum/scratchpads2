@@ -289,7 +289,6 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->leftJoin('og_access_post', 'ogap', 'ogap.nid = n.nid');
     $query->addField('ogap', 'og_public', 'og_public');
     $query->condition('n.title', 'Taskguide', '!=');
-    $query->condition('n.nid', 1837);
     return $query;
   }
   // Allow overiding count query
