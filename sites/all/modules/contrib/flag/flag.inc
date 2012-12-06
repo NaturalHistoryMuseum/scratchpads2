@@ -9,14 +9,15 @@
 /**
  * Implements hook_flag_definitions().
  *
- * Defines the flags this module implements.
+ * Defines the flag types this module implements.
  *
  * @return
  *   An "array of arrays", keyed by content-types. The 'handler' slot
  *   should point to the PHP class implementing this flag.
  */
 function flag_flag_definitions() {
-  return array(
+  // Entity types we specifically cater for.
+  $flags = array(
     'node' => array(
       'title' => t('Nodes'),
       'description' => t("Nodes are a Drupal site's primary content."),
@@ -33,29 +34,53 @@ function flag_flag_definitions() {
       'handler' => 'flag_user',
     ),
   );
+
+  return $flags;
+}
+
+/**
+ * Implements hook_flag_definitions_alter().
+ *
+ * Step in and add flag types for any entities not yet catered for, using the
+ * basic flag_entity handler. This allows other modules to provide more
+ * specialized handlers for entities in hook_flag_definitions() as normal.
+ */
+function flag_flag_definitions_alter(&$definitions) {
+  foreach (entity_get_info() as $entity_type => $entity) {
+    // Only add flag support for entities that don't yet have them, and which
+    // are non-config entities.
+    if (!isset($definitions[$entity_type]) && empty($entity['configuration'])) {
+      $definitions[$entity_type] = array(
+        'title' => $entity['label'],
+        'description' => t('@entity-type entity', array('@entity-type' => $entity['label'])),
+        'handler' => 'flag_entity',
+      );
+    }
+  }
 }
 
 /**
  * Returns a flag definition.
  */
 function flag_fetch_definition($content_type = NULL) {
-  static $cache;
-  if (!isset($cache)) {
-    $cache = module_invoke_all('flag_definitions');
-    if (!isset($cache['node'])) {
+  $defintions = &drupal_static(__FUNCTION__);
+  if (!isset($defintions)) {
+    $defintions = module_invoke_all('flag_definitions');
+    drupal_alter('flag_definitions', $defintions);
+    if (!isset($defintions['node'])) {
       // We want our API to be available in hook_install, but our module is not
       // enabled by then, so let's load our implementation directly:
-      $cache += flag_flag_definitions();
+      $defintions += flag_flag_definitions();
     }
   }
 
   if (isset($content_type)) {
-    if (isset($cache[$content_type])) {
-      return $cache[$content_type];
+    if (isset($defintions[$content_type])) {
+      return $defintions[$content_type];
     }
   }
   else {
-    return $cache;
+    return $defintions;
   }
 }
 
@@ -63,7 +88,7 @@ function flag_fetch_definition($content_type = NULL) {
  * Returns all flag types defined on the system.
  */
 function flag_get_types() {
-  static $types;
+  $types = &drupal_static(__FUNCTION__);;
   if (!isset($types)) {
     $types = array_keys(flag_fetch_definition());
   }
@@ -96,20 +121,48 @@ function flag_create_handler($content_type) {
  */
 class flag_flag {
 
-  // The database ID. Null for flags that haven't been saved to the database yet.
+  /**
+   * The database ID.
+   *
+   * NULL for flags that haven't been saved to the database yet.
+   *
+   * @var integer
+   */
   var $fid = NULL;
 
-  // The content-type this flag works with.
+  /**
+   * The content type (aka entity type) this flag works with.
+   *
+   * @var string
+   */
   var $content_type = NULL;
 
-  // The flag's "machine readable" name.
+  /**
+   * The flag's "machine readable" name.
+   *
+   * @var string
+   */
   var $name = '';
 
-  // Various non-serialized properties of the flag, corresponding directly to
-  // database columns.
+  /**
+   * The human-readable title for this flag.
+   *
+   * @var string
+   */
   var $title = '';
+
+  /**
+   * Whether this flag state should act as a single toggle to all users.
+   *
+   * @var bool
+   */
   var $global = FALSE;
-  // The sub-types, e.g. node types, this flag applies to.
+
+  /**
+   * The sub-types, AKA bundles, this flag applies to.
+   *
+   * @var array
+   */
   var $types = array();
 
   /**
@@ -181,18 +234,24 @@ class flag_flag {
    */
   function options() {
     $options = array(
+      // The text for the "flag this" link for this flag.
       'flag_short' => '',
+      // The description of the "flag this" link.
       'flag_long' => '',
+      // Message displayed after flagging content.
       'flag_message' => '',
+      // Likewise but for unflagged.
       'unflag_short' => '',
       'unflag_long' => '',
       'unflag_message' => '',
       'unflag_denied_text' => '',
+      // The link type used by the flag, as defined in hook_flag_link_types().
       'link_type' => 'toggle',
       'roles' => array(
         'flag' => array(DRUPAL_AUTHENTICATED_RID),
         'unflag' => array(DRUPAL_AUTHENTICATED_RID),
       ),
+      'weight' => 0,
     );
 
     // Merge in options from the current link type.
@@ -255,6 +314,9 @@ class flag_flag {
 
   /**
    * Validates that the current flag's name is valid.
+   *
+   * @return
+   *   A list of errors encountered while validating this flag's name.
    */
   function validate_name() {
     $errors = array();
@@ -357,6 +419,7 @@ class flag_flag {
 
   /**
    * Returns TRUE if the flag applies to the given content.
+   *
    * Derived classes must implement this.
    *
    * @abstract
@@ -377,7 +440,7 @@ class flag_flag {
   }
 
   /**
-   * Returns TRUE if user has access to use this flag.
+   * Determines whether the user has access to use this flag.
    *
    * @param $action
    *   Optional. The action to test, either "flag" or "unflag". If none given,
@@ -403,16 +466,23 @@ class flag_flag {
   }
 
   /**
-   * Returns TRUE if the user can flag, or unflag, the given content.
+   * Determines whether the user may flag, or unflag, the given content.
+   *
+   * This method typically should not be overridden by child classes. Instead
+   * they should implement type_access(), which is called by this method.
    *
    * @param $content_id
    *   The content ID to flag/unflag.
-   * @param $account
-   *   The user on whose behalf to test the flagging action. Leave NULL for the
-   *   current user.
    * @param $action
    *   The action to test. Either 'flag' or 'unflag'. Leave NULL to determine
    *   by flag status.
+   * @param $account
+   *   The user on whose behalf to test the flagging action. Leave NULL for the
+   *   current user.
+   *
+   * @return
+   *   Boolean TRUE if the user is allowed to flag/unflag the given content.
+   *   FALSE otherwise.
    */
   function access($content_id, $action = NULL, $account = NULL) {
     if (!isset($account)) {
@@ -433,6 +503,12 @@ class flag_flag {
     // Base initial access on the user's basic permission to use this flag.
     $access = $this->user_access($action, $account);
 
+    // Check for additional access rules provided by sub-classes.
+    $child_access = $this->type_access($content_id, $action, $account);
+    if (isset($child_access)) {
+      $access = $child_access;
+    }
+
     // Allow modules to disallow (or allow) access to flagging.
     $access_array = module_invoke_all('flag_access', $this, $content_id, $action, $account);
 
@@ -446,11 +522,17 @@ class flag_flag {
   }
 
   /**
-   * Similar to access() but works on multiple IDs at once. It is called in the
+   * Determine access to multiple objects.
+   *
+   * Similar to user_access() but works on multiple IDs at once. Called in the
    * pre_render() stage of the 'Flag links' field within Views to find out where
    * that link applies. The reason we do a separate DB query, and not lump this
    * test in the Views query, is to make 'many to one' tests possible without
    * interfering with the rows, and also to reduce the complexity of the code.
+   *
+   * This method typically should not be overridden by child classes. Instead
+   * they should implement type_access_multiple(), which is called by this
+   * method.
    *
    * @param $content_ids
    *   The array of content IDs to check. The keys are the content IDs, the
@@ -458,6 +540,12 @@ class flag_flag {
    * @param $account
    *   Optional. The account for which the actions will be compared against.
    *   If left empty, the current user will be used.
+   *
+   * @return
+   *   An array whose keys are the object IDs and values are booleans indicating
+   *   access.
+   *
+   * @see hook_flag_access_multiple()
    */
   function access_multiple($content_ids, $account = NULL) {
     $account = isset($account) ? $account : $GLOBALS['user'];
@@ -466,6 +554,16 @@ class flag_flag {
     // First check basic user access for this action.
     foreach ($content_ids as $content_id => $action) {
       $access[$content_id] = $this->user_access($content_ids[$content_id], $account);
+    }
+
+    // Check for additional access rules provided by sub-classes.
+    $child_access = $this->type_access_multiple($content_ids, $account);
+    if (isset($child_access)) {
+      foreach ($child_access as $content_id => $content_access) {
+        if (isset($content_access)) {
+          $access[$content_id] = $content_access;
+        }
+      }
     }
 
     // Merge in module-defined access.
@@ -479,6 +577,24 @@ class flag_flag {
     }
 
     return $access;
+  }
+
+  /**
+   * Implements access() implemented by each child class.
+   *
+   * @abstract
+   */
+  function type_access($content_id, $action, $account) {
+    return NULL;
+  }
+
+  /**
+   * Implements access_multiple() implemented by each child class.
+   *
+   * @abstract
+   */
+  function type_access_multiple($content_ids, $account) {
+    return array();
   }
 
   /**
@@ -527,12 +643,15 @@ class flag_flag {
    *   applicable to the item, etc.), TRUE otherwise.
    */
   function flag($action, $content_id, $account = NULL, $skip_permission_check = FALSE) {
+     // Get the user.
     if (!isset($account)) {
       $account = $GLOBALS['user'];
     }
     if (!$account) {
       return FALSE;
     }
+
+    // Check access and applicability.
     if (!$skip_permission_check) {
       if (!$this->access($content_id, $action, $account)) {
         // User has no permission to flag/unflag this object.
@@ -551,6 +670,7 @@ class flag_flag {
     // wrong counts or false flaggings.
     flag_get_counts(NULL, NULL, TRUE);
     flag_get_user_flags(NULL, NULL, NULL, NULL, TRUE);
+    drupal_static_reset('flag_get_content_flags');
 
     // Find out which user id to use.
     $uid = $this->global ? 0 : $account->uid;
@@ -560,7 +680,7 @@ class flag_flag {
       $sid = 0;
     }
     else {
-      $sid = flag_get_sid($uid);
+      $sid = flag_get_sid($uid, TRUE);
       // Anonymous users must always have a session id.
       if ($sid == 0 && $account->uid == 0) {
         return FALSE;
@@ -679,7 +799,7 @@ class flag_flag {
         'timestamp' => REQUEST_TIME,
       ))
       ->execute();
-    $this->_update_count($content_id);
+    $this->_increase_count($content_id);
     return $fcid;
   }
 
@@ -706,38 +826,67 @@ class flag_flag {
       ->fetchField();
     if ($fcid) {
       db_delete('flag_content')->condition('fcid', $fcid)->execute();
-      $this->_update_count($content_id);
+      $this->_decrease_count($content_id);
     }
     return $fcid;
   }
 
   /**
-   * Updates the flag count for this content
+   * Increases the flag count for a piece of content.
+   *
+   * @param $content_id
+   *   For which item should the count be increased.
+   * @param $number
+   *   The amount of counts to increasing. Defaults to 1.
    *
    * @private
-   */
-  function _update_count($content_id) {
-    $count = db_select('flag_content', 'fc')->fields('fc', array('fcid'))
+  */
+  function _increase_count($content_id, $number = 1) {
+    db_merge('flag_counts')
+      ->key(array(
+        'fid' => $this->fid,
+        'content_id' => $content_id,
+      ))
+      ->fields(array(
+        'content_type' => $this->content_type,
+        'count' => $number,
+        'last_updated' => REQUEST_TIME,
+      ))
+      ->updateFields(array(
+        'last_updated' => REQUEST_TIME,
+      ))
+      ->expression('count', 'count + :inc', array(':inc' => $number))
+      ->execute();
+  }
+
+  /**
+   * Decreases the flag count for a piece of content.
+   *
+   * @param $content_id
+   *   For which item should the count be descreased.
+   * @param $number
+   *   The amount of counts to decrease. Defaults to 1.
+   *
+   * @private
+  */
+  function _decrease_count($content_id, $number = 1) {
+    // Delete rows with count 0, for data consistency and space-saving.
+    // Done before the db_update() to prevent out-of-bounds errors on "count".
+    db_delete('flag_counts')
       ->condition('fid', $this->fid)
       ->condition('content_id', $content_id)
-      ->countQuery()->execute()->fetchField();
-    if ($count == 0) {
-      db_delete('flag_counts')->condition('fid', $this->fid)->condition('content_id', $content_id)->execute();
-    }
-    else {
-      $num_updated = db_update('flag_counts')->fields(array('count' => $count))
-        ->condition('fid', $this->fid)
-        ->condition('content_id', $content_id)
-        ->execute();
-      if (!$num_updated) {
-        db_insert('flag_counts')->fields(array(
-          'fid' => $this->fid,
-          'content_type' => $this->content_type,
-          'content_id' => $content_id,
-          'count' => $count))
-          ->execute();
-      }
-    }
+      ->condition('count', $number, '<=')
+      ->execute();
+
+    // Update the count with the new value otherwise.
+    db_update('flag_counts')
+      ->expression('count', 'count - :inc', array(':inc' => $number))
+      ->fields(array(
+        'last_updated' => REQUEST_TIME,
+      ))
+      ->condition('fid', $this->fid)
+      ->condition('content_id', $content_id)
+      ->execute();
   }
 
   /**
@@ -782,7 +931,7 @@ class flag_flag {
     }
     return db_select('flag_content', 'fc')->fields('fc', array('fcid'))
       ->condition('fid', $this->fid)->condition('uid', $uid)->condition('sid', $sid)
-      ->countQuery()->execute();
+      ->countQuery()->execute()->fetchField();
   }
 
   /**
@@ -1167,23 +1316,193 @@ class flag_flag {
 }
 
 /**
- * Implements a node flag.
+ * Base entity flag handler.
  */
-class flag_node extends flag_flag {
+class flag_entity extends flag_flag {
+  /**
+   * Adds additional options that are common for all entity types.
+   */
   function options() {
     $options = parent::options();
+    $options += array(
+      // Output the flag in the entity links.
+      // @see hook_entity_view().
+      'show_on_entity' => TRUE,
+      // Add a checkbox for the flag in the entity form.
+      // @see hook_field_attach_form().
+      'show_on_form' => FALSE,
+      'access_author' => '',
+    );
+    return $options;
+  }
+
+  /**
+   * Options form extras for the generic entity flag.
+   */
+  function options_form(&$form) {
+    $bundles = array();
+    $entity_info = entity_get_info($this->content_type);
+    foreach ($entity_info['bundles'] as $bundle_key => $bundle) {
+      $bundles[$bundle_key] = check_plain($bundle['label']);
+    }
+    $form['access']['types'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('Bundles'),
+      '#options' => $bundles,
+      '#description' => t('Check any bundle that this flag may be used on. You must check at least one bundle.'),
+      '#default_value' => $this->types,
+      '#required' => TRUE,
+    );
+    // Handlers may want to unset this option if they provide their own more
+    // specific ways to show links.
+    $form['display']['show_on_entity'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display link on entity'),
+      '#default_value' => isset($this->show_on_entity) ? $this->show_on_entity : TRUE,
+      '#access' => empty($this->locked['show_on_entity']),
+    );
+    $form['display']['show_on_form'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display checkbox on entity edit form'),
+      '#default_value' => $this->show_on_form,
+      '#access' => empty($this->locked['show_on_form']),
+    );
+  }
+
+  /**
+   * Loads the entity object.
+   */
+  function _load_content($content_id) {
+    if (is_numeric($content_id)) {
+      $entity = entity_load($this->content_type, array($content_id));
+      return reset($entity);
+    }
+    return NULL;
+  }
+
+  /**
+   * Checks whether the flag applies for the current entity bundle.
+   */
+  function applies_to_content_object($entity) {
+    $entity_info = entity_get_info($this->content_type);
+    if (empty($entity_info['entity keys']['bundle']) || in_array($entity->{$entity_info['entity keys']['bundle']}, $this->types)) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+
+  /**
+   * Returns the entity id, if it already exists.
+   */
+  function get_content_id($entity) {
+    $entity_info = entity_get_info($this->content_type);
+    if ($entity && isset($entity->{$entity_info['entity keys']['id']})) {
+      return $entity->{$entity_info['entity keys']['id']};
+    }
+  }
+
+  /**
+   * Returns TRUE if the link should be displayed.
+   */
+  function uses_hook_link($teaser) {
+    if ($this->show_on_entity) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+
+  /**
+   * Returns token types for the current entity type.
+   */
+  function get_labels_token_types() {
+    // The token type name might be different to the entity type name. If so,
+    // an own flag entity handler can be used for overriding this.
+    return array_merge(array($this->content_type), parent::get_labels_token_types());
+  }
+
+  /**
+   * Replaces tokens.
+   */
+  function replace_tokens($label, $contexts, $options, $content_id) {
+    if ($content_id && ($entity = $this->fetch_content($content_id))) {
+      $contexts[$this->content_type] = $entity;
+    }
+    return parent::replace_tokens($label, $contexts, $options, $content_id);
+  }
+
+  /**
+   * Returns a 'flag action' object.
+   */
+  function get_flag_action($content_id) {
+    $flag_action = parent::get_flag_action($content_id);
+    $entity = $this->fetch_content($content_id);
+    $flag_action->content_title = entity_label($this->content_type, $entity);
+    $flag_action->content_url = _flag_url($this->content_type . '/' . $this->get_content_id($entity));
+    return $flag_action;
+  }
+
+  /**
+   * Returns objects the action may possible need.
+   */
+  function get_relevant_action_objects($content_id) {
+    return array(
+      $this->content_type => $this->fetch_content($content_id),
+    );
+  }
+
+  /**
+   * Returns information for the Views integration.
+   */
+  function get_views_info() {
+    $entity_info = entity_get_info($this->content_type);
+    return array(
+      'views table' => $entity_info['base table'],
+      'join field' => $entity_info['entity keys']['id'],
+      'title field' => isset($entity_info['entity keys']['label']) ? $entity_info['entity keys']['label'] : '',
+      'title' => t('@entity_label flag', array('@entity_label' => $entity_info['label'])),
+      'help' => t('Limit results to only those entity flagged by a certain flag; Or display information about the flag set on a entity.'),
+      'counter title' => t('@entity_label flag counter', array('@entity_label' => $entity_info['label'])),
+      'counter help' => t('Include this to gain access to the flag counter field.'),
+    );
+  }
+}
+
+/**
+ * Implements a node flag.
+ */
+class flag_node extends flag_entity {
+  function options() {
+    $options = parent::options();
+    // Use own display settings in the meanwhile.
+    unset($options['show_on_entity']);
     $options += array(
       'show_on_page' => TRUE,
       'show_on_teaser' => TRUE,
       'show_on_form' => FALSE,
-      'access_author' => '',
+      'show_contextual_link' => FALSE,
       'i18n' => 0,
     );
     return $options;
   }
 
+  /**
+   * Options form extras for node flags.
+   */
   function options_form(&$form) {
     parent::options_form($form);
+
+    $form['access']['access_author'] = array(
+      '#type' => 'radios',
+      '#title' => t('Flag access by content authorship'),
+      '#options' => array(
+        '' => t('No additional restrictions'),
+        'own' => t('Users may only flag content they own'),
+        'others' => t('Users may only flag content of others'),
+      ),
+      '#default_value' => $this->access_author,
+      '#description' => t("Restrict access to this flag based on the user's ownership of the content. Users must also have access to the flag through the role settings."),
+    );
+
     // Support for i18n flagging requires Translation helpers module.
     $form['i18n'] = array(
       '#type' => 'radios',
@@ -1198,52 +1517,36 @@ class flag_node extends flag_flag {
       '#weight' => 5,
     );
 
-    $form['access']['access_author'] = array(
-      '#type' => 'radios',
-      '#title' => t('Flag access by content authorship'),
-      '#options' => array(
-        '' => t('No additional restrictions'),
-        'own' => t('Users may only flag content they own'),
-        'others' => t('Users may only flag content of others'),
-      ),
-      '#default_value' => $this->access_author,
-      '#description' => t("Restrict access to this flag based on the user's ownership of the content. Users must also have access to the flag through the role settings."),
-    );
-
     $form['display']['show_on_teaser'] = array(
       '#type' => 'checkbox',
       '#title' => t('Display link on node teaser'),
       '#default_value' => $this->show_on_teaser,
       '#access' => empty($this->locked['show_on_teaser']),
     );
+
     $form['display']['show_on_page'] = array(
       '#type' => 'checkbox',
       '#title' => t('Display link on node page'),
       '#default_value' => $this->show_on_page,
       '#access' => empty($this->locked['show_on_page']),
     );
+    // Override the UI texts for nodes.
     $form['display']['show_on_form'] = array(
-      '#type' => 'checkbox',
       '#title' => t('Display checkbox on node edit form'),
-      '#default_value' => $this->show_on_form,
       '#description' => t('If you elect to have a checkbox on the node edit form, you may specify its initial state in the settings form <a href="@content-types-url">for each content type</a>.', array('@content-types-url' => url('admin/structure/types'))),
-      '#access' => empty($this->locked['show_on_form']),
+    ) + $form['display']['show_on_form'];
+    $form['display']['show_contextual_link'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display in contextual links'),
+      '#default_value' => $this->show_contextual_link,
+      '#access' => empty($this->locked['show_contextual_link']) && module_exists('contextual'),
     );
+
+    unset($form['display']['show_on_entity']);
   }
 
-  function _load_content($content_id) {
-    return is_numeric($content_id) ? node_load($content_id) : NULL;
-  }
-
-  function applies_to_content_object($node) {
-    if ($node && in_array($node->type, $this->types)) {
-      return TRUE;
-    }
-    return FALSE;
-  }
-
-  function access_multiple($content_ids, $account = NULL) {
-    $access = parent::access_multiple($content_ids, $account);
+  function type_access_multiple($content_ids, $account = NULL) {
+    $access = array();
 
     // Ensure that only flaggable node types are granted access. This avoids a
     // node_load() on every type, usually done by applies_to_content_id().
@@ -1256,10 +1559,6 @@ class flag_node extends flag_flag {
     }
 
     return $access;
-  }
-
-  function get_content_id($node) {
-    return $node->nid;
   }
 
   /**
@@ -1299,10 +1598,6 @@ class flag_node extends flag_flag {
     return parent::get_flagging_record($content_id, $uid, $sid);
   }
 
-  function get_labels_token_types() {
-    return array_merge(array('node'), parent::get_labels_token_types());
-  }
-
   function replace_tokens($label, $contexts, $options, $content_id) {
     if (is_numeric($content_id) && ($node = $this->fetch_content($content_id))) {
       $contexts['node'] = $node;
@@ -1319,50 +1614,16 @@ class flag_node extends flag_flag {
     }
     return parent::replace_tokens($label, $contexts, $options, $content_id);
   }
-
-  function get_flag_action($content_id) {
-    $flag_action = parent::get_flag_action($content_id);
-    $node = $this->fetch_content($content_id);
-    $flag_action->content_title = $node->title;
-    $flag_action->content_url = _flag_url('node/' . $node->nid);
-    return $flag_action;
-  }
-
-  function get_valid_actions() {
-    $actions = module_invoke_all('action_info');
-    foreach ($actions as $callback => $action) {
-      if ($action['type'] != 'node' && !in_array('any', $action['triggers'])) {
-        unset($actions[$callback]);
-      }
-    }
-    return $actions;
-  }
-
-  function get_relevant_action_objects($content_id) {
-    return array(
-      'node' => $this->fetch_content($content_id),
-    );
-  }
-
-  function get_views_info() {
-    return array(
-      'views table' => 'node',
-      'join field' => 'nid',
-      'title field' => 'title',
-      'title' => t('Node flag'),
-      'help' => t('Limit results to only those nodes flagged by a certain flag; Or display information about the flag set on a node.'),
-      'counter title' => t('Node flag counter'),
-      'counter help' => t('Include this to gain access to the flag counter field.'),
-    );
-  }
 }
 
 /**
  * Implements a comment flag.
  */
-class flag_comment extends flag_flag {
+class flag_comment extends flag_entity {
   function options() {
     $options = parent::options();
+    // Use own display settings in the meanwhile.
+    unset($options['show_on_entity']);
     $options += array(
       'access_author' => '',
       'show_on_comment' => TRUE,
@@ -1370,6 +1631,9 @@ class flag_comment extends flag_flag {
     return $options;
   }
 
+  /**
+   * Options form extras for comment flags.
+   */
   function options_form(&$form) {
     parent::options_form($form);
 
@@ -1393,22 +1657,12 @@ class flag_comment extends flag_flag {
       '#default_value' => $this->show_on_comment,
       '#access' => empty($this->locked['show_on_comment']),
     );
+
+    unset($form['display']['show_on_entity']);
   }
 
-  function _load_content($content_id) {
-    return comment_load($content_id);
-  }
-
-  function applies_to_content_object($comment) {
-    if ($comment && ($node = node_load($comment->nid)) && in_array($node->type, $this->types)) {
-      return TRUE;
-    }
-    return FALSE;
-  }
-
-  function access_multiple($content_ids, $account = NULL) {
-    $account = isset($account) ? $account : $GLOBALS['user'];
-    $access = parent::access_multiple($content_ids, $account);
+  function type_access_multiple($content_ids, $account) {
+    $access = array();
 
     // Ensure node types are granted access. This avoids a
     // node_load() on every type, usually done by applies_to_content_id().
@@ -1466,26 +1720,16 @@ class flag_comment extends flag_flag {
       'node' => node_load($comment->nid),
     );
   }
-
-  function get_views_info() {
-    return array(
-      'views table' => 'comment',
-      'join field' => 'cid',
-      'title field' => 'subject',
-      'title' => t('Comment flag'),
-      'help' => t('Limit results to only those comments flagged by a certain flag; Or display information about the flag set on a comment.'),
-      'counter title' => t('Comment flag counter'),
-      'counter help' => t('Include this to gain access to the flag counter field.'),
-    );
-  }
 }
 
 /**
  * Implements a user flag.
  */
-class flag_user extends flag_flag {
+class flag_user extends flag_entity {
   function options() {
     $options = parent::options();
+    // Use own display settings in the meanwhile.
+    unset($options['show_on_entity']);
     $options += array(
       'show_on_profile' => TRUE,
       'access_uid' => '',
@@ -1493,6 +1737,9 @@ class flag_user extends flag_flag {
     return $options;
   }
 
+  /**
+   * Options form extras for user flags.
+   */
   function options_form(&$form) {
     parent::options_form($form);
     $form['access']['types'] = array(
@@ -1513,6 +1760,8 @@ class flag_user extends flag_flag {
       '#default_value' => $this->show_on_profile,
       '#access' => empty($this->locked['show_on_profile']),
     );
+
+    unset($form['display']['show_on_entity']);
   }
 
   function form_input($form_values) {
@@ -1522,50 +1771,27 @@ class flag_user extends flag_flag {
     $this->access_uid = empty($form_values['access_uid']) ? 'others' : '';
   }
 
-  function _load_content($content_id) {
-    return user_load($content_id);
-  }
-
-  function applies_to_content_object($user) {
-    // This user flag doesn't currently support subtypes so we return TRUE for
-    // any user.
-    if ($user) {
-      return TRUE;
-    }
-    return FALSE;
-  }
-
-  function access($content_id, $action = NULL, $account = NULL) {
-    $access = parent::access($content_id, $action, $account);
-    $account = isset($account) ? $account : $GLOBALS['user'];
-
+  function type_access($content_id, $action, $account) {
     // Prevent users from flagging themselves.
     if ($this->access_uid == 'others' && $content_id == $account->uid) {
-      $access = FALSE;
+      return FALSE;
     }
-
-    return $access;
   }
 
-  function access_multiple($content_ids, $account = NULL) {
-    $account = isset($account) ? $account : $GLOBALS['user'];
-    $access = parent::access_multiple($content_ids, $account);
+  function type_access_multiple($content_ids, $account) {
+    $access = array();
 
     // Exclude anonymous.
-    if (array_key_exists(0, $access)) {
+    if (array_key_exists(0, $content_ids)) {
       $access[0] = FALSE;
     }
 
     // Prevent users from flagging themselves.
-    if ($this->access_uid == 'others' && array_key_exists($account->uid, $access)) {
+    if ($this->access_uid == 'others' && array_key_exists($account->uid, $content_ids)) {
       $access[$account->uid] = FALSE;
     }
 
     return $access;
-  }
-
-  function get_content_id($user) {
-    return $user->uid;
   }
 
   function uses_hook_link($teaser) {
@@ -1573,17 +1799,6 @@ class flag_user extends flag_flag {
       return TRUE;
     }
     return FALSE;
-  }
-
-  function get_labels_token_types() {
-    return array_merge(array('user'), parent::get_labels_token_types());
-  }
-
-  function replace_tokens($label, $contexts, $options, $content_id) {
-    if ($content_id && ($user = $this->fetch_content($content_id))) {
-      $contexts['user'] = $user;
-    }
-    return parent::replace_tokens($label, $contexts, $options, $content_id);
   }
 
   function get_flag_action($content_id) {
@@ -1601,15 +1816,9 @@ class flag_user extends flag_flag {
   }
 
   function get_views_info() {
-    return array(
-      'views table' => 'users',
-      'join field' => 'uid',
-      'title field' => 'name',
-      'title' => t('User flag'),
-      'help' => t('Limit results to only those users flagged by a certain flag; Or display information about the flag set on a user.'),
-      'counter title' => t('User flag counter'),
-      'counter help' => t('Include this to gain access to the flag counter field.'),
-    );
+    $views_info = parent::get_views_info();
+    $views_info['title field'] = 'name';
+    return $views_info;
   }
 }
 
@@ -1618,10 +1827,8 @@ class flag_user extends flag_flag {
  */
 class flag_broken extends flag_flag {
   function options_form(&$form) {
+    drupal_set_message(t("The module providing this flag wasn't found, or this flag type, %type, isn't valid.", array('%type' => $this->content_type)), 'error');
     $form = array();
-    $form['error'] = array(
-      '#markup' => '<div class="error">' . t("The module providing this flag wasn't found, or this flag type, %type, isn't valid.", array('%type' => $this->content_type)) . '</div>',
-    );
   }
 }
 
@@ -1796,4 +2003,3 @@ class FlagNonGlobalCookieStorage extends FlagCookieStorage {
     }
   }
 }
-

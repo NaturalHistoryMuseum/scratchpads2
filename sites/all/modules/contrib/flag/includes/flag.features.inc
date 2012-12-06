@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_features_export().
+ * Implements hook_features_export().
  */
 function flag_features_export($data, &$export, $module_name = '') {
   $pipe = array();
@@ -29,20 +29,20 @@ function flag_features_export($data, &$export, $module_name = '') {
 }
 
 /**
- * Implementation of hook_features_export_options().
+ * Implements hook_features_export_options().
  */
 function flag_features_export_options() {
   $options = array();
   // Get all flags, including disabled defaults.
   $flags = flag_get_flags() + flag_get_default_flags(TRUE);
   foreach ($flags as $name => $flag) {
-    $options[$name] = ucfirst(check_plain($flag->content_type)) .': '. check_plain($flag->title);
+    $options[$name] = drupal_ucfirst(check_plain($flag->content_type)) . ': ' . check_plain($flag->title);
   }
   return $options;
 }
 
 /**
- * Implementation of hook_features_export_render().
+ * Implements hook_features_export_render().
  */
 function flag_features_export_render($module, $data) {
   module_load_include('inc', 'flag', '/includes/flag.export');
@@ -51,7 +51,7 @@ function flag_features_export_render($module, $data) {
 }
 
 /**
- * Implementation of hook_features_revert().
+ * Implements hook_features_revert().
  *
  * @param $module
  *   The name of module for which to revert content.
@@ -75,11 +75,6 @@ function flag_features_revert($module = NULL) {
     }
     _flag_clear_cache();
   }
-  else {
-    drupal_set_message(t('Could not load default flag.'), 'error');
-    return FALSE;
-  }
-  return TRUE;
 }
 
 /**
