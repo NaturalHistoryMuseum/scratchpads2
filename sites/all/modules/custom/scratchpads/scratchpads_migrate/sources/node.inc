@@ -438,7 +438,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
             }
           }
           $src = $items->item($i)->getAttribute('src');
-          if($new_href = ScratchpadsNodeMigration::saveFile($src, $row->uid)){
+          if($new_href = ScratchpadsNodeMigration::saveFile($src, $row->uid, $row)){
             $items->item($i)->removeAttribute('src');
             $items->item($i)->setAttribute('src', $new_href);
           }
@@ -459,7 +459,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   /**
    * Copy across a file
    */
-  public static function saveFile($src, $uid){
+  public static function saveFile($src, $uid, $row){
     global $s1_domain, $user;
     $parsed_url = parse_url($src);
     // If this is an external file, leave it alone
@@ -493,9 +493,11 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     if(isset($html_img_src)){
       return ScratchpadsNodeMigration::fileCreateUrl($html_img_src);
     }else{
-      scratchpads_migrate_task_insert('node', $row->nid, t('The file could not be saved, probably because the image is missing on the source site.'), t('Check the old site and update the new node accordingly.'));
-      watchdog('scratchpads_migrate', t('Could not save file for %source'), array(
-        '%source' => $source
+      scratchpads_migrate_task_insert('node', $row->nid, t('The <a href="!source">file</a>could not be saved, probably because the image is missing on the source site.', array(
+        '!source' => $source
+      )), t('Check the old site and update the new node accordingly.'));
+      watchdog('scratchpads_migrate', t('Could not save file for !source'), array(
+        '!source' => $source
       ), WATCHDOG_ERROR);
     }
   }
