@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /**
  * Cron helper function to keep the .module file small.
@@ -14,6 +14,7 @@ function _scratchpads_tweaks_cron(){
         'http://dev.scratchpads.eu/'
       ));
       $result = db_query('SELECT COUNT(*) AS count, type FROM node GROUP BY type');
+      $nodes = array();
       foreach($result as $row){
         $nodes[$row->type] = $row->count;
       }
@@ -89,6 +90,22 @@ function _scratchpads_tweaks_cron(){
     module_enable($modules_to_enable);
     menu_rebuild();
   }
+  // Delete certain messages from the watchdog as we know they can be safely
+  // ignored.
+  db_delete('watchdog')->condition('message', array(
+    '%module module enabled.',
+    '%module module installed.',
+    "Action '%action' added.",
+    'There is new syndicated content from %site.',
+    'Flushed all files (%count) from static page cache.',
+    '@actioning @module_name / @component.',
+    '@action completed for @module_name / @component.',
+    'Updated site meta data',
+    'Fetched site meta data',
+    'Expired %count stale files from static page cache.',
+    'Cron run completed.',
+    '"@openid" logged in as "@user"'
+  ))->execute();
   // Rebuild caches
   _scratchpads_tweaks_register_shutdown();
 }
