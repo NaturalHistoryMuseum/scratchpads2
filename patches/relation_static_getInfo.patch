@@ -1,0 +1,13 @@
+diff --git a/sites/all/modules/contrib/relation/tests/relation.views.test b/sites/all/modules/contrib/relation/tests/relation.views.test
+index 6d25fae..48fd1d3 100644
+--- a/sites/all/modules/contrib/relation/tests/relation.views.test
++++ b/sites/all/modules/contrib/relation/tests/relation.views.test
+@@ -9,7 +9,7 @@
+  */
+ class RelationViewsTestCase extends RelationTestCase {
+ 
+-  public static function getInfo() {
++  function getInfo() {
+     return array(
+       'name' => 'Relation Views test',
+       'description' => 'Tests the Relation Views support.',
