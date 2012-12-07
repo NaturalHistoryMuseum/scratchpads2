@@ -38,7 +38,7 @@ abstract class flag_handler_relationship extends views_handler_relationship {
     if (!$this->options['flag']) {
       $errors[] = t('You must pick a flag to use for the relationship "@relationship-name".', $tokens);
     }
-    else if (!flag_get_flag($this->options['flag'])) {
+    elseif (!flag_get_flag($this->options['flag'])) {
       $errors[] = t('This view is looking for a flag by the name "@flag-name", but there is no such flag. Perhaps it was deleted. Please update the relationship "@relationship-name" in this view to use an existing flag.', $tokens);
     }
     return $errors;
@@ -92,7 +92,7 @@ class flag_handler_relationship_content extends flag_handler_relationship {
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
     $content_type = $this->definition['flag type'];
-    $form['label']['#description'] .= ' '. t('The name of the selected flag makes a good label.');
+    $form['label']['#description'] .= ' ' . t('The name of the selected flag makes a good label.');
     $form['flag'] = flag_views_flag_config_form('radios', $content_type, $this->options['flag']);
 
     $form['user_scope'] = array(
@@ -156,7 +156,7 @@ class flag_handler_relationship_content extends flag_handler_relationship {
       );
       if (array_search(DRUPAL_ANONYMOUS_RID, $flag->roles['flag']) !== FALSE) {
         // Disable page caching for anonymous users.
-        $GLOBALS['conf']['cache'] = 0;
+        drupal_page_is_cacheable(FALSE);
 
         // Add in the SID from Session API for anonymous users.
         $this->definition['extra'][] = array(
@@ -234,7 +234,7 @@ class flag_handler_relationship_user_content extends flag_handler_relationship {
 
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
-    $form['label']['#description'] .= ' '. t('Including name of the selected flag helps identify this relationship.');
+    $form['label']['#description'] .= ' ' . t('Including name of the selected flag helps identify this relationship.');
 
     $form['flag'] = flag_views_flag_config_form('radios', NULL, $this->options['flag']);
     $form['flag']['#title'] = t('Flagged');

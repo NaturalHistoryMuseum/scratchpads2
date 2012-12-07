@@ -82,7 +82,7 @@ class HierarchicalSelectInternals extends DrupalWebTestCase {
   /**
    * Implementation of getInfo().
    */
-  public function getInfo() {
+  public static function getInfo() {
     return array(
       'name'        => 'Internals',
       'description' => 'Checks whether all internals are working: the

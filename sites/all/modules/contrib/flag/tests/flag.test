@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * @file
+ * Tests for the Flag module.
+ */
+
 class FlagTestCase extends DrupalWebTestCase {
   var $_flag = FALSE;
 
   /**
-   * Implementation of getInfo().
+   * Implements getInfo().
    */
-  function getInfo() {
+  public static function getInfo() {
     return array(
       'name' => t('Flag tests'),
       'description' => t('Add, edit and delete flags.'),
@@ -15,7 +20,7 @@ class FlagTestCase extends DrupalWebTestCase {
   }
 
   /**
-   * Implementation of setUp().
+   * Implements setUp().
    */
   function setUp() {
     parent::setUp('flag');
@@ -53,7 +58,7 @@ class FlagTestCase extends DrupalWebTestCase {
     $saved['types'] = array('page');
     unset($saved['roles[flag][2]'], $saved['roles[unflag][2]'], $saved['types[article]'], $saved['types[page]']);
 
-    $this->drupalPost(FLAG_ADMIN_PATH . '/add/node/' . $edit['name'], $edit, t('Submit'));
+    $this->drupalPost(FLAG_ADMIN_PATH . '/add/node/' . $edit['name'], $edit, t('Save flag'));
 
     flag_get_flags(NULL, NULL, NULL, TRUE);
     $flag = flag_get_flag($edit['name']);
@@ -90,7 +95,7 @@ class FlagTestCase extends DrupalWebTestCase {
     $saved['types'] = array('article');
     unset($saved['roles[flag][2]'], $saved['roles[unflag][2]'], $saved['types[article]'], $saved['types[page]']);
 
-    $this->drupalPost(FLAG_ADMIN_PATH . '/manage/' . $flag->name, $edit, t('Submit'));
+    $this->drupalPost(FLAG_ADMIN_PATH . '/manage/' . $flag->name, $edit, t('Save flag'));
 
     flag_get_flags(NULL, NULL, NULL, TRUE);
     $flag = flag_get_flag($edit['name']);
@@ -113,7 +118,7 @@ class FlagTestCase extends DrupalWebTestCase {
    * Test that only allowed users have access to flags.
    */
   function testFlagAccess() {
-    
+
   }
 
 }

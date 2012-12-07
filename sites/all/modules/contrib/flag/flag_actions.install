@@ -6,19 +6,19 @@
  */
 
 /**
- * Implementation of hook_install().
+ * Implements hook_install().
  */
 function flag_actions_install() {
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
 function flag_actions_uninstall() {
 }
 
 /**
- * Implementation of hook_schema().
+ * Implements hook_schema().
  */
 function flag_actions_schema() {
   $schema = array();
@@ -77,8 +77,6 @@ function flag_actions_schema() {
  * Add a "repeat_threshold" value to all existing Flag actions.
  */
 function flag_actions_update_6200() {
-  $ret = array();
-
   // Add the new repeat_threshold column.
   if (!db_field_exists('flag_actions', 'repeat_threshold')) {
     $column = array(
@@ -88,7 +86,7 @@ function flag_actions_update_6200() {
       'default' => 0,
       'disp-width' => '5',
     );
-    db_add_field($ret, 'flag_actions', 'repeat_threshold', $column);
+    db_add_field('flag_actions', 'repeat_threshold', $column);
   }
 
   // Update the normal threshold column to default to 0.
@@ -99,7 +97,5 @@ function flag_actions_update_6200() {
     'default' => 0,
     'disp-width' => '5',
   );
-  db_change_field($ret, 'flag_actions', 'threshold', 'threshold', $column);
-
-  return $ret;
+  db_change_field('flag_actions', 'threshold', 'threshold', $column);
 }

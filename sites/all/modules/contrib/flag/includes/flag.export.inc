@@ -16,7 +16,7 @@
  */
 function flag_export_flags($flags = array(), $module = '', $indent = '') {
   module_load_include('inc', 'features', 'features.export'); // For features_var_export() (optional).
-  $output = $indent . '$flags = array();'. "\n";
+  $output = $indent . '$flags = array();' . "\n";
   foreach ($flags as $item) {
     if (is_object($item)) {
       $flag = $item;
@@ -52,10 +52,15 @@ function flag_export_flags($flags = array(), $module = '', $indent = '') {
     // The name is emitted as the key for the array.
     unset($new_flag['name']);
 
-    $output .= $indent . '// Exported flag: "'. check_plain($flag->get_title()) . '"' . ".\n";
+// Do not export the whole entity info, as it is just used as helper data.
+    if (isset($new_flag['entity_info'])) {
+      unset($new_flag['entity_info']);
+    }
+
+    $output .= $indent . '// Exported flag: "' . check_plain($flag->get_title()) . '"' . ".\n";
     $output .= $indent . '$flags[\'' . $flag->name . '\'] = ' . (function_exists('features_var_export') ? features_var_export($new_flag, $indent) : var_export($new_flag, TRUE)) . ";\n";
   }
-  $output .= $indent . 'return $flags;';
+  $output .= $indent . 'return $flags;' . "\n";
   return $output;
 }
 
@@ -91,7 +96,7 @@ function flag_import_form_validate($form, &$form_state) {
   ob_end_clean();
 
   if (!isset($flags) || !is_array($flags)) {
-    form_set_error('import', t('A valid list of flags could be found in the import code.'));
+    form_set_error('import', t('A valid list of flags could not be found in the import code.'));
     return;
   }
 
@@ -214,7 +219,7 @@ function flag_export_form_submit($form, &$form_state) {
  */
 function flag_update_page($flag) {
   if ($flag->is_compatible()) {
-    drupal_set_message(t('The flag %name is already up-to-date with the latest Flag API and does not need upgrading.'));
+    drupal_set_message(t('The flag %name is already up-to-date with the latest Flag API and does not need upgrading.', array('%name' => $flag->name)));
     drupal_goto(FLAG_ADMIN_PATH);
   }
 
