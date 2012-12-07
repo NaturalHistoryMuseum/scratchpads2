@@ -117,6 +117,7 @@ function scratchpads_tweaks_date_formats(){
  * This function ensures that all required modules are enabled.
  */
 function scratchpads_tweaks_cron(){
+  module_load_include('cron.inc', 'scratchpads_tweaks');
   _scratchpads_tweaks_cron();
 }
 
