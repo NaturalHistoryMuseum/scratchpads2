@@ -31,16 +31,6 @@ function scratchpads_migrate_overview_form($form, &$form_state){
     'task' => t('Home page'),
     'description' => t('Please select images for your home page - you can do this by editing an image and selecting <em>Promote to home page</em>')
   );
-  $options['colour'] = array(
-    '#attributes' => array(
-      'class' => array(
-        (in_array('colour', $migration_status) ? 'ok' : 'error')
-      )
-    ),
-    '#value' => 'colour',
-    'task' => t('Colour'),
-    'description' => t('<p>Please select a colour for your new site - at the bottom of every page you will find a widget to do this.</p>')
-  );
   $options['structure'] = array(
     '#attributes' => array(
       'class' => array(
