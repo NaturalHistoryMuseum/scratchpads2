@@ -418,8 +418,9 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   public static function parseImages($html, $row){
     if(strpos($html, '<img') !== false){
       try{
-        $dom = new DOMDocument();
         $html = mb_convert_encoding($html, 'html-entities', 'utf-8');
+        $dom = new DOMDocument();
+        $dom->strictErrorChecking = false;
         $dom->loadHTML($html);
         $dom->normalizeDocument();
         $items = $dom->getElementsByTagName('img');
@@ -429,7 +430,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
           if($parent_node->tagName == 'a'){
             $href = $parent_node->getAttribute('href');
             if(strpos($href, 'files') !== false){
-              if($new_href = ScratchpadsNodeMigration::saveFile($href, $row->uid)){
+              if($new_href = ScratchpadsNodeMigration::saveFile($href, $row->uid, $row)){
                 $new_href .= '?width=600&height=600';
                 $parent_node->removeAttribute('href');
                 $parent_node->setAttribute('href', $new_href);
