@@ -34,6 +34,10 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
     $this->test_user = $this->drupalCreateUser(array(
       'access content'
     ));
+    // We set the legal_accepted on the user so that login passes.
+    user_save($this->test_user, array(
+      'legal_accept' => TRUE
+    ));
   }
 
   /**
