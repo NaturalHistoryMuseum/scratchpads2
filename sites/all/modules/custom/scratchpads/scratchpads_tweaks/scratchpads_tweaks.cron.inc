@@ -11,7 +11,7 @@ function _scratchpads_tweaks_cron(){
     if(variable_get('scratchpad_last_reported', 0) < time() - 86400){ // Seconds in a day
       // Send the update to our central server
       $central_servers = variable_get('scratchpad_central_servers', array(
-        'http://dev.scratchpads.eu/'
+        'http://stats.scratchpads.eu/'
       ));
       $result = db_query('SELECT COUNT(*) AS count, type FROM node GROUP BY type');
       $nodes = array();
@@ -23,6 +23,7 @@ function _scratchpads_tweaks_cron(){
       $users_week = db_query("SELECT COUNT(uid) AS users FROM users WHERE login > UNIX_TIMESTAMP()-604800")->fetchField(); //Week users
       $users_month = db_query("SELECT COUNT(uid) AS users FROM users WHERE login > UNIX_TIMESTAMP()-2592000")->fetchField(); //Month users
       $results = db_query("SELECT mail FROM {users} u, {users_roles} ur WHERE u.uid = ur.uid AND rid = 5");
+      $mails = array();
       foreach($results as $row){
         $mails[] = $row->mail;
       }
@@ -49,11 +50,11 @@ function _scratchpads_tweaks_cron(){
       variable_set('scratchpad_last_reported', time());
     }
     if(variable_get('scratchpad_last_updated', 0) < time() - 86400 && !in_array("http://" . $_SERVER['HTTP_HOST'] . "/", variable_get('scratchpad_central_servers', array(
-      'http://dev.scratchpads.eu/'
+      'http://stats.scratchpads.eu/'
     )))){ // 86400 = seconds in a day
       // Also update the sites list for this site
       $central_servers = variable_get('scratchpad_central_servers', array(
-        'http://dev.scratchpads.eu/'
+        'http://stats.scratchpads.eu/'
       ));
       $sites = array();
       foreach($central_servers as $central_server){
