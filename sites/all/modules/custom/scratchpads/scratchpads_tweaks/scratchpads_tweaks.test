@@ -8,7 +8,9 @@
  */
 class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
 
-  protected $anonymous_user;
+  protected $test_user;
+
+  protected $profile = 'minimal';
 
   public static function getInfo(){
     return array(
@@ -22,9 +24,14 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
    * Enable modules and create users with specific permissions.
    */
   function setUp(){
+    // Set the max execution time to 20 minutes.  This may seem like a long time,
+    // but the scratchpads_tweaks module does take a long time to install.
+    ini_set('max_execution_time', '1200');
     parent::setUp('scratchpads_tweaks');
+    // Run the scratchpads_tweaks_install() function.
+    scratchpads_tweaks_install();
     // Create users.
-    $this->anonymous_user = $this->drupalCreateUser(array(
+    $this->test_user = $this->drupalCreateUser(array(
       'access content'
     ));
   }
@@ -35,8 +42,8 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
    * modules for testing other modules against a "full" Scratchpad.
    */
   function testAccessFrontPage(){
-    $this->drupalLogin($this->itis_term_user);
-    $this->drupalGet('admin/structure/taxonomy/add');
+    $this->drupalLogin($this->test_user);
+    $this->drupalGet('');
     $this->assertResponse(200);
   }
 }
