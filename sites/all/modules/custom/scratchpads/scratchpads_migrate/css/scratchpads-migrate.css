@@ -16,3 +16,7 @@ tr.ok {
 tr.ok td{
 	background: transparent!important;
 }
+
+.scratchpads-migrate-errors input{
+	display: none!important
+}

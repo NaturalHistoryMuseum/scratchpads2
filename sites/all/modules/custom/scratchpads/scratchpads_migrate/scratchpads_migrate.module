@@ -3,6 +3,8 @@ define("MIGRATE_NONE", 0);
 define("MIGRATE_ALL", 1);
 define("MIGRATE_CONTENT", 2);
 define("MIGRATE_FIELD", 3);
+define("SCRATCHPADS_MIGRATE_NOTIFICATIONS_EMAIL", 'b.scott@nhm.ac.uk');
+
 /**
  * Add the database connection.
  * 
@@ -35,6 +37,7 @@ if(strpos($host, 's2') !== false){
 }else{ // Domain is structured like DOMAIN.myspecies.info 
   $s1_domain = str_replace('.myspecies.info', '', $host);
 }
+$s1_domain = 'nannotax.org';
 $filename = '/var/aegir/scratchpad_1_db_settings/' . $s1_domain . '.scratchpad_1.php';
 if(file_exists($filename)){
   require_once ($filename);
@@ -688,11 +691,24 @@ function scratchpads_migrate_menu(){
   );
   // For managing different types of media and the fields associated with them.
   $items['admin/config/content/scratchpads-migrate'] = array(
-    'title' => 'Scratchpads migrate tasks',
+    'title' => 'Scratchpads post-migration tasks',
+    'description' => 'Scratchpads migrate overview.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'scratchpads_migrate_overview_form'
+    ),
+    'access arguments' => array(
+      'administer site configuration'
+    ),
+    'file' => 'scratchpads_migrate.admin.inc'
+  );
+  // For managing different types of media and the fields associated with them.
+  $items['admin/config/content/scratchpads-migrate/error'] = array(
+    'title' => 'Scratchpads migrate errors',
     'description' => 'Follow up tasks for scratchpads migrate.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array(
-      'scratchpads_migrate_tasks_form'
+      'scratchpads_migrate_error_form'
     ),
     'access arguments' => array(
       'administer site configuration'
@@ -892,5 +908,12 @@ function scratchpads_migrate_task_insert($entity_type, $entity_id, $error, $acti
   $task->error = $error;
   $task->action = $action;
   drupal_write_record('scratchpads_migrate_task', $task);
+}
+
+/**
+ * Implementation of hook_mail
+ */
+function scratchpads_migrate_mail($key, &$message, $params) {
+  $message = array_merge($message, $params);
 }
 
