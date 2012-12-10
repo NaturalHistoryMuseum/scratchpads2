@@ -101,7 +101,12 @@ function scratchpads_migrate_tasks_complete(){
 }
 
 function scratchpads_migrate_get_error_count(){
-  return db_query('SELECT COUNT(*) FROM {scratchpads_migrate_task} WHERE status=1')->fetchField();
+  if(db_table_exists('scratchpads_migrate_task')){
+    $count = db_query('SELECT COUNT(*) FROM {scratchpads_migrate_task} WHERE status=1')->fetchField();
+  }else{
+    $count = 0;
+  }
+  return $count;
 }
 
 function scratchpads_migrate_overview_form_submit($form, &$form_state){
