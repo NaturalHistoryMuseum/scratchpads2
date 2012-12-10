@@ -14,7 +14,6 @@ function scratchpads_tweaks_install(){
       watchdog('scratchpads_tweaks_install', $message);
     }
   }
-  $messages = drupal_get_messages();
   // In order for testing to work, we need to go no further at this point so that
   // the minimal_install() function does not barf.
   $backtrace = debug_backtrace();
