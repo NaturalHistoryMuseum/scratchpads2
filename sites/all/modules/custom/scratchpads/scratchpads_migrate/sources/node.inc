@@ -289,6 +289,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->leftJoin('og_access_post', 'ogap', 'ogap.nid = n.nid');
     $query->addField('ogap', 'og_public', 'og_public');
     $query->condition('n.title', 'Taskguide', '!=');
+    $query->condition('n.nid', 897);
     return $query;
   }
   // Allow overiding count query
@@ -449,7 +450,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       }
       catch(Exception $e){
         scratchpads_migrate_task_insert('node', $row->nid, t('The html in this node is malformed, so we cannot extract the images.'), t('If the node has images they will need to be manually copied to the new site.'));
-        watchdog('scratchpads_migrate', t('Malformed HTML for node %nid', array(
+        watchdog('scratchpads_migrate', t('Error !error for node %nid', array(
+          '!error' => $e->getMessage(),
           '%nid' => $row->nid
         )), WATCHDOG_ERROR);
       }
@@ -466,7 +468,11 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     // If this is an external file, leave it alone
     if(isset($parsed_url['host']) && $parsed_url['host'] != $s1_domain){return;}
     $file_name = basename($parsed_url['path']);
-    $source = 'http://' . $s1_domain . '/' . ltrim(str_replace(' ', ' ', $parsed_url['path']), '/');
+    // Resolve any ../ in the path
+    if(strpos($parsed_url['path'], '../') !== false){
+      $parsed_url['path'] = str_replace('../', '', $parsed_url['path']);
+    }
+    $source = 'http://' . $s1_domain . '/' . ltrim(str_replace(' ', '%20', $parsed_url['path']), '/');
     $destination = file_default_scheme() . '://' . $file_name;
     if(file_exists($destination)){
       $html_img_src = $destination;
@@ -483,7 +489,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         $destination = file_default_scheme() . '://data-' . uniqid() . '.' . $extension;
         $file = file_save_data($fp, $destination, FILE_EXISTS_REPLACE);
         $html_img_src = $destination;
-      }else if($file_contents = @file_get_contents($source)){
+      }else if($file_contents = file_get_contents($source)){
         if($file = file_save_data($file_contents, $destination, FILE_EXISTS_REPLACE)){
           $html_img_src = $destination;
         }
