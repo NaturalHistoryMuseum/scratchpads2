@@ -93,7 +93,8 @@ function _scratchpads_tweaks_cron(){
   }
   // Delete certain messages from the watchdog as we know they can be safely
   // ignored.
-  db_delete('watchdog')->condition('message', array(
+  $db_or = db_or();
+  $db_or->condition('message', array(
     '%module module enabled.',
     '%module module installed.',
     "Action '%action' added.",
@@ -106,7 +107,11 @@ function _scratchpads_tweaks_cron(){
     'Expired %count stale files from static page cache.',
     'Cron run completed.',
     '"@openid" logged in as "@user"'
-  ))->execute();
+  ));
+  $db_or->condition('type', array(
+    'scratchpads_tweaks_install'
+  ));
+  db_delete('watchdog')->condition($db_or)->execute();
   // Rebuild caches
   _scratchpads_tweaks_register_shutdown();
 }
