@@ -37,18 +37,29 @@ function scratchpads_simple_taxonomy_page_theme(){
 function scratchpads_simple_taxonomy_page_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id){
   if(!isset($form_state['confirm_delete'])){
     $vids = variable_get('none_biological_vids', array());
+    // We default to NOT using the simple view.
+    $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
     $default_value = 0;
+    $default_simple_value = 1;
     if(isset($form['vid'])){
       // Vocabulary already exists, default to off
       if(isset($vids[$form['vid']['#value']])){
         // Set before, use the setting.
         $default_value = $vids[$form['vid']['#value']];
       }
+      if(isset($simple_vids[$form['vid']['#value']])){
+        // Set before, use the setting.
+        $default_simple_value = $simple_vids[$form['vid']['#value']];
+      }
     }else{
       // New vocabulary, default to on.
       $default_value = 1;
     }
-    $form['display_tab'] = array(
+    $form['simple_taxonomy_display'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Display options')
+    );
+    $form['simple_taxonomy_display']['display_tab'] = array(
       '#title' => t('Display tab'),
       '#description' => t('Check this box to add a menu item linking to this vocabulary.'),
       '#type' => 'checkbox',
@@ -61,8 +72,32 @@ function scratchpads_simple_taxonomy_page_form_taxonomy_form_vocabulary_alter(&$
         )
       )
     );
-    // Add an additional submit function so that we can tweak the vocabulary.
-    $form['#submit'][] = 'scratchpads_simple_taxonomy_page_taxonomy_form_vocabulary_submit';
+    $form['simple_taxonomy_display']['display_facets'] = array(
+      '#title' => t('Display facets'),
+      '#description' => t('Check this box to display facets on a taxonomy term page.'),
+      '#type' => 'checkbox',
+      '#default_value' => $default_simple_value,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="biological_classification"]' => array(
+            'value' => ''
+          )
+        )
+      )
+    );
+    $form['simple_taxonomy_display']['use_scratchpads_species_pages'] = array(
+      '#title' => t('Display taxa using Scratchpads species pages.'),
+      '#description' => t('Check this box to display taxa on Scratchpads species pages. Most users should leave this box checked.'),
+      '#type' => 'checkbox',
+      '#default_value' => $default_simple_value,
+      '#states' => array(
+        'invisible' => array(
+          ':input[name="biological_classification"]' => array(
+            'value' => ''
+          )
+        )
+      )
+    );
   }
 }
 
@@ -87,13 +122,53 @@ function scratchpads_simple_taxonomy_page_taxonomy_term_update($term){
 }
 
 /**
+ * Implements hook_taxonomy_vocabulary_delete().
+ */
+function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_delete($vocabulary){
+  foreach(array(
+    'none_biological_vids',
+    'scratchpads_simple_taxonomy_page_vids',
+    'biological_vids'
+  ) as $variable_name){
+    $values = variable_get($variable_name, array());
+    unset($values[$vocabulary->vid]);
+    variable_set($variable_name, $values);
+  }
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_update
+ */
+function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_update($vocabulary){
+  scratchpads_simple_taxonomy_page_taxonomy_vocabulary_insert($vocabulary);
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_insert
+ */
+function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_insert($vocabulary){
+  $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
+  // Which form field we read depends on what type of vocabulary this is
+  if($vocabulary->biological_classification){
+    $simple_vids[$vocabulary->vid] = isset($vocabulary->use_scratchpads_species_pages) && $vocabulary->use_scratchpads_species_pages ? 1 : 0;
+  }else{
+    $simple_vids[$vocabulary->vid] = isset($vocabulary->display_facets) && $vocabulary->display_facets ? 1 : 0;
+  }
+  variable_set('scratchpads_simple_taxonomy_page_vids', $simple_vids);
+  // Set whether or not this is a none_biological_vid
+  $none_biological_vids = variable_get('none_biological_vids', array());
+  $none_biological_vids[$vocabulary->vid] = !$vocabulary->biological_classification ? $vocabulary->display_tab : 0;
+  variable_set('none_biological_vids', $none_biological_vids);
+}
+
+/**
  * Execute Context page conditions
  *
  * Allows modules to hook into Context's hook_page_build to execute their
  * conditions at an appropriate time before the firing of reactions.
  */
 function scratchpads_simple_taxonomy_page_context_page_condition(){
-  if(($plugin = context_get_plugin('condition', 'scratchpads_simple_taxonomy_page_context_condition')) && arg(0) == 'nontaxonomy'){
+  if(($plugin = context_get_plugin('condition', 'scratchpads_simple_taxonomy_page_context_condition')) && (arg(0) == 'nontaxonomy' || arg(0) == 'simpletaxonomy')){
     $term = taxonomy_term_load(arg(2));
     if($term){
       $plugin->execute($term);
@@ -159,22 +234,6 @@ function scratchpads_simple_taxonomy_page_ctools_plugin_api(){
 }
 
 /**
- * Submit function to set the none_biological_vids variable.
- */
-function scratchpads_simple_taxonomy_page_taxonomy_form_vocabulary_submit($form, &$form_state){
-  if(!isset($form_state['confirm_delete']) && isset($form_state['vid'])){
-    $none_biological_vids = variable_get('none_biological_vids', array());
-    foreach($none_biological_vids as $vid => $set){
-      if(!taxonomy_vocabulary_load($vid)){
-        unset($none_biological_vids[$vid]);
-      }
-    }
-    $none_biological_vids[$form_state['vid']] = !$form_state['values']['biological_classification'] ? $form_state['values']['display_tab'] : 0;
-    variable_set('none_biological_vids', $none_biological_vids);
-  }
-}
-
-/**
  * Implementation of hook_page_alter().
  * 
  * FIXME - We need to check for the presence of a facet filter.
@@ -208,16 +267,39 @@ function scratchpads_simple_taxonomy_page_menu_local_tasks_alter(&$data, $router
  */
 function scratchpads_simple_taxonomy_page_menu(){
   $items = array();
+  $items['simpletaxonomy/term/%taxonomy_term'] = array(
+    'title' => 'Taxonomy term',
+    'title callback' => 'taxonomy_term_title',
+    'title arguments' => array(
+      2
+    ),
+    'page callback' => 'taxonomy_term_page',
+    'page arguments' => array(
+      2
+    ),
+    'access arguments' => array(
+      'access content'
+    ),
+    'file' => 'taxonomy.pages.inc',
+    'file path' => drupal_get_path('module', 'taxonomy')
+  );
+  // We need to stick with taxonomy/term/[tid] for "simple" view taxonomies (ie
+  // those not using Solr).
+  $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
   foreach(variable_get('none_biological_vids', array()) as $vid => $display_tab){
     if($display_tab){
       $vocabulary = taxonomy_vocabulary_load($vid);
       if(($tree = taxonomy_get_tree($vid, 0, 1)) != FALSE){
+        $path = 'nontaxonomy/term/';
+        if(isset($simple_vids[$vid]) && !$simple_vids[$vid]){
+          $path = 'simpletaxonomy/term/';
+        }
         $term = array_shift($tree);
         $items['classification/' . $vid] = array(
           'title' => $vocabulary->name,
           'page callback' => 'drupal_goto',
           'page arguments' => array(
-            'nontaxonomy/term/' . $term->tid
+            $path . $term->tid
           ),
           'access arguments' => array(
             'access content'

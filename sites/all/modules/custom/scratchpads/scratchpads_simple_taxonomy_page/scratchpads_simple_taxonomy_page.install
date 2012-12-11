@@ -50,3 +50,24 @@ function scratchpads_simple_taxonomy_page_update_7002(){
     menu_rebuild();
   }
 }
+
+/**
+ * Clean up the 'none_biological_vids','scratchpads_simple_taxonomy_page_vids',
+ * and 'biological_vids' variables.
+ */
+function scratchpads_simple_taxonomy_page_update_7003(){
+  foreach(array(
+    'none_biological_vids',
+    'scratchpads_simple_taxonomy_page_vids',
+    'biological_vids'
+  ) as $variable_name){
+    $values = variable_get($variable_name, array());
+    foreach($values as $vid => $value){
+      $vocabulary = taxonomy_vocabulary_load($vid);
+      if(!$vocabulary){
+        unset($values[$vid]);
+      }
+    }
+    variable_set($variable_name, $values);
+  }
+}
