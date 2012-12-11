@@ -185,7 +185,7 @@ function scratchpads_tweaks_preprocess_comment(&$variables){
 function scratchpads_preprocess_block(&$variables){
   $block = $variables['block'];
   if(preg_match('/^views-front_page_blocks/', $block->bid) && $block->subject == 'Recent Biblios'){
-    $block->subject = 'Latest Literature';
+    $block->subject = 'Recent Literature';
   }
 }
 

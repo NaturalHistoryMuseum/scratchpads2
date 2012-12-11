@@ -2,15 +2,15 @@
   Drupal.behaviors.remote_issues_block = {
     attach: function(context, settings){
       var timeoutid = false;
-      $('#remote-issue-tab .items li', context).mousemove(function(){
+      $('#remote-issue-tab .items>ul>li', context).mousemove(function(){
         var parentthis = this;    
         if(timeoutid){
           window.clearTimeout(timeoutid);    
         }
         timeoutid = window.setTimeout(function(){
-          $(parentthis).children().children('p').slideDown(200);
+          $(parentthis).children().children('.remote_issue_item').slideDown(200);
           $(parentthis).siblings().each(function(){
-            $(this).children().children('p').slideUp(1000);
+            $(this).children().children('.remote_issue_item').slideUp(1000);
           });          
         }, 500);
       });
