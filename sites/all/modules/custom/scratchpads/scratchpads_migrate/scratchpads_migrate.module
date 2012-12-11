@@ -4,7 +4,6 @@ define("MIGRATE_ALL", 1);
 define("MIGRATE_CONTENT", 2);
 define("MIGRATE_FIELD", 3);
 define("SCRATCHPADS_MIGRATE_NOTIFICATIONS_EMAIL", 'b.scott@nhm.ac.uk');
-
 /**
  * Add the database connection.
  * 
@@ -37,7 +36,6 @@ if(strpos($host, 's2') !== false){
 }else{ // Domain is structured like DOMAIN.myspecies.info 
   $s1_domain = str_replace('.myspecies.info', '', $host);
 }
-$s1_domain = 'nannotax.org';
 $filename = '/var/aegir/scratchpad_1_db_settings/' . $s1_domain . '.scratchpad_1.php';
 if(file_exists($filename)){
   require_once ($filename);
@@ -450,21 +448,6 @@ function scratchpads_migrate_register_migrations(){
     Migration::registerMigration($arguments['class_name'], $arguments['machine_name'], $arguments);
     $common_node_arguments['dependencies'][] = $arguments['machine_name'];
   }
-  /*********************************************************************************************
-   * Blocks
-  ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of blocks from Drupal 6'),
-    'machine_name' => 'Blocks',
-    'dependencies' => array( // Files must be migrated first
-      'File',
-      'Image'
-    ),
-    'group' => MigrateGroup::getInstance('content', array(
-      'terms'
-    ))
-  );
-  Migration::registerMigration('BlockMigration', $arguments['machine_name'], $arguments);
   /****************************************************************************
    * Dependencies for the PathRedirect migration
    ****************************************************************************/
@@ -569,9 +552,47 @@ function scratchpads_migrate_register_migrations(){
     'description' => t('Migration of URL redirects from Drupal 6'),
     'machine_name' => 'PathRedirect',
     'dependencies' => $path_dependencies,
-    'group' => MigrateGroup::getInstance('content')
+    'group' => MigrateGroup::getInstance('final')
   );
   Migration::registerMigration('PathRedirectMigration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * Menu
+  ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of menus from Drupal 6'),
+    'machine_name' => 'Menu',
+    'dependencies' => $path_dependencies,
+    'group' => MigrateGroup::getInstance('final')
+  );
+  Migration::registerMigration('ScrachpadsMenuMigration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * Menu Links
+  ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of menu items from Drupal 6'),
+    'machine_name' => 'MenuLink',
+    'dependencies' => $path_dependencies,
+    'group' => MigrateGroup::getInstance('final'),
+    'menu_migration' => 'Menu'
+  );
+  Migration::registerMigration('ScratchpadMenuLinkMigration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * Blocks
+  ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of blocks from Drupal 6'),
+    'machine_name' => 'Blocks',
+    'dependencies' => array(
+      'File', // Files must be migrated first
+      'Image',
+      'Menu',
+      'MenuLink'
+    ),
+    'group' => MigrateGroup::getInstance('final', array(
+      'content'
+    ))
+  );
+  Migration::registerMigration('BlockMigration', $arguments['machine_name'], $arguments);
 }
 
 function scratchpads_migrate_get_term_vocabularies(){
@@ -661,7 +682,7 @@ function scratchpads_migrate_get_machine_name($type, $name){
   return $type . $name;
 }
 
-function scratchpads_migrate_unset_empty_fields($object, $skip = array('uid', 'weight_weight', 'sticky')){
+function scratchpads_migrate_unset_empty_fields($object, $skip = array('uid', 'weight_weight', 'sticky', 'status', 'promote', 'moderate')){
   // Loop through and unset NULL fields, otherwise they are populated with empty values
   $properties = array_keys((array)$object);
   foreach($properties as $property){
@@ -911,9 +932,16 @@ function scratchpads_migrate_task_insert($entity_type, $entity_id, $error, $acti
 }
 
 /**
+ * Insert a task
+ */
+function scratchpads_migrate_task_delete($entity_type, $entity_id){
+  db_delete('scratchpads_migrate_task')->condition('entity', $entity_type)->condition('entity_id', $entity_id)->execute();
+}
+
+/**
  * Implementation of hook_mail
  */
-function scratchpads_migrate_mail($key, &$message, $params) {
+function scratchpads_migrate_mail($key, &$message, $params){
   $message = array_merge($message, $params);
 }
 
