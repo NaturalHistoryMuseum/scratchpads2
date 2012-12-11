@@ -2,6 +2,16 @@
 
 class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
 
+  static public function getKeySchema(){
+    return array(
+      'vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'description' => 'Verion ID of destination node'
+      )
+    );
+  }
+
   public function fields($migration = NULL){
     $migration = Migration::currentMigration();
     $fields = parent::fields($migration);
@@ -39,20 +49,32 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
     if(!isset($node->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE])){
       unset($node->{OG_AUDIENCE_FIELD});
     }
+    // Do we already have this node? IF we do save a revision of it
+    if($original = entity_load_unchanged('node', $node->nid)){
+      unset($node->is_new);
+      $node->revision_uid = $node->uid;
+    }
     $status = parent::import($node, $row);
     return $status;
   }
 
   public function rollback(array $key){
-    $status = parent::rollback($key);
-    // Delete any paths
-    path_delete(array(
-      'source' => 'node/' . $key['destid1']
-    ));
-    // Delete the menu item if it exists
-    $node = new stdClass();
-    $node->nid = $key['destid1'];
-    menu_node_delete($node);
+    $vid = $key['destid1'];
+    $node = node_load(null, $vid);
+    if($node){
+      $key = array(
+        'destid1' => $node->nid
+      );
+      $status = parent::rollback($key);
+      // Delete any paths
+      path_delete(array(
+        'source' => 'node/' . $key['destid1']
+      ));
+      // Delete the menu item if it exists
+      $node = new stdClass();
+      $node->nid = $key['destid1'];
+      menu_node_delete($node);
+    }
     return $status;
   }
 }
