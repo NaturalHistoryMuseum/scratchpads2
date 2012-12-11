@@ -99,12 +99,17 @@ function scratchpads_simple_taxonomy_page_form_taxonomy_form_vocabulary_alter(&$
       )
     );
     if(isset($form['vid'])){
+      $default_terms = variable_get('scratchpads_default_term', array());
+      $default_value = '';
+      if(isset($default_terms[$form['vid']['#value']]) && $term = taxonomy_term_load($default_terms[$form['vid']['#value']])){
+        $default_value = $term->name;
+      }
       $form['simple_taxonomy_display']['default_term_link'] = array(
         '#title' => t('Default taxonomy term.'),
         '#description' => t('Select the default term to display when viewing this classification.  Leave blank to use the first term in the classification.'),
         '#type' => 'textfield',
         '#autocomplete_path' => 'simpletaxonomy/autocomplete/' . $form['vid']['#value'],
-        '#default_value' => $default_simple_value
+        '#default_value' => $default_value
       );
     }
   }
@@ -137,7 +142,8 @@ function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_delete($vocabulary
   foreach(array(
     'none_biological_vids',
     'scratchpads_simple_taxonomy_page_vids',
-    'biological_vids'
+    'biological_vids',
+    'scratchpads_default_term'
   ) as $variable_name){
     $values = variable_get($variable_name, array());
     unset($values[$vocabulary->vid]);
@@ -168,6 +174,17 @@ function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_insert($vocabulary
   $none_biological_vids = variable_get('none_biological_vids', array());
   $none_biological_vids[$vocabulary->vid] = !$vocabulary->biological_classification ? $vocabulary->display_tab : 0;
   variable_set('none_biological_vids', $none_biological_vids);
+  // Set the default term link
+  $term = db_select('taxonomy_term_data', 'td')->fields('td', array(
+    'tid',
+    'name'
+  ))->condition('name', $vocabulary->default_term_link)->condition('vid', $vocabulary->vid)->execute()->fetchObject();
+  if($term){
+    $default_terms = variable_get('scratchpads_default_term', array());
+    $default_terms[$vocabulary->vid] = $term->tid;
+    variable_set('scratchpads_default_term', $default_terms);
+    menu_rebuild();
+  }
 }
 
 /**
@@ -337,16 +354,22 @@ function scratchpads_simple_taxonomy_page_menu(){
     if($display_tab){
       $vocabulary = taxonomy_vocabulary_load($vid);
       if(($tree = taxonomy_get_tree($vid, 0, 1)) != FALSE){
+        $default_terms = variable_get('scratchpads_default_term', array());
+        if(isset($default_terms[$vid])){
+          $tid = $default_terms[$vid];
+        }else{
+          $term = array_shift($tree);
+          $tid = $term->tid;
+        }
         $path = 'nontaxonomy/term/';
         if(isset($simple_vids[$vid]) && !$simple_vids[$vid]){
           $path = 'simpletaxonomy/term/';
         }
-        $term = array_shift($tree);
         $items['classification/' . $vid] = array(
           'title' => $vocabulary->name,
           'page callback' => 'drupal_goto',
           'page arguments' => array(
-            $path . $term->tid
+            $path . $tid
           ),
           'access arguments' => array(
             'access content'
