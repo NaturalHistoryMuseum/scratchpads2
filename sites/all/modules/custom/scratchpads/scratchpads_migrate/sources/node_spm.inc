@@ -78,7 +78,7 @@ class ScratchpadsNodeSpmMigration extends ScratchpadsNodeMigration{
   protected function nodeQuery(){
     // Only import nodes which are in the forum vocab
     $query = parent::nodeQuery();
-    $query->innerJoin('spm', 'spm', 'spm.nid = n.nid');
+    $query->innerJoin('spm', 'spm', 'spm.vid = n.vid');
     foreach(array_keys($this->manualFieldMapping) as $field){
       $query->addField('spm', $field, strtolower($field));
     }
