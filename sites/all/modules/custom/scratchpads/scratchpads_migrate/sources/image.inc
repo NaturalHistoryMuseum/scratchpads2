@@ -35,7 +35,7 @@ class DrupalImageMigration extends DrupalFileMigration{
    */
   public function __construct(array $arguments){
     parent::__construct($arguments);
-    $this->destination = new MigrateDestinationFile('image', 'MigrateRemoteFileUri');
+    $this->destination = new ScratchpadsMigrateDestinationFile('image', 'MigrateRemoteFileUri');
     $fields = $this->sourceFieldList();
     $fields['nid'] = 'nid';
     $fields['vid'] = 'vid';
@@ -202,11 +202,11 @@ class DrupalImageMigration extends DrupalFileMigration{
       'title',
       'sticky'
     ));
-    $query->innerJoin('node_revisions', 'nr', 'nr.nid = n.nid');
+    $query->innerJoin('node_revisions', 'nr', 'nr.vid = n.vid');
     $query->fields('nr', array(
       'body'
     ));
-    $query->innerJoin('content_field_imagefield', 'i', 'i.nid = n.nid');
+    $query->innerJoin('content_field_imagefield', 'i', 'i.vid = n.vid');
     $query->condition('i.field_imagefield_fid', $row->fid);
     $result = $query->execute();
     if($result->rowCount()){
