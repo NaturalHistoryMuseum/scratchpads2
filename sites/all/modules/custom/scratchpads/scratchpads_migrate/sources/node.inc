@@ -324,6 +324,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->addField('ogap', 'og_public', 'og_public');
     $query->condition('n.title', 'Taskguide', '!=');
     $query->orderBy('nr.vid');
+    // FIXME
+    $query->condition('n.nid', 2454);
     return $query;
   }
   // Allow overiding count query
@@ -333,6 +335,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->innerJoin('node', 'n', 'n.nid=nr.nid');
     $query->condition('n.type', $this->sourceType);
     $query->condition('n.title', 'Taskguide', '!=');
+    $query->condition('n.nid', 2454);
     return $query;
   }
 
@@ -510,7 +513,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       $parsed_url['path'] = str_replace('../', '', $parsed_url['path']);
     }
     $source = 'http://' . $s1_domain . '/' . ltrim(str_replace(' ', '%20', $parsed_url['path']), '/');
-    $destination = file_default_scheme() . '://' . $file_name;
+    $destination = file_default_scheme() . '://' . rawurldecode($file_name);
     if(file_exists($destination)){
       $html_img_src = $destination;
     }else{
@@ -525,10 +528,10 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         // Generate a unique ID for the file name
         $destination = file_default_scheme() . '://data-' . uniqid() . '.' . $extension;
         $file = file_save_data($fp, $destination, FILE_EXISTS_REPLACE);
-        $html_img_src = $destination;
+        $html_img_src = $file->uri;
       }else if($file_contents = file_get_contents($source)){
         if($file = file_save_data($file_contents, $destination, FILE_EXISTS_REPLACE)){
-          $html_img_src = $destination;
+          $html_img_src = $file->uri;
         }
       }
       // Change back to user 1
