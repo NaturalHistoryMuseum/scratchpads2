@@ -169,7 +169,15 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
               }
             }
           }
-          $objPHPExcel->getActiveSheet()->setCellValue($cell, implode('|', $cell_values));
+          try{
+            $objPHPExcel->getActiveSheet()->setCellValue($cell, implode('|', $cell_values));
+          }
+          catch(Exception $e){
+            watchdog('feeds_xls', 'Tried to set "@cell" to "@value"', array(
+              '@cell' => $cell,
+              '@value' => implode('|', $cell_values)
+            ));
+          }
         }
       }else{
         switch($mapping['target']){
