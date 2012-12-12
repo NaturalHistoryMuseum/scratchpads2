@@ -45,6 +45,6 @@ function theme_scratchpads_simple_taxonomy_page_empty(){
     ));
     $content_array[] = $content;
   }
-  $content_array[] = array('#markup' => t('<p>There is currently no content associated with this term.</p>'));
+  $content_array[] = array('#markup' => t('<p style="margin-top:50px">There is currently no additional content associated with this term.</p>'));
   return drupal_render($content_array);
 }

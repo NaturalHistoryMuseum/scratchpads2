@@ -20,6 +20,17 @@ function scratchpads_tweaks_init(){
 }
 
 /**
+ * Implements hook_node_view_alter().
+ * 
+ * Prevent the displaying of the taxonomic name field on the descriptions tab.
+ */
+function scratchpads_tweaks_node_view_alter(&$build){
+  if(arg(0) == 'taxonomy' && arg(1) == 'term' && arg(3) == 'descriptions' && isset($build['field_taxonomic_name'])){
+    unset($build['field_taxonomic_name']);
+  }
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  */
 function media_multiselect_form_file_entity_add_upload_multiple_alter(&$form, &$form_state, $form_id){
