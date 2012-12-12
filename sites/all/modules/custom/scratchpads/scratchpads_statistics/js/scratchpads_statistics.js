@@ -15,9 +15,16 @@
       var chart = new google.visualization.PieChart(document.getElementById(chart_id));
       chart.draw(data, options);
     });
+    $('div.google_chart_bar').once(function(){
+      console.log(this);
+      var chart_id = $(this).attr('id');
+      console.log($.makeArray(Drupal.settings.scratchpads_statistics[chart_id]['data']));
+      console.log(Drupal.settings.scratchpads_statistics[chart_id]);
+      var data = new google.visualization.arrayToDataTable($.makeArray(Drupal.settings.scratchpads_statistics[chart_id]['data']));
+      //var options = {'title': chart_data.title, 'width': chart_data.width, 'height': chart_data.height, 'is3D': true};
+      var options = {};
+      var chart = new google.visualization.BarChart(document.getElementById(chart_id));
+      chart.draw(data, options);
+    });
   }
-  Drupal.behaviors.tinytax = {attach: function(context, settings){
-    // TEST this - does it work?
-    scratchpadsStatisticsDrawChart();
-  }}
 })(jQuery);

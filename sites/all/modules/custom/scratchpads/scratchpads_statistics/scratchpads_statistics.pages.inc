@@ -1,5 +1,24 @@
 <?php
 
+/**
+ * Implements hook_library().
+ */
+function scratchpads_statistics_library(){
+  return array(
+    'googlecharts' => array(
+      'title' => t('Google Charts API'),
+      'website' => 'https://developers.google.com/chart/',
+      'version' => '2',
+      'js' => array(
+        array(
+          'data' => 'https://www.google.com/jsapi',
+          'type' => 'external'
+        )
+      )
+    )
+  );
+}
+
 function scratchpads_statistics_stats_page_json(){
   // Get the content, and build it.
   return _scratchpads_statistics_build_from_time(isset($_GET['since']) ? $_GET['since'] : 0);
@@ -68,14 +87,115 @@ function scratchpads_statistics_stats_page(){
     $total += $row->sum_number_created;
     $i++;
   }
-  $content[] = array(
-    '#markup' => _scratchpads_statistics_chart_pie(t('Content types'), t('Percent'), $counts, t('Content (% of !total)', array(
-      '!total' => $total
-    )))
-  );
+  $content[] = _scratchpads_statistics_chart_pie(t('Content types'), t('Percent'), $counts, t('Content (% of !total)', array(
+    '!total' => $total
+  )));
   // Next we look for the number of users that have logged in in the past week,
   // and then the number of users that have logged in in the past month.
+  //
+  // Users
+  //
+  // Total
+  $query = db_select('scratchpads_statistics_login', 'l')->countQuery();
+  $result = $query->execute()->fetchAssoc();
+  $total_users = (integer)array_pop($result);
+  // Last year 31536000 seconds
+  $query = db_select('scratchpads_statistics_login', 'l')->condition('access', time() - 31536000, '>')->countQuery();
+  $result = $query->execute()->fetchAssoc();
+  $last_year = (integer)array_pop($result);
+  // Last month 2629740 seconds
+  $query = db_select('scratchpads_statistics_login', 'l')->condition('access', time() - 2629740, '>')->countQuery();
+  $result = $query->execute()->fetchAssoc();
+  $last_month = (integer)array_pop($result);
+  // Last week 604800 seconds
+  $query = db_select('scratchpads_statistics_login', 'l')->condition('access', time() - 604800, '>')->countQuery();
+  $result = $query->execute()->fetchAssoc();
+  $last_week = (integer)array_pop($result);
+  //
+  // Sites
+  //
+  // Total
+  $query = db_select('scratchpads_statistics_login', 'l');
+  $query->addExpression('COUNT(DISTINCT site)');
+  $result = $query->execute()->fetchAssoc();
+  $total_users_site = (integer)array_pop($result);
+  // Last year 31536000 seconds
+  $query = db_select('scratchpads_statistics_login', 'l')->condition('access', time() - 31536000, '>');
+  $query->addExpression('COUNT(DISTINCT site)');
+  $result = $query->execute()->fetchAssoc();
+  $last_year_site = (integer)array_pop($result);
+  // Last month 2629740 seconds
+  $query = db_select('scratchpads_statistics_login', 'l')->condition('access', time() - 2629740, '>');
+  $query->addExpression('COUNT(DISTINCT site)');
+  $result = $query->execute()->fetchAssoc();
+  $last_month_site = (integer)array_pop($result);
+  // Last week 604800 seconds
+  $query = db_select('scratchpads_statistics_login', 'l')->condition('access', time() - 604800, '>');
+  $query->addExpression('COUNT(DISTINCT site)');
+  $result = $query->execute()->fetchAssoc();
+  $last_week_site = (integer)array_pop($result);
+  $content[] = _scratchpads_statistics_chart_bar(array(
+    array(
+      'Time period',
+      'Active users',
+      'Active sites'
+    ),
+    array(
+      'Last week',
+      $last_week,
+      $last_week_site
+    ),
+    array(
+      'Last month',
+      $last_month,
+      $last_month_site
+    ),
+    array(
+      'Last year',
+      $last_year,
+      $last_year_site
+    ),
+    array(
+      'Ever',
+      $total_users,
+      $total_users_site
+    )
+  ));
+  //print_r($content);exit;
   return $content;
+}
+
+/**
+ * Simple Google Charts function
+ * 
+ * Returns the HTML wrapper that will contain the chart on a web page.
+ */
+function _scratchpads_statistics_chart_bar($data){
+  $id = "google_chart-" . md5(mt_rand());
+  return array(
+    '#attached' => array(
+      'library' => array(
+        array(
+          'scratchpads_statistics',
+          'googlecharts'
+        )
+      ),
+      'js' => array(
+        array(
+          'data' => array(
+            'scratchpads_statistics' => array(
+              $id => array(
+                'data' => $data
+              )
+            )
+          ),
+          'type' => 'setting'
+        ),
+        drupal_get_path('module', 'scratchpads_statistics') . '/js/scratchpads_statistics.js'
+      )
+    ),
+    '#markup' => '<div id="' . $id . '" class="google_chart_bar"></div>'
+  );
 }
 
 /**
@@ -84,27 +204,36 @@ function scratchpads_statistics_stats_page(){
  * Returns the HTML wrapper that will contain the chart on a web page.
  */
 function _scratchpads_statistics_chart_pie($column_name, $value_name, $values, $title = '', $width = '400', $height = '300'){
-  $id = md5(mt_rand());
-  $id = "google_chart-$id";
-  drupal_add_js('https://www.google.com/jsapi', array(
-    'type' => 'external'
-  ));
-  drupal_add_js(drupal_get_path('module', 'scratchpads_statistics') . '/js/scratchpads_statistics.js');
-  drupal_add_js(array(
-    'scratchpads_statistics' => array(
-      $id => array(
-        'column_name' => $column_name,
-        'value_name' => $value_name,
-        'rows' => $values,
-        'title' => $title,
-        'width' => $width,
-        'height' => $height
+  $id = "google_chart-" . md5(mt_rand());
+  return array(
+    '#attached' => array(
+      'library' => array(
+        array(
+          'scratchpads_statistics',
+          'googlecharts'
+        )
+      ),
+      'js' => array(
+        array(
+          'data' => array(
+            'scratchpads_statistics' => array(
+              $id => array(
+                'column_name' => $column_name,
+                'value_name' => $value_name,
+                'rows' => $values,
+                'title' => $title,
+                'width' => $width,
+                'height' => $height
+              )
+            )
+          ),
+          'type' => 'setting'
+        ),
+        drupal_get_path('module', 'scratchpads_statistics') . '/js/scratchpads_statistics.js'
       )
-    )
-  ), array(
-    'type' => 'setting'
-  ));
-  return '<div id="' . $id . '" class="google_chart_pie"></div>';
+    ),
+    '#markup' => '<div id="' . $id . '" class="google_chart_pie"></div>'
+  );
 }
 
 /**
