@@ -1,24 +1,5 @@
 <?php
 
-/**
- * Implements hook_library().
- */
-function scratchpads_statistics_library(){
-  return array(
-    'googlecharts' => array(
-      'title' => t('Google Charts API'),
-      'website' => 'https://developers.google.com/chart/',
-      'version' => '2',
-      'js' => array(
-        array(
-          'data' => 'https://www.google.com/jsapi',
-          'type' => 'external'
-        )
-      )
-    )
-  );
-}
-
 function scratchpads_statistics_stats_page_json(){
   // Get the content, and build it.
   return _scratchpads_statistics_build_from_time(isset($_GET['since']) ? $_GET['since'] : 0);
@@ -161,7 +142,6 @@ function scratchpads_statistics_stats_page(){
       $total_users_site
     )
   ));
-  //print_r($content);exit;
   return $content;
 }
 
