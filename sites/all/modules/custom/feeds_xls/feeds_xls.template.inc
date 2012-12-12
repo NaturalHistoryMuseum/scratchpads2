@@ -430,7 +430,8 @@ function feeds_xls_download_template_helper($feeds_importer, $output = 'php://ou
         $entity_type = 'taxonomy_term';
       }
       if(strpos($header['target'], ':')){
-        $field = field_info_field(array_shift(explode(':', $header['target'])));
+        $temp_array = explode(':', $header['target']);
+        $field = field_info_field(array_shift($temp_array));
       }else{
         $field = field_info_field($header['target']);
       }
