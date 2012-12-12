@@ -324,8 +324,6 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->addField('ogap', 'og_public', 'og_public');
     $query->condition('n.title', 'Taskguide', '!=');
     $query->orderBy('nr.vid');
-    // FIXME
-    $query->condition('n.nid', 2454);
     return $query;
   }
   // Allow overiding count query
@@ -335,7 +333,6 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->innerJoin('node', 'n', 'n.nid=nr.nid');
     $query->condition('n.type', $this->sourceType);
     $query->condition('n.title', 'Taskguide', '!=');
-    $query->condition('n.nid', 2454);
     return $query;
   }
 
