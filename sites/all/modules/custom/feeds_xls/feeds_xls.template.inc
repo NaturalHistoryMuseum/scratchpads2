@@ -312,7 +312,11 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
   }
   catch(Exception $e){
     // Unknown error here.  We'll add a backtrace to the watchdog.
-    watchdog('feeds_xls', print_r(debug_backtrace(), 1));
+    watchdog('feeds_xls', '@error on @line.<pre>@full_error</pre>', array(
+      '@error' => $e->getMessage(),
+      '@line' => $e->getLine(),
+      '@full_error' => print_r($e->getTrace(), 1)
+    ));
   }
 }
 
