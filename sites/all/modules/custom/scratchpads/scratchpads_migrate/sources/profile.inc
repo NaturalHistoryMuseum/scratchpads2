@@ -190,7 +190,7 @@ class ScratchpadsProfileMigration extends ScratchpadsNodeMigration{
     }
     // Parse images for row body
     if(isset($row->body)){
-      $row->body = ScratchpadsNodeMigration::parseImages($row->body);
+      $row->body = ScratchpadsNodeMigration::parseImages($row->body, $row);
     }
   }
 }
