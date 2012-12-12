@@ -682,11 +682,11 @@ function scratchpads_migrate_get_machine_name($type, $name){
   return $type . $name;
 }
 
-function scratchpads_migrate_unset_empty_fields($object){
+function scratchpads_migrate_unset_empty_fields($object, $skip = array('uid', 'weight_weight', 'sticky', 'status', 'promote', 'moderate', 'field_weight', 'field_sticky')){
   // Loop through and unset NULL fields, otherwise they are populated with empty values
   $properties = array_keys((array)$object);
   foreach($properties as $property){
-    if($object->{$property} == 0){
+    if(in_array($property, $skip)){
       continue;
     }
     if((is_array($object->{$property}) && array_key_exists(0, $object->{$property}) && empty($object->{$property}[0])) || empty($object->{$property})){
