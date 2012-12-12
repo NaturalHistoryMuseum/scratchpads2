@@ -170,15 +170,7 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
                 }
               }
             }
-            try{
-              $objPHPExcel->getActiveSheet()->setCellValue($cell, implode('|', $cell_values));
-            }
-            catch(Exception $e){
-              watchdog('feeds_xls', 'Tried to set "@cell" to "@value"', array(
-                '@cell' => $cell,
-                '@value' => implode('|', $cell_values)
-              ));
-            }
+            $objPHPExcel->getActiveSheet()->setCellValue($cell, _feeds_xls_get_value(implode('|', $cell_values)));
           }
         }else{
           switch($mapping['target']){
@@ -190,7 +182,7 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
                 $guid = $entity->uuid;
               }
               $feeds_item = feeds_xls_get_or_generate_feeds_item_entry($context['sandbox']['entity'], $entity_id, $feeds_importer->id, $guid);
-              $objPHPExcel->getActiveSheet()->setCellValue($cell, $feeds_item['guid']);
+              $objPHPExcel->getActiveSheet()->setCellValue($cell, _feeds_xls_get_value($feeds_item['guid']));
               break;
             case 'parentguid':
               // For some unknown reason, we don't have the parent of this entity,
@@ -203,7 +195,7 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
                   $guid = $parent_term->uuid;
                 }
                 $feeds_item = feeds_xls_get_or_generate_feeds_item_entry($context['sandbox']['entity'], $parent_term->tid, $feeds_importer->id, $guid);
-                $objPHPExcel->getActiveSheet()->setCellValue($cell, $feeds_item['guid']);
+                $objPHPExcel->getActiveSheet()->setCellValue($cell, _feeds_xls_get_value($feeds_item['guid']));
               }
               break;
             case 'parent':
@@ -288,10 +280,10 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
                         }
                       }
                     }
-                    $objPHPExcel->getActiveSheet()->setCellValue($cell, implode($implosion, $cell_values));
+                    $objPHPExcel->getActiveSheet()->setCellValue($cell, _feeds_xls_get_value(implode($implosion, $cell_values)));
                   }
                 }elseif(is_string($entity->{$mapping['target']})){
-                  $objPHPExcel->getActiveSheet()->setCellValue($cell, $entity->{$mapping['target']});
+                  $objPHPExcel->getActiveSheet()->setCellValue($cell, _feeds_xls_get_value($entity->{$mapping['target']}));
                 }
               }
           }
@@ -318,6 +310,14 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
       '@full_error' => print_r($e->getTrace(), 1)
     ));
   }
+}
+
+/**
+ * Helper function to get a value that can be inserted into a cell.
+ */
+function _feeds_xls_get_value($value){
+  if(substr($value, 0, 1) == '='){return "'" . $value;}
+  return $value;
 }
 
 /**
@@ -417,7 +417,7 @@ function feeds_xls_download_template_helper($feeds_importer, $output = 'php://ou
     }
     $column = $cell;
     $cell = "{$cell}1";
-    $objPHPExcel->getActiveSheet()->setCellValue($cell, $header['source']);
+    $objPHPExcel->getActiveSheet()->setCellValue($cell, _feeds_xls_get_value($header['source']));
     // Set the columnn width
     $objPHPExcel->getActiveSheet()->getColumnDimension($column)->setAutoSize(TRUE);
     // Validation
@@ -498,14 +498,14 @@ function feeds_xls_download_template_helper($feeds_importer, $output = 'php://ou
                 ))->condition('vid', $vocabulary->vid)->distinct()->execute();
                 foreach($results as $term){
                   $row++;
-                  $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", $term->name);
+                  $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", _feeds_xls_get_value($term->name));
                 }
               }
               $break_at_end = FALSE;
             }else{
               foreach($allowed_values as $term){
                 $row++;
-                $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", $term);
+                $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", _feeds_xls_get_value($term));
               }
               $break_at_end = TRUE;
             }
