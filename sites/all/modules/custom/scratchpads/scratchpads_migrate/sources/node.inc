@@ -70,6 +70,16 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
 
   public function __construct(array $arguments){
     parent::__construct($arguments);
+    // SO versioning still works, we're going to use VID, not NID
+    $this->map = new MigrateSQLMap($this->machineName, array(
+      'vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Source node VID',
+        'alias' => 'n'
+      )
+    ), ScratchpadsMigrateDestinationNode::getKeySchema());
     $this->fieldSuffixes['link'] = 'url';
     $this->fieldSuffixes['content_taxonomy'] = 'value';
     $this->fieldSuffixes['number_float'] = 'value';
@@ -251,6 +261,9 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $this->addFieldMapping('nid', 'nid');
     $this->removeFieldMapping('is_new');
     $this->addFieldMapping('is_new', NULL)->defaultValue(true);
+    // Revisioning
+    $this->removeFieldMapping('changed');
+    $this->addFieldMapping('changed', 'timestamp');
     $this->addFieldMapping('group_audience', 'group_nid'); // Remap this in
     // prepare row -
     // needs to use OG id
@@ -283,21 +296,42 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
 
   protected function nodeQuery(){
     // Get organic groups info
-    $query = parent::nodeQuery();
+    $query = Database::getConnection('default', $this->sourceConnection)->select('node_revisions', 'nr')->fields('nr', array(
+      'vid',
+      'body',
+      'teaser',
+      'format',
+      'uid',
+      'timestamp'
+    ));
+    $query->condition('type', $this->sourceType);
+    $query->leftJoin('node', 'n', 'n.nid=nr.nid');
+    $query->fields('n', array(
+      'nid',
+      'language',
+      'title',
+      'status',
+      'created',
+      'comment',
+      'promote',
+      'moderate',
+      'sticky'
+    ));
+    // NOTE: OG works with NID, not VID
     $query->leftJoin('og_ancestry', 'oga', 'oga.nid = n.nid');
     $query->addField('oga', 'group_nid', 'group_nid');
     $query->leftJoin('og_access_post', 'ogap', 'ogap.nid = n.nid');
     $query->addField('ogap', 'og_public', 'og_public');
     $query->condition('n.title', 'Taskguide', '!=');
-    $query->condition('n.nid', 897);
+    $query->orderBy('nr.vid');
     return $query;
   }
   // Allow overiding count query
   protected function countQuery(){
-    $query = Database::getConnection('default', $this->sourceConnection)->select('node', 'n');
-    $query->addExpression('COUNT(DISTINCT(n.nid))');
-    $query->innerJoin('node_revisions', 'nr', 'n.vid=nr.vid');
-    $query->condition('type', $this->sourceType);
+    $query = Database::getConnection('default', $this->sourceConnection)->select('node_revisions', 'nr');
+    $query->addExpression('COUNT(DISTINCT(nr.vid))');
+    $query->innerJoin('node', 'n', 'n.nid=nr.nid');
+    $query->condition('n.type', $this->sourceType);
     $query->condition('n.title', 'Taskguide', '!=');
     return $query;
   }
@@ -315,6 +349,9 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   }
 
   public function prepareRow($row){
+    // Delete all migration error messages for this node
+    // That way, only errors relating to the most recent migration will be displayed to the users
+    scratchpads_migrate_task_delete('node', $row->nid);
     parent::prepareRow($row);
     // Doesn't seem to use the default value, unless it's unset
     if(empty($row->language)){
@@ -370,7 +407,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     // Unset null rows, necessary for dwc location
     $properties = array_keys((array)$row);
     foreach($properties as $property){
-      if(empty($row->{$property})){
+      if(empty($row->{$property}) && $row->{$property} != 0){
         unset($row->{$property});
       }
     }

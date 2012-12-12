@@ -23,7 +23,9 @@ class BlockMigration extends DrupalMigration{
       'body',
       'info',
       'visibility',
-      'status'
+      'status',
+      'module',
+      'delta'
     ));
   }
 
@@ -39,15 +41,24 @@ class BlockMigration extends DrupalMigration{
       'pages',
       'title',
       'visibility',
-      'status'
+      'status',
+      'module',
+      'delta'
     ));
-    $query->innerJoin('boxes', 'bx', 'bx.bid=b.delta');
+    $query->leftJoin('boxes', 'bx', 'bx.bid=b.delta');
     $query->fields('bx', array(
       'body',
       'info'
     ));
     $query->condition('status', 1);
-    $query->condition('module', 'block');
+    $query->condition('module', array(
+      'block',
+      'menu'
+    ), 'IN');
+    $query->condition('delta', array(
+      'primary-links',
+      'secondary-links'
+    ), 'NOT IN');
     $query->condition('theme', 'garland');
     return $query;
   }
