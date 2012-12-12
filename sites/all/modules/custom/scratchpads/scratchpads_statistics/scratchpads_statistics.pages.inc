@@ -68,9 +68,27 @@ function scratchpads_statistics_stats_page(){
     $total += $row->sum_number_created;
     $i++;
   }
-  $content[] = _scratchpads_statistics_chart_pie(t('Content types'), t('Percent'), $counts, t('Content (% of !total)', array(
-    '!total' => $total
-  )));
+  $data = array(
+    array(
+      t('Content types'),
+      t('Percent')
+    )
+  );
+  foreach($counts as $title => $value){
+    $data[] = array(
+      $title,
+      (integer)$value
+    );
+  }
+  $content[] = array(
+    '#theme' => 'simple_google_chart',
+    '#type' => 'PieChart',
+    '#data' => $data,
+    '#options' => array(
+      'is3D' => TRUE,
+      'height' => 400
+    )
+  );
   // Next we look for the number of users that have logged in in the past week,
   // and then the number of users that have logged in in the past month.
   //
@@ -115,105 +133,38 @@ function scratchpads_statistics_stats_page(){
   $query->addExpression('COUNT(DISTINCT site)');
   $result = $query->execute()->fetchAssoc();
   $last_week_site = (integer)array_pop($result);
-  $content[] = _scratchpads_statistics_chart_bar(array(
-    array(
-      'Time period',
-      'Active users',
-      'Active sites'
-    ),
-    array(
-      'Last week',
-      $last_week,
-      $last_week_site
-    ),
-    array(
-      'Last month',
-      $last_month,
-      $last_month_site
-    ),
-    array(
-      'Last year',
-      $last_year,
-      $last_year_site
-    ),
-    array(
-      'Ever',
-      $total_users,
-      $total_users_site
+  $content[] = array(
+    '#theme' => 'simple_google_chart',
+    '#type' => 'BarChart',
+    '#data' => array(
+      array(
+        'Time period',
+        'Active users',
+        'Active sites'
+      ),
+      array(
+        'Last week',
+        $last_week,
+        $last_week_site
+      ),
+      array(
+        'Last month',
+        $last_month,
+        $last_month_site
+      ),
+      array(
+        'Last year',
+        $last_year,
+        $last_year_site
+      ),
+      array(
+        'Ever',
+        $total_users,
+        $total_users_site
+      )
     )
-  ));
+  );
   return $content;
-}
-
-/**
- * Simple Google Charts function
- * 
- * Returns the HTML wrapper that will contain the chart on a web page.
- */
-function _scratchpads_statistics_chart_bar($data){
-  $id = "google_chart-" . md5(mt_rand());
-  return array(
-    '#attached' => array(
-      'library' => array(
-        array(
-          'scratchpads_statistics',
-          'googlecharts'
-        )
-      ),
-      'js' => array(
-        array(
-          'data' => array(
-            'scratchpads_statistics' => array(
-              $id => array(
-                'data' => $data
-              )
-            )
-          ),
-          'type' => 'setting'
-        ),
-        drupal_get_path('module', 'scratchpads_statistics') . '/js/scratchpads_statistics.js'
-      )
-    ),
-    '#markup' => '<div id="' . $id . '" class="google_chart_bar"></div>'
-  );
-}
-
-/**
- * Simple Google Charts function
- *
- * Returns the HTML wrapper that will contain the chart on a web page.
- */
-function _scratchpads_statistics_chart_pie($column_name, $value_name, $values, $title = '', $width = '400', $height = '300'){
-  $id = "google_chart-" . md5(mt_rand());
-  return array(
-    '#attached' => array(
-      'library' => array(
-        array(
-          'scratchpads_statistics',
-          'googlecharts'
-        )
-      ),
-      'js' => array(
-        array(
-          'data' => array(
-            'scratchpads_statistics' => array(
-              $id => array(
-                'column_name' => $column_name,
-                'value_name' => $value_name,
-                'rows' => $values,
-                'title' => $title,
-                'width' => $width,
-                'height' => $height
-              )
-            )
-          ),
-          'type' => 'setting'
-        ),
-        drupal_get_path('module', 'scratchpads_statistics') . '/js/scratchpads_statistics.js'
-      )
-    ),
-    '#markup' => '<div id="' . $id . '" class="google_chart_pie"></div>'
-  );
 }
 
 /**

@@ -1,25 +1,6 @@
 <?php
 
 /**
- * Implements hook_library().
- */
-function scratchpads_statistics_library(){
-  return array(
-    'googlecharts' => array(
-      'title' => t('Google Charts API'),
-      'website' => 'https://developers.google.com/chart/',
-      'version' => '2',
-      'js' => array(
-        array(
-          'data' => 'https://www.google.com/jsapi',
-          'type' => 'external'
-        )
-      )
-    )
-  );
-}
-
-/**
  * Implements hook_cron().
  */
 function scratchpads_statistics_cron(){
