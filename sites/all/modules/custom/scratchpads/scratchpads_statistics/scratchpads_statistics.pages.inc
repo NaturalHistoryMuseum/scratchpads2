@@ -84,6 +84,9 @@ function scratchpads_statistics_stats_page(){
     '#theme' => 'simple_google_chart',
     '#type' => 'PieChart',
     '#data' => $data,
+    '#title' => t('Content distribution (percent of !total)', array(
+      '!total' => $total
+    )),
     '#options' => array(
       'is3D' => TRUE,
       'height' => 400
@@ -136,6 +139,7 @@ function scratchpads_statistics_stats_page(){
   $content[] = array(
     '#theme' => 'simple_google_chart',
     '#type' => 'BarChart',
+    '#title' => t('User activity'),
     '#data' => array(
       array(
         'Time period',

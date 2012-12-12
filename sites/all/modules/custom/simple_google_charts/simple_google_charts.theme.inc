@@ -18,5 +18,8 @@ function theme_simple_google_chart($variables){
       )
     )
   ), 'setting');
-  return '<div id="' . $id . '" class="google_chart ' . $variables['type'] . '"></div>';
+  if($variables['title']){
+    $variables['title'] = "<h2>{$variables['title']}</h2>";
+  }
+  return '<div class="google_chart_wrapper">' . $variables['title'] . '<div id="' . $id . '" class="google_chart ' . $variables['type'] . '"></div></div>';
 }

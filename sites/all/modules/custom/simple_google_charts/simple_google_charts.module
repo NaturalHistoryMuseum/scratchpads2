@@ -28,7 +28,8 @@ function simple_google_charts_theme($existing, $type, $theme, $path){
       'variables' => array(
         'data' => array(),
         'type' => 'BarChart',
-        'options' => array()
+        'options' => array(),
+        'title' => FALSE
       ),
       'file' => 'simple_google_charts.theme.inc'
     )
