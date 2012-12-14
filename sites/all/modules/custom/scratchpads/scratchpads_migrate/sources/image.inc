@@ -35,7 +35,7 @@ class DrupalImageMigration extends DrupalFileMigration{
    */
   public function __construct(array $arguments){
     parent::__construct($arguments);
-    $this->destination = new MigrateDestinationFile('image', 'MigrateRemoteFileUri');
+    $this->destination = new ScratchpadsMigrateDestinationFile('image', 'MigrateRemoteFileUri');
     $fields = $this->sourceFieldList();
     $fields['nid'] = 'nid';
     $fields['vid'] = 'vid';
@@ -202,11 +202,11 @@ class DrupalImageMigration extends DrupalFileMigration{
       'title',
       'sticky'
     ));
-    $query->innerJoin('node_revisions', 'nr', 'nr.nid = n.nid');
+    $query->innerJoin('node_revisions', 'nr', 'nr.vid = n.vid');
     $query->fields('nr', array(
       'body'
     ));
-    $query->innerJoin('content_field_imagefield', 'i', 'i.nid = n.nid');
+    $query->innerJoin('content_field_imagefield', 'i', 'i.vid = n.vid');
     $query->condition('i.field_imagefield_fid', $row->fid);
     $result = $query->execute();
     if($result->rowCount()){
@@ -225,6 +225,18 @@ class DrupalImageMigration extends DrupalFileMigration{
     $this->nodeMigration->prepareRow($row);
     // Row weight
     ScratchpadsNodeMigration::weightDecode($row);
+    // Are there multiple biological classifcations?
+    if(count($this->biologicalClassifications) > 1){
+      $mapped_classification = array_shift($this->biologicalClassifications);
+      if(!isset($row->{$mapped_classification})){
+        $row->{$mapped_classification} = array();
+      }
+      foreach($this->biologicalClassifications as $unmapped_classifcation){
+        if(isset($row->{$unmapped_classifcation})){
+          $row->{$mapped_classification} = array_merge($row->{$mapped_classification}, $row->{$unmapped_classifcation});
+        }
+      }
+    }
   }
 
   public function prepare($file, $row){
