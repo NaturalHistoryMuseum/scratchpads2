@@ -22,12 +22,10 @@ function scratchpads_pages_menu(){
       $vocabulary = taxonomy_vocabulary_load($vid);
       if(($tree = taxonomy_get_tree($vid, 0, 1)) != FALSE){
         $term = array_shift($tree);
+        $tid = $term->tid;
         $default_terms = variable_get('scratchpads_default_term', array());
         if(isset($default_terms[$vid])){
           $tid = $default_terms[$vid];
-        }else{
-          $term = array_shift($tree);
-          $tid = $term->tid;
         }
         $items['classification/' . $vid] = array(
           'title' => $vocabulary->name,
