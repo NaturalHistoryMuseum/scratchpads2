@@ -334,7 +334,7 @@ function scratchpads_tweaks_install_help_install_filters(){
             'AutoFormat.AutoParagraph' => 1,
             'AutoFormat.Linkify' => 1,
             'AutoFormat.RemoveEmpty' => 1,
-            'HTML.Allowed' => 'a[style]
+            'HTML.Allowed' => 'a[style][href]
 blockquote[style]
 br[style]
 caption[style]
@@ -344,7 +344,7 @@ dd[style]
 div[style]
 dl[style]
 dt[style]
-em[style]
+em
 h1[style]
 h2[style]
 h3[style]
@@ -352,9 +352,9 @@ h4[style]
 h5[style]
 h6[style]
 hr[style]
-iframe[style]
-img[style]
-i[style]
+iframe[style][src][width][height]
+img[style][src]
+i
 li[style]
 ol[style]
 pre[style]
@@ -370,7 +370,7 @@ thead[style]
 th[style]
 tr[style]
 ul[style]
-u[style]',
+u',
             'HTML.ForbiddenAttributes' => '',
             'HTML.ForbiddenElements' => '',
             'HTML.SafeObject' => 0,
