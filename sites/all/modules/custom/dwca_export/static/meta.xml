@@ -52,6 +52,19 @@
 	</extension>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
+		rowType="http://eol.org/schema/reference/Reference">
+		<files>
+			<location>reference.txt</location>
+		</files>
+		<coreid index="0" />
+		<field index="1" term="http://purl.org/dc/terms/identifier" />
+		<field index="3" term="http://purl.org/ontology/bibo/doi" />
+		<field index="6" term="http://eol.org/schema/reference/full_reference" />
+		<field index="7" term="http://eol.org/schema/reference/primaryTitle" />
+		<field index="12" term="http://purl.org/dc/terms/language" />
+	</extension>
+	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
+		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
 		rowType="http://rs.gbif.org/terms/1.0/Distribution">
 		<files>
 			<location>distribution.txt</location>
@@ -66,10 +79,26 @@
 			<location>image.txt</location>
 		</files>
 		<coreid index="0" />
-		<field index="2" term="http://purl.org/dc/terms/identifier" />
-		<field index="3" term="http://purl.org/dc/terms/title" />
-		<field index="4" term="http://purl.org/dc/terms/format" />
-		<field index="5" term="http://purl.org/dc/terms/license" />
+		<field index="2"  term="http://purl.org/dc/terms/identifier" />
+		<field index="3"  term="http://purl.org/dc/terms/title" />
+		<field index="4"  term="http://purl.org/dc/terms/format" />
+		<field index="5"  term="http://purl.org/dc/terms/license" />
+		
+		<field index="8"  term="http://rs.tdwg.org/ac/terms/tag" />
+		<field index="9"  term="http://rs.tdwg.org/ac/terms/captureDevice" />
+		<field index="10" term="http://rs.tdwg.org/ac/terms/resourceCreationTechnique" />
+		<field index="11" term="http://rs.tdwg.org/ac/terms/providerID" />
+		<field index="12" term="http://ns.adobe.com/xap/1.0/rights/Owner" />
+		<field index="13" term="http://purl.org/dc/terms/rights" />
+		<field index="14" term="http://rs.tdwg.org/ac/terms/provider" />
+		<field index="15" term="http://rs.tdwg.org/ac/terms/metadataCreator" />
+		<field index="16" term="http://rs.tdwg.org/ac/terms/metadataProvider" />
+		<field index="17" term="http://purl.org/dc/terms/creator" />
+		<field index="18" term="http://rs.tdwg.org/ac/terms/subjectPart" />
+		<field index="19" term="http://rs.tdwg.org/ac/terms/subjectOrientation" />
+		<field index="20" term="http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/WorldRegion" />
+		
+		
 	</extension>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
@@ -93,19 +122,7 @@
 		<coreid index="0" />
 		<field index="1" term="http://rs.tdwg.org/dwc/terms/vernacularName" />
 	</extension>
-	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
-		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
-		rowType="http://eol.org/schema/reference/Reference">
-		<files>
-			<location>reference.txt</location>
-		</files>
-		<coreid index="0" />
-		<field index="1" term="http://purl.org/dc/terms/identifier" />
-		<field index="4" term="http://purl.org/ontology/bibo/doi" />
-		<field index="8" term="http://eol.org/schema/reference/full_reference" />
-		<field index="9" term="http://eol.org/schema/reference/primaryTitle" />
-		<field index="14" term="http://purl.org/dc/terms/language" />
-	</extension>
+	
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
 		rowType="http://eol.org/schema/media/Document">
