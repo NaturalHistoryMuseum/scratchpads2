@@ -79,14 +79,15 @@
 			<location>image.txt</location>
 		</files>
 		<coreid index="0" />
-		<field index="2"  term="http://purl.org/dc/terms/identifier" />
-		<field index="3"  term="http://purl.org/dc/terms/title" />
-		<field index="4"  term="http://purl.org/dc/terms/format" />
-		<field index="5"  term="http://purl.org/dc/terms/license" />
-		
-		<field index="8"  term="http://rs.tdwg.org/ac/terms/tag" />
-		<field index="9"  term="http://rs.tdwg.org/ac/terms/captureDevice" />
-		<field index="10" term="http://rs.tdwg.org/ac/terms/resourceCreationTechnique" />
+		<field index="2" term="http://purl.org/dc/terms/identifier" />
+		<field index="3" term="http://purl.org/dc/terms/title" />
+		<field index="4" term="http://purl.org/dc/terms/format" />
+		<field index="5" term="http://purl.org/dc/terms/license" />
+
+		<field index="8" term="http://rs.tdwg.org/ac/terms/tag" />
+		<field index="9" term="http://rs.tdwg.org/ac/terms/captureDevice" />
+		<field index="10"
+			term="http://rs.tdwg.org/ac/terms/resourceCreationTechnique" />
 		<field index="11" term="http://rs.tdwg.org/ac/terms/providerID" />
 		<field index="12" term="http://ns.adobe.com/xap/1.0/rights/Owner" />
 		<field index="13" term="http://purl.org/dc/terms/rights" />
@@ -96,9 +97,10 @@
 		<field index="17" term="http://purl.org/dc/terms/creator" />
 		<field index="18" term="http://rs.tdwg.org/ac/terms/subjectPart" />
 		<field index="19" term="http://rs.tdwg.org/ac/terms/subjectOrientation" />
-		<field index="20" term="http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/WorldRegion" />
-		
-		
+		<field index="20"
+			term="http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/WorldRegion" />
+
+
 	</extension>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
@@ -115,6 +117,27 @@
 	</extension>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
+		rowType="http://eol.org/schema/media/Document">
+		<files>
+			<location>description.txt</location>
+		</files>
+		<coreid index="0" />
+		<field index="0" term="http://rs.tdwg.org/dwc/terms/taxonID" />
+		<field index="1" term="http://purl.org/dc/terms/identifier" />
+		<field index="3" term="http://ns.adobe.com/xap/1.0/rights/UsageTerms" />
+		<field index="5" term="http://rs.tdwg.org/ac/terms/accessURI" />
+		<field index="6" term="http://ns.adobe.com/xap/1.0/rights/Owner" />
+		<field index="7" term="http://purl.org/dc/terms/language" />
+		<field index="8" term="http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/CVterm" />
+		<field index="9" term="http://purl.org/dc/terms/format" />
+		<field index="10" term="http://purl.org/dc/terms/type" />
+		<field index="11" term="http://eol.org/schema/agent/agentID" />
+
+
+
+	</extension>
+	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
+		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
 		rowType="http://rs.gbif.org/terms/1.0/VernacularName">
 		<files>
 			<location>vernacular_names.txt</location>
@@ -122,7 +145,7 @@
 		<coreid index="0" />
 		<field index="1" term="http://rs.tdwg.org/dwc/terms/vernacularName" />
 	</extension>
-	
+
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
 		rowType="http://eol.org/schema/media/Document">
