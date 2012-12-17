@@ -108,7 +108,10 @@ function emonocot_dwca_add_description_fields(&$view, $ref_field){
   $new_field['empty_zero'] = 0;
   $new_field['hide_alter_empty'] = 1;
   $new_field['field_api_classes'] = 0;
-  $view->display['default']->display_options['fields']['field_emonocot_acknowledgement'] = $new_field;
+  $insert = array();
+  $insert['field_emonocot_acknowledgement'] = $new_field;
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'nothing');
+  unset($insert);
   unset($new_field);
   $new_field = array();
   $new_field['id'] = 'path_2';
@@ -134,7 +137,11 @@ function emonocot_dwca_add_description_fields(&$view, $ref_field){
   $new_field['empty_zero'] = 0;
   $new_field['hide_alter_empty'] = 1;
   $new_field['absolute'] = 1;
-  $view->display['default']->display_options['fields']['path_2'] = $new_field;
+  $insert = array();
+  $insert['path_2'] = $new_field;
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'path');
+  unset($insert);
+  unset($new_field);
   $new_field = array();
   $new_field['id'] = 'path_1';
   $new_field['table'] = 'node';
@@ -162,7 +169,11 @@ function emonocot_dwca_add_description_fields(&$view, $ref_field){
   $new_field['hide_alter_empty'] = 1;
   $new_field['absolute'] = 1;
   $new_field['exclude'] = TRUE;
-  $view->display['default']->display_options['fields']['path_1'] = $new_field;
+  $insert = array();
+  $insert['path_1'] = $new_field;
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'nothing_1');
+  unset($insert);
+  unset($new_field);
   /* Field: Content: Nid */
   $new_field = array();
   $new_field['id'] = 'nid';
@@ -190,7 +201,11 @@ function emonocot_dwca_add_description_fields(&$view, $ref_field){
   $new_field['empty_zero'] = 0;
   $new_field['hide_alter_empty'] = 1;
   $new_field['link_to_node'] = 0;
-  $view->display['default']->display_options['fields']['path_1_nid'] = $new_field;
+  $insert = array();
+  $insert['path_1_nid'] = $new_field;
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'path_1');
+  unset($insert);
+  unset($new_field);
   $new_relationship = array();
   $new_relationship['id'] = $ref_field . '_nid';
   $new_relationship['table'] = 'field_data_' . $ref_field;
@@ -309,4 +324,10 @@ function emonocot_dwca_add_wcm_image(&$view){
   $new_field['hide_alter_empty'] = 0;
   $new_field['field_api_classes'] = 0;
   return $new_field;
+}
+
+function _emonocot_dwca_insert_after_in_array($array, $insert, $parent_key){
+  $keys = array_keys($array);
+  $position = (int)array_search($parent_key, $keys) + 1;
+  return array_merge(array_slice($array, 0, $position), $insert, array_slice($array, $position));
 }
