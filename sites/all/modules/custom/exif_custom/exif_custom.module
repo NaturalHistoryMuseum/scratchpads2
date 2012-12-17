@@ -84,21 +84,21 @@ function exif_custom_menu(){
 }
 
 function exif_custom_permission(){
-	return array(
-	  'have default image metadata profile' => array(
-	    'title' => t('Have default image metadata profile'),
-	    'description' => t('Allow users to override teh site default image metadata profile.')
-	  ),
-	  'view image metadata' => array(
-	    'title' => t('View iamge metadata'),
-	    'description' => t('See what image metdata import profiles have been created.'),
-	 ),
-	  'administer image metadata' => array(
-	    'title' => 'Administer image metadata',
-	    'description' => 'Administer image metadata import profiles',
-	  ),
-	);
-} 
+  return array(
+    'have default image metadata profile' => array(
+      'title' => t('Have default image metadata profile'),
+      'description' => t('Allow users to override teh site default image metadata profile.')
+    ),
+    'view image metadata' => array(
+      'title' => t('View iamge metadata'),
+      'description' => t('See what image metdata import profiles have been created.')
+    ),
+    'administer image metadata' => array(
+      'title' => 'Administer image metadata',
+      'description' => 'Administer image metadata import profiles'
+    )
+  );
+}
 
 /**
  * 
@@ -202,7 +202,6 @@ function exif_custom_map_edit_form(){
   $select_fields = array();
   //Allow mapping to title field
   $select_fields['filename'] = 'File name';
-  
   //Allow no field to be selected
   $select_fields['none'] = 'none';
   foreach($fields as $field => $field_data){
@@ -336,7 +335,7 @@ function exif_custom_new_map_validate($form, &$form_state){
   if($result > 0){
     form_set_error('name', t('The name must be unique'));
   }
-   //TODO: check image is an allowed type
+  //TODO: check image is an allowed type
 }
 
 function exif_custom_new_map_submit($form, $form_state){
@@ -384,18 +383,18 @@ function exif_custom_file_insert($file){
 }
 
 function exif_custom_process_entity($file){
-	$file = file_load($file->fid);
+  $file = file_load($file->fid);
   if($file->type != 'image'){return;}
   if(arg(3) == 'exif_custom'){return;}
   $mappings = exif_custom_get_mapping();
   $data = exif_custom_get_exif_fields($file->uri, TRUE);
-  if ($data == FALSE){return;}
+  if($data == FALSE){return;}
   foreach($mappings as $field => $values){
-  	//File name is special case
-  	if ($field == 'filename'){
-  	  $file->filename = $data[$values->exif_field];
-  	  continue;
-  	}
+    //File name is special case
+    if($field == 'filename'){
+      $file->filename = $data[$values->exif_field];
+      continue;
+    }
     $array = array();
     $field_info = field_info_field($field);
     $instance_info = field_info_instance('file', $field, 'image');
@@ -404,22 +403,23 @@ function exif_custom_process_entity($file){
         $vids = array();
         foreach($field_info['settings']['allowed_values'] as $allowed_value){
           $vocabulary = taxonomy_vocabulary_machine_name_load($allowed_value['vocabulary']);
-          if ($allowed_value['vocabulary'] === 0){break;}
+          if($allowed_value['vocabulary'] === 0){
+            break;
+          }
           $vids[$vocabulary->vid] = $vocabulary;
-          
         }
         $element = array();
         $element['#value'] = $data[$values->exif_field];
         $form_state = array();
         $array = array();
-        $array['und'] = _exif_custom_taxonomy_autocomplete_validate($element,  $vids);
+        $array['und'] = _exif_custom_taxonomy_autocomplete_validate($element, $vids);
         break;
       case 'country':
-      	$countries = array_flip(countries_get_countries('name'));
-      	if (isset($countries[$data[$values->exif_field]])){
-      	  $array['und'][0]['iso2'] = ($countries[$data[$values->exif_field]]);
-      	}
-      	break;
+        $countries = array_flip(countries_get_countries('name'));
+        if(isset($countries[$data[$values->exif_field]])){
+          $array['und'][0]['iso2'] = ($countries[$data[$values->exif_field]]);
+        }
+        break;
       default:
         $array['und']['0']['value'] = $data[$values->exif_field];
     }
@@ -462,16 +462,16 @@ function exif_custom_get_exif_fields($uri, $concatenate_arrays = TRUE){
   if(isset($info['APP13'])){
     $iptc = iptcparse($info['APP13']);
   }
-  if (isset($iptc)){
-  //IPTC:2#254 can contain name=value pairs
-  if(isset($iptc['2#254']) && is_array($iptc['2#254'])){
-    $i = 0;
-    foreach($iptc['2#254'] as $iptc_field){
-      $subfields = explode('=', $iptc_field);
-      $iptc['2#254.' . $subfields[0]] = $subfields[1];
+  if(isset($iptc)){
+    //IPTC:2#254 can contain name=value pairs
+    if(isset($iptc['2#254']) && is_array($iptc['2#254'])){
+      $i = 0;
+      foreach($iptc['2#254'] as $iptc_field){
+        $subfields = explode('=', $iptc_field);
+        $iptc['2#254.' . $subfields[0]] = $subfields[1];
+      }
+      unset($iptc['2#254']);
     }
-    unset($iptc['2#254']);
-  }
     foreach($iptc as $key => $value){
       if($concatenate_arrays && is_array($value)){
         $value = implode(', ', $value);
@@ -479,7 +479,7 @@ function exif_custom_get_exif_fields($uri, $concatenate_arrays = TRUE){
       $fields['IPTC:' . $key] = exif_custom_check_plain($value);
     }
   }
-  if (!is_array($exif) && !isset($iptc)){return FALSE;}
+  if(!is_array($exif) && !isset($iptc)){return FALSE;}
   return $fields;
 }
 
@@ -521,9 +521,9 @@ function _exif_custom_taxonomy_autocomplete_validate(&$element, $vocabularies){
   return $items;
 }
 
-function exif_custom_check_plain($text) {
-  if (!mb_detect_encoding($text, 'UTF-8', true)) {
-        $text = mb_convert_encoding($text, 'UTF-8', 'ISO-8859-1');
+function exif_custom_check_plain($text){
+  if(!mb_detect_encoding($text, 'UTF-8', true)){
+    $text = mb_convert_encoding($text, 'UTF-8', 'ISO-8859-1');
   }
   return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 }

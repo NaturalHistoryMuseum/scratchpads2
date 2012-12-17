@@ -354,12 +354,11 @@ function scratchpads_simple_taxonomy_page_menu(){
     if($display_tab){
       $vocabulary = taxonomy_vocabulary_load($vid);
       if(($tree = taxonomy_get_tree($vid, 0, 1)) != FALSE){
+        $term = array_shift($tree);
+        $tid = $term->tid;
         $default_terms = variable_get('scratchpads_default_term', array());
         if(isset($default_terms[$vid])){
           $tid = $default_terms[$vid];
-        }else{
-          $term = array_shift($tree);
-          $tid = $term->tid;
         }
         $path = 'nontaxonomy/term/';
         if(isset($simple_vids[$vid]) && !$simple_vids[$vid]){

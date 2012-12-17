@@ -1,23 +1,37 @@
 <?php
 
 /**
- * Handle spaces in remote files
+ * Destination class implementing migration into the files table.
  */
-class MigrateRemoteFileUri extends MigrateFileUri{
+class ScratchpadsMigrateDestinationFile extends MigrateDestinationFile{
 
-  protected function copyFile($destination){
-    $this->sourcePath = str_replace('sites/', 'http://', str_replace(" ", "%20", $this->sourcePath));
-    return parent::copyFile($destination);
+  public function import(stdClass $file, stdClass $row){
+    scratchpads_migrate_unset_empty_fields($file);
+    $status = parent::import($file, $row);
+    // Add a path
+    if($status && isset($row->path) && !empty($row->path)){
+      $fid = reset($status);
+      $path = array(
+        'source' => 'file/' . $fid,
+        'alias' => $row->path
+      );
+      path_save($path);
+    }
+    return $status;
   }
 
   /**
-   * Implementation of MigrateFileInterface::fields().
+   * Delete a file entry.
    *
-   * @return array
+   * @param array $fid
+   *  Fid to delete, arrayed.
    */
-  static public function fields(){
-    return parent::fields() + array(
-      'filename' => t('File name')
-    );
+  public function rollback(array $fid){
+    parent::rollback($fid);
+    // Delete the path
+    $source = 'file/' . reset($fid);
+    path_delete(array(
+      'source' => $source
+    ));
   }
 }
