@@ -1,0 +1,16 @@
+name = Feeds SQL
+description = Imports data from an external database using Feeds.
+package = Feeds
+core = 7.x
+dependencies[] = feeds
+dependencies[] = ctools
+
+files[] = plugins/FeedsSQLFetcher.inc
+files[] = plugins/FeedsSQLParser.inc
+
+; Information added by drupal.org packaging script on 2012-03-01
+version = "7.x-1.0+1-dev"
+core = "7.x"
+project = "feeds_sql"
+datestamp = "1330604125"
+
