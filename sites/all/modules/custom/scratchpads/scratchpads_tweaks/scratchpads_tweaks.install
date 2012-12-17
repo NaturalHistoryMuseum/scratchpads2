@@ -324,37 +324,65 @@ function scratchpads_tweaks_install_help_install_filters(){
     'name' => 'Filtered HTML',
     'weight' => 0,
     'filters' => array(
-      // URL filter.
-      'filter_url' => array(
+      'htmlpurifier_basic' => array(
         'weight' => 0,
-        'status' => 1
-      ),
-      // HTML filter.
-      'filter_html' => array(
-        'weight' => 1,
         'status' => 1,
         'settings' => array(
-          'allowed_html' => '<span> <div> <iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h1> <h2> <h3> <h4> <h5> <h6> <u>',
-          'filter_html_help' => 0,
-          'filter_html_nofollow' => 0
+          'htmlpurifier_help' => 0,
+          'htmlpurifier_basic_config' => array(
+            'Attr.EnableID' => 0,
+            'AutoFormat.AutoParagraph' => 1,
+            'AutoFormat.Linkify' => 1,
+            'AutoFormat.RemoveEmpty' => 1,
+            'HTML.Allowed' => 'a[style]
+blockquote[style]
+br[style]
+caption[style]
+cite[style]
+code[style]
+dd[style]
+div[style]
+dl[style]
+dt[style]
+em[style]
+h1[style]
+h2[style]
+h3[style]
+h4[style]
+h5[style]
+h6[style]
+hr[style]
+iframe[style]
+img[style]
+i[style]
+li[style]
+ol[style]
+pre[style]
+p[style]
+span[style]
+strong[style]
+sub[style]
+sup[style]
+table[style]
+tbody[style]
+td[style]
+thead[style]
+th[style]
+tr[style]
+ul[style]
+u[style]',
+            'HTML.ForbiddenAttributes' => '',
+            'HTML.ForbiddenElements' => '',
+            'HTML.SafeObject' => 0,
+            'Output.FlashCompat' => 0,
+            'URI.DisableExternalResources' => 0,
+            'URI.DisableResources' => 0,
+            'Null_URI.Munge' => 1
+          )
         )
-      ),
-      // Line break filter.
-      'filter_autop' => array(
-        'weight' => 2,
-        'status' => 1
-      ),
-      // HTML corrector filter.
-      'filter_htmlcorrector' => array(
-        'weight' => 10,
-        'status' => 1
       ),
       'media_filter' => array(
         'weight' => 11,
-        'status' => 1
-      ),
-      'emptyparagraphkiller' => array(
-        'weight' => 12,
         'status' => 1
       ),
       'twitterscript_filter' => array(
@@ -949,5 +977,15 @@ function scratchpads_tweaks_update_7033(){
  * Add <span> tags
  */
 function scratchpads_tweaks_update_7034(){
+  scratchpads_tweaks_install_help_install_filters();
+}
+
+/**
+ * Add HTMLPurifier module.
+ */
+function scratchpads_tweaks_update_7035(){
+  module_enable(array(
+    'htmlpurifier'
+  ));
   scratchpads_tweaks_install_help_install_filters();
 }
