@@ -437,13 +437,16 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     }
     // Are there multiple biological classifcations?
     if(count($this->biologicalClassifications) > 1){
-      $mapped_classification = array_shift($this->biologicalClassifications);
+      // First item biological classification is the one we're using as the base VID
+      $mapped_classification = reset($this->biologicalClassifications);
       if(!isset($row->{$mapped_classification})){
         $row->{$mapped_classification} = array();
       }
       foreach($this->biologicalClassifications as $unmapped_classifcation){
         if(isset($row->{$unmapped_classifcation})){
           $row->{$mapped_classification} = array_merge($row->{$mapped_classification}, $row->{$unmapped_classifcation});
+          // Dedupe
+          $row->{$mapped_classification} = array_unique($row->{$mapped_classification});
         }
       }
     }
