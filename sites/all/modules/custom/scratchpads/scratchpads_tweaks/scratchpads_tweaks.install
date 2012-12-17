@@ -334,7 +334,7 @@ function scratchpads_tweaks_install_help_install_filters(){
             'AutoFormat.AutoParagraph' => 1,
             'AutoFormat.Linkify' => 1,
             'AutoFormat.RemoveEmpty' => 1,
-            'HTML.Allowed' => 'a[style][href]
+            'HTML.Allowed' => 'a[style|href]
 blockquote[style]
 br[style]
 caption[style]
@@ -352,8 +352,8 @@ h4[style]
 h5[style]
 h6[style]
 hr[style]
-iframe[style][src][width][height]
-img[style][src]
+iframe[style|src|width|height]
+img[style|src]
 i
 li[style]
 ol[style]
