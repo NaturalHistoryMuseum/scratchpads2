@@ -69,6 +69,12 @@ class MigrateDestinationField extends MigrateDestination{
         $field_instance['default_value'] = $field_instance['widget_settings']['default_value'];
         break;
     }
+    // Fix missing max length bug
+    // ERROR: Invalid field/widget combination: The field 'field_page' in the bundle 'citation' is an unlimited length field using a textfield widget, not allowed in D7. The field length will be set to 255.
+    // Needs to comeb before calling the field alter hooks as that sets maxlength to 255, and chars are getting lost
+    if($field_config['type'] == 'text' && $field_instance['widget']['type'] != 'text_textarea' && isset($field_config['settings']['max_length']) && empty($field_config['settings']['max_length'])){
+      $field_config['settings']['max_length'] = 10000;
+    }
     // Instance alterations
     drupal_alter('content_migrate_instance', $field_instance, $field_config);
     // Let content migrate module change all the field settings for D7 
@@ -216,11 +222,6 @@ class MigrateDestinationField extends MigrateDestination{
           _field_info_collate_fields(TRUE);
         }
         break;
-    }
-    // Fix missing max length bug
-    // ERROR: Invalid field/widget combination: The field 'field_page' in the bundle 'citation' is an unlimited length field using a textfield widget, not allowed in D7. The field length will be set to 255.
-    if($field_config['type'] == 'text' && $field_instance['widget']['type'] != 'text_textarea' && isset($field_config['settings']['max_length']) && empty($field_config['settings']['max_length'])){
-      $field_config['settings']['max_length'] = 256;
     }
     // Only create if the field does not already exist
     $field = field_info_field($object->field_name);

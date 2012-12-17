@@ -156,17 +156,24 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
           $target = explode(':', $target);
           // First we check to see if we have a value, and proceed if we do.
           if(isset($entity->{$target[0]}) && is_array($entity->{$target[0]}) && count($entity->{$target[0]})){
-            // Next, if this is the "nid" mapping, we don't need to retrieve any
-            // values, else if it is the title mapping, we need to retrieve the
-            // node's title.
-            // Loop through each of the values
             $cell_values = array();
+            // The date field users field:start/field:end, while the node_ref
+            // field uses field:nid/field:title.  We guess which we're using.
             foreach($entity->{$target[0]} as $language => $values){
               foreach($entity->{$target[0]}[$language] as $value){
-                if($target[1] == 'nid'){
-                  $cell_values[] = $value['nid'];
-                }elseif($target[1] == 'uid'){
-                  $cell_values[] = $value['uid'];
+                switch($target[1]){
+                  case 'nid':
+                    $cell_values[] = $value['nid'];
+                    break;
+                  case 'uid':
+                    $cell_values[] = $value['uid'];
+                    break;
+                  case 'start':
+                    $cell_values[] = $value['value'];
+                    break;
+                  case 'end':
+                    $cell_values[] = $value['value2'];
+                    break;
                 }
               }
             }
