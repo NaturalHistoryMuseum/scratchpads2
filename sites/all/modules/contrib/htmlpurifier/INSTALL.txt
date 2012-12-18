@@ -1,0 +1,61 @@
+PREREQUISITES: Make sure you check HTML Purifier and make sure that you
+have fulfilled all of its requirements before running this.  Specifically,
+you'll need the PHP extension ctype (in almost all PHP distributions),
+and it's nice to have dom and iconv.
+
+* Place the htmlpurifier folder in your drupal modules directory.
+
+* Download HTML Purifier from http://htmlpurifier.org/ You will need
+  4.0.0 or later.
+
+* There are two locations you can install the HTML Purifier library.
+
+  1. Module directory installation. This means installing the library
+     folder under the module directory, so that the file
+     sites/<site>/modules/htmlpurifier/library/HTMLPurifier.auto.php
+     exists.  The easiest way to do this is to extract the entire
+     htmlpurifier-x.y.z folder, and then copy the
+     htmlpurifier-x.y.z/library folder to your module.  This method is
+     convenient and simple, but does not permit HTML Purifier to be shared
+     with other modules and can make upgrading the Drupal module a little
+     complicated.
+
+  2. The preferred way is making use of the libraries API,
+     http://drupal.org/project/libraries. This makes the library
+     available to all sites or to a specific site in a multisite
+     Drupal setup. You'll need to download the libraries API module
+     and enable it before enabling the htmlpurifier module so that in
+     the install phase it can find the library.
+
+     Extract the htmlpurifier-x.y.z archive to
+     sites/all/libraries/htmlpurifier or to
+     sites/<site>/libraries/htmlpurifier for a specific site in a
+     multisite Drupal setup.  You can get away with just placing
+     the library folder, so that sites/<site>/libraries/htmlpurifier/library
+     exists (see below).
+
+     The final setup should be, when making the library and module
+     available to all sites:
+
+     sites/all/libraries/htmlpurifier/library
+         HTMLPurifier
+         HTMLPurifier.autoload.php
+         HTMLPurifier.auto.php
+         HTMLPurifier.func.php
+         HTMLPurifier.includes.php
+         HTMLPurifier.kses.php
+         HTMLPurifier.path.php
+         HTMLPurifier.php
+         HTMLPurifier.safe-includes.php
+
+     Now you can safely upgrade your htmlpurifier module without
+     having to re-deploy the HTML Purifier library.
+
+* Go to Administer > Modules and enable this module
+
+* You can now create a new text format or add the HTML Purifier to an 
+  existing text format. It is recommended that you place HTML Purifier as 
+  the last filter in the text format. Reorder the filters if necessary.
+
+WARNING: Due to HTML Purifier's caching mechanism, dynamic filters MUST NOT
+be placed before HTML Purifier.

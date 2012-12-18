@@ -972,3 +972,7 @@ article.comment.odd{
 #forum td.icon{
  width:20px;
 }
+
+table, tbody, tfoot, thead, tr, th, td{
+ vertical-align: middle!important;
+}
