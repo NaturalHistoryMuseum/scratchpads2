@@ -389,7 +389,7 @@ gray:#808080
 ',
             'Core.ConvertDocumentToFragment' => '1',
             'Core.DirectLexLineNumberSyncInterval' => '0',
-            'Core.EnableIDNA' => '1',
+            'Core.EnableIDNA' => '0',
             'Core.Encoding' => 'utf-8',
             'Core.EscapeInvalidChildren' => '0',
             'Core.EscapeInvalidTags' => '0',
@@ -1111,7 +1111,7 @@ function scratchpads_tweaks_update_7034(){
 /**
  * Add HTMLPurifier module.
  */
-function scratchpads_tweaks_update_7035(){
+function scratchpads_tweaks_update_7036(){
   module_enable(array(
     'htmlpurifier'
   ));
