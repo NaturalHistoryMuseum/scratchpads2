@@ -295,6 +295,7 @@ function scratchpads_solr_theme_registry_alter(&$theme_registry){
  */
 function theme_scratchpads_solr_apachesolr_search_noresults($variables){
   $info = module_invoke_all('scratchpads_solr_info');
+  drupal_alter('scratchpads_solr_info', $info);
   if(isset($info[arg(0)]) && isset($info[arg(0)]['empty'])){
     return theme($info[arg(0)]['empty']);
   }else{
