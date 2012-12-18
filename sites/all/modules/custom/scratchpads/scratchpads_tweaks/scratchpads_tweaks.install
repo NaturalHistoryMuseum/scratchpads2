@@ -1116,4 +1116,10 @@ function scratchpads_tweaks_update_7035(){
     'htmlpurifier'
   ));
   scratchpads_tweaks_install_help_install_filters();
+  module_disable(array(
+    'emptyparagraphkiller'
+  ));
+  drupal_uninstall_modules(array(
+    'emptyparagraphkiller'
+  ));
 }
