@@ -174,16 +174,18 @@ function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_insert($vocabulary
   $none_biological_vids = variable_get('none_biological_vids', array());
   $none_biological_vids[$vocabulary->vid] = !$vocabulary->biological_classification ? $vocabulary->display_tab : 0;
   variable_set('none_biological_vids', $none_biological_vids);
-  // Set the default term link
-  $term = db_select('taxonomy_term_data', 'td')->fields('td', array(
-    'tid',
-    'name'
-  ))->condition('name', $vocabulary->default_term_link)->condition('vid', $vocabulary->vid)->execute()->fetchObject();
-  if($term){
-    $default_terms = variable_get('scratchpads_default_term', array());
-    $default_terms[$vocabulary->vid] = $term->tid;
-    variable_set('scratchpads_default_term', $default_terms);
-    menu_rebuild();
+  if(isset($vocabulary->default_term_link)){
+    // Set the default term link
+    $term = db_select('taxonomy_term_data', 'td')->fields('td', array(
+      'tid',
+      'name'
+    ))->condition('name', $vocabulary->default_term_link)->condition('vid', $vocabulary->vid)->execute()->fetchObject();
+    if($term){
+      $default_terms = variable_get('scratchpads_default_term', array());
+      $default_terms[$vocabulary->vid] = $term->tid;
+      variable_set('scratchpads_default_term', $default_terms);
+      menu_rebuild();
+    }
   }
 }
 
