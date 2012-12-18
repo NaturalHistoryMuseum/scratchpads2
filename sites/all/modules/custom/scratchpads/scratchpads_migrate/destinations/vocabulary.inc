@@ -92,6 +92,7 @@ class MigrateDestinationVocabulary extends MigrateDestinationEntity{
             $vocabulary->use_scratchpads_species_pages = 1;
           }
         }
+        $vocabulary->display_tab = 1;
         // We need to insert a dummy row in to the taxonomy_vocabulary table first
         // as we are specifying the VID of the taxonomy.
         $vocabulary_array = (array)$vocabulary;
