@@ -509,12 +509,16 @@ news',
           )
         )
       ),
+      'biblio_filter_reference' => array(
+        'weight' => 10,
+        'status' => 1
+      ),
       'media_filter' => array(
         'weight' => 11,
         'status' => 1
       ),
       'twitterscript_filter' => array(
-        'weight' => 100,
+        'weight' => 12,
         'status' => 1
       )
     )
@@ -1122,4 +1126,11 @@ function scratchpads_tweaks_update_7036(){
   drupal_uninstall_modules(array(
     'emptyparagraphkiller'
   ));
+}
+
+/**
+ * Add the biblio <bib> filter.
+ */
+function scratchpads_tweaks_update_7037(){
+  scratchpads_tweaks_install_help_install_filters();
 }
