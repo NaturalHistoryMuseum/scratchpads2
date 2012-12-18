@@ -36,7 +36,7 @@ function theme_scratchpads_biblio_search_page_number($variables){
       array(
         'data' => t('Authors'),
         'field' => '',
-        'sort' => 'asc'
+        'sort' => ''
       ),
       array(
         'data' => t('Year'),
