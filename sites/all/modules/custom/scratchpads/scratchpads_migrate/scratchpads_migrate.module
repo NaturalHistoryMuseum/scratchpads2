@@ -182,7 +182,8 @@ function scratchpads_migrate_register_migrations(){
        * Vocabulary fields
        ********************************************************************************************/
   $term_dependencies = array(
-    'Vocabulary'
+    'Vocabulary',
+    'User'
   );
   foreach(scratchpads_migrate_get_term_vocabularies() as $vid => $term_node_type){
     $machine_name = scratchpads_migrate_get_machine_name('FieldVocabulary', $term_node_type);
@@ -351,46 +352,13 @@ function scratchpads_migrate_register_migrations(){
   );
   // We just use the migrate_d2d D6 migration class as-is.
   Migration::registerMigration('DrupalFieldGroupMigration', $arguments['machine_name'], $arguments);
-  /*********************************************************************************************
-   * Image galleries
-   ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of image galleries from Drupal 6'),
-    'machine_name' => 'ImageGallery',
+  $common_file_arguments = $common_arguments + array(
     'dependencies' => array(
       'User',
       'Language'
     ),
     'group' => MigrateGroup::getInstance('files')
   );
-  Migration::registerMigration('DrupalImageGalleryMigration', $arguments['machine_name'], $arguments);
-  /*********************************************************************************************
-   * Files
-   ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of files from Drupal 6'),
-    'machine_name' => 'File',
-    'dependencies' => array(
-      'User',
-      'Language'
-    ),
-    'group' => MigrateGroup::getInstance('files')
-  );
-  Migration::registerMigration('DrupalFileMigration', $arguments['machine_name'], $arguments);
-  /*********************************************************************************************
-   * Images
-   ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of images from Drupal 6'),
-    'machine_name' => 'Image',
-    'dependencies' => array(
-      'User',
-      'ImageGallery',
-      'Language'
-    ),
-    'group' => MigrateGroup::getInstance('files')
-  );
-  Migration::registerMigration('DrupalImageMigration', $arguments['machine_name'], $arguments);
   // Define node arguments here so all term migrations can be added as depenencies
   $common_node_arguments = $common_arguments + array(
     'user_migration' => 'User',
@@ -447,7 +415,33 @@ function scratchpads_migrate_register_migrations(){
     $arguments = array_merge_recursive($arguments, $common_term_arguments);
     Migration::registerMigration($arguments['class_name'], $arguments['machine_name'], $arguments);
     $common_node_arguments['dependencies'][] = $arguments['machine_name'];
+    $common_file_arguments['dependencies'][] = $arguments['machine_name'];
   }
+  /*********************************************************************************************
+   * Image galleries
+  ********************************************************************************************/
+  $arguments = $common_file_arguments + array(
+    'description' => t('Migration of image galleries from Drupal 6'),
+    'machine_name' => 'ImageGallery'
+  );
+  Migration::registerMigration('DrupalImageGalleryMigration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * Files
+  ********************************************************************************************/
+  $arguments = $common_file_arguments + array(
+    'description' => t('Migration of files from Drupal 6'),
+    'machine_name' => 'File'
+  );
+  Migration::registerMigration('DrupalFileMigration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * Images
+  ********************************************************************************************/
+  $common_file_arguments['dependencies'][] = 'ImageGallery';
+  $arguments = $common_file_arguments + array(
+    'description' => t('Migration of images from Drupal 6'),
+    'machine_name' => 'Image'
+  );
+  Migration::registerMigration('DrupalImageMigration', $arguments['machine_name'], $arguments);
   /****************************************************************************
    * Dependencies for the PathRedirect migration
    ****************************************************************************/
@@ -680,6 +674,14 @@ function scratchpads_migrate_get_machine_name($type, $name){
     '\''
   ), '', $name);
   return $type . $name;
+}
+
+function scratchpads_migrate_destination_node_type_exists($node_type){
+  static $types = array();
+  if(empty($types)){
+    $types = node_type_get_types();
+  }
+  return array_key_exists($node_type, $types);
 }
 
 function scratchpads_migrate_unset_empty_fields($object, $skip = array('uid', 'weight_weight', 'sticky', 'status', 'promote', 'moderate', 'field_weight', 'field_sticky')){
