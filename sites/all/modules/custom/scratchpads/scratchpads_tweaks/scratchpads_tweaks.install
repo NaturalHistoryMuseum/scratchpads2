@@ -965,7 +965,7 @@ function scratchpads_tweaks_update_7034(){
 function scratchpads_tweaks_update_7036(){}
 
 /**
- * Add the biblio <bib> filter.
+ * Restore old filters.
  */
 function scratchpads_tweaks_update_7038(){
   module_enable(array(
