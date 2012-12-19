@@ -70,4 +70,10 @@ class BlockMigration extends DrupalMigration{
     // Extract and save the images
     $row->body = ScratchpadsNodeMigration::parseImages($row->body, $row);
   }
+
+  protected function preImport(){
+    parent::preImport();
+    // Rebuild the menus
+    menu_rebuild();
+  }
 }

@@ -105,7 +105,10 @@ class DrupalContentTypeMigration extends DrupalMigration{
     // BUG FIX: removed, we do want node types even if there's no nodes
     // $query->innerJoin('node', 'n', 'n.type = nt.type');
     $query->groupBy('nt.type');
-    $query->condition('nt.module', 'node');
+    $query->condition('nt.module', array(
+      'node',
+      'geotime' // Nannotax has custom module type
+    ), 'IN');
     $query->condition('nt.type', array_keys($this->getContentTypeMappings()), 'NOT IN');
     return $query;
   }
