@@ -42,6 +42,7 @@ dependencies[] = entityconnect
 dependencies[] = feeds_oai_pmh
 dependencies[] = globalredirect
 dependencies[] = hide_submit
+dependencies[] = htmlpurifier
 dependencies[] = imagemagick
 dependencies[] = link
 dependencies[] = linkit

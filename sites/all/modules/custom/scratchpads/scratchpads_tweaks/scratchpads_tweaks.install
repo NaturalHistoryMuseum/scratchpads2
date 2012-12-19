@@ -389,7 +389,7 @@ gray:#808080
 ',
             'Core.ConvertDocumentToFragment' => '1',
             'Core.DirectLexLineNumberSyncInterval' => '0',
-            'Core.EnableIDNA' => '1',
+            'Core.EnableIDNA' => '0',
             'Core.Encoding' => 'utf-8',
             'Core.EscapeInvalidChildren' => '0',
             'Core.EscapeInvalidTags' => '0',
@@ -509,12 +509,16 @@ news',
           )
         )
       ),
+      'biblio_filter_reference' => array(
+        'weight' => 10,
+        'status' => 1
+      ),
       'media_filter' => array(
         'weight' => 11,
         'status' => 1
       ),
       'twitterscript_filter' => array(
-        'weight' => 100,
+        'weight' => 12,
         'status' => 1
       )
     )
@@ -1111,7 +1115,7 @@ function scratchpads_tweaks_update_7034(){
 /**
  * Add HTMLPurifier module.
  */
-function scratchpads_tweaks_update_7035(){
+function scratchpads_tweaks_update_7036(){
   module_enable(array(
     'htmlpurifier'
   ));
@@ -1122,4 +1126,11 @@ function scratchpads_tweaks_update_7035(){
   drupal_uninstall_modules(array(
     'emptyparagraphkiller'
   ));
+}
+
+/**
+ * Add the biblio <bib> filter.
+ */
+function scratchpads_tweaks_update_7037(){
+  scratchpads_tweaks_install_help_install_filters();
 }
