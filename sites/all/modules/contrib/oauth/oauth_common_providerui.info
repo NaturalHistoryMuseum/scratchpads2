@@ -1,0 +1,14 @@
+name = OAuth Provider UI
+description = Provides a UI for when OAuth is acting as a provider.
+package = "OAuth"
+
+dependencies[] = oauth_common
+
+core = 7.x
+
+; Information added by drupal.org packaging script on 2012-02-08
+version = "7.x-3.0"
+core = "7.x"
+project = "oauth"
+datestamp = "1328724350"
+

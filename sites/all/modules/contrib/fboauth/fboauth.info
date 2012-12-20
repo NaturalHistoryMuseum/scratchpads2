@@ -1,0 +1,10 @@
+name = Facebook OAuth
+description = Allow users to connect with Facebook and query information.
+core = 7.x
+
+; Information added by drupal.org packaging script on 2012-05-05
+version = "7.x-1.5"
+core = "7.x"
+project = "fboauth"
+datestamp = "1336251955"
+

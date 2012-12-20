@@ -1,0 +1,13 @@
+name = Twitter Mock
+description = Sets up a mock web server to simulate API calls on tests
+core = 7.x
+hidden = TRUE
+dependencies[] = twitter
+dependencies[] = simpletest
+
+; Information added by drupal.org packaging script on 2012-11-19
+version = "7.x-4.1"
+core = "7.x"
+project = "twitter"
+datestamp = "1353286718"
+

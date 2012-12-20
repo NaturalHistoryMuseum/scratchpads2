@@ -1,0 +1,3 @@
+The OAuth php library is originally licensed under the MIT license. And is to be found at google code: http://code.google.com/p/oauth/
+
+I, the maintainer of this module, will NOT accept any patches to this library, that haven't been submitted to the original project first. This is to avoid any license hijacking, and to further the development of a common OAuth library for PHP.
