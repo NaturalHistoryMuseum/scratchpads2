@@ -4,9 +4,6 @@
  * 
  */
 function silver_feeds_importer_default(){
-  if(function_exists('strongarm_init')){
-    strongarm_init();
-  }
   // Array of Feeds importers.
   $export = array();
   // Get a list of the vocabularies.
@@ -198,18 +195,85 @@ function silver_feeds_importer_default(){
     _silver_feeds_importer_default_helper($field_info, $feeds_importer);
     $export['file_importer_' . $file_type] = $feeds_importer;
   }
+  // Users
+  $feeds_importer = new stdClass();
+  $feeds_importer->disabled = FALSE;
+  $feeds_importer->api_version = 1;
+  $feeds_importer->id = 'user_importer_user';
+  $feeds_importer->config = array(
+    'name' => t('Import into: Users'),
+    'description' => t('Add and Update users.'),
+    'fetcher' => array(
+      'plugin_key' => 'FeedsFileFetcher',
+      'config' => array(
+        'allowed_extensions' => 'xls xlsx',
+        'direct' => 0
+      )
+    ),
+    'parser' => array(
+      'plugin_key' => 'FeedsExcelParser',
+      'config' => array(
+        'no_headers' => 0,
+        'all_worksheets' => 1
+      )
+    ),
+    'processor' => array(
+      'plugin_key' => 'FeedsUserProcessor',
+      'config' => array(
+        'status' => 1,
+        'mappings' => array(
+          array(
+            'source' => 'Mail',
+            'target' => 'mail',
+            'unique' => TRUE
+          ),
+          array(
+            'source' => 'Username',
+            'target' => 'name',
+            'unique' => TRUE
+          ),
+          array(
+            'source' => 'Status',
+            'target' => 'status',
+            'unique' => 0
+          )
+        )
+      )
+    ),
+    'update' => 0,
+    'import_period' => -1,
+    'expire_period' => 3600,
+    'import_on_create' => TRUE,
+    'process_in_background' => FALSE
+  );
+  $field_info = field_info_instances('user', 'user');
+  _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'user:user:');
+  $export['file_importer_' . $file_type] = $feeds_importer;
   return $export;
 }
 
 /**
  * Helper function which creates the correct mapping for certain field types.
  */
-function _silver_feeds_importer_default_helper($field_info, &$feeds_importer){
+function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $additional = ''){
   foreach($field_info as $key => $field){
     $field_info = field_info_field($field['field_name']);
     switch($field_info['type']){
       case 'file':
         // Do nothing.  We can't import files in an Excel template.
+        break;
+      case 'country':
+        // We use iso3 country codes
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field['label'] . ' (' . t('ISO alpha-2') . ')',
+          'target' => $additional . $key . ':iso2',
+          'unique' => 0
+        );
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field['label'] . ' (' . t('ISO alpha-3') . ')',
+          'target' => $additional . $key . ':iso3',
+          'unique' => 0
+        );
         break;
       case 'date':
         // Add the from date, and also the to date if required.
@@ -225,6 +289,14 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer){
           'unique' => 0
         );
         break;
+      case 'link_field':
+        // Add the from date, and also the to date if required.
+        // We add two columns for the user reference field.
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field['label'] . ' (' . t('URL') . ')',
+          'target' => $key . ':url',
+          'unique' => 0
+        );
         break;
       case 'user_reference':
         // We add two columns for the user reference field.
