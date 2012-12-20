@@ -649,6 +649,13 @@ function scratchpads_migrate_source_node_types(){
   return $query->execute()->fetchCol();
 }
 
+function scratchpads_migrate_source_get_vid($nid){
+  $query = Database::getConnection('default', 'scratchpad_1')->select('node', 'n');
+  $query->addField('n', 'vid');
+  $query->condition('nid', $nid);
+  return $query->execute()->fetchField();
+}
+
 function scratchpads_migrate_source_biological_classifications(){
   $query = Database::getConnection('default', 'scratchpad_1')->select('scratchpads_migrate_biological_classification', 'b');
   $query->addField('b', 'vid');

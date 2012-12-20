@@ -16,4 +16,10 @@ class ScrachpadsMenuMigration extends DrupalMenu6Migration{
     ), 'NOT IN');
     return $query;
   }
+  
+  protected function postImport() {
+    parent::postImport();
+    menu_cache_clear_all();
+  }
+  
 }
