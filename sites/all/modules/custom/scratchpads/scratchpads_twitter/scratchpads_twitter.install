@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * Implements hook_install
+ */
+function scratchpads_twitter_install(){
+  $ini = @parse_ini_file(drupal_get_path('module', 'scratchpads_twitter') . '/scratchpads_twitter.ini');
+  variable_set('twitter_api', 'https://api.twitter.com');
+  variable_set('twitter_consumer_key', $ini['key']);
+  variable_set('twitter_consumer_secret', $ini['secret']);
+  variable_set('twitter_expire', 0);
+  variable_set('twitter_host', 'http://twitter.com');
+  variable_set('twitter_import', 0);
+  variable_set('twitter_search', 'http://search.twitter.com');
+  variable_set('twitter_signin_button', 'Sign-in-with-Twitter-darker.png');
+  variable_set('twitter_signin_register', 1);
+  variable_set('twitter_tinyurl', 'http://tinyurl.com');
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function scratchpads_twitter_requirements(){}
