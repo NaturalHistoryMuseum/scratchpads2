@@ -1,5 +1,5 @@
 name = "Twitter Login"
 description = "Allow authentication using a twitter account."
 core = "7.x"
-dependencies[] = "twitter"
+dependencies[] = "twitter_signin"
 tool=true
