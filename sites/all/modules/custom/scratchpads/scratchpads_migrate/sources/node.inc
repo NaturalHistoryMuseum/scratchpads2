@@ -329,7 +329,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   // Allow overiding count query
   protected function countQuery(){
     $query = Database::getConnection('default', $this->sourceConnection)->select('node_revisions', 'nr');
-    $query->addExpression('COUNT(DISTINCT(nr.vid))');
+    $query->addExpression('COUNT (nr.vid)');
     $query->innerJoin('node', 'n', 'n.nid=nr.nid');
     $query->condition('n.type', $this->sourceType);
     $query->condition('n.title', 'Taskguide', '!=');
@@ -415,6 +415,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     foreach($this->getLongTextFields() as $longTextField){
       if(isset($row->{$longTextField})){
         $row->{$longTextField} = ScratchpadsNodeMigration::parseImages($row->{$longTextField}, $row);
+        $row->{$longTextField} = ScratchpadsNodeMigration::parseStyles($row->{$longTextField});
       }
     }
     // Is there a menu item for this node?
@@ -575,22 +576,41 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   }
 
   /**
+   * Change style to classes
+   * @param string $html
+   */
+  public static function parseStyles($html){
+    $regex = '%(<span([^<]*?)style="font-style:( ?)italic(;?)"([^<]*?)>([^<]*)</span>)%';
+    $replace = '<em>$6</em>';
+    $html = preg_replace($regex, $replace, $html);
+    // Replace font weight
+    $regex = '%(<span([^<]*?)style="font-weight:( ?)bold(;?)"([^<]*?)>([^<]*)</span>)%';
+    $replace = '<strong>$6</strong>';
+    $html = preg_replace($regex, $replace, $html);
+    return $html;
+  }
+
+  /**
    * Build a basic stub node
    */
   protected function buildStubNode($migration, $nid){
-    $node = new stdClass();
-    $node->title = t('Stub for !source_id', array(
-      '!source_id' => $nid
-    ));
-    $node->type = $this->destination->getBundle();
-    $node->uid = 0;
-    $node->status = 0;
-    $node->nid = $nid;
-    $node->vid = $nid;
-    $node->is_new = true;
-    // Crap OG requires the original uid
-    $node->original->uid = $node->uid;
-    return $node;
+    // We're using VIDs as primary identifiers, need to get the vid for this stub node
+    if($vid = scratchpads_migrate_source_get_vid($nid)){
+      $node = new stdClass();
+      $node->title = t('Stub for !source_id', array(
+        '!source_id' => $nid
+      ));
+      $node->type = $this->destination->getBundle();
+      $node->uid = 0;
+      $node->status = 0;
+      $node->nid = $nid;
+      $node->vid = $vid;
+      $node->is_new = true;
+      // Crap OG requires the original uid
+      $node->original->uid = $node->uid;
+      return $node;
+    }
+    return false;
   }
 
   /**
@@ -611,10 +631,12 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       // There's a lot of nodes still referenced by NIDs which have been deleted
       if(scratchpads_migrate_source_node_exists($nid)){
         $node = $this->buildStubNode($migration, $nid);
-        node_save($node);
-        if(isset($node->nid)){return array(
-            $node->nid
-          );}
+        if($node){
+          node_save($node);
+          if(isset($node->nid)){return array(
+              $node->nid
+            );}
+        }
       }
       return FALSE;
     }
