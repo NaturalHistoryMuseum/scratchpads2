@@ -48,7 +48,7 @@ function scratchpads_statistics_stats_page(){
   $temp_table_name = db_query_temporary('SELECT MAX(captured), site FROM {scratchpads_statistics_data} GROUP BY site');
   // Now join to that table.
   $query = db_select('scratchpads_statistics_data', 'd');
-  $query->innerJoin($temp_table_name, 't', 't.site = d.site');
+  $query->innerJoin($temp_table_name, 't', 't.site = d.site AND t.captured = d.captured');
   $query->innerJoin('scratchpads_statistics_entity_bundle', 'e', 'e.id = d.entity_bundle');
   $query->groupBy('entity_bundle');
   $query->fields('e', array(
