@@ -45,7 +45,7 @@ function scratchpads_statistics_stats_page(){
   // of the sites.
   // Create a temporary table first which contains the sites and the max 
   // captured value for each.
-  $temp_table_name = db_query_temporary('SELECT MAX(captured), site FROM {scratchpads_statistics_data} GROUP BY site');
+  $temp_table_name = db_query_temporary('SELECT MAX(captured) AS captured, site FROM {scratchpads_statistics_data} GROUP BY site');
   // Now join to that table.
   $query = db_select('scratchpads_statistics_data', 'd');
   $query->innerJoin($temp_table_name, 't', 't.site = d.site AND t.captured = d.captured');
