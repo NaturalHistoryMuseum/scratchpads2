@@ -21,3 +21,12 @@ function scratchpads_twitter_install(){
  * Implements hook_requirements().
  */
 function scratchpads_twitter_requirements(){}
+
+/**
+ * Implements hook_disable().
+ */
+function scratchpads_twitter_disable(){
+  module_disable(array(
+    'twitter'
+  ));
+}
