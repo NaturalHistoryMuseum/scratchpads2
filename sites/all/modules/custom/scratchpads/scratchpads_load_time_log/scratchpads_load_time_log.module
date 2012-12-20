@@ -1,11 +1,11 @@
 <?php
-
 /**
  * Logging.  This code is inspired by the devel::performance module
  */
 /**
  * Implements hook_boot().
  */
+
 function scratchpads_load_time_log_boot(){
   register_shutdown_function('scratchpads_load_time_log_shutdown');
 }
@@ -14,10 +14,9 @@ function scratchpads_load_time_log_boot(){
  * Shutdown function as registered above.
  */
 function scratchpads_load_time_log_shutdown(){
-  if(isset($_GET['q']) && ($_GET['q'])){
-    $path = $_GET['q'];
+  if(isset($_SERVER['REQUEST_URI']) && ($_SERVER['REQUEST_URI'])){
+    $path = $_SERVER['REQUEST_URI'];
   }else{
-    // q= is empty, use whatever the site_frontpage is set to
     $path = variable_get('site_frontpage', 'node');
   }
   $filename = variable_get('scratchpads_load_time_log_filename', FALSE);
