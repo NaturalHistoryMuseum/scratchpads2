@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * Logging.  This code is inspired by the devel::performance module
+ */
+/**
+ * Implements hook_boot().
+ */
+function scratchpads_load_time_log_boot(){
+  register_shutdown_function('scratchpads_load_time_log_shutdown');
+}
+
+/**
+ * Shutdown function as registered above.
+ */
+function scratchpads_load_time_log_shutdown(){
+  if(isset($_SERVER['REQUEST_URI']) && ($_SERVER['REQUEST_URI'])){
+    $path = $_SERVER['REQUEST_URI'];
+  }else{
+    $path = variable_get('site_frontpage', 'node');
+  }
+  $filename = variable_get('scratchpads_load_time_log_filename', FALSE);
+  // We clear the log at the start of the week.
+  $time = time();
+  if(variable_get('scratchpads_load_time_log_last_clear', 0) + 604800 < $time){
+    variable_set('scratchpads_load_time_log_last_clear', $time);
+    @file_put_contents($filename, '"Path","Load time","UID"' . "\n");
+  }
+  if($filename){
+    global $user;
+    @file_put_contents($filename, '"' . $path . '","' . timer_read('page') . '","' . $user->uid . "\"\n", FILE_APPEND);
+  }
+}

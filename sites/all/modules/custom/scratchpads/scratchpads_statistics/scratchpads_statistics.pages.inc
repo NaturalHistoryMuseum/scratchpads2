@@ -43,7 +43,12 @@ function scratchpads_statistics_stats_page(){
   $content = array();
   // The following query will give us a total for each entity/bundle across all
   // of the sites.
+  // Create a temporary table first which contains the sites and the max 
+  // captured value for each.
+  $temp_table_name = db_query_temporary('SELECT MAX(captured) AS captured, site FROM {scratchpads_statistics_data} GROUP BY site');
+  // Now join to that table.
   $query = db_select('scratchpads_statistics_data', 'd');
+  $query->innerJoin($temp_table_name, 't', 't.site = d.site AND t.captured = d.captured');
   $query->innerJoin('scratchpads_statistics_entity_bundle', 'e', 'e.id = d.entity_bundle');
   $query->groupBy('entity_bundle');
   $query->fields('e', array(
@@ -51,7 +56,6 @@ function scratchpads_statistics_stats_page(){
   ));
   $query->addExpression('SUM(number_created)', 'sum_number_created');
   $query->orderBy('sum_number_created', 'DESC');
-  $query->condition('captured', time() - 604800, '>');
   $results = $query->execute();
   $counts = array();
   $i = 0;
@@ -224,7 +228,7 @@ function _scratchpads_statistics_build_from_time($time){
 /**
  * Simple configuration form.
  */
-function scratchapds_statistics_config_page(){
+function scratchpads_statistics_config_page(){
   return system_settings_form(array(
     'scratchpads_statistics_hash' => array(
       '#title' => t('Hash'),
