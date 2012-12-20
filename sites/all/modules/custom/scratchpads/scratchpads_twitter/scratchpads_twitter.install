@@ -20,7 +20,25 @@ function scratchpads_twitter_install(){
 /**
  * Implements hook_requirements().
  */
-function scratchpads_twitter_requirements(){}
+function scratchpads_twitter_requirements($phase){
+  $requirements = array();
+  if($phase == 'install'){
+    $ini = @parse_ini_file(drupal_get_path('module', 'scratchpads_twitter') . '/scratchpads_twitter.ini');
+    $requirement = array(
+      'title' => 'Twitter settings file',
+      'description' => ''
+    );
+    if($ini && isset($ini['key']) && isset($ini['secret'])){
+      // Success
+      $requirement['severity'] = REQUIREMENT_OK;
+    }else{
+      // Failure
+      $requirement['severity'] = REQUIREMENT_ERROR;
+    }
+    $requirements[] = $requirement;
+  }
+  return $requirements;
+}
 
 /**
  * Implements hook_disable().
