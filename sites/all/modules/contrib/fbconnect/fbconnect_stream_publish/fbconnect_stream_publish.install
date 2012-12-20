@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the fbconnect_stream_publish module.
+ */
+
+/**
+ * Implements hook_update_6201().
+ *
+ * Change content type activation variable
+ */
+function fbconnect_stream_publish_update_6201() {
+  $ret = array();
+
+  foreach (array_keys(node_type_get_names()) as $type_name) {
+    // Old variable format variable_get('fbconnect_' . $form['#node_type']->type . '_onoff', 0)
+    $old_format = 'fbconnect_' . $type_name . '_onoff';
+    $new_format = 'fbconnect_stream_publish_onoff_' . $type_name;
+    $value = variable_get($old_format, 'NULL');
+    // If old variable is set, set new one and delete old one, if it wasn't set then $old_value = 'NULL'
+    if ($value !== 'NULL') {
+      variable_set($new_format, $value);
+      variable_del($old_format);
+    }
+  }
+  db_delete('variable')
+    ->condition('name', 'fbconnect\_%\_onoff', 'LIKE')
+    ->execute();
+
+  return t('Convert old variable formats.');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function fbconnect_stream_publish_uninstall() {
+  db_delete('variable')
+    ->condition('name', 'fbconnect\_stream\_publish\_onoff\_%', 'LIKE')
+    ->execute();
+}

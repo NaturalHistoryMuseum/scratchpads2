@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the fbconnect invite module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function fbconnect_invite_uninstall() {
+  variable_del('fbconnect_invite_label');
+  variable_del('fbconnect_invite_msg');
+  variable_del('fbconnect_invite_name');
+}

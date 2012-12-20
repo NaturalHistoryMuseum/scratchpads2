@@ -1,0 +1,49 @@
+2012-03-26
+  Please see commit log for changes.
+
+2010/11
+ - Removed fbconnect_fb_social submodule due to #852582 (temporary available at http://github.com/downloads/vectoroc/fbconnect/fbconnect_fb_social.zip)
+
+2010/10
+ - Added rule for friend invite (#923268)
+
+2010/08
+ - Using user's email instead of proxied_email in fast registration mode
+ - Removed hook_fbconnect_login_button_alter (now you can override theme_fbconnect_login_button)
+ - Moved steam.publish and friends invite functions to separate module
+ - Added fbconnect_fb_social module
+ - Added rules module integration (#886016)
+ - Made fbconnect compatible with ajax_comments
+
+2010/07
+  - Upgraded module to use new Facebook SDK`s
+
+2009/12/16 - ambo
+  - Change publishing to Facebook Stream
+  - Some more use of t() Function
+  - Make Fbconnect user picture override themeable
+  - Add Flag for hte use of Facebooks user picture
+  - extends admin interface with a textfield to enter own text for Facebook connect button and changed the fbconnect_render_button function as well
+
+2009/11/26 - vectoroc
+  - Extend users.mail field upto 320 chars to support proxied_mail in fast registration mode (monkey patch)
+  - Some bugfixes
+
+2009/11/25 - vectoroc
+  - Ability to link/unlink Facebook acount from user profile
+  - Some minor changes
+
+2009/11/18 - vectoroc
+  - Supports SSL, http://wiki.developers.facebook.com/index.php/Facebook_Connect_Via_SSL.
+  - User profile pictures now are loaded through FBML (from DFF module - drupal.org/project/fb)
+  - Some addition settings (check at admin/settings/fbconnect)
+  - Most of js code is moved to fbconnect.js
+  - New hooks: hook_fbconnect_config_alter, hook_fbconnect_login_button_alter
+
+  Patches from community:
+   - http://drupal.org/node/483282#comment-2118418
+   - http://drupal.org/node/367244#comment-2117946
+   - http://drupal.org/node/574210
+   - http://drupal.org/node/605174
+
+Patch set can be found at http://drupal.org/node/635568

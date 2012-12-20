@@ -1,0 +1,58 @@
+<?php
+
+function fbconnect_test_menu() {
+  $menu['fbconnect-test/init-fb-session'] = array(
+    'access callback' => TRUE,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('fbconnect_test_fb_session'),
+  );
+
+  return $menu;
+}
+
+function fbconnect_test_fb_session() {
+  $form['fbuid'] = array(
+    '#type' => 'textfield',
+    '#title' => 'FB UID',
+    '#required' => TRUE,
+  );
+
+  $form['access_token'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Access Token',
+    '#required' => TRUE,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Submit',
+  );
+
+  if ($session = facebook_client()->getSession()) {
+    $form['fbuid']['#default_value'] = $session['uid'];
+    $form['access_token']['#default_value'] = $session['access_token'];
+  }
+
+  return $form;
+}
+
+function fbconnect_test_fb_session_submit($form, &$form_state) {
+  $session = array(
+    'uid' => $form_state['values']['fbuid'],
+    'access_token' => $form_state['values']['access_token'],
+    'expires' => time() + 3600,
+  );
+  ksort($session);
+
+  // generate the base string
+  $base_string = '';
+  foreach ($session as $key => $value) {
+    $base_string .= $key . '=' . $value;
+  }
+  $base_string .= facebook_client()->getApiSecret();
+
+  $session['sig'] = md5($base_string);
+  if (!facebook_client()->setSession($session)->getSession()) {
+    drupal_set_message(t('Bad session'), 'error');
+  }
+}

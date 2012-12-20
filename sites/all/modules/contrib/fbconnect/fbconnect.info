@@ -1,0 +1,11 @@
+name = Fbconnect
+description = Allows users to connect with Facebook account
+package = "Authentication"
+core = 7.x
+
+; Information added by drupal.org packaging script on 2012-09-27
+version = "7.x-2.0-beta4+13-dev"
+core = "7.x"
+project = "fbconnect"
+datestamp = "1348748570"
+

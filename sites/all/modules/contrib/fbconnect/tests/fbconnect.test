@@ -1,0 +1,147 @@
+<?php
+
+/**
+ * @file
+ *
+ * @see http://drupal.org/node/278126
+ * @see http://developers.facebook.com/docs/test_users
+ * @see http://developers.facebook.com/docs/authentication/#authenticating-as-an-application
+ *
+ */
+
+class FbconnectTestCase extends DrupalWebTestCase {
+
+  /**
+   * Implements getInfo().
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('FBConnect functionality'),
+      'description' => t('Test FBConnect.'),
+      'group' => t('FBConnect'),
+    );
+  }
+
+  protected $_fb_users = array();
+
+  function _createFbTestUser($installed = 'true', $permissions = '') {
+    $conf = fbconnect_get_config();
+
+    facebook_client()->setSession(NULL, FALSE);
+    $url = "/$conf[app_id]/accounts/test-users?installed=$installed&permissions=$permissions";
+
+    $fb_user = fbconnect_graph_query($url, 'POST');
+    $this->_fb_users[] = $fb_user;
+
+    $this->verbose('_createFbTestUser: fb_user=' . var_export($fb_user, TRUE));
+    $this->assertTrue(isset($fb_user['id']), 'created test FB user', 'FBConnect');
+
+    return $fb_user;
+  }
+
+  /**
+   * Implements setUp().
+   */
+  function setUp() {
+    if (!facebook_client()) {
+      $this->error('fbconnect is not properly installed. See README.txt');
+      return;
+    }
+
+    $this->settings_keys = array('fbconnect_appid', 'fbconnect_skey');
+    foreach ($this->settings_keys as $key) {
+      $this->settings[$key] = variable_get($key, NULL);
+    }
+
+    parent::setUp('libraries', 'fbconnect', 'fbconnect_test');
+
+    foreach ($this->settings as $key => $value) {
+      variable_set($key, $value);
+    }
+  }
+
+  function tearDown() {
+    parent::tearDown();
+
+    facebook_client()->setSession(NULL, FALSE);
+    foreach ($this->_fb_users as $fb_user) {
+      $this->assertEqual(fbconnect_graph_query('/' . $fb_user['id'], 'DELETE'), '1', 'deleted test FB user', 'FBConnect');
+    }
+
+    $this->_fb_users = array();
+  }
+
+  function testLogin() {
+    $account = $this->drupalCreateUser();
+    $fb_user = $this->_createFbTestUser();
+
+    $edit = array(
+      'fbuid' => $fb_user['id'],
+      'access_token' => $fb_user['access_token'],
+    );
+    $this->drupalPost('fbconnect-test/init-fb-session', $edit, 'Submit');
+    $this->assertFieldByName('fbuid', $fb_user['id'], 'FB Session inited', 'FBConnect');
+
+    $this->assertTrue(fbconnect_register($account->uid, $fb_user['id']), 'fbconnect_register returned true', 'FBConnect');
+    $this->assertNotNull(_get_user_fbuid($account->uid), 'FB Account is connected', 'FBConnect');
+
+    $this->drupalPost('', array(), 'Connect');
+    $this->assertLink('My account', 0, 'User is logged in', 'FBConnect');
+  }
+
+  function testLinking() {
+    $account = $this->drupalCreateUser();
+    $fb_user = $this->_createFbTestUser('true');
+
+    $edit = array(
+      'fbuid' => $fb_user['id'],
+      'access_token' => $fb_user['access_token'],
+    );
+    $this->drupalPost('fbconnect-test/init-fb-session', $edit, 'Submit');
+    $this->assertFieldByName('fbuid', $fb_user['id'], 'FB Session inited', 'FBConnect');
+
+    $edit = array(
+      'name' => $account->name,
+      'pass' => $account->pass_raw,
+    );
+    $this->drupalPost('user', $edit, 'Log in', array('query' => 'destination=fbconnect/link'));
+    $this->assertLink('My account', 0, 'User is logged in', 'FBConnect');
+  }
+
+  function testRegistration() {
+    variable_set('fbconnect_reg_options', 1);
+
+    $fb_user = $this->_createFbTestUser('true');
+    $edit = array(
+      'fbuid' => $fb_user['id'],
+      'access_token' => $fb_user['access_token'],
+    );
+    $this->drupalPost('fbconnect-test/init-fb-session', $edit, 'Submit');
+    $this->assertFieldByName('fbuid', $fb_user['id'], 'FB Session inited', 'FBConnect');
+
+    $edit = array(
+      'mail' => $this->randomName() . '@example.com',
+    );
+    $this->drupalPost('fbconnect/register/create', $edit, 'Create new account');
+    $this->assertLink('My account', 0, 'User is logged in', 'FBConnect');
+  }
+
+  function testFastRegistration() {
+    variable_set('fbconnect_fast_reg', 1);
+    variable_set('fbconnect_reg_options', 1);
+
+    $fb_user = $this->_createFbTestUser('true', 'email');
+
+    $edit = array(
+      'fbuid' => $fb_user['id'],
+      'access_token' => $fb_user['access_token'],
+    );
+    $this->drupalPost('fbconnect-test/init-fb-session', $edit, 'Submit');
+    $this->assertFieldByName('fbuid', $fb_user['id'], 'FB Session inited', 'FBConnect');
+    $this->drupalPost('', array(), 'Connect');
+    $this->assertLink('My account', 0, 'User is logged in', 'FBConnect');
+
+//    $this->assertNotNull(_get_user_fbuid($account->uid), 'FB Account is connected', 'FBConnect');
+  }
+
+}

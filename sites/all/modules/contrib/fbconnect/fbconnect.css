@@ -1,0 +1,53 @@
+/*** Default, neccessary for admin **/
+#edit-fbconnect-button .form-type-radio {
+  clear: both;
+  padding: 10px;
+}
+#edit-fbconnect-button input.form-radio {
+  float: left;
+  vertical-align: middle;
+}
+
+#edit-fbconnect-button label.option {
+  float: left;
+}
+
+#edit-fbconnect-button label.option {
+  background:#5f78ab url(http://static.ak.fbcdn.net/rsrc.php/v1/yL/r/FGFbc80dUKj.png) no-repeat;
+  border-top:solid 1px #1a356e;
+  border-right:solid 1px #1a356e;
+  border-bottom:solid 1px #1a356e;
+  color:#fff;
+  display:block;
+  font-family:"lucida grande",tahoma,verdana,arial,sans-serif;
+  font-weight:bold;
+  padding:2px 6px 3px 6px;
+  margin:1px 1px 0 21px;
+  text-shadow:none
+}
+
+.page-admin-config #edit-fbconnect-button .form-item label.option[for="edit-fbconnect-button-large-short"] {
+  background-position:left -140px;
+  font-size: 13px;
+  line-height:16px;
+  padding: 2px 6px 4px 32px;
+}
+
+.page-admin-config #edit-fbconnect-button .form-item label.option[for="edit-fbconnect-button-medium-short"] {
+  background-position:left -190px;
+  font-size: 11px;
+  line-height:14px;
+  padding:2px 6px 3px 28px;
+}
+
+.page-admin-config #edit-fbconnect-button .form-item label.option[for="edit-fbconnect-button-small-short"] {
+  background-position:left -234px;
+  font-size: 10px;
+  line-height:10px;
+  padding:2px 6px 2px 22px;
+}
+
+.form-item-fbconnect-button-text {
+  clear: both;
+  padding: 20px 0 0 0;
+}
