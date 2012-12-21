@@ -383,3 +383,14 @@ function scratchpads_simple_taxonomy_page_menu(){
   }
   return $items;
 }
+
+/**
+ * Implementation of hook_views_api
+ */
+function scratchpads_simple_taxonomy_page_views_api(){
+  $path = drupal_get_path('module', 'scratchpads_simple_taxonomy_page');
+  return array(
+    'api' => '3',
+    'path' => $path . '/views'
+  );
+}
