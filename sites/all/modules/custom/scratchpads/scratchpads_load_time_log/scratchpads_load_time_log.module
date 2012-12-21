@@ -24,10 +24,10 @@ function scratchpads_load_time_log_shutdown(){
   $time = time();
   if(variable_get('scratchpads_load_time_log_last_clear', 0) + 604800 < $time){
     variable_set('scratchpads_load_time_log_last_clear', $time);
-    @file_put_contents($filename, '"Path","Load time","UID"' . "\n");
+    @file_put_contents($filename, '"Path","Load time","UID","Timestamp"' . "\n");
   }
   if($filename){
     global $user;
-    @file_put_contents($filename, '"' . $path . '","' . timer_read('page') . '","' . $user->uid . "\"\n", FILE_APPEND);
+    @file_put_contents($filename, '"' . $path . '","' . timer_read('page') . '","' . $user->uid . '","' . $time . "\"\n", FILE_APPEND);
   }
 }
