@@ -326,7 +326,7 @@ function scratchpads_simple_taxonomy_page_menu(){
       'title arguments' => array(
         2
       ),
-      'page callback' => 'taxonomy_term_page',
+      'page callback' => 'scratchpads_simple_taxonomy_page_taxonomy_term_page',
       'page arguments' => array(
         2
       ),
@@ -393,4 +393,17 @@ function scratchpads_simple_taxonomy_page_views_api(){
     'api' => '3',
     'path' => $path . '/views'
   );
+}
+
+/**
+ * Page callback
+ * Taxonomy term pages
+ */
+function scratchpads_simple_taxonomy_page_taxonomy_term_page($term){
+  $build = taxonomy_term_page($term);
+  // Hide the unit name fields
+  for($x = 1; $x <= 4; $x++){
+    unset($build['term_heading']['term']['field_unit_name' . $x]);
+  }
+  return $build;
 }
