@@ -180,6 +180,15 @@ function scratchpads_setup_licence_form($form, &$form_state){
 
 function scratchpads_setup_licence_form_submit($form, &$form_state){
   variable_set('creative_commons_block_licence_type', $form_state['values']['licence_type']);
+  // Update all instances of field_cc_licence.
+  $info = field_info_field('field_cc_licence');
+  foreach($info['bundles'] as $entity => $bundles){
+    foreach($bundles as $bundle){
+      $instance = field_info_instance($entity, 'field_cc_licence', $bundle);
+      $instance['default_value'][0]['licence'] = $form_state['values']['licence_type'];
+      field_update_instance($instance);
+    }
+  }
 }
 
 function scratchpads_setup_form_alter(&$form, &$form_state, $form_id){
