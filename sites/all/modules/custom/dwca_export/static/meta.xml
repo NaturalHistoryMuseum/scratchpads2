@@ -15,6 +15,9 @@
 			term="http://rs.tdwg.org/dwc/terms/scientificNameAuthorship" />
 		<field index="6" term="http://purl.org/dc/terms/bibliographicCitation" />
 		<field index="7" term="http://rs.tdwg.org/dwc/terms/parentNameUsageID" />
+				
+		<field index="8" term="http://purl.org/dc/terms/related" />
+		<field index="9" term="http://purl.org/dc/terms/source" />
 	</core>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
@@ -49,9 +52,6 @@
 		<field index="14" term="http://purl.org/dc/terms/date" />
 		<field index="15" term="http://purl.org/dc/terms/created" />
 		<field index="16" term="http://purl.org/dc/terms/modified" />
-		
-		<field index="18" term="http://purl.org/dc/terms/related" />
-		<field index="19" term="http://purl.org/dc/terms/source" />
 	</extension>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
