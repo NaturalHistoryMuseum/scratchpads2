@@ -26,8 +26,8 @@ function jsphylosvg_field_formatter_settings_form($field, $instance, $view_mode,
       '#type' => 'select',
       '#title' => t('Display type'),
       '#options' => array(
-        'circular' => t('Circular'),
-        'rectangular' => t('Rectangular')
+        'rectangular' => t('Rectangular'),
+        'circular' => t('Circular')
       ),
       '#default_value' => $instance['display'][$view_mode]['settings']['display_type']
     )
@@ -93,7 +93,7 @@ function jsphylosvg_field_formatter_view($entity_type, $entity, $field, $instanc
                     $type => $xml
                   ),
                   'count' => $count,
-                  'type' => @isset($instance['display'][$view_mode]['settings']['display_type']) ? $instance['display'][$view_mode]['settings']['display_type'] : 'rectangular'
+                  'type' => $display['settings']['display_type']
                 )
               )
             ),
