@@ -79,3 +79,15 @@ function emonocot_biblio_install(){
   variable_set('em_biblio_autogen', TRUE);
 }
 
+/**
+ * Create additional fields as this is not done by Features
+ */
+function emonocot_biblio_update_7001(){
+  module_load_include('features.field.inc', 'emonocot_biblio');
+  foreach (emonocot_biblio_field_default_fields() as $field){
+  	if (!is_null(field_info_field($field['field_name']))){
+  	  field_create_field($field);
+  	}
+  }
+}
+

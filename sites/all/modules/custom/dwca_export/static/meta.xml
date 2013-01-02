@@ -15,6 +15,9 @@
 			term="http://rs.tdwg.org/dwc/terms/scientificNameAuthorship" />
 		<field index="6" term="http://purl.org/dc/terms/bibliographicCitation" />
 		<field index="7" term="http://rs.tdwg.org/dwc/terms/parentNameUsageID" />
+				
+		<field index="8" term="http://purl.org/dc/terms/related" />
+		<field index="9" term="http://purl.org/dc/terms/source" />
 	</core>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
