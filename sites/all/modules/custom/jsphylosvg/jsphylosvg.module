@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function jsphylosvg_field_formatter_info(){
+  return array(
+    'jsphylosvg_text_area' => array(
+      'label' => t('Newick/NeXML tree'),
+      'field types' => array(
+        'text_long'
+      ),
+      'settings' => array(
+        'display_type' => 'rectangular'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function jsphylosvg_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state){
+  return array(
+    'display_type' => array(
+      '#type' => 'select',
+      '#title' => t('Display type'),
+      '#options' => array(
+        'circular' => t('Circular'),
+        'rectangular' => t('Rectangular')
+      ),
+      '#default_value' => $instance['display'][$view_mode]['settings']['display_type']
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function jsphylosvg_field_formatter_settings_summary($field, $instance, $view_mode){
+  if(@isset($instance['display'][$view_mode]['settings']['display_type']) && $instance['display'][$view_mode]['settings']['display_type'] == 'circular'){return t('Circular');}
+  return t('Rectangular');
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function jsphylosvg_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  $path = drupal_get_path('module', 'jsphylosvg');
+  foreach($items as $key => $item){
+    $xml = $item['value'];
+    // We need to convert some input to NeXML.
+    /*if(substr(strtolower($xml), 0, 6) == '#nexus'){
+      $ch = curl_init('http://nexml.org/nexml/nex2xml');
+      curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+      curl_setopt($ch, CURLOPT_HEADER, 0);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+      curl_setopt($ch, CURLOPT_PUT, TRUE);
+      // Write string to a temporary file
+      $filename = drupal_tempnam(file_directory_temp(), 'jsphylo');
+      file_put_contents($filename, $xml);
+      $file_handle = fopen($filename, 'r');
+      curl_setopt($ch, CURLOPT_INFILE, $file_handle);
+      curl_setopt($ch, CURLOPT_INFILESIZE, filesize($filename));
+      $response = curl_exec($ch);
+      print_r(curl_getinfo($ch));
+      print_r(curl_errno($ch));
+      print_r($response);
+    }*/
+    // Load the XML so that we can calculate how many nodes we have.
+    $sx = new SimpleXMLElement(str_replace('xmlns=', 'ns=', $xml));
+    $datas = $sx->xpath("otus");
+    foreach($datas as $data){
+      $count = $data->count();
+    }
+    switch($sx->getName()){
+      default:
+        $type = $sx->getName();
+        break;
+    }
+    $element[$key] = array(
+      '#markup' => '<div class="jsphylosvg" id="' . $instance['field_name'] . '-' . $key . '"></div>',
+      '#attached' => array(
+        'js' => array(
+          $path . '/library/raphael-min.js',
+          $path . '/library/jsphylosvg.js',
+          $path . '/jsphylosvg.js',
+          array(
+            'data' => array(
+              'jsphylosvg' => array(
+                $instance['field_name'] . '-' . $key => array(
+                  'data' => array(
+                    $type => $xml
+                  ),
+                  'count' => $count,
+                  'type' => @isset($instance['display'][$view_mode]['settings']['display_type']) ? $instance['display'][$view_mode]['settings']['display_type'] : 'rectangular'
+                )
+              )
+            ),
+            'type' => 'setting'
+          )
+        )
+      )
+    );
+  }
+  return $element;
+}
