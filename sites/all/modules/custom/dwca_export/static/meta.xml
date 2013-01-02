@@ -49,6 +49,8 @@
 		<field index="14" term="http://purl.org/dc/terms/date" />
 		<field index="15" term="http://purl.org/dc/terms/created" />
 		<field index="16" term="http://purl.org/dc/terms/modified" />
+		<field index="17" term="http://purl.org/dc/terms/source" />
+		<field index="18" term="http://purl.org/dc/terms/related" />
 	</extension>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
