@@ -50,23 +50,24 @@ function jsphylosvg_field_formatter_view($entity_type, $entity, $field, $instanc
   foreach($items as $key => $item){
     $xml = $item['value'];
     // We need to convert some input to NeXML.
-    /*if(substr(strtolower($xml), 0, 6) == '#nexus'){
-      $ch = curl_init('http://nexml.org/nexml/nex2xml');
-      curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-      curl_setopt($ch, CURLOPT_HEADER, 0);
-      curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-      curl_setopt($ch, CURLOPT_PUT, TRUE);
-      // Write string to a temporary file
-      $filename = drupal_tempnam(file_directory_temp(), 'jsphylo');
-      file_put_contents($filename, $xml);
-      $file_handle = fopen($filename, 'r');
-      curl_setopt($ch, CURLOPT_INFILE, $file_handle);
-      curl_setopt($ch, CURLOPT_INFILESIZE, filesize($filename));
-      $response = curl_exec($ch);
-      print_r(curl_getinfo($ch));
-      print_r(curl_errno($ch));
-      print_r($response);
-    }*/
+    if(substr(strtolower($xml), 0, 6) == '#nexus'){
+      $cid = md5($xml);
+      if(($data = cache_get($cid, 'cache_jsphylosvg')) != FALSE){
+        $xml = $data->data;
+      }else{
+        // Write string to a temporary file
+        $filename = drupal_tempnam(file_directory_temp(), 'jsphylo');
+        file_put_contents($filename, $xml);
+        exec('curl -F "file=@' . $filename . '" http://www.nexml.org/nexml/phylows/nex2xml', $output, $return_status);
+        if($return_status){
+          // Failed to process this data, we'll skip it and add a warning message
+          drupal_set_message(t('Unable to parse Nexus data'), 'error');
+          continue;
+        }
+        $xml = implode("\n", $output);
+        cache_set($cid, $xml, 'cache_jsphylosvg');
+      }
+    }
     // Load the XML so that we can calculate how many nodes we have.
     $sx = new SimpleXMLElement(str_replace('xmlns=', 'ns=', $xml));
     $datas = $sx->xpath("otus");
