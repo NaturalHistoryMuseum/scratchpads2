@@ -108,8 +108,8 @@ function emonocot_biblio_get_start_page($protologue){
 function emonocot_bilbio_process_term_author_string($author_string){
   //If there is an author is parentheses that's the only part of the string we should return for biblio
   if(strstr($author_string, '(')){
-    $start = strpos($author_string, '(') + 1;
-    $end = strpos($author_string, ')');
+    $start = 0;
+    $end = strpos($author_string, '(');
     $author_string = substr($author_string, $start, $end - $start);
   }
   //If the taxon author string has 'ex' or 'in' in the title discard unwanted authors
