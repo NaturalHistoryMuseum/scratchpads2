@@ -6,21 +6,10 @@
 include_once ('pensoft_publication.features.inc');
 
 /**
- * Implementation of hook_menu
+ * Implement hook_process_relation_select_field
+ * 
+ * Call appropriate function for each field type
  */
-function pensoft_publication_menu(){
-  $items = array();
-  $items['pensoft/ajax'] = array(
-    'title' => 'Views',
-    'page callback' => 'pensoft_publication_ajax',
-    'delivery callback' => 'ajax_deliver',
-    'access callback' => TRUE,
-    'description' => 'Ajax callback for loading taxon description fields.',
-    'type' => MENU_CALLBACK
-  );
-  return $items;
-}
-
 function pensoft_publication_process_relation_select_field(&$variables){
   if($variables['entity_type'] == 'publication' && $variables['bundle'] == 'pensoft'){
     // Pass the processing to individual field processors
@@ -32,9 +21,6 @@ function pensoft_publication_process_relation_select_field(&$variables){
 }
 
 /*
- * Preprocess the author field
- * We want to have the author real name, instiution etc.,
- */
 function pensoft_publication_process_field_publication_authors(&$variables){
   $variables['items'] = array();
   $variables['list_type'] = 'ol';
@@ -63,7 +49,7 @@ function pensoft_publication_process_field_publication_treatments(&$variables){
   if(count($alternative_name)){
     $alternative_name['#label_display'] = 'hidden';
     $title = drupal_render($alternative_name);
-  }else{
+  } else {
     $title = $spm_entity->title;
   }
   $variables['prefix'] = '<div class="field-label">' . $title . '</div>';
@@ -84,141 +70,346 @@ function pensoft_publication_process_field_publication_treatments(&$variables){
   $variables['suffix'] = drupal_render($relation_page);
 }
 
-function pensoft_publication_form_alter(&$form, &$form_state, $form_id){
-  switch($form_id){
-    case 'publication_edit_form':
-      $form['#attached']['css'][] = drupal_get_path('module', 'pensoft_publication') . '/css/pensoft.css';
-      if($form['#current_group'] == 'group_publication_systematics'){
-        if($form['#display_mode'] == 'edit'){
-          $form['field_publication_treatments']['#after_build'][] = 'pensoft_publication_field_publication_treatments_after_build';
-          $form['formflow_actions']['add_new_treatment'] = array(
-            '#type' => 'submit',
-            '#value' => t('Add new treatment'),
-            '#submit' => array(
-              'publication_edit_form_submit',
-              'pensoft_publication_treatments_edit_form_submit'
-            ),
-            '#formflow' => 1
-          );
-        }else{
-          $form['field_publication_treatments'] = array(
-            '#type' => 'markup',
-            '#markup' => '<div class="messages warning">' . t('You can add taxon treatments after the publication has been created.') . '</div>',
-            '#weight' => 100
-          );
+function pensoft_publication_field_publication_treatments_after_build($element){
+  $element['#prefix'] = '<label id="taxon-treatment">Taxon treatments</label>';
+  foreach(element_children($element[LANGUAGE_NONE]) as $field_id){
+    if(isset($element[LANGUAGE_NONE][$field_id]['#default_value'])){
+      unset($element[LANGUAGE_NONE][$field_id]['exposed_filters']);
+      unset($element[LANGUAGE_NONE][$field_id]['#title']);
+    }else{
+      unset($element[LANGUAGE_NONE][$field_id]);
+    }
+  }
+  return $element;
+}*/
+
+     
+/**
+ * Implement hook_form_publication_edit_form_alter
+ * 
+ * - Add the spm fields for each treatment ;
+ * - Enable the horizontal tabbed intereface for treatments ;
+ * - Add hidden fields for the automatic addition of references/figures that have
+ *   been inserted using the insert_from_view module ;
+ * 
+ */
+function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_state, $form_id) {
+  // Attach resources
+  $form['#attached']['css'][] = drupal_get_path('module', 'pensoft_publication') . '/css/pensoft.css';
+  $form['#attached']['css'][] = drupal_get_path('module', 'pensoft_publication') . '/css/pensoft_tabs.css';
+  $form['#attached']['js'][] = drupal_get_path('module', 'pensoft_publication') . '/js/pensoft_tabs.js';
+  $form['#attached']['js'][] = drupal_get_path('module', 'pensoft_publication') . '/js/pensoft.js';
+  
+  // Setup all the vertical tabs that use relation select to use additional horizontal tabs
+  //_pensoft_publication_relation_tab_prepare_form($form, 'field_publication_authors');
+  //_pensoft_publication_relation_tab_prepare_form($form, 'field_publication_contributors');
+  //_pensoft_publication_relation_tab_prepare_form($form, 'field_publication_treatments');
+  
+  // Load the field selector for the treatments
+  foreach (element_children($form['field_publication_treatments']['und']) as $key) {
+    $treatment_form = $form['field_publication_treatments']['und'][$key];
+    $values = $form_state['values']['field_publication_treatments']['und'][$key];
+    if (empty($treatment_form['#entity_type'])) {
+      continue;
+    }
+    if (isset($values['endpoints'][0])) {
+      list($type, $nid) = explode(':', $values['endpoints'][0]);
+      $node = node_load($nid);
+      $selected_fields = array();
+      foreach ($values['treatment_entity_fields_group-' . $key] as $group => $fields) {
+        if (!is_array($fields)) {
+          continue;
         }
-      } else if ($form['#current_group'] == 'group_publication_metadata') {
-        if($form['#display_mode'] == 'edit'){
-          $form['field_publication_authors']['#after_build'][] = 'pensoft_publication_field_publication_authors_after_build';
-          $form['formflow_actions']['add_new_author'] = array(
-            '#type' => 'submit',
-            '#value' => t('Add new author'),
-            '#submit' => array(
-              'publication_edit_form_submit',
-              'pensoft_publication_authors_edit_form_submit'
-            ),
-            '#formflow' => 1
-          );
-          
-          $form['field_publication_contributors']['#after_build'][] = 'pensoft_publication_field_publication_contributors_after_build';
-          $form['formflow_actions']['add_new_contributor'] = array(
-            '#type' => 'submit',
-            '#value' => t('Add new contributor'),
-            '#submit' => array(
-              'publication_edit_form_submit',
-              'pensoft_publication_contributors_edit_form_submit'
-            ),
-            '#formflow' => 1
-          );
-        }else{
-          $form['field_publication_authors'] = array(
-            '#type' => 'markup',
-            '#markup' => '<div class="messages warning">' . t('You can add authors and contributors after the publication has been created.') . '</div>',
-            '#weight' => 100
-          );
-          unset($form['field_publication_contributors']);
-        }        
-      }
-      break;
-    case 'relation_select_add_relation_form':
-      $form['#attached']['js'][] = drupal_get_path('module', 'pensoft_publication') . '/js/pensoft.js';
-      $form['#attached']['css'][] = drupal_get_path('module', 'pensoft_publication') . '/css/pensoft.css';
-      $form['relation_type_wrapper']['cancel'] = array(
-        '#type' => 'submit',
-        '#value' => t('Cancel'),
-        '#weight' => 100,
-        '#submit' => array(), // Needs to have submit set to work
-        '#limit_validation_errors' => array()
-      );
-      $form['relation_type_wrapper']['fields'] = array(
-        '#type' => 'container'
-      );
-      if(isset($_POST['spm_entity'])){
-        $form['relation_type_wrapper']['fields']['spm_entity'] = array(
-          '#type' => 'hidden',
-          '#value' => $_POST['spm_entity']
-        );
-        list($spm_entity_type, $spm_entity_id) = explode(':', $_POST['spm_entity']);
-        $form['relation_type_wrapper']['fields']['list'] = array(
-          '#type' => 'item',
-          '#title' => t("Fields"),
-          '#tree' => true
-        );
-        $entity = entity_load_single($spm_entity_type, $spm_entity_id);
-        list($entity_id, $vid, $bundle) = entity_extract_ids($spm_entity_type, $entity);
-        $field_groups = field_group_info_groups($spm_entity_type, $bundle, 'form', true);
-        $field_instances = field_info_instances($spm_entity_type, $bundle);
-        foreach($field_groups as $field_group_name => $field_group){
-          if(count($field_group->children)){
-            $form['relation_type_wrapper']['fields']['list'][$field_group_name] = array(
-              '#type' => 'item',
-              '#title' => $field_group->label
-            );
-            foreach($field_group->children as $field_name){
-              if(isset($field_instances[$field_name])){
-                if($field_instances[$field_name]['widget']['type'] == 'relation_select'){
-                  continue;
-                }
-                $value = '';
-                if(count($entity->{$field_name})){
-                  $elements = field_view_value($spm_entity_type, $entity, $field_name, $entity->{$field_name}[LANGUAGE_NONE][0]);
-                  $value = drupal_render($elements);
-                }
-                if(empty($value)){
-                  $value = '<p>empty field</p>';
-                }
-                $form['relation_type_wrapper']['fields']['list'][$field_group_name][$field_name] = array(
-                  '#type' => 'checkbox',
-                  '#title' => $field_instances[$field_name]['label'],
-                  '#suffix' => $value
-                );
-              }
-            }
-            // Tidy up groups without children
-            if(!count(element_children($form['relation_type_wrapper']['fields']['list'][$field_group_name]))){
-              unset($form['relation_type_wrapper']['fields']['list'][$field_group_name]);
-            }
+        foreach ($fields as $field_name => $field_value) {
+          if ($field_value) {
+            $selected_fields[] = $field_name;
           }
         }
       }
-      $form['#submit'][] = 'pensoft_publication_relation_select_add_relation_form_submit';
-      break;
-    case 'publication_type_form':
-      $form['pensoft_submit_url'] = array(
-        '#type' => 'textfield',
-        '#title' => 'Pensoft API URL',
-        '#required' => TRUE,
-        '#default_value' => variable_get('pensoft_submit_url', 'http://test.pwt.pensoft.eu/api.php'),
-        '#weight' => 10
+    } else {
+      $relation = $treatment_form['relation_fields']['#entity'];
+      if (isset($relation->endpoints['und'][1]['entity_id'])) {
+        $node = node_load($relation->endpoints['und'][1]['entity_id']);
+      } else {
+        $node = NULL;
+      }
+      $selected_fields = explode(',', $relation->field_publication_treat_fields['und'][0]['value']);
+    }
+  
+    $treatment_field_form = _pensoft_publication_treatment_spm_fields_form($form, $selected_fields, $node, $key);
+    hide($treatment_form['relation_fields']['field_publication_treat_fields']);
+    $form['field_publication_treatments']['und'][$key] = array_merge($treatment_form, $treatment_field_form);
+  }
+  
+  // Handle automatic adding of references  
+  $entity = $form['#entity'];
+  $references_map = array();
+  foreach ($entity->field_publication_references['und'] as $ref_key => $ref) {
+    if (!empty($ref['nid'])) {
+      $references_map[$ref['nid']] = true;
+    }
+  }
+
+  $form['pensoft_add_multiple_references'] = array(
+    '#type' => 'hidden',
+    '#default_value' => isset($form_state['values']['pensoft_add_multiple_references']) ? $form_state['values']['pensoft_add_multiple_references'] : '',
+    '#prefix' => '<div class="pensoft_add_multiple_references">',
+    '#suffix' => '</div>',
+  );
+  
+  // Handle automatic adding of figures
+  $entity = $form['#entity'];
+  $figures_map = array();
+  $figure_key = 0;
+  foreach ($entity->field_publication_figures['und'] as $fig_key => $figure) {
+    if (!empty($figure['fid'])) {
+      $form['field_publication_figures']['und'][$fig_key]['#title'] = 'Fig. ' . ($fig_key+1);
+      $figures_map[$figure['fid']] = $fig_key;
+      if ($fig_key >= $figure_key) {
+        $figure_key = $fig_key+1;
+      }
+    }
+  }
+
+  $form['pensoft_add_multiple_figures'] = array(
+    '#type' => 'hidden',
+    '#default_value' => isset($form_state['values']['pensoft_add_multiple_figures']) ? $form_state['values']['pensoft_add_multiple_figures'] : '',
+    '#prefix' => '<div class="pensoft_add_multiple_figures">',
+    '#suffix' => '</div>',
+  );
+
+  // Handle automatic adding of tables
+  $entity = $form['#entity'];
+  $tables_map = array();
+  $table_key = 0;
+  foreach (element_children($form['field_publication_tables']['und']) as $elem_key) {
+    $form['field_publication_tables']['und'][$elem_key]['#title'] = 'Table. ' . ($elem_key+1);
+    if ($elem_key >= $table_key) {
+      $table_key = $elem_key+1;
+    }
+  }
+  
+  // JS settings
+  $form['#attached']['js'][] = array(
+    'data' => array('pensoft' => array(
+      'figures_map' => $figures_map,
+      'figure_key' => $figure_key,
+      'references_map' => $references_map,
+      'table_key' => $table_key,
+    )),
+    'type' => 'setting'
+  );  
+  
+  _pensoft_publication_relation_tab_prepare_form($form, 'field_publication_treatments');
+  
+  // Add our own submit function, ensuring it runs first  
+  array_unshift($form['actions']['submit']['#submit'], 'pensoft_publication_publication_edit_form_submit');
+}
+
+/**
+ * Helper function for hook_form_publication_edit_form_alter - prepare a vertical tab
+ * containing a relation select element so it can be used with the horizontal tab javascript
+ */
+function _pensoft_publication_relation_tab_prepare_form(&$form, $tab) {
+  $wrapper = preg_replace('/_/', '-', str_replace('field_', '', $tab)) . '-container';
+ 
+  $form[$tab]['#prefix'] = "<div id='$wrapper' class='publication-relation-select-container'>";
+  $form[$tab]['#suffix'] = '</div>';
+  $form[$tab]['reload-'.$tab] = array(
+    '#type' => 'button',
+    '#value' => 'refreshForm-'.$tab,
+    '#prefix' => '<div class="reload-button" style="display:none;">',
+    '#suffix' => '</div>',
+    '#ajax' => array(
+      'callback' => 'pensoft_publication_entity_field_group_callback',
+      'wrapper' => $wrapper,
+      'event' => 'refreshForm',
+      '#tab' => $tab,
+    ),
+  );
+}
+
+/**
+ * Helper function for hook_form_publication_edit_form_alter - Generate a form array 
+ * displaying checkboxes to select the fields from an SPM node entity.
+ *
+ */
+function _pensoft_publication_treatment_spm_fields_form($form, $selected_fields, $entity = NULL, $key = 0) {
+  $form = array();
+
+  $field_groups = field_group_info_groups('node', 'spm', 'form', true);
+  $field_instances = field_info_instances('node', 'spm');
+
+  $all_empty = TRUE;
+  foreach ($field_groups as $field_group_name => $field_group) {
+    if (empty($field_group->children)) {
+      continue;
+    }
+
+    $child_form = array();
+    $has_child = FALSE;
+    foreach ($field_group->children as $field_name) {
+      if (empty($field_instances[$field_name])) {
+        continue;
+      }
+      if ($field_instances[$field_name]['widget']['type'] == 'relation_select') {
+        continue;
+      }
+      $value = '';
+      if($entity && count($entity->{$field_name})){
+        $elements = field_view_value('node', $entity, $field_name, $entity->{$field_name}[LANGUAGE_NONE][0]);
+        $value = drupal_render($elements);
+      }
+      $child_form[$field_name] = array(
+        '#type' => 'checkbox',
+        '#title' => $field_instances[$field_name]['label'],
+        '#suffix' => $value,
+        '#tree' => TRUE,
+        '#default_value' => in_array($field_name, $selected_fields) ? 1 : 0,
       );
-      $form['#submit'][] = 'pensoft_publication_type_form_submit';
-      $form['#validate'][] = 'pensoft_publication_type_form_validate';
-      break;
+      if (empty($value)) {
+        $child_form[$field_name]['#prefix'] = '<div style="display:none;">';
+        $child_form[$field_name]['#suffix'] = '</div>';
+      } else {
+        $has_child = TRUE;
+        $all_empty = FALSE;
+      }
+    }
+    
+    $form[$field_group_name] = array_merge(array(
+      '#type' => 'fieldset',
+      '#title' => preg_replace('/[^a-zA-Z0-9]/', ' ', $field_group_name),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#tree' => TRUE,
+    ), $child_form);
+    
+    if (!$has_child) {
+      $form[$field_group_name]['#prefix'] = '<div style="display:none;">';
+      $form[$field_group_name]['#suffix'] = '</div>';      
+    }
+  }
+
+  $group_id = 'treatment_entity_field_group-' . $key;
+  $group = array(
+    $group_id => array_merge(array(
+      '#type' => 'vertical_tabs',
+      '#weight' => 25,
+      '#prefix' => "<div class=\"field-publication-treatments-entity-fields\" id=\"field-publication-treatments-entity-fields-$key\"><label>" . t('Select the fields you wish to include in this treatment') . '</label>',
+      '#suffix' => '</div>',
+    ), $form)
+  );
+  if ($all_empty) {
+    $group[$group_id]['#prefix'] = "<div style=\"display: none;\" class=\"field-publication-treatments-entity-fields\" id=\"field-publication-treatments-entity-fields-$key\">";
+  }
+
+  return $group;
+}
+
+/**
+ * Ajax callback function when refreshing the publication treatments part of the form
+ *
+ */
+function pensoft_publication_entity_field_group_callback(&$form, &$form_state) {
+  //pensoft_publication_form_publication_edit_form_alter($form, $form_state, 'publication_edit_form');
+  return $form[$form_state['triggering_element']['#ajax']['#tab']];
+}
+
+/**
+ * Own handler for the Pensoft publication edit form submit
+ * - Copy the selected SPM fields into the relation field (which is just a textbox)
+ * 
+ */
+function pensoft_publication_publication_edit_form_submit($form, &$form_state) {
+  foreach (element_children($form['field_publication_treatments']['und']) as $key) {
+    $treatment_form = $form['field_publication_treatments']['und'][$key];
+    if (empty($treatment_form['#entity_type'])) {
+      continue;
+    }
+    $values =& $form_state['values']['field_publication_treatments']['und'][$key];
+    if (empty($values['endpoints'][0])) {
+      continue;
+    }
+    
+    $fields_to_include = array();
+    foreach ($values['treatment_entity_field_group-' . $key] as $group => $fields) {
+      if (!is_array($fields)) {
+        continue;
+      }
+      foreach ($fields as $name => $tick) {
+        if ($tick) {
+          $fields_to_include[] = $name;
+        }
+      }
+    }
+    $values['relation_fields']['field_publication_treat_fields']['und'][0]['value'] = implode(',', $fields_to_include);
+  }  
+}
+
+/**
+ * Implement hook_entity_presave
+ * - Add the references and figures that were inserted via insert_from_view
+ *
+ */
+function pensoft_publication_entity_presave($entity, $type) {
+  if ($type != 'publication' || $entity->type != 'pensoft') {
+    return;
+  }
+
+  // Add references
+  if (!empty($entity->pensoft_add_multiple_references)) {
+    $references_to_add = explode(',', $entity->pensoft_add_multiple_references);
+
+    $existing_references = array();
+    foreach ($entity->field_publication_references['und'] as $key => $value) {
+      $existing_references[] = $value['nid'];
+    }
+    $references_to_add = array_unique(array_diff($references_to_add, $existing_references));
+
+    foreach ($references_to_add as $nid) {
+      if (!empty($nid)) {
+        $entity->field_publication_references['und'][] = array('nid' => $nid);
+      }
+    }
+  }
+
+  // Add figures
+  if (!empty($entity->pensoft_add_multiple_figures)) {
+    $figures_to_add = explode(',', $entity->pensoft_add_multiple_figures);
+
+    $existing_figures = array();
+    foreach ($entity->field_publication_figures['und'] as $key => $value) {
+      $existing_figures[] = $value['fid'];
+    }
+    $figures_to_add = array_unique(array_diff($figures_to_add, $existing_figures));
+
+    foreach ($figures_to_add as $fid) {
+      if (!empty($fid)) {
+        $entity->field_publication_figures['und'][] = array('fid' => $fid);
+      }
+    }
   }
 }
 
 /**
- * Own validation for th ePensoft publication type form settings submit
+ * Implement hook_form_publication_type_form_alter to add our own settings
+ * (pensoft API URL)
+ * 
+ */
+function pensoft_publication_form_publication_type_form_alter(&$form, &$form_state, $form_id){
+  $form['pensoft_submit_url'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Pensoft API URL',
+    '#required' => TRUE,
+    '#default_value' => variable_get('pensoft_submit_url', 'http://test.pwt.pensoft.eu/api.php'),
+    '#weight' => 10
+  );
+  $form['#submit'][] = 'pensoft_publication_type_form_submit';
+  $form['#validate'][] = 'pensoft_publication_type_form_validate';
+}
+
+/**
+ * Own validation for the Pensoft publication type form settings submit
  */
 function pensoft_publication_type_form_validate($form, &$form_state) {
   if (!valid_url($form_state['values']['pensoft_submit_url'])) {
@@ -233,148 +424,10 @@ function pensoft_publication_type_form_submit($form, &$form_state) {
   variable_set('pensoft_submit_url', $form_state['values']['pensoft_submit_url']);  
 }
 
-function pensoft_publication_field_publication_treatments_after_build($element){
-  $element['#prefix'] = '<label id="taxon-treatment">Taxon treatments</label>';
-  foreach(element_children($element[LANGUAGE_NONE]) as $field_id){
-    if(isset($element[LANGUAGE_NONE][$field_id]['#default_value'])){
-      unset($element[LANGUAGE_NONE][$field_id]['exposed_filters']);
-      unset($element[LANGUAGE_NONE][$field_id]['#title']);
-    }else{
-      unset($element[LANGUAGE_NONE][$field_id]);
-    }
-  }
-  return $element;
-}
-
-function pensoft_publication_field_publication_authors_after_build($element){
-  $element['#prefix'] = '<label id="publication-authors">Authors</label>';
-  foreach(element_children($element[LANGUAGE_NONE]) as $field_id){
-    if(isset($element[LANGUAGE_NONE][$field_id]['#default_value'])){
-      unset($element[LANGUAGE_NONE][$field_id]['exposed_filters']);
-      unset($element[LANGUAGE_NONE][$field_id]['#title']);
-    }else{
-      unset($element[LANGUAGE_NONE][$field_id]);
-    }
-  }
-  return $element;
-}
-
-function pensoft_publication_field_publication_contributors_after_build($element){
-  $element['#prefix'] = '<label id="publication-authors">Contributors</label>';
-  foreach(element_children($element[LANGUAGE_NONE]) as $field_id){
-    if(isset($element[LANGUAGE_NONE][$field_id]['#default_value'])){
-      unset($element[LANGUAGE_NONE][$field_id]['exposed_filters']);
-      unset($element[LANGUAGE_NONE][$field_id]['#title']);
-    }else{
-      unset($element[LANGUAGE_NONE][$field_id]);
-    }
-  }
-  return $element;
-}
-
-function pensoft_publication_treatments_edit_form_submit(&$form, &$form_state){
-  $form_state['redirect'] = array(
-    'relation-select/add/publication/' . $form_state['pid'] . '/publication_treatments/relation_select_publication_taxo',
-    array(
-      'query' => array(
-        'destination' => request_path() . '?step=group_publication_systematics'
-      )
-    )
-  );
-}
-
-function pensoft_publication_authors_edit_form_submit(&$form, &$form_state){
-  $form_state['redirect'] = array(
-    'relation-select/add/publication/' . $form_state['pid'] . '/publication_users/publication_user',
-    array(
-      'query' => array(
-        'destination' => request_path() . '?step=group_publication_metadata'
-      )
-    )
-  );
-}
-
-function pensoft_publication_contributors_edit_form_submit(&$form, &$form_state){
-  $form_state['redirect'] = array(
-    'relation-select/add/publication/' . $form_state['pid'] . '/publication_contributors/publication_user',
-    array(
-      'query' => array(
-        'destination' => request_path() . '?step=group_publication_metadata'
-      )
-    )
-  );
-}
-/**
- * Menu ajax callback
- */
-function pensoft_publication_ajax(){
-  // Load the taxon description entity
-  $form_state = array();
-  // Build the form & get the output
-  $form = drupal_build_form('relation_select_add_relation_form', $form_state);
-  $output = drupal_render_children($form['relation_type_wrapper']['fields']);
-  $commands = array();
-  $commands[] = ajax_command_append('#edit-fields', $output);
-  print ajax_render($commands);
-  exit();
-}
-
-function pensoft_publication_relation_select_add_relation_form_submit($form, $form_state){
-  //	Is there an relation ID?
-  if(isset($form_state['rid'])){
-    $entity = entity_load_single($form_state['entity_type'], $form_state['entity_id']);
-    $entity->data = unserialize($entity->data);
-    $entity->data[$form_state['rid']] = array(
-      $form_state['values']['list']
-    );
-    $entity->data = serialize($entity->data);
-    $entity->save();
-  }
-}
-
-function pensoft_publication_entity_presave($entity, $type){
-  switch($type){
-    case 'publication':
-      // Perform some tidy up functions
-      // If the user has removed relations, need to remove them from the publication table
-      if(isset($entity->form_id) && $entity->form_id == 'publication_edit_form'){
-        if(!empty($entity->data)){
-          if(count($entity->field_publication_treatments)){
-            $data = unserialize($entity->data);
-            $entity->data = array();
-            foreach($entity->field_publication_treatments[LANGUAGE_NONE] as $relation){
-              if(isset($relation['endpoints'])){
-                $entity->data[$relation['relation_id']] = $data[$relation['relation_id']];
-              }
-            }
-            $entity->data = serialize($entity->data);
-          }else{
-            $entity->data = array();
-          }
-        }
-      }
-      break;
-  }
-}
-
-/**
- * Implements hook_forms
- */
-function pensoft_publication_forms($form_id, $args) {
-  return array(
-    'pensoft_publication_new_form' => array(
-      'callback' => 'pensoft_publication_publication_new_form'
-    ),
-    'pensoft_publication_update_form' => array(
-      'callback' => 'pensoft_publication_publication_update_form'
-    )
-  );
-}
-
 /**
  * Form for publishing a publication
  */
-function pensoft_publication_new_form($form, &$form_state, $publication) {
+function pensoft_publication_publish_form($form, &$form_state, $publication) {
   $form = array();
   
   $form['pensoft_publication'] = array(
@@ -392,7 +445,7 @@ function pensoft_publication_new_form($form, &$form_state, $publication) {
   $form['pensoft_password'] = array(
     '#type' => 'password',
     '#title' => t('Pensoft password'),
-    '#default_value' => '720b05',
+    '#default_value' => '',
     '#required' => TRUE
   );
   
@@ -414,7 +467,7 @@ function pensoft_publication_new_form($form, &$form_state, $publication) {
 /**
  * Validate form submit handler
  */
-function pensoft_publication_new_form_validate($form, &$form_state) {
+function pensoft_publication_publish_form_validate($form, &$form_state) {
   $publication = $form_state['values']['pensoft_publication'];
   
   if ($publication->published) {
@@ -425,7 +478,7 @@ function pensoft_publication_new_form_validate($form, &$form_state) {
 /**
  * Publish page form submit handler
  */
-function pensoft_publication_new_form_submit($form, &$form_state) {
+function pensoft_publication_publish_form_submit($form, &$form_state) {
   module_load_include('xml.inc', 'pensoft_publication');
 
   $publication = $form_state['values']['pensoft_publication'];
@@ -499,18 +552,4 @@ function pensoft_publication_new_form_submit($form, &$form_state) {
     drupal_set_message('error', 'The publication failed :' . $xml_result->result->errorMsg);
   }
   */
-}
-
-/**
- * Form for a publication that has already been published
- */
-function pensoft_publication_action_form($form, &$form_state, $publication) {
-  
-}
-
-/**
- * Publish page form submit handler
- */
-function pensoft_publication_action_form_submit($form, &$form_state) {
-
 }

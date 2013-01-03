@@ -27,7 +27,7 @@
  *                      Note that this only affects the children of the current node, not the current
  *                      node itself or any other node processed subsequently.
  *                      
- *    #field' :         A field on the current mapping object to use as value when generating the XML.
+ *    #field :         A field on the current mapping object to use as value when generating the XML.
  *    
  *                      The field on the object can be a single value, or a Drupal value array:
  *                      array("und" => array("value" => ...)). If the format is different, use '#process'

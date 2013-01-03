@@ -528,28 +528,6 @@ function _pensoft_publication_xml_systematics_schema(){
     ),
   );
   
-  // Unused fields 
-  // # From the SPM content type :
-  //   - field_general_description (group overview)
-  //   - field_media (group overview)
-  //
-  // # From the term
-  // - field_page_number
-  // - field_reference
-  // - field_unacceptability_reason
-  // - field_usage
-  // - field_vernacular_names
-  //
-  // # From the relation
-  // - field_publication_treat_desc
-  // - field_publication_treat_material
-  // - field_publication_treatment_name
-  //
-  //   
-  // Misplaced fields:
-  // # From the SPM content type:
-  //   - 'biology' from group overview was moved to group 'biology'
-  
   $systematics = array(
     'fields' => array(
       'systematics' => array(
