@@ -37,7 +37,9 @@
         <?php $entities[] = $image['fid']; ?>
       <?php endforeach ?>
       <?php $entities = entity_load('file', $entities); ?>
-      <?php print drupal_render(entity_view('file', $entities, 'file_styles_square_thumbnail')); ?>
+      <div class="clearfix">
+        <?php print drupal_render(entity_view('file', $entities, 'file_styles_square_thumbnail')); ?>
+      </div>
     <?php endif; ?>
   <?php endforeach; ?>
   <?php if (isset($term->description)) : ?>
