@@ -8,26 +8,22 @@ class slickgrid_editors{
   var $plugin;
 
   var $field_name;
-
   // Entity info
   var $entity_type;
 
   var $entities = array();
-
   // Variables for storing processing data
   var $errors = array();
 
   var $updated = array();
 
   var $output;
-
   // View data
   var $field_id;
 
   var $view_name;
 
   var $display_id;
-
   // Function for handling errors
   var $error_callback;
 
@@ -53,9 +49,19 @@ class slickgrid_editors{
    * 
    * Do the actual update - passes the update to the plugin's process functions
    */
-  function update(){  	
+  function update(){
     if(function_exists($this->plugin['process'])){
       $this->plugin['process']($this);
+    }
+    // Are there any form errors?
+    if($errors = form_get_errors()){
+      foreach($errors as $error){
+        // Form errors will apply for all entities
+        foreach($this->entities as $entity){
+          list($id) = entity_extract_ids($this->entity_type, $entity);
+          $this->set_error($id, $error);
+        }
+      }
     }
     return $this->get_result();
   }
@@ -84,7 +90,6 @@ class slickgrid_editors{
       ));
     }
   }
-
   // Set an update item
   function set_updated($id, $vid){
     $this->updated[$id] = array(
