@@ -26,7 +26,7 @@ class PublicationUIController extends EntityDefaultUIController{
       'type' => MENU_LOCAL_TASK
     );
     // Change the add page menu to multiple types of entities
-    $items[$this->path . '/add'] = array(
+    $items['publication/add'] = array(
       'title' => 'Add a publication',
       'description' => 'Add a new publication',
       'page callback' => 'publication_add_page',
@@ -41,7 +41,7 @@ class PublicationUIController extends EntityDefaultUIController{
     );
     // Add menu items to add each different type of entity.
     foreach(publication_get_types() as $type){
-      $items[$this->path . '/add/' . $type->type] = array(
+      $items['publication/add/' . $type->type] = array(
         'title' => 'Add ' . $type->label,
         'page callback' => 'publication_form_wrapper',
         'page arguments' => array(

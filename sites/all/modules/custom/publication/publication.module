@@ -114,6 +114,8 @@ function publication_entity_info_alter(&$entity_info){
  */
 function publication_admin_paths(){
   $paths = array(
+    'publication/add' => TRUE,
+    'publication/add/*' => TRUE,
     'publication/*/edit' => TRUE,
     'publication/*/delete' => TRUE
   );
@@ -143,7 +145,7 @@ function publication_menu(){
 function publication_menu_local_tasks_alter(&$data, $router_item, $root_path){
   // Add action link 'admin/structure/publication/add' on 'admin/structure/publications'.
   if($root_path == 'admin/content/publications'){
-    $item = menu_get_item('admin/content/publications/add');
+    $item = menu_get_item('publication/add');
     if($item['access']){
       $data['actions']['output'][] = array(
         '#theme' => 'menu_local_action',
