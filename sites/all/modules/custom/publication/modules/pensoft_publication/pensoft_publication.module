@@ -255,6 +255,9 @@ function _pensoft_publication_treatment_spm_fields_form($form, $selected_fields,
       if ($field_instances[$field_name]['widget']['type'] == 'relation_select') {
         continue;
       }
+      if ($field_instances[$field_name]['widget']['module'] == 'gm3_field') {
+        continue;
+      }
       $value = '';
       if($entity && count($entity->{$field_name})){
         $elements = field_view_value('node', $entity, $field_name, $entity->{$field_name}[LANGUAGE_NONE][0]);

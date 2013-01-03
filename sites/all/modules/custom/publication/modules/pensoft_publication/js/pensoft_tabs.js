@@ -82,14 +82,14 @@
 
     this.pensoft_tabs = new pensoft_tabs($root, $elements, settings);
 
-    /* Remove extraneous 'New treatment' tabs */
-    var tabs_to_remove = null;
+    /* Remove extraneous 'New treatment' tabs */    
+    //var tabs_to_remove = null;
     // XXX should have API on the tabs class for this
     if ((pensoft_treatment_action[tabset] != 'loaded') && this.pensoft_tabs.has_complete_tab()) {
-      tabs_to_remove = $('div.pensoft_tabs .pst_new', $root);
-      $('div.pensoft_tabs li', $root).first().find('a').click();
+      //tabs_to_remove = $('div.pensoft_tabs .pst_new', $root);
+      //$('div.pensoft_tabs li', $root).first().find('a').click();
     } else if ($('div.pensoft_tabs .pst_new', $root).length > 1) {
-      tabs_to_remove = $('div.pensoft_tabs .pst_new', $root).slice(0, -1)
+      //tabs_to_remove = $('div.pensoft_tabs .pst_new', $root).slice(0, -1)
     }
     //if (tabs_to_remove != null) {
     //  tabs_to_remove.each(function() {
@@ -117,13 +117,13 @@
     
     // Attach select/deselect events to the items
     $('div.relation-select-entities', $root).each(function() {          
-      $(this).bind("selectItem", function(e, id, entitydata) {
+      $(this).unbind("selectItem").bind("selectItem", function(e, id, entitydata) {
         pensoft_treatment_action[tabset] = 'selected';
-        $('.field-type-relation', $root).fadeOut();
+        $('.field-type-relation-select', $root).fadeOut();
         $('.reload-button input', $root).trigger('refreshForm');
-      }).bind("deselectItem", function(e, id, entitydata) {
+      }).unbind("deselectItem").bind("deselectItem", function(e, id, entitydata) {
         pensoft_treatment_action[tabset] = 'removed';
-        $('.field-type-relation', $root).fadeOut();
+        $('.field-type-relation-select', $root).fadeOut();
         $('.reload-button input', $root).trigger('refreshForm');
       });
     });
