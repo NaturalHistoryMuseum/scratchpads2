@@ -87,7 +87,7 @@
     // XXX should have API on the tabs class for this
     if ((pensoft_treatment_action[tabset] != 'loaded') && this.pensoft_tabs.has_complete_tab()) {
       //tabs_to_remove = $('div.pensoft_tabs .pst_new', $root);
-      //$('div.pensoft_tabs li', $root).first().find('a').click();
+      $('div.pensoft_tabs li', $root).first().find('a').click();
     } else if ($('div.pensoft_tabs .pst_new', $root).length > 1) {
       //tabs_to_remove = $('div.pensoft_tabs .pst_new', $root).slice(0, -1)
     }
