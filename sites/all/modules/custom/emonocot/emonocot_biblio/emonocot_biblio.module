@@ -44,6 +44,7 @@ function emonocot_biblio_create_biblio_from_protologue($term){
   }
   if(isset($term->tid)){
     $data_array = emonocot_biblio_get_protologue_data($term);
+    if ($data_array == FALSE){return FALSE;}
     $data_array['term_data'] = array(
       'tid' => $term->tid
     );
@@ -63,6 +64,7 @@ function emonocot_biblio_create_biblio_from_protologue($term){
  * The taxonomy term we are gathering protologue data about
  */
 function emonocot_biblio_get_protologue_data($term){
+  if (!isset($term->field_itis_em_other_ref['und'][0]['value'])){ return FALSE; }
   $protologue = $term->field_itis_em_other_ref['und'][0]['value'];
   $return = array();
   $return['author_string'] = $term->field_authors['und'][0]['value'];
