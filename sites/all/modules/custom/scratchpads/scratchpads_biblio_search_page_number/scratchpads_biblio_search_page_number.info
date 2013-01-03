@@ -1,0 +1,6 @@
+name = "Scratchpads Biblio Search Page Number"
+description = "Adds a page number column which is sortable to the Scratchpads biblio search page."
+package = "Literature"
+core = 7.x
+dependencies[] = scratchpads_biblio_search
+tool=true

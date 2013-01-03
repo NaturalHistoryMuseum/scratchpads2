@@ -77,5 +77,45 @@ function emonocot_biblio_install(){
    * Set default variables
    */
   variable_set('em_biblio_autogen', TRUE);
+  
+   //Hide Botanical Protologues from default search
+  $sql = "SELECT settings FROM apachesolr_search_page WHERE page_id = 'biblio_search';";
+  $dbresults = unserialize(db_query($sql)->fetch()->settings);
+  $dbresults['fq'][] = '-tus_biblio_type:1000';
+  $dbresults = serialize($dbresults);
+  
+  $update = db_update('apachesolr_search_page')
+    ->fields(array(
+      'settings' => $dbresults,  
+    ))
+    ->condition('page_id', 'biblio_search', '=')
+    ->execute();
+}
+
+/**
+ * Create additional fields as this is not done by Features
+ */
+function emonocot_biblio_update_7001(){
+  module_load_include('features.field.inc', 'emonocot_biblio');
+  foreach (emonocot_biblio_field_default_fields() as $field){
+  	if (!is_null(field_info_field($field['field_name']))){
+  	  field_create_field($field);
+  	}
+  }
+}
+
+function emonocot_biblio_update_7002(){
+   //Hide Botanical Protologues from default search
+  $sql = "SELECT settings FROM apachesolr_search_page WHERE page_id = 'biblio_search';";
+  $dbresults = unserialize(db_query($sql)->fetch()->settings);
+  $dbresults['fq'][] = '-tus_biblio_type:1000';
+  $dbresults = serialize($dbresults);
+  
+  $update = db_update('apachesolr_search_page')
+    ->fields(array(
+      'settings' => $dbresults,  
+    ))
+    ->condition('page_id', 'biblio_search', '=')
+    ->execute();
 }
 

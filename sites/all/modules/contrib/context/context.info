@@ -9,9 +9,9 @@ files[] = tests/context.test
 files[] = tests/context.conditions.test
 files[] = tests/context.reactions.test
 
-; Information added by drupal.org packaging script on 2011-09-09
-version = "7.x-3.0-beta2"
+; Information added by drupal.org packaging script on 2012-08-12
+version = "7.x-3.0-beta4"
 core = "7.x"
 project = "context"
-datestamp = "1315543301"
+datestamp = "1344786407"
 

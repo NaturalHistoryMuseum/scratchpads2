@@ -258,11 +258,11 @@ class EntityCacheNodeAccessRebuildTestCase extends NodeAccessRebuildTestCase {
 /**
  * Copy of NodeAccessRecordsUnitTest.
  */
-class EntityCacheNodeAccessRecordsUnitTest extends NodeAccessRecordsUnitTest {
+class EntityCacheNodeAccessRecordsUnitTest extends NodeAccessRecordsTestCase {
   public static function getInfo() {
     return array(
-      'name' => 'Copy of NodeAccessRecordsUnitTest',
-      'description' => 'Copy of NodeAccessRecordsUnitTest',
+      'name' => 'Copy of NodeAccessRecordsTestCase',
+      'description' => 'Copy of NodeAccessRecordsTestCase',
       'group' => 'Entity cache',
     );
   }
@@ -275,11 +275,11 @@ class EntityCacheNodeAccessRecordsUnitTest extends NodeAccessRecordsUnitTest {
 /**
  * Copy of NodeAccessUnitTest.
  */
-class EntityCacheNodeAccessUnitTest extends NodeAccessUnitTest {
+class EntityCacheNodeAccessUnitTest extends NodeAccessTestCase {
   public static function getInfo() {
     return array(
-      'name' => 'Copy of NodeAccessUnitTest',
-      'description' => 'Copy of NodeAccessUnitTest',
+      'name' => 'Copy of NodeAccessTestCase',
+      'description' => 'Copy of NodeAccessTestCase',
       'group' => 'Entity cache',
     );
   }
@@ -428,11 +428,11 @@ class EntityCacheNodeLoadHooksTestCase extends NodeLoadHooksTestCase {
 /**
  * Copy of NodeLoadMultipleUnitTest.
  */
-class EntityCacheNodeLoadMultipleUnitTest extends NodeLoadMultipleUnitTest {
+class EntityCacheNodeLoadMultipleUnitTest extends NodeLoadMultipleTestCase {
   public static function getInfo() {
     return array(
-      'name' => 'Copy of NodeLoadMultipleUnitTest',
-      'description' => 'Copy of NodeLoadMultipleUnitTest',
+      'name' => 'Copy of NodeLoadMultipleTestCase',
+      'description' => 'Copy of NodeLoadMultipleTestCase',
       'group' => 'Entity cache',
     );
   }
@@ -853,11 +853,11 @@ class EntityCacheTaxonomyLegacyTestCase extends TaxonomyLegacyTestCase {
 /**
  * Copy of TaxonomyLoadMultipleUnitTest.
  */
-class EntityCacheTaxonomyLoadMultipleUnitTest extends TaxonomyLoadMultipleUnitTest {
+class EntityCacheTaxonomyLoadMultipleUnitTest extends TaxonomyLoadMultipleTestCase {
   public static function getInfo() {
     return array(
-      'name' => 'Copy of TaxonomyLoadMultipleUnitTest',
-      'description' => 'Copy of TaxonomyLoadMultipleUnitTest',
+      'name' => 'Copy of TaxonomyLoadMultipleTestCase',
+      'description' => 'Copy of TaxonomyLoadMultipleTestCase',
       'group' => 'Entity cache',
     );
   }
@@ -904,11 +904,11 @@ class EntityCacheTaxonomyTermTestCase extends TaxonomyTermTestCase {
 /**
  * Copy of TaxonomyTermUnitTest.
  */
-class EntityCacheTaxonomyTermUnitTest extends TaxonomyTermUnitTest {
+class EntityCacheTaxonomyTermUnitTest extends TaxonomyTermTestCase {
   public static function getInfo() {
     return array(
-      'name' => 'Copy of TaxonomyTermUnitTest',
-      'description' => 'Copy of TaxonomyTermUnitTest',
+      'name' => 'Copy of TaxonomyTermTestCase',
+      'description' => 'Copy of TaxonomyTermTestCase',
       'group' => 'Entity cache',
     );
   }
@@ -972,11 +972,11 @@ class EntityCacheTaxonomyVocabularyFunctionalTest extends TaxonomyVocabularyFunc
 /**
  * Copy of TaxonomyVocabularyUnitTest.
  */
-class EntityCacheTaxonomyVocabularyUnitTest extends TaxonomyVocabularyUnitTest {
+class EntityCacheTaxonomyVocabularyUnitTest extends TaxonomyVocabularyTestCase {
   public static function getInfo() {
     return array(
-      'name' => 'Copy of TaxonomyVocabularyUnitTest',
-      'description' => 'Copy of TaxonomyVocabularyUnitTest',
+      'name' => 'Copy of TaxonomyVocabularyTestCase',
+      'description' => 'Copy of TaxonomyVocabularyTestCase',
       'group' => 'Entity cache',
     );
   }
@@ -1377,3 +1377,53 @@ class EntityCacheUserValidationTestCase extends UserValidationTestCase {
   }
 }
 
+/**
+ * Test comments on nodes.
+ */
+class EntityCacheCommentNodeTestCase extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Comment node cache',
+      'description' => 'Test comments on nodes.',
+      'group' => 'Entity cache',
+    );
+  }
+
+  function setUp() {
+    parent::setup();
+    module_enable(array('entitycache', 'comment'));
+  }
+
+  /**
+   * Test to make sure node content is rebuilt after a comment has been deleted.
+   * See http://drupal.org/node/1401480
+   */
+  function testCommentNodeCache() {
+    // Create a node with two comments.
+    $node = $this->drupalCreateNode();
+    variable_set('comment_' . $node->type, TRUE);
+
+    $comments = array();
+    for ($i = 0; $i < 2; $i++) {
+      $comment = (object) array(
+        'cid' => NULL,
+        'pid' => NULL,
+        'uid' => 0,
+        'nid' => $node->nid,
+      );
+      comment_save($comment);
+      $comments[] = $comment;
+    }
+
+    // Load node object, the last comment should be referenced.
+    $cid = end($comments)->cid;
+    $node = node_load($node->nid, NULL, TRUE);
+    $this->assertEqual($node->cid, $cid, t('Comment !cid is referenced.', array('!cid' => $cid)));
+    comment_delete($cid);
+
+    // Load node object again, the other (first) comment should be referenced.
+    $node = node_load($node->nid, NULL, TRUE);
+    $this->assertFalse(comment_load($cid), t('Comment !cid does not exists anymore.', array('!cid' => $cid)));
+    $this->assertEqual($node->cid, reset($comments)->cid, t('Comment !cid is referenced.', array('!cid' => $node->cid)));
+  }
+}

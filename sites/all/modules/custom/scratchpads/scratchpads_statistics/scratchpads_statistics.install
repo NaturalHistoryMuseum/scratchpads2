@@ -30,7 +30,7 @@ function scratchpads_statistics_install(){
     'title' => variable_get('site_name', $url),
     'owner' => 1,
     'url' => $url,
-    'created' => variable_get('install_time', 0)
+    'created' => variable_get('install_time', time())
   ))->execute();
   // Insert a list of site types.
   // FIXME - Add site types.
@@ -354,6 +354,47 @@ function scratchpads_statistics_schema(){
         )
       )
     ),
+    // Login details
+    'scratchpads_statistics_login' => array(
+      'fields' => array(
+        'user' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'site' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 1
+        ),
+        'created' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'access' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        )
+      ),
+      'primary key' => array(
+        'user',
+        'site'
+      ),
+      'indexes' => array(
+        'scratchpads_statistics_login_created_index' => array(
+          'created'
+        ),
+        'scratchpads_statistics_login_access_index' => array(
+          'access'
+        )
+      )
+    ),
     // Data item temp (to be loaded into the proper table later).
     'scratchpads_statistics_data_temp' => array(
       'fields' => array(
@@ -452,4 +493,31 @@ function scratchpads_statistics_update_7002(){
   foreach($fields as $field => $spec){
     db_add_field('scratchpads_statistics_user', $field, $spec);
   }
+}
+
+/**
+ * Add the scratchpads_statistics_login table.
+ */
+function scratchpads_statistics_update_7003(){
+  $schema = scratchpads_statistics_schema();
+  db_create_table('scratchpads_statistics_login', $schema['scratchpads_statistics_login']);
+  // Add data to the table.
+  $select = db_select('scratchpads_statistics_user', 'ssu');
+  $select->innerJoin('users', 'u', 'u.mail = ssu.email');
+  $select->condition('u.uid', 1, '>');
+  $select->condition('u.status', 1);
+  $select->addField('ssu', 'id', 'user');
+  $select->addField('u', 'created');
+  $select->addField('u', 'access');
+  $query = db_insert('scratchpads_statistics_login')->from($select)->execute();
+  menu_rebuild();
+}
+
+/**
+ * Update the created times of sites which do not have a value set.
+ */
+function scratchpads_statistics_update_7004(){
+  db_update('scratchpads_statistics_site')->fields(array(
+    'created' => variable_get('install_time', time())
+  ))->condition('created', 0)->condition('id', 1)->execute();
 }

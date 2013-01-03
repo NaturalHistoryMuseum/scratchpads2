@@ -9,7 +9,7 @@
  */
 class RelationViewsTestCase extends RelationTestCase {
 
-  function getInfo() {
+  public static function getInfo() {
     return array(
       'name' => 'Relation Views test',
       'description' => 'Tests the Relation Views support.',

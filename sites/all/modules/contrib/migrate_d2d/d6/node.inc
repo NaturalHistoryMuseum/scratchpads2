@@ -57,7 +57,8 @@ class DrupalNode6Migration extends DrupalNodeMigration {
       $query = Database::getConnection('default', $this->sourceConnection)
                ->select('content_node_field_instance', 'i')
                ->fields('i', array('label'))
-               ->condition('i.type_name', $this->sourceType);
+               ->condition('i.type_name', $this->sourceType)
+               ->condition('i.widget_active', 1);
       $query->innerJoin('content_node_field', 'f', 'i.field_name = f.field_name');
       $query->fields('f', array('field_name', 'type'));
       $result = $query->execute();

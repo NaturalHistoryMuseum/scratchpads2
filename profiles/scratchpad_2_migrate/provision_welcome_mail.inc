@@ -8,3 +8,8 @@ db_update('users')->fields(array(
   'pass' => ''
 ))->condition('uid', 1)->execute();
 $mail = array();
+// Finally, we uninstall the update module which is annoying, and not actually
+// required.
+module_disable(array(
+  'update'
+), FALSE);

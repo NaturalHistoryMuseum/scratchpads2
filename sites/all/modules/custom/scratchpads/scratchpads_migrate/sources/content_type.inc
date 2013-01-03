@@ -46,6 +46,7 @@ class DrupalContentTypeMigration extends DrupalMigration{
     );
     // Do not migrate term nodes
     $term_nodes = scratchpads_migrate_get_term_vocabularies();
+    // NB: Itis fields are handled in DrupalFieldVocabularyItisTermMigration 
     foreach($term_nodes as $term_node){
       $mappings[$term_node] = MIGRATE_NONE; // do not migrate
     }
@@ -104,7 +105,10 @@ class DrupalContentTypeMigration extends DrupalMigration{
     // BUG FIX: removed, we do want node types even if there's no nodes
     // $query->innerJoin('node', 'n', 'n.type = nt.type');
     $query->groupBy('nt.type');
-    $query->condition('nt.module', 'node');
+    $query->condition('nt.module', array(
+      'node',
+      'geotime' // Nannotax has custom module type
+    ), 'IN');
     $query->condition('nt.type', array_keys($this->getContentTypeMappings()), 'NOT IN');
     return $query;
   }
@@ -123,5 +127,19 @@ class DrupalContentTypeMigration extends DrupalMigration{
       return FALSE;
     }
     return TRUE;
+  }
+
+  protected function postImport(){
+    parent::postImport();
+    // Turn on weight settings for all nodes types
+    foreach(array_keys(node_type_get_types()) as $node_type){
+      $query = db_insert('weight_settings')->fields(array(
+        'type' => $node_type,
+        'weight_enabled' => 1,
+        'weight_range' => 100,
+        'menu_weight' => 0,
+        'weight_default' => 0
+      ))->execute();
+    }
   }
 }

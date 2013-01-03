@@ -36,6 +36,13 @@ function entitycache_disable() {
 }
 
 /**
+ * Implements hook_uninstall().
+ */
+function entitycache_uninstall() {
+  variable_del('entitycache_disabled_entity_types');
+}
+
+/**
  * Empty update.
  */
 function entitycache_update_7001() {

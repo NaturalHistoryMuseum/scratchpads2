@@ -88,7 +88,8 @@ class ScratchpadsProfileMigration extends ScratchpadsNodeMigration{
       'changed',
       'comment',
       'promote',
-      'sticky'
+      'sticky',
+      'node_weight'
     ));
     foreach($destination_fields as $key => $field){
       if(strpos($key, ':')){
@@ -189,7 +190,7 @@ class ScratchpadsProfileMigration extends ScratchpadsNodeMigration{
     }
     // Parse images for row body
     if(isset($row->body)){
-      $row->body = ScratchpadsNodeMigration::parseImages($row->body);
+      $row->body = ScratchpadsNodeMigration::parseImages($row->body, $row);
     }
   }
 }

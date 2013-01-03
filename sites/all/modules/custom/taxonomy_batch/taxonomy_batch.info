@@ -1,0 +1,4 @@
+name = Taxonomy batch
+description = Allows for the deletion of large taxonomy vocabularies or branches by using the Batch API.
+core = 7.x
+dependencies[] = taxonomy

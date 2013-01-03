@@ -1,0 +1,5 @@
+OAuth implements the OAuth classes for use with Drupal and acts as a support module for other modules that wish to use OAuth.
+
+OAuth Client flow:
+
+The callback to be used is /oauth/authorized/% where % is the id of the consumer used by the client. We need the id of the consumer to be able to find the token correctly.

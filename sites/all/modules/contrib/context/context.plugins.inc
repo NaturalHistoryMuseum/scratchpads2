@@ -8,7 +8,7 @@ function _context_context_registry() {
   $registry['conditions'] = array(
     'context' => array(
       'title' => t('Context'),
-      'description' => t('Set this context on the basis of other active contexts. Put each context on a separate line. You can use the <code>*</code> character as a wildcard and <code>~</code> to exclude one or more contexts.'),
+      'description' => t('Set this context on the basis of other active contexts. Put each context on a separate line. You can use the <code>*</code> character (asterisk) as a wildcard and the <code>~</code> character (tilde) to prevent this context from activating if the listed context is active. Other contexts which use context conditions can not be used to exclude this context from activating.'),
       'plugin' => 'context_condition_context',
     ),
     'node' => array(
@@ -23,7 +23,7 @@ function _context_context_registry() {
     ),
     'path' => array(
       'title' => t('Path'),
-      'description' => t('Set this context when any of the paths above match the page path. Put each path on a separate line. You can use the "*" character as a wildcard and <code>~</code> to exclude one or more paths. Use &lt;front&gt; for the site front page.'),
+      'description' => t('Set this context when any of the paths above match the page path. Put each path on a separate line. You can use the <code>*</code> character (asterisk) as a wildcard and the <code>~</code> character (tilde) to exclude one or more paths. Use &lt;front&gt; for the site front page.'),
       'plugin' => 'context_condition_path',
     ),
     'user' => array(

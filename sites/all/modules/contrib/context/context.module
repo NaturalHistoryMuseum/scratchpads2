@@ -409,6 +409,7 @@ function context_condition_map($reset = FALSE) {
       $condition_map = $cache;
     }
     else {
+      $condition_map = array();
       foreach (array_keys(context_conditions()) as $condition) {
         if ($plugin = context_get_plugin('condition', $condition)) {
           foreach (context_enabled_contexts() as $context) {
@@ -533,7 +534,8 @@ function _context_registry($key = NULL, $reset = FALSE) {
  */
 function context_block_view_alter(&$data, $block) {
   if (context_isset('context_ui', 'context_ui_editor_present') && empty($data['content'])) {
-    $data['content']['#markup'] = "<div class='context-block-empty'>" . t('This block appears empty when displayed on this page.') . "</div>";
+    $data['content']['#markup'] = "<div class='context-block-empty-content'>" . t('This block appears empty when displayed on this page.') . "</div>";
+    $data['context_block_hidden'] = TRUE;
   }
 }
 
@@ -545,5 +547,17 @@ function context_block_view_alter(&$data, $block) {
 function context_page_alter(&$page) {
   if ($plugin = context_get_plugin('reaction', 'region')) {
     $plugin->execute($page);
+  }
+}
+
+/**
+ * hook_block_view_alter - if the context editor block is on this page,
+ * ensure that all blocks have some content so that empty blocks are
+ * not dropped
+ */
+function context_preprocess_block(&$vars) {
+  if (isset($vars['block']->context_block_hidden)) {
+    $vars['classes_array'][] = 'context-block-hidden';
+    $vars['classes_array'][] = 'context-block-empty';
   }
 }

@@ -32,6 +32,15 @@ function scratchpads_statistics_menu(){
       'file' => 'scratchpads_statistics.pages.inc',
       'type' => MENU_SUGGESTED_ITEM
     ),
+    'login.json' => array(
+      'title' => 'Scratchpad login statistics (JSON)',
+      'description' => 'Allow a sites statistics to be accessed externally for aggregation by the <a href="http://scratchpads.eu">http://scratchpads.eu</a> site.',
+      'page callback' => 'scratchpads_statistics_stats_page_login_json',
+      'delivery callback' => 'json_deliver',
+      'access callback' => 'scratchpads_statistics_access',
+      'file' => 'scratchpads_statistics.pages.inc',
+      'type' => MENU_SUGGESTED_ITEM
+    ),
     'admin/config/search/scratchpads-statistics' => array(
       'title' => 'Scratchpads statistics',
       'description' => 'Set the password hash required to access data',
@@ -185,6 +194,7 @@ function scratchpads_statistics_access(){
   if(in_array($_SERVER['REMOTE_ADDR'], array(
     '127.0.0.1',
     '157.140.2.32',
+    '157.140.127.32',
     '157.140.127.252'
   )) || (isset($_GET['hash']) && md5($_GET['hash']) == variable_get('scratchpads_statistics_hash', uniqid(NULL, TRUE)))){return TRUE;}
   return FALSE;

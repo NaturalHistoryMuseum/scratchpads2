@@ -1,0 +1,113 @@
+# $Id: pl.po,v 1.1.2.1 2008/12/02 07:52:36 kuling Exp $
+#
+# Polski / Polish translation of Drupal (potx.module)
+# Copyright 2008 Tomasz Kulig <tomasz.kulig _a_ kuling.pl>
+# Generated from files:
+#  potx.module,v 1.1.2.12.2.2.2.7 2008/09/26 10:52:11 goba
+#  potx.install,v 1.1.2.1 2008/09/25 06:49:33 goba
+#  potx.info,v 1.1.2.3.2.2 2007/11/12 20:19:06 goba
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2008-12-01 03:08-0600\n"
+"PO-Revision-Date: 2008-12-01 14:46+0100\n"
+"Last-Translator: Tomasz Kulig <tomasz.kulig@alfa-net.pl>\n"
+"Language-Team: Polski / Polish <tomasz.kulig _a_ kuling.pl>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=((n==1)?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+
+#: potx.module:20
+msgid "This page allows you to generate translation templates for module and theme files. Select the module or theme you wish to generate a template file for. A single Gettext Portable Object (Template) file is generated, so you can easily save it and start translation."
+msgstr "Ta strona pozwala na wygenerowania szablonów tłumaczeń dla modułów oraz plików skórek. Wybierz moduł lub skórkę dla którego chcesz wygenerować szablon. Wygenerowany zostanie pojedynczy plik \"*.po[t] - Gettext Portable Object [Template]\", tak abyś mógł go następnie w prosty sposób nagrać oraz zacząć tłumaczenie."
+
+#: potx.module:52
+msgid "Language independent template"
+msgstr "Szablon niezależny względem języka"
+
+#: potx.module:58
+msgid "Template file for !langname translations"
+msgstr "Szablon dla języka !langname"
+
+#: potx.module:62
+msgid "Template language"
+msgstr "Język szablonu"
+
+#: potx.module:65
+msgid "Export a language independent or language dependent (plural forms, language team name, etc.) template."
+msgstr "Eksportuje niezależny względem języka szablon lub szablon w konkretnym języku (uwzględnia liczby mnogie, nazwę zespołu tłumaczy, itd.)."
+
+#: potx.module:69
+msgid "Include translations"
+msgstr "Dołącz istniejące tłumaczenia"
+
+#: potx.module:70
+msgid "Include translations of strings in the file generated. Not applicable for language independent templates."
+msgstr "W wyeksportowanym pliku będą załączone istniejące tłumaczenia tekstów. Nie ma zastosowania w przypadku generowania szablonów tłumaczeń niezależnych względem języka."
+
+#: potx.module:76
+msgid "Extract"
+msgstr "Wydobądź"
+
+#: potx.module:87
+msgid "You should select a component to export."
+msgstr "Powinieneś wybrać element do wyeksportowania."
+
+#: potx.module:185
+msgid "Extract from %name in the %directory directory"
+msgstr "Wydobądź teksty do tłumaczenia z %name z katalogu %directory"
+
+#: potx.module:186
+msgid "Generates output from all files found in this directory."
+msgstr "Wydobądź teksty do tłumaczenia ze wszystkich plików znalezionych w katalogu."
+
+#: potx.module:201
+msgid "Extract from all in directory \"@directory\""
+msgstr "Wydobądź teksty do tłumaczenia z całego katalogu \"@directory\""
+
+#: potx.module:202
+msgid "To extract from a single component in this directory, choose the desired entry in the fieldset below."
+msgstr "Aby wydobyć teksty z pojedynczego elementu w katalogu, wybierz żądany element spośród dostępnych poniżej."
+
+#: potx.module:211
+msgid "Directory \"@directory\""
+msgstr "Katalog \"@directory\""
+
+#: potx.module:232
+msgid "Extract from %name"
+msgstr "Wydobądź teksty do tłumaczenia z %name"
+
+#: potx.module:233
+msgid "Extract from files named %pattern in the %directory directory."
+msgstr "Wydobądź teksty do tłumaczenia z plików w formacie %pattern znajdujących się w katalogu %directory."
+
+#: potx.module:303
+msgid "Interface text translatability"
+msgstr "Przetłumaczalność tekstu interfejsu"
+
+#: (duplicate) potx.install:22
+msgid "PHP tokenizer for Translation template extractor"
+msgstr "Tokenizer PHP dla modułu Translation template extractor"
+
+#: (duplicate) potx.install:23
+msgid "Available"
+msgstr "Dostępny"
+
+#: (duplicate) potx.install:23
+msgid "Not available"
+msgstr "Nie dostępny"
+
+#: (duplicate) potx.install:26
+msgid "The <a href=\"@tokenizer\">PHP tokenizer functions</a> are required."
+msgstr "<a href=\"@tokenizer\">Funkcje tokenizera PHP</a> są wymagane."
+
+#: potx.info:0
+msgid "Translation template extractor"
+msgstr "Generator szablonów tłumaczeń"
+
+#: potx.info:0
+msgid "Provides a web interface and an API to extract translatable text from the sources of installed components."
+msgstr "Dostarcza interfejs użytkownika oraz funkcje API służące do wydobywania tekstów nadających się do tłumaczenia z plików kodu źródłowego zainstalowanych komponentów."
+

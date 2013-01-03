@@ -295,3 +295,27 @@ function scratchpads_media_gallery_update_7006(){
   );
   field_update_instance($field_instance);
 }
+
+/**
+ * Add weight field to image files
+ */
+function scratchpads_media_gallery_update_7007(){
+  module_load_include('inc', 'features', 'features.export');
+  features_include();
+  field_features_rebuild('scratchpads_media_gallery');
+}
+
+/**
+ * Set the site's default licence on media fields.
+ */
+function scratchpads_media_gallery_update_7008(){
+  // Update all instances of field_cc_licence.
+  $info = field_info_field('field_cc_licence');
+  foreach($info['bundles'] as $entity => $bundles){
+    foreach($bundles as $bundle){
+      $instance = field_info_instance($entity, 'field_cc_licence', $bundle);
+      $instance['default_value'][0]['licence'] = variable_get('creative_commons_block_licence_type', CC_BY);
+      field_update_instance($instance);
+    }
+  }
+}

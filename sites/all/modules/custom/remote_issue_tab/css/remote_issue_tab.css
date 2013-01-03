@@ -28,7 +28,7 @@
  margin:0.5em 0 1em;
  padding:0;
 }
-#remote-issue-tab .items ul li{
+#remote-issue-tab .items>ul>li{
  font-size:11px;
  background:none !important;
  padding:0.2em !important;
@@ -43,7 +43,7 @@
 #remote-issue-tab .items ul li h3 a{
   font-size:13px;
 }
-#remote-issue-tab .items ul li p{
+#remote-issue-tab .items ul li div.remote_issue_item{
  padding:0;
  margin:0;
  display:none;

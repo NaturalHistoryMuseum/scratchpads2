@@ -104,7 +104,7 @@ function theme_tinytax_term($variables){
     $active = FALSE;
   }
   $has_children = _tinytax_get_children_count($variables['term']->tid, $variables['ancestors']);
-  $output = '<li>';
+  $output = '<li id="tinytax-'.$variables['term']->tid.'">';
   if($has_children){
     // Plus or minus.
     if(in_array($variables['term']->tid, $variables['open_tids'])){

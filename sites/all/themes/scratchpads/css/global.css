@@ -566,7 +566,8 @@ h2.site-name {
 }
 
 .view-species-media .view-content ul li.views-row,
-.page-gallery .file{	
+.page-gallery .file,
+.lexicon-list .file{	
   float: left;
   margin: 0 10px 10px 0;
   border: 1px solid #999;
@@ -971,4 +972,8 @@ article.comment.odd{
 }
 #forum td.icon{
  width:20px;
+}
+
+table, tbody, tfoot, thead, tr, th, td{
+ vertical-align: middle!important;
 }

@@ -35,12 +35,14 @@ class DrupalImageMigration extends DrupalFileMigration{
    */
   public function __construct(array $arguments){
     parent::__construct($arguments);
-    $this->destination = new MigrateDestinationFile('image', 'MigrateRemoteFileUri');
+    $this->destination = new ScratchpadsMigrateDestinationFile('image', 'MigrateRemoteFileUri');
     $fields = $this->sourceFieldList();
     $fields['nid'] = 'nid';
     $fields['vid'] = 'vid';
     $fields['title'] = 'title';
     $fields['body'] = 'body';
+    $fields['sticky'] = 'sticky';
+    $fields['node_weight'] = 'node_weight';
     $this->source = new MigrateSourceSQL($this->sourceQuery(), $fields, $this->countQuery(), $this->sourceOptions);
     $destination_fields = $this->destination->fields();
     foreach($fields as $delta => $field){
@@ -93,7 +95,6 @@ class DrupalImageMigration extends DrupalFileMigration{
       }
     }
     $this->addUnmigratedDestinations(array(
-      'field_sticky',
       'field_creator',
       'field_creator:format',
       'field_creator:language',
@@ -113,12 +114,26 @@ class DrupalImageMigration extends DrupalFileMigration{
     // Images get filename from the image node title
     $this->removeFieldMapping('filename');
     $this->addFieldMapping('filename', 'title');
+    $this->addFieldMapping('field_weight', 'node_weight')->defaultValue(0);
+    $this->addFieldMapping('field_sticky', 'sticky')->defaultValue(0);
     // Add body field if it exists
     $this->addFieldMapping('field_description', 'body');
-    $this->addFieldMapping('field_description:format')->defaultValue('filtered_html');
-    $this->addUnmigratedDestinations(array(
-      'field_description:language'
-    ));
+    $field_mappings = $this->getFieldMappings();
+    foreach($destination_fields as $key => $field){
+      if(strpos($key, ':')){
+        if(!array_key_exists($key, $field_mappings)){
+          $subfield = end(explode(':', $key));
+          switch($subfield){
+            case 'format':
+              $this->addFieldMapping($key)->defaultValue('filtered_html');
+              break;
+            case 'language':
+              $this->addFieldMapping($key)->defaultValue('en');
+              break;
+          }
+        }
+      }
+    }
   }
 
   public function sourceFieldList(){
@@ -184,9 +199,10 @@ class DrupalImageMigration extends DrupalFileMigration{
     $query->fields('n', array(
       'nid',
       'vid',
-      'title'
+      'title',
+      'sticky'
     ));
-    $query->innerJoin('node_revisions', 'nr', 'nr.nid = n.nid');
+    $query->innerJoin('node_revisions', 'nr', 'nr.vid = n.vid');
     $query->fields('nr', array(
       'body'
     ));
@@ -199,11 +215,30 @@ class DrupalImageMigration extends DrupalFileMigration{
       $row->vid = $node->vid;
       $row->title = $node->title;
       $row->body = $node->body;
+      $row->sticky = $node->sticky;
     }else{
       $row->nid = 0;
       $row->vid = 0;
+      $row->sticky = 0;
     }
+    // ScratchpadsNodeImageMigration::prepareRow()
     $this->nodeMigration->prepareRow($row);
+    // Row weight
+    ScratchpadsNodeMigration::weightDecode($row);
+    // Are there multiple biological classifcations?
+    if(count($this->biologicalClassifications) > 1){
+      $mapped_classification = reset($this->biologicalClassifications);
+      if(!isset($row->{$mapped_classification})){
+        $row->{$mapped_classification} = array();
+      }
+      foreach($this->biologicalClassifications as $unmapped_classifcation){
+        if(isset($row->{$unmapped_classifcation})){
+          $row->{$mapped_classification} = array_merge($row->{$mapped_classification}, $row->{$unmapped_classifcation});
+          // Dedupe
+          $row->{$mapped_classification} = array_unique($row->{$mapped_classification});
+        }
+      }
+    }
   }
 
   public function prepare($file, $row){

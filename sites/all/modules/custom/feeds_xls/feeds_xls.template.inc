@@ -65,241 +65,266 @@ function feeds_xls_download_populated_template($feeds_importer, $bid = FALSE){
  * Populate the XLS file with data.
  */
 function feeds_xls_populate_template_with_data($feeds_importer, &$context){
-  // Increase the memory limit
-  ini_set('memory_limit', '1024M');
-  ini_set('max_execution_time', 240);
-  if(!isset($context['sandbox']['progress'])){
-    // Calculate the total number of rows to add to this file.
-    // Use the processor class to guess what entity type we're importing (this
-    // relies on other coders following a similar convention to the feeds
-    // module).
-    $processor_class = get_class($feeds_importer->processor);
-    $entity_guess = strtolower(substr($processor_class, 5, strpos($processor_class, 'Processor') - 5));
-    $bundle = '';
-    $context['sandbox']['entity'] = '';
-    $context['sandbox']['entity_ids'] = array();
-    $context['sandbox']['row'] = 0;
-    switch($entity_guess){
-      case 'node':
-        $results = db_select('node', 'e')->fields('e', array(
-          'nid'
-        ))->condition('type', $feeds_importer->processor->config['content_type'])->execute();
-        $entity_key = 'nid';
-        $context['sandbox']['entity'] = 'node';
-        break;
-      case 'term':
-        // The bundle for a term is actually the vid.
-        $vocabulary = taxonomy_vocabulary_machine_name_load($feeds_importer->processor->config['vocabulary']);
-        $results = db_select('taxonomy_term_data', 'e')->fields('e', array(
-          'tid'
-        ))->condition('vid', $vocabulary->vid)->execute();
-        $entity_key = 'tid';
-        $entity_guess = 'taxonomy_term';
-        $context['sandbox']['entity'] = 'taxonomy_term';
-        break;
-      case 'file':
-        $results = db_select('file_managed', 'e')->fields('e', array(
-          'fid'
-        ))->condition('type', $feeds_importer->processor->config['bundle'])->condition('uri', 'public://eolapi/%', 'NOT LIKE')->execute();
-        $entity_key = 'fid';
-        $context['sandbox']['entity'] = 'file';
-        break;
-    }
-    $context['sandbox']['progress'] = 0;
-    foreach($results as $row){
-      $context['sandbox']['entity_ids'][] = $row->{$entity_key};
-    }
-    $context['sandbox']['max'] = count($context['sandbox']['entity_ids']);
-    // Create the template before adding any rows to it.
-    $context['sandbox']['xls_path'] = drupal_tempnam(file_directory_temp(), $feeds_importer->id);
-    $context['results']['xls_path'] = $context['sandbox']['xls_path'];
-    $context['results']['filename'] = $feeds_importer->id . '.xls';
-    feeds_xls_download_template_helper($feeds_importer, $context['sandbox']['xls_path']);
-    $context['finished'] = FALSE;
-    $context['progress'] = 0;
-    return;
-  }
-  // Load the library.
-  if(function_exists('libraries_get_path')){
-    $path = libraries_get_path('PHPExcel');
-    $path = "$path/PHPExcel/IOFactory.php";
-  }else{
-    $path = drupal_get_path('module', 'feeds_xls') . '/PHPExcel/PHPExcel/IOFactory.php';
-  }
-  require_once $path;
-  // Open the file.
-  $objPHPExcel = PHPExcel_IOFactory::load($context['sandbox']['xls_path']);
-  // Set active sheet index to the first sheet, so Excel opens this as the first sheet
-  $objPHPExcel->setActiveSheetIndex(0);
-  // Add the data.
-  $loop = 0;
-  $ids_to_load = array();
-  while(($id = array_pop($context['sandbox']['entity_ids'])) != FALSE && $loop < 500){
-    $ids_to_load[] = $id;
-    $loop++;
-  }
-  $entities = entity_load($context['sandbox']['entity'], $ids_to_load);
-  foreach($entities as $entity_id => $entity){
-    foreach($feeds_importer->processor->config['mappings'] as $key => $mapping){
-      $first_letter = floor(($key) / 26);
-      $second_letter = ($key % 26) + 1;
-      $column = chr(64 + $second_letter);
-      if($first_letter){
-        $column = chr(64 + $first_letter) . $column;
+  try{
+    // Increase the memory limit
+    ini_set('memory_limit', '1024M');
+    ini_set('max_execution_time', 240);
+    if(!isset($context['sandbox']['progress'])){
+      // Calculate the total number of rows to add to this file.
+      // Use the processor class to guess what entity type we're importing (this
+      // relies on other coders following a similar convention to the feeds
+      // module).
+      $processor_class = get_class($feeds_importer->processor);
+      $entity_guess = strtolower(substr($processor_class, 5, strpos($processor_class, 'Processor') - 5));
+      $bundle = '';
+      $context['sandbox']['entity'] = '';
+      $context['sandbox']['entity_ids'] = array();
+      $context['sandbox']['row'] = 0;
+      switch($entity_guess){
+        case 'node':
+          $results = db_select('node', 'e')->fields('e', array(
+            'nid'
+          ))->condition('type', $feeds_importer->processor->config['content_type'])->execute();
+          $entity_key = 'nid';
+          $context['sandbox']['entity'] = 'node';
+          break;
+        case 'term':
+          // The bundle for a term is actually the vid.
+          $vocabulary = taxonomy_vocabulary_machine_name_load($feeds_importer->processor->config['vocabulary']);
+          $results = db_select('taxonomy_term_data', 'e')->fields('e', array(
+            'tid'
+          ))->condition('vid', $vocabulary->vid)->execute();
+          $entity_key = 'tid';
+          $entity_guess = 'taxonomy_term';
+          $context['sandbox']['entity'] = 'taxonomy_term';
+          break;
+        case 'file':
+          $results = db_select('file_managed', 'e')->fields('e', array(
+            'fid'
+          ))->condition('type', $feeds_importer->processor->config['bundle'])->condition('uri', 'public://eolapi/%', 'NOT LIKE')->execute();
+          $entity_key = 'fid';
+          $context['sandbox']['entity'] = 'file';
+          break;
       }
-      $cell = $column . ($context['sandbox']['row'] + 2);
-      if(strpos($mapping['target'], ':')){
-        // We currently know of two mappings (node:title and node:nid) that use
-        // this format.  We'll try to work out which this one is.        
-        $target = $mapping['target'];
-        $target = explode(':', $target);
-        // First we check to see if we have a value, and proceed if we do.
-        if(isset($entity->{$target[0]}) && is_array($entity->{$target[0]}) && count($entity->{$target[0]})){
-          // Next, if this is the "nid" mapping, we don't need to retrieve any
-          // values, else if it is the title mapping, we need to retrieve the
-          // node's title.
-          // Loop through each of the values
-          $cell_values = array();
-          foreach($entity->{$target[0]} as $language => $values){
-            foreach($entity->{$target[0]}[$language] as $value){
-              if($target[1] == 'nid'){
-                $cell_values[] = $value['nid'];
-              }elseif($target[1] == 'uid'){
-                $cell_values[] = $value['uid'];
-              }
-            }
-          }
-          $objPHPExcel->getActiveSheet()->setCellValue($cell, implode('|', $cell_values));
+      $context['sandbox']['progress'] = 0;
+      foreach($results as $row){
+        $context['sandbox']['entity_ids'][] = $row->{$entity_key};
+      }
+      $context['sandbox']['max'] = count($context['sandbox']['entity_ids']);
+      // Create the template before adding any rows to it.
+      $context['sandbox']['xls_path'] = drupal_tempnam(file_directory_temp(), $feeds_importer->id);
+      $context['results']['xls_path'] = $context['sandbox']['xls_path'];
+      $context['results']['filename'] = $feeds_importer->id . '.xls';
+      feeds_xls_download_template_helper($feeds_importer, $context['sandbox']['xls_path']);
+      $context['finished'] = FALSE;
+      $context['progress'] = 0;
+      return;
+    }
+    // Load the library.
+    if(function_exists('libraries_get_path')){
+      $path = libraries_get_path('PHPExcel');
+      $path = "$path/PHPExcel/IOFactory.php";
+    }else{
+      $path = drupal_get_path('module', 'feeds_xls') . '/PHPExcel/PHPExcel/IOFactory.php';
+    }
+    require_once $path;
+    // Open the file.
+    $objPHPExcel = PHPExcel_IOFactory::load($context['sandbox']['xls_path']);
+    // Set active sheet index to the first sheet, so Excel opens this as the first sheet
+    $objPHPExcel->setActiveSheetIndex(0);
+    // Add the data.
+    $loop = 0;
+    $ids_to_load = array();
+    while($loop < 500 && ($id = array_pop($context['sandbox']['entity_ids'])) != FALSE){
+      $ids_to_load[] = $id;
+      $loop++;
+    }
+    $entities = entity_load($context['sandbox']['entity'], $ids_to_load);
+    foreach($entities as $entity_id => $entity){
+      foreach($feeds_importer->processor->config['mappings'] as $key => $mapping){
+        $first_letter = floor(($key) / 26);
+        $second_letter = ($key % 26) + 1;
+        $column = chr(64 + $second_letter);
+        if($first_letter){
+          $column = chr(64 + $first_letter) . $column;
         }
-      }else{
-        switch($mapping['target']){
-          case 'guid':
-            // Look for this entity in the feeds_item table.  If not there, we
-            // generate an entry for it.
-            $guid = FALSE;
-            if(isset($entity->uuid)){
-              $guid = $entity->uuid;
-            }
-            $feeds_item = feeds_xls_get_or_generate_feeds_item_entry($context['sandbox']['entity'], $entity_id, $feeds_importer->id, $guid);
-            $objPHPExcel->getActiveSheet()->setCellValue($cell, $feeds_item['guid']);
-            break;
-          case 'parentguid':
-            // For some unknown reason, we don't have the parent of this entity,
-            // so we need to query the taxonomy_term_hierarchy table.
-            $row = db_select('taxonomy_term_hierarchy', 't')->fields('t')->condition('tid', $entity_id)->execute()->fetch();
-            if($row && $row->parent){
-              $parent_term = taxonomy_term_load($row->parent);
-              $guid = FALSE;
-              if(isset($parent_term->uuid)){
-                $guid = $parent_term->uuid;
+        $cell = $column . ($context['sandbox']['row'] + 2);
+        if(strpos($mapping['target'], ':')){
+          // We currently know of two mappings (node:title and node:nid) that use
+          // this format.  We'll try to work out which this one is.        
+          $target = $mapping['target'];
+          $target = explode(':', $target);
+          // First we check to see if we have a value, and proceed if we do.
+          if(isset($entity->{$target[0]}) && is_array($entity->{$target[0]}) && count($entity->{$target[0]})){
+            $cell_values = array();
+            // The date field users field:start/field:end, while the node_ref
+            // field uses field:nid/field:title.  We guess which we're using.
+            foreach($entity->{$target[0]} as $language => $values){
+              foreach($entity->{$target[0]}[$language] as $value){
+                switch($target[1]){
+                  case 'nid':
+                    $cell_values[] = $value['nid'];
+                    break;
+                  case 'uid':
+                    $cell_values[] = $value['uid'];
+                    break;
+                  case 'start':
+                    $cell_values[] = $value['value'];
+                    break;
+                  case 'end':
+                    $cell_values[] = $value['value2'];
+                    break;
+                }
               }
-              $feeds_item = feeds_xls_get_or_generate_feeds_item_entry($context['sandbox']['entity'], $parent_term->tid, $feeds_importer->id, $guid);
-              $objPHPExcel->getActiveSheet()->setCellValue($cell, $feeds_item['guid']);
             }
-            break;
-          case 'parent':
-            // We don't do anything for parent, as we use parentguid instead.
-            break;
-          default:
-            if(isset($entity->{$mapping['target']})){
-              if(is_array($entity->{$mapping['target']}) && count($entity->{$mapping['target']})){
-                foreach($entity->{$mapping['target']} as $language => $values){
-                  $cell_values = array();
-                  $implosion = '|';
-                  foreach($entity->{$mapping['target']}[$language] as $value){
-                    foreach($value as $key => $item){
-                      // Change to the allowed values array().
-                      $field = field_info_field($mapping['target']);
-                      if($field && @isset($field['settings']['allowed_values'][$item])){
-                        $item = $field['settings']['allowed_values'][$item];
-                      }
-                      if($item){
-                        switch($key){
-                          case 'tid':
-                            // Links to a term.  We need to load the term, and get the
-                            // value
-                            $term = taxonomy_term_load($item);
-                            $cell_values[] = $term->name;
-                            break;
-                          case 'licence':
-                            $licences = creative_commons_get_licence_types();
-                            $cell_values[] = $licences[$item];
-                            break;
-                          default:
-                            $cell_values[] = $item;
-                            break;
-                          // The following cases should not be saved to the file
-                          case 'safe_value':
-                          case 'format':
-                            break;
-                          // Handle gm3 fields together.
-                          case 'latitude':
-                          case 'longitude':
-                          case 'region_id':
-                          case 'polygon':
-                          case 'polyline':
-                          case 'rectangle':
-                          case 'gm3_type':
-                            $field = field_info_field($mapping['target']);
-                            switch($field['type']){
-                              // Polygon data.
-                              case 'gm3_region':
-                              case 'gm3_rectangle':
-                              case 'gm3_polygon':
-                              case 'gm3_polyline':
-                                $implosion = "\n";
-                                $cell_values[] = $item;
-                                break;
-                              case 'gm3_point':
-                                // Only enter the data once!
-                                if($key == 'latitude'){
+            $objPHPExcel->getActiveSheet()->setCellValue($cell, _feeds_xls_get_value(implode('|', $cell_values)));
+          }
+        }else{
+          switch($mapping['target']){
+            case 'guid':
+              // Look for this entity in the feeds_item table.  If not there, we
+              // generate an entry for it.
+              $guid = FALSE;
+              if(isset($entity->uuid)){
+                $guid = $entity->uuid;
+              }
+              $feeds_item = feeds_xls_get_or_generate_feeds_item_entry($context['sandbox']['entity'], $entity_id, $feeds_importer->id, $guid);
+              $objPHPExcel->getActiveSheet()->setCellValue($cell, _feeds_xls_get_value($feeds_item['guid']));
+              break;
+            case 'parentguid':
+              // For some unknown reason, we don't have the parent of this entity,
+              // so we need to query the taxonomy_term_hierarchy table.
+              $row = db_select('taxonomy_term_hierarchy', 't')->fields('t')->condition('tid', $entity_id)->execute()->fetch();
+              if($row && $row->parent){
+                $parent_term = taxonomy_term_load($row->parent);
+                $guid = FALSE;
+                if(isset($parent_term->uuid)){
+                  $guid = $parent_term->uuid;
+                }
+                $feeds_item = feeds_xls_get_or_generate_feeds_item_entry($context['sandbox']['entity'], $parent_term->tid, $feeds_importer->id, $guid);
+                $objPHPExcel->getActiveSheet()->setCellValue($cell, _feeds_xls_get_value($feeds_item['guid']));
+              }
+              break;
+            case 'parent':
+              // We don't do anything for parent, as we use parentguid instead.
+              break;
+            default:
+              if(isset($entity->{$mapping['target']})){
+                if(is_array($entity->{$mapping['target']}) && count($entity->{$mapping['target']})){
+                  foreach($entity->{$mapping['target']} as $language => $values){
+                    $cell_values = array();
+                    $implosion = '|';
+                    foreach($entity->{$mapping['target']}[$language] as $value){
+                      foreach($value as $key => $item){
+                        // Change to the allowed values array().
+                        $field = field_info_field($mapping['target']);
+                        if($field && @isset($field['settings']['allowed_values'][$item])){
+                          $item = $field['settings']['allowed_values'][$item];
+                        }
+                        if($item){
+                          switch($key){
+                            case 'tid':
+                              // Links to a term.  We need to load the term, and get the
+                              // value
+                              $term = taxonomy_term_load($item);
+                              $cell_values[] = $term->name;
+                              break;
+                            case 'licence':
+                              $licences = creative_commons_get_licence_types();
+                              $cell_values[] = $licences[$item];
+                              break;
+                            default:
+                              $cell_values[] = $item;
+                              break;
+                            // The following cases should not be saved to the file
+                            case 'safe_value':
+                            case 'format':
+                              break;
+                            // Handle gm3 fields together.
+                            case 'latitude':
+                            case 'longitude':
+                            case 'region_id':
+                            case 'polygon':
+                            case 'polyline':
+                            case 'rectangle':
+                            case 'gm3_type':
+                              $field = field_info_field($mapping['target']);
+                              switch($field['type']){
+                                // Polygon data.
+                                case 'gm3_region':
+                                case 'gm3_rectangle':
+                                case 'gm3_polygon':
+                                case 'gm3_polyline':
                                   $implosion = "\n";
-                                  $cell_values[] = "POINT:({$value['latitude']},{$value['longitude']})";
-                                }
-                                break 2;
-                              case 'gm3_combination':
-                                if($key == 'gm3_type'){
-                                  // Get the field, and work out which one we have.
-                                  $implosion = "\n";
-                                  $type = array_pop(explode("_", $item));
-                                  if($type == 'region'){
-                                    // Fuck me, I am SHIT!
-                                    if(isset($value['region_id']) && $value['region_id']){
-                                      $cell_values[] = 'REGION:' . $value['region_id'];
-                                    }
-                                  }else{
-                                    if(isset($value[$type]) && $value[$type]){
-                                      $cell_values[] = strtoupper($type) . ':' . $value[$type];
+                                  $cell_values[] = $item;
+                                  break;
+                                case 'gm3_point':
+                                  // Only enter the data once!
+                                  if($key == 'latitude'){
+                                    $implosion = "\n";
+                                    $cell_values[] = "POINT:({$value['latitude']},{$value['longitude']})";
+                                  }
+                                  break 2;
+                                case 'gm3_combination':
+                                  if($key == 'gm3_type'){
+                                    // Get the field, and work out which one we have.
+                                    $implosion = "\n";
+                                    $type = array_pop(explode("_", $item));
+                                    if($type == 'region'){
+                                      // Fuck me, I am SHIT!
+                                      if(isset($value['region_id']) && $value['region_id']){
+                                        $cell_values[] = 'REGION:' . $value['region_id'];
+                                      }
+                                    }else{
+                                      if(isset($value[$type]) && $value[$type]){
+                                        $cell_values[] = strtoupper($type) . ':' . $value[$type];
+                                      }
                                     }
                                   }
-                                }
-                                break 2;
-                            }
+                                  break 2;
+                              }
+                          }
                         }
                       }
                     }
+                    $objPHPExcel->getActiveSheet()->setCellValue($cell, _feeds_xls_get_value(implode($implosion, $cell_values)));
                   }
-                  $objPHPExcel->getActiveSheet()->setCellValue($cell, implode($implosion, $cell_values));
+                }elseif(is_string($entity->{$mapping['target']})){
+                  $objPHPExcel->getActiveSheet()->setCellValue($cell, _feeds_xls_get_value($entity->{$mapping['target']}));
                 }
-              }elseif(is_string($entity->{$mapping['target']})){
-                $objPHPExcel->getActiveSheet()->setCellValue($cell, $entity->{$mapping['target']});
               }
-            }
+          }
         }
       }
+      // Increase the row number
+      $context['sandbox']['row']++;
     }
-    // Increase the row number
-    $context['sandbox']['row']++;
+    // Close the file.
+    $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+    $objWriter->save($context['sandbox']['xls_path']);
+    // Set the progress
+    $context['progress'] = $context['sandbox']['row'] / $context['sandbox']['max'];
+    $context['finished'] = $context['progress'];
+    if(!count($context['sandbox']['entity_ids'])){
+      $context['finished'] = TRUE;
+    }
   }
-  // Close the file.
-  $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-  $objWriter->save($context['sandbox']['xls_path']);
-  // Set the progress
-  $context['progress'] = $context['sandbox']['row'] / $context['sandbox']['max'];
-  $context['finished'] = $context['progress'];
-  if(!count($context['sandbox']['entity_ids'])){
-    $context['finished'] = TRUE;
+  catch(Exception $e){
+    // Unknown error here.  We'll add a backtrace to the watchdog.
+    watchdog('feeds_xls', '@error on @line.<pre>@full_error</pre>', array(
+      '@error' => $e->getMessage(),
+      '@line' => $e->getLine(),
+      '@full_error' => print_r($e->getTrace(), 1)
+    ));
   }
+}
+
+/**
+ * Helper function to get a value that can be inserted into a cell.
+ */
+function _feeds_xls_get_value($value){
+  if(substr($value, 0, 1) == '='){return "'" . $value;}
+  return $value;
 }
 
 /**
@@ -399,7 +424,7 @@ function feeds_xls_download_template_helper($feeds_importer, $output = 'php://ou
     }
     $column = $cell;
     $cell = "{$cell}1";
-    $objPHPExcel->getActiveSheet()->setCellValue($cell, $header['source']);
+    $objPHPExcel->getActiveSheet()->setCellValue($cell, _feeds_xls_get_value($header['source']));
     // Set the columnn width
     $objPHPExcel->getActiveSheet()->getColumnDimension($column)->setAutoSize(TRUE);
     // Validation
@@ -412,7 +437,8 @@ function feeds_xls_download_template_helper($feeds_importer, $output = 'php://ou
         $entity_type = 'taxonomy_term';
       }
       if(strpos($header['target'], ':')){
-        $field = field_info_field(array_shift(explode(':', $header['target'])));
+        $temp_array = explode(':', $header['target']);
+        $field = field_info_field(array_shift($temp_array));
       }else{
         $field = field_info_field($header['target']);
       }
@@ -479,14 +505,14 @@ function feeds_xls_download_template_helper($feeds_importer, $output = 'php://ou
                 ))->condition('vid', $vocabulary->vid)->distinct()->execute();
                 foreach($results as $term){
                   $row++;
-                  $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", $term->name);
+                  $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", _feeds_xls_get_value($term->name));
                 }
               }
               $break_at_end = FALSE;
             }else{
               foreach($allowed_values as $term){
                 $row++;
-                $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", $term);
+                $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", _feeds_xls_get_value($term));
               }
               $break_at_end = TRUE;
             }

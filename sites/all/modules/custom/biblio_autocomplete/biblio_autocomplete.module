@@ -1,0 +1,92 @@
+<?php
+
+function biblio_autocomplete_menu(){
+  $items=array();
+  $autocompletes = module_invoke_all('biblio_autocomplete_info');
+  foreach ($autocompletes as $field => $data){
+  	$items['biblio_autocomplete/'.$field] = array(
+  	  'title' => t('Biblio autocomplete for ').$field,
+  	  'page callback' => 'biblio_autocomplete_json',
+  	  'page arguments' => array($field, 2),
+  	  'access callback' => TRUE,
+  	  'type' => MENU_CALLBACK,
+  	);
+  }
+  return $items;
+}
+
+function biblio_autocomplete_json($biblio_field, $string){
+  $autocompletes = module_invoke_all('biblio_autocomplete_info');
+  $matches = array();
+  foreach ($autocompletes as $field => $data){
+  	if ($field == $biblio_field){
+  		if (!is_array($data['function'])){
+  			$data['function'] = array($data['function']);
+  		}
+  	  foreach($data['function'] as $function){
+  	    $matches = array_merge($matches, $function($string) );
+  	  }
+  	}
+  }
+  asort($matches);
+  
+  $return_matches = array();
+  $i = 0;
+  foreach ($matches as $key => $data){
+  	if ($data['key'] != '' && $data['description'] != ''){
+  	  $i++;
+  	  $return_matches[$data['key']] = $data['provider'].': '.$data['description'];
+  	  if ($i >= 10){
+  		break;
+  	  }
+  	}
+  }
+  
+  print drupal_json_output($return_matches);
+}
+
+/**
+ * Implemets hook_form_alter().
+ *
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ * @param unknown_type $form_id
+ */
+function biblio_autocomplete_form_alter(&$form, &$form_state, $form_id){
+  if ($form_id == 'biblio_node_form'){
+    $autocompletes = module_invoke_all('biblio_autocomplete_info');
+    foreach ($autocompletes as $field => $values){
+      if (in_array($field, $form)){
+      	$key = array_tree_search_key($form, $field);
+      	if (!is_null($key)){
+      	  array_tree_update_autocomplete($form, $key, 'biblio_autocomplete/'.$field);
+      	}
+      }
+    }
+  }
+}
+
+function array_tree_search_key($a, $subkey) {
+if (is_array($a)){
+   foreach (array_keys($a) as $i=>$k) {
+      if ($k === $subkey) {
+         return array($k);
+      }
+      elseif ($pos = array_tree_search_key($a[$k], $subkey)) {
+         return array_merge(array($k), $pos);
+      }
+   }
+}
+}
+
+function array_tree_update_autocomplete(&$a, $key_array, $autocomplete){
+  if (count($key_array) == 0){
+  	$a['#autocomplete_path'] = $autocomplete;
+  } else {
+  	$a_next = array_shift($key_array);
+  	array_tree_update_autocomplete($a[$a_next], $key_array, $autocomplete);
+  }
+}
+
+
+

@@ -1,7 +1,7 @@
 name = "Image Metadata Extension"
 description = "Provides additional fields on Images, based on the TDWG Audubon Core standard."
 core = "7.x"
-package = "Scratchpads"
+package = "Image"
 php = "5.2.4"
 dependencies[] = "countries"
 dependencies[] = "ctools"

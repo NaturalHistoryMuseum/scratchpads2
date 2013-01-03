@@ -125,7 +125,7 @@ body.context-editing  .draggable:hover a.context-block-remove {
 
  .context-block-hidden { display:none !important; }
 
- .block  .context-block-empty {
+ .block  .context-block-empty-content {
   text-align:center;
   padding:10px;
   opacity:.5;

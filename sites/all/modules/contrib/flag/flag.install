@@ -12,7 +12,7 @@ function flag_install() {
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
 function flag_uninstall() {
   $result = db_select('variable', 'v')
@@ -27,14 +27,14 @@ function flag_uninstall() {
 }
 
 /**
- * Implementation of hook_enable().
+ * Implements hook_enable().
  *
  * We create the demonstration flag on enable, so hook implementations in flag
  * module will fire correctly, as the APIs are not available on install.
  */
 function flag_enable() {
   // Load the flag API in case we want to use it when enabling.
-  include_once(drupal_get_path('module', 'flag') .'/flag.module');
+  include_once(drupal_get_path('module', 'flag') . '/flag.module');
 
   if (!flag_get_flags()) {
     // Install a demonstration flag only if no flag exists. This is to prevent
@@ -78,7 +78,7 @@ function _flag_install_get_suggested_node_types() {
 }
 
 /**
- * Implementation of hook_requirements().
+ * Implements hook_requirements().
  *
  * Prevent installing this module if the "Flag content" module is installed as well.
  */
@@ -113,7 +113,7 @@ function flag_requirements($phase) {
           $requirements['flag_robots'] = array(
             'title' => $t('Flag robots.txt problem'),
             'severity' => REQUIREMENT_WARNING,
-            'description' => $t('Flag module may currently be used with anonymous users, however the robots.txt file does not exlude the "@flag-path" path, which may cause search engines to randomly flag and unflag content when they index the site. It is highly recommended to add "@robots-string" to your robots.txt file (located in the root of your Drupal installation).', array('@flag-path' => $flag_path, '@robots-string' => $robots_string)),
+            'description' => $t('Flag module may currently be used with anonymous users, however the robots.txt file does not exclude the "@flag-path" path, which may cause search engines to randomly flag and unflag content when they index the site. It is highly recommended to add "@robots-string" to your robots.txt file (located in the root of your Drupal installation).', array('@flag-path' => $flag_path, '@robots-string' => $robots_string)),
             'value' => $t('Search engines flagging content'),
           );
         }
@@ -138,7 +138,7 @@ function _flag_flag_content_message() {
 }
 
 /**
- * Implementation of hook_schema().
+ * Implements hook_schema().
  */
 function flag_schema() {
   $schema = array();
@@ -163,7 +163,7 @@ function flag_schema() {
       'name' => array(
         'description' => 'The machine-name for this flag.',
         'type' => 'varchar',
-        'length' => '32',
+        'length' => '128',
         'not null' => FALSE,
         'default' => '',
       ),
@@ -213,7 +213,7 @@ function flag_schema() {
       'content_type' => array(
         'description' => 'The flag type, one of "node", "comment", "user".',
         'type' => 'varchar',
-        'length' => '32',
+        'length' => '128',
         'not null' => TRUE,
         'default' => '',
       ),
@@ -225,7 +225,7 @@ function flag_schema() {
         'default' => 0,
       ),
       'uid' => array(
-        'description' => 'The user ID by which this content was created.',
+        'description' => 'The user ID by whom this content was flagged.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -252,8 +252,9 @@ function flag_schema() {
       'fid_content_id_uid_sid' => array('fid', 'content_id', 'uid', 'sid'),
     ),
     'indexes' => array(
-      'content_type_content_id' => array('content_type', 'content_id'),
       'content_type_uid_sid' => array('content_type', 'uid', 'sid'),
+      'content_type_content_id_uid_sid' => array('content_type', 'content_id', 'uid', 'sid'),
+      'content_id_fid' => array('content_id', 'fid'),
     ),
   );
 
@@ -271,7 +272,7 @@ function flag_schema() {
       'type' => array(
         'description' => 'The types (usually from {node_type}) that can be flagged by this fid.',
         'type' => 'varchar',
-        'length' => '32',
+        'length' => '128',
         'not null' => TRUE,
         'default' => '',
       ),
@@ -294,7 +295,7 @@ function flag_schema() {
       'content_type' => array(
         'description' => 'The flag type, usually one of "node", "comment", "user".',
         'type' => 'varchar',
-        'length' => '32',
+        'length' => '128',
         'not null' => TRUE,
         'default' => '',
       ),
@@ -313,13 +314,22 @@ function flag_schema() {
         'not null' => TRUE,
         'default' => 0,
         'disp-width' => '10',
+      ),
+      'last_updated' => array(
+        'description' => 'The UNIX time stamp representing when the flag was last updated.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'disp-size' => 11,
       )
     ),
     'primary key' => array('fid', 'content_id'),
     'indexes' => array(
       'fid_content_type' => array('fid', 'content_type'),
       'content_type_content_id' => array('content_type', 'content_id'),
-      'count' => array('count'),
+      'fid_count' => array('fid', 'count'),
+      'fid_last_updated' => array('fid', 'last_updated'),
     ),
   );
 
@@ -402,4 +412,145 @@ function flag_update_6203() {
 function flag_update_6204() {
   db_drop_primary_key('flag_counts');
   db_add_primary_key('flag_counts', array('fid', 'content_id'));
+}
+
+/**
+ * Provide a better index on the flag_content table including 'uid' and 'sid'.
+ */
+function flag_update_6205() {
+  // This update has been removed and corrected in flag_update_6206.
+  // See http://drupal.org/node/1105490.
+}
+
+/**
+ * Correction to flag_update_6205(). Convert unique key to an index.
+ */
+function flag_update_6206() {
+  // Remove the old index that did not include UID or SID.
+  if (db_index_exists('flag_content', 'content_type_content_id')) {
+    db_drop_index('flag_content', 'content_type_content_id');
+  }
+
+  // Remove the erroneous unique key that was added in flag_update_6205().
+  if (db_index_exists('flag_content', 'content_type_content_id_uid_sid')) {
+    db_drop_unique_key('flag_content', 'content_type_content_id_uid_sid');
+  }
+
+  db_add_index('flag_content', 'content_type_content_id_uid_sid', array('content_type', 'content_id', 'uid', 'sid'));
+}
+
+/**
+ * Adds column last_updated to flag_counts table.
+ */
+function flag_update_6207() {
+  db_add_field('flag_counts', 'last_updated', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0, 'disp-size' => 11), array('indexes' => array('last_updated' => array('last_updated'))));
+}
+
+/**
+ * Convert flag_count indexes to include FID for more efficient indexing.
+ */
+function flag_update_6208() {
+  db_drop_index('flag_counts', 'count');
+  db_drop_index('flag_counts', 'last_updated');
+
+  db_add_index('flag_counts', 'fid_count', array('fid', 'count'));
+  db_add_index('flag_counts', 'fid_last_updated', array('fid', 'last_updated'));
+}
+
+/**
+ * Clear caches.
+ */
+function flag_update_7201() {
+  // Do nothing. Update.php is going to clear caches for us.
+}
+
+/**
+ * Clean-up flag records for deleted nodes and comments.
+ */
+function flag_update_7202() {
+  // These queries can't use db_delete() because that doesn't support a
+  // subquery: see http://drupal.org/node/1267508.
+  // Clean-up for nodes.
+  db_query("DELETE FROM {flag_content} WHERE content_type = 'node' AND NOT EXISTS (SELECT 1 FROM {node} n WHERE content_id = n.nid)");
+  db_query("DELETE FROM {flag_counts} WHERE content_type = 'node' AND NOT EXISTS (SELECT 1 FROM {node} n WHERE content_id = n.nid)");
+  // Clean-up for comments. Do not use module_exists() because comment module
+  // could be disabled.
+  if (db_table_exists('comment')) {
+    db_query("DELETE FROM {flag_content} WHERE content_type = 'comment' AND NOT EXISTS (SELECT 1 FROM {comment} c WHERE content_id = c.cid)");
+    db_query("DELETE FROM {flag_counts} WHERE content_type = 'comment' AND NOT EXISTS (SELECT 1 FROM {comment} c WHERE content_id = c.cid)");
+  }
+}
+
+/**
+ * Add an index to help with view's flag_handler_relationship when not required.
+ */
+function flag_update_7203() {
+  // Skip if this index was also added by the 6.x-2.x branch.
+  if (!db_index_exists('flag_content', 'content_id_fid')) {
+    db_add_index('flag_content', 'content_id_fid', array('content_id', 'fid'));
+  }
+}
+
+/**
+ * Increase the size of the database columns that refer to entity types or bundles.
+ */
+function flag_update_7204() {
+  // Change the 'content_type' column on the {flags} table.
+  db_change_field('flags', 'content_type', 'content_type',
+    array(
+      'description' => 'The flag type, such as one of "node", "comment", or "user".',
+      'type' => 'varchar',
+      'length' => '128',
+      'not null' => TRUE,
+      'default' => '',
+    )
+  );
+
+  // Drop the indexes that use the 'content_type' column of the {flag_contents} table.
+  db_drop_index('flag_content', 'content_type_content_id_uid_sid');
+  db_drop_index('flag_content', 'content_type_uid_sid');
+
+  // Change the 'content_type' column on the {flag_content} table.
+  db_change_field('flag_content', 'content_type', 'content_type',
+    array(
+      'description' => 'The flag type, one of "node", "comment", "user".',
+      'type' => 'varchar',
+      'length' => '128',
+      'not null' => TRUE,
+      'default' => '',
+    )
+  );
+
+  // Recreate the indexes which utilize the 'content_type' of the {flag_content} table
+  db_add_index('flag_content', 'content_type_content_id_uid_sid', array('content_type', 'content_id', 'uid', 'sid'));
+  db_add_index('flag_content', 'content_type_uid_sid', array('content_type', 'uid', 'sid'));
+
+  // Change the 'type' column on the {flag_types} table.
+  db_change_field('flag_types', 'type', 'type',
+    array(
+      'description' => 'The types (usually from {node_type}) that can be flagged by this fid.',
+      'type' => 'varchar',
+      'length' => '128',
+      'not null' => TRUE,
+      'default' => '',
+    )
+  );
+
+  // Drop the indexes that use the 'content_type' column of the {flag_counts} table.
+  db_drop_index('flag_counts', 'fid_content_type');
+  db_drop_index('flag_counts', 'content_type_content_id');
+
+  // Change the 'content_type' column on the {flag_counts} table.
+  db_change_field('flag_counts', 'content_type', 'content_type',
+    array('description' => 'The flag type, usually one of "node", "comment", "user".',
+      'type' => 'varchar',
+      'length' => '128',
+      'not null' => TRUE,
+      'default' => '',
+    )
+  );
+
+  // Recreate the indexes which utilize the 'content_type' of the {flag_counts} table.
+  db_add_index('flag_counts', 'fid_content_type', array('fid', 'content_type'));
+  db_add_index('flag_counts', 'content_type_content_id', array('content_type', 'content_id'));
 }

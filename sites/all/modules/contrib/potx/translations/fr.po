@@ -1,0 +1,118 @@
+# $Id: fr.po,v 1.1.4.3 2009/01/26 12:21:02 slybud Exp $
+#
+# French translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  potx.module,v 1.1.2.12.2.2.2.7 2008/09/26 10:52:11 goba
+#  potx.install,v 1.1.2.1 2008/09/25 06:49:33 goba
+#  potx.info,v 1.1.2.3.2.2 2007/11/12 20:19:06 goba
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: French Translation for potx drupal module\n"
+"POT-Creation-Date: 2009-01-26 12:39+0100\n"
+"PO-Revision-Date: 2009-01-26 13:14+0100\n"
+"Last-Translator: Sylvain Moreau <sylvain.moreau@ows.fr>\n"
+"Language-Team: Sylvain Moreau, OWS <sylvain.moreau@ows.fr>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n>1);\n"
+"X-Poedit-Language: French\n"
+
+#: potx.module:20
+msgid "This page allows you to generate translation templates for module and theme files. Select the module or theme you wish to generate a template file for. A single Gettext Portable Object (Template) file is generated, so you can easily save it and start translation."
+msgstr "Cette page vous permet de générer des gabarits de traduction pour tous les fichiers de modules et de thèmes.  Sélectionnez le module ou le thème pour lequel vous souhaitez générer un fichier gabarit. Un fichier unique gabarit Gettext Portable Object sera généré, afin que vous puissiez facilement l'enregistrer et commencer sa traduction."
+
+#: potx.module:52
+msgid "Language independent template"
+msgstr "Gabarit indépendant de la langue"
+
+#: potx.module:58
+msgid "Template file for !langname translations"
+msgstr "Fichier gabarit pour les traductions en !langname"
+
+#: potx.module:62
+msgid "Template language"
+msgstr "Langue du gabarit"
+
+#: potx.module:65
+msgid "Export a language independent or language dependent (plural forms, language team name, etc.) template."
+msgstr "Exporter un gabarit dépendant ou non de la langue (formes plurielles, nom de 'équipe de la langue, etc...)."
+
+#: potx.module:69
+msgid "Include translations"
+msgstr "Inclure les traductions"
+
+#: potx.module:70
+msgid "Include translations of strings in the file generated. Not applicable for language independent templates."
+msgstr "Inclure la traductions des chaînes de caractères dans le fichier généré. Non applicable pour les gabarits indépendants de la langue."
+
+#: potx.module:76;29
+msgid "Extract"
+msgstr "Extraire"
+
+#: potx.module:87
+msgid "You should select a component to export."
+msgstr "Vous devez choisir un composant à exporter."
+
+#: potx.module:185
+msgid "Extract from %name in the %directory directory"
+msgstr "Extraire depuis %name dans le répertoire %directory"
+
+#: potx.module:186
+msgid "Generates output from all files found in this directory."
+msgstr "Génère la sortie à partir de tous les fichiers trouvés dans ce répertoire."
+
+#: potx.module:201
+msgid "Extract from all in directory \"@directory\""
+msgstr "Extraire depuis tous les éléments du répertoire \"@directory\""
+
+#: potx.module:202
+msgid "To extract from a single component in this directory, choose the desired entry in the fieldset below."
+msgstr "Pour extraire depuis un composant unique de ce répertoire, choisissez l'entrée correspondante dans le groupe de champs ci-dessous."
+
+#: potx.module:211
+msgid "Directory \"@directory\""
+msgstr "Répertoire \"@directory\""
+
+#: potx.module:232
+msgid "Extract from %name"
+msgstr "Extraire depuis %name"
+
+#: potx.module:233
+msgid "Extract from files named %pattern in the %directory directory."
+msgstr "Extraire depuis les fichiers nommés %pattern dans le répertoire %directory."
+
+#: potx.module:303
+msgid "Interface text translatability"
+msgstr "Traduisibilité du texte de l'interface"
+
+#: potx.module:0
+msgid "potx"
+msgstr "Potx"
+
+#: (duplicate) potx.install:22
+msgid "PHP tokenizer for Translation template extractor"
+msgstr "Générateur PHP de jetons (tokenizer) pour l'Extracteur de gabarits de traduction."
+
+#: (duplicate) potx.install:23
+msgid "Available"
+msgstr "Disponible"
+
+#: (duplicate) potx.install:23
+msgid "Not available"
+msgstr "Non disponible"
+
+#: (duplicate) potx.install:26
+msgid "The <a href=\"@tokenizer\">PHP tokenizer functions</a> are required."
+msgstr "Les <a href=\"@tokenizer\">fonctions PHP de génération de jetons (tokenizer)</a> sont requises."
+
+#: potx.info:0
+msgid "Translation template extractor"
+msgstr "Extracteur de gabarits de traduction"
+
+#: potx.info:0
+msgid "Provides a web interface and an API to extract translatable text from the sources of installed components."
+msgstr "Fournit une interface web et une API pour extraire le texte traduisible depuis les sources des composants installés."
+

@@ -552,6 +552,22 @@ function comment_scratchpads_default_permissions(){
 }
 
 /**
+ * Comment notify module
+ *
+ * Implements hook_scratchpads_default_permissions().
+ */
+function comment_notify_scratchpads_default_permissions(){
+  return array(
+    'authenticated user' => array(
+      'subscribe to comments'
+    ),
+    'maintainer' => array(
+      'administer comment notify'
+    )
+  );
+}
+
+/**
  * Aggregator module
  *
  * Implements hook_scratchpads_default_permissions().
@@ -593,6 +609,23 @@ function biblio_scratchpads_default_permissions(){
     'maintainer' => array(
       'administer biblio'
     )
+  );
+}
+
+/**
+ * EXIF Custom module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function exif_custom_scratchpads_default_permissions(){
+  return array(
+    'contributor' => array(
+      'have default image metadata profile',
+      'view image metadata',
+    ),
+    'maintainer' => array(
+      'administer image metadata',
+    ),
   );
 }
 

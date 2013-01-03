@@ -1,0 +1,15 @@
+name = "HTML Purifier"
+description = "Filter that removes malicious HTML and ensures standards compliant output."
+core = 7.x
+files[] = htmlpurifier.install
+files[] = htmlpurifier.module
+files[] = htmlpurifier.admin.inc
+files[] = HTMLPurifier_DefinitionCache_Drupal.php
+configure = admin/config/content/htmlpurifier
+
+; Information added by drupal.org packaging script on 2012-11-03
+version = "7.x-1.0"
+core = "7.x"
+project = "htmlpurifier"
+datestamp = "1351976217"
+

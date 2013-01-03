@@ -52,7 +52,7 @@ function tinytax_js($term){
   return theme('tinytax_branch', array(
     'tid' => $term->tid,
     'vid' => $term->vid,
-    'ancestors' => variable_get('tinytax_ancestors_' . $term->vid, 1)
+    'ancestors' => variable_get('tinytax_ancestors_' . $term->vid, 0)
   ));
 }
 
@@ -99,7 +99,7 @@ function tinytax_block_view($delta = ''){
       '#theme' => 'tinytax_block',
       '#vid' => $delta,
       '#open_tids' => $open_tids,
-      '#ancestors' => variable_get('tinytax_ancestors_' . $vocabulary->vid, 1),
+      '#ancestors' => variable_get('tinytax_ancestors_' . $vocabulary->vid, 0),
       '#attached' => array(
         'css' => array(
           drupal_get_path('module', 'tinytax') . '/css/tinytax.css'
@@ -132,7 +132,7 @@ function tinytax_block_configure($delta = ''){
     'tinytax_ancestors' => array(
       '#type' => 'checkbox',
       '#title' => t('Tick to show the total number of descendants of each term.'),
-      '#default_value' => variable_get('tinytax_ancestors_' . $delta, 1)
+      '#default_value' => variable_get('tinytax_ancestors_' . $delta, 0)
     )
   );
 }
