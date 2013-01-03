@@ -1,0 +1,5 @@
+core = "7.x"
+description = "Displays phylogenetic trees embeded within a Nexus or NeXML file using the jsPhyloSVG library."
+name = "jsPhyloSVG"
+package = "Taxonomy"
+version = "7.x-1.0"

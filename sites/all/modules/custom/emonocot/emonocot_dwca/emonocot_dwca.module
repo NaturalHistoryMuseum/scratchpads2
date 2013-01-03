@@ -35,6 +35,7 @@ function emonocot_dwca_views_default_views_alter(&$views){
         $view->display['default']->display_options['fields']['wcm_id_1']['label'] = 'Parent ID';
       }
     }
+
     //For description references change Rights field to associated Biblio nodes rights
     if(substr($view->name, 0, 23) == 'dwca_export_description'){
       $field_matching = array(
@@ -294,6 +295,40 @@ function emonocot_dwca_add_wcm_parent_field(&$view){
   $new_field['field_api_classes'] = 0;
   //array_unshift($view->display['default']->display_options['fields'], $new_field);
   $view->display['default']->display_options['fields']['wcm_id_1'] = $new_field;
+}
+
+function emonocot_dwca_source_field(){
+ $field = array();/* Field: Taxonomy term: Protologue Link */
+  $field['id'] = 'field_itis_em_url';
+  $field['table'] = 'field_data_field_itis_em_url';
+  $field['field'] = 'field_itis_em_url';
+  $field['relationship'] = 'field_taxonomic_name_tid';
+  $field['alter']['alter_text'] = 0;
+  $field['alter']['make_link'] = 0;
+  $field['alter']['absolute'] = 0;
+  $field['alter']['external'] = 0;
+  $field['alter']['replace_spaces'] = 0;
+  $field['alter']['trim_whitespace'] = 0;
+  $field['alter']['nl2br'] = 0;
+  $field['alter']['word_boundary'] = 1;
+  $field['alter']['ellipsis'] = 1;
+  $field['alter']['more_link'] = 0;
+  $field['alter']['strip_tags'] = 0;
+  $field['alter']['trim'] = 0;
+  $field['alter']['html'] = 0;
+  $field['element_label_colon'] = 1;
+  $field['element_default_classes'] = 1;
+  $field['hide_empty'] = 0;
+  $field['empty_zero'] = 0;
+  $field['hide_alter_empty'] = 1;
+  $field['field_api_classes'] = 0;
+  return $field;
+}
+
+function emonocot_dwca_related_field(){
+	$field = array();
+	
+	return $field;
 }
 
 function emonocot_dwca_add_wcm_image(&$view){

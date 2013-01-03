@@ -44,6 +44,7 @@ function emonocot_biblio_create_biblio_from_protologue($term){
   }
   if(isset($term->tid)){
     $data_array = emonocot_biblio_get_protologue_data($term);
+    if ($data_array == FALSE){return FALSE;}
     $data_array['term_data'] = array(
       'tid' => $term->tid
     );
@@ -63,6 +64,7 @@ function emonocot_biblio_create_biblio_from_protologue($term){
  * The taxonomy term we are gathering protologue data about
  */
 function emonocot_biblio_get_protologue_data($term){
+  if (!isset($term->field_itis_em_other_ref['und'][0]['value'])){ return FALSE; }
   $protologue = $term->field_itis_em_other_ref['und'][0]['value'];
   $return = array();
   $return['author_string'] = $term->field_authors['und'][0]['value'];
@@ -106,8 +108,8 @@ function emonocot_biblio_get_start_page($protologue){
 function emonocot_bilbio_process_term_author_string($author_string){
   //If there is an author is parentheses that's the only part of the string we should return for biblio
   if(strstr($author_string, '(')){
-    $start = strpos($author_string, '(') + 1;
-    $end = strpos($author_string, ')');
+    $start = 0;
+    $end = strpos($author_string, '(');
     $author_string = substr($author_string, $start, $end - $start);
   }
   //If the taxon author string has 'ex' or 'in' in the title discard unwanted authors

@@ -22,7 +22,7 @@ function scratchpads_load_time_log_shutdown(){
   $filename = variable_get('scratchpads_load_time_log_filename', FALSE);
   // We clear the log at the start of the week.
   $time = time();
-  if(variable_get('scratchpads_load_time_log_last_clear', 0) + 604800 < $time){
+  if((variable_get('scratchpads_load_time_log_last_clear', 0) + 604800) < $time){
     variable_set('scratchpads_load_time_log_last_clear', $time);
     @file_put_contents($filename, '"Path","Load time","UID","Timestamp"' . "\n");
   }
@@ -30,4 +30,40 @@ function scratchpads_load_time_log_shutdown(){
     global $user;
     @file_put_contents($filename, '"' . $path . '","' . timer_read('page') . '","' . $user->uid . '","' . $time . "\"\n", FILE_APPEND);
   }
+}
+
+/**
+ * Implements hook_file_download()
+ */
+function scratchpads_load_time_log_file_download($uri){
+  if($uri && $uri == variable_get('scratchpads_load_time_log_filename', FALSE)){
+    $url = parse_url(url('', array(
+      'absolute' => TRUE
+    )));
+    return array(
+      'Content-Type' => 'text/csv',
+      'Content-Disposition' => 'attachment; filename="' . $url['host'] . '-load-times-log.csv"',
+      'Cache-Control' => 'private'
+    );
+  }
+}
+
+/**
+ * Implements hook_menu()
+ */
+function scratchpads_load_time_log_menu(){
+  $filename = variable_get('scratchpads_load_time_log_filename', FALSE);
+  if($filename){return array(
+      'load-times-log.csv' => array(
+        'title' => t('Load times CSV'),
+        'page callback' => 'file_download',
+        'page arguments' => array(
+          'public',
+          substr($filename, 9)
+        ),
+        'access arguments' => array(
+          'scratchpad team'
+        )
+      )
+    );}
 }

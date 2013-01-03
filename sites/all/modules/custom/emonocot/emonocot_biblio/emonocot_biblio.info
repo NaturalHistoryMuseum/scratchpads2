@@ -5,6 +5,11 @@ core = 7.x
 dependencies[] = emonocot_ipni
 dependencies[] = biblio
 dependencies[] = ctools
+dependencies[] = "features"
+dependencies[] = "field_sql_storage"
+dependencies[] = "node_reference"
+
+features[field][] = "node-biblio-field_containing_work"
 
 files[] = ProtologueNodeProcessor.inc
 
