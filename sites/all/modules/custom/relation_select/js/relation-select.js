@@ -41,10 +41,6 @@
                   addFilterBundleEventHandlers($(this).parents(
                       '.field-type-relation'), relationType);
 
-                  // Hide fields until an entity is selected
-                  toggleRelationFields($(this).attr("id"));
-                  toggleSearchForm($(this).attr("id"));
-
                 }).addClass('processed');
 
         addCloseEventHandlers(context);
@@ -134,8 +130,6 @@
         id = $(this).parents('.relation-select-entities').attr("id");
         entitydata = $input.val();
         deselectItem($input, id, entitydata);
-        toggleRelationFields(id);
-        toggleSearchForm(id);
         return false;
       }
 
@@ -176,7 +170,6 @@
           // If max arity has been reached, close the popup
           if(countArity(id) == relationSelectItems[id]['maxArity']) {
             close();
-            toggleSearchForm(id);
           }
 
         }
@@ -216,7 +209,6 @@
         $input.append(themeValue($row, entitydata));
         addInputRemoveLink($input);
         relationSelectItems[id]['element'].append($input);
-        toggleRelationFields(id);
       }
 
       /**
@@ -282,33 +274,6 @@
         $bundleSelect
             .val($('option:not(:disabled)', $bundleSelect).eq(0).val());
 
-      }
-
-      /**
-       * Hide/show a field's relation fields depending on whether an entity has been selected
-       */
-      function toggleRelationFields(id) {
-        console.log(id + ':' + countArity(id));
-        if (countArity(id) > 1) {
-          $('#' + id).parent().find('div').filter(function() {
-            return this.id.match(/^relation-select-relation-fields/);
-          }).show();
-        } else {
-          $('#' + id).parent().find('div').filter(function() {
-            return this.id.match(/^relation-select-relation-fields/);
-          }).hide();          
-        }
-      }
-      
-      /**
-       * Hide/show a search form depending on whether arity has been reached
-       */
-      function toggleSearchForm(id) {
-        if (countArity(id) == relationSelectItems[id]['maxArity']) {
-          $('#' + id).parent().find('div.views-exposed-form').hide();
-        } else {
-          $('#' + id).parent().find('div.views-exposed-form').show();          
-        }
       }
 
       init();
