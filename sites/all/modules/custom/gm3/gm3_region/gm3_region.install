@@ -235,4 +235,6 @@ function gm3_region_update_7004(){
       }
     }
   }
+  // Finally
+  cache_clear_all();
 }
