@@ -1,0 +1,157 @@
+<?php
+
+/**
+ * Implements hook_silver().
+ */
+function worms_silver(){
+  return array(
+    array(
+      'type' => 'Taxonomy',
+      'name' => 'WoRMS web service',
+      //'access callback' => 'user_access',
+      'access arguments' => array(
+        'create page content' // FIXME
+      ),
+      'form_id' => 'worms_import_form'
+    )
+  );
+}
+
+/**
+ * Callback to produce the import form for worms.
+ */
+function worms_import_form($form, &$form_state){
+  // Create a soap client to ensure that the service is up.
+  $worms_service_status = new SoapClient("http://www.marinespecies.org/aphia.php?p=soap&wsdl=1");
+  $vocabularies = taxonomy_get_vocabularies();
+  $taxonomies = array(
+    '- SELECT VOCABULARY -'
+  );
+  foreach($vocabularies as $vid => $vocabulary){
+    $taxonomies[$vid] = $vocabulary->name;
+  }
+  return array(
+    '#action' => url('admin/structure/taxonomy/tcs-import'),
+    '#submit' => array(
+      'tcsdc_primary_form_submit'
+    ),
+    'worms' => array(
+      '#type' => 'fieldset',
+      '#title' => 'WoRMS',
+      '#description' => 'Import a classification directly from WoRMS',
+      '#collapsed' => FALSE,
+      '#collapsible' => FALSE,
+      'worms-status' => array(
+        '#weight' => -10,
+        '#type' => 'markup',
+        '#markup' => $worms_service_status ? '<div class="messages status"><h2 class="element-invisible">Status message</h2>The WoRMS service appears to be running.</div>' : '<div class="messages error"><h2 class="element-invisible">Status message</h2>The WoRMS service does not appear to be running.  Please try again later.</div>'
+      ),
+      'taxonomy_vid' => array(
+        '#type' => 'select',
+        '#title' => t('Taxonomy'),
+        '#options' => $taxonomies,
+        '#weight' => -90,
+        '#required' => TRUE
+      ),
+      'worms-name' => array(
+        '#weight' => -5,
+        '#type' => 'textfield',
+        '#title' => t('Enter the root term of your classification, e.g. Phthiraptera, Insecta, Aves'),
+        '#attributes' => array(
+          'onkeypress' => 'if(event.keyCode == 13){return false;}else{return true}'
+        )
+      ),
+      'worms-search' => array(
+        '#weight' => 0,
+        '#type' => 'button',
+        '#value' => 'Search WoRMS',
+        '#title' => 'Search WoRMS',
+        '#disabled' => $worms_service_status ? FALSE : TRUE,
+        '#ajax' => array(
+          'callback' => 'worms_classifications_js',
+          'event' => 'click',
+          'wrapper' => 'worms-import-full'
+        ),
+        '#validate' => array(
+          'worms_validate'
+        )
+      ),
+      'import-full' => array(
+        '#weight' => 5,
+        '#markup' => '<div id="worms-import-full" style="clear:both"><input name="worms-import-id" style="display:none"/></div>'
+      ),
+      'submit-worms' => array(
+        '#weight' => 10,
+        '#disabled' => $worms_service_status ? FALSE : TRUE,
+        '#type' => 'submit',
+        '#title' => t('Import from WoRMS'),
+        '#value' => t('Import from WoRMS'),
+        '#submit' => array(
+          'worms_submit'
+        ),
+        '#validate' => array(
+          'worms_validate'
+        ),
+        '#states' => array(
+          'invisible' => array(
+            ':input[name="worms-import-id"]' => array(
+              'value' => ''
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Validate the form
+ */
+function worms_validate($form, &$form_state){
+  // Lets just check that the worms-import-id is set in #post, and that it is
+  // numeric (is this likely to change Patrick?).
+  if(!isset($form_state['values']['taxonomy_vid']) || !$form_state['values']['taxonomy_vid']){
+    form_set_error('taxonomy_vid', t('Please select a vocabulary first.'));
+  }
+  if(!(isset($form_state['values']['worms-import-id']) && count(explode("|", $form_state['values']['worms-import-id'])) == 2)){
+    form_set_error('worms-import-id', t('Please ensure you select a classification to import.'));
+  }
+}
+
+/**
+ * Callback for the ajax
+ */
+function worms_classifications_js($form, $form_state){
+  $client = new SoapClient("http://www.marinespecies.org/aphia.php?p=soap&wsdl=1");
+  $records = $client->getAphiaRecords($_POST['worms-name'], TRUE, TRUE, FALSE, 0);
+  if($records){
+    foreach($records as $record){
+      $options[$record->AphiaID] = '<a href="' . $record->url . '" target="_blank">' . $record->scientificname . '</a>';
+    }
+  }
+  $form['worms']['worms-import-id'] = array(
+    '#weight' => 5,
+    '#name' => 'worms-import-id',
+    '#type' => 'radios',
+    '#title' => t('Import from Classification'),
+    '#default_value' => '',
+    '#options' => $options,
+    '#parents' => array(
+      'worms-import-id'
+    ),
+    '#prefix' => '<div id="worms-import-full" style="clear:both">',
+    '#suffix' => '</div>'
+  );
+  form_set_cache($form['#build_id'], $form, $form_state);
+  // The following few lines of code are clearly not right. I shouldn't have
+  // to manually set the '#name' for each 'radio' element within the radios
+  // element. Ah well, it works!
+  $form_to_return = form_process_radios($form['worms']['worms-import-id']);
+  $children = element_children($form_to_return);
+  foreach($children as $key){
+    $form_to_return[$key]['#name'] = 'worms-import-id';
+  }
+  $output = drupal_render($form_to_return);
+  drupal_get_messages();
+  return $output;
+}
