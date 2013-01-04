@@ -25,3 +25,40 @@ function itis_term_update_7001(){
     }
   }
 }
+
+/**
+ * Update itis term field definition (display setting changes only)
+ */
+function itis_term_update_7002() {
+  module_load_include('fields.inc', 'itis_term');
+  
+  $biological_vids = variable_get('biological_vids', array());
+  var_dump($vids);
+  foreach ($biological_vids as $vid => $set) {
+    if (!$set) {
+      continue;
+    }
+    
+    $vocabulary = taxonomy_vocabulary_load($vid);
+    if (!$vocabulary) {
+      continue;
+    }
+
+    $fields = itis_term_fields();
+    $additional_fields = itis_term_fields_per_vocabulary();
+    foreach ($additional_fields as $field) {
+      $field['field_instance']['field_name'] .= "_" . $vocabulary->vid;      
+      $fields[] = $field;
+    }
+    foreach($fields as $field) {
+      $field['field_instance']['bundle'] = $vocabulary->machine_name;
+      try {
+        echo "Updating instance " . $field['field_instance']['field_name'] . " for bundle " . $field['field_instance']['bundle'] . "\n";
+        field_update_instance($field['field_instance']);
+      } catch (Exception $e) {
+        // This mean the field/field instance didn't exist - do nothing.
+        echo "Failed :(\n";
+      }
+    }    
+  }
+}

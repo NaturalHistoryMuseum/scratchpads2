@@ -46,13 +46,43 @@
     <div class="field field-type-text field-label-inline clearfix">
       <div class="field-label"><?php echo check_plain($field_rank[0]['value'])?>:</div>
       <div class="field-items">
-        <div class='field-item'><?php echo $name;?></div>
+        <div class='field-item'>
+        <?php
+          // Add author inline with name
+          $full_name = $name; 
+          if (!empty($content['field_authors'][0]['#markup'])) {
+            $full_name = $full_name . ' ' . $content['field_authors'][0]['#markup'];
+            hide($content['field_authors']);
+          }
+          echo $full_name;
+        ?>
+        </div>
       </div>
     </div>
     <?php
+      // Hide the rank - is already included in the title
       hide($content['field_rank']);
+      // Move page number inline with reference
+      if (!empty($content['field_reference'][0]['#title']) && !empty($content['field_page_number'][0]['#markup'])) {
+        $content['field_reference'][0]['#suffix'] = ' ' . $content['field_page_number'][0]['#markup'];
+        hide($content['field_page_number']);
+      }
       foreach (array_keys((array)$term) as $term_field) {
+        // Hide all unit name/indicators as they are included in the title
         if (preg_match('/^field_unit_(name|indicator)\d+$/', $term_field)) {
+          hide($content[$term_field]);
+          continue;
+        }
+        // Hide empty content
+        $has_content = FALSE;
+        foreach (element_children($content[$term_field]) as $key) {
+          $elem = $content[$term_field][$key];
+          if (!isset($elem['#markup']) || !empty($elem['#markup'])) {
+            $has_content = TRUE;
+            break;
+          }
+        }
+        if (!$has_content) {
           hide($content[$term_field]);
         }
       }
