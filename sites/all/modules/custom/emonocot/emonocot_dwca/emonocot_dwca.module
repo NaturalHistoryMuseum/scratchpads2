@@ -35,7 +35,19 @@ function emonocot_dwca_views_default_views_alter(&$views){
         $view->display['default']->display_options['fields']['wcm_id_1']['label'] = 'Parent ID';
       }
     }
+    //Sort out protologue links in references.txt
 
+    if ($view->name == 'dwca_export_reference'){
+    	//Source     field_reference  -> emonocot_source
+    	//Related    nothing          -> field_reference
+    	$related = $view->display['default']->display_options['fields']['field_reference'];
+    	unset($view->display['default']->display_options['fields']['field_reference']);
+    	unset($view->display['default']->display_options['fields']['nothing']);
+    	$view->display['default']->display_options['fields']['dcsource'] = emonocot_dwca_source_field();
+    	$view->display['default']->display_options['fields']['dcrelated'] = $related;
+
+    }
+    
     //For description references change Rights field to associated Biblio nodes rights
     if(substr($view->name, 0, 23) == 'dwca_export_description'){
       $field_matching = array(
@@ -323,12 +335,6 @@ function emonocot_dwca_source_field(){
   $field['hide_alter_empty'] = 1;
   $field['field_api_classes'] = 0;
   return $field;
-}
-
-function emonocot_dwca_related_field(){
-	$field = array();
-	
-	return $field;
 }
 
 function emonocot_dwca_add_wcm_image(&$view){
