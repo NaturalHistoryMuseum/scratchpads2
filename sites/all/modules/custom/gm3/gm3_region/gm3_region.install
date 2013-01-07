@@ -196,3 +196,45 @@ function gm3_region_update_7003(){
     ))->fields($line)->execute();
   }
 }
+
+/**
+ * Update all gm3_region tables to update entries like ':::ITA-IT' to
+ * '1:13:ITA:ITA-IT'
+ */
+function gm3_region_update_7004(){
+  $results = db_select('gm3_region_data', 'g')->fields('g', array(
+    'level_1_code',
+    'level_2_code',
+    'level_3_code',
+    'level_4_code'
+  ))->execute();
+  $updates = array();
+  foreach($results as $row){
+    if($row->level_4_code){
+      $updates[':::' . $row->level_3_code . '-' . $row->level_4_code] = $row->level_1_code . ':' . $row->level_2_code . ':' . $row->level_3_code . ':' . $row->level_3_code . '-' . $row->level_4_code;
+    }else if($row->level_3_code){
+      $updates['::' . $row->level_3_code] = $row->level_1_code . ':' . $row->level_2_code . ':' . $row->level_3_code;
+    }else if($row->level_2_code){
+      $updates[':' . $row->level_2_code] = $row->level_1_code . ':' . $row->level_2_code;
+    }
+  }
+  foreach(field_info_fields() as $id => $field){
+    if($field['type'] == 'gm3_region' || ($field['type'] == 'gm3_combination' && isset($field['columns']['region_id']))){
+      // Update both field_data_N and field_revision_N
+      foreach(array(
+        'data',
+        'revision'
+      ) as $table){
+        $table = "field_{$table}_{$id}";
+        $column = "{$id}_region_id";
+        foreach($updates as $old_value => $new_value){
+          db_update($table)->fields(array(
+            $column => $new_value
+          ))->condition($column, $old_value)->execute();
+        }
+      }
+    }
+  }
+  // Finally
+  cache_clear_all();
+}
