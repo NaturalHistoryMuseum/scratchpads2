@@ -1,4 +1,5 @@
 name = WoRMS - Importer
 description = "Provides import into a taxonomy from the World Register of Marine Speicies (WoRMS)."
 package = "Scratchpads"
+dependencies[] = tcsdc
 core = 7.x
