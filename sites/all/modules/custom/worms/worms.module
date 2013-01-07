@@ -307,8 +307,10 @@ function worms_classifications_js($form, $form_state){
   $records = $client->getAphiaRecords($_POST['worms-name'], TRUE, FALSE, FALSE, 0);
   if($records){
     foreach($records as $record){
-      $classification = $client->getAphiaClassificationByID($record->AphiaID);
-      $options[$record->AphiaID] = _worms_de_nest($classification) . ' <a href="' . $record->url . '" target="_blank">' . $record->scientificname . '</a>';
+      if($record->status != 'deleted'){
+        $classification = $client->getAphiaClassificationByID($record->AphiaID);
+        $options[$record->AphiaID] = _worms_de_nest($classification) . ' <a href="' . $record->url . '" target="_blank">' . $record->scientificname . '</a>';
+      }
     }
   }
   $form['worms']['worms-import-id'] = array(
