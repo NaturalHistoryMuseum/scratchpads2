@@ -153,7 +153,7 @@
 		<field index="5" term="http://ns.adobe.com/xap/1.0/rights/UsageTerms" />
 		<field index="6" term="http://eol.org/schema/agent/agentID" />
 		<field index="7" term="http://purl.org/dc/terms/type" />
-		<field index="20" term="http://rs.tdwg.org/ac/terms/furtherInformationURL" />
+		<field index="9" term="http://rs.tdwg.org/ac/terms/furtherInformationURL" />
 	</extension>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
