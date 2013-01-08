@@ -154,6 +154,12 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
           // this format.  We'll try to work out which this one is.        
           $target = $mapping['target'];
           $target = explode(':', $target);
+          // The country field is a little awkward, so we strip off the first
+          // two parts.
+          if(count($target) == 4){
+            array_shift($target);
+            array_shift($target);
+          }
           // First we check to see if we have a value, and proceed if we do.
           if(isset($entity->{$target[0]}) && is_array($entity->{$target[0]}) && count($entity->{$target[0]})){
             $cell_values = array();
@@ -162,6 +168,9 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
             foreach($entity->{$target[0]} as $language => $values){
               foreach($entity->{$target[0]}[$language] as $value){
                 switch($target[1]){
+                  case 'iso2':
+                    $cell_values[] = $value['iso2'];
+                    break;
                   case 'nid':
                     $cell_values[] = $value['nid'];
                     break;
