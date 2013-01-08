@@ -24,9 +24,21 @@
       var elements = [insert_array[index]];
 
       // Give other scripts a chance to react/change the values
-      $(editor.container.$).siblings('textarea').trigger('insertFromView-insert', [elements, settings.map[key]]);
+      $(editor.container.$).siblings('textarea').trigger('insertFromView-insert', [elements, settings.map[key]]);      
 
-      editor.insertHtml(' <span> ' + elements.join(' </span><span> ') + ' </span> ');
+      var row_tag = ['', ''];
+      var wrap_tag = ['', ''];
+      if (settings.map[key].row_tag != '') {
+        row_tag = [' <' + settings.map[key].row_tag + '> ',
+                   ' </' + settings.map[key].row_tag + '> '];
+      }
+      if (settings.map[key].wrap_tag != '') {
+        wrap_tag = [' <' + settings.map[key].wrap_tag + '> ',
+                   ' </' + settings.map[key].wrap_tag + '> '];
+      }
+      
+      editor.insertHtml(wrap_tag[0] + row_tag[0] + elements.join(row_tag[1] + row_tag[0]) + row_tag[1] + wrap_tag[1]);
+      
       editor.updateElement();
         
       $.colorbox.close();
@@ -60,7 +72,18 @@
         // Give other scripts a chance to react/change the values
         $(editor.container.$).siblings('textarea').trigger('insertFromView-insert', [elements, settings.map[key]]);
 
-        editor.insertHtml(' <span> ' + elements.join(' </span><span> ') + ' </span> ');
+        var row_tag = ['', ''];
+        var wrap_tag = ['', ''];
+        if (settings.map[key].row_tag != '') {
+          row_tag = [' <' + settings.map[key].row_tag + '> ',
+                     ' </' + settings.map[key].row_tag + '> '];
+        }
+        if (settings.map[key].wrap_tag != '') {
+          wrap_tag = [' <' + settings.map[key].wrap_tag + '> ',
+                     ' </' + settings.map[key].wrap_tag + '> '];
+        }
+        
+        editor.insertHtml(wrap_tag[0] + row_tag[0] + elements.join(row_tag[1] + row_tag[0]) + row_tag[1] + wrap_tag[1]);
         editor.updateElement();
 
         $.colorbox.close();

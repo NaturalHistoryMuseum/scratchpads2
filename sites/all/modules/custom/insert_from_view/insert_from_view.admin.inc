@@ -121,10 +121,31 @@ function _insert_from_view_setup_form_element($key, $settings, $form_state, $vie
     $default_icon = $settings['icon'];
   }
   
+  // Default row wrap tag
+  $default_row_tag = 'span';
+  if (isset($form_state['values']["insert-$key-row_tag"])) {
+    $default_row_tag = $form_state['values']["insert-$key-row_tag"];
+  } else if (isset($settings['row_tag'])) {
+    $default_row_tag = $settings['row_tag'];
+  }
+
+  // Default entry wrap tag
+  $default_wrap_tag = '';
+  if (isset($form_state['values']["insert-$key-wrap_tag"])) {
+    $default_wrap_tag = $form_state['values']["insert-$key-wrap_tag"];
+  } else if (isset($settings['wrap_tag'])) {
+    $default_wrap_tag = $settings['wrap_tag'];
+  }
+  
   // The form  
+  $form['insert-from-view-container'] = array(
+    '#type' => 'vertical_tabs',
+  );
+  
   $form["insert-$key-group"] = array(
     '#type' => 'fieldset',
-    '#title' => $default_name ? $default_name : t('New')
+    '#title' => $default_name ? $default_name : t('New'),
+    '#group' => 'insert-from-view-container'
   );
   
   if (!empty($settings)) {
@@ -186,6 +207,22 @@ function _insert_from_view_setup_form_element($key, $settings, $form_state, $vie
     '#prefix' => "<div id='insert-$key-field-wrapper'>",
     '#suffix' => '</div>'
   );
+
+  $form["insert-$key-group"]["insert-$key-wrap_tag"] = array(
+    '#type' => 'textfield',
+    '#required' => FALSE,
+    '#title' => t('Wrap tag'),
+    '#default_value' => $default_wrap_tag,
+    '#description' => t('HTML tag used to wrap inserted entries (as a group)'),
+  );
+
+  $form["insert-$key-group"]["insert-$key-row_tag"] = array(
+    '#type' => 'textfield',
+    '#required' => FALSE,
+    '#title' => t('Row tag'),
+    '#default_value' => $default_row_tag,
+    '#description' => t('HTML tag used to wrap each inserted row'),
+  );
   
   $form["insert-$key-group"]["insert-$key-width"] = array(
     '#type' => 'textfield',
@@ -241,10 +278,11 @@ function insert_from_view_setup_form_submit($form, &$form_state) {
     
     $key = $matches[1];
     if ($key == 'insert_from_view_new') {
-      // XXX potential race condition. Should use db to save settings instead
-      $key_to_use = variable_get('insert_from_view_next_key', 0);
-      variable_set('insert_from_view_next_key', $key_to_use+1);      
-      $key_to_use = 'insert_from_view_' . $key_to_use;
+      $inserts = variable_get('insert_from_view_settings', array());      
+      $key_to_use = md5(time() + rand());
+      while (isset($inserts[$key_to_use])) {
+        $key_to_use = md5(time() + rand());
+      }
     } else {
       $key_to_use = $key;
     }
@@ -261,6 +299,8 @@ function insert_from_view_setup_form_submit($form, &$form_state) {
       'width' => $form_state['values']["insert-$key-width"],
       'height' => $form_state['values']["insert-$key-height"],
       'icon' => $form_state['values']["insert-$key-icon"],
+      'row_tag' => $form_state['values']["insert-$key-row_tag"],
+      'wrap_tag' => $form_state['values']["insert-$key-wrap_tag"],
       'key' => $key_to_use,
     );
   }
