@@ -15,7 +15,7 @@ function theme_tinytax_block($variables){
     $row = db_query('SELECT COUNT(*) AS num_terms FROM {taxonomy_term_data} WHERE vid = :vid', array(
       ':vid' => $variables['vid']
     ))->fetch();
-    if($row->num_terms > 2000){
+    if($row->num_terms > TINYTAX_MAX_TERMS_ANCESTORS_NUM){
       $variables['ancestors'] = 0;
     }
   }
@@ -74,26 +74,6 @@ function theme_tinytax_term_count($variables){
 }
 
 /**
- * Get the count of children for this term.
- */
-function _tinytax_get_children_count($tid, $recurse = FALSE){
-  // If not recursing, we can keep things simple, else we need the children tids.
-  if($recurse){
-    $total = 0;
-    $results = db_select('taxonomy_term_hierarchy', 't')->condition('parent', $tid)->fields('t', array(
-      'tid'
-    ))->execute();
-    foreach($results as $row){
-      $total++;
-      $total += _tinytax_get_children_count($row->tid, TRUE);
-    }
-    return $total;
-  }else{
-    return count(taxonomy_get_children($tid));
-  }
-}
-
-/**
  * tinytax_term theme function
  */
 function theme_tinytax_term($variables){
@@ -103,7 +83,7 @@ function theme_tinytax_term($variables){
   }else{
     $active = FALSE;
   }
-  $has_children = _tinytax_get_children_count($variables['term']->tid, $variables['ancestors']);
+  $has_children = count(taxonomy_get_children($variables['term']->tid));
   $output = '<li id="tinytax-'.$variables['term']->tid.'">';
   if($has_children){
     // Plus or minus.
