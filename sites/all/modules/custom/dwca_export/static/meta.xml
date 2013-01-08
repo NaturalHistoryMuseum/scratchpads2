@@ -86,7 +86,7 @@
 		<field index="3" term="http://purl.org/dc/terms/title" />
 		<field index="4" term="http://purl.org/dc/terms/format" />
 		<field index="5" term="http://purl.org/dc/terms/license" />
-        <field index="9" term="http://purl.org/dc/terms/source" />
+        <field index="8" term="http://purl.org/dc/terms/source" />
 
 
 		
