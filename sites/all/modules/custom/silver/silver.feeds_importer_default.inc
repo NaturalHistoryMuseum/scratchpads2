@@ -271,11 +271,6 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
           'target' => $additional . $key . ':iso2',
           'unique' => 0
         );
-        $feeds_importer->config['processor']['config']['mappings'][] = array(
-          'source' => $field['label'] . ' (' . t('ISO alpha-3') . ')',
-          'target' => $additional . $key . ':iso3',
-          'unique' => 0
-        );
         break;
       case 'date':
         // Add the from date, and also the to date if required.
