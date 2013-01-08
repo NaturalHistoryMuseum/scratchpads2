@@ -28,7 +28,8 @@ function pensoft_publication_ckeditor_profile_defaults() {
     [\'Bold\',\'Italic\',\'Underline\'],
     [\'JustifyLeft\',\'JustifyCenter\',\'JustifyRight\',\'JustifyBlock\'],
     [\'NumberedList\',\'BulletedList\',\'-\',\'Subscript\',\'Superscript\',\'Blockquote\'],
-    [\'insert_from_view_pensoft_publication_references\',\'insert_from_view_pensoft_publication_figures\'],
+    [\'insert_from_view_pensoft_publication_references\',\'insert_from_view_pensoft_publication_figures\',\'pensoft_publication_insert_table\'],
+    [\'insert_from_view_pensoft_publication_specimens\'],
     \'/\',
     [\'SelectAll\',\'Cut\',\'Templates\',\'Paste\',\'PasteText\',\'PasteFromWord\'],
     [\'SpellChecker\',\'Scayt\'],
@@ -86,6 +87,17 @@ function pensoft_publication_ckeditor_profile_defaults() {
             'buttons' => FALSE,
             'default' => 'f',
           ),
+          'insert_from_view_pensoft_publication_specimens' => array(
+            'name' => 'insert_from_view_pensoft_publication_specimens',
+            'desc' => 'This plugin allows the selection and insertion of items picked from the view textarea_insert_select_specimen_table',
+            'path' => '%base_path%sites/all/modules/custom/insert_from_view/plugins/insert_from_view/',
+            'buttons' => array(
+              'insert_from_view_pensoft_publication_specimens' => array(
+                'icon' => '../../../../../../../sites/all/modules/custom/publication/modules/pensoft_publication/images/specimens.png',
+                'label' => 'Add specimen table',
+              ),
+            ),
+          ),          
           'insert_from_view_pensoft_publication_figures' => array(
             'name' => 'insert_from_view_pensoft_publication_figures',
             'desc' => 'This plugin allows the selection and insertion of items picked from the view publication_citations_figures',
@@ -108,6 +120,17 @@ function pensoft_publication_ckeditor_profile_defaults() {
               ),
             ),
           ),
+          'pensoft_publication_insert_table' => array(
+            'name' => 'pensoft_publication_insert_table',
+            'desc' => 'This plugin allows to insert references to tables in the entitie\'s field_publication_table field',
+            'path' => '%base_path%sites/all/modules/custom/publication/modules/pensoft_publication/plugins/pensoft_publication/',
+            'buttons' => array(
+              'pensoft_publication_insert_table' => array(
+                'icon' => '../../images/tables.png',
+                'label' => 'Insert reference to tables',
+              ),
+            ),
+          ),          
           'tableresize' => array(
             'name' => 'tableresize',
             'desc' => 'Table Resize plugin',

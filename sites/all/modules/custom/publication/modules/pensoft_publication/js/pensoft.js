@@ -95,6 +95,42 @@
          }
          
        }
+       
+       /**
+        * Callback when a specimen table has been added to a textarea
+        */
+       function insert_specimens(inserts, settings) {
+         if (inserts.length == 0) {
+           return;
+         }
+         
+         // Read the headers that were selected
+         var fields = [];
+         var headers = [];
+         $('div.view-publication-create-specimens div.view-content th input.psp_header').each(function() {
+           var field = $(this).attr('name');
+           if ($(this).attr('checked')) {
+             headers.push($(this).parent().text());
+             fields.push('.pst_' + field);
+           }
+         });
+         
+         if (fields.length == 0) {
+           inserts.length = 0;
+           return
+         }
+         
+         var classes = fields.join(',');
+         for (var i = 0; i < inserts.length; i++) {
+           var text = '';
+           $(inserts[i]).filter(classes).each(function() {
+             text = text + $(this).wrap('<div>').parent().html();
+           });
+           inserts[i] = text;
+         }
+         
+         inserts.unshift('<td>' + headers.join('</td><td>') + '</td>');
+       }
     
       function init() {
         // Bind to the text area insert from view insert event
@@ -103,10 +139,12 @@
             insert_references(inserts, settings);
           } else if (settings.name == 'Pensoft publication figures') {
             insert_figures(inserts, settings);
+          } else if (settings.name == 'Pensoft publication specimens') {
+            insert_specimens(inserts, settings);
           }
         });
 
-        $('div.form-type-textarea textarea:not(.pensoft_processed)', context).addClass('pensoft_processed');
+        $('div.form-type-textarea textarea:not(.pensoft_processed)', context).addClass('pensoft_processed');       
       }
       
       init();

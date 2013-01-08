@@ -75,16 +75,16 @@ div.field-publication-treatments-entity-fields div.vertical-tabs-panes .fieldset
   width: 100%;
 }
 
-div.view-textarea-insert-select-image .views-row {
+div.view-publication-citations-figures .views-row {
   float: left;
   margin-right: 20px;
   padding-bottom: 20px;
   width: 130px;
 }
 
-div.view-textarea-insert-select-image .insert-from-view-row:hover,
-div.view-bilbio-select .insert-from-view-row:hover {
-  background: #FFF4C0;
+#pensoft_select_table tr.pensoft_select_table_row:hover,
+#pensoft_select_table tr.pensoft_select_table_row:hover td {
   cursor: pointer;
+  background: #FFF4C0;
 }
     
