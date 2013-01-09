@@ -84,6 +84,16 @@
         }
         if (!$has_content) {
           hide($content[$term_field]);
+        } else {
+          // Display vernacular names inline (we could alternatively do this in a field template)
+          if ($term_field == 'field_vernacular_names') {
+            $vern = array();
+            foreach (element_children($content[$term_field]) as $key) {
+              $vern[] = render($content[$term_field][$key]);
+              unset($content[$term_field][$key]);
+            }
+            $content[$term_field][0]['#markup'] = implode(', ', $vern);
+          }
         }
       }
 

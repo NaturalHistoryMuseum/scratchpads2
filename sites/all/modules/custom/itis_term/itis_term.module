@@ -495,7 +495,6 @@ function scratchpads_species_taxonomy_term_view_alter(&$build) {
   $term = $build['#term'];
   $vids = variable_get('biological_vids', array());
   if (!empty($vids[$term->vid])) {
-    echo '';
     $build['#theme'] = 'biological_taxonomy_term';
   }
 }

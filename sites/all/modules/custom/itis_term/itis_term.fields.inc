@@ -1016,7 +1016,7 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'hidden',
+            'label' => 'inline',
             'module' => 'text',
             'settings' => array(),
             'type' => 'text_default',
