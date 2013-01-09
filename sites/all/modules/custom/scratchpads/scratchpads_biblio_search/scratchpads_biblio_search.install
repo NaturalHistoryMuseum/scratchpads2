@@ -66,3 +66,10 @@ function scratchpads_biblio_search_schema(){
     )
   );
 }
+
+/**
+ * Rebuild registry so that the extra functions are found.
+ */
+function scratchpads_biblio_search_update_7001(){
+  drupal_flush_all_caches();
+}
