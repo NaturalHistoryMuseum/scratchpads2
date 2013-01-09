@@ -188,11 +188,11 @@ function itis_term_fields_per_vocabulary(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'taxonomy',
             'settings' => array(),
-            'type' => 'taxonomy_term_reference_link',
-            'weight' => 10
+            'type' => 'hidden',
+            'weight' => -10
           )
         ),
         'entity_type' => 'taxonomy_term',
@@ -255,11 +255,11 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'text',
             'settings' => array(),
             'type' => 'text_default',
-            'weight' => 12
+            'weight' => -11
           )
         ),
         'entity_type' => 'taxonomy_term',
@@ -313,11 +313,11 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'text',
             'settings' => array(),
             'type' => 'text_default',
-            'weight' => 13
+            'weight' => -6
           )
         ),
         'entity_type' => 'taxonomy_term',
@@ -364,11 +364,11 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'list',
             'settings' => array(),
             'type' => 'list_default',
-            'weight' => 0
+            'weight' => -20
           )
         ),
         'entity_type' => 'taxonomy_term',
@@ -423,11 +423,11 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'node_reference',
             'settings' => array(),
             'type' => 'node_reference_default',
-            'weight' => 14
+            'weight' => -7
           )
         ),
         'entity_type' => 'taxonomy_term',
@@ -477,11 +477,11 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'list',
             'settings' => array(),
             'type' => 'list_default',
-            'weight' => 11
+            'weight' => -8
           )
         ),
         'entity_type' => 'taxonomy_term',
@@ -527,11 +527,11 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'list',
             'settings' => array(),
             'type' => 'list_default',
-            'weight' => 5
+            'weight' => -15
           )
         ),
         'entity_type' => 'taxonomy_term',
@@ -577,11 +577,11 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'list',
             'settings' => array(),
             'type' => 'list_default',
-            'weight' => 6
+            'weight' => -14
           )
         ),
         'entity_type' => 'taxonomy_term',
@@ -627,11 +627,11 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'list',
             'settings' => array(),
             'type' => 'list_default',
-            'weight' => 7
+            'weight' => -13
           )
         ),
         'entity_type' => 'taxonomy_term',
@@ -677,11 +677,11 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'list',
             'settings' => array(),
             'type' => 'list_default',
-            'weight' => 8
+            'weight' => -12
           )
         ),
         'entity_type' => 'taxonomy_term',
@@ -734,11 +734,11 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'text',
             'settings' => array(),
             'type' => 'text_default',
-            'weight' => 1
+            'weight' => -19
           )
         ),
         'entity_type' => 'taxonomy_term',
@@ -792,11 +792,11 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'text',
             'settings' => array(),
             'type' => 'text_default',
-            'weight' => 2
+            'weight' => -18
           )
         ),
         'entity_type' => 'taxonomy_term',
@@ -850,11 +850,11 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'text',
             'settings' => array(),
             'type' => 'text_default',
-            'weight' => 3
+            'weight' => -17
           )
         ),
         'entity_type' => 'taxonomy_term',
@@ -908,11 +908,11 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'text',
             'settings' => array(),
             'type' => 'text_default',
-            'weight' => 4
+            'weight' => -16
           )
         ),
         'entity_type' => 'taxonomy_term',
@@ -959,11 +959,11 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'list',
             'settings' => array(),
             'type' => 'list_default',
-            'weight' => 9
+            'weight' => -9
           )
         ),
         'entity_type' => 'taxonomy_term',
@@ -1016,11 +1016,11 @@ function itis_term_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'text',
             'settings' => array(),
             'type' => 'text_default',
-            'weight' => 15
+            'weight' => -5
           )
         ),
         'entity_type' => 'taxonomy_term',
