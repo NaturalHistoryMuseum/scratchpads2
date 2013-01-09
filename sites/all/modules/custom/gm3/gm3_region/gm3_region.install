@@ -19,49 +19,7 @@ function gm3_region_install(){
   //ini_set('memory_limit', '512M');
   gm3_load_geophp();
   for($i = 1; $i <= 4; $i++){
-    $f = fopen(drupal_get_path('module', 'gm3_region') . '/region_data/tdwg_level_' . $i . '_data', 'r');
-    $fields = array();
-    while($line = fgets($f)){
-      if(substr($line, 0, 2) == "  "){
-        $line_parts = explode("=", $line);
-        switch(substr($line, 0, 11)){
-          case '  CONTINENT':
-            $fields['continent'] = trim(array_pop($line_parts));
-            break;
-          case '  ISO_CODE ':
-            $fields['iso_code'] = trim(array_pop($line_parts));
-            break;
-          case '  LEVEL1_CO':
-          case '  LEVEL_1_C':
-            $fields['level_1_code'] = (int)trim(array_pop($line_parts));
-            break;
-          case '  LEVEL2_CO':
-          case '  LEVEL_2_R':
-            $fields['level_2_code'] = (int)trim(array_pop($line_parts));
-            break;
-          case '  LEVEL3_CO':
-          case '  LEVEL_3_C':
-            $fields['level_3_code'] = trim(array_pop($line_parts));
-            break;
-          case '  LEVEL_4_C':
-            $fields['level_4_code'] = trim(array_pop($line_parts));
-            break;
-          case '  LEVEL_4_N':
-          case '  LEVEL3_NA':
-          case '  LEVEL2_NA':
-          case '  LEVEL1_NA':
-            $fields['name'] = trim(array_pop($line_parts));
-            break;
-          case '  MULTIPOLY':
-          case '  POLYGON (':
-            // Do the insert
-            $fields['polygons'] = trim($line);
-            db_insert('gm3_region_data')->fields($fields)->execute();
-            $fields = array();
-            break;
-        }
-      }
-    }
+    _gm3_region_install_region_data($i);
   }
   // Finally, we set the shape data.  This query is MySQL specific.
   db_query('UPDATE {gm3_region_data} SET mysql_polygons = POLYGONFROMTEXT(polygons)');
@@ -79,6 +37,65 @@ function gm3_region_install(){
     $query = db_merge('cache_gm3_polygon')->key(array(
       'cid' => $line['cid']
     ))->fields($line)->execute();
+  }
+}
+
+/**
+ * Helper function for the install and any updates that will load a specific
+ * region's data.
+ */
+function _gm3_region_install_region_data($level){
+  // Load the data into the tables.
+  // As the files are so huge, we'll read the file line by line and insert
+  // each region one by one.  This may be a little slower, but it's less likely
+  // to fuck up!
+  // Set the maximum memory allocation as this appears to be causing memory
+  // issues.
+  //ini_set('memory_limit', '512M');
+  gm3_load_geophp();
+  $f = fopen(drupal_get_path('module', 'gm3_region') . '/region_data/tdwg_level_' . $level . '_data', 'r');
+  $fields = array();
+  while($line = fgets($f)){
+    if(substr($line, 0, 2) == "  "){
+      $line_parts = explode("=", $line);
+      switch(strtolower(substr($line, 0, 11))){
+        case '  continent':
+          $fields['continent'] = trim(array_pop($line_parts));
+          break;
+        case '  iso_code ':
+          $fields['iso_code'] = trim(array_pop($line_parts));
+          break;
+        case '  level1_co':
+        case '  level_1_c':
+          $fields['level_1_code'] = (int)trim(array_pop($line_parts));
+          break;
+        case '  level2_co':
+        case '  level_2_r':
+          $fields['level_2_code'] = (int)trim(array_pop($line_parts));
+          break;
+        case '  level3_co':
+        case '  level_3_c':
+          $fields['level_3_code'] = trim(array_pop($line_parts));
+          break;
+        case '  level_4_c':
+        case '  level4_2 ':
+          $fields['level_4_code'] = trim(array_pop($line_parts));
+          break;
+        case '  level_4_n':
+        case '  level3_na':
+        case '  level2_na':
+        case '  level1_na':
+          $fields['name'] = trim(array_pop($line_parts));
+          break;
+        case '  multipoly':
+        case '  polygon (':
+          // Do the insert
+          $fields['polygons'] = trim($line);
+          db_insert('gm3_region_data')->fields($fields)->execute();
+          $fields = array();
+          break;
+      }
+    }
   }
 }
 
@@ -181,6 +198,79 @@ function gm3_region_update_7002(){
  * Populate the cache_gm3_polygon table.
  */
 function gm3_region_update_7003(){
+  $file = fopen(drupal_get_path('module', 'gm3_region') . '/region_data/cache_gm3_polygon.txt', "r");
+  while($line = fgetcsv($file, 0, "\t")){
+    $line['cid'] = $line[0];
+    $line['data'] = $line[1];
+    $line['expire'] = 0;
+    $line['created'] = time();
+    $line['serialized'] = 0;
+    for($i = 0; $i <= 4; $i++){
+      unset($line[$i]);
+    }
+    $query = db_merge('cache_gm3_polygon')->key(array(
+      'cid' => $line['cid']
+    ))->fields($line)->execute();
+  }
+}
+
+/**
+ * Update all gm3_region tables to update entries like ':::ITA-IT' to
+ * '1:13:ITA:ITA-IT'
+ */
+function gm3_region_update_7004(){
+  $results = db_select('gm3_region_data', 'g')->fields('g', array(
+    'level_1_code',
+    'level_2_code',
+    'level_3_code',
+    'level_4_code'
+  ))->execute();
+  $updates = array();
+  foreach($results as $row){
+    if($row->level_4_code){
+      $updates[':::' . $row->level_3_code . '-' . $row->level_4_code] = $row->level_1_code . ':' . $row->level_2_code . ':' . $row->level_3_code . ':' . $row->level_3_code . '-' . $row->level_4_code;
+    }else if($row->level_3_code){
+      $updates['::' . $row->level_3_code] = $row->level_1_code . ':' . $row->level_2_code . ':' . $row->level_3_code;
+    }else if($row->level_2_code){
+      $updates[':' . $row->level_2_code] = $row->level_1_code . ':' . $row->level_2_code;
+    }
+  }
+  foreach(field_info_fields() as $id => $field){
+    if($field['type'] == 'gm3_region' || ($field['type'] == 'gm3_combination' && isset($field['columns']['region_id']))){
+      // Update both field_data_N and field_revision_N
+      foreach(array(
+        'data',
+        'revision'
+      ) as $table){
+        $table = "field_{$table}_{$id}";
+        $column = "{$id}_region_id";
+        foreach($updates as $old_value => $new_value){
+          db_update($table)->fields(array(
+            $column => $new_value
+          ))->condition($column, $old_value)->execute();
+        }
+      }
+    }
+  }
+  // Finally
+  cache_clear_all();
+}
+
+/**
+ * Reload the Region 4 data as there were issues with the original TDWG file.
+ */
+function gm3_region_update_7005(){
+  db_delete('gm3_region_data')->condition('level_4_code', '', '!=')->execute();
+  _gm3_region_install_region_data(4);
+  // Finally, we set the shape data.  This query is MySQL specific.
+  db_query('UPDATE {gm3_region_data} SET mysql_polygons = POLYGONFROMTEXT(polygons)');
+}
+
+/**
+ * Reload the GM3 region cache data.
+ */
+function gm3_region_update_7006(){
+  // Load the cache data from the install file to avoid having to build it.
   $file = fopen(drupal_get_path('module', 'gm3_region') . '/region_data/cache_gm3_polygon.txt', "r");
   while($line = fgetcsv($file, 0, "\t")){
     $line['cid'] = $line[0];

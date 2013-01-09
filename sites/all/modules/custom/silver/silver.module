@@ -173,6 +173,8 @@ function silver_silver(){
       ),
       'form_id' => 'silver_file_excel_form'
     ),
+    /*
+     * FIXME - Uncomment this when the user stuff is ready!
     array(
       'type' => 'Users',
       'name' => 'Excel file import',
@@ -181,6 +183,7 @@ function silver_silver(){
       ),
       'redirect' => 'import/user_importer_user'
     )
+     */
   );
 }
 

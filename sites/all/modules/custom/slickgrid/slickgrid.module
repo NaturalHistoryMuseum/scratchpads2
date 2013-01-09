@@ -620,9 +620,11 @@ function slickgrid_editor_form_validate($form, &$form_state){
   foreach($editor->entities as $entity){
     list($id, $vid, $bundle_name) = entity_extract_ids($editor->entity_type, $entity);
     // Check access
-    if(!entity_access('update', $editor->entity_type, $entity)){
+    if(($editor->entity_type == 'file' && !file_entity_access('update')) || ($editor->entity_type != 'file' && !entity_access('update', $editor->entity_type, $entity))){
       // User doesn't have access to edit
-      $error = t('You do not have access to update this node');
+      $error = t('You do not have access to update this @type', array(
+        '@type' => isset($entity->type) ? $entity->type : $editor->entity_type
+      ));
     }elseif($instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
       _field_invoke_default('extract_form_values', $editor->entity_type, $entity, $form, $form_state);
       try{

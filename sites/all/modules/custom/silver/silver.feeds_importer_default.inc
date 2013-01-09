@@ -75,7 +75,7 @@ function silver_feeds_importer_default(){
       'process_in_background' => 0
     );
     $field_info = field_info_instances('taxonomy_term', $vocabulary->machine_name);
-    _silver_feeds_importer_default_helper($field_info, $feeds_importer);
+    _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'taxonomy_term:' . $vocabulary->machine_name . ':');
     $export['taxonomy_importer_' . $vocabulary->machine_name] = $feeds_importer;
   }
   // Get a list of the content types.
@@ -136,7 +136,7 @@ function silver_feeds_importer_default(){
       );
     }
     $field_info = field_info_instances('node', $node_type);
-    _silver_feeds_importer_default_helper($field_info, $feeds_importer);
+    _silver_feeds_importer_default_helper($field_info, $feeds_importer, "node:$node_type:");
     $export['node_importer_' . $node_type] = $feeds_importer;
   }
   // Get a list of the file types.
@@ -192,7 +192,7 @@ function silver_feeds_importer_default(){
       'process_in_background' => FALSE
     );
     $field_info = field_info_instances('file', $file_type);
-    _silver_feeds_importer_default_helper($field_info, $feeds_importer);
+    _silver_feeds_importer_default_helper($field_info, $feeds_importer, "file:$file_type:");
     $export['file_importer_' . $file_type] = $feeds_importer;
   }
   // FIXME - Remove the following line to enable the user import options.
@@ -269,11 +269,6 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field['label'] . ' (' . t('ISO alpha-2') . ')',
           'target' => $additional . $key . ':iso2',
-          'unique' => 0
-        );
-        $feeds_importer->config['processor']['config']['mappings'][] = array(
-          'source' => $field['label'] . ' (' . t('ISO alpha-3') . ')',
-          'target' => $additional . $key . ':iso3',
           'unique' => 0
         );
         break;

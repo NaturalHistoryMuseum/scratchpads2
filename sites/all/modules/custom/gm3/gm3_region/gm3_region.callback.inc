@@ -34,13 +34,16 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
     ':iso_code' => $iso_codes,
     ':point_wkt' => $point_wkt
   ));
-  if($results->rowCount() > 1){
+  // FIXME - The following code caused issues when trying to select Sardinia
+  // (which is actually marked as Corsica in the TDWG data set).  Until the bug
+  // with the dataset, or with MySQL is fixed, this code can not be used.
+  /*if($results->rowCount() > 1){
     $results = db_query("SELECT CONCAT(level_1_code, ':', level_2_code, ':', level_3_code, ':', level_3_code, '-', level_4_code) as code
         FROM {gm3_region_data} WHERE WITHIN(POINTFROMTEXT(:point_wkt), mysql_polygons) AND level_4_code != '' AND iso_code IN (:iso_code)", array(
       ':iso_code' => $iso_codes,
       ':point_wkt' => $point_wkt
     ));
-  }
+  }*/
   if($results->rowCount() == 1){
     // We've had success with our trimmed down method. WOOT!
     $results = $results->fetch();

@@ -81,6 +81,9 @@ function gm3_region_field_field_insert($entity_type, $entity, $field, $instance,
     case 'gm3_region':
       if(is_string($items[0])){
         $items = preg_split('/[\r\n|]+/', str_replace('REGION:', '', strtoupper($items[0])));
+        foreach($items as $key => $item){
+          $items[$key] = _gm3_region_convert_short_code_to_full_code($item);
+        }
       }else{
         $items = array_keys($items[0]['map']);
       }
@@ -95,6 +98,43 @@ function gm3_region_field_field_insert($entity_type, $entity, $field, $instance,
 }
 
 /**
+ * Helper function to convert a value like 'ITA-IT' to '1:13:ITA:ITA-IT'.
+ */
+function _gm3_region_convert_short_code_to_full_code($val){
+  // We have simply been sent an id, we must get the full hierarchy.
+  if(is_numeric($val)){
+    // We have a region 1 or 2 code.  No need to do anything to a region 1
+    // code.
+    if($val > 10){
+      // Region 2, we need to get the region 1 code.
+      $level_1_code = array_pop(db_select('gm3_region_data', 'g')->fields('g', array(
+        'level_1_code'
+      ))->condition('level_2_code', $val)->execute()->fetchCol());
+      $val = "$level_1_code:$val";
+    }
+  }else{
+    if(strlen($val) == 3){
+      // Region 3
+      $row = db_select('gm3_region_data', 'g')->fields('g', array(
+        'level_1_code',
+        'level_2_code'
+      ))->condition('level_3_code', $val)->execute()->fetch();
+      $val = "{$row->level_1_code}:{$row->level_2_code}:$val";
+    }else{
+      // Region 4
+      $val = explode("-", $val);
+      $row = db_select('gm3_region_data', 'g')->fields('g', array(
+        'level_1_code',
+        'level_2_code',
+        'level_3_code'
+      ))->condition('level_4_code', $val[1])->condition('level_3_code', $val[0])->execute()->fetch();
+      $val = "{$row->level_1_code}:{$row->level_2_code}:{$row->level_3_code}:{$val[0]}-{$val[1]}";
+    }
+  }
+  return $val;
+}
+
+/**
  * Insert function for the combination field
  */
 function gm3_region_gm3_combination_insert(&$new_items, $value){
@@ -106,36 +146,7 @@ function gm3_region_gm3_combination_insert(&$new_items, $value){
   foreach($value as $val){
     $val = trim($val);
     if(!strpos($val, ':')){
-      // We have simply been sent an id, we must get the full hierarchy.
-      if(is_numeric($val)){
-        // We have a region 1 or 2 code.  No need to do anything to a region 1
-        // code.
-        if($val > 10){
-          // Region 2, we need to get the region 1 code.
-          $level_1_code = array_pop(db_select('gm3_region_data', 'g')->fields('g', array(
-            'level_1_code'
-          ))->condition('level_2_code', $val)->execute()->fetchCol());
-          $val = "$level_1_code:$val";
-        }
-      }else{
-        if(strlen($val) == 3){
-          // Region 3
-          $row = db_select('gm3_region_data', 'g')->fields('g', array(
-            'level_1_code',
-            'level_2_code'
-          ))->condition('level_3_code', $val)->execute()->fetch();
-          $val = "{$row->level_1_code}:{$row->level_2_code}:$val";
-        }else{
-          // Region 4
-          $val = explode("-", $val);
-          $row = db_select('gm3_region_data', 'g')->fields('g', array(
-            'level_1_code',
-            'level_2_code',
-            'level_3_code'
-          ))->condition('level_4_code', $val[1])->condition('level_3_code', $val[0])->execute()->fetch();
-          $val = "{$row->level_1_code}:{$row->level_2_code}:{$row->level_3_code}:{$val[0]}-{$val[1]}";
-        }
-      }
+      $val = _gm3_region_convert_short_code_to_full_code($val);
     }
     $new_items[] = array(
       'region_id' => $val,
