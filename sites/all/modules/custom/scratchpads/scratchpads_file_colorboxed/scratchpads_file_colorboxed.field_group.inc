@@ -7,7 +7,7 @@
 /**
  * Implements hook_field_group_info().
  */
-function sfc_field_group_info(){
+function scratchpads_file_colorboxed_field_group_info(){
   $export = array();
   foreach(array(
     'image',

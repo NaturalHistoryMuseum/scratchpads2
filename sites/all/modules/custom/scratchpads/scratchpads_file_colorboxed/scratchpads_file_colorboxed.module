@@ -17,16 +17,6 @@ function scratchpads_file_colorboxed_file_displays_alter(&$displays, $file, $vie
 }
 
 /**
- * Implements hook_ctools_plugin_api().
- */
-function scratchpads_file_colorboxed_ctools_plugin_api(){
-  list($module, $api) = func_get_args();
-  if($module == "field_group" && $api == "field_group"){return array(
-      "version" => "1"
-    );}
-}
-
-/**
  * Implements hook_module_implements_alter().
  * 
  * This function is only required if the hook_entity_info_alter is being used.
