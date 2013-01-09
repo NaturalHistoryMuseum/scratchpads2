@@ -312,6 +312,14 @@ function scratchpads_biblio_search_facet_form($form, &$form_state, $form_id, $pl
 }
 
 /**
+ * Implements hook_hashcash_form_ids_alter().
+ */
+function scratchpads_biblio_search_hashcash_form_ids_alter(&$form_ids){
+  $form_ids[] = 'scratchpads_biblio_search_facet_im_biblio_contributor_form';
+  $form_ids[] = 'scratchpads_biblio_search_facet_tus_biblio_year_form';
+}
+
+/**
  * Submit function for the facets.
  */
 function scratchpads_biblio_search_facet_form_submit($form, &$form_state){

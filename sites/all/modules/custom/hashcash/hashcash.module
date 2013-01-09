@@ -36,10 +36,12 @@
  * Simple helper function to get an array of form_ids to ignore.
  */
 function _hashcash_form_ids_to_ignore(){
-  return array(
+  $form_ids = array(
     'scratchpad_logins',
     'upload_js'
   );
+  drupal_alter('hashcash_form_ids', $form_ids);
+  return $form_ids;
 }
 
 /**
