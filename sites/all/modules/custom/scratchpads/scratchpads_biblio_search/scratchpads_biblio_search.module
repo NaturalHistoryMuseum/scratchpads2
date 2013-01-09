@@ -257,6 +257,14 @@ function scratchpads_biblio_search_block_view_alter(&$data, $block){
               '#weight' => -100
             );
           }
+        }elseif($facet->facet == 'im_biblio_keyword'){
+          if(count($data['content']['im_biblio_keyword']['#items']) > $data['content']['#settings']->settings['soft_limit']){
+            $form = drupal_get_form('scratchpads_biblio_search_facet_im_biblio_secondary_title_form', 'im_biblio_keyword', t('Enter keyword...'));
+            $data['content']['search_box'] = array(
+              '#markup' => drupal_render($form),
+              '#weight' => -100
+            );
+          }
         }
         break;
       }
@@ -278,6 +286,10 @@ function scratchpads_biblio_search_forms(){
       'callback arguments' => array()
     ),
     'scratchpads_biblio_search_facet_im_biblio_secondary_title_form' => array(
+      'callback' => 'scratchpads_biblio_search_facet_form',
+      'callback arguments' => array()
+    ),
+    'scratchpads_biblio_search_facet_im_biblio_keyword_form' => array(
       'callback' => 'scratchpads_biblio_search_facet_form',
       'callback arguments' => array()
     )
@@ -329,6 +341,7 @@ function scratchpads_biblio_search_hashcash_form_ids_alter(&$form_ids){
   $form_ids[] = 'scratchpads_biblio_search_facet_im_biblio_contributor_form';
   $form_ids[] = 'scratchpads_biblio_search_facet_tus_biblio_year_form';
   $form_ids[] = 'scratchpads_biblio_search_facet_im_biblio_secondary_title_form';
+  $form_ids[] = 'scratchpads_biblio_search_facet_im_biblio_keyword_form';
 }
 
 /**
@@ -352,6 +365,12 @@ function scratchpads_biblio_search_facet_form_submit($form, &$form_state){
       break;
     case 'tus_biblio_year':
       $get['f'][] = 'tus_biblio_year:' . $form_state['values']['tus_biblio_year'];
+      break;
+    case 'im_biblio_keyword':
+      $row = db_select('biblio_keyword_data', 'b')->fields('b', array(
+        'kid'
+      ))->condition('word', $form_state['values']['im_biblio_keyword'])->execute()->fetchAssoc();
+      $get['f'][] = 'im_biblio_keyword:' . $row['kid'];
       break;
   }
   drupal_goto($_GET['q'], array(
@@ -602,6 +621,12 @@ function scratchpads_biblio_search_facet_autocomplete($type, $search){
         'secondary_title',
         'secondary_title'
       ))->condition('secondary_title', "$search%", 'LIKE')->range(0, 10)->execute()->fetchAllKeyed();
+      break;
+    case 'im_biblio_keyword':
+      $matches = db_select('biblio_keyword', 'b')->fields('b', array(
+        'word',
+        'word'
+      ))->condition('word', "$search%", 'LIKE')->range(0, 10)->execute()->fetchAllKeyed();
       break;
   }
   drupal_json_output($matches);
