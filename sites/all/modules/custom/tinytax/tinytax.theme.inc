@@ -84,7 +84,7 @@ function theme_tinytax_term($variables){
     $active = FALSE;
   }
   $has_children = count(taxonomy_get_children($variables['term']->tid));
-  $output = '<li id="tinytax-'.$variables['term']->tid.'">';
+  $output = '<li id="tinytax-' . $variables['term']->tid . '">';
   if($has_children){
     // Plus or minus.
     if(in_array($variables['term']->tid, $variables['open_tids'])){
@@ -127,13 +127,15 @@ function theme_tinytax_term($variables){
       'invalid',
       'not accepted'
     ))){
-      if(@in_array($variables['term']->field_unacceptability_reason[LANGUAGE_NONE][0]['value'], array(
-        'objective synonym',
-        'homotypic (nomenclatural) synonym'
-      ))){
-        $output .= '&equiv; ';
-      }else{
-        $output .= '= ';
+      if(@isset($variables['term']->field_unacceptability_reason[LANGUAGE_NONE][0]['value'])){
+        switch($variables['term']->field_unacceptability_reason[LANGUAGE_NONE][0]['value']){
+          case 'objective synonym':
+          case 'homotypic (nomenclatural) synonym':
+            $output .= '&equiv; ';
+            break;
+          //case 'something needing an equals':
+          //  $output .= '= ';
+        }
       }
     }
   }
