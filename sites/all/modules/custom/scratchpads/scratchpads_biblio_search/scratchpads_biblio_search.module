@@ -567,9 +567,9 @@ function scratchpads_biblio_search_facet_autocomplete($type, $search){
       break;
     case 'tus_biblio_year':
       $matches = db_select('biblio', 'b')->fields('b', array(
-        'biblio_date',
-        'biblio_date'
-      ))->condition('biblio_date', "$search%", 'LIKE')->range(0, 10)->execute()->fetchAllKeyed();
+        'biblio_year',
+        'biblio_year'
+      ))->condition('biblio_year', "$search%", 'LIKE')->range(0, 10)->execute()->fetchAllKeyed();
       break;
   }
   drupal_json_output($matches);
