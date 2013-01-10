@@ -57,6 +57,7 @@ function taxonomy_formatter_field_formatter_settings_form($field, $instance, $vi
       'h5'        => 'h5',
       'strong'    => 'h6',
       'em'        => 'h7',
+      'li'        => 'li',
     ),
   );
   $element['element_class'] = array(
@@ -80,6 +81,8 @@ function taxonomy_formatter_field_formatter_settings_form($field, $instance, $vi
       'h4'        => 'h4',
       'h5'        => 'h5',
       'p'         => 'p',
+      'ul'        => 'ul',
+      'ol'        => 'ol',
       'strong'    => 'strong',
       'em'        => 'em',
       ),
