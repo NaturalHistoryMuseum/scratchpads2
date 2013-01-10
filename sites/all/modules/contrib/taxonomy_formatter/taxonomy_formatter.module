@@ -157,6 +157,8 @@ function taxonomy_formatter_field_formatter_view($entity_type, $entity, $field, 
   $length = strlen($separator);
   $formatted = substr($formatted, 0 , -($length));
   $formatted = $wrapper[0] . $formatted . $wrapper[1];
-  $element[0]['#markup'] = $formatted;
+  if($formatted){
+    $element[0]['#markup'] = $formatted;
+  }
   return $element;
 }
