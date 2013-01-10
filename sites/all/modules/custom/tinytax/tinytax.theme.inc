@@ -144,28 +144,72 @@ function theme_tinytax_term($variables){
     ))){
       if(@isset($variables['term']->field_unacceptability_reason[LANGUAGE_NONE][0]['value'])){
         switch($variables['term']->field_unacceptability_reason[LANGUAGE_NONE][0]['value']){
-          case 'objective synonym':
-          case 'homotypic (nomenclatural) synonym':
-            $term_text = '&equiv; ' . $term_text;
+          // Suffixes
+          case 'other':
+          case 'unavailable, other':
+            $term_text = $term_text . ' unplaced';
             break;
-          case 'heterotypic (taxonomic) synonym':
-          case 'synonym':
-            $term_text = '= ' . $term_text;
+          case 'nomen oblitum':
+            $term_text = $term_text . ' nom. oblitum';
+            break;
+          case 'nomen dubium':
+            $term_text = $term_text . ' nom. dubium';
+            break;
+          case 'misapplied':
+            $term_text = $term_text . ' misapplied';
+            break;
+          case 'junior homonym':
+            $term_text = $term_text . ' homonym';
+            break;
+          case 'horticultural':
+            $term_text = $term_text . ' horticultural';
+            break;
+          case 'database artifact':
+          case 'unavailable, database artifact':
+            $term_text = $term_text . ' artifact';
             break;
           case 'homonym (illegitimate)':
           case 'superfluous renaming (illegitimate)':
+          case 'unavailable, nomen nudum':
             $term_text = $term_text . ' nom. illeg.';
             break;
+          case 'unavailable, literature misspelling':
+          case 'unavailable, incorrect original spelling':
           case 'invalidly published, nomen nudum':
           case 'invalidly published, other':
           case 'orthographic variant (misspelling)':
             $term_text = $term_text . ' nom. inval.';
             break;
           case 'rejected name':
-            $term_text = $term_text . ' nom. rej..';
+          case 'unavailable, suppressed by ruling':
+            $term_text = $term_text . ' nom. rej.';
             break;
-          default:
-            // Do nothing.
+          case 'subsequent name/combination':
+            $term_text = $term_text . ' n. comb.';
+            break;
+          case 'unjustified emendation':
+            $term_text = $term_text . ' unjustified emendation';
+            break;
+          case 'unnecessary replacement':
+            $term_text = $term_text . ' unnecessary replacement';
+            break;
+          // Prefixes
+          case 'objective synonym':
+          case 'homotypic (nomenclatural) synonym':
+            $term_text = '&equiv; ' . $term_text;
+            break;
+          case 'heterotypic (taxonomic) synonym':
+          case 'synonym':
+          case 'junior synonym':
+          case 'subjective synonym':
+            $term_text = '= ' . $term_text;
+            break;
+          // Both
+          case 'pro parte':
+            $term_text = '= ' . $term_text . ' p.p.';
+            break;
+          case 'homonym & junior synonym':
+            $term_text = '= ' . $term_text . ' nom. illeg.';
             break;
         }
       }
