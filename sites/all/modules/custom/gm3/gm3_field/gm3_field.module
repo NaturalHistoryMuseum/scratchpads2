@@ -967,7 +967,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
           'class' => array(
             $element['#field_name'] . '-point'
           ),
-          'placeholder' => '(' . t('Latitude') . ', ' . t('Longitude') . ')'
+          'placeholder' => '(' . t('Decimal latitude') . ', ' . t('Decimal longitude') . ') e.g. (51.49679, -0.17792)'
         ),
         '#default_value' => _gm3_field_get_points_string_from_array($items),
         '#type' => $data_field_type,
