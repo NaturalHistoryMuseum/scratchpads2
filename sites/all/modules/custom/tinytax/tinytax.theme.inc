@@ -122,6 +122,21 @@ function theme_tinytax_term($variables){
       'path' => file_create_url(drupal_get_path('module', 'tinytax') . '/images/leaf.gif')
     ));
   }
+  $term_uri = taxonomy_term_uri($variables['term']);
+  $term_text = theme('scratchpads_species_name', array(
+    'term' => $variables['term']
+  ));
+  if(!$term_text){
+    $term_text = check_plain($variables['term']->name);
+  }
+  $term_text = l($term_text, $term_uri['path'], array(
+    'html' => TRUE,
+    'attributes' => array(
+      'class' => $active ? array(
+        'tinytax-bold'
+      ) : array()
+    )
+  ));
   if(isset($variables['term']->field_usage)){
     if(@in_array($variables['term']->field_usage[LANGUAGE_NONE][0]['value'], array(
       'invalid',
@@ -131,29 +146,35 @@ function theme_tinytax_term($variables){
         switch($variables['term']->field_unacceptability_reason[LANGUAGE_NONE][0]['value']){
           case 'objective synonym':
           case 'homotypic (nomenclatural) synonym':
-            $output .= '&equiv; ';
+            $output .= '&equiv; ' . $term_text;
             break;
-          //case 'something needing an equals':
-          //  $output .= '= ';
+          case 'heterotypic (taxonomic) synonym':
+          case 'synonym':
+            $output .= '= ' . $term_text;
+            break;
+          case 'homonym (illegitimate)':
+          case 'superfluous renaming (illegitimate)':
+            $output .= $term_text . ' nom. illeg.';
+            break;
+          case 'invalidly published, nomen nudum':
+          case 'invalidly published, other':
+          case 'orthographic variant (misspelling)':
+            $output .= $term_text . ' nom. inval.';
+            break;
+          case 'rejected name':
+            $output .= $term_text . ' nom. rej..';
+            break;
+          default:
+            $output .= $term_text;
+            break;
         }
       }
+    } else {
+      $output .= $term_text;
     }
+  }else{
+    $output .= $term_text;
   }
-  $term_uri = taxonomy_term_uri($variables['term']);
-  $term_text = theme('scratchpads_species_name', array(
-    'term' => $variables['term']
-  ));
-  if(!$term_text){
-    $term_text = check_plain($variables['term']->name);
-  }
-  $output .= l($term_text, $term_uri['path'], array(
-    'html' => TRUE,
-    'attributes' => array(
-      'class' => $active ? array(
-        'tinytax-bold'
-      ) : array()
-    )
-  ));
   if(in_array($variables['term']->tid, $variables['open_tids']) && $has_children){ // Check here for open!
     $output .= theme('tinytax_term_count', array(
       'count' => $has_children
