@@ -145,6 +145,7 @@ function worms_batch_importer($id, $vid, &$context){
     $context['sandbox']['ids'] = array(
       $id => 0
     );
+    $context['sandbox']['map'] = array();
     $context['sandbox']['total'] = 0;
     $vocabulary = taxonomy_vocabulary_load($vid);
     $context['sandbox']['vid'] = $vid;
@@ -156,11 +157,34 @@ function worms_batch_importer($id, $vid, &$context){
     $client = new SoapClient("http://www.marinespecies.org/aphia.php?p=soap&wsdl=1");
   }
   $keys = array_keys($context['sandbox']['ids']);
-  $id = array_shift($keys);
-  $parent = $context['sandbox']['ids'][$id];
-  unset($context['sandbox']['ids'][$id]);
-  // Save the record
-  $record = $client->getAphiaRecordByID($id);
+  $importable_found = FALSE;
+  $attempt = 0;
+  while(!$importable_found && $attempt < (count($keys) + 1)){
+    $id = array_shift($keys);
+    $parent = $context['sandbox']['ids'][$id];
+    unset($context['sandbox']['ids'][$id]);
+    // Save the record
+    $record = $client->getAphiaRecordByID($id);
+    // Check if this name is valid.  If it isn't, we NEED the name it points to
+    if($record->valid_AphiaID != $record->AphiaID){
+      // Check we have saved this term already.  If we have, we can carry on, if
+      // not, we add this id back on to the list.
+      if(isset($context['sandbox']['map'][$record->valid_AphiaID])){
+        $parent = $context['sandbox']['map'][$record->valid_AphiaID];
+        $importable_found = TRUE;
+      }else{
+        // Not yet saved, add it back to the list.
+        $context['sandbox']['ids'][$record->AphiaID] = $record->valid_AphiaID;
+      }
+    }else{
+      $importable_found = TRUE;
+    }
+    $attempt++;
+  }
+  if(!$importable_found){
+    $context['finished'] = 1;
+    return;
+  }
   // Get the vernaculars for this ID.
   $vernaculars = $client->getAphiaVernacularsByID($id);
   // As we sadly don't support saving a vernacular name's language, we just pick
@@ -206,6 +230,15 @@ function worms_batch_importer($id, $vid, &$context){
       )
     )
   );
+  if($record->status != 'accepted'){
+    $term['field_aan_' . $context['sandbox']['vid']] = array(
+      LANGUAGE_NONE => array(
+        array(
+          'tid' => $parent
+        )
+      )
+    );
+  }
   $name_parts = explode(" ", trim($record->scientificname));
   $part_index = 1;
   foreach($name_parts as $name_part){
@@ -220,6 +253,7 @@ function worms_batch_importer($id, $vid, &$context){
   }
   $term = (object)$term;
   taxonomy_term_save($term);
+  $context['sandbox']['map'][$record->AphiaID] = $term->tid;
   $context['sandbox']['total']++;
   $reached_last_child = FALSE;
   $offset = 1;

@@ -467,3 +467,35 @@ function itis_term_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id)
     }
   }
 }
+
+/**
+ * Implementation of hook_theme
+ * 
+ * Provide a template for terms that are part of
+ * a biological classification
+ */
+function itis_term_theme($existing, $type, $theme, $path) {
+  return array(
+    'biological_taxonomy_term' => array(
+      'render element' => 'elements',
+      'template' => 'biological-taxonomy-term',      
+      'preprocess functions' => array('template_preprocess_taxonomy_term'),
+    )
+  );
+}
+
+/**
+ * Implement hook_taxonomy_term_view_alter
+ * 
+ * Ensure terms that are part of a biological classification
+ * user a different template
+ * 
+ */
+function scratchpads_species_taxonomy_term_view_alter(&$build) {
+  $term = $build['#term'];
+  $vids = variable_get('biological_vids', array());
+  if (!empty($vids[$term->vid])) {
+    $build['#theme'] = 'biological_taxonomy_term';
+  }
+}
+

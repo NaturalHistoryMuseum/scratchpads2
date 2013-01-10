@@ -1353,7 +1353,7 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
         $default_group = t('Default');
         $handler->display->display_options['style_options']['tabs'] .= $default_group . PHP_EOL;
       }
-      scratchpads_backend_views_add_field($handler, $entity_type, $entity_info['base table'], $entity_info['entity keys']['label'], $entity_info['entity keys']['label'], FALSE, $default_group);
+      scratchpads_backend_views_add_field($handler, $entity_type, $entity_info['base table'], $entity_info['entity keys']['label'], FALSE, $default_group);
     }
   }
   // If groups, display this content type in a tab
@@ -1367,7 +1367,7 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
           if(array_key_exists($field, $fields)){
             $table = 'field_data_' . $field;
             $module = $fields[$field]['widget']['module'];
-            scratchpads_backend_views_add_field($handler, $module, $table, $field, $fields[$field]['label'], $fields[$field], $group->label);
+            scratchpads_backend_views_add_field($handler, $module, $table, $field, $fields[$field], $group->label);
             unset($fields[$field]);
           }
         }
@@ -1379,7 +1379,7 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
     foreach(array_keys($fields) as $field){
       $table = 'field_data_' . $field;
       $module = $fields[$field]['widget']['module'];
-      scratchpads_backend_views_add_field($handler, $module, $table, $field, $fields[$field]['label'], $fields[$field], $default_group);
+      scratchpads_backend_views_add_field($handler, $module, $table, $field, $fields[$field], $default_group);
     }
   }
   /* Filter criterion: Content: Type */
@@ -1408,7 +1408,6 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
  * @param unknown_type $module
  * @param unknown_type $table
  * @param unknown_type $field_id
- * @param unknown_type $field_label
  * @param unknown_type $tab
  * @param unknown_type $width
  * @param unknown_type $sortable
@@ -1416,13 +1415,12 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
  * @param unknown_type $field An instance of the field.
  * @return boolean
  */
-function scratchpads_backend_views_add_field(&$handler, $module, $table, $field_id, $field_label, $field = FALSE, $tab = null, $width = 120, $sortable = 1, $filter = 'textFilter'){
+function scratchpads_backend_views_add_field(&$handler, $module, $table, $field_id, $field = FALSE, $tab = null, $width = 120, $sortable = 1, $filter = 'textFilter'){
   // Ignore all GM3 fields
   if($module == 'gm3_field'){return false;}
   $handler->display->display_options['fields'][$field_id]['id'] = $field_id;
   $handler->display->display_options['fields'][$field_id]['table'] = $table;
   $handler->display->display_options['fields'][$field_id]['field'] = $field_id;
-  $handler->display->display_options['fields'][$field_id]['label'] = $field_label;
   $handler->display->display_options['fields'][$field_id]['alter']['alter_text'] = 0;
   $handler->display->display_options['fields'][$field_id]['alter']['make_link'] = 0;
   $handler->display->display_options['fields'][$field_id]['alter']['absolute'] = 0;

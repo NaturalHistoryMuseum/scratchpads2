@@ -238,6 +238,9 @@ function theme_gm3_view_gm3($variables){
               );
             }
           }
+          foreach(array_keys($map['libraries']['point']['points']) as $key){
+            $map['libraries']['point']['points'][$key]['colour'] = 7;
+          }
           break;
         case 'gm3_combination':
           foreach($row->_field_data as $id => $values){
