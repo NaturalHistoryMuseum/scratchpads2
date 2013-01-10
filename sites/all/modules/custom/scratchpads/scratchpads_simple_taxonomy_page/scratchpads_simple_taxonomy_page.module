@@ -190,6 +190,18 @@ function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_insert($vocabulary
 }
 
 /**
+ * Implements hook_taxonomy_vocabulary_load
+ */
+function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_load($vocabularies){
+  $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
+  $bio_vids = variable_get('biological_vids', array());
+  foreach($vocabularies as $vocabulary){
+    $vocabulary->biological_classification = isset($bio_vids[$vocabulary->vid]) ? $bio_vids[$vocabulary->vid] : 0;
+    $vocabulary->use_scratchpads_species_pages = isset($simple_vids[$vocabulary->vid]) ? $simple_vids[$vocabulary->vid] : 1;
+  }
+}
+
+/**
  * Execute Context page conditions
  *
  * Allows modules to hook into Context's hook_page_build to execute their
