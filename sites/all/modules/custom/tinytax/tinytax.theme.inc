@@ -146,35 +146,32 @@ function theme_tinytax_term($variables){
         switch($variables['term']->field_unacceptability_reason[LANGUAGE_NONE][0]['value']){
           case 'objective synonym':
           case 'homotypic (nomenclatural) synonym':
-            $output .= '&equiv; ' . $term_text;
+            $term_text = '&equiv; ' . $term_text;
             break;
           case 'heterotypic (taxonomic) synonym':
           case 'synonym':
-            $output .= '= ' . $term_text;
+            $term_text = '= ' . $term_text;
             break;
           case 'homonym (illegitimate)':
           case 'superfluous renaming (illegitimate)':
-            $output .= $term_text . ' nom. illeg.';
+            $term_text = $term_text . ' nom. illeg.';
             break;
           case 'invalidly published, nomen nudum':
           case 'invalidly published, other':
           case 'orthographic variant (misspelling)':
-            $output .= $term_text . ' nom. inval.';
+            $term_text = $term_text . ' nom. inval.';
             break;
           case 'rejected name':
-            $output .= $term_text . ' nom. rej..';
+            $term_text = $term_text . ' nom. rej..';
             break;
           default:
-            $output .= $term_text;
+            // Do nothing.
             break;
         }
       }
-    } else {
-      $output .= $term_text;
     }
-  }else{
-    $output .= $term_text;
   }
+  $output .= $term_text;
   if(in_array($variables['term']->tid, $variables['open_tids']) && $has_children){ // Check here for open!
     $output .= theme('tinytax_term_count', array(
       'count' => $has_children
