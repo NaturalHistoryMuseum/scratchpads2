@@ -91,7 +91,7 @@ class DrupalFieldMigration extends DrupalMigration{
       $row->entity_type = 'node';
     }
     // Check the node type exists  & throw exception if it doesn't
-    if(!scratchpads_migrate_destination_node_type_exists($row->type_name)){
+    if($row->entity_type == 'node' && !scratchpads_migrate_destination_node_type_exists($row->type_name)){
       throw new MigrateException(t('Node type %type does not exist. Cannot create field %field_name.', array(
         '%type' => $row->type_name,
         '%field_name' => $row->field_name

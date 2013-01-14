@@ -1592,8 +1592,8 @@ function darwincore_field_default_fields(){
         ),
         'view' => array(
           'args' => array(),
-          'display_name' => '',
-          'view_name' => ''
+          'display_name' => 'references_1',
+          'view_name' => 'users_references'
         )
       ),
       'translatable' => '1',
@@ -2131,8 +2131,8 @@ function darwincore_field_default_fields(){
         ),
         'view' => array(
           'args' => array(),
-          'display_name' => '',
-          'view_name' => ''
+          'display_name' => 'references_1',
+          'view_name' => 'users_references'
         )
       ),
       'translatable' => '1',
