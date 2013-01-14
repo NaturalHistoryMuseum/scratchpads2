@@ -259,6 +259,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $this->removeFieldMapping('language');
     $this->addFieldMapping('language', 'language')->defaultValue('en');
     $this->addFieldMapping('nid', 'nid');
+    $this->addFieldMapping('vid', 'vid');
     $this->removeFieldMapping('is_new');
     $this->addFieldMapping('is_new', NULL)->defaultValue(true);
     // Revisioning
@@ -445,7 +446,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       }
       foreach($this->biologicalClassifications as $unmapped_classifcation){
         if(isset($row->{$unmapped_classifcation})){
-          $row->{$mapped_classification} = array_merge($row->{$mapped_classification}, $row->{$unmapped_classifcation});
+          $row->{$mapped_classification} = array_merge($row->{$mapped_classification}, (array)$row->{$unmapped_classifcation});
           // Dedupe
           $row->{$mapped_classification} = array_unique($row->{$mapped_classification});
         }
