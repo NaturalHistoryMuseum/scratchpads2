@@ -25,6 +25,18 @@ function scratchpads_backend_menu(){
 }
 
 /**
+ * Implements hook_help()
+ */
+function scratchpads_backend_help($path, $arg){
+  if(substr($path, 0, 24) == 'admin/content/slickgrid/'){return '<p>' . implode('</p><p>', array(
+      t('The grid editor is an Excel-like matrix editor for bulk updating content. Rows represent nodes and columns represent fields. Select the fields to show by right clicking on the column header and (de)selecting columns.'),
+      t('To edit a single cell click into the cell, edit and save. To edit the same field in several nodes, select the respective nodes by checking the box to the left of the row. Then click into the cell you want to edit for one of the nodes, edit and save. The content of this field will change for all selected nodes.'),
+      t('To filter for certain content click on the little magnifying glass in the upper right corner of the matrix and enter the search word in the respective search box. You can sort rows by clicking on a column header.'),
+      t('At the bottom of the matrix there are icons for adding, cloning, deleting and undoing.')
+    )) . '</p>';}
+}
+
+/**
  * Implements hook_menu_alter().
  */
 function scratchpads_backend_menu_alter(&$items){
