@@ -20,6 +20,7 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
     $fields['auto_nodetitle_applied'] = t('Auto node title');
     $fields['menu'] = t('Menu');
     $fields['weight_weight'] = t('Weight');
+    $fields['vid'] = t('VID');
     return $fields;
   }
 
