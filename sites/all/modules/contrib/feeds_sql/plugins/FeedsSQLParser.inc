@@ -15,12 +15,27 @@ class FeedsSQLParser extends FeedsParser {
     $result->title = '';
     $result->description = '';
     $result->link = '';
+    // Set the state.
+    $this->state = $source->state(FEEDS_PARSE);
+    // Set the total rows to process.
+    
     // Iterate through the fetcher results
-    foreach ($fetcher_result->getRaw() as $index => $row) {
-      $result->items[$index] = (array) $row;
-    }
+    $total = 0;
+    foreach($fetcher_result->getRaw() as $index => $row){
+      // FIXME - This is a little inefficient, as we need to parse through ALL
+      // results on every instance of the loop.
+      $total++;
+      if($index >= $this->state->pointer && $index < ($this->state->pointer + 10)){
+        $rows[] = (array)$row;
+      }
+    }// FIXME - Allow configuration.
+    $this->state->total = $total;
     // Create a result object and return it.
-    return $result;
+    $this->state->pointer += count($rows);
+    // Report progress.
+    $this->state->progress($total, $this->state->pointer);
+    // Return the results
+    return new FeedsParserResult($rows);
   }
 
   /**
