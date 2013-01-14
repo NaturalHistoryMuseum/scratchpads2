@@ -27,11 +27,11 @@ class cryptastic{
    */
   public function encrypt($msg, $k, $base64 = false){
     // open cipher module (do not change cipher/mode)
-    if(!$td = mcrypt_module_open('rijndael-256', '', 'ctr', ''))
+    if(!$td = mcrypt_module_open('rijndael-128', '', 'ctr', ''))
       return false;
     $msg = serialize($msg); // serialize
     $iv = mcrypt_create_iv(32, MCRYPT_RAND); // create iv
-    if(mcrypt_generic_init($td, $k, $iv) !== 0) // initialize buffers
+    if(@mcrypt_generic_init($td, $k, $iv) !== 0) // initialize buffers
       return false;
     $msg = mcrypt_generic($td, $msg); // encrypt
     $msg = $iv . $msg; // prepend iv
@@ -62,7 +62,7 @@ class cryptastic{
       $msg = base64_decode($msg); // base64 decode?
                                     // open cipher module (do not
                                     // change cipher/mode)
-    if(!$td = mcrypt_module_open('rijndael-256', '', 'ctr', ''))
+    if(!$td = mcrypt_module_open('rijndael-128', '', 'ctr', ''))
       return false;
     $iv = substr($msg, 0, 32); // extract iv
     $mo = strlen($msg) - 32; // mac offset

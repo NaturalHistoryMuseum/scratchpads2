@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file flag.rules.inc
+ * @file
  * Rules integration for the Flag module.
  */
 
@@ -83,6 +83,11 @@ class FlagRulesUIClass extends RulesDataUI implements RulesDataDirectInputFormIn
 
   public static function render($value) {
     $flag = flag_get_flag($value);
+
+    if ($flag === FALSE) {
+      return array();
+    }
+
     return array(
       'content' => array('#markup' => check_plain($flag->get_title())),
       '#attributes' => array('class' => array('rules-parameter-flag')),
@@ -176,6 +181,29 @@ function flag_rules_action_info() {
       'group' => t('Flag'),
       'access callback' => 'flag_rules_integration_access',
     ),
+    'flag_fetch_entity_by_user' => array(
+      'label' => t('Fetch content flagged by user'),
+      'base' => 'flag_rules_action_fetch_entity_by_user',
+      'parameter' => array(
+        'flag' => array(
+          'type' => 'flag',
+          'label' => t('Flag'),
+        ),
+        'flagging_user' => array(
+          'type' => 'user',
+          'label' => t('User who flagged the content'),
+          'description' => t('For non-global flags, this is the user who flagged the content. (For global flags, this argument is ignored.)'),
+        ),
+      ),
+      'provides' => array(
+        'content_flagged_by_user' => array(
+          'label' => t('Content flagged by user'),
+          'type' => 'list<node>',
+        ),
+      ),
+      'group' => t('Flag'),
+      'access callback' => 'flag_rules_integration_access',
+    ),
   );
   $param_defaults = array(
     'flagging_user' => array(
@@ -185,8 +213,8 @@ function flag_rules_action_info() {
     ),
     'permission_check' => array(
       'type' => 'boolean',
-      'label' => t('Permission check'),
-      'description' => t('Whether to check access permissions against the user on whose behalf to flag.'),
+      'label' => t('Skip permission check'),
+      'description' => t('Whether to ignore permissions of the user on whose behalf to flag.'),
       'restriction' => 'input',
     ),
   );
@@ -194,7 +222,7 @@ function flag_rules_action_info() {
     $flag = flag_create_handler($type);
     $entity_info = entity_get_info($type);
     $items += array(
-      'flag_flag'. $type => array(
+      'flag_flag' . $type => array(
         'label' => t('Flag a @type', array('@type' => $type)),
         'base' => 'flag_rules_action_flag',
         'parameter' => array(
@@ -212,7 +240,7 @@ function flag_rules_action_info() {
         'group' => t('Flag'),
         'access callback' => 'flag_rules_integration_access',
       ),
-      'flag_unflag'. $type => array(
+      'flag_unflag' . $type => array(
         'label' => t('Unflag a @type', array('@type' => $type)),
         'base' => 'flag_rules_action_unflag',
         'parameter' => array(
@@ -296,6 +324,21 @@ function flag_rules_action_fetch_users($flag, $entity) {
 }
 
 /**
+ * Base action implementation: Fetch entities who were flagged a user.
+ */
+function flag_rules_action_fetch_entity_by_user($flag, $user) {
+  $result = db_select('flag_content', 'fc')
+    ->fields('fc', array('content_id'))
+    ->condition('content_type', $flag->content_type)
+    ->condition('uid', $user->uid)
+    ->condition('fid', $flag->fid)
+    ->execute();
+
+  $flagged = $result->fetchCol();
+  return array('content_flagged_by_user' => $flagged);
+}
+
+/**
  * Implements hook_rules_condition_info().
  */
 function flag_rules_condition_info() {
@@ -305,7 +348,7 @@ function flag_rules_condition_info() {
     $entity_info = entity_get_info($type);
     $label = isset($entity_info[$type]['label']) ? $entity_info[$type]['label'] : $type;
     $items += array(
-      'flag_threshold_'. $type => array(
+      'flag_threshold_' . $type => array(
         'label' => drupal_ucfirst(t('@type has flagging count', array('@type' => $label))),
         'base' => 'flag_rules_condition_threshold',
         'parameter' => array(
@@ -315,28 +358,28 @@ function flag_rules_condition_info() {
             'flag_type' => $type,
             'description' => t('The flag to check for.')
           ),
-           $type => array(
-             'type' => $type,
-             'label' => $label,
-           ),
-           'number' => array(
-             'type' => 'integer',
-             'label' => t('Number'),
-             'description' => t('The number against which to test the number of times the object is flagged. For example, if you type "3" here, and choose "Greater than" for the operator, then this condition will return TRUE if the object is flagged more than three times.'),
-           ),
-           'operator' => array(
-             'type' => 'text',
-             'label' => t('Comparison operator'),
-             'options list' => 'flag_rules_condition_threshold_operator_options',
-             'restriction' => 'input',
-             'default value' => '=',
-             'optional' => TRUE,
-           ),
+          $type => array(
+            'type' => $type,
+            'label' => $label,
+          ),
+          'number' => array(
+            'type' => 'integer',
+            'label' => t('Number'),
+            'description' => t('The number against which to test the number of times the object is flagged. For example, if you type "3" here, and choose "Greater than" for the operator, then this condition will return TRUE if the object is flagged more than three times.'),
+          ),
+          'operator' => array(
+            'type' => 'text',
+            'label' => t('Comparison operator'),
+            'options list' => 'flag_rules_condition_threshold_operator_options',
+            'restriction' => 'input',
+            'default value' => '=',
+            'optional' => TRUE,
+          ),
         ),
         'group' => t('Flag'),
         'access callback' => 'flag_rules_integration_access',
       ),
-      'flag_flagged_'. $type => array(
+      'flag_flagged_' . $type => array(
         'label' => drupal_ucfirst(t('@type is flagged', array('@type' => $label))),
         'base' => 'flag_rules_condition_flagged',
         'parameter' => array(
@@ -346,11 +389,11 @@ function flag_rules_condition_info() {
             'flag_type' => $type,
             'description' => t('The flag to check for.')
           ),
-           $type => array(
-             'type' => $type,
-             'label' => $label,
-           ),
-          'user' => array(
+          $type => array(
+            'type' => $type,
+            'label' => $label,
+          ),
+          'flagging_user' => array(
             'type' => 'user',
             'label' => t('User on whose behalf to check'),
             'description' => t('For non-global flags, this is the user on whose behalf the flag is checked.'),

@@ -68,6 +68,9 @@ function scratchpads_species_context_default_contexts(){
       $weight = 0;
       foreach($views as $view){
       	$delta = $view . '-block';
+      	if(strlen($delta)>32){
+      	  $delta = md5($delta);
+      	}
         $context->reactions['block']['blocks']['views-' . $delta] = array(
           'module' => 'views',
           'delta' => $delta,

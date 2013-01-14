@@ -1,0 +1,3 @@
+name = "Scratchpads Load Time Log"
+description = "Logs the time it takes for a page to load to a file."
+core = "7.x"

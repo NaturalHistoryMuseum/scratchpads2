@@ -20,13 +20,18 @@ function scratchpads_pages_menu(){
   if(isset($conf['biological_vids'])){
     foreach(array_keys($conf['biological_vids']) as $vid){
       $vocabulary = taxonomy_vocabulary_load($vid);
-      if($tree = taxonomy_get_tree($vid, 0, 1)){
+      if(($tree = taxonomy_get_tree($vid, 0, 1)) != FALSE){
         $term = array_shift($tree);
+        $tid = $term->tid;
+        $default_terms = variable_get('scratchpads_default_term', array());
+        if(isset($default_terms[$vid])){
+          $tid = $default_terms[$vid];
+        }
         $items['classification/' . $vid] = array(
           'title' => $vocabulary->name,
           'page callback' => 'drupal_goto',
           'page arguments' => array(
-            'taxonomy/term/' . $term->tid
+            'taxonomy/term/' . $tid
           ),
           'access arguments' => array(
             'access content'
@@ -278,7 +283,7 @@ function scratchpads_pages_block_view($delta = ''){
       if(arg(0) == 'node' && is_numeric($nid = arg(1)) && $node = node_load($nid)){
         $node_type_info = node_type_load($node->type);
         $display_name = $node_type_info->name;
-        if ($node->type == 'biblio') {
+        if($node->type == 'biblio'){
           $display_name = 'literature';
         }
         $items = array(
@@ -428,8 +433,20 @@ function scratchpads_pages_pluralise_node_name($name){
   return $name;
 }
 
+/**
+ * Get a list of all node types
+ */
 function scratchpads_pages_get_node_types(){
   return _node_types_build(true)->types;
+}
+
+/**
+ * Does a node of this type exist?
+ */
+function scratchpads_pages_node_exists_of_type($type){
+  return db_query("SELECT count(nid) FROM {node} where type=:type", array(
+    ':type' => $type
+  ))->fetchField() >= 1;
 }
 
 /**

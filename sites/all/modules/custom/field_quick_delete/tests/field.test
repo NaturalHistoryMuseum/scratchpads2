@@ -1,0 +1,17 @@
+<?php
+require_once DRUPAL_ROOT . '/modules/field/tests/' . basename(__FILE__);
+
+/*
+class FieldTestCase extends DrupalWebTestCase {
+class FieldAttachTestCase extends FieldTestCase {
+class FieldAttachStorageTestCase extends FieldAttachTestCase {
+class FieldAttachOtherTestCase extends FieldAttachTestCase {
+class FieldInfoTestCase extends FieldTestCase {
+class FieldFormTestCase extends FieldTestCase {
+class FieldDisplayAPITestCase extends FieldTestCase {
+class FieldCrudTestCase extends FieldTestCase {
+class FieldInstanceCrudTestCase extends FieldTestCase {
+class FieldTranslationsTestCase extends FieldTestCase {
+class FieldBulkDeleteTestCase extends FieldTestCase {
+class EntityPropertiesTestCase extends FieldTestCase {
+*/

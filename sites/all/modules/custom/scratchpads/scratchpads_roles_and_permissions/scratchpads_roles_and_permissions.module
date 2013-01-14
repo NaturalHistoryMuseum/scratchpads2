@@ -14,6 +14,7 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'contextual' => FALSE,
       'dashboard' => FALSE,
       'entityconnect' => FALSE,
+      'exif_custom' => FALSE,
       'feeds' => FALSE,
       'field_group' => FALSE,
       'file_entity' => FALSE,

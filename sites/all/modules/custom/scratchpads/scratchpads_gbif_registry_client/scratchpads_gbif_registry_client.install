@@ -23,6 +23,9 @@ function scratchpads_gbif_registry_client_install($uuid = FALSE){
   // the .module file.
   $registry = GBIFRegistry::singleton();
   if($uuid){
+    watchdog('scratchpads_gbif_registry', 'Updated GBIF Registry for UUID: !uuid', array(
+      '!uuid' => $uuid
+    ));
     $ti = new GBIF\TechnicalInstallation($uuid);
     $ti->setTitle(variable_get('site_name', 'Scratchpad'));
     $ti->setHomepage(url('', array(
@@ -40,6 +43,9 @@ function scratchpads_gbif_registry_client_install($uuid = FALSE){
       ))
     ));
     variable_set('scratchpads_gbif_registry_client_uuid', $ti->getKey());
+    watchdog('scratchpads_gbif_registry', 'Created new GBIF Registry object with UUID: !uuid', array(
+      '!uuid' => $ti->getKey()
+    ));
   }
   // Get a list of endpoints that we need to register for this TI.
   $endpoints = module_invoke_all('gbif_registry_endpoints');
@@ -56,8 +62,9 @@ function scratchpads_gbif_registry_client_update_7000(){}
 
 /**
  * Clear the scratchpads_gbif_registry_* variables.
+ * (Renamed from 7001).
  */
-function scratchpads_gbif_registry_client_update_7001(){
+function scratchpads_gbif_registry_client_update_7002(){
   variable_del('scratchpads_gbif_registry_client_last_update');
   variable_del('scratchpads_gbif_registry_client_uuid');
 }

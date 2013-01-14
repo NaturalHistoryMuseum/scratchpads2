@@ -1,0 +1,19 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpads_load_time_log_install(){
+  // Generate a randomly named file.
+  $time = time();
+  variable_set('scratchpads_load_time_log_last_clear', $time);
+  variable_set('scratchpads_load_time_log_filename', 'public://scratchpads_load_time_log-' . md5($time) . '.csv');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function scratchpads_load_time_log_uninstall(){
+  variable_del('scratchpads_load_time_log_filename');
+  variable_del('scratchpads_load_time_log_last_clear');
+}

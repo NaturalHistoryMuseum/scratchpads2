@@ -1,0 +1,56 @@
+<?php
+
+/**
+ * @file
+ * Imports data from an external database.
+ */
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function feeds_sql_ctools_plugin_api($owner, $api) {
+  if ($owner == 'feeds' && $api == 'plugins') {
+    return array('version' => 1);
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_type().
+ */
+function feeds_sql_ctools_plugin_type() {
+  return array(
+    'plugins' => array(
+      'cache' => TRUE,
+      'use hooks' => TRUE,
+      'classes' => array('handler'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_feeds_plugins().
+ */
+function feeds_sql_feeds_plugins() {
+  $info = array();
+  $info['FeedsSQLFetcher'] = array(
+    'name' => 'SQL fetcher',
+    'description' => 'Fetches data from an external database.',
+    'handler' => array(
+      'parent' => 'FeedsFetcher',
+      'class' => 'FeedsSQLFetcher',
+      'file' => 'FeedsSQLFetcher.inc',
+      'path' => drupal_get_path('module', 'feeds_sql') . '/plugins',
+    ),
+  );
+  $info['FeedsSQLParser'] = array(
+    'name' => 'SQL parser',
+    'description' => 'Parses data fetched from an external database.',
+    'handler' => array(
+      'parent' => 'FeedsParser',
+      'class' => 'FeedsSQLParser',
+      'file' => 'FeedsSQLParser.inc',
+      'path' => drupal_get_path('module', 'feeds_sql') . '/plugins',
+    ),
+  );
+  return $info;
+}

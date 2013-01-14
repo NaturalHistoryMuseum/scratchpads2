@@ -28,7 +28,7 @@ class MigrateDestinationVocabulary extends MigrateDestinationEntity{
       'description' => t('Vocabulary: Description'),
       'hierarchy' => t('Vocabulary: Hierarchy level'),
       'weight' => t('Term: Weight'),
-    	'biological_classification' => t('Biological classification')
+      'biological_classification' => t('Biological classification')
     );
   }
 
@@ -79,10 +79,20 @@ class MigrateDestinationVocabulary extends MigrateDestinationEntity{
         if($result->machine_name_exists){throw new MigrateException(t('Vocabulary %name already exists.', array(
             '%name' => $vocabulary->machine_name
           )));}
+        // Was this originally a biological classification
+        $d6_term_vocabs = scratchpads_migrate_get_term_vocabularies();
         // Is this a biological classifcation?
         if(!empty($vocabulary->biological_classification)){
           itis_term_taxonomy_vocabulary_biological_classification($vocabulary);
+          // If this wasn't a ITIS based classifcation in the old site, we don't want to use the new species pages
+          if(!array_key_exists($vocabulary->vid, $d6_term_vocabs)){
+            $vocabulary->display_facets = 0;
+            $vocabulary->use_scratchpads_species_pages = 0;
+          }else{
+            $vocabulary->use_scratchpads_species_pages = 1;
+          }
         }
+        $vocabulary->display_tab = 1;
         // We need to insert a dummy row in to the taxonomy_vocabulary table first
         // as we are specifying the VID of the taxonomy.
         $vocabulary_array = (array)$vocabulary;

@@ -4,7 +4,61 @@
  * Implements hook_install().
  */
 function scratchpads_migrate_install(){
+  // Delete all existing terms. We'll just use the old ones
+  db_delete('taxonomy_term_data')->execute();
   scratchpads_migrate_update_7001();
+}
+
+/**
+ * Implements hook_schema().
+ */
+function scratchpads_migrate_schema(){
+  $schema['scratchpads_migrate_task'] = array(
+    'description' => 'Scratchpads migrate user tasks.',
+    'fields' => array(
+      'tid' => array(
+        'description' => 'The primary identifier for a task.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE
+      ),
+      'entity' => array(
+        'description' => 'The entity type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'entity_id' => array(
+        'description' => 'The entity id.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0
+      ),
+      'error' => array(
+        'description' => 'Error message.',
+        'type' => 'text',
+        'not null' => TRUE,
+        'size' => 'big'
+      ),
+      'action' => array(
+        'description' => 'Follow up action for the user.',
+        'type' => 'text',
+        'not null' => TRUE,
+        'size' => 'big'
+      ),
+      'status' => array(
+        'description' => 'Boolean indicating task status.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1
+      )
+    ),
+    'primary key' => array(
+      'tid'
+    )
+  );
+  return $schema;
 }
 
 /**

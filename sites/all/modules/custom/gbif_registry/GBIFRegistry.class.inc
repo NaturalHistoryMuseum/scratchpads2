@@ -37,6 +37,8 @@ class GBIFRegistry extends GBIF\Registry{
         self::$instance->setUser($ini['username']);
         self::$instance->setPassword($ini['password']);
       }
+      // We set the Registry URL based on the settings
+      self::$instance->setRegistryURL(variable_get('gbif_registry_web_service_url', 'http://gbrds.gbif.org/registry/'));
     }
     return self::$instance;
   }

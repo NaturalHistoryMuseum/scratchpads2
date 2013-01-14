@@ -38,7 +38,7 @@ function scratchpads_simple_taxonomy_page_context_default_contexts(){
         );
         $context->condition_mode = 0;
         $export[$context->name] = $context;
-      } else {
+      }else{
         // This vocabulary must have been deleted.  We remove it from the list
         // of vocabularies.
         $values = variable_get('none_biological_vids', array());
@@ -47,5 +47,36 @@ function scratchpads_simple_taxonomy_page_context_default_contexts(){
       }
     }
   }
+  // Taxonomy images context
+  $context = new stdClass();
+  $context->disabled = FALSE; /* Edit this to true to make a default context disabled initially */
+  $context->api_version = 3;
+  $context->name = 'taxonomy_files';
+  $context->description = '';
+  $context->tag = 'taxonomy';
+  $context->conditions = array(
+    'path' => array(
+      'values' => array(
+        'simpletaxonomy/*' => 'simpletaxonomy/*'
+      )
+    )
+  );
+  $context->reactions = array(
+    'block' => array(
+      'blocks' => array(
+        'views-aab5a3c124fdc5f353a0194e2041f1d9' => array(
+          'module' => 'views',
+          'delta' => 'aab5a3c124fdc5f353a0194e2041f1d9',
+          'region' => 'content',
+          'weight' => '-10'
+        )
+      )
+    )
+  );
+  $context->condition_mode = 0;
+  $export[$context->name] = $context;
+  // Translatables
+  // Included for use with string extractors like potx.
+  t('taxonomy');
   return $export;
 }

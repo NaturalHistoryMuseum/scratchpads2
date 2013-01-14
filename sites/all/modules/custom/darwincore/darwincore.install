@@ -112,3 +112,34 @@ function darwincore_update_7005(){
     field_update_field($field);
   }
 }
+
+/**
+ * Set the collector field to be 1:n
+ */
+function darwincore_update_7006(){
+  $field = field_info_field('field_collector');
+  $field['cardinality'] = -1;
+  field_update_field($field);
+}
+
+/**
+ * Update the user_reference fields for newly created sites since update 7005
+ */
+function darwincore_update_7007(){
+  foreach(array(
+    'field_collector',
+    'field_identified_by'
+  ) as $field_name){
+    $field = field_info_field($field_name);
+    $field['settings'] = array(
+      'referenceable_roles' => array(),
+      'referenceable_status' => array(),
+      'view' => array(
+        'view_name' => 'users_references',
+        'display_name' => 'references_1',
+        'args' => array()
+      )
+    );
+    field_update_field($field);
+  }
+}

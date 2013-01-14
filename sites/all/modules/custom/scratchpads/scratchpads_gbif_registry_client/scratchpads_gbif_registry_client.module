@@ -5,6 +5,11 @@ define('SCRATCHPAD_ORGANIZATION', '315b3c03-4a0a-424e-83a5-d25aa748e666');
  * Implements hook_cron().
  */
 function scratchpads_gbif_registry_client_cron(){
+  // Go no further if we're not the right profile.
+  if(!in_array(variable_get('install_profile', ''), scratchpads_gbif_registry_client_profiles())){
+    watchdog('scratchpads_gbif_registry', 'Not registering this site');
+    return;
+  }
   if(variable_get('scratchpads_gbif_registry_client_last_update', 0) + 604800 > time()){return;}
   // Once a week we update the information that GBIF holds about us.
   module_load_include('install', 'scratchpads_gbif_registry_client');
@@ -12,6 +17,19 @@ function scratchpads_gbif_registry_client_cron(){
   if(variable_get('scratchpads_gbif_registry_client_uuid', FALSE)){
     variable_set('scratchpads_gbif_registry_client_last_update', time());
   }
+}
+
+/**
+ * Helper function to return an array of profiles that should report back to
+ * GBIF.
+ */
+function scratchpads_gbif_registry_client_profiles(){
+  return array(
+    'scratchpad_2',
+    'emonocot_2',
+    'scratchpad_2_migrate',
+    'emonocot_2_migrate'
+  );
 }
 
 /**

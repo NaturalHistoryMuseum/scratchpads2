@@ -1,0 +1,78 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ * 
+ * @return $items
+ * A menu array
+ */
+function dictionary_export_menu(){
+  $items['admin/structure/taxonomy/%/dictionary_export'] = array(
+    'title' => 'Download Dictionary',
+    'page callback' => 'dictionary_export',
+    'page arguments' => array(
+      array(),
+      array(),
+     ),
+    'access arguments' => array(
+      'access content'
+    ),
+    'description' => t('Download a Microsoft Office compatible dictionary file of a vocabulary.'),
+    'access callback' => 'user_access',
+    'type' => MENU_LOCAL_TASK
+  );
+  return $items;
+}
+
+function dictionary_export_menu_page(){
+  $vocabs = taxonomy_get_vocabularies();
+  $options = array();
+  foreach($vocabs as $vocab){
+    $options[$vocab->vid] = $vocab->name;
+  }
+  $form['select_vocab'] = array(
+    '#type' => 'select',
+    '#title' => 'Vocabulary to save as dictionary:',
+    '#options' => $options
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Download dictionary')
+  );
+  $form['#submit'][] = 'dictionary_export';
+  return $form;
+}
+
+function dictionary_export($form, $form_state){
+ //Deal with coming form taxonomy local_task
+ if (!isset($form_state['values'])){
+   $vocab = taxonomy_vocabulary_machine_name_load(arg(3));
+   $form_state['values']['select_vocab'] = $vocab->vid;
+   unset($vocab);
+ }	
+	
+  $vid = $form_state['values']['select_vocab'];
+  $vocabs = taxonomy_get_vocabularies();
+  $name = str_replace(' ', '_', $vocabs[$vid]->name);
+  drupal_add_http_header('Content-Type', 'text/csv');
+  drupal_add_http_header('Content-Disposition', 'attachment;filename=' . $name . '.dic');
+  $sql = 'SELECT name FROM {taxonomy_term_data} WHERE vid = :vid';
+  $results = db_query($sql, array(
+    ':vid' => $vid
+  ))->fetchAll();
+  $terms = array();
+  foreach($results as $result){
+    $words = explode(' ', $result->name);
+    foreach($words as $word){
+      if(!in_array($word, $terms)){
+        $terms[] = $word;
+      }
+    }
+  }
+  $fp = fopen('php://output', 'w');
+  foreach($terms as $line){
+    fputs($fp, $line . "\r\n");
+  }
+  fclose($fp);
+  drupal_exit();
+}

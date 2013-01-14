@@ -566,7 +566,8 @@ h2.site-name {
 }
 
 .view-species-media .view-content ul li.views-row,
-.page-gallery .file{	
+.page-gallery .file,
+.lexicon-list .file{	
   float: left;
   margin: 0 10px 10px 0;
   border: 1px solid #999;
@@ -599,23 +600,23 @@ h2.site-name {
 
 /* STRIPY DIV GROUPS */
 
-.node .stripy-div-group{
+.stripy-div-group{
   margin: 20px 0;
   border-top: 1px solid #D9DADD;
 }
 
-.node .stripy-div-group .field{
+.stripy-div-group .field{
   border-width: 1px;
   border-color: #D9DADD;
   border-style: none solid solid solid;
   clear: left;
 }
 
-.node .stripy-div-group .odd{
+.stripy-div-group .odd{
   background: #F1F4FB;
 }
 
-.node .stripy-div-group .field-label{
+.stripy-div-group .field-label{
   float: left;
   width: 200px;
   text-align: right;
@@ -623,16 +624,16 @@ h2.site-name {
   font-weight: bold;
 }
 
-.node .stripy-div-group .field-label,
-.node .stripy-div-group .field-items{
+.stripy-div-group .field-label,
+.stripy-div-group .field-items{
   padding: 6px 0;
 }
 
-.node .stripy-div-group .field-items{
+.stripy-div-group .field-items{
   margin-left: 205px;
 }
 
-.node .stripy-div-group .field-items{ 
+.stripy-div-group .field-items{ 
   border-left: 1px solid #D9DADD;
   padding-left: 5px;
 }
@@ -971,4 +972,8 @@ article.comment.odd{
 }
 #forum td.icon{
  width:20px;
+}
+
+table, tbody, tfoot, thead, tr, th, td{
+ vertical-align: middle!important;
 }

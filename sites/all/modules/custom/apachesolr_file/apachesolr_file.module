@@ -36,11 +36,13 @@ function apachesolr_file_entity_info_alter(&$entity_info){
  * We need to ensure that this module's entity_info_alter fires after other 
  * modules (particularly file_styles and media).
  */
-function apachesolr_module_implements_alter(&$implementations, $hook){
+function apachesolr_file_module_implements_alter(&$implementations, $hook){
   if($hook == 'entity_info_alter'){
-    $this_module = $implementations['apachesolr_file'];
-    unset($implementations['apachesolr_file']);
-    $implementations['apachesolr_file'] = $this_module;
+    if(isset($implementations['apachesolr_file'])){
+      $this_module = $implementations['apachesolr_file'];
+      unset($implementations['apachesolr_file']);
+      $implementations['apachesolr_file'] = $this_module;
+    }
   }
 }
 

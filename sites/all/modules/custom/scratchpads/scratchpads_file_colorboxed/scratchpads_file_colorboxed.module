@@ -2,6 +2,46 @@
 include_once ('scratchpads_file_colorboxed.features.inc');
 
 /**
+ * Implements hook_file_displays_alter().
+ * 
+ * Ensure that an image is displayed on the file/[fid] page.
+ */
+function scratchpads_file_colorboxed_file_displays_alter(&$displays, $file, $view_mode){
+  if($view_mode == 'full' && arg(0) == 'file'){
+    $displays['file_field_styles_file_large'] = array(
+      'status' => 1,
+      'settings' => NULL,
+      'weight' => -1000
+    );
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ * 
+ * This function is only required if the hook_entity_info_alter is being used.
+ */
+// function scratchpads_file_colorboxed_module_implements_alter(&$imps, $hook){
+//   if($hook == 'entity_info_alter'){
+//     $move = $imps['scratchpads_file_colorboxed'];
+//     unset($imps['scratchpads_file_colorboxed']);
+//     $imps['scratchpads_file_colorboxed'] = $move;
+//   }
+// }
+/**
+ * Implements hook_entity_info_alter().
+ * 
+ * This function has been removed as it may not be required.  It's currently not
+ * possible to alter the "Full" and "Token" view modes.
+ */
+// function scratchpads_file_colorboxed_entity_info_alter(&$entity_info){
+//   // This is a temporary work around to prevent white screen errors on the file
+//   // pages.
+//   foreach(array_keys($entity_info['file']['view modes']) as $key){
+//     $entity_info['file']['view modes'][$key]['custom settings'] = TRUE;
+//   }
+// }
+/**
  * Implementation of hook_menu()
  */
 function scratchpads_file_colorboxed_menu(){

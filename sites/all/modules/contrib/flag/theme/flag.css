@@ -4,12 +4,22 @@
   top: 1.7em;
   line-height: normal;
   left: 0;
+  text-align: left;
   width: 300px;
   font-size: .8em;
 }
 
 .flag-wrapper {
   position: relative;
+}
+
+/* Better contextual link support, prevent line wrapping. */
+ul.contextual-links li .flag-wrapper a {
+  display: inline-block;
+}
+
+ul.contextual-links li .flag-wrapper {
+  display: block;
 }
 
 /* The rest deals with indicating the waiting state. */

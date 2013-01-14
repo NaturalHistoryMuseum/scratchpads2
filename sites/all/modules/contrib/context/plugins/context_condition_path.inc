@@ -47,7 +47,7 @@ class context_condition_path extends context_condition {
     if ($this->condition_used()) {
       // Include both the path alias and normal path for matching.
       $current_path = array(drupal_get_path_alias($_GET['q']));
-      if ($current_path != $_GET['q']) {
+      if ($current_path[0] != $_GET['q']) {
         $current_path[] = $_GET['q'];
       }
       foreach ($this->get_contexts() as $context) {

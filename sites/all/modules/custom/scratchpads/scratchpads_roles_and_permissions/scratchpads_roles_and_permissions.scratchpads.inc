@@ -613,6 +613,23 @@ function biblio_scratchpads_default_permissions(){
 }
 
 /**
+ * EXIF Custom module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function exif_custom_scratchpads_default_permissions(){
+  return array(
+    'contributor' => array(
+      'have default image metadata profile',
+      'view image metadata',
+    ),
+    'maintainer' => array(
+      'administer image metadata',
+    ),
+  );
+}
+
+/**
  * Block module.
  *
  * Implements hook_scratchpads_default_permissions().

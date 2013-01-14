@@ -135,5 +135,5 @@ function theme_remote_issue_tab_feed_items($variables = array()){
 function theme_remote_issue_tab_feed_item($variables = array()){
   // Note, we remove the "read more" link, as it could prevent users being
   // logged in by uwho.
-  return '<li class="' . ($variables['item_count'] % 2 ? 'odd' : 'even') . ($variables['item_count'] ? '' : ' first') . '"><div><h3>' . uwho_client_block_content($variables['uwho_key'], $variables['uwho_url'], $variables['item']->link, $variables['item']->title) . '</h3><p>' . preg_replace('/<a href[^>]*>read more<\/a>/', '', $variables['item']->description) . '</p></div></li>';
+  return '<li class="' . ($variables['item_count'] % 2 ? 'odd' : 'even') . ($variables['item_count'] ? '' : ' first') . '"><div><h3>' . uwho_client_block_content($variables['uwho_key'], $variables['uwho_url'], $variables['item']->link, $variables['item']->title) . '</h3><div class="remote_issue_item">' . preg_replace('/<a href[^>]*>read more<\/a>/', '', $variables['item']->description) . '</div></div></li>';
 }

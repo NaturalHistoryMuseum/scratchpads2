@@ -48,3 +48,46 @@ function scratchpads_biblio_node_presave($node){
   }
   return $node;
 }
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function scratchpads_biblio_field_formatter_info(){
+  return array(
+    'scratchpads_biblio_biblio_ref' => array(
+      'label' => t('Citation'),
+      'description' => t("Properly formatted citation using the site's style"),
+      'field types' => array(
+        'node_reference'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ * 
+ * For a node_reference that links to a Biblio node returns a link to the URL field as either a predefined image
+ * or the favicon of the site that is linked to.
+ * 
+ * For all node types returns link to attached files as an image 
+ */
+function scratchpads_biblio_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  $element = array();
+  switch($display['type']){
+    case 'scratchpads_biblio_biblio_ref':
+      foreach($items as $delta => $item){
+        $node = node_load($item['nid'], NULL, FALSE);
+        if($node->type == 'biblio'){
+          $output = theme('biblio_style', array(
+            'node' => $node
+          ));
+          $element[] = array(
+            '#markup' => $output
+          );
+        }
+      }
+      break;
+  }
+  return $element;
+}

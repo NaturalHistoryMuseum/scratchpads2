@@ -1,0 +1,14 @@
+; $Id: potx_test_6.info,v 1.1.4.3 2011/01/10 22:40:50 goba Exp $
+name = Translation template extractor tester
+description = Test description
+package = Test package
+version = 6.x
+core = 6.x
+hidden = TRUE
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-1.0"
+core = "7.x"
+project = "potx"
+datestamp = "1296046593"
+

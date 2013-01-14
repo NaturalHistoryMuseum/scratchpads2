@@ -1563,7 +1563,7 @@ function darwincore_field_default_fields(){
   $fields['node-specimen_observation-field_collector'] = array(
     'field_config' => array(
       'active' => '1',
-      'cardinality' => '1',
+      'cardinality' => '-1',
       'deleted' => '0',
       'entity_types' => array(),
       'field_name' => 'field_collector',
@@ -1592,8 +1592,8 @@ function darwincore_field_default_fields(){
         ),
         'view' => array(
           'args' => array(),
-          'display_name' => '',
-          'view_name' => ''
+          'display_name' => 'references_1',
+          'view_name' => 'users_references'
         )
       ),
       'translatable' => '1',
@@ -2131,8 +2131,8 @@ function darwincore_field_default_fields(){
         ),
         'view' => array(
           'args' => array(),
-          'display_name' => '',
-          'view_name' => ''
+          'display_name' => 'references_1',
+          'view_name' => 'users_references'
         )
       ),
       'translatable' => '1',

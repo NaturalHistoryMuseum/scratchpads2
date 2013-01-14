@@ -46,10 +46,12 @@ function context_layouts_theme() {
   foreach (list_themes() as $theme) {
     if (!empty($theme->status) && $layouts = context_layouts_get_layouts($theme->name)) {
       foreach ($layouts as $layout) {
-        $info["page__context_layouts_{$theme->name}_{$layout['layout']}"] = array(
-          'template' => $layout['template'],
-          'path' => drupal_get_path('theme', $theme->name),
-        );
+        if (!empty($layout['template'])) {
+          $info["page__context_layouts_{$theme->name}_{$layout['layout']}"] = array(
+            'template' => $layout['template'],
+            'path' => drupal_get_path('theme', $theme->name),
+          );
+        }
       }
     }
   }

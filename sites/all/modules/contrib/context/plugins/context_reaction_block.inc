@@ -220,7 +220,29 @@ class context_reaction_block extends context_reaction {
     foreach (array_keys($all_regions) as $region) {
       if ($this->is_enabled_region($region)) {
         if ($blocks = $this->block_get_blocks_by_region($region)) {
-          $page[$region] = isset($page[$region]) ? array_merge($page[$region], $blocks) : $blocks;
+
+          // Are the blocks already sorted.
+          $blocks_sorted = TRUE;
+
+          // If blocks have already been placed in this region (most likely by
+          // Block module), then merge in blocks from Context.
+          if (isset($page[$region])) {
+            $page[$region] = array_merge($page[$region], $blocks);
+
+            // Restore the weights that Block module manufactured
+            // @see _block_get_renderable_array()
+            foreach ($page[$region] as &$block) {
+              if (isset($block['#block']->weight)) {
+                $block['#weight'] = $block['#block']->weight;
+                $blocks_sorted = FALSE;
+              }
+            }
+          }
+          else {
+            $page[$region] = $blocks;
+          }
+
+          $page[$region]['#sorted'] = $blocks_sorted;
         }
       }
     }
@@ -336,13 +358,15 @@ class context_reaction_block extends context_reaction {
       foreach ($contexts as $context) {
         $options = $this->fetch_from_context($context);
         if (!empty($options['blocks'])) {
-          foreach ($options['blocks'] as $block) {
-            $block = (object) $block;
-            $block->context = $context->name;
-            $block->bid = "{$block->module}-{$block->delta}";
-            $block->title = isset($info[$block->bid]->title) ? $info[$block->bid]->title : NULL;
-            $block->cache = isset($info[$block->bid]->cache) ? $info[$block->bid]->cache : DRUPAL_NO_CACHE;
-            $context_blocks[$block->region][$block->bid] = $block;
+          foreach ($options['blocks'] as $context_block) {
+            $bid = "{$context_block['module']}-{$context_block['delta']}";
+            if (isset($info[$bid])) {
+              $block = (object) array_merge((array) $info[$bid], $context_block);
+              $block->context = $context->name;
+              $block->title = isset($info[$block->bid]->title) ? $info[$block->bid]->title : NULL;
+              $block->cache = isset($info[$block->bid]->cache) ? $info[$block->bid]->cache : DRUPAL_NO_CACHE;
+              $context_blocks[$block->region][$block->bid] = $block;
+            }
           }
         }
       }
@@ -429,6 +453,7 @@ class context_reaction_block extends context_reaction {
    */
   function get_blocks($region = NULL, $context = NULL, $reset = FALSE) {
     static $block_info;
+    $theme_key = variable_get('theme_default', 'garland');
 
     if (!isset($block_info) || $reset) {
       $block_info = array();
@@ -436,16 +461,29 @@ class context_reaction_block extends context_reaction {
         $block_info = context_cache_get('block_info');
       }
       if (empty($block_info)) {
-        $block_info = array();
-        foreach (module_implements('block_info') as $module) {
-          $module_blocks = module_invoke($module, 'block_info');
-          if (!empty($module_blocks)) {
-            foreach ($module_blocks as $delta => $block) {
-              $block = (object) $block;
-              $block->module = $module;
-              $block->delta = $delta;
-              $block->bid = "{$block->module}-{$block->delta}";
-              $block_info[$block->bid] = $block;
+        if (module_exists('block')) {
+          $block_blocks = _block_rehash($theme_key);
+          $block_info = array();
+          // Change from numeric keys to module-delta.
+          foreach ($block_blocks as $block) {
+            $block = (object) $block;
+            unset($block->theme, $block->status, $block->weight, $block->region, $block->custom, $block->visibility, $block->pages);
+            $block->bid = "{$block->module}-{$block->delta}";
+            $block_info[$block->bid] = $block;
+          }
+        }
+        else {
+          $block_info = array();
+          foreach (module_implements('block_info') as $module) {
+            $module_blocks = module_invoke($module, 'block_info');
+            if (!empty($module_blocks)) {
+              foreach ($module_blocks as $delta => $block) {
+                $block = (object) $block;
+                $block->module = $module;
+                $block->delta = $delta;
+                $block->bid = "{$block->module}-{$block->delta}";
+                $block_info[$block->bid] = $block;
+              }
             }
           }
         }
@@ -457,7 +495,6 @@ class context_reaction_block extends context_reaction {
 
       // Gather only region info from the database.
       if (module_exists('block')) {
-        $theme_key = variable_get('theme_default', 'garland');
         $result = db_select('block')
           ->fields('block', array('module', 'weight', 'delta', 'region', 'title'))
           ->condition('theme', $theme_key)

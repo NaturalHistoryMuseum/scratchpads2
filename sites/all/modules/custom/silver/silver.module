@@ -5,6 +5,8 @@ include_once ('silver.features.inc');
  * Implements hook_feeds_presave()
  */
 function silver_feeds_presave(FeedsSource $source, $entity){
+  // We do nothing if this is a user entity.
+  if(get_class($source->importer->processor) == 'FeedsUserProcessor'){return;}
   // Set the UID.
   if(isset($entity->uid) && !$entity->uid){
     global $user;
@@ -170,7 +172,18 @@ function silver_silver(){
         'edit file'
       ),
       'form_id' => 'silver_file_excel_form'
+    ),
+    /*
+     * FIXME - Uncomment this when the user stuff is ready!
+    array(
+      'type' => 'Users',
+      'name' => 'Excel file import',
+      'access arguments' => array(
+        'administer users'
+      ),
+      'redirect' => 'import/user_importer_user'
     )
+     */
   );
 }
 
@@ -424,6 +437,14 @@ function silver_file_excel_form(){
     ),
     '#suffix' => '<div id="silver_import_subform_feeds"></div>'
   );
+}
+
+/**
+ * silver_user_excel_form
+ */
+function silver_user_excel_form(){
+  // Get the feeds import form.
+  return drupal_get_form('feeds_import_form', 'user_importer_user');
 }
 
 /**

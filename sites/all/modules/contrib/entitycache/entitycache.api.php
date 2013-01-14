@@ -29,20 +29,20 @@ function hook_entitycache_ENTITY_TYPE_load($entities) {
 /**
  * Act on entities being removed from the entitycache.
  *
- * @param $entity_ids
- *   Array with the ids of the entities.
- * @param $entity_type
+ * @param array|null $entity_ids
+ *   Array with the ids of the entities, or NULL for all entities of this type.
+ * @param string $entity_type
  */
-function hook_entitycache_reset($entity_ids, $entity_type) {
+function hook_entitycache_reset($entity_ids = NULL, $entity_type) {
 
 }
 
 /**
  * Act on entites of a specific entity type being removed from the entitycache.
  *
- * @param $entity_ids
- *   Array with the ids of the entities.
+ * @param array|null $entity_ids
+ *   Array with the ids of the entities, or NULL for all entities of this type.
  */
-function hook_entitycache_ENTITY_TYPE_reset($entity_ids) {
+function hook_entitycache_ENTITY_TYPE_reset($entity_ids = NULL) {
 
 }

@@ -1,4 +1,5 @@
 <?php
+define('TINYTAX_MAX_TERMS_ANCESTORS_NUM', 500);
 
 /**
  * @file
@@ -49,10 +50,21 @@ function tinytax_theme(){
  * Callback to return a sub-branch.
  */
 function tinytax_js($term){
+  // Check the total number of terms in this taxonomy.  If too many, and we're
+  // set to display ancestors, then disable the display of ancestors.
+  $ancestors = variable_get('tinytax_ancestors_' . $term->vid, 0);
+  if($ancestors){
+    $row = db_query('SELECT COUNT(*) AS num_terms FROM {taxonomy_term_data} WHERE vid = :vid', array(
+      ':vid' => $term->vid
+    ))->fetch();
+    if($row->num_terms > TINYTAX_MAX_TERMS_ANCESTORS_NUM){
+      $ancestors = 0;
+    }
+  }
   return theme('tinytax_branch', array(
     'tid' => $term->tid,
     'vid' => $term->vid,
-    'ancestors' => variable_get('tinytax_ancestors_' . $term->vid, 1)
+    'ancestors' => $ancestors
   ));
 }
 
@@ -99,7 +111,7 @@ function tinytax_block_view($delta = ''){
       '#theme' => 'tinytax_block',
       '#vid' => $delta,
       '#open_tids' => $open_tids,
-      '#ancestors' => variable_get('tinytax_ancestors_' . $vocabulary->vid, 1),
+      '#ancestors' => variable_get('tinytax_ancestors_' . $vocabulary->vid, 0),
       '#attached' => array(
         'css' => array(
           drupal_get_path('module', 'tinytax') . '/css/tinytax.css'
@@ -132,7 +144,7 @@ function tinytax_block_configure($delta = ''){
     'tinytax_ancestors' => array(
       '#type' => 'checkbox',
       '#title' => t('Tick to show the total number of descendants of each term.'),
-      '#default_value' => variable_get('tinytax_ancestors_' . $delta, 1)
+      '#default_value' => variable_get('tinytax_ancestors_' . $delta, 0)
     )
   );
 }

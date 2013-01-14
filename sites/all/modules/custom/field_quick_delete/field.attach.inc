@@ -24,3 +24,7 @@ if(filemtime($original_filename) > filemtime($replacement_filename)){
 include $replacement_filename;
 // Load include file with the replacement functions in
 module_load_include('attach.inc.replace.inc', 'field');
+
+/**
+class FieldValidationException extends FieldException {
+ */

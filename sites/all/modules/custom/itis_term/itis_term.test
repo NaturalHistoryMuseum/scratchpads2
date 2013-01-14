@@ -1,0 +1,59 @@
+<?php
+
+class ItisTermTestCase extends DrupalWebTestCase{
+
+  protected $itis_term_user;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'ITIS Term functionality',
+      'description' => 'Create, view, edit, delete ITIS term classifications',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  function setUp(){
+    parent::setUp('itis_term');
+    // Create users.
+    $this->itis_term_user = $this->drupalCreateUser(array(
+      'administer taxonomy'
+    ));
+  }
+
+  /**
+   * Confirm that the "admin/structure/taxonomy/add" page is accessible when
+   * this module is installed.
+   */
+  function testAccessTaxonomyAddPage(){
+    $this->drupalLogin($this->itis_term_user);
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $this->assertResponse(200);
+  }
+
+  /**
+   * Login users, create taxonomy, and test functionality through the admin and
+   * user interfaces.
+  function testItisTerm() {
+    // Login the admin user.
+    $this->drupalLogin($this->itis_term_user);
+    // Do basic tests for each user.
+    $this->doBasicTests($this->any_user, TRUE);
+    $this->doBasicTests($this->own_user, FALSE);
+
+    // Create another blog node for the any blog user.
+    $node = $this->drupalCreateNode(array('type' => 'blog', 'uid' => $this->any_user->uid));
+    // Verify the own blog user only has access to the blog view node.
+    $this->verifyBlogs($this->any_user, $node, FALSE, 403);
+
+    // Create another blog node for the own blog user.
+    $node = $this->drupalCreateNode(array('type' => 'blog', 'uid' => $this->own_user->uid));
+    // Login the any blog user.
+    $this->drupalLogin($this->any_user);
+    // Verify the any blog user has access to all the blog nodes.
+    $this->verifyBlogs($this->own_user, $node, TRUE);
+  }
+   */
+}

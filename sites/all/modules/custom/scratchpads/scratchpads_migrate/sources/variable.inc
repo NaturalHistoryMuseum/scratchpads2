@@ -37,7 +37,8 @@ class VariableMigration extends DrupalMigration{
       'site_slogan' => 'site_slogan',
       'site_frontpage' => 'site_frontpage',
       'site_mission' => 'front_page_welcome_message',
-      'language_default' => 'language_default'
+      'language_default' => 'language_default',
+      'user_registration_help' => 'user_registration_help'
     );
     $default_theme = Database::getConnection('default', 'scratchpad_1')->select('variable', 'v')->fields('v', array(
       'value'
@@ -69,9 +70,58 @@ class VariableMigration extends DrupalMigration{
 
   public function prepareRow($row){
     parent::prepareRow($row);
-    if($row->name == 'site_frontpage'){
-      // Do we want to use this front page?
-      if(!scratchpads_migrate_variable_get('keep_homepage')){return false;}
+    switch($row->name){
+      case 'site_frontpage':
+        // Do we want to use this front page?
+        if(!scratchpads_migrate_variable_get('keep_homepage')){return false;}
+        break;
+      case 'user_registration_help':
+        // We're not actually going to migrate this variable
+        // Just create a block - see block.install line 326
+        if(isset($row->value) && !empty($row->value)){
+          $user_help = unserialize($row->value);
+          if($user_help){
+            // Create a block
+            $bid = db_insert('block_custom')->fields(array(
+              'body' => $user_help,
+              'info' => 'User registration guidelines',
+              'format' => 'filtered_html'
+            ))->execute();
+            // Collect a list of themes with blocks.
+            $result = db_query("SELECT s.name FROM {system} s INNER JOIN {block} b ON s.name = b.theme WHERE s.type = 'theme' GROUP by s.name");
+            $themes_with_blocks = $result->fetchCol();
+            // Add contact help block
+            $insert = db_insert('block')->fields(array(
+              'module',
+              'delta',
+              'theme',
+              'status',
+              'weight',
+              'region',
+              'visibility',
+              'pages',
+              'cache'
+            ));
+            foreach($themes_with_blocks as $theme){
+              // Add user registration help block for themes, which had blocks.
+              $insert->values(array(
+                'module' => 'block',
+                'delta' => $bid,
+                'theme' => $theme,
+                'status' => 1,
+                'weight' => -1,
+                'region' => 'content',
+                'visibility' => BLOCK_VISIBILITY_LISTED,
+                'pages' => 'user/register',
+                'cache' => DRUPAL_NO_CACHE
+              ));
+              $insert->execute();
+            }
+          }
+        }
+        // We don't want to actually migrate this variable
+        return false;
+        break;
     }
   }
 }

@@ -26,9 +26,14 @@ class EntityCacheControllerHelper extends DrupalDefaultEntityController {
 
   public static function resetEntityCache($controller, array $ids = NULL) {
     // Reset the persistent cache.
-    if (isset($ids)) {
+    if (!empty($ids)) {
       cache_clear_all($ids, 'cache_entity_' . $controller->entityType);
     }
+    else {
+      // Force all cached entries to be deleted.
+      cache_clear_all('*', 'cache_entity_' . $controller->entityType, TRUE);
+    }
+
     // Give modules the chance to act on any entity.
     foreach (module_implements('entitycache_reset') as $module) {
       $function = $module . '_entitycache_reset';
@@ -253,6 +258,7 @@ function entitycache_supported_core_entities($enabled = FALSE) {
       unset($return['taxonomy_term']);
       unset($return['taxonomy_vocabulary']);
     }
+    $return = array_diff_key($return, drupal_map_assoc(variable_get('entitycache_disabled_entity_types', array())));
   }
   return $return;
 }
@@ -369,6 +375,22 @@ function entitycache_comment_insert($comment) {
  * Implements hook_comment_update().
  */
 function entitycache_comment_update($comment) {
+  cache_clear_all($comment->nid, 'cache_entity_node');
+}
+
+/**
+ * Implements hook_entitycache_ENTITY_TYPE_load().
+ */
+function entitycache_entitycache_comment_load($comments) {
+  foreach ($comments as $comment) {
+    $comment->new = $comment->new = node_mark($comment->nid, $comment->changed);
+  }
+}
+
+/**
+ * Implements hook_comment_update().
+ */
+function entitycache_comment_delete($comment) {
   cache_clear_all($comment->nid, 'cache_entity_node');
 }
 

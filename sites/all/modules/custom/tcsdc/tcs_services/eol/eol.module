@@ -179,5 +179,9 @@ function eol_submit($form, $form_state){
     // 'Remaining x of y operations' message will be confusing here.
     'error_message' => t('The import has encountered an error.')
   );
+  // Update the vocabulary to state that we've downloaded from EOL.
+  $vocabulary = taxonomy_vocabulary_load($form_state['values']['taxonomy_vid']);
+  $vocabulary->description = trim($vocabulary->description . ' ' . t('(Imported from EOL)'));
+  taxonomy_vocabulary_save($vocabulary);
   batch_set($batch);
 }

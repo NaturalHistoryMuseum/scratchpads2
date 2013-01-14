@@ -15,7 +15,7 @@ function theme_tinytax_block($variables){
     $row = db_query('SELECT COUNT(*) AS num_terms FROM {taxonomy_term_data} WHERE vid = :vid', array(
       ':vid' => $variables['vid']
     ))->fetch();
-    if($row->num_terms > 2000){
+    if($row->num_terms > TINYTAX_MAX_TERMS_ANCESTORS_NUM){
       $variables['ancestors'] = 0;
     }
   }
@@ -74,26 +74,6 @@ function theme_tinytax_term_count($variables){
 }
 
 /**
- * Get the count of children for this term.
- */
-function _tinytax_get_children_count($tid, $recurse = FALSE){
-  // If not recursing, we can keep things simple, else we need the children tids.
-  if($recurse){
-    $total = 0;
-    $results = db_select('taxonomy_term_hierarchy', 't')->condition('parent', $tid)->fields('t', array(
-      'tid'
-    ))->execute();
-    foreach($results as $row){
-      $total++;
-      $total += _tinytax_get_children_count($row->tid, TRUE);
-    }
-    return $total;
-  }else{
-    return count(taxonomy_get_children($tid));
-  }
-}
-
-/**
  * tinytax_term theme function
  */
 function theme_tinytax_term($variables){
@@ -103,8 +83,8 @@ function theme_tinytax_term($variables){
   }else{
     $active = FALSE;
   }
-  $has_children = _tinytax_get_children_count($variables['term']->tid, $variables['ancestors']);
-  $output = '<li>';
+  $has_children = count(taxonomy_get_children($variables['term']->tid));
+  $output = '<li id="tinytax-' . $variables['term']->tid . '">';
   if($has_children){
     // Plus or minus.
     if(in_array($variables['term']->tid, $variables['open_tids'])){
@@ -142,21 +122,6 @@ function theme_tinytax_term($variables){
       'path' => file_create_url(drupal_get_path('module', 'tinytax') . '/images/leaf.gif')
     ));
   }
-  if(isset($variables['term']->field_usage)){
-    if(@in_array($variables['term']->field_usage[LANGUAGE_NONE][0]['value'], array(
-      'invalid',
-      'not accepted'
-    ))){
-      if(@in_array($variables['term']->field_unacceptability_reason[LANGUAGE_NONE][0]['value'], array(
-        'objective synonym',
-        'homotypic (nomenclatural) synonym'
-      ))){
-        $output .= '&equiv; ';
-      }else{
-        $output .= '= ';
-      }
-    }
-  }
   $term_uri = taxonomy_term_uri($variables['term']);
   $term_text = theme('scratchpads_species_name', array(
     'term' => $variables['term']
@@ -164,7 +129,7 @@ function theme_tinytax_term($variables){
   if(!$term_text){
     $term_text = check_plain($variables['term']->name);
   }
-  $output .= l($term_text, $term_uri['path'], array(
+  $term_text = l($term_text, $term_uri['path'], array(
     'html' => TRUE,
     'attributes' => array(
       'class' => $active ? array(
@@ -172,6 +137,85 @@ function theme_tinytax_term($variables){
       ) : array()
     )
   ));
+  if(isset($variables['term']->field_usage)){
+    if(@in_array($variables['term']->field_usage[LANGUAGE_NONE][0]['value'], array(
+      'invalid',
+      'not accepted'
+    ))){
+      if(@isset($variables['term']->field_unacceptability_reason[LANGUAGE_NONE][0]['value'])){
+        switch($variables['term']->field_unacceptability_reason[LANGUAGE_NONE][0]['value']){
+          // Suffixes
+          case 'other':
+          case 'unavailable, other':
+            $term_text = $term_text . ' unplaced';
+            break;
+          case 'nomen oblitum':
+            $term_text = $term_text . ' nom. oblitum';
+            break;
+          case 'nomen dubium':
+            $term_text = $term_text . ' nom. dubium';
+            break;
+          case 'misapplied':
+            $term_text = $term_text . ' misapplied';
+            break;
+          case 'junior homonym':
+            $term_text = $term_text . ' homonym';
+            break;
+          case 'horticultural':
+            $term_text = $term_text . ' horticultural';
+            break;
+          case 'database artifact':
+          case 'unavailable, database artifact':
+            $term_text = $term_text . ' artifact';
+            break;
+          case 'homonym (illegitimate)':
+          case 'superfluous renaming (illegitimate)':
+          case 'unavailable, nomen nudum':
+            $term_text = $term_text . ' nom. illeg.';
+            break;
+          case 'unavailable, literature misspelling':
+          case 'unavailable, incorrect original spelling':
+          case 'invalidly published, nomen nudum':
+          case 'invalidly published, other':
+          case 'orthographic variant (misspelling)':
+            $term_text = $term_text . ' nom. inval.';
+            break;
+          case 'rejected name':
+          case 'unavailable, suppressed by ruling':
+            $term_text = $term_text . ' nom. rej.';
+            break;
+          case 'subsequent name/combination':
+            $term_text = $term_text . ' n. comb.';
+            break;
+          case 'unjustified emendation':
+            $term_text = $term_text . ' unjustified emendation';
+            break;
+          case 'unnecessary replacement':
+            $term_text = $term_text . ' unnecessary replacement';
+            break;
+          // Prefixes
+          case 'objective synonym':
+          case 'homotypic (nomenclatural) synonym':
+            $term_text = '&equiv; ' . $term_text;
+            break;
+          case 'heterotypic (taxonomic) synonym':
+          case 'synonym':
+          case 'junior synonym':
+          case 'subjective synonym':
+            $term_text = '= ' . $term_text;
+            break;
+          // Both
+          case 'pro parte':
+            $term_text = '= ' . $term_text . ' p.p.';
+            break;
+          case 'homonym & junior synonym':
+            $term_text = '= ' . $term_text . ' nom. illeg.';
+            break;
+        }
+      }
+    }
+  }
+  $output .= $term_text;
   if(in_array($variables['term']->tid, $variables['open_tids']) && $has_children){ // Check here for open!
     $output .= theme('tinytax_term_count', array(
       'count' => $has_children

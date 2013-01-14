@@ -1,6 +1,6 @@
 <?php
 
-function _scratchpads_statistics_cron(){
+function _scratchpads_statistics_cron($force_update = FALSE){
   // Check the last time we saved data for this site (should always be site 1),
   // and only progress if it was more than six days ago.
   $last_capture = 0;
@@ -10,7 +10,7 @@ function _scratchpads_statistics_cron(){
   if(count($col)){
     $last_capture = array_pop($col);
   }
-  if($last_capture + 518400 > time()){return;}
+  if($last_capture + 518400 > time() && !$force_update){return;}
   // Ensure we have a comprehensive list of entities and bundles.
   $info = entity_get_info();
   foreach(entity_get_info() as $entity => $entity_info){
@@ -48,6 +48,18 @@ function _scratchpads_statistics_cron(){
       'email' => $user->mail
     ))->execute();
   }
+  // Sadly the MergeQuery class does not have a "from" method, so we need to
+  // delete the items in the login table relating to this site.
+  db_delete('scratchpads_statistics_login')->condition('site', 1)->execute();
+  // Update the login table.
+  $select = db_select('scratchpads_statistics_user', 'ssu');
+  $select->innerJoin('users', 'u', 'u.mail = ssu.email');
+  $select->condition('u.uid', 1, '>');
+  $select->condition('u.status', 1);
+  $select->addField('ssu', 'id', 'user');
+  $select->addField('u', 'created');
+  $select->addField('u', 'access');
+  $query = db_insert('scratchpads_statistics_login')->from($select)->execute();
   // Ensure we have a comprehensive list of terms
   db_query('INSERT INTO {scratchpads_statistics_term} (term) SELECT DISTINCT LOWER(name) FROM {taxonomy_term_data} WHERE name NOT IN (SELECT name FROM {scratchpads_statistics_term})');
   //
@@ -168,7 +180,7 @@ function _scratchpads_statistics_cron(){
           }
           $query->execute();
           // Run for no more than sixty seconds.
-          if(time() > $timer + 60){return;}
+          if(time() > $timer + 60 && !$force_update){return;}
         }
       }
       catch(Exception $e){

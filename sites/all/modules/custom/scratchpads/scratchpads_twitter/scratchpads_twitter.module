@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function scratchpads_twitter_scratchpads_default_permissions(){
+  return array(
+    'authenticated user' => array(
+      'add twitter accounts'
+    )
+  );
+}
