@@ -43,9 +43,12 @@ function googlescholar_block_view($delta = ''){
         }
         return array(
           'subject' => t('Google Scholar'),
-          'content' => theme('item_list', array(
-            'items' => $items
-          ))
+          'content' => array(
+            'list' => array(
+              '#theme' => 'item_list',
+              '#items' => $items
+            )
+          )
         );
       }
   }
