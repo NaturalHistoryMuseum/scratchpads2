@@ -73,7 +73,11 @@ function bhl_block_view($delta = ''){
           $pages = array();
           foreach($title['items'][0]->Item->Pages->Page as $page){
             $viewer_url = '/bhl_viewer/' . $page->ImageUrl;
-            $pages[intval($page->Number)] = "<a href=\"$viewer_url\" title=\"{$page->Prefix} {$page->Number} of $publication_title\">{$page->Prefix} $page->Number</a>";
+            $link_text = trim("{$page->Prefix} $page->Number");
+            if(!$link_text){
+              $link_text = t('Page');
+            }
+            $pages[intval($page->Number)] = "<a href=\"$viewer_url\" title=\"{$page->Prefix} {$page->Number} of $publication_title\">$link_text</a>";
           }
           ksort($pages);
           $page_counter = count($pages);
