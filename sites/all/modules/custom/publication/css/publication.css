@@ -1,4 +1,15 @@
 @CHARSET "UTF-8";
+.field-name-field-publication-title {
+  font-family: Georgia,"Times New Roman",Times,serif;
+  font-size: 2em;
+  margin-left: 120px;
+}
+
+.publication-group .field-publication-background .field-items,
+.publication-group .field-name-field-publication-abstract .field-label,
+.publication-group .field-name-field-publication-keywords .field-label {
+  color: #888888;
+}
 
 .publication-group{
   margin-bottom: 30px;
@@ -44,9 +55,14 @@
 
 .publication-group .field{
   margin-left: 120px;
+  margin-bottom: 8px;
   font-family: Georgia,"Times New Roman",Times,serif;
   position: relative;
   z-index: 100;
+}
+
+.publication-group .field-publication-secondary .field-items {
+  margin-left: 20px;
 }
 
 .publication-group .field .field{
@@ -56,19 +72,58 @@
 .publication-group .field-label{
   font-size: 1.2em;
   font-weight: bold;
-  padding-top: 10px;
+  /*padding-top: 10px;*/
   margin-bottom: 0.4em;
+}
+
+.publication-group .field-type-relation-select .field-items .field-label {
+  font-size: 1em;
+}
+
+.publication-group .field-type-relation-select ul li {
+  list-style: none;
+}
+
+.publication-group .field-type-relation-select ul li .field-label,
+.publication-group .field-type-relation-select .relation-select-field-suffix .field-label {
+  float: left;
+  margin-left: 20px;
+  margin-bottom: 0;
+}
+
+.publication-group .field-type-relation-select ul li .field-items,
+.publication-group .field-type-relation-select .relation-select-field-suffix .field-items {
+  margin-left: 40px;
 }
 
 .publication-group .field .field .field-label{
   font-size: 1em;
 }
 
-
-
 .publication-group .field-name-field-publication-title{
   font-size: 1.6em;
   font-weight: bold;
   text-align: center;
   margin-bottom: 2em;
+}
+
+.publication-group table td {
+  background: #EEE;
+  border: 1px solid #888;
+
+}
+
+.publication-group table th {
+  font-weight: bold;
+  background: #DDD;
+  border: 1px solid #888;
+}
+
+.publication-group .publication_figure img {
+  float: left;
+  margin-bottom: 8px;
+}
+
+.publication-group .publication_figure div {
+  margin-left: 230px;
 }
