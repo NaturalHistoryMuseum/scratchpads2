@@ -89,22 +89,42 @@ class PensoftPublicationXSDParser {
    */
   function _create_elements($current) {
     $schema = array();
-    $elements = $current->xpath('xsd:element');
+    $elements = $current->xpath('xsd:element|xsd:sequence');
     
     foreach ($elements as $element) {
-      $vars = get_object_vars($element);
-      $attributes = $vars['@attributes'];
-      if (isset($attributes['type'])) {
-        $schema[$attributes['name']] = $this->_get_type($attributes['type']);
-      } else {
-        $schema[$attributes['name']] = array();
-      }
+      if ($element->getName() == 'element') {
+        $vars = get_object_vars($element);
+        $attributes = $vars['@attributes'];
+        if (isset($attributes['type'])) {
+          $schema[$attributes['name']] = $this->_get_type($attributes['type']);
+        } else {
+          // Look for in-line type definition
+          $inline = $element->xpath('xsd:complexType');
+          if (count($inline) > 0) {
+            if (count($inline) > 1) {
+              throw new Exception("Invalid XSD schema: more than one inline complexType");
+            }
+            $inline_type = array_shift($inline);
+            $schema[$attributes['name']] = $this->_parse_complex_type($inline_type, $attributes['name']);
+          } else {
+            // Simple value
+            $schema[$attributes['name']] = array();
+          }
+        }
     
-      if (isset($attributes['minOccurs']) && $attributes['minOccurs'] != 1) {
-        $schema[$attributes['name']]['#min_occurence'] = $attributes['minOccurs'] == "unbounded" ? -1 : intval($attributes['minOccurs']);
-      }
-      if (isset($attributes['maxOccurs']) && $attributes['maxOccurs'] != 1) {
-        $schema[$attributes['name']]['#max_occurence'] = $attributes['maxOccurs'] == "unbounded" ? -1 : intval($attributes['maxOccurs']);
+        if (isset($attributes['minOccurs']) && $attributes['minOccurs'] != 1) {
+          $schema[$attributes['name']]['#min_occurence'] = $attributes['minOccurs'] == "unbounded" ? -1 : intval($attributes['minOccurs']);
+        }
+        if (isset($attributes['maxOccurs']) && $attributes['maxOccurs'] != 1) {
+          $schema[$attributes['name']]['#max_occurence'] = $attributes['maxOccurs'] == "unbounded" ? -1 : intval($attributes['maxOccurs']);
+        }
+      } else if ($element->getName() == 'sequence') {
+        // A sequence of elements, indicating a repeat within the parent tag.
+        // XXX we need to handle this properly - as this is actually wrong. The sequence has it's own minOccurs/maxOccurs.
+        // We'd need a '#sequence' element.
+        $schema = array_merge($schema, $this->_create_elements($element));
+      } else {
+        throw new Exception('Unsuported element type within flow : ' . $element->getName());
       }
     }
     
@@ -112,26 +132,69 @@ class PensoftPublicationXSDParser {
   }
   
   /**
-   * Create the schema array representing the given xsd:complexType element
+   * Create the schema array representing the given xsd:simple/complexType element
    * 
    */
   function _get_type($type) {
-    $types = $this->dom->xpath('xsd:complexType[@name="' . $type . '"]');
-    if (count($types) == 0) {
-      throw new Exception("Parse error: could not find complex type " . $type);
-    } else if (count($types) > 1) {
-      throw new Exception("Invalid XSD schema: more than one definition of complex type " . $type);
-    }
-
-    $type = array_shift($types);           
-    $sequences = $type->xpath('xsd:sequence');
-    if (count($sequences) != 1) {
-      throw new Exception("XSD Schema parsing: we only support complex types with one sequence for type " . $type);
+    // Handle inbuild types
+    switch($type) {
+      case 'xsd:string':
+        return array();        
     }
     
-    $sequence = array_shift($sequences);
-    return $this->_create_elements($sequence);
-  }  
+    // Look for a simple/complexType definition
+    $types = $this->dom->xpath('xsd:simpleType[@name="' . $type . '"]');
+    if (count($types) > 0) {
+      // Handle simple types
+      if (count($types) > 1) {
+        throw new Exception("Invalid XSD schema: more than one definition of type " . $type);        
+      }
+      
+      $type_element = array_shift($types);
+      $element = array();
+    } else {
+      // Handle complex types
+      $types = $this->dom->xpath('xsd:complexType[@name="' . $type . '"]');
+      if (count($types) == 0) {
+        throw new Exception("Parse error: could not find type " . $type);
+      } else if (count($types) > 1) {
+        throw new Exception("Invalid XSD schema: more than one definition of type " . $type);
+      }
+
+      $type_element = array_shift($types);
+      $element = $this->_parse_complex_type($type_element, $type);
+    }
+    
+    // XXX TODO parse restrictions.
+    return $element;
+  }
+  
+  /**
+   * Parse a complexType element, and return the schema array
+   */
+  function _parse_complex_type($element, $display_name) {
+    $result = array();
+    
+    // Look for attributes
+    $attributes = $element->xpath('xsd:attribute');
+    foreach ($attributes as $attribute) {
+      $vars = get_object_vars($attribute);
+      $name = $vars['@attributes']['name'];
+      // XXX Does this mean the attribute is required ? How do we mark this ?
+      //$result['#attributes'] = array($name => NULL);
+    }
+    
+    // Look for a sequence
+    $sequences = $element->xpath('xsd:sequence');
+    if (count($sequences) > 1) {
+      throw new Exception("XSD Schema parsing: we only support complex types with one sequence for type/inline $display_name");
+    } else if (count($sequences) == 1) {     
+      $sequence = array_shift($sequences);
+      $result = array_merge($result, $this->_create_elements($sequence));
+    }
+
+    return $result;
+  }
 }
 
 /**
@@ -406,7 +469,7 @@ class PensoftPublicationXMLBuilder{
  */
 function _pensoft_publication_build_xml($publication) {
   // Parse the schema
-  $url = variable_get('pensoft_publication_xml_schema_url', 'http://localhost/scratchpads/sites/all/modules/custom/publication/modules/pensoft_publication/research_article.xsd');
+  $url = variable_get('pensoft_publication_xml_schema_url', 'http://localhost/scratchpads/sites/all/modules/custom/publication/modules/pensoft_publication/taxonomic_paper.xsd');
   //$source_schema = _pensoft_publication_xml_parse_schema($url);
   try {
     $parser = new PensoftPublicationXSDParser($url);
@@ -427,20 +490,25 @@ function _pensoft_publication_build_xml($publication) {
       'acknowledgements' => _pensoft_publication_xml_acknowledgements_schema(),
       'supplementary_files' => _pensoft_publication_xml_files_schema()
     ),
+    //'figures' => _pensoft_publication_xml_figures_schema(),
+    //'tables' => _pensoft_publication_xml_tables_schema(),
   ));
+  
   $schema = array_merge_recursive($source_schema, $map_schema);
+  $schema = _pensoft_publication_order_schema($schema); // array_merge_recursive doesn't order fields as we want them.
   
   // Build the XML
   try {
-    $builder = new PensoftPublicationXMLBuilder($schema, array('force-empty-values' => TRUE));
+    $builder = new PensoftPublicationXMLBuilder($schema, array('force-empty-values' => FALSE));
     $xml = $builder->build_xml($publication);
   } catch (Exception $e) {
     drupal_set_message($e->getMessage(), 'error');
     return FALSE;
   }   
     
-  // Validation and error display
-  $xml_per_line = preg_replace('/>/', ">\n", $xml);
+  // Validation and error display. Try to break the XML down in lines such that we don't disturb content by adding unwanted
+  // carriage returns (that would effecut enumerations for instance).
+  $xml_per_line = preg_replace('/(<\/.*?>)/', "$1\n", $xml);
   $parsed_dom = new DOMDocument('1.0', 'UTF-8');
   $parsed_dom->loadXML($xml_per_line);
   libxml_use_internal_errors(true);  
@@ -479,24 +547,78 @@ function _pensoft_publication_build_xml($publication) {
 }
 
 /**
+ * Ensure multiple definitions of the same field in a schema are kept
+ * in the right order.
+ * 
+ */
+function _pensoft_publication_order_schema($schema) {
+  if (!is_array($schema)) {
+    return $schema;
+  }
+  
+  $keys = array_keys($schema);
+  $reorder = array();
+  $reorder_all = array();
+  
+  // Find items that need re-ordering
+  foreach ($keys as $key) {
+    if (!preg_match('/^(.+)#\d+$/', $key, $matches)) {
+      continue;
+    }
+    
+    if (in_array($matches[1], $keys)) {
+      $reorder[$matches[1]][] = $key;
+      $reorder_all[] = $key;
+    }
+  }
+  
+  // Re-order and re-curse
+  $new = array();
+  foreach ($keys as $key) {
+    if (in_array($key, $reorder_all)) {
+      continue;
+    }
+    $new[$key] = _pensoft_publication_order_schema($schema[$key]);
+    if (!empty($reorder[$key])) {
+      foreach ($reorder[$key] as $follow) {
+        $new[$follow] = _pensoft_publication_order_schema($schema[$follow]);
+      }
+    }
+  }
+  
+  return $new;
+}
+
+/**
  * Proccess a field to insert a country value
  * 
  */
 function _pensoft_publication_xml_process_country($value) {
-  return $value['iso2'];
+  $country = country_load($value['iso2']);
+  // XXX how do we know Pensoft gets this right ? $country->official_name might be safer ?
+  return $country->name;
+}
+
+/**
+ * Process a salutation
+ */
+function _pensoft_publication_xml_process_salutation($value) {
+  $map = array(
+    'Prof.' => 'Prof'
+  );
+  
+  if (isset($map[$value['value']])) {
+    return array('value' => $map[$value['value']]);
+  } else {
+    return $value;
+  }
 }
 
 /**
  * Loader function for the author/contributor fields
  */
 function _pensoft_publication_xml_load_user($value) {
-  if (isset($value['endpoints'])) {
-    $endpoint = array_shift(array_values($value['endpoints']));
-    list($type, $user_id) = explode(':', $endpoint);
-    $user = user_load($user_id);
-    return $user;    
-  }
-  return NULL;
+  return user_load($value);
 }
 
 /**
@@ -514,10 +636,11 @@ function _pensoft_publication_xml_load_treatment($value) {
   $endpoint = array_shift(array_values($value['endpoints']));
   list($type, $nid) = explode(':', $endpoint);
   $rid = $value['relation_id'];
-  $tid = $node->field_taxonomic_name["und"][0]["tid"];
   
   $relation = relation_load($rid);
   $node = node_load($nid);
+  
+  $tid = $node->field_taxonomic_name["und"][0]["tid"];
   $term = taxonomy_term_load($tid);
   
   $combine = array_merge((array)$node, (array)$relation, (array)$term);
