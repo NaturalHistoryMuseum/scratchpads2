@@ -119,7 +119,7 @@ function bhl_form_block_admin_configure_alter(&$form, &$form_state, $form_id){
   if($form['module']['#value'] == 'bhl'){
     // Prevent editing of this block.
     if(!user_access('scratchpad team')){
-      drupal_set_message(t('You may not edit the Google Scholar block'));
+      drupal_set_message(t('You may not edit the BHL block'));
       drupal_goto();
     }
   }
