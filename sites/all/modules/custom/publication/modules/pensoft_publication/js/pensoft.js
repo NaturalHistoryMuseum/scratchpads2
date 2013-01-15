@@ -129,7 +129,7 @@
            inserts[i] = text;
          }
          
-         inserts.unshift('<td>' + headers.join('</td><td>') + '</td>');
+         inserts.unshift('<th>' + headers.join('</th><th>') + '</th>');
        }
     
       function init() {
