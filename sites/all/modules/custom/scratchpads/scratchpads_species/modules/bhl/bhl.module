@@ -1,0 +1,184 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function bhl_menu(){
+  return array(
+    'bhl_viewer' => array(
+      'page callback' => 'bhl_viewer',
+      'access arguments' => array(
+        'access content'
+      ),
+      'title' => 'BHL Viewer',
+      'type' => MENU_CALLBACK
+    )
+  );
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function bhl_admin_paths(){
+  return array(
+    'bhl_viewer/*' => TRUE
+  );
+}
+
+/**
+ * Thickbox display breaks bhl view layout - but not if we use an inline iframe
+ */
+function bhl_viewer(){
+  $url = substr(request_uri(), 12);
+  return '<iframe hspace="0" frameborder="0" id="TB_iframeContent" style="width: 100%; height: 700px;" align="center" src="' . $url . '">' . $url . '</iframe>';
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function bhl_block_info(){
+  return array(
+    'default' => array(
+      'info' => t('BHL Species Page Block'),
+      'cache' => DRUPAL_CACHE_PER_PAGE,
+      'pages' => 'taxonomy/term/*/literature',
+      'visibility' => BLOCK_VISIBILITY_LISTED,
+      'status' => 1,
+      'region' => 'content'
+    )
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function bhl_block_view($delta = ''){
+  switch($delta){
+    default:
+      // We load the term from the menu
+      $term = menu_get_object('taxonomy_term', 2);
+      if($term){
+        $titles = _bhl_get_namebank_titles($term->name);
+        $items = array();
+        //print_r($titles);exit;
+        foreach($titles as $title){
+          $publication_title = $title['title'];
+          $pages = array();
+          foreach($title['items'][0]->Item->Pages->Page as $page){
+            $viewer_url = '/bhl_viewer/' . $page->ImageUrl;
+            $link_text = trim("{$page->Prefix} $page->Number");
+            if(!$link_text){
+              $link_text = t('Page');
+            }
+            $pages[intval($page->Number)] = "<a href=\"$viewer_url\" title=\"{$page->Prefix} {$page->Number} of $publication_title\">$link_text</a>";
+          }
+          ksort($pages);
+          $page_counter = count($pages);
+          $number_of_pages = format_plural($page_counter, '@count page', '@count pages');
+          if($number_of_pages){
+            $items[] = array(
+              'data' => '<a href="' . $title['title_url'] . '" title="' . $publication_title . '" target="_blank">' . $publication_title . ' (' . $number_of_pages . ')</a>',
+              'children' => $pages,
+              'style' => 'list-style:disc;padding-bottom:3px;'
+            );
+          }
+        }
+        return array(
+          'subject' => t('Biodiversity Heritage Library'),
+          'content' => array(
+            'list' => array(
+              '#attached' => array(
+                'js' => array(
+                  drupal_get_path('module', 'bhl') . '/js/bhl.js'
+                )
+              ),
+              '#theme' => 'item_list',
+              '#items' => $items,
+              '#attributes' => array(
+                'class' => 'bhl'
+              )
+            ),
+            'link_to_bhl' => array(
+              '#markup' => '<p><strong>' . l(t('View all results on the BHL website.'), 'http://www.biodiversitylibrary.org/name/' . urlencode(str_replace(' ', '_', $term->name))) . '</strong></p>'
+            )
+          )
+        );
+      }
+  }
+  return array();
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function bhl_form_block_admin_configure_alter(&$form, &$form_state, $form_id){
+  if($form['module']['#value'] == 'bhl'){
+    // Prevent editing of this block.
+    if(!user_access('scratchpad team')){
+      drupal_set_message(t('You may not edit the BHL block'));
+      drupal_goto();
+    }
+  }
+}
+
+/**
+ * Implements hook_contextual_links_view_alter().
+ */
+function bhl_contextual_links_view_alter(&$element, $items){
+  if(@isset($element['#contextual_links']['block'][1][0]) && $element['#contextual_links']['block'][1][0] == 'bhl'){
+    $element = array();
+  }
+}
+
+function _bhl_get_namebank_titles($term_name, $limit = 20){
+  $titles = array();
+  $request = 'http://fencedine.myspecies.info/?url=' . urlencode('http://www.biodiversitylibrary.org/services/name/NameService.ashx?op=NameSearch&name=' . $term_name);
+  $namebank_ids_xml = file_get_contents($request);
+  if($namebank_ids_xml){
+    $namebank_ids = new SimpleXMLElement($namebank_ids_xml);
+    foreach($namebank_ids->Result->Name as $data){
+      if(strtolower($data->NameConfirmed) == str_replace("+", " ", strtolower($term_name))){
+        $detail_request = 'http://fencedine.myspecies.info/?url=' . urlencode('http://www.biodiversitylibrary.org/services/name/NameService.ashx?op=NameGetDetail&nameBankID=' . $data->NameBankID . '&format=xml');
+        $namebank_details_xml = file_get_contents($detail_request);
+        try{
+          $namebank_details = new SimpleXMLElement($namebank_details_xml);
+        }
+        catch(Exception $e){
+          // Not valid XML
+          return array();
+        }
+        foreach($namebank_details->Result->Titles->Title as $title){
+          // no content so don't add
+          if(!$title->Items->Item){
+            continue;
+          }
+          //convert the titleID to numeric
+          $title_id = intval($title->TitleID);
+          // if the publication has already been added, just add the items
+          if($titles[$title_id]){
+            $titles[$title_id]['items'][] = $title->Items;
+          }else{ //else add some publication details - expand here for more publication data if nec.
+            // convert to an array - numerical key causing error
+            $title_array = (array)$title->PublicationTitle;
+            $title_url = (array)$title->TitleUrl;
+            $titles[$title_id] = array(
+              'title' => $title_array[0],
+              'items' => array(
+                $title->Items
+              ),
+              'title_url' => $title_url[0]
+            );
+          }
+          if(count($titles) == $limit){
+            break 2;
+          }
+        }
+      }
+    }
+  }
+  return $titles;
+}
+
+function bhl_init(){
+  drupal_add_css(drupal_get_path('module', 'bhl') . '/bhl.css');
+}

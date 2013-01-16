@@ -1,0 +1,17 @@
+.x_section h4{
+  color:white;
+  background-color:#aaa;
+  padding:3px;
+  margin: 10px 0 2px 0;
+  font-weight:700;
+  font-variant:small-caps;
+}
+.x_label {
+  background-color: #eee;
+  font-weight:700;
+  padding:2px;
+  margin:5px 0 2px 0;
+}
+.x_section ul{
+  margin-left:20px !important;
+}
