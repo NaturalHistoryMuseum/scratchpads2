@@ -98,7 +98,7 @@ function emonocot_biblio_install(){
 function emonocot_biblio_update_7001(){
   module_load_include('features.field.inc', 'emonocot_biblio');
   foreach (emonocot_biblio_field_default_fields() as $field){
-  	if (!is_null(field_info_field($field['field_name']))){
+  	if (is_null(field_info_field($field['field_name']))){
   	  field_create_field($field);
   	}
   }
@@ -117,5 +117,9 @@ function emonocot_biblio_update_7002(){
     ))
     ->condition('page_id', 'biblio_search', '=')
     ->execute();
+}
+
+function emonocot_biblio_update_7003(){
+	emonocot_biblio_update_7002();
 }
 
