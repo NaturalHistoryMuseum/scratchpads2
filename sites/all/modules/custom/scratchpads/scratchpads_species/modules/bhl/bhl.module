@@ -97,6 +97,9 @@ function bhl_block_view($delta = ''){
               '#attributes' => array(
                 'class' => 'bhl'
               )
+            ),
+            'link_to_bhl' => array(
+              '#markup' => '<p><strong>' . l(t('View all results on the BHL website.'), 'http://www.biodiversitylibrary.org/name/' . urlencode(str_replace(' ', '_', $term->name))) . '</strong></p>'
             )
           )
         );
