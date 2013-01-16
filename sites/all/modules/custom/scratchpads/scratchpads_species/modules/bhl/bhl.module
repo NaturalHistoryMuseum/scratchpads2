@@ -34,13 +34,6 @@ function bhl_viewer(){
 }
 
 /**
- * Implements hook_scratchpads_species_tabs_alter().
- */
-function bhl_scratchpads_species_tabs_alter(&$tabs){
-  $tabs['services'] = t('Services');
-}
-
-/**
  * Implements hook_block_info().
  */
 function bhl_block_info(){
@@ -48,7 +41,7 @@ function bhl_block_info(){
     'default' => array(
       'info' => t('BHL Species Page Block'),
       'cache' => DRUPAL_CACHE_PER_PAGE,
-      'pages' => 'taxonomy/term/*/services',
+      'pages' => 'taxonomy/term/*/literature',
       'visibility' => BLOCK_VISIBILITY_LISTED,
       'status' => 1,
       'region' => 'content'
