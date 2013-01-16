@@ -325,6 +325,10 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->addField('ogap', 'og_public', 'og_public');
     $query->condition('n.title', 'Taskguide', '!=');
     $query->orderBy('nr.vid');
+//     $query->condition('n.nid', array(
+//       8123,
+//       8124
+//     ), 'IN');
     return $query;
   }
   // Allow overiding count query
@@ -334,6 +338,10 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->innerJoin('node', 'n', 'n.nid=nr.nid');
     $query->condition('n.type', $this->sourceType);
     $query->condition('n.title', 'Taskguide', '!=');
+//     $query->condition('n.nid', array(
+//       8123,
+//       8124
+//     ), 'IN');
     return $query;
   }
 
@@ -623,9 +631,10 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $nid = $args[1][0];
     // Check the node doesn't already exist - otherwise as we're passing in nid
     // and create new, we'll get integrity constraint violations
-    if($this->nodeExists($nid)){
+    $node = node_load($nid);
+    if($node){
       return array(
-        $nid
+        $node->vid
       );
     }else{
       // Check the node exists in the source database
@@ -634,8 +643,9 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         $node = $this->buildStubNode($migration, $nid);
         if($node){
           node_save($node);
-          if(isset($node->nid)){return array(
-              $node->nid
+          // We use VID for the primary identifiers now
+          if(isset($node->vid)){return array(
+              $node->vid
             );}
         }
       }
@@ -643,11 +653,41 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     }
   }
 
-  protected function nodeExists($nid){
-    $result = db_query('SELECT COUNT(*) FROM {node} n WHERE n.nid = :nid', array(
-      ':nid' => $nid
-    ));
-    return $result->fetchField() > 0;
+  /**
+   * Override the handleSourceMigration - we want to check against the VID not NID
+   */
+  protected function handleSourceMigration($source_migrations, $source_keys, $default = NULL, $migration = NULL){
+    // Because we're mapping to VID not NID, get the VID to perform lookup against
+    if(is_array($source_keys)){
+      $vid_source_keys = array();
+      foreach($source_keys as $source_key){
+        $vid_source_keys = scratchpads_migrate_source_get_vid($source_key);
+      }
+    }else{
+      $vid_source_keys = scratchpads_migrate_source_get_vid($source_keys);
+    }
+    parent::handleSourceMigration($source_migrations, $vid_source_keys, $default, $migration);
+    // We can safaely return the original source keys - these are NIDs to use in the node reference
+    // We use the same NIDs anyway
+    return $source_keys;
+  }
+
+  /**
+   * Override the create stubwrapper - we want to use the VID but this uses the NID
+   */
+  protected function createStubWrapper(array $source_key, $migration = NULL){
+    if(method_exists($this, 'createStub')){
+      $destids = $this->createStub($migration, $source_key);
+      if($destids){
+        $data_row = new stdClass();
+        // Use the same VID of the item we've created - this will be the same
+        $data_row->vid = reset($destids);
+        $this->map->saveIDMapping($data_row, $destids, MigrateMap::STATUS_NEEDS_UPDATE);
+      }
+    }else{
+      $destids = NULL;
+    }
+    return $destids;
   }
 
   /**
