@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * em_biblio_temp.features.field.inc
+ * emonocot_biblio.features.field.inc
  */
 
 /**
@@ -99,9 +99,85 @@ function emonocot_biblio_field_default_fields() {
     ),
   );
 
+  // Exported field: 'node-biblio-field_licence_for_content_derive'
+  $fields['node-biblio-field_licence_for_content_derive'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_licence_for_content_derive',
+      'foreign keys' => array(),
+      'indexes' => array(
+        'licence' => array(
+          0 => 'licence',
+        ),
+      ),
+      'module' => 'creative_commons',
+      'settings' => array(
+        'allowed_values' => array(
+          1 => '1',
+          8 => '8',
+          9 => '9',
+          2 => '2',
+          3 => '3',
+          4 => '4',
+          5 => '5',
+          6 => '6',
+          7 => '7',
+        ),
+        'jurisdiction' => '',
+      ),
+      'translatable' => '0',
+      'type' => 'creative_commons',
+    ),
+    'field_instance' => array(
+      'bundle' => 'biblio',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'creative_commons',
+          'settings' => array(),
+          'type' => 'creative_commons_small_image',
+          'weight' => 14,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_licence_for_content_derive',
+      'label' => 'Licence for content derived from this work',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 0,
+        'module' => 'creative_commons',
+        'settings' => array(),
+        'type' => 'select',
+        'weight' => '22',
+      ),
+    ),
+  );
+
   // Translatables
   // Included for use with string extractors like potx.
   t('Containing Work');
+  t('Licence for content derived from this work');
 
   return $fields;
 }
