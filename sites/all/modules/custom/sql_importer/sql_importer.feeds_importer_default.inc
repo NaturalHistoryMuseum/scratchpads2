@@ -31,23 +31,10 @@ function sql_importer_feeds_importer_default() {
         'query' => 'SELECT * FROM import_from;',
         'database' => 'default',
         'mapping' => array(
-          'associated_accepted_name' => 'associated_accepted_name',
           'authors' => 'authors',
-          'etymology' => 'etymology',
-          'guid' => 'guid',
-          'hybrid_parents' => 'hybrid_parents',
-          'page_number' => 'page_number',
-          'parent_guid' => 'parent_guid',
           'parent_term_name' => 'parent_term_name',
-          'protologue_link' => 'protologue_link',
           'rank' => 'rank',
-          'reference_nid' => 'reference_nid',
-          'reference_title' => 'reference_title',
-          'term_description' => 'term_description',
           'term_name' => 'term_name',
-          'type_references_nid' => 'type_references_nid',
-          'type_references_title' => 'type_references_title',
-          'type_taxon' => 'type_taxon',
           'unacceptability_reason' => 'unacceptability_reason',
           'unit_indicator_1' => 'unit_indicator_1',
           'unit_indicator_2' => 'unit_indicator_2',
@@ -58,7 +45,6 @@ function sql_importer_feeds_importer_default() {
           'unit_name_3' => 'unit_name_3',
           'unit_name_4' => 'unit_name_4',
           'usage_field' => 'usage_field',
-          'vernacular_names' => 'vernacular_names',
           'wcm_id' => 'wcm_id',
           'wcm_protologue_reference' => 'wcm_protologue_reference',
         ),
@@ -68,7 +54,7 @@ function sql_importer_feeds_importer_default() {
     'processor' => array(
       'plugin_key' => 'FeedsTermProcessor',
       'config' => array(
-        'vocabulary' => 'cyperaceae_ii',
+        'vocabulary' => 'cyperaceae',
         'mappings' => array(
           0 => array(
             'source' => 'term_name',
@@ -79,6 +65,76 @@ function sql_importer_feeds_importer_default() {
             'source' => 'parent_term_name',
             'target' => 'parent',
             'unique' => 0,
+          ),
+          2 => array(
+            'source' => 'authors',
+            'target' => 'field_authors',
+            'unique' => FALSE,
+          ),
+          3 => array(
+            'source' => 'rank',
+            'target' => 'field_rank',
+            'unique' => FALSE,
+          ),
+          4 => array(
+            'source' => 'unacceptability_reason',
+            'target' => 'field_unacceptability_reason',
+            'unique' => FALSE,
+          ),
+          5 => array(
+            'source' => 'unit_indicator_1',
+            'target' => 'field_unit_indicator1',
+            'unique' => FALSE,
+          ),
+          6 => array(
+            'source' => 'unit_indicator_2',
+            'target' => 'field_unit_indicator2',
+            'unique' => FALSE,
+          ),
+          7 => array(
+            'source' => 'unit_indicator_3',
+            'target' => 'field_unit_indicator3',
+            'unique' => FALSE,
+          ),
+          8 => array(
+            'source' => 'unit_indicator_4',
+            'target' => 'field_unit_indicator4',
+            'unique' => FALSE,
+          ),
+          9 => array(
+            'source' => 'unit_name_1',
+            'target' => 'field_unit_name1',
+            'unique' => FALSE,
+          ),
+          10 => array(
+            'source' => 'unit_name_2',
+            'target' => 'field_unit_name2',
+            'unique' => FALSE,
+          ),
+          11 => array(
+            'source' => 'unit_name_3',
+            'target' => 'field_unit_name3',
+            'unique' => FALSE,
+          ),
+          12 => array(
+            'source' => 'unit_name_4',
+            'target' => 'field_unit_name4',
+            'unique' => FALSE,
+          ),
+          13 => array(
+            'source' => 'usage_field',
+            'target' => 'field_usage',
+            'unique' => FALSE,
+          ),
+          14 => array(
+            'source' => 'wcm_id',
+            'target' => 'field_id',
+            'unique' => FALSE,
+          ),
+          15 => array(
+            'source' => 'wcm_protologue_reference',
+            'target' => 'field_itis_em_other_ref',
+            'unique' => FALSE,
           ),
         ),
         'update_existing' => '2',
