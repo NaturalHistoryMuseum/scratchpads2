@@ -1,13 +1,6 @@
 <?php
 
 /**
- * Implements hook_scratchpads_species_tabs_alter().
- */
-function iucn_scratchpads_species_tabs_alter(&$tabs){
-  $tabs['services'] = t('Services');
-}
-
-/**
  * Implements hook_block_info().
  */
 function iucn_block_info(){
@@ -15,7 +8,7 @@ function iucn_block_info(){
     'default' => array(
       'info' => t('IUCN Species Page Block'),
       'cache' => DRUPAL_CACHE_PER_PAGE,
-      'pages' => 'taxonomy/term/*/services',
+      'pages' => 'taxonomy/term/*/descriptions',
       'visibility' => BLOCK_VISIBILITY_LISTED,
       'status' => 1,
       'region' => 'content'
