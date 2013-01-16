@@ -123,3 +123,7 @@ function emonocot_biblio_update_7003(){
 	emonocot_biblio_update_7001();
 }
 
+function emonocot_biblio_update_7004(){
+	emonocot_biblio_update_7001();
+}
+
