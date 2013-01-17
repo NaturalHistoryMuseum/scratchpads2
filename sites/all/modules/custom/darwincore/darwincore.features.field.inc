@@ -368,15 +368,17 @@ function darwincore_field_default_fields(){
         ),
         'linked_node' => array(
           'label' => 'above',
+          'module' => 'countries',
           'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
+          'type' => 'country_default',
+          'weight' => '4'
         ),
         'teaser' => array(
           'label' => 'above',
+          'module' => 'countries',
           'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
+          'type' => 'country_default',
+          'weight' => '4'
         )
       ),
       'entity_type' => 'node',
