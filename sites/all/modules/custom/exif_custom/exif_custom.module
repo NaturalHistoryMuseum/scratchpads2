@@ -465,7 +465,7 @@ function exif_custom_get_exif_fields($uri, $concatenate_arrays = TRUE){
   foreach ($info as $block){
     $iptc = iptcparse($block);
   
-  if(isset($iptc)){
+  if($iptc !== FALSE){
     //IPTC:2#254 can contain name=value pairs
     if(isset($iptc['2#254']) && is_array($iptc['2#254'])){
       $i = 0;
@@ -484,7 +484,7 @@ function exif_custom_get_exif_fields($uri, $concatenate_arrays = TRUE){
   }
   }
   }
-  if(!is_array($exif) && !isset($iptc)){return FALSE;}
+  if(!is_array($exif) && $iptc === FALSE){return FALSE;}
   return $fields;
 }
 
