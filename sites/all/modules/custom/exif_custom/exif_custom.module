@@ -113,10 +113,7 @@ function exif_custom_settings_form(){
     '#title' => 'Automatic import',
     '#options' => $options,
     '#description' => t('Each user may set their own default mapping, in addition a site default may be set.'),
-    '#default_value' => variable_get('exif_custom_checks', array(
-      'auto-import'
-    ))
-  );
+    '#default_value' => variable_get('exif_custom_checks', array()));
   $mappings = _exif_custom_get_maps();
   $options = array();
   $options['none'] = '';
