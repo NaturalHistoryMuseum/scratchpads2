@@ -546,6 +546,9 @@ h2.site-name {
   position: relative;
   top: -30px;
 }
+.block-species-biblio-block, .block-species-spm-block{
+  float:none !important;
+}
 
 
 /************************ BLOCKS *********************/ 
@@ -937,6 +940,9 @@ width: 300px;
 }
 
 /****************** Comments *****************/
+li.comment-add{
+  font-weight:700;
+}
 #comments h2{
   background: transparent!important;
   color: #3E3E3E;

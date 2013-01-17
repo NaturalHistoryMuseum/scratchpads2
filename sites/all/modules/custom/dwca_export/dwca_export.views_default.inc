@@ -904,7 +904,6 @@ function dwca_export_views_default_views(){
     'absolute' => 1
   );
   $handler->display->display_options['fields']['field_reference']['field_api_classes'] = 0;
-  
   /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
@@ -2264,6 +2263,28 @@ function _dwca_export_view_description($desc_type){
   $handler->display->display_options['fields']['uuid_1']['hide_empty'] = 0;
   $handler->display->display_options['fields']['uuid_1']['empty_zero'] = 0;
   $handler->display->display_options['fields']['uuid_1']['hide_alter_empty'] = 1;
+  /* Field: Global: Custom text */
+  $handler->display->display_options['fields']['nothing_7']['id'] = 'nothing_7';
+  $handler->display->display_options['fields']['nothing_7']['table'] = 'views';
+  $handler->display->display_options['fields']['nothing_7']['field'] = 'nothing';
+  $handler->display->display_options['fields']['nothing_7']['label'] = 'Licence URL';
+  $handler->display->display_options['fields']['nothing_7']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['nothing_7']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['nothing_7']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['nothing_7']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['nothing_7']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['nothing_7']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['nothing_7']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['nothing_7']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['nothing_7']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['nothing_7']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['nothing_7']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['nothing_7']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['nothing_7']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['nothing_7']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['nothing_7']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['nothing_7']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['nothing_7']['hide_alter_empty'] = 0;
   /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';

@@ -25,8 +25,8 @@ class DrupalFieldImageMigration extends DrupalFieldMigration{
   }
 
   public function prepareRow($row){
-    if(parent::prepareRow($row) === FALSE){return FALSE;}
     $row->entity_type = 'file';
+    if(parent::prepareRow($row) === FALSE){return FALSE;}
     $row->type_name = 'image';
   }
 }
