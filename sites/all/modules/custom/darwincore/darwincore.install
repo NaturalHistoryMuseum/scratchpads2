@@ -143,3 +143,13 @@ function darwincore_update_7007(){
     field_update_field($field);
   }
 }
+
+/**
+ * Update the display of the field_country field.
+ */
+function darwincore_update_7008(){
+  // Update the display of the field_country field.
+  module_load_include('features.field.inc', 'darwincore');
+  $fields = darwincore_field_default_fields();
+  field_update_instance($fields['node-location-field_country']['field_instance']);
+}
