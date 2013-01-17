@@ -29,6 +29,9 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
   }
 
   public function import(stdClass $node, stdClass $row){
+    // Turn off node comment statistics - see comment_node_insert()
+    global $conf;
+    $conf['comment_maintain_node_statistics'] = false;
     // Hackery - add the missing TID for forum topics
     if(property_exists($node, 'taxonomy_forums') && empty($node->taxonomy_forums[0]) && isset($row->tid)){
       $node->taxonomy_forums[0] = $row->tid;
@@ -163,7 +166,7 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
       unset($node->revision);
     }
     migrate_instrument_start('node_save');
-    node_save($node);
+    scratchpads_migrate_node_save($node);
     migrate_instrument_stop('node_save');
     if(isset($node->nid)){
       if($updating){
