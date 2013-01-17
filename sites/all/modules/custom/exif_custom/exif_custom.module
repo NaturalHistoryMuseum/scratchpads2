@@ -113,10 +113,7 @@ function exif_custom_settings_form(){
     '#title' => 'Automatic import',
     '#options' => $options,
     '#description' => t('Each user may set their own default mapping, in addition a site default may be set.'),
-    '#default_value' => variable_get('exif_custom_checks', array(
-      'auto-import'
-    ))
-  );
+    '#default_value' => variable_get('exif_custom_checks', array()));
   $mappings = _exif_custom_get_maps();
   $options = array();
   $options['none'] = '';
@@ -468,7 +465,7 @@ function exif_custom_get_exif_fields($uri, $concatenate_arrays = TRUE){
   foreach ($info as $block){
     $iptc = iptcparse($block);
   
-  if(isset($iptc)){
+  if($iptc !== FALSE){
     //IPTC:2#254 can contain name=value pairs
     if(isset($iptc['2#254']) && is_array($iptc['2#254'])){
       $i = 0;
@@ -487,7 +484,7 @@ function exif_custom_get_exif_fields($uri, $concatenate_arrays = TRUE){
   }
   }
   }
-  if(!is_array($exif) && !isset($iptc)){return FALSE;}
+  if(!is_array($exif) && $iptc === FALSE){return FALSE;}
   return $fields;
 }
 
@@ -542,10 +539,16 @@ function exif_custom_get_xmp($image) {
   $content = file_get_contents($image);
   $xmp_data_start = strpos($content, '<x:xmpmeta');
   $xmp_data_end   = strpos($content, '</x:xmpmeta>');
+  if ($xmp_data_start === FALSE || $xmp_data_end === FALSE) {
+    return array();
+  }
   $xmp_length     = $xmp_data_end - $xmp_data_start;
   $xmp_data       = substr($content, $xmp_data_start, $xmp_length + 12);
   unset($content);
   $xmp            = simplexml_load_string($xmp_data);
+  if ($xmp === FALSE) {
+    return array();
+  }
 /*  $namespaces = $xmp->getDocNamespaces(true);
     $fields = array();
   foreach ($namespaces as $namespace){

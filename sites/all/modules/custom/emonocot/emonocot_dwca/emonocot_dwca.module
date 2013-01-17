@@ -224,7 +224,7 @@ function emonocot_dwca_add_description_fields(&$view, $ref_field){
   $new_field['id'] = 'field_licence_for_content_derive';
   $new_field['table'] = 'field_data_field_licence_for_content_derive';
   $new_field['field'] = 'field_licence_for_content_derive';
-  $new_field['relationship'] = 'field_spm_em_gd_ref';
+  $new_field['relationship'] = $ref_field;
   $new_field['alter']['alter_text'] = 0;
   $new_field['alter']['make_link'] = 0;
   $new_field['alter']['absolute'] = 0;
