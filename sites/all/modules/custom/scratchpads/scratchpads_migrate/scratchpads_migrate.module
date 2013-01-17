@@ -3,7 +3,7 @@ define("MIGRATE_NONE", 0);
 define("MIGRATE_ALL", 1);
 define("MIGRATE_CONTENT", 2);
 define("MIGRATE_FIELD", 3);
-define("SCRATCHPADS_MIGRATE_NOTIFICATIONS_EMAIL", 'b.scott@nhm.ac.uk');
+define("SCRATCHPADS_MIGRATE_NOTIFICATIONS_EMAIL", 'a.heaton@nhm.ac.uk');
 /**
  * Add the database connection.
  * 
