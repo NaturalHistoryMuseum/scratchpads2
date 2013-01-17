@@ -41,7 +41,11 @@ function gbif_ecat_silver(){
  */
 function gbif_ecat_import_form($form, &$form_state){
   // Create a soap client to ensure that the service is up.
-  $gbif_ecat_service_status = file_get_contents(GBIF_ECAT_BASE_URL);
+  $gbif_ecat_service_status = file_get_contents(GBIF_ECAT_BASE_URL, 0, stream_context_create(array(
+    'http' => array(
+      'timeout' => 3
+    )
+  )));
   $vocabularies = taxonomy_get_vocabularies();
   $taxonomies = array(
     '- SELECT VOCABULARY -'
