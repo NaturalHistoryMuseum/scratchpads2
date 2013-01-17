@@ -180,6 +180,19 @@ table th a img{
   margin-left: 2px;
 }
 
+sup, sub {
+  height: 0;
+  vertical-align: baseline;
+  position: relative;
+  font-size:90%;
+}
+sup {
+  bottom: 1ex;
+}
+sub {
+  top: .5ex;
+}
+
 /************************ Layout *********************/ 
 
 
