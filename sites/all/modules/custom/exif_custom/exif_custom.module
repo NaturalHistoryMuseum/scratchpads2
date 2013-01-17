@@ -113,7 +113,10 @@ function exif_custom_settings_form(){
     '#title' => 'Automatic import',
     '#options' => $options,
     '#description' => t('Each user may set their own default mapping, in addition a site default may be set.'),
-    '#default_value' => variable_get('exif_custom_checks', array()));
+    '#default_value' => variable_get('exif_custom_checks', array(
+      'auto-import'
+    ))
+  );
   $mappings = _exif_custom_get_maps();
   $options = array();
   $options['none'] = '';
@@ -465,7 +468,7 @@ function exif_custom_get_exif_fields($uri, $concatenate_arrays = TRUE){
   foreach ($info as $block){
     $iptc = iptcparse($block);
   
-  if($iptc !== FALSE){
+  if(isset($iptc)){
     //IPTC:2#254 can contain name=value pairs
     if(isset($iptc['2#254']) && is_array($iptc['2#254'])){
       $i = 0;
@@ -484,7 +487,7 @@ function exif_custom_get_exif_fields($uri, $concatenate_arrays = TRUE){
   }
   }
   }
-  if(!is_array($exif) && $iptc === FALSE){return FALSE;}
+  if(!is_array($exif) && !isset($iptc)){return FALSE;}
   return $fields;
 }
 
