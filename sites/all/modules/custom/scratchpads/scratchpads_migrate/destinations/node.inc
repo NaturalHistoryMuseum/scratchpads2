@@ -32,6 +32,12 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
     // Turn off node comment statistics - see comment_node_insert()
     global $conf;
     $conf['comment_maintain_node_statistics'] = false;
+    // Always turn on node revisions, if there's an old revision we want to import
+    $conf['node_options_' . $this->bundle] = array(
+      'status',
+      'promote',
+      'revision'
+    );
     // Hackery - add the missing TID for forum topics
     if(property_exists($node, 'taxonomy_forums') && empty($node->taxonomy_forums[0]) && isset($row->tid)){
       $node->taxonomy_forums[0] = $row->tid;
@@ -80,10 +86,11 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
       if(empty($row->tnid)){
         $node->tnid = $values['tnid'];
       }
-    }else{ // We do not want to create a revision for stub nodes
+    }else{
       // Do we already have this node? IF we do save a revision of it
       if($original = entity_load_unchanged('node', $node->nid)){
         unset($node->is_new);
+        $node->revision = 1;
         $node->revision_uid = $node->uid;
       }
     }
