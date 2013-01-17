@@ -62,6 +62,7 @@ files[] = sources/vocabulary.inc
 ; Destination classes
 files[] = destinations/block.inc
 files[] = destinations/citation.inc
+files[] = destinations/comment.inc
 files[] = destinations/date.migrate.inc
 files[] = destinations/content_type.inc
 files[] = destinations/field.inc

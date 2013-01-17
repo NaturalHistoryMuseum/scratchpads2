@@ -40,6 +40,9 @@ function googlescholar_block_view($delta = ''){
             'list' => array(
               '#theme' => 'item_list',
               '#items' => $items
+            ),
+            'link_to_gscholar' => array(
+              '#markup' => '<p><strong>' . l(t('View all results on Google Scholar.'), 'http://scholar.google.co.uk/scholar?q=' . urlencode($term->name)) . '</strong></p>'
             )
           )
         );

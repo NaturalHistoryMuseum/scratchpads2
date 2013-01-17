@@ -546,6 +546,9 @@ h2.site-name {
   position: relative;
   top: -30px;
 }
+.block-species-biblio-block, .block-species-spm-block{
+  float:none !important;
+}
 
 
 /************************ BLOCKS *********************/ 

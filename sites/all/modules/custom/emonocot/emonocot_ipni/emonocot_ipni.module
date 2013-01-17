@@ -18,27 +18,49 @@ function emonocot_ipni_menu(){
 
 function emonocot_ipni_autocomplete_publication($string){
   $ipni_matches = emonocot_ipni_get_publication_data($string);
+  $return_matches = array();
   foreach($ipni_matches as $result){
-    $return_matches[$result[3]] = $result[3];
+    if(isset($result[3])){
+      $return_matches[$result[3]] = $result[3];
+    }
   }
   print drupal_json_output($return_matches);
 }
 
 function emonocot_ipni_autocomplete_publication_short($string){
   $ipni_matches = emonocot_ipni_get_publication_data_short($string);
+  $return_matches = array();
   foreach($ipni_matches as $result){
     $return_matches[$result[2]] = $result[2] . ' | ' . $result[3];
   }
   print drupal_json_output($return_matches);
 }
-
 //This function can be called by other modules to get publication title from short title
 function emonocot_ipni_publication_short($string){
+  $return_matches = array();
   $ipni_matches = emonocot_ipni_get_publication_data_short($string);
   foreach($ipni_matches as $result){
     $return_matches[$result[2]] = $result[3];
   }
   return $return_matches;
+}
+
+/**
+ * Implements hook_hide_submit_alter().
+ * 
+ * Fixes issue #2138. The autocomplete of the biblio title appears to be messing
+ * up the hide_submit code.  This prevents the module from being used on biblio
+ * node edit pages.
+ */
+function emonocot_ipni_hide_submit_alter($hide_submit_settings){
+  $altered_settings = $hide_submit_settings;
+  if(arg(0) == 'node' && arg(2) == 'edit'){
+    $node = menu_get_object();
+    if($node->type == 'biblio'){
+      $altered_settings['hide_submit']['hide_submit_status'] = FALSE;
+    }
+  }
+  return $altered_settings;
 }
 
 function emonocot_ipni_author_short($string){

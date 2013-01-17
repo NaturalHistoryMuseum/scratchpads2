@@ -542,10 +542,16 @@ function exif_custom_get_xmp($image) {
   $content = file_get_contents($image);
   $xmp_data_start = strpos($content, '<x:xmpmeta');
   $xmp_data_end   = strpos($content, '</x:xmpmeta>');
+  if ($xmp_data_start === FALSE || $xmp_data_end === FALSE) {
+    return array();
+  }
   $xmp_length     = $xmp_data_end - $xmp_data_start;
   $xmp_data       = substr($content, $xmp_data_start, $xmp_length + 12);
   unset($content);
   $xmp            = simplexml_load_string($xmp_data);
+  if ($xmp === FALSE) {
+    return array();
+  }
 /*  $namespaces = $xmp->getDocNamespaces(true);
     $fields = array();
   foreach ($namespaces as $namespace){
