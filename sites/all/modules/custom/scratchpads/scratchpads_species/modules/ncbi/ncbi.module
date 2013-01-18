@@ -1,0 +1,167 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function ncbi_block_info(){
+  return array(
+    'default' => array(
+      'info' => t('NCBI Species Page Block'),
+      'cache' => DRUPAL_CACHE_PER_PAGE,
+      'pages' => 'taxonomy/term/*/descriptions',
+      'visibility' => BLOCK_VISIBILITY_LISTED,
+      'status' => 1,
+      'region' => 'content'
+    )
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function ncbi_block_view($delta = ''){
+  switch($delta){
+    default:
+      // We load the term from the menu
+      $term = menu_get_object('taxonomy_term', 2);
+      if($term){
+        $items = _ncbi_get_data($term);
+        foreach($items as $key => $item){
+          $items[$key] = array(
+            'data' => $item,
+            'style' => 'margin-left:0'
+          );
+        }
+        if(count($items)){return array(
+            'subject' => t('NCBI'),
+            'content' => array(
+              'block' => array(
+                '#theme' => 'item_list',
+                '#items' => $items,
+                '#attributes' => array(
+                  'style' => 'padding-left:0'
+                )
+              )
+            )
+          );}
+      }
+  }
+  return array();
+}
+
+/**
+ * Helper function to get some data from NCBI.
+ */
+function _ncbi_get_data($term){
+  $items = array();
+  $esearch_xml = file_get_contents('http://fencedine.myspecies.info/?url=' . urlencode('http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=taxonomy&term=' . urlencode($term->name)));
+  if($esearch_xml){
+    $esearch_results = new SimpleXMLElement($esearch_xml);
+  }
+  if($esearch_results){
+    if($esearch_results->IdList->Id){
+      foreach($esearch_results->IdList->Id as $id){
+        $efetch_request = 'http://fencedine.myspecies.info/?url=' . urlencode('http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&retmode=xml&id=' . $id);
+        $sequence_xml = file_get_contents($efetch_request);
+        if($sequence_xml){
+          $item = new stdClass();
+          $sequence = new SimpleXMLElement($sequence_xml);
+          $sequence_data = (array)$sequence->DocSum;
+          $name = $sequence_data['Item'][2];
+          //add the common name
+          if(is_string($sequence_data['Item'][3])){
+            $name .= ' [' . $sequence_data['Item'][3] . ']';
+          }elseif(count($esearch_results->IdList->Id) > 1){ //if there's no common name and more than one item we need to differentiate
+            $name .= ' [' . $sequence_data['Item'][1] . ']';
+          }
+          $tid = ($sequence_data['Item'][4] ? '<a target="_blank" href="http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=' . $sequence_data['Item'][4] . '&lvl=3&p=mapview&p=has_linkout&p=blast_url&p=genome_blast&lin=f&keep=1&srchmode=1&unlock">' . $sequence_data['Item'][4] . '</a>' : '');
+          $nucleotide = ($sequence_data['Item'][5] ? '<a target="_blank" href="http://www.ncbi.nlm.nih.gov/sites/entrez?db=nucleotide&cmd=Search&dopt=DocSum&term=txid' . $sequence_data['Item'][4] . '%5BOrganism%3Aexp%5D">' . $sequence_data['Item'][5] . '</a>' : '');
+          $protein = ($sequence_data['Item'][6] ? '<a target="_blank" href="http://www.ncbi.nlm.nih.gov/sites/entrez?db=protein&cmd=Search&dopt=DocSum&term=txid' . $sequence_data['Item'][4] . '%5BOrganism%3Aexp%5D">' . $sequence_data['Item'][6] . '</a>' : '');
+          $rows = array(
+            array(
+              t('Taxonomy ID'),
+              $tid
+            ),
+            array(
+              t('Nucleotide sequences'),
+              $nucleotide
+            ),
+            array(
+              t('Protein sequences'),
+              $protein
+            )
+          );
+          $body = theme('table', array(
+            'header' => array(
+              array(
+                'data' => $name,
+                'colspan' => 2,
+                'style' => 'font-weight:700'
+              )
+            ),
+            'rows' => $rows
+          ));
+        }
+        $elink_request = 'http://fencedine.myspecies.info/?url=' . urlencode('http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=taxonomy&db=all&id=' . $id . '&cmd=llinks');
+        $elink_request_xml = file_get_contents($elink_request);
+        if($elink_request_xml){
+          $elinks = new SimpleXMLElement($elink_request_xml);
+          $external_link_added = FALSE;
+          if(!$external_link_added){
+            //$body .= '<a href="#" onclick="$(this).next().toggle(); return false;"><h3>External links</h3></a><ul id="elinks" style="display:none">';
+            $external_link_added = TRUE;
+          }
+          $links = array();
+          foreach($elinks->LinkSet->IdUrlList->IdUrlSet->ObjUrl as $link){
+            if($link->LinkName){
+              if($link->Provider->NameAbbr == 'taxresource'){
+                $name = 'GBIF bookmark: ' . $link->LinkName;
+              }else{
+                $name = $link->Provider->NameAbbr . ': ' . $link->LinkName;
+              }
+              $title = $link->Provider->Name . ': ' . $link->LinkName;
+            }else{
+              $name = $link->Provider->Name;
+              $title = $name;
+            }
+            $links[] = array(
+              'data' => '<a href="' . $link->Url . '" title="' . $title . '">' . $name . '</a>',
+              'style' => 'list-style:disc;padding-bottom:3px;'
+            );
+          }
+          $body .= theme('item_list', array(
+            'items' => $links,
+            'attributes' => array(
+              'style' => 'display:none'
+            ),
+            'title' => '<a onclick="jQuery(this).parent().next().toggle();return false" href="#">' . t('External links') . '</a>'
+          ));
+        }
+        $items[strval($id)] = $body;
+      }
+    }
+  }
+  return $items;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function ncbi_form_block_admin_configure_alter(&$form, &$form_state, $form_id){
+  if($form['module']['#value'] == 'ncbi'){
+    // Prevent editing of this block.
+    if(!user_access('scratchpad team')){
+      drupal_set_message(t('You may not edit the IUCN block'));
+      drupal_goto();
+    }
+  }
+}
+
+/**
+ * Implements hook_contextual_links_view_alter().
+ */
+function ncbi_contextual_links_view_alter(&$element, $items){
+  if(@isset($element['#contextual_links']['block'][1][0]) && $element['#contextual_links']['block'][1][0] == 'ncbi'){
+    $element = array();
+  }
+}
