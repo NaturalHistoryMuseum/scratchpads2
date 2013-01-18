@@ -570,8 +570,7 @@ function relation_select_field_widget_multiple_form(&$form, &$form_state, $field
   switch ($field['cardinality']) {
     case FIELD_CARDINALITY_UNLIMITED:
       $field_state = field_form_get_state($parents, $field_name, $langcode, $form_state);
-      //$max = ($field_state['items_count'] >= 1) ? $field_state['items_count'] : 1;
-      $max = $field_state['items_count']+1;
+      $max = ($field_state['items_count'] >= 1) ? $field_state['items_count'] : 1;
       break;
     default:
       $max = $field['cardinality'];
