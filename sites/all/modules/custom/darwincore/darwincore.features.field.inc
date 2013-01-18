@@ -159,7 +159,7 @@ function darwincore_field_default_fields(){
           'module' => 'list',
           'settings' => array(),
           'type' => 'list_default',
-          'weight' => '0'
+          'weight' => '3'
         ),
         'teaser' => array(
           'label' => 'above',
@@ -230,7 +230,7 @@ function darwincore_field_default_fields(){
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '0'
+          'weight' => '9'
         ),
         'teaser' => array(
           'label' => 'above',
@@ -301,7 +301,7 @@ function darwincore_field_default_fields(){
             'thousand_separator' => ' '
           ),
           'type' => 'number_integer',
-          'weight' => '0'
+          'weight' => '10'
         ),
         'teaser' => array(
           'label' => 'above',
@@ -442,7 +442,7 @@ function darwincore_field_default_fields(){
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '0'
+          'weight' => '6'
         ),
         'teaser' => array(
           'label' => 'above',
@@ -516,7 +516,7 @@ function darwincore_field_default_fields(){
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '0'
+          'weight' => '8'
         ),
         'teaser' => array(
           'label' => 'above',
@@ -590,7 +590,7 @@ function darwincore_field_default_fields(){
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '0'
+          'weight' => '12'
         ),
         'teaser' => array(
           'label' => 'above',
@@ -662,7 +662,7 @@ function darwincore_field_default_fields(){
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '0'
+          'weight' => '11'
         ),
         'teaser' => array(
           'label' => 'above',
@@ -736,7 +736,7 @@ function darwincore_field_default_fields(){
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '0'
+          'weight' => '5'
         ),
         'teaser' => array(
           'label' => 'above',
@@ -810,7 +810,7 @@ function darwincore_field_default_fields(){
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '0'
+          'weight' => '5'
         ),
         'teaser' => array(
           'label' => 'above',
@@ -882,7 +882,7 @@ function darwincore_field_default_fields(){
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '0'
+          'weight' => '7'
         ),
         'teaser' => array(
           'label' => 'above',
@@ -954,7 +954,7 @@ function darwincore_field_default_fields(){
             'display_convex_hull' => FALSE
           ),
           'type' => 'gm3_entity_map',
-          'weight' => '0'
+          'weight' => '1'
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1022,7 +1022,7 @@ function darwincore_field_default_fields(){
             'thousand_separator' => ' '
           ),
           'type' => 'number_integer',
-          'weight' => '0'
+          'weight' => '16'
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1094,7 +1094,7 @@ function darwincore_field_default_fields(){
             'thousand_separator' => ' '
           ),
           'type' => 'number_integer',
-          'weight' => '0'
+          'weight' => '14'
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1166,7 +1166,7 @@ function darwincore_field_default_fields(){
             'thousand_separator' => ' '
           ),
           'type' => 'number_integer',
-          'weight' => '0'
+          'weight' => '15'
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1238,7 +1238,7 @@ function darwincore_field_default_fields(){
             'thousand_separator' => ' '
           ),
           'type' => 'number_integer',
-          'weight' => '0'
+          'weight' => '13'
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1313,7 +1313,7 @@ function darwincore_field_default_fields(){
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '0'
+          'weight' => '2'
         ),
         'teaser' => array(
           'label' => 'above',
