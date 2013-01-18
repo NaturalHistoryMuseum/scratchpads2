@@ -171,9 +171,18 @@ function gbif_ecat_batch_importer($id, $vid, &$context){
         'value' => $vernacular
       );
     }
+    preg_match("/[\(A-Z]/", $record['data']['scientificName'], $matches, 0, 1);
+    if(count($matches)){
+      $first_cap = strpos($record['data']['scientificName'], $matches[0]);
+      $name = trim(substr($record['data']['scientificName'], 0, $first_cap));
+      $authority = substr($record['data']['scientificName'], $first_cap);
+    }else{
+      $name = $record['data']['scientificName'];
+      $authority = '';
+    }
     $term = array(
       'vid' => $context['sandbox']['vid'],
-      'name' => $record['data']['canonicalName'],
+      'name' => $name,
       'vocabulary_machine_name' => $context['sandbox']['vmn'],
       'description' => t('According to: @according', array(
         '@according' => $record['data']['accordingTo']
@@ -184,7 +193,7 @@ function gbif_ecat_batch_importer($id, $vid, &$context){
       'field_authors' => array(
         LANGUAGE_NONE => array(
           array(
-            'value' => trim(substr($record['data']['scientificName'], strlen($record['data']['canonicalName'])))
+            'value' => $authority
           )
         )
       ),
@@ -215,17 +224,30 @@ function gbif_ecat_batch_importer($id, $vid, &$context){
         )
       );
     }
-    $name_parts = explode(" ", trim($record['data']['canonicalName']));
+    $name_parts = explode(" ", $name);
     $part_index = 1;
+    $unit_indicators = itis_term_allowed_values(array(
+      'field_name' => 'field_unit_indicator4'
+    ));
     foreach($name_parts as $name_part){
-      $term['field_unit_name' . $part_index] = array(
-        LANGUAGE_NONE => array(
-          array(
-            'value' => $name_part
+      if(isset($unit_indicators[$name_part])){
+        $term['field_unit_indicator' . $part_index] = array(
+          LANGUAGE_NONE => array(
+            array(
+              'value' => $name_part
+            )
           )
-        )
-      );
-      $part_index++;
+        );
+      }else{
+        $term['field_unit_name' . $part_index] = array(
+          LANGUAGE_NONE => array(
+            array(
+              'value' => $name_part
+            )
+          )
+        );
+        $part_index++;
+      }
     }
     $term = (object)$term;
     taxonomy_term_save($term);
