@@ -25,15 +25,6 @@ function publication_html_format_filter_default_formats() {
           'filter_url_length' => '72',
         ),
       ),
-      'filter_html' => array(
-        'weight' => '-48',
-        'status' => '1',
-        'settings' => array(
-          'allowed_html' => '<div> <iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h1> <h2> <h3> <h4> <h5> <h6> <u>',
-          'filter_html_help' => 1,
-          'filter_html_nofollow' => 0,
-        ),
-      ),
       'filter_autop' => array(
         'weight' => '-47',
         'status' => '1',
