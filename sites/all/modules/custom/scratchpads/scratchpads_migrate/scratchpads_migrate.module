@@ -3,7 +3,7 @@ define("MIGRATE_NONE", 0);
 define("MIGRATE_ALL", 1);
 define("MIGRATE_CONTENT", 2);
 define("MIGRATE_FIELD", 3);
-define("SCRATCHPADS_MIGRATE_NOTIFICATIONS_EMAIL", 'b.scott@nhm.ac.uk');
+define("SCRATCHPADS_MIGRATE_NOTIFICATIONS_EMAIL", 'a.heaton@nhm.ac.uk');
 /**
  * Add the database connection.
  * 
@@ -1023,7 +1023,7 @@ function scratchpads_migrate_node_save($node) {
     //       $node->old_vid = $node->vid;
     //       unset($node->vid);
     //     }
-
+    
     // Save the node and node revision.
     if ($node->is_new) {
       // For new nodes, save new records for both the node itself and the node
