@@ -73,7 +73,7 @@ function _ncbi_get_data($term){
                 $tds = $tr->getElementsByTagName('td');
                 $row = array();
                 foreach($tds as $td){
-                  $html = preg_replace('/\xC2\xA0/', ' ', $dom->saveHTML($td));
+                  $html = preg_replace('/\xC2\xA0/', ' ', $dom->saveXML($td));
                   $html = str_replace('href="', 'target="_blank" href="http://www.ncbi.nlm.nih.gov', $html);
                   $row[] = filter_xss($html);
                 }
