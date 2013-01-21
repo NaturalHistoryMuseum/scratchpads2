@@ -1,6 +1,6 @@
 core = "7.x"
-description = "Google Scholar Widget"
-name = "Displays Google Scholar search results within a taxonomy term page."
+name = "Google Scholar Widget"
+description = "Displays Google Scholar search results within a taxonomy term page."
 package = "Widgets"
 dependencies[] = scratchpads_species
 tool=yes
