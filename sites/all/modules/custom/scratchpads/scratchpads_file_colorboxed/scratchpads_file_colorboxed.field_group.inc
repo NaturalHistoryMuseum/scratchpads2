@@ -23,7 +23,7 @@ function scratchpads_file_colorboxed_field_group_info(){
     module_load_include('features.field.inc', 'scratchpads_audubon_core');
     $fields = scratchpads_audubon_core_field_default_fields();
     foreach($fields as $field){
-      $image_children[] = $field['fiend_config']['field_name'];
+      $image_children[] = $field['field_config']['field_name'];
     }
   }
   foreach(array(
