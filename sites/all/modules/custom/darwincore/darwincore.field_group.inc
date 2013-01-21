@@ -122,7 +122,7 @@ function darwincore_field_group_info() {
   $field_group->parent_name = '';
   $field_group->data = array(
     'label' => 'BLANK',
-    'weight' => '0',
+    'weight' => '10',
     'children' => array(
       0 => 'field_continent_or_ocean',
       1 => 'field_coordinate_system',
@@ -159,7 +159,7 @@ function darwincore_field_group_info() {
   $field_group->parent_name = '';
   $field_group->data = array(
     'label' => 'BLANK',
-    'weight' => '0',
+    'weight' => '10',
     'children' => array(
       0 => 'field_continent_or_ocean',
       1 => 'field_coordinate_system',
