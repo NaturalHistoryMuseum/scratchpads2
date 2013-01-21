@@ -66,7 +66,7 @@
                 entity_ids: slickgrid.getEntityIDs(),
                 display_id: slickgrid.getViewDisplayID(),
                 view: slickgrid.getViewName(),
-                entity_type: options['entity_type'],
+                entity_type: options['entity_type']
             }
             slickgrid.callback('clone', data, true);
 

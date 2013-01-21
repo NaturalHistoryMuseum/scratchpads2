@@ -860,7 +860,7 @@ var dataView;
             width: 200,
             trigger : 'none',  // Already clicked so manually activate
             cornerRadius: 0,
-            overlap: 3,
+            overlap: 3
           };
 
           if(typeof content == 'object'){
