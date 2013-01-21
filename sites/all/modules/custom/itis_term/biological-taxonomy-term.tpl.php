@@ -44,7 +44,12 @@
 
   <div class="content">
     <div class="field field-type-text field-label-inline clearfix">
-      <div class="field-label"><?php echo check_plain($field_rank[0]['value'])?>:</div>
+      <div class="field-label"><?php
+        if (!empty($field_rank[0]['value'])) {
+          echo check_plain($field_rank[0]['value']);
+        } else {
+           echo t('Unranked');
+        } ?>:</div>
       <div class="field-items">
         <div class='field-item'>
         <?php
