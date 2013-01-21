@@ -147,7 +147,7 @@ function darwincore_update_7007(){
 /**
  * Update the display of the field_country field.
  */
-function darwincore_update_7009(){
+function darwincore_update_7010(){
   // Update the display of the field_country field.
   module_load_include('features.field.inc', 'darwincore');
   $fields = darwincore_field_default_fields();
