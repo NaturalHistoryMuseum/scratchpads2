@@ -76,8 +76,9 @@ function bhl_block_view($delta = ''){
           $page_counter = count($pages);
           $number_of_pages = format_plural($page_counter, '@count page', '@count pages');
           if($number_of_pages){
+            $link_title = t('Click once to expand, and twice to open a new tab/window with the BHL page for @title', array('@title' => $publication_title));
             $items[] = array(
-              'data' => '<a href="' . $title['title_url'] . '" title="' . $publication_title . '" target="_blank">' . $publication_title . ' (' . $number_of_pages . ')</a>',
+              'data' => '<a href="' . $title['title_url'] . '" title="' . $link_title . '" target="_blank">' . $publication_title . ' (' . $number_of_pages . ')</a>',
               'children' => $pages,
               'style' => 'list-style:disc;padding-bottom:3px;'
             );
