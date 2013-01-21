@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function site_map_scratchpads_default_permissions(){
+  return array(
+    'anonymous user' => array(
+      'access site map'
+    )
+  );
+}

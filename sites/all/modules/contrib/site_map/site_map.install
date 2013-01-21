@@ -1,0 +1,54 @@
+<?php
+
+/**
+ * @file
+ * The install and update code for the site_map module.
+ *
+ * @ingroup site_map
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function site_map_uninstall() {
+  db_delete('variable')
+    ->condition('name', db_like('site_map_') . '%', 'LIKE')
+    ->execute();
+}
+
+/**
+ * Delete no longer used variables.
+ */
+function site_map_update_6000() {
+  db_delete('variable')
+    ->condition('name', db_like('site_map_message_') . '%', 'LIKE')
+    ->execute();
+  db_delete('variable')
+    ->condition('name', db_like('site_map_show_menus_') . '%', 'LIKE')
+    ->execute();
+}
+
+/**
+ * Upgrade site map message format setting.
+ */
+function site_map_update_7000() {
+
+  variable_set('site_map_message', array(
+    'value' => variable_get('site_map_message', ''),
+    'format' => variable_get('site_map_message_format', filter_default_format()),
+    )
+  );
+  variable_del('site_map_message_format');
+
+  return t('Successfully upgraded site map message format setting.');
+}
+
+/**
+ * Change block caching mode.
+ */
+function site_map_update_7001() {
+  db_update('block')
+    ->fields(array('cache' => DRUPAL_NO_CACHE))
+    ->condition('module', 'site_map')
+    ->execute();
+}

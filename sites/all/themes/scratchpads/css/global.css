@@ -195,7 +195,12 @@ sub {
 
 /************************ Layout *********************/ 
 
-
+/* Sitemap */
+.site-map-box>.content{
+  column-count: 3;
+  -moz-column-count: 3;
+  -webkit-column-count: 3;
+}
 
 /* Slide top & bottom */
 
