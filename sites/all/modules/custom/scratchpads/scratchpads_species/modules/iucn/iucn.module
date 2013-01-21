@@ -11,7 +11,8 @@ function iucn_block_info(){
       'pages' => 'taxonomy/term/*/descriptions',
       'visibility' => BLOCK_VISIBILITY_LISTED,
       'status' => 1,
-      'region' => 'content'
+      'region' => 'content',
+      'weight' => 101
     )
   );
 }
@@ -72,7 +73,7 @@ function iucn_form_block_admin_configure_alter(&$form, &$form_state, $form_id){
  * Implements hook_contextual_links_view_alter().
  */
 function iucn_contextual_links_view_alter(&$element, $items){
-  if(@isset($element['#contextual_links']['block'][1][0]) && $element['#contextual_links']['block'][1][0] == 'iucn'){
+  if(@isset($element['#contextual_links']['block'][1][0]) && $element['#contextual_links']['block'][1][0] == 'iucn' && !user_access('scratchpad team')){
     $element = array();
   }
 }

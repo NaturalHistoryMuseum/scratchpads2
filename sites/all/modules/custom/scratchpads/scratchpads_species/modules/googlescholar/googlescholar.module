@@ -11,7 +11,8 @@ function googlescholar_block_info(){
       'pages' => 'taxonomy/term/*/literature',
       'visibility' => BLOCK_VISIBILITY_LISTED,
       'status' => 1,
-      'region' => 'content'
+      'region' => 'content',
+      'weight' => 100
     )
   );
 }
@@ -71,7 +72,7 @@ function googlescholar_form_block_admin_configure_alter(&$form, &$form_state, $f
  * Implements hook_contextual_links_view_alter().
  */
 function googlescholar_contextual_links_view_alter(&$element, $items){
-  if(@isset($element['#contextual_links']['block'][1][0]) && $element['#contextual_links']['block'][1][0] == 'googlescholar'){
+  if(@isset($element['#contextual_links']['block'][1][0]) && $element['#contextual_links']['block'][1][0] == 'googlescholar' && !user_access('scratchpad team')){
     $element = array();
   }
 }
