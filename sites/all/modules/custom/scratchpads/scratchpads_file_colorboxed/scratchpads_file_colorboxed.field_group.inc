@@ -43,7 +43,7 @@ function scratchpads_file_colorboxed_field_group_info(){
     $field_group->data = array(
       'label' => 'Group',
       'weight' => '1',
-      'children' => $bundle == 'image' ? $image_children : $children,
+      'children' => ($bundle == 'image' ? $image_children : $children),
       'format_type' => 'field_group_stripy_div',
       'format_settings' => array(
         'label' => 'Group',
