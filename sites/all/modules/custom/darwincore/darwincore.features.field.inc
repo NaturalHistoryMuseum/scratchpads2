@@ -1047,7 +1047,7 @@ function darwincore_field_default_fields(){
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '15'
+        'weight' => '17'
       )
     )
   );
@@ -1263,7 +1263,7 @@ function darwincore_field_default_fields(){
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '13'
+        'weight' => '15'
       )
     )
   );
