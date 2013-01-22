@@ -1,16 +1,13 @@
-name = eMonocot Biblio tweaks
-description = Allows automatic creation of bible nodes from WCM protologues.
+name = "eMonocot Biblio tweaks"
+description = "Allows automatic creation of bible nodes from WCM protologues."
+core = "7.x"
 package = "eMonocot"
-core = 7.x
-dependencies[] = emonocot_ipni
-dependencies[] = biblio
-dependencies[] = ctools
+php = "5.2.4"
+dependencies[] = "biblio"
+dependencies[] = "ctools"
+dependencies[] = "emonocot_ipni"
 dependencies[] = "features"
-dependencies[] = "field_sql_storage"
 dependencies[] = "node_reference"
-
 features[field][] = "node-biblio-field_containing_work"
-
-files[] = ProtologueNodeProcessor.inc
-
-tool=true
+files[] = "ProtologueNodeProcessor.inc"
+tool = "true"
