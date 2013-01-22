@@ -2820,7 +2820,7 @@ function darwincore_field_default_fields(){
           'size' => 60
         ),
         'type' => 'taxonomy_autocomplete',
-        'weight' => '3'
+        'weight' => '-3'
       )
     )
   );

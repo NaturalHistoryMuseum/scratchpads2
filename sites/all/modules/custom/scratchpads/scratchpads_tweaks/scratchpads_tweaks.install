@@ -981,10 +981,11 @@ function scratchpads_tweaks_update_7038(){
 }
 
 /**
- * Set the body field to be weight "0".
+ * Set the "body" field to be weight "0".
+ * Set the "field_taxonomic_name" field to be weight "-3".
  */
 function scratchpads_tweaks_update_7039(){
-  // Get all instances.
+  // Update the weight of all "body" instances.
   $results = db_select('field_config_instance', 'f')->fields('f', array(
     'entity_type',
     'bundle'
@@ -992,6 +993,16 @@ function scratchpads_tweaks_update_7039(){
   foreach($results as $row){
     $instance = field_info_instance($row->entity_type, 'body', $row->bundle);
     $instance['widget']['weight'] = 1;
+    field_update_instance($instance);
+  }
+  // Update the weight of all "field_taxonomic_name" instances.
+  $results = db_select('field_config_instance', 'f')->fields('f', array(
+    'entity_type',
+    'bundle'
+  ))->condition('field_name', 'field_taxonomic_name')->execute();
+  foreach($results as $row){
+    $instance = field_info_instance($row->entity_type, 'field_taxonomic_name', $row->bundle);
+    $instance['widget']['weight'] = -3;
     field_update_instance($instance);
   }
 }

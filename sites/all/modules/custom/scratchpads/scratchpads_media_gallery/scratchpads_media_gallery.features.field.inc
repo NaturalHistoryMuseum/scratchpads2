@@ -495,7 +495,7 @@ function scratchpads_media_gallery_field_default_fields(){
           'size' => 60
         ),
         'type' => 'taxonomy_autocomplete',
-        'weight' => '10'
+        'weight' => '-3'
       )
     )
   );

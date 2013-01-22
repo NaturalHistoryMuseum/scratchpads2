@@ -1146,7 +1146,7 @@ other|Other',
         'module' => 'tree_widget',
         'settings' => array(),
         'type' => 'tree_widget',
-        'weight' => '2'
+        'weight' => '-3'
       )
     )
   );

@@ -60,7 +60,7 @@ function spm_field_default_fields(){
           'size' => 60
         ),
         'type' => 'taxonomy_autocomplete',
-        'weight' => '-1000'
+        'weight' => '-3'
       )
     )
   );
