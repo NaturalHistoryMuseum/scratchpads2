@@ -182,25 +182,71 @@ function oboe_view($oboe, $view_mode, $langcode){
     $data = $current_data;
   }
   // If we're finished
-  if($oboe->data['status'] == 'finished' && $oboe->data['proper_outfilename'] && (!isset($oboe->fid) || !$oboe->fid)){
+  if($oboe->data['status'] == 'finished' && $oboe->data['outfile_name'] && (!isset($oboe->fid) || !$oboe->fid)){
     // We've got a file, but have not yet downloaded it.  Lets do so now, and
     // we'll save it to the database.
     $file = file_save_data(@file_get_contents($oboe_service->get_download_url()));
-    $file = file_move($file, 'public://' . $oboe->data['proper_outfilename']);
-    $file->filename = $oboe->data['proper_outfilename'];
+    $file = file_move($file, 'public://' . $oboe->data['outfile_name']);
+    $file->filename = $oboe->data['outfile_name'];
     file_save($file);
     $oboe->fid = $file->fid;
     $save_entity = TRUE;
   }
-  if($oboe->data['status'] != 'finished'){
-    // We've not finished, we should refresh the page every 30 seconds (or similar).
-  /*drupal_add_html_head(array(
-      '#tag' => 'meta',
-      '#attributes' => array(
-        'http-equiv' => 'refresh',
-        'content' => variable_get('oboe_refresh_time', 30)
-      )
-    ), 'oboe_refresh');*/
+  if($oboe->fid){
+    $data = cache_get($oboe->oid, 'cache_oboe_output');
+    if(!$data){
+      // Extract the contents of the zip if it hasn't already been done.
+      if(!file_exists('public://' . $oboe->output_id)){
+        $zip_file = file_load($oboe->fid);
+        $zip = new ZipArchive();
+        $res = $zip->open(drupal_realpath($zip_file->uri));
+        if($res){
+          $zip->extractTo(drupal_realpath('public://'));
+        }
+        exit();
+      }
+      // Load the HTML file (if it exists).
+      if(file_exists("public://{$oboe->data['id']}/output/output.htm")){
+        $dom = new DOMDocument();
+        $dom->loadHTMLFile("public://{$oboe->data['id']}/output/output.htm");
+        // Loop through each image, changing the URL.
+        $images = $dom->getElementsByTagName('img');
+        foreach($images as $image){
+          $src = $image->getAttribute('src');
+          $image->setAttribute('src', file_create_url("public://{$oboe->data['id']}/output/$src"));
+        }
+        $body = $dom->getElementsByTagName('body');
+        foreach($body as $bod){
+          $html = $dom->saveXML($bod);
+          $html = preg_replace('/<body[^>]*>/', '', $html);
+          $html = preg_replace('/<\/body[^>]*>/', '', $html);
+          return array(
+            '#attached' => array(
+              'css' => array(
+                drupal_get_path('module', 'oboe') . '/css/oboe.css'
+              )
+            ),
+            'oboe_content' => array(
+              '#markup' => $html,/*filter_xss($html, array(
+                'span',
+                'a',
+                'b',
+                'br',
+                'div',
+                'h1',
+                'i',
+                'img',
+                'p',
+                'span',
+                'table',
+                'tr',
+                'td'
+              ))*/
+            )
+          );
+        }
+      }
+    }
   }
   if($save_entity){
     entity_save('oboe', $oboe);
@@ -329,7 +375,7 @@ function oboe_load_multiple($ids = array(), $conditions = array(), $reset = FALS
 function oboe_help($path, $arg){
   switch($path){
     case 'admin/services':
-     //return _filter_autop(OBOEService::get_documentation());
+    //return _filter_autop(OBOEService::get_documentation());
   }
 }
 

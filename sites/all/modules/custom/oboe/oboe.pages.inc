@@ -75,12 +75,48 @@ function oboe_job_form($form, &$form_state, $oboe){
         case 'URL':
         case 'text':
         case 'integer':
-          $form[$key] = array(
-            '#type' => 'textfield',
-            '#title' => isset($parameter['name']) ? $parameter['name'] : $key,
-            '#description' => isset($parameter['description']) ? $parameter['description'] : '',
-            '#required' => ((isset($parameter['required']) && $parameter['required'] == 'yes') ? TRUE : FALSE)
-          );
+          // Check for "map".
+          if($parameter['name'] == 'Coordinates'){
+            module_load_include('theme.inc', 'gm3');
+            $form['map'] = gm3_get_map(array(
+              'map' => array(
+                'id' => $key,
+                'libraries' => array(
+                  'polygon' => array(),
+                  'rectangle' => array(
+                    'rectangles' => array()
+                  ),
+                  'field_rectangle' => array(
+                    'module' => 'gm3_field'
+                  )
+                ),
+                'tools' => array(
+                  theme('gm3_rectangle_button', array(
+                    'id' => $key
+                  ))
+                )
+              )
+            ));
+            $form[$key] = array(
+              '#type' => 'textfield',
+              '#title' => isset($parameter['name']) ? $parameter['name'] : $key,
+              '#description' => isset($parameter['description']) ? $parameter['description'] : '',
+              '#required' => ((isset($parameter['required']) && $parameter['required'] == 'yes') ? TRUE : FALSE),
+              '#attributes' => array(
+                'class' => array(
+                  $key . '-rectangle'
+                )
+              ),
+              '#maxlength' => 1024
+            );
+          }else{
+            $form[$key] = array(
+              '#type' => 'textfield',
+              '#title' => isset($parameter['name']) ? $parameter['name'] : $key,
+              '#description' => isset($parameter['description']) ? $parameter['description'] : '',
+              '#required' => ((isset($parameter['required']) && $parameter['required'] == 'yes') ? TRUE : FALSE)
+            );
+          }
           break;
         case 'boolean':
           $options = array();
