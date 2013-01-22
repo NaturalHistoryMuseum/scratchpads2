@@ -225,6 +225,7 @@ function oboe_job_form_submit(&$form, &$form_state){
     }
   }
   catch(OBOEServiceException $e){
+    watchdog('oboe_error', print_r($e, 1));
     drupal_set_message('Your submission failed.  Please try again later.  If you continue to experience problems, then please consult the user support.', 'error');
   }
 }

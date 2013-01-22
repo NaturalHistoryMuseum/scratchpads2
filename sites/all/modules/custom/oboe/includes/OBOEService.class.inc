@@ -213,7 +213,6 @@ class OBOEService{
         }
       }
     }
-    watchdog('oboe_error', print_r($this, 1));
     return FALSE;
   }
 
