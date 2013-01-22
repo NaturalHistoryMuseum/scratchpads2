@@ -383,11 +383,11 @@ function scratchpads_user_login_block($variables){
   $form['name']['#attributes']['tabindex'] = 1;
   $form['pass']['#attributes']['tabindex'] = 2;
   $form['actions']['submit']['#attributes']['tabindex'] = 3;
-  $output = '<div class="clearfix">';
-  $output .= drupal_render($form['actions']);
-  $output .= drupal_render($form['openid_identifier']);
-  $output .= drupal_render($form['pass']);
+  $output = '<div class="clearfix" style="float:right">';
   $output .= drupal_render($form['name']);
+  $output .= drupal_render($form['pass']);
+  $output .= drupal_render($form['openid_identifier']);
+  $output .= drupal_render($form['actions']);
   $output .= '</div>';
   $output .= '<div class="account-links">';
   $output .= drupal_render($form['links']);

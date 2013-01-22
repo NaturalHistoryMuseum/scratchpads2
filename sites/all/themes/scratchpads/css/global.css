@@ -247,9 +247,9 @@ display: inline;
   margin-left: 20px;
 }
 
-#zone-slide-top-wrapper form#user-login-form div.clearfix .form-actions,
-#zone-slide-top-wrapper form#user-login-form div.clearfix .form-item{
-  float: right;
+#zone-slide-top-wrapper .form-actions,
+#zone-slide-top-wrapper .form-item{
+  float: left;
 }
 
 #zone-slide-top-wrapper form#user-login-form .form-item-openid-identifier div.description{
