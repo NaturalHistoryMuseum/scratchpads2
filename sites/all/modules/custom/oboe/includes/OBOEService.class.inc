@@ -212,9 +212,8 @@ class OBOEService{
           return TRUE;
         }
       }
-    }else{
-      watchdog('oboe_error', print_r($this, 1));
     }
+    watchdog('oboe_error', print_r($this, 1));
     return FALSE;
   }
 
