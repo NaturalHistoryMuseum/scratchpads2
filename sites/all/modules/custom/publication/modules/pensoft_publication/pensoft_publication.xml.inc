@@ -27,6 +27,9 @@
  *                      Note that this only affects the children of the current node, not the current
  *                      node itself or any other node processed subsequently.
  *                      
+ *                      If this returns a value that evaluates to FALSE, then the child element is
+ *                      not inserted. If an exception was expected instead, then the loader should raise it.
+ *                      
  *    #field :         A field on the current mapping object to use as value when generating the XML.
  *    
  *                      The field on the object can be a single value, or a Drupal value array:
@@ -44,6 +47,11 @@
  *     
  *    #condition:       If present, the current node (and it's children) are only processed if the field
  *                      described by #condition is not empty.
+ *                      
+ *    #condition arguments : If present in combination with #condition, then this modifies the test
+ *                           done by #condition. #condition arguments is an array like array($op, $val)
+ *                           where the field defined in #condition is tested against $val using operator
+ *                           $op.
  *
  *   <tag name>:        A schema array for child elements. There can be any number of
  *                      such entries. To allow for several of the same tag (for instance, several
@@ -195,6 +203,47 @@ class PensoftPublicationXSDParser {
 
     return $result;
   }
+  
+  /**
+   * Merge two schema arrays into one
+   */
+  function merge_schemas($a, $b) {
+    // Base case if either $a or $b is not an array
+    if (!is_array($a)) {
+      return $b;
+    }
+    if (!is_array($b)) {
+      $a[] = $b;
+      return $a;
+    }
+    
+    // Prepare for processing
+    $r = array();    
+    $b_keys = array_keys($b);
+    
+    // Start with $a, and look for equivalents in $b
+    foreach (array_keys($a) as $a_key) {
+      // Match same keys
+      if (!isset($b[$a_key])) {
+        $r[$a_key] = $a[$a_key];
+      } else {
+        $r[$a_key] = $this->merge_schemas($a[$a_key], $b[$a_key]);
+        unset($b[$a_key]);
+      }
+      
+      // Match number #x keys
+      foreach ($b_keys as $b_key) {
+        if (preg_match('/^' . preg_quote($a_key, '/') . '#\d+$/', $b_key)) {
+          $r[$b_key] = $this->merge_schemas($a[$a_key], $b[$b_key]);
+          unset($b[$b_key]);
+        }
+      }
+    }
+    
+    // Now add what is left in $b
+    $r = array_merge($r, $b);
+    return $r;
+  }
 }
 
 /**
@@ -262,7 +311,18 @@ class PensoftPublicationXMLBuilder{
       // Check if there is a conditional
       if (isset($child_schema['#condition'])) {
         $field = $child_schema['#condition'];
-        if (empty($object->$field)) {
+        if (!empty($child_schema['#condition arguments'])) {
+          $cond_op = $child_schema['#condition arguments'][0];
+          $cond_val = $child_schema['#condition arguments'][1];
+          if (empty($object->$field)) {
+            continue;
+          }
+          
+          $field_val = $object->$field;
+          if ($cond_op == '=' && $field_val[LANGUAGE_NONE][0]['value'] != $cond_val) {
+            continue;
+          }
+        } else if (empty($object->$field)) {
           continue;
         }
       }
@@ -301,11 +361,17 @@ class PensoftPublicationXMLBuilder{
       if (isset($schema['#value'])) {
         $value_to_insert = $schema['#value'];
       }
+
+      $child_object = $this->_load_child_object($schema, $object, $value);
+      if (!$child_object) {
+        // It's up to the loader to raise errors if need be. Here an empty return means skip it.
+        // XXX doing this test here means we're not checking against min/max occurs.
+        continue;
+      }
       
       $child_element = $this->_insert_xml_element($tag, $schema, $value_to_insert, $xml_element);
       $inserted = TRUE;
       
-      $child_object = $this->_load_child_object($schema, $object, $value);
       $this->_build_xml_iteration($schema, $child_object, $child_element);
     }
     
@@ -358,6 +424,9 @@ class PensoftPublicationXMLBuilder{
   function _load_child_object($schema, $object, $value) {
     if (isset($schema['#load'])) {
       $arguments = array($value);
+      if (isset($schema['#load arguments'])) {
+        $arguments = array_merge($arguments, $schema['#load arguments']);
+      }
       $object = call_user_func_array($schema['#load'], $arguments);
     }
   
@@ -399,7 +468,10 @@ class PensoftPublicationXMLBuilder{
   
     // Add value
     if ($value !== NULL) {
-      $child_element->nodeValue = (string)$value;
+      // simpleXML escapes HTML tags, but not HTML entities ; however not all entities (such as &nbsp;) are supported
+      // in XML. All numerical entities are fine, so we only need to escape named entities.
+      $escaped_value = preg_replace('/&([a-zA-Z]+);/', '&amp;$1;', (string)$value);
+      $child_element->nodeValue = (string)$escaped_value;
     }
   
     return $child_element;
@@ -469,7 +541,7 @@ class PensoftPublicationXMLBuilder{
  */
 function _pensoft_publication_build_xml($publication) {
   // Parse the schema
-  $url = variable_get('pensoft_publication_xml_schema_url', 'http://localhost/scratchpads/sites/all/modules/custom/publication/modules/pensoft_publication/taxonomic_paper.xsd');
+  $url = variable_get('pensoft_publication_xml_schema_url', 'http://localhost/scratchpads/sites/all/modules/custom/publication/modules/pensoft_publication/research_article.xsd');
   //$source_schema = _pensoft_publication_xml_parse_schema($url);
   try {
     $parser = new PensoftPublicationXSDParser($url);
@@ -494,8 +566,7 @@ function _pensoft_publication_build_xml($publication) {
     //'tables' => _pensoft_publication_xml_tables_schema(),
   ));
   
-  $schema = array_merge_recursive($source_schema, $map_schema);
-  $schema = _pensoft_publication_order_schema($schema); // array_merge_recursive doesn't order fields as we want them.
+  $schema = $parser->merge_schemas($source_schema, $map_schema);
   
   // Build the XML
   try {
@@ -505,7 +576,7 @@ function _pensoft_publication_build_xml($publication) {
     drupal_set_message($e->getMessage(), 'error');
     return FALSE;
   }   
-    
+    return $xml;
   // Validation and error display. Try to break the XML down in lines such that we don't disturb content by adding unwanted
   // carriage returns (that would effecut enumerations for instance).
   $xml_per_line = preg_replace('/(<\/.*?>)/', "$1\n", $xml);
@@ -546,57 +617,18 @@ function _pensoft_publication_build_xml($publication) {
   return $xml;
 }
 
-/**
- * Ensure multiple definitions of the same field in a schema are kept
- * in the right order.
- * 
- */
-function _pensoft_publication_order_schema($schema) {
-  if (!is_array($schema)) {
-    return $schema;
-  }
-  
-  $keys = array_keys($schema);
-  $reorder = array();
-  $reorder_all = array();
-  
-  // Find items that need re-ordering
-  foreach ($keys as $key) {
-    if (!preg_match('/^(.+)#\d+$/', $key, $matches)) {
-      continue;
-    }
-    
-    if (in_array($matches[1], $keys)) {
-      $reorder[$matches[1]][] = $key;
-      $reorder_all[] = $key;
-    }
-  }
-  
-  // Re-order and re-curse
-  $new = array();
-  foreach ($keys as $key) {
-    if (in_array($key, $reorder_all)) {
-      continue;
-    }
-    $new[$key] = _pensoft_publication_order_schema($schema[$key]);
-    if (!empty($reorder[$key])) {
-      foreach ($reorder[$key] as $follow) {
-        $new[$follow] = _pensoft_publication_order_schema($schema[$follow]);
-      }
-    }
-  }
-  
-  return $new;
-}
 
 /**
  * Proccess a field to insert a country value
  * 
  */
-function _pensoft_publication_xml_process_country($value) {
-  $country = country_load($value['iso2']);
-  // XXX how do we know Pensoft gets this right ? $country->official_name might be safer ?
-  return $country->name;
+function _pensoft_publication_xml_process_country($value, $type = 'name') {
+  if ($type == 'iso2') {
+    return $value['iso2'];
+  } else {
+    $country = country_load($value['iso2']);
+    return $country->name;
+  }
 }
 
 /**
@@ -615,10 +647,21 @@ function _pensoft_publication_xml_process_salutation($value) {
 }
 
 /**
+ * Process a map field
+ */
+function _pensoft_publication_xml_process_map($value, $type = 'latitude') {
+  $map = $value[LANGUAGE_NONE][0];
+  return $map->$type;
+}
+
+/**
  * Loader function for the author/contributor fields
  */
 function _pensoft_publication_xml_load_user($value) {
-  return user_load($value);
+  $user =  user_load($value);
+  $user->processed_full_name = $user->field_user_title . ' ' . $user->field_user_given_names . ' ' . $user->field_user_family_name;
+  
+  return $user;
 }
 
 /**
@@ -646,3 +689,38 @@ function _pensoft_publication_xml_load_treatment($value) {
   $combine = array_merge((array)$node, (array)$relation, (array)$term);
   return ((object)$combine);
 }
+
+/**
+ * Loads the parent of the given term
+ */
+function _pensoft_publication_xml_load_parent_term($value, $rank = NULL, $default = NULL) {
+  $terms = taxonomy_get_parents($value['tid']);
+  while (!empty($terms)) {
+    $current = array_shift($terms);
+    if ($rank === NULL || $current->field_rank[LANGUAGE_NONE][0]['value'] == $rank) {
+      return $current;
+    }
+    $parents = taxonomy_get_parents($current->tid);
+    $terms = array_merge($terms, $parents);
+  }
+  return $default;
+}
+
+/**
+ * Loader function for materials
+ */
+function _pensoft_publication_xml_load_specimen($value) {
+  $specimen = node_load($value['nid']);
+  if (!empty($specimen->field_location[$specimen->language][0]['nid'])) {
+    $location = node_load($specimen->field_location[$specimen->language][0]['nid']);
+    $location->location_title = $location->title;
+    unset($location->title);
+    $specimen = ((object)(array_merge((array)$specimen, (array)($location))));
+  }
+  return $specimen;
+}
+
+
+
+
+
