@@ -54,6 +54,12 @@ div.publication-relation-select-container .field-add-more-submit {
   right: 0;
 }
 
+div.publication-relation-select-container .form-item .field-add-more-submit {
+  margin: auto;
+  position:relative;
+}
+
+
 div.publication-relation-select-container div.views-exposed-widget .form-submit {
   margin-top: 9px;
 }

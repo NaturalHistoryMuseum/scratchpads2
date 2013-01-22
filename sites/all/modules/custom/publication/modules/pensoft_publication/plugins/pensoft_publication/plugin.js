@@ -16,12 +16,16 @@
 
         editor.addCommand( 'pensoft_publication_insert_table', {
           exec : function() {
-            $tables = $('<div id="pensoft_select_table"><table><tr><th>select</th><th>Name</th><th>Table</th></tr></table></div>').appendTo('body');
+            $tables = $('<div id="pensoft_select_table"><table><tr><th>select</th><th>Id</th><th>Title</th><th>Table</th></tr></table></div>').appendTo('body');
             
             // Populate with available tables
             $('#edit-field-publication-tables .form-type-textarea').each(function(i,e) {
-              var label = $(this).find('label').html();
-              var id = i + 1;
+              var label = $(this).parents('td').find('.field-name-field-publication-table-title input').val();
+              var id = $(this).parents('td').find('.field-name-field-publication-table-id input').val();
+              
+              if (id == '') {
+                return;
+              }
               
               // Ensure all text areas are up to date
               if (typeof CKEDITOR != 'undefined') {
@@ -35,7 +39,7 @@
                 // Create the row
                 var $row = $('<tr class="pensoft_select_table_row">' + 
                              '<td><input type="checkbox" name="' + id + '"/></td><td>' + 
-                             label + '</td>' + '<td>' + content + '</td></tr>'
+                             id + '</td><td>' + label + '</td><td>' + content + '</td></tr>'
                  ).appendTo($tables.children('table'));
                 
                 // Handle clicks: Bypass clicks on links within the row
@@ -52,7 +56,7 @@
 
                 // Handle single inserts
                 $row.click(function() {
-                  editor.insertHtml('<span>Table. ' + id + '</span>');
+                  editor.insertHtml('<tbls_citation citation_id="' + id + '" contenteditable="false" style="background: #AAA;">Table. ' + id + '</tbls_citation>');
                   editor.updateElement();
                   $.colorbox.close();
                 });

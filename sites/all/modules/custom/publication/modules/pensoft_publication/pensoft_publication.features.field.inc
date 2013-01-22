@@ -9,7 +9,221 @@
  */
 function pensoft_publication_field_default_fields() {
   $fields = array();
-
+  
+  // Exported field: 'field_collection_item-field_publication_tables-field_publication_table'
+  $fields['field_collection_item-field_publication_tables-field_publication_table'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_table',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'module' => 'text',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'text_long',
+    ),
+    'field_instance' => array(
+      'bundle' => 'field_publication_tables',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => '2',
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'field_collection_item',
+      'field_name' => 'field_publication_table',
+      'label' => 'Table',
+      'required' => 0,
+      'settings' => array(
+        'linkit' => array(
+          'enable' => 0,
+          'insert_plugin' => '',
+        ),
+        'text_processing' => '1',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5',
+        ),
+        'type' => 'text_textarea',
+        'weight' => '2',
+      ),
+    ),
+  );
+  
+  // Exported field: 'field_collection_item-field_publication_tables-field_publication_table_id'
+  $fields['field_collection_item-field_publication_tables-field_publication_table_id'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_table_id',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255',
+      ),
+      'translatable' => '0',
+      'type' => 'text',
+    ),
+    'field_instance' => array(
+      'bundle' => 'field_publication_tables',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'inline',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => '0',
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'field_collection_item',
+      'field_name' => 'field_publication_table_id',
+      'label' => 'Table id',
+      'required' => 0,
+      'settings' => array(
+        'linkit' => array(
+          'enable' => 0,
+          'insert_plugin' => '',
+        ),
+        'text_processing' => '0',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'size' => '60',
+        ),
+        'type' => 'text_textfield',
+        'weight' => 0,
+      ),
+    ),
+  );
+  
+  // Exported field: 'field_collection_item-field_publication_tables-field_publication_table_title'
+  $fields['field_collection_item-field_publication_tables-field_publication_table_title'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_table_title',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255',
+      ),
+      'translatable' => '0',
+      'type' => 'text',
+    ),
+    'field_instance' => array(
+      'bundle' => 'field_publication_tables',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => '1',
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'field_collection_item',
+      'field_name' => 'field_publication_table_title',
+      'label' => 'Title',
+      'required' => 0,
+      'settings' => array(
+        'linkit' => array(
+          'enable' => 0,
+          'insert_plugin' => '',
+        ),
+        'text_processing' => '0',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'size' => '200',
+        ),
+        'type' => 'text_textfield',
+        'weight' => '1',
+      ),
+    ),
+  );
+  
   // Exported field: 'publication-pensoft-field_pensoft_acknowledgments'
   $fields['publication-pensoft-field_pensoft_acknowledgments'] = array(
     'field_config' => array(
@@ -1305,23 +1519,14 @@ function pensoft_publication_field_default_fields() {
       'deleted' => '0',
       'entity_types' => array(),
       'field_name' => 'field_publication_tables',
-      'foreign keys' => array(
-        'format' => array(
-          'columns' => array(
-            'format' => 'format',
-          ),
-          'table' => 'filter_format',
-        ),
+      'foreign keys' => array(),
+      'indexes' => array(),
+      'module' => 'field_collection',
+      'settings' => array(
+        'path' => '',
       ),
-      'indexes' => array(
-        'format' => array(
-          0 => 'format',
-        ),
-      ),
-      'module' => 'text',
-      'settings' => array(),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'field_collection',
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -1331,10 +1536,16 @@ function pensoft_publication_field_default_fields() {
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'text',
-          'settings' => array(),
-          'type' => 'text_default',
-          'weight' => '19',
+          'module' => 'field_collection',
+          'settings' => array(
+            'add' => '',
+            'delete' => '',
+            'description' => 0,
+            'edit' => '',
+            'view_mode' => 'full',
+          ),
+          'type' => 'field_collection_view',
+          'weight' => '21',
         ),
       ),
       'entity_type' => 'publication',
@@ -1342,21 +1553,14 @@ function pensoft_publication_field_default_fields() {
       'label' => 'Tables',
       'required' => 0,
       'settings' => array(
-        'linkit' => array(
-          'enable' => 0,
-          'insert_plugin' => '',
-        ),
-        'text_processing' => '1',
         'user_register_form' => FALSE,
       ),
       'widget' => array(
-        'active' => 1,
-        'module' => 'text',
-        'settings' => array(
-          'rows' => '5',
-        ),
-        'type' => 'text_textarea',
-        'weight' => '16',
+        'active' => 0,
+        'module' => 'field_collection',
+        'settings' => array(),
+        'type' => 'field_collection_embed',
+        'weight' => '33',
       ),
     ),
   );
@@ -1541,7 +1745,7 @@ function pensoft_publication_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'relation_type' => 'publication_treatments',
-        'relation_view' => 'relation_select_publication_taxo2:default',
+        'relation_view' => 'relation_select_publication_taxo:default',
         'user_register_form' => FALSE,
       ),
       'widget' => array(
@@ -1586,7 +1790,7 @@ function pensoft_publication_field_default_fields() {
           'module' => 'relation_endpoint',
           'settings' => array(),
           'type' => 'relation_endpoint',
-          'weight' => '0',
+          'weight' => '1',
         ),
       ),
       'entity_type' => 'relation',
@@ -1600,67 +1804,7 @@ function pensoft_publication_field_default_fields() {
         'module' => 'relation_endpoint',
         'settings' => array(),
         'type' => 'relation_endpoint',
-        'weight' => '0',
-      ),
-    ),
-  );
-
-  // Exported field: 'relation-publication_treatments-field_publication_treat_desc'
-  $fields['relation-publication_treatments-field_publication_treat_desc'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_publication_treat_desc',
-      'foreign keys' => array(
-        'format' => array(
-          'columns' => array(
-            'format' => 'format',
-          ),
-          'table' => 'filter_format',
-        ),
-      ),
-      'indexes' => array(
-        'format' => array(
-          0 => 'format',
-        ),
-      ),
-      'module' => 'text',
-      'settings' => array(),
-      'translatable' => '0',
-      'type' => 'text_long',
-    ),
-    'field_instance' => array(
-      'bundle' => 'publication_treatments',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'above',
-          'module' => 'text',
-          'settings' => array(),
-          'type' => 'text_default',
-          'weight' => '2',
-        ),
-      ),
-      'entity_type' => 'relation',
-      'field_name' => 'field_publication_treat_desc',
-      'label' => 'Description',
-      'required' => 0,
-      'settings' => array(
-        'text_processing' => '0',
-        'user_register_form' => FALSE,
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'text',
-        'settings' => array(
-          'rows' => '5',
-        ),
-        'type' => 'text_textarea',
-        'weight' => '3',
+        'weight' => '2',
       ),
     ),
   );
@@ -1701,7 +1845,7 @@ function pensoft_publication_field_default_fields() {
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => '3',
+          'weight' => '5',
         ),
       ),
       'entity_type' => 'relation',
@@ -1723,36 +1867,50 @@ function pensoft_publication_field_default_fields() {
           'rows' => '5',
         ),
         'type' => 'text_textarea',
-        'weight' => '4',
+        'weight' => '6',
       ),
     ),
   );
-
-  // Exported field: 'relation-publication_treatments-field_publication_treat_material'
-  $fields['relation-publication_treatments-field_publication_treat_material'] = array(
+  
+  // Exported field: 'relation-publication_treatments-field_publication_treat_holotype'
+  $fields['relation-publication_treatments-field_publication_treat_holotype'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_publication_treat_material',
+      'field_name' => 'field_publication_treat_holotype',
       'foreign keys' => array(
-        'format' => array(
+        'nid' => array(
           'columns' => array(
-            'format' => 'format',
+            'nid' => 'nid',
           ),
-          'table' => 'filter_format',
+          'table' => 'node',
         ),
       ),
       'indexes' => array(
-        'format' => array(
-          0 => 'format',
+        'nid' => array(
+          0 => 'nid',
         ),
       ),
-      'module' => 'text',
-      'settings' => array(),
+      'module' => 'node_reference',
+      'settings' => array(
+        'referenceable_types' => array(
+          'biblio' => 0,
+          'location' => 0,
+          'media_gallery' => 0,
+          'page' => 0,
+          'specimen_observation' => 'specimen_observation',
+          'spm' => 0,
+        ),
+        'view' => array(
+          'args' => array(),
+          'display_name' => '',
+          'view_name' => '',
+        ),
+      ),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'node_reference',
     ),
     'field_instance' => array(
       'bundle' => 'publication_treatments',
@@ -1762,28 +1920,164 @@ function pensoft_publication_field_default_fields() {
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'text',
+          'module' => 'node_reference',
           'settings' => array(),
-          'type' => 'text_default',
-          'weight' => '1',
+          'type' => 'node_reference_default',
+          'weight' => '2',
         ),
       ),
       'entity_type' => 'relation',
-      'field_name' => 'field_publication_treat_material',
-      'label' => 'Material',
+      'entityconnect_unload_add' => '1',
+      'entityconnect_unload_edit' => '1',
+      'field_name' => 'field_publication_treat_holotype',
+      'label' => 'Holotype',
       'required' => 0,
       'settings' => array(
-        'text_processing' => '0',
+      'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'node_reference',
+        'settings' => array(
+          'autocomplete_match' => 'contains',
+          'autocomplete_path' => 'node_reference/autocomplete',
+          'size' => '60',
+        ),
+        'type' => 'node_reference_autocomplete',
+        'weight' => '3',
+      ),
+    ),
+  );
+
+  // Exported field: 'relation-publication_treatments-field_publication_treat_paratype'
+  $fields['relation-publication_treatments-field_publication_treat_paratype'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '-1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_treat_paratype',
+      'foreign keys' => array(
+        'nid' => array(
+          'columns' => array(
+            'nid' => 'nid',
+          ),
+          'table' => 'node',
+        ),
+      ),
+      'indexes' => array(
+        'nid' => array(
+          0 => 'nid',
+        ),
+      ),
+      'module' => 'node_reference',
+      'settings' => array(
+        'referenceable_types' => array(
+          'biblio' => 0,
+          'location' => 0,
+          'media_gallery' => 0,
+          'page' => 0,
+          'specimen_observation' => 'specimen_observation',
+          'spm' => 0,
+        ),
+        'view' => array(
+          'args' => array(),
+          'display_name' => '',
+          'view_name' => '',
+        ),
+      ),
+      'translatable' => '0',
+      'type' => 'node_reference',
+    ),
+    'field_instance' => array(
+      'bundle' => 'publication_treatments',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'node_reference',
+          'settings' => array(),
+          'type' => 'node_reference_default',
+          'weight' => '4'
+        )
+      ),
+      'entity_type' => 'relation',
+      'entityconnect_unload_add' => '1',
+      'entityconnect_unload_edit' => '1',
+      'field_name' => 'field_publication_treat_paratype',
+      'label' => 'Paratype(s)',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'node_reference',
+        'settings' => array(
+          'autocomplete_match' => 'contains',
+          'autocomplete_path' => 'node_reference/autocomplete',
+          'size' => '60'
+        ),
+        'type' => 'node_reference_autocomplete',
+        'weight' => '5'
+      )
+    ),
+  );
+  
+  // Exported field: 'relation-publication_treatments-field_publication_treat_type'
+  $fields['relation-publication_treatments-field_publication_treat_type'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_treat_type',
+      'foreign keys' => array(),
+      'indexes' => array(
+        'value' => array(
+          0 => 'value',
+        ),
+      ),
+      'module' => 'list',
+      'settings' => array(
+        'allowed_values' => array(
+          'New taxon' => 'New taxon',
+          'Redescription' => 'Redescription',
+        ),
+        'allowed_values_function' => '',
+      ),
+      'translatable' => '0',
+      'type' => 'list_text',
+    ),
+    'field_instance' => array(
+      'bundle' => 'publication_treatments',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'list',
+          'settings' => array(),
+          'type' => 'list_default',
+          'weight' => '0',
+        ),
+      ),
+      'entity_type' => 'relation',
+      'field_name' => 'field_publication_treat_type',
+      'label' => 'Type of treatment',
+      'required' => 0,
+      'settings' => array(
         'user_register_form' => FALSE,
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'text',
-        'settings' => array(
-          'rows' => '5',
-        ),
-        'type' => 'text_textarea',
-        'weight' => '2',
+        'module' => 'options',
+        'settings' => array(),
+        'type' => 'options_select',
+        'weight' => '1',
       ),
     ),
   );
@@ -1826,7 +2120,7 @@ function pensoft_publication_field_default_fields() {
           'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => '4',
+          'weight' => '6',
         ),
       ),
       'entity_type' => 'relation',
@@ -1844,7 +2138,7 @@ function pensoft_publication_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '1',
+        'weight' => '0',
       ),
     ),
   );
@@ -1855,20 +2149,20 @@ function pensoft_publication_field_default_fields() {
   t('Acknowledgments');
   t('Copy editor');
   t('Data resources');
-  t('Description');
   t('Discussion');
   t('Figures');
   t('Final name');
+  t('Holotype');
   t('If this taxon should have a different name in the final publication, enter it here.');
   t('Included fields');
   t('Introduction');
   t('Keywords');
   t('Linguistic editor');
-  t('Material');
   t('Material & Methods');
   t('Mentor');
   t('Other Contributors');
   t('Other authors');
+  t('Paratype(s)');
   t('Please enter a list of publication keywords, comma separated.');
   t('Publication title');
   t('Reference');
@@ -1876,8 +2170,12 @@ function pensoft_publication_field_default_fields() {
   t('Submitting author');
   t('Supplementary files');
   t('Systematics');
+  t('Table');
+  t('Table id');
   t('Tables');
   t('Taxon treatments');
+  t('Title');
+  t('Type of treatment');
   t('endpoints');
 
   return $fields;

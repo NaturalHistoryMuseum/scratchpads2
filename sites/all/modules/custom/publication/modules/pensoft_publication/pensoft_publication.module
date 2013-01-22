@@ -43,7 +43,7 @@ function pensoft_publication_process_field_publication_treatments(&$variables){
     $variables['items'][] = drupal_render($field);
   }
   $relation_page = relation_page($relation);
-  $variables['suffix'] = drupal_render($relation_page);
+  $variables['prefix'] .= drupal_render($relation_page);
 }
      
 /**
@@ -63,9 +63,9 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
   $form['#attached']['js'][] = drupal_get_path('module', 'pensoft_publication') . '/js/pensoft.js';
   
   // Load the field selector for the treatments
-  foreach (element_children($form['field_publication_treatments']['und']) as $key) {
+  foreach (element_children($form['field_publication_treatments'][LANGUAGE_NONE]) as $key) {
     $treatment_form = $form['field_publication_treatments']['und'][$key];
-    $values = $form_state['values']['field_publication_treatments']['und'][$key];
+    $values = $form_state['values']['field_publication_treatments'][LANGUAGE_NONE][$key];
     if (empty($treatment_form['#entity_type'])) {
       continue;
     }
@@ -85,8 +85,8 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
       }
     } else {
       $relation = $treatment_form['relation_fields']['#entity'];
-      if (isset($relation->endpoints['und'][1]['entity_id'])) {
-        $node = node_load($relation->endpoints['und'][1]['entity_id']);
+      if (isset($relation->endpoints[LANGUAGE_NONE][1]['entity_id'])) {
+        $node = node_load($relation->endpoints[LANGUAGE_NONE][1]['entity_id']);
       } else {
         $node = NULL;
       }
@@ -95,7 +95,7 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
   
     $treatment_field_form = _pensoft_publication_treatment_spm_fields_form($form, $selected_fields, $node, $key);
     hide($treatment_form['relation_fields']['field_publication_treat_fields']);
-    $form['field_publication_treatments']['und'][$key] = array_merge($treatment_form, $treatment_field_form);
+    $form['field_publication_treatments'][LANGUAGE_NONE][$key] = array_merge($treatment_form, $treatment_field_form);
   }
   
   // Handle automatic adding of references  
@@ -118,12 +118,14 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
   $entity = $form['#entity'];
   $figures_map = array();
   $figure_key = 0;
-  foreach ($entity->field_publication_figures['und'] as $fig_key => $figure) {
-    if (!empty($figure['fid'])) {
-      $form['field_publication_figures']['und'][$fig_key]['#title'] = 'Fig. ' . ($fig_key+1);
-      $figures_map[$figure['fid']] = $fig_key;
-      if ($fig_key >= $figure_key) {
-        $figure_key = $fig_key+1;
+  if (!empty($entity->field_publication_figures[LANGUAGE_NONE])) {
+    foreach ($entity->field_publication_figures[LANGUAGE_NONE] as $fig_key => $figure) {
+      if (!empty($figure['fid'])) {
+        $form['field_publication_figures'][LANGUAGE_NONE][$fig_key]['#title'] = 'Fig. ' . ($fig_key+1);
+        $figures_map[$figure['fid']] = $fig_key;
+        if ($fig_key >= $figure_key) {
+          $figure_key = $fig_key+1;
+        }
       }
     }
   }
@@ -139,8 +141,8 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
   $entity = $form['#entity'];
   $tables_map = array();
   $table_key = 0;
-  foreach (element_children($form['field_publication_tables']['und']) as $elem_key) {
-    $form['field_publication_tables']['und'][$elem_key]['#title'] = 'Table. ' . ($elem_key+1);
+  foreach (element_children($form['field_publication_tables'][LANGUAGE_NONE]) as $elem_key) {
+    $form['field_publication_tables'][LANGUAGE_NONE][$elem_key]['#title'] = 'Table. ' . ($elem_key+1);
     if ($elem_key >= $table_key) {
       $table_key = $elem_key+1;
     }

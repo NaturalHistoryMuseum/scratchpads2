@@ -67,19 +67,10 @@
         <div class="field-label">Tables:</div>
         <div class="field-items">
           <?php
-            $count = 0;
             foreach (element_children($element['field_publication_tables']) as $key) :
-              $count++;
-          ?>
-              <div class="field field-publication-secondary">
-                <div class="field-label">
-                  <?php echo t('Table @num', array('@num' => $count)); ?>
-                </div>
-                <div class="field-items">
-                  <?php echo $element['field_publication_tables'][$key]['#markup']; ?>                
-                </div>
-              </div>
-          <? endforeach; ?>
+              echo render($element['field_publication_tables'][$key]);
+             endforeach;
+           ?>
         </div>
       </div>
     <?php endif; ?>

@@ -85,6 +85,7 @@
 }
 
 .publication-group .field-type-relation-select ul li .field-label,
+.publication-group .field-type-relation-select .relation-select-field-prefix > .field .field-label,
 .publication-group .field-type-relation-select .relation-select-field-suffix .field-label {
   float: left;
   margin-left: 20px;
@@ -92,6 +93,7 @@
 }
 
 .publication-group .field-type-relation-select ul li .field-items,
+.publication-group .field-type-relation-select .relation-select-field-prefix > .field .field-items,
 .publication-group .field-type-relation-select .relation-select-field-suffix .field-items {
   margin-left: 40px;
 }
@@ -126,4 +128,8 @@
 
 .publication-group .publication_figure div {
   margin-left: 230px;
+}
+
+.publication-group .field-collection-view .field-label {
+  width: auto;
 }
