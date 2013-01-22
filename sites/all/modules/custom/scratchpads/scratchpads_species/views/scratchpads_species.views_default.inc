@@ -555,6 +555,11 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['field_general_description']['empty_zero'] = 0;
   $handler->display->display_options['fields']['field_general_description']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['field_general_description']['field_api_classes'] = 0;
+  /* Sort criterion: Content: Sticky */
+  $handler->display->display_options['sorts']['sticky']['id'] = 'sticky';
+  $handler->display->display_options['sorts']['sticky']['table'] = 'node';
+  $handler->display->display_options['sorts']['sticky']['field'] = 'sticky';
+  $handler->display->display_options['sorts']['sticky']['order'] = 'DESC';
   /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
@@ -882,6 +887,11 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['biblio_year']['empty_zero'] = 0;
   $handler->display->display_options['fields']['biblio_year']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['biblio_year']['biblio_label'] = 1;
+  /* Sort criterion: Content: Sticky */
+  $handler->display->display_options['sorts']['sticky']['id'] = 'sticky';
+  $handler->display->display_options['sorts']['sticky']['table'] = 'node';
+  $handler->display->display_options['sorts']['sticky']['field'] = 'sticky';
+  $handler->display->display_options['sorts']['sticky']['order'] = 'DESC';
   /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
@@ -1433,6 +1443,11 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['biblio_year']['empty_zero'] = 0;
   $handler->display->display_options['fields']['biblio_year']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['biblio_year']['biblio_label'] = 1;
+  /* Sort criterion: Content: Sticky */
+  $handler->display->display_options['sorts']['sticky']['id'] = 'sticky';
+  $handler->display->display_options['sorts']['sticky']['table'] = 'node';
+  $handler->display->display_options['sorts']['sticky']['field'] = 'sticky';
+  $handler->display->display_options['sorts']['sticky']['order'] = 'DESC';
   /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
@@ -1535,6 +1550,11 @@ function scratchpads_species_views_default_views(){
     'display_convex_hull' => FALSE
   );
   $handler->display->display_options['fields']['field_map']['field_api_classes'] = 0;
+  /* Sort criterion: Content: Sticky */
+  $handler->display->display_options['sorts']['sticky']['id'] = 'sticky';
+  $handler->display->display_options['sorts']['sticky']['table'] = 'node';
+  $handler->display->display_options['sorts']['sticky']['field'] = 'sticky';
+  $handler->display->display_options['sorts']['sticky']['order'] = 'DESC';
   /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
@@ -1785,6 +1805,11 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['style_options']['group_rendered'] = 1;
     $handler->display->display_options['row_plugin'] = 'entity';
     $handler->display->display_options['row_options']['view_mode'] = 'species';
+    /* Sort criterion: Content: Sticky */
+    $handler->display->display_options['sorts']['sticky']['id'] = 'sticky';
+    $handler->display->display_options['sorts']['sticky']['table'] = 'node';
+    $handler->display->display_options['sorts']['sticky']['field'] = 'sticky';
+    $handler->display->display_options['sorts']['sticky']['order'] = 'DESC';
     /* Sort criterion: Content: Post date */
     $handler->display->display_options['sorts']['created']['id'] = 'created';
     $handler->display->display_options['sorts']['created']['table'] = 'node';
