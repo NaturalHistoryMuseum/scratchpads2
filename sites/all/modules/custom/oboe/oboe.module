@@ -60,7 +60,7 @@ function oboe_menu(){
   foreach(OBOEService::get_job_types() as $key => $job_type){
     $menu['oboe/add/' . $key] = array(
       'title' => $job_type,
-      'description' => isset($oboe_information[$key]) ? $oboe_information[$key] : '',
+      'description' => (@isset($oboe_information[$key]['description'][0]['short']) ? $oboe_information[$key]['description'][0]['short'] : ''),
       'title callback' => 'check_plain',
       'page callback' => 'oboe_add',
       'page arguments' => array(

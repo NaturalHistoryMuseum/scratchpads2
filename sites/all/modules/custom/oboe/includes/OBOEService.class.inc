@@ -1,5 +1,4 @@
 <?php
-
 // OBOE interface class
 class OBOEService{
 
@@ -277,7 +276,15 @@ class OBOEService{
    */
   static function get_information($at = FALSE){
     $at = self::get_auth_token($at);
-    return json_decode(file_get_contents(self::$service . 'information?auth_token=' . $at), TRUE);
+    $data = json_decode(file_get_contents(self::$service . 'information?auth_token=' . $at), TRUE);
+    $jobs = array();
+    foreach($data['categories'] as $category){
+      foreach($category['jobs'] as $job){
+        $job['category'] = $category['name'];
+        $jobs[$job['type']] = $job;
+      }
+    }
+    return $jobs;
   }
 
   /**
@@ -296,7 +303,6 @@ class OBOEService{
     }
   }
 }
-
 // Error class for the above.  This allows us to behave a little!
 class OBOEServiceException extends Exception{}
 // We define our own t() function to allow this code to be used outside of
