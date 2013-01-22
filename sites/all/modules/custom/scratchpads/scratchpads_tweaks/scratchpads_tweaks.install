@@ -979,3 +979,19 @@ function scratchpads_tweaks_update_7038(){
     'htmlpurifier'
   ));
 }
+
+/**
+ * Set the body field to be weight "0".
+ */
+function scratchpads_tweaks_update_7039(){
+  // Get all instances.
+  $results = db_select('field_config_instance', 'f')->fields('f', array(
+    'entity_type',
+    'bundle'
+  ))->condition('field_name', 'body')->execute();
+  foreach($results as $row){
+    $instance = field_info_instance($row->entity_type, 'body', $row->bundle);
+    $instance['widget']['weight'] = 1;
+    field_update_instance($instance);
+  }
+}
