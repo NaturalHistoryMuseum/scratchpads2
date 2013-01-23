@@ -196,7 +196,7 @@ function oboe_view($oboe, $view_mode, $langcode){
     $data = cache_get($oboe->oid, 'cache_oboe_output');
     if(!$data){
       // Extract the contents of the zip if it hasn't already been done.
-      if(!file_exists('public://' . $oboe->output_id)){
+      if(!file_exists('public://' . $oboe->data['outfile_id'])){
         $zip_file = file_load($oboe->fid);
         $zip = new ZipArchive();
         $res = $zip->open(drupal_realpath($zip_file->uri));
