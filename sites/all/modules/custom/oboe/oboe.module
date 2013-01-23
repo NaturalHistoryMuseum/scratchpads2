@@ -203,7 +203,6 @@ function oboe_view($oboe, $view_mode, $langcode){
         if($res){
           $zip->extractTo(drupal_realpath('public://'));
         }
-        exit();
       }
       // Load the HTML file (if it exists).
       if(file_exists("public://{$oboe->data['id']}/output/output.htm")){
