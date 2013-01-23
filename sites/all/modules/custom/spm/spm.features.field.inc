@@ -236,7 +236,7 @@ function spm_field_default_fields(){
           'progress_indicator' => 'throbber'
         ),
         'type' => 'media_multiselect',
-        'weight' => '100'
+        'weight' => '2'
       )
     )
   );
@@ -449,7 +449,7 @@ function spm_field_default_fields(){
           'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '4'
+        'weight' => '1'
       )
     )
   );
@@ -1159,7 +1159,7 @@ function spm_field_default_fields(){
           'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '2'
+        'weight' => '0'
       )
     )
   );

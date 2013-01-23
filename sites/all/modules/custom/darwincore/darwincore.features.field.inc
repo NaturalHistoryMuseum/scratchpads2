@@ -99,7 +99,7 @@ function darwincore_field_default_fields(){
           'progress_indicator' => 'throbber'
         ),
         'type' => 'media_multiselect',
-        'weight' => '-3'
+        'weight' => '2'
       )
     )
   );

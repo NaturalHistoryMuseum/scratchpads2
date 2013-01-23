@@ -1005,4 +1005,14 @@ function scratchpads_tweaks_update_7039(){
     $instance['widget']['weight'] = -3;
     field_update_instance($instance);
   }
+  // Update the weight of all "field_media" instances.
+  $results = db_select('field_config_instance', 'f')->fields('f', array(
+    'entity_type',
+    'bundle'
+  ))->condition('field_name', 'field_media')->execute();
+  foreach($results as $row){
+    $instance = field_info_instance($row->entity_type, 'field_media', $row->bundle);
+    $instance['widget']['weight'] = 2;
+    field_update_instance($instance);
+  }
 }
