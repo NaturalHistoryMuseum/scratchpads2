@@ -113,9 +113,7 @@ function exif_custom_settings_form(){
     '#title' => 'Automatic import',
     '#options' => $options,
     '#description' => t('Each user may set their own default mapping, in addition a site default may be set.'),
-    '#default_value' => variable_get('exif_custom_checks', array(
-      'auto-import'
-    ))
+    '#default_value' => variable_get('exif_custom_checks', array())
   );
   $mappings = _exif_custom_get_maps();
   $options = array();
@@ -376,14 +374,15 @@ function _exif_custom_get_maps(){
   return $results;
 }
 
-function exif_custom_file_insert($file){
+function exif_custom_entity_presave($file){
   if(in_array('auto-import', variable_get('exif_custom_checks', array()))){
-    exif_custom_process_entity($file);
+    $file = exif_custom_process_entity($file);
   }
+  return $file;
 }
 
-function exif_custom_process_entity($file){
-  $file = file_load($file->fid);
+function exif_custom_process_entity(&$file){
+  //$file = file_load($file->fid);
   if($file->type != 'image'){return;}
   if(arg(3) == 'exif_custom'){return;}
   $mappings = exif_custom_get_mapping();
@@ -407,7 +406,7 @@ function exif_custom_process_entity($file){
             break;
           }
           $vids[$vocabulary->vid] = $vocabulary;
-        }
+        } 
         $element = array();
         $element['#value'] = $data[$values->exif_field];
         $form_state = array();
@@ -420,13 +419,36 @@ function exif_custom_process_entity($file){
           $array['und'][0]['iso2'] = ($countries[$data[$values->exif_field]]);
         }
         break;
+      case 'creative_commons':
+      	module_load_include('module', 'creative_commons');
+      	$licence_by_id = array(
+      	    'CC_NONE' => 1,
+            'CC_BY' => 2,
+            'CC_BY_SA' => 3,
+            'CC_BY_ND' => 4,
+            'CC_BY_NC' => 5,
+            'CC_BY_NC_SA' => 6,
+            'CC_BY_NC_ND' => 7,
+            'CC_0' => 8,
+            'CC_PD' => 9,
+      	);
+      	  
+      	$licence_by_id = array_merge($licence_by_id, array_flip(creative_commons_get_licence_types()));
+      	if (isset($licence_by_id[$data[$values->exif_field]])) {
+
+      	  $array['und']['0']['licence'] = $licence_by_id[$data[$values->exif_field]];
+      	}
+      	break;
+      case 'date':
+      	$array['und']['0']['value'] = strtotime($data[$values->exif_field]);
+      	break;
       default:
         $array['und']['0']['value'] = $data[$values->exif_field];
     }
-    //$array = array('und' => array($i => array('value' => $data[$values->exif_field])));
+
     $file->$field = $array;
   }
-  file_save($file);
+
 }
 
 function exif_custom_get_mapping(){
@@ -457,8 +479,7 @@ function exif_custom_get_exif_fields($uri, $concatenate_arrays = TRUE){
       }
     }
   }
-  
-  //XMP
+  //XMP - test
  $fields =  array_merge($fields, exif_custom_get_xmp(drupal_realpath($uri)));
   
   
