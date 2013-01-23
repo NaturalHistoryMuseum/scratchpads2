@@ -16,7 +16,10 @@
 
         editor.addCommand( 'pensoft_publication_insert_table', {
           exec : function() {
-            $tables = $('<div id="pensoft_select_table"><table><tr><th>select</th><th>Id</th><th>Title</th><th>Table</th></tr></table></div>').appendTo('body');
+            var title = '<h1>' + Drupal.t('Select table citation(s) to insert') + '</h1>';
+            var description = Drupal.t('<div class="info" style="margin: 10px;">The table citation will be inserted as <strong>Table [id:<em>id-of-the-table</em>]</strong>. Once the publication is saved, the tables will be ordered by order of appeareance, and the citations will be renamed accordingly as <strong>Table <em>table-number</em></strong>.</div>');
+            $tables = $('<div id="pensoft_select_table">' + title + description 
+              + '<table><tr><th>select</th><th>Id</th><th>Title</th><th>Table</th></tr></table></div>').appendTo('body');
             
             // Populate with available tables
             $('#edit-field-publication-tables .form-type-textarea').each(function(i,e) {
@@ -56,7 +59,7 @@
 
                 // Handle single inserts
                 $row.click(function() {
-                  editor.insertHtml('<tbls_citation citation_id="' + id + '" contenteditable="false" style="background: #AAA;">Table. ' + id + '</tbls_citation>');
+                  editor.insertHtml('<tbls_citation citation_id="' + id + '" contenteditable="false" style="background: #AAA;">Table [id:' + id + ']</tbls_citation>');
                   editor.updateElement();
                   $.colorbox.close();
                 });
@@ -64,7 +67,7 @@
             });
             
             // Handle multile inserts
-            $('<input type="button" class="form-submit" value="' + Drupal.t('Insert') + '"/>').appendTo($tables).mousedown(function() {
+            $('<div class="form-item"><input type="button" class="form-submit" value="' + Drupal.t('Insert') + '"/></div>').appendTo($tables).mousedown(function() {
               var elements = [];
               $tables.find('tr.pensoft_select_table_row input:checked').each(function() {
                 elements.push('<span>Table. ' + $(this).attr('name') + '</span>');

@@ -112,7 +112,7 @@ function pensoft_publication_field_default_fields() {
       'bundle' => 'field_publication_tables',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'This is the table id, and it is used to track table citations. Do not change after the table has been created.',
       'display' => array(
         'default' => array(
           'label' => 'inline',

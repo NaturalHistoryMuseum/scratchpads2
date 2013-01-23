@@ -1,1 +1,75 @@
 <?php
+/**
+ * Implement hook_entity_view_alter
+ *
+ */
+function publication_html_format_entity_view_alter(&$build, $type) {
+  if ($type != 'publication') {
+    return;
+  }
+
+  // Change the citations are get the order of the tables
+  $process = new PublicationHtmlFormatChangeCitations();
+  $process->process($build);
+
+  // Re-order the tables
+  foreach (element_children($build['field_publication_tables']) as $key) {
+    $table =& $build['field_publication_tables'][$key];
+    $item = $build['field_publication_tables']['#items'][$key]['value'];
+
+    $collection =& $table['entity']['field_collection_item'][$child_key];
+    $current_id = $table['entity']['field_collection_item'][$item]['field_publication_table_id']['#items'][0]['value'];
+
+    $number = array_search($current_id, $process->table_ids) + 1;
+
+    $build['field_publication_tables'][$key]['#weight'] = $number;
+    $build['field_publication_tables'][$key]['#prefix'] = '<strong>' . t('Table') . ' ' . $number . '</strong>';
+    $table['entity']['field_collection_item'][$item]['field_publication_table_id']['#printed'] = TRUE;
+  }
+}
+
+/**
+ * This class is used to process a renderable array and rename citations
+ * such that they are in the order they were found
+ */
+class PublicationHtmlFormatChangeCitations {
+  var $table_ids = array();
+  var $figure_ids = array();
+
+  /**
+   * The main process function
+   */
+  function process(&$build) {
+    if (isset($build['#markup'])) {
+      // XXX we should enforce a stricter type for citations ids.
+      $build['#markup'] = preg_replace_callback('/(<tbls_citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/tbls_citation>)/', 
+        array($this, '_replace_table_citation'), 
+        $build['#markup']
+      );
+    }
+
+    // Recurse
+    foreach (element_children($build, TRUE) as $key) {
+      $this->process($build[$key]);
+    }
+  }
+
+  /**
+   * preg_replace callback function for replacing table citations
+   */
+  function _replace_table_citation($matches) {
+    $id = $matches[2];
+
+    $pos = array_search($id, $this->table_ids);
+    if ($pos !== FALSE) {
+      $table_number = $pos+1;
+    } else {
+      $this->table_ids[] = $id;
+      $table_number = count($this->table_ids);
+    }
+
+    $out = $matches[1] . t('Table') . ' ' . $table_number . $matches[3];
+    return $out;
+  }
+}
+
