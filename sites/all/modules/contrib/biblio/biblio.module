@@ -210,6 +210,10 @@ function biblio_theme($existing, $type, $theme, $path) {
         'file' => '/includes/biblio_theme.inc',
         'render element' => 'form',
     ),
+    'biblio_admin_author_edit_merge_table' => array(
+        'file' => '/includes/biblio_theme.inc',
+        'render element' => 'form',
+    ),
     'biblio_openurl' => array(
         'file' => '/includes/biblio_theme.inc',
         'variables' => array('openURL'),
@@ -293,7 +297,11 @@ function biblio_theme($existing, $type, $theme, $path) {
         'file' => '/includes/biblio_theme.inc',
         'render element' => 'form',
     ),
-    );
+    'biblio_sort_tabs' => array(
+        'file' => 'includes/biblio_theme.inc',
+        'variables' => array(),
+    )
+  );
 }
 
 function biblio_autocomplete($field, $string = '') {
@@ -528,7 +536,7 @@ function biblio_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
         '#title' => t('Biblio settings'),
         '#weight' => 5,
         '#collapsible' => TRUE,
-        '#collapsed' => TRUE,
+        '#collapsed' => FALSE,
       );
       if ($admin_show_form || variable_get('biblio_show_user_profile_form', '1')) {
         $form['biblio_fieldset'] += _biblio_get_user_profile_form($account);
@@ -800,6 +808,12 @@ function biblio_menu() {
     'file'              => '/includes/biblio.admin.inc',
     'type'              => MENU_LOCAL_TASK,
     'weight'            => -9
+  );
+  $items['admin/config/content/biblio/pubtype/reset'] = array(
+    'page callback'     => 'biblio_admin_types_reset',
+    'access arguments'  => array('administer biblio'),
+    'file'              => '/includes/biblio.admin.inc',
+    'type'              => MENU_CALLBACK,
   );
   $items['admin/config/content/biblio/fields/reset'] = array(
     'title'             => 'Reset all types to defaults',
@@ -1391,6 +1405,7 @@ function biblio_contributor_form($contributor, $options) {
 
   $form['name'] = array(
     '#type' => 'textfield',
+    '#maxlength' => 255,
     '#autocomplete_path' =>  'biblio/autocomplete/contributor',
     '#default_value' => isset($contributor['name']) ? $contributor['name'] : '',
   );
@@ -1554,6 +1569,9 @@ function _biblio_prepare_submit(&$node) {
       $node->biblio_formats[$field] = $node->{$field}['format'];
       $node->$field = $node->{$field}['value'];
     }
+    else {
+      $node->biblio_formats[$field] = filter_default_format();
+    }
   }
 }
 /**
@@ -1570,8 +1588,8 @@ function biblio_insert($node) {
   biblio_insert_contributors($node);
   biblio_insert_keywords($node);
   $node->biblio_coins = biblio_coins($node);
-  drupal_write_record('biblio', $node);
   $duplicate = biblio_hash($node);
+  drupal_write_record('biblio', $node);
   if (isset($duplicate) && $duplicate != $node->nid) { // if this is a potential duplcate, write the nids of the pre-existing and new nodes
     $dup_map = array('vid' => $duplicate, 'did' => $node->nid);
     drupal_write_record('biblio_duplicates', $dup_map);
@@ -1661,6 +1679,9 @@ function biblio_load($nodes) {
     if ($record['biblio_formats'] != NULL) {
       $nodes[$record['nid']]->biblio_formats = unserialize($record['biblio_formats']);
     }
+    else {
+      $nodes[$record['nid']]->biblio_formats = array();
+    }
 
   }
 }
@@ -1702,7 +1723,10 @@ function biblio_view($node, $buildmode = 'full') {
       switch (variable_get('biblio_node_layout', 'tabular')) {
         case 'orig' :
         case 'ft' :
-          $node->content['body']['#markup'] = theme('biblio_long', array('node' => $node, 'base' => $base, 'style' => $style));
+          $node->content['body']['#markup'] = theme('biblio_long', array('node' => $node, 'base' => $base, 'style_name' => $style));
+          break;
+        case 'cite':
+          $node->content['body']['#markup'] = theme('biblio_style', array('node' => $node, 'base' => $base, 'style_name' => $style));
           break;
         case 'tabular' :
         default :
@@ -2054,64 +2078,6 @@ function biblio_hash($node) {
   return $duplicate; //return the nid of the potential duplicate
 }
 
-function biblio_token_info() {
-
-  $node['biblio_year'] = array(
-    'name' => t("Biblio: Publication year"),
-    'description' => '',
-  );
-  $node['biblio_authors'] = array(
-    'name' => t("Biblio: Authors"),
-    'description' => '',
-  );
-  $node['biblio_type_id'] = array(
-    'name' => t("Biblio: Type ID (e.g.: 100)"),
-    'description' => '',
-  );
-  $node['biblio_type'] = array(
-    'name' => t("Biblio: Type Name (e.g.: book)"),
-    'description' => '',
-  );
-  $node['biblio_citekey'] = array(
-    'name' => t("Biblio: Cite Key often used in BibTex files"),
-    'description' => '',
-  );
-
-  return array('tokens' => array('node' => $node),
-  );
-}
-
-function biblio_tokens($type, $tokens, $data = array(), $options = array()) {
-  $replacements = array();
-  if ($type == 'node' && !empty($data['node']) && $data['node']->type == 'biblio') {
-    $node = $data['node'];
-    foreach ($tokens as $name => $original) {
-      switch ($name) {
-        // Simple key values on the node.
-        case 'biblio_year':
-          $replacements[$original] = check_plain($node->biblio_year);
-          break;
-        case 'biblio_authors':
-          $replacements[$original] = check_plain($node->biblio_contributors[0]['lastname']);;
-          break;
-        case 'biblio_type_id':
-          $replacements[$original] = check_plain($node->biblio_type);
-          break;
-        case 'biblio_citekey':
-          $replacements[$original] = check_plain($node->biblio_citekey);
-          break;
-        case 'biblio_type':
-          $type = db_query('SELECT name FROM {biblio_types} as t WHERE t.tid = :tid', array(':tid' => $node -> biblio_type))->fetchField();
-          $replacements[$original] = check_plain($type);
-          break;
-
-      }
-    }
-  }
-
-  return $replacements;
-}
-
 function _biblio_profile_access($user, $type = 'profile') {
   if ($type == 'profile') {
     $key = 'biblio_show_profile';
@@ -2138,7 +2104,7 @@ function biblio_get_style() {
   if (isset($user->data['biblio_user_style']) && $user->data['biblio_user_style'] != "system") {
     return $user->data['biblio_user_style'];
   }
-  return  module_exists('biblio_citeproc') ? variable_get('biblio_citeproc_style', 'cse.csl') : variable_get('biblio_style', 'cse');
+  return  module_exists('biblio_citeproc') ? variable_get('biblio_citeproc_style', 'ieee.csl') : variable_get('biblio_style', 'cse');
 }
 
 function biblio_get_styles() {

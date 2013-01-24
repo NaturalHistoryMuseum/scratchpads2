@@ -20,7 +20,16 @@ function biblio_citeproc_menu() {
     'type'              => MENU_DEFAULT_LOCAL_TASK,
     'weight'            => 12
   );
-    $items['admin/config/content/biblio/citeproc/map'] = array(
+  $items['admin/config/content/biblio/citeproc/styles/%/edit'] = array(
+    'title'             => 'CiteProc Style Editor',
+    'page callback'     => 'drupal_get_form',
+    'page arguments'    => array('biblio_citeproc_csl_editor', 6),
+    'access arguments'  => array('administer biblio'),
+    'file'              => 'biblio_citeproc.admin.inc',
+    'type'              => MENU_CALLBACK,
+    'weight'            => 12
+  );
+  $items['admin/config/content/biblio/citeproc/map'] = array(
     'title'             => 'CSL Field Mapper',
     'page callback'     => 'drupal_get_form',
     'page arguments'    => array('biblio_admin_io_mapper_form', 'csl', FALSE),

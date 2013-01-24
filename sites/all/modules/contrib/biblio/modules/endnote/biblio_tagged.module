@@ -69,6 +69,9 @@ function biblio_tagged_biblio_export_link($nid = NULL, $filter = array()) {
         'attributes' => array(
           'title' => t("Click to download the EndNote Tagged formatted file")));
   }
+
+  $link['attributes'] += array('rel' => 'nofollow');
+
   $link['href']  = "$base/export/tagged";
   if (!empty($nid)) {
     $link['href'] .= '/' . $nid;

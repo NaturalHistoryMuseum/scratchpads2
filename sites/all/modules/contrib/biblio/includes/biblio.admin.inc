@@ -1,22 +1,9 @@
 <?php
 /**
+ * @file
  *   biblio.admin.inc
  *
- *   Copyright (C) 2006-2011  Ron Jerome
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License along
- *   with this program; if not, write to the Free Software Foundation, Inc.,
- *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *   Handles administrative forms and tasks
  *
  */
 /**
@@ -38,6 +25,7 @@ function biblio_admin_settings() {
     '#collapsed' => TRUE,
     '#title' => t('General'),
     '#group' => 'biblio_settings',
+    '#weight' => 0,
     '#description' => ''
   );
     $form['general']['biblio_rev'] = array(
@@ -81,23 +69,17 @@ function biblio_admin_settings() {
     '#collapsed' => TRUE,
     '#title' => t('Authors'),
     '#group' => 'biblio_settings',
+    '#weight' => 10,
     '#description' => ''
   );
-  $form['authors']['orphans'] = array(
-    '#type' => 'fieldset',
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-    '#title' => t('Orphaned Authors'),
-    '#description' => ''
-  );
-  $form['authors']['orphans']['biblio_auto_orphaned_author_delete'] = array(
+  $form['authors']['biblio_auto_orphaned_author_delete'] = array(
     '#type' => 'checkbox',
     '#title' => t('Automatically delete orphaned authors'),
     '#return_value' => 1,
     '#default_value' => variable_get('biblio_auto_orphaned_author_delete', 0),
     '#description' => t('Orphaned authors are those which are no longer linked to any entries as the result of a biblio update or delete. This requires a functioning "cron" process.')
   );
-  $form['authors']['orphans']['biblio_orphan_clean_interval'] = array(
+  $form['authors']['biblio_orphan_clean_interval'] = array(
     '#type' => 'radios',
     '#title' => t('Orphaned author cleaning frequency'),
     '#default_value' => variable_get('biblio_orphan_clean_interval', 24*60*60),
@@ -107,7 +89,12 @@ function biblio_admin_settings() {
         86400 => t('Daily'),
         604800 => t('Weeekly'),
      ),
-    '#description' => t('How frequently should we check for and delete orphans.')
+    '#description' => t('How frequently should we check for and delete orphans.'),
+    '#states' => array(
+       'invisible' => array(
+          'input[name="biblio_auto_orphaned_author_delete"]' => array('checked' =>FALSE),
+       ),
+    ),
   );
   $form['authors']['biblio_init_auth_count'] = array(
     '#type' => 'textfield',
@@ -131,6 +118,7 @@ function biblio_admin_settings() {
     '#collapsed' => TRUE,
     '#title' => t('BibTex settings'),
     '#group' => 'biblio_settings',
+    '#weight' => 20,
     '#description' => ''
   );
   $form['bibtex']['biblio_hide_bibtex_braces'] = array(
@@ -159,6 +147,8 @@ function biblio_admin_settings() {
     '#title' => t('Citekey'),
     '#description' => t('You can alter citekey related settings here.'),
     '#group' => 'biblio_settings',
+    '#weight' => 30,
+
   );
   $form['citekey']['biblio_display_citation_key'] = array(
     '#type' => 'checkbox',
@@ -212,6 +202,7 @@ function biblio_admin_settings() {
     '#collapsed' =>  TRUE,
     '#title' => t('CrossRef Login Information'),
     '#group' => 'biblio_settings',
+    '#weight' => 40,
   );
   $link_attrs = array('attributes' => array('target' => '_blank'),
                       'absolue' => TRUE);
@@ -236,6 +227,7 @@ function biblio_admin_settings() {
     '#title' => t('Footnotes'),
     '#description' => t('You can integrate with the !url module here.', array('!url' => l('footnotes', url("http://www.drupal.org/project/footnotes", array('query' => NULL, 'fragment' => NULL, 'absolute' => TRUE))))),
     '#group' => 'biblio_settings',
+    '#weight' => 50,
   );
   if (!module_exists('footnotes')) {
     $additional_text = '<div class="admin-dependencies">' . t('Depends on') . ': ' . t('Footnotes') . ' (<span class="admin-disabled">' . t('disabled') . '</span>)</div>';
@@ -261,7 +253,8 @@ function biblio_admin_settings() {
     '#title' => t('ISI Web of Knowledge'),
     '#description' => '',
     '#group' => 'biblio_settings',
-    );
+    '#weight' => 60,
+  );
   $form['isi_wok']['biblio_fix_isi_links'] = array(
     '#type' => 'checkbox',
     '#title' => t('Automatically replace "Go to ISI" links with the  URL below'),
@@ -284,7 +277,8 @@ function biblio_admin_settings() {
     '#title' => t('Keywords'),
     '#description' => '',
     '#group' => 'biblio_settings',
-    );
+    '#weight' => 70,
+  );
   $form['keywords']['biblio_keyword_sep'] = array(
     '#type' => 'textfield',
     '#title' => t('Keyword separator'),
@@ -333,7 +327,12 @@ function biblio_admin_settings() {
       '#multiple' => FALSE,
   //    '#disabled' => (!variable_get('biblio_keyword_freetagging', 0)),
   //    '#size' => $multiple ? min(9, count($taxo_options)) : 0,
-      '#weight' => 15
+      '#weight' => 15,
+      '#states' => array(
+        'invisible' => array(
+           'input[name="biblio_keyword_freetagging"]' => array('checked' =>FALSE),
+         ),
+        ),
     );
   }
 
@@ -343,6 +342,7 @@ function biblio_admin_settings() {
     '#collapsed' => TRUE,
     '#title' => t('Links'),
     '#group' => 'biblio_settings',
+    '#weight' => 80,
   );
   $form['links']['export'] = array(
     '#type' => 'fieldset',
@@ -363,6 +363,23 @@ function biblio_admin_settings() {
     '#options' => $options,
     '#description' => t('You can select which export links to display here.')
   );
+  $form['links']['file_attachments'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#title' => t('File Attachments')
+  );
+  $form['links']['file_attachments']['biblio_file_link_type'] = array(
+    '#type' => 'radios',
+    '#title' => t('File attachment display'),
+    '#default_value' => variable_get('biblio_file_link_type', 'text'),
+    '#options' => array(
+      'text' => t('Text'),
+      'icon' => t('Icon'),
+    ),
+    '#description' => t('Display file attachments as either the file name or an icon')
+  );
+
   $form['links']['google'] = array(
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
@@ -404,20 +421,38 @@ function biblio_admin_settings() {
     '#default_value' => variable_get('biblio_link_title_url', 0),
     '#description' => t('Selecting this links the titles to the supplied URL (if available) rather than the "node" view.')
   );
-  $form['links']['biblio_author_links'] = array(
+  $form['links']['author'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#title' => t('Author Links')
+  );
+  $form['links']['author']['biblio_author_links'] = array(
     '#type' => 'checkbox',
     '#title' => t('Hyperlink author names'),
     '#return_value' => 1,
     '#default_value' => variable_get('biblio_author_links', 1),
     '#description' => t('This creates a hyperlink on author names which, when clicked, will select entries which contain that author')
   );
-  $form['links']['biblio_author_link_profile'] = array(
+  $form['links']['author']['biblio_author_link_profile'] = array(
     '#type' => 'checkbox',
     '#title' => t('Hyperlink author names to author profile page'),
     '#return_value' => 1,
     '#default_value' => variable_get('biblio_author_link_profile', 0),
     '#description' => t('This creates a hyperlink on author names which, when clicked, will take the user to the authors profile page')
   );
+  $form['links']['author']['biblio_author_link_profile_path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Path to profile page'),
+    '#default_value' => variable_get('biblio_author_link_profile_path', 'user/[user:uid]'),
+    '#description' => t('Do not include a leading "/"')
+  );
+
+  $form['links']['author']['token_tree'] = array(
+      '#theme' => 'token_tree',
+      '#token_types' => 'all',
+  );
+
   $form['openurl'] = array(
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
@@ -425,6 +460,7 @@ function biblio_admin_settings() {
     '#title' => t('OpenURL'),
     '#description' => t('You can set an <a href="http://en.wikipedia.org/wiki/OpenURL">openurl</a> link here'),
     '#group' => 'biblio_settings',
+    '#weight' => 90,
   );
   $form['openurl']['biblio_show_openurl_profile_form'] = array(
     '#type' => 'checkbox',
@@ -463,6 +499,7 @@ function biblio_admin_settings() {
     '#collapsed' =>  TRUE,
     '#title' =>  t('Profile pages'),
     '#group' => 'biblio_settings',
+    '#weight' => 100,
   );
    $form['biblio_profile'] += _biblio_get_user_profile_form();
   //
@@ -482,6 +519,7 @@ function biblio_admin_settings() {
     '#description' => $search_text,
     '#title' => t('Search'),
     '#group' => 'biblio_settings',
+    '#weight' => 110,
   );
   $form['search']['biblio_search'] = array(
     '#type' => 'checkbox',
@@ -514,6 +552,7 @@ function biblio_admin_settings() {
     '#title' => t('Sorting'),
     '#description' => t('You can set the default sorting and ordering for the /biblio page here.'),
     '#group' => 'biblio_settings',
+    '#weight' => 120,
   );
   $form['sort']['biblio_sort'] = array(
     '#type' => 'select',
@@ -573,6 +612,7 @@ function biblio_admin_settings() {
     '#title' => t('Styling'),
     '#description' => t('You can set the default style for the /biblio page here.'),
     '#group' => 'biblio_settings',
+    '#weight' => 130,
   );
   $form['style']['biblio_no_year_text'] = array(
     '#type' => 'textfield',
@@ -592,7 +632,7 @@ function biblio_admin_settings() {
     $form['style']['biblio_citeproc_style'] = array(
       '#type' => 'select',
       '#title' => t('Style'),
-      '#default_value' =>  variable_get('biblio_citeproc_style', 'cse.csl'),
+      '#default_value' =>  variable_get('biblio_citeproc_style', 'ieee.csl'),
       '#options' => biblio_get_styles(),
       '#description' => t('Set the bibliographic style of the "list" view.')
     );
@@ -613,7 +653,8 @@ function biblio_admin_settings() {
     '#options' => array(
       'orig'    => t('Original'),
       'ft'      => t('Only Fulltext if available'),
-      'tabular' => t('Tabular')
+      'tabular' => t('Tabular'),
+      'cite'    => t('Bibliographic style choosen above')
     ),
     '#description' => t('This alters the layout of the "node" (full) view.')
   );
@@ -643,6 +684,7 @@ function biblio_admin_settings() {
     '#title' => t('Syndication'),
     '#description' => t('You can set the RSS defaults here.'),
     '#group' => 'biblio_settings',
+    '#weight' => 140,
   );
   $form['syndication']['biblio_rss'] = array(
     '#type' => 'checkbox',
@@ -667,7 +709,11 @@ function biblio_admin_settings() {
   // and the menu will be rebuilt correctly.
   return ($form);
 }
-function biblio_admin_settings_form_submit($form, $form_state) {
+/**
+ * Form handler for biblio_admin_settings
+ *
+ */
+function biblio_admin_settings_form_submit($form, &$form_state) {
 //  if ($form_state['values']['biblio_keyword_freetagging'] && $form_state['values']['biblio_keyword_vocabulary']) {
 //    if ($vocabulary = taxonomy_vocabulary_load(variable_get('biblio_keyword_vocabulary', 0))) {
 //      $vocabulary = (array) $vocabulary;
@@ -683,6 +729,13 @@ function biblio_admin_settings_form_submit($form, $form_state) {
     menu_rebuild();
   }
 }
+/**
+ * Form constructor for the Publication type edit form.
+ *
+ * @param int $tid
+ *   The publication type.
+ * @return array $form
+ */
 function biblio_admin_types_edit_form($form, &$form_state, $tid = 0) {
  // $form['#theme'] = 'biblio_admin_types_edit_form';
  // $form['#tree'] = TRUE;
@@ -826,7 +879,7 @@ function biblio_admin_types_edit_form($form, &$form_state, $tid = 0) {
       '#weight' => $fld['weight'],
       '#disabled' => $disabled
     );
-    $form_state['tab_defaults'][$key]['title'] = $fld['title']; //we need store the default to see if it's changed later
+    $form_state['tab_defaults'][$key]['title']['default'] = $fld['title']; //we need store the default to see if it's changed later
     $form_state['tab_defaults'][$key]['title']['disabled'] = $disabled;
 
     $tab_data[$fld['vtab']][$key]['hint'] = array(
@@ -836,7 +889,7 @@ function biblio_admin_types_edit_form($form, &$form_state, $tid = 0) {
       '#weight' => $fld['weight'],
       '#disabled' => $disabled
     );
-    $form_state['tab_defaults'][$key]['hint'] = $fld['hint'];
+    $form_state['tab_defaults'][$key]['hint']['default'] = $fld['hint'];
     $form_state['tab_defaults'][$key]['hint']['disabled'] = $disabled;
 
     $tab_data[$fld['vtab']][$key]['weight'] = array(
@@ -883,6 +936,9 @@ function biblio_admin_types_edit_form($form, &$form_state, $tid = 0) {
   return $form;
 }
 
+/**
+ * Form handler for biblio_admin_types_edit_form
+ */
 function biblio_admin_types_edit_form_submit($form, &$form_state) {
   if ($form_state['triggering_element']['#value'] == t('Change Publication Type')) {
     $form_state['rebuild'] = TRUE;
@@ -940,7 +996,7 @@ function biblio_admin_types_edit_form_submit($form, &$form_state) {
       foreach ($values as $name => $value) {
         $disabled = !empty($form_state['tab_defaults'][$fid][$name]['disabled']) ? TRUE : FALSE;
         if (!$disabled) {
-          $default_value = isset($form_state['tab_defaults'][$fid][$name]) ? $form_state['tab_defaults'][$fid][$name] : '';
+          $default_value = isset($form_state['tab_defaults'][$fid][$name]['default']) ? $form_state['tab_defaults'][$fid][$name]['default'] : '';
           if ($name == 'checkboxes') {
             $link['visible']      = (!empty($value['visible'])) ? 1 : 0;
             $link['required']     = (!empty($value['required'])) ? 1 : 0;
@@ -1017,6 +1073,12 @@ function biblio_admin_types_edit_form_submit($form, &$form_state) {
   biblio_locale_refresh_fields($tid);
 }
 
+/**
+ * Outputs a page containing "edit" links for each enabled import/export module.
+ *
+ *   Each link goes to a page allowing the user to modifiy the field mapping for
+ *   each of the import/export formats.
+ */
 function biblio_admin_io_mapper_page() {
   $formats = module_invoke_all('biblio_mapper_options');
   asort($formats);
@@ -1027,10 +1089,21 @@ function biblio_admin_io_mapper_page() {
       l(t('edit'), 'admin/config/content/biblio/iomap/edit/' . $key),
     );
   }
+
+  if (count($rows) == 0) {
+    drupal_set_message(t('There are no import/export modules enabled. Please go to the !l page and enable at least one.',
+        array('!l' => l(t('modules'), "admin/modules"))));
+  }
+
   $header = array(t('Format'), t('Action'));
   return theme('table', array('header' => $header, 'rows' => $rows));
 }
 
+/**
+ * @param unknown_type $format
+ * @param unknown_type $exportable
+ * @return Ambigous <multitype:string multitype:string  NULL , multitype:number multitype:string  multitype:string Ambigous <> Ambigous <string, unknown>  , multitype:string >
+ */
 function biblio_admin_io_mapper_form($form, $form_state, $format, $exportable = TRUE) {
   $formats = module_invoke_all('biblio_mapper_options');
   $form = array();
@@ -1077,6 +1150,10 @@ function biblio_admin_io_mapper_form($form, $form_state, $format, $exportable = 
 
   return $form;
 }
+/**
+ * @param unknown_type $variables
+ * @return unknown
+ */
 function theme_biblio_admin_io_mapper_form($variables) {
   $form = $variables['form'];
   $header = $rows = array();
@@ -1092,6 +1169,11 @@ function theme_biblio_admin_io_mapper_form($variables) {
   return $output;
 }
 
+/**
+ * @param unknown_type $format
+ * @param unknown_type $type
+ * @return multitype:string NULL multitype:string
+ */
 function biblio_admin_io_mapper_add_form($form, &$form_state, $format, $type) {
   $formats = module_invoke_all('biblio_mapper_options');
 
@@ -1132,6 +1214,10 @@ function biblio_admin_io_mapper_add_form($form, &$form_state, $format, $type) {
   return $form;
 }
 
+/**
+ * @param unknown_type $variables
+ * @return unknown
+ */
 function theme_biblio_admin_io_mapper_add_form($variables) {
   $output = '';
   $form = $variables['form'];
@@ -1144,6 +1230,10 @@ function theme_biblio_admin_io_mapper_add_form($variables) {
   return $output;
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_io_mapper_add_form_pubtype_submit($form, &$form_state) {
   $names = biblio_get_map('type_names', $form_state['values']['fileformat']);
   $names[$form_state['values']['type_name']] = $form_state['values']['type_desc'];
@@ -1151,13 +1241,20 @@ function biblio_admin_io_mapper_add_form_pubtype_submit($form, &$form_state) {
   $form_state['redirect'] = 'admin/config/content/biblio/iomap/edit/' . $form_state['values']['fileformat'];
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_io_mapper_add_form_field_submit($form, &$form_state) {
   $names = biblio_get_map('field_map', $form_state['values']['fileformat']);
   $names[$form_state['values']['type_name']] = '';
   biblio_set_map('field_map', $form_state['values']['fileformat'], $names);
 }
 
-
+/**
+ * @param unknown_type $format
+ * @return Ambigous <multitype:string multitype:string  NULL , multitype:multitype:string  multitype:string unknown number  >
+ */
 function biblio_admin_type_mapper_form($format) {
   $formats = module_invoke_all('biblio_mapper_options');
   $form['#file_format_title'] = isset($formats[$format]) ? $formats[$format]['title'] : '';
@@ -1200,6 +1297,10 @@ function biblio_admin_type_mapper_form($format) {
   return $form;
 }
 
+/**
+ * @param unknown_type $variables
+ * @return unknown
+ */
 function theme_biblio_admin_type_mapper_form($variables) {
   $form = $variables['form'];
   $title = $form['#file_format_title'];
@@ -1227,6 +1328,10 @@ function theme_biblio_admin_type_mapper_form($variables) {
   return $output;
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_type_mapper_form_submit($form, $form_state) {
     foreach ($form_state['values']['typemap']['type'] as $key => $value) {
       if (is_array($value)) {
@@ -1236,11 +1341,20 @@ function biblio_admin_type_mapper_form_submit($form, $form_state) {
     biblio_set_map('type_map', $form_state['values']['fileformat'], $map);
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_type_mapper_form_reset_submit($form, $form_state) {
     biblio_reset_map('type_map', $form_state['values']['fileformat']);
     biblio_reset_map('type_names', $form_state['values']['fileformat']);
 }
 
+/**
+ * @param unknown_type $format
+ * @param unknown_type $exportable
+ * @return Ambigous <multitype:string multitype:string  NULL , multitype:number multitype:string  multitype:string Ambigous <> Ambigous <string, unknown>  , multitype:string >
+ */
 function biblio_admin_field_mapper_form($format, $exportable = TRUE) {
   $formats = module_invoke_all('biblio_mapper_options');
   $form['#file_format_title'] = isset($formats[$format]) ? $formats[$format]['title'] : '';
@@ -1291,6 +1405,10 @@ function biblio_admin_field_mapper_form($format, $exportable = TRUE) {
   return $form;
 }
 
+/**
+ * @param unknown_type $variables
+ * @return unknown
+ */
 function theme_biblio_admin_field_mapper_form($variables) {
   $form = $variables['form'];
   $title = $form['#file_format_title'];
@@ -1319,6 +1437,10 @@ function theme_biblio_admin_field_mapper_form($variables) {
   return $output;
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_field_mapper_form_submit($form, $form_state) {
   foreach ($form_state['values']['fieldmap']['type'] as $key => $value) {
     if (is_array($value)) {
@@ -1340,11 +1462,18 @@ function biblio_admin_field_mapper_form_submit($form, $form_state) {
   //  }
 
 }
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_field_mapper_form_reset_submit($form, $form_state) {
   biblio_reset_map('field_map', $form_state['values']['fileformat']);
   biblio_reset_map('export_map', $form_state['values']['fileformat']);
 }
 
+/**
+ * @return unknown
+ */
 function biblio_admin_types_form() {
   $output = '';
   $result = db_query('SELECT t.* FROM {biblio_types} as t WHERE t.tid > 0 ORDER BY name ASC');
@@ -1373,8 +1502,14 @@ function biblio_admin_types_form() {
     )
   );
   $output .= theme('table', array('header' => $header, 'rows' => $rows));
+  $output .= l(t('Reset to defaults'), 'admin/config/content/biblio/pubtype/reset');
   return $output;
 }
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ * @return multitype:string number NULL
+ */
 function biblio_admin_types_add_form($form, &$form_state) {
   $form['name'] = array(
     '#type' => 'textfield',
@@ -1400,6 +1535,10 @@ function biblio_admin_types_add_form($form, &$form_state) {
 
   return $form;
 }
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_types_add_form_submit($form, &$form_state) {
   $values['name'] = $form_state['values']['name'];
   $values['description'] = $form_state['values']['description'];
@@ -1435,6 +1574,18 @@ function biblio_admin_types_add_form_submit($form, &$form_state) {
   $form_state['redirect'] = 'admin/config/content/biblio/pubtype';
 
 }
+
+function biblio_admin_types_reset() {
+  module_load_include('install', 'biblio');
+
+  db_delete('biblio_types')
+      ->execute();
+  _add_publication_types();
+  drupal_goto('admin/config/content/biblio/pubtype');
+}
+/**
+ *
+ */
 function biblio_admin_types_hide() {
   $args = func_get_args();
   if ($args[0] > 0 && is_numeric($args[0])) {
@@ -1446,6 +1597,9 @@ function biblio_admin_types_hide() {
   }
   drupal_goto('admin/config/content/biblio/pubtype');
 }
+/**
+ *
+ */
 function biblio_admin_types_show() {
   $args = func_get_args();
   if ($args[0] > 0 && is_numeric($args[0])) {
@@ -1458,6 +1612,12 @@ function biblio_admin_types_show() {
   drupal_goto('admin/config/content/biblio/pubtype');
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ * @param unknown_type $tid
+ * @return unknown
+ */
 function biblio_admin_types_delete_form($form, &$form_state, $tid) {
   $existing_msg = '';
   if (isset($tid) && is_numeric($tid)) {
@@ -1482,6 +1642,10 @@ function biblio_admin_types_delete_form($form, &$form_state, $tid) {
   }
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_types_delete_form_submit($form, &$form_state) {
   db_delete('biblio_types')
     ->condition('tid', $form_state['values']['tid'])
@@ -1494,6 +1658,9 @@ function biblio_admin_types_delete_form_submit($form, &$form_state) {
   $form_state['redirect'] = 'admin/config/content/biblio/pubtype';
 }
 
+/**
+ * @return unknown
+ */
 function biblio_admin_types_reset_form() {
   $form['reset'] = array(
     '#type' => 'value',
@@ -1503,6 +1670,10 @@ function biblio_admin_types_reset_form() {
   return $output;
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_types_reset_form_submit($form, & $form_state) {
   module_load_include('install', 'biblio');
   biblio_reset_types();
@@ -1602,6 +1773,10 @@ function _biblio_get_user_profile_form($profile_user = FALSE) {
   }
   return $form;
 }
+/**
+ * @param unknown_type $user
+ * @return multitype:string number NULL
+ */
 function _biblio_get_user_doi_form($user) {
   $form['biblio_doi'] = array(
     '#type' => 'fieldset',
@@ -1620,6 +1795,10 @@ function _biblio_get_user_doi_form($user) {
   );
   return $form;
 }
+/**
+ * @param unknown_type $user
+ * @return multitype:string number NULL
+ */
 function _biblio_get_user_openurl_form($user) {
   $form['openurl'] = array(
     '#type' => 'fieldset',
@@ -1657,6 +1836,10 @@ function biblio_form_sort($a, $b) {
   }
   return ($a_weight < $b_weight) ? -1 : 1;
 }
+/**
+ * @param unknown_type $name
+ * @return string
+ */
 function biblio_admin_get_query($name) {
   switch ($name) {
     case "author_dup" :
@@ -1673,6 +1856,13 @@ function biblio_admin_get_query($name) {
 }
 
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ * @param unknown_type $op
+ * @param unknown_type $id
+ * @return void|multitype:string multitype:string number NULL  multitype:string number multitype:string  NULL  multitype:string number boolean NULL  NULL
+ */
 function biblio_admin_author_types_form($form, &$form_state, $op = NULL, $id = NULL) {
 
   switch ($op) {
@@ -1721,6 +1911,10 @@ function biblio_admin_author_types_form($form, &$form_state, $op = NULL, $id = N
   }
 }
 
+/**
+ * @param unknown_type $variables
+ * @return string
+ */
 function theme_biblio_admin_author_types_form($variables) {
   $form = $variables['form'];
   // We need this complex query to realize author_types which are not in use (cid is NULL)
@@ -1760,7 +1954,11 @@ function theme_biblio_admin_author_types_form($variables) {
   return $output;
 }
 
-function biblio_admin_author_types_form_submit($form, $form_state) {
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
+function biblio_admin_author_types_form_submit($form, &$form_state) {
 
   if ($form_state['triggering_element']['#value'] == t('Save') || $form_state['triggering_element']['#value'] == t('Create New Type')) {
     $record->title = $form_state['values']['title'];
@@ -1781,6 +1979,11 @@ function biblio_admin_author_types_form_submit($form, $form_state) {
 
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ * @param unknown_type $type_id
+ */
 function biblio_admin_author_type_delete_confirm($form, &$form_state, $type_id) {
   $base = variable_get('biblio_base', 'biblio');
   $type_data = db_query('SELECT * FROM {biblio_contributor_type_data} bctd WHERE bctd.auth_type = :tid ', array(':tid' => $type_id))->fetchObject();
@@ -1798,6 +2001,10 @@ function biblio_admin_author_type_delete_confirm($form, &$form_state, $type_id) 
   );
 
 }
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_author_type_delete_confirm_submit($form, &$form_state) {
 
   db_delete('biblio_contributor_type_data')
@@ -1811,21 +2018,33 @@ function biblio_admin_author_type_delete_confirm_submit($form, &$form_state) {
   $form_state['redirect'] = 'admin/config/content/biblio/author/type';
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ * @param unknown_type $author_id
+ * @return void|multitype:string NULL
+ */
 function biblio_admin_author_edit_form($form, &$form_state, $author_id) {
+  module_load_include('inc', 'biblio', 'includes/biblio.contributors');
   $merge_options = $linked = array();
+  if (!isset($form_state['biblio_add_merge_author'])) {
+    $form_state['biblio_add_merge_author'] = array();
+  }
+  $base = variable_get('biblio_base', 'biblio');
+
   $author = db_query('SELECT * FROM {biblio_contributor_data} b WHERE b.cid = :aid ', array(':aid' => $author_id))->fetchObject();
   if (!$author) {
     drupal_not_found();
     return;
   }
-
   $base = variable_get('biblio_base', 'biblio');
   $menu = menu_get_active_title();
-  $path = (strpos($_GET['q'], 'settings'))? 'admin/config/content/biblio/author' : $base . '/authors';
+  $path = (strpos($_GET['q'], 'config'))? 'admin/config/content/biblio/author/' : $base . '/authors/';
 
+ // $form['#tree'] = TRUE;
   $form['cid'] = array(
-    '#type' => 'value',
-    '#value' => $author_id
+      '#type' => 'value',
+      '#value' => $author_id,
   );
   $users = db_query('SELECT uid,name FROM {users} WHERE uid>0 ORDER BY name');
   $options[0] = t('(None)');
@@ -1833,191 +2052,390 @@ function biblio_admin_author_edit_form($form, &$form_state, $author_id) {
     $options[$user->uid] = $user->name;
   }
   $form['drupal_uid'] = array(
-    '#type' => 'select',
-    '#title' => t('Drupal User ID'),
-    '#options' => $options,
-    '#default_value' => $author->drupal_uid,
-    '#weight' => 12,
-    '#required' => FALSE,
-    '#description' => t('If this author has a an account (Drupal User ID) on this web site, you may select it here.  This will help to link the authors publications with other content.')
-    );
-  $form['name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Complete Name'),
-    '#default_value' => $author->name,
-    '#size' => 100,
-    '#weight' => 1,
-    '#required' => TRUE,
-    '#maxlength' => 255
+      '#type' => 'select',
+      '#title' => t('Drupal User ID'),
+      '#options' => $options,
+      '#default_value' => $author->drupal_uid,
+      '#weight' => 12,
+      '#required' => FALSE,
+      '#description' => t('If this author has a an account (Drupal User ID) on this web site, you may select it here.  This will help to link the authors publications with other content.')
   );
+  $form['name'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Complete Name'),
+      '#default_value' => $author->name,
+      '#size' => 100,
+      '#weight' => 1,
+      '#required' => TRUE,
+      '#disabled' => TRUE,
+      '#maxlength' => 255,
+      '#description' => t('The value in this box will be constructed from the individual name parts fields above.')
+  );
+  $form_state['current_name'] = $author->name;
+
   $form['literal'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Do not reformat'),
-    '#default_value' => $author->literal,
-    '#weight' => 1.5,
-    '#required' => FALSE,
-    '#description' => t('Selecting this will prevent the styles from trying to reformat the contributor name.  The text in the "Complete Name" field will be used as is.')
+      '#type' => 'checkbox',
+      '#title' => t('Do not reformat'),
+      '#default_value' => $author->literal,
+      '#weight' => 1.5,
+      '#required' => FALSE,
+      '#description' => t('Selecting this will prevent the styles from trying to reformat the contributor name.  The text in the "Complete Name" field will be used as is.')
   );
   $form['prefix'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Prefix'),
-    '#default_value' => $author->prefix,
-    '#size' => 20,
-    '#weight' => 2,
-    '#required' => FALSE,
-    '#maxlength' => 128
+      '#type' => 'textfield',
+      '#title' => t('Prefix'),
+      '#default_value' => $author->prefix,
+      '#size' => 20,
+      '#weight' => 2,
+      '#required' => FALSE,
+      '#maxlength' => 128
   );
   $form['firstname'] = array(
-    '#type' => 'textfield',
-    '#title' => t('First Name'),
-    '#default_value' => $author->firstname,
-    '#size' => 20,
-    '#weight' => 3,
-    '#required' => FALSE,
-    '#maxlength' => 128
+      '#type' => 'textfield',
+      '#title' => t('First Name'),
+      '#default_value' => $author->firstname,
+      '#size' => 20,
+      '#weight' => 3,
+      '#required' => FALSE,
+      '#maxlength' => 128
   );
   $form['initials'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Initials'),
-    '#default_value' => $author->initials,
-    '#size' => 20,
-    '#weight' => 4,
-    '#required' => FALSE,
-    '#maxlength' => 10
+      '#type' => 'textfield',
+      '#title' => t('Initials'),
+      '#default_value' => $author->initials,
+      '#size' => 20,
+      '#weight' => 4,
+      '#required' => FALSE,
+      '#maxlength' => 10
   );
   $form['lastname'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Last Name'),
-    '#default_value' => $author->lastname,
-    '#size' => 20,
-    '#weight' => 5,
-    '#required' => FALSE,
-    '#maxlength' => 128
+      '#type' => 'textfield',
+      '#title' => t('Last Name'),
+      '#default_value' => $author->lastname,
+      '#size' => 20,
+      '#weight' => 5,
+      '#required' => FALSE,
+      '#maxlength' => 255
   );
   $form['suffix'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Suffix'),
-    '#default_value' => $author->suffix,
-    '#size' => 20,
-    '#weight' => 6,
-    '#required' => FALSE,
-    '#maxlength' => 128
+      '#type' => 'textfield',
+      '#title' => t('Suffix'),
+      '#default_value' => $author->suffix,
+      '#size' => 20,
+      '#weight' => 6,
+      '#required' => FALSE,
+      '#maxlength' => 128
   );
   $form['affiliation'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Affiliation'),
-    '#default_value' => $author->affiliation,
-    '#size' => 100,
-    '#weight' => 7,
-    '#required' => FALSE,
-    '#maxlength' => 256,
-    '#description' => t('University, Company or Organization that the author is affiliated with.')
-  );
-  $authors = db_query("SELECT * FROM {biblio_contributor_data} cd WHERE cid <> :aid ORDER BY lastname", array(':aid' => $author_id), array('fetch' => PDO::FETCH_ASSOC));
-  $base = variable_get('biblio_base', 'biblio');
-  foreach ($authors as $other_author) {
-    if ((stripos($other_author['name'], $author->lastname) !== FALSE) && $author->aka != $other_author['cid']) {
-      $merge_options[$other_author['cid']] = l($other_author['name'], $base . '/authors/' . $other_author['cid'] . '/edit/');
-      if ($other_author['affiliation']) $merge_options[$other_author['cid']] .= ' (' . $other_author['affiliation'] . ')';
-    }
-    if ($other_author['aka'] != 0 && $author->cid == $other_author['aka'] || $author->aka == $other_author['cid']) {
-      $linked[$other_author['cid']] = l($other_author['lastname'] . ($other_author['firstname'] ? ', ' . $other_author['firstname'] : ($other_author['initials']?', ' . $other_author['initials']:'')), $base . '/authors/' . $other_author['cid'] . '/edit/');
-      if ($other_author['affiliation']) $linked[$other_author['cid']] .= ' (' . $other_author['affiliation'] . ')';
-      $linked_default_values[] = $other_author['cid'];
-    }
-    else {
-      $link_options[$other_author['cid']] = $other_author['lastname'] . ($other_author['firstname'] ? ', ' . $other_author['firstname'] : ($other_author['initials'] ? ', ' . $other_author['initials'] : ''));
-      if ($other_author['affiliation']) $link_options[$other_author['cid']] .= ' (' . $other_author['affiliation'] . ')';
-    }
-  }
-  if (count($merge_options)) {
-    $form['merge'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Author Merge'),
-      '#description' => t('Select other author names which will be merged.  Merging removes all the selected authors, then replaces any references to these authors with the author being edited above.  You should only do this if you are sure the other authors represent the same author as the one being edited. <B>THIS CANNOT BE UNDONE!</B>'),
-      '#weight' => 5,
-      '#collapsible' => TRUE,
-      '#collapsed' => !count($merge_options),
-    );
-
-    $form['merge']['merge_authors'] = array(
-      '#type' => 'checkboxes',
-      '#title' => t('Similar authors'),
-      '#options' => $merge_options,
-      '#weight' => 12,
+      '#type' => 'textfield',
+      '#title' => t('Affiliation'),
+      '#default_value' => $author->affiliation,
+      '#size' => 100,
+      '#weight' => 7,
       '#required' => FALSE,
-    );
-    $form['merge']['merge'] = array(
-      '#type' => 'submit',
-      '#value' => t('Merge')
-    );
+      '#maxlength' => 256,
+      '#description' => t('University, Company or Organization that the author is affiliated with.')
+  );
+
+  $query = db_select('biblio_contributor_data', 'bcd');
+  $authors = $query->fields('bcd')
+                   ->condition('cid', $author_id, '<>')
+                   ->orderBy('lastname')
+                   ->execute();
+
+  $query = db_select('biblio_contributor', 'bc');
+  $merged_authors = $query->fields('bc')
+                      ->condition('merge_cid', 0, '>')
+                      ->execute();
+  foreach ($merged_authors as $auth) {
+    $merged[$auth->merge_cid] = $auth->cid;
   }
 
-    $form['link'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Author Link'),
-      '#description' => t('Select other author names which will be linked.  Linking relates all the selected authors to the author being edited above, and and keeps each instance in the database.  You should only do this if you are sure the other authors represent the same author as the one being edited.'),
-      '#weight' => 5,
-      '#collapsible' => TRUE,
-      '#collapsed' => !count($linked),
-    );
-    if (count($linked)) {
-      $form['link']['linked_authors'] = array(
-        '#type' => 'checkboxes',
-        '#title' => t('This author has already been linked to these authors'),
-        '#default_value' => $linked_default_values,
-        '#options' => $linked,
-        '#weight' => 12,
-        '#required' => FALSE,
+  $linked = biblio_get_linked_contributors($author->cid);
+
+  $radio_options = array('link' => '', 'merge' => '');
+  $candidate = FALSE;
+  $candidates = array();
+
+  $this_soundx = soundex($author->lastname);
+
+  foreach ($authors as $other_author) {
+    $merge_def = $link_def = 0;
+    $link_disable = $merge_disable = $retain_disable = FALSE;
+
+    if ((soundex($other_author->lastname) == $this_soundx) ||
+        (isset($merged[$other_author->cid]) && $merged[$other_author->cid] == $author->cid) ||
+        in_array($other_author->cid, $form_state['biblio_add_merge_author']))  {
+      $candidate = TRUE;
+      $merge_def = ($other_author->alt_form && $other_author->aka) ? $author->cid : FALSE;
+      $retain_def = $other_author->alt_form ? $author->cid : FALSE;
+      $retain_disable = $other_author->alt_form ? TRUE : FALSE;
+    }
+
+    if (in_array($other_author->cid, $linked)) {
+      $candidate = TRUE;
+      $link_def = $author->cid;
+      $retain_def =  0;
+    }
+
+    if ($candidate) {
+      $candidate = FALSE;
+      $form_state['biblio_add_merge_author'][$other_author->cid] = $other_author->cid;
+
+      $candidates[$other_author->cid]['name'] = array(
+          '#markup' => l($other_author->lastname . ($other_author->firstname ? ', ' . $other_author->firstname : ($other_author->initials?', ' . $other_author->initials:'')), $path . $other_author->cid . '/edit/'),
+          '#markup' => l($other_author->name , $path . $other_author->cid . '/edit/'),
+      );
+      $candidates[$other_author->cid]['link'] = array(
+          '#type' => 'checkbox',
+          '#return_value' => $author->cid,
+          '#default_value' => $link_def,
+          '#disabled' => $link_disable,
+          '#parents' => array('candidates', $other_author->cid, 'link'),
+          '#states' => array(
+              'disabled' => array(
+                  ':input[name="candidates['.$other_author->cid.'][merge]"]' => array('checked' => true),
+              ),
+          ),
+      );
+      $candidates[$other_author->cid]['merge'] = array(
+          '#type' => 'checkbox',
+          '#return_value' => $author->cid,
+          '#default_value' => $merge_def,
+          '#disabled' => $merge_disable,
+          '#parents' => array('candidates', $other_author->cid, 'merge'),
+          '#states' => array(
+              'disabled' => array(
+                  ':input[name="candidates['.$other_author->cid.'][link]"]' => array('checked' => true),
+              ),
+          ),
+      );
+      $candidates[$other_author->cid]['retain'] = array(
+          '#type' => 'checkbox',
+          '#return_value' => $author->cid,
+          '#default_value' => $retain_def,
+          '#disabled' => $retain_disable,
+          '#parents' => array('candidates', $other_author->cid, 'retain'),
+          '#states' => array(
+              'enabled' => array(
+                  ':input[name="candidates['.$other_author->cid.'][merge]"]' => array('checked' => true),
+              ),
+              'unchecked' => array(
+                  ':input[name="candidates['.$other_author->cid.'][merge]"]' => array('unchecked' => true),
+              ),
+          ),
       );
     }
-    $form['link']['link_authors'] = array(
-      '#type' => 'select',
+  }
+
+  $form['merge'] = array(
+      '#type' => 'fieldset',
+      '#theme' => 'biblio_admin_author_edit_merge_table',
+      '#title' => t('Author Link / Merge'),
+      '#description' => t('Select other author names which will be linked or merged.  Merging removes all the selected authors, then replaces any references to these authors with the author being edited above.  You should only do this if you are sure the other authors represent the same author as the one being edited. <B>IF you do not select "Retain as alternate form" then THIS CANNOT BE UNDONE!</B>'),
+      '#weight' => 5,
+      '#collapsible' => TRUE,
+      '#collapsed' => !count($candidates),
+      '#header' => array(t('Author name'), t('Link'), t('Merge'), t('Retain as "alternate form"')),
+      'candidates' => $candidates,
+      '#prefix' => '<div id="biblio-author-edit-merge-table">',
+      '#suffix' => '</div>',
+
+  );
+  $form['merge']['more_authors_search'] = array(
+      '#type' => 'textfield',
       '#title' => t('Other authors which could be linked to this author'),
-      //'#default_value' => $link_default_values,
-      '#options' => $link_options,
+      '#autocomplete_path' => 'biblio/autocomplete/contributor',
       '#weight' => 12,
       '#required' => FALSE,
-      '#multiple' => TRUE,
-    );
+  );
+  $form['merge']['more_authors_add'] = array(
+      '#type'     => 'submit',
+      '#value'    => t('Add author'),
+      '#weight' => 15,
+      '#submit'   => array('biblio_admin_author_edit_add_candidate'),
+      '#ajax'   => array(
+          'callback' => 'biblio_admin_author_edit_add_candidate_callback',
+          'wrapper'  => 'biblio-author-edit-merge-table',
+      ),
+
+  );
+
   $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save')
+      '#type' => 'submit',
+      '#value' => t('Save')
   );
   $form['cancel'] = array(
-    '#type' => 'submit',
-    '#value' => t('Cancel')
+      '#type' => 'submit',
+      '#value' => t('Cancel')
   );
 
   return $form;
 }
 
+function biblio_admin_author_edit_add_candidate($form, &$form_state) {
+  module_load_include('inc', 'biblio', 'includes/biblio.contributors');
+  if (!empty($form_state['values']['more_authors_search'])) {
+    if ($cid = biblio_get_cid_by_name($form_state['values']['more_authors_search'])) {
+      if ($cid == $form_state['values']['cid']) { // we don't want to merge with ourselves :-(
+        drupal_set_message(t('You cannot merge an author with itself'), 'error');
+      }
+      elseif (in_array($cid, $form_state['biblio_add_merge_author'])) {
+        drupal_set_message(t('Author already exists in the merge list'), 'warning');
+      }
+      else {
+        $form_state['biblio_add_merge_author'][$cid] = $cid;
+      }
+    }
+    else {
+      drupal_set_message(t('The Author was not found in the database.  You must select an Author from the "auto-complete" list of the Keyword search box.'), 'error');
+    }
+  }
+  else {
+    drupal_set_message(t('Cannot add an empty value'), 'error');
+  }
+
+  $form_state['rebuild'] = TRUE;
+
+}
+
+function biblio_admin_author_edit_add_candidate_callback($form, $form_state) {
+  return $form['merge'];
+}
+
+/**
+ * @param array $form
+ * @param array $form_state
+ */
+function biblio_admin_author_edit_form_merge_validate($form, &$form_state) {
+}
+
+/**
+ * @param array $form
+ * @param array $form_state
+ */
+function biblio_admin_author_edit_form_merge_link($form_state) {
+  $op = $form_state['triggering_element']['#value'];
+  $merge_authors = array();
+  $cid = $form_state['values']['cid'];
+
+  foreach ($form_state['values']['candidates'] as $ccid => $options) {
+
+    if ($options['link']) {
+      db_update('biblio_contributor_data')
+      ->fields(array(
+          'aka' => $options['link'],
+          'alt_form' => 0,
+      ))
+      ->condition('cid', $ccid)
+      ->execute();
+    }
+    else {
+      db_update('biblio_contributor_data')
+      ->fields(array(
+          'aka' => 0,
+          'alt_form' => 0,
+      ))
+      ->condition(db_or()->condition('cid', $cid)->condition('cid', $ccid))
+      ->execute();
+    }
+
+    if ($options['merge']) {
+      db_update('biblio_contributor')
+        ->fields(array(
+            'cid' => $cid,
+            'merge_cid' => $ccid))
+        ->condition('cid', $ccid)
+        ->execute();
+    }
+    else {
+      db_update('biblio_contributor')
+        ->fields(array(
+            'cid' => $ccid,
+            'merge_cid' => 0))
+        ->condition('merge_cid', $ccid)
+        ->execute();
+    }
+
+    if ($options['merge'] && $options['retain']) {
+      db_update('biblio_contributor_data')
+        ->fields(array(
+          'alt_form' => $options['retain'] ? $options['retain'] : 0,
+          'aka' => $options['retain'] ? $cid : 0))
+        ->condition('cid', $ccid)
+        ->execute();
+    }
+    elseif ($options['merge'] && !$options['retain']) {
+      db_delete('biblio_contributor_data')
+        ->condition('cid', $ccid)
+        ->execute();
+    }
+  }
+}
+
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
+function biblio_admin_author_edit_form_link_validate($form, &$form_state) {
+
+}
+
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
+function biblio_admin_author_edit_form_link_submit($form, &$form_state) {
+  module_load_include('inc', 'biblio', 'includes/biblio.contributors');
+  $linked_authors = array();
+  $link_authors = '';
+
+  if (isset($form_state['values']['linked_authors']) ) {
+    $linked_authors = $form_state['values']['linked_authors'];
+  }
+
+  if (isset($form_state['values']['link_authors']) ) {
+    $link_authors = $form_state['values']['link_authors'];
+  }
+
+  foreach ($linked_authors as $key => $value) {
+    if ($value == 0) {
+      db_update('biblio_contributor_data')
+      ->fields(array('aka' => $value))
+      ->condition('cid', $key)
+      ->execute();
+    }
+  }
+
+  if (!empty($link_authors)) {
+    if ( ($cid = biblio_get_cid_by_name($link_authors))) {
+      db_update('biblio_contributor_data')
+      ->fields(array('aka' => $form_state['values']['cid']))
+      ->condition('cid', $cid)
+      ->execute();
+    }
+  }
+
+}
+
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_author_edit_form_validate($form, &$form_state) {
   foreach ($form_state['values'] as $key => $value) {
     if (is_string($value)) $form_state['values'][$key] = trim($value);
   }
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_author_edit_form_submit($form, &$form_state) {
   $op = $form_state['values']['op'];
-  $merge_authors = FALSE;
-  $link_authors = FALSE;
-  $linked_authors = FALSE;
   switch ($op) {
     case t('Save'):
-    case t('Merge'):
-      if (isset($form_state['values']['merge_authors']) && $op == t('Merge')) {
-        $merge_authors = array_filter($form_state['values']['merge_authors']);
-      }
-      if (isset($form_state['values']['linked_authors']) ) {
-        $linked_authors = $form_state['values']['linked_authors'];
-      }
-      if (isset($form_state['values']['link_authors']) ) {
-        $link_authors = $form_state['values']['link_authors'];
-      }
-      unset($form_state['values']['merge_authors']);
-      unset($form_state['values']['link_authors']);
-      unset($form_state['values']['linked_authors']);
       if ($form_state['values']['drupal_uid'] == 0 ) {
         $uid = $form['drupal_uid']['#default_value'];
         $cid = 0;
@@ -2040,40 +2458,20 @@ function biblio_admin_author_edit_form_submit($form, &$form_state) {
           ->condition('uid', $uid)
           ->execute();
       }
-      drupal_write_record('biblio_contributor_data', $form_state['values'], 'cid');
-//      db_update('biblio_contributor_data')
-//          ->fields($form_state['values'])
-//          ->execute();
-      // merge authors
-      if ($merge_authors && count($merge_authors)) {
-          db_update('biblio_contributor')
-            ->fields(array('cid' => $form_state['values']['cid']))
-            ->condition('cid', $merge_authors, 'IN')
-            ->execute();
 
-          db_delete('biblio_contributor_data')
-            ->condition('cid', $merge_authors, 'IN')
-            ->execute();
-      }
-      if ($linked_authors)  {
-        foreach ($linked_authors as $key => $value) {
-          if ($value == 0) {
-            db_update('biblio_contributor_data')
-              ->fields(array('aka' => $key))
-              ->condition('cid', $key)
-              ->execute();
-          }
-        }
-      }
-      if ($link_authors ) {
-        //db_query("UPDATE {biblio_contributor_data} SET aka=$form_state['values']['cid'] WHERE cid IN ($authors)");
-        foreach ($link_authors as $key => $value) {
-          db_update('biblio_contributor_data')
-              ->fields(array('aka' => $form_state['values']['cid']))
-              ->condition('cid', $key)
-              ->execute();
+      $form_state['values']['name'] =
+        (!empty($form_state['values']['prefix']) ? $form_state['values']['prefix'] . ' ' :'') .
+        (!empty($form_state['values']['firstname']) ? $form_state['values']['firstname'] . ' ' :'') .
+        (!empty($form_state['values']['initials']) ? $form_state['values']['initials'] . ' ' :'') .
+        (!empty($form_state['values']['lastname']) ? $form_state['values']['lastname'] . ' ' :'') .
+        (!empty($form_state['values']['suffix']) ? $form_state['values']['suffix'] :'') ;
+      $form_state['values']['name'] = trim($form_state['values']['name']);
+      $form_state['values']['md5'] = md5($form_state['values']['name']);
 
-        }
+      drupal_write_record('biblio_contributor_data',  $form_state['values'], 'cid');
+
+      if (isset($form_state['values']['candidates']) && !empty($form_state['values']['candidates'])) {
+        biblio_admin_author_edit_form_merge_link($form_state);
       }
       break;
     case t('Cancel'):
@@ -2082,93 +2480,103 @@ function biblio_admin_author_edit_form_submit($form, &$form_state) {
 }
 
 
+/**
+ *
+ * @param  $form
+ * @param  $form_state
+ * @return array
+ */
 function biblio_admin_orphans_form($form, &$form_state) {
-  $authors = $orphans = $options = array();
+  module_load_include('inc', 'biblio', 'includes/biblio.contributors');
+  $orphans = $options = $names = array();
 
   $base = variable_get('biblio_base', 'biblio');
 
-  $query = db_select('biblio_contributor', 'bc');
-  $active_cids = $query
-    ->fields('bc', array('cid'))
-    ->groupBy('cid')
-    ->execute()
-    ->fetchCol();
+  $orphans = biblio_get_orphan_authors();
 
-  $query = db_select('biblio_contributor_data', 'bcd');
-  $all_cids = $query
-    ->fields('bcd', array('cid'))
-    ->groupBy('cid')
-    ->execute()
-    ->fetchCol();
-
-  $orphans = array_diff($all_cids, $active_cids);
-
-  if (!empty($orphans)) {
-    $query = db_select('biblio_contributor_data', 'bcd')->extend('PagerDefault')->limit(25);
-    $query->fields('bcd') // SELECT * FROM {biblio_contributor_data}
-      ->condition('cid', $orphans, 'IN')
-      ->orderBy('lastname');
-
-    $result = $query->execute(); //pager_query('SELECT * FROM {biblio_contributor_data} WHERE cid NOT IN (SELECT cid FROM {biblio_contributor} GROUP BY cid)', 50);
-    $authors = array();
-    foreach ($result as $author) {
-      $options[$author->cid] = array(
+  foreach ($orphans as $author) {
+    $options[$author->cid] = array(
         'author' => array(
-          'data' => array(
-            '#type' => 'link',
-            '#title' => $author->name,
-            '#href' => $base . '/authors/' . $author->cid . '/edit',
-          ),
+            'data' => array(
+                '#type' => 'link',
+                '#title' => $author->name,
+                '#href' => $base . '/authors/' . $author->cid . '/edit',
+            ),
         ),
         'affiliation' => check_plain($author->affiliation),
-      );
-      $names[$author->cid] = $author->name;
-    }
-    $form['names'] = array('#type' => 'hidden', '#value' => $names);
-
+    );
+    $names[$author->cid] = $author->name;
   }
+  $form['names'] = array('#type' => 'hidden', '#value' => $names);
 
   $header = array(
-    'author' => t('Author name'),
-    'affiliation' => t('Author affiliation')
+      'author' => t('Author name'),
+      'affiliation' => t('Author affiliation')
   );
 
-//  if (!empty($authors)) {
-    $form['submit'] = array(
+  $form['submit'] = array(
       '#type' => 'submit',
-      '#value' => t('Delete'),
+      '#value' => t('Delete Selected'),
       '#disabled' => (!count($options)),
       '#submit' => array('biblio_admin_orphans_form_submit'),
-    );
-    $form['authors'] = array(
+  );
+  $form['delete_all'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete ALL'),
+      '#disabled' => (!count($options)),
+      '#submit' => array('biblio_admin_orphans_form_submit'),
+  );
+  $form['authors'] = array(
       '#type' => 'tableselect',
       '#header' => $header,
       '#options' => $options,
       '#empty' => t('No orphaned authors.'),
-    );
-    $form['pager']   = array('#markup' => theme('pager'));
-//  }
+  );
+
   return $form;
 }
+
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_orphans_form_validate($form, &$form_state) {
   $check_count = array_filter($form_state['values']['authors']);
-  if (count($check_count) == 0) {
+  if ($form_state['triggering_element']['#value'] == t('Delete Selected') && count($check_count) == 0) {
     form_set_error('', t('No items selected.'));
   }
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_orphans_form_submit($form, &$form_state) {
   $authors = $names = array();
   // Filter out unchecked authors
-  $authors = array_filter($form_state['values']['authors']);
+  if ($form_state['triggering_element']['#value'] == t('Delete Selected')) {
+    $authors = array_filter($form_state['values']['authors']);
+  }
+  elseif ($form_state['triggering_element']['#value'] == t('Delete ALL')) {
+    $authors = drupal_map_assoc(array_keys($form_state['values']['authors']));
+  }
+
   $names   = array_intersect_key($form_state['values']['names'], $authors);
   $del_names = implode('; ', $names);
+
   db_delete('biblio_contributor_data')
     ->condition('cid', $authors, 'IN')
     ->execute();
+
   drupal_set_message(t('The orphaned authors (@author_list) have been deleted.', array('@author_list' => $del_names)));
 
 }
+
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ * @return multitype:NULL
+ */
 function biblio_admin_keyword_orphans_form($form, $form_state) {
   $orphans = $keywords = $options = array();
 
@@ -2228,6 +2636,10 @@ function biblio_admin_keyword_orphans_form($form, $form_state) {
 
   return $form;
 }
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_keyword_orphans_form_validate($form, &$form_state) {
   $check_count = array_filter($form_state['values']['words']);
   if (count($check_count) == 0) {
@@ -2235,6 +2647,10 @@ function biblio_admin_keyword_orphans_form_validate($form, &$form_state) {
   }
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_keyword_orphans_form_submit($form, &$form_state) {
 
   $keywords = array_filter($form_state['values']['words']);
@@ -2246,6 +2662,12 @@ function biblio_admin_keyword_orphans_form_submit($form, &$form_state) {
 
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ * @param unknown_type $keyword_id
+ * @return multitype:string number NULL
+ */
 function biblio_admin_keyword_edit_form($form, &$form_state, $keyword_id) {
   $options = array();
   $keywords = array();
@@ -2291,20 +2713,22 @@ function biblio_admin_keyword_edit_form($form, &$form_state, $keyword_id) {
   foreach ($result as $keyword) {
     $keywords[] = $keyword;
   }
+
   if(isset($form_state['biblio_add_merge_keywords'])) {
     $keywords = array_merge($keywords, $form_state['biblio_add_merge_keywords']);
   }
+
   foreach($keywords as $keyword) {
     $options[$keyword->kid] = array(
         'keyword' => array(
-          'data' => array(
-            '#type' => 'link',
-            '#title' => $keyword->word . ' (' . $keyword->use_count .')',
-            '#href' => $destination . '/'.  $keyword->kid . '/edit',
-            '#options' => array('query' => array('destination' => $destination)),
-          ),
+            'data' => array(
+                '#type' => 'link',
+                '#title' => $keyword->word . ' (' . $keyword->use_count .')',
+                '#href' => $destination . '/'.  $keyword->kid . '/edit',
+                '#options' => array('query' => array('destination' => $destination)),
+            ),
         ),
-      );
+    );
   }
 
   $form['merge'] = array(
@@ -2314,10 +2738,12 @@ function biblio_admin_keyword_edit_form($form, &$form_state, $keyword_id) {
       '#weight' => 5,
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
-  //    '#theme' => 'biblio_admin_keyword_merge_fieldset'
-    );
-    $header = array('keyword' => t('Similar keywords '));
-    $form['merge']['merge_words'] = array(
+      //    '#theme' => 'biblio_admin_keyword_merge_fieldset'
+  );
+
+  $header = array('keyword' => t('Similar keywords '));
+
+  $form['merge']['merge_words'] = array(
       '#type' => 'tableselect',
       '#header' => $header,
       '#options' => $options,
@@ -2325,45 +2751,53 @@ function biblio_admin_keyword_edit_form($form, &$form_state, $keyword_id) {
       '#prefix' => '<div id="biblio-keyword-merge-table">',
       '#suffix' => '</div>',
 
-    );
-    $form['merge']['search'] = array(
+  );
+  $form['merge']['search'] = array(
       '#type' => 'textfield',
       '#title' => t('Keyword search'),
       '#autocomplete_path' => 'biblio/autocomplete/biblio_keywords',
       '#description' => t('Use this field to find other keywords you would like to merge with: <b><u>!kw</u></b>, then click the "Add to merge list" button. (The merge will not happen until the "Save" button is clicked)', array('!kw' => $keyword->word))
-    );
-    $form['merge']['add'] = array(
-      '#type' => 'submit',
-      '#value' => t('Add to merge list'),
-      '#submit'      => array('biblio_add_merge_keyword'),
-      '#ajax'        => array(
-        'callback' => 'biblio_add_merge_keyword_callback',
-        'wrapper'  => 'biblio-keyword-merge-table',
+  );
+  $form['merge']['add'] = array(
+      '#type'   => 'submit',
+      '#value'  => t('Add to merge list'),
+      '#submit' => array('biblio_add_merge_keyword'),
+      '#ajax'   => array(
+          'callback' => 'biblio_add_merge_keyword_callback',
+          'wrapper'  => 'biblio-keyword-merge-table',
       ),
-    );
+  );
 
   $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-    '#weight' => 6,
+      '#type' => 'submit',
+      '#value' => t('Save'),
+      '#weight' => 6,
   );
   $form['delete'] = array(
-    '#type' => 'submit',
-    '#value' => t('Delete'),
-    '#weight' => 7,
+      '#type' => 'submit',
+      '#value' => t('Delete'),
+      '#weight' => 7,
   );
   $form['cancel'] = array(
-    '#type' => 'submit',
-    '#value' => t('Cancel'),
-    '#weight' => 8,
+      '#type' => 'submit',
+      '#value' => t('Cancel'),
+      '#weight' => 8,
   );
 
   return $form;
 }
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_add_merge_keyword_callback($form, &$form_state) {
   return $form['merge']['merge_words'];
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_add_merge_keyword($form, &$form_state) {
 
   if (!empty($form_state['values']['search'])) {
@@ -2390,6 +2824,11 @@ function biblio_add_merge_keyword($form, &$form_state) {
   $form_state['rebuild'] = TRUE;
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ * @param unknown_type $keyword_id
+ */
 function biblio_admin_keyword_delete_confirm($form, &$form_state, $keyword_id) {
   $base = variable_get('biblio_base', 'biblio');
   $keyword = db_query('SELECT * FROM {biblio_keyword_data} bkd WHERE bkd.kid = :kid ', array(':kid' => $keyword_id))->fetchObject();
@@ -2408,6 +2847,10 @@ function biblio_admin_keyword_delete_confirm($form, &$form_state, $keyword_id) {
 
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_keyword_delete_confirm_submit($form, &$form_state) {
   $base = variable_get('biblio_base', 'biblio');
   module_load_include('inc', 'biblio', 'includes/biblio.keywords');
@@ -2415,6 +2858,10 @@ function biblio_admin_keyword_delete_confirm_submit($form, &$form_state) {
   $form_state['redirect'] = $base . '/keywords';
 }
 
+/**
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
 function biblio_admin_keyword_edit_form_submit($form, &$form_state) {
   switch ($form_state['values']['op']) {
 

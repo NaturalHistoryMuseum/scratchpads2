@@ -10,8 +10,11 @@ files[] = tests/keyword.test
 files[] = tests/contributor.test
 files[] = tests/import.export.test
 
+files[] = includes/Name.php
+files[] = includes/Parser.php
 
 files[] = views/biblio_handler_citation.inc
+files[] = views/biblio_handler_field_keyword.inc
 files[] = views/biblio_handler_field_biblio_keyword_data_word.inc
 files[] = views/biblio_handler_field_biblio_keyword_kid.inc
 files[] = views/biblio_handler_field_biblio_type.inc
@@ -28,9 +31,9 @@ files[] = views/biblio_handler_filter_contributor.inc
 files[] = views/biblio_handler_sort_contributor_lastname.inc
 files[] = views/biblio_handler_argument_many_to_one.inc
 files[] = views/biblio_handler_field_export_link.inc
-; Information added by drupal.org packaging script on 2012-03-20
-version = "7.x-1.0-rc4"
+; Information added by drupal.org packaging script on 2013-01-20
+version = "7.x-1.0-rc4+85-dev"
 core = "7.x"
 project = "biblio"
-datestamp = "1332204338"
+datestamp = "1358685341"
 

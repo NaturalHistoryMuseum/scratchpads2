@@ -103,6 +103,9 @@ function biblio_ris_biblio_export_link($nid = NULL, $filter = array()) {
         'attributes' => array(
           'title' => t("Click to download the RIS formatted file")));
   }
+
+  $link['attributes'] += array('rel' => 'nofollow');
+
   $link['href']  = "$base/export/ris/$nid";
   $link['title'] = t('RIS');
 
@@ -181,6 +184,8 @@ function biblio_ris_biblio_export($nids) {
 function _biblio_ris_import_string($string) {
   $tag = '';
   $node = new stdClass();
+  $unmapped = array();
+
   $lines = preg_split('/[\r\n]/', $string, -1, PREG_SPLIT_NO_EMPTY);
   foreach ($lines as $line) {
     $line_len = strlen($line);
@@ -210,10 +215,19 @@ function _biblio_ris_import_string($string) {
         }
       }
       else {
-        _biblio_ris_parse_line($tag, $data, $node);
+        _biblio_ris_parse_line($tag, $data, $node, $unmapped);
       }
     }
   } // end while
+  if (!empty($unmapped)) {
+    $ignored_tags = array_unique($unmapped);
+    $message = t("The following elements were ignored because they do not map to any biblio fields: ");
+    $message .= implode(', ',$ignored_tags);
+    if (user_access('administer biblio')) {
+      $message .= '. ' . t('Click !url if you wish to check the field mapping', array('!url' => l(t('here'), 'admin/config/content/biblio/iomap/edit/ris')));
+    }
+    drupal_set_message($message, 'warning');
+  }
 }
 
 function _biblio_ris_import($file, $terms = array(), $batch = FALSE, $session_id = NULL) {
@@ -231,6 +245,8 @@ function _biblio_ris_import($file, $terms = array(), $batch = FALSE, $session_id
 
   while (!feof($fp)) {
     $line = fgets($fp);
+    // Remove any character other than: carriage return, line feed, tab, or ANSI/ASCII character codes 32-255
+    $line = preg_replace('/[^\r\n\t\x20-\xFF]/', '', $line);
     $line_len = strlen($line);
     if ($line_len > 3) {
       $start = strpos($line, '  -'); // There could be some unprintables at the beginning of the line so fine the location of the %
@@ -293,10 +309,20 @@ function _biblio_ris_parse_line($tag, $data, $node, &$unmapped) {
                 'auth_category' => 1,
                 'auth_type' => _biblio_get_auth_type(1, $node->biblio_type));
       break;
+    case 'DA' :
+      if (!isset($node->biblio_year) || empty($node->biblio_year)) {
+        $node->biblio_year = ($end = strpos($data, "/")) ? substr($data, 0, $end) : $data;
+      }
+      $node->biblio_date = $data;
+      break;
     case 'Y1' :
     case 'PY' :
-      $node->biblio_year = ($end = strpos($data, "/")) ? substr($data, 0, $end) : $data;
-      $node->biblio_date = $data;
+      if (!isset($node->biblio_year) || empty($node->biblio_year)) {
+        $node->biblio_year = ($end = strpos($data, "/")) ? substr($data, 0, $end) : $data;
+      }
+      if (!isset($node->biblio_date) || empty($node->biblio_date)) {
+        $node->biblio_date = $data;
+      }
       break;
     case 'A2' :
     case 'ED' :

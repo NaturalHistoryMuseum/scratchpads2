@@ -1,6 +1,6 @@
 <?php
 class biblio_handler_field_contributor extends biblio_handler_field {
-  function init($view, $options) {
+  function init(&$view, &$options) {
     module_load_include('inc', 'biblio', 'includes/biblio.contributors');
     parent::init($view, $options);
     $this->multiple = TRUE;
@@ -106,7 +106,7 @@ class biblio_handler_field_contributor extends biblio_handler_field {
     $this->field_alias = $this->aliases['vid'];
   }
 
-  function post_execute($values) {
+  function post_execute(&$values) {
     $vids = array();
     $this->items = array();
     $filter = '';
@@ -134,60 +134,65 @@ class biblio_handler_field_contributor extends biblio_handler_field {
     $authors = array();
     if (!isset($this->alnum)) {
       list($this->alnum, $this->alpha, $this->cntrl, $this->dash,
-      $this->digit, $this->graph, $this->lower, $this->print,
-      $this->punct, $this->space, $this->upper, $this->word,
-      $this->patternModifiers) = $this->get_regex_patterns();
+          $this->digit, $this->graph, $this->lower, $this->print,
+          $this->punct, $this->space, $this->upper, $this->word,
+          $this->patternModifiers) = $this->get_regex_patterns();
     }
 
     foreach ($contributors as $rank => $author) {
       $author = (object)$author;
-      if (!empty($author->firstname) && isset($this->options['initialize'])) {
-        $author->firstname = preg_replace("/([$this->upper])[$this->lower]+/$this->patternModifiers", '\\1', $author->firstname);
-        $author->firstname = preg_replace("/(?<=[-$this->upper]) +(?=[-$this->upper])/$this->patternModifiers", "", $author->firstname);
-        $author->initials = $author->firstname . $author->initials;
+      if ($author->literal == 1) {
+        $authors[] = $author->name;
       }
-      if (isset($author->initials)) {
-        // within initials, remove any dots:
-        $author->initials = preg_replace("/([$this->upper])\.+/$this->patternModifiers", "\\1", $author->initials);
-        // within initials, remove any spaces *between* initials:
-        $author->initials = preg_replace("/(?<=[-$this->upper]) +(?=[-$this->upper])/$this->patternModifiers", "", $author->initials);
-        if ($this->options['initialize_with_hyphen'] === FALSE) {
-          $author->initials = preg_replace("/-/", '', $author->initials);
+      else {
+        if (!empty($author->firstname) && isset($this->options['initialize'])) {
+          $author->firstname = preg_replace("/([$this->upper])[$this->lower]+/$this->patternModifiers", '\\1', $author->firstname);
+          $author->firstname = preg_replace("/(?<=[-$this->upper]) +(?=[-$this->upper])/$this->patternModifiers", "", $author->firstname);
+          $author->initials = $author->firstname . $author->initials;
         }
-        // within initials, add a space after a hyphen, but only if ...
-        if (preg_match("/ $/", $this->options['initialize_with'])) {// ... the delimiter that separates initials ends with a space
-          $author->initials = preg_replace("/-(?=[$this->upper])/$this->patternModifiers", "- ", $author->initials);
-        }
-        // then, separate initials with the specified delimiter:
-        $init_sep = $this->options['initialize_with'];
-        $author->initials = preg_replace("/([$this->upper])(?=[^$this->lower]+|$)/$this->patternModifiers", "\\1$init_sep", $author->initials);
+        if (isset($author->initials)) {
+          // within initials, remove any dots:
+          $author->initials = preg_replace("/([$this->upper])\.+/$this->patternModifiers", "\\1", $author->initials);
+          // within initials, remove any spaces *between* initials:
+          $author->initials = preg_replace("/(?<=[-$this->upper]) +(?=[-$this->upper])/$this->patternModifiers", "", $author->initials);
+          if ($this->options['initialize_with_hyphen'] === FALSE) {
+            $author->initials = preg_replace("/-/", '', $author->initials);
+          }
+          // within initials, add a space after a hyphen, but only if ...
+          if (preg_match("/ $/", $this->options['initialize_with'])) {// ... the delimiter that separates initials ends with a space
+            $author->initials = preg_replace("/-(?=[$this->upper])/$this->patternModifiers", "- ", $author->initials);
+          }
+          // then, separate initials with the specified delimiter:
+          $init_sep = $this->options['initialize_with'];
+          $author->initials = preg_replace("/([$this->upper])(?=[^$this->lower]+|$)/$this->patternModifiers", "\\1$init_sep", $author->initials);
 
-        //      $shortenInitials = (isset($options['numberOfInitialsToKeep)) ? $options['numberOfInitialsToKeep : FALSE;
-        //      if ($shortenInitials) $given = drupal_substr($given, 0, $shortenInitials);
+          //      $shortenInitials = (isset($options['numberOfInitialsToKeep)) ? $options['numberOfInitialsToKeep : FALSE;
+          //      if ($shortenInitials) $given = drupal_substr($given, 0, $shortenInitials);
 
-        if (isset($this->options['initialize'])) {
-          $author->firstname = $author->initials;
-         // if ($shortenInitials) $author->firstname = drupal_substr($author->firstname, 0, $shortenInitials);
+          if (isset($this->options['initialize'])) {
+            $author->firstname = $author->initials;
+            // if ($shortenInitials) $author->firstname = drupal_substr($author->firstname, 0, $shortenInitials);
+          }
+          elseif (!empty($author->firstname)) {
+            $author->firstname = $author->firstname . ' ' . $author->initials;
+          }
+          elseif (empty($author->firstname)) {
+            $author->firstname = $author->initials;
+          }
         }
-        elseif (!empty($author->firstname)) {
-          $author->firstname = $author->firstname . ' ' . $author->initials;
-        }
-        elseif (empty($author->firstname)) {
-          $author->firstname = $author->initials;
-        }
-      }
 
-      if (isset($author->lastname)) {
-        if ($this->options['short_form'] == 1) {
-          $authors[] = $author->lastname;
-        }
-        else {
-          switch ($this->options['name_order']) {
-            case 'last-first':
-              $authors[] = $author->lastname . $this->options['sort_separator'] . $author->firstname;
-              break;
-            default:
-              $authors[] = $author->firstname . ' ' . $author->lastname ;
+        if (isset($author->lastname)) {
+          if ($this->options['short_form'] == 1) {
+            $authors[] = $author->lastname;
+          }
+          else {
+            switch ($this->options['name_order']) {
+              case 'last-first':
+                $authors[] = $author->lastname . $this->options['sort_separator'] . $author->firstname;
+                break;
+              default:
+                $authors[] = $author->firstname . ' ' . $author->lastname ;
+            }
           }
         }
       }

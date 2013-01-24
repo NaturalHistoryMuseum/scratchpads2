@@ -25,8 +25,6 @@ Requirements:
 =============
 Drupal 7.x, Upgrades supported from any Biblio version after 6.x-1.9
 
-
-
 Installation:
 =============
 Create a directory called biblio in the sites/all/modules directory, then place all of the
@@ -36,6 +34,19 @@ This module will auto-install the required database tables the first time you
 enable it on the admin/modules page.   This will also setup a number of pre-defined 
 publication types.  These types can be changed or deleted on the 
 admin/config/content/biblio/types page.
+
+Robots.txt
+==========
+In order to limit recursive searches by web bots, it is recommended that you add the following
+to your robots.txt file.  Note: if you change the base url for biblio you will have to make the 
+corresponding change here.  i.e. if you base url for biblio is "publications" then replace "biblio"
+"publications" in the directives below.
+
+# Biblio
+Disallow: /biblio/export/
+Disallow: /biblio?*
+Disallow: /biblio?page=*&*
+Allow: /biblio?page=*
 
 
 Settings:

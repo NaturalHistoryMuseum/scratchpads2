@@ -65,6 +65,8 @@ function biblio_xml_biblio_export_link($nid = NULL, $filter = array()) {
 
   $link = array();
   $link['attributes']['title'] = t("Click to download the EndNote XML formatted file");
+  $link['attributes'] += array('rel' => 'nofollow');
+
   $link['href']  = "$base/export/xml";
   if (!empty($nid)) {
     $link['href'] .= '/' . $nid;

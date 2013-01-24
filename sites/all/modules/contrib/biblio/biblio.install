@@ -113,7 +113,7 @@ function biblio_requirements($phase) {
   if ($phase == 'runtime') {
     $dir = drupal_get_path('module', 'biblio');
     $files = file_scan_directory($dir, '/..*.inc$/',  array('recurse' => FALSE));
-    if (count($files)) {
+    if (count($files) > 1) {
       $message = $t('There is a problem with your Biblio installation! There should not be any ".inc" files in the %biblio directory.  You probably forgot to delete the old biblio files when you upgraded the module.  You should remove the following files from that directory...', array('%biblio' => $dir));
       $message .= "<ul>";
       foreach ($files as $file) {
@@ -123,7 +123,7 @@ function biblio_requirements($phase) {
       $requirements['biblio'] = array(
         'title' => $t('Biblio'),
         'value' => BIBLIO_VERSION,
-        'severity' => empty($message) ? REQUIREMENT_OK : REQUIREMENT_ERROR,
+        'severity' => empty($message) ? REQUIREMENT_OK : REQUIREMENT_WARNING,
         'description' => $message,
       );
     }
@@ -387,7 +387,7 @@ function biblio_schema() {
       'biblio_date' => array(
         'type' => 'varchar',
         'not null' => FALSE,
-        'length' => '16',
+        'length' => '64',
         'description' => '',
       ),
       'biblio_isbn' => array(
@@ -859,7 +859,14 @@ function biblio_schema() {
       'unsigned' => TRUE,
       'default' => 0,
       'description' => 'Position of the author name on the publication (first,second,third...)',
-    )
+    ),
+    'merge_cid' =>  array(
+      'type' => 'int',
+      'not null' => TRUE,
+      'default'  => 0,
+      'unsigned' => TRUE,
+      'description' => '',
+    ),
    ),
    'foreign keys' => array(
      'node_revision' => array(
@@ -907,6 +914,13 @@ function biblio_schema() {
         'unsigned' => TRUE,
         'description' => 'Also known as, links this author entry with others so you can have variation on the name, but listing by cid will find all other (aka) author entries',
         ),
+      'alt_form' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default'  => 0,
+        'unsigned' => TRUE,
+        'description' => 'Alternate form of an author name, this value points to the desired form (cid), this form is kept in the database so  that future imports of the same name will not create a new author.',
+        ),
       'drupal_uid' => array(
         'type' => 'int',
         'not null' => FALSE,
@@ -922,7 +936,7 @@ function biblio_schema() {
         ),
       'lastname' => array(
         'type' => 'varchar',
-        'length' => '128',
+        'length' => '255',
         'not null' => TRUE,
         'default' => '',
         'description' => 'Author last name',
@@ -986,7 +1000,7 @@ function biblio_schema() {
         'columns' => array('drupal_uid' => 'uid'),
       ),
      ),
-  	'primary key' => array('cid', 'aka'),
+  	'primary key' => array('cid'),
     'indexes' => array(
       'lastname' => array('lastname'),
       'firstname' => array('firstname'),
@@ -2086,3 +2100,85 @@ function biblio_update_7017() {
     views_invalidate_cache();
   }
 }
+/**
+ *
+ * Widen the biblio_contributor_data.lastname column to 255 characters
+ */
+function biblio_update_7018() {
+  $spec =  array(
+    'type' => 'varchar',
+    'length' => '255',
+    'not null' => TRUE,
+    'default' => '',
+    'description' => 'Author last name',
+  );
+  db_change_field('biblio_contributor_data', 'lastname', 'lastname', $spec);
+
+}
+/**
+ *
+ * Change biblio_contributor_data.cid to a signed int
+ */
+
+function biblio_update_7019() {
+
+}
+
+/**
+ *
+ *  Change the primary key of the biblio_contributor_data table
+ */
+function biblio_update_7020() {
+  db_query("ALTER TABLE {biblio_contributor_data} DROP PRIMARY KEY, ADD PRIMARY KEY (cid)");
+}
+/**
+ *
+ *  Add alt_form column to the biblio_contributor_data table
+ */
+function biblio_update_7021() {
+  if (!db_field_exists('biblio_contributor_data', 'alt_form')) {
+    $spec = array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default'  => 0,
+        'unsigned' => TRUE,
+        'description' => 'Alternate form of an author name, this value points to the desired form (cid), this form is kept in the database so  that future imports of the same name will not create a new author.',
+    );
+    db_add_field('biblio_contributor_data', 'alt_form', $spec);
+  }
+}
+/**
+ *
+ *  Add alt_form column to the biblio_contributor_data table
+ */
+function biblio_update_7022() {
+  if (!db_field_exists('biblio_contributor', 'merge_cid')) {
+    $spec = array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default'  => 0,
+        'unsigned' => TRUE,
+        'description' => '',
+    );
+    db_add_field('biblio_contributor', 'merge_cid', $spec);
+  }
+}
+
+/**
+ *
+ * Re-apply update 7014 in case the install happened after 7014 was implemented.  The main scheme definition was not changed at that time to match the update resulting a schema mismatch.
+ *
+ */
+function biblio_update_7023() {
+  biblio_update_7014();
+}
+/**
+ *
+ * Re-apply update 7022 in case the install happened after 7022 was implemented.  The main scheme definition was not changed at that time to match the update resulting a schema mismatch.
+ *
+ */
+
+function biblio_update_7024() {
+  biblio_update_7022();
+}
+

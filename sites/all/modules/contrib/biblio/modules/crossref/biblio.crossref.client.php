@@ -190,18 +190,26 @@ class BiblioCrossRefClient
 
         break;
       case 'journal_issue':
-        if (!isset($this->node['biblio_date'])) {
-          $this->node['biblio_date'] = (!empty($this->node['month']) ? $this->node['month'] . '/':'') . $this->node['year'];
+      case 'journal_article':
+        if (!isset($this->node['biblio_date']) || empty($this->node['biblio_date'])) {
+          $day   = !empty($this->node['day'])   ? $this->node['day']   : 1;
+          $month = !empty($this->node['month']) ? $this->node['month'] : 1;
+          $year  = !empty($this->node['year'])  ? $this->node['year']  : 0;
+          if ($year) {
+            $this->node['biblio_date'] = date("M-d-Y", mktime(0, 0, 0, $day, $month, $year));
+          }
+        }
+        if ((!isset($this->node['biblio_year']) || empty($this->node['biblio_year'])) && isset($this->node['year'])) {
+          $this->node['biblio_year'] = $this->node['year'];
         }
         break;
-      case 'journal_article':
       case 'conference_paper':
       case 'content_item':
       case 'report-paper_metadata':
       case 'standard_metadata':
       case 'database_date':
       case 'component':
-        if (!isset($this->node['biblio_year']) && isset($this->node['year'])) {
+        if ((!isset($this->node['biblio_year']) || empty($this->node['biblio_year'])) && isset($this->node['year'])) {
           $this->node['biblio_year'] = $this->node['year'];
           unset($this->node['year']);
         }

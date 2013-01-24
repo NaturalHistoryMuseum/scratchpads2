@@ -11,7 +11,7 @@ class biblio_handler_filter_contributor_uid extends views_handler_filter_many_to
               ORDER by lastname, firstname");
     $this->value_options = array();
     foreach ($result as $row) {
-      $this->value_options[$row->cid] =  "$row->lastname, $row->firstname $row->initials ($row->name)";
+      $this->value_options[$row->drupal_uid] =  "$row->lastname, $row->firstname $row->initials ($row->name)";
     }
   }
 }

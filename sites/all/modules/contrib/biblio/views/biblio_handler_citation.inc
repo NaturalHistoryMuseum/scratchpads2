@@ -1,11 +1,12 @@
 <?php
 class biblio_handler_citation extends views_handler_field {
-  function init(&$view, $options) {
+  function init(&$view, &$options) {
     parent::init($view, $options);
     $this->additional_fields['nid'] = array('table' => 'node', 'field' => 'nid');
   }
 
   function query() {
+    $this->field_alias = 'nid';
     $this->add_additional_fields();
   }
 
@@ -41,10 +42,35 @@ class biblio_handler_citation extends views_handler_field {
     );
     $form['open_url_link'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Show Open links for file attachments'),
+      '#title' => t('Show OpenURL links'),
       '#default_value' => $this->options['open_url_link'],
       '#description' => t('This will add an !openurl link to the entry, assuming you have competed the OpenURL configuration on the Biblio !settings page.', array('!openurl' => l('OpenURL', "http://en.wikipedia.org/wiki/OpenURL"), '!settings' => l('settings', 'admin/config/content/biblio') )),
     );
+  }
+
+  function pre_render(&$values) {
+    $nids  = array();
+    $nodes = array();
+
+    foreach ($values as $result) {
+      if (!empty($result->{$this->aliases['nid']})) {
+        $nids[] = $result->{$this->aliases['nid']};
+      }
+    }
+
+    if ($nids) {
+      $langcode = $GLOBALS['language_content']->language;
+      $nodes = node_load_multiple($nids);
+      if (!empty($nodes)) {
+        field_attach_prepare_view('node', $nodes, 'full', $langcode);
+        entity_prepare_view('node',  $nodes, $langcode);
+
+        foreach ($values as $key => $result) {
+          $values[$key]->node = $nodes[$result->nid];
+        }
+
+      }
+    }
   }
 
   function render($values) {
@@ -53,13 +79,8 @@ class biblio_handler_citation extends views_handler_field {
     if (empty($this->biblio_base)) {
       $this->biblio_base = variable_get('biblio_base', 'biblio');
     }
-
-    $item = node_load($values->{$this->aliases['nid']});
+    $item = $values->node;
     if ($item->type != 'biblio') return;
-
-    $langcode = $GLOBALS['language_content']->language;
-    field_attach_prepare_view('node', array($item->nid => $item), 'full', $langcode);
-    entity_prepare_view('node',  array($item->nid => $item), $langcode);
 
     if (isset($item->biblio_year)) $item->biblio_year = _biblio_text_year($item->biblio_year);
     if (variable_get('biblio_hide_bibtex_braces', 0)) {
