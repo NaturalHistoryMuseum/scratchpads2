@@ -309,7 +309,7 @@ function scratchpads_biblio_search_facet_form($form, &$form_state, $form_id, $pl
       '#default_value' => '',
       '#autocomplete_path' => 'biblio_search_facet_autocomplete/' . $form_id,
       '#attributes' => array(
-        'title' => t('Enter the terms you wish to search for and press return.'),
+        'title' => t('Enter the terms you wish to search for, select it, and press return.'),
         'style' => 'width:100%',
         'placeholder' => $placeholder
       )
