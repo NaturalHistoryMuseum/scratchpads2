@@ -21,7 +21,7 @@
            var matches = inserts[i].match(/^(\d+):(.+)$/);
            if (matches != null && matches.length > 0) {
              var nid = matches[1];
-             inserts[i] = matches[2];
+             inserts[i] = '<reference_citation citation_id="' + nid + '" contenteditable="false" style="background: #DDD;">' + matches[2] + '</reference_citation>';
              
              if (Drupal.settings["pensoft"].references_map[nid] == undefined) {
                Drupal.settings["pensoft"].references_map[nid] = true;
@@ -68,7 +68,7 @@
            if (matches != null && matches.length > 0) {
              var fid = matches[1];
              var filename = matches[2];
-             var tpl = '<fig_citation citation_id="%" contenteditable="false" style="background: #AAA;">Figure [filename:~]</fig_citation>';
+             var tpl = '<fig_citation citation_id="%" contenteditable="false" style="background: #DDD;">Figure [filename:~]</fig_citation>';
              if (Drupal.settings["pensoft"].figures_map[fid] != undefined) {
                inserts[i] = tpl.replace('%', fid).replace('~', filename);
              } else {

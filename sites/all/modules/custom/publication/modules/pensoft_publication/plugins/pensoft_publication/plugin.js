@@ -59,7 +59,7 @@
 
                 // Handle single inserts
                 $row.click(function() {
-                  editor.insertHtml('<tbls_citation citation_id="' + id + '" contenteditable="false" style="background: #AAA;">Table [id:' + id + ']</tbls_citation>');
+                  editor.insertHtml('<tbls_citation citation_id="' + id + '" contenteditable="false" style="background: #DDD;">Table [id:' + id + ']</tbls_citation>');
                   editor.updateElement();
                   $.colorbox.close();
                 });
