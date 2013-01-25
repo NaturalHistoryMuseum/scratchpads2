@@ -240,6 +240,38 @@ function scratchpads_user_form_user_register_form_alter(&$form, &$form_state){
     );
     _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
   }
+  array_unshift($form['#validate'], 'scratchpads_user_user_register_validate');
+}
+
+/**
+ * Validate the user register form so that we can add an email address if we are
+ * not allowing login!
+ */
+function scratchpads_user_user_register_validate($form, &$form_state){
+  if(!$form_state['values']['create_user_account']){
+    $errors = form_get_errors();
+    if(is_array($errors) && isset($errors['mail'])){
+      unset($errors['mail']);
+      form_clear_error();
+      foreach($errors as $key => $msg){
+        form_set_error($key, $msg);
+      }
+    }
+    global $base_url;
+    $url = parse_url($base_url);
+    $form_state['values']['mail'] = uniqid() . '@' . $url['host'];
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter()
+ */
+function scratchpads_user_module_implements_alter(&$imps, $hook){
+  if($hook == 'form_alter'){
+    $this_module = $imps['scratchpads_user'];
+    unset($imps['scratchpads_user']);
+    $imps['scratchpads_user'] = $this_module;
+  }
 }
 
 /**
@@ -251,6 +283,13 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
   if(isset($form['#user']->stub_user)){
     $form['account']['name']['#default_value'] = '';
     $form['create_user_account']['#default_value'] = 0;
+    // Get rid of the crap that we don't need (biblio, etc).
+    unset($form['biblio_fieldset']);
+    unset($form['overlay_control']);
+    unset($form['timezone']);
+    unset($form['comment_notify_settings']);
+    unset($form['contact']);
+    unset($form['legal']);
   }else{
     $form['create_user_account']['#default_value'] = 1;
     if($user->uid == 1){
@@ -262,7 +301,7 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
   }
   if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
     $handlers = array(
-      'user_register_submit',
+      'scratchpads_user_register_form_pre_submit_edit',
       'scratchpads_user_register_form_post_submit_clear_error'
     );
     _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
@@ -292,7 +331,8 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
       '#type' => 'checkbox',
       '#title' => t('Allow user login?'),
       '#description' => t("Do you want to create a user account for this user so they can log into the website?"),
-      '#default_value' => 1
+      '#default_value' => 1,
+      '#disabled' => ($form['#user']->uid ? 1 : 0)
     );
   }else{
     $form['create_user_account'] = array(
@@ -333,6 +373,56 @@ function scratchpads_user_register_form_pre_submit($form, &$form_state){
 }
 
 /**
+ * Similar to above, but just setting administer_users and notify.
+ */
+function scratchpads_user_register_form_pre_submit_edit($form, &$form_state){
+
+  $account = $form_state['user'];
+  $category = $form['#user_category'];
+  // Remove unneeded values.
+  form_state_values_clean($form_state);
+  
+  // Before updating the account entity, keep an unchanged copy for use with
+  // user_save() later. This is necessary for modules implementing the user
+  // hooks to be able to react on changes by comparing the values of $account
+  // and $edit.
+  $account_unchanged = clone $account;
+  
+  entity_form_submit_build_entity('user', $account, $form, $form_state);
+  
+  // Populate $edit with the properties of $account, which have been edited on
+  // this form by taking over all values, which appear in the form values too.
+  $edit = array_intersect_key((array) $account, $form_state['values']);
+  
+  user_save($account_unchanged, $edit, $category);
+  $form_state['values']['uid'] = $account->uid;
+  
+  if ($category == 'account' && !empty($edit['pass'])) {
+    // Remove the password reset tag since a new password was saved.
+    unset($_SESSION['pass_reset_'. $account->uid]);
+  }
+  // Clear the page cache because pages can contain usernames and/or profile information:
+  cache_clear_all();
+  
+  drupal_set_message(t('The changes have been saved.'));
+  return;
+  // Remove unneeded values.
+  form_state_values_clean($form_state);
+  $account = $form['#user'];
+  entity_form_submit_build_entity('user', $account, $form, $form_state);
+  if(!variable_get('user_email_verification', TRUE) || $form_state['values']['administer_users']){
+    $pass = $form_state['values']['pass'];
+  }else{
+    $pass = user_password();
+  }
+  $form_state['values']['pass'] = $pass;
+  // Populate $edit with the properties of $account, which have been edited on
+  // this form by taking over all values, which appear in the form values too.
+  $edit = array_intersect_key((array)$account, $form_state['values']);
+  $account = user_save($account, $edit);
+}
+
+/**
  * Submit function simply to clear the errors displayed in user_register_submit.
  */
 function scratchpads_user_register_form_post_submit_clear_error($form, &$form_state){
@@ -340,9 +430,16 @@ function scratchpads_user_register_form_post_submit_clear_error($form, &$form_st
   if(isset($form_state['values']['uid']) && $form_state['values']['uid']){
     $form_state['redirect'] = 'user/' . $form_state['values']['uid'];
   }
-  // Ensure that no password is set
-  $form['#user']->pass = '';
-  user_save($form['#user']);
+}
+
+/**
+ * Add the user/register as an admin path (the registration form looks 100x
+ * better in an overlay).
+ */
+function scratchpads_user_admin_paths(){
+  return array(
+    'user/register' => TRUE
+  );
 }
 
 /**
@@ -369,19 +466,32 @@ function scratchpads_user_register_form_post_submit($form, &$form_state){
   user_save($form['#user']);
 }
 
-function theme_scratchpads_user_register_form($variables){
-  $output = '';
-  $form = $variables['form'];
-  // Add the email field
-  $output .= drupal_render($form['account']['mail']);
-  $field_names = array_keys($form['#fields']);
-  // And then any field api fields
-  foreach($field_names as $field_name){
-    $output .= drupal_render($form[$field_name]);
-  }
-  $output .= drupal_render($form['create_user_account']);
-  // And then the rest of the form
-  $output .= drupal_render_children($form);
-  return $output;
+function _scratchpads_user_register_field_sort($a, $b){
+  return $a['widget']['weight'] >= $b['widget']['weight'];
 }
 
+function theme_scratchpads_user_register_form($variables){
+  //print_r($variables['form']);exit;
+  // Add CSS
+  drupal_add_css(drupal_get_path('module', 'scratchpads_user') . '/css/scratchpads_user.css');
+  $output = '<div class="clearfix"><div class="scratchpads-user-left"><div>';
+  // Add the email field
+  $fields = $variables['form']['#fields'];
+  uasort($fields, '_scratchpads_user_register_field_sort');
+  //print_r($fields);exit;
+  $field_names = array_keys($fields);
+  // And then any field api fields
+  foreach($field_names as $field_name){
+    $output .= drupal_render($variables['form'][$field_name]);
+  }
+  $output .= '</div></div><div class="scratchpads-user-right clearfix"><div>';
+  $output .= drupal_render($variables['form']['create_user_account']);
+  // And then the rest of the form
+  $actions = $variables['form']['actions'];
+  unset($variables['form']['actions']);
+  $output .= drupal_render_children($variables['form']);
+  $output .= drupal_render($variables['form']['account']['mail']);
+  $output .= '</div></div></div>';
+  $output .= drupal_render($actions);
+  return $output;
+}
