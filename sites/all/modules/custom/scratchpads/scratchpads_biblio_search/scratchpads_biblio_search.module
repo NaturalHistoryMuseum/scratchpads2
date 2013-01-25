@@ -32,14 +32,6 @@ function scratchpads_biblio_search_apache_solr_default_sorts_alter(&$default_sor
 }
 
 /**
- * Implements hook_menu_contextual_links_alter()
- */
-function scratchpads_biblio_search_contextual_links_alter(&$links, $router_item, $root_path){
-  drupal_set_message($router_item);
-  drupal_set_message($root_path);
-}
-
-/**
  * Implementation of hook_scratchpads_solr_info().
  */
 function scratchpads_biblio_search_scratchpads_solr_info(){
