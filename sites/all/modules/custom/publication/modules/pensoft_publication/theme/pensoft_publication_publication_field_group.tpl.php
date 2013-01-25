@@ -35,45 +35,46 @@
         endif;
       endforeach;
     ?>
-  <?php elseif ($element_id == 'publication_pensoft_full_group_pensoft_files'): ?>
-    <?php /* References */ ?>
-    <div class="field">
-      <div class="field-label">
-        References:
-      </div>
-      <?php echo $element['field_publication_references'][0]['#markup']; ?>
-    </div>
-    <?php /* Figures */ ?>
-    <?php if (count(element_children($element['field_publication_figures']))) : ?>
-      <div class="field">
-        <div class="field-label">Figures:</div>
-        <div class="field-items">
-          <?php
-            $count = 0;
-            foreach (element_children($element['field_publication_figures']) as $key) :
-              $count++;
-              $fig = $element['field_publication_figures'][$key];
-          ?>
-              <div class="clearfix">
-                <?php echo str_replace('Figure', 'Figure ' . $count, $fig['#markup']); ?>
-              </div>
-          <?php endforeach; ?>          
-        </div>
-      </div>
-    <?php endif; ?>
-    <?php /* Tables */ ?>
-    <?php if (count(element_children($element['field_publication_tables']))) : ?>
-      <div class="field">
-        <div class="field-label">Tables:</div>
-        <div class="field-items">
-          <?php
-            foreach (element_children($element['field_publication_tables']) as $key) :
-              echo render($element['field_publication_tables'][$key]);
-             endforeach;
-           ?>
-        </div>
-      </div>
-    <?php endif; ?>
+   <?php elseif (TRUE && $element_id == 'publication_pensoft_full_group_pensoft_files'): ?>
+     <?php /* References */ ?>
+     <?php if (count(element_children($element['field_publication_references']))) : ?>
+       <div class="field field-collection-container">
+         <div class="field-label">References:</div>
+         <div class="field-items">
+         <?php
+           foreach (element_children($element['field_publication_references']) as $key) :
+             echo "<div class='field'>" . render($element['field_publication_references'][$key]) . '</div>';
+           endforeach;
+         ?>
+         </div>
+       </div>
+     <?php endif; ?>
+     <?php /* Figures */ ?>
+     <?php if (count(element_children($element['field_publication_figures']))) : ?>
+       <div class="field field-collection-container">
+         <div class="field-label">Figures:</div>
+         <div class="field-items">
+           <?php
+             foreach (element_children($element['field_publication_figures']) as $key) :
+               echo render($element['field_publication_figures'][$key]);
+             endforeach; 
+           ?>          
+         </div>
+       </div>
+     <?php endif; ?>
+     <?php /* Tables */ ?>
+     <?php if (count(element_children($element['field_publication_tables']))) : ?>
+       <div class="field field-collection-container">
+         <div class="field-label">Tables:</div>
+         <div class="field-items">
+           <?php
+             foreach (element_children($element['field_publication_tables']) as $key) :
+               echo render($element['field_publication_tables'][$key]);
+              endforeach;
+            ?>
+         </div>
+       </div>
+     <?php endif; ?>   
   <?php else: ?>
     <?php echo $element['#children']; ?>
   <?php endif; ?>

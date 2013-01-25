@@ -83,9 +83,9 @@ function pensoft_publication_field_group_info() {
     'weight' => '10',
     'children' => array(
       0 => 'field_pensoft_files',
-      1 => 'field_publication_figures',
-      2 => 'field_publication_references',
-      3 => 'field_publication_tables',
+      1 => 'field_publication_references',
+      2 => 'field_publication_tables',
+      3 => 'field_publication_figures',
     ),
     'format_type' => 'publication',
     'format_settings' => array(
@@ -149,9 +149,9 @@ function pensoft_publication_field_group_info() {
   );
   $export['group_publication_abs_keyws|publication|pensoft|form'] = $field_group;
 
-   $field_group = new stdClass;
-   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
-   $field_group->api_version = 1;
+  $field_group = new stdClass;
+  $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
+  $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_abstract_keyw|publication|pensoft|default';
   $field_group->group_name = 'group_publication_abstract_keyw';
   $field_group->entity_type = 'publication';
@@ -209,7 +209,6 @@ function pensoft_publication_field_group_info() {
   );
   $export['group_publication_auth_contrib|publication|pensoft|default'] = $field_group;
 
-
   $field_group = new stdClass;
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
@@ -224,7 +223,7 @@ function pensoft_publication_field_group_info() {
     'weight' => '1',
     'children' => array(
       0 => 'field_publication_authors',
-      1 => 'field_publication_submit_author',      
+      1 => 'field_publication_submit_author',
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -537,7 +536,7 @@ function pensoft_publication_field_group_info() {
     ),
   );
   $export['group_publication_resources|publication|pensoft|default'] = $field_group;
- 
+
   $field_group = new stdClass;
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;

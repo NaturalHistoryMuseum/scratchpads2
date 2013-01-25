@@ -67,12 +67,13 @@
            var matches = inserts[i].match(/^(\d+):(.+)$/);
            if (matches != null && matches.length > 0) {
              var fid = matches[1];
+             var filename = matches[2];
+             var tpl = '<fig_citation citation_id="%" contenteditable="false" style="background: #AAA;">Figure [filename:~]</fig_citation>';
              if (Drupal.settings["pensoft"].figures_map[fid] != undefined) {
-               inserts[i] = matches[2].replace('%', Drupal.settings["pensoft"].figures_map[fid]+1);
+               inserts[i] = tpl.replace('%', fid).replace('~', filename);
              } else {
-               inserts[i] = matches[2].replace('%', Drupal.settings["pensoft"].figure_key+1);
-               Drupal.settings["pensoft"].figures_map[fid] = Drupal.settings["pensoft"].figure_key;
-               Drupal.settings["pensoft"].figure_key++;
+               inserts[i] = tpl.replace('%', fid).replace('~', filename);
+               Drupal.settings["pensoft"].figures_map[fid] = fid;
                warning.push(inserts[i]);
              }
              values.push(fid);

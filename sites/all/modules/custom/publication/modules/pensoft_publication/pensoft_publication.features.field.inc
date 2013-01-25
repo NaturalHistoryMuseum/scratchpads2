@@ -9,7 +9,242 @@
  */
 function pensoft_publication_field_default_fields() {
   $fields = array();
-  
+
+  // Exported field: 'field_collection_item-field_publication_figures-field_publication_figure_desc'
+  $fields['field_collection_item-field_publication_figures-field_publication_figure_desc'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_figure_desc',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'module' => 'text',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'text_long',
+    ),
+    'field_instance' => array(
+      'bundle' => 'field_publication_figures',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => '2',
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'field_collection_item',
+      'field_name' => 'field_publication_figure_desc',
+      'label' => 'Description',
+      'required' => 0,
+      'settings' => array(
+        'linkit' => array(
+          'enable' => 0,
+          'insert_plugin' => '',
+        ),
+        'text_processing' => '1',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5',
+        ),
+        'type' => 'text_textarea',
+        'weight' => '3',
+      ),
+    ),
+  );
+
+  // Exported field: 'field_collection_item-field_publication_figures-field_publication_figure_figure'
+  $fields['field_collection_item-field_publication_figures-field_publication_figure_figure'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_figure_figure',
+      'foreign keys' => array(
+        'fid' => array(
+          'columns' => array(
+            'fid' => 'fid',
+          ),
+          'table' => 'file_managed',
+        ),
+      ),
+      'indexes' => array(
+        'fid' => array(
+          0 => 'fid',
+        ),
+      ),
+      'module' => 'image',
+      'settings' => array(
+        'default_image' => 0,
+        'uri_scheme' => 'public',
+      ),
+      'translatable' => '0',
+      'type' => 'image',
+    ),
+    'field_instance' => array(
+      'bundle' => 'field_publication_figures',
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'module' => 'image',
+          'settings' => array(
+            'image_link' => 'content',
+            'image_style' => 'medium',
+          ),
+          'type' => 'image',
+          'weight' => '1',
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'field_collection_item',
+      'field_name' => 'field_publication_figure_figure',
+      'label' => 'Figure',
+      'required' => 0,
+      'settings' => array(
+        'alt_field' => 0,
+        'default_image' => 0,
+        'file_directory' => '',
+        'file_extensions' => 'png gif jpg jpeg',
+        'max_filesize' => '',
+        'max_resolution' => '',
+        'min_resolution' => '',
+        'title_field' => 0,
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'media',
+        'settings' => array(
+          'allowed_schemes' => array(
+            'module' => 0,
+            'public' => 'public',
+          ),
+          'allowed_types' => array(
+            'audio' => 0,
+            'default' => 0,
+            'image' => 'image',
+            'video' => 0,
+          ),
+          'browser_plugins' => array(
+            'media_default--media_browser_1' => 0,
+            'media_default--media_browser_my_files' => 0,
+            'upload' => 0,
+          ),
+          'progress_indicator' => 'throbber',
+        ),
+        'type' => 'media_generic',
+        'weight' => '2',
+      ),
+    ),
+  );
+
+  // Exported field: 'field_collection_item-field_publication_figures-field_publication_figure_title'
+  $fields['field_collection_item-field_publication_figures-field_publication_figure_title'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_figure_title',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255',
+      ),
+      'translatable' => '0',
+      'type' => 'text',
+    ),
+    'field_instance' => array(
+      'bundle' => 'field_publication_figures',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => '0',
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'field_collection_item',
+      'field_name' => 'field_publication_figure_title',
+      'label' => 'Title',
+      'required' => 0,
+      'settings' => array(
+        'linkit' => array(
+          'enable' => 0,
+          'insert_plugin' => '',
+        ),
+        'text_processing' => '0',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'size' => '200',
+        ),
+        'type' => 'text_textfield',
+        'weight' => '1',
+      ),
+    ),
+  );
+
   // Exported field: 'field_collection_item-field_publication_tables-field_publication_table'
   $fields['field_collection_item-field_publication_tables-field_publication_table'] = array(
     'field_config' => array(
@@ -79,7 +314,7 @@ function pensoft_publication_field_default_fields() {
       ),
     ),
   );
-  
+
   // Exported field: 'field_collection_item-field_publication_tables-field_publication_table_id'
   $fields['field_collection_item-field_publication_tables-field_publication_table_id'] = array(
     'field_config' => array(
@@ -112,7 +347,8 @@ function pensoft_publication_field_default_fields() {
       'bundle' => 'field_publication_tables',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => 'This is the table id, and it is used to track table citations. Do not change after the table has been created.',
+      'description' => 'This is the table id, and it is used to track references to table. Do not change after a table has been created, otherwise references to the table will not work.
+Tables are numbered once the publication is saved.',
       'display' => array(
         'default' => array(
           'label' => 'inline',
@@ -151,7 +387,7 @@ function pensoft_publication_field_default_fields() {
       ),
     ),
   );
-  
+
   // Exported field: 'field_collection_item-field_publication_tables-field_publication_table_title'
   $fields['field_collection_item-field_publication_tables-field_publication_table_title'] = array(
     'field_config' => array(
@@ -223,7 +459,7 @@ function pensoft_publication_field_default_fields() {
       ),
     ),
   );
-  
+
   // Exported field: 'publication-pensoft-field_pensoft_acknowledgments'
   $fields['publication-pensoft-field_pensoft_acknowledgments'] = array(
     'field_config' => array(
@@ -328,7 +564,7 @@ function pensoft_publication_field_default_fields() {
           'module' => 'styles',
           'settings' => array(),
           'type' => 'styles_file_thumbnail',
-          'weight' => '20',
+          'weight' => '21',
         ),
       ),
       'entity_type' => 'publication',
@@ -465,8 +701,8 @@ function pensoft_publication_field_default_fields() {
         ),
         'view' => array(
           'args' => array(),
-          'display_name' => 'references_1',
-          'view_name' => 'users_references',
+          'display_name' => '',
+          'view_name' => '',
         ),
       ),
       'translatable' => '0',
@@ -544,8 +780,8 @@ function pensoft_publication_field_default_fields() {
         ),
         'view' => array(
           'args' => array(),
-          'display_name' => 'references_1',
-          'view_name' => 'users_references',
+          'display_name' => '',
+          'view_name' => '',
         ),
       ),
       'translatable' => '0',
@@ -803,38 +1039,33 @@ function pensoft_publication_field_default_fields() {
       'deleted' => '0',
       'entity_types' => array(),
       'field_name' => 'field_publication_figures',
-      'foreign keys' => array(
-        'fid' => array(
-          'columns' => array(
-            'fid' => 'fid',
-          ),
-          'table' => 'file_managed',
-        ),
-      ),
-      'indexes' => array(
-        'fid' => array(
-          0 => 'fid',
-        ),
-      ),
-      'module' => 'image',
+      'foreign keys' => array(),
+      'indexes' => array(),
+      'module' => 'field_collection',
       'settings' => array(
-        'default_image' => 0,
-        'uri_scheme' => 'public',
+        'path' => '',
       ),
       'translatable' => '0',
-      'type' => 'image',
+      'type' => 'field_collection',
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
+      'default_value' => NULL,
       'deleted' => '0',
       'description' => '',
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'publication',
-          'settings' => array(),
-          'type' => 'publication_figure',
-          'weight' => '18',
+          'module' => 'field_collection',
+          'settings' => array(
+            'add' => '',
+            'delete' => '',
+            'description' => 0,
+            'edit' => '',
+            'view_mode' => 'full',
+          ),
+          'type' => 'field_collection_view',
+          'weight' => '19',
         ),
       ),
       'entity_type' => 'publication',
@@ -842,39 +1073,14 @@ function pensoft_publication_field_default_fields() {
       'label' => 'Figures',
       'required' => 0,
       'settings' => array(
-        'alt_field' => 0,
-        'default_image' => 0,
-        'file_directory' => '',
-        'file_extensions' => 'png gif jpg jpeg',
-        'max_filesize' => '',
-        'max_resolution' => '',
-        'min_resolution' => '',
-        'title_field' => 0,
         'user_register_form' => FALSE,
       ),
       'widget' => array(
-        'active' => 1,
-        'module' => 'media',
-        'settings' => array(
-          'allowed_schemes' => array(
-            'module' => 0,
-            'public' => 'public',
-          ),
-          'allowed_types' => array(
-            'audio' => 0,
-            'default' => 0,
-            'image' => 'image',
-            'video' => 0,
-          ),
-          'browser_plugins' => array(
-            'media_default--media_browser_1' => 'media_default--media_browser_1',
-            'media_default--media_browser_my_files' => 'media_default--media_browser_my_files',
-            'upload' => 'upload',
-          ),
-          'progress_indicator' => 'throbber',
-        ),
-        'type' => 'media_generic',
-        'weight' => '15',
+        'active' => 0,
+        'module' => 'field_collection',
+        'settings' => array(),
+        'type' => 'field_collection_embed',
+        'weight' => '34',
       ),
     ),
   );
@@ -1278,7 +1484,7 @@ function pensoft_publication_field_default_fields() {
           'module' => 'scratchpads_biblio',
           'settings' => array(),
           'type' => 'scratchpads_biblio_biblio_ref',
-          'weight' => '17',
+          'weight' => '20',
         ),
       ),
       'entity_type' => 'publication',
@@ -1403,8 +1609,8 @@ function pensoft_publication_field_default_fields() {
         ),
         'view' => array(
           'args' => array(),
-          'display_name' => 'references_1',
-          'view_name' => 'users_references',
+          'display_name' => '',
+          'view_name' => '',
         ),
       ),
       'translatable' => '0',
@@ -1545,7 +1751,7 @@ function pensoft_publication_field_default_fields() {
             'view_mode' => 'full',
           ),
           'type' => 'field_collection_view',
-          'weight' => '21',
+          'weight' => '18',
         ),
       ),
       'entity_type' => 'publication',
@@ -1745,7 +1951,7 @@ function pensoft_publication_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'relation_type' => 'publication_treatments',
-        'relation_view' => 'relation_select_publication_taxo:default',
+        'relation_view' => 'relation_select_publication_taxo2:default',
         'user_register_form' => FALSE,
       ),
       'widget' => array(
@@ -1871,7 +2077,7 @@ function pensoft_publication_field_default_fields() {
       ),
     ),
   );
-  
+
   // Exported field: 'relation-publication_treatments-field_publication_treat_holotype'
   $fields['relation-publication_treatments-field_publication_treat_holotype'] = array(
     'field_config' => array(
@@ -1933,7 +2139,7 @@ function pensoft_publication_field_default_fields() {
       'label' => 'Holotype',
       'required' => 0,
       'settings' => array(
-      'user_register_form' => FALSE,
+        'user_register_form' => FALSE,
       ),
       'widget' => array(
         'active' => 1,
@@ -2000,8 +2206,8 @@ function pensoft_publication_field_default_fields() {
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => '4'
-        )
+          'weight' => '4',
+        ),
       ),
       'entity_type' => 'relation',
       'entityconnect_unload_add' => '1',
@@ -2010,7 +2216,7 @@ function pensoft_publication_field_default_fields() {
       'label' => 'Paratype(s)',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE
+        'user_register_form' => FALSE,
       ),
       'widget' => array(
         'active' => 1,
@@ -2018,14 +2224,14 @@ function pensoft_publication_field_default_fields() {
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'node_reference/autocomplete',
-          'size' => '60'
+          'size' => '60',
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '5'
-      )
+        'weight' => '5',
+      ),
     ),
   );
-  
+
   // Exported field: 'relation-publication_treatments-field_publication_treat_type'
   $fields['relation-publication_treatments-field_publication_treat_type'] = array(
     'field_config' => array(
@@ -2149,7 +2355,9 @@ function pensoft_publication_field_default_fields() {
   t('Acknowledgments');
   t('Copy editor');
   t('Data resources');
+  t('Description');
   t('Discussion');
+  t('Figure');
   t('Figures');
   t('Final name');
   t('Holotype');
@@ -2174,6 +2382,8 @@ function pensoft_publication_field_default_fields() {
   t('Table id');
   t('Tables');
   t('Taxon treatments');
+  t('This is the table id, and it is used to track references to table. Do not change after a table has been created, otherwise references to the table will not work.
+Tables are numbered once the publication is saved.');
   t('Title');
   t('Type of treatment');
   t('endpoints');

@@ -121,15 +121,19 @@
   border: 1px solid #888;
 }
 
-.publication-group .publication_figure img {
+.publication-group div.field-name-field-publication-figure-figure {
   float: left;
   margin-bottom: 8px;
 }
 
-.publication-group .publication_figure div {
-  margin-left: 230px;
+.publication-group .field div.field-name-field-publication-figure-desc {
+  margin-left: 240px;
 }
 
 .publication-group .field-collection-view .field-label {
   width: auto;
+}
+
+.publication-group .field-collection-view-final {
+  border-bottom: 1px dotted #D3D7D9;
 }

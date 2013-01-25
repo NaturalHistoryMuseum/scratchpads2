@@ -115,18 +115,16 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
   );
   
   // Handle automatic adding of figures
-  $entity = $form['#entity'];
   $figures_map = array();
-  $figure_key = 0;
-  if (!empty($entity->field_publication_figures[LANGUAGE_NONE])) {
-    foreach ($entity->field_publication_figures[LANGUAGE_NONE] as $fig_key => $figure) {
-      if (!empty($figure['fid'])) {
-        $form['field_publication_figures'][LANGUAGE_NONE][$fig_key]['#title'] = 'Fig. ' . ($fig_key+1);
-        $figures_map[$figure['fid']] = $fig_key;
-        if ($fig_key >= $figure_key) {
-          $figure_key = $fig_key+1;
-        }
+  if (!empty($form['field_publication_figures'][LANGUAGE_NONE])) {
+    foreach (element_children($form['field_publication_figures'][LANGUAGE_NONE]) as $fig_child) {
+      $entity = $form['field_publication_figures'][LANGUAGE_NONE][$fig_child]['#entity'];
+      if (!empty($entity->is_new)) {
+        continue;
       }
+      
+      $fid = $entity->field_publication_figure_figure[LANGUAGE_NONE][0]['fid'];
+      $figures_map[$fid] = $fid;
     }
   }
 
@@ -152,7 +150,6 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
   $form['#attached']['js'][] = array(
     'data' => array('pensoft' => array(
       'figures_map' => $figures_map,
-      'figure_key' => $figure_key,
       'references_map' => $references_map,
       'table_key' => $table_key,
       'editor_table_icon' => drupal_get_path('module', 'pensoft_publication') . '/images/tables.png',
@@ -311,14 +308,22 @@ function pensoft_publication_publication_edit_form_submit($form, &$form_state) {
 }
 
 /**
- * Implement hook_entity_presave
+ * Implement hook_entity_insert/update
  * - Add the references and figures that were inserted via insert_from_view
  *
  */
-function pensoft_publication_entity_presave($entity, $type) {
+function pensoft_publication_entity_insert($entity, $type) {
+  _pensoft_publication_entity_upsert($entity, $type);
+}
+function pensoft_publication_entity_update($entity, $type) {
+  _pensoft_publication_entity_upsert($entity, $type);
+}
+function _pensoft_publication_entity_upsert($entity, $type) {
   if ($type != 'publication' || $entity->type != 'pensoft') {
     return;
   }
+  
+  $need_saving = FALSE;
 
   // Add references
   if (!empty($entity->pensoft_add_multiple_references)) {
@@ -335,6 +340,9 @@ function pensoft_publication_entity_presave($entity, $type) {
         $entity->field_publication_references['und'][] = array('nid' => $nid);
       }
     }
+
+    $need_saving = TRUE;
+    $entity->pensoft_add_multiple_references = array();
   }
 
   // Add figures
@@ -343,15 +351,31 @@ function pensoft_publication_entity_presave($entity, $type) {
 
     $existing_figures = array();
     foreach ($entity->field_publication_figures['und'] as $key => $value) {
-      $existing_figures[] = $value['fid'];
+      $figure_collection_item = reset(entity_load('field_collection_item', array($value['value'])));
+      $fid = $figure_collection_item->field_publication_figure_figure[LANGUAGE_NONE][0]['fid'];
+      $existing_figures[] = $fid;
     }
     $figures_to_add = array_unique(array_diff($figures_to_add, $existing_figures));
+    $entity->pensoft_add_multiple_figures = array();
 
     foreach ($figures_to_add as $fid) {
       if (!empty($fid)) {
-        $entity->field_publication_figures['und'][] = array('fid' => $fid);
+        $file = file_load($fid);
+        $figure_collection_item = entity_create('field_collection_item', array(
+          'field_name' => 'field_publication_figures'
+        ));
+        $figure_collection_item->setHostEntity('publication', $entity);
+        $figure_collection_item->field_publication_figure_title[LANGUAGE_NONE][0]['value'] = $file->title;
+        $figure_collection_item->field_publication_figure_desc[LANGUAGE_NONE][0]['value'] = !empty($file->field_description[LANGUAGE_NONE][0]['value']) ? $file->field_description[LANGUAGE_NONE][0]['value'] : '';
+        $figure_collection_item->field_publication_figure_figure[LANGUAGE_NONE][0]['fid'] = $fid;
+        // Beware, as calling this could cause recursion.
+        $figure_collection_item->save();
       }
     }
+  }
+  
+  if ($need_saving) {
+    $entity->save();
   }
 }
 

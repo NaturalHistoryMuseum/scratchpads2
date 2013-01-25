@@ -65,6 +65,31 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['fields']['fid']['empty_zero'] = 0;
   $handler->display->display_options['fields']['fid']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['fid']['link_to_file'] = 0;
+  /* Field: File: Name */
+  $handler->display->display_options['fields']['filename']['id'] = 'filename';
+  $handler->display->display_options['fields']['filename']['table'] = 'file_managed';
+  $handler->display->display_options['fields']['filename']['field'] = 'filename';
+  $handler->display->display_options['fields']['filename']['label'] = '';
+  $handler->display->display_options['fields']['filename']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['filename']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['filename']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['filename']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['filename']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['filename']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['filename']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['filename']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['filename']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['filename']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['filename']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['filename']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['filename']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['filename']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['filename']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['filename']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['filename']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['filename']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['filename']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['filename']['link_to_file'] = 0;
   /* Field: Insert from view: Insert from view checkbox */
   $handler->display->display_options['fields']['insert_from_view_checkbox']['id'] = 'insert_from_view_checkbox';
   $handler->display->display_options['fields']['insert_from_view_checkbox']['table'] = 'insert_from_view';
@@ -167,7 +192,7 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['fields']['nothing']['field'] = 'nothing';
   $handler->display->display_options['fields']['nothing']['label'] = '';
   $handler->display->display_options['fields']['nothing']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['nothing']['alter']['text'] = '[fid]:Fig %';
+  $handler->display->display_options['fields']['nothing']['alter']['text'] = '[fid]:[filename]';
   $handler->display->display_options['fields']['nothing']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['nothing']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['nothing']['alter']['external'] = 0;

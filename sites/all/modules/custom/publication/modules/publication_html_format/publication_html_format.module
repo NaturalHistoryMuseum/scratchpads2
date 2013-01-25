@@ -8,7 +8,7 @@ function publication_html_format_entity_view_alter(&$build, $type) {
     return;
   }
 
-  // Change the citations and get the order of the tables
+  // Change the citations and get the order of the tables & figures
   $process = new PublicationHtmlFormatChangeCitations();
   $process->process($build);
 
@@ -32,6 +32,26 @@ function publication_html_format_entity_view_alter(&$build, $type) {
     $build['field_publication_tables'][$key]['#prefix'] = '<strong>' . t('Table') . ' ' . $number . '</strong>';
     $table['entity']['field_collection_item'][$item]['field_publication_table_id']['#printed'] = TRUE;
   }
+
+  // Re-order the figures
+  $max_figure_count = count($process->figure_ids)+1;
+  foreach (element_children($build['field_publication_figures']) as $key) {
+    $figure =& $build['field_publication_figures'][$key];
+    $item = $build['field_publication_figures']['#items'][$key]['value'];
+  
+    $collection =& $figure['entity']['field_collection_item'][$child_key];
+    $current_id = $figure['entity']['field_collection_item'][$item]['field_publication_figure_figure']['#items'][0]['fid'];
+  
+    $pos = array_search($current_id, $process->figure_ids);
+    if ($pos === FALSE) {
+      $number = $max_figure_count++;
+    } else {
+      $number = $pos+1;
+    }
+  
+    $build['field_publication_figures'][$key]['#weight'] = $number;
+    $build['field_publication_figures'][$key]['#prefix'] = '<strong>' . t('Figure') . ' ' . $number . '</strong>';
+  }
 }
 
 /**
@@ -50,6 +70,11 @@ class PublicationHtmlFormatChangeCitations {
       // XXX we should enforce a stricter type for citations ids.
       $build['#markup'] = preg_replace_callback('/(<tbls_citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/tbls_citation>)/', 
         array($this, '_replace_table_citation'), 
+        $build['#markup']
+      );
+      
+      $build['#markup'] = preg_replace_callback('/(<fig_citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/fig_citation>)/',
+        array($this, '_replace_figure_citation'),
         $build['#markup']
       );
     }
@@ -75,6 +100,24 @@ class PublicationHtmlFormatChangeCitations {
     }
 
     $out = $matches[1] . t('Table') . ' ' . $table_number . $matches[3];
+    return $out;
+  }
+
+  /**
+   * preg_replace callback function for replacing figure citations
+   */
+  function _replace_figure_citation($matches) {
+    $id = $matches[2];
+  
+    $pos = array_search($id, $this->figure_ids);
+    if ($pos !== FALSE) {
+      $figure_number = $pos+1;
+    } else {
+      $this->figure_ids[] = $id;
+      $figure_number = count($this->figure_ids);
+    }
+  
+    $out = $matches[1] . t('Figure') . ' ' . $figure_number . $matches[3];
     return $out;
   }
 }
