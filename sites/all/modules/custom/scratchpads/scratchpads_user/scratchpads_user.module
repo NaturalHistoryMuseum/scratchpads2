@@ -137,6 +137,7 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
       'scratchpads_user_register_form_post_submit_clear_error'
     );
     _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
+    $form['#validate'][] = 'scratchpads_user_allow_picture_validate';
   }
 }
 
@@ -196,6 +197,17 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
         $field_name
       );
     }
+  }
+}
+
+/**
+ * Alter the triggering element to allow picture upload.
+ */
+function scratchpads_user_allow_picture_validate($form, &$form_state){
+  if(isset($form_state['values']['picture_upload']) && is_object($form_state['values']['picture_upload'])){
+    $form_state['triggering_element']['#limit_validation_errors'][] = array(
+      'picture_upload'
+    );
   }
 }
 
