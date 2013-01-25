@@ -114,7 +114,7 @@ function scratchpads_user_admin_account(){
   );
   $destination = drupal_get_destination();
   $status = array(
-    t('blocked'),
+    t('no login'),
     t('active')
   );
   $roles = array_map('check_plain', user_roles(TRUE));
