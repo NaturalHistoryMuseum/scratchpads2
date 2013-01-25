@@ -625,17 +625,6 @@ function scratchpads_biblio_search_facet_autocomplete($type, $search){
 }
 
 /**
- * Hook_hide_submit_alter
- */
-function scratchpads_biblio_search_hide_submit_alter($hide_submit_settings){
-  $altered_settings = $hide_submit_settings;
-  if(arg(0) == 'biblio'){
-    $altered_settings['hide_submit']['hide_submit_status'] = FALSE;
-  }
-  return $altered_settings;
-}
-
-/**
  * Implements hook_block_info
  */
 function scratchpads_biblio_search_block_info(){

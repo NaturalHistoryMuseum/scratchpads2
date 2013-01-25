@@ -1016,3 +1016,12 @@ function scratchpads_tweaks_update_7039(){
     field_update_instance($instance);
   }
 }
+
+/**
+ * Uninstall the hide_submit module.
+ */
+function scratchpads_tweaks_update_7040(){
+  drupal_uninstall_modules(array(
+    'hide_submit'
+  ));
+}
