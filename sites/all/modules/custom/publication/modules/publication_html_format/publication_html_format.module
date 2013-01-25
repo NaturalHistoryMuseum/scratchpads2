@@ -8,11 +8,12 @@ function publication_html_format_entity_view_alter(&$build, $type) {
     return;
   }
 
-  // Change the citations are get the order of the tables
+  // Change the citations and get the order of the tables
   $process = new PublicationHtmlFormatChangeCitations();
   $process->process($build);
 
   // Re-order the tables
+  $max_table_count = count($process->table_ids)+1;
   foreach (element_children($build['field_publication_tables']) as $key) {
     $table =& $build['field_publication_tables'][$key];
     $item = $build['field_publication_tables']['#items'][$key]['value'];
@@ -20,7 +21,12 @@ function publication_html_format_entity_view_alter(&$build, $type) {
     $collection =& $table['entity']['field_collection_item'][$child_key];
     $current_id = $table['entity']['field_collection_item'][$item]['field_publication_table_id']['#items'][0]['value'];
 
-    $number = array_search($current_id, $process->table_ids) + 1;
+    $pos = array_search($current_id, $process->table_ids);
+    if ($pos === FALSE) {
+      $number = $max_table_count++;
+    } else {
+      $number = $pos+1;
+    }
 
     $build['field_publication_tables'][$key]['#weight'] = $number;
     $build['field_publication_tables'][$key]['#prefix'] = '<strong>' . t('Table') . ' ' . $number . '</strong>';
