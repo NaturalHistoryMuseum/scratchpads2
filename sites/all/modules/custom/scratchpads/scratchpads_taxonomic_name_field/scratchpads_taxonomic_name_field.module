@@ -245,6 +245,140 @@ function scratchpads_taxonomic_name_field_facetapi_facet_info($searcher_info = F
 }
 
 /**
+ * Implementation of hook_block_view_alter()
+ */
+function scratchpads_taxonomic_name_field_block_view_alter(&$data, $block){
+  if($block->module == 'facetapi'){
+    $map = facetapi_get_delta_map();
+    $facet_info = scratchpads_taxonomic_name_field_facetapi_facet_info();
+    foreach(scratchpads_taxonomic_name_field_facetapi_default_facet_settings() as $facet){
+      $delta = array_search($facet->name, $map);
+      if($delta == $block->delta && isset($facet_info[$facet->facet])){
+        $data['subject'] = $facet_info[$facet->facet]['label'];
+        if($facet->facet == 'im_field_taxonomic_name'){
+          if(count($data['content']['im_field_taxonomic_name']['#items']) > $data['content']['#settings']->settings['soft_limit']){
+            $form = drupal_get_form('scratchpads_taxonomic_name_field_facet_im_field_taxonomic_name_form', 'im_field_taxonomic_name', t('Enter taxonomic name...'));
+            $data['content']['search_box'] = array(
+              '#markup' => drupal_render($form),
+              '#weight' => -100
+            );
+          }
+        }
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_forms().
+ */
+function scratchpads_taxonomic_name_field_forms(){
+  return array(
+    'scratchpads_taxonomic_name_field_facet_im_field_taxonomic_name_form' => array(
+      'callback' => 'scratchpads_taxonomic_name_field_facet_form',
+      'callback arguments' => array()
+    )
+  );
+}
+
+/**
+ * Simple form for the facets
+ */
+function scratchpads_taxonomic_name_field_facet_form($form, &$form_state, $form_id, $placeholder){
+  return array(
+    $form_id => array(
+      '#type' => 'textfield',
+      '#title' => t('Search facet'),
+      '#title_display' => 'invisible',
+      '#size' => 15,
+      '#default_value' => '',
+      '#autocomplete_path' => 'taxonomic_name_search_facet_autocomplete/' . $form_id,
+      '#attributes' => array(
+        'title' => t('Enter the terms you wish to search for, select it, and press return.'),
+        'style' => 'width:100%',
+        'placeholder' => $placeholder
+      )
+    ),
+    'type' => array(
+      '#value' => $form_id,
+      '#type' => 'value'
+    ),
+    'actions' => array(
+      '#type' => 'actions',
+      'submit' => array(
+        '#type' => 'submit',
+        '#value' => t('Search'),
+        '#attributes' => array(
+          'style' => 'display:none;'
+        )
+      )
+    ),
+    '#submit' => array(
+      'scratchpads_biblio_search_facet_form_submit'
+    )
+  );
+}
+
+/**
+ * Submit function for the facets.
+ */
+function scratchpads_taxonomic_name_field_facet_form_submit($form, &$form_state){
+  $get = $_GET;
+  unset($get['q']);
+  switch($form_state['values']['type']){
+    case 'im_field_taxonomic_name':
+      $row = db_select('taxonomy_term_data', 't')->fields('t', array(
+        'tid'
+      ))->condition('name', $form_state['values']['im_field_taxonomic_name'])->execute()->fetchAssoc();
+      $get['f'][] = 'im_field_taxonomic_name:' . $row['tid'];
+      break;
+  }
+  drupal_goto($_GET['q'], array(
+    'query' => $get
+  ));
+}
+
+/**
+ * Implements hook_menu
+ */
+function scratchpads_taxonomic_name_field_menu(){
+  return array(
+    'taxonomic_name_search_facet_autocomplete' => array(
+      'title' => 'Autocomplete',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array(
+        'search content'
+      ),
+      'page callback' => 'scratchpads_taxonomic_name_field_facet_autocomplete'
+    )
+  );
+}
+
+/**
+ * Autocomplete callback
+ */
+function scratchpads_taxonomic_name_field_facet_autocomplete($type, $search){
+  $matches = array();
+  switch($type){
+    case 'im_field_taxonomic_name':
+      $matches = db_select('taxonomy_term_data', 't')->fields('t', array(
+        'name',
+        'name'
+      ))->condition('name', "$search%", 'LIKE')->range(0, 10)->execute()->fetchAllKeyed();
+      break;
+  }
+  drupal_json_output($matches);
+}
+
+/**
+ * Implements hook_hashcash_form_ids_alter().
+ */
+function scratchpads_taxonomic_name_field_hashcash_form_ids_alter(&$form_ids){
+  $form_ids[] = 'scratchpads_taxonomic_name_field_facet_im_field_taxonomic_name_form';
+}
+
+/**
  * Implements hook_ctools_plugin_api().
  *
  * Magic happens just because this function exists (fucked up, I know).
@@ -313,23 +447,6 @@ function scratchpads_taxonomic_name_field_facetapi_default_facet_settings(){
     $facets[$facet_id . '_global'] = $facet;
   }
   return $facets;
-}
-
-/**
- * Implementation of hook_block_view_alter()
- */
-function scratchpads_taxonomic_name_field_block_view_alter(&$data, $block){
-  if($block->module == 'facetapi'){
-    $map = facetapi_get_delta_map();
-    $facet_info = scratchpads_taxonomic_name_field_facetapi_facet_info();
-    foreach(scratchpads_taxonomic_name_field_facetapi_default_facet_settings() as $facet){
-      $delta = array_search($facet->name, $map);
-      if($delta == $block->delta && isset($facet_info[$facet->facet])){
-        $data['subject'] = $facet_info[$facet->facet]['label'];
-        break;
-      }
-    }
-  }
 }
 
 /**
