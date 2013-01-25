@@ -8,6 +8,7 @@
   }
   settings.init = true;
   settings.map = {};
+  settings.ajax = {};
 
   /**
    * Global function invoked from callback
@@ -102,7 +103,7 @@
           + '" />').appendTo($('.views-submit-button', $widgets_root));
       
       $new_button.mousedown(function(e) {      
-        var ajax = Drupal.ajax[instance_id];
+        var ajax = settings.ajax[instance_id];
         var base_url = ajax.options.url;
       
         // Read filters
@@ -138,7 +139,7 @@
    
     // Add the element that will contain the frame and the button used for triggering ajax
     $('body').append('<div id="' + instance_id + '"></div>');
-    Drupal.ajax[instance_id] = new Drupal.ajax(instance_id, $('#' + instance_id), {
+    settings.ajax[instance_id] = new Drupal.ajax(instance_id, $('#' + instance_id), {
       url: Drupal.settings.basePath + 'insert-from-view/' +set.key,
       event: 'loadView',
     });   
@@ -166,7 +167,7 @@
             });
             Drupal.insert_from_view_editor = editor;
             
-            var ajax = Drupal.ajax[instance_id];
+            var ajax = settings.ajax[instance_id];
             var arguments = [];
             $(editor.container.$).siblings('textarea').trigger('insertFromView-load', [arguments, set]);
             if (arguments.length > 0) {
