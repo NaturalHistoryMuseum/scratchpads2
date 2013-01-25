@@ -22,7 +22,7 @@ function theme_scratchpads_user_register_form($variables){
   $output .= '
     </div>
   </div>
-  <div class="scratchpads-user-right clearfix">
+  <div class="scratchpads-user-right">
     <div>';
   // Render "create user" checkbox.
   $output .= drupal_render($variables['form']['create_user_account']);

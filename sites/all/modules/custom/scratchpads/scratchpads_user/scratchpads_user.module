@@ -2,16 +2,21 @@
 
 /**
  * Implements hook_theme().
+ * 
+ * Theme the user edit/create form.
  */
 function scratchpads_user_theme(){
   return array(
     'scratchpads_user_register_form' => array(
+      'file' => 'scratchpads_user.theme.inc',
       'render element' => 'form'
     )
   );
 }
 
 /**
+ * Implements hook_admin_paths().
+ * 
  * Add the user/register as an admin path (the registration form looks 100x
  * better in an overlay).
  */
@@ -23,7 +28,9 @@ function scratchpads_user_admin_paths(){
 
 /**
  * Implements hook_menu_alter().
- * @param unknown_type $items
+ * 
+ * Override the admin/people page to add columns and display stub users
+ * correctly.
  */
 function scratchpads_user_menu_alter(&$items){
   $items['admin/people']['page callback'] = 'scratchpads_user_admin';
@@ -33,7 +40,10 @@ function scratchpads_user_menu_alter(&$items){
 
 /**
  * 
- * Implement hook_ENTITY_TYPE_load()
+ * Implements hook_ENTITY_TYPE_load().
+ * 
+ * Add the "stub_user" property, and also set the name to the given name/surname
+ * fields.
  */
 function scratchpads_user_user_load($entities){
   // For entitites with a dummy username, use the name/surname
@@ -53,6 +63,8 @@ function scratchpads_user_user_load($entities){
 
 /**
  * Implements hook_module_implements_alter()
+ * 
+ * Execute our form_alter functions last.
  */
 function scratchpads_user_module_implements_alter(&$imps, $hook){
   if($hook == 'form_alter'){
@@ -64,7 +76,6 @@ function scratchpads_user_module_implements_alter(&$imps, $hook){
 
 /**
  * Helper function to replace a submit handler in a form with any other number of handlers
- * 
  */
 function _scratchpads_user_replace_submit_handler(&$form, $origin_handler, $handlers){
   if(!isset($form['actions']['submit']['#submit'])){
@@ -139,6 +150,14 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
   $form['account']['#title'] = t('User account settings');
   if($user->uid > 0){
     $form['account']['#states'] = array(
+      // Hide the settings when the cancel notify checkbox is disabled.
+      'invisible' => array(
+        'input[name="create_user_account"]' => array(
+          'checked' => FALSE
+        )
+      )
+    );
+    $form['legal']['#states'] = array(
       // Hide the settings when the cancel notify checkbox is disabled.
       'invisible' => array(
         'input[name="create_user_account"]' => array(
@@ -243,34 +262,4 @@ function scratchpads_user_register_form_post_submit($form, &$form_state){
   // Ensure that no password is set
   $form['#user']->pass = '';
   user_save($form['#user']);
-}
-
-function _scratchpads_user_register_field_sort($a, $b){
-  return $a['widget']['weight'] >= $b['widget']['weight'];
-}
-
-function theme_scratchpads_user_register_form($variables){
-  //print_r($variables['form']);exit;
-  // Add CSS
-  drupal_add_css(drupal_get_path('module', 'scratchpads_user') . '/css/scratchpads_user.css');
-  $output = '<div class="clearfix"><div class="scratchpads-user-left"><div>';
-  // Add the email field
-  $fields = $variables['form']['#fields'];
-  uasort($fields, '_scratchpads_user_register_field_sort');
-  //print_r($fields);exit;
-  $field_names = array_keys($fields);
-  // And then any field api fields
-  foreach($field_names as $field_name){
-    $output .= drupal_render($variables['form'][$field_name]);
-  }
-  $output .= '</div></div><div class="scratchpads-user-right clearfix"><div>';
-  $output .= drupal_render($variables['form']['create_user_account']);
-  // And then the rest of the form
-  $actions = $variables['form']['actions'];
-  unset($variables['form']['actions']);
-  $output .= drupal_render_children($variables['form']);
-  $output .= drupal_render($variables['form']['account']['mail']);
-  $output .= '</div></div></div>';
-  $output .= drupal_render($actions);
-  return $output;
 }
