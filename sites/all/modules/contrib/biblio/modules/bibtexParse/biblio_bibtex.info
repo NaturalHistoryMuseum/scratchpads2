@@ -6,9 +6,9 @@ dependencies[] = biblio
 files[] = PARSEENTRIES.php
 files[] = views/biblio_handler_field_export_link_bibtex.inc
 
-; Information added by drupal.org packaging script on 2013-01-20
-version = "7.x-1.0-rc4+85-dev"
+; Information added by drupal.org packaging script on 2013-01-27
+version = "7.x-1.0-rc4+86-dev"
 core = "7.x"
 project = "biblio"
-datestamp = "1358685341"
+datestamp = "1359290209"
 
