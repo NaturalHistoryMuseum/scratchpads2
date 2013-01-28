@@ -5,8 +5,8 @@
       $('.noclickety').removeAttr('disabled').removeClass('noclickety');
     });
     $('form').once().submit(function(){
+      $(this).append('<input type="hidden" name="' + $(e.originalEvent.explicitOriginalTarget).attr('name') + '" value="' + $(e.originalEvent.explicitOriginalTarget).val() + '" />');
       $('input[type="submit"][disabled!="disabled"]', $(this)).attr('disabled', 'disabled').addClass('noclickety');
-      return true;
     });
   }};
 })(jQuery);
