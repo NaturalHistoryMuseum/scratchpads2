@@ -124,7 +124,7 @@ function silver_menu(){
   return array(
     'admin/import' => array(
       'title' => 'Import',
-      'description' => 'Import data into your web site',
+      'description' => 'Import data into, and also export existing content from, your site.',
       'page callback' => 'drupal_get_form',
       'page arguments' => array(
         'silver_import_form'
