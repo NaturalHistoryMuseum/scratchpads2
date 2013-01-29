@@ -28,6 +28,38 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
     parent::prepare($entity, $source_row);
   }
 
+  /**
+   * Implement preImport()
+   *
+   * - Ensure that autotagging won't take place
+   */
+  public function preImport(){
+    $node_types = array_keys(node_type_get_types());
+    foreach($node_types as $type){
+      $autotag = variable_get('autotag_vids_' . $type, NULL);
+      if($autotag !== NULL){
+        $GLOBALS['conf']['_autotags_vids_' . $type] = $autotag;
+        unset($GLOBALS['conf']['autotags_vids_' . $type]);
+      }
+    }
+  }
+
+  /**
+   * Implement postImport()
+   *
+   * - Re-enable autotagging
+   */
+  public function postImport(){
+    $node_types = array_keys(node_type_get_types());
+    foreach($node_types as $type){
+      $autotag = variable_get('_autotag_vids_' . $type, NULL);
+      if($autotag !== NULL){
+        $GLOBALS['conf']['autotags_vids_' . $type] = $autotag;
+        unset($GLOBALS['conf']['_autotags_vids_' . $type]);
+      }
+    }
+  }
+
   public function import(stdClass $node, stdClass $row){
     // Turn off node comment statistics - see comment_node_insert()
     global $conf;
@@ -50,6 +82,9 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
     scratchpads_migrate_unset_empty_fields($node);
     // Hackery to allow image gallery nodes to save without an error
     if(!isset($node->original->uid)){
+      if(!isset($node->original)){
+        $node->original = new stdClass();
+      }
       $node->original->uid = $node->uid;
     }
     // If there's no VID set it to the NID

@@ -1,0 +1,153 @@
+<?php
+
+/**
+ * @file
+ * Adds a "Remember me" checkbox to login forms.
+ */
+
+/**
+ * Implements hook_init().
+ */
+function remember_me_init() {
+  global $user;
+
+  // If we have a user logged in, then we have a session.
+  if ($user->uid) {
+    if (isset($user->data['remember_me']) && variable_get('remember_me_managed', 0) != 0) {
+      // Set lifetime as configured via admin settings.
+      if (variable_get('remember_me_lifetime', 604800) != ini_get('session.cookie_lifetime')) {
+        _remember_me_set_lifetime(variable_get('remember_me_lifetime', 604800));
+      }
+    }
+    elseif (!isset($user->data['remember_me'])) {
+      // If we have cookie lifetime set already then unset it.
+      if (0 != ini_get('session.cookie_lifetime')) {
+        _remember_me_set_lifetime(0);
+      }
+    }
+  }
+}
+
+/**
+ * remember_me_init() callback helper function.
+ */
+function _remember_me_set_lifetime($cookie_lifetime) {
+  // We have session started.
+  // Lets close the session, change php cookie lifetime variable, and start
+  // session again.
+  // Prevent sess_write from persisting the session object at this time,
+  // it will happen on shutdown.
+  drupal_save_session(FALSE);
+  session_write_close();
+  drupal_save_session(TRUE);
+
+  ini_set('session.cookie_lifetime', $cookie_lifetime);
+
+  drupal_session_started(FALSE);
+  drupal_session_initialize();
+}
+
+/**
+ * Implements hook_user_login().
+ */
+function remember_me_user_login(&$edit, $account) {
+  if ($account->uid) {
+    user_save($account, array('remember_me' => !empty($edit['input']['remember_me'])), 'remember-me');
+  }
+}
+
+/**
+ * Implements hook_user_presave().
+ */
+function remember_me_user_presave(&$edit, $account, $category) {
+  // only listen to remember me events
+  if ($category != 'remember-me') {
+    return;
+  }
+  
+  // Make sure that our form value 'remember_me' is stored as data 'remember_me'.
+  if (!empty($edit['remember_me'])) {
+    if (!isset($edit['data'])) {
+      $edit['data'] = array();
+    }
+    $edit['data']['remember_me'] = (bool) $edit['remember_me'];
+  }
+  else {
+    unset($edit['data']['remember_me']);
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function remember_me_form_alter(&$form, $form_state, $form_id) {
+  // Only make changes to these forms.
+  if (in_array($form_id, array('user_login', 'user_login_block'))) {
+    
+    // Configuration for the remember me checkbox.
+    $cbox['remember_me'] = array(
+      '#title' => t('Remember me'),
+      '#type' => variable_get('remember_me_checkbox_visible', 1) ? 'checkbox' : 'hidden',
+      '#default_value' => variable_get('remember_me_checkbox', 1),
+      '#attributes' => array('tabindex' => 1),
+    );
+  
+    $que = array();
+    
+    // Now lets try and insert it right after the password field in the document
+    // and set the tabindex to 1 for each field so that we can jump in sequence.
+    while (list($key, $val) = each($form)) {
+      switch ($key) {
+        case 'name':
+        case 'pass' :
+          $val['#attributes']['tabindex'] = 1;
+        break;
+        case 'actions':
+          $form = $que + $cbox + $form;
+          $form[$key]['submit']['#attributes']['tabindex'] = 1;
+        return;
+      }  
+      $que[$key] = $val;
+    } 
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function remember_me_theme() {
+  return array(
+    'remember_me_settings_display' => array(
+      'variables' => array('vars' => array()),
+      'file' => 'remember_me.admin.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function remember_me_menu() {
+  $items = array();
+  $items['admin/config/system/remember_me'] = array(
+    'title' => 'Remember me settings',
+    'description' => 'Configure settings like session time out for remember_me module.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('remember_me_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'remember_me.admin.inc',
+    'type' => MENU_NORMAL_ITEM
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_help().
+ */
+function remember_me_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#remember_me':
+      return t('Allows users to have persistent sessions via a checkbox "Remember me" on the login form.');
+  }
+}
