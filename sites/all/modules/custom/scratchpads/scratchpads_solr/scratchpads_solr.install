@@ -73,3 +73,20 @@ function scratchpads_solr_update_7002(){
     'apachesolr_access'
   ));
 }
+
+/**
+ * Set the bias.
+ */
+function scratchpads_solr_update_7003(){
+  apachesolr_environment_variable_set('solr', 'field_bias', array(
+    'content' => '1.0',
+    'label' => '50.0',
+    'tags_h1' => '21',
+    'tags_h2_h3' => '3.0',
+    'tags_h4_h5_h6' => '2.0',
+    'taxonomy_names' => '2.0',
+    'tos_content_extra' => '0.1',
+    'tos_name' => '3.0',
+    'ts_comments' => '0.5'
+  ));
+}

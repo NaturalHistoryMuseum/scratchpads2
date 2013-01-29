@@ -316,6 +316,8 @@ function scratchpads_solr_menu_alter(&$items){
       $items[$content_type]['type'] = MENU_NORMAL_ITEM;
     }
   }
+  // No, really, don't fucking touch the bias page.
+  $items['admin/config/search/apachesolr/settings/%apachesolr_environment/bias']['access callback'] = FALSE;
 }
 
 /**
