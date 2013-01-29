@@ -219,6 +219,17 @@ sub {
   padding: 20px 0 30px 0;
 }
 
+#zone-slide-top-wrapper .form-item-remember-me{
+  clear:both;
+  float:right !important;
+}
+#zone-slide-top-wrapper .form-item-remember-me input{
+  margin-bottom:2px;
+}
+#zone-slide-top-wrapper .form-item-remember-me label{
+  margin-left:5px !important;
+}
+
 #zone-slide-top-wrapper form#user-login-form .item-list{
   display: block;
   margin-top: 10px;

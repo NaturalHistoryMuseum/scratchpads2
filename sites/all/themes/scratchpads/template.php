@@ -389,6 +389,7 @@ function scratchpads_user_login_block($variables){
   $output .= drupal_render($form['openid_identifier']);
   $output .= drupal_render($form['actions']);
   $output .= '</div>';
+  $output .= drupal_render($form['remember_me']);
   $output .= '<div class="account-links">';
   $output .= drupal_render($form['links']);
   $output .= '</div>';
