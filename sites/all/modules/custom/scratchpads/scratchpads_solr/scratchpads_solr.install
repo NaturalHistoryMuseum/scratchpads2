@@ -29,6 +29,8 @@ function scratchpads_solr_install(){
       'bundle' => $key
     ))->execute();
   }
+  // Set the default bias
+  scratchpads_solr_update_7003();
 }
 
 /**
