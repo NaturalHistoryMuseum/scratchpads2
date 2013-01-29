@@ -37,15 +37,26 @@ class MigrateDestinationField extends MigrateDestination{
     );
     $field_instance['display'] = $object->display_settings;
     if(is_array($field_instance['display'])){
+      $weight = isset($field_instance['display']['weight']) ? $field_instance['display']['weight'] : NULL;
+      $label = isset($field_instance['display']['label']['format']) ? $field_instance['display']['label']['format'] : NULL;
       foreach(array_keys($field_instance['display']) as $display){
         // Ensure it's an array
         // Fields groups are added as a string here, so it's safe to remove
         // FieldGroup import will handle the groups 
-        if(is_array($display)){
+        if($display != 'label' && is_array($field_instance['display'][$display])){
           $field_instance['display'][$display]['type'] = $field_instance['display'][$display]['format'];
+          if($weight !== NULL){
+            $field_instance['display'][$display]['weight'] = $weight;
+          }
+          if($label !== NULL){
+            $field_instance['display'][$display]['label'] = $label;
+          }
         }else{
           unset($field_instance['display'][$display]);
         }
+      }
+      if(empty($field_instance['display']['default']) && !empty($field_instance['display']['full'])){
+        $field_instance['display']['default'] = $field_instance['display']['full'];
       }
     }
     // Alter field and widget settings
@@ -143,18 +154,18 @@ class MigrateDestinationField extends MigrateDestination{
         // Set default display settings
         $field_instance['display'] = array(
           'default' => array(
-            'label' => 'above',
-            'module' => 'file',
-            'settings' => array(),
-            'type' => 'styles_file_medium',
-            'weight' => 2
+            'label' => isset($field_instance['display']['default']['label']) ? $field_instance['display']['default']['label'] : 'above',
+            'module' => ($field_instance['display']['default']['module'] == 'image') ? 'image' : 'file',
+            'settings' => isset($field_instance['display']['default']['settings']) ? $field_instance['display']['default']['settings'] : array(),
+            'type' => ($field_instance['display']['default']['module'] == 'image') ? 'image' : 'styles_file_medium',
+            'weight' => isset($field_instance['display']['default']['weight']) ? $field_instance['display']['default']['weight'] : 2
           ),
           'teaser' => array(
-            'label' => 'above',
-            'module' => 'file',
-            'settings' => array(),
-            'type' => 'styles_file_thumbnail',
-            'weight' => 2
+            'label' => isset($field_instance['display']['teaser']['label']) ? $field_instance['display']['teaser']['label'] : 'above',
+            'module' => ($field_instance['display']['teaser']['module'] == 'image') ? 'image' : 'file',
+            'settings' => isset($field_instance['display']['teaser']['settings']) ? $field_instance['display']['teaser']['settings'] : array(),
+            'type' => ($field_instance['display']['teaser']['type'] == 'image') ? 'image' : 'styles_file_thumbnail',
+            'weight' => isset($field_instance['display']['teaser']['weight']) ? $field_instance['display']['teaser']['weight'] : 2
           )
         );
         break;

@@ -102,7 +102,7 @@ class DrupalFieldMigration extends DrupalMigration{
     if($row->type == 'image' || $row->type == 'filefield'){
       $row->field_name = 'field_media';
     }
-    // Need to make sure node reference fields referencing itis terms are changed to taxonomy reference fields
+    // Special cases for node references
     if($row->type == 'nodereference'){
       if(!isset($row->global_settings['referenceable_types']) || !is_array($row->global_settings['referenceable_types'])){
         // If referenceable_types is not set, prevent error
@@ -110,7 +110,7 @@ class DrupalFieldMigration extends DrupalMigration{
       }else{
         $referenceable_types = array_filter($row->global_settings['referenceable_types']);
       }
-      // Change it to a taxonomy field
+      // Node references to itis terms are changed to taxonomy reference fields
       if(in_array('itis_term', $referenceable_types)){
         $row->widget_type = 'content_taxonomy_autocomplete';
         $itis_vocabs = scratchpads_migrate_get_term_vocabularies();
@@ -127,6 +127,38 @@ class DrupalFieldMigration extends DrupalMigration{
         $row->widget_module = 'content_taxonomy_autocomplete';
         $row->type = 'content_taxonomy';
         $row->module = 'content_taxonomy';
+        $row->global_settings = array();
+      }else if(in_array('image', $referenceable_types)){
+        // Node references to Image nodes become image field
+        $row->type = 'image';
+        $row->module = 'image';
+        $row->widget_type = 'image';
+        $row->widget_settings = array(
+          'file_extensions' => 'png gif jpg jpeg',
+          'max_filesize' => '',
+          'file_directory' => '',
+          'description_field' => '',
+          'max_resolution' => '',
+          'min_resolution' => '',
+          'alt_field' => '',
+          'title_field' => ''
+        );
+        $row->display_settings = array_merge_recursive($row->display_settings, array(
+          'full' => array(
+            'module' => 'file_entity',
+            'type' => 'file_rendered',
+            'settings' => array(
+              'file_view_mode' => 'file_styles_square_thumbnail'
+            )
+          ),
+          'teaser' => array(
+            'module' => 'file_entity',
+            'type' => 'file_rendered',
+            'settings' => array(
+              'file_view_mode' => 'file_styles_square_thumbnail'
+            )
+          )
+        ));
         $row->global_settings = array();
       }else{
         $referenceable_types_count = count($referenceable_types);
