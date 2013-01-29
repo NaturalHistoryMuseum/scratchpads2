@@ -314,7 +314,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['fields']['name']['table'] = 'users';
   $handler->display->display_options['fields']['name']['field'] = 'name';
   $handler->display->display_options['fields']['name']['relationship'] = 'uid';
-  $handler->display->display_options['fields']['name']['label'] = 'Author';
+  $handler->display->display_options['fields']['name']['label'] = t('Contributor');
   $handler->display->display_options['fields']['name']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['name']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['name']['alter']['absolute'] = 0;
@@ -452,7 +452,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['uid']['group'] = '0';
   $handler->display->display_options['filters']['uid']['exposed'] = TRUE;
   $handler->display->display_options['filters']['uid']['expose']['operator_id'] = 'uid_op';
-  $handler->display->display_options['filters']['uid']['expose']['label'] = 'Author';
+  $handler->display->display_options['filters']['uid']['expose']['label'] = t('Contributor');
   $handler->display->display_options['filters']['uid']['expose']['operator'] = 'uid_op';
   $handler->display->display_options['filters']['uid']['expose']['identifier'] = 'uid';
   $handler->display->display_options['filters']['uid']['expose']['multiple'] = FALSE;
@@ -581,7 +581,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['relationships']['uid']['id'] = 'uid';
   $handler->display->display_options['relationships']['uid']['table'] = 'file_managed';
   $handler->display->display_options['relationships']['uid']['field'] = 'uid';
-  $handler->display->display_options['relationships']['uid']['label'] = 'Author';
+  $handler->display->display_options['relationships']['uid']['label'] = t('Contributor');
   $handler->display->display_options['relationships']['uid']['required'] = 0;
   /* Field: Bulk operations: File */
   $handler->display->display_options['fields']['views_bulk_operations']['id'] = 'views_bulk_operations';
@@ -731,7 +731,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['fields']['name']['table'] = 'users';
   $handler->display->display_options['fields']['name']['field'] = 'name';
   $handler->display->display_options['fields']['name']['relationship'] = 'uid';
-  $handler->display->display_options['fields']['name']['label'] = 'Author';
+  $handler->display->display_options['fields']['name']['label'] = t('Contributor');
   $handler->display->display_options['fields']['name']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['name']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['name']['alter']['absolute'] = 0;
@@ -864,7 +864,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['name']['group'] = 1;
   $handler->display->display_options['filters']['name']['exposed'] = TRUE;
   $handler->display->display_options['filters']['name']['expose']['operator_id'] = 'name_op';
-  $handler->display->display_options['filters']['name']['expose']['label'] = 'Author';
+  $handler->display->display_options['filters']['name']['expose']['label'] = t('Contributor');
   $handler->display->display_options['filters']['name']['expose']['operator'] = 'name_op';
   $handler->display->display_options['filters']['name']['expose']['identifier'] = 'name';
   $handler->display->display_options['filters']['name']['expose']['required'] = 0;
@@ -1096,7 +1096,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['fields']['name']['table'] = 'users';
   $handler->display->display_options['fields']['name']['field'] = 'name';
   $handler->display->display_options['fields']['name']['relationship'] = 'uid';
-  $handler->display->display_options['fields']['name']['label'] = 'Author';
+  $handler->display->display_options['fields']['name']['label'] = t('Contributor');
   $handler->display->display_options['fields']['name']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['name']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['name']['alter']['absolute'] = 0;
@@ -1228,7 +1228,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['name']['group'] = 1;
   $handler->display->display_options['filters']['name']['exposed'] = TRUE;
   $handler->display->display_options['filters']['name']['expose']['operator_id'] = 'name_op';
-  $handler->display->display_options['filters']['name']['expose']['label'] = 'Author';
+  $handler->display->display_options['filters']['name']['expose']['label'] = t('Contributor');
   $handler->display->display_options['filters']['name']['expose']['operator'] = 'name_op';
   $handler->display->display_options['filters']['name']['expose']['identifier'] = 'name';
   $handler->display->display_options['filters']['name']['expose']['required'] = 0;
