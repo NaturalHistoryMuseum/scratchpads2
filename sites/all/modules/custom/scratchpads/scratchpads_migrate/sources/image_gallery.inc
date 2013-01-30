@@ -8,9 +8,10 @@ class DrupalImageGalleryMigration extends DrupalMigration{
   public function __construct(array $arguments){
     parent::__construct($arguments);
     // Create our three main objects - source, destination, and map
-    // Adding a dummy nid field
+    // Adding a dummy vid field
     $this->sourceFields = array(
-      'nid' => 'nid'
+      'nid' => 'nid',
+      'vid' => 'vid'
     );
     $this->source = new MigrateSourceSQL($this->sourceQuery(), $this->sourceFields, NULL, $this->sourceOptions);
     $this->map = new MigrateSQLMap($this->machineName, array(
@@ -30,6 +31,7 @@ class DrupalImageGalleryMigration extends DrupalMigration{
     $this->addFieldMapping('is_new')->defaultValue(1);
     $this->addFieldMapping('weight_weight')->defaultValue(0);
     $this->addFieldMapping('nid', 'nid');
+    $this->addFieldMapping('vid', 'vid');
     $this->addUnmigratedDestinations(array(
       'revision',
       'revision_uid',
@@ -95,11 +97,30 @@ class DrupalImageGalleryMigration extends DrupalMigration{
     return $nid;
   }
 
+  /**
+   * Get the maximum VID - needs to be greatwer than all other VIDs to prevent conflicts later
+   */
+  protected function getVID(){
+    // Do we already have media gallery nodes (if eg: the import has looped to a new batch)
+    $result = db_query("SELECT MAX(vid) FROM node WHERE type=:type", array(
+      ':type' => 'media_gallery'
+    ));
+    if(!$vid = $result->fetchField()){
+      $query = Database::getConnection('default', $this->sourceConnection)->select('node', 'n');
+      $query->addExpression('MAX(vid)');
+      $vid = $query->execute()->fetchField();
+    }
+    // Increment max nid by 1
+    $vid++;
+    return $vid;
+  }
+
   public function prepareRow($row){
     // Explicity set the NID for image gallery nodes
     // They're terms so we need to do something to prevent conflicts when the nodes are imported
     // BUG fix - keeping this as a static vars isn't working with batches
     // Look it up each time - not many anyway so it shouldn't be too much of a performance hit
     $row->nid = $this->getNID();
+    $row->vid = $this->getVID();
   }
 }

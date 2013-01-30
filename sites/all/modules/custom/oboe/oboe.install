@@ -5,6 +5,7 @@
  */
 function oboe_schema(){
   return array(
+    'cache_oboe_output' => drupal_get_schema_unprocessed('system', 'cache'),
     'oboe' => array(
       'fields' => array(
         'oid' => array(
@@ -69,4 +70,12 @@ function oboe_schema(){
       )
     )
   );
+}
+
+/**
+ * Add the cache table.
+ */
+function oboe_update_7001(){
+  $schema = oboe_schema();
+  db_create_table('cache_oboe_output', $schema['cache_oboe_output']);
 }

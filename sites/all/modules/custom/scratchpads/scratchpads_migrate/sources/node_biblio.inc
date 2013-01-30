@@ -22,9 +22,6 @@ class ScratchpadsNodeBiblioMigration extends ScratchpadsNodeMigration{
   public function __construct(array $arguments){
     parent::__construct($arguments);
     $this->destination = new ScratchpadsMigrateDestinationNodeBiblio($this->destinationType);
-    $this->addUnmigratedDestinations(array(
-      'vid'
-    ));
     $source_fields = $this->sourceFieldList();
     if(!array_key_exists('biblio_other_author_affiliations', $source_fields)){
       $this->addUnmigratedDestinations(array(

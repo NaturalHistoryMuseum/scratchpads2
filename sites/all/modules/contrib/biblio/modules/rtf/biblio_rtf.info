@@ -6,9 +6,9 @@ dependencies[] = biblio
 files[] = rtf_export.inc
 files[] = views/biblio_handler_field_export_link_rtf.inc
 
-; Information added by drupal.org packaging script on 2012-03-20
-version = "7.x-1.0-rc4"
+; Information added by drupal.org packaging script on 2013-01-27
+version = "7.x-1.0-rc4+86-dev"
 core = "7.x"
 project = "biblio"
-datestamp = "1332204338"
+datestamp = "1359290209"
 

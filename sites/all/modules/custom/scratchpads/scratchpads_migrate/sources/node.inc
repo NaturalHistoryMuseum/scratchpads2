@@ -32,6 +32,13 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   }
 
   /**
+   * Track fields that have been converted to image fields
+   *
+   * @var array
+   */
+  protected $extraImageFields = array();
+
+  /**
    * Long text fields we'll need to parse files etc.,
    *
    * @var array
@@ -176,24 +183,29 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
             case 'image':
             case 'file':
             case 'filefield':
-              // Fucking D6 doesn't seperate type of file fields, so chceck the
+              // D6 doesn't seperate type of file fields, so chceck the
               // widget here
               $widget_type = $this->getFieldWidgetType($delta);
-              if($widget_type == 'imagefield_widget'){
-                $this->addFieldMapping('field_media', $delta)->sourceMigration('Image');
-              }else{
-                $this->addFieldMapping('field_media', $delta)->sourceMigration('File');
+              $file_destination_field = 'field_media';
+              if($widget_type == 'nodereference_select'){
+                $file_destination_field = $delta;
+                $this->extraImageFields[] = $delta;
               }
-              $this->addFieldMapping('field_media:file_class')->defaultValue('MigrateFileFid');
-              $this->addFieldMapping('field_media:file_replace')->defaultValue(FILE_EXISTS_REPLACE);
+              if($widget_type == 'imagefield_widget' || $widget_type == 'nodereference_select'){
+                $this->addFieldMapping($file_destination_field, $delta)->sourceMigration('Image');
+              }else{
+                $this->addFieldMapping($file_destination_field, $delta)->sourceMigration('File');
+              }
+              $this->addFieldMapping($file_destination_field . ':file_class')->defaultValue('MigrateFileFid');
+              $this->addFieldMapping($file_destination_field . ':file_replace')->defaultValue(FILE_EXISTS_REPLACE);
               $this->addUnmigratedDestinations(array(
-                'field_media:language',
-                'field_media:description',
-                'field_media:display',
-                'field_media:destination_dir',
-                'field_media:destination_file',
-                'field_media:preserve_files',
-                'field_media:source_dir'
+                $file_destination_field . ':language',
+                $file_destination_field . ':description',
+                $file_destination_field . ':display',
+                $file_destination_field . ':destination_dir',
+                $file_destination_field . ':destination_file',
+                $file_destination_field . ':preserve_files',
+                $file_destination_field . ':source_dir'
               ));
               break;
             case 'node_reference':
@@ -259,6 +271,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $this->removeFieldMapping('language');
     $this->addFieldMapping('language', 'language')->defaultValue('en');
     $this->addFieldMapping('nid', 'nid');
+    $this->addFieldMapping('vid', 'vid');
     $this->removeFieldMapping('is_new');
     $this->addFieldMapping('is_new', NULL)->defaultValue(true);
     // Revisioning
@@ -404,6 +417,15 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->addField('u', 'fid');
     $query->condition('u.vid', $row->vid);
     $row->file_attachment = $query->execute()->fetchCol();
+    // If this row has a nodereference field that references an image field,load the fid
+    foreach($this->extraImageFields as $source_field){
+      $query = Database::getConnection('default', $this->sourceConnection)->select('image', 'i');
+      $query->addField('i', 'fid');
+      $query->condition('i.image_size', '_original');
+      $query->innerJoin('content_' . $source_field, 'f', 'f.' . $source_field . '_nid=i.nid');
+      $query->condition('f.vid', $row->vid);
+      $row->{$source_field} = $query->execute()->fetchCol();
+    }
     // Unset null rows, necessary for dwc location
     $properties = array_keys((array)$row);
     foreach($properties as $property){
@@ -416,6 +438,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       if(isset($row->{$longTextField})){
         $row->{$longTextField} = ScratchpadsNodeMigration::parseImages($row->{$longTextField}, $row);
         $row->{$longTextField} = ScratchpadsNodeMigration::parseStyles($row->{$longTextField});
+        $row->{$longTextField} = preg_replace('/\[(\/?)no-glossary\]/', '[$1no-lexicon]', $row->{$longTextField});
       }
     }
     // Is there a menu item for this node?
@@ -445,7 +468,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       }
       foreach($this->biologicalClassifications as $unmapped_classifcation){
         if(isset($row->{$unmapped_classifcation})){
-          $row->{$mapped_classification} = array_merge($row->{$mapped_classification}, $row->{$unmapped_classifcation});
+          $row->{$mapped_classification} = array_merge($row->{$mapped_classification}, (array)$row->{$unmapped_classifcation});
           // Dedupe
           $row->{$mapped_classification} = array_unique($row->{$mapped_classification});
         }
@@ -622,9 +645,10 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $nid = $args[1][0];
     // Check the node doesn't already exist - otherwise as we're passing in nid
     // and create new, we'll get integrity constraint violations
-    if($this->nodeExists($nid)){
+    $node = node_load($nid);
+    if($node){
       return array(
-        $nid
+        $node->vid
       );
     }else{
       // Check the node exists in the source database
@@ -633,8 +657,9 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         $node = $this->buildStubNode($migration, $nid);
         if($node){
           node_save($node);
-          if(isset($node->nid)){return array(
-              $node->nid
+          // We use VID for the primary identifiers now
+          if(isset($node->vid)){return array(
+              $node->vid
             );}
         }
       }
@@ -642,11 +667,55 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     }
   }
 
-  protected function nodeExists($nid){
-    $result = db_query('SELECT COUNT(*) FROM {node} n WHERE n.nid = :nid', array(
-      ':nid' => $nid
-    ));
-    return $result->fetchField() > 0;
+  /**
+   * Override the handleSourceMigration - we want to check against the VID not NID
+   */
+  protected function handleSourceMigration($source_migrations, $source_keys, $default = NULL, $migration = NULL){
+    $is_node = FALSE;
+    if(!is_array($source_migrations)){
+      $migration_instance = Migration::getInstance($source_migrations);
+      if(method_exists($migration_instance->destination, 'getEntityType')){
+        $is_node = $migration_instance->destination->getEntityType() == 'node';
+      }
+    }
+    if(!$is_node){
+      return parent::handleSourceMigration($source_migrations, $source_keys, $default, $migration);
+    }else{
+      // Because we're mapping to VID not NID, get the VID to perform lookup against
+      if(is_array($source_keys)){
+        $vid_source_keys = array();
+        foreach($source_keys as $source_key){
+          // Failsafe: in case this migration source did not map to vids.
+          $val = scratchpads_migrate_source_get_vid($source_key);
+          $vid_source_keys[] = $val ? $val : $source_key;
+        }
+      }else{
+        $vid_source_keys = scratchpads_migrate_source_get_vid($source_keys);
+        $vid_source_keys = $vid_source_keys ? $vid_source_keys : $source_keys;
+      }
+      parent::handleSourceMigration($source_migrations, $vid_source_keys, $default, $migration);
+      // We can safaely return the original source keys - these are NIDs to use in the node reference
+      // We use the same NIDs anyway
+      return $source_keys;
+    }
+  }
+
+  /**
+   * Override the create stubwrapper - we want to use the VID but this uses the NID
+   */
+  protected function createStubWrapper(array $source_key, $migration = NULL){
+    if(method_exists($this, 'createStub')){
+      $destids = $this->createStub($migration, $source_key);
+      if($destids){
+        $data_row = new stdClass();
+        // Use the same VID of the item we've created - this will be the same
+        $data_row->vid = reset($destids);
+        $this->map->saveIDMapping($data_row, $destids, MigrateMap::STATUS_NEEDS_UPDATE);
+      }
+    }else{
+      $destids = NULL;
+    }
+    return $destids;
   }
 
   /**

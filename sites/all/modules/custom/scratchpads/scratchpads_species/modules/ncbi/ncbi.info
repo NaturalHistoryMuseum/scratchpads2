@@ -1,0 +1,6 @@
+core = "7.x"
+name = "NCBI Widget"
+description = "Displays a National Center for Biotechnology Information widget on a taxonomy term page."
+package = "Widgets"
+dependencies[] = scratchpads_species
+tool=yes

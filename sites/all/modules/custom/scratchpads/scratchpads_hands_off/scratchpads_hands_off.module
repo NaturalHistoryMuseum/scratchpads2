@@ -108,6 +108,7 @@ function scratchpads_hands_off_menu_alter(&$items){
     'admin/config/content/biblio/export',
     'admin/config/content/biblio/citeproc',
     'admin/config/regional/date-time',
+    'admin/config/search/sitemap',
     'admin/config/system/boost',
     'admin/config/system/customerror',
     'admin/config/system/globalredirect',
@@ -118,6 +119,7 @@ function scratchpads_hands_off_menu_alter(&$items){
     'admin/config/development/modal_forms',
     'admin/config/development/strongarm',
     'admin/dashboard/configure',
+    'admin/structure/block/list/scratchpads_admin',
     'admin/structure/file-types/manage/%/display',
     'admin/structure/file-types/manage/%/file-display',
     'user/1/edit'

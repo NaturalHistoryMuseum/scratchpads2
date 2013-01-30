@@ -123,6 +123,8 @@ function biblio_bibtex_biblio_export_link($nid = NULL, $filter = array()) {
         'attributes' => array(
           'title' => t("Click to download the BibTEX formatted file")));
   }
+  $link['attributes'] += array('rel' => 'nofollow');
+
   $link['href']  = "$base/export/bibtex" ;
   if (!empty($nid)) {
     $link['href'] .= '/' . $nid;

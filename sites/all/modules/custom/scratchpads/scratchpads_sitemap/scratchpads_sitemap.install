@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * Implements hook_enable().
+ */
+function scratchpads_sitemap_enable(){
+  variable_set('site_map_show_front', 0);
+  variable_set('site_map_show_menus', array(
+    'main-menu' => 'main-menu',
+    'user-menu' => 'user-menu'
+  ));
+}
+
+/**
+ * Implements hook_disable().
+ */
+function scratchpads_sitemap_disable(){
+  module_disable(array(
+    'site_map'
+  ));
+}

@@ -1,25 +1,21 @@
 <?php
 /**
- *   biblio.module for Drupal
- *
- *   Copyright (C) 2006-2011  Ron Jerome
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License along
- *   with this program; if not, write to the Free Software Foundation, Inc.,
- *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- */
+* @file
+* Contains all keyword related functions
+*/
 
+/**
+ * Gets a keyword ID using keyword text as the key.
+ *
+ * @param $name
+ * @return int Keyword ID
+ */
+function biblio_get_kid_by_name($name) {
+  $kw = biblio_get_keyword_by_name($name);
+  if ($kw) {
+    return $kw->kid;
+  }
+}
 /**
  * @param $name
  * @return array of keywords
@@ -59,14 +55,22 @@ function biblio_get_keyword_by_id($kid) {
 }
 
 /**
- * @param $node
- * @return unknown_type
+ * Load keywords for a single node
+ *
+ * @param $vid
+ * @return keywords for a given node->vid
  */
 function biblio_load_keywords($vid) {
   $vids = (isset($vid) ? array($vid) : array());
   return biblio_load_keywords_multiple($vids);
 }
 
+/**
+ * Load keywords for multiple nodes
+ *
+ * @param array $vids
+ * @return multitype:
+ */
 function biblio_load_keywords_multiple($vids = array()) {
   $keywords = array();
   if (empty($vids)) return $keywords;
@@ -116,10 +120,9 @@ function biblio_update_keywords($node) {
  *   An array of keyword ID's from this node
  */
 function biblio_insert_keywords($node, $update = FALSE) {
-  if (empty($node->biblio_keywords)) return;
   $kw_vocab = variable_get('biblio_keyword_vocabulary', 0);
-  $freetagging = variable_get('biblio_keyword_freetagging', 0);
   $taxo_terms = $typed_keywords = array();
+  $freetag_vocab = FALSE;
   if (!is_array($node->biblio_keywords)) {
     $typed_keywords = biblio_explode_keywords($node->biblio_keywords);
   }
@@ -134,10 +137,16 @@ function biblio_insert_keywords($node, $update = FALSE) {
             ->condition($and)
             ->execute();
   }
-  $vocabularies = module_invoke('taxonomy', 'get_vocabularies', 'biblio');
-  if (variable_get('biblio_keyword_freetagging', 0)) {
+
+  if (empty($node->biblio_keywords)) return;
+
+  $vocabularies = module_invoke('taxonomy', 'get_vocabularies');
+  $vid = variable_get('biblio_keyword_vocabulary', 0);
+
+  if (variable_get('biblio_keyword_freetagging', 0) && $vid) {
     $freetag_vocab = $vocabularies[variable_get('biblio_keyword_vocabulary', 0)];
   }
+
   if (isset($node->taxonomy) && is_array($node->taxonomy) && variable_get('biblio_copy_taxo_terms_to_keywords', 0)) { //add any taxonomy terms to our keyword list
     foreach ($node->taxonomy as $vid => $term) {
       if ($vid == 'copy_to_biblio' && $term == 0 ) {// don't copy if user overrides the default to copy, just set the $taxo_terms to an empty array and break out of the for loop
@@ -189,19 +198,51 @@ function biblio_insert_keywords($node, $update = FALSE) {
   }
 
   // now if we are saving keywords into a taxonomy freetagging vocabulary, then create the tags string and add it to the node object.
+  $vocabularies = module_invoke('taxonomy', 'get_vocabularies');
+  $vid          = variable_get('biblio_keyword_vocabulary', 0);
+  $freetagging  = variable_get('biblio_keyword_freetagging', 0);
+
+  if ($freetagging && $vid) {
+    $freetag_vocab = $vocabularies[$vid];
+    $term_refs     = biblio_get_term_ref_fields();
+    $ft_field      = 'field_' . $freetag_vocab->machine_name . '_ref';
+    if (!isset($term_refs[$ft_field])) {
+      biblio_create_term_ref($freetag_vocab);
+    }
+  }
+
 
   if ($freetagging && $freetag_vocab ) {
     $tids = array();
-    $ft_field = 'field_' . $freetag_vocab->machine_name;
     $lang = isset($freetag_vocab->language) ? $freetag_vocab->language : 'und';
     if (isset($node->{$ft_field}[$lang])) {
       foreach($node->{$ft_field}[$lang] as $tag) {
         $tids[] = $tag['tid'];
       }
     }
+
+    if (is_array($typed_keywords) && !empty($typed_keywords)) {
+      $query = new EntityFieldQuery();
+      $query
+      ->entityCondition('entity_type', 'taxonomy_term')
+      ->propertyCondition('vid', $vid)
+      ->propertyCondition('name', $typed_keywords);
+
+      $result = $query->execute();
+
+      if (isset($result['taxonomy_term'])) {
+        $existing_tids  = array_keys($result['taxonomy_term']);
+        $existing_terms = taxonomy_term_load_multiple($existing_tids);
+        $existing_words = array();
+        foreach ($existing_terms as $term) {
+          $existing_words[$term->name] = $term;
+        }
+      }
+    }
+
     foreach ($typed_keywords as $kw) {
-      if ($possibilities = taxonomy_term_load_multiple(array(), array('name' => trim($kw), 'vid' => $freetag_vocab->vid))) {
-        $term = array_pop($possibilities);
+      if (isset($existing_words[$kw])) {
+        $term = $existing_words[$kw];
       }
       else {
         $term = new stdClass();
@@ -235,37 +276,59 @@ function biblio_save_keyword(&$keyword) {
   return $status;
 }
 
+/**
+ * @return multitype:
+ */
+function biblio_get_orphaned_keyword_ids() {
+  $orphans = $active_kids = $all_kids = array();
+
+  $query = db_select('biblio_keyword', 'bk');
+  $active_kids = $query
+    ->fields('bk', array('kid'))
+    ->groupBy('kid')
+    ->execute()
+    ->fetchCol();
+
+  $query = db_select('biblio_keyword_data', 'bkd');
+  $all_kids = $query
+    ->fields('bkd', array('kid'))
+    ->execute()
+    ->fetchCol();
+
+  $orphans = array_diff($all_kids, $active_kids);
+
+  return $orphans;
+}
+
+/**
+ * Deletes orphaned keywords
+ *
+ * Deletion only occurs if the Drupal Variable "biblio_keyword_orphan_autoclean"
+ * is true OR if the $force argument is TRUE
+ *
+ * @param  bool $force
+ *   Forces deletion to occur even if autoclean is turned off
+ * @return int $count
+ *   The number of orphans removed
+ */
 function biblio_delete_orphan_keywords($force = FALSE) {
+  $count = 0;
+
   if (variable_get('biblio_keyword_orphan_autoclean', 0) || $force) {
-      $query = db_select('biblio_keyword', 'bk');
-    $active_kids = $query
-      ->fields('bk', array('kid'))
-      ->groupBy('kid')
-      ->execute()
-      ->fetchCol();
-
-    $query = db_select('biblio_keyword_data', 'bkd');
-    $all_kids = $query
-      ->fields('bkd', array('kid'))
-      ->groupBy('kid')
-      ->execute()
-      ->fetchCol();
-
-    $orphans = array_diff($all_kids, $active_kids);
-
+    $orphans = biblio_get_orphaned_keyword_ids();
     if (!empty($orphans)) {
-      db_delete('biblio_keyword_data')
+      $count = db_delete('biblio_keyword_data')
         ->condition('kid', $orphans, 'IN')
         ->execute();
     }
   }
-  return;
+  return $count;
 }
+
 /**
- * Delete all keywords references from a given node, but the actual keywords remain in the biblio_keyword_data table
- * Also remove orphan keywords if this option is enabled.  Orphan keywords
- * are keywords which remain in the biblio_keyword_data table but are not refferenced
- * by any nodes through the biblio_keyword table.
+ * Delete all keywords references for a given node.
+ *
+ * The actual keywords remain in the biblio_keyword_data table
  *
  * @param $node
  * @return
@@ -292,8 +355,11 @@ function biblio_delete_revision_keywords($node) {
 }
 
 /**
- * Delete multiple keywords from both the biblio_keyword and biblio_keyword_data tables
- * This will remove the keywords referenced by the supplied ID's from ALL nodes which reference them.
+ * Delete multiple keywords.
+ *
+ * Removes from both the biblio_keyword and biblio_keyword_data tables
+ * This will remove the keywords referenced by the supplied ID's from
+ * ALL nodes which reference them.
  *
  * @param array $keywords
  *   An array of keyword id's to delete
@@ -326,6 +392,10 @@ function biblio_delete_keyword($keyword_id) {
             ->execute();
 }
 
+/**
+ * @param unknown_type $string
+ * @return multitype:string
+ */
 function biblio_explode_keywords($string) {
   $sep = variable_get('biblio_keyword_sep', ',');
   $regexp = '%(?:^|' . $sep . '\ *)("(?>[^"]*)(?>""[^"]* )*"|(?: [^"' . $sep . ']*))%x';
@@ -344,6 +414,11 @@ function biblio_explode_keywords($string) {
   }
   return $keywords;
 }
+/**
+ * @param unknown_type $keywords
+ * @param unknown_type $sep
+ * @return Ambigous <string, unknown>
+ */
 function biblio_implode_keywords($keywords, $sep = '') {
 
   if (empty($sep)) $sep = variable_get('biblio_keyword_sep', ',');
@@ -358,4 +433,54 @@ function biblio_implode_keywords($keywords, $sep = '') {
     }
   }
   return $string;
+}
+
+function biblio_get_term_ref_fields() {
+  $termfields = array();
+  foreach (field_info_instances('node', 'biblio') as $instance) {
+    $field = field_info_field_by_id($instance['field_id']);
+    if ($field['type'] == 'taxonomy_term_reference') {
+      $termfields[$field['field_name']] = $instance['label'];
+    }
+  }
+  return $termfields;
+}
+
+function biblio_create_term_ref($vocabulary) {
+  $field_name = 'field_'. $vocabulary->machine_name . '_ref';
+
+  $field = array(
+      'field_name' => $field_name,
+      'type' => 'taxonomy_term_reference',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'settings' => array(
+          'allowed_values' => array(
+              array(
+                  'vocabulary' => $vocabulary->machine_name,
+                  'parent' => 0
+              ),
+          ),
+      ),
+  );
+
+  field_create_field($field);
+
+
+  $instance = array(
+      'field_name' => $field_name,
+      'entity_type' => 'node',
+      'label' => $vocabulary->name,
+      'bundle' => 'biblio',
+      'required' => false,
+      'widget' => array(
+          'type' => 'options_select',
+          'cardinality' => -1
+      ),
+      'display' => array(
+          'default' => array('type' => 'hidden'),
+          'teaser' => array('type' => 'hidden')
+      )
+  );
+
+  field_create_instance($instance);
 }

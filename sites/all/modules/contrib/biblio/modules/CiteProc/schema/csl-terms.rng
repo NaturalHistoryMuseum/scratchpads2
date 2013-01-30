@@ -15,7 +15,6 @@
         <value>by</value>
         <value>circa</value>
         <value>cited</value>
-        <value>edition</value>
         <value>et-al</value>
         <value>forthcoming</value>
         <value>from</value>
@@ -30,6 +29,39 @@
         <value>presented at</value>
         <value>reference</value>
         <value>retrieved</value>
+        <value>season-01</value>
+        <a:documentation>Seasons</a:documentation>
+        <value>season-02</value>
+        <value>season-03</value>
+        <value>season-04</value>
+        <value>open-quote</value>
+        <a:documentation>Punctuation</a:documentation>
+        <value>close-quote</value>
+        <value>open-inner-quote</value>
+        <value>close-inner-quote</value>
+        <value>page-range-delimiter</value>
+        <ref name="cs-terms.gender-assignable">
+          <a:documentation>Terms to which a gender may be assigned</a:documentation>
+        </ref>
+        <ref name="cs-terms.gender-variants">
+          <a:documentation>Terms for which gender variants may be specified</a:documentation>
+        </ref>
+        <ref name="cs-terms.locator">
+          <a:documentation>Locators</a:documentation>
+        </ref>
+        <ref name="cs-names">
+          <a:documentation>Contributor Roles</a:documentation>
+        </ref>
+        <value>editortranslator</value>
+        <ref name="info-field-categories">
+          <a:documentation>Categories</a:documentation>
+        </ref>
+        <ref name="cs-terms.extension"/>
+      </choice>
+    </define>
+    <define name="cs-terms.gender-assignable">
+      <a:documentation>Terms to which a gender may be assigned</a:documentation>
+      <choice>
         <value>month-01</value>
         <a:documentation>Months</a:documentation>
         <value>month-02</value>
@@ -43,16 +75,17 @@
         <value>month-10</value>
         <value>month-11</value>
         <value>month-12</value>
-        <value>season-01</value>
-        <a:documentation>Seasons</a:documentation>
-        <value>season-02</value>
-        <value>season-03</value>
-        <value>season-04</value>
-        <value>open-quote</value>
-        <a:documentation>Quotes</a:documentation>
-        <value>close-quote</value>
-        <value>open-inner-quote</value>
-        <value>close-inner-quote</value>
+        <ref name="cs-terms.non-locator-number-variables">
+          <a:documentation>Non-locator terms accompanying number variables</a:documentation>
+        </ref>
+        <ref name="cs-terms.locator-number-variables">
+          <a:documentation>Locator terms with matching number variables</a:documentation>
+        </ref>
+      </choice>
+    </define>
+    <define name="cs-terms.gender-variants">
+      <a:documentation>Terms for which gender variants may be specified</a:documentation>
+      <choice>
         <value>ordinal-01</value>
         <a:documentation>Ordinals</a:documentation>
         <value>ordinal-02</value>
@@ -69,17 +102,6 @@
         <value>long-ordinal-08</value>
         <value>long-ordinal-09</value>
         <value>long-ordinal-10</value>
-        <ref name="cs-names">
-          <a:documentation>Contributor Roles</a:documentation>
-        </ref>
-        <value>editortranslator</value>
-        <ref name="info-field-categories">
-          <a:documentation>Categories</a:documentation>
-        </ref>
-        <ref name="cs-terms.locator">
-          <a:documentation>Locators</a:documentation>
-        </ref>
-        <ref name="cs-terms.extension"/>
       </choice>
     </define>
     <define name="cs-terms.locator">
@@ -90,7 +112,6 @@
         <value>column</value>
         <value>figure</value>
         <value>folio</value>
-        <value>issue</value>
         <value>line</value>
         <value>note</value>
         <value>opus</value>
@@ -100,7 +121,27 @@
         <value>section</value>
         <value>sub verbo</value>
         <value>verse</value>
+        <ref name="cs-terms.locator-number-variables">
+          <a:documentation>Locator terms with matching number variables</a:documentation>
+        </ref>
+      </choice>
+    </define>
+    <define name="cs-terms.locator-number-variables">
+      <a:documentation>Locator terms with matching number variables</a:documentation>
+      <choice>
+        <value>issue</value>
         <value>volume</value>
+      </choice>
+    </define>
+    <define name="cs-terms.non-locator-number-variables">
+      <a:documentation>Non-locator terms accompanying number variables</a:documentation>
+      <choice>
+        <value>chapter-number</value>
+        <value>collection-number</value>
+        <value>edition</value>
+        <value>number</value>
+        <value>number-of-pages</value>
+        <value>number-of-volumes</value>
       </choice>
     </define>
   </div>

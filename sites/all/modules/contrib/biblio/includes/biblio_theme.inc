@@ -81,7 +81,11 @@ function theme_biblio_long($variables) {
 
   $output .= filter_xss($node->biblio_coins, array('span'));
   $layout = variable_get('biblio_node_layout', 'orig');
-  if (variable_get('biblio_node_layout', 'orig') == 'ft' && strlen(trim($node->body)) && user_access('view full text')) {
+
+  // Check body value.
+  $has_body = !empty($node->body);
+
+  if (variable_get('biblio_node_layout', 'orig') == 'ft' && $has_body && user_access('view full text')) {
     $output .= '<div class="biblio-head">' . theme('biblio_style', $variables) . '</div>';
     $annotation_field = variable_get('biblio_annotations', 'none');
     if ($annotation_field != 'none' && $node-> $annotation_field) {
@@ -89,7 +93,7 @@ function theme_biblio_long($variables) {
       $output .= filter_xss($node->$annotation_field, biblio_get_allowed_tags());
       $output .= '</div>';
     }
-    $output .= check_markup($node->body);
+    $output .= drupal_render(field_view_field('node', $node, 'body', array('label' => 'hidden')));
     if (biblio_access('export', $node)) {
       $output .= theme('biblio_export_links', array('node' => $node));
     }
@@ -253,7 +257,12 @@ function theme_biblio_tabular($variables) {
           break;
         default:
           if ($row['type'] == 'text_format') {
-            $data = check_markup($node->$row['name'], $node->biblio_formats[$row['name']]);
+            $format = filter_default_format();
+            if (!empty($node->biblio_formats) ) {
+              $formats = $node->biblio_formats;
+              $format  = isset($formats[$row['name']]) ? $formats[$row['name']] : $format;
+            }
+            $data = check_markup($node->$row['name'], $format);
           }
           else {
             $data = check_plain($node->$row['name']);
@@ -277,6 +286,9 @@ function theme_biblio_tabular($variables) {
     );
 
   }
+  // let other modules add rows if desired...
+  drupal_alter('biblio_node_table_rows', $rows, $node);
+
   $output = '<div id="biblio-node">';
   $output .= filter_xss($node->biblio_coins, array('span'));
   $header = array();
@@ -552,14 +564,17 @@ function theme_biblio_format_authors($variables) {
 
 function theme_biblio_author_link($variables) {
   $author = $variables['author'];
+  $options = isset($variables['options']) ? $variables['options'] : array();
+
+  $link_to_profile = variable_get('biblio_author_link_profile', 0);
+  $link_to_profile_path = variable_get('biblio_author_link_profile_path', 'user/[user:uid]');
 
   $uri = drupal_parse_url(request_uri());
+  $uri = array_merge($uri, $options);
   if (!isset($uri['attributes'])) {
-    $uri['attributes'] = array();
+    $uri['attributes'] = array('rel' => 'nofollow');
   }
   $path = $uri['path'];
-  $uri['path'] = variable_get('biblio_base', 'biblio');
-  $uri['query']['f']['author'] = $author['cid'];
 
   if (isset($author['drupal_uid']) && $author['drupal_uid'] > 0) {
     $uri['attributes'] += array('class' => array('biblio-local-author'));
@@ -569,15 +584,18 @@ function theme_biblio_author_link($variables) {
     $uri['html'] = TRUE;
   }
 
-  if (variable_get('biblio_author_link_profile', 0) && isset($author['drupal_uid']) &&  $author['drupal_uid'] > 0) {
-    $profile_path = 'user/' . $author['drupal_uid'] . '/' . $uri['path'];
-    if ($path != '/' . $profile_path) {  // we only create links to the profile page if we are not already on it.
-      $uri['path'] = $profile_path;
-      unset($uri['query']);
-    }
+  if ($link_to_profile && isset($author['drupal_uid'])  &&  $author['drupal_uid'] > 0) {
+    $data['user'] = user_load($author['drupal_uid']);
+    $path = token_replace($link_to_profile_path, $data);
+    $alias = drupal_get_path_alias($path);
+    $path_profile = variable_get('biblio_show_profile', '0') ? "$path/$base" : $alias;
+    return l(trim($author['name']), $path_profile, $uri);
   }
-
-  return l(trim($author['name']), $uri['path'], $uri );
+  else {
+    $uri['path'] = variable_get('biblio_base', 'biblio');
+    $uri['query']['f']['author'] = $author['cid'];
+    return l(trim($author['name']), $uri['path'], $uri );
+  }
 
 }
 
@@ -856,12 +874,24 @@ function theme_biblio_download_links($variables) {
         if (module_exists('filefield_paths')) {
           $alias =  drupal_get_path_alias('filefield_paths/alias/' . $item['fid']);
         }
-        $file_links[] = array(
-          theme('file_link', array('file' => (object) $item)),
-          format_size($item['filesize']),
-        );
+        $link_type = variable_get('biblio_file_link_type', 'text');
+        if ($link_type == 'icon') {
+          $url = file_create_url($item['uri']);
+          $icon = theme('file_icon', array('file' => (object) $item));
+          $options['html'] = TRUE;
+          $options['attributes']['title'] = check_plain($item['filename']);
+          $file_links[] = array(
+              l($icon, $url, $options),
+              format_size($item['filesize']),
+          );
+        }
+        elseif ($link_type == 'text') {
+          $file_links[] = array(
+              theme('file_link', array('file' => (object) $item)),
+              format_size($item['filesize']),
+          );
+        }
       }
-
     }
   }
   $files = '';
@@ -933,6 +963,8 @@ function theme_google_scholar_link($variables) {
     $attrs = array_merge($attrs, array('target '=> '_blank'));
   }
 
+  $attrs = array_merge($attrs, array('rel' => 'nofollow'));
+
   return array(
         'title'      => t('Google Scholar'),
         'href'       => 'http://scholar.google.com/scholar',
@@ -986,11 +1018,22 @@ function theme_biblio_contributors($variables) {
 function theme_biblio_alpha_line($variables) {
   $type    = $variables['type'];
   $all = '';
-  $uri = drupal_parse_url(request_uri());
-  $uri['path'] = $_GET['q']; //replace path in case we are in a multi-language environment, otherwise we end up with double language prefixes.
-  if (substr($uri['path'], 0, 1) == '/') {
-    $uri['path'] = substr($uri['path'], 1);
+  $uri = drupal_parse_url(request_path());
+
+  //replace path in case we are in a multi-language environment, otherwise we end up with double language prefixes.
+  $languages =  language_list('enabled');
+  if (isset($languages[1])) {
+    $path_parts = empty($uri['path']) ? array() : explode('/', $uri['path']);
+    foreach ($languages[1] as $code => $lang) {
+      if ($path_parts[0] == $code) {
+        array_shift($path_parts);
+        break;
+      }
+    }
+    $uri['path'] = implode('/', $path_parts);
   }
+
+  $uri['attributes'] = array('rel' => 'nofollow');
   $all_uri = $uri;
   $current = '';
 
@@ -1066,10 +1109,38 @@ function theme_biblio_admin_author_edit_form($variables) {
 
 }
 
+function theme_biblio_admin_author_edit_merge_table($variables) {
+  $form = $variables['form'];
+  $headers = $form['#header'];
+  $rows = array();
+
+  foreach (element_children($form['candidates']) as $key) {
+
+    // Build the table row.
+    $row = array();
+    $row[] = array('data' => drupal_render($form['candidates'][$key]['name']));
+    $row[] = drupal_render($form['candidates'][$key]['link']);
+    $row[] = drupal_render($form['candidates'][$key]['merge']);
+    $row[] = drupal_render($form['candidates'][$key]['retain']);
+    $rows[] = $row;
+  }
+
+  $output = theme('table', array('header' => $headers, 'rows' => $rows, 'attributes' => array('id' => $form['#id'])));
+
+  $row = $rows = array();
+  $row[] = array('data' => drupal_render($form['more_authors_search']) . drupal_render($form['more_authors_add']));
+  $rows[] = $row;
+  $output .= theme('table', array('header' => array(), 'rows' => $rows, 'attributes' => array('id' => $form['#id'])));
+
+  $output .= drupal_render_children($form);
+
+  return $output;
+}
+
 function _biblio_keyword_links($keywords, $base='biblio') {
   $uri = drupal_parse_url(request_uri());
   $uri['path'] = variable_get('biblio_base', 'biblio');;
-
+  $uri['attributes'] = array('rel' => 'nofollow');
   $html = "";
   if (!is_array($keywords)) {
     require_once(drupal_get_path('module', 'biblio') . '/includes/biblio.keywords.inc');
@@ -1082,4 +1153,102 @@ function _biblio_keyword_links($keywords, $base='biblio') {
     $linked_keywords [] = l(trim($keyword), $base , $uri);
   }
   return implode("$sep ", $linked_keywords);
+}
+
+
+function template_preprocess_biblio_sort_tabs(&$vars) {
+  $vars['tabs_style'] = variable_get('biblio_sort_tabs_style', 0);
+
+  $uri = drupal_parse_url(request_uri());
+  $uri['path'] = $_GET['q'];
+  $uri['path'] = trim($uri['path'], '/');
+
+  $defaults = array(
+    'author' => 'asc',
+    'title' => 'asc',
+    'type' => 'asc',
+    'year' => 'desc',
+    'keyword' => 'asc',
+  );
+
+  if (isset($uri['query']['s'])) {
+    $sort = $uri['query']['s'];
+  }
+  else {
+    $sort = variable_get('biblio_sort', 'year');
+  }
+
+  if (isset($uri['query']['o'])) {
+    $order = strtolower($uri['query']['o']);
+  }
+  else {
+    $order = strtolower(variable_get('biblio_order', 'desc'));
+  }
+  // flip it
+  $order = ($order == 'desc') ? 'asc' : 'desc';
+  $path = drupal_get_path('module', 'biblio');
+  $order_arrow = ($order == 'asc') ? theme('image', array('path' => $path.'/misc/arrow-asc.png', 'alt' => '(Asc)')):
+                                     theme('image', array('path' => $path.'/misc/arrow-desc.png', 'alt' => '(Desc)'));
+
+  $sort_links =  array_filter(variable_get('biblio_sort_tabs', array('author' => 'author', 'title' => 'title', 'type' => 'type', 'year' => 'year', 'keyword' => 'keyword')));
+  ksort($sort_links);
+
+  $links = array();
+  foreach ($sort_links as $key => $title) {
+    $uri_copy = $uri;
+    $uri_copy['attributes'] = array("title" => t("Click a second time to reverse the sort order"));
+    $uri_copy['html'] = TRUE;
+    $uri_copy['text'] = t(ucfirst($title));
+    $uri_copy['query']['s'] = $title;
+    if ($key === $title && $title == $sort) {
+      $uri_copy['query']['o'] = $order;
+      $uri_copy['attributes']['class'][] = "active";
+      $uri_copy['active'] = TRUE;
+      $uri_copy['pfx'] = ' [ ';
+      $uri_copy['sfx'] = '] ';
+      $uri_copy['arrow'] = $order_arrow;
+
+    }
+    elseif ($key === $title ) {
+      $uri_copy['query']['o'] = $defaults[$title];
+      $uri_copy['active'] = FALSE;
+      $uri_copy['pfx'] = ' ';
+      $uri_copy['sfx'] = ' ';
+      $uri_copy['arrow'] = '';
+    }
+    $links[] = $uri_copy;
+  }
+  $vars['links'] = $links;
+}
+
+function theme_biblio_sort_tabs($vars) {
+  $links = $vars['links'];
+  $style = $vars['tabs_style'];
+  $output = '';
+
+  if ($style) {
+    $output = '<ul class="tabs secondary">';
+  }
+  foreach ($links as $l) {
+    $output .= _biblio_sort_tab($l, $style);
+  }
+
+  if ($style) {
+    $output .= '</ul>';
+  }
+
+  return $output;
+}
+
+function _biblio_sort_tab($tab, $tabs = FALSE) {
+  if ($tabs) {
+    $text  = '<span class="a"><span class="b">' . $tab['text'] . $tab['arrow'] . '</span></span>';
+    $class = ($tab['active']) ? 'class="active"':'';
+    $link  = l($text, $tab['path'], $tab);
+    return "<li $class >". $link . '</li>';
+  }
+  else {
+    return $tab['pfx'] . l($tab['text'], $tab['path'], $tab) . $tab['arrow'] . $tab['sfx'];
+  }
+  return;
 }

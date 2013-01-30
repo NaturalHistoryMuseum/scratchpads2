@@ -2,6 +2,15 @@
 var grid;
 var dataView;
 
+if (!Array.prototype.indexOf) {
+  Array.prototype.indexOf = function(obj, start) {
+    for (var i = (start || 0), j = this.length; i < j; i++) {
+      if (this[i] === obj) { return i; }
+    }
+    return -1;
+  }
+}
+
 (function($) {
 
     // register namespace
@@ -860,7 +869,7 @@ var dataView;
             width: 200,
             trigger : 'none',  // Already clicked so manually activate
             cornerRadius: 0,
-            overlap: 3,
+            overlap: 3
           };
 
           if(typeof content == 'object'){

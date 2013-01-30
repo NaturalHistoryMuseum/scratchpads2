@@ -59,7 +59,7 @@ function scratchpads_media_gallery_field_default_fields(){
           'summary_rows' => 5
         ),
         'type' => 'text_textarea_with_summary',
-        'weight' => '-4'
+        'weight' => '1'
       )
     )
   );
@@ -131,7 +131,7 @@ function scratchpads_media_gallery_field_default_fields(){
           'progress_indicator' => 'throbber'
         ),
         'type' => 'media_multiselect',
-        'weight' => '-3'
+        'weight' => '2'
       )
     )
   );
@@ -495,7 +495,7 @@ function scratchpads_media_gallery_field_default_fields(){
           'size' => 60
         ),
         'type' => 'taxonomy_autocomplete',
-        'weight' => '10'
+        'weight' => '-3'
       )
     )
   );
@@ -652,21 +652,21 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'hidden',
+          'label' => 'above',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => 2
         ),
         'file_styles_colorbox' => array(
-          'label' => 'hidden',
+          'label' => 'above',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => '4'
         ),
         'file_styles_square_thumbnail' => array(
-          'label' => 'hidden',
+          'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -731,14 +731,14 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'hidden',
+          'label' => 'above',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => 2
         ),
         'file_styles_colorbox' => array(
-          'label' => 'hidden',
+          'label' => 'above',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
@@ -810,14 +810,14 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'hidden',
+          'label' => 'above',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => 2
         ),
         'file_styles_colorbox' => array(
-          'label' => 'hidden',
+          'label' => 'above',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
@@ -995,17 +995,31 @@ function scratchpads_media_gallery_field_default_fields(){
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'taxonomy',
-          'settings' => array(),
-          'type' => 'taxonomy_term_reference_plain',
-          'weight' => 5
+          'module' => 'taxonomy_formatter',
+          'settings' => array(
+            'element_class' => '',
+            'element_option' => '- None -',
+            'links_option' => 1,
+            'separator_option' => ', ',
+            'wrapper_class' => '',
+            'wrapper_option' => '- None -',
+          ),
+          'type' => 'taxonomy_term_reference_csv',
+          'weight' => '5'
         ),
         'file_styles_colorbox' => array(
           'label' => 'above',
-          'module' => 'taxonomy',
-          'settings' => array(),
-          'type' => 'taxonomy_term_reference_plain',
-          'weight' => 5
+          'module' => 'taxonomy_formatter',
+          'settings' => array(
+            'element_class' => '',
+            'element_option' => '- None -',
+            'links_option' => 1,
+            'separator_option' => ', ',
+            'wrapper_class' => '',
+            'wrapper_option' => '- None -',
+          ),
+          'type' => 'taxonomy_term_reference_csv',
+          'weight' => '5'
         ),
         'file_styles_square_thumbnail' => array(
           'label' => 'above',

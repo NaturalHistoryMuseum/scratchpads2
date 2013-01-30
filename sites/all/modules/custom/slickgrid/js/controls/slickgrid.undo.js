@@ -112,7 +112,7 @@
          $.extend(this, {
             // Methods
             "queueAndExecuteCommand":     queueAndExecuteCommand,
-            "queueCommand":               queueCommand,
+            "queueCommand":               queueCommand
          });
 
          init();

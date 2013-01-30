@@ -12,9 +12,9 @@ class biblio_handler_field_markup extends views_handler_field {
     $value = $this->get_value($values);
     $formats = $this->get_value($values, 'biblio_formats');
     $format = filter_default_format();
-    if (!empty($formats)) {
+    if (!empty($formats) ) {
       $formats = unserialize($formats);
-      $format  = $formats[$this->field];
+      $format  = isset($formats[$this->field]) ? $formats[$this->field] : $format;
     }
     if ($value) {
       $value = str_replace('<!--break-->', '', $value);

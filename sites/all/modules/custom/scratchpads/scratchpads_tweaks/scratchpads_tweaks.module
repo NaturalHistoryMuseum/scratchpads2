@@ -414,7 +414,8 @@ function scratchpads_tweaks_add_body_field($type, $label = 'Body', $weight = 0){
       'bundle' => $type->type,
       'label' => $label,
       'widget' => array(
-        'type' => 'text_textarea_with_summary'
+        'type' => 'text_textarea_with_summary',
+        'weight' => 1
       ),
       'settings' => array(
         'display_summary' => TRUE

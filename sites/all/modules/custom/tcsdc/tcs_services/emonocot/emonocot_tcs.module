@@ -1,7 +1,7 @@
 <?php
 global $base_url;
-define('EMONOCOT_QUERY_URL', 'http://e-monocot.org/endpoint?scratchpad=' . urlencode($base_url) . '&function=search&search=');
-define('EMONOCOT_REQUEST_URL', 'http://e-monocot.org/endpoint?function=details_tcs&id=%s&scratchpad=' . str_replace('%', '%%', urlencode($base_url)));
+define('EMONOCOT_QUERY_URL', 'http://build.e-monocot.org/uat/portal/endpoint?scratchpad=' . urlencode($base_url) . '&function=search&search=');
+define('EMONOCOT_REQUEST_URL', 'http://build.e-monocot.org/uat/portal/endpoint?function=details_tcs&id=%s&scratchpad=' . str_replace('%', '%%', urlencode($base_url)));
 
 
 /**

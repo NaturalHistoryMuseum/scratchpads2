@@ -32,14 +32,6 @@ function scratchpads_biblio_search_apache_solr_default_sorts_alter(&$default_sor
 }
 
 /**
- * Implements hook_menu_contextual_links_alter()
- */
-function scratchpads_biblio_search_contextual_links_alter(&$links, $router_item, $root_path){
-  drupal_set_message($router_item);
-  drupal_set_message($root_path);
-}
-
-/**
  * Implementation of hook_scratchpads_solr_info().
  */
 function scratchpads_biblio_search_scratchpads_solr_info(){
@@ -55,30 +47,32 @@ function scratchpads_biblio_search_scratchpads_solr_info(){
  * Implementation of hook_apache_solr_sortstring_alter()
  */
 function scratchpads_biblio_search_apache_solr_sortstring_alter(&$sortstring){
-  // Here we teak the $sortstring to reflect what is set in the $_GET array.
-  $order = isset($_GET['order']) ? $_GET['order'] : t('Authors');
-  switch($order){
-    case t('Year'):
-      $sortstring = 'tus_biblio_year ' . (isset($_GET['sort']) ? $_GET['sort'] : 'desc');
-      break;
-    case t('Authors'):
-      $sortstring = 'tus_biblio_first_author_lastname ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
-      break;
-    case t('Title'):
-      $sortstring = 'sort_label ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
-      break;
-  }
-  // This also gives us an opportunity to tweak the facets if we've been linked
-  // to by the biblio module.
-  if(isset($_GET['f'])){
-    if(isset($_GET['f']['author'])){
-      $_GET['f'] = array(
-        'im_biblio_contributor:' . $_GET['f']['author']
-      );
-    }elseif(isset($_GET['f']['keyword'])){
-      $_GET['f'] = array(
-        'im_biblio_keyword:' . $_GET['f']['keyword']
-      );
+  if(arg(0) == 'biblio'){
+    // Here we teak the $sortstring to reflect what is set in the $_GET array.
+    $order = isset($_GET['order']) ? $_GET['order'] : t('Authors');
+    switch($order){
+      case t('Year'):
+        $sortstring = 'tus_biblio_year ' . (isset($_GET['sort']) ? $_GET['sort'] : 'desc');
+        break;
+      case t('Authors'):
+        $sortstring = 'tus_biblio_first_author_lastname ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
+        break;
+      case t('Title'):
+        $sortstring = 'sort_label ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
+        break;
+    }
+    // This also gives us an opportunity to tweak the facets if we've been linked
+    // to by the biblio module.
+    if(isset($_GET['f'])){
+      if(isset($_GET['f']['author'])){
+        $_GET['f'] = array(
+          'im_biblio_contributor:' . $_GET['f']['author']
+        );
+      }elseif(isset($_GET['f']['keyword'])){
+        $_GET['f'] = array(
+          'im_biblio_keyword:' . $_GET['f']['keyword']
+        );
+      }
     }
   }
 }
@@ -309,7 +303,7 @@ function scratchpads_biblio_search_facet_form($form, &$form_state, $form_id, $pl
       '#default_value' => '',
       '#autocomplete_path' => 'biblio_search_facet_autocomplete/' . $form_id,
       '#attributes' => array(
-        'title' => t('Enter the terms you wish to search for and press return.'),
+        'title' => t('Enter the terms you wish to search for, select it, and press return.'),
         'style' => 'width:100%',
         'placeholder' => $placeholder
       )
@@ -630,17 +624,6 @@ function scratchpads_biblio_search_facet_autocomplete($type, $search){
       break;
   }
   drupal_json_output($matches);
-}
-
-/**
- * Hook_hide_submit_alter
- */
-function scratchpads_biblio_search_hide_submit_alter($hide_submit_settings){
-  $altered_settings = $hide_submit_settings;
-  if(arg(0) == 'biblio'){
-    $altered_settings['hide_submit']['hide_submit_status'] = FALSE;
-  }
-  return $altered_settings;
 }
 
 /**

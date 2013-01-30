@@ -333,6 +333,7 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
             return array(
               'f.' => 'f.',
               'ssp.' => 'ssp.',
+              'subsp.' => 'subsp.',
               'subf.' => 'subf.',
               'subvar.' => 'subvar.',
               'var.' => 'var.',

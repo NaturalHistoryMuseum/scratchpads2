@@ -1,0 +1,6 @@
+name = GBIF Checklist Bank
+description = "Import a classication via GBIF's Checklist Bank service (http://ecat-dev.gbif.org/api/clb)."
+package = "Data provider"
+dependencies[] = tcsdc
+tool=true;
+core = 7.x

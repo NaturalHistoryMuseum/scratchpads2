@@ -180,9 +180,27 @@ table th a img{
   margin-left: 2px;
 }
 
+sup, sub {
+  height: 0;
+  vertical-align: baseline;
+  position: relative;
+  font-size:90%;
+}
+sup {
+  bottom: 1ex;
+}
+sub {
+  top: .5ex;
+}
+
 /************************ Layout *********************/ 
 
-
+/* Sitemap */
+.site-map-box>.content{
+  column-count: 3;
+  -moz-column-count: 3;
+  -webkit-column-count: 3;
+}
 
 /* Slide top & bottom */
 
@@ -199,6 +217,17 @@ table th a img{
 
 #zone-slide-top-wrapper form#user-login-form{
   padding: 20px 0 30px 0;
+}
+
+#zone-slide-top-wrapper .form-item-remember-me{
+  clear:both;
+  float:right !important;
+}
+#zone-slide-top-wrapper .form-item-remember-me input{
+  margin-bottom:2px;
+}
+#zone-slide-top-wrapper .form-item-remember-me label{
+  margin-left:5px !important;
 }
 
 #zone-slide-top-wrapper form#user-login-form .item-list{
@@ -229,9 +258,9 @@ display: inline;
   margin-left: 20px;
 }
 
-#zone-slide-top-wrapper form#user-login-form div.clearfix .form-actions,
-#zone-slide-top-wrapper form#user-login-form div.clearfix .form-item{
-  float: right;
+#zone-slide-top-wrapper .form-actions,
+#zone-slide-top-wrapper .form-item{
+  float: left;
 }
 
 #zone-slide-top-wrapper form#user-login-form .form-item-openid-identifier div.description{
@@ -545,6 +574,9 @@ h2.site-name {
 .logged-in #block-views-species-spm-block{
   position: relative;
   top: -30px;
+}
+.block-species-biblio-block, .block-species-spm-block{
+  float:none !important;
 }
 
 
@@ -937,6 +969,9 @@ width: 300px;
 }
 
 /****************** Comments *****************/
+li.comment-add{
+  font-weight:700;
+}
 #comments h2{
   background: transparent!important;
   color: #3E3E3E;

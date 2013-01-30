@@ -208,6 +208,7 @@ class DrupalImageMigration extends DrupalFileMigration{
     ));
     $query->innerJoin('content_field_imagefield', 'i', 'i.vid = n.vid');
     $query->condition('i.field_imagefield_fid', $row->fid);
+    $query->condition('n.type', 'image');
     $result = $query->execute();
     if($result->rowCount()){
       $node = $result->fetchObject();

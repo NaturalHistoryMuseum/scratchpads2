@@ -18,22 +18,26 @@ function emonocot_ipni_menu(){
 
 function emonocot_ipni_autocomplete_publication($string){
   $ipni_matches = emonocot_ipni_get_publication_data($string);
+  $return_matches = array();
   foreach($ipni_matches as $result){
-    $return_matches[$result[3]] = $result[3];
+    if(isset($result[3])){
+      $return_matches[$result[3]] = $result[3];
+    }
   }
   print drupal_json_output($return_matches);
 }
 
 function emonocot_ipni_autocomplete_publication_short($string){
   $ipni_matches = emonocot_ipni_get_publication_data_short($string);
+  $return_matches = array();
   foreach($ipni_matches as $result){
     $return_matches[$result[2]] = $result[2] . ' | ' . $result[3];
   }
   print drupal_json_output($return_matches);
 }
-
 //This function can be called by other modules to get publication title from short title
 function emonocot_ipni_publication_short($string){
+  $return_matches = array();
   $ipni_matches = emonocot_ipni_get_publication_data_short($string);
   foreach($ipni_matches as $result){
     $return_matches[$result[2]] = $result[3];

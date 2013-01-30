@@ -1,0 +1,6 @@
+core = "7.x"
+name = "IUCN Widget"
+description = "Displays an International Union for Conservation of Nature widget on a taxonomy term page."
+package = "Widgets"
+dependencies[] = scratchpads_species
+tool=yes

@@ -1,0 +1,31 @@
+
+#site-map .description {
+  margin-bottom: 0.5em;
+}
+
+#site-map .site-map-box {
+  margin-bottom: 1em;
+}
+
+#site-map .site-map-box ul {
+  padding-left: 1.5em;
+}
+
+#site-map .site-map-box ul ul {
+  margin: 0;
+}
+
+/* Styles when RSS icons are displayed on the left. */
+#site-map .site-map-rss-left ul {
+  padding-left: 0;
+}
+#site-map .site-map-rss-left li {
+  background-image: none;
+  list-style-image: none;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+#site-map .site-map-rss-left ul li li {
+  padding-left: 1.5em;
+}

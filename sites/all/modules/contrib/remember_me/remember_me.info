@@ -1,0 +1,14 @@
+name = Remember me
+description = "Adds a ''Remember me'' checkbox to login forms."
+core = 7.x
+files[] = remember_me.install
+files[] = remember_me.module
+files[] = includes/remember_me.admin.inc
+files[] = includes/remember_me.inc
+
+; Information added by drupal.org packaging script on 2012-04-05
+version = "7.x-1.0"
+core = "7.x"
+project = "remember_me"
+datestamp = "1333644074"
+

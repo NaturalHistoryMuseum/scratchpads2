@@ -4,7 +4,13 @@ class ScratchpadsCommentMigration extends DrupalComment6Migration{
   // Turn of comment notifcation
   protected function preImport(){
     parent::preImport();
-    variable_set('comment_notify_node_types', array());
+    // Chnage the desaitnation to my own class
+    $this->destination = new ScratchpadsMigrateDestinationComment('comment_node_' . $this->destinationType);
+    $array_node_types = array();
+    foreach(node_type_get_names() as $type => $name){
+      $array_node_types[$type] = 0;
+    }
+    variable_set('comment_notify_node_types', $array_node_types);
     variable_set('comment_notify_node_notify_default_mailalert', 0);
   }
 
@@ -22,7 +28,8 @@ class ScratchpadsCommentMigration extends DrupalComment6Migration{
       'path'
     ));
     $this->addUnmigratedSources(array(
-      'format'
+      'format',
+      'vid'
     ));
   }
 
@@ -30,9 +37,6 @@ class ScratchpadsCommentMigration extends DrupalComment6Migration{
     // WTF! D6 comments has 1 for unpublished, 0 for published
     // Invert it
     $row->status = ($row->status == 1 ? 0 : 1);
-    // We're using VID in the mapping tables
-    // Changing the nid to the VID allows us to look up the dest NID by VID
-    $row->nid = $row->vid;
   }
   // Turn on comment notifcation
   protected function postImport(){
