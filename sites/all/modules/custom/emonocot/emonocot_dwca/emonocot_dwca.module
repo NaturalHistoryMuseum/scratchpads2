@@ -93,6 +93,7 @@ function emonocot_dwca_views_default_views_alter(&$views){
         emonocot_dwca_add_description_fields($view, $field_matching[$view->name]);
       }
     //Preserve the relationship
+    /*
         $relationship = NULL;
         if(isset($view->display['default']->display_options['fields']['uuid_1']['relationship'])){
           $relationship = $view->display['default']->display_options['fields']['uuid_1']['relationship'];
@@ -102,6 +103,7 @@ function emonocot_dwca_views_default_views_alter(&$views){
         if(!is_null($relationship)){
           $view->display['default']->display_options['fields']['wcm_id_1']['relationship'] = $relationship;
         }
+        */
     }
   }
 }
