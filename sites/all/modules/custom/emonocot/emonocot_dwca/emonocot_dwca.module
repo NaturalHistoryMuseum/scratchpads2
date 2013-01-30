@@ -352,7 +352,11 @@ function emonocot_dwca_add_wcm_parent_field(&$view){
   $new_field['format_plural'] = 0;
   $new_field['field_api_classes'] = 0;
   //array_unshift($view->display['default']->display_options['fields'], $new_field);
-  $view->display['default']->display_options['fields']['wcm_id_1'] = $new_field;
+  //$view->display['default']->display_options['fields']['wcm_id_1'] = $new_field;
+  $insert = array();
+  $insert['wcm_id_1'] = $new_field;
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'uuid_1');
+  unset($insert);
 }
 
 function emonocot_dwca_source_field(){
