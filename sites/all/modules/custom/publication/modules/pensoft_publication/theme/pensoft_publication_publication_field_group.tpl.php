@@ -37,7 +37,7 @@
     ?>
    <?php elseif (TRUE && $element_id == 'publication_pensoft_full_group_pensoft_files'): ?>
      <?php /* References */ ?>
-     <?php if (count(element_children($element['field_publication_references']))) : ?>
+     <?php if (isset($element['field_publication_references']) && count(element_children($element['field_publication_references']))) : ?>
        <div class="field field-collection-container">
          <div class="field-label">References:</div>
          <div class="field-items">

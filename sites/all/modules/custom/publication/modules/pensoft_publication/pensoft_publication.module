@@ -65,7 +65,11 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
   // Load the field selector for the treatments
   foreach (element_children($form['field_publication_treatments'][LANGUAGE_NONE]) as $key) {
     $treatment_form = $form['field_publication_treatments']['und'][$key];
-    $values = $form_state['values']['field_publication_treatments'][LANGUAGE_NONE][$key];
+    if (isset($form_state['values'])) {
+      $values = $form_state['values']['field_publication_treatments'][LANGUAGE_NONE][$key];
+    } else {
+      $values = array();
+    }
     if (empty($treatment_form['#entity_type'])) {
       continue;
     }
@@ -90,7 +94,11 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
       } else {
         $node = NULL;
       }
-      $selected_fields = explode(',', $relation->field_publication_treat_fields['und'][0]['value']);
+      if (isset($relation->field_publication_treat_fields)) {
+        $selected_fields = explode(',', $relation->field_publication_treat_fields[LANGUAGE_NONE][0]['value']);
+      } else {
+        $selected_fields = array();
+      }
     }
   
     $treatment_field_form = _pensoft_publication_treatment_spm_fields_form($form, $selected_fields, $node, $key);
@@ -101,9 +109,11 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
   // Handle automatic adding of references  
   $entity = $form['#entity'];
   $references_map = array();
-  foreach ($entity->field_publication_references['und'] as $ref_key => $ref) {
-    if (!empty($ref['nid'])) {
-      $references_map[$ref['nid']] = true;
+  if (isset($entity->field_publication_references[LANGUAGE_NONE])) {
+    foreach ($entity->field_publication_references[LANGUAGE_NONE] as $ref_key => $ref) {
+      if (!empty($ref['nid'])) {
+        $references_map[$ref['nid']] = true;
+      }
     }
   }
 
@@ -118,13 +128,15 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
   $figures_map = array();
   if (!empty($form['field_publication_figures'][LANGUAGE_NONE])) {
     foreach (element_children($form['field_publication_figures'][LANGUAGE_NONE]) as $fig_child) {
-      $entity = $form['field_publication_figures'][LANGUAGE_NONE][$fig_child]['#entity'];
-      if (!empty($entity->is_new)) {
-        continue;
-      }
+      if (isset($form['field_publication_figures'][LANGUAGE_NONE][$fig_child]['#entity'])) {
+        $entity = $form['field_publication_figures'][LANGUAGE_NONE][$fig_child]['#entity'];
+        if (!empty($entity->is_new)) {
+          continue;
+        }
       
-      $fid = $entity->field_publication_figure_figure[LANGUAGE_NONE][0]['fid'];
-      $figures_map[$fid] = $fid;
+        $fid = $entity->field_publication_figure_figure[LANGUAGE_NONE][0]['fid'];
+        $figures_map[$fid] = $fid;
+      }
     }
   }
 
@@ -323,7 +335,11 @@ function _pensoft_publication_entity_upsert($entity, $type) {
     return;
   }
   
+  // We might need to re-save the entity. Even though it's already been saved, it might still
+  // be marked as new - so ensure it isn't.
   $need_saving = FALSE;
+  $was_new = !empty($entity->is_new);
+  $entity->is_new = FALSE;
 
   // Add references
   if (!empty($entity->pensoft_add_multiple_references)) {
@@ -337,7 +353,7 @@ function _pensoft_publication_entity_upsert($entity, $type) {
 
     foreach ($references_to_add as $nid) {
       if (!empty($nid)) {
-        $entity->field_publication_references['und'][] = array('nid' => $nid);
+        $entity->field_publication_references[LANGUAGE_NONE][] = array('nid' => $nid);
       }
     }
 
@@ -370,6 +386,7 @@ function _pensoft_publication_entity_upsert($entity, $type) {
         $figure_collection_item->field_publication_figure_figure[LANGUAGE_NONE][0]['fid'] = $fid;
         // Beware, as calling this could cause recursion.
         $figure_collection_item->save();
+        $need_saving = FALSE;
       }
     }
   }
@@ -377,6 +394,8 @@ function _pensoft_publication_entity_upsert($entity, $type) {
   if ($need_saving) {
     $entity->save();
   }
+  
+  $entity->is_new = $was_new;
 }
 
 /**

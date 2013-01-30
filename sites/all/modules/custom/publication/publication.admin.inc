@@ -350,11 +350,13 @@ function publication_edit_form_submit(&$form, &$form_state){
   $publication = entity_ui_controller('publication')->entityFormSubmitBuildEntity($form, $form_state);
   // Save the publication and go back to the list of publications
   // Add in created and changed times.
-  if($publication->is_new = isset($publication->is_new) ? $publication->is_new : 0){
+  $publication->is_new = isset($publication->is_new);
+  if($publication->is_new){
     $publication->created = time();
     $publication->uid = $user->uid;
   }
   $publication->changed = time();
+  
   $publication->save();
   $form_state['pid'] = $publication->pid;
   $form_state['redirect'] = 'publication/' . $publication->pid;

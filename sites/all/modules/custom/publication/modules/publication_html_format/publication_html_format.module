@@ -16,9 +16,11 @@ function publication_html_format_entity_view_alter(&$build, $type) {
   $max_table_count = count($process->table_ids)+1;
   foreach (element_children($build['field_publication_tables']) as $key) {
     $table =& $build['field_publication_tables'][$key];
+    if (!isset($build['field_publication_tables']['#items'][$key]['value'])) {
+      continue;
+    }
     $item = $build['field_publication_tables']['#items'][$key]['value'];
 
-    $collection =& $table['entity']['field_collection_item'][$child_key];
     $current_id = $table['entity']['field_collection_item'][$item]['field_publication_table_id']['#items'][0]['value'];
 
     $pos = array_search($current_id, $process->table_ids);
@@ -37,9 +39,11 @@ function publication_html_format_entity_view_alter(&$build, $type) {
   $max_figure_count = count($process->figure_ids)+1;
   foreach (element_children($build['field_publication_figures']) as $key) {
     $figure =& $build['field_publication_figures'][$key];
+    if (!isset($build['field_publication_figures']['#items'][$key]['value'])) {
+      continue;
+    }
     $item = $build['field_publication_figures']['#items'][$key]['value'];
   
-    $collection =& $figure['entity']['field_collection_item'][$child_key];
     $current_id = $figure['entity']['field_collection_item'][$item]['field_publication_figure_figure']['#items'][0]['fid'];
   
     $pos = array_search($current_id, $process->figure_ids);

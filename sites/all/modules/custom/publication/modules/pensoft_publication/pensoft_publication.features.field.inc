@@ -1853,21 +1853,7 @@ Tables are numbered once the publication is saved.',
       'default_value' => array(
         0 => array(
           'relation_fields' => array(
-            'field_publication_treat_desc' => array(
-              'und' => array(
-                0 => array(
-                  'value' => '',
-                ),
-              ),
-            ),
             'field_publication_treat_fields' => array(
-              'und' => array(
-                0 => array(
-                  'value' => '',
-                ),
-              ),
-            ),
-            'field_publication_treat_material' => array(
               'und' => array(
                 0 => array(
                   'value' => '',
@@ -1903,21 +1889,7 @@ Tables are numbered once the publication is saved.',
             'view_name' => 'relation_select_publication_taxo',
           ),
           'relation_fields' => array(
-            'field_publication_treat_desc' => array(
-              'und' => array(
-                0 => array(
-                  'value' => '',
-                ),
-              ),
-            ),
             'field_publication_treat_fields' => array(
-              'und' => array(
-                0 => array(
-                  'value' => '',
-                ),
-              ),
-            ),
-            'field_publication_treat_material' => array(
               'und' => array(
                 0 => array(
                   'value' => '',
@@ -1951,7 +1923,7 @@ Tables are numbered once the publication is saved.',
       'required' => 0,
       'settings' => array(
         'relation_type' => 'publication_treatments',
-        'relation_view' => 'relation_select_publication_taxo2:default',
+        'relation_view' => 'relation_select_publication_taxo:default',
         'user_register_form' => FALSE,
       ),
       'widget' => array(
