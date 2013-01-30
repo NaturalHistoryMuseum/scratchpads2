@@ -160,7 +160,7 @@ function theme_blockexpose($variables){
     drupal_static('blockexpose_' . $variables['settings']['side'], $side_number);
     $subject = $variables['block']['subject'];
     if(is_array($variables['block']['content'])){
-      $block_html = drupal_render($variables['block']);
+      $block_html = drupal_render($variables['block']['content']);
     }else{
       $block_html = $variables['block']['content'];
     }
