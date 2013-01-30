@@ -685,7 +685,12 @@ function relation_select_field_insert($entity_type, $entity, $field, $instance, 
           if (isset($item['relation_fields'])) {
             // Add relation fields.
             foreach ($item['relation_fields'] as $relation_field_name => $relation_field) {
-              $relation->{$relation_field_name} = $relation_field;
+              $field_langcode = array_shift(array_keys($relation_field));
+              $relation_field_items = array_shift($relation_field);
+              $relation_field_info = field_info_field($relation_field_name);
+              $dummy_form_state = array();
+              field_default_submit('relation', $relation, $relation_field_info, $relation_fields[$relation_field_name], $field_langcode, $relation_field_items, $item, $dummy_form_state);
+              $relation->{$relation_field_name}[$langcode] = $relation_field_items;
             }
           }
           relation_save($relation);
@@ -714,18 +719,12 @@ function relation_select_field_insert($entity_type, $entity, $field, $instance, 
           $relation_fields = field_info_instances('relation', $relation->relation_type);
           if (isset($item['relation_fields'])) {
             foreach ($item['relation_fields'] as $relation_field_name => $relation_field) {
-              if (isset($relation_fields[$relation_field_name])) {
-                // Update an existing relation field instance.
-                $langcode = array_shift(array_keys($relation_field));
-                $relation_field_items = array_shift($relation_field);
-                $relation_field = field_info_field($relation_field_name);
-                field_default_submit('relation', $relation, $relation_field, $relation_fields[$relation_field_name], $langcode, $relation_field_items, $item, $form_state);
-                $relation->{$relation_field_name}[$langcode] = $relation_field_items;
-              }
-              else {
-                // Create a new relation field instance.
-                $relation->{$relation_field_name} = $relation_field;
-              }
+              $field_langcode = array_shift(array_keys($relation_field));
+              $relation_field_items = array_shift($relation_field);
+              $relation_field_info = field_info_field($relation_field_name);
+              $dummy_form_state = array();
+              field_default_submit('relation', $relation, $relation_field_info, $relation_fields[$relation_field_name], $field_langcode, $relation_field_items, $item, $dummy_form_state);
+              $relation->{$relation_field_name}[$langcode] = $relation_field_items;
             }
           }
           relation_save($relation);
