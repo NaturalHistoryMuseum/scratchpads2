@@ -1,58 +1,48 @@
 <?php
+
 /**
  * Implement hook_entity_view_alter
  *
  */
-function publication_html_format_entity_view_alter(&$build, $type) {
-  if ($type != 'publication') {
-    return;
-  }
-
+function publication_html_format_entity_view_alter(&$build, $type){
+  if($type != 'publication'){return;}
   // Change the citations and get the order of the tables & figures
   $process = new PublicationHtmlFormatChangeCitations();
   $process->process($build);
-
   // Re-order the tables
-  $max_table_count = count($process->table_ids)+1;
-  foreach (element_children($build['field_publication_tables']) as $key) {
-    $table =& $build['field_publication_tables'][$key];
-    if (!isset($build['field_publication_tables']['#items'][$key]['value'])) {
+  $max_table_count = count($process->table_ids) + 1;
+  foreach(element_children($build['field_publication_tables']) as $key){
+    $table = & $build['field_publication_tables'][$key];
+    if(!isset($build['field_publication_tables']['#items'][$key]['value'])){
       continue;
     }
     $item = $build['field_publication_tables']['#items'][$key]['value'];
-
     $current_id = $table['entity']['field_collection_item'][$item]['field_publication_table_id']['#items'][0]['value'];
-
     $pos = array_search($current_id, $process->table_ids);
-    if ($pos === FALSE) {
+    if($pos === FALSE){
       $number = $max_table_count++;
-    } else {
-      $number = $pos+1;
+    }else{
+      $number = $pos + 1;
     }
-
     $build['field_publication_tables'][$key]['#weight'] = $number;
     $build['field_publication_tables'][$key]['#prefix'] = '<strong>' . t('Table') . ' ' . $number . '</strong>';
     $table['entity']['field_collection_item'][$item]['field_publication_table_id']['#printed'] = TRUE;
   }
-
   // Re-order the figures
-  $max_figure_count = count($process->figure_ids)+1;
-  foreach (element_children($build['field_publication_figures']) as $key) {
-    $figure =& $build['field_publication_figures'][$key];
-    if (!isset($build['field_publication_figures']['#items'][$key]['value'])) {
+  $max_figure_count = count($process->figure_ids) + 1;
+  foreach(element_children($build['field_publication_figures']) as $key){
+    $figure = & $build['field_publication_figures'][$key];
+    if(!isset($build['field_publication_figures']['#items'][$key]['value'])){
       continue;
     }
     $item = $build['field_publication_figures']['#items'][$key]['value'];
-  
     $current_id = $figure['entity']['field_collection_item'][$item]['field_publication_figure_figure']['#items'][0]['fid'];
-  
     $pos = array_search($current_id, $process->figure_ids);
-    if ($pos === FALSE) {
+    if($pos === FALSE){
       $number = $max_figure_count++;
-    } else {
-      $number = $pos+1;
+    }else{
+      $number = $pos + 1;
     }
-  
     $build['field_publication_figures'][$key]['#weight'] = $number;
     $build['field_publication_figures'][$key]['#prefix'] = '<strong>' . t('Figure') . ' ' . $number . '</strong>';
   }
@@ -62,29 +52,29 @@ function publication_html_format_entity_view_alter(&$build, $type) {
  * This class is used to process a renderable array and rename citations
  * such that they are in the order they were found
  */
-class PublicationHtmlFormatChangeCitations {
+class PublicationHtmlFormatChangeCitations{
+
   var $table_ids = array();
+
   var $figure_ids = array();
 
   /**
    * The main process function
    */
-  function process(&$build) {
-    if (isset($build['#markup'])) {
+  function process(&$build){
+    if(isset($build['#markup'])){
       // XXX we should enforce a stricter type for citations ids.
-      $build['#markup'] = preg_replace_callback('/(<tbls_citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/tbls_citation>)/', 
-        array($this, '_replace_table_citation'), 
-        $build['#markup']
-      );
-      
-      $build['#markup'] = preg_replace_callback('/(<fig_citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/fig_citation>)/',
-        array($this, '_replace_figure_citation'),
-        $build['#markup']
-      );
+      $build['#markup'] = preg_replace_callback('/(<tbls_citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/tbls_citation>)/', array(
+        $this,
+        '_replace_table_citation'
+      ), $build['#markup']);
+      $build['#markup'] = preg_replace_callback('/(<fig_citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/fig_citation>)/', array(
+        $this,
+        '_replace_figure_citation'
+      ), $build['#markup']);
     }
-
     // Recurse
-    foreach (element_children($build, TRUE) as $key) {
+    foreach(element_children($build, TRUE) as $key){
       $this->process($build[$key]);
     }
   }
@@ -92,17 +82,15 @@ class PublicationHtmlFormatChangeCitations {
   /**
    * preg_replace callback function for replacing table citations
    */
-  function _replace_table_citation($matches) {
+  function _replace_table_citation($matches){
     $id = $matches[2];
-
     $pos = array_search($id, $this->table_ids);
-    if ($pos !== FALSE) {
-      $table_number = $pos+1;
-    } else {
+    if($pos !== FALSE){
+      $table_number = $pos + 1;
+    }else{
       $this->table_ids[] = $id;
       $table_number = count($this->table_ids);
     }
-
     $out = $matches[1] . t('Table') . ' ' . $table_number . $matches[3];
     return $out;
   }
@@ -110,19 +98,47 @@ class PublicationHtmlFormatChangeCitations {
   /**
    * preg_replace callback function for replacing figure citations
    */
-  function _replace_figure_citation($matches) {
+  function _replace_figure_citation($matches){
     $id = $matches[2];
-  
     $pos = array_search($id, $this->figure_ids);
-    if ($pos !== FALSE) {
-      $figure_number = $pos+1;
-    } else {
+    if($pos !== FALSE){
+      $figure_number = $pos + 1;
+    }else{
       $this->figure_ids[] = $id;
       $figure_number = count($this->figure_ids);
     }
-  
     $out = $matches[1] . t('Figure') . ' ' . $figure_number . $matches[3];
     return $out;
   }
 }
 
+/**
+ * Implement hook_element_info_alter
+ *
+ * Add our own processing function for filter format selector
+ */
+function publication_html_format_element_info_alter(&$type){
+  $location = array_search('filter_process_format', $type['text_format']['#process']);
+  $replacement = array(
+    'filter_process_format',
+    '_publication_html_format_filter_process_format'
+  );
+  array_splice($type['text_format']['#process'], $location, 1, $replacement);
+}
+
+/**
+ * Modify the filter format selector to ensure we are only enabled on publication
+ * types
+ */
+function _publication_html_format_filter_process_format($element){
+  if(empty($element['#entity_type']) || $element['#entity_type'] != 'publication'){
+    unset($element['format']['format']['#options']['publication_html']);
+  }else if(!empty($element['#entity_type']) && $element['#entity_type'] == 'publication' && !empty($element['#entity'])){
+    list($eid, $vid, $bundle) = entity_extract_ids($element['#entity_type'], $element['#entity']);
+    // Only set a default on new entities
+    if(empty($eid) && isset($element['format']['format']['#options']['publication_html'])){
+      $element['format']['format']['#default_value'] = 'publication_html';
+    }
+  }
+  return $element;
+}
