@@ -1,0 +1,244 @@
+.st_form {
+	color:#333333;
+	padding:10px;	
+	margin:0px;
+	margin-bottom: 25px;
+	
+	border:1px solid darkgrey;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	border-radius: 10px;
+	
+	background: #eaeeef; 
+    background: -moz-linear-gradient(top, #eaeeef 0%, #fff 90%); 
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#eaeeef), color-stop(90%,#fff)); 
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eaeeef', endColorstr='#fff',GradientType=0 );
+}
+
+.st_formButton, .st_formButtonSave {
+	margin:0px;
+	margin-bottom:10px;
+	margin-right:7px;
+	padding:10px;
+	display:inline-block;
+	color:#056D2D;
+	text-align:center;
+	font-size:1.2em;
+	width:120px;
+	cursor:pointer;
+	
+	border:1px solid #888888;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	
+	background: #eeeeee; 
+    background: -moz-linear-gradient(top, #eeeeee 0%, #cccccc 90%); 
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#eeeeee), color-stop(90%,#cccccc)); 
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#cccccc',GradientType=0 );	
+}
+
+.st_formButton:hover, .st_formButtonSave:hover {
+	background: #cccccc; 
+	border:1px solid #aaaaaa;
+	
+    background: -moz-linear-gradient(top, #cccccc 0%, #eeeeee 90%); 
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#cccccc), color-stop(90%,#eeeeee)); 
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cccccc', endColorstr='#eeeeee',GradientType=0 );
+}
+
+.st_formSubtitle {
+	font-size:.7em;
+	color:black;	
+}
+
+.st_widgetPic {
+	position:absolute;
+	left:206px;
+	display:block;
+	background:white;
+	padding:10px;
+	border:1px solid black;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;		
+}
+
+.st_widgetPicContain {
+	display:block;
+	height:285px;
+	overflow:hidden;	
+	
+	border:1px solid #aaaaaa;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;	
+}
+
+.st_multi .st_widgetPicContain img{
+	margin-top:-285px;
+}
+
+.st_widgetPic img {
+	margin:0px;
+	padding:0px;
+	display:block;
+}
+
+.st_widgetContain {
+	width:800px;	
+	height:340px;
+	position:relative;
+}
+
+.st_buttonContain {
+	height:340px;	
+}
+
+.st_select, .st_select:hover {
+	background: #aaaaaa; 
+	border: 2px solid #118811;
+	margin-bottom:8px;
+}
+
+.st_formPickerLeft, .st_formPickerMid, .st_formPickerRight {
+	display:block;
+	float:left;
+	height:294px;
+	width:327px;
+	border:1px solid black;
+	-moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius:5px;
+    overflow:hidden;
+}
+
+.st_formPickerMid {
+	width:100px;
+	border:none;
+	margin-top:40px;
+}
+
+.st_clear {
+	clear:both;	
+}
+
+#st_formULLeft, #st_formULRight  {
+	display:block;
+	overflow-y:scroll;	
+	height:255px;
+	margin:0px;
+	list-style:none;
+	background-color: #eeeeee;
+}
+
+.st_formULHeader {
+	display:block;
+	font-size:1.2em;
+	padding:10px;
+	background-color: #115511;
+	color:#115511;
+	
+	background: #eeeeee; 
+    background: -moz-linear-gradient(top, #eeeeee 0%, #cccccc 90%); 
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#eeeeee), color-stop(90%,#cccccc)); 
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#cccccc',GradientType=0 );	
+}
+
+.st_pickerLi {
+	border-bottom:1px solid black;	
+	padding:5px;
+	background: #ffffee; 
+	cursor:pointer;
+}
+
+.st_pickerLi:hover {
+	background:#aaffcc;
+}
+
+.st_selectLi, .st_selectLi:hover {
+	background:#88dd11;
+}
+
+.st_arrow {
+	display:block;
+	height:35px;
+	width:35px;
+	margin:30px;
+	margin-bottom:10px;
+	margin-top:10px;
+	overflow:hidden;
+	cursor:pointer;
+}
+
+.st_up:hover {
+	margin-top:-152px;
+}
+
+.st_left {
+	margin-top:-37px;
+}
+
+.st_left:hover {
+	margin-top:-189px;
+}
+
+.st_right {
+	margin-top:-75px;	
+}
+
+.st_right:hover {
+	margin-top:-227px;	
+}
+
+.st_down {
+	margin-top:-114px;	
+}
+
+.st_down:hover {
+	margin-top:-266px;	
+}
+
+.st_formMessage {
+	color:red;	
+}
+
+.st_buttonSelectImage {
+	left:206px;
+	display:block;
+	background:white;
+	padding:10px;
+	border:1px solid #aaaaaa;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;		
+}
+
+.st_buttonSelectSprite {
+	display:block;
+	padding:0px;
+	margin:0px;
+}
+
+.st_spriteCover {
+	position:absolute;
+	left:219px;
+	top:100px;
+	display:block;
+	margin:10px;	
+	overflow:hidden;
+	height:73px;
+	width:600px;
+	z-index:5;
+}
+
+.st_buttonContain {
+	position:relative;
+	width:400px;
+}
+
+.stbc_ { margin-top: -90px; }
+.stbc_large { margin-top: -10px; }
+.stbc_hcount { margin-top: -244px; }
+.stbc_vcount { margin-top: -315px; }
+.stbc_button { margin-top: -166px; }
