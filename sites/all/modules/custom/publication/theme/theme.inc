@@ -30,31 +30,6 @@ function theme_publication_add_list($variables){
 function publication_preprocess_publication_field_group(&$variables){
   $element = $variables['element'];
   $variables['label'] = $element['#group']->label;
-  if(isset($element['#group']->format_settings['instance_settings']['links'])){
-    $links = $element['#group']->format_settings['instance_settings']['links'];
-    $item_list_vars = array();
-    $entity_id = entity_id($element['#entity_type'], $element['#entity']);
-    if($links['edit_link']){
-      $item_list_vars['items'][] = l('Edit', 'publication/' . $entity_id . '/edit', array(
-        'query' => array(
-          'step' => $element['#group']->group_name
-        )
-      ));
-    }
-    if(isset($links['additional_link']['url'])){
-      $links['additional_link']['url'] = token_replace($links['additional_link']['url'], array(
-        'publication' => $element['#entity']
-      ));
-      $item_list_vars['items'][] = l(($links['additional_link']['title'] ? $links['additional_link']['title'] : $links['additional_link']['url']), $links['additional_link']['url'], array(
-        'query' => array(
-          'destination' => request_uri()
-        )
-      ));
-    }
-    if(count($item_list_vars['items'])){
-      $variables['links'] = theme('item_list', $item_list_vars);
-    }
-  }
 }
 
 function theme_publication_field_group($variables){

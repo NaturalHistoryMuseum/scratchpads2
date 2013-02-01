@@ -60,6 +60,21 @@ function publication_schema(){
         'size' => 'big',
         'serialize' => TRUE,
         'description' => 'A serialized array of additional data.'
+      ),
+      'published' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'Indicates whether the publication has already been published'
+      ),
+      'publisher_data' => array(
+        'type' => 'blob',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of data from the online publisher'
       )
     ),
     'foreign keys' => array(
@@ -124,4 +139,27 @@ function publication_schema(){
     )
   );
   return $schema;
+}
+
+/**
+ * Update: add fields for managing data from online publishers
+ */
+function publication_update_7000(){
+  $published = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+    'size' => 'tiny',
+    'description' => 'Indicates whether the publication has already been published'
+  );
+  db_add_field('publication', 'published', $published);
+  $publisher_data = array(
+    'type' => 'blob',
+    'not null' => FALSE,
+    'size' => 'big',
+    'serialize' => TRUE,
+    'description' => 'A serialized array of data from the online publisher'
+  );
+  db_add_field('publication', 'publisher_data', $publisher_data);
 }

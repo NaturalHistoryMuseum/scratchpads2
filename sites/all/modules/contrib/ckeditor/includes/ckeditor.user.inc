@@ -33,142 +33,103 @@
  * OpenOffice.org Writer. CKEditor is truly lightweight and does not require any
  * kind of installation on the client computer.
  */
-
 function ckeditor_user_customize(&$form, &$form_state, $form_id) {
 
-    module_load_include('inc', 'ckeditor', 'includes/ckeditor.lib');
-    
-    $data = $form['#user']->data;
-    
-    $default = ckeditor_user_get_setting_default();
-    $toolbar_options = ckeditor_load_toolbar_options();
-    $skin_options = ckeditor_load_skin_options();
-    $lang_options = ckeditor_load_lang_options();
-    
-    // because the settings are saved as strings we need to test for the string 'true'
-    if (user_access('customize ckeditor')) {
-        $form['ckeditor'] = array(
-            '#type' => 'fieldset',
-            '#title' => t('Rich text editor settings'),
-            '#weight' => 10,
-            '#collapsible' => TRUE,
-            '#collapsed' => TRUE
-        );
+  module_load_include('inc', 'ckeditor', 'includes/ckeditor.lib');
 
-        $form['ckeditor']['ckeditor_default'] = array(
-            '#type' => 'radios',
-            '#title' => t('Default state'),
-            '#default_value' => isset($data['ckeditor_default']) ? $data['ckeditor_default'] : $default['default'],
-            '#options' => array(
-                't' => t('Enabled'),
-                'f' => t('Disabled')
-            ),
-            '#description' => t('Should rich text editing be enabled or disabled by default in textarea fields? If disabled, the rich text editor may still be enabled by using toggle.'),
-        );
+  $data = $form['#user']->data;
 
-        $form['ckeditor']['ckeditor_show_toggle'] = array(
-            '#type' => 'radios',
-            '#title' => t('Show the disable/enable rich text editor toggle'),
-            '#default_value' => isset($data['ckeditor_show_toggle']) ? $data['ckeditor_show_toggle'] : $default['show_toggle'],
-            '#options' => array(
-                't' => t('Yes'),
-                'f' => t('No')
-            ),
-            '#description' => t('Whether or not to show the disable/enable rich text editor toggle below the textarea.'),
-        );
-/*
-        $form['ckeditor']['ckeditor_popup'] = array(
-            '#type' => 'radios',
-            '#title' => t('Use CKEditor in a popup window'),
-            '#default_value' => isset($data['ckeditor_popup']) ? $data['ckeditor_popup'] : $default['popup'],
-            '#options' => array(
-                'f' => t('No'),
-                't' => t('Yes')
-            ),
-            '#description' => t('If this option is enabled, a link to a popup window will be used instead of a textarea replace.'),
-        );
-*/
-        $form['ckeditor']['ckeditor_skin'] = array(
-            '#type' => 'select',
-            '#title' => t('Skin'),
-            '#default_value' => isset($data['ckeditor_skin']) ? $data['ckeditor_skin'] : $default['skin'],
-            '#options' => $skin_options,
-            '#description' => t('Choose a CKEditor skin.'),
-        );
+  $default = ckeditor_user_get_setting_default();
+  $lang_options = ckeditor_load_lang_options();
 
-        $form['ckeditor']['ckeditor_expand'] = array(
-            '#type' => 'select',
-            '#title' => t('Toolbar state on startup'),
-            '#default_value' => isset($data['ckeditor_expand']) ? $data['ckeditor_expand'] : $default['expand'],
-            '#options' => array(
-                't' => t('Expanded'),
-                'f' => t('Collapsed')
-            ),
-            '#description' => t('The toolbar will start in an expanded or collapsed state.'),
-        );
+  // because the settings are saved as strings we need to test for the string 'true'
+  if (user_access('customize ckeditor')) {
+    $form['ckeditor'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Rich text editor settings'),
+      '#weight' => 10,
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE
+    );
 
-        $form['ckeditor']['ckeditor_width'] = array(
-            '#type' => 'textfield',
-            '#title' => t('Editor width'),
-            '#default_value' => isset($data['ckeditor_width']) ? $data['ckeditor_width'] : $default['width'],
-            '#description' => t('Editor interface width in pixels or percent.') . ' ' . t('Examples') . ': 400 ' . t('or') . ' 100%.',
-            '#size' => 40,
-            '#maxlength' => 128,
-        );
+    $form['ckeditor']['ckeditor_default'] = array(
+      '#type' => 'radios',
+      '#title' => t('Default state'),
+      '#default_value' => isset($data['ckeditor_default']) ? $data['ckeditor_default'] : $default['default'],
+      '#options' => array(
+        't' => t('Enabled'),
+        'f' => t('Disabled')
+      ),
+      '#description' => t('Should rich text editing be enabled or disabled by default in textarea fields? If disabled, the rich text editor may still be enabled by using toggle.'),
+    );
 
-        $form['ckeditor']['ckeditor_lang'] = array(
-            '#type' => 'select',
-            '#title' => t('Language'),
-            '#default_value' => isset($data['ckeditor_lang']) ? $data['ckeditor_lang'] : $default['lang'],
-            '#options' => $lang_options,
-            '#description' => t('The language for the CKEditor interface.')
-        );
+    $form['ckeditor']['ckeditor_show_toggle'] = array(
+      '#type' => 'radios',
+      '#title' => t('Show the disable/enable rich text editor toggle'),
+      '#default_value' => isset($data['ckeditor_show_toggle']) ? $data['ckeditor_show_toggle'] : $default['show_toggle'],
+      '#options' => array(
+        't' => t('Yes'),
+        'f' => t('No')
+      ),
+      '#description' => t('Whether or not to show the disable/enable rich text editor toggle below the textarea.'),
+    );
 
-        $form['ckeditor']['ckeditor_auto_lang'] = array(
-            '#type' => 'radios',
-            '#title' => t('Auto-detect language'),
-            '#default_value' => isset($data['ckeditor_auto_lang']) ? $data['ckeditor_auto_lang'] : $default['auto_lang'],
-            '#options' => array(
-                't' => t('Yes'),
-                'f' => t('No')
-            ),
-            '#description' => t('Automatically detect the user language.')
-        );
+    $form['ckeditor']['ckeditor_width'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Editor width'),
+      '#default_value' => isset($data['ckeditor_width']) ? $data['ckeditor_width'] : $default['width'],
+      '#description' => t('Editor interface width in pixels or percent.') . ' ' . t('Examples') . ': 400 ' . t('or') . ' 100%.',
+      '#size' => 40,
+      '#maxlength' => 128,
+    );
 
-        $form['#validate'][] = 'ckeditor_user_customize_form_validate';
+    $form['ckeditor']['ckeditor_lang'] = array(
+      '#type' => 'select',
+      '#title' => t('Language'),
+      '#default_value' => isset($data['ckeditor_lang']) ? $data['ckeditor_lang'] : $default['lang'],
+      '#options' => $lang_options,
+      '#description' => t('The language for the CKEditor interface.')
+    );
 
-    }
+    $form['ckeditor']['ckeditor_auto_lang'] = array(
+      '#type' => 'radios',
+      '#title' => t('Auto-detect language'),
+      '#default_value' => isset($data['ckeditor_auto_lang']) ? $data['ckeditor_auto_lang'] : $default['auto_lang'],
+      '#options' => array(
+        't' => t('Yes'),
+        'f' => t('No')
+      ),
+      '#description' => t('Automatically detect the user language.')
+    );
 
+    $form['#validate'][] = 'ckeditor_user_customize_form_validate';
+  }
 }
 
 function ckeditor_user_customize_form_validate(&$form, &$form_state) {
-/*
+  /*
     if (isset($form_state['values']['ckeditor_default'], $form_state['values']['ckeditor_popup']) && $form_state['values']['ckeditor_default'] == 't' && $form_state['values']['ckeditor_popup'] == 't') {
-        form_set_error('ckeditor_popup', t('If CKEditor is enabled by default, the popup window must be disabled.'));
+    form_set_error('ckeditor_popup', t('If CKEditor is enabled by default, the popup window must be disabled.'));
     }
 
     if (isset($form_state['values']['ckeditor_show_toggle'], $form_state['values']['ckeditor_popup']) && $form_state['values']['ckeditor_show_toggle'] == 't' && $form_state['values']['ckeditor_popup'] == 't') {
-        form_set_error('ckeditor_popup', t('If toggle is enabled, the popup window must be disabled.'));
+    form_set_error('ckeditor_popup', t('If toggle is enabled, the popup window must be disabled.'));
     }
-*/
-    if (isset($form_state['values']['ckeditor_width']) && !preg_match('/^\d+%?$/', $form_state['values']['ckeditor_width'])) {
-        form_set_error('ckeditor_width', t('Enter a valid width value.') . ' ' . t('Examples:') . ': 400 ' . t('or') . ' 100%.');
-    }
-
+   */
+  if (isset($form_state['values']['ckeditor_width']) && !preg_match('/^\d+%?$/', $form_state['values']['ckeditor_width'])) {
+    form_set_error('ckeditor_width', t('Enter a valid width value.') . ' ' . t('Examples:') . ': 400 ' . t('or') . ' 100%.');
+  }
 }
 
 function ckeditor_user_presave(&$edit, $account, $category) {
-    if (user_access('customize ckeditor')) {
-        module_load_include('inc', 'ckeditor', 'includes/ckeditor.lib');
-        $default = ckeditor_user_get_setting_default();
+  if (user_access('customize ckeditor')) {
+    module_load_include('inc', 'ckeditor', 'includes/ckeditor.lib');
+    $default = ckeditor_user_get_setting_default();
 
-        $edit['data']['ckeditor_default'] = isset($edit['ckeditor_default']) ? $edit['ckeditor_default'] : $default['default'];
-        $edit['data']['ckeditor_show_toggle'] = isset($edit['ckeditor_show_toggle']) ? $edit['ckeditor_show_toggle'] : $default['show_toggle'];
-        $edit['data']['ckeditor_popup'] = isset($edit['ckeditor_popup']) ? $edit['ckeditor_popup'] : $default['popup'];
-        $edit['data']['ckeditor_skin'] = isset($edit['ckeditor_skin']) ? $edit['ckeditor_skin'] : $default['skin'];
-        $edit['data']['ckeditor_expand'] = isset($edit['ckeditor_expand']) ? $edit['ckeditor_expand'] : $default['expand'];
-        $edit['data']['ckeditor_width'] = isset($edit['ckeditor_width']) ? $edit['ckeditor_width'] : $default['width'];
-        $edit['data']['ckeditor_lang'] = isset($edit['ckeditor_lang']) ? $edit['ckeditor_lang'] : $default['lang'];
-        $edit['data']['ckeditor_auto_lang'] = isset($edit['ckeditor_auto_lang']) ? $edit['ckeditor_auto_lang'] : $default['auto_lang'];
-    }
+    $edit['data']['ckeditor_default'] = isset($edit['ckeditor_default']) ? $edit['ckeditor_default'] : $default['default'];
+    $edit['data']['ckeditor_show_toggle'] = isset($edit['ckeditor_show_toggle']) ? $edit['ckeditor_show_toggle'] : $default['show_toggle'];
+    $edit['data']['ckeditor_width'] = isset($edit['ckeditor_width']) ? $edit['ckeditor_width'] : $default['width'];
+    $edit['data']['ckeditor_lang'] = isset($edit['ckeditor_lang']) ? $edit['ckeditor_lang'] : $default['lang'];
+    $edit['data']['ckeditor_auto_lang'] = isset($edit['ckeditor_auto_lang']) ? $edit['ckeditor_auto_lang'] : $default['auto_lang'];
+  }
 }

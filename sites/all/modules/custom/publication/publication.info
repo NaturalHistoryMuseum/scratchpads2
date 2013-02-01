@@ -2,10 +2,7 @@ name = Publication
 description = Scratchpad publication
 core = 7.x
 dependencies[] = entity
-;dependencies[] = field_collection
 dependencies[] = relation_select
-dependencies[] = formflow
-;dependencies[] = scratchpads_user
 package = Publication
 
 files[] = publication.admin.inc

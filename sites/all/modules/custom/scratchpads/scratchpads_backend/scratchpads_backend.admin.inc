@@ -173,7 +173,7 @@ function scratchpads_backend_admin_content(){
           $view_url = 'admin/content/publications';
           $operations = array(
             l(t('View'), $view_url),
-            l(t('Add'), 'admin/content/publications/add/' . $bundle)
+            l(t('Add'), 'publication/add/' . $bundle)
           );
           $operations = theme('item_list', array(
             'items' => $operations

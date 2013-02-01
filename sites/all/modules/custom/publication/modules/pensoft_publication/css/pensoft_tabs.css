@@ -1,0 +1,96 @@
+div.pensoft_tabs ul {
+  border-bottom: 1px solid #999999;
+  background: #EEE;
+}
+
+div.pensoft_tabs li {
+  position: relative;
+  top: 1px;
+  float: left;
+  padding: 2px 12px;
+  border-right: 1px solid #AAA;
+  border-bottom: 1px solid #AAA;
+  background: #EEE;
+  color: #AAA;
+}
+
+div.pensoft_tabs li a,
+div.pensoft_tabs li a:visited,
+div.pensoft_tabs li a:hover {
+  font-size: 13px;
+  font-weight: 700;
+  color: #999;
+  text-shadow: #FFFFFF 0px 1px 0px;
+}
+
+div.pensoft_tabs li.pst_selected {
+  border-bottom: 1px solid #FFF;
+  background: #FFF;
+  color: #000;
+}
+
+div.pensoft_tabs li.pst_selected a,
+div.pensoft_tabs li.pst_selected a:visited,
+div.pensoft_tabs li.pst_selected a:hover {
+  color: #333;
+}
+
+div.pensoft_tabs ul:after {
+  content: ".";
+  visibility: hidden;
+  display: block;
+  height: 0;
+  clear: both;
+}
+
+div.publication-relation-select-container {
+  position: relative;
+}
+
+div.publication-relation-select-container .field-add-more-submit {
+  margin: 0;
+  position:absolute;
+  top: 0;
+  right: 0;
+}
+
+div.publication-relation-select-container .form-item .field-add-more-submit {
+  margin: auto;
+  position:relative;
+}
+
+
+div.publication-relation-select-container div.views-exposed-widget .form-submit {
+  margin-top: 9px;
+}
+
+div.field-publication-treatments-entity-fields {
+  margin-top: 16px;
+}
+
+div.field-publication-treatments-entity-fields div.vertical-tabs-panes legend span {
+  display: none;
+}
+
+div.field-publication-treatments-entity-fields div.vertical-tabs-panes .fieldset-content,
+div.field-publication-treatments-entity-fields div.vertical-tabs-panes .fieldset-wrapper {
+  padding: 0 0 10px 10px;
+}
+
+#edit-group_publication_references table input.fluid {
+  width: 100%;
+}
+
+div.view-publication-citations-figures .views-row {
+  float: left;
+  margin-right: 20px;
+  padding-bottom: 20px;
+  width: 130px;
+}
+
+#pensoft_select_table tr.pensoft_select_table_row:hover,
+#pensoft_select_table tr.pensoft_select_table_row:hover td {
+  cursor: pointer;
+  background: #FFF4C0;
+}
+    
