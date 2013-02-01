@@ -12,7 +12,7 @@ function publication_views_default_views(){
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
-    $handler = $view->new_display('default', 'Master', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Publication user';
   $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['access']['type'] = 'none';
