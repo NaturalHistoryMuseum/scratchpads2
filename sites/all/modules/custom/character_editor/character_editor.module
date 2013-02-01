@@ -69,6 +69,11 @@ function character_editor_scratchpads_default_permissions(){
 function character_editor_theme(){
   $path = drupal_get_path('module', 'character_editor');
   return array(
+    'character_editor_create_sdd' => array(
+      'variables' => array(),
+      'path' => $path . '/theme',
+      'file' => 'theme.inc'
+    ),
     'field__field_char_states' => array(
       'render element' => 'element'
     ),
@@ -1137,11 +1142,11 @@ function character_editor_preprocess_slickgrid_control__add(&$variables){
  */
 function template_preprocess_views_data_export_sdd(&$vars){
   // Compute the root XML node, using the base table, and appending an 's' if needed.
-//  $root_node = $vars['view']->base_table;
-//  if (rtrim($root_node, 's') == $root_node) {
-//    $root_node .= 's';
-//  }
-//  $vars['root_node'] = _views_data_export_xml_tag_clean($root_node);
+  //  $root_node = $vars['view']->base_table;
+  //  if (rtrim($root_node, 's') == $root_node) {
+  //    $root_node .= 's';
+  //  }
+  //  $vars['root_node'] = _views_data_export_xml_tag_clean($root_node);
 }
 
 /*********************************************************************************************
