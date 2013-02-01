@@ -1,16 +1,15 @@
 <?php
+
 /**
  * @file
  * pensoft_publication.field_group.inc
  */
-
 /**
  * Implements hook_field_group_info().
  */
-function pensoft_publication_field_group_info() {
+function pensoft_publication_field_group_info(){
   $export = array();
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_pensoft_acknowledgments|publication|pensoft|default';
@@ -23,7 +22,7 @@ function pensoft_publication_field_group_info() {
     'label' => 'Acknowledgments',
     'weight' => '11',
     'children' => array(
-      0 => 'field_pensoft_acknowledgments',
+      0 => 'field_pensoft_acknowledgments'
     ),
     'format_type' => 'publication',
     'format_settings' => array(
@@ -33,16 +32,15 @@ function pensoft_publication_field_group_info() {
           'edit_link' => 1,
           'additional_link' => array(
             'url' => '',
-            'title' => '',
-          ),
+            'title' => ''
+          )
         ),
-        'display_mode' => '',
-      ),
-    ),
+        'display_mode' => ''
+      )
+    )
   );
   $export['group_pensoft_acknowledgments|publication|pensoft|default'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_pensoft_acknowledgments|publication|pensoft|form';
@@ -55,7 +53,7 @@ function pensoft_publication_field_group_info() {
     'label' => 'Acknowledgments',
     'weight' => '12',
     'children' => array(
-      0 => 'field_pensoft_acknowledgments',
+      0 => 'field_pensoft_acknowledgments'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -63,13 +61,12 @@ function pensoft_publication_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_pensoft_acknowledgments|publication|pensoft|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_pensoft_files|publication|pensoft|default';
@@ -85,16 +82,15 @@ function pensoft_publication_field_group_info() {
       0 => 'field_pensoft_files',
       1 => 'field_publication_references',
       2 => 'field_publication_tables',
-      3 => 'field_publication_figures',
+      3 => 'field_publication_figures'
     ),
     'format_type' => 'publication',
     'format_settings' => array(
-      'formatter' => 'collapsible',
-    ),
+      'formatter' => 'collapsible'
+    )
   );
   $export['group_pensoft_files|publication|pensoft|default'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_pensoft_files|publication|pensoft|form';
@@ -107,7 +103,7 @@ function pensoft_publication_field_group_info() {
     'label' => 'Supplementary files',
     'weight' => '11',
     'children' => array(
-      0 => 'field_pensoft_files',
+      0 => 'field_pensoft_files'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -115,13 +111,12 @@ function pensoft_publication_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_pensoft_files|publication|pensoft|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_abs_keyws|publication|pensoft|form';
@@ -135,7 +130,7 @@ function pensoft_publication_field_group_info() {
     'weight' => '2',
     'children' => array(
       0 => 'field_publication_abstract',
-      1 => 'field_publication_keywords',
+      1 => 'field_publication_keywords'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -143,13 +138,12 @@ function pensoft_publication_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_publication_abs_keyws|publication|pensoft|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_abstract_keyw|publication|pensoft|default';
@@ -163,16 +157,15 @@ function pensoft_publication_field_group_info() {
     'weight' => '2',
     'children' => array(
       0 => 'field_publication_abstract',
-      1 => 'field_publication_keywords',
+      1 => 'field_publication_keywords'
     ),
     'format_type' => 'publication',
     'format_settings' => array(
-      'formatter' => 'collapsible',
-    ),
+      'formatter' => 'collapsible'
+    )
   );
   $export['group_publication_abstract_keyw|publication|pensoft|default'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_auth_contrib|publication|pensoft|default';
@@ -190,7 +183,7 @@ function pensoft_publication_field_group_info() {
       2 => 'field_publication_submit_author',
       3 => 'field_publication_ling_editor',
       4 => 'field_publication_copy_editor',
-      5 => 'field_publication_mentor',
+      5 => 'field_publication_mentor'
     ),
     'format_type' => 'publication',
     'format_settings' => array(
@@ -201,15 +194,14 @@ function pensoft_publication_field_group_info() {
           'edit_link' => 0,
           'additional_link' => array(
             'url' => '',
-            'title' => '',
-          ),
-        ),
-      ),
-    ),
+            'title' => ''
+          )
+        )
+      )
+    )
   );
   $export['group_publication_auth_contrib|publication|pensoft|default'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_authors|publication|pensoft|form';
@@ -223,7 +215,7 @@ function pensoft_publication_field_group_info() {
     'weight' => '1',
     'children' => array(
       0 => 'field_publication_authors',
-      1 => 'field_publication_submit_author',
+      1 => 'field_publication_submit_author'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -231,13 +223,12 @@ function pensoft_publication_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_publication_authors|publication|pensoft|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_contributors|publication|pensoft|form';
@@ -253,7 +244,7 @@ function pensoft_publication_field_group_info() {
       0 => 'field_publication_contributors',
       1 => 'field_publication_ling_editor',
       2 => 'field_publication_copy_editor',
-      3 => 'field_publication_mentor',
+      3 => 'field_publication_mentor'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -261,13 +252,12 @@ function pensoft_publication_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_publication_contributors|publication|pensoft|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_data_resources|publication|pensoft|form';
@@ -280,7 +270,7 @@ function pensoft_publication_field_group_info() {
     'label' => 'Data Resources',
     'weight' => '6',
     'children' => array(
-      0 => 'field_publication_data_resources',
+      0 => 'field_publication_data_resources'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -288,13 +278,12 @@ function pensoft_publication_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_publication_data_resources|publication|pensoft|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_discussion|publication|pensoft|default';
@@ -307,7 +296,7 @@ function pensoft_publication_field_group_info() {
     'label' => 'Discussion',
     'weight' => '9',
     'children' => array(
-      0 => 'field_publication_discussion',
+      0 => 'field_publication_discussion'
     ),
     'format_type' => 'publication',
     'format_settings' => array(
@@ -317,16 +306,15 @@ function pensoft_publication_field_group_info() {
           'edit_link' => 1,
           'additional_link' => array(
             'url' => '',
-            'title' => '',
-          ),
+            'title' => ''
+          )
         ),
-        'display_mode' => '',
-      ),
-    ),
+        'display_mode' => ''
+      )
+    )
   );
   $export['group_publication_discussion|publication|pensoft|default'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_discussion|publication|pensoft|form';
@@ -339,7 +327,7 @@ function pensoft_publication_field_group_info() {
     'label' => 'Discussion',
     'weight' => '10',
     'children' => array(
-      0 => 'field_publication_discussion',
+      0 => 'field_publication_discussion'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -347,13 +335,12 @@ function pensoft_publication_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_publication_discussion|publication|pensoft|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_figures|publication|pensoft|form';
@@ -366,7 +353,7 @@ function pensoft_publication_field_group_info() {
     'label' => 'Figures',
     'weight' => '14',
     'children' => array(
-      0 => 'field_publication_figures',
+      0 => 'field_publication_figures'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -374,13 +361,12 @@ function pensoft_publication_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_publication_figures|publication|pensoft|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_introduction|publication|pensoft|default';
@@ -393,7 +379,7 @@ function pensoft_publication_field_group_info() {
     'label' => 'Introduction',
     'weight' => '3',
     'children' => array(
-      0 => 'field_publication_introduction',
+      0 => 'field_publication_introduction'
     ),
     'format_type' => 'publication',
     'format_settings' => array(
@@ -403,16 +389,15 @@ function pensoft_publication_field_group_info() {
           'edit_link' => 1,
           'additional_link' => array(
             'url' => '',
-            'title' => '',
-          ),
+            'title' => ''
+          )
         ),
-        'display_mode' => '',
-      ),
-    ),
+        'display_mode' => ''
+      )
+    )
   );
   $export['group_publication_introduction|publication|pensoft|default'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_introduction|publication|pensoft|form';
@@ -425,7 +410,7 @@ function pensoft_publication_field_group_info() {
     'label' => 'Introduction',
     'weight' => '4',
     'children' => array(
-      0 => 'field_publication_introduction',
+      0 => 'field_publication_introduction'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -433,13 +418,12 @@ function pensoft_publication_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_publication_introduction|publication|pensoft|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_methods|publication|pensoft|default';
@@ -452,16 +436,15 @@ function pensoft_publication_field_group_info() {
     'label' => 'Material & Methods',
     'weight' => '4',
     'children' => array(
-      0 => 'field_publication_methods',
+      0 => 'field_publication_methods'
     ),
     'format_type' => 'publication',
     'format_settings' => array(
-      'formatter' => 'collapsible',
-    ),
+      'formatter' => 'collapsible'
+    )
   );
   $export['group_publication_methods|publication|pensoft|default'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_methods|publication|pensoft|form';
@@ -474,7 +457,7 @@ function pensoft_publication_field_group_info() {
     'label' => 'Material & Methods',
     'weight' => '5',
     'children' => array(
-      0 => 'field_publication_methods',
+      0 => 'field_publication_methods'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -482,13 +465,12 @@ function pensoft_publication_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_publication_methods|publication|pensoft|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_references|publication|pensoft|form';
@@ -501,7 +483,7 @@ function pensoft_publication_field_group_info() {
     'label' => 'References',
     'weight' => '13',
     'children' => array(
-      0 => 'field_publication_references',
+      0 => 'field_publication_references'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -509,13 +491,12 @@ function pensoft_publication_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_publication_references|publication|pensoft|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_resources|publication|pensoft|default';
@@ -528,16 +509,15 @@ function pensoft_publication_field_group_info() {
     'label' => 'Data Resources',
     'weight' => '5',
     'children' => array(
-      0 => 'field_publication_data_resources',
+      0 => 'field_publication_data_resources'
     ),
     'format_type' => 'publication',
     'format_settings' => array(
-      'formatter' => 'collapsible',
-    ),
+      'formatter' => 'collapsible'
+    )
   );
   $export['group_publication_resources|publication|pensoft|default'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_results|publication|pensoft|default';
@@ -550,16 +530,15 @@ function pensoft_publication_field_group_info() {
     'label' => 'Results',
     'weight' => '6',
     'children' => array(
-      0 => 'field_publication_results',
+      0 => 'field_publication_results'
     ),
     'format_type' => 'publication',
     'format_settings' => array(
-      'formatter' => 'collapsible',
-    ),
+      'formatter' => 'collapsible'
+    )
   );
   $export['group_publication_results|publication|pensoft|default'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_results|publication|pensoft|form';
@@ -572,7 +551,7 @@ function pensoft_publication_field_group_info() {
     'label' => 'Results',
     'weight' => '7',
     'children' => array(
-      0 => 'field_publication_results',
+      0 => 'field_publication_results'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -580,13 +559,12 @@ function pensoft_publication_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_publication_results|publication|pensoft|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_systematics|publication|pensoft|default';
@@ -600,7 +578,7 @@ function pensoft_publication_field_group_info() {
     'weight' => '8',
     'children' => array(
       0 => 'field_publication_systematics',
-      1 => 'field_publication_treatments',
+      1 => 'field_publication_treatments'
     ),
     'format_type' => 'publication',
     'format_settings' => array(
@@ -610,16 +588,15 @@ function pensoft_publication_field_group_info() {
           'edit_link' => 1,
           'additional_link' => array(
             'url' => '',
-            'title' => '',
-          ),
+            'title' => ''
+          )
         ),
-        'display_mode' => '',
-      ),
-    ),
+        'display_mode' => ''
+      )
+    )
   );
   $export['group_publication_systematics|publication|pensoft|default'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_systematics|publication|pensoft|form';
@@ -632,7 +609,7 @@ function pensoft_publication_field_group_info() {
     'label' => 'Systematics',
     'weight' => '8',
     'children' => array(
-      0 => 'field_publication_systematics',
+      0 => 'field_publication_systematics'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -640,13 +617,12 @@ function pensoft_publication_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_publication_systematics|publication|pensoft|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_tables|publication|pensoft|form';
@@ -659,7 +635,7 @@ function pensoft_publication_field_group_info() {
     'label' => 'Tables',
     'weight' => '15',
     'children' => array(
-      0 => 'field_publication_tables',
+      0 => 'field_publication_tables'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -667,13 +643,12 @@ function pensoft_publication_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_publication_tables|publication|pensoft|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_title_authors|publication|pensoft|form';
@@ -687,7 +662,7 @@ function pensoft_publication_field_group_info() {
     'weight' => '0',
     'children' => array(
       0 => 'field_publication_title',
-      1 => 'title',
+      1 => 'title'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -696,14 +671,13 @@ function pensoft_publication_field_group_info() {
         'display_mode' => '',
         'required_fields' => 1,
         'classes' => '',
-        'description' => '',
+        'description' => ''
       ),
-      'formatter' => 'closed',
-    ),
+      'formatter' => 'closed'
+    )
   );
   $export['group_publication_title_authors|publication|pensoft|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_publication_treatments|publication|pensoft|form';
@@ -716,7 +690,7 @@ function pensoft_publication_field_group_info() {
     'label' => 'Treatments',
     'weight' => '9',
     'children' => array(
-      0 => 'field_publication_treatments',
+      0 => 'field_publication_treatments'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -724,11 +698,10 @@ function pensoft_publication_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_publication_treatments|publication|pensoft|form'] = $field_group;
-
   return $export;
 }

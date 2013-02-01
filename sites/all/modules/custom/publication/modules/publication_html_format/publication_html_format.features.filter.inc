@@ -1,15 +1,14 @@
 <?php
+
 /**
  * @file
  * publication_html_format.features.filter.inc
  */
-
 /**
  * Implements hook_filter_default_formats().
  */
-function publication_html_format_filter_default_formats() {
+function publication_html_format_filter_default_formats(){
   $formats = array();
-
   // Exported format: Publication HTML
   $formats['publication_html'] = array(
     'format' => 'publication_html',
@@ -22,31 +21,30 @@ function publication_html_format_filter_default_formats() {
         'weight' => '-49',
         'status' => '1',
         'settings' => array(
-          'filter_url_length' => '72',
-        ),
+          'filter_url_length' => '72'
+        )
       ),
       'filter_autop' => array(
         'weight' => '-47',
         'status' => '1',
-        'settings' => array(),
+        'settings' => array()
       ),
       'filter_htmlcorrector' => array(
         'weight' => '-46',
         'status' => '1',
-        'settings' => array(),
+        'settings' => array()
       ),
       'media_filter' => array(
         'weight' => '-45',
         'status' => '1',
-        'settings' => array(),
+        'settings' => array()
       ),
       'emptyparagraphkiller' => array(
         'weight' => '-44',
         'status' => '1',
-        'settings' => array(),
-      ),
-    ),
+        'settings' => array()
+      )
+    )
   );
-
   return $formats;
 }

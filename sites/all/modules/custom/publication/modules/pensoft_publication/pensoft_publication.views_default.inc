@@ -1,16 +1,15 @@
 <?php
+
 /**
  * @file
  * pensoft_publication.views_default.inc
  */
-
 /**
  * Implements hook_views_default_views().
  */
-function pensoft_publication_views_default_views() {
+function pensoft_publication_views_default_views(){
   $export = array();
-
-  $view = new view;
+  $view = new view();
   $view->name = 'publication_citations_figures';
   $view->description = '';
   $view->tag = 'default';
@@ -21,7 +20,7 @@ function pensoft_publication_views_default_views() {
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
+      $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Select Images';
   $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['access']['type'] = 'perm';
@@ -37,7 +36,7 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['row_plugin'] = 'fields';
   $handler->display->display_options['row_options']['inline'] = array(
     'insert_from_view_checkbox' => 'insert_from_view_checkbox',
-    'nothing_1' => 'nothing_1',
+    'nothing_1' => 'nothing_1'
   );
   $handler->display->display_options['row_options']['hide_empty'] = 0;
   $handler->display->display_options['row_options']['default_field_elements'] = 1;
@@ -252,12 +251,10 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['filters']['filename']['expose']['identifier'] = 'filename';
   $handler->display->display_options['filters']['filename']['expose']['required'] = 0;
   $handler->display->display_options['filters']['filename']['expose']['multiple'] = FALSE;
-
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'figures');
   $export['publication_citations_figures'] = $view;
-
-  $view = new view;
+  $view = new view();
   $view->name = 'publication_citations_references';
   $view->description = '';
   $view->tag = 'default';
@@ -268,7 +265,7 @@ function pensoft_publication_views_default_views() {
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
+      $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Select Bibliography entries';
   $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['access']['type'] = 'perm';
@@ -298,7 +295,7 @@ function pensoft_publication_views_default_views() {
     'biblio_isbn' => 'biblio_isbn',
     'biblio_original_publication' => 'biblio_original_publication',
     'biblio_year' => 'biblio_year',
-    'nothing' => 'nothing',
+    'nothing' => 'nothing'
   );
   $handler->display->display_options['style_options']['default'] = '-1';
   $handler->display->display_options['style_options']['info'] = array(
@@ -307,86 +304,86 @@ function pensoft_publication_views_default_views() {
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'biblio_authors_1' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'biblio_year_1' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'insert_from_view_checkbox' => array(
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'title' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'biblio_authors' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'citation' => array(
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'biblio_date' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'biblio_edition' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'biblio_isbn' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'biblio_original_publication' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'biblio_year' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'nothing' => array(
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
-    ),
+      'empty_column' => 0
+    )
   );
   $handler->display->display_options['style_options']['override'] = 1;
   $handler->display->display_options['style_options']['sticky'] = 0;
@@ -678,7 +675,7 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['filters']['type']['table'] = 'node';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
-    'biblio' => 'biblio',
+    'biblio' => 'biblio'
   );
   $handler->display->display_options['filters']['type']['group'] = 1;
   /* Filter criterion: Biblio: Type of Publication */
@@ -746,12 +743,10 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['filters']['biblio_date']['expose']['identifier'] = 'biblio_date';
   $handler->display->display_options['filters']['biblio_date']['expose']['required'] = 0;
   $handler->display->display_options['filters']['biblio_date']['expose']['multiple'] = FALSE;
-
   /* Display: References */
   $handler = $view->new_display('block', 'References', 'references');
   $export['publication_citations_references'] = $view;
-
-  $view = new view;
+  $view = new view();
   $view->name = 'publication_create_specimens';
   $view->description = '';
   $view->tag = 'default';
@@ -762,7 +757,7 @@ function pensoft_publication_views_default_views() {
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
+      $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
@@ -795,7 +790,7 @@ function pensoft_publication_views_default_views() {
     'field_other_catalogue_numbers' => 'field_other_catalogue_numbers',
     'field_remarks' => 'field_remarks',
     'field_sex' => 'field_sex',
-    'field_location' => 'field_location',
+    'field_location' => 'field_location'
   );
   $handler->display->display_options['style_options']['default'] = '-1';
   $handler->display->display_options['style_options']['info'] = array(
@@ -804,146 +799,146 @@ function pensoft_publication_views_default_views() {
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_catalogue_number' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_collection_code' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_institution_code' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_type_status' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_taxonomic_name' => array(
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_identification_qualifier' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_identified_by' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_date_identified' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_collector' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_collector_number' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_date_collected' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_notes' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_number' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_count' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_genbank_number' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_lifestage' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_other_catalogue_numbers' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_remarks' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_sex' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'field_location' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
-    ),
+      'empty_column' => 0
+    )
   );
   $handler->display->display_options['style_options']['override'] = 1;
   $handler->display->display_options['style_options']['sticky'] = 0;
@@ -1192,7 +1187,7 @@ function pensoft_publication_views_default_views() {
     'fromto' => 'both',
     'multiple_number' => '',
     'multiple_from' => '',
-    'multiple_to' => '',
+    'multiple_to' => ''
   );
   $handler->display->display_options['fields']['field_date_identified']['field_api_classes'] = 0;
   /* Field: Content: Collector */
@@ -1268,7 +1263,7 @@ function pensoft_publication_views_default_views() {
     'fromto' => 'both',
     'multiple_number' => '',
     'multiple_from' => '',
-    'multiple_to' => '',
+    'multiple_to' => ''
   );
   $handler->display->display_options['fields']['field_date_collected']['field_api_classes'] = 0;
   /* Field: Content: Field notes */
@@ -1341,7 +1336,7 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['fields']['field_count']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['field_count']['settings'] = array(
     'thousand_separator' => ' ',
-    'prefix_suffix' => 1,
+    'prefix_suffix' => 1
   );
   $handler->display->display_options['fields']['field_count']['field_api_classes'] = 0;
   /* Field: Content: GenBank number */
@@ -1508,7 +1503,7 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['fields']['field_coordinate_uncertainty']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['field_coordinate_uncertainty']['settings'] = array(
     'thousand_separator' => ' ',
-    'prefix_suffix' => 1,
+    'prefix_suffix' => 1
   );
   $handler->display->display_options['fields']['field_coordinate_uncertainty']['field_api_classes'] = 0;
   /* Field: Content: Country */
@@ -1729,7 +1724,7 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['fields']['field_map']['click_sort_column'] = 'latitude';
   $handler->display->display_options['fields']['field_map']['type'] = 'gm3_text';
   $handler->display->display_options['fields']['field_map']['settings'] = array(
-    'display_convex_hull' => FALSE,
+    'display_convex_hull' => FALSE
   );
   $handler->display->display_options['fields']['field_map']['field_api_classes'] = 0;
   /* Field: Content: Maximum depth */
@@ -1757,7 +1752,7 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['fields']['field_max_depth']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['field_max_depth']['settings'] = array(
     'thousand_separator' => ' ',
-    'prefix_suffix' => 1,
+    'prefix_suffix' => 1
   );
   $handler->display->display_options['fields']['field_max_depth']['field_api_classes'] = 0;
   /* Field: Content: Maximum elevation */
@@ -1785,7 +1780,7 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['fields']['field_max_elevation']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['field_max_elevation']['settings'] = array(
     'thousand_separator' => ' ',
-    'prefix_suffix' => 1,
+    'prefix_suffix' => 1
   );
   $handler->display->display_options['fields']['field_max_elevation']['field_api_classes'] = 0;
   /* Field: Content: Minimum depth */
@@ -1813,7 +1808,7 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['fields']['field_min_depth']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['field_min_depth']['settings'] = array(
     'thousand_separator' => ' ',
-    'prefix_suffix' => 1,
+    'prefix_suffix' => 1
   );
   $handler->display->display_options['fields']['field_min_depth']['field_api_classes'] = 0;
   /* Field: Content: Minimum elevation */
@@ -1841,7 +1836,7 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['fields']['field_min_elevation']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['field_min_elevation']['settings'] = array(
     'thousand_separator' => ' ',
-    'prefix_suffix' => 1,
+    'prefix_suffix' => 1
   );
   $handler->display->display_options['fields']['field_min_elevation']['field_api_classes'] = 0;
   /* Field: Content: State/Province */
@@ -1968,7 +1963,7 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['filters']['type']['table'] = 'node';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
-    'specimen_observation' => 'specimen_observation',
+    'specimen_observation' => 'specimen_observation'
   );
   /* Filter criterion: Field: Taxonomic name (field_taxonomic_name) */
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
@@ -1985,8 +1980,7 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'werewolves';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = 1;
   $export['publication_create_specimens'] = $view;
-
-  $view = new view;
+  $view = new view();
   $view->name = 'relation_select_publication_taxo';
   $view->description = '';
   $view->tag = 'default';
@@ -1997,7 +1991,7 @@ function pensoft_publication_views_default_views() {
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
+      $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
@@ -2068,7 +2062,7 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['filters']['type']['table'] = 'node';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
-    'spm' => 'spm',
+    'spm' => 'spm'
   );
   $handler->display->display_options['filters']['type']['expose']['operator_id'] = 'type_op';
   $handler->display->display_options['filters']['type']['expose']['label'] = 'Type';
@@ -2085,7 +2079,7 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['filters']['field_rank_value']['relationship'] = 'field_taxonomic_name_tid';
   $handler->display->display_options['filters']['field_rank_value']['value'] = array(
     'Genus' => 'Genus',
-    'Species' => 'Species',
+    'Species' => 'Species'
   );
   /* Filter criterion: Content: Title */
   $handler->display->display_options['filters']['title']['id'] = 'title';
@@ -2099,6 +2093,5 @@ function pensoft_publication_views_default_views() {
   $handler->display->display_options['filters']['title']['expose']['required'] = 0;
   $handler->display->display_options['filters']['title']['expose']['multiple'] = FALSE;
   $export['relation_select_publication_taxo'] = $view;
-
   return $export;
 }

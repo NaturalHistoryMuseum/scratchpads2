@@ -130,9 +130,14 @@ function publication_menu(){
   $items['publication/%publication/publish'] = array(
     'title' => 'Publish',
     'page callback' => 'publication_publish_page',
-    'page arguments' => array(1),
+    'page arguments' => array(
+      1
+    ),
     'access callback' => 'publication_access',
-    'access arguments' => array('publish', 1),
+    'access arguments' => array(
+      'publish',
+      1
+    ),
     'file' => 'includes/publication.pages.inc',
     'type' => MENU_LOCAL_TASK
   );
@@ -189,35 +194,38 @@ function publication_theme(){
  * with publications.
  * 
  */
-function publication_field_formatter_info() {
+function publication_field_formatter_info(){
   return array(
     'publication_author' => array(
       'label' => t('Publication author'),
-      'field types' => array('user_reference'),
+      'field types' => array(
+        'user_reference'
+      ),
       'description' => t('Display an author name for a publication')
     ),
     'publication_figure' => array(
       'label' => t('Publication figure'),
-      'field types' => array('image'),
+      'field types' => array(
+        'image'
+      ),
       'description' => t('Display a figure for a publication')
-    ),
+    )
   );
 }
 
 /**
  * Implement hook_field_formatter_view. Formatter for authors
  */
-function publication_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+function publication_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
   $results = array();
-  
-  if ($display['type'] == 'publication_author') {
-    foreach ($items as $key => $item) {
+  if($display['type'] == 'publication_author'){
+    foreach($items as $key => $item){
       $user = user_load($item['uid']);
       $name = isset($user->field_user_given_names[LANGUAGE_NONE]) ? $user->field_user_given_names[LANGUAGE_NONE][0]['safe_value'] : '';
       $name = $name . ' ';
       $name = $name . (isset($user->field_user_family_name[LANGUAGE_NONE]) ? $user->field_user_family_name[LANGUAGE_NONE][0]['safe_value'] : '');
       $name = trim($name);
-      if (!$name) {
+      if(!$name){
         $name = $user->name;
       }
       $results[$key] = array(
@@ -227,8 +235,8 @@ function publication_field_formatter_view($entity_type, $entity, $field, $instan
         '#publication_author_institution' => $user->field_user_institution[LANGUAGE_NONE][0]['safe_value']
       );
     }
-  } else if ($display['type'] == 'publication_figure') {
-    foreach ($items as $key => $item) {
+  }else if($display['type'] == 'publication_figure'){
+    foreach($items as $key => $item){
       $image_render = array(
         'style_name' => 'medium',
         'path' => $item['uri'],
@@ -236,18 +244,13 @@ function publication_field_formatter_view($entity_type, $entity, $field, $instan
         'title' => $item['title']
       );
       $image = theme('image_style', $image_render);
-      
       $description_field = $item['field_description'][LANGUAGE_NONE][0];
-      
-      $description = '<div><strong>Figure</strong>' 
-        . check_markup($description_field['value'], $description_field['format'])
-        . '</div>';
+      $description = '<div><strong>Figure</strong>' . check_markup($description_field['value'], $description_field['format']) . '</div>';
       $results[$key] = array(
         '#markup' => '<div class="publication_figure">' . $image . $description . '</div>'
       );
-    }    
+    }
   }
-  
   return $results;
 }
 

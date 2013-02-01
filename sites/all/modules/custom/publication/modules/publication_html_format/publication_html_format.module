@@ -138,28 +138,23 @@ function _publication_html_format_filter_process_format($element){
       'field_publication_tables'
     )
   );
-  
   $type_match = FALSE;
-  if (!empty($element['#entity_type']) && !empty($element['#bundle'])) {
+  if(!empty($element['#entity_type']) && !empty($element['#bundle'])){
     $type = $element['#entity_type'];
     $bundle = $element['#bundle'];
-    
-    $type_match = isset($entity_types[$type]) && ($entity_types[$type] === TRUE ||
-      in_array($bundle, $entity_types[$type]));
+    $type_match = isset($entity_types[$type]) && ($entity_types[$type] === TRUE || in_array($bundle, $entity_types[$type]));
   }
-  
-  if(!$type_match) {
+  if(!$type_match){
     unset($element['format']['format']['#options']['publication_html']);
-  } else {
+  }else{
     list($eid, $vid, $bundle) = entity_extract_ids($element['#entity_type'], $element['#entity']);
     // Only set a default on new entities
     if(empty($eid) && isset($element['format']['format']['#options']['publication_html'])){
       // XXX There is a problem with this field - disable it here for now.
-      if ($element['#bundle'] != 'field_publication_tables') {
+      if($element['#bundle'] != 'field_publication_tables'){
         $element['format']['format']['#default_value'] = 'publication_html';
       }
     }
   }
-
   return $element;
 }

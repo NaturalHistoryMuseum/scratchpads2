@@ -154,7 +154,6 @@ function publication_update_7000(){
     'description' => 'Indicates whether the publication has already been published'
   );
   db_add_field('publication', 'published', $published);
-  
   $publisher_data = array(
     'type' => 'blob',
     'not null' => FALSE,

@@ -1,22 +1,21 @@
-<?php 
+<?php
+
 /**
  * Implement hook_install
  *
  */
-function pensoft_publication_install() {
+function pensoft_publication_install(){
   // Create insert_from_view instances
   insert_from_view_new_instance('Pensoft publication references', 'Add Reference citation', 'publication_citations_references', 'references', array(
-  'key' => 'pensoft_publication_references',
-  'field' => 'nothing',
-  'icon' => drupal_get_path('module', 'pensoft_publication') . '/images/references.png'
+    'key' => 'pensoft_publication_references',
+    'field' => 'nothing',
+    'icon' => drupal_get_path('module', 'pensoft_publication') . '/images/references.png'
   ));
-  
   insert_from_view_new_instance('Pensoft publication figures', 'Add Figure citation', 'publication_citations_figures', 'figures', array(
     'key' => 'pensoft_publication_figures',
     'field' => 'nothing',
     'icon' => drupal_get_path('module', 'pensoft_publication') . '/images/figures.png'
   ));
-
   insert_from_view_new_instance('Pensoft publication specimens', 'Create specimen table', 'publication_create_specimens', 'default', array(
     'key' => 'pensoft_publication_specimens',
     'field' => 'nothing',

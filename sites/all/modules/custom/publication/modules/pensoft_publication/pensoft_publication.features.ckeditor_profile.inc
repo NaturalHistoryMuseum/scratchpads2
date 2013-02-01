@@ -1,19 +1,19 @@
 <?php
+
 /**
  * @file
  * pensoft_publication.features.ckeditor_profile.inc
  */
-
 /**
  * Implements hook_ckeditor_profile_defaults().
  */
-function pensoft_publication_ckeditor_profile_defaults() {
+function pensoft_publication_ckeditor_profile_defaults(){
   $data = array(
     'Publication' => array(
       'name' => 'Publication',
       'settings' => array(
         'filters' => array(
-          'filter_html' => 0,
+          'filter_html' => 0
         ),
         'ss' => '2',
         'default' => 't',
@@ -53,8 +53,8 @@ function pensoft_publication_ckeditor_profile_defaults() {
             'breakAfterOpen' => 'breakAfterOpen',
             'breakAfterClose' => 'breakAfterClose',
             'breakBeforeClose' => 0,
-            'pre_indent' => 0,
-          ),
+            'pre_indent' => 0
+          )
         ),
         'css_mode' => 'none',
         'css_path' => '',
@@ -78,14 +78,14 @@ function pensoft_publication_ckeditor_profile_defaults() {
             'desc' => 'Auto Grow plugin',
             'path' => '%base_path%%editor_path%plugins/autogrow/',
             'buttons' => FALSE,
-            'default' => 'f',
+            'default' => 'f'
           ),
           'counter' => array(
             'name' => 'counter',
             'desc' => 'Plugin to count symbols, symbols without blanks and words',
             'path' => '%base_path%%plugin_dir%counter/',
             'buttons' => FALSE,
-            'default' => 'f',
+            'default' => 'f'
           ),
           'insert_from_view_pensoft_publication_specimens' => array(
             'name' => 'insert_from_view_pensoft_publication_specimens',
@@ -94,10 +94,10 @@ function pensoft_publication_ckeditor_profile_defaults() {
             'buttons' => array(
               'insert_from_view_pensoft_publication_specimens' => array(
                 'icon' => '../../../../../../../sites/all/modules/custom/publication/modules/pensoft_publication/images/specimens.png',
-                'label' => 'Add specimen table',
-              ),
-            ),
-          ),          
+                'label' => 'Add specimen table'
+              )
+            )
+          ),
           'insert_from_view_pensoft_publication_figures' => array(
             'name' => 'insert_from_view_pensoft_publication_figures',
             'desc' => 'This plugin allows the selection and insertion of items picked from the view publication_citations_figures',
@@ -105,9 +105,9 @@ function pensoft_publication_ckeditor_profile_defaults() {
             'buttons' => array(
               'insert_from_view_pensoft_publication_figures' => array(
                 'icon' => '../../../../../../../sites/all/modules/custom/publication/modules/pensoft_publication/images/figures.png',
-                'label' => 'Add Figure citation',
-              ),
-            ),
+                'label' => 'Add Figure citation'
+              )
+            )
           ),
           'insert_from_view_pensoft_publication_references' => array(
             'name' => 'insert_from_view_pensoft_publication_references',
@@ -116,9 +116,9 @@ function pensoft_publication_ckeditor_profile_defaults() {
             'buttons' => array(
               'insert_from_view_pensoft_publication_references' => array(
                 'icon' => '../../../../../../../sites/all/modules/custom/publication/modules/pensoft_publication/images/references.png',
-                'label' => 'Add Reference citation',
-              ),
-            ),
+                'label' => 'Add Reference citation'
+              )
+            )
           ),
           'pensoft_publication_insert_table' => array(
             'name' => 'pensoft_publication_insert_table',
@@ -127,23 +127,23 @@ function pensoft_publication_ckeditor_profile_defaults() {
             'buttons' => array(
               'pensoft_publication_insert_table' => array(
                 'icon' => '../../images/tables.png',
-                'label' => 'Insert reference to tables',
-              ),
-            ),
-          ),          
+                'label' => 'Insert reference to tables'
+              )
+            )
+          ),
           'tableresize' => array(
             'name' => 'tableresize',
             'desc' => 'Table Resize plugin',
             'path' => '%base_path%%editor_path%plugins/tableresize/',
             'buttons' => FALSE,
-            'default' => 't',
-          ),
-        ),
+            'default' => 't'
+          )
+        )
       ),
       'input_formats' => array(
-        'publication_html' => 'Publication HTML',
-      ),
-    ),
+        'publication_html' => 'Publication HTML'
+      )
+    )
   );
   return $data;
 }

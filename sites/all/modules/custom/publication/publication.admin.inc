@@ -260,7 +260,7 @@ function publication_form_wrapper($form_id, $publication = null){
  * with only a publication type defined.
  */
 function publication_edit_form($form, &$form_state, $publication){
-	// Jump to a particular step
+  // Jump to a particular step
   if(isset($_GET['step']) & !$form_state['submitted']){
     $form_state['current_group'] = $_GET['step'];
   }
@@ -356,7 +356,6 @@ function publication_edit_form_submit(&$form, &$form_state){
     $publication->uid = $user->uid;
   }
   $publication->changed = time();
-  
   $publication->save();
   $form_state['pid'] = $publication->pid;
   $form_state['redirect'] = 'publication/' . $publication->pid;

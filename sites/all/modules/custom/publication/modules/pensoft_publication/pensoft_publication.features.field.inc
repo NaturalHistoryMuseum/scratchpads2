@@ -1,15 +1,14 @@
 <?php
+
 /**
  * @file
  * pensoft_publication.features.field.inc
  */
-
 /**
  * Implements hook_field_default_fields().
  */
-function pensoft_publication_field_default_fields() {
+function pensoft_publication_field_default_fields(){
   $fields = array();
-
   // Exported field: 'field_collection_item-field_publication_figures-field_publication_figure_desc'
   $fields['field_collection_item-field_publication_figures-field_publication_figure_desc'] = array(
     'field_config' => array(
@@ -21,20 +20,20 @@ function pensoft_publication_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'field_publication_figures',
@@ -47,14 +46,14 @@ function pensoft_publication_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '2',
+          'weight' => '2'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'field_collection_item',
       'field_name' => 'field_publication_figure_desc',
@@ -63,23 +62,22 @@ function pensoft_publication_field_default_fields() {
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '3',
-      ),
-    ),
+        'weight' => '3'
+      )
+    )
   );
-
   // Exported field: 'field_collection_item-field_publication_figures-field_publication_figure_figure'
   $fields['field_collection_item-field_publication_figures-field_publication_figure_figure'] = array(
     'field_config' => array(
@@ -91,23 +89,23 @@ function pensoft_publication_field_default_fields() {
       'foreign keys' => array(
         'fid' => array(
           'columns' => array(
-            'fid' => 'fid',
+            'fid' => 'fid'
           ),
-          'table' => 'file_managed',
-        ),
+          'table' => 'file_managed'
+        )
       ),
       'indexes' => array(
         'fid' => array(
-          0 => 'fid',
-        ),
+          0 => 'fid'
+        )
       ),
       'module' => 'image',
       'settings' => array(
         'default_image' => 0,
-        'uri_scheme' => 'public',
+        'uri_scheme' => 'public'
       ),
       'translatable' => '0',
-      'type' => 'image',
+      'type' => 'image'
     ),
     'field_instance' => array(
       'bundle' => 'field_publication_figures',
@@ -119,17 +117,17 @@ function pensoft_publication_field_default_fields() {
           'module' => 'image',
           'settings' => array(
             'image_link' => 'content',
-            'image_style' => 'medium',
+            'image_style' => 'medium'
           ),
           'type' => 'image',
-          'weight' => '1',
+          'weight' => '1'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'field_collection_item',
       'field_name' => 'field_publication_figure_figure',
@@ -144,7 +142,7 @@ function pensoft_publication_field_default_fields() {
         'max_resolution' => '',
         'min_resolution' => '',
         'title_field' => 0,
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
@@ -152,27 +150,26 @@ function pensoft_publication_field_default_fields() {
         'settings' => array(
           'allowed_schemes' => array(
             'module' => 0,
-            'public' => 'public',
+            'public' => 'public'
           ),
           'allowed_types' => array(
             'audio' => 0,
             'default' => 0,
             'image' => 'image',
-            'video' => 0,
+            'video' => 0
           ),
           'browser_plugins' => array(
             'media_default--media_browser_1' => 0,
             'media_default--media_browser_my_files' => 0,
-            'upload' => 0,
+            'upload' => 0
           ),
-          'progress_indicator' => 'throbber',
+          'progress_indicator' => 'throbber'
         ),
         'type' => 'media_generic',
-        'weight' => '2',
-      ),
-    ),
+        'weight' => '2'
+      )
+    )
   );
-
   // Exported field: 'field_collection_item-field_publication_figures-field_publication_figure_title'
   $fields['field_collection_item-field_publication_figures-field_publication_figure_title'] = array(
     'field_config' => array(
@@ -184,22 +181,22 @@ function pensoft_publication_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '0',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'field_publication_figures',
@@ -212,14 +209,14 @@ function pensoft_publication_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '0',
+          'weight' => '0'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'field_collection_item',
       'field_name' => 'field_publication_figure_title',
@@ -228,23 +225,22 @@ function pensoft_publication_field_default_fields() {
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '200',
+          'size' => '200'
         ),
         'type' => 'text_textfield',
-        'weight' => '1',
-      ),
-    ),
+        'weight' => '1'
+      )
+    )
   );
-
   // Exported field: 'field_collection_item-field_publication_tables-field_publication_table'
   $fields['field_collection_item-field_publication_tables-field_publication_table'] = array(
     'field_config' => array(
@@ -256,20 +252,20 @@ function pensoft_publication_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'field_publication_tables',
@@ -282,14 +278,14 @@ function pensoft_publication_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '2',
+          'weight' => '2'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'field_collection_item',
       'field_name' => 'field_publication_table',
@@ -298,23 +294,22 @@ function pensoft_publication_field_default_fields() {
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '2',
-      ),
-    ),
+        'weight' => '2'
+      )
+    )
   );
-
   // Exported field: 'field_collection_item-field_publication_tables-field_publication_table_id'
   $fields['field_collection_item-field_publication_tables-field_publication_table_id'] = array(
     'field_config' => array(
@@ -326,22 +321,22 @@ function pensoft_publication_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '0',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'field_publication_tables',
@@ -355,14 +350,14 @@ Tables are numbered once the publication is saved.',
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '0',
+          'weight' => '0'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'field_collection_item',
       'field_name' => 'field_publication_table_id',
@@ -371,23 +366,22 @@ Tables are numbered once the publication is saved.',
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => 0,
-      ),
-    ),
+        'weight' => 0
+      )
+    )
   );
-
   // Exported field: 'field_collection_item-field_publication_tables-field_publication_table_title'
   $fields['field_collection_item-field_publication_tables-field_publication_table_title'] = array(
     'field_config' => array(
@@ -399,22 +393,22 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '0',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'field_publication_tables',
@@ -427,14 +421,14 @@ Tables are numbered once the publication is saved.',
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '1',
+          'weight' => '1'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'field_collection_item',
       'field_name' => 'field_publication_table_title',
@@ -443,23 +437,22 @@ Tables are numbered once the publication is saved.',
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '200',
+          'size' => '200'
         ),
         'type' => 'text_textfield',
-        'weight' => '1',
-      ),
-    ),
+        'weight' => '1'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_pensoft_acknowledgments'
   $fields['publication-pensoft-field_pensoft_acknowledgments'] = array(
     'field_config' => array(
@@ -471,20 +464,20 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -497,8 +490,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '15',
-        ),
+          'weight' => '15'
+        )
       ),
       'entity_type' => 'publication',
       'field_name' => 'field_pensoft_acknowledgments',
@@ -507,23 +500,22 @@ Tables are numbered once the publication is saved.',
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '12',
-      ),
-    ),
+        'weight' => '12'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_pensoft_files'
   $fields['publication-pensoft-field_pensoft_files'] = array(
     'field_config' => array(
@@ -535,24 +527,24 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'fid' => array(
           'columns' => array(
-            'fid' => 'fid',
+            'fid' => 'fid'
           ),
-          'table' => 'file_managed',
-        ),
+          'table' => 'file_managed'
+        )
       ),
       'indexes' => array(
         'fid' => array(
-          0 => 'fid',
-        ),
+          0 => 'fid'
+        )
       ),
       'module' => 'file',
       'settings' => array(
         'display_default' => 0,
         'display_field' => 0,
-        'uri_scheme' => 'public',
+        'uri_scheme' => 'public'
       ),
       'translatable' => '0',
-      'type' => 'file',
+      'type' => 'file'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -564,8 +556,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'styles',
           'settings' => array(),
           'type' => 'styles_file_thumbnail',
-          'weight' => '21',
-        ),
+          'weight' => '21'
+        )
       ),
       'entity_type' => 'publication',
       'field_name' => 'field_pensoft_files',
@@ -576,34 +568,33 @@ Tables are numbered once the publication is saved.',
         'file_directory' => '',
         'file_extensions' => 'txt jpg png gif',
         'max_filesize' => '',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'media',
         'settings' => array(
           'allowed_schemes' => array(
-            'public' => 'public',
+            'public' => 'public'
           ),
           'allowed_types' => array(
             'audio' => 0,
             'default' => 'default',
             'image' => 'image',
-            'video' => 0,
+            'video' => 0
           ),
           'browser_plugins' => array(
             'library' => 'library',
             'media_default--media_browser_1' => 0,
-            'upload' => 'upload',
+            'upload' => 'upload'
           ),
-          'progress_indicator' => 'throbber',
+          'progress_indicator' => 'throbber'
         ),
         'type' => 'media_generic',
-        'weight' => '13',
-      ),
-    ),
+        'weight' => '13'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_abstract'
   $fields['publication-pensoft-field_publication_abstract'] = array(
     'field_config' => array(
@@ -615,22 +606,22 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'profile2_private' => FALSE,
+        'profile2_private' => FALSE
       ),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -643,8 +634,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '3',
-        ),
+          'weight' => '3'
+        )
       ),
       'entity_type' => 'publication',
       'field_name' => 'field_publication_abstract',
@@ -652,20 +643,19 @@ Tables are numbered once the publication is saved.',
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '18',
-      ),
-    ),
+        'weight' => '18'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_authors'
   $fields['publication-pensoft-field_publication_authors'] = array(
     'field_config' => array(
@@ -677,15 +667,15 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'uid' => array(
           'columns' => array(
-            'uid' => 'uid',
+            'uid' => 'uid'
           ),
-          'table' => 'users',
-        ),
+          'table' => 'users'
+        )
       ),
       'indexes' => array(
         'uid' => array(
-          0 => 'uid',
-        ),
+          0 => 'uid'
+        )
       ),
       'module' => 'user_reference',
       'settings' => array(
@@ -693,20 +683,20 @@ Tables are numbered once the publication is saved.',
           2 => '2',
           3 => '3',
           4 => '4',
-          5 => '5',
+          5 => '5'
         ),
         'referenceable_status' => array(
           0 => 0,
-          1 => '1',
+          1 => '1'
         ),
         'view' => array(
           'args' => array(),
           'display_name' => '',
-          'view_name' => '',
-        ),
+          'view_name' => ''
+        )
       ),
       'translatable' => '0',
-      'type' => 'user_reference',
+      'type' => 'user_reference'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -719,8 +709,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'publication',
           'settings' => array(),
           'type' => 'publication_author',
-          'weight' => '3',
-        ),
+          'weight' => '3'
+        )
       ),
       'entity_type' => 'publication',
       'entityconnect_unload_add' => '1',
@@ -729,7 +719,7 @@ Tables are numbered once the publication is saved.',
       'label' => 'Other authors',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
@@ -737,14 +727,13 @@ Tables are numbered once the publication is saved.',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'user_reference_autocomplete',
-        'weight' => '27',
-      ),
-    ),
+        'weight' => '27'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_contributors'
   $fields['publication-pensoft-field_publication_contributors'] = array(
     'field_config' => array(
@@ -756,15 +745,15 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'uid' => array(
           'columns' => array(
-            'uid' => 'uid',
+            'uid' => 'uid'
           ),
-          'table' => 'users',
-        ),
+          'table' => 'users'
+        )
       ),
       'indexes' => array(
         'uid' => array(
-          0 => 'uid',
-        ),
+          0 => 'uid'
+        )
       ),
       'module' => 'user_reference',
       'settings' => array(
@@ -772,20 +761,20 @@ Tables are numbered once the publication is saved.',
           2 => '2',
           3 => '3',
           4 => '4',
-          5 => '5',
+          5 => '5'
         ),
         'referenceable_status' => array(
           0 => 0,
-          1 => '1',
+          1 => '1'
         ),
         'view' => array(
           'args' => array(),
           'display_name' => '',
-          'view_name' => '',
-        ),
+          'view_name' => ''
+        )
       ),
       'translatable' => '0',
-      'type' => 'user_reference',
+      'type' => 'user_reference'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -798,8 +787,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'publication',
           'settings' => array(),
           'type' => 'publication_author',
-          'weight' => '7',
-        ),
+          'weight' => '7'
+        )
       ),
       'entity_type' => 'publication',
       'entityconnect_unload_add' => '1',
@@ -808,7 +797,7 @@ Tables are numbered once the publication is saved.',
       'label' => 'Other Contributors',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
@@ -816,14 +805,13 @@ Tables are numbered once the publication is saved.',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'user_reference_autocomplete',
-        'weight' => '32',
-      ),
-    ),
+        'weight' => '32'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_copy_editor'
   $fields['publication-pensoft-field_publication_copy_editor'] = array(
     'field_config' => array(
@@ -835,15 +823,15 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'uid' => array(
           'columns' => array(
-            'uid' => 'uid',
+            'uid' => 'uid'
           ),
-          'table' => 'users',
-        ),
+          'table' => 'users'
+        )
       ),
       'indexes' => array(
         'uid' => array(
-          0 => 'uid',
-        ),
+          0 => 'uid'
+        )
       ),
       'module' => 'user_reference',
       'settings' => array(
@@ -851,20 +839,20 @@ Tables are numbered once the publication is saved.',
           2 => 0,
           3 => 0,
           4 => 0,
-          5 => 0,
+          5 => 0
         ),
         'referenceable_status' => array(
           0 => 0,
-          1 => 0,
+          1 => 0
         ),
         'view' => array(
           'args' => array(),
           'display_name' => 'references_1',
-          'view_name' => 'users_references',
-        ),
+          'view_name' => 'users_references'
+        )
       ),
       'translatable' => '0',
-      'type' => 'user_reference',
+      'type' => 'user_reference'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -877,8 +865,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'publication',
           'settings' => array(),
           'type' => 'publication_author',
-          'weight' => '5',
-        ),
+          'weight' => '5'
+        )
       ),
       'entity_type' => 'publication',
       'entityconnect_unload_add' => '1',
@@ -887,7 +875,7 @@ Tables are numbered once the publication is saved.',
       'label' => 'Copy editor',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
@@ -895,14 +883,13 @@ Tables are numbered once the publication is saved.',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'user_reference_autocomplete',
-        'weight' => '30',
-      ),
-    ),
+        'weight' => '30'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_data_resources'
   $fields['publication-pensoft-field_publication_data_resources'] = array(
     'field_config' => array(
@@ -914,20 +901,20 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -940,8 +927,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '5',
-        ),
+          'weight' => '5'
+        )
       ),
       'entity_type' => 'publication',
       'field_name' => 'field_publication_data_resources',
@@ -950,23 +937,22 @@ Tables are numbered once the publication is saved.',
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '4',
-      ),
-    ),
+        'weight' => '4'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_discussion'
   $fields['publication-pensoft-field_publication_discussion'] = array(
     'field_config' => array(
@@ -978,20 +964,20 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -1004,8 +990,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '14',
-        ),
+          'weight' => '14'
+        )
       ),
       'entity_type' => 'publication',
       'field_name' => 'field_publication_discussion',
@@ -1014,23 +1000,22 @@ Tables are numbered once the publication is saved.',
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '11',
-      ),
-    ),
+        'weight' => '11'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_figures'
   $fields['publication-pensoft-field_publication_figures'] = array(
     'field_config' => array(
@@ -1043,10 +1028,10 @@ Tables are numbered once the publication is saved.',
       'indexes' => array(),
       'module' => 'field_collection',
       'settings' => array(
-        'path' => '',
+        'path' => ''
       ),
       'translatable' => '0',
-      'type' => 'field_collection',
+      'type' => 'field_collection'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -1062,29 +1047,28 @@ Tables are numbered once the publication is saved.',
             'delete' => '',
             'description' => 0,
             'edit' => '',
-            'view_mode' => 'full',
+            'view_mode' => 'full'
           ),
           'type' => 'field_collection_view',
-          'weight' => '19',
-        ),
+          'weight' => '19'
+        )
       ),
       'entity_type' => 'publication',
       'field_name' => 'field_publication_figures',
       'label' => 'Figures',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 0,
         'module' => 'field_collection',
         'settings' => array(),
         'type' => 'field_collection_embed',
-        'weight' => '34',
-      ),
-    ),
+        'weight' => '34'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_introduction'
   $fields['publication-pensoft-field_publication_introduction'] = array(
     'field_config' => array(
@@ -1096,22 +1080,22 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'profile2_private' => FALSE,
+        'profile2_private' => FALSE
       ),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -1124,8 +1108,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '3',
-        ),
+          'weight' => '3'
+        )
       ),
       'entity_type' => 'publication',
       'field_name' => 'field_publication_introduction',
@@ -1134,23 +1118,22 @@ Tables are numbered once the publication is saved.',
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '29',
-      ),
-    ),
+        'weight' => '29'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_keywords'
   $fields['publication-pensoft-field_publication_keywords'] = array(
     'field_config' => array(
@@ -1162,22 +1145,22 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'profile2_private' => FALSE,
+        'profile2_private' => FALSE
       ),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -1190,8 +1173,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '4',
-        ),
+          'weight' => '4'
+        )
       ),
       'entity_type' => 'publication',
       'field_name' => 'field_publication_keywords',
@@ -1199,20 +1182,19 @@ Tables are numbered once the publication is saved.',
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '19',
-      ),
-    ),
+        'weight' => '19'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_ling_editor'
   $fields['publication-pensoft-field_publication_ling_editor'] = array(
     'field_config' => array(
@@ -1224,15 +1206,15 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'uid' => array(
           'columns' => array(
-            'uid' => 'uid',
+            'uid' => 'uid'
           ),
-          'table' => 'users',
-        ),
+          'table' => 'users'
+        )
       ),
       'indexes' => array(
         'uid' => array(
-          0 => 'uid',
-        ),
+          0 => 'uid'
+        )
       ),
       'module' => 'user_reference',
       'settings' => array(
@@ -1240,20 +1222,20 @@ Tables are numbered once the publication is saved.',
           2 => 0,
           3 => 0,
           4 => 0,
-          5 => 0,
+          5 => 0
         ),
         'referenceable_status' => array(
           0 => 0,
-          1 => 0,
+          1 => 0
         ),
         'view' => array(
           'args' => array(),
           'display_name' => 'references_1',
-          'view_name' => 'users_references',
-        ),
+          'view_name' => 'users_references'
+        )
       ),
       'translatable' => '0',
-      'type' => 'user_reference',
+      'type' => 'user_reference'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -1266,8 +1248,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'publication',
           'settings' => array(),
           'type' => 'publication_author',
-          'weight' => '4',
-        ),
+          'weight' => '4'
+        )
       ),
       'entity_type' => 'publication',
       'entityconnect_unload_add' => '1',
@@ -1276,7 +1258,7 @@ Tables are numbered once the publication is saved.',
       'label' => 'Linguistic editor',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
@@ -1284,14 +1266,13 @@ Tables are numbered once the publication is saved.',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'user_reference_autocomplete',
-        'weight' => '29',
-      ),
-    ),
+        'weight' => '29'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_mentor'
   $fields['publication-pensoft-field_publication_mentor'] = array(
     'field_config' => array(
@@ -1303,15 +1284,15 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'uid' => array(
           'columns' => array(
-            'uid' => 'uid',
+            'uid' => 'uid'
           ),
-          'table' => 'users',
-        ),
+          'table' => 'users'
+        )
       ),
       'indexes' => array(
         'uid' => array(
-          0 => 'uid',
-        ),
+          0 => 'uid'
+        )
       ),
       'module' => 'user_reference',
       'settings' => array(
@@ -1319,20 +1300,20 @@ Tables are numbered once the publication is saved.',
           2 => 0,
           3 => 0,
           4 => 0,
-          5 => 0,
+          5 => 0
         ),
         'referenceable_status' => array(
           0 => 0,
-          1 => 0,
+          1 => 0
         ),
         'view' => array(
           'args' => array(),
           'display_name' => 'references_1',
-          'view_name' => 'users_references',
-        ),
+          'view_name' => 'users_references'
+        )
       ),
       'translatable' => '0',
-      'type' => 'user_reference',
+      'type' => 'user_reference'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -1345,8 +1326,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'publication',
           'settings' => array(),
           'type' => 'publication_author',
-          'weight' => '6',
-        ),
+          'weight' => '6'
+        )
       ),
       'entity_type' => 'publication',
       'entityconnect_unload_add' => '1',
@@ -1355,7 +1336,7 @@ Tables are numbered once the publication is saved.',
       'label' => 'Mentor',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
@@ -1363,14 +1344,13 @@ Tables are numbered once the publication is saved.',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'user_reference_autocomplete',
-        'weight' => '31',
-      ),
-    ),
+        'weight' => '31'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_methods'
   $fields['publication-pensoft-field_publication_methods'] = array(
     'field_config' => array(
@@ -1382,20 +1362,20 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -1408,8 +1388,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '12',
-        ),
+          'weight' => '12'
+        )
       ),
       'entity_type' => 'publication',
       'field_name' => 'field_publication_methods',
@@ -1418,23 +1398,22 @@ Tables are numbered once the publication is saved.',
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '9',
-      ),
-    ),
+        'weight' => '9'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_references'
   $fields['publication-pensoft-field_publication_references'] = array(
     'field_config' => array(
@@ -1446,15 +1425,15 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'nid' => array(
           'columns' => array(
-            'nid' => 'nid',
+            'nid' => 'nid'
           ),
-          'table' => 'node',
-        ),
+          'table' => 'node'
+        )
       ),
       'indexes' => array(
         'nid' => array(
-          0 => 'nid',
-        ),
+          0 => 'nid'
+        )
       ),
       'module' => 'node_reference',
       'settings' => array(
@@ -1462,16 +1441,16 @@ Tables are numbered once the publication is saved.',
           'biblio' => 'biblio',
           'media_gallery' => 0,
           'page' => 0,
-          'spm' => 0,
+          'spm' => 0
         ),
         'view' => array(
           'args' => array(),
           'display_name' => '',
-          'view_name' => '',
-        ),
+          'view_name' => ''
+        )
       ),
       'translatable' => '0',
-      'type' => 'node_reference',
+      'type' => 'node_reference'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -1484,8 +1463,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'scratchpads_biblio',
           'settings' => array(),
           'type' => 'scratchpads_biblio_biblio_ref',
-          'weight' => '20',
-        ),
+          'weight' => '20'
+        )
       ),
       'entity_type' => 'publication',
       'entityconnect_unload_add' => '1',
@@ -1494,7 +1473,7 @@ Tables are numbered once the publication is saved.',
       'label' => 'Reference',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
@@ -1502,14 +1481,13 @@ Tables are numbered once the publication is saved.',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'node_reference/autocomplete',
-          'size' => '100',
+          'size' => '100'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '23',
-      ),
-    ),
+        'weight' => '23'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_results'
   $fields['publication-pensoft-field_publication_results'] = array(
     'field_config' => array(
@@ -1521,20 +1499,20 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -1547,8 +1525,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '7',
-        ),
+          'weight' => '7'
+        )
       ),
       'entity_type' => 'publication',
       'field_name' => 'field_publication_results',
@@ -1557,23 +1535,22 @@ Tables are numbered once the publication is saved.',
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '5',
-      ),
-    ),
+        'weight' => '5'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_submit_author'
   $fields['publication-pensoft-field_publication_submit_author'] = array(
     'field_config' => array(
@@ -1585,15 +1562,15 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'uid' => array(
           'columns' => array(
-            'uid' => 'uid',
+            'uid' => 'uid'
           ),
-          'table' => 'users',
-        ),
+          'table' => 'users'
+        )
       ),
       'indexes' => array(
         'uid' => array(
-          0 => 'uid',
-        ),
+          0 => 'uid'
+        )
       ),
       'module' => 'user_reference',
       'settings' => array(
@@ -1601,20 +1578,20 @@ Tables are numbered once the publication is saved.',
           2 => '2',
           3 => '3',
           4 => '4',
-          5 => '5',
+          5 => '5'
         ),
         'referenceable_status' => array(
           0 => '0',
-          1 => '1',
+          1 => '1'
         ),
         'view' => array(
           'args' => array(),
           'display_name' => '',
-          'view_name' => '',
-        ),
+          'view_name' => ''
+        )
       ),
       'translatable' => '0',
-      'type' => 'user_reference',
+      'type' => 'user_reference'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -1627,8 +1604,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'publication',
           'settings' => array(),
           'type' => 'publication_author',
-          'weight' => '2',
-        ),
+          'weight' => '2'
+        )
       ),
       'entity_type' => 'publication',
       'entityconnect_unload_add' => '1',
@@ -1637,7 +1614,7 @@ Tables are numbered once the publication is saved.',
       'label' => 'Submitting author',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
@@ -1645,14 +1622,13 @@ Tables are numbered once the publication is saved.',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'user_reference_autocomplete',
-        'weight' => '26',
-      ),
-    ),
+        'weight' => '26'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_systematics'
   $fields['publication-pensoft-field_publication_systematics'] = array(
     'field_config' => array(
@@ -1664,20 +1640,20 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -1690,8 +1666,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '13',
-        ),
+          'weight' => '13'
+        )
       ),
       'entity_type' => 'publication',
       'field_name' => 'field_publication_systematics',
@@ -1700,23 +1676,22 @@ Tables are numbered once the publication is saved.',
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '20',
-      ),
-    ),
+        'weight' => '20'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_tables'
   $fields['publication-pensoft-field_publication_tables'] = array(
     'field_config' => array(
@@ -1729,10 +1704,10 @@ Tables are numbered once the publication is saved.',
       'indexes' => array(),
       'module' => 'field_collection',
       'settings' => array(
-        'path' => '',
+        'path' => ''
       ),
       'translatable' => '0',
-      'type' => 'field_collection',
+      'type' => 'field_collection'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -1748,29 +1723,28 @@ Tables are numbered once the publication is saved.',
             'delete' => '',
             'description' => 0,
             'edit' => '',
-            'view_mode' => 'full',
+            'view_mode' => 'full'
           ),
           'type' => 'field_collection_view',
-          'weight' => '18',
-        ),
+          'weight' => '18'
+        )
       ),
       'entity_type' => 'publication',
       'field_name' => 'field_publication_tables',
       'label' => 'Tables',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 0,
         'module' => 'field_collection',
         'settings' => array(),
         'type' => 'field_collection_embed',
-        'weight' => '33',
-      ),
-    ),
+        'weight' => '33'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_title'
   $fields['publication-pensoft-field_publication_title'] = array(
     'field_config' => array(
@@ -1782,22 +1756,22 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'profile2_private' => FALSE,
+        'profile2_private' => FALSE
       ),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -1810,8 +1784,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '0',
-        ),
+          'weight' => '0'
+        )
       ),
       'entity_type' => 'publication',
       'field_name' => 'field_publication_title',
@@ -1819,20 +1793,19 @@ Tables are numbered once the publication is saved.',
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '18',
-      ),
-    ),
+        'weight' => '18'
+      )
+    )
   );
-
   // Exported field: 'publication-pensoft-field_publication_treatments'
   $fields['publication-pensoft-field_publication_treatments'] = array(
     'field_config' => array(
@@ -1846,7 +1819,7 @@ Tables are numbered once the publication is saved.',
       'module' => 'relation_select',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'relation_select',
+      'type' => 'relation_select'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -1856,17 +1829,17 @@ Tables are numbered once the publication is saved.',
             'field_publication_treat_fields' => array(
               'und' => array(
                 0 => array(
-                  'value' => '',
-                ),
-              ),
+                  'value' => ''
+                )
+              )
             ),
             'field_publication_treatment_name' => array(
               'und' => array(
                 0 => array(
-                  'value' => '',
-                ),
-              ),
-            ),
+                  'value' => ''
+                )
+              )
+            )
           ),
           'exposed_filters' => array(
             'element_id' => 'edit-field-publication-treatments-und-0',
@@ -1875,8 +1848,8 @@ Tables are numbered once the publication is saved.',
             'form_token' => 'UkyUBr-IkxFInqL3Zr0lxrLiBeM-z4kp20Tz-bRV0xg',
             'title' => '',
             'view_display_id' => 'default',
-            'view_name' => 'relation_select_publication_taxo',
-          ),
+            'view_name' => 'relation_select_publication_taxo'
+          )
         ),
         1 => array(
           'exposed_filters' => array(
@@ -1886,25 +1859,25 @@ Tables are numbered once the publication is saved.',
             'form_token' => 'UkyUBr-IkxFInqL3Zr0lxrLiBeM-z4kp20Tz-bRV0xg',
             'title' => '',
             'view_display_id' => 'default',
-            'view_name' => 'relation_select_publication_taxo',
+            'view_name' => 'relation_select_publication_taxo'
           ),
           'relation_fields' => array(
             'field_publication_treat_fields' => array(
               'und' => array(
                 0 => array(
-                  'value' => '',
-                ),
-              ),
+                  'value' => ''
+                )
+              )
             ),
             'field_publication_treatment_name' => array(
               'und' => array(
                 0 => array(
-                  'value' => '',
-                ),
-              ),
-            ),
-          ),
-        ),
+                  'value' => ''
+                )
+              )
+            )
+          )
+        )
       ),
       'deleted' => '0',
       'description' => '',
@@ -1914,8 +1887,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'relation_select',
           'settings' => array(),
           'type' => 'relation_select',
-          'weight' => '14',
-        ),
+          'weight' => '14'
+        )
       ),
       'entity_type' => 'publication',
       'field_name' => 'field_publication_treatments',
@@ -1924,18 +1897,17 @@ Tables are numbered once the publication is saved.',
       'settings' => array(
         'relation_type' => 'publication_treatments',
         'relation_view' => 'relation_select_publication_taxo:default',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 0,
         'module' => 'relation_select',
         'settings' => array(),
         'type' => 'relation_select',
-        'weight' => '22',
-      ),
-    ),
+        'weight' => '22'
+      )
+    )
   );
-
   // Exported field: 'relation-publication_treatments-endpoints'
   $fields['relation-publication_treatments-endpoints'] = array(
     'field_config' => array(
@@ -1949,13 +1921,13 @@ Tables are numbered once the publication is saved.',
         'relation' => array(
           0 => 'entity_type',
           1 => 'entity_id',
-          2 => 'r_index',
-        ),
+          2 => 'r_index'
+        )
       ),
       'module' => 'relation_endpoint',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'relation_endpoint',
+      'type' => 'relation_endpoint'
     ),
     'field_instance' => array(
       'bundle' => 'publication_treatments',
@@ -1968,25 +1940,24 @@ Tables are numbered once the publication is saved.',
           'module' => 'relation_endpoint',
           'settings' => array(),
           'type' => 'relation_endpoint',
-          'weight' => '1',
-        ),
+          'weight' => '1'
+        )
       ),
       'entity_type' => 'relation',
       'field_name' => 'endpoints',
       'label' => 'endpoints',
       'required' => FALSE,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'module' => 'relation_endpoint',
         'settings' => array(),
         'type' => 'relation_endpoint',
-        'weight' => '2',
-      ),
-    ),
+        'weight' => '2'
+      )
+    )
   );
-
   // Exported field: 'relation-publication_treatments-field_publication_treat_fields'
   $fields['relation-publication_treatments-field_publication_treat_fields'] = array(
     'field_config' => array(
@@ -1998,20 +1969,20 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'publication_treatments',
@@ -2023,8 +1994,8 @@ Tables are numbered once the publication is saved.',
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => '5',
-        ),
+          'weight' => '5'
+        )
       ),
       'entity_type' => 'relation',
       'field_name' => 'field_publication_treat_fields',
@@ -2033,23 +2004,22 @@ Tables are numbered once the publication is saved.',
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '6',
-      ),
-    ),
+        'weight' => '6'
+      )
+    )
   );
-
   // Exported field: 'relation-publication_treatments-field_publication_treat_holotype'
   $fields['relation-publication_treatments-field_publication_treat_holotype'] = array(
     'field_config' => array(
@@ -2061,15 +2031,15 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'nid' => array(
           'columns' => array(
-            'nid' => 'nid',
+            'nid' => 'nid'
           ),
-          'table' => 'node',
-        ),
+          'table' => 'node'
+        )
       ),
       'indexes' => array(
         'nid' => array(
-          0 => 'nid',
-        ),
+          0 => 'nid'
+        )
       ),
       'module' => 'node_reference',
       'settings' => array(
@@ -2079,16 +2049,16 @@ Tables are numbered once the publication is saved.',
           'media_gallery' => 0,
           'page' => 0,
           'specimen_observation' => 'specimen_observation',
-          'spm' => 0,
+          'spm' => 0
         ),
         'view' => array(
           'args' => array(),
           'display_name' => '',
-          'view_name' => '',
-        ),
+          'view_name' => ''
+        )
       ),
       'translatable' => '0',
-      'type' => 'node_reference',
+      'type' => 'node_reference'
     ),
     'field_instance' => array(
       'bundle' => 'publication_treatments',
@@ -2101,8 +2071,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => '2',
-        ),
+          'weight' => '2'
+        )
       ),
       'entity_type' => 'relation',
       'entityconnect_unload_add' => '1',
@@ -2111,7 +2081,7 @@ Tables are numbered once the publication is saved.',
       'label' => 'Holotype',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
@@ -2119,14 +2089,13 @@ Tables are numbered once the publication is saved.',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'node_reference/autocomplete',
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '3',
-      ),
-    ),
+        'weight' => '3'
+      )
+    )
   );
-
   // Exported field: 'relation-publication_treatments-field_publication_treat_paratype'
   $fields['relation-publication_treatments-field_publication_treat_paratype'] = array(
     'field_config' => array(
@@ -2138,15 +2107,15 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'nid' => array(
           'columns' => array(
-            'nid' => 'nid',
+            'nid' => 'nid'
           ),
-          'table' => 'node',
-        ),
+          'table' => 'node'
+        )
       ),
       'indexes' => array(
         'nid' => array(
-          0 => 'nid',
-        ),
+          0 => 'nid'
+        )
       ),
       'module' => 'node_reference',
       'settings' => array(
@@ -2156,16 +2125,16 @@ Tables are numbered once the publication is saved.',
           'media_gallery' => 0,
           'page' => 0,
           'specimen_observation' => 'specimen_observation',
-          'spm' => 0,
+          'spm' => 0
         ),
         'view' => array(
           'args' => array(),
           'display_name' => '',
-          'view_name' => '',
-        ),
+          'view_name' => ''
+        )
       ),
       'translatable' => '0',
-      'type' => 'node_reference',
+      'type' => 'node_reference'
     ),
     'field_instance' => array(
       'bundle' => 'publication_treatments',
@@ -2178,8 +2147,8 @@ Tables are numbered once the publication is saved.',
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => '4',
-        ),
+          'weight' => '4'
+        )
       ),
       'entity_type' => 'relation',
       'entityconnect_unload_add' => '1',
@@ -2188,7 +2157,7 @@ Tables are numbered once the publication is saved.',
       'label' => 'Paratype(s)',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
@@ -2196,14 +2165,13 @@ Tables are numbered once the publication is saved.',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'node_reference/autocomplete',
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '5',
-      ),
-    ),
+        'weight' => '5'
+      )
+    )
   );
-
   // Exported field: 'relation-publication_treatments-field_publication_treat_type'
   $fields['relation-publication_treatments-field_publication_treat_type'] = array(
     'field_config' => array(
@@ -2215,19 +2183,19 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          0 => 'value',
-        ),
+          0 => 'value'
+        )
       ),
       'module' => 'list',
       'settings' => array(
         'allowed_values' => array(
           'New taxon' => 'New taxon',
-          'Redescription' => 'Redescription',
+          'Redescription' => 'Redescription'
         ),
-        'allowed_values_function' => '',
+        'allowed_values_function' => ''
       ),
       'translatable' => '0',
-      'type' => 'list_text',
+      'type' => 'list_text'
     ),
     'field_instance' => array(
       'bundle' => 'publication_treatments',
@@ -2240,26 +2208,25 @@ Tables are numbered once the publication is saved.',
           'module' => 'list',
           'settings' => array(),
           'type' => 'list_default',
-          'weight' => '0',
-        ),
+          'weight' => '0'
+        )
       ),
       'entity_type' => 'relation',
       'field_name' => 'field_publication_treat_type',
       'label' => 'Type of treatment',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => '1',
-      ),
-    ),
+        'weight' => '1'
+      )
+    )
   );
-
   // Exported field: 'relation-publication_treatments-field_publication_treatment_name'
   $fields['relation-publication_treatments-field_publication_treatment_name'] = array(
     'field_config' => array(
@@ -2271,22 +2238,22 @@ Tables are numbered once the publication is saved.',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '0',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'publication_treatments',
@@ -2298,8 +2265,8 @@ Tables are numbered once the publication is saved.',
           'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => '6',
-        ),
+          'weight' => '6'
+        )
       ),
       'entity_type' => 'relation',
       'field_name' => 'field_publication_treatment_name',
@@ -2307,20 +2274,19 @@ Tables are numbered once the publication is saved.',
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '0',
-      ),
-    ),
+        'weight' => '0'
+      )
+    )
   );
-
   // Translatables
   // Included for use with string extractors like potx.
   t('Abstract');
@@ -2359,6 +2325,5 @@ Tables are numbered once the publication is saved.');
   t('Title');
   t('Type of treatment');
   t('endpoints');
-
   return $fields;
 }
