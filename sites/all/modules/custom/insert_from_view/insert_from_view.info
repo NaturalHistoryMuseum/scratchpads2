@@ -1,5 +1,5 @@
-name = "CKEditior Biblio picker"
-description = "Pick and insert Biblio references in the CKEditor"
+name = "Insert from view"
+description = "Pick elements from a view and insert them into the CKEditor"
 package = "Other"
 core = 7.x
 dependencies[] = ckeditor
