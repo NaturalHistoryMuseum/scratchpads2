@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * A basic template for publication entities
@@ -28,16 +27,17 @@
  * @see template_process()
  */
 ?>
-<div class="<?php print $classes; ?> clearfix"<?php print $attributes; ?>>
+<div class="<?php print $classes; ?> clearfix"
+	<?php print $attributes; ?>>
   <?php if (!$page): ?>
-    <h2<?php print $title_attributes; ?>>
-        <a href="<?php print $url; ?>"><?php print $title; ?></a>
-    </h2>
+    <h2 <?php print $title_attributes; ?>>
+		<a href="<?php print $url; ?>"><?php print $title; ?></a>
+	</h2>
   <?php endif; ?>
 
-  <div class="content"<?php print $content_attributes; ?>>
+  <div class="content" <?php print $content_attributes; ?>>
     <?php
-      print render($content);
+    print render($content);
     ?>
   </div>
 </div>

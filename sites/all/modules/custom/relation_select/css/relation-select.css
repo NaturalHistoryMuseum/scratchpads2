@@ -47,7 +47,6 @@
 
 .rs-wrapper,
 .rs-placeholder{
-  width: 300px;
   margin: 1px 0;
   height: 20px;
   border: 1px solid #CBCBCB;
@@ -55,7 +54,7 @@
 
 .sortable .rs-wrapper{
   padding-left: 25px;
-  background: #eee url("/misc/draggable.png") no-repeat 5px 7px;
+  background: #eee url("../img/draggable.png") no-repeat 5px 7px;
   cursor: move;
 }
 

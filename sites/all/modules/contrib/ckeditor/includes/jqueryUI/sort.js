@@ -42,13 +42,12 @@ jQuery(document).ready(function() {
     Drupal.ckeditorToolbaInit = function() {
         Drupal.ckeditorToolbarUsedRender();
         Drupal.ckeditorToolbarAllRender();
-        
-        var firefox = navigator.userAgent.toLowerCase().match(/firefox/);
-        
+
+        var firefox = navigator.userAgent.toLowerCase().match(/firefox\/[0-9]\./);
         jQuery(".sortableList").sortable({
             connectWith: ".sortableList",
             items: "div.sortableListDiv",
-            sort: function(event, ui) { 
+            sort: function(event, ui) {
                 if (firefox){
                     ui.helper.css({'top' : ui.position.top - 35 + 'px'});
                 }
@@ -61,7 +60,7 @@ jQuery(document).ready(function() {
         jQuery(".sortableRow").sortable({
             connectWith: ".sortableRow",
             items: "li.sortableItem",
-            sort: function(event, ui) {  
+            sort: function(event, ui) {
                 if (firefox){
                     ui.helper.css({'top' : ui.position.top - 35 + 'px'});
                 }
