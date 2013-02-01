@@ -131,14 +131,35 @@ function publication_html_format_element_info_alter(&$type){
  * types
  */
 function _publication_html_format_filter_process_format($element){
-  if(empty($element['#entity_type']) || $element['#entity_type'] != 'publication'){
+  $entity_types = array(
+    'publication' => TRUE,
+    'field_collection_item' => array(
+      'field_publication_figures',
+      'field_publication_tables'
+    )
+  );
+  
+  $type_match = FALSE;
+  if (!empty($element['#entity_type']) && !empty($element['#bundle'])) {
+    $type = $element['#entity_type'];
+    $bundle = $element['#bundle'];
+    
+    $type_match = isset($entity_types[$type]) && ($entity_types[$type] === TRUE ||
+      in_array($bundle, $entity_types[$type]));
+  }
+  
+  if(!$type_match) {
     unset($element['format']['format']['#options']['publication_html']);
-  }else if(!empty($element['#entity_type']) && $element['#entity_type'] == 'publication' && !empty($element['#entity'])){
+  } else {
     list($eid, $vid, $bundle) = entity_extract_ids($element['#entity_type'], $element['#entity']);
     // Only set a default on new entities
     if(empty($eid) && isset($element['format']['format']['#options']['publication_html'])){
-      $element['format']['format']['#default_value'] = 'publication_html';
+      // XXX There is a problem with this field - disable it here for now.
+      if ($element['#bundle'] != 'field_publication_tables') {
+        $element['format']['format']['#default_value'] = 'publication_html';
+      }
     }
   }
+
   return $element;
 }
