@@ -115,7 +115,6 @@
 		</files>
 		<coreid index="0" />
 		<field index="0" term="http://rs.tdwg.org/dwc/terms/taxonID" />
-		<field index="1" term="http://purl.org/dc/terms/identifier" />
 		<field index="2" term="http://purl.org/dc/terms/description" />
 		<field index="3" term="http://ns.adobe.com/xap/1.0/rights/UsageTerms" />
 		<field index="4" term="http://rs.tdwg.org/ac/terms/accessURI" />
@@ -126,7 +125,7 @@
 		<field index="10" term="http://purl.org/dc/terms/type" />
 		<field index="11" term="http://eol.org/schema/agent/agentID" />
 		<field index="12" term="http://purl.org/dc/terms/license" />
-
+		<field index="13" term="http://purl.org/dc/terms/identifier" />
 
 
 	</extension>

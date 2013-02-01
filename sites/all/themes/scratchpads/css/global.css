@@ -769,6 +769,14 @@ table.biblio td{
   float: left;
 }
 
+/* Embeded floated images ; for imported sites */
+#region-content div.field-name-body img.embeded_image_float_right {
+  float: right;
+}
+#region-content div.field-name-body img.embeded_image_float_left {
+  float: left;
+}
+
 /****************** BLOG ****************/
 .view-blog-page .views-row-odd,
 .view-blog-page .views-row-even{

@@ -92,6 +92,18 @@ function emonocot_dwca_views_default_views_alter(&$views){
         $view->display['default']->display_options['fields']['nothing_7']['exclude'] = TRUE;
         emonocot_dwca_add_description_fields($view, $field_matching[$view->name]);
       }
+    //Preserve the relationship
+    /*
+        $relationship = NULL;
+        if(isset($view->display['default']->display_options['fields']['uuid_1']['relationship'])){
+          $relationship = $view->display['default']->display_options['fields']['uuid_1']['relationship'];
+        }
+        $view->display['default']->display_options['fields']['uuid_1']['exclude'] = TRUE;
+        emonocot_dwca_add_wcm_parent_field($view);
+        if(!is_null($relationship)){
+          $view->display['default']->display_options['fields']['wcm_id_1']['relationship'] = $relationship;
+        }
+        */
     }
   }
 }
@@ -245,7 +257,9 @@ function emonocot_dwca_add_description_fields(&$view, $ref_field){
   $new_field['hide_alter_empty'] = 1;
   $new_field['type'] = 'creative_commons_url';
   $new_field['field_api_classes'] = 0;
-  $view->display['default']->display_options['fields'][] = $new_field;
+  $insert = array();
+  $insert['licence'] = $new_field;
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'nothing_7');
   $new_relationship = array();
   $new_relationship['id'] = $ref_field . '_nid';
   $new_relationship['table'] = 'field_data_' . $ref_field;
@@ -281,6 +295,7 @@ function emonocot_dwca_add_wcm_field(&$view){
   $new_field['alter']['html'] = 0;
   $new_field['element_label_colon'] = 1;
   $new_field['element_default_classes'] = 1;
+  $new_field['empty'] = '[uuid]';
   $new_field['hide_empty'] = 0;
   $new_field['empty_zero'] = 0;
   $new_field['hide_alter_empty'] = 0;
@@ -291,6 +306,7 @@ function emonocot_dwca_add_wcm_field(&$view){
     $new_field['exclude'] = TRUE;
   }
   //array_unshift($view->display['default']->display_options['fields'], $new_field);
+  /*
   $view->display['default']->display_options['fields'] = array_reverse($view->display['default']->display_options['fields'], true);
   if($view->name == 'dwca_export_image'){
     $view->display['default']->display_options['fields']['wcm_id_2'] = emonocot_dwca_add_wcm_image($view);
@@ -298,6 +314,11 @@ function emonocot_dwca_add_wcm_field(&$view){
   }
   $view->display['default']->display_options['fields']['wcm_id'] = $new_field;
   $view->display['default']->display_options['fields'] = array_reverse($view->display['default']->display_options['fields'], true);
+  */
+  $insert = array();
+  $insert['wcm_id'] = $new_field;
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'uuid');
+  unset($insert);
 }
 
 /**
@@ -326,6 +347,7 @@ function emonocot_dwca_add_wcm_parent_field(&$view){
   $new_field['alter']['html'] = 0;
   $new_field['element_label_colon'] = 1;
   $new_field['element_default_classes'] = 1;
+  $new_field['empty'] = '[uuid_1]';
   $new_field['hide_empty'] = 0;
   $new_field['empty_zero'] = 0;
   $new_field['hide_alter_empty'] = 0;
@@ -333,7 +355,11 @@ function emonocot_dwca_add_wcm_parent_field(&$view){
   $new_field['format_plural'] = 0;
   $new_field['field_api_classes'] = 0;
   //array_unshift($view->display['default']->display_options['fields'], $new_field);
-  $view->display['default']->display_options['fields']['wcm_id_1'] = $new_field;
+  //$view->display['default']->display_options['fields']['wcm_id_1'] = $new_field;
+  $insert = array();
+  $insert['wcm_id_1'] = $new_field;
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'uuid_1');
+  unset($insert);
 }
 
 function emonocot_dwca_source_field(){

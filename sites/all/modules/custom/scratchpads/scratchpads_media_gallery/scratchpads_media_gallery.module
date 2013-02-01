@@ -211,7 +211,7 @@ function scratchpads_media_gallery_theme(){
  * Implementation of hook_node_view_alter().
  */
 function scratchpads_media_gallery_node_view($node, $view_mode, $langcode){
-  if($node->type == 'media_gallery' && arg(0) == 'node' && is_numeric(arg(1)) && !arg(2)){
+  if($node->type == 'media_gallery' && arg(0) == 'node' && $view_mode != 'search_index' && is_numeric(arg(1)) && !arg(2)){
     drupal_goto('gallery', array(
       'query' => array(
         'f' => array(
