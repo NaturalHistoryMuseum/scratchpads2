@@ -1,28 +1,28 @@
 <?php
-
 define("INSERT_FROM_VIEW_FIELD_ROW", '_insert_from_view_field_render_row');
 
 /**
  * Implement hook_init
  */
-function insert_from_view_init() {
+function insert_from_view_init(){
   // XXX we only need to do this if there is an editor on the page
   $settings = variable_get('insert_from_view_settings', array());
   $js_settings = array();
-  
-  foreach ($settings as $key => $value) {
-    if (!user_access("use insert from view $key")) {
+  foreach($settings as $key => $value){
+    if(!user_access("use insert from view $key")){
       continue;
     }
-    
-    $js_settings[] = array_merge(array('key' => $key), $value);
+    $js_settings[] = array_merge(array(
+      'key' => $key
+    ), $value);
   }
-  
-  if (count($js_settings)) {
-    drupal_add_js(array('insert_from_view' => array(
-      'init' => FALSE,
-      'settings' => $js_settings
-    )), 'setting');
+  if(count($js_settings)){
+    drupal_add_js(array(
+      'insert_from_view' => array(
+        'init' => FALSE,
+        'settings' => $js_settings
+      )
+    ), 'setting');
     drupal_add_css(drupal_get_path('module', 'insert_from_view') . '/css/insert_from_view.css');
   }
 }
@@ -30,80 +30,85 @@ function insert_from_view_init() {
 /**
  * Implement hook_menu
  */
-function insert_from_view_menu() {
+function insert_from_view_menu(){
   $items = array();
-  
   $items['admin/config/content/insert_from_view'] = array(
     'type' => MENU_NORMAL_ITEM,
     'title' => t('Setup Insert from View'),
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('insert_from_view_setup_form'),
-    'access arguments' => array('administer insert from view'),
-    'file' => 'insert_from_view.admin.inc',
+    'page arguments' => array(
+      'insert_from_view_setup_form'
+    ),
+    'access arguments' => array(
+      'administer insert from view'
+    ),
+    'file' => 'insert_from_view.admin.inc'
   );
-  
   $items['insert-from-view/%'] = array(
     'page callback' => 'insert_from_view_view_callback',
-    'page arguments' => array(1),
+    'page arguments' => array(
+      1
+    ),
     'access callback' => 'insert_from_view_access_callback',
-    'access arguments' => array(1),
-    'type' => MENU_CALLBACK,
+    'access arguments' => array(
+      1
+    ),
+    'type' => MENU_CALLBACK
   );
-  
   return $items;
 }
 
 /**
  * Implement hook_admin_paths
  */
-function insert_from_view_admin_paths() {
+function insert_from_view_admin_paths(){
   return array(
-    'insert-from-view/*' => TRUE,
+    'insert-from-view/*' => TRUE
   );
 }
 
 /**
  * Implement hook_permission
  */
-function insert_from_view_permission() {
+function insert_from_view_permission(){
   $items = array(
     'administer insert from view' => array(
-      'title' => t('Administer Insert from View'),
-    ),
+      'title' => t('Administer Insert from View')
+    )
   );
-      
   $settings = variable_get('insert_from_view_settings', array());
-  foreach ($settings as $key => $value) {
+  foreach($settings as $key => $value){
     $items["use insert from view $key"] = array(
-      'title' => t('Use insert from view @s', array('@s' => $value['name']))
+      'title' => t('Use insert from view @s', array(
+        '@s' => $value['name']
+      ))
     );
   }
-  
   return $items;
 }
 
 /**
  * Access callback
  */
-function insert_from_view_access_callback($key) {
+function insert_from_view_access_callback($key){
   return user_access("use insert from view $key");
 }
 
 /**
  * Implement hook_ckeditor_plugin
  */
-function insert_from_view_ckeditor_plugin() {
+function insert_from_view_ckeditor_plugin(){
   $items = array();
   $settings = variable_get('insert_from_view_settings', array());
   $path = drupal_get_path('module', 'insert_from_view') . '/plugins/insert_from_view/';
   $relative_path = preg_replace('/[^\/]+/', '..', $path);
-  
-  foreach ($settings as $key => $value) {
+  foreach($settings as $key => $value){
     $id = "insert_from_view_$key";
     $items[$id] = array(
       'name' => $id,
-      'desc' => t('This plugin allows the selection and insertion of items picked from the view @s', 
-        array('@s' => $value['view'])),
+      'desc' => t('This plugin allows the selection and insertion of items picked from the view @s', array(
+        '@s' => $value['view']
+      )),
       'path' => $path,
       'buttons' => array(
         $id => array(
@@ -113,14 +118,13 @@ function insert_from_view_ckeditor_plugin() {
       )
     );
   }
-  
   return $items;
 }
 
 /**
  * Implement hook_views_api
  */
-function insert_from_view_views_api() {
+function insert_from_view_views_api(){
   return array(
     'api' => 3,
     'path' => drupal_get_path('module', 'insert_from_view') . '/views'
@@ -131,52 +135,51 @@ function insert_from_view_views_api() {
  * Call back function used to generate the required view
  * 
  */
-function insert_from_view_view_callback($key) {
+function insert_from_view_view_callback($key){
   $settings = variable_get('insert_from_view_settings', array());
-  
-  if (isset($settings[$key])) {
+  if(isset($settings[$key])){
     $index = 2;
     $arguments = array();
-    while (arg($index) !== NULL) {
+    while(arg($index) !== NULL){
       $arguments[] = arg($index);
       $index++;
-    }    
-    
-    $view = views_get_view($settings[$key]['view']);
-    if (!$view || !$view->access($settings[$key]['display'])) {
-      return;
     }
+    $view = views_get_view($settings[$key]['view']);
+    if(!$view || !$view->access($settings[$key]['display'])){return;}
     $view->override_path = $_GET['q'];
     $view->set_display($settings[$key]['display']);
     $view->build($settings[$key]['display']);
     $style = $view->style_plugin;
-    $style->options['row_class'] .= ' insert_from_view_row';    
+    $style->options['row_class'] .= ' insert_from_view_row';
     $html = $view->preview($settings[$key]['display'], $arguments);
-    
-    $field = $settings[$key]['field'];    
+    $field = $settings[$key]['field'];
     $insert_array = array();
-
-    $uses_fields = (!empty($style->definition['uses fields']) ||  (!empty($style->definition['uses row plugin']) && !empty($style->row_plugin->definition['uses fields'])));
-    if ($field != INSERT_FROM_VIEW_FIELD_ROW && $uses_fields) {      
-      foreach ($view->style_plugin->rendered_fields as $row => $values) {
+    $uses_fields = (!empty($style->definition['uses fields']) || (!empty($style->definition['uses row plugin']) && !empty($style->row_plugin->definition['uses fields'])));
+    if($field != INSERT_FROM_VIEW_FIELD_ROW && $uses_fields){
+      foreach($view->style_plugin->rendered_fields as $row => $values){
         $insert_array[$row] = $values[$field];
       }
-    } else if ($uses_fields) {
+    }else if($uses_fields){
       // XXX there should be a function for this, as this should have wrappers.
-      foreach ($view->style_plugin->rendered_fields as $row => $values) {
+      foreach($view->style_plugin->rendered_fields as $row => $values){
         $insert_array[$row] = implode($view->style_plugin->rendered_fields[$row]);
       }
-    } else {
+    }else{
       // XXX todo
       $inserts_array[$row] = t('(not implemented)');
       drupal_set_message("Insert from view with non-field views has not been implemented", 'error');
     }
-    
     $commands[] = ajax_command_html('#insert-from-view-' . $key, $html);
-    $commands[] = ajax_command_invoke(NULL, 'insert_from_view_setup_view', array($key, $insert_array));
-    $page = array('#type' => 'ajax', '#commands' => $commands);
+    $commands[] = ajax_command_invoke(NULL, 'insert_from_view_setup_view', array(
+      $key,
+      $insert_array
+    ));
+    $page = array(
+      '#type' => 'ajax',
+      '#commands' => $commands
+    );
     ajax_deliver($page);
-  } else {
+  }else{
     drupal_set_message("Unknown view insert instance", 'error');
   }
 }
@@ -184,7 +187,7 @@ function insert_from_view_view_callback($key) {
 /**
  * API function to read existing instances of insert from view
  */
-function insert_from_view_get_instances() {
+function insert_from_view_get_instances(){
   return variable_get('insert_from_view_settings', array());
 }
 
@@ -217,7 +220,7 @@ function insert_from_view_get_instances() {
  * or no key was available.
  * 
  */
-function insert_from_view_new_instance($name, $label, $view, $display, $settings = array(), $clear_cache = TRUE) {
+function insert_from_view_new_instance($name, $label, $view, $display, $settings = array(), $clear_cache = TRUE){
   $inserts = variable_get('insert_from_view_settings', array());
   $settings = array_merge(array(
     'field' => INSERT_FROM_VIEW_FIELD_ROW,
@@ -227,24 +230,17 @@ function insert_from_view_new_instance($name, $label, $view, $display, $settings
     'row_tag' => 'span',
     'wrap_tag' => ''
   ), $settings);
-  
   // Validation
-  if (empty($name) || empty($label) || empty($display)) {
-    return FALSE;
-  }
-  
-  if (isset($settings['key'])) {
-    if (!preg_match('/^[a-zA-Z0-9-_]+$/', $settings['key']) || isset($inserts[$settings['key']])) {
-      return FALSE;
-    }
+  if(empty($name) || empty($label) || empty($display)){return FALSE;}
+  if(isset($settings['key'])){
+    if(!preg_match('/^[a-zA-Z0-9-_]+$/', $settings['key']) || isset($inserts[$settings['key']])){return FALSE;}
     $key = $settings['key'];
-  } else {
+  }else{
     $key = md5(time() + rand());
-    while (isset($inserts[$key])) {
+    while(isset($inserts[$key])){
       $key = md5(time() + rand());
     }
   }
-  
   $inserts[$key] = array(
     'name' => $name,
     'label' => $label,
@@ -255,13 +251,11 @@ function insert_from_view_new_instance($name, $label, $view, $display, $settings
     'height' => $settings['height'],
     'icon' => $settings['icon'],
     'row_tag' => $settings['row_tag'],
-    'wrap_tag' => $settings['wrap_tag'],
+    'wrap_tag' => $settings['wrap_tag']
   );
-  
   variable_set('insert_from_view_settings', $inserts);
-
-  if ($clear_cache) {
-    cache_clear_all('*', 'cache_bootstrap');  
+  if($clear_cache){
+    cache_clear_all('*', 'cache_bootstrap');
   }
   return $key;
 }
@@ -272,12 +266,11 @@ function insert_from_view_new_instance($name, $label, $view, $display, $settings
  * Set $clear_ cache to FALSE to avoid this.
  * 
  */
-function insert_from_view_delete_instance($key, $clear_cache = TRUE) {
+function insert_from_view_delete_instance($key, $clear_cache = TRUE){
   $inserts = variable_get('insert_from_view_settings', array());
   unset($inserts[$key]);
   variable_set('insert_from_view_settings', $inserts);
-  
-  if ($clear_cache) {
+  if($clear_cache){
     cache_clear_all('*', 'cache_bootstrap');
   }
 }
