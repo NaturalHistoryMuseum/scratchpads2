@@ -68,9 +68,11 @@ function scratchpads_user_user_load($entities){
  */
 function scratchpads_user_module_implements_alter(&$imps, $hook){
   if($hook == 'form_alter'){
-    $this_module = $imps['scratchpads_user'];
-    unset($imps['scratchpads_user']);
-    $imps['scratchpads_user'] = $this_module;
+    if(isset($imps['scratchpads_user'])){
+      $this_module = $imps['scratchpads_user'];
+      unset($imps['scratchpads_user']);
+      $imps['scratchpads_user'] = $this_module;
+    }
   }
 }
 
