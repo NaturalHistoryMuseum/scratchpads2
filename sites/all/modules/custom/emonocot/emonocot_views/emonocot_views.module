@@ -16,17 +16,17 @@ function emonocot_views_views_api(){
  */
 function emonocot_views_context_load_alter(&$context){
   if($context->name === 'species_overview' && isset($context->reactions['block'])){
-    //Remove default Scratchpads nomenclature and specimen blocks
-    unset($context->reactions['block']['blocks']['views-species_nomenclature-block']);
-    unset($context->reactions['block']['blocks']['views-species_specimens_overview-block']);
-    foreach($context->reactions['block']['blocks'] as $name => $block){
-      if(substr($name, 0, 29) == 'views-em_species_nomenclature'){
-        unset($context->reactions['block']['blocks'][$name]);
-      }
-    }
     //Replace with the eMonocot one(s)
     $term = menu_get_object('taxonomy_term', 2);
     if($term){
+      //Remove default Scratchpads nomenclature and specimen blocks
+      unset($context->reactions['block']['blocks']['views-species_nomenclature-block']);
+      unset($context->reactions['block']['blocks']['views-species_specimens_overview-block']);
+      foreach($context->reactions['block']['blocks'] as $name => $block){
+        if(substr($name, 0, 29) == 'views-em_species_nomenclature'){
+          unset($context->reactions['block']['blocks'][$name]);
+        }
+      }
       $bio_id = $term->vid;
       $context->reactions['block']['blocks']['views-em_species_nomenclature_' . $bio_id . '-block'] = array(
         'module' => 'views',
