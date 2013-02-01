@@ -99,6 +99,7 @@ function _pensoft_publication_xml_article_metadata_schema(){
     )),
     'author#1' => array_merge_recursive($author_schema_template, array(
       '#field' => 'field_publication_authors',
+      '#condition' => 'field_publication_authors',
     ))
   );
   $abstract_and_keywords = array(
