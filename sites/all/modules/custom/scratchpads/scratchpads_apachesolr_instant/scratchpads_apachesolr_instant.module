@@ -32,8 +32,41 @@ function scratchpads_apachesolr_instant_entity_update($entity, $type){
  * Shutdown function called by the entity insert or entity update.
  */
 function scratchpads_apachesolr_instant_shutdown(){
-  $limit = variable_get('apachesolr_cron_limit', 50);
-  variable_set('apachesolr_cron_limit', drupal_static('scratchpads_apachesolr_instant_entity_insert'));
+  _scratchpads_apachesolr_instant_reset_limit(drupal_static('scratchpads_apachesolr_instant_entity_insert'));
   apachesolr_cron();
-  variable_set('apachesolr_cron_limit', $limit);
+  _scratchpads_apachesolr_instant_reset_limit();
+}
+
+/**
+ * Implementation of hook_cron
+ *
+ * Ensure that apachesolr_cron_limit is reset in case the indexing
+ * in instant_shutdown failed
+ */
+function scratchpads_apachesolr_instant_cron(){
+  _scratchpads_apachesolr_instant_reset_limit();
+}
+
+/**
+ * function _scratchpads_apachesolr_instant_reset_limit
+ *
+ * Sets the apachesolr_cron_limit variable to a given value,
+ * or restore it to the value it had the first time this function
+ * was called.
+ */
+function _scratchpads_apachesolr_instant_reset_limit($limit = 0){
+  if($limit == 0){
+    $previous_limit = variable_get('scratchpads_apachesolr_instant_limit', 0);
+    if($previous_limit != 0){
+      variable_set('scratchpads_apachesolr_instant_limit', 0);
+      variable_set('apachesolr_cron_limit', $previous_limit);
+    }
+  }else{
+    $previous_limit = variable_get('apachesolr_cron_limit', 50);
+    $old_limit = variable_get('scratchpads_apachesolr_instant_limit', 0);
+    if($old_limit == 0){
+      variable_set('scratchpads_apachesolr_instant_limit', $previous_limit);
+    }
+    variable_set('apachesolr_cron_limit', $limit);
+  }
 }
