@@ -255,7 +255,7 @@ function scratchpads_taxonomic_name_field_block_view_alter(&$data, $block){
       $delta = array_search($facet->name, $map);
       if($delta == $block->delta && isset($facet_info[$facet->facet])){
         $data['subject'] = $facet_info[$facet->facet]['label'];
-        if($facet->facet == 'im_field_taxonomic_name'){
+        if($facet->facet == 'im_field_taxonomic_name' && isset($data['content']['im_field_taxonomic_name']['#items'])){
           if(count($data['content']['im_field_taxonomic_name']['#items']) > $data['content']['#settings']->settings['soft_limit']){
             $form = drupal_get_form('scratchpads_taxonomic_name_field_facet_im_field_taxonomic_name_form', 'im_field_taxonomic_name', t('Enter taxonomic name...'));
             $data['content']['search_box'] = array(
