@@ -33,10 +33,9 @@ class MigrateDestinationVariable extends MigrateDestination{
           $file = file_unmanaged_save_data($data, $destination);
           // Update the theme settings variable
           if($file){
-            $theme_default = variable_get('theme_default', null);
-            $theme_settings = variable_get('theme_' . $theme_default . '_settings', array());
-            $theme_settings['logo_path'] = $file;
-            variable_set('theme_' . $theme_default . '_settings', $theme_settings);
+            $sp2_theme_settings = variable_get('theme_settings', array());
+            $sp2_theme_settings['logo_path'] = $file;
+            variable_set('theme_settings', $sp2_theme_settings);
           }
         }
       }
