@@ -29,13 +29,16 @@ function theme_character_editor_create_sdd($vars){
     }
     $data_array[$row->taxonomy_term_data_relation_tid][$row->character_editor_character_relation_id] = $row->field_field_character_state_data[0]['rendered']['#markup'];
   }
-  drupal_add_http_header('Content-Type', 'text/xml; utf-8');
-  echo _character_editor_create_sdd($taxonomy_array, $characters_array, $data_array);
-  exit();
-  //   dpm($vars['view']->result);
-  //   dpm($taxonomy_array);
-  //   dpm($characters_array);
-  //   dpm($data_array);
+  if(FALSE){
+    drupal_add_http_header('Content-Type', 'text/xml; utf-8');
+    echo _character_editor_create_sdd($taxonomy_array, $characters_array, $data_array);
+    exit();
+  }
+  dpm($vars['view']->result);
+  dpm($taxonomy_array);
+  dpm($characters_array);
+  dpm($data_array);
+  return '';
 }
 
 /**
