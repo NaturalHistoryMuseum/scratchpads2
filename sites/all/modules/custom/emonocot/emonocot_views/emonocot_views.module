@@ -16,19 +16,17 @@ function emonocot_views_views_api(){
  */
 function emonocot_views_context_load_alter(&$context){
   if($context->name === 'species_overview' && isset($context->reactions['block'])){
-    //Remove default Scratchpads nomenclature and specimen blocks
-    unset($context->reactions['block']['blocks']['views-species_nomenclature-block']);
-    unset($context->reactions['block']['blocks']['views-species_specimens_overview-block']);
-    foreach($context->reactions['block']['blocks'] as $name => $block){
-      if(substr($name, 0, 29) == 'views-em_species_nomenclature'){
-        unset($context->reactions['block']['blocks'][$name]);
-      }
-    }
     //Replace with the eMonocot one(s)
-    global $_GET;
-    $args = explode('/', $_GET['q']);
-    if($args[0] == 'taxonomy' && $args[1] == 'term' && is_int((int)$args[2])){
-      $term = taxonomy_term_load($args[2]);
+    $term = menu_get_object('taxonomy_term', 2);
+    if($term){
+      //Remove default Scratchpads nomenclature and specimen blocks
+      unset($context->reactions['block']['blocks']['views-species_nomenclature-block']);
+      unset($context->reactions['block']['blocks']['views-species_specimens_overview-block']);
+      foreach($context->reactions['block']['blocks'] as $name => $block){
+        if(substr($name, 0, 29) == 'views-em_species_nomenclature'){
+          unset($context->reactions['block']['blocks'][$name]);
+        }
+      }
       $bio_id = $term->vid;
       $context->reactions['block']['blocks']['views-em_species_nomenclature_' . $bio_id . '-block'] = array(
         'module' => 'views',
@@ -70,7 +68,7 @@ function emonocot_views_field_formatter_info(){
       'field types' => array(
         'node_reference'
       )
-    ),
+    )
   );
 }
 
@@ -85,24 +83,25 @@ function emonocot_views_field_formatter_info(){
 function emonocot_views_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
   GLOBAL $base_url;
   switch($display['type']){
-  	case 'biblio_ref':
-  	  $element = array();
+    case 'biblio_ref':
+      $element = array();
       $settings = $display['settings'];
       $formatter = $display['type'];
       foreach($items as $delta => $item){
         $node = node_load($item['nid'], NULL, FALSE);
-        if ($node->type == 'biblio'){
-        	$authors = '';
-        	foreach ($node->biblio_contributors as $author){
-        	  $authors .= $author['name'].', ';
-        	}
-        	if (isset($node->field_emonocot_acknowledgement)){
-        		$closing = '<br/>'.$node->field_emonocot_acknowledgement['und'][0]['value'];
-        	}
-        	else{
-        		$closing = '';
-        	}
-        	$element[] = array('#markup' => l($authors.' '.$node->biblio_year.'. '.$node->title, 'node/'.$node->nid).$closing);
+        if($node->type == 'biblio'){
+          $authors = '';
+          foreach($node->biblio_contributors as $author){
+            $authors .= $author['name'] . ', ';
+          }
+          if(isset($node->field_emonocot_acknowledgement)){
+            $closing = '<br/>' . $node->field_emonocot_acknowledgement['und'][0]['value'];
+          }else{
+            $closing = '';
+          }
+          $element[] = array(
+            '#markup' => l($authors . ' ' . $node->biblio_year . '. ' . $node->title, 'node/' . $node->nid) . $closing
+          );
         }
       }
       return $element;

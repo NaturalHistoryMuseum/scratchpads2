@@ -26,12 +26,9 @@
 
                   var relationType = $(this).attr("data-relation-type");
 
-                  
-                  // Make the list sortable
-                  if($(this).attr("data-relation-arity") > 2){
-                    $(this).sortable({
-                      placeholder: 'rs-placeholder'
-                    });                    
+                  // Make endpoints sortable.
+                  if ($(this).attr('data-relation-arity') != 1) {
+                    $(this).sortable({placeholder:'rs-placeholder'});
                   }
 
                   relationSelectItems[$(this).attr("id")] = {

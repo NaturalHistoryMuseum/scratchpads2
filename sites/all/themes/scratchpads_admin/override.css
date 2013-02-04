@@ -292,3 +292,8 @@ form div.entityconnect-edit input:hover {
 #tui-form-container div.entityconnect-add {
   display: none;
 }
+
+/* Relation select entries */
+.rs-wrapper, .rs-placeholder {
+  width: 500px;
+}

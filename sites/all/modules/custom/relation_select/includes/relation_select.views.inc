@@ -3,7 +3,7 @@
 /**
  * Implementation of hook_views_plugins()
  */
-function relation_select_views_plugins(){
+function relation_select_views_plugins() {
   $path = drupal_get_path('module', 'relation_select');
   return array(
     'style' => array(
@@ -16,10 +16,10 @@ function relation_select_views_plugins(){
         'theme path' => "$path/theme",
         'theme' => 'views_view_relation_select',
         'uses fields' => TRUE,
-  			'uses grouping' => TRUE,
+        'uses grouping' => TRUE,
         'uses options' => TRUE,
-  			'use ajax' => FALSE,
-  			'use pager' => FALSE,
+        'use ajax' => FALSE,
+        'use pager' => FALSE,
         'type' => 'normal'
       )
     )
