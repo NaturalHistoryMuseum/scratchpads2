@@ -61,7 +61,7 @@ function scratchpads_help_get_help(){
     }
     if(count($links)){
       $help[] = array(
-        '#markup' => t('Additional help can be found on the following Help !pages: ', array(
+        '#markup' => t('Additional help can be found on the following <a href="http://help.scratchpads.eu/">Help</a> !pages: ', array(
           '!pages' => format_plural(count($links), t('page'), t('pages'))
         )) . implode(", ", $links)
       );
