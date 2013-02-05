@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Further work is required on this export of SDD.  For now, I will wait until
+ * hearing from Sacha regarding the work that Trellon may have carried out.
+ * 
+ * Active tabs:
+ * 
+ * http://wiki.tdwg.org/twiki/bin/view/SDD/Primer/SddCharacters
+ * http://monkey.nhm.ac.uk/character-editor-sdd/1
+ * file:///home/simor/Desktop/Erythroneura.sdd11.xml
+ * http://monkey.nhm.ac.uk/character-editor-project/1
+ * 
+ * Ensure the key.sql and Erythroneura.sdd11.xml are deleted before pushing.
+ */
+
 function theme_character_editor_create_sdd($vars){
   $taxonomy_array = array();
   $characters_array = array();
