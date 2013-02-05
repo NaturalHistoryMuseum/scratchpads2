@@ -69,7 +69,7 @@ function scratchpads_taxonomic_name_field_implode_tags($tags, $vid = NULL){
     if(!isset($vid) || $tag->vid == $vid){
       // Make sure we have a completed loaded taxonomy term.
       if(isset($tag->name)){
-        $tag->name .= ' [' . $tag->vid . ']';
+        $tag->name .= ' [' . $tag->tid . ']';
         // Commas and quotes in tag names are special cases, so encode 'em.
         if(strpos($tag->name, ',') !== FALSE || strpos($tag->name, '"') !== FALSE){
           $typed_tags[] = '"' . str_replace('"', '""', $tag->name) . '"';
@@ -105,10 +105,9 @@ function scratchpads_taxonomic_name_field_autocomplete_validate($element, &$form
       // otherwise, create a new 'autocreate' term for insert/update.
       preg_match('/([^\[]*)\[([0-9]*)\]/', trim($typed_term), $matches);
       if(count($matches) >= 3){
-        $possibilities = taxonomy_term_load_multiple(array(), array(
-          'name' => trim($matches[1]),
-          'vid' => $matches[2]
-        ));
+        $possibilities = array(
+          taxonomy_term_load($matches[2])
+        );
       }else{
         $possibilities = taxonomy_term_load_multiple(array(), array(
           'name' => trim($typed_term),
@@ -209,7 +208,7 @@ function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed 
     $prefix = count($tags_typed) ? drupal_implode_tags($tags_typed) . ', ' : '';
     $term_matches = array();
     foreach($tags_return as $tag){
-      $n = $tag->name . ' [' . $tag->vid . ']';
+      $n = $tag->name . ' [' . $tag->tid . ']';
       // Term names containing commas or quotes must be wrapped in quotes.
       if(strpos($tag->name, ',') !== FALSE || strpos($tag->name, '"') !== FALSE){
         $n = '"' . str_replace('"', '""', $tag->name) . '"';
