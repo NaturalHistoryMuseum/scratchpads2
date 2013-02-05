@@ -8,7 +8,7 @@
  * 
  * http://wiki.tdwg.org/twiki/bin/view/SDD/Primer/SddCharacters
  * http://monkey.nhm.ac.uk/character-editor-sdd/1
- * file:///home/simor/Desktop/Erythroneura.sdd11.xml
+ * file:///home/simor/scratchpads2/Erythroneura.sdd11.xml
  * http://monkey.nhm.ac.uk/character-editor-project/1
  * 
  * Ensure the key.sql and Erythroneura.sdd11.xml are deleted before pushing.
