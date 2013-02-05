@@ -863,6 +863,10 @@ article.node-event div.field-name-field-event-date {
   max-width: 500px!important;
 }
 
+.field.field-name-field-creator .field-items .field-item:before{
+  content:'\a9  ';
+}
+
 /****************** SLICKGRID *****************/
   
 .bt-wrapper h2{

@@ -1833,9 +1833,10 @@ function scratchpads_media_gallery_field_default_fields(){
         ),
         'file_styles_colorbox' => array(
           'label' => 'above',
+          'module' => 'text',
           'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
+          'type' => 'text_default',
+          'weight' => 7
         ),
         'file_styles_large' => array(
           'label' => 'above',
