@@ -20,6 +20,7 @@ function theme_character_editor_create_sdd($vars){
           }
         }
         break;
+      case 'numeric':
       case 'text':
         $data_array[$row->taxonomy_term_data_relation_tid][$row->character_editor_character_relation_id];
         break;
@@ -29,16 +30,19 @@ function theme_character_editor_create_sdd($vars){
     }
     $data_array[$row->taxonomy_term_data_relation_tid][$row->character_editor_character_relation_id] = $row->field_field_character_state_data[0]['rendered']['#markup'];
   }
-  if(FALSE){
+  if(TRUE){
     drupal_add_http_header('Content-Type', 'text/xml; utf-8');
     echo _character_editor_create_sdd($taxonomy_array, $characters_array, $data_array);
     exit();
+  }else if(function_exists('dpm')){
+    dpm($vars['view']->result);
+    dpm($taxonomy_array);
+    dpm($characters_array);
+    dpm($data_array);
+    return;
+  }else{
+    return 'Devel not installed';
   }
-  dpm($vars['view']->result);
-  dpm($taxonomy_array);
-  dpm($characters_array);
-  dpm($data_array);
-  return '';
 }
 
 /**
@@ -71,12 +75,76 @@ function _character_editor_create_sdd($taxa, $chars, $data){
   $label->setAttribute('xml:lang', 'en'); // Is this always going to be the case?
   // Create a taxonnames element
   $taxonnames = $dataset->appendChild($dom->createElement('TaxonNames'));
-  // Add the taxa/
+  // Add the taxa.
   foreach($taxa as $key => $name){
     $taxonname = $taxonnames->appendChild($dom->createElement('TaxonName'));
-    $taxonname->setAttribute('id', $key);
+    $taxonname->setAttribute('id', "taxa-$key");
     $representation = $taxonname->appendChild($dom->createElement('Representation'));
     $representation->appendChild($dom->createElement('Label', $name));
+  }
+  // Create a Characters element
+  $characters = $dataset->appendChild($dom->createElement('Characters'));
+  // Add the characters.
+  foreach($chars as $key => $char){
+    switch($char['type']){
+      case 'numeric':
+        $character = $characters->appendChild($dom->createElement('QuantitativeCharacter'));
+        break;
+      case 'text':
+        // FIXME - We don't currently export text characters.  Does it make
+        // much sense?  We perhaps need two types of export.
+        break;
+      case 'controlled':
+        $character = $characters->appendChild($dom->createElement('CategoricalCharacter'));
+        break;
+    }
+    $character->setAttribute('id', "char-$key");
+    $representation = $character->appendChild($dom->createElement('Representation'));
+    $representation->appendChild($dom->createElement('Label', $char['label']));
+    // Add the states if controlled.
+    if($char['type'] == 'controlled'){
+      // Create the states.
+      $states = $character->appendChild($dom->createElement('States'));
+      foreach($char['states'] as $state_key => $state_text){
+        $state = $states->appendChild($dom->createElement('StateDefinition'));
+        $state->setAttribute('id', "state-$state_key");
+        $representation = $state->appendChild($dom->createElement('Representation'));
+        $representation->appendChild($dom->createElement('Label', $state_text));
+      }
+    }
+  }
+  // Add the data.
+  // Create a CodedDescriptions element
+  $codeddescs = $dataset->appendChild($dom->createElement('CodedDescriptions'));
+  foreach($data as $taxonkey => $char_vals){
+    $codeddesc = $codeddescs->appendChild($dom->createElement('CodedDescription'));
+    $codeddesc->setAttribute('id', "codeddesc-$key");
+    // Not adding a Representation value here - it will be identical to the taxa
+    // representation.
+    $scope = $codeddesc->appendChild($dom->createElement('Scope'));
+    $taxonname = $scope->appendChild($dom->createElement('TaxonName'));
+    $taxonname->setAttribute('id', "taxa-$taxonkey");
+    // Add a SummaryData element.
+    $summarydata = $codeddesc->appendChild($dom->createElement('SummaryData'));
+    foreach($char_vals as $charkey => $statekey){
+      switch($chars[$charkey]['type']){
+        case 'numeric':
+          $char = $summarydata->appendChild($dom->createElement('Quantitative'));
+          $char->setAttribute('ref', "char-$charkey");
+          $measure = $char->appendChild($dom->createElement('Measure'));
+          $measure->setAttribute('value', $statekey);
+          break;
+        case 'text':
+          $char = $summarydata->appendChild($dom->createElement('TextChar'));
+          break;
+        case 'controlled':
+          $char = $summarydata->appendChild($dom->createElement('Categorical'));
+          $char->setAttribute('ref', "char-$charkey");
+          $state = $char->appendChild($dom->createElement('State'));
+          $state->setAttribute('ref', "state-$statekey");
+          break;
+      }
+    }
   }
   return $dom->saveXML();
 }
