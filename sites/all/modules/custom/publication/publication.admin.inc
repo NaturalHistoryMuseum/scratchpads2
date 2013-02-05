@@ -88,7 +88,7 @@ class PublicationUIController extends EntityDefaultUIController{
       ),
       'access callback' => 'publication_access',
       'access arguments' => array(
-        'update',
+        'edit',
         1
       ),
       'weight' => 0,
@@ -106,7 +106,7 @@ class PublicationUIController extends EntityDefaultUIController{
       ),
       'access callback' => 'publication_access',
       'access arguments' => array(
-        'update',
+        'edit',
         1
       ),
       'type' => MENU_LOCAL_TASK,
