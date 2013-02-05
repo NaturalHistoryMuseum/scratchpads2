@@ -53,7 +53,7 @@ class PublicationUIController extends EntityDefaultUIController{
         'access callback' => 'publication_access',
         'access arguments' => array(
           'edit',
-          'edit ' . $type->type
+          $type->type
         ),
         'file' => 'publication.admin.inc',
         'file path' => drupal_get_path('module', $this->entityInfo['module'])
