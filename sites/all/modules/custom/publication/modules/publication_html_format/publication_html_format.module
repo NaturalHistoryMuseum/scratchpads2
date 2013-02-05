@@ -158,3 +158,18 @@ function _publication_html_format_filter_process_format($element){
   }
   return $element;
 }
+
+/**
+ * Implement hook_scratchpads_default_permissions
+ *
+ */
+function publication_html_format_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'use text format publication_html',
+      'use insert from view pensoft_publication_references',
+      'use insert from view pensoft_publication_figures',
+      'use insert from view pensoft_publication_specimens'
+    )
+  );
+}

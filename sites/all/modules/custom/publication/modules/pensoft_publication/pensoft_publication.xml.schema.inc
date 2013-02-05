@@ -61,6 +61,7 @@ function _pensoft_publication_xml_article_metadata_schema(){
           '#value' => htmlspecialchars('Edit & comment') //"Edit & comment" or "Comment only"
         )
       )
+    )
     // corresponding_author, rights, submitting_author
     ,
     'address' => array(
@@ -74,9 +75,7 @@ function _pensoft_publication_xml_article_metadata_schema(){
         )
       )
     )
-  )
-  
-  ;
+  );
   $title_and_authors_schema = array(
     'fields' => array(
       'title' => array(
@@ -147,6 +146,7 @@ function _pensoft_publication_xml_article_metadata_schema(){
             '#field' => 'field_user_family_name'
           )
         )
+      ),
       //'rights' => array(
       //  'value' => array(
       //    '#value' => htmlspecialchars('Edit & comment'), //"Edit & comment" or "Comment only"
@@ -156,7 +156,6 @@ function _pensoft_publication_xml_article_metadata_schema(){
       //    '#value' => 'Linguistic editor', 'Copy editor', 'Mentor', 'Potential reviewer', 'Colleague / Friend'
       //   )
       //  ),
-      ,
       'address' => array(
         'fields' => array(
           // affiliation, city
@@ -169,17 +168,13 @@ function _pensoft_publication_xml_article_metadata_schema(){
         )
       )
     )
-  )
-  
-  ;
+  );
   $article_metadata_schema = array(
     'title_and_authors' => $title_and_authors_schema,
     'abstract_and_keywords' => $abstract_and_keywords,
     'contributors' => $contributors
   //'nomenclature_metadata' => $nomenclature_metadata
-  
-  
-  ;
+  );
   return $article_metadata_schema;
 }
 
@@ -1150,10 +1145,8 @@ function _pensoft_publication_xml_systematics_materials_schema(){
     //latesteonorhighesteonothem, earlisesteraorlowesterathem,
     //latesteraorhighesterathem, ...
     // group, formation, member, bed
-    
-  )
-  
-  ;
+    )
+  );
   $holotype = $type_template;
   $paratypes = $type_template;
   $paratypes['#field'] = 'field_publication_treat_paratype';

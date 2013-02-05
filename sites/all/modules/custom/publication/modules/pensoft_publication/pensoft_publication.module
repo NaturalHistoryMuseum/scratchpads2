@@ -567,3 +567,17 @@ function pensoft_publication_publish_form_submit($form, &$form_state){
   }
   */
 }
+
+/**
+ * Implement hook_scratchpads_default_permissions
+ *
+ */
+function pensoft_publication_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'edit any pensoft publication',
+      'view any pensoft publication',
+      'publish any pensoft publication'
+    )
+  );
+}

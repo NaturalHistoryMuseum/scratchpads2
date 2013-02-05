@@ -37,6 +37,15 @@ function taxon_stats_menu(){
     'type' => MENU_LOCAL_TASK,
     'weight' => 1
   );
+  if (taxon_stats_has_protologues()) {
+  	$items['taxon_stats/protologues'] = array(
+  	  'title' => 'Protologue Statsistics',
+  	  'page callback' => 'taxon_stats_overall_protologues',
+  	  'access callback' => true,
+  	  'type' => MENU_LOCAL_TASK,
+  	  'weight' => 2,
+  	);
+  }
   return $items;
 }
 
@@ -133,6 +142,33 @@ function taxon_stats_overall_pubs(){
   }
   return $output;
 }
+
+function taxon_stats_overall_protologues(){
+  $output = '';
+  //include Google Charts necessaries
+  taxon_stats_add_javascript('ts_chart');
+  
+  //Number of protologues
+    $sql = "SELECT COUNT(*) AS count FROM biblio b INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name = 'Botanical Protologue'";
+    $total = db_query($sql)->fetchObject();
+    $total = $total->count;
+
+    
+    $sql = "SELECT COUNT(*) AS count FROM biblio b INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name = 'Botanical Protologue' AND biblio_url != ''";
+    $with_url = db_query($sql)->fetchObject();
+    $with_url = $with_url->count;
+    
+    $missing = $total - $with_url;
+    
+  $output .= '<div class="ts-charts" id="ts-chart-protologue-urls"></div>';
+  $output.= '<div id="ts-chart-protologue-urls-data" data-chart-title="New names by author" data-chart-type="pie" data-chart-first-column-type="string">';
+  $output .= '<span data-title="with URLS to orignal content" data-value="' . $with_url . '"></span>';
+  $output .= '<span data-title="without link to original content" data-value="' . $missing . '"></span>';
+  $output .= '</div>';
+
+  return $output;
+}
+
 
 /**
  * 
