@@ -53,7 +53,11 @@ function scratchpads_help_get_help(){
       if(!$row->title){
         $row->title = $row->page;
       }
-      $links[] = l($row->title, $row->page);
+      $links[] = l($row->title, $row->page, array(
+        'attributes' => array(
+          'target' => '_blank'
+        )
+      ));
     }
     if(count($links)){
       $help[] = array(
