@@ -20,6 +20,122 @@ function scratchpads_taxonomic_name_field_menu_alter(&$items){
 }
 
 /**
+ * Implements hook_field_widget_info_alter().
+ */
+function scratchpads_taxonomic_name_field_field_widget_info_alter(&$info){
+  $info['taxonomy_autocomplete']['module'] = 'scratchpads_taxonomic_name_field';
+}
+
+/**
+ * Replace the widget functions from the taxonomy module.
+ */
+/**
+ * Implements hook_field_widget_error().
+ */
+function scratchpads_taxonomic_name_field_field_widget_error($element, $error, $form, &$form_state){
+  return taxonomy_field_widget_error($element, $error, $form, $form_state);
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function scratchpads_taxonomic_name_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
+  $tags = array();
+  foreach($items as $item){
+    $tags[$item['tid']] = isset($item['taxonomy_term']) ? $item['taxonomy_term'] : taxonomy_term_load($item['tid']);
+  }
+  $element += array(
+    '#type' => 'textfield',
+    '#default_value' => scratchpads_taxonomic_name_field_implode_tags($tags),
+    '#autocomplete_path' => $instance['widget']['settings']['autocomplete_path'] . '/' . $field['field_name'],
+    '#size' => $instance['widget']['settings']['size'],
+    '#maxlength' => 1024,
+    '#element_validate' => array(
+      'scratchpads_taxonomic_name_field_autocomplete_validate'
+    )
+  );
+  return $element;
+}
+
+/**
+ * Implodes a list of tags of a certain vocabulary into a string.
+ * 
+ * This function includes "[VID]".
+ */
+function scratchpads_taxonomic_name_field_implode_tags($tags, $vid = NULL){
+  $typed_tags = array();
+  foreach($tags as $tag){
+    // Extract terms belonging to the vocabulary in question.
+    if(!isset($vid) || $tag->vid == $vid){
+      // Make sure we have a completed loaded taxonomy term.
+      if(isset($tag->name)){
+        $tag->name .= ' [' . $tag->tid . ']';
+        // Commas and quotes in tag names are special cases, so encode 'em.
+        if(strpos($tag->name, ',') !== FALSE || strpos($tag->name, '"') !== FALSE){
+          $typed_tags[] = '"' . str_replace('"', '""', $tag->name) . '"';
+        }else{
+          $typed_tags[] = $tag->name;
+        }
+      }
+    }
+  }
+  return implode(', ', $typed_tags);
+}
+
+/**
+ * Form element validate handler for taxonomy term autocomplete element.
+ */
+function scratchpads_taxonomic_name_field_autocomplete_validate($element, &$form_state){
+  // Autocomplete widgets do not send their tids in the form, so we must detect
+  // them here and process them independently.
+  $value = array();
+  if($tags = $element['#value']){
+    // Collect candidate vocabularies.
+    $field = field_widget_field($element, $form_state);
+    $vocabularies = array();
+    foreach($field['settings']['allowed_values'] as $tree){
+      if($vocabulary = taxonomy_vocabulary_machine_name_load($tree['vocabulary'])){
+        $vocabularies[$vocabulary->vid] = $vocabulary;
+      }
+    }
+    // Translate term names into actual terms.
+    $typed_terms = drupal_explode_tags($tags);
+    foreach($typed_terms as $typed_term){
+      // See if the term exists in the chosen vocabulary and return the tid;
+      // otherwise, create a new 'autocreate' term for insert/update.
+      preg_match('/([^\[]*)\[([0-9]*)\]/', trim($typed_term), $matches);
+      if(count($matches) >= 3){
+        $possibilities = array(
+          taxonomy_term_load($matches[2])
+        );
+      }else{
+        $possibilities = taxonomy_term_load_multiple(array(), array(
+          'name' => trim($typed_term),
+          'vid' => array_keys($vocabularies)
+        ));
+      }
+      if($possibilities){
+        foreach($possibilities as $term){
+          $value[] = (array)$term;
+        }
+      }else{
+        $vocabulary = reset($vocabularies);
+        foreach($vocabularies as $vocabulary){
+          $term = array(
+            'tid' => 'autocreate',
+            'vid' => $vocabulary->vid,
+            'name' => $typed_term,
+            'vocabulary_machine_name' => $vocabulary->machine_name
+          );
+          $value[] = (array)$term;
+        }
+      }
+    }
+  }
+  form_set_value($element, $value, $form_state);
+}
+
+/**
  * Almost identical to the original function, but with added brackets,  
  * vocabulary name and tweak to return exact matches first.
  * 
@@ -92,12 +208,20 @@ function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed 
     $prefix = count($tags_typed) ? drupal_implode_tags($tags_typed) . ', ' : '';
     $term_matches = array();
     foreach($tags_return as $tag){
-      $n = $tag->name;
+      $n = $tag->name . ' [' . $tag->tid . ']';
       // Term names containing commas or quotes must be wrapped in quotes.
       if(strpos($tag->name, ',') !== FALSE || strpos($tag->name, '"') !== FALSE){
         $n = '"' . str_replace('"', '""', $tag->name) . '"';
       }
-      $term_matches[$prefix . $n] = (count($field['settings']['allowed_values']) > 1) ? check_plain($tag->name . ' (' . $tag->vocab_name . ')') : check_plain($tag->name);
+      // Get all parents
+      $parents = taxonomy_get_parents_all($tag->tid);
+      $parents = array_reverse($parents);
+      $parent_names = array();
+      foreach($parents as $parent){
+        $parent_names[] = check_plain($parent->name);
+      }
+      $link_text = implode(" &raquo; ", $parent_names);
+      $term_matches[$prefix . $n] = (count($field['settings']['allowed_values']) > 1) ? $link_text . ' (' . check_plain($tag->vocab_name) . ')' : $link_text;
     }
   }
   drupal_json_output($term_matches);

@@ -27,33 +27,38 @@ function scratchpads_file_colorboxed_field_group_info(){
     }
   }
   foreach(array(
-    'image',
-    'audio',
-    'video'
-  ) as $bundle){
-    $field_group = new stdClass();
-    $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
-    $field_group->api_version = 1;
-    $field_group->identifier = 'group_file_group|file|' . $bundle . '|default';
-    $field_group->group_name = 'group_file_group';
-    $field_group->entity_type = 'file';
-    $field_group->bundle = $bundle;
-    $field_group->mode = 'default';
-    $field_group->parent_name = '';
-    $field_group->data = array(
-      'label' => 'Group',
-      'weight' => '1',
-      'children' => ($bundle == 'image' ? $image_children : $children),
-      'format_type' => 'field_group_stripy_div',
-      'format_settings' => array(
+    'default',
+    'file_styles_colorbox'
+  ) as $view_name){
+    foreach(array(
+      'image',
+      'audio',
+      'video'
+    ) as $bundle){
+      $field_group = new stdClass();
+      $field_group->disabled = FALSE;
+      $field_group->api_version = 1;
+      $field_group->identifier = 'group_file_group|file|' . $bundle . '|' . $view_name;
+      $field_group->group_name = 'group_file_group';
+      $field_group->entity_type = 'file';
+      $field_group->bundle = $bundle;
+      $field_group->mode = $view_name;
+      $field_group->parent_name = '';
+      $field_group->data = array(
         'label' => 'Group',
-        'instance_settings' => array(
-          'display_mode' => ''
-        ),
-        'formatter' => 'open'
-      )
-    );
-    $export['group_file_group|file|' . $bundle . '|default'] = $field_group;
+        'weight' => '1',
+        'children' => ($bundle == 'image' ? $image_children : $children),
+        'format_type' => 'field_group_stripy_div',
+        'format_settings' => array(
+          'label' => 'Group',
+          'instance_settings' => array(
+            'display_mode' => ''
+          ),
+          'formatter' => 'open'
+        )
+      );
+      $export['group_file_group|file|' . $bundle . '|' . $view_name] = $field_group;
+    }
   }
   return $export;
 }

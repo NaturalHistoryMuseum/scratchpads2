@@ -345,3 +345,12 @@ function scratchpads_media_gallery_update_7010(){
   field_update_instance($fields['file-video-field_cc_licence']['field_instance']);
   field_update_instance($fields['file-audio-field_cc_licence']['field_instance']);
 }
+
+/**
+ * Display the creator field in the colorbox.
+ */
+function scratchpads_media_gallery_update_7011(){
+  module_load_include('features.field.inc', 'scratchpads_media_gallery');
+  $fields = scratchpads_media_gallery_field_default_fields();
+  field_update_instance($fields['file-image-field_creator']['field_instance']);
+}
