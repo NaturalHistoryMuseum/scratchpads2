@@ -213,7 +213,15 @@ function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed 
       if(strpos($tag->name, ',') !== FALSE || strpos($tag->name, '"') !== FALSE){
         $n = '"' . str_replace('"', '""', $tag->name) . '"';
       }
-      $term_matches[$prefix . $n] = (count($field['settings']['allowed_values']) > 1) ? check_plain($tag->name . ' (' . $tag->vocab_name . ')') : check_plain($tag->name);
+      // Get all parents
+      $parents = taxonomy_get_parents_all($tag->tid);
+      $parents = array_reverse($parents);
+      $parent_names = array();
+      foreach($parents as $parent){
+        $parent_names[] = check_plain($parent->name);
+      }
+      $link_text = implode(" &raquo; ", $parent_names);
+      $term_matches[$prefix . $n] = (count($field['settings']['allowed_values']) > 1) ? $link_text . ' (' . check_plain($tag->vocab_name) . ')' : $link_text;
     }
   }
   drupal_json_output($term_matches);
