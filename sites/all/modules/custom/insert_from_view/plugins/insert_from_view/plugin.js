@@ -40,10 +40,9 @@
                 ' </' + settings.map[key].wrap_tag + '> ' ];
           }
 
-          editor.insertHtml(wrap_tag[0] + row_tag[0]
-              + elements.join(row_tag[1] + row_tag[0]) + row_tag[1]
-              + wrap_tag[1]);
-
+          editor.insertElement(CKEDITOR.dom.element.createFromHtml($.trim(wrap_tag[0] + row_tag[0]
+          + elements.join(row_tag[1] + row_tag[0]) + row_tag[1]
+          + wrap_tag[1])));
           editor.updateElement();
 
           $.colorbox.close();
@@ -92,9 +91,9 @@
                       ' </' + settings.map[key].wrap_tag + '> ' ];
                 }
 
-                editor.insertHtml(wrap_tag[0] + row_tag[0]
+                editor.insertElement(CKEDITOR.dom.element.createFromHtml($.trim(wrap_tag[0] + row_tag[0]
                     + elements.join(row_tag[1] + row_tag[0]) + row_tag[1]
-                    + wrap_tag[1]);
+                    + wrap_tag[1])));
                 editor.updateElement();
 
                 $.colorbox.close();
