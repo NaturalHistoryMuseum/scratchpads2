@@ -63,9 +63,10 @@
 
                 // Handle single inserts
                 $row.click(function() {
-                  editor.insertHtml('<tbls_citation citation_id="'+ id + '" contenteditable="false" style="background: #DDD;">Table [id:'
-                    + id
-                    + ']</tbls_citation>');
+                  editor.insertElement(CKEDITOR.dom.element.createFromHtml(
+                      '<tbls_citation citation_id="'+ id + '" contenteditable="false" style="background: #DDD;">Table [id:'
+                      + id
+                      + ']</tbls_citation>'));
                   editor.updateElement();
                   $.colorbox.close();
                 });
@@ -77,10 +78,14 @@
               + Drupal.t('Insert') + '"/></div>').appendTo($tables).mousedown(function() {
               var elements = [];
               $tables.find('tr.pensoft_select_table_row input:checked').each(function() {
-                elements.push('<span>Table. '+ $(this).attr('name') + '</span>');
+                var id = $(this).attr('name');
+                var line = '<tbls_citation citation_id="'+ id + '" contenteditable="false" style="background: #DDD;">Table [id:'
+                + id
+                + ']</tbls_citation>';
+
+                editor.insertElement(CKEDITOR.dom.element.createFromHtml(line));
               });
 
-              editor.insertHtml(elements.join(''));
               editor.updateElement();
               $.colorbox.close();
             });
