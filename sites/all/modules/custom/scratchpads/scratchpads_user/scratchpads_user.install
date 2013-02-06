@@ -27,3 +27,30 @@ function scratchpads_user_update_7002(){
     }
   }
 }
+
+/**
+ * Allow "Other" to work for the Title field.
+ */
+function scratchpads_user_update_7003(){
+  field_update_field(array(
+    'active' => '1',
+    'cardinality' => '1',
+    'deleted' => '0',
+    'entity_types' => array(),
+    'field_name' => 'field_user_title',
+    'foreign keys' => array(),
+    'indexes' => array(
+      'value' => array(
+        0 => 'value'
+      )
+    ),
+    'module' => 'list',
+    'settings' => array(
+      'allowed_values' => array(),
+      'allowed_values_function' => '',
+      'profile2_private' => FALSE
+    ),
+    'translatable' => '0',
+    'type' => 'list_text'
+  ));
+}

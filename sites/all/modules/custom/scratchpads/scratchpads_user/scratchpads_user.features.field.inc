@@ -411,15 +411,7 @@ function scratchpads_user_field_default_fields(){
       ),
       'module' => 'list',
       'settings' => array(
-        'allowed_values' => array(
-          'Dr' => 'Dr',
-          'Miss' => 'Miss',
-          'Mr' => 'Mr',
-          'Mrs' => 'Mrs',
-          'Ms' => 'Ms',
-          'Prof.' => 'Prof.',
-          'other' => 'Other'
-        ),
+        'allowed_values' => array(),
         'allowed_values_function' => '',
         'profile2_private' => FALSE
       ),
