@@ -796,6 +796,8 @@ function scratchpads_tweaks_update_7014(){
     'format' => 'comment_filtered_html'
   ));
   $query->execute();
+  module_load_include('install', 'ckeditor');
+  ckeditor_update_7005();
 }
 
 /**
@@ -1024,4 +1026,12 @@ function scratchpads_tweaks_update_7040(){
   drupal_uninstall_modules(array(
     'hide_submit'
   ));
+}
+
+/**
+ * Fix the CKEditor
+ */
+function scratchpads_tweaks_update_7041(){
+  module_load_include('install', 'ckeditor');
+  ckeditor_update_7005();
 }
