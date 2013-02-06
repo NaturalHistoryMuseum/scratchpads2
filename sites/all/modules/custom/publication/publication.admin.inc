@@ -19,7 +19,7 @@ class PublicationUIController extends EntityDefaultUIController{
         'publication_admin_overview_form'
       ),
       'access arguments' => array(
-        'administer publication'
+        'administer publications'
       ),
       'file' => 'publication.admin.inc',
       'file path' => drupal_get_path('module', $this->entityInfo['module']),
