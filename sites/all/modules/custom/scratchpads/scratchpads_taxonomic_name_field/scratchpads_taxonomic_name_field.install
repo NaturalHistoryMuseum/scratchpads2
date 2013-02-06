@@ -69,6 +69,7 @@ function scratchpads_taxonomic_name_field_install(){
             'element_class' => '',
             'element_option' => '- None -',
             'links_option' => 1,
+            'append_vocabulary' => 1,
             'separator_option' => ', ',
             'wrapper_class' => '',
             'wrapper_option' => '- None -'
@@ -201,13 +202,21 @@ function scratchpads_taxonomic_name_field_update_7010(){
 
 /**
  * - Enable the taxonomy_formatter module.
- * - Update all instances of the taxonomic_name_field field to use the
- * taxonomy_formatter display type.
+ * - [REMOVED - replaced by update 7012] Update all instances of the 
+ * taxonomic_name_field field to use the taxonomy_formatter display type.
  */
 function scratchpads_taxonomic_name_field_update_7011(){
   module_enable(array(
     'taxonomy_formatter'
   ));
+}
+
+/**
+ * - Enable the taxonomy_formatter module.
+ * - Update all instances of the taxonomic_name_field field to use the
+ * taxonomy_formatter display type.
+ */
+function scratchpads_taxonomic_name_field_update_7012(){
   $field = field_info_field('field_taxonomic_name');
   foreach($field['bundles'] as $entity_type => $bundles){
     foreach($bundles as $bundle){
@@ -219,6 +228,7 @@ function scratchpads_taxonomic_name_field_update_7011(){
           'element_class' => '',
           'element_option' => '- None -',
           'links_option' => 1,
+          'append_vocabulary' => 1,
           'separator_option' => ', ',
           'wrapper_class' => '',
           'wrapper_option' => '- None -'
