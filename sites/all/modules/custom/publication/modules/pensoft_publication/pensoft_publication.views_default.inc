@@ -20,7 +20,7 @@ function pensoft_publication_views_default_views(){
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
-      $handler = $view->new_display('default', 'Master', 'default');
+    $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Select Images';
   $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['access']['type'] = 'perm';
@@ -225,7 +225,7 @@ function pensoft_publication_views_default_views(){
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['reduce_duplicates'] = 0;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'werewolves';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'classification';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = 1;
   /* Filter criterion: File: Description (field_description) */
   $handler->display->display_options['filters']['field_description_value']['id'] = 'field_description_value';
@@ -265,7 +265,7 @@ function pensoft_publication_views_default_views(){
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
-      $handler = $view->new_display('default', 'Master', 'default');
+    $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Select Bibliography entries';
   $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['access']['type'] = 'perm';
@@ -663,13 +663,6 @@ function pensoft_publication_views_default_views(){
   $handler->display->display_options['sorts']['title']['table'] = 'node';
   $handler->display->display_options['sorts']['title']['field'] = 'title';
   $handler->display->display_options['sorts']['title']['order'] = 'DESC';
-  /* Filter criterion: Content: Published */
-  $handler->display->display_options['filters']['status']['id'] = 'status';
-  $handler->display->display_options['filters']['status']['table'] = 'node';
-  $handler->display->display_options['filters']['status']['field'] = 'status';
-  $handler->display->display_options['filters']['status']['value'] = 1;
-  $handler->display->display_options['filters']['status']['group'] = 1;
-  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
   /* Filter criterion: Content: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'node';
@@ -701,7 +694,7 @@ function pensoft_publication_views_default_views(){
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['reduce_duplicates'] = 0;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'werewolves';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'classification';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = 1;
   /* Filter criterion: Content: Title */
   $handler->display->display_options['filters']['title']['id'] = 'title';
@@ -757,7 +750,7 @@ function pensoft_publication_views_default_views(){
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
-      $handler = $view->new_display('default', 'Master', 'default');
+    $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
@@ -1951,13 +1944,6 @@ function pensoft_publication_views_default_views(){
   $handler->display->display_options['sorts']['created']['table'] = 'node';
   $handler->display->display_options['sorts']['created']['field'] = 'created';
   $handler->display->display_options['sorts']['created']['order'] = 'DESC';
-  /* Filter criterion: Content: Published */
-  $handler->display->display_options['filters']['status']['id'] = 'status';
-  $handler->display->display_options['filters']['status']['table'] = 'node';
-  $handler->display->display_options['filters']['status']['field'] = 'status';
-  $handler->display->display_options['filters']['status']['value'] = 1;
-  $handler->display->display_options['filters']['status']['group'] = 1;
-  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
   /* Filter criterion: Content: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'node';
@@ -1965,11 +1951,13 @@ function pensoft_publication_views_default_views(){
   $handler->display->display_options['filters']['type']['value'] = array(
     'specimen_observation' => 'specimen_observation'
   );
+  $handler->display->display_options['filters']['type']['group'] = 1;
   /* Filter criterion: Field: Taxonomic name (field_taxonomic_name) */
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['value'] = '';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['group'] = 1;
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['exposed'] = TRUE;
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator_id'] = 'field_taxonomic_name_tid_op';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxonomic name';
@@ -1977,7 +1965,7 @@ function pensoft_publication_views_default_views(){
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['multiple'] = 1;
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['reduce_duplicates'] = 0;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'werewolves';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'classification';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = 1;
   $export['publication_create_specimens'] = $view;
   $view = new view();
@@ -1991,7 +1979,7 @@ function pensoft_publication_views_default_views(){
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
-      $handler = $view->new_display('default', 'Master', 'default');
+    $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
@@ -2050,13 +2038,6 @@ function pensoft_publication_views_default_views(){
   $handler->display->display_options['sorts']['title']['table'] = 'node';
   $handler->display->display_options['sorts']['title']['field'] = 'title';
   $handler->display->display_options['sorts']['title']['order'] = 'DESC';
-  /* Filter criterion: Content: Published */
-  $handler->display->display_options['filters']['status']['id'] = 'status';
-  $handler->display->display_options['filters']['status']['table'] = 'node';
-  $handler->display->display_options['filters']['status']['field'] = 'status';
-  $handler->display->display_options['filters']['status']['value'] = 1;
-  $handler->display->display_options['filters']['status']['group'] = 1;
-  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
   /* Filter criterion: Content: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'node';
@@ -2064,6 +2045,7 @@ function pensoft_publication_views_default_views(){
   $handler->display->display_options['filters']['type']['value'] = array(
     'spm' => 'spm'
   );
+  $handler->display->display_options['filters']['type']['group'] = 1;
   $handler->display->display_options['filters']['type']['expose']['operator_id'] = 'type_op';
   $handler->display->display_options['filters']['type']['expose']['label'] = 'Type';
   $handler->display->display_options['filters']['type']['expose']['use_operator'] = FALSE;
@@ -2081,11 +2063,13 @@ function pensoft_publication_views_default_views(){
     'Genus' => 'Genus',
     'Species' => 'Species'
   );
+  $handler->display->display_options['filters']['field_rank_value']['group'] = 1;
   /* Filter criterion: Content: Title */
   $handler->display->display_options['filters']['title']['id'] = 'title';
   $handler->display->display_options['filters']['title']['table'] = 'node';
   $handler->display->display_options['filters']['title']['field'] = 'title';
   $handler->display->display_options['filters']['title']['operator'] = 'contains';
+  $handler->display->display_options['filters']['title']['group'] = 1;
   $handler->display->display_options['filters']['title']['exposed'] = TRUE;
   $handler->display->display_options['filters']['title']['expose']['operator_id'] = 'title_op';
   $handler->display->display_options['filters']['title']['expose']['operator'] = 'title_op';
