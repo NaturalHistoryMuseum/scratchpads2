@@ -672,11 +672,13 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
    */
   protected function handleSourceMigration($source_migrations, $source_keys, $default = NULL, $migration = NULL){
     $is_node = FALSE;
-    if(!is_array($source_migrations)){
-      $migration_instance = Migration::getInstance($source_migrations);
-      if(method_exists($migration_instance->destination, 'getEntityType')){
-        $is_node = $migration_instance->destination->getEntityType() == 'node';
-      }
+    $test_source_migration = $source_migrations;
+    if(is_array($test_source_migration)){
+      $test_source_migration = reset($test_source_migration);
+    }
+    $migration_instance = Migration::getInstance($test_source_migration);
+    if(method_exists($migration_instance->destination, 'getEntityType')){
+      $is_node = $migration_instance->destination->getEntityType() == 'node';
     }
     if(!$is_node){
       return parent::handleSourceMigration($source_migrations, $source_keys, $default, $migration);
