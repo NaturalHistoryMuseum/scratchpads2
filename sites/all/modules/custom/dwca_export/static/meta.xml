@@ -102,6 +102,7 @@
 		<coreid index="0" />
 		<field index="1" term="http://purl.org/dc/terms/type"/>
 		<field index="2" term="http://purl.org/dc/terms/description"/>
+		<field index="3" term="http://purl.org/dc/terms/rights"/>
 		<field index="4" term="http://purl.org/dc/terms/references"/>
 		<field index="5" term="http://purl.org/dc/terms/source"/>
 		<field index="7" term="http://purl.org/dc/terms/language"/>
