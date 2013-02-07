@@ -42,5 +42,81 @@ function scratchpads_help_add_help($data = NULL){
 
 function scratchpads_help_get_help(){
   $help = scratchpads_help_add_help();
+  $path = menu_tab_root_path();
+  if($path && db_table_exists('scratchpads_help')){
+    $results = db_select('scratchpads_help', 's')->condition('path', $path)->fields('s', array(
+      'page',
+      'title'
+    ))->execute();
+    $links = array();
+    foreach($results as $row){
+      if(!$row->title){
+        $row->title = $row->page;
+      }
+      $links[] = l($row->title, $row->page, array(
+        'attributes' => array(
+          'target' => '_blank'
+        )
+      ));
+    }
+    if(count($links)){
+      $help[] = array(
+        '#markup' => t('Additional help can be found on the following <a href="http://help.scratchpads.eu/">Help</a> !pages: ', array(
+          '!pages' => format_plural(count($links), t('page'), t('pages'))
+        )) . implode(", ", $links)
+      );
+    }
+  }
   return drupal_render($help);
+}
+
+/**
+ * Implements hook_cron().
+ */
+function scratchpads_help_cron(){
+  // We update the list of wiki pages that are relevant to certain paths once a
+  // day (actually a little more than once a day).
+  if(variable_get('scratchpads_help_last_update', 0) < (time() - 100000)){
+    $xml = new SimpleXMLElement('http://help.scratchpads.eu/w/Special:Export/Embeded_help', 0, TRUE);
+    $xml = (string)$xml->page->revision->text;
+    $lines = preg_split('/[\n\r]+/', $xml);
+    $insert = db_insert('scratchpads_help')->fields(array(
+      'path',
+      'page',
+      'title'
+    ));
+    $do_insert = FALSE;
+    foreach($lines as $line){
+      if(substr($line, 0, 1) == '*'){
+        $parts = explode('|', trim(substr($line, 1)));
+        if(count($parts) >= 2){
+          $path = array_shift($parts);
+          $page = implode('|', $parts);
+          $title = '';
+          if(substr($page, 0, 2) == '[['){
+            $page = substr(trim($page), 2, -2);
+            $page_parts = explode('|', $page);
+            if(count($page_parts) == 2){
+              $page = $page_parts[0];
+              $title = $page_parts[1];
+            }else{
+              $title = str_replace('_', ' ', $page);
+            }
+            $page = 'http://help.scratchpads.eu/w/' . $page;
+          }
+          $do_insert = TRUE;
+          $insert->values(array(
+            'path' => $path,
+            'page' => $page,
+            'title' => $title
+          ));
+        }
+      }
+    }
+    db_delete('scratchpads_help')->execute();
+    if($do_insert){
+      $insert->execute();
+    }
+    variable_set('scratchpads_help_last_update', time());
+  }
 }

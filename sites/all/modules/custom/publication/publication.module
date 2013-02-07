@@ -102,7 +102,7 @@ function publication_entity_info_alter(&$entity_info){
         'real path' => 'admin/structure/publication_types/manage/' . $type,
         'bundle argument' => 4,
         'access arguments' => array(
-          'administer publication'
+          'administer publications'
         )
       )
     );
@@ -473,9 +473,16 @@ function publication_field_group_pre_render(& $element, $group, & $form){
  * Whether access is allowed or not.
  */
 function publication_access($op, $publication = NULL, $account = NULL){
-  if(user_access('administer publication', $account)){return TRUE;}
-  if(isset($publication) && $type_name = $publication->type){
-    if(user_access("$op any $type_name publication", $account)){return TRUE;}
+  if(user_access('administer publications', $account)){return TRUE;}
+  if($publication !== NULL){
+    if(is_string($publication)){
+      $type_name = $publication;
+    }else if(is_object($publication)){
+      $type_name = $publication->type;
+    }else{
+      return FALSE;
+    }
+    return user_access("$op any $type_name publication", $account);
   }
   return FALSE;
 }

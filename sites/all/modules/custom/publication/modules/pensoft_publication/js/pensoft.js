@@ -18,12 +18,20 @@
         }
 
         for ( var i = 0; i < inserts.length; i++) {
-          var matches = inserts[i].match(/^(\d+):(.+)$/);
+          var matches = inserts[i].match(/^(\d+):\((.+)\)(\d+)$/);
           if (matches != null && matches.length > 0) {
             var nid = matches[1];
+            var year = matches[3];
+            var authors = matches[2].split("&&");
+            var authors_str = '';
+            if (authors.length > 2) {
+              authors_str = authors[0] + " " + Drupal.t("et al.");
+            } else {
+              authors_str = authors.join(" " + Drupal.t("and") + " ");
+            }
             inserts[i] = '<reference_citation citation_id="' + nid
                 + '" contenteditable="false" style="background: #DDD;">'
-                + matches[2] + '</reference_citation>';
+                + authors_str + " " + year + '</reference_citation>';
 
             if (Drupal.settings["pensoft"].references_map[nid] == undefined) {
               Drupal.settings["pensoft"].references_map[nid] = true;

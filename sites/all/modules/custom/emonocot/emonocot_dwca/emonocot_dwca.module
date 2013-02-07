@@ -302,9 +302,7 @@ function emonocot_dwca_add_wcm_field(&$view){
   $new_field['separator'] = '';
   $new_field['format_plural'] = 0;
   $new_field['field_api_classes'] = 0;
-  if($view->name == 'dwca_export_image'){
-    $new_field['exclude'] = TRUE;
-  }
+
   //array_unshift($view->display['default']->display_options['fields'], $new_field);
   /*
   $view->display['default']->display_options['fields'] = array_reverse($view->display['default']->display_options['fields'], true);

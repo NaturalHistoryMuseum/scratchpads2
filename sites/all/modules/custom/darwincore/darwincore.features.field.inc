@@ -2785,6 +2785,7 @@ function darwincore_field_default_fields(){
             'element_class' => '',
             'element_option' => '- None -',
             'links_option' => 1,
+            'append_vocabulary' => 1,
             'separator_option' => ', ',
             'wrapper_class' => '',
             'wrapper_option' => '- None -',

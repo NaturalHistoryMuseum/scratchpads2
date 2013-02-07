@@ -515,10 +515,9 @@ function _pensoft_publication_build_xml($publication){
         'supplementary_files' => _pensoft_publication_xml_files_schema()
       )
     //'figures' => _pensoft_publication_xml_figures_schema(),
-    //'tables' => _pensoft_publication_xml_tables_schema(),
-    
-  )
-  ;
+    //'tables' => _pensoft_publication_xml_tables_schema(),    
+    )
+  );
   $schema = $parser->merge_schemas($source_schema, $map_schema);
   // Build the XML
   try{

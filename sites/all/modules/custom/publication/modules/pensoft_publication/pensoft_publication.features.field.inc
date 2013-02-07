@@ -691,8 +691,8 @@ Tables are numbered once the publication is saved.',
         ),
         'view' => array(
           'args' => array(),
-          'display_name' => '',
-          'view_name' => ''
+          'display_name' => 'references_1',
+          'view_name' => 'users_references'
         )
       ),
       'translatable' => '0',
@@ -723,13 +723,13 @@ Tables are numbered once the publication is saved.',
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'user_reference',
+        'module' => 'options',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
           'size' => '60'
         ),
-        'type' => 'user_reference_autocomplete',
+        'type' => 'options_select',
         'weight' => '27'
       )
     )
@@ -769,8 +769,8 @@ Tables are numbered once the publication is saved.',
         ),
         'view' => array(
           'args' => array(),
-          'display_name' => '',
-          'view_name' => ''
+          'display_name' => 'references_1',
+          'view_name' => 'users_references'
         )
       ),
       'translatable' => '0',
@@ -801,13 +801,13 @@ Tables are numbered once the publication is saved.',
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'user_reference',
+        'module' => 'options',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
           'size' => '60'
         ),
-        'type' => 'user_reference_autocomplete',
+        'type' => 'options_select',
         'weight' => '32'
       )
     )
@@ -879,13 +879,13 @@ Tables are numbered once the publication is saved.',
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'user_reference',
+        'module' => 'options',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
           'size' => '60'
         ),
-        'type' => 'user_reference_autocomplete',
+        'type' => 'options_select',
         'weight' => '30'
       )
     )
@@ -1262,13 +1262,13 @@ Tables are numbered once the publication is saved.',
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'user_reference',
+        'module' => 'options',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
           'size' => '60'
         ),
-        'type' => 'user_reference_autocomplete',
+        'type' => 'options_select',
         'weight' => '29'
       )
     )
@@ -1340,13 +1340,13 @@ Tables are numbered once the publication is saved.',
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'user_reference',
+        'module' => 'options',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
           'size' => '60'
         ),
-        'type' => 'user_reference_autocomplete',
+        'type' => 'options_select',
         'weight' => '31'
       )
     )
@@ -1581,13 +1581,13 @@ Tables are numbered once the publication is saved.',
           5 => '5'
         ),
         'referenceable_status' => array(
-          0 => '0',
+          0 => 0,
           1 => '1'
         ),
         'view' => array(
           'args' => array(),
-          'display_name' => '',
-          'view_name' => ''
+          'display_name' => 'references_1',
+          'view_name' => 'users_references'
         )
       ),
       'translatable' => '0',
@@ -1618,13 +1618,13 @@ Tables are numbered once the publication is saved.',
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'user_reference',
+        'module' => 'options',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
           'size' => '60'
         ),
-        'type' => 'user_reference_autocomplete',
+        'type' => 'options_select',
         'weight' => '26'
       )
     )
