@@ -623,21 +623,21 @@ function scratchpads_tweaks_update_7014(){
       'autogrow' => array(
         'name' => 'autogrow',
         'desc' => 'Auto Grow plugin',
-        'path' => '%base_path%%editor_path%plugins/autogrow/',
+        'path' => '%editor_path%plugins/autogrow/',
         'buttons' => false,
         'default' => 'f'
       ),
       'counter' => array(
         'name' => 'counter',
         'desc' => 'Plugin to count symbols, symbols without blanks and words',
-        'path' => '%base_path%%plugin_dir%counter/',
+        'path' => '%plugin_dir%counter/',
         'buttons' => false,
         'default' => 'f'
       ),
       'drupalbreaks' => array(
         'name' => 'drupalbreaks',
         'desc' => 'Plugin for inserting Drupal teaser and page breaks.',
-        'path' => '%base_path%%plugin_dir%drupalbreaks/',
+        'path' => '%plugin_dir%drupalbreaks/',
         'buttons' => array(
           'DrupalBreak' => array(
             'label' => 'DrupalBreak',
@@ -660,7 +660,7 @@ function scratchpads_tweaks_update_7014(){
       'media' => array(
         'name' => 'media',
         'desc' => 'Plugin for inserting images from Drupal media module',
-        'path' => '%base_path%%plugin_dir%media/',
+        'path' => '%plugin_dir%media/',
         'buttons' => array(
           'Media' => array(
             'label' => 'Media',
@@ -672,7 +672,7 @@ function scratchpads_tweaks_update_7014(){
       'tableresize' => array(
         'name' => 'tableresize',
         'desc' => 'Table Resize plugin',
-        'path' => '%base_path%%editor_path%plugins/tableresize/',
+        'path' => '%editor_path%plugins/tableresize/',
         'buttons' => false,
         'default' => 't'
       )
@@ -738,7 +738,7 @@ function scratchpads_tweaks_update_7014(){
       'autogrow' => array(
         'name' => 'autogrow',
         'desc' => 'Auto Grow plugin',
-        'path' => '%base_path%%editor_path%plugins/autogrow/',
+        'path' => '%editor_path%plugins/autogrow/',
         'buttons' => false,
         'default' => 'f'
       ),
@@ -756,7 +756,7 @@ function scratchpads_tweaks_update_7014(){
       'media' => array(
         'name' => 'media',
         'desc' => 'Plugin for inserting images from Drupal media module',
-        'path' => '%base_path%%plugin_dir%media/',
+        'path' => '%plugin_dir%media/',
         'buttons' => array(
           'Media' => array(
             'label' => 'Media',
@@ -1024,4 +1024,12 @@ function scratchpads_tweaks_update_7040(){
   drupal_uninstall_modules(array(
     'hide_submit'
   ));
+}
+
+/**
+ * Fix the CKEditor
+ */
+function scratchpads_tweaks_update_7041(){
+  module_load_include('install', 'ckeditor');
+  ckeditor_update_7005();
 }

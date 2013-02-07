@@ -131,6 +131,12 @@ function pensoft_publication_ckeditor_profile_defaults(){
               )
             )
           ),
+          'pensoft_publication_reference_editor' => array(
+            'name' => 'pensoft_publication_reference_editor',
+            'desc' => 'This plugin allows editing the text of references',
+            'path' => '%base_path%sites/all/modules/custom/publication/modules/pensoft_publication/plugins/reference_editor/',
+            'buttons' => FALSE,
+          ),
           'tableresize' => array(
             'name' => 'tableresize',
             'desc' => 'Table Resize plugin',

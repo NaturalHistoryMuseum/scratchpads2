@@ -80,7 +80,8 @@ function scratchpads_biblio_field_formatter_view($entity_type, $entity, $field, 
         $node = node_load($item['nid'], NULL, FALSE);
         if($node->type == 'biblio'){
           $output = theme('biblio_style', array(
-            'node' => $node
+            'node' => $node,
+            'style_name' => biblio_get_style()
           ));
           $element[] = array(
             '#markup' => $output

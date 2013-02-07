@@ -15,6 +15,8 @@ function cck_select_other_views_data_alter(&$data) {
       $field = $instance['field_name'] . '_value';
       $data[$table]['entity_id']['field']['handler'] = 'cck_select_other_handler_field';
       $data[$table][$field]['filter']['handler'] = 'cck_select_other_handler_filter';
+      $data[$table][$field]['filter']['entity_type'] = $instance['entity_type'];
+      $data[$table][$field]['filter']['bundle'] = $instance['bundle'];
     }
   }
 }
