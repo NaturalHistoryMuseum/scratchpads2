@@ -61,5 +61,5 @@ function scratchpads_user_update_7003(){
       ))
     ))->condition('id', $row[0])->execute();
   }
-  field_flush_caches();
+  cache_clear_all();
 }
