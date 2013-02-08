@@ -32,25 +32,34 @@ function scratchpads_user_update_7002(){
  * Allow "Other" to work for the Title field.
  */
 function scratchpads_user_update_7003(){
-  field_update_field(array(
-    'active' => '1',
-    'cardinality' => '1',
-    'deleted' => '0',
-    'entity_types' => array(),
-    'field_name' => 'field_user_title',
-    'foreign keys' => array(),
-    'indexes' => array(
-      'value' => array(
-        0 => 'value'
-      )
-    ),
-    'module' => 'list',
-    'settings' => array(
-      'allowed_values' => array(),
-      'allowed_values_function' => '',
-      'profile2_private' => FALSE
-    ),
-    'translatable' => '0',
-    'type' => 'list_text'
-  ));
+  $row = db_select('field_config', 'f')->fields('f', array(
+    'id'
+  ))->condition('field_name', 'field_user_title')->execute()->fetchCol(0);
+  if(is_array($row) && $row[0]){
+    db_update('field_config')->fields(array(
+      'data' => serialize(array(
+        'entity_types' => array(),
+        'foreigh keys' => array(),
+        'indexes' => array(
+          'value' => array(
+            'value'
+          )
+        ),
+        'settings' => array(
+          'allowed_values' => array(),
+          'allowed_values_function' => '',
+          'profile2_private' => FALSE
+        ),
+        'translatable' => '0',
+        'storage' => array(
+          'type' => 'field_sql_storage',
+          'settings' => array(),
+          'module' => 'field_sql_storage',
+          'active' => '1'
+        ),
+        'id' => $row[0]
+      ))
+    ))->condition('id', $row[0])->execute();
+  }
+  field_flush_caches();
 }
