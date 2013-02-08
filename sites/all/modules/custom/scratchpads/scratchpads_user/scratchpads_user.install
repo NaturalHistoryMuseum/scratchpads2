@@ -79,6 +79,4 @@ function scratchpads_user_update_7004(){
       'mail' => uniqid('', TRUE) . '@' . $url['host']
     ))->condition('uid', $row->uid)->execute();
   }
-  // Also trim the user->name field.
-  db_query('UPDATE {users} SET name = TRIM(name)')->execute();
 }
