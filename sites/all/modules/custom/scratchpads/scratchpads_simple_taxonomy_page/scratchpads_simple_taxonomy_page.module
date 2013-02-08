@@ -410,12 +410,78 @@ function scratchpads_simple_taxonomy_page_views_api(){
 /**
  * Page callback
  * Taxonomy term pages
+ *
+ * This is similiar to taxonomy_term_page, except:
+ * - If there is only one node, it sets the view mode to 'full' rather than 'teaser'
+ * - If there is only one node and the title is the same as the term, hide the node's title
+ * - It hides the unit name fields
  */
 function scratchpads_simple_taxonomy_page_taxonomy_term_page($term){
-  $build = taxonomy_term_page($term);
+  drupal_set_title($term->name);
+  $current = (object)array(
+    'tid' => $term->tid
+  );
+  $breadcrumb = array();
+  while($parents = taxonomy_get_parents($current->tid)){
+    $current = array_shift($parents);
+    $breadcrumb[] = l($current->name, 'taxonomy/term/' . $current->tid);
+  }
+  $breadcrumb[] = l(t('Home'), NULL);
+  $breadcrumb = array_reverse($breadcrumb);
+  drupal_set_breadcrumb($breadcrumb);
+  drupal_add_feed('taxonomy/term/' . $term->tid . '/feed', 'RSS - ' . $term->name);
+  $uri = entity_uri('taxonomy_term', $term);
+  drupal_add_html_head_link(array(
+    'rel' => 'canonical',
+    'href' => url($uri['path'], $uri['options'])
+  ), TRUE);
+  drupal_add_html_head_link(array(
+    'rel' => 'shortlink',
+    'href' => url($uri['path'], array_merge($uri['options'], array(
+      'alias' => TRUE
+    )))
+  ), TRUE);
+  $build['term_heading'] = array(
+    '#prefix' => '<div class="term-listing-heading">',
+    '#suffix' => '</div>',
+    'term' => taxonomy_term_view($term, 'full')
+  );
+  if($nids = taxonomy_select_nodes($term->tid, TRUE, variable_get('default_nodes_main', 10))){
+    $nodes = node_load_multiple($nids);
+    if(count($nodes) == 1){
+      $build += node_view_multiple($nodes, 'full');
+      $nid = reset($nids);
+      if($term->name == $build['nodes'][$nid]['#node']->title){
+        $build['nodes'][$nid]['#node']->scratchpads_simple_taxonomy_page_omit_title = TRUE;
+      }
+    }else{
+      $build += node_view_multiple($nodes);
+      $build['pager'] = array(
+        '#theme' => 'pager',
+        '#weight' => 5
+      );
+    }
+  }else{
+    $build['no_content'] = array(
+      '#prefix' => '<p>',
+      '#markup' => t('There is currently no content classified with this term.'),
+      '#suffix' => '</p>'
+    );
+  }
   // Hide the unit name fields
   for($x = 1; $x <= 4; $x++){
     unset($build['term_heading']['term']['field_unit_name' . $x]);
   }
   return $build;
+}
+
+/**
+ * Implementation of hook_preprocess_node
+ *
+ */
+function scratchpads_simple_taxonomy_page_preprocess_node(&$variables){
+  if(!empty($variables['scratchpads_simple_taxonomy_page_omit_title'])){
+    // Keeping the title as a single space ensures the edit links are displayed
+    $variables['title'] = ' ';
+  }
 }

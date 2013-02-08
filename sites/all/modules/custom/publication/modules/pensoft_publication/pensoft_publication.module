@@ -158,7 +158,8 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
         'table_key' => $table_key,
         'editor_table_icon' => drupal_get_path('module', 'pensoft_publication') . '/images/tables.png',
         'editor_table_width' => '75%',
-        'editor_table_height' => '75%'
+        'editor_table_height' => '75%',
+        'editor_reference_editor_icon' => drupal_get_path('module', 'pensoft_publication') . '/images/references.png'
       )
     ),
     'type' => 'setting'
@@ -191,6 +192,14 @@ function _pensoft_publication_relation_tab_prepare_form(&$form, $tab){
 }
 
 /**
+ * Sort function to sort field groups
+ */
+function _pensoft_publication_field_group_sort($a, $b){
+  if($a->weight == $b->weight){return 0;}
+  return ($a->weight < $b->weight) ? -1 : 1;
+}
+
+/**
  * Helper function for hook_form_publication_edit_form_alter - Generate a form array 
  * displaying checkboxes to select the fields from an SPM node entity.
  *
@@ -198,6 +207,7 @@ function _pensoft_publication_relation_tab_prepare_form(&$form, $tab){
 function _pensoft_publication_treatment_spm_fields_form($form, $selected_fields, $entity = NULL, $key = 0){
   $form = array();
   $field_groups = field_group_info_groups('node', 'spm', 'form', true);
+  uasort($field_groups, '_pensoft_publication_field_group_sort');
   $field_instances = field_info_instances('node', 'spm');
   $all_empty = TRUE;
   foreach($field_groups as $field_group_name => $field_group){
@@ -205,11 +215,21 @@ function _pensoft_publication_treatment_spm_fields_form($form, $selected_fields,
       continue;
     }
     $child_form = array();
-    $has_child = FALSE;
+    // Sort the children
+    $sorted_children = array();
     foreach($field_group->children as $field_name){
       if(empty($field_instances[$field_name])){
         continue;
       }
+      if(isset($field_instances[$field_name]['widget']['weight'])){
+        $sorted_children[$field_name] = $field_instances[$field_name]['widget']['weight'];
+      }else{
+        $sorted_children[$field_name] = 0;
+      }
+    }
+    asort($sorted_children);
+    $has_child = FALSE;
+    foreach(array_keys($sorted_children) as $field_name){
       if($field_instances[$field_name]['widget']['type'] == 'relation_select'){
         continue;
       }
@@ -443,6 +463,11 @@ function pensoft_publication_ckeditor_plugin(){
         'label' => 'Insert reference to tables'
       )
     )
+  );
+  $items['pensoft_publication_reference_editor'] = array(
+    'name' => 'pensoft_publication_reference_editor',
+    'desc' => t('This plugin allows editing the text of references'),
+    'path' => drupal_get_path('module', 'pensoft_publication') . '/plugins/reference_editor/',
   );
   return $items;
 }

@@ -38,7 +38,15 @@ class VariableMigration extends DrupalMigration{
       'site_frontpage' => 'site_frontpage',
       'site_mission' => 'front_page_welcome_message',
       'language_default' => 'language_default',
-      'user_registration_help' => 'user_registration_help'
+      'user_registration_help' => 'user_registration_help',
+      'glossary_allow_no_description' => 'lexicon_allow_no_description',
+      'glossary_click_option' => 'lexicon_click_option',
+      'glossary_disable_indicator' => 'lexicon_disable_indicator',
+      'glossary_page_per_letter' => 'lexicon_page_per_letter',
+      'glossary_separate_letters' => 'lexicon_separate_letters',
+      'glossary_show_description' => 'lexicon_show_description',
+      'glossary_show_edit' => 'lexicon_show_edit',
+      'glossary_show_search' => 'lexicon_show_search',
     );
     $default_theme = Database::getConnection('default', 'scratchpad_1')->select('variable', 'v')->fields('v', array(
       'value'
@@ -47,11 +55,19 @@ class VariableMigration extends DrupalMigration{
       $theme_var = 'theme_' . unserialize($default_theme) . '_settings';
       $variable_names[$theme_var] = $theme_var;
     }
-    $result = Database::getConnection('default', 'scratchpad_1')->select('filters', 'f')->fields('f', array(
-      'format'
-    ))->distinct()->execute();
+    $query = Database::getConnection('default', 'scratchpad_1')->select('filters');
+    $query->innerJoin('filter_formats', NULL, 'filter_formats.format = filters.format');
+    $query->addField('filters', 'format');
+    $query->addField('filter_formats', 'name');
+    $result = $query->execute();
     foreach($result as $record){
       $variable_names['glossary_vids_' . $record->format] = 'lexicon_vids';
+      if ($record->name == 'Full HTML') {
+        $map_lexicon = array('blocking_tags', 'case', 'match', 'replace', 'replace_all', 'superscript');
+        foreach ($map_lexicon as $map_variable) {
+          $variable_names['glossary_' . $map_variable . '_' . $record->format] = 'lexicon_' . $map_variable;
+        }
+      }
     }
     return $variable_names;
   }
