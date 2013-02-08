@@ -1,5 +1,7 @@
 core = "7.x"
 dependencies[] = "field_group"
+dependencies[] = "languagefield"
+dependencies[] = "field_collection"
 dependencies[] = "list"
 dependencies[] = "node_reference"
 dependencies[] = "taxonomy"
