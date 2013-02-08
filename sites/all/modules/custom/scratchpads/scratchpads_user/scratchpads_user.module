@@ -51,11 +51,6 @@ function scratchpads_user_user_load($entities){
     if($entity->uid && empty($entity->pass)){
       // Is this user just a stub - cannot login
       $entities[$entity_id]->stub_user = true;
-      // Following edited as it throws up an error on install with UID 1.
-      $new_name = trim((isset($entity->field_user_given_names[LANGUAGE_NONE]) ? $entity->field_user_given_names[LANGUAGE_NONE][0]['safe_value'] : '') . ' ' . (isset($entity->field_user_family_name[LANGUAGE_NONE]) ? $entity->field_user_family_name[LANGUAGE_NONE][0]['safe_value'] : ''));
-      if($new_name){
-        $entities[$entity_id]->name = $new_name;
-      }
     }
   }
   return $entities;
