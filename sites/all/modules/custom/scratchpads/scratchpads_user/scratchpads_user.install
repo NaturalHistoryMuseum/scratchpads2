@@ -66,7 +66,6 @@ function scratchpads_user_update_7003(){
 
 /**
  * Set an email for "no login" people.
- * Trim the username field of "no login" people that do not have a title set.
  */
 function scratchpads_user_update_7004(){
   global $base_url;
