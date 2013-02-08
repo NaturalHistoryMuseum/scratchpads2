@@ -51,6 +51,12 @@ function scratchpads_user_user_load($entities){
     if($entity->uid && empty($entity->pass)){
       // Is this user just a stub - cannot login
       $entities[$entity_id]->stub_user = true;
+      // Following edited as it throws up an error on install with UID 1.
+      $new_name = FALSE;
+      preg_match('/(.*) [0-9]*$/', $entities[$entity_id]->name, $matches);
+      if(count($matches) == 2){
+        $entities[$entity_id]->name = $matches[1];
+      }
     }
   }
   return $entities;
@@ -118,6 +124,11 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
     unset($form['comment_notify_settings']);
     unset($form['contact']);
     unset($form['legal']);
+    // Set the correct user name, as we may have removed a number from the end
+    $row = db_select('users', 'u')->fields('u', array(
+      'name'
+    ))->condition('uid', $form['#user']->uid)->execute()->fetchCol(0);
+    $form['account']['name']['#default_value'] = array_pop($row);
   }else{
     $form['create_user_account']['#default_value'] = 1;
     if($user->uid == 1){
@@ -268,7 +279,7 @@ function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state)
   // Check this name does not exist, else we add a number to the end.
   $results = db_select('users', 'u')->fields('u', array(
     'name'
-  ))->condition('name', "$name%", 'LIKE')->execute();
+  ))->condition('name', "$name%", 'LIKE')->condition('uid', (@isset($form['#user']->uid) ? $form['#user']->uid : ''), '!=')->execute();
   $matches = array();
   foreach($results as $row){
     $matches[] = $row->name;
