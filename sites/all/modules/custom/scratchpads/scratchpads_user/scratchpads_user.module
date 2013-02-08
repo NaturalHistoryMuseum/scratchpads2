@@ -52,6 +52,9 @@ function scratchpads_user_user_load($entities){
       // Is this user just a stub - cannot login
       $entities[$entity_id]->stub_user = true;
       // Following edited as it throws up an error on install with UID 1.
+      // NOTE, this is only required for sites with stub_users that have not 
+      // been edited recently.  All new stub_users should have their "name"
+      // correctly set.
       $new_name = trim((isset($entity->field_user_given_names[LANGUAGE_NONE]) ? $entity->field_user_given_names[LANGUAGE_NONE][0]['safe_value'] : '') . ' ' . (isset($entity->field_user_family_name[LANGUAGE_NONE]) ? $entity->field_user_family_name[LANGUAGE_NONE][0]['safe_value'] : ''));
       if($new_name){
         $entities[$entity_id]->name = $new_name;
@@ -115,7 +118,6 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
   global $user;
   _scratchpads_user_form_alter($form, $form_state);
   if(isset($form['#user']->stub_user)){
-    $form['account']['name']['#default_value'] = '';
     $form['create_user_account']['#default_value'] = 0;
     // Get rid of the crap that we don't need (biblio, etc).
     unset($form['biblio_fieldset']);
@@ -135,6 +137,7 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
   }
   if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
     $handlers = array(
+      'scratchpads_user_register_form_pre_submit_set_name',
       'user_profile_form_submit',
       'scratchpads_user_register_form_post_submit_clear_error'
     );
@@ -229,7 +232,7 @@ function scratchpads_user_user_register_validate($form, &$form_state){
     }
     global $base_url;
     $url = parse_url($base_url);
-    $form_state['values']['mail'] = uniqid() . '@' . $url['host'];
+    $form_state['values']['mail'] = uniqid('', TRUE) . '@' . $url['host'];
   }
 }
 
@@ -241,7 +244,7 @@ function scratchpads_user_user_register_validate($form, &$form_state){
  */
 function scratchpads_user_register_form_pre_submit($form, &$form_state){
   $form_state['values']['administer_users'] = 1;
-  $form_state['values']['name'] = uniqid();
+  $form_state['values']['name'] = uniqid('', TRUE);
 }
 
 /**
@@ -252,6 +255,25 @@ function scratchpads_user_register_form_post_submit_clear_error($form, &$form_st
   if(isset($form_state['values']['uid']) && $form_state['values']['uid']){
     $form_state['redirect'] = 'user/' . $form_state['values']['uid'];
   }
+}
+
+/**
+ * Submit function to set the name.
+ */
+function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state){
+  // Set the name
+  $name = '';
+  foreach(array(
+    'field_user_title',
+    'field_user_given_names',
+    'field_user_family_name'
+  ) as $field_name){
+    if(@isset($form_state['values'][$field_name][LANGUAGE_NONE][0]['value'])){
+      $name = $name . ' ' . $form_state['values'][$field_name][LANGUAGE_NONE][0]['value'];
+    }
+    $name = trim($name);
+  }
+  $form_state['values']['name'] = $name;
 }
 
 /**
