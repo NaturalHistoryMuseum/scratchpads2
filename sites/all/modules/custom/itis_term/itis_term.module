@@ -21,14 +21,15 @@ function itis_term_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $fo
       '#default_value' => (isset($form['vid']) && isset($vids[$form['vid']['#value']])) ? $vids[$form['vid']['#value']] : 0,
       '#disabled' => isset($form['vid']) ? TRUE : FALSE
     );
-    // Add the an additional submit function so that we can tweak the vocabulary.
+    // Add the an additional submit function so that we can tweak the
+    // vocabulary.
     $form['#submit'][] = 'itis_term_taxonomy_form_vocabulary_submit';
   }
 }
 
 /**
  * Implements hook_feeds_after_parse().
- * 
+ *
  * Allow the user to leave the term name field empty so that it is generated
  * automatically by combining unit_name[x] and unit_indicator[x] fields.
  */
@@ -76,6 +77,23 @@ function itis_term_taxonomy_vocabulary_biological_classification($vocabulary){
       $field['field_instance']['field_name'] .= "_" . $vocabulary->vid;
       field_create_field($field['field_config']);
       field_create_instance($field['field_instance']);
+    }
+    //Create collections and related field
+    //Note - the bundle is updated by passing in the vocaulary->machine name
+    foreach(itis_term_collections($vocabulary->machine_name) as $itis_collection){
+      // Create collection if not already been created for this vocabulary.
+      if(!field_info_field($itis_collection['field_config']['field_name'])){
+        field_create_field($itis_collection['field_config']);
+      }
+      field_create_instance($itis_collection['field_instance']);
+    }
+    // Associate collection fields with this collection.
+    foreach(itis_term_collection_fields() as $field){
+      // Create the field if it hasn't already been created.
+      if(!field_info_field($field['field_config']['field_name'])){
+        field_create_field($field['field_config']);
+        field_create_instance($field['field_instance']);
+      }
     }
     // Associate all the other fields with this instance.
     foreach(itis_term_fields() as $field){
@@ -310,11 +328,11 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
     case 'field_unit_indicator1':
     case 'field_unit_indicator2':
       if($biological_type){return array(
-          'Ã—' => 'Ã—'
+          '×' => '×'
         );}
       return array(
         'x' => 'x',
-        'Ã—' => 'Ã—'
+        '×' => '×'
       );
     case 'field_unit_indicator3':
     case 'field_unit_indicator4':
@@ -337,7 +355,7 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
               'subf.' => 'subf.',
               'subvar.' => 'subvar.',
               'var.' => 'var.',
-              'Ã—' => 'Ã—'
+              '×' => '×'
             );
         }
       }
@@ -349,7 +367,7 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
         'subvar.' => 'subvar.',
         'var.' => 'var.',
         'x' => 'x',
-        'Ã—' => 'Ã—'
+        '×' => '×'
       );
     case 'field_usage':
       if($biological_type){
@@ -384,6 +402,12 @@ function itis_term_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id)
   if($form_id == 'taxonomy_form_term'){
     $vids = variable_get('biological_vids', array());
     if(isset($form['vid']) && isset($vids[$form['vid']['#value']])){
+      /*
+       * to prevent ajax validation error and field collection error we need to
+       * load this include file
+       */
+      form_load_include($form_state, 'inc', 'taxonomy', 'taxonomy.admin');
+      form_load_include($form_state, 'inc', 'field_collection', 'field_collection.pages');
       // WHAT A FUCKING CLUDGE!
       $form['field_rank'][$form['field_rank']['#language']]['#options'] = array_merge(array(
         '_none' => $form['field_rank'][$form['field_rank']['#language']]['#options']['_none']
@@ -471,32 +495,32 @@ function itis_term_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id)
 
 /**
  * Implementation of hook_theme
- * 
+ *
  * Provide a template for terms that are part of
  * a biological classification
  */
-function itis_term_theme($existing, $type, $theme, $path) {
+function itis_term_theme($existing, $type, $theme, $path){
   return array(
     'biological_taxonomy_term' => array(
       'render element' => 'elements',
-      'template' => 'biological-taxonomy-term',      
-      'preprocess functions' => array('template_preprocess_taxonomy_term'),
+      'template' => 'biological-taxonomy-term',
+      'preprocess functions' => array(
+        'template_preprocess_taxonomy_term'
+      )
     )
   );
 }
 
 /**
  * Implement hook_taxonomy_term_view_alter
- * 
+ *
  * Ensure terms that are part of a biological classification
  * user a different template
- * 
  */
-function scratchpads_species_taxonomy_term_view_alter(&$build) {
+function scratchpads_species_taxonomy_term_view_alter(&$build){
   $term = $build['#term'];
   $vids = variable_get('biological_vids', array());
-  if (!empty($vids[$term->vid])) {
+  if(!empty($vids[$term->vid])){
     $build['#theme'] = 'biological_taxonomy_term';
   }
 }
-
