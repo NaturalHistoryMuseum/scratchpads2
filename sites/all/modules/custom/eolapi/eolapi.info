@@ -1,6 +1,6 @@
 name = "Encyclopædia of Life taxon page data"
 description = "Provides additional blocks of data for displaying on taxon pages."
-package = "Data provider"
+package = "Widgets"
 core = 7.x
 dependencies[] = entity
 dependencies[] = field
