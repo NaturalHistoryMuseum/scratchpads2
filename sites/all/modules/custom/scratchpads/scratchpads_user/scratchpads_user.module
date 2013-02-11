@@ -147,6 +147,11 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
     _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
     $form['#validate'][] = 'scratchpads_user_allow_picture_validate';
   }
+  foreach(element_children($form) as $key){
+    if(isset($form[$key]['#type']) && $form[$key]['#type'] == 'fieldset' && (!isset($form[$key]['#collapsible']) || $form[$key]['#collapsible'])){
+      $form[$key]['#collapsed'] = TRUE;
+    }
+  }
 }
 
 /**
