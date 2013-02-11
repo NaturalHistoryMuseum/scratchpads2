@@ -58,17 +58,6 @@ function tui_menu(){
       'type' => MENU_CALLBACK,
       'file' => 'tui.ajax.inc'
     ),
-    // Callback for submitting forms (Drupal's own Ajax submit doesn't allow us
-    // to include additional files for the submission).
-    'tui/ajax' => array(
-      'title' => 'AHAH callback',
-      'page callback' => 'tui_ajax_form_callback',
-      'delivery callback' => 'ajax_deliver',
-      'access callback' => TRUE,
-      'theme callback' => 'ajax_base_page_theme',
-      'type' => MENU_CALLBACK,
-      'file' => 'tui.ajax.inc'
-    ),
     // Autocomplete callback for the search form
     'tui/autocomplete' => array(
       'title' => 'Autocomplete taxonomy',
@@ -126,15 +115,15 @@ function tui_module_implements_alter(&$imps, $hook){
 function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
   //Change the widget of the parent relation to deal with large taxonomies
   $form['relations']['parent']['#type'] = 'textfield';
+  // Ensure the taxonomy.admin.inc file is included.
+  form_load_include($form_state, 'inc', 'taxonomy', 'taxonomy.admin');
   unset($form['relations']['parent']['#options']);
-  
-  if(arg(5) == 'form_callback'){
+  if(arg(5) == 'form_callback' || (arg(0) == 'system' && arg(1) == 'ajax')){
     // Hide the alias field.
     $form['path']['alias']['#type'] = 'hidden';
     // Alter the submit.
     $form['actions']['submit']['#ajax'] = array(
-      'path' => 'tui/ajax',
-      'callback' => 'tui_ajax_form_callback_callback',
+      'callback' => 'tui_ajax_form_callback',
       'wrapper' => 'taxonomy-form-term'
     );
     // Hide the relations fieldset.

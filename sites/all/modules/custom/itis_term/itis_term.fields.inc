@@ -1220,72 +1220,6 @@ function itis_term_collection_fields(){
         'cardinality' => '1',
         'deleted' => '0',
         'entity_types' => array(),
-        'field_name' => 'field_is_preferred_name',
-        'foreign keys' => array(),
-        'indexes' => array(
-          'value' => array(
-            0 => 'value'
-          )
-        ),
-        'module' => 'list',
-        'settings' => array(
-          'allowed_values' => array(
-            0 => '0',
-            1 => 'Yes'
-          ),
-          'allowed_values_function' => ''
-        ),
-        'translatable' => '1',
-        'type' => 'list_boolean'
-      ),
-      'field_instance' => array(
-        'bundle' => 'field_common_names_collection',
-        'default_value' => array(
-          0 => array(
-            'value' => 0
-          )
-        ),
-        'deleted' => '0',
-        'description' => '',
-        'display' => array(
-          'default' => array(
-            'label' => 'inline',
-            'module' => 'list',
-            'settings' => array(),
-            'type' => 'list_default',
-            'weight' => '6'
-          ),
-          'linked_node' => array(
-            'label' => 'above',
-            'settings' => array(),
-            'type' => 'hidden',
-            'weight' => 0
-          )
-        ),
-        'entity_type' => 'field_collection_item',
-        'field_name' => 'field_is_preferred_name',
-        'label' => 'Is preferred name',
-        'required' => 0,
-        'settings' => array(
-          'user_register_form' => FALSE
-        ),
-        'widget' => array(
-          'active' => 1,
-          'module' => 'options',
-          'settings' => array(
-            'display_label' => 1
-          ),
-          'type' => 'options_onoff',
-          'weight' => '4'
-        )
-      )
-    ),
-    array(
-      'field_config' => array(
-        'active' => '1',
-        'cardinality' => '1',
-        'deleted' => '0',
-        'entity_types' => array(),
         'field_name' => 'field_language',
         'foreign keys' => array(),
         'indexes' => array(
@@ -1344,7 +1278,7 @@ function itis_term_collection_fields(){
           'module' => 'options',
           'settings' => array(),
           'type' => 'options_select',
-          'weight' => '2'
+          'weight' => '1'
         )
       )
     ),
@@ -1424,7 +1358,7 @@ function itis_term_collection_fields(){
             'size' => '60'
           ),
           'type' => 'node_reference_autocomplete',
-          'weight' => '1'
+          'weight' => '2'
         )
       )
     ),
@@ -1573,5 +1507,4 @@ function itis_term_collection_fields(){
   t('Source');
   t('Area from which the vernacular name usage originates');
   t('Vernacular name remarks');
-  
 }
