@@ -264,6 +264,8 @@ function scratchpads_user_register_form_post_submit_clear_error($form, &$form_st
  * Submit function to set the name.
  */
 function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state){
+  // Don't do anything if this is a login user
+  if($form_state['values']['create_user_account']){return;}
   // Set the name
   $name = '';
   foreach(array(
