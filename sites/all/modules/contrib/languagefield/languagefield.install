@@ -1,0 +1,26 @@
+<?php
+
+/**
+ * @file
+ * Install file for Languagefield module.
+ */
+
+/**
+ * Implements hook_field_schema().
+ */
+function languagefield_field_schema($field) {
+  return array(
+    'columns' => array(
+      'value' => array(
+        'type' => 'varchar',
+        'length' => 12,
+        'not null' => FALSE,
+        'sortable' => TRUE,
+        'views' => TRUE,
+      ),
+    ),
+    'indexes' => array(
+      'value' => array('value'),
+    ),
+  );
+}
