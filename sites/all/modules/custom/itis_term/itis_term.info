@@ -12,4 +12,8 @@ name = "ITIS Term"
 package = "Taxonomy"
 dependencies[] = "ctools"
 features[ctools][] = "field_group:field_group:1"
+<<<<<<< HEAD
 features[field_group][] = "group_extra_detail|field_collection_item|field_vernacular_name_collection|form"
+=======
+features[field_group][] = "group_extra_detail|field_collection_item|field_vernacular_name_collection|form"
+>>>>>>> d84b1ce654df98c89749bbbe8ec3e98d9b07ecc4
