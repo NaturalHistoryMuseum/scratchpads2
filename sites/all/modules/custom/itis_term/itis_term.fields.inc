@@ -1171,7 +1171,7 @@ function itis_term_collection_fields(){
         'description' => '',
         'display' => array(
           'default' => array(
-            'label' => 'above',
+            'label' => 'inline',
             'module' => 'languagefield',
             'settings' => array(
               'format' => array(
@@ -1179,7 +1179,7 @@ function itis_term_collection_fields(){
               )
             ),
             'type' => 'language_default',
-            'weight' => 7
+            'weight' => 2
           ),
           'linked_node' => array(
             'label' => 'above',

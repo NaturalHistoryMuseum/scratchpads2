@@ -91,7 +91,7 @@
           hide($content[$term_field]);
         } else {
           // Display vernacular names inline (we could alternatively do this in a field template)
-          if ($term_field == 'field_vernacular_names') {
+          if ($term_field == 'field_vernacular_name_collection') {
             $vern = array();
             foreach (element_children($content[$term_field]) as $key) {
               $vern[] = render($content[$term_field][$key]);
