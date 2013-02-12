@@ -91,3 +91,86 @@ function itis_term_update_7003(){
     }
   }
 }
+
+/**
+ * Convert the old vernacular names fields to the new vernacular name field
+ * collection.
+ * 
+ * Note, this update is time consuming, so should only be run from Drush.
+ */
+function itis_term_update_7004(){
+  // Delete the groups first.
+  module_load_include('fields.inc', 'itis_term');
+  $groups = itis_term_groups();
+  foreach($groups as $group){
+    db_delete('field_group')->condition('group_name', $group['group_name'])->execute();
+  }
+  // Work on each vocabulary
+  $biological_vids = variable_get('biological_vids', array());
+  foreach($biological_vids as $vid => $type){
+    if($type){
+      $vocabulary = taxonomy_vocabulary_load($vid);
+      //Create collections and related field
+      //Note - the bundle is updated by passing in the vocaulary->machine name
+      foreach(itis_term_collections($vocabulary->machine_name) as $itis_collection){
+        // Create collection if not already been created for this vocabulary.
+        if(!field_info_field($itis_collection['field_config']['field_name'])){
+          field_create_field($itis_collection['field_config']);
+        }
+        if(!field_info_instance('taxonomy_term', $itis_collection['field_instance']['field_name'], $vocabulary->machine_name)){
+          field_create_instance($itis_collection['field_instance']);
+        }
+      }
+      // Associate collection fields with this collection.
+      foreach(itis_term_collection_fields() as $field){
+        // Create the field if it hasn't already been created.
+        if(!field_info_field($field['field_config']['field_name'])){
+          field_create_field($field['field_config']);
+          field_create_instance($field['field_instance']);
+        }
+      }
+      // Recreate the groups.// Create a new field for the associated accepted name (and possibly others)
+      $field_names_in_groups_to_change = array();
+      foreach(itis_term_fields_per_vocabulary() as $field){
+        $field_names_in_groups_to_change[] = $field['field_config']['field_name'];
+      }
+      foreach($groups as $group){
+        $group['bundle'] = $vocabulary->machine_name;
+        foreach($group['children'] as $key => $child){
+          if(in_array($child, $field_names_in_groups_to_change)){
+            $group['children'][$key] .= "_" . $vocabulary->vid;
+          }
+        }
+        $group['identifier'] = "{$group['group_name']}|{$group['bundle']}";
+        $group = (object)$group;
+        field_group_group_save($group);
+      }
+    }
+  }
+  // Convert values from the old field to the new field.
+  $results = db_select('field_data_field_vernacular_names', 'f')->fields('f')->execute();
+  foreach($results as $row){
+    $term = taxonomy_term_load($row->entity_id);
+    if($term && is_array($term->field_vernacular_names)){
+      foreach($term->field_vernacular_names[LANGUAGE_NONE] as $vern){
+        $entity = entity_create('field_collection_item', array(
+          'field_name' => 'field_vernacular_name_collection'
+        ));
+        $entity->field_vernacular_name = array(
+          LANGUAGE_NONE => array(
+            array(
+              'value' => $vern['value']
+            )
+          )
+        );
+        $entity->setHostEntity('taxonomy_term', $term, LANGUAGE_NONE, TRUE);
+        $entity->save();
+      }
+    }
+    $term = taxonomy_term_load($row->entity_id);
+    $term->field_vernacular_names = array();
+    taxonomy_term_save($term);
+  }
+  // Finally, remove the old field.
+  field_delete_field('field_vernacular_names');
+}

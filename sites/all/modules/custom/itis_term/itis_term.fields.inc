@@ -87,8 +87,7 @@ function itis_term_groups(){
       'weight' => '10',
       'children' => array(
         0 => 'field_vernacular_name_collection',
-        1 => 'field_vernacular_names',
-        2 => 'description'
+        1 => 'description'
       ),
       'format_type' => 'htab',
       'format_settings' => array(
@@ -981,64 +980,6 @@ function itis_term_fields(){
           'settings' => array(),
           'type' => 'options_select',
           'weight' => '10'
-        )
-      )
-    ),
-    array(
-      'field_config' => array(
-        'active' => '1',
-        'cardinality' => '-1',
-        'deleted' => '0',
-        'entity_types' => array(),
-        'field_name' => 'field_vernacular_names',
-        'foreign keys' => array(
-          'format' => array(
-            'columns' => array(
-              'format' => 'format'
-            ),
-            'table' => 'filter_format'
-          )
-        ),
-        'indexes' => array(
-          'format' => array(
-            0 => 'format'
-          )
-        ),
-        'module' => 'text',
-        'settings' => array(
-          'max_length' => '255'
-        ),
-        'translatable' => '1',
-        'type' => 'text'
-      ),
-      'field_instance' => array(
-        'bundle' => 'tags',
-        'default_value' => NULL,
-        'deleted' => '0',
-        'description' => '',
-        'display' => array(
-          'default' => array(
-            'label' => 'inline',
-            'module' => 'text',
-            'settings' => array(),
-            'type' => 'text_default',
-            'weight' => -5
-          )
-        ),
-        'entity_type' => 'taxonomy_term',
-        'field_name' => 'field_vernacular_names',
-        'label' => 'Vernacular names',
-        'required' => 0,
-        'settings' => array(
-          'text_processing' => '0',
-          'user_register_form' => FALSE
-        ),
-        'widget' => array(
-          'active' => 1,
-          'module' => 'text',
-          'settings' => array(),
-          'type' => 'text_textfield',
-          'weight' => '16'
         )
       )
     )
