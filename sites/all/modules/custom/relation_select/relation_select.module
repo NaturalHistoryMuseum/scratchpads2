@@ -685,6 +685,9 @@ function relation_select_field_insert($entity_type, $entity, $field, $instance, 
           if (isset($item['relation_fields'])) {
             // Add relation fields.
             foreach ($item['relation_fields'] as $relation_field_name => $relation_field) {
+              foreach ($relation_field as $field_langcode => $field_val) {
+                unset($relation_field[$field_langcode]['add_more']);
+              }
               $relation->{$relation_field_name} = $relation_field;
             }
           }
@@ -720,10 +723,14 @@ function relation_select_field_insert($entity_type, $entity, $field, $instance, 
                 $relation_field_items = array_shift($relation_field);
                 $relation_field = field_info_field($relation_field_name);
                 field_default_submit('relation', $relation, $relation_field, $relation_fields[$relation_field_name], $langcode, $relation_field_items, $item, $form_state);
+                unset($relation_field_items['add_more']);
                 $relation->{$relation_field_name}[$langcode] = $relation_field_items;
               }
               else {
                 // Create a new relation field instance.
+                foreach ($relation_field as $field_langcode => $field_val) {
+                  unset($relation_field[$field_langcode]['add_more']);
+                }
                 $relation->{$relation_field_name} = $relation_field;
               }
             }
