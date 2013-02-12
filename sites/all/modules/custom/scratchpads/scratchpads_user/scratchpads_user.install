@@ -79,3 +79,46 @@ function scratchpads_user_update_7004(){
     ))->condition('uid', $row->uid)->execute();
   }
 }
+
+/**
+ * Update stub users to set their username to be their full name.
+ */
+function scratchpads_user_update_7005(){
+  $results = db_select('users', 'u')->fields('u', array(
+    'uid',
+    'name'
+  ))->condition('uid', '1', '>')->condition('pass', '')->execute();
+  foreach($results as $row){
+    $user = user_load($row->uid);
+    // Set the name
+    $name = '';
+    foreach(array(
+      'field_user_title',
+      'field_user_given_names',
+      'field_user_family_name'
+    ) as $field_name){
+      if(@isset($user->{$field_name}[LANGUAGE_NONE][0]['value'])){
+        $name = $name . ' ' . $user->{$field_name}[LANGUAGE_NONE][0]['value'];
+      }
+      $name = trim($name);
+    }
+    if($row->name != $name){
+      // Check this name does not exist, else we add a number to the end.
+      $results = db_select('users', 'u')->fields('u', array(
+        'name'
+      ))->condition('name', "$name%", 'LIKE')->condition('uid', $user->uid, '!=')->execute();
+      $matches = array();
+      foreach($results as $row){
+        $matches[] = $row->name;
+      }
+      $index = 1;
+      $new_name = $name;
+      while(in_array($new_name, $matches)){
+        $new_name = "$name $index";
+        $index++;
+      }
+      $user->name = $new_name;
+      user_save($user);
+    }
+  }
+}
