@@ -45,17 +45,26 @@ class FieldCollectionBasicTestCase extends DrupalWebTestCase {
   }
 
   /**
-   * Tests CRUD.
+   * Helper for creating a new node with a field collection item.
    */
-  function testCRUD() {
+  protected function createNodeWithFieldCollection() {
     $node = $this->drupalCreateNode(array('type' => 'article'));
     // Manually create a field_collection.
     $entity = entity_create('field_collection_item', array('field_name' => $this->field_name));
     $entity->setHostEntity('node', $node);
     $entity->save();
 
+    return array($node, $entity);
+  }
+
+  /**
+   * Tests CRUD.
+   */
+  function testCRUD() {
+    list ($node, $entity) = $this->createNodeWithFieldCollection();
     $node = node_load($node->nid, NULL, TRUE);
-    $this->assertEqual($entity->item_id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'a field_collection has been successfully created.');
+    $this->assertEqual($entity->item_id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'A field_collection has been successfully created and referenced.');
+    $this->assertEqual($entity->revision_id, $node->{$this->field_name}[LANGUAGE_NONE][0]['revision_id'], 'A field_collection has been successfully created and referenced.');
 
     // Test adding an additional field_collection during node edit.
     $entity2 = entity_create('field_collection_item', array('field_name' => $this->field_name));
@@ -63,9 +72,11 @@ class FieldCollectionBasicTestCase extends DrupalWebTestCase {
     node_save($node);
 
     $node = node_load($node->nid, NULL, TRUE);
-    $this->assertTrue(!empty($entity2->item_id), 'field_collection has been saved.');
+    $this->assertTrue(!empty($entity2->item_id) && !empty($entity2->revision_id), 'Field_collection has been saved.');
     $this->assertEqual($entity->item_id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'Existing reference has been kept during update.');
+    $this->assertEqual($entity->revision_id, $node->{$this->field_name}[LANGUAGE_NONE][0]['revision_id'], 'Existing reference has been kept during update (revision).');
     $this->assertEqual($entity2->item_id, $node->{$this->field_name}[LANGUAGE_NONE][1]['value'], 'New field_collection has been properly referenced');
+    $this->assertEqual($entity2->revision_id, $node->{$this->field_name}[LANGUAGE_NONE][1]['revision_id'], 'New field_collection has been properly referenced (revision)');
 
     // Make sure deleting the field_collection removes the reference.
     $entity2->delete();
@@ -89,7 +100,7 @@ class FieldCollectionBasicTestCase extends DrupalWebTestCase {
     // Now the node should have been saved with the collection and the link
     // should have been established.
     $this->assertTrue(!empty($node->nid), 'Node has been saved with the collection.');
-    $this->assertTrue(count($node->{$this->field_name}[LANGUAGE_NONE]) == 1 && !empty($node->{$this->field_name}[LANGUAGE_NONE][0]['value']), 'Link has been established.');
+    $this->assertTrue(count($node->{$this->field_name}[LANGUAGE_NONE]) == 1 && !empty($node->{$this->field_name}[LANGUAGE_NONE][0]['value']) && !empty($node->{$this->field_name}[LANGUAGE_NONE][0]['revision_id']), 'Link has been established.');
 
     // Again, test creating a field collection with a not-yet saved host entity,
     // but this time save both entities via the host.
@@ -97,8 +108,108 @@ class FieldCollectionBasicTestCase extends DrupalWebTestCase {
     $entity = entity_create('field_collection_item', array('field_name' => $this->field_name));
     $entity->setHostEntity('node', $node);
     node_save($node);
-    $this->assertTrue(!empty($entity->item_id), 'Collection has been saved with the host.');
-    $this->assertTrue(count($node->{$this->field_name}[LANGUAGE_NONE]) == 1 && !empty($node->{$this->field_name}[LANGUAGE_NONE][0]['value']), 'Link has been established.');
+    $this->assertTrue(!empty($entity->item_id) && !empty($entity->revision_id), 'Collection has been saved with the host.');
+    $this->assertTrue(count($node->{$this->field_name}[LANGUAGE_NONE]) == 1 && !empty($node->{$this->field_name}[LANGUAGE_NONE][0]['value']) && !empty($node->{$this->field_name}[LANGUAGE_NONE][0]['revision_id']), 'Link has been established.');
+
+    // Test Revisions.
+    list ($node, $item) = $this->createNodeWithFieldCollection();
+
+    // Test saving a new revision of a node.
+    $node->revision = TRUE;
+    node_save($node);
+    $item_updated = field_collection_item_load($node->{$this->field_name}[LANGUAGE_NONE][0]['value']);
+    $this->assertNotEqual($item->revision_id, $item_updated->revision_id, 'Creating a new host entity revision creates a new field collection revision.');
+
+    // Test saving the node without creating a new revision.
+    $item = $item_updated;
+    $node->revision = FALSE;
+    node_save($node);
+    $item_updated = field_collection_item_load($node->{$this->field_name}[LANGUAGE_NONE][0]['value']);
+    $this->assertEqual($item->revision_id, $item_updated->revision_id, 'Updating a new host entity  without creating a new revision does not create a new field collection revision.');
+
+    // Create a new revision of the node, such we have a non default node and
+    // field collection revision. Then test using it.
+    $vid = $node->vid;
+    $item_revision_id = $item_updated->revision_id;
+    $node->revision = TRUE;
+    node_save($node);
+
+    $item_updated = field_collection_item_load($node->{$this->field_name}[LANGUAGE_NONE][0]['value']);
+    $this->assertNotEqual($item_revision_id, $item_updated->revision_id, 'Creating a new host entity revision creates a new field collection revision.');
+    $this->assertTrue($item_updated->isDefaultRevision(), 'Field collection of default host entity revision is default too.');
+    $this->assertEqual($item_updated->hostEntityId(), $node->nid, 'Can access host entity ID of default field collection revision.');
+    $this->assertEqual($item_updated->hostEntity()->vid, $node->vid, 'Loaded default host entity revision.');
+
+    $item = entity_revision_load('field_collection_item', $item_revision_id);
+    $this->assertFalse($item->isDefaultRevision(), 'Field collection of non-default host entity is non-default too.');
+    $this->assertEqual($item->hostEntityId(), $node->nid, 'Can access host entity ID of non-default field collection revision.');
+    $this->assertEqual($item->hostEntity()->vid, $vid, 'Loaded non-default host entity revision.');
+
+    // Delete the non-default revision and make sure the field collection item
+    // revision has been deleted too.
+    entity_revision_delete('node', $vid);
+    $this->assertFalse(entity_revision_load('node', $vid), 'Host entity revision deleted.');
+    $this->assertFalse(entity_revision_load('field_collection_item', $item_revision_id), 'Field collection item revision deleted.');
+
+    // Test having archived field collections, i.e. collections referenced only
+    // in non-default revisions.
+    list ($node, $item) = $this->createNodeWithFieldCollection();
+    // Create two revisions.
+    $node_vid = $node->vid;
+    $node->revision = TRUE;
+    node_save($node);
+
+    $node_vid2 = $node->vid;
+    $node->revision = TRUE;
+    node_save($node);
+
+    // Now delete the field collection item for the default revision.
+    $item = field_collection_item_load($node->{$this->field_name}[LANGUAGE_NONE][0]['value']);
+    $item_revision_id = $item->revision_id;
+    $item->deleteRevision();
+    $node = node_load($node->nid);
+    $this->assertTrue(!isset($node->{$this->field_name}[LANGUAGE_NONE][0]), 'Field collection item revision removed from host.');
+    $this->assertFalse(field_collection_item_revision_load($item->revision_id), 'Field collection item default revision deleted.');
+
+    $item = field_collection_item_load($item->item_id);
+    $this->assertNotEqual($item->revision_id, $item_revision_id, 'Field collection default revision has been updated.');
+    $this->assertTrue($item->archived, 'Field collection item has been archived.');
+    $this->assertFalse($item->isInUse(), 'Field collection item specified as not in use.');
+    $this->assertTrue($item->isDefaultRevision(), 'Field collection of non-default host entity is default (but archived).');
+    $this->assertEqual($item->hostEntityId(), $node->nid, 'Can access host entity ID of non-default field collection revision.');
+    $this->assertEqual($item->hostEntity()->nid, $node->nid, 'Loaded non-default host entity revision.');
+
+    // Test deleting a revision of an archived field collection.
+    $node_revision2 = node_load($node->nid, $node_vid2);
+    $item = field_collection_item_revision_load($node_revision2->{$this->field_name}[LANGUAGE_NONE][0]['revision_id']);
+    $item->deleteRevision();
+    // There should be one revision left, so the item should still exist.
+    $item = field_collection_item_load($item->item_id);
+    $this->assertTrue($item->archived, 'Field collection item is still archived.');
+    $this->assertFalse($item->isInUse(), 'Field collection item specified as not in use.');
+
+    // Test that deleting the first node revision deletes the whole field
+    // collection item as it contains its last revision.
+    node_revision_delete($node_vid);
+    $this->assertFalse(field_collection_item_load($item->item_id), 'Archived field collection deleted when last revision deleted.');
+
+    // Test that removing a field-collection item also deletes it.
+    list ($node, $item) = $this->createNodeWithFieldCollection();
+
+    $node->{$this->field_name}[LANGUAGE_NONE] = array();
+    $node->revision = FALSE;
+    node_save($node);
+    $this->assertFalse(field_collection_item_load($item->item_id), 'Removed field collection item has been deleted.');
+
+    // Test removing a field-collection item while creating a new host revision.
+    list ($node, $item) = $this->createNodeWithFieldCollection();
+    $node->{$this->field_name}[LANGUAGE_NONE] = array();
+    $node->revision = TRUE;
+    node_save($node);
+    // Item should not be deleted but archived now.
+    $item = field_collection_item_load($item->item_id);
+    $this->assertTrue($item, 'Removed field collection item still exists.');
+    $this->assertTrue($item->archived, 'Removed field collection item is archived.');
   }
 
   /**
@@ -136,6 +247,7 @@ class FieldCollectionBasicTestCase extends DrupalWebTestCase {
     $user_privileged = $this->drupalCreateUser(array('access content', 'edit any article content'));
     $this->drupalLogin($user_privileged);
     $this->drupalGet("node/$node->nid");
+    $this->assertLinkByHref($path, 0, 'Add link is shown.');
     $this->drupalGet($path);
     $this->assertText(t('Test text field'), 'Add form is shown.');
 
@@ -166,6 +278,26 @@ class FieldCollectionBasicTestCase extends DrupalWebTestCase {
     $this->drupalGet($path);
     // Add form is shown again.
     $this->assertText(t('Test text field'), 'Field collection item has been deleted.');
+
+    // Test the viewing a revision. There should be no links to change it.
+    $vid = $node->vid;
+    $node = node_load($node->nid, NULL, TRUE);
+    $node->revision = TRUE;
+    node_save($node);
+
+    $this->drupalGet("node/$node->nid/revisions/$vid/view");
+    $this->assertResponse(403, 'Access to view revision denied');
+    // Login in as admin and try again.
+    $user = $this->drupalCreateUser(array('administer nodes', 'bypass node access'));
+    $this->drupalLogin($user);
+    $this->drupalGet("node/$node->nid/revisions/$vid/view");
+    $this->assertNoResponse(403, 'Access to view revision granted');
+
+    $this->assertNoLinkByHref($path, 'No links on revision view.');
+    $this->assertNoLinkByHref('field-collection/field-test-collection/2/edit', 'No links on revision view.');
+    $this->assertNoLinkByHref('field-collection/field-test-collection/2/delete', 'No links on revision view.');
+
+    $this->drupalGet("node/$node->nid/revisions");
   }
 }
 
@@ -250,7 +382,7 @@ class FieldCollectionRulesIntegrationTestCase extends DrupalWebTestCase {
 
     $node = node_load($node->nid, NULL, TRUE);
     $this->assertTrue(!empty($node->{$this->field_name}[LANGUAGE_NONE][0]['value']), 'A field_collection has been successfully created.');
-    $item_id = $node->{$this->field_name}[LANGUAGE_NONE][0]['value'];
+    $this->assertTrue(!empty($node->{$this->field_name}[LANGUAGE_NONE][0]['revision_id']), 'A field_collection has been successfully created (revision).');
 
     // Now try making use of the field collection in rules.
     $action_set = rules_action_set(array('node' => array('type' => 'node', 'bundle' => 'article')));
@@ -284,7 +416,7 @@ class FieldCollectionRulesIntegrationTestCase extends DrupalWebTestCase {
     $set->action('data_set', array('data:select' => 'node:' . $this->field_name . ':field-text', 'value' => 'bar'));
     $set->execute($node);
     $this->assertEqual($entity->field_text[LANGUAGE_NONE][0]['value'], 'bar', 'Field collection item used during creation via Rules.');
-    $this->assertTrue(!empty($entity->item_id), 'Field collection item has been saved by Rules and the host entity.');
+    $this->assertTrue(!empty($entity->item_id) && !empty($entity->revision_id), 'Field collection item has been saved by Rules and the host entity.');
     RulesLog::logger()->checkLog();
   }
 }

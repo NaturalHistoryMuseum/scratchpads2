@@ -16,10 +16,11 @@ function field_collection_field_views_data($field) {
       // Only operate on the "field_api_field_name"_value column.
       if (strrpos($field_name, '_value') === (strlen($field_name) - strlen('_value'))) {
         $data[$table_name][$field_name]['relationship'] = array(
-          'handler' => 'views_handler_relationship',
+          'handler' => 'field_collection_handler_relationship',
           'base' => 'field_collection_item',
           'base field' => 'item_id',
           'label' => t('field collection item from !field_name', array('!field_name' => $field['field_name'])),
+          'field_name' => $field['field_name'],
         );
       }
     }
