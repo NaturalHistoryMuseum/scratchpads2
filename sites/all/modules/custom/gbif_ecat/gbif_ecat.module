@@ -165,12 +165,6 @@ function gbif_ecat_batch_importer($id, $vid, &$context){
   // Save the record
   $record = json_decode(utf8_encode(file_get_contents(GBIF_ECAT_BASE_URL . "usage/$id?showVernaculars=en")), TRUE);
   if($record && $record['success'] && count($record['data'])){
-    $vernacular_names = array();
-    foreach($record['data']['vernacularNames'] as $vernacular){
-      $vernacular_names[] = array(
-        'value' => $vernacular
-      );
-    }
     preg_match("/[\(A-Z]/", $record['data']['scientificName'], $matches, 0, 1);
     if(count($matches)){
       $first_cap = strpos($record['data']['scientificName'], $matches[0]);
@@ -196,9 +190,6 @@ function gbif_ecat_batch_importer($id, $vid, &$context){
             'value' => $authority
           )
         )
-      ),
-      'field_vernacular_names' => array(
-        LANGUAGE_NONE => $vernacular_names
       ),
       'field_rank' => array(
         LANGUAGE_NONE => array(
@@ -253,6 +244,31 @@ function gbif_ecat_batch_importer($id, $vid, &$context){
     taxonomy_term_save($term);
     if(!$term->tid){
       $failed_to_save = TRUE;
+    }else{
+      foreach($record['data']['vernacularNames'] as $language => $name){
+        // Save the vernacular names.
+        $entity = entity_create('field_collection_item', array(
+          'field_name' => 'field_vernacular_name_collection'
+        ));
+        $entity->field_vernacular_name = array(
+          LANGUAGE_NONE => array(
+            array(
+              'value' => $name
+            )
+          )
+        );
+        $entity->field_language = array(
+          LANGUAGE_NONE => array(
+            array(
+              'value' => $language
+            )
+          )
+        );
+        $entity->setHostEntity('taxonomy_term', $term, LANGUAGE_NONE, TRUE);
+        $term = $entity->hostEntity();
+        $entity->save(TRUE);
+      }
+      taxonomy_term_save($term);
     }
     $context['sandbox']['imported']++;
     // Get the children.
