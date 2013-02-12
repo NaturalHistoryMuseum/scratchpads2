@@ -29,6 +29,7 @@ function entity_test_entity_info() {
       'bundle keys' => array(
         'bundle' => 'name',
       ),
+      'module' => 'entity_test',
     ),
     'entity_test_type' => array(
       'label' => t('Test entity type'),
@@ -41,6 +42,27 @@ function entity_test_entity_info() {
       'entity keys' => array(
         'id' => 'id',
         'name' => 'name',
+      ),
+      'module' => 'entity_test',
+    ),
+
+    'entity_test2' => array(
+      'label' => t('Test Entity (revision support)'),
+      'entity class' => 'EntityClassRevision',
+      'controller class' => 'EntityAPIController',
+      'base table' => 'entity_test2',
+      'revision table' => 'entity_test2_revision',
+      'fieldable' => TRUE,
+      'entity keys' => array(
+        'id' => 'pid',
+        'revision' => 'revision_id',
+      ),
+      // Make use of the class label() and uri() implementation by default.
+      'label callback' => 'entity_class_label',
+      'uri callback' => 'entity_class_uri',
+      'bundles' => array(),
+      'bundle keys' => array(
+        'bundle' => 'name',
       ),
     ),
   );
@@ -139,6 +161,16 @@ class EntityClass extends Entity {
   }
 }
 
+/**
+ * Main class for test entities (with revision support).
+ */
+class EntityClassRevision extends EntityClass {
+
+  public function __construct(array $values = array(), $entityType = NULL) {
+    Entity::__construct($values, 'entity_test2');
+  }
+
+}
 
 /**
  *
@@ -153,7 +185,9 @@ class EntityClass extends Entity {
  * Implements hook_entity_insert().
  */
 function entity_test_entity_insert($entity, $entity_type) {
-  $_SESSION['entity_hook_test']['entity_insert'][] = entity_id($entity_type, $entity);
+  if ($entity_type == 'entity_test_type') {
+    $_SESSION['entity_hook_test']['entity_insert'][] = entity_id($entity_type, $entity);
+  }
 }
 
 /**
@@ -167,7 +201,9 @@ function entity_test_entity_update($entity, $entity_type) {
  * Implements hook_entity_delete().
  */
 function entity_test_entity_delete($entity, $entity_type) {
-  $_SESSION['entity_hook_test']['entity_delete'][] = entity_id($entity_type, $entity);
+  if ($entity_type == 'entity_test_type') {
+    $_SESSION['entity_hook_test']['entity_delete'][] = entity_id($entity_type, $entity);
+  }
 }
 
 /**

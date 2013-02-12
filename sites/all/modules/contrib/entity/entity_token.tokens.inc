@@ -107,7 +107,7 @@ function entity_token_token_info_alter(&$info) {
         $info['tokens'][$token_type][$name]['dynamic'] = TRUE;
         $help = array();
         foreach ($property['property info'] as $key => $property_info) {
-          $help[] = $key . ' (' . $property_info['label'] .')';
+          $help[] = $key . ' (' . $property_info['label'] . ')';
         }
         $info['tokens'][$token_type][$name]['description'] .= ' ' . t('The following properties may be appended to the token: @keys',
           array('@keys' => implode(', ', $help))

@@ -54,7 +54,11 @@ define('ENTITY_FIXED', 0x04 | 0x02);
  * @param $entity_type
  *   The type of the entity.
  * @param $op
- *   One of 'create', 'view', 'save', 'delete', 'access' or 'form'.
+ *   One of 'create', 'view', 'save', 'delete', 'revision delete', 'access' or
+ *   'form'.
+ *
+ * @return boolean
+ *   Whether the entity type supports the given operation.
  */
 function entity_type_supports($entity_type, $op) {
   $info = entity_get_info($entity_type);
@@ -62,6 +66,7 @@ function entity_type_supports($entity_type, $op) {
     'view' => 'view callback',
     'create' => 'creation callback',
     'delete' => 'deletion callback',
+    'revision delete' => 'revision deletion callback',
     'save' => 'save callback',
     'access' => 'access callback',
     'form' => 'form callback'
@@ -69,12 +74,16 @@ function entity_type_supports($entity_type, $op) {
   if (isset($info[$keys[$op]])) {
     return TRUE;
   }
-  if ($op != 'access' && in_array('EntityAPIControllerInterface', class_implements($info['controller class']))) {
-    return TRUE;
+  if ($op == 'revision delete') {
+    return in_array('EntityAPIControllerInterface', class_implements($info['controller class']));
   }
-  if ($op == 'form' && entity_ui_controller($entity_type)) {
-    return TRUE;
+  if ($op == 'form') {
+    return (bool) entity_ui_controller($entity_type);
   }
+  if ($op != 'access') {
+    return in_array('EntityAPIControllerInterface', class_implements($info['controller class']));
+  }
+  return FALSE;
 }
 
 /**
@@ -234,6 +243,109 @@ function entity_delete_multiple($entity_type, $ids) {
 }
 
 /**
+ * Loads an entity revision.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ * @param $revision_id
+ *   The id of the revision to load.
+ *
+ * @return
+ *   The entity object, or FALSE if there is no entity with the given revision
+ *   id.
+ */
+function entity_revision_load($entity_type, $revision_id) {
+  $info = entity_get_info($entity_type);
+  if (!empty($info['entity keys']['revision'])) {
+    $entity_revisions = entity_load($entity_type, FALSE, array($info['entity keys']['revision'] => $revision_id));
+    return reset($entity_revisions);
+  }
+  return FALSE;
+}
+
+/**
+ * Deletes an entity revision.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ * @param $revision_id
+ *   The revision ID to delete.
+ *
+ * @return
+ *   TRUE if the entity revision could be deleted, FALSE otherwise.
+ */
+function entity_revision_delete($entity_type, $revision_id) {
+  $info = entity_get_info($entity_type);
+  if (isset($info['revision deletion callback'])) {
+    return $info['revision deletion callback']($revision_id, $entity_type);
+  }
+  elseif (in_array('EntityAPIControllerRevisionableInterface', class_implements($info['controller class']))) {
+    return entity_get_controller($entity_type)->deleteRevision($revision_id);
+  }
+  return FALSE;
+}
+
+/**
+ * Checks whether the given entity is the default revision.
+ *
+ * Note that newly created entities will always be created in default revision,
+ * thus TRUE is returned for not yet saved entities.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ * @param $entity
+ *   The entity object to check.
+ *
+ * @return boolean
+ *   A boolean indicating whether the entity is in default revision is returned.
+ *   If the entity is not revisionable or is new, TRUE is returned.
+ *
+ * @see entity_revision_set_default()
+ */
+function entity_revision_is_default($entity_type, $entity) {
+  $info = entity_get_info($entity_type);
+  if (empty($info['entity keys']['revision'])) {
+    return TRUE;
+  }
+  // Newly created entities will always be created in default revision.
+  if (!empty($entity->is_new) || empty($entity->{$info['entity keys']['id']})) {
+    return TRUE;
+  }
+  if (in_array('EntityAPIControllerRevisionableInterface', class_implements($info['controller class']))) {
+    $key = !empty($info['entity keys']['default revision']) ? $info['entity keys']['default revision'] : 'default_revision';
+    return !empty($entity->$key);
+  }
+  else {
+    // Else, just load the default entity and compare the ID. Usually, the
+    // entity should be already statically cached anyway.
+    $default = entity_load_single($entity_type, $entity->{$info['entity keys']['id']});
+    return $default->{$info['entity keys']['revision']} == $entity->{$info['entity keys']['revision']};
+  }
+}
+
+/**
+ * Sets a given entity revision as default revision.
+ *
+ * Note that the default revision flag will only be supported by entity types
+ * based upon the EntityAPIController, i.e. implementing the
+ * EntityAPIControllerRevisionableInterface.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ * @param $entity
+ *   The entity revision to update.
+ *
+ * @see entity_revision_is_default()
+ */
+function entity_revision_set_default($entity_type, $entity) {
+  $info = entity_get_info($entity_type);
+  if (!empty($info['entity keys']['revision'])) {
+    $key = !empty($info['entity keys']['default revision']) ? $info['entity keys']['default revision'] : 'default_revision';
+    $entity->$key = TRUE;
+  }
+}
+
+/**
  * Create a new entity object.
  *
  * @param $entity_type
@@ -304,6 +416,20 @@ function entity_import($entity_type, $export) {
   if (in_array('EntityAPIControllerInterface', class_implements($info['controller class']))) {
     return entity_get_controller($entity_type)->import($export);
   }
+}
+
+/**
+ * Checks whether an entity type is fieldable.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ *
+ * @return
+ *   TRUE if the entity type is fieldable, FALSE otherwise.
+ */
+function entity_type_is_fieldable($entity_type) {
+  $info = entity_get_info($entity_type);
+  return !empty($info['fieldable']);
 }
 
 /**
@@ -538,7 +664,7 @@ function entity_var_export($var, $prefix = '') {
       $output .= ')';
     }
   }
-  else if (is_bool($var)) {
+  elseif (is_bool($var)) {
     $output = $var ? 'TRUE' : 'FALSE';
   }
   else {
@@ -570,16 +696,16 @@ function entity_var_json_export($var, $prefix = '') {
     }
     // Use several lines for long content. However for objects with a single
     // entry keep the key in the first line.
-    if (strlen($content = implode(", ", $values)) > 70 && ($use_array || count($values) > 1)) {
-      $output .= "\n  " .  implode(",\n  ", $values) . "\n";
+    if (strlen($content = implode(', ', $values)) > 70 && ($use_array || count($values) > 1)) {
+      $output .= "\n  " . implode(",\n  ", $values) . "\n";
     }
     elseif (strpos($content, "\n") !== FALSE) {
-      $output .= " " .  $content . "\n";
+      $output .= " " . $content . "\n";
     }
     else {
-      $output .= " " .  $content . " ";
+      $output .= " " . $content . ' ';
     }
-    $output .= $use_array ? "]" : "}";
+    $output .= $use_array ? ']' : '}';
   }
   else {
     $output = drupal_json_encode($var);
@@ -650,32 +776,67 @@ function _entity_defaults_rebuild($entity_type) {
     }
     drupal_alter($hook, $entities);
 
-    // Remove defaults which are already overridden.
-    $overridden_entities = entity_load_multiple_by_name($entity_type, array_keys($entities), array($keys['status'] => ENTITY_OVERRIDDEN));
-    $entities = array_diff_key($entities, $overridden_entities);
+    // Check for defaults that disappeared.
+    $existing_defaults = entity_load_multiple_by_name($entity_type, FALSE, array($keys['status'] => array(ENTITY_OVERRIDDEN, ENTITY_IN_CODE, ENTITY_FIXED)));
 
-    // Determine already existing, custom entities and mark them as overridden.
-    $existing_entities = entity_load_multiple_by_name($entity_type, array_keys($entities), array($keys['status'] => ENTITY_CUSTOM));
+    foreach ($existing_defaults as $name => $entity) {
+      if (empty($entities[$name])) {
+        $entity->is_rebuild = TRUE;
+        if (entity_has_status($entity_type, $entity, ENTITY_OVERRIDDEN)) {
+          $entity->{$keys['status']} = ENTITY_CUSTOM;
+          entity_save($entity_type, $entity);
+        }
+        else {
+          entity_delete($entity_type, $name);
+        }
+        unset($entity->is_rebuild);
+      }
+    }
+
+    // Load all existing entities.
+    $existing_entities = entity_load_multiple_by_name($entity_type, array_keys($entities));
+
     foreach ($existing_entities as $name => $entity) {
-      $entity->{$keys['status']} |= ENTITY_OVERRIDDEN;
-      $entity->{$keys['module']} = $entities[$name]->{$keys['module']};
+      if (entity_has_status($entity_type, $entity, ENTITY_CUSTOM)) {
+        // If the entity already exists but is not yet marked as overridden, we
+        // have to update the status.
+        if (!entity_has_status($entity_type, $entity, ENTITY_OVERRIDDEN)) {
+          $entity->{$keys['status']} |= ENTITY_OVERRIDDEN;
+          $entity->{$keys['module']} = $entities[$name]->{$keys['module']};
+          $entity->is_rebuild = TRUE;
+          entity_save($entity_type, $entity);
+          unset($entity->is_rebuild);
+        }
+
+        // The entity is overridden, so we do not need to save the default.
+        unset($entities[$name]);
+      }
+    }
+
+    // Save defaults.
+    $originals = array();
+    foreach ($entities as $name => $entity) {
+      if (!empty($existing_entities[$name])) {
+        // Make sure we are updating the existing default.
+        $entity->{$keys['id']} = $existing_entities[$name]->{$keys['id']};
+        unset($entity->is_new);
+      }
+      // Pre-populate $entity->original as we already have it. So we avoid
+      // loading it again.
+      $entity->original = !empty($existing_entities[$name]) ? $existing_entities[$name] : FALSE;
+      // Keep original entities for hook_{entity_type}_defaults_rebuild()
+      // implementations.
+      $originals[$name] = $entity->original;
+
+      $entity->{$keys['status']} |= ENTITY_IN_CODE;
       $entity->is_rebuild = TRUE;
       entity_save($entity_type, $entity);
       unset($entity->is_rebuild);
     }
 
-    // Save the defaults being not overridden to the db, possible over-writing
-    // previous defaults already saved in the db.
-    foreach (array_diff_key($entities, $existing_entities) as $name => $entity) {
-      $entity->{$keys['status']} |= ENTITY_IN_CODE;
-      // For updating the numeric db identifier has to be set.
-      if ($entity->original = entity_load_unchanged($entity_type, $name)) {
-        $entity->{$keys['id']} = $entity->original->{$keys['id']};
-        unset($entity->is_new);
-      }
-      $entity->is_rebuild = TRUE;
-      entity_save($entity_type, $entity);
-    }
+    // Invoke an entity type-specific hook so modules may apply changes, e.g.
+    // efficiently rebuild caches.
+    module_invoke_all($entity_type . '_defaults_rebuild', $entities, $originals);
 
     lock_release('entity_rebuild_' . $entity_type);
   }
@@ -854,14 +1015,16 @@ function template_preprocess_entity(&$variables) {
   $info = entity_get_info($entity_type);
 
   $variables['title'] = check_plain(entity_label($entity_type, $entity));
+
+  $uri = entity_uri($entity_type, $entity);
+  $variables['url'] = $uri ? url($uri['path'], $uri['options']) : FALSE;
+
   if (isset($variables['elements']['#page'])) {
     // If set by the caller, respect the page property.
     $variables['page'] = $variables['elements']['#page'];
   }
   else {
     // Else, try to automatically detect it.
-    $uri = entity_uri($entity_type, $entity);
-    $variables['url'] = $uri ? url($uri['path'], $uri['options']) : FALSE;
     $variables['page'] = $uri && $uri['path'] == $_GET['q'];
   }
 
@@ -929,24 +1092,23 @@ function entity_file_download_access($field, $entity_type, $entity) {
  */
 function entity_ui_controller($type = NULL) {
   $static = &drupal_static(__FUNCTION__);
-  $all = &drupal_static(__FUNCTION__);
 
-  if (isset($type) && !isset($static[$type])) {
+  if (!isset($type)) {
+    // Invoke the function for each type to ensure we have fully populated the
+    // static variable.
+    foreach (entity_get_info() as $entity_type => $info) {
+      entity_ui_controller($entity_type);
+    }
+    return array_filter($static);
+  }
+
+  if (!isset($static[$type])) {
     $info = entity_get_info($type);
     $class = isset($info['admin ui']['controller class']) ? $info['admin ui']['controller class'] : 'EntityDefaultUIController';
     $static[$type] = (isset($info['admin ui']['path']) && $class) ? new $class($type, $info) : FALSE;
   }
-  if (!isset($type) && !isset($all)) {
-    // Invoke the function for each type to ensure we have fully populated the
-    // static variable $static.
-    foreach (entity_get_info() as $entity_type => $info) {
-      $all[$entity_type] = entity_ui_controller($entity_type);
-    }
-  }
-  if ($type) {
-    return isset($static[$type]) ? $static[$type] : FALSE;
-  }
-  return array_filter($static);
+
+  return $static[$type];
 }
 
 /**
@@ -1030,14 +1192,38 @@ function entity_ui_get_form($entity_type, $entity, $op = 'edit', $form_state = a
   // we can prepulate the form state.
   $form_state['wrapper_callback'] = 'entity_ui_main_form_defaults';
   $form_state['entity_type'] = $entity_type;
+  form_load_include($form_state, 'inc', 'entity', 'includes/entity.ui');
+
+  // Handle cloning. We cannot do that in the wrapper callback as it is too late
+  // for changing arguments.
+  if ($op == 'clone') {
+    $entity = entity_ui_clone_entity($entity_type, $entity);
+  }
+
   // We don't pass the entity type as first parameter, as the implementing
   // module knows the type anyway. However, in order to allow for efficient
   // hook_forms() implementiations we append the entity type as last argument,
   // which the module implementing the form constructor may safely ignore.
   // @see entity_forms()
   $form_state['build_info']['args'] = array($entity, $op, $entity_type);
-  form_load_include($form_state, 'inc', 'entity', 'includes/entity.ui');
   return drupal_build_form($form_id, $form_state);
+}
+
+/**
+ * Helper for using i18n_string().
+ *
+ * @param $name
+ *   Textgroup and context glued with ':'.
+ * @param $default
+ *   String in default language. Default language may or may not be English.
+ * @param $langcode
+ *   (optional) The code of a certain language to translate the string into.
+ *   Defaults to the i18n_string() default, i.e. the current language.
+ *
+ * @see i18n_string()
+ */
+function entity_i18n_string($name, $default, $langcode = NULL) {
+  return function_exists('i18n_string') ? i18n_string($name, $default, array('langcode' => $langcode)) : $default;
 }
 
 /**
@@ -1084,6 +1270,11 @@ function entity_views_api() {
  */
 function entity_metadata_wrapper($type, $data = NULL, array $info = array()) {
   if ($type == 'entity' || (($entity_info = entity_get_info()) && isset($entity_info[$type]))) {
+    // If the passed entity is the global $user, we load the user object by only
+    // passing on the user id. The global user is not a fully loaded entity.
+    if ($type == 'user' && is_object($data) && $data == $GLOBALS['user']) {
+      $data = $data->uid;
+    }
     return new EntityDrupalWrapper($type, $data, $info);
   }
   elseif ($type == 'list' || entity_property_list_extract_type($type)) {
@@ -1142,15 +1333,6 @@ function entity_module_implements_alter(&$implementations, $hook) {
 function entity_entity_info_alter(&$entity_info) {
   _entity_info_add_metadata($entity_info);
 
-  // Modules are using entity_load() in hook_entity_info_alter() to add
-  // their bundle-info. This might trigger the field API cache to be built,
-  // which makes use of the bundle-info. In that case the field-info cache would
-  // have been built with in-complete bundle-info, thus we clear it so it is
-  // rebuilt with complete bundle-info the next time field-info is requested.
-  _field_info_collate_fields(TRUE);
-  // To be sure, also clear the property info cache as it depends on field info.
-  entity_property_info_cache_clear();
-
   // Populate a default value for the 'configuration' key of all entity types.
   foreach ($entity_info as $type => $info) {
     if (!isset($info['configuration'])) {
@@ -1176,11 +1358,13 @@ function _entity_info_add_metadata(&$entity_info) {
   // Set access callbacks.
   $entity_info['node']['access callback'] = 'entity_metadata_no_hook_node_access';
   $entity_info['user']['access callback'] = 'entity_metadata_user_access';
+  $entity_info['file']['access callback'] = 'entity_metadata_file_access';
 
   // CRUD function callbacks.
   $entity_info['node']['creation callback'] = 'entity_metadata_create_node';
   $entity_info['node']['save callback'] = 'node_save';
   $entity_info['node']['deletion callback'] = 'node_delete';
+  $entity_info['node']['revision deletion callback'] = 'node_revision_delete';
   $entity_info['user']['creation callback'] = 'entity_metadata_create_object';
   $entity_info['user']['save callback'] = 'entity_metadata_user_save';
   $entity_info['user']['deletion callback'] = 'user_delete';
@@ -1225,5 +1409,14 @@ function _entity_info_add_metadata(&$entity_info) {
     // Token type mapping.
     $entity_info['taxonomy_term']['token type'] = 'term';
     $entity_info['taxonomy_vocabulary']['token type'] = 'vocabulary';
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function entity_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'ctools' && $plugin == 'content_types') {
+    return 'ctools/content_types';
   }
 }
