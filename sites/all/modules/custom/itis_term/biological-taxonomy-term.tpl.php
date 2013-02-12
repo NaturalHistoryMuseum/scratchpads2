@@ -41,7 +41,6 @@
   <?php if (!$page): ?>
     <h2><a href="<?php print $term_url; ?>"><?php print $term_name; ?></a></h2>
   <?php endif; ?>
-
   <div class="content">
     <div class="field field-type-text field-label-inline clearfix">
       <div class="field-label"><?php
@@ -89,23 +88,9 @@
         }
         if (!$has_content) {
           hide($content[$term_field]);
-        } else {
-          // Display vernacular names inline (we could alternatively do this in a field template)
-          if ($term_field == 'field_vernacular_name_collection') {
-            $vern = array();
-            foreach (element_children($content[$term_field]) as $key) {
-              $vern[] = render($content[$term_field][$key]);
-              unset($content[$term_field][$key]);
-            }
-            $content[$term_field][0]['#markup'] = implode(', ', $vern);
-          }
         }
       }
-
       print render($content); 
     ?>
   </div>
 </div>
-
-
-
