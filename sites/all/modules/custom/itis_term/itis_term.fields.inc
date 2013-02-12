@@ -78,36 +78,17 @@ function itis_term_groups(){
       )
     ),
     array(
-      'group_name' => 'group_common_names',
-      'entity_type' => 'taxonomy_term',
-      'bundle' => 'itis_vocabulary',
-      'mode' => 'form',
-      'parent_name' => 'group_vertical_tabs',
-      'label' => 'Common names',
-      'weight' => '10',
-      'children' => array(
-        0 => 'field_common_names_collection'
-      ),
-      'format_type' => 'htab',
-      'format_settings' => array(
-        'formatter' => 'closed',
-        'instance_settings' => array(
-          'classes' => '',
-          'required_fields' => 1
-        )
-      )
-    ),
-    array(
       'group_name' => 'group_vernacular_names',
       'entity_type' => 'taxonomy_term',
       'bundle' => 'itis_vocabulary',
       'mode' => 'form',
       'parent_name' => 'group_vertical_tabs',
       'label' => 'Vernacular names',
-      'weight' => '11',
+      'weight' => '10',
       'children' => array(
-        0 => 'field_vernacular_names',
-        1 => 'description'
+        0 => 'field_vernacular_name_collection',
+        1 => 'field_vernacular_names',
+        2 => 'description'
       ),
       'format_type' => 'htab',
       'format_settings' => array(
@@ -152,7 +133,7 @@ function itis_term_groups(){
         2 => 'group_usage',
         3 => 'group_vernacular_names',
         4 => 'group_misc',
-        5 => 'group_common_names'
+        5 => 'group_vernacular_names'
       ),
       'format_type' => 'htabs',
       'format_settings' => array(
@@ -1090,7 +1071,7 @@ function itis_term_collections($vocabulary_name){
         'cardinality' => '-1',
         'deleted' => '0',
         'entity_types' => array(),
-        'field_name' => 'field_common_names_collection',
+        'field_name' => 'field_vernacular_name_collection',
         'foreign keys' => array(),
         'indexes' => array(),
         'module' => 'field_collection',
@@ -1121,8 +1102,8 @@ function itis_term_collections($vocabulary_name){
           )
         ),
         'entity_type' => 'taxonomy_term',
-        'field_name' => 'field_common_names_collection',
-        'label' => 'Common names collection',
+        'field_name' => 'field_vernacular_name_collection',
+        'label' => 'Vernacular names',
         'required' => 0,
         'settings' => array(
           'user_register_form' => FALSE
@@ -1139,7 +1120,7 @@ function itis_term_collections($vocabulary_name){
   );
   // Translatables
   // Included for use with string extractors like potx.
-  t('Common names collection');
+  t('Vernacular names');
 }
 
 function itis_term_collection_fields(){
@@ -1150,7 +1131,7 @@ function itis_term_collection_fields(){
         'cardinality' => '1',
         'deleted' => '0',
         'entity_types' => array(),
-        'field_name' => 'field_common_name',
+        'field_name' => 'field_vernacular_name',
         'foreign keys' => array(
           'format' => array(
             'columns' => array(
@@ -1172,7 +1153,7 @@ function itis_term_collection_fields(){
         'type' => 'text'
       ),
       'field_instance' => array(
-        'bundle' => 'field_common_names_collection',
+        'bundle' => 'field_vernacular_name_collection',
         'default_value' => NULL,
         'deleted' => '0',
         'description' => '',
@@ -1192,8 +1173,8 @@ function itis_term_collection_fields(){
           )
         ),
         'entity_type' => 'field_collection_item',
-        'field_name' => 'field_common_name',
-        'label' => 'Common name',
+        'field_name' => 'field_vernacular_name',
+        'label' => 'Vernacular name',
         'required' => 0,
         'settings' => array(
           'linkit' => array(
@@ -1243,7 +1224,7 @@ function itis_term_collection_fields(){
         'type' => 'language_field'
       ),
       'field_instance' => array(
-        'bundle' => 'field_common_names_collection',
+        'bundle' => 'field_vernacular_name_collection',
         'default_value' => NULL,
         'deleted' => '0',
         'description' => '',
@@ -1321,7 +1302,7 @@ function itis_term_collection_fields(){
         'type' => 'node_reference'
       ),
       'field_instance' => array(
-        'bundle' => 'field_common_names_collection',
+        'bundle' => 'field_vernacular_name_collection',
         'default_value' => NULL,
         'deleted' => '0',
         'description' => '',
@@ -1388,7 +1369,7 @@ function itis_term_collection_fields(){
         'type' => 'text_long'
       ),
       'field_instance' => array(
-        'bundle' => 'field_common_names_collection',
+        'bundle' => 'field_vernacular_name_collection',
         'default_value' => NULL,
         'deleted' => '0',
         'description' => '',
@@ -1456,7 +1437,7 @@ function itis_term_collection_fields(){
         'type' => 'text_long'
       ),
       'field_instance' => array(
-        'bundle' => 'field_common_names_collection',
+        'bundle' => 'field_vernacular_name_collection',
         'default_value' => NULL,
         'deleted' => '0',
         'description' => '',
@@ -1501,7 +1482,7 @@ function itis_term_collection_fields(){
   );
   // Translatables
   // Included for use with string extractors like potx.
-  t('Common name');
+  t('Vernacular name');
   t('Is preferred name');
   t('Language');
   t('Source');
