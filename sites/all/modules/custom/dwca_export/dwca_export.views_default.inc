@@ -1241,7 +1241,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['fid']['table'] = 'file_managed';
   $handler->display->display_options['fields']['fid']['field'] = 'fid';
   $handler->display->display_options['fields']['fid']['alter']['alter_text'] = 1;
-  $handler->display->display_options['fields']['fid']['alter']['text'] = $base_url . 'file/[fid]';
+  $handler->display->display_options['fields']['fid']['alter']['text'] = $base_url . '/file/[fid]';
   $handler->display->display_options['fields']['fid']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['fid']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['fid']['alter']['external'] = 0;
