@@ -161,8 +161,8 @@ function taxon_stats_overall_protologues(){
     $missing = $total - $with_url;
     
   $output .= '<div class="ts-charts" id="ts-chart-protologue-urls"></div>';
-  $output.= '<div id="ts-chart-protologue-urls-data" data-chart-title="New names by author" data-chart-type="pie" data-chart-first-column-type="string">';
-  $output .= '<span data-title="with URLS to orignal content" data-value="' . $with_url . '"></span>';
+  $output.= '<div id="ts-chart-protologue-urls-data" data-chart-title="Protologues linked to original literature" data-chart-type="pie" data-chart-first-column-type="string">';
+  $output .= '<span data-title="with URLS to original content" data-value="' . $with_url . '"></span>';
   $output .= '<span data-title="without link to original content" data-value="' . $missing . '"></span>';
   $output .= '</div>';
 

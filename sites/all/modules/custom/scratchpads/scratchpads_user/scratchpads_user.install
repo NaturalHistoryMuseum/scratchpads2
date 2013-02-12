@@ -63,3 +63,19 @@ function scratchpads_user_update_7003(){
   }
   cache_clear_all();
 }
+
+/**
+ * Set an email for "no login" people.
+ */
+function scratchpads_user_update_7004(){
+  global $base_url;
+  $url = parse_url($base_url);
+  $results = db_select('users', 'u')->fields('u', array(
+    'uid'
+  ))->condition('uid', '0', '>')->condition('mail', '')->execute();
+  foreach($results as $row){
+    db_update('users')->fields(array(
+      'mail' => uniqid('', TRUE) . '@' . $url['host']
+    ))->condition('uid', $row->uid)->execute();
+  }
+}

@@ -177,6 +177,15 @@ function scratchpads_front_page_view(){
   if($view = views_get_view($view_name)){
     $block = $view->execute_display(NULL, $args);
   }
+  // Add an alternate link to the RSS feed.
+  drupal_add_html_head_link(array(
+    'rel' => 'alternate',
+    'title' => variable_get('site_name', ''),
+    'href' => url('rss.xml', array(
+      'absolute' => TRUE
+    )),
+    'type' => 'application/rss+xml'
+  ));
   return array(
     'welcome' => array(
       '#prefix' => '<div class="grid-4 alpha">',
