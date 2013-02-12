@@ -412,12 +412,6 @@ function itis_term_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id)
   if($form_id == 'taxonomy_form_term'){
     $vids = variable_get('biological_vids', array());
     if(isset($form['vid']) && isset($vids[$form['vid']['#value']])){
-      /*
-       * to prevent ajax validation error and field collection error we need to
-       * load this include file
-       */
-      form_load_include($form_state, 'inc', 'taxonomy', 'taxonomy.admin');
-      form_load_include($form_state, 'inc', 'field_collection', 'field_collection.pages');
       // WHAT A FUCKING CLUDGE!
       $form['field_rank'][$form['field_rank']['#language']]['#options'] = array_merge(array(
         '_none' => $form['field_rank'][$form['field_rank']['#language']]['#options']['_none']
