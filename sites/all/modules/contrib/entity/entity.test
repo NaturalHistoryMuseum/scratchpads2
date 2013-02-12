@@ -96,6 +96,113 @@ class EntityAPITestCase extends EntityWebTestCase {
   }
 
   /**
+   * Tests CRUD for entities supporting revisions.
+   */
+  function testCRUDRevisisions() {
+    module_enable(array('entity_feature'));
+
+    // Add text field to entity.
+    $field_info = array(
+      'field_name' => 'field_text',
+      'type' => 'text',
+      'entity_types' => array('entity_test2'),
+    );
+    field_create_field($field_info);
+
+    $instance = array(
+      'label' => 'Text Field',
+      'field_name' => 'field_text',
+      'entity_type' => 'entity_test2',
+      'bundle' => 'entity_test2',
+      'settings' => array(),
+      'required' => FALSE,
+    );
+    field_create_instance($instance);
+
+    // Create a test entity.
+    $entity_first_revision = entity_create('entity_test2', array('title' => 'first revision', 'name' => 'main', 'uid' => 1));
+    $entity_first_revision->field_text[LANGUAGE_NONE][0]['value'] = 'first revision text';
+    entity_save('entity_test2', $entity_first_revision);
+
+    $entities = array_values(entity_load('entity_test2', FALSE));
+    $this->assertEqual(count($entities), 1, 'Entity created.');
+    $this->assertTrue($entities[0]->default_revision, 'Initial entity revision is marked as default revision.');
+
+    // Saving the entity in revision mode should create a new revision.
+    $entity_second_revision = clone $entity_first_revision;
+    $entity_second_revision->title = 'second revision';
+    $entity_second_revision->is_new_revision = TRUE;
+    $entity_second_revision->default_revision = TRUE;
+    $entity_second_revision->field_text[LANGUAGE_NONE][0]['value'] = 'second revision text';
+
+    entity_save('entity_test2', $entity_second_revision);
+    $this->assertNotEqual($entity_second_revision->revision_id, $entity_first_revision->revision_id, 'Saving an entity in new revision mode creates a revision.');
+    $this->assertTrue($entity_second_revision->default_revision, 'New entity revision is marked as default revision.');
+
+    // Check the saved entity.
+    $entity = current(entity_load('entity_test2', array($entity_first_revision->pid), array(), TRUE));
+    $this->assertNotEqual($entity->title, $entity_first_revision->title, 'Default revision was changed.');
+
+    // Create third revision that is not default.
+    $entity_third_revision = clone $entity_first_revision;
+    $entity_third_revision->title = 'third revision';
+    $entity_third_revision->is_new_revision = TRUE;
+    $entity_third_revision->default_revision = FALSE;
+    $entity_third_revision->field_text[LANGUAGE_NONE][0]['value'] = 'third revision text';
+    entity_save('entity_test2', $entity_third_revision);
+    $this->assertNotEqual($entity_second_revision->revision_id, $entity_third_revision->revision_id, 'Saving an entity in revision mode creates a revision.');
+    $this->assertFalse($entity_third_revision->default_revision, 'Entity revision is not marked as default revision.');
+
+    $entity = current(entity_load('entity_test2', array($entity_first_revision->pid), array(), TRUE));
+    $this->assertEqual($entity->title, $entity_second_revision->title, 'Default revision was not changed.');
+    $this->assertEqual($entity->field_text[LANGUAGE_NONE][0]['value'], $entity_second_revision->field_text[LANGUAGE_NONE][0]['value'], 'Default revision text field was not changed.');
+
+    // Load not default revision.
+    $revision = entity_revision_load('entity_test2', $entity_third_revision->revision_id);
+    $this->assertEqual($revision->revision_id, $entity_third_revision->revision_id, 'Revision successfully loaded.');
+    $this->assertFalse($revision->default_revision, 'Entity revision is not marked as default revision after loading.');
+
+    // Save not default revision.
+    $entity_third_revision->title = 'third revision updated';
+    $entity_third_revision->field_text[LANGUAGE_NONE][0]['value'] = 'third revision text updated';
+    entity_save('entity_test2', $entity_third_revision);
+
+    // Ensure that not default revision has been changed.
+    $entity = entity_revision_load('entity_test2', $entity_third_revision->revision_id);
+    $this->assertEqual($entity->title, 'third revision updated', 'Not default revision was updated successfully.');
+    $this->assertEqual($entity->field_text[LANGUAGE_NONE][0]['value'], 'third revision text updated', 'Not default revision field was updated successfully.');
+
+    // Ensure that default revision has not been changed.
+    $entity = current(entity_load('entity_test2', array($entity_first_revision->pid), array(), TRUE));
+    $this->assertEqual($entity->title, $entity_second_revision->title, 'Default revision was not changed.');
+
+    // Try to delete default revision.
+    $result = entity_revision_delete('entity_test2', $entity_second_revision->revision_id);
+    $this->assertFalse($result, 'Default revision cannot be deleted.');
+
+    // Make sure default revision is still set after trying to delete it.
+    $entity = current(entity_load('entity_test2', array($entity_first_revision->pid), array(), TRUE));
+    $this->assertEqual($entity->revision_id, $entity_second_revision->revision_id, 'Second revision is still default.');
+
+    // Delete first revision.
+    $result = entity_revision_delete('entity_test2', $entity_first_revision->revision_id);
+    $this->assertTrue($result, 'Not default revision deleted.');
+
+    $entity = entity_revision_load('entity_test2', $entity_first_revision->revision_id);
+    $this->assertFalse($entity, 'First revision deleted.');
+
+    // Delete the entity and make sure third revision has been deleted as well.
+    entity_delete('entity_test2', $entity_second_revision->pid);
+    $entity_info = entity_get_info('entity_test2');
+    $result = db_select($entity_info['revision table'])
+      ->condition('revision_id', $entity_third_revision->revision_id)
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+    $this->assertEqual($result, 0, 'Entity deleted with its all revisions.');
+  }
+
+  /**
    * Tests CRUD API functions: entity_(create|delete|save)
    */
   function testCRUDAPIfunctions() {
@@ -197,6 +304,22 @@ class EntityAPITestCase extends EntityWebTestCase {
     $import = entity_import('entity_test_type', $serialized_string);
     $this->assertTrue(get_class($import) == get_class($types['test']) && $types['test']->label == $import->label, 'Successfully exported entity to code.');
     $this->assertTrue(!isset($import->status), 'Exportable status has not been exported to code.');
+
+    // Test disabling the module providing the defaults in code.
+    $types = entity_load_multiple_by_name('entity_test_type', array('test', 'test2'));
+    $types['test']->label = 'modified';
+    $types['test']->save();
+
+    module_disable(array('entity_feature'));
+
+    // Make sure the overridden entity stays and the other one is deleted.
+    entity_get_controller('entity_test_type')->resetCache();
+    $test = entity_load_single('entity_test_type', 'test');
+    $this->assertTrue(!empty($test) && $test->label == 'modified', 'Overidden entity is still available.');
+    $this->assertTrue(!empty($test) && !entity_has_status('entity_test_type', $test, ENTITY_IN_CODE) && entity_has_status('entity_test_type', $test, ENTITY_CUSTOM), 'Overidden entity is now marked as custom.');
+
+    $test2 = entity_load_single('entity_test_type', 'test2');
+    $this->assertFalse($test2, 'Default entity has disappeared.');
   }
 
   /**
@@ -412,6 +535,107 @@ class EntityAPIRulesIntegrationTestCase extends EntityWebTestCase {
   }
 }
 
+/**
+ * Test the i18n integration.
+ */
+class EntityAPIi18nItegrationTestCase extends EntityWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Entity CRUD i18n integration',
+      'description' => 'Tests the i18n integration provided by the Entity CRUD API.',
+      'group' => 'Entity API',
+      'dependencies' => array('i18n_string'),
+    );
+  }
+
+  function setUp() {
+    parent::setUp('entity_test_i18n');
+    $this->admin_user = $this->drupalCreateUser(array('bypass node access', 'administer nodes', 'administer languages', 'administer content types', 'administer blocks', 'access administration pages'));
+    $this->drupalLogin($this->admin_user);
+    $this->addLanguage('de');
+  }
+
+  /**
+   * Copied from i18n module (class Drupali18nTestCase).
+   *
+   * We cannot extend from Drupali18nTestCase as else the test-bot would die.
+   */
+  public function addLanguage($language_code) {
+    // Check to make sure that language has not already been installed.
+    $this->drupalGet('admin/config/regional/language');
+
+    if (strpos($this->drupalGetContent(), 'enabled[' . $language_code . ']') === FALSE) {
+      // Doesn't have language installed so add it.
+      $edit = array();
+      $edit['langcode'] = $language_code;
+      $this->drupalPost('admin/config/regional/language/add', $edit, t('Add language'));
+
+      // Make sure we are not using a stale list.
+      drupal_static_reset('language_list');
+      $languages = language_list('language');
+      $this->assertTrue(array_key_exists($language_code, $languages), t('Language was installed successfully.'));
+
+      if (array_key_exists($language_code, $languages)) {
+        $this->assertRaw(t('The language %language has been created and can now be used. More information is available on the <a href="@locale-help">help screen</a>.', array('%language' => $languages[$language_code]->name, '@locale-help' => url('admin/help/locale'))), t('Language has been created.'));
+      }
+    }
+    elseif ($this->xpath('//input[@type="checkbox" and @name=:name and @checked="checked"]', array(':name' => 'enabled[' . $language_code . ']'))) {
+      // It's installed and enabled. No need to do anything.
+      $this->assertTrue(true, 'Language [' . $language_code . '] already installed and enabled.');
+    }
+    else {
+      // It's installed but not enabled. Enable it.
+      $this->assertTrue(true, 'Language [' . $language_code . '] already installed.');
+      $this->drupalPost(NULL, array('enabled[' . $language_code . ']' => TRUE), t('Save configuration'));
+      $this->assertRaw(t('Configuration saved.'), t('Language successfully enabled.'));
+    }
+  }
+
+  /**
+   * Tests the provided default controller.
+   */
+  function testDefaultController() {
+    // Create test entities for the user1 and unrelated to a user.
+    $entity = entity_create('entity_test_type', array(
+      'name' => 'test',
+      'uid' => $GLOBALS['user']->uid,
+      'label' => 'label-en',
+    ));
+    $entity->save();
+
+    // Add a translation.
+    i18n_string_textgroup('entity_test')->update_translation("entity_test_type:{$entity->name}:label", 'de', 'label-de');
+
+    $default = entity_i18n_string("entity_test:entity_test_type:{$entity->name}:label", 'label-en');
+    $translation = entity_i18n_string("entity_test:entity_test_type:{$entity->name}:label", 'label-en', 'de');
+
+    $this->assertEqual($translation, 'label-de', 'Label has been translated.');
+    $this->assertEqual($default, 'label-en', 'Default label retrieved.');
+
+    // Test the helper method.
+    $translation = $entity->getTranslation('label', 'de');
+    $default = $entity->getTranslation('label');
+    $this->assertEqual($translation, 'label-de', 'Label has been translated via the helper method.');
+    $this->assertEqual($default, 'label-en', 'Default label retrieved via the helper method.');
+
+    // Test updating and make sure the translation stays.
+    $entity->name = 'test2';
+    $entity->save();
+    $translation = $entity->getTranslation('label', 'de');
+    $this->assertEqual($translation, 'label-de', 'Translation survives a name change.');
+
+    // Test using the wrapper to retrieve a translation.
+    $wrapper = entity_metadata_wrapper('entity_test_type', $entity);
+    $translation = $wrapper->language('de')->label->value();
+    $this->assertEqual($translation, 'label-de', 'Translation retrieved via the wrapper.');
+
+    // Test deleting.
+    $entity->delete();
+    $translation = entity_i18n_string("entity_test:entity_test_type:{$entity->name}:label", 'label-en', 'de');
+    $this->assertEqual($translation, 'label-en', 'Translation has been deleted.');
+  }
+}
 
 /**
  * Tests metadata wrappers.
@@ -452,6 +676,12 @@ class EntityMetadataTestCase extends EntityWebTestCase {
       )
     );
     field_create_instance($this->instance);
+
+    // Make the body field and the node type 'page' translatable.
+    $field = field_info_field('body');
+    $field['translatable'] = TRUE;
+    field_update_field($field);
+    variable_set('language_content_type_page', 1);
   }
 
   /**
@@ -541,20 +771,24 @@ class EntityMetadataTestCase extends EntityWebTestCase {
     $this->assertEqual($node->body[LANGUAGE_NONE][0]['value'], "<b>The second body.</b>", 'Update appears in the wrapped entity.');
     $this->assert(isset($node->body[LANGUAGE_NONE][0]['safe_value']), 'Formatted text has been processed.');
 
-    // Test translating the body.
+    // Test translating the body on an English node.
     locale_add_language('de');
+    $body['en'][0] = array('value' => '<b>English body.</b>', 'summary' => '<b>The body.</b>');
+    $node = $this->drupalCreateNode(array('body' => $body, 'language' => 'en', 'type' => 'page'));
+    $wrapper = entity_metadata_wrapper('node', $node);
+
     $wrapper->language('de');
 
     $languages = language_list();
     $this->assertEqual($wrapper->getPropertyLanguage(), $languages['de'], 'Wrapper language has been set to German');
-    $this->assertEqual($wrapper->body->value->value(), "<p>The second body.</p>\n", 'Language fallback on neutral language.');
+    $this->assertEqual($wrapper->body->value->value(), "<p>English body.</p>\n", 'Language fallback on default language.');
 
     // Set a German text using the wrapper.
     $wrapper->body->set(array('value' => "<b>Der zweite Text.</b>"));
-
     $this->assertEqual($wrapper->body->value->value(), "<p>Der zweite Text.</p>\n", 'German body set and retrieved.');
-    $wrapper->language(NULL);
-    $this->assertEqual($wrapper->body->value->value(), "<p>The second body.</p>\n", 'Language neutral text is still there.');
+
+    $wrapper->language(LANGUAGE_NONE);
+    $this->assertEqual($wrapper->body->value->value(), "<p>English body.</p>\n", 'Default language text is still there.');
 
     // Test iterator.
     $type_info = entity_get_property_info('node');
@@ -574,6 +808,9 @@ class EntityMetadataTestCase extends EntityWebTestCase {
     // Test making use of a generic 'entity' reference property the
     // 'entity_test' module provides. The property defaults to the node author.
     $this->assertEqual($wrapper->reference->uid->value(), $wrapper->author->getIdentifier(), 'Used generic entity reference property.');
+    // Test updating a property of the generic entity reference.
+    $wrapper->reference->name->set('foo');
+    $this->assertEqual($wrapper->reference->name->value(), 'foo', 'Updated property of generic entity reference');
     // For testing, just point the reference to the node itself now.
     $wrapper->reference->set($wrapper);
     $this->assertEqual($wrapper->reference->nid->value(), $wrapper->getIdentifier(), 'Correctly updated the generic entity referenced property.');
@@ -880,7 +1117,7 @@ class EntityMetadataIntegrationTestCase extends EntityWebTestCase {
   }
 
   function setUp() {
-    parent::setUp('entity', 'book', 'statistics');
+    parent::setUp('entity', 'book', 'statistics', 'locale');
   }
 
   protected function assertException($wrapper, $name, $text = NULL) {
@@ -1067,8 +1304,8 @@ class EntityMetadataIntegrationTestCase extends EntityWebTestCase {
    */
   function testUserProperties() {
     $account = $this->drupalCreateUser();
-    $account->login = time();
-    $account->access = time();
+    $account->login = REQUEST_TIME;
+    $account->access = REQUEST_TIME;
     $wrapper = entity_metadata_wrapper('user', $account);
     foreach ($wrapper as $key => $value) {
       $this->assertValue($wrapper, $key);
@@ -1365,7 +1602,7 @@ class EntityMetadataIntegrationTestCase extends EntityWebTestCase {
       case 'duration':
         return 1;
       case 'date':
-        return time();
+        return REQUEST_TIME;
       case 'boolean':
         return TRUE;
       case 'token':
