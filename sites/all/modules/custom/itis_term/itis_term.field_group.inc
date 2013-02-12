@@ -12,10 +12,10 @@ function itis_term_field_group_info(){
   $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
-  $field_group->identifier = 'group_extra_detail|field_collection_item|field_common_names_collection|form';
+  $field_group->identifier = 'group_extra_detail|field_collection_item|field_vernacular_name_collection|form';
   $field_group->group_name = 'group_extra_detail';
   $field_group->entity_type = 'field_collection_item';
-  $field_group->bundle = 'field_common_names_collection';
+  $field_group->bundle = 'field_vernacular_name_collection';
   $field_group->mode = 'form';
   $field_group->parent_name = '';
   $field_group->data = array(
@@ -37,6 +37,6 @@ function itis_term_field_group_info(){
       'formatter' => 'collapsed'
     )
   );
-  $export['group_extra_detail|field_collection_item|field_common_names_collection|form'] = $field_group;
+  $export['group_extra_detail|field_collection_item|field_vernacular_name_collection|form'] = $field_group;
   return $export;
 }
