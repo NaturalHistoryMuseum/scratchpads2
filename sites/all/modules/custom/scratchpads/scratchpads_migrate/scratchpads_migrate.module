@@ -591,7 +591,11 @@ function scratchpads_migrate_register_migrations(){
 
 function scratchpads_migrate_get_term_vocabularies(){
   $term_vocabularies = scratchpads_migrate_variable_get('term_node_vocabularies-contenttypes');
-  return array_filter($term_vocabularies);
+  if (empty($term_vocabularies)) {
+    return array();
+  } else {
+    return array_filter($term_vocabularies);
+  }
 }
 
 /**
