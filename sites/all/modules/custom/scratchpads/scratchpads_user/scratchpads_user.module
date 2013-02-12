@@ -31,6 +31,9 @@ function scratchpads_user_admin_paths(){
  * 
  * Override the admin/people page to add columns and display stub users
  * correctly.
+ * 
+ * Alter the user_reference/autocomplete function so that we can make the names
+ * look a little more beautiful.
  */
 function scratchpads_user_menu_alter(&$items){
   $items['admin/people']['page callback'] = 'scratchpads_user_admin';
@@ -52,9 +55,10 @@ function scratchpads_user_user_load($entities){
       // Is this user just a stub - cannot login
       $entities[$entity_id]->stub_user = true;
       // Following edited as it throws up an error on install with UID 1.
-      $new_name = trim((isset($entity->field_user_given_names[LANGUAGE_NONE]) ? $entity->field_user_given_names[LANGUAGE_NONE][0]['safe_value'] : '') . ' ' . (isset($entity->field_user_family_name[LANGUAGE_NONE]) ? $entity->field_user_family_name[LANGUAGE_NONE][0]['safe_value'] : ''));
-      if($new_name){
-        $entities[$entity_id]->name = $new_name;
+      $new_name = FALSE;
+      preg_match('/(.*) [0-9]*$/', $entities[$entity_id]->name, $matches);
+      if(count($matches) == 2){
+        $entities[$entity_id]->name = $matches[1];
       }
     }
   }
@@ -115,7 +119,6 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
   global $user;
   _scratchpads_user_form_alter($form, $form_state);
   if(isset($form['#user']->stub_user)){
-    $form['account']['name']['#default_value'] = '';
     $form['create_user_account']['#default_value'] = 0;
     // Get rid of the crap that we don't need (biblio, etc).
     unset($form['biblio_fieldset']);
@@ -124,6 +127,11 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
     unset($form['comment_notify_settings']);
     unset($form['contact']);
     unset($form['legal']);
+    // Set the correct user name, as we may have removed a number from the end
+    $row = db_select('users', 'u')->fields('u', array(
+      'name'
+    ))->condition('uid', $form['#user']->uid)->execute()->fetchCol(0);
+    $form['account']['name']['#default_value'] = array_pop($row);
   }else{
     $form['create_user_account']['#default_value'] = 1;
     if($user->uid == 1){
@@ -135,11 +143,17 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
   }
   if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
     $handlers = array(
+      'scratchpads_user_register_form_pre_submit_set_name',
       'user_profile_form_submit',
       'scratchpads_user_register_form_post_submit_clear_error'
     );
     _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
     $form['#validate'][] = 'scratchpads_user_allow_picture_validate';
+  }
+  foreach(element_children($form) as $key){
+    if(isset($form[$key]['#type']) && $form[$key]['#type'] == 'fieldset' && (!isset($form[$key]['#collapsible']) || $form[$key]['#collapsible'])){
+      $form[$key]['#collapsed'] = TRUE;
+    }
   }
 }
 
@@ -229,7 +243,7 @@ function scratchpads_user_user_register_validate($form, &$form_state){
     }
     global $base_url;
     $url = parse_url($base_url);
-    $form_state['values']['mail'] = uniqid() . '@' . $url['host'];
+    $form_state['values']['mail'] = uniqid('', TRUE) . '@' . $url['host'];
   }
 }
 
@@ -241,7 +255,7 @@ function scratchpads_user_user_register_validate($form, &$form_state){
  */
 function scratchpads_user_register_form_pre_submit($form, &$form_state){
   $form_state['values']['administer_users'] = 1;
-  $form_state['values']['name'] = uniqid();
+  scratchpads_user_register_form_pre_submit_set_name($form, $form_state);
 }
 
 /**
@@ -252,6 +266,41 @@ function scratchpads_user_register_form_post_submit_clear_error($form, &$form_st
   if(isset($form_state['values']['uid']) && $form_state['values']['uid']){
     $form_state['redirect'] = 'user/' . $form_state['values']['uid'];
   }
+}
+
+/**
+ * Submit function to set the name.
+ */
+function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state){
+  // Don't do anything if this is a login user
+  if($form_state['values']['create_user_account']){return;}
+  // Set the name
+  $name = '';
+  foreach(array(
+    'field_user_title',
+    'field_user_given_names',
+    'field_user_family_name'
+  ) as $field_name){
+    if(@isset($form_state['values'][$field_name][LANGUAGE_NONE][0]['value'])){
+      $name = $name . ' ' . $form_state['values'][$field_name][LANGUAGE_NONE][0]['value'];
+    }
+    $name = trim($name);
+  }
+  // Check this name does not exist, else we add a number to the end.
+  $results = db_select('users', 'u')->fields('u', array(
+    'name'
+  ))->condition('name', "$name%", 'LIKE')->condition('uid', (@isset($form['#user']->uid) ? $form['#user']->uid : ''), '!=')->execute();
+  $matches = array();
+  foreach($results as $row){
+    $matches[] = $row->name;
+  }
+  $index = 1;
+  $new_name = $name;
+  while(in_array($new_name, $matches)){
+    $new_name = "$name $index";
+    $index++;
+  }
+  $form_state['values']['name'] = $new_name;
 }
 
 /**

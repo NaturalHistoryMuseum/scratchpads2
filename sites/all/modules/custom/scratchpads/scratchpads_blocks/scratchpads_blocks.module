@@ -123,6 +123,25 @@ function scratchpads_blocks_block_view($delta = ''){
   switch($delta){
     case 'footer_menu':
       $tree = menu_tree_page_data('main-menu', 1);
+      $link_text = t('Subscribe to RSS of @site_name', array(
+        '@site_name' => variable_get('site_name', t('this site'))
+      ));
+      $tree[] = array(
+        'link' => array(
+          'href' => 'rss.xml',
+          'title' => '<img width="16" height="16" alt="' . $link_text . '" src="' . file_create_url('misc/feed.png') . '" typeof="foaf:Image">',
+          'access' => TRUE,
+          'localized_options' => array(
+            'html' => TRUE,
+            'attributes' => array(
+              'class' => array(
+                'feed-icon'
+              ),
+              'title' => $link_text
+            )
+          )
+        )
+      );
       $block['content'] = menu_tree_output($tree);
       break;
     case 'footer_logos':

@@ -883,6 +883,11 @@ div.contextual-links-wrapper{
   z-index:1!important;
 }
 
+/* Fix contextual blocks on taxon pages #2233 */
+.contextual-links-region.block-default{
+  position:static;
+}
+
 div.contextual-links-wrapper ul.contextual-links{
    z-index:2!important;
 }
