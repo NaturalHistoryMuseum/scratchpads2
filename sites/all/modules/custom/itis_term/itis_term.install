@@ -164,6 +164,7 @@ function itis_term_update_7004(){
           )
         );
         $entity->setHostEntity('taxonomy_term', $term, LANGUAGE_NONE, TRUE);
+        // FIXME - Does this need TRUE passing?
         $entity->save();
       }
     }
