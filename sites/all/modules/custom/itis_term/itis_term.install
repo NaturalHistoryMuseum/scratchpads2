@@ -148,28 +148,30 @@ function itis_term_update_7004(){
     }
   }
   // Convert values from the old field to the new field.
-  $results = db_select('field_data_field_vernacular_names', 'f')->fields('f')->execute();
-  foreach($results as $row){
-    $term = taxonomy_term_load($row->entity_id);
-    if($term && is_array($term->field_vernacular_names)){
-      foreach($term->field_vernacular_names[LANGUAGE_NONE] as $vern){
-        $entity = entity_create('field_collection_item', array(
-          'field_name' => 'field_vernacular_name_collection'
-        ));
-        $entity->field_vernacular_name = array(
-          LANGUAGE_NONE => array(
-            array(
-              'value' => $vern['value']
+  if(db_table_exists('field_data_field_vernacular_names')){
+    $results = db_select('field_data_field_vernacular_names', 'f')->fields('f')->execute();
+    foreach($results as $row){
+      $term = taxonomy_term_load($row->entity_id);
+      if($term && is_array($term->field_vernacular_names)){
+        foreach($term->field_vernacular_names[LANGUAGE_NONE] as $vern){
+          $entity = entity_create('field_collection_item', array(
+            'field_name' => 'field_vernacular_name_collection'
+          ));
+          $entity->field_vernacular_name = array(
+            LANGUAGE_NONE => array(
+              array(
+                'value' => $vern['value']
+              )
             )
-          )
-        );
-        $entity->setHostEntity('taxonomy_term', $term, LANGUAGE_NONE, TRUE);
-        $entity->save(TRUE);
+          );
+          $entity->setHostEntity('taxonomy_term', $term, LANGUAGE_NONE, TRUE);
+          $entity->save(TRUE);
+        }
       }
+      $term = $entity->hostEntity();
+      $term->field_vernacular_names = array();
+      taxonomy_term_save($term);
     }
-    $term = $entity->hostEntity();
-    $term->field_vernacular_names = array();
-    taxonomy_term_save($term);
   }
   // Finally, remove the old field.
   field_delete_field('field_vernacular_names');
