@@ -2316,6 +2316,29 @@ function _dwca_export_view_description($desc_type){
   $handler->display->display_options['fields']['uuid_3']['hide_empty'] = 0;
   $handler->display->display_options['fields']['uuid_3']['empty_zero'] = 0;
   $handler->display->display_options['fields']['uuid_3']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['uuid_3']['exclude'] = TRUE;
+  /* Field: Global: Custom text */
+$handler->display->display_options['fields']['nothing_8']['id'] = 'nothing_8';
+$handler->display->display_options['fields']['nothing_8']['table'] = 'views';
+$handler->display->display_options['fields']['nothing_8']['field'] = 'nothing';
+$handler->display->display_options['fields']['nothing_8']['alter']['text'] = '[uuid_3]#'.$desc_type_std;
+$handler->display->display_options['fields']['nothing_8']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['nothing_8']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['nothing_8']['alter']['external'] = 0;
+$handler->display->display_options['fields']['nothing_8']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['nothing_8']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['nothing_8']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['nothing_8']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['nothing_8']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['nothing_8']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['nothing_8']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['nothing_8']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['nothing_8']['alter']['html'] = 0;
+$handler->display->display_options['fields']['nothing_8']['element_label_colon'] = 1;
+$handler->display->display_options['fields']['nothing_8']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['nothing_8']['hide_empty'] = 0;
+$handler->display->display_options['fields']['nothing_8']['empty_zero'] = 0;
+$handler->display->display_options['fields']['nothing_8']['hide_alter_empty'] = 0;
   /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
