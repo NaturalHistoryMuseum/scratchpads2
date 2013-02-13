@@ -411,7 +411,7 @@ function emonocot_dwca_add_wcm_image(&$view){
   $new_field['alter']['html'] = 0;
   $new_field['element_label_colon'] = 1;
   $new_field['element_default_classes'] = 1;
-  $new_field['empty'] = '[wcm_id_1]';
+  $new_field['empty'] = '[wcm_id]';
   $new_field['hide_empty'] = 0;
   $new_field['empty_zero'] = 0;
   $new_field['hide_alter_empty'] = 0;
