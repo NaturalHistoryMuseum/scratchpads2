@@ -144,6 +144,20 @@
         return false;
       });
     }
+
+    // Handle pager
+    $('ul.pager li a', $root).click(function(e) {
+      var ajax = settings.ajax[instance_id];
+      var base_url = ajax.options.url;
+
+      var param = $(this).attr('href').replace(/^[^\?]+\?/, '');
+      ajax.options.url = base_url + '?' + param;
+      ajax.eventResponse($root, 'loadView');
+      ajax.options.url = base_url;
+
+      e.stopPropagation();
+      return false;
+    });
   };
 
   /**

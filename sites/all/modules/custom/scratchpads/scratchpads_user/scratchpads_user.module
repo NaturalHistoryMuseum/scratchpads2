@@ -31,6 +31,9 @@ function scratchpads_user_admin_paths(){
  * 
  * Override the admin/people page to add columns and display stub users
  * correctly.
+ * 
+ * Alter the user_reference/autocomplete function so that we can make the names
+ * look a little more beautiful.
  */
 function scratchpads_user_menu_alter(&$items){
   $items['admin/people']['page callback'] = 'scratchpads_user_admin';
