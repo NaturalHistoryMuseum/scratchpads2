@@ -309,6 +309,7 @@ function emonocot_dwca_add_wcm_field(&$view){
   if($view->name == 'dwca_export_image'){
     $view->display['default']->display_options['fields']['wcm_id_2'] = emonocot_dwca_add_wcm_image($view);
     $view->display['default']->display_options['fields']['uuid_1']['exclude'] = TRUE;
+    $view->display['default']->display_options['fields']['uuid']['exclude'] = TRUE;
   }
   $view->display['default']->display_options['fields']['wcm_id'] = $new_field;
   $view->display['default']->display_options['fields'] = array_reverse($view->display['default']->display_options['fields'], true);
@@ -410,7 +411,7 @@ function emonocot_dwca_add_wcm_image(&$view){
   $new_field['alter']['html'] = 0;
   $new_field['element_label_colon'] = 1;
   $new_field['element_default_classes'] = 1;
-  $new_field['empty'] = '[wcm_id]';
+  $new_field['empty'] = '[wcm_id_1]';
   $new_field['hide_empty'] = 0;
   $new_field['empty_zero'] = 0;
   $new_field['hide_alter_empty'] = 0;
