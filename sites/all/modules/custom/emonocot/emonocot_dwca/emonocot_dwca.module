@@ -51,6 +51,7 @@ function emonocot_dwca_views_default_views_alter(&$views){
     if ($view->name == 'dwca_export_image'){
       $view->display['default']->display_options['fields']['uuid_1']['exclude'] = TRUE;
       $view->display['default']->display_options['fields']['uuid']['exclude'] = TRUE;
+      $view->display['default']->display_options['fields']['wcm_id']['exclude'] = TRUE;
     }
     
     //For description references change Rights field to associated Biblio nodes rights
