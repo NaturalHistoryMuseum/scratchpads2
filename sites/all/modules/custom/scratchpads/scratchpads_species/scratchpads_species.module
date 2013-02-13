@@ -579,7 +579,7 @@ function scratchpads_species_context_registry(){
 function scratchpads_species_term_is_biological_classification($term){
   global $conf;
   if(property_exists($term, 'field_unit_name1')){
-    if(array_key_exists($term->vid, $conf['biological_vids'])){return true;}
+    return isset($conf['biological_vids'][$term->vid]);
   }
   return false;
 }
