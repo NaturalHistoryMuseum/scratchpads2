@@ -282,7 +282,7 @@ function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state)
     'field_user_family_name'
   ) as $field_name){
     if(@isset($form_state['values'][$field_name][LANGUAGE_NONE][0]['value'])){
-      $name = $name . ' ' . $form_state['values'][$field_name][LANGUAGE_NONE][0]['value'];
+      $name = $name . ' ' . trim($form_state['values'][$field_name][LANGUAGE_NONE][0]['value']);
     }
     $name = trim($name);
   }
