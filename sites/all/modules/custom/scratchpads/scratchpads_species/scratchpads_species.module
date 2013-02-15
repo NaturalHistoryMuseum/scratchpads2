@@ -284,16 +284,9 @@ function scratchpads_species_views_pre_view(&$view, &$display_id, &$args){
     case 'species_slideshow':
       // Add children to media views
       if(!count($args)){
-        $tid = arg(2);
-        $children = taxonomy_get_children($tid);
-        if($children){
-          $tid = array_merge(array(
-            $tid
-          ), array_keys($children));
-        }
-        if(is_array($tid)){
-          $args[0] = implode('+', $tid);
-        }
+        $args[0] = implode('+', array_merge(array(
+          arg(2)
+        ), array_keys(taxonomy_get_children(arg(2)))));
       }
       break;
   }
@@ -344,11 +337,18 @@ function scratchpads_species_preprocess_views_view(&$vars){
       if(!scratchpads_blocks_show_placeholders()){
         // If species slideshow is empty, expand this block
         if($view = views_get_view('species_slideshow')){
+          $view->args = array(
+            implode('+', array_merge(array(
+              arg(2)
+            ), array_keys(taxonomy_get_children(arg(2)))))
+          );
           $view->execute();
           if(!count($view->result)){
-            $vars['classes_array'] = array(
-              'grid-8 alpha omega'
-            );
+            foreach($vars['classes_array'] as $id => $class_string){
+              if(strpos($class_string, 'grid-4') !== FALSE){
+                $vars['classes_array'][$id] = str_replace('grid-4', 'grid-8', $class_string);
+              }
+            }
           }
         }
       }
@@ -578,9 +578,7 @@ function scratchpads_species_context_registry(){
  */
 function scratchpads_species_term_is_biological_classification($term){
   global $conf;
-  if(property_exists($term, 'field_unit_name1')){
-    return isset($conf['biological_vids'][$term->vid]);
-  }
+  if(property_exists($term, 'field_unit_name1')){return isset($conf['biological_vids'][$term->vid]);}
   return false;
 }
 
