@@ -17,6 +17,11 @@ function scratchpads_tweaks_init(){
       drupal_goto('admin/appearance/settings');
     }
   }
+  if($_COOKIE['has_js']){
+    $params = session_get_cookie_params();
+    $expire = $params['lifetime'] ? REQUEST_TIME + $params['lifetime'] : 0;
+    setcookie('has_js', 1, $expire, $params['path'], $params['domain'], FALSE, $params['httponly']);
+  }
 }
 
 /**
