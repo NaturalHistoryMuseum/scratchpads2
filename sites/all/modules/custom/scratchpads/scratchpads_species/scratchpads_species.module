@@ -441,15 +441,20 @@ function theme_scratchpads_species_name($vars){
     case 'species':
       // This species has a subgenus (in brackets)
       if($unit1 && $unit2 && $unit3){
-        $name = t('<em>!unit1</em> (<em>!unit2</em>) <em>!unit3</em>', array(
+        $name = t('!ind1<em>!unit1</em> (!ind2<em>!unit2</em>) !ind3<em>!unit3</em>', array(
           '!unit1' => $unit1,
           '!unit2' => $unit2,
-          '!unit3' => $unit3
+          '!unit3' => $unit3,
+          '!ind1' => $unit_ind1,
+          '!ind2' => $unit_ind2,
+          '!ind3' => $unit_ind3
         ));
       }elseif($unit1 && $unit2){
-        $name = t('<em>!unit1</em> <em>!unit2</em>', array(
+        $name = t('!ind1<em>!unit1</em> !ind2<em>!unit2</em>', array(
           '!unit1' => $unit1,
-          '!unit2' => $unit2
+          '!unit2' => $unit2,
+          '!ind1' => $unit_ind1,
+          '!ind2' => $unit_ind2,
         ));
       }
       break;
