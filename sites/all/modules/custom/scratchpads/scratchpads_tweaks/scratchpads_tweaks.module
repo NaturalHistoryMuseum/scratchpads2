@@ -19,7 +19,7 @@ function scratchpads_tweaks_init(){
   }
   // Set the expire/domain/params on the has_js cookie to the same as the session
   // cookie to prevent any issues, especially with the "Issues..." block.
-  if($_COOKIE['has_js']){
+  if(!empty($_COOKIE['has_js'])){
     $params = session_get_cookie_params();
     $expire = $params['lifetime'] ? REQUEST_TIME + $params['lifetime'] : 0;
     setcookie('has_js', 1, $expire, $params['path'], $params['domain'], FALSE, $params['httponly']);
