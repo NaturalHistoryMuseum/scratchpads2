@@ -78,7 +78,103 @@ function scratchpads_species_entity_info_alter(&$info){
 }
 
 /**
- * Implementation of hook_form_alter().
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_species_module_implements_alter(&$implementations, $hook){
+  if($hook == 'form_taxonomy_form_vocabulary_alter' || $hook == 'form_alter' && isset($implementations['scratchpads_species'])){
+    $group = $implementations['scratchpads_species'];
+    unset($implementations['scratchpads_species']);
+    $implementations['scratchpads_species'] = $group;
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function scratchpads_species_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id){
+  // A little clunky here, as this module does not depend on the 
+  // scratchpads_simple_taxonomy_page module that is providing the fieldset that
+  // we are adding to.
+  $form['simple_taxonomy_display']['show_synonym_data'] = array(
+    '#title' => t('Display data from synonyms.'),
+    '#description' => t('Check this box to include data from synonyms on valid taxon name pages.'),
+    '#type' => 'checkbox',
+    '#weight' => 1,
+    '#default_value' => $form['#vocabulary']->show_synonym_data ? 1 : 0,
+    '#states' => array(
+      'invisible' => array(
+        ':input[name="biological_classification"]' => array(
+          'value' => ''
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_contextual_links_view_alter().
+ */
+function scratchpads_species_contextual_links_view_alter(&$element, $items){
+  // Add another class to all contextual link lists to facilitate custom
+  // styling.
+  //$element['#attributes']['class'][] = 'custom-class';
+  if(@isset($element['#contextual_links']['block'][1][0]) && $element['#contextual_links']['block'][1][0] == 'tinytax'){
+    $vocabulary = taxonomy_vocabulary_load($element['#contextual_links']['block'][1][1]);
+    if($vocabulary){
+      $element['#links']['vocabulary-configure'] = array(
+        'title' => t('Configure vocabulary'),
+        'href' => 'admin/structure/taxonomy/' . $vocabulary->machine_name . '/edit',
+        'query' => drupal_get_destination()
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_insert().
+ */
+function scratchpads_species_taxonomy_vocabulary_insert($vocabulary){
+  $show_syns = variable_get('scratchpads_species_display_synonyms', array());
+  if(!empty($vocabulary->show_synonym_data)){
+    $show_syns[$vocabulary->vid] = $vocabulary->vid;
+  }elseif(isset($show_syns[$vocabulary->vid])){
+    unset($show_syns[$vocabulary->vid]);
+  }
+  variable_set('scratchpads_species_display_synonyms', $show_syns);
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_update().
+ */
+function scratchpads_species_taxonomy_vocabulary_update($vocabulary){
+  return scratchpads_species_taxonomy_vocabulary_insert($vocabulary);
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_load().
+ */
+function scratchpads_species_taxonomy_vocabulary_load($vocabularies){
+  $show_syns = variable_get('scratchpads_species_display_synonyms', array());
+  foreach(array_keys($vocabularies) as $vid){
+    $vocabularies[$vid]->show_synonym_data = FALSE;
+  }
+  foreach($show_syns as $vid => $show){
+    if(isset($vocabularies[$vid]) && $show){
+      $vocabularies[$vid]->show_synonym_data = $vid;
+    }
+  }
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_delete().
+ */
+function scratchpads_species_taxonomy_vocabulary_delete($vocabulary){
+  $vocabulary->show_synonym_data = FALSE;
+  scratchpads_species_taxonomy_vocabulary_insert($vocabulary);
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
  */
 function scratchpads_species_form_node_type_form_alter(&$form, &$form_state){
   $type = $form['#node_type']->type;
@@ -279,16 +375,46 @@ function scratchpads_species_views_api(){
 }
 
 function scratchpads_species_views_pre_view(&$view, &$display_id, &$args){
-  switch($view->name){
-    case 'species_media':
-    case 'species_slideshow':
-      // Add children to media views
-      if(!count($args)){
-        $args[0] = implode('+', array_merge(array(
-          arg(2)
-        ), array_keys(taxonomy_get_children(arg(2)))));
-      }
-      break;
+  $view_name_parts = explode('_', $view->name);
+  if($view_name_parts[0] == 'species'){
+    switch($view->name){
+      case 'species_nomenclature':
+      case 'species_description':
+        // Do nothing, these views never want the children adding.
+        break;
+      case 'species_media':
+      case 'species_slideshow':
+        // Add children to media views
+        if(!count($args)){
+          $args[0] = implode('+', array_merge(array(
+            arg(2)
+          ), array_keys(taxonomy_get_children(arg(2)))));
+        }
+        break;
+      default:
+        // We get the vocabulary for this term.
+        $term = menu_get_object('taxonomy_term', 2);
+        if($term){
+          $vocabulary = taxonomy_vocabulary_load($term->vid);
+          if($vocabulary->show_synonym_data){
+            $children = taxonomy_get_children($term->tid);
+            $tids = array(
+              arg(2)
+            );
+            foreach($children as $child){
+              // Check if it's invalid/notaccepted
+              $wrapper = entity_metadata_wrapper('taxonomy_term', $child);
+              if(in_array($wrapper->field_usage->value(), array(
+                'invalid',
+                'not accepted'
+              ))){
+                $tids[] = $child->tid;
+              }
+            }
+            $args[0] = implode('+', $tids);
+          }
+        }
+    }
   }
 }
 
@@ -454,7 +580,7 @@ function theme_scratchpads_species_name($vars){
           '!unit1' => $unit1,
           '!unit2' => $unit2,
           '!ind1' => $unit_ind1,
-          '!ind2' => $unit_ind2,
+          '!ind2' => $unit_ind2
         ));
       }
       break;
