@@ -15,19 +15,31 @@ define('SLICKGRID_CALLBACK_PATH', 'slickgrid/callback');
  * Implementation of hook_menu(). 
  */
 function slickgrid_menu(){
-  // Menu callbacks
-  $items[SLICKGRID_CALLBACK_PATH . '/%'] = array(
-    'page callback' => 'slickgrid_callback',
-    'page arguments' => array(
-      2
+  return array(
+    SLICKGRID_CALLBACK_PATH . '/%' => array(
+      'page callback' => 'slickgrid_callback',
+      'page arguments' => array(
+        2
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/slickgrid.callbacks.inc'
     ),
-    'access arguments' => array(
-      'access content'
-    ),
-    'type' => MENU_CALLBACK,
-    'file' => 'includes/slickgrid.callbacks.inc'
+    'slickgrid/get/data/%/%' => array(
+      'page callback' => 'slickgrid_get_data',
+      'page arguments' => array(
+        3,
+        4
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/slickgrid.getdata.inc'
+    )
   );
-  return $items;
 }
 
 /**
