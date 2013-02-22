@@ -26,7 +26,11 @@
           // We need to go up further up the element chain to work around 'add another item'
           $('select#edit-' + select_id).bind(ActionBind,function() {
             // Add parent() to hide input wrapper
-            $('input#edit-' + text_id).parent().css('display', ($(this).val() == "other") ? 'block' : 'none');
+            var selected_other = 'none';
+            $(this).children(':selected').each(function() {
+              selected_other = ($(this).val() == 'other') ? 'block' : 'none';
+            });
+            $('input#edit-' + text_id).parent().css('display', selected_other);
           }).trigger(ActionBind);
         });
       });

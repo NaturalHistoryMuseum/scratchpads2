@@ -850,10 +850,6 @@ article.node-event div.field-name-field-event-date {
   display: block;
 }
 
-#cboxContent .file .content .field{
-  margin: 8px 0 0 0;
-}
-
 #cboxContent .file .content .field div.field-label{
   float: left;
   width: 160px;
@@ -863,20 +859,12 @@ article.node-event div.field-name-field-event-date {
   margin-left: 180px;
 }
 
-#cboxContent .file .content .field-name-field-cc-licence{
-  position: absolute;
-  bottom: 5px;
-  right: 40px;
-  text-align: right;
-  margin: 0;
-}
-
 .file .field-name-field-description div.field-items{
   max-width: 500px!important;
 }
 
-#cboxContent .file .content .field-name-field-cc-licence div.field-items{
-  margin-left: 0;
+.field.field-name-field-creator .field-items .field-item:before{
+  content:'\a9  ';
 }
 
 /****************** SLICKGRID *****************/
@@ -893,6 +881,11 @@ article.node-event div.field-name-field-event-date {
 /* Fix the contextual links zindex*/
 div.contextual-links-wrapper{
   z-index:1!important;
+}
+
+/* Fix contextual blocks on taxon pages #2233 */
+.contextual-links-region.block-default{
+  position:static;
 }
 
 div.contextual-links-wrapper ul.contextual-links{

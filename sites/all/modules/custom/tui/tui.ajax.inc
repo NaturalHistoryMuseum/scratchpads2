@@ -1,41 +1,11 @@
 <?php
 
 /**
- * Copy of ajax_form_callback
- */
-function tui_ajax_form_callback(){
-  // The only addition over the standard callback, is this include!
-  module_load_include('admin.inc', 'taxonomy');
-  list($form, $form_state) = ajax_get_form();
-  drupal_process_form($form['#form_id'], $form, $form_state);
-  // We need to return the part of the form (or some other content) that needs
-  // to be re-rendered so the browser can update the page with changed content.
-  // Since this is the generic menu callback used by many Ajax elements, it is
-  // up to the #ajax['callback'] function of the element (may or may not be a
-  // button) that triggered the Ajax request to determine what needs to be
-  // rendered.
-  if($form_state['executed'] && isset($form_state['values']['tui_destination']) && $form_state['values']['tui_destination']){return array(
-      '#type' => 'ajax',
-      '#commands' => array(
-        ajax_command_invoke('html', 'tui_goto', array(
-          url($form_state['values']['tui_destination'], array(
-            'absolute' => TRUE
-          ))
-        ))
-      )
-    );}
-  if(!empty($form_state['triggering_element'])){
-    $callback = $form_state['triggering_element']['#ajax']['callback'];
-  }
-  if(!empty($callback) && function_exists($callback)){return $callback($form, $form_state);}
-}
-
-/**
  * Callback function to return HTML
  *
  * FIXME - We need to reload part of the tree too.
  */
-function tui_ajax_form_callback_callback(&$form, &$form_state){
+function tui_ajax_form_callback(&$form, &$form_state){
   // Unset the parent message, as it doesn't make sense once the term has been
   // created.
   if(isset($form['parent_message'])){
@@ -149,7 +119,6 @@ function tui_form_callback($vocabulary, $action, $tids = ''){
  */
 function tui_search_form($form, &$form_state, $vid){
   $ajax = array(
-    'path' => 'tui/ajax',
     'callback' => 'tui_ajax_blank',
     'wrapper' => 'tui-tree-form',
     'effect' => 'slide'
@@ -262,7 +231,6 @@ function tui_taxonomy_form_term_delete($form, $form_state, $tids = ''){
     $tids[] = $term->tid;
   }
   $ajax = array(
-    'path' => 'tui/ajax',
     'callback' => 'tui_ajax_blank',
     'wrapper' => 'tui-tree-form',
     'effect' => 'slide'

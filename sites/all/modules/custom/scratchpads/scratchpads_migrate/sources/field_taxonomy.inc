@@ -92,10 +92,28 @@ return false;}
    */
   static public function getFieldName($name){
     $field_name = 'field_' . preg_replace('/[^a-z0-9]/', '_', strtolower($name));
-    // Field anme can't be longer than 32 chars
+    // Field name can't be longer than 32 chars
     if(strlen($field_name) > 32){
       $field_name = substr($field_name, 0, 32);
     }
-    return $field_name;
+    // See if we have already mapped this field name
+    $map = variable_get('scratchpads_migrate_taxonomy_name_map', array());
+    if(isset($map[$field_name])){return $map[$field_name];}
+    // Ensure we don't clash with an existing field
+    $final_name = $field_name;
+    $field = field_read_field($final_name);
+    $id = 0;
+    while(!empty($field) && $field['type'] != 'taxonomy_term_reference'){
+      if((strlen($field_name) + strlen($id)) > 32){
+        $final_name = substr($field_name, 0, 32 - strlen($id)) . $id;
+      }else{
+        $final_name = $field_name . $id;
+      }
+      $id = $id + 1;
+      $field = field_read_field($final_name);
+    }
+    $map[$field_name] = $final_name;
+    variable_set('scratchpads_migrate_taxonomy_name_map', $map);
+    return $final_name;
   }
 }

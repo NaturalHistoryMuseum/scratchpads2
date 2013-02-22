@@ -591,7 +591,11 @@ function scratchpads_migrate_register_migrations(){
 
 function scratchpads_migrate_get_term_vocabularies(){
   $term_vocabularies = scratchpads_migrate_variable_get('term_node_vocabularies-contenttypes');
-  return array_filter($term_vocabularies);
+  if (empty($term_vocabularies)) {
+    return array();
+  } else {
+    return array_filter($term_vocabularies);
+  }
 }
 
 /**
@@ -691,7 +695,7 @@ function scratchpads_migrate_destination_node_type_exists($node_type){
   return array_key_exists($node_type, $types);
 }
 
-function scratchpads_migrate_unset_empty_fields($object, $skip = array('uid', 'weight_weight', 'sticky', 'status', 'promote', 'moderate', 'field_weight', 'field_sticky')){
+function scratchpads_migrate_unset_empty_fields($object, $skip = array('uid', 'comment', 'weight_weight', 'sticky', 'status', 'promote', 'moderate', 'field_weight', 'field_sticky')){
   // Loop through and unset NULL fields, otherwise they are populated with empty values
   $properties = array_keys((array)$object);
   foreach($properties as $property){

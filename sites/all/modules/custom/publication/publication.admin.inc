@@ -19,7 +19,7 @@ class PublicationUIController extends EntityDefaultUIController{
         'publication_admin_overview_form'
       ),
       'access arguments' => array(
-        'administer publication'
+        'administer publications'
       ),
       'file' => 'publication.admin.inc',
       'file path' => drupal_get_path('module', $this->entityInfo['module']),
@@ -53,7 +53,7 @@ class PublicationUIController extends EntityDefaultUIController{
         'access callback' => 'publication_access',
         'access arguments' => array(
           'edit',
-          'edit ' . $type->type
+          $type->type
         ),
         'file' => 'publication.admin.inc',
         'file path' => drupal_get_path('module', $this->entityInfo['module'])
@@ -88,7 +88,7 @@ class PublicationUIController extends EntityDefaultUIController{
       ),
       'access callback' => 'publication_access',
       'access arguments' => array(
-        'update',
+        'edit',
         1
       ),
       'weight' => 0,
@@ -106,7 +106,7 @@ class PublicationUIController extends EntityDefaultUIController{
       ),
       'access callback' => 'publication_access',
       'access arguments' => array(
-        'update',
+        'edit',
         1
       ),
       'type' => MENU_LOCAL_TASK,

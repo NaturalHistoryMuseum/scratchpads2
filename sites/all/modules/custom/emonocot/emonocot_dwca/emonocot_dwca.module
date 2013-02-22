@@ -48,6 +48,12 @@ function emonocot_dwca_views_default_views_alter(&$views){
 
     }
     
+    if ($view->name == 'dwca_export_image'){
+      $view->display['default']->display_options['fields']['uuid_1']['exclude'] = TRUE;
+      $view->display['default']->display_options['fields']['uuid']['exclude'] = TRUE;
+      $view->display['default']->display_options['fields']['wcm_id']['exclude'] = TRUE;
+    }
+    
     //For description references change Rights field to associated Biblio nodes rights
     if(substr($view->name, 0, 23) == 'dwca_export_description'){
       $field_matching = array(
@@ -302,23 +308,21 @@ function emonocot_dwca_add_wcm_field(&$view){
   $new_field['separator'] = '';
   $new_field['format_plural'] = 0;
   $new_field['field_api_classes'] = 0;
-  if($view->name == 'dwca_export_image'){
-    $new_field['exclude'] = TRUE;
-  }
+
   //array_unshift($view->display['default']->display_options['fields'], $new_field);
-  /*
-  $view->display['default']->display_options['fields'] = array_reverse($view->display['default']->display_options['fields'], true);
-  if($view->name == 'dwca_export_image'){
-    $view->display['default']->display_options['fields']['wcm_id_2'] = emonocot_dwca_add_wcm_image($view);
-    $view->display['default']->display_options['fields']['uuid_1']['exclude'] = TRUE;
-  }
-  $view->display['default']->display_options['fields']['wcm_id'] = $new_field;
-  $view->display['default']->display_options['fields'] = array_reverse($view->display['default']->display_options['fields'], true);
-  */
+ 
+
+  
   $insert = array();
   $insert['wcm_id'] = $new_field;
   $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'uuid');
   unset($insert);
+  if($view->name == 'dwca_export_image'){
+  	$insert = array();
+  	$insert['wcm_id_2'] = emonocot_dwca_add_wcm_image($view);
+    $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'uuid_1');
+    unset($insert);
+  }
 }
 
 /**

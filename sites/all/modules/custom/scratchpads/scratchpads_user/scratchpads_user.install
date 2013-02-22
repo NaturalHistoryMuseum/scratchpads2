@@ -27,3 +27,98 @@ function scratchpads_user_update_7002(){
     }
   }
 }
+
+/**
+ * Allow "Other" to work for the Title field.
+ */
+function scratchpads_user_update_7003(){
+  $row = db_select('field_config', 'f')->fields('f', array(
+    'id'
+  ))->condition('field_name', 'field_user_title')->execute()->fetchCol(0);
+  if(is_array($row) && $row[0]){
+    db_update('field_config')->fields(array(
+      'data' => serialize(array(
+        'entity_types' => array(),
+        'foreigh keys' => array(),
+        'indexes' => array(
+          'value' => array(
+            'value'
+          )
+        ),
+        'settings' => array(
+          'allowed_values' => array(),
+          'allowed_values_function' => '',
+          'profile2_private' => FALSE
+        ),
+        'translatable' => '0',
+        'storage' => array(
+          'type' => 'field_sql_storage',
+          'settings' => array(),
+          'module' => 'field_sql_storage',
+          'active' => '1'
+        ),
+        'id' => $row[0]
+      ))
+    ))->condition('id', $row[0])->execute();
+  }
+  cache_clear_all();
+}
+
+/**
+ * Set an email for "no login" people.
+ */
+function scratchpads_user_update_7004(){
+  global $base_url;
+  $url = parse_url($base_url);
+  $results = db_select('users', 'u')->fields('u', array(
+    'uid'
+  ))->condition('uid', '0', '>')->condition('mail', '')->execute();
+  foreach($results as $row){
+    db_update('users')->fields(array(
+      'mail' => uniqid('', TRUE) . '@' . $url['host']
+    ))->condition('uid', $row->uid)->execute();
+  }
+}
+
+/**
+ * Update stub users to set their username to be their full name.
+ */
+function scratchpads_user_update_7005(){
+  $results = db_select('users', 'u')->fields('u', array(
+    'uid',
+    'name'
+  ))->condition('uid', '1', '>')->condition('pass', '')->execute();
+  foreach($results as $row){
+    $user = user_load($row->uid);
+    // Set the name
+    $name = '';
+    foreach(array(
+      'field_user_title',
+      'field_user_given_names',
+      'field_user_family_name'
+    ) as $field_name){
+      if(@isset($user->{$field_name}[LANGUAGE_NONE][0]['value'])){
+        $name = $name . ' ' . $user->{$field_name}[LANGUAGE_NONE][0]['value'];
+      }
+      $name = trim($name);
+    }
+    if($row->name != $name){
+      // Check this name does not exist, else we add a number to the end.
+      $results = db_select('users', 'u')->fields('u', array(
+        'name'
+      ))->condition('name', "$name%", 'LIKE')->condition('uid', $user->uid, '!=')->execute();
+      $matches = array();
+      foreach($results as $row){
+        $matches[] = $row->name;
+      }
+      $index = 1;
+      $new_name = $name;
+      while(in_array($new_name, $matches)){
+        $new_name = "$name $index";
+        $index++;
+      }
+      $user->name = $new_name;
+      user_save($user);
+    }
+  }
+}
