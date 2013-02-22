@@ -348,7 +348,7 @@ class slickgrid_views_plugin extends views_plugin_style{
     );
     $form['settings']['asyncEditorLoading'] = array(
       '#type' => 'checkbox',
-      '#title' => t('A sync editor loading'),
+      '#title' => t('Async editor loading'),
       '#default_value' => $this->options['asyncEditorLoading'],
       '#parents' => array(
         'style_options',
@@ -549,8 +549,6 @@ class slickgrid_views_plugin extends views_plugin_style{
     return !in_array($field_name, $this->locked_fields);
   }
 
-
-
   function entity_label_field($field){
     static $entity_labels = array();
     if(!count($entity_labels)){
@@ -566,4 +564,3 @@ class slickgrid_views_plugin extends views_plugin_style{
     $this->view->query->set_distinct();
   }
 }
-?>
