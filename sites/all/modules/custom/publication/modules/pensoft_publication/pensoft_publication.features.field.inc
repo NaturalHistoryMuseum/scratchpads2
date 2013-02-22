@@ -716,21 +716,21 @@ Tables are numbered once the publication is saved.',
       'entityconnect_unload_add' => '1',
       'entityconnect_unload_edit' => '1',
       'field_name' => 'field_publication_authors',
-      'label' => 'Other authors',
+      'label' => 'Authors',
       'required' => 0,
       'settings' => array(
         'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'options',
+        'module' => 'user_reference',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
           'size' => '60'
         ),
-        'type' => 'options_select',
-        'weight' => '27'
+        'type' => 'user_reference_autocomplete',
+        'weight' => '26'
       )
     )
   );
@@ -801,13 +801,13 @@ Tables are numbered once the publication is saved.',
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'options',
+        'module' => 'user_reference',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
           'size' => '60'
         ),
-        'type' => 'options_select',
+        'type' => 'user_reference_autocomplete',
         'weight' => '32'
       )
     )
@@ -879,13 +879,13 @@ Tables are numbered once the publication is saved.',
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'options',
+        'module' => 'user_reference',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
           'size' => '60'
         ),
-        'type' => 'options_select',
+        'type' => 'user_reference_autocomplete',
         'weight' => '30'
       )
     )
@@ -1262,13 +1262,13 @@ Tables are numbered once the publication is saved.',
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'options',
+        'module' => 'user_reference',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
           'size' => '60'
         ),
-        'type' => 'options_select',
+        'type' => 'user_reference_autocomplete',
         'weight' => '29'
       )
     )
@@ -1340,13 +1340,13 @@ Tables are numbered once the publication is saved.',
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'options',
+        'module' => 'user_reference',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
           'size' => '60'
         ),
-        'type' => 'options_select',
+        'type' => 'user_reference_autocomplete',
         'weight' => '31'
       )
     )
@@ -1597,7 +1597,7 @@ Tables are numbered once the publication is saved.',
       'bundle' => 'pensoft',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'Please specify the submitting author. This is used when submitting the publication, but is not displayed. The author must be present in the authors list.',
       'display' => array(
         'default' => array(
           'label' => 'hidden',
@@ -1618,14 +1618,14 @@ Tables are numbered once the publication is saved.',
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'options',
+        'module' => 'user_reference',
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
           'size' => '60'
         ),
-        'type' => 'options_select',
-        'weight' => '26'
+        'type' => 'user_reference_autocomplete',
+        'weight' => '27'
       )
     )
   );
@@ -2307,7 +2307,7 @@ Tables are numbered once the publication is saved.',
   t('Material & Methods');
   t('Mentor');
   t('Other Contributors');
-  t('Other authors');
+  t('Authors');
   t('Paratype(s)');
   t('Please enter a list of publication keywords, comma separated.');
   t('Publication title');

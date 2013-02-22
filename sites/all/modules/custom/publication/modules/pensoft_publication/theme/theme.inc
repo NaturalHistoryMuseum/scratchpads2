@@ -13,11 +13,8 @@ function pensoft_publication_preprocess_publication_field_group(&$variables) {
   
   // Sort authors and institutions
   if ($element['#id'] == 'publication_pensoft_full_group_publication_auth_contrib') {
-    $authors = array($element['field_publication_submit_author'][0]);
+    $authors = array();
     $institutions = array();
-    if (!empty($element['field_publication_submit_author'][0]['#publication_author_institution'])) {
-      $institutions[] = $element['field_publication_submit_author'][0]['#publication_author_institution'];
-    }
     foreach (element_children($element['field_publication_authors']) as $key) {
       $authors[] = $element['field_publication_authors'][$key];
       if (!empty($element['field_publication_authors'][$key]['#publication_author_institution'])) {
