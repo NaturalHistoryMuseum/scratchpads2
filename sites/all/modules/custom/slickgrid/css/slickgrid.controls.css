@@ -95,42 +95,50 @@ opacity: 1;
 /* First */
 #controls #slickgrid-pager span.slick-pager-nav span.ui-icon-container .ui-icon-seek-first,
 #controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-first.ui-state-disabled{
+  /* FIXME - Image is missing */  
   background: url('../images/controls-first.png') no-repeat;
 }
 
 #controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-first{
+  /* FIXME - Image is missing */  
   background: url('../images/controls-first-active.png') no-repeat;
 }
 
 /* Prev */
 #controls #slickgrid-pager span.slick-pager-nav span.ui-icon-container .ui-icon-seek-prev,
 #controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-prev.ui-state-disabled{
+  /* FIXME - Image is missing */
   background: url('../images/controls-prev.png') no-repeat;
   margin-left: 8px;
 }
 
 #controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-prev{
+  /* FIXME - Image is missing */  
   background: url('../images/controls-prev-active.png') no-repeat;
 }
 
 /* Next */
 #controls #slickgrid-pager span.slick-pager-nav span.ui-icon-container .ui-icon-seek-next,
 #controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-next.ui-state-disabled{
+  /* FIXME - Image is missing */  
   background: url('../images/controls-next.png') no-repeat;
   margin-left: 14px;
 }
 
-#controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-next{
+#controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-next{  
+  /* FIXME - Image is missing */  
   background: url('../images/controls-next-active.png') no-repeat;
 }
 
 /* Last */
 #controls #slickgrid-pager span.slick-pager-nav span.ui-icon-container .ui-icon-seek-end,
 #controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-end.ui-state-disabled{
+  /* FIXME - Image is missing */  
   background: url('../images/controls-last.png') no-repeat;
 }
 
 #controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-end{
+  /* FIXME - Image is missing */  
   background: url('../images/controls-last-active.png') no-repeat;
 }
 
