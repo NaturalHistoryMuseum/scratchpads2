@@ -42,7 +42,8 @@ class DrupalContentTypeMigration extends DrupalMigration{
       ),
       'story' => MIGRATE_NONE, // Not in use
       'spm' => MIGRATE_ALL, // migrate using the same entity & bundle type
-      'webform' => MIGRATE_NONE
+      'webform' => MIGRATE_NONE,
+      'fileshare' => MIGRATE_NONE
     );
     // Do not migrate term nodes
     $term_nodes = scratchpads_migrate_get_term_vocabularies();
