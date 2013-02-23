@@ -15,6 +15,8 @@ if(!Array.prototype.indexOf) {
 (function($){
   // register namespace
   $.extend(true, window, {Slickgrid: Slickgrid});
+  // FIXME - Do something!
+  var loadingIndicator = null;
   // Slickgrid class implementation
   function Slickgrid(container, viewName, viewDisplayID, callbackPath, loader){
     var columnFilters = {};
@@ -49,14 +51,53 @@ if(!Array.prototype.indexOf) {
         undoControl = new Slick.Controls.Undo($("#slickgrid-undo"));
       }
       // Initialise the dataview & slickgrid
-      dataView = new Slick.Data.DataView();
-      grid = new Slick.Grid(container, dataView, columns, options);
+      //dataView = new Slick.Data.DataView();
+      var loader = new Slick.Data.RemoteModel(viewName);
+      grid = new Slick.Grid(container, loader.data, columns, options);
+      // Load the data when the scroll bar is touched (etc).
+      grid.onViewportChanged.subscribe(function (e, args) {
+        var vp = grid.getViewport();
+        loader.ensureData(vp.top, vp.bottom);
+      });
+      grid.onSort.subscribe(function (e, args) {
+        loader.setSort(args.sortCol.field, args.sortAsc ? 1 : -1);
+        var vp = grid.getViewport();
+        loader.ensureData(vp.top, vp.bottom);
+      });
+      loader.onDataLoading.subscribe(function () {
+        if (!loadingIndicator && false) {
+          loadingIndicator = $("<span class='loading-indicator'><label>Buffering...</label></span>").appendTo(document.body);
+          var $g = $("#myGrid");
+          loadingIndicator
+              .css("position", "absolute")
+              .css("top", $g.position().top + $g.height() / 2 - loadingIndicator.height() / 2)
+              .css("left", $g.position().left + $g.width() / 2 - loadingIndicator.width() / 2);
+        }
+        //loadingIndicator.show();
+      });
+      loader.onDataLoaded.subscribe(function (e, args) {
+        for (var i = args.from; i <= args.to; i++) {
+          grid.invalidateRow(i);
+        }
+        grid.updateRowCount();
+        grid.render();
+        //loadingIndicator.fadeOut();
+      });
+      $("#txtSearch").keyup(function (e) {
+        if (e.which == 13) {
+          loader.setSearch($(this).val());
+          var vp = grid.getViewport();
+          loader.ensureData(vp.top, vp.bottom);
+        }
+      });
+      // load the first page
+      grid.onViewportChanged.notify();
       // Add all the controls
       // Page control
       if(options['pager']) {
         var pagerControl = new Slick.Controls.Pager(dataView, grid, $("#slickgrid-pager"));
       }
-      // delete control (requires row selection checkbox)
+      /*// delete control (requires row selection checkbox)
       if(options['delete'] && options['row_selection_checkbox']) {
         var deleteControl = new Slick.Controls.Delete(dataView, grid, $("#slickgrid-delete"));
       }
@@ -67,7 +108,7 @@ if(!Array.prototype.indexOf) {
       // export control (requires row selection checkbox)
       if(options['clone'] && options['row_selection_checkbox']) {
         var cloneControl = new Slick.Controls.Clone(dataView, grid, $("#slickgrid-clone"));
-      }
+      }*/
       // Are sortable columns enabled?
       // Sortable columns won't work with collapsible taxonomy fields
       if(options['sortable_columns']) {
@@ -83,9 +124,11 @@ if(!Array.prototype.indexOf) {
       }
       // Add tabs control (Needs to come after columnpicker control & hidden
       // columns is added)
+      /*
       if(options['tabs']) {
         tabs = new Slick.Controls.Tabs(dataView, grid, $("#slickgrid-tabs"), options['default_active_tab']);
       }
+      */
       if(options['default_filter']) {
         setColumnFilter(options['default_filter']['field'], options['default_filter']['value']);
       }
@@ -114,7 +157,7 @@ if(!Array.prototype.indexOf) {
       // Register events for my handling of active rows
       grid.onBeforeEditCell.subscribe(handleBeforeEditCell);
       grid.onBeforeCellEditorDestroy.subscribe(handleBeforeCellEditorDestroy);
-      dataView.onRowCountChanged.subscribe(function(e, args){
+      /*dataView.onRowCountChanged.subscribe(function(e, args){
         grid.updateRowCount();
         grid.render();
       });
@@ -125,6 +168,7 @@ if(!Array.prototype.indexOf) {
       dataView.beginUpdate();
       // Add the data to the dataView
       dataView.setItems(data);
+      */
       // If a grouping field has been chosen, group the data
       // NB: needs to come after the data has been added to the dataView
       if(options['grouping_field']) {
@@ -134,13 +178,15 @@ if(!Array.prototype.indexOf) {
       if(options['collapsible_taxonomy_field']) {
         initCollapsibleTaxonomyField(options['collapsible_taxonomy_field']);
       }
-      dataView.endUpdate();
+      //dataView.endUpdate();
       addGridEventHandlers();
       // If has_filter is true, there are header filters being used
       // Apply the filter to the dataView
+      /*
       if(options['filterable']) {
         dataView.setFilter(filter);
       }
+      */
       $(container).trigger('onSlickgridInit');
     }
     // Add handlers to grid events

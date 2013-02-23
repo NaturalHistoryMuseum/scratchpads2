@@ -115,43 +115,67 @@ function slickgrid_theme(){
 function slickgrid_library(){
   $path = libraries_get_path('slickgrid');
   // Slickgrid core library
-  $libraries['slickgrid'] = array(
-    'title' => 'Slickgrid',
-    'website' => 'https://github.com/mleibman/SlickGrid/',
-    'version' => 'Master',
-    'js' => array(
-      $path . '/lib/firebugx.js' => array(),
-      $path . '/lib/jquery.event.drag-2.0.min.js' => array(),
-      $path . '/slick.core.js' => array(),
-      $path . '/slick.dataview.js' => array(),
-      $path . '/slick.grid.js' => array(),
-      $path . '/plugins/slick.checkboxselectcolumn.js' => array(),
-      $path . '/plugins/slick.rowselectionmodel.js' => array(),
-      $path . '/controls/slick.columnpicker.js' => array()
+  return array(
+    'jquery.jsonp' => array(
+      'title' => 'jquery.jsonp',
+      'website' => 'https://github.com/jaubourg/jquery-jsonp',
+      'version' => 'Master',
+      'js' => array(
+        libraries_get_path('jquery.jsonp') . '/jquery.jsonp.js' => array()
+      )
     ),
-    'css' => array(
-      $path . '/slick.grid.css' => array(),
-      $path . '/controls/slick.columnpicker.css' => array()
-    ),
-    'dependencies' => array(
-      // Require jQuery UI sortable by System module.
-      array(
-        'system',
-        'ui.sortable'
+    'slickgrid' => array(
+      'title' => 'Slickgrid',
+      'website' => 'https://github.com/mleibman/SlickGrid/',
+      'version' => 'Master',
+      'js' => array(
+        $path . '/lib/firebugx.js' => array(),
+        $path . '/lib/jquery.event.drag-2.0.min.js' => array(),
+        $path . '/slick.core.js' => array(),
+        $path . '/slick.dataview.js' => array(),
+        $path . '/slick.grid.js' => array(),
+        $path . '/plugins/slick.checkboxselectcolumn.js' => array(),
+        $path . '/plugins/slick.rowselectionmodel.js' => array(),
+        $path . '/controls/slick.columnpicker.js' => array()
       ),
-      // Require jQuery UI resizable by System module.
-      array(
-        'system',
-        'ui.resizable'
+      'css' => array(
+        $path . '/slick.grid.css' => array(),
+        $path . '/controls/slick.columnpicker.css' => array()
       ),
-      // Require jQuery UI effects by System module.
-      array(
-        'system',
-        'effects.highlight'
+      'dependencies' => array(
+        array(
+          'system',
+          'ui.sortable'
+        ),
+        array(
+          'system',
+          'ui.resizable'
+        ),
+        array(
+          'system',
+          'effects.highlight'
+        ),
+        array(
+          'slickgrid',
+          'jquery.jsonp'
+        )
       )
     )
   );
-  return $libraries;
+}
+
+/**
+ * Implements hook_views_pre_render().
+ */
+function slickgrid_views_pre_execute(&$view){
+  if(get_class($view->style_plugin) == 'slickgrid_views_plugin'){
+    if(substr($_GET['q'], 0, 18) == 'slickgrid/get/data'){
+      $view->query->limit = 50;
+      $view->query->offset = arg(4) * 50;
+    }else{
+      $view->query->limit = 1;
+    }
+  }
 }
 
 /**

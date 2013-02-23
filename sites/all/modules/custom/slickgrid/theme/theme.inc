@@ -288,7 +288,15 @@ function theme_slickgrid($variables){
   // Add bespoke slickgrid js/css
   drupal_add_js($path . '/js/slickgrid.js');
   drupal_add_js($path . '/js/slickgrid.theme.js');
+  drupal_add_js($path . '/js/slickgrid.remote.js');
   drupal_add_css($path . '/css/slickgrid.css');
+  drupal_add_js(array(
+    'slickgrid' => array(
+      'get_data_callback_url' => url('slickgrid/get/data/', array(
+        'absolute' => TRUE
+      ))
+    )
+  ), 'setting');
   // Add beautytips
   beautytips_add_beautytips();
   // If this slickgrid is editable, add the ctools modal plugins
@@ -299,9 +307,6 @@ function theme_slickgrid($variables){
   $js = array();
   $js[] = 'var options = ' . drupal_json_encode($view->style_plugin->options) . ';';
   $js[] = 'var data = [];';
-  if(count($view->data)){
-    $js[] = 'data = ' . drupal_json_encode($view->data) . ';';
-  }
   $js[] = 'var columns = ' . slickgrid_encode_columns($view->columns) . ';';
   $js[] = 'var slickgrid;';
   $js[] = '(function($) {';
