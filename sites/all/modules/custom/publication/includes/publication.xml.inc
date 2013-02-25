@@ -65,7 +65,7 @@
  * This class is used to parse an XSD schema into a schema array
  * 
  */
-class PensoftPublicationXSDParser{
+class PublicationXSDParser{
 
   /**
    * Construct the parser from the URL
@@ -225,7 +225,7 @@ class PensoftPublicationXSDParser{
  * This class is used to build XML from an array schema
  * 
  */
-class PensoftPublicationXMLBuilder{
+class PublicationXMLBuilder{
 
   /**
    * Creatre a new builder from a schema and settings.
@@ -409,7 +409,8 @@ class PensoftPublicationXMLBuilder{
       }
       $value = call_user_func_array($f, $args);
     }
-    // Check for standard drupal field value format
+    // Check for standard drupal field value format. Anything that is a direct value, or
+    // an array definined 'value' will need a 'process' function defined.
     if(is_array($value) && isset($value['value'])){
       $value = $value['value'];
     }
@@ -472,7 +473,7 @@ class PensoftPublicationXMLBuilder{
    * array, this is removed to return the values directly
    * 
    */
-  function _read_values($value, $language = 'und'){
+  function _read_values($value, $language = LANGUAGE_NONE){
     if(is_array($value) && isset($value[$language])){
       return $this->_read_values($value[$language], $language);
     }else if(is_array($value)){
@@ -486,92 +487,11 @@ class PensoftPublicationXMLBuilder{
 }
 
 /**
- * Build the XML for a publication. This function builds the
- * overall document structure, and then calls functions to build
- * each section.
- */
-function _pensoft_publication_build_xml($publication){
-  // Parse the schema
-  $url = variable_get('pensoft_publication_xml_schema_url', 'http://localhost/scratchpads/sites/all/modules/custom/publication/modules/pensoft_publication/research_article.xsd');
-  //$source_schema = _pensoft_publication_xml_parse_schema($url);
-  try{
-    $parser = new PensoftPublicationXSDParser($url);
-    $source_schema = $parser->get_schema_array();
-  }
-  catch(Exception $e){
-    drupal_set_message("The publication could not be published because we were unable to parse the Pensoft XSD Schema : " . $e->getMessage(), 'error');
-  }
-  // Now merge the schema with drupal field mapping
-  include ('pensoft_publication.xml.schema.inc');
-  $map_schema = array(
-    'document' => array(
-      'document_info' => _pensoft_publication_xml_document_info_schema(),
-      'objects' => array(
-        'article_metadata' => _pensoft_publication_xml_article_metadata_schema(),
-        'introduction' => _pensoft_publication_xml_introduction_schema(),
-        'material_and_methods' => _pensoft_publication_xml_material_and_methods_schema(),
-        'systematics' => _pensoft_publication_xml_systematics_schema(),
-        'acknowledgements' => _pensoft_publication_xml_acknowledgements_schema(),
-        'supplementary_files' => _pensoft_publication_xml_files_schema()
-      )
-    //'figures' => _pensoft_publication_xml_figures_schema(),
-    //'tables' => _pensoft_publication_xml_tables_schema(),    
-    )
-  );
-  $schema = $parser->merge_schemas($source_schema, $map_schema);
-  // Build the XML
-  try{
-    $builder = new PensoftPublicationXMLBuilder($schema, array(
-      'force-empty-values' => FALSE
-    ));
-    $xml = $builder->build_xml($publication);
-  }
-  catch(Exception $e){
-    drupal_set_message($e->getMessage(), 'error');
-    return FALSE;
-  }
-  return $xml;
-  // Validation and error display. Try to break the XML down in lines such that we don't disturb content by adding unwanted
-  // carriage returns (that would effecut enumerations for instance).
-  $xml_per_line = preg_replace('/(<\/.*?>)/', "$1\n", $xml);
-  $parsed_dom = new DOMDocument('1.0', 'UTF-8');
-  $parsed_dom->loadXML($xml_per_line);
-  libxml_use_internal_errors(true);
-  if(!$parsed_dom->schemaValidate($url)){
-    $lines = explode("\n", $xml_per_line);
-    $errors = libxml_get_errors();
-    foreach($errors as $error){
-      $type = 'error';
-      if($error->level == LIBXML_ERR_WARNING){
-        $type = 'warning';
-      }
-      // Get some context.
-      $context = array();
-      $num = 5;
-      if($error->line > 2){
-        $count = ($error->line > $num) ? $num : ($error->line - 1);
-        $context = array_slice($lines, $error->line - $count - 1, $count);
-        foreach($context as $key => $value){
-          $context[$key] = htmlspecialchars($value);
-        }
-      }
-      $context[] = '<strong>' . htmlspecialchars($lines[$error->line - 1]) . '</strong>';
-      drupal_set_message('XML validation error: ' . $error->code . ' - ' . $error->message . ' : <br/>' . implode("<br/>", $context), $type);
-    }
-    libxml_clear_errors();
-    libxml_use_internal_errors(false);
-    return FALSE;
-  }
-  libxml_clear_errors();
-  libxml_use_internal_errors(false);
-  return $xml;
-}
-
-/**
- * Proccess a field to insert a country value
+ * Process a country field to return either the iso2 code or
+ * the country name
  * 
  */
-function _pensoft_publication_xml_process_country($value, $type = 'name'){
+function _publication_xml_process_country($value, $type = 'name'){
   if($type == 'iso2'){
     return $value['iso2'];
   }else{
@@ -581,25 +501,9 @@ function _pensoft_publication_xml_process_country($value, $type = 'name'){
 }
 
 /**
- * Process a salutation
+ * Process a map field to return just one property (by default the latitude)
  */
-function _pensoft_publication_xml_process_salutation($value){
-  $map = array(
-    'Prof.' => 'Prof'
-  );
-  if(isset($map[$value['value']])){
-    return array(
-      'value' => $map[$value['value']]
-    );
-  }else{
-    return $value;
-  }
-}
-
-/**
- * Process a map field
- */
-function _pensoft_publication_xml_process_map($value, $type = 'latitude'){
+function _publication_xml_process_map($value, $type = 'latitude'){
   $map = $value[LANGUAGE_NONE][0];
   return $map->$type;
 }
@@ -607,7 +511,7 @@ function _pensoft_publication_xml_process_map($value, $type = 'latitude'){
 /**
  * Loader function for the author/contributor fields
  */
-function _pensoft_publication_xml_load_user($value){
+function _publication_xml_load_user($value){
   $user = user_load($value);
   $user->processed_full_name = $user->field_user_title . ' ' . $user->field_user_given_names . ' ' . $user->field_user_family_name;
   return $user;
@@ -616,7 +520,7 @@ function _pensoft_publication_xml_load_user($value){
 /**
  * Loader function for files
  */
-function _pensoft_publication_xml_load_file($value){
+function _publication_xml_load_file($value){
   $value['url'] = url($value['uri'], array(
     'absolute' => TRUE
   ));
@@ -624,24 +528,9 @@ function _pensoft_publication_xml_load_file($value){
 }
 
 /**
- * Loader function for the treatment/taxon description
- */
-function _pensoft_publication_xml_load_treatment($value){
-  $endpoint = array_shift(array_values($value['endpoints']));
-  list($type, $nid) = explode(':', $endpoint);
-  $rid = $value['relation_id'];
-  $relation = relation_load($rid);
-  $node = node_load($nid);
-  $tid = $node->field_taxonomic_name["und"][0]["tid"];
-  $term = taxonomy_term_load($tid);
-  $combine = array_merge((array)$node, (array)$relation, (array)$term);
-  return ((object)$combine);
-}
-
-/**
  * Loads the parent of the given term
  */
-function _pensoft_publication_xml_load_parent_term($value, $rank = NULL, $default = NULL){
+function _publication_xml_load_parent_term($value, $rank = NULL, $default = NULL){
   $terms = taxonomy_get_parents($value['tid']);
   while(!empty($terms)){
     $current = array_shift($terms);
@@ -655,7 +544,7 @@ function _pensoft_publication_xml_load_parent_term($value, $rank = NULL, $defaul
 /**
  * Loader function for materials
  */
-function _pensoft_publication_xml_load_specimen($value){
+function _publication_xml_load_specimen($value){
   $specimen = node_load($value['nid']);
   if(!empty($specimen->field_location[$specimen->language][0]['nid'])){
     $location = node_load($specimen->field_location[$specimen->language][0]['nid']);
@@ -665,8 +554,3 @@ function _pensoft_publication_xml_load_specimen($value){
   }
   return $specimen;
 }
-
-
-
-
-

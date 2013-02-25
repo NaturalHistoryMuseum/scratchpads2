@@ -2,9 +2,42 @@
 
 /**
  * This file contains the schema/map definitions for the pensoft XML export, as
- * defined in the _pensoft_xml_build_from_schema function.
+ * defined in the _pensoft_xml_build_from_schema function. It also contains
+ * schema array process functions that are specific to Pensoft.
  * 
  */
+
+/**
+ * Process a salutation to return it as Pensoft expects it.
+ */
+function _pensoft_publication_xml_process_salutation($value){
+  $map = array(
+    'Prof.' => 'Prof'
+  );
+  if(isset($map[$value['value']])){
+    return array(
+      'value' => $map[$value['value']]
+    );
+  }else{
+    return $value;
+  }
+}
+
+/**
+ * Loader function for the treatment/taxon description
+ */
+function _pensoft_publication_xml_load_treatment($value){
+  $endpoint = array_shift(array_values($value['endpoints']));
+  list($type, $nid) = explode(':', $endpoint);
+  $rid = $value['relation_id'];
+  $relation = relation_load($rid);
+  $node = node_load($nid);
+  $tid = $node->field_taxonomic_name[LANGUAGE_NONE][0]['tid'];
+  $term = taxonomy_term_load($tid);
+  $combine = array_merge((array)$node, (array)$relation, (array)$term);
+  return ((object)$combine);
+}
+
 /**
  * The document_info section
  */
@@ -29,7 +62,7 @@ function _pensoft_publication_xml_document_info_schema(){
  */
 function _pensoft_publication_xml_article_metadata_schema(){
   $author_schema_template = array(
-    '#load' => '_pensoft_publication_xml_load_user',
+    '#load' => '_publication_xml_load_user',
     '#value' => '',
     'fields' => array(
       'e-mail' => array(
@@ -70,7 +103,7 @@ function _pensoft_publication_xml_article_metadata_schema(){
         'country' => array(
           'value' => array(
             '#field' => 'field_user_country',
-            '#process' => '_pensoft_publication_xml_process_country'
+            '#process' => '_publication_xml_process_country'
           )
         )
       )
@@ -119,7 +152,7 @@ function _pensoft_publication_xml_article_metadata_schema(){
   $contributors = array(
     'contributor' => array(
       '#field' => 'field_publication_contributors',
-      '#load' => '_pensoft_publication_xml_load_user',
+      '#load' => '_publication_xml_load_user',
       '#value' => '',
       'fields' => array(
         'e-mail' => array(
@@ -162,7 +195,7 @@ function _pensoft_publication_xml_article_metadata_schema(){
           'country' => array(
             'value' => array(
               '#field' => 'field_user_country',
-              '#process' => '_pensoft_publication_xml_process_country'
+              '#process' => '_publication_xml_process_country'
             )
           )
         )
@@ -731,7 +764,7 @@ function _pensoft_publication_xml_systematics_schema(){
       'fields' => array(
         'classification' => array(
           '#field' => 'field_taxonomic_name',
-          '#load' => '_pensoft_publication_xml_load_parent_term',
+          '#load' => '_publication_xml_load_parent_term',
           '#load arguments' => array(
             'Family',
             (object)(array(
@@ -771,7 +804,7 @@ function _pensoft_publication_xml_systematics_schema(){
           '=',
           'Species'
         ),
-        '#load' => '_pensoft_publication_xml_load_parent_term',
+        '#load' => '_publication_xml_load_parent_term',
         '#load arguments' => array(
           'Genus'
         ),
@@ -831,7 +864,7 @@ function _pensoft_publication_xml_systematics_schema(){
  */
 function _pensoft_publication_xml_systematics_materials_schema(){
   $type_template = array(
-    '#load' => '_pensoft_publication_xml_load_specimen',
+    '#load' => '_publication_xml_load_specimen',
     '#field' => 'field_publication_treat_holotype',
     '#value' => '',
     'fields' => array(
@@ -856,7 +889,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       'recordedby' => array(
         '#condition' => 'field_collector',
-        '#load' => '_pensoft_publication_xml_load_user',
+        '#load' => '_publication_xml_load_user',
         '#field' => 'field_collector',
         'value' => array(
           '#field' => 'processed_full_name'
@@ -929,14 +962,14 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         '#condition' => 'field_country',
         'value' => array(
           '#field' => 'field_country',
-          '#process' => '_pensoft_publication_xml_process_country'
+          '#process' => '_publication_xml_process_country'
         )
       ),
       'countrycode' => array(
         '#condition' => 'field_country',
         'value' => array(
           '#field' => 'field_country',
-          '#process' => '_pensoft_publication_xml_process_country',
+          '#process' => '_publication_xml_process_country',
           '#process arguments' => array(
             'iso2'
           )
@@ -1000,7 +1033,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         '#condition' => 'field_map',
         'value' => array(
           '#field' => 'field_map',
-          '#process' => '_pensoft_publication_xml_process_map',
+          '#process' => '_publication_xml_process_map',
           '#process arguments' => array(
             'latitude'
           )
@@ -1010,7 +1043,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         '#condition' => 'field_map',
         'value' => array(
           '#field' => 'field_map',
-          '#process' => '_pensoft_publication_xml_process_map',
+          '#process' => '_publication_xml_process_map',
           '#process arguments' => array(
             'longitude'
           )
@@ -1026,7 +1059,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         '#condition' => 'field_map',
         'value' => array(
           '#field' => 'field_map',
-          '#process' => '_pensoft_publication_xml_process_map',
+          '#process' => '_publication_xml_process_map',
           '#process arguments' => array(
             'latitude'
           )
@@ -1036,7 +1069,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         '#condition' => 'field_map',
         'value' => array(
           '#field' => 'field_map',
-          '#process' => '_pensoft_publication_xml_process_map',
+          '#process' => '_publication_xml_process_map',
           '#process arguments' => array(
             'longitude'
           )
@@ -1077,7 +1110,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       'identifiedby' => array(
         '#condition' => 'field_identified_by',
-        '#load' => '_pensoft_publication_xml_load_user',
+        '#load' => '_publication_xml_load_user',
         '#field' => 'field_identified_by',
         'value' => array(
           '#field' => 'processed_full_name'
@@ -1183,7 +1216,7 @@ function _pensoft_publication_xml_files_schema(){
       'fields' => array(
         '#field' => 'field_pensoft_files',
         '#value' => '',
-        '#load' => '_pensoft_publication_xml_load_file',
+        '#load' => '_publication_xml_load_file',
         'title' => array(
           'value' => array(
             '#field' => 'title'
