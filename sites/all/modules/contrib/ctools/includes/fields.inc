@@ -170,8 +170,6 @@ function ctools_field_label($field_name) {
  *
  * @param $field_name
  *   Either a field instance object or the name of the field.
- *   If the 'field' key is populated it will be used as the field
- *   settings.
  * @param $op
  *   Possible operations include:
  *   - form
@@ -224,7 +222,6 @@ function ctools_field_label($field_name) {
 function ctools_field_invoke_field($field_name, $op, $entity_type, $entity, &$a = NULL, &$b = NULL, $options = array()) {
   if (is_array($field_name)) {
     $instance = $field_name;
-    $field = empty($field_name['field']) ? field_info_field($instance['field_name']) : $field_name['field'];
     $field_name = $instance['field_name'];
   }
   else {
@@ -248,6 +245,7 @@ function ctools_field_invoke_field($field_name, $op, $entity_type, $entity, &$a 
 
   // Everything from here is unmodified code from _field_invoke() formerly
   // inside a foreach loop over the instances.
+  $field = field_info_field($field_name);
   $function = $options['default'] ? 'field_default_' . $op : $field['module'] . '_field_' . $op;
   if (function_exists($function)) {
     // Determine the list of languages to iterate on.

@@ -26,7 +26,7 @@ function ctools_requirements($phase) {
     }
 
     if (!function_exists('error_get_last')) {
-      $requirements['ctools_php_52']['title'] = t('CTools PHP requirements');
+  	  $requirements['ctools_php_52']['title'] = t('CTools PHP requirements');
       $requirements['ctools_php_52']['description'] = t('CTools requires certain features only available in PHP 5.2.0 or higher.');
       $requirements['ctools_php_52']['severity'] = REQUIREMENT_WARNING;
       $requirements['ctools_php_52']['value'] = t('PHP !version', array('!version' => phpversion()));
@@ -51,14 +51,6 @@ function ctools_schema_2() {
 
   // update the 'name' field to be 128 bytes long:
   $schema['ctools_object_cache']['fields']['name']['length'] = 128;
-
-  // Update the 'data' field to be type 'blob'.
-  $schema['ctools_object_cache']['fields']['data'] = array(
-    'type' => 'blob',
-    'size' => 'big',
-    'description' => 'Serialized data being stored.',
-    'serialize' => TRUE,
-  );
 
   // DO NOT MODIFY THIS TABLE -- this definition is used to create the table.
   // Changes to this table must be made in schema_3 or higher.
@@ -202,18 +194,4 @@ function ctools_update_6007() {
   return $ret;
 }
 
-/**
- * ctools_object_cache needs to be defined as a blob.
- */
-function ctools_update_6008() {
-  db_delete('ctools_object_cache')
-    ->execute();
 
-  db_change_field('ctools_object_cache', 'data', 'data', array(
-      'type' => 'blob',
-      'size' => 'big',
-      'description' => 'Serialized data being stored.',
-      'serialize' => TRUE,
-    )
-  );
-}

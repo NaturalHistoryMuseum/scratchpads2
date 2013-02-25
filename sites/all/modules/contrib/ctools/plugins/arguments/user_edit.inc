@@ -44,4 +44,5 @@ function ctools_user_edit_context($arg = NULL, $conf = NULL, $empty = FALSE) {
 
   // This will perform a node_access check, so we don't have to.
   return ctools_context_create('user_edit_form', $account);
+  return NULL;
 }

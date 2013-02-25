@@ -15,7 +15,7 @@ $plugin = array(
   'description' => t('A context that is just a string.'),
   'context' => 'ctools_context_create_string',
   'keyword' => 'string',
-  'no ui' => FALSE,
+  'no ui' => TRUE,
   'context name' => 'string',
   'convert list' => array(
     'raw' => t('Raw string'),
@@ -45,7 +45,7 @@ function ctools_context_create_string($empty, $data = NULL, $conf = FALSE) {
 
   if ($data !== FALSE ) {
     $context->data = $data;
-    $context->title = ($conf) ? check_plain($data['identifier']) : check_plain($data);
+    $context->title = check_plain($data);
     return $context;
   }
 }

@@ -395,6 +395,7 @@ function slickgrid_preprocess_slickgrid_control__add(&$variables){
   $entity_info = entity_get_info();
   $variables['add_links'] = array();
   if(array_filter($variables['view']->style_plugin->options['add'])){
+    ctools_include('ajax');
     foreach($variables['view']->style_plugin->options['add'] as $add){
       list($entity_type, $bundle) = explode('/', $add);
       $class = drupal_html_class('slickgrid-add-' . $entity_type . '-' . $bundle);

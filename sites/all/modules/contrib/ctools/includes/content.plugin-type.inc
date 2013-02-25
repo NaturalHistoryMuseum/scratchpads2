@@ -10,7 +10,7 @@ function ctools_content_plugin_type(&$items) {
     'cache' => FALSE,
     'process' => array(
       'function' => 'ctools_content_process',
-      'file' => 'content.inc',
+      'file' => 'export-ui.inc',
       'path' => drupal_get_path('module', 'ctools') . '/includes',
     ),
   );
