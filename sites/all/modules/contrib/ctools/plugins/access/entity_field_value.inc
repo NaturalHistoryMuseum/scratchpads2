@@ -98,6 +98,7 @@ function ctools_entity_field_value_ctools_access_settings($form, &$form_state, $
   foreach (element_children($form['settings']) as $element) {
     unset($form['settings'][$element]['#weight']);
   }
+
   // Need more logic here to handle compound fields.
   foreach ($columns as $column) {
     if (isset($conf[$column]) && is_array($conf[$column])) {
@@ -105,12 +106,13 @@ function ctools_entity_field_value_ctools_access_settings($form, &$form_state, $
         if (is_numeric($delta) && is_array($conf_value)) {
           $form['settings'][$field_name][LANGUAGE_NONE][$delta]['value']['#default_value'] = $conf_value['value'];
         }
-        else {
-          $form['settings'][$field_name][LANGUAGE_NONE]['#default_value'] = $conf[$column];
-        }
       }
     }
+    else {
+      $form['settings'][$field_name][LANGUAGE_NONE]['#default_value'] = $conf[$column];
+    }
   }
+
   return $form;
 }
 
@@ -148,29 +150,29 @@ function ctools_entity_field_value_ctools_access_check($conf, $context, $plugin)
     foreach ($field['columns'] as $column => $attributes) {
       $columns[$column] = _field_sql_storage_columnname($field_name, $column);
     }
-    foreach ($conf as $potential_field => $values) {
-      if ($field_name === $potential_field) {
 
-        $conf_value_array = _ctools_entity_field_value_ctools_access_get_conf_field_values($values, $langcode);
-        if (empty($conf_value_array)) {
-          return FALSE;
-        }
+    if (isset($conf[$field_name])) {
+      // We have settings for this field.
+      $conf_value_array = _ctools_entity_field_value_ctools_access_get_conf_field_values($conf[$field_name], $langcode);
+      if (empty($conf_value_array)) {
+        return FALSE;
+      }
 
-        // Check field value.
-        foreach ($field_items as $field_value) {
-          foreach ($field_value as $field_column => $value) {
-            // Iterate through config values.
-            foreach ($conf_value_array as $conf_value) {
-              //
-              if ($value == $conf_value[$field_column]) {
-                return TRUE;
-              }
+      // Check field value.
+      foreach ($field_items as $field_value) {
+        foreach ($field_value as $field_column => $value) {
+          // Iterate through config values.
+          foreach ($conf_value_array as $conf_value) {
+            // Check access only for stored in config column values.
+            if (isset($conf_value[$field_column]) && $value == $conf_value[$field_column]) {
+              return TRUE;
             }
           }
         }
       }
     }
   }
+
   return FALSE;
 }
 
@@ -221,15 +223,17 @@ function ctools_entity_field_value_ctools_access_summary($conf, $context, $plugi
   $options   = array('language' => LANGUAGE_NONE);
   ctools_include('fields');
   $display         = field_get_display($instance, $view_mode, $entity);
-  $display['type'] = 'list_default';
-  $function        = $display['module'] . '_field_formatter_view';
-  $items           = isset($entity->{$field_name}[LANGUAGE_NONE]) ? $entity->{$field_name}[LANGUAGE_NONE] : array();
-  if (function_exists($function)) {
-    $elements = $function($entity_type, $entity, $field, $instance, LANGUAGE_NONE, $items, $display);
-  }
-  $value_keys = array_keys($values);
-  foreach ($value_keys as $key => $value) {
-    $values[$value] = $elements[$key]['#markup'];
+  if (isset($display['module'])) {
+    $display['type'] = 'list_default';
+    $function        = $display['module'] . '_field_formatter_view';
+    $items           = isset($entity->{$field_name}[LANGUAGE_NONE]) ? $entity->{$field_name}[LANGUAGE_NONE] : array();
+    if (function_exists($function)) {
+      $elements = $function($entity_type, $entity, $field, $instance, LANGUAGE_NONE, $items, $display);
+    }
+    $value_keys = array_keys($values);
+    foreach ($value_keys as $key => $value) {
+      $values[$value] = isset($elements[$key]['#markup']) ? $elements[$key]['#markup'] : '';
+    }
   }
   $values = array_merge($keys, $values);
   return t($string, $values);

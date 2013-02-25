@@ -367,6 +367,52 @@ function ctools_set_no_blocks($blocks = FALSE) {
   $status = $blocks;
 }
 
+/**
+ * Add an array of classes to the body.
+ *
+ * @param mixed $classes
+ *   A string or an array of class strings to add.
+ * @param string $hook
+ *   The theme hook to add the class to. The default is 'html' which will
+ *   affect the body tag.
+ */
+function ctools_class_add($classes, $hook = 'html') {
+  if (!is_array($classes)) {
+    $classes = array($classes);
+  }
+
+  $static = &drupal_static('ctools_process_classes', array());
+  if (!isset($static[$hook]['add'])) {
+    $static[$hook]['add'] = array();
+  }
+  foreach ($classes as $class) {
+    $static[$hook]['add'][] = $class;
+  }
+}
+
+/**
+ * Remove an array of classes from the body.
+ *
+ * @param mixed $classes
+ *   A string or an array of class strings to remove.
+ * @param string $hook
+ *   The theme hook to remove the class from. The default is 'html' which will
+ *   affect the body tag.
+ */
+function ctools_class_remove($classes, $hook = 'html') {
+  if (!is_array($classes)) {
+    $classes = array($classes);
+  }
+
+  $static = &drupal_static('ctools_process_classes', array());
+  if (!isset($static[$hook]['remove'])) {
+    $static[$hook]['remove'] = array();
+  }
+  foreach ($classes as $class) {
+    $static[$hook]['remove'][] = $class;
+  }
+}
+
 // -----------------------------------------------------------------------
 // Drupal core hooks
 
@@ -574,6 +620,36 @@ function ctools_page_token_processing($children, $elements) {
   return $children;
 }
 
+/**
+ * Implements hook_process().
+ *
+ * Add and remove CSS classes from the variables array. We use process so that
+ * we alter anything added in the preprocess hooks.
+ */
+function ctools_process(&$variables, $hook) {
+  if (!isset($variables['classes'])) {
+    return;
+  }
+
+  $classes = drupal_static('ctools_process_classes', array());
+
+  // Process the classses to add.
+  if (!empty($classes[$hook]['add'])) {
+    $add_classes = array_map('drupal_clean_css_identifier', $classes[$hook]['add']);
+    $variables['classes_array'] = array_unique(array_merge($variables['classes_array'], $add_classes));
+  }
+
+  // Process the classes to remove.
+  if (!empty($classes[$hook]['remove'])) {
+    $remove_classes = array_map('drupal_clean_css_identifier', $classes[$hook]['remove']);
+    $variables['classes_array'] = array_diff($variables['classes_array'], $remove_classes);
+  }
+
+  // Since this runs after template_process(), we need to re-implode the
+  // classes array.
+  $variables['classes'] = implode(' ', $variables['classes_array']);
+}
+
 // -----------------------------------------------------------------------
 // Menu callbacks that must be in the .module file.
 
@@ -699,22 +775,6 @@ function ctools_export_ui_task_access($plugin_name, $op, $item = NULL) {
 }
 
 /**
- * Cache callback on behalf of ctools_export_ui.
- */
-function ctools_export_ui_context_cache_get($plugin_name, $key) {
-  dsm('should not be called!');
-  return;
-}
-
-/**
- * Cache callback on behalf of ctools_export_ui.
- */
-function ctools_export_ui_context_cache_set($plugin_name, $key, $item) {
-  dsm('should not be called!');
-  return;
-}
-
-/**
  * Callback for access control ajax form on behalf of export ui.
  *
  * Returns the cached access config and contexts used.
@@ -815,6 +875,9 @@ function ctools_ajax_theme_callback() {
   }
 }
 
+/**
+ * Implements hook_ctools_entity_context_alter().
+ */
 function ctools_ctools_entity_context_alter(&$plugin, &$entity, $plugin_id) {
   ctools_include('context');
   switch ($plugin_id) {

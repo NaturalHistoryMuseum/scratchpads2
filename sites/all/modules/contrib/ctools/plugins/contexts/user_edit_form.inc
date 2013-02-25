@@ -30,16 +30,29 @@ $plugin = array(
  * are not always created from the UI.
  */
 function ctools_context_create_user_edit_form($empty, $user = NULL, $conf = FALSE) {
-  static $created;
-  $context = new ctools_context(array('form', 'user_edit', 'user_form', 'user_edit_form', 'user', 'entity:user'));
-  $context->plugin = 'user_edit_form';
+  // Determine the user category.
+  $category = !empty($conf['category']) ? $conf['category'] : FALSE;
+  unset($conf['category']);
 
-  if ($empty || (isset($created) && $created)) {
+  // Return previously created contexts, per category.
+  static $created = array();
+  if (!empty($created[$category])) {
+    return $created[$category];
+  }
+  // If no category was specified, use the default 'account'.
+  if (!$category) {
+    $category = 'account';
+  }
+
+  $context = new ctools_context(array('form', 'user_edit', 'user_form', 'user_edit_form', 'user', 'entity:user'));
+  // Store this context for later.
+  $created[$category] = $context;
+  $context->plugin = 'user_edit_form';
+  if ($empty) {
     return $context;
   }
-  $created = TRUE;
 
-  if ($conf) {
+  if (!empty($conf)) {
     // In this case, $user is actually our $conf array.
     $uid = is_array($user) && isset($user['uid']) ? $user['uid'] : (is_object($user) ? $user->uid : 0);
 
@@ -58,7 +71,7 @@ function ctools_context_create_user_edit_form($empty, $user = NULL, $conf = FALS
   if (!empty($user)) {
     $form_id = 'user_profile_form';
 
-    $form_state = array('want form' => TRUE, 'build_info' => array('args' => array($user)));
+    $form_state = array('want form' => TRUE, 'build_info' => array('args' => array($user, $category)));
 
     $file = drupal_get_path('module', 'user') . '/user.pages.inc';
     require_once DRUPAL_ROOT . '/' . $file;

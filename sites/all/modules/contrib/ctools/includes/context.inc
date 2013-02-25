@@ -508,6 +508,17 @@ function ctools_context_get_all_converters() {
 
 /**
  * Let the context convert an argument based upon the converter that was given.
+ *
+ * @param $context
+ *   The context object
+ * @param $converter
+ *   The converter to use, which should be a string provided by the converter list.
+ * @param $converter_options
+ *   A n array of options to pass on to the generation function. For contexts
+ *   that use token module, of particular use is 'sanitize' => FALSE which can
+ *   get raw tokens. This should ONLY be used in values that will later be
+ *   treated as unsafe user input since these values are by themselves unsafe.
+ *   It is particularly useful to get raw values from Field API.
  */
 function ctools_context_convert_context($context, $converter, $converter_options = array()) {
   // Contexts without plugins might be optional placeholders.
@@ -633,7 +644,7 @@ function ctools_context_keyword_substitute($string, $keywords, $contexts, $conve
 
   // Look for context matches we we only have to convert known matches.
   $matches = array();
-  if (preg_match_all('/%(%|[a-zA-Z0-9_-]+(?:\:[a-zA-Z0-9_-]+)?)/us', $string, $matches)) {
+  if (preg_match_all('/%(%|[a-zA-Z0-9_-]+(?:\:[a-zA-Z0-9_-]+)*)/us', $string, $matches)) {
     foreach ($matches[1] as $keyword) {
       // Ignore anything it finds with %%.
       if ($keyword[0] == '%') {

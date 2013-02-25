@@ -156,7 +156,7 @@ function views_content_views_panes_content_type_render($subtype, $conf, $panel_a
         if (isset($contexts[$key])) {
           if (strpos($argument['context'], '.')) {
             list($context, $converter) = explode('.', $argument['context'], 2);
-            $args[] = ctools_context_convert_context($contexts[$key], $converter);
+            $args[] = ctools_context_convert_context($contexts[$key], $converter, array('sanitize' => FALSE));
           }
           else {
             $args[] = $contexts[$key]->argument;

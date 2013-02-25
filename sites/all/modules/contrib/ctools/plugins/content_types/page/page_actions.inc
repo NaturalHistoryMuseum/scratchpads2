@@ -26,7 +26,7 @@ $plugin = array(
  */
 function ctools_page_actions_content_type_render($subtype, $conf, $panel_args) {
   $block = new stdClass();
-  $block->content = menu_local_actions();
+  $block->content = theme('ctools_menu_local_actions_wrapper', array('links' => menu_local_actions()));
 
   return $block;
 }

@@ -158,7 +158,7 @@ function page_manager_get_pages($tasks, &$pages, $task_id = NULL) {
     $visible_path = '';
     if (!empty($task['admin path'])) {
       foreach (explode('/', $task['admin path']) as $bit) {
-        if ($bit[0] != '!') {
+        if (isset($bit[0]) && $bit[0] != '!') {
           $path[] = $bit;
         }
       }
@@ -1126,9 +1126,11 @@ function page_manager_render_operations(&$page, $operations, $active_trail, $att
     // We only render an li for things in the same nav tree.
     if (empty($operation['location']) || $operation['location'] == $location) {
       if (!is_array($attributes['class'])) {
-        dsm($attributes['class']);
+        $attributes['class'] = array($attributes['class']);
       }
+
       $class = empty($attributes['class']) || !is_array($attributes['class']) ? array() : $attributes['class'];
+
       if ($id == $first) {
         $class[] = 'operation-first';
       }
