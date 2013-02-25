@@ -52,17 +52,11 @@
         // TODO: look-ahead
         return;
       }
-      // var url = "http://services.digg.com/search/stories?query=" + searchstr
-      // + "&offset=" + (fromPage * PAGESIZE) + "&count=" + (((toPage -
-      // fromPage) * PAGESIZE) + PAGESIZE) +
-      // "&appkey=http://slickgrid.googlecode.com&type=javascript";
-      // FIXME - Add offset.
       var url = Drupal.settings.slickgrid.get_data_callback_url + viewName + "/" + fromPage;
-      switch(sortcol){
-        case "diggs":
-          url += ("&sort=" + ((sortdir > 0) ? "digg_count-asc" : "digg_count-desc"));
-          break;
+      if(sortcol) {
+        url += "/" + sortcol + "/" + ((sortdir > 0) ? "asc" : "desc");
       }
+      console.log(url);
       if(h_request != null) {
         clearTimeout(h_request);
       }
@@ -90,7 +84,9 @@
         data[from + i].index = from + i;
       }
       req = null;
-      setTimeout(function(){console.log(data);},300)
+      setTimeout(function(){
+        console.log(data);
+      }, 300)
       onDataLoaded.notify({from: 0, to: to});
     }
     function reloadData(from, to){

@@ -116,14 +116,6 @@ function slickgrid_library(){
   $path = libraries_get_path('slickgrid');
   // Slickgrid core library
   return array(
-    'jquery.jsonp' => array(
-      'title' => 'jquery.jsonp',
-      'website' => 'https://github.com/jaubourg/jquery-jsonp',
-      'version' => 'Master',
-      'js' => array(
-        libraries_get_path('jquery.jsonp') . '/jquery.jsonp.js' => array()
-      )
-    ),
     'slickgrid' => array(
       'title' => 'Slickgrid',
       'website' => 'https://github.com/mleibman/SlickGrid/',
@@ -154,10 +146,6 @@ function slickgrid_library(){
         array(
           'system',
           'effects.highlight'
-        ),
-        array(
-          'slickgrid',
-          'jquery.jsonp'
         )
       )
     )

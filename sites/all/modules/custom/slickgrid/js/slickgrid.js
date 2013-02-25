@@ -59,11 +59,17 @@ if(!Array.prototype.indexOf) {
         var vp = grid.getViewport();
         loader.ensureData(vp.top, vp.bottom);
       });
-      grid.onSort.subscribe(function (e, args) {
-        loader.setSort(args.sortCol.field, args.sortAsc ? 1 : -1);
-        var vp = grid.getViewport();
-        loader.ensureData(vp.top, vp.bottom);
-      });
+      // Are sortable columns enabled?
+      // Sortable columns won't work with collapsible taxonomy fields
+      if(options['sortable_columns']) {
+        grid.onSort.subscribe(function (e, args) {
+          console.log(e);
+          console.log(args);
+          loader.setSort(args.sortCol.field, args.sortAsc ? 1 : -1);
+          var vp = grid.getViewport();
+          loader.ensureData(vp.top, vp.bottom);
+        });
+      }
       loader.onDataLoading.subscribe(function () {
         if (!loadingIndicator && false) {
           loadingIndicator = $("<span class='loading-indicator'><label>Buffering...</label></span>").appendTo(document.body);
@@ -109,11 +115,6 @@ if(!Array.prototype.indexOf) {
       if(options['clone'] && options['row_selection_checkbox']) {
         var cloneControl = new Slick.Controls.Clone(dataView, grid, $("#slickgrid-clone"));
       }*/
-      // Are sortable columns enabled?
-      // Sortable columns won't work with collapsible taxonomy fields
-      if(options['sortable_columns']) {
-        initSortableColumns();
-      }
       // Users can show / hide columns
       if(options['select_columns']) {
         var columnpicker = new Slick.Controls.ColumnPicker(columns, grid, options);
@@ -424,17 +425,6 @@ if(!Array.prototype.indexOf) {
           e.stopImmediatePropagation();
           e.preventDefault();
         }
-      });
-    }
-    function initSortableColumns(){
-      grid.onSort.subscribe(function(e, data){
-        var sortCol = data.sortCol;
-        var sortAsc = data.sortAsc;
-        sortdir = sortAsc ? 1 : -1;
-        sortcol = sortCol.id;
-        // Set which function to use to sort the column - presently just uses a
-        // basic comparer
-        dataView.sort(comparer, sortAsc);
       });
     }
     function initHiddenColumns(){
