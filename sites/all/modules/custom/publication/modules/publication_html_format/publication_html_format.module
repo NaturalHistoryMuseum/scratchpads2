@@ -54,6 +54,27 @@ function publication_html_format_entity_view_alter(&$build, $type){
     $build['field_publication_figures'][$key]['#weight'] = $number;
     $build['field_publication_figures'][$key]['#prefix'] = '<strong>' . t('Figure') . ' ' . $number . '</strong>';
   }
+  // Re-order the references by first author name
+  $order = array();
+  foreach(element_children($build['field_publication_references']) as $key) {
+    if (empty($build['field_publication_references']['#items'][$key]['nid'])) {
+      continue;
+    }
+    $nid = $build['field_publication_references']['#items'][$key]['nid'];
+    $node = node_load($nid);
+    if (!empty($node->biblio_contributors)) {
+      $contributor = reset($node->biblio_contributors);
+      $order[$key] = strtolower($contributor['lastname']);
+    } else {
+      $order[$key] = '';
+    }
+  }
+  asort($order);
+  $weight = 0;
+  foreach ($order as $key => $name) {
+    $build['field_publication_references'][$key]['#weight'] = $weight;
+    $weight++;
+  }
 }
 
 /**
