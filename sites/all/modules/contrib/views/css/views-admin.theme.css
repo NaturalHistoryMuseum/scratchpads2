@@ -380,6 +380,7 @@ td.group-title {
   text-transform: uppercase;
 }
 
+.grouped-description,
 .exposed-description {
   float: left;
   padding-top: 3px;
@@ -433,6 +434,10 @@ td.group-title {
   padding: 3px 9px;
 }
 
+.views-display-top #views-display-top {
+  max-width: 180px;
+}
+
 /* @end */
 
 /* @group Attachment details tabs
@@ -440,12 +445,33 @@ td.group-title {
  * The tabs that switch between sections
  */
 
+ul#views-display-menu-tabs {
+  margin-right: 200px;
+}
+
+ul#views-display-menu-tabs li {
+  margin-bottom: 5px;
+}
+
+ul#views-display-menu-tabs li.add ul.action-list li{
+  margin: 0;
+}
+
 .views-displays .secondary a {
   border: 1px solid #cbcbcb;
   display: inline-block;
   font-size: small;
   line-height: 1.3333;
   padding: 3px 7px;
+}
+
+/**
+ * Display a red border if the display doesn't validate.
+ */
+.views-displays ul.secondary li.active a.active.error,
+.views-displays .secondary a.error {
+  border: 2px solid #ED541D;
+  padding: 1px 6px;
 }
 
 .views-displays .secondary a:focus {
@@ -907,7 +933,8 @@ td.group-title {
 /* @group Expose filter form items */
 
 .form-item-options-expose-required,
-.form-item-options-expose-label {
+.form-item-options-expose-label,
+.form-item-options-expose-description {
   margin-bottom: 6px;
   margin-left: 18px;
   margin-top: 6px;

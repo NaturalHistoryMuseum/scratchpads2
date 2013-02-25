@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * @file
+ * Definition of views_handler_field_comment_node_link.
+ */
+
 /**
  * Handler for showing comment module's node link.
  *
@@ -22,7 +28,7 @@ class views_handler_field_comment_node_link extends views_handler_field_entity {
 
   function option_definition() {
     $options = parent::option_definition();
-    $options['teaser'] = array('default' => 0);
+    $options['teaser'] = array('default' => FALSE, 'bool' => TRUE);
     return $options;
   }
 
@@ -32,7 +38,6 @@ class views_handler_field_comment_node_link extends views_handler_field_entity {
       '#title' => t('Show teaser-style link'),
       '#default_value' => $this->options['teaser'],
       '#description' => t('Show the comment link in the form used on standard node teasers, rather than the full node form.'),
-      '#fieldset' => 'more',
     );
 
     parent::options_form($form, $form_state);

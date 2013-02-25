@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * @file
+ * Definition of views_handler_field_date.
+ */
+
 /**
  * A handler to provide proper displays for dates.
  *
@@ -10,6 +16,7 @@ class views_handler_field_date extends views_handler_field {
 
     $options['date_format'] = array('default' => 'small');
     $options['custom_date_format'] = array('default' => '');
+    $options['timezone'] = array('default' => '');
 
     return $options;
   }
@@ -19,7 +26,7 @@ class views_handler_field_date extends views_handler_field {
     $date_formats = array();
     $date_types = system_get_date_types();
     foreach ($date_types as $key => $value) {
-      $date_formats[$value['type']] = check_plain(t($value['title'] . ' format')) . ': ' . format_date(REQUEST_TIME, $value['type']);
+      $date_formats[$value['type']] = t('@date_format format', array('@date_format' => $value['title'])) . ': ' . format_date(REQUEST_TIME, $value['type']);
     }
 
     $form['date_format'] = array(
@@ -40,9 +47,17 @@ class views_handler_field_date extends views_handler_field {
     $form['custom_date_format'] = array(
       '#type' => 'textfield',
       '#title' => t('Custom date format'),
-      '#description' => t('If "Custom", see <a href="http://us.php.net/manual/en/function.date.php" target="_blank">the PHP docs</a> for date formats. Otherwise, enter the number of different time units to display, which defaults to 2.'),
+      '#description' => t('If "Custom", see the <a href="@url" target="_blank">PHP manual</a> for date formats. Otherwise, enter the number of different time units to display, which defaults to 2.', array('@url' => 'http://php.net/manual/function.date.php')),
       '#default_value' => isset($this->options['custom_date_format']) ? $this->options['custom_date_format'] : '',
       '#dependency' => array('edit-options-date-format' => array('custom', 'raw time ago', 'time ago', 'raw time hence', 'time hence', 'raw time span', 'time span', 'raw time span', 'inverse time span', 'time span')),
+    );
+    $form['timezone'] = array(
+      '#type' => 'select',
+      '#title' => t('Timezone'),
+      '#description' => t('Timezone to be used for date output.'),
+      '#options' => array('' => t('- Default site/user timezone -')) + system_time_zones(FALSE),
+      '#default_value' => $this->options['timezone'],
+      '#dependency' => array('edit-options-date-format' => array_merge(array('custom'), array_keys($date_formats))),
     );
 
     parent::options_form($form, $form_state);
@@ -56,6 +71,7 @@ class views_handler_field_date extends views_handler_field {
     }
 
     if ($value) {
+      $timezone = !empty($this->options['timezone']) ? $this->options['timezone'] : NULL;
       $time_diff = REQUEST_TIME - $value; // will be positive for a datetime in the past (ago), and negative for a datetime in the future (hence)
       switch ($format) {
         case 'raw time ago':
@@ -74,11 +90,11 @@ class views_handler_field_date extends views_handler_field {
           return t(($time_diff < 0 ? '%time hence' : '%time ago'), array('%time' => format_interval(abs($time_diff), is_numeric($custom_format) ? $custom_format : 2)));
         case 'custom':
           if ($custom_format == 'r') {
-            return format_date($value, $format, $custom_format, null, 'en');
+            return format_date($value, $format, $custom_format, $timezone, 'en');
           }
-          return format_date($value, $format, $custom_format);
+          return format_date($value, $format, $custom_format, $timezone);
         default:
-          return format_date($value, $format);
+          return format_date($value, $format, '', $timezone);
       }
     }
   }

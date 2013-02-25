@@ -1,7 +1,12 @@
 <?php
 
 /**
- * @defgroup views_style_plugins Views' style plugins
+ * @file
+ * Definition of views_plugin_style.
+ */
+
+/**
+ * @defgroup views_style_plugins Views style plugins
  * @{
  * Style plugins control how a view is rendered. For example, they
  * can choose to display a collection of fields, node_view() output,
@@ -11,7 +16,7 @@
  * a single record. Not all style plugins can utilize this, so it is
  * up to the plugin to set this up and call through to the row plugin.
  *
- * @see hook_views_plugins
+ * @see hook_views_plugins()
  */
 
 /**
@@ -22,6 +27,15 @@ class views_plugin_style extends views_plugin {
    * Store all available tokens row rows.
    */
   var $row_tokens = array();
+
+  /**
+   * Contains the row plugin, if it's initialized
+   * and the style itself supports it.
+   *
+   * @var views_plugin_row
+   */
+  var $row_plugin;
+
   /**
    * Initialize a style plugin.
    *
@@ -75,15 +89,18 @@ class views_plugin_style extends views_plugin {
 
   /**
    * Return TRUE if this style also uses fields.
+   *
+   * @return bool
    */
   function uses_fields() {
     // If we use a row plugin, ask the row plugin. Chances are, we don't
     // care, it does.
+    $row_uses_fields = FALSE;
     if ($this->uses_row_plugin() && !empty($this->row_plugin)) {
-      return $this->row_plugin->uses_fields();
+      $row_uses_fields = $this->row_plugin->uses_fields();
     }
-    // Otherwise, maybe we do.
-    return !empty($this->definition['uses fields']);
+    // Otherwise, check the definition or the option.
+    return $row_uses_fields || !empty($this->definition['uses fields']) || !empty($this->options['uses_fields']);
   }
 
   /**
@@ -154,7 +171,10 @@ class views_plugin_style extends views_plugin {
     $options['grouping'] = array('default' => array());
     if ($this->uses_row_class()) {
       $options['row_class'] = array('default' => '');
+      $options['default_row_class'] = array('default' => TRUE, 'bool' => TRUE);
+      $options['row_class_special'] = array('default' => TRUE, 'bool' => TRUE);
     }
+    $options['uses_fields'] = array('default' => FALSE, 'bool' => TRUE);
 
     return $options;
   }
@@ -167,9 +187,8 @@ class views_plugin_style extends views_plugin {
     // @TODO: Document "uses grouping" in docs.php when docs.php is written.
     if ($this->uses_fields() && $this->definition['uses grouping']) {
       $options = array('' => t('- None -'));
-      $field_labels = $this->display->handler->get_field_labels();
+      $field_labels = $this->display->handler->get_field_labels(TRUE);
       $options += $field_labels;
-
       // If there are no fields, we can't group on them.
       if (count($options) > 1) {
         // This is for backward compability, when there was just a single select form.
@@ -227,6 +246,28 @@ class views_plugin_style extends views_plugin {
       if ($this->uses_fields()) {
         $form['row_class']['#description'] .= ' ' . t('You may use field tokens from as per the "Replacement patterns" used in "Rewrite the output of this field" for all fields.');
       }
+
+      $form['default_row_class'] = array(
+        '#title' => t('Add views row classes'),
+        '#description' => t('Add the default row classes like views-row-1 to the output. You can use this to quickly reduce the amount of markup the view provides by default, at the cost of making it more difficult to apply CSS.'),
+        '#type' => 'checkbox',
+        '#default_value' => $this->options['default_row_class'],
+      );
+      $form['row_class_special'] = array(
+        '#title' => t('Add striping (odd/even), first/last row classes'),
+        '#description' => t('Add css classes to the first and last line, as well as odd/even classes for striping.'),
+        '#type' => 'checkbox',
+        '#default_value' => $this->options['row_class_special'],
+      );
+    }
+
+    if (!$this->uses_fields() || !empty($this->options['uses_fields'])) {
+      $form['uses_fields'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Force using fields'),
+        '#description' => t('If neither the row nor the style plugin supports fields, this field allows to enable them, so you can for example use groupby.'),
+        '#default_value' => $this->options['uses_fields'],
+      );
     }
   }
 

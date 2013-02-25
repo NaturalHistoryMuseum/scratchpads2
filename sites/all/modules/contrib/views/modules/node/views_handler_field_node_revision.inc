@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * @file
+ * Definition of views_handler_field_node_revision.
+ */
+
 /**
  * Contains the basic 'node_revision' field handler.
  */
@@ -21,7 +27,7 @@ class views_handler_field_node_revision extends views_handler_field_node {
   }
   function option_definition() {
     $options = parent::option_definition();
-    $options['link_to_node_revision'] = array('default' => FALSE);
+    $options['link_to_node_revision'] = array('default' => FALSE, 'bool' => TRUE);
     return $options;
   }
 

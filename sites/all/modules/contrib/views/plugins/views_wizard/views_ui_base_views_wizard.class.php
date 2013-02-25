@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * @file
+ * Provides the interface and base class for Views Wizard plugins.
+ */
+
+/**
+ * Defines a common interface for Views Wizard plugins.
+ */
 interface ViewsWizardInterface {
   function __construct($plugin);
 
@@ -546,6 +554,16 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
           // Configure the style plugin to use the path field to generate the
           // jump menu path.
           $display_options[$display_type]['style_options']['path'] = $path_field['id'];
+        }
+      }
+    }
+
+    // If any of the displays use the table style, take sure that the fields
+    // always have a labels by unsetting the override.
+    foreach ($display_options as &$options) {
+      if ($options['style_plugin'] == 'table') {
+        foreach ($display_options['default']['fields'] as &$field) {
+          unset($field['label']);
         }
       }
     }

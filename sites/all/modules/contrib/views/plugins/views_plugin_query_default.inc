@@ -1,12 +1,14 @@
 <?php
+
 /**
- * @file views_plugin_query_default.inc
- * Defines the default query object which builds SQL to execute using the
- * Drupal database API.
+ * @file
+ * Defines the default query object.
  */
 
 /**
  * Object used to create a SELECT query.
+ *
+ * @ingroup views_query_plugins
  */
 class views_plugin_query_default extends views_plugin_query {
 
@@ -54,6 +56,13 @@ class views_plugin_query_default extends views_plugin_query {
    */
   var $groupby = array();
 
+
+  /**
+   * An array of fields.
+   */
+  var $fields = array();
+
+
   /**
    * The table header to use for tablesort. This matters because tablesort
    * needs to modify the query and needs the header.
@@ -88,6 +97,22 @@ class views_plugin_query_default extends views_plugin_query {
     * Query tags which will be passed over to the dbtng query object.
     */
    var $tags = array();
+
+  /**
+   * Is the view marked as not distinct.
+   *
+   * @var bool
+   */
+  var $no_distinct;
+
+  /**
+   * Defines the distinct type.
+   * - FALSE if it's distinct by base field.
+   * - TRUE if it just adds the sql distinct keyword.
+   *
+   * @var bool
+   */
+  public $pure_distinct = FALSE;
 
   /**
    * Constructor; Create the basic query object and fill with default values.
@@ -140,11 +165,20 @@ class views_plugin_query_default extends views_plugin_query {
   // Utility methods to set flags and data.
 
   /**
-   * Set the base field to be distinct.
+   * Set the view to be distinct.
+   *
+   * There are either distinct per base field or distinct in the pure sql way,
+   * based on $pure_distinct.
+   *
+   * @param bool $value
+   *   Should the view by distincted.
+   * @param bool $pure_distinct
+   *   Should only the sql keyword be added.
    */
-  function set_distinct($value = TRUE) {
+  function set_distinct($value = TRUE, $pure_distinct = FALSE) {
     if (!(isset($this->no_distinct) && $value)) {
       $this->distinct = $value;
+      $this->pure_distinct = $pure_distinct;
     }
   }
 
@@ -182,13 +216,19 @@ class views_plugin_query_default extends views_plugin_query {
       'default' => FALSE,
       'bool' => TRUE,
     );
+    $options['pure_distinct'] = array(
+      'default' => FALSE,
+      'bool' => TRUE,
+    );
     $options['slave'] = array(
       'default' => FALSE,
       'bool' => TRUE,
     );
     $options['query_comment'] = array(
       'default' => '',
-      'bool' => FALSE,
+    );
+    $options['query_tags'] = array(
+      'default' => array(),
     );
 
     return $options;
@@ -213,6 +253,13 @@ class views_plugin_query_default extends views_plugin_query {
       '#description' => t('This will make the view display only distinct items. If there are multiple identical items, each will be displayed only once. You can use this to try and remove duplicates from a view, though it does not always work. Note that this can slow queries down, so use it with caution.'),
       '#default_value' => !empty($this->options['distinct']),
     );
+    $form['pure_distinct'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Pure Distinct'),
+      '#description' => t('This will prevent views from adding the base column to the distinct field. If this is not selected and the base column is a primary key, then a non-pure distinct will not function properly because the primary key is always unique.'),
+      '#default_value' => !empty($this->options['pure_distinct']),
+      '#dependency' => array('edit-query-options-distinct' => '1'),
+    );
     $form['slave'] = array(
       '#type' => 'checkbox',
       '#title' => t('Use Slave Server'),
@@ -225,6 +272,23 @@ class views_plugin_query_default extends views_plugin_query {
       '#description' => t('If set, this comment will be embedded in the query and passed to the SQL server. This can be helpful for logging or debugging.'),
       '#default_value' => $this->options['query_comment'],
     );
+    $form['query_tags'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Query Tags'),
+      '#description' => t('If set, these tags will be appended to the query and can be used to identify the query in a module. This can be helpful for altering queries.'),
+      '#default_value' => implode(', ', $this->options['query_tags']),
+      '#element_validate' => array('views_element_validate_tags'),
+    );
+  }
+
+  /**
+   * Special submit handling.
+   */
+  function options_submit(&$form, &$form_state) {
+    $element = array('#parents' => array('query', 'options', 'query_tags'));
+    $value = explode(',', drupal_array_get_nested_value($form_state['values'], $element['#parents']));
+    $value = array_filter(array_map('trim', $value));
+    form_set_value($element, $value, $form_state);
   }
 
   // ----------------------------------------------------------------
@@ -788,7 +852,19 @@ class views_plugin_query_default extends views_plugin_query {
    *   options such as IN, LIKE, or BETWEEN. Defaults to IN if $value is an array
    *   = otherwise. If $field is a string you have to use 'formula' here.
    *
+   * The $field, $value and $operator arguments can also be passed in with a
+   * single DatabaseCondition object, like this:
+   * @code
+   *   $this->query->add_where(
+   *     $this->options['group'],
+   *     db_or()
+   *       ->condition($field, $value, 'NOT IN')
+   *       ->condition($field, $value, 'IS NULL')
+   *   );
+   * @endcode
+   *
    * @see QueryConditionInterface::condition()
+   * @see DatabaseCondition
    */
   function add_where($group, $field, $value = NULL, $operator = NULL) {
     // Ensure all variants of 0 are actually 0. Thus '', 0 and NULL are all
@@ -1009,7 +1085,7 @@ class views_plugin_query_default extends views_plugin_query {
   /**
    * Adds a query tag to the sql object.
    *
-   * @see SelectQuery::addTag
+   * @see SelectQuery::addTag()
    */
   function add_tag($tag) {
     $this->tags[] = $tag;
@@ -1129,6 +1205,7 @@ class views_plugin_query_default extends views_plugin_query {
       }
       // This is a formula, using no tables.
       elseif (empty($field['table'])) {
+        $non_aggregates[] = $fieldname;
         $placeholders = !empty($field['placeholders']) ? $field['placeholders'] : array();
         $query->addExpression($string, $fieldname, $placeholders);
       }
@@ -1171,8 +1248,10 @@ class views_plugin_query_default extends views_plugin_query {
   function query($get_count = FALSE) {
     // Check query distinct value.
     if (empty($this->no_distinct) && $this->distinct && !empty($this->fields)) {
-      $base_field_alias = $this->add_field($this->base_table, $this->base_field);
-      $this->add_groupby($base_field_alias);
+      if ($this->pure_distinct === FALSE){
+        $base_field_alias = $this->add_field($this->base_table, $this->base_field);
+        $this->add_groupby($base_field_alias);
+      }
       $distinct = TRUE;
     }
 
@@ -1276,6 +1355,13 @@ class views_plugin_query_default extends views_plugin_query {
       $query->comment($this->options['query_comment']);
     }
 
+    // Add the query tags.
+    if (!empty($this->options['query_tags'])) {
+      foreach ($this->options['query_tags'] as $tag) {
+        $query->addTag($tag);
+      }
+    }
+
     // Add all query substitutions as metadata.
     $query->addMetaData('views_substitutions', module_invoke_all('views_query_substitutions', $this));
 
@@ -1312,7 +1398,7 @@ class views_plugin_query_default extends views_plugin_query {
   function build(&$view) {
     // Make the query distinct if the option was set.
     if (!empty($this->options['distinct'])) {
-      $this->set_distinct();
+      $this->set_distinct(TRUE, !empty($this->options['pure_distinct']));
     }
 
     // Store the view in the object to be able to use it later.
@@ -1402,14 +1488,13 @@ class views_plugin_query_default extends views_plugin_query {
 
         $this->pager->post_execute($view->result);
 
-        if ($this->pager->use_pager()) {
+        if ($this->pager->use_count_query() || !empty($view->get_total_rows)) {
           $view->total_rows = $this->pager->get_total_items();
         }
       }
       catch (Exception $e) {
         $view->result = array();
         if (!empty($view->live_preview)) {
-          drupal_set_message(time());
           drupal_set_message($e->getMessage(), 'error');
         }
         else {
@@ -1417,6 +1502,9 @@ class views_plugin_query_default extends views_plugin_query {
         }
       }
 
+    }
+    else {
+      $start = microtime(TRUE);
     }
     $view->execute_time = microtime(TRUE) - $start;
   }
@@ -1489,6 +1577,15 @@ class views_plugin_query_default extends views_plugin_query {
           'sort' => 'views_handler_sort_group_by_numeric',
         ),
       ),
+      'stddev_pop' => array(
+        'title' => t('Standard derivation'),
+        'method' => 'views_query_default_aggregation_method_simple',
+        'handler' => array(
+          'argument' => 'views_handler_argument_group_by_numeric',
+          'filter' => 'views_handler_filter_group_by_numeric',
+          'sort' => 'views_handler_sort_group_by_numeric',
+        ),
+      )
     );
   }
 
@@ -1544,4 +1641,17 @@ function views_query_default_aggregation_method_simple($group_type, $field) {
 function views_query_default_aggregation_method_distinct($group_type, $field) {
   $group_type = str_replace('_distinct', '', $group_type);
   return strtoupper($group_type) . '(DISTINCT ' . $field . ')';
+}
+
+/**
+ * Validation callback for query tags.
+ */
+function views_element_validate_tags($element, &$form_state) {
+  $values = array_map('trim', explode(',', $element['#value']));
+  foreach ($values as $value) {
+    if (preg_match("/[^a-z_]/", $value)) {
+      form_error($element, t('The query tags may only contain lower-case alphabetical characters and underscores.'));
+      return;
+    }
+  }
 }

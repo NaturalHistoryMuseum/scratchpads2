@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Definition of views_handler_field_user_picture.
+ */
+
+/**
  * Field handler to provide simple renderer that allows using a themed user link.
  *
  * @ingroup views_field_handlers
@@ -37,7 +42,7 @@ class views_handler_field_user_picture extends views_handler_field {
 
   function option_definition() {
     $options = parent::option_definition();
-    $options['link_photo_to_profile'] = array('default' => TRUE);
+    $options['link_photo_to_profile'] = array('default' => TRUE, 'bool' => TRUE);
     $options['image_style'] = array('default' => '');
     return $options;
   }

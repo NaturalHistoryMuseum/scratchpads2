@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Definition of views_handler_field_user.
+ */
+
+/**
  * Field handler to provide simple renderer that allows linking to a user.
  *
  * @ingroup views_field_handlers
@@ -18,7 +23,7 @@ class views_handler_field_user extends views_handler_field {
 
   function option_definition() {
     $options = parent::option_definition();
-    $options['link_to_user'] = array('default' => TRUE);
+    $options['link_to_user'] = array('default' => TRUE, 'bool' => TRUE);
     return $options;
   }
 

@@ -1,15 +1,15 @@
 <?php
+
 /**
- * @file plugins.inc
+ * @file
  * Built in plugins for Views output handling.
- *
  */
 
 // @todo: Remove this once update.php can use the registry
 views_include('base');
 
 /**
- * Implements hook_views_plugins
+ * Implements hook_views_plugins().
  */
 function views_views_plugins() {
   $js_path = drupal_get_path('module', 'ctools') . '/js';
@@ -86,6 +86,7 @@ function views_views_plugins() {
         'title' => t('Embed'),
         'help' => t('Provide a display which can be embedded using the views api.'),
         'handler' => 'views_plugin_display_embed',
+        'theme' => 'views_view',
         'uses hook menu' => FALSE,
         'use ajax' => TRUE,
         'use pager' => TRUE,
@@ -135,6 +136,7 @@ function views_views_plugins() {
         'help' => t('Displays rows in a grid.'),
         'handler' => 'views_plugin_style_grid',
         'theme' => 'views_view_grid',
+        'uses fields' => FALSE,
         'uses row plugin' => TRUE,
         'uses row class' => TRUE,
         'uses options' => TRUE,
@@ -191,6 +193,16 @@ function views_views_plugins() {
         'uses fields' => TRUE,
         'uses options' => TRUE,
         'type' => 'normal',
+        'help topic' => 'style-row-fields',
+      ),
+      'rss_fields' => array(
+        'title' => t('Fields'),
+        'help' => t('Display fields as RSS items.'),
+        'handler' => 'views_plugin_row_rss_fields',
+        'theme' => 'views_view_row_rss',
+        'uses fields' => TRUE,
+        'uses options' => TRUE,
+        'type' => 'feed',
         'help topic' => 'style-row-fields',
       ),
     ),
@@ -473,6 +485,11 @@ class views_plugin extends views_object {
    * The plugin type of this plugin, for example style or query.
    */
   var $plugin_type = NULL;
+
+  /**
+   * The plugin name of this plugin, for example table or full.
+   */
+  var $plugin_name = NULL;
 
   /**
    * Init will be called after construct, when the plugin is attached to a

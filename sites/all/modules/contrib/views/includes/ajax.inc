@@ -1,12 +1,14 @@
 <?php
 
 /**
- * @file ajax.inc
- *
+ * @file
  * Handles the server side AJAX interactions of Views.
- *
- * @defgroup ajax Views ajax library
+ */
+
+/**
+ * @defgroup ajax Views AJAX library
  * @{
+ * Handles the server side AJAX interactions of Views.
  */
 
 /**
@@ -17,13 +19,11 @@ function views_ajax() {
     $name = $_REQUEST['view_name'];
     $display_id = $_REQUEST['view_display_id'];
     $args = isset($_REQUEST['view_args']) && $_REQUEST['view_args'] !== '' ? explode('/', $_REQUEST['view_args']) : array();
-    $path = isset($_REQUEST['view_path']) ? $_REQUEST['view_path'] : NULL;
+    $path = isset($_REQUEST['view_path']) ? rawurldecode($_REQUEST['view_path']) : NULL;
     $dom_id = isset($_REQUEST['view_dom_id']) ? preg_replace('/[^a-zA-Z0-9_-]+/', '-', $_REQUEST['view_dom_id']) : NULL;
     $pager_element = isset($_REQUEST['pager_element']) ? intval($_REQUEST['pager_element']) : NULL;
 
     $commands = array();
-
-    $arg = explode('/', $_REQUEST['view_path']);
 
     // Remove all of this stuff from $_GET so it doesn't end up in pagers and tablesort URLs.
     foreach (array('view_name', 'view_display_id', 'view_args', 'view_path', 'view_dom_id', 'pager_element', 'view_base_path', 'ajax_html_ids', 'ajax_page_state') as $key) {
@@ -48,7 +48,7 @@ function views_ajax() {
 
       // Add all $_POST data, because AJAX is always a post and many things,
       // such as tablesorts, exposed filters and paging assume $_GET.
-      $_GET += $_POST;
+      $_GET = $_POST + $_GET;
 
       // Overwrite the destination.
       // @see drupal_get_destination()

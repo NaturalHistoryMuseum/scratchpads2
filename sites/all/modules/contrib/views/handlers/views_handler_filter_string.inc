@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Definition of views_handler_filter_string.
+ */
+
+/**
  * Basic textfield filter to handle string filtering commands
  * including equality, like, not like, etc.
  *
@@ -13,7 +18,7 @@ class views_handler_filter_string extends views_handler_filter {
   function option_definition() {
     $options = parent::option_definition();
 
-    $options['expose']['contains']['required'] = array('default' => FALSE);
+    $options['expose']['contains']['required'] = array('default' => FALSE, 'bool' => TRUE);
 
     return $options;
   }
@@ -143,6 +148,9 @@ class views_handler_filter_string extends views_handler_filter {
   }
 
   function admin_summary() {
+    if ($this->is_a_group()) {
+      return t('grouped');
+    }
     if (!empty($this->options['exposed'])) {
       return t('exposed');
     }

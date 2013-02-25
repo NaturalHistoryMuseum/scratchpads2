@@ -1,9 +1,8 @@
 <?php
+
 /**
- * @file cache.inc
- *
- * Functions to load Views' data so that it knows what is available to
- * build queries from.
+ * @file
+ * Load Views' data so that it knows what is available to build queries from.
  */
 
 /**
@@ -14,8 +13,8 @@
  *   One example is views_get_handler.
  */
 function _views_fetch_data($table = NULL, $move = TRUE, $reset = FALSE) {
-  static $cache = NULL;
-  static $recursion_protection = array();
+  $cache = &drupal_static(__FUNCTION__ . '_cache');
+  $recursion_protection = &drupal_static(__FUNCTION__ . '_recursion_protected');
   if (!isset($cache) || $reset) {
     $start = microtime(TRUE);
     // NOTE: This happens whether we retrieve them from cache or otherwise.
@@ -146,16 +145,19 @@ function views_cache_set($cid, $data, $use_language = FALSE) {
  *
  * This is just a convenience wrapper around cache_get().
  *
- * @param $cid
+ * @param int $cid
  *   The cache ID of the data to retrieve.
- * @param $use_language
+ * @param bool $use_language
  *   If TRUE, the data will be requested specific to the currently active language.
+ *
+ * @return stdClass|bool
+ *   The cache or FALSE on failure.
  */
 function views_cache_get($cid, $use_language = FALSE) {
   global $language;
 
   if (variable_get('views_skip_cache', FALSE)) {
-    return 0;
+    return FALSE;
   }
   if ($use_language) {
     $cid .= ':' . $language->language;

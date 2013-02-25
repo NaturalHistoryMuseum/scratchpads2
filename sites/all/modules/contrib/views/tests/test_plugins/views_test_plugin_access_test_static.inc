@@ -1,9 +1,17 @@
 <?php
 
+/**
+ * @file
+ * Definition of views_test_plugin_access_test_static.
+ */
+
+/**
+ * Tests a static access plugin.
+ */
 class views_test_plugin_access_test_static extends views_plugin_access {
   function option_definition() {
     $options = parent::option_definition();
-    $options['access'] = array('default' => FALSE);
+    $options['access'] = array('default' => FALSE, 'bool' => TRUE);
 
     return $options;
   }
