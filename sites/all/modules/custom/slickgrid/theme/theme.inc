@@ -112,7 +112,7 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
             $view->style_plugin->options['filterable'] = TRUE;
             // Don't show header row if this is a collapsibleFilter plugin - that happens within the data
             if($view->style_plugin->options['columns'][$field_id][$plugin_type] != 'collapsibleFilter'){
-              $view->style_plugin->options['showHeaderRow'] = TRUE;
+              //$view->style_plugin->options['showHeaderRow'] = TRUE;
               // A default value can be passed into a filter
               // Check if it exists and if it does set the default_filter option
               if(isset($_GET[$field_id]) && !isset($view->style_plugin->options['default_filter'])){
@@ -132,7 +132,10 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
     }
     // Is this field sortable?
     // If any fields are sortable, set style option so we can access it in the js
-    if(isset($view->style_plugin->options['columns'][$field_id]['sortable']) && $view->style_plugin->options['columns'][$field_id]['sortable']){
+    if(!in_array($handlers[$field_id]->field_info['type'], array(
+      'text_with_summary',
+      'file'
+    ))){
       $view->style_plugin->options['sortable_columns'] = TRUE;
       $column['sortable'] = 1;
     }
@@ -294,7 +297,8 @@ function theme_slickgrid($variables){
     'slickgrid' => array(
       'get_data_callback_url' => url('slickgrid/get/data/', array(
         'absolute' => TRUE
-      ))
+      )),
+      'loading_image_url' => file_create_url(drupal_get_path('module', 'views') . '/images/loading.gif')
     )
   ), 'setting');
   // Add beautytips

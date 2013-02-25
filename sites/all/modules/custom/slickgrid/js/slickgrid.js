@@ -71,15 +71,24 @@ if(!Array.prototype.indexOf) {
         });
       }
       loader.onDataLoading.subscribe(function () {
-        if (!loadingIndicator && false) {
-          loadingIndicator = $("<span class='loading-indicator'><label>Buffering...</label></span>").appendTo(document.body);
-          var $g = $("#myGrid");
-          loadingIndicator
-              .css("position", "absolute")
-              .css("top", $g.position().top + $g.height() / 2 - loadingIndicator.height() / 2)
-              .css("left", $g.position().left + $g.width() / 2 - loadingIndicator.width() / 2);
+        if (!loadingIndicator) {
+          loadingIndicator = $('<div class="loading-indicator"><div><img src="' + Drupal.settings.slickgrid.loading_image_url + '"/></div></div>').appendTo(document.body);
+          console.log($(container).css('border-width'));
+          console.log($(container));
+          loadingIndicator.css("position", "absolute");
+          loadingIndicator.css("top", $(container).offset().top);
+          loadingIndicator.css("left", $(container).offset().left);
+          loadingIndicator.css("width", $(container).width());
+          loadingIndicator.css("height", $(container).height());
+          loadingIndicator.css("background-color", "#232323");
+          loadingIndicator.css("z-index", 100000);
+          loadingIndicator.css("border", "solid 1px #232323");
+          loadingIndicator.fadeTo("fast", 0.3);
+          loadingIndicator.children().css("position", "relative");
+          loadingIndicator.children().css('top', (loadingIndicator.height()/2)-24);
+          loadingIndicator.children().css('left', (loadingIndicator.width()/2)-24);
         }
-        //loadingIndicator.show();
+        loadingIndicator.fadeIn();
       });
       loader.onDataLoaded.subscribe(function (e, args) {
         for (var i = args.from; i <= args.to; i++) {
@@ -87,7 +96,7 @@ if(!Array.prototype.indexOf) {
         }
         grid.updateRowCount();
         grid.render();
-        //loadingIndicator.fadeOut();
+        loadingIndicator.fadeOut();
       });
       $("#txtSearch").keyup(function (e) {
         if (e.which == 13) {
@@ -336,11 +345,8 @@ if(!Array.prototype.indexOf) {
     }
     function initFilters(){
       $('#slickgrid-toggle-search-panel').click(function(){
-        if($(grid.getHeaderRow()).is(":visible")) {
-          grid.hideHeaderRowColumns();
-        } else {
-          grid.showHeaderRowColumns();
-        }
+        var options = grid.getOptions();
+        grid.setHeaderRowVisibility(!options.showHeaderRow);
       });
       updateFilters();
       // Apply filters to the input kep up event
