@@ -26,9 +26,12 @@ function slickgrid_get_data($view_name, $offset, $sortcol = FALSE, $sortdir = 'a
       if($field){
         foreach($sort['id'] = $field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
           foreach($more_info as $key => $name){
-            $sort['id'] = $name;
-            $sort['field'] = $name;
-            $sort['table'] = $table;
+            if($key != 'format'){
+              $sort['id'] = $name;
+              $sort['field'] = $name;
+              $sort['table'] = $table;
+              break;
+            }
           }
         }
       }
