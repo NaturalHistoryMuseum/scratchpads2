@@ -15,7 +15,7 @@ if(!Array.prototype.indexOf) {
 (function($){
   // register namespace
   $.extend(true, window, {Slickgrid: Slickgrid});
-  // FIXME - Do something!
+  // Loading indicator div.
   var loadingIndicator = null;
   // Slickgrid class implementation
   function Slickgrid(container, viewName, viewDisplayID, callbackPath, loader){
@@ -25,8 +25,7 @@ if(!Array.prototype.indexOf) {
     var $dialog; // $dialog (at the moment a beautytips instance)
     var activeRow; // The row currently being edited
     var commandQueue = [];
-    var locked; // Is this grid locked? We use own locking mechanism, so it
-    // prevents editing across the whole grid
+    var locked;
     // Remove
     var $status; // $status container for result icons & messages & loading ic
     // Controls
@@ -50,8 +49,7 @@ if(!Array.prototype.indexOf) {
         // adds an editCommandHandler option (see init())
         undoControl = new Slick.Controls.Undo($("#slickgrid-undo"));
       }
-      // Initialise the dataview & slickgrid
-      //dataView = new Slick.Data.DataView();
+      // Initialise the remotemodel & slickgrid
       var loader = new Slick.Data.RemoteModel(viewName);
       grid = new Slick.Grid(container, loader.data, columns, options);
       // Load the data when the scroll bar is touched (etc).
@@ -63,8 +61,6 @@ if(!Array.prototype.indexOf) {
       // Sortable columns won't work with collapsible taxonomy fields
       if(options['sortable_columns']) {
         grid.onSort.subscribe(function (e, args) {
-          console.log(e);
-          console.log(args);
           loader.setSort(args.sortCol.field, args.sortAsc ? 1 : -1);
           var vp = grid.getViewport();
           loader.ensureData(vp.top, vp.bottom);
@@ -73,8 +69,6 @@ if(!Array.prototype.indexOf) {
       loader.onDataLoading.subscribe(function () {
         if (!loadingIndicator) {
           loadingIndicator = $('<div class="loading-indicator"><div><img src="' + Drupal.settings.slickgrid.loading_image_url + '"/></div></div>').appendTo(document.body);
-          console.log($(container).css('border-width'));
-          console.log($(container));
           loadingIndicator.css("position", "absolute");
           loadingIndicator.css("top", $(container).offset().top);
           loadingIndicator.css("left", $(container).offset().left);
@@ -98,21 +92,10 @@ if(!Array.prototype.indexOf) {
         grid.render();
         loadingIndicator.fadeOut();
       });
-      $("#txtSearch").keyup(function (e) {
-        if (e.which == 13) {
-          loader.setSearch($(this).val());
-          var vp = grid.getViewport();
-          loader.ensureData(vp.top, vp.bottom);
-        }
-      });
       // load the first page
       grid.onViewportChanged.notify();
       // Add all the controls
-      // Page control
-      if(options['pager']) {
-        var pagerControl = new Slick.Controls.Pager(dataView, grid, $("#slickgrid-pager"));
-      }
-      /*// delete control (requires row selection checkbox)
+      // delete control (requires row selection checkbox)
       if(options['delete'] && options['row_selection_checkbox']) {
         var deleteControl = new Slick.Controls.Delete(dataView, grid, $("#slickgrid-delete"));
       }
@@ -123,7 +106,7 @@ if(!Array.prototype.indexOf) {
       // export control (requires row selection checkbox)
       if(options['clone'] && options['row_selection_checkbox']) {
         var cloneControl = new Slick.Controls.Clone(dataView, grid, $("#slickgrid-clone"));
-      }*/
+      }
       // Users can show / hide columns
       if(options['select_columns']) {
         var columnpicker = new Slick.Controls.ColumnPicker(columns, grid, options);
@@ -134,11 +117,9 @@ if(!Array.prototype.indexOf) {
       }
       // Add tabs control (Needs to come after columnpicker control & hidden
       // columns is added)
-      /*
       if(options['tabs']) {
         tabs = new Slick.Controls.Tabs(dataView, grid, $("#slickgrid-tabs"), options['default_active_tab']);
       }
-      */
       if(options['default_filter']) {
         setColumnFilter(options['default_filter']['field'], options['default_filter']['value']);
       }
@@ -527,7 +508,6 @@ if(!Array.prototype.indexOf) {
         // Were there any errors?
         if(typeof response.errors !== 'undefined') {
           $.each(response.errors, function(id, err){
-            // console.log
             // Get the row denoted by the nid
             row = dataView.getRowById(id);
             // Get the data item for the row
