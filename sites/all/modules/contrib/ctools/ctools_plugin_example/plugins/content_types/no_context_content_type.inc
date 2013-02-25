@@ -109,7 +109,7 @@ function no_context_content_type_edit_form($form, &$form_state) {
   return $form;
 }
 
-function no_context_content_type_edit_form_submit(&$form, &$form_state) {
+function no_context_content_type_edit_form_submit($form, &$form_state) {
   foreach (array('item1', 'item2') as $key) {
     $form_state['conf'][$key] = $form_state['values'][$key];
   }

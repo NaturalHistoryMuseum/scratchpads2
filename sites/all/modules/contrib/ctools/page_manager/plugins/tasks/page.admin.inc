@@ -1056,7 +1056,6 @@ function page_manager_page_subtask_argument_ajax($step = NULL, $task_name = NULL
 
     $clone_state = $form_state;
     $clone_state['allow temp'] = TRUE;
-    page_manager_page_form_argument($form, $clone_state);
     $form = drupal_build_form('page_manager_page_form_argument', $form_state);
 
     // Render just the table portion.

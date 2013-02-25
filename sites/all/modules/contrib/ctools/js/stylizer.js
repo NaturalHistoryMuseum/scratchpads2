@@ -183,11 +183,12 @@
       };
 
       // Add hook
+      var $this = $(this);
       var hook = $('<div class="hook"></div>');
-      $(this).after(hook);
+      $this.after(hook);
       hooks.push(hook);
 
-      $(this).parent().find('.lock').click();
+      $this.parent().find('.lock').click();
       this.i = i;
       inputs.push(this);
     })

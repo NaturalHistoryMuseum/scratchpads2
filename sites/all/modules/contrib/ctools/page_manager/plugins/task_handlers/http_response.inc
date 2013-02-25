@@ -271,14 +271,14 @@ function page_manager_http_response_render($handler, $base_contexts, $args, $tes
     $url = parse_url($path);
     if (isset($url['query'])) {
       $path = strtr($path, array('?' . $url['query'] => ''));
-      $info['query'] = $url['query'];
+      $info['query'] = drupal_get_query_array($url['query']);
     }
     if (isset($url['fragment'])) {
       $path = strtr($path, array('#' . $url['fragment'] => ''));
       $info['fragment'] = $url['fragment'];
     }
 
-    $info['destination'] = $path;
+    $info['destination'] = rtrim($path, '?');
   }
 
   return $info;

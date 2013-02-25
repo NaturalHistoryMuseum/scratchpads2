@@ -7,7 +7,7 @@
 
 $plugin = array(
   'title' => t('Entity field'),
-  'defaults' => array('label' => 'title', 'formatter' => ''),
+  'defaults' => array('label' => 'title', 'formatter' => '', 'delta_limit' => 0, 'delta_offset' => '0', 'delta_reversed' => FALSE),
   'content type' => 'ctools_entity_field_content_type_content_type',
 );
 
@@ -119,7 +119,44 @@ function ctools_entity_field_content_type_render($subtype, $conf, $panel_args, $
     $field_settings['settings'] = $conf['formatter_settings'];
   }
 
-  $field_output = field_view_field($entity_type, $entity, $field_name, $field_settings, $language);
+  $all_values = field_get_items($entity_type, $entity, $field_name, $language);
+  if (!is_array($all_values)) {
+    $all_values = array();
+  }
+
+  // Reverse values.
+  if (isset($conf['delta_reversed']) && $conf['delta_reversed']) {
+    $all_values = array_reverse($all_values);
+  }
+
+  if (isset($conf['delta_limit'])) {
+    $delta_limit = $conf['delta_limit'];
+    $offset = intval($conf['delta_offset']);
+    $total = count($all_values);
+
+    if ($delta_limit == 0) {
+      $delta_limit = $total - $offset;
+    }
+
+    $new_values = array();
+    for ($i = 0; $i < $delta_limit; $i++) {
+      $new_delta = $offset + $i;
+
+      if (isset($all_values[$new_delta])) {
+        $new_values[] = $all_values[$new_delta];
+      }
+    }
+
+    $all_values = $new_values;
+  }
+
+  $clone = clone $entity;
+  $clone->{$field_name}[$language] = $all_values;
+  $field_output = field_view_field($entity_type, $clone, $field_name, $field_settings, $language);
+
+  if (!empty($field_output) && !empty($conf['override_title'])) {
+    $field_output['#title'] = filter_xss_admin($conf['override_title_text']);
+  }
 
   // Build the content type block.
   $block = new stdClass();
@@ -186,9 +223,10 @@ function ctools_entity_field_content_type_formatter_styles($form, &$form_state) 
   $subtype = $form_state['subtype_name'];
   list($entity_type, $field_name) = explode(':', $subtype, 2);
   $field = field_info_field($field_name);
-  module_load_include('inc', 'field_ui', 'field_ui.admin');
 
-  ctools_include('fields');
+  ctools_form_include($form_state, 'field_ui.admin', 'field_ui', '');
+  ctools_form_include($form_state, 'fields');
+
   $form['ctools_field_list'] = array(
     '#type' => 'value',
     '#value' => array(),
@@ -209,6 +247,12 @@ function ctools_entity_field_content_type_formatter_styles_submit($form, &$form_
         }
       }
     }
+  }
+
+  if (isset($form_state['values']['delta_limit'])) {
+    $form_state['conf']['delta_limit'] = $form_state['values']['delta_limit'];
+    $form_state['conf']['delta_offset'] = $form_state['values']['delta_offset'];
+    $form_state['conf']['delta_reversed'] = $form_state['values']['delta_reversed'];
   }
 }
 

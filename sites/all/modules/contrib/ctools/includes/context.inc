@@ -12,7 +12,7 @@
  * is operating in or on.
  *
  * For example, when viewing a page, the 'context' is a node object. When
- * viewing a user, the 'context' is a user object. Contexs can also
+ * viewing a user, the 'context' is a user object. Contexts can also
  * have related contexts. For example, when viewing a 'node' you may need
  * to know something about the node author. Therefore, the node author
  * is a related context.
@@ -106,6 +106,12 @@ class ctools_context_required {
   var $required = TRUE;
 
   /**
+   * If TRUE, skip the check in ctools_context_required::select()
+   * for contexts whose names may have changed.
+   */
+  var $skip_name_check = FALSE;
+
+  /**
    *
    * @param $title
    *   The first parameter should be the 'title' of the context for use
@@ -116,6 +122,11 @@ class ctools_context_required {
   function ctools_context_required($title) {
     $args = func_get_args();
     $this->title = array_shift($args);
+
+    // If we have a boolean value at the end for $skip_name_check, store it
+    if (is_bool(end($args))) {
+      $this->skip_name_check = array_pop($args);
+    }
 
     // If we were given restrictions at the end, store them.
     if (count($args) > 1 && is_array(end($args))) {
@@ -165,7 +176,7 @@ class ctools_context_required {
     // in our context list, there is a good chance that what happened
     // is our context IDs changed. See if there's another context
     // that satisfies our requirements.
-    if (!empty($context) && !isset($contexts[$context])) {
+    if (!$this->skip_name_check && !empty($context) && !isset($contexts[$context])) {
       $choices = $this->filter($contexts);
 
       // If we got a hit, take the first one that matches.
@@ -498,7 +509,7 @@ function ctools_context_get_all_converters() {
 /**
  * Let the context convert an argument based upon the converter that was given.
  */
-function ctools_context_convert_context($context, $converter) {
+function ctools_context_convert_context($context, $converter, $converter_options = array()) {
   // Contexts without plugins might be optional placeholders.
   if (empty($context->plugin)) {
     return;
@@ -507,12 +518,12 @@ function ctools_context_convert_context($context, $converter) {
   $value = $context->argument;
   $plugin = ctools_get_context($context->plugin);
   if ($function = ctools_plugin_get_function($plugin, 'convert')) {
-    $value = $function($context, $converter);
+    $value = $function($context, $converter, $converter_options);
   }
 
   foreach (module_implements('ctools_context_converter_alter') as $module) {
     $function = $module . '_ctools_context_converter_alter';
-    $function($context, $converter, $value);
+    $function($context, $converter, $value, $converter_options);
   }
 
   return $value;
@@ -608,7 +619,7 @@ function ctools_context_create_empty($type) {
 /**
  * Perform keyword and context substitutions.
  */
-function ctools_context_keyword_substitute($string, $keywords, $contexts) {
+function ctools_context_keyword_substitute($string, $keywords, $contexts, $converter_options = array()) {
   // Ensure a default keyword exists:
   $keywords['%%'] = '%';
 
@@ -622,7 +633,7 @@ function ctools_context_keyword_substitute($string, $keywords, $contexts) {
 
   // Look for context matches we we only have to convert known matches.
   $matches = array();
-  if (preg_match_all('/%([a-zA-Z0-9%:_-]+)/us', $string, $matches)) {
+  if (preg_match_all('/%(%|[a-zA-Z0-9_-]+(?:\:[a-zA-Z0-9_-]+)?)/us', $string, $matches)) {
     foreach ($matches[1] as $keyword) {
       // Ignore anything it finds with %%.
       if ($keyword[0] == '%') {
@@ -655,7 +666,7 @@ function ctools_context_keyword_substitute($string, $keywords, $contexts) {
         $keywords['%' . $keyword] = '';
       }
       else if (!empty($converter)) {
-        $keywords['%' . $keyword] = ctools_context_convert_context($context_keywords[$context], $converter);
+        $keywords['%' . $keyword] = ctools_context_convert_context($context_keywords[$context], $converter, $converter_options);
       }
       else {
         $keywords['%' . $keyword] = $context_keywords[$keyword]->title;

@@ -75,8 +75,8 @@ class views_content_plugin_display_panel_pane extends views_plugin_display {
       $pane_title = t('Use view name');
     }
 
-    if (strlen($pane_title) > 16) {
-      $pane_title = substr($pane_title, 0, 16) . '...';
+    if (drupal_strlen($pane_title) > 16) {
+      $pane_title = drupal_substr($pane_title, 0, 16) . '...';
     }
 
     $options['pane_title'] = array(
@@ -90,8 +90,8 @@ class views_content_plugin_display_panel_pane extends views_plugin_display {
       $pane_description = t('Use view description');
     }
 
-    if (strlen($pane_description) > 16) {
-      $pane_description = substr($pane_description, 0, 16) . '...';
+    if (drupal_strlen($pane_description) > 16) {
+      $pane_description = drupal_substr($pane_description, 0, 16) . '...';
     }
 
     $options['pane_description'] = array(
@@ -106,8 +106,8 @@ class views_content_plugin_display_panel_pane extends views_plugin_display {
       $pane_category = t('View panes');
     }
 
-    if (strlen($pane_category) > 16) {
-      $pane_category = substr($pane_category, 0, 16) . '...';
+    if (drupal_strlen($pane_category) > 16) {
+      $pane_category = drupal_substr($pane_category, 0, 16) . '...';
     }
 
     $options['pane_category'] = array(
@@ -382,6 +382,13 @@ class views_content_plugin_display_panel_pane extends views_plugin_display {
       return parent::get_path();
     }
     return $this->view->override_path;
+  }
+
+  function get_url() {
+    if ($this->get_option('inherit_panels_path')) {
+      return $this->get_path();
+    }
+    return parent::get_url();
   }
 
   function uses_exposed_form_in_block() {

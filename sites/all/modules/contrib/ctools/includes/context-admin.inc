@@ -246,7 +246,7 @@ function ctools_context_add_item_table($type, &$form, $available_contexts, $item
 }
 
 function ctools_context_add_item_table_buttons($type, $module, &$form, $available_contexts) {
-  drupal_add_js('misc/ajax.js');
+  drupal_add_library('system', 'drupal.ajax');
   $form['buttons'] = array(
     '#tree' => TRUE,
   );
@@ -636,8 +636,8 @@ function ctools_context_get_defaults($plugin_definition, $object, $type) {
     'name' => $plugin_definition['name'],
   );
 
-  if (isset($plugin['defaults'])) {
-    $defaults = $plugin['defaults'];
+  if (isset($plugin_definition['defaults'])) {
+    $defaults = $plugin_definition['defaults'];
   }
   else if (isset($subtype['defaults'])) {
     $defaults = $subtype['defaults'];

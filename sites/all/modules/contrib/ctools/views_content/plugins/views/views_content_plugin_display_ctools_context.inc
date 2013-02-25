@@ -109,8 +109,8 @@ class views_content_plugin_display_ctools_context extends views_plugin_display {
       $admin_title = t('Use view name');
     }
 
-    if (strlen($admin_title) > 16) {
-      $admin_title = substr($admin_title, 0, 16) . '...';
+    if (drupal_strlen($admin_title) > 16) {
+      $admin_title = drupal_substr($admin_title, 0, 16) . '...';
     }
 
     $options['admin_title'] = array(

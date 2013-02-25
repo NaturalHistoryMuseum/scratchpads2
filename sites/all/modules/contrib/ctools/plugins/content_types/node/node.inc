@@ -72,11 +72,11 @@ function ctools_node_content_type_render($subtype, $conf, $panel_args) {
   $block->module = 'node';
   $block->delta = $node->nid;
 
+  // Set block->title to the plain node title, then additionally set block->title_link to
+  // the node url if required. The actual link is rendered in ctools_content_render().
+  $block->title = check_plain($node->title);
   if (!empty($conf['link_node_title'])) {
-    $block->title = l($node->title, 'node/' . $node->nid);
-  }
-  else {
-    $block->title = check_plain($node->title);
+    $block->title_link = 'node/' . $node->nid;
   }
 
   if (empty($conf['leave_node_title'])) {

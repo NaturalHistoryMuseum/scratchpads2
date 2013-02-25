@@ -111,6 +111,9 @@ function page_manager_search_page($type) {
   // And implode() it all back together.
   $keys = $args ? implode('/', $args) : '';
 
+  // Allow other modules to alter the search keys
+  drupal_alter(array('search_keys', 'search_'. $type .'_keys'), $keys);
+
   // Load my task plugin
   $task = page_manager_get_task('search');
   $subtask = page_manager_get_task_subtask($task, $type);

@@ -33,7 +33,7 @@ function ctools_user_picture_content_type_render($subtype, $conf, $panel_args, $
 
   $element['user_picture'] = array(
     '#theme' => 'user_picture',
-    '#signature' => $account,
+    '#account' => $account,
   );
 
 

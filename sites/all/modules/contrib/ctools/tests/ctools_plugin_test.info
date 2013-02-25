@@ -5,11 +5,13 @@ core = 7.x
 dependencies[] = ctools
 files[] = ctools.plugins.test
 files[] = object_cache.test
+files[] = css.test
+files[] = context.test
 hidden = TRUE
 
-; Information added by drupal.org packaging script on 2011-12-10
-version = "7.x-1.x-dev"
+; Information added by drupal.org packaging script on 2012-08-18
+version = "7.x-1.2"
 core = "7.x"
 project = "ctools"
-datestamp = "1323476127"
+datestamp = "1345319204"
 

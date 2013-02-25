@@ -8,8 +8,7 @@
  * Drupal specific stuff to use it. The modal is fairly generic and can
  * be activated mostly by setting up the right classes, but if you are
  * using the modal you must include links to the images in settings,
- * because the javascript does not inherently know where the images are
- * at.
+ * because the javascript does not inherently know where the images are.
  *
  * You can accomplish this with this PHP code:
  * @code {
@@ -26,8 +25,7 @@
  * For submit buttons, however, the URL is found a different, slightly
  * more complex way. The ID of the item is taken and -url is appended to
  * it to derive a class name. Then, all form elements that contain that
- * class name are founded and their values put together to form a
- * URL.
+ * class name are founded and their values put together to form a URL.
  *
  * For example, let's say you have an 'add' button, and it has a select
  * form item that tells your system what widget it is adding. If the id
@@ -65,9 +63,9 @@ function ctools_modal_add_js() {
   );
 
   drupal_add_js($settings, 'setting');
-  drupal_add_js('misc/jquery.form.js');
-  drupal_add_js('misc/progress.js');
-  drupal_add_js('misc/ajax.js');
+  drupal_add_library('system', 'jquery.form');
+  drupal_add_library('system', 'drupal.progress');
+  drupal_add_library('system', 'drupal.ajax');
   ctools_add_js('modal');
 
   ctools_add_css('modal');
@@ -208,8 +206,8 @@ function ctools_modal_form_wrapper($form_id, &$form_state) {
   );
 
   $output = drupal_build_form($form_id, $form_state);
-  if (!empty($form_state['ajax']) && empty($form_state['executed'])) {
-    return ctools_modal_form_render($form_state, $output);
+ if (!empty($form_state['ajax']) && (!$form_state['executed'] || $form_state['rebuild'])) {
+     return ctools_modal_form_render($form_state, $output);
   }
 
   return $output;
