@@ -56,7 +56,6 @@
       if(sortcol) {
         url += "/" + sortcol + "/" + ((sortdir > 0) ? "asc" : "desc");
       }
-      console.log(url);
       if(h_request != null) {
         clearTimeout(h_request);
       }
@@ -76,17 +75,12 @@
     function onSuccess(resp){
       var from = fromPage * PAGESIZE;
       var to = from + resp.length;
-      console.log(from);
-      console.log(to);
       data.length += resp.length;
       for( var i = 0; i < resp.length; i++) {
         data[from + i] = resp[i];
         data[from + i].index = from + i;
       }
       req = null;
-      setTimeout(function(){
-        console.log(data);
-      }, 300)
       onDataLoaded.notify({from: 0, to: to});
     }
     function reloadData(from, to){
