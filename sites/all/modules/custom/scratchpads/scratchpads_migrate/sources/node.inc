@@ -618,7 +618,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
    * Ensures HTML tags are lowercase
    */
   public static function lowercaseHtml($html){
-    return preg_replace('/<(\/?)([a-zA-Z]+)(.*?)>/s', array(
+    return preg_replace_callback('/<(\/?)([a-zA-Z]+)(.*?)>/s', array(
       'ScratchpadsNodeMigration',
       '_lowercaseHtmlCallback'
     ), $html);
