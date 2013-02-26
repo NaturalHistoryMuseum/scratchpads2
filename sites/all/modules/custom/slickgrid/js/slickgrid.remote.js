@@ -9,7 +9,7 @@
     var PAGESIZE = 50;
     var data = {length: 0};
     var sortcol = null;
-    var filters = null;
+    var filters = {};
     var sortdir = 1;
     var h_request = null;
     var req = null; // ajax request
@@ -97,13 +97,22 @@
       clear();
     }
     function setFilters(fltrs){
-      filters = fltrs;
-      var this_copy = this;
-      this.clear();
-      window.clearTimeout(timeoutID);
-      timeoutID = window.setTimeout(function(){
-        this_copy.ensureData(0, 50);
-      }, 300);
+      doSetFilters = false;
+      var keys = Object.keys(fltrs);
+      for( var i in keys) {
+        if(fltrs[keys[i]] !== filters[keys[i]]) {
+          doSetFilters = true;
+          filters[keys[i]] = fltrs[keys[i]];
+        }
+      }
+      if(doSetFilters) {
+        var this_copy = this;
+        this.clear();
+        window.clearTimeout(timeoutID);
+        timeoutID = window.setTimeout(function(){
+          this_copy.ensureData(0, 50);
+        }, 300);
+      }
     }
     init();
     return {
