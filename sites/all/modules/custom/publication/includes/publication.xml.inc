@@ -426,10 +426,24 @@ class PublicationXMLBuilder{
     if($value !== NULL){
       // simpleXML escapes HTML tags, but not HTML entities ; however not all entities (such as &nbsp;) are supported
       // in XML. All numerical entities are fine, so we only need to escape named entities.
-      $escaped_value = preg_replace('/&([a-zA-Z]+);/', '&amp;$1;', (string)$value);
+      $escaped_value = preg_replace_callback('/&([a-zA-Z]+;)?/', array(
+        $this,
+        '_escape_html_entities'
+      ), (string)$value);
       $child_element->nodeValue = (string)$escaped_value;
     }
     return $child_element;
+  }
+
+  /**
+   * A function for escaping html entities called from preg_replace_callback
+   */
+  function _escape_html_entities($matches){
+    $entity = '';
+    if(!empty($matches[1]) && $matches[1] != 'amp;'){
+      $entity = $matches[1];
+    }
+    return '&amp;' . $entity;
   }
 
   /**
@@ -513,7 +527,17 @@ function _publication_xml_process_map($value, $type = 'latitude'){
  */
 function _publication_xml_load_user($value){
   $user = user_load($value);
-  $user->processed_full_name = $user->field_user_title . ' ' . $user->field_user_given_names . ' ' . $user->field_user_family_name;
+  $wrapper = entity_metadata_wrapper('user', $user);
+  $given_names = explode(' ', $wrapper->field_user_given_names->value());
+  $user->processed_full_name = implode(' ', array(
+    $wrapper->field_user_title->value(),
+    $wrapper->field_user_given_names->value(),
+    $wrapper->field_user_family_name->value()
+  ));
+  $user->processed_first_name = array_shift($given_names);
+  if(count($given_names)){
+    $user->processed_middle_names = implode(' ', $given_names);
+  }
   return $user;
 }
 
