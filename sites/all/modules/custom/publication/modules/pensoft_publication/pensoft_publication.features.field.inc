@@ -9,6 +9,430 @@
  */
 function pensoft_publication_field_default_fields(){
   $fields = array();
+  // Exported field: 'field_collection_item-field_publication_authors-field_publication_author_rights'
+  $fields['field_collection_item-field_publication_authors-field_publication_author_rights'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_author_rights',
+      'foreign keys' => array(),
+      'indexes' => array(
+        'value' => array(
+          0 => 'value'
+        )
+      ),
+      'module' => 'list',
+      'settings' => array(
+        'allowed_values' => array(
+          'Edit & comment' => 'Edit & comment',
+          'Comment only' => 'Comment only'
+        ),
+        'allowed_values_function' => ''
+      ),
+      'translatable' => '0',
+      'type' => 'list_text'
+    ),
+    'field_instance' => array(
+      'bundle' => 'field_publication_authors',
+      'default_value' => array(
+        0 => array(
+          'value' => 'Edit & comment'
+        )
+      ),
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'list',
+          'settings' => array(),
+          'type' => 'list_default',
+          'weight' => '2'
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'field_collection_item',
+      'field_name' => 'field_publication_author_rights',
+      'label' => 'Author rights',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'options',
+        'settings' => array(),
+        'type' => 'options_select',
+        'weight' => '2'
+      )
+    )
+  );
+  // Exported field: 'field_collection_item-field_publication_authors-field_publication_author_submit'
+  $fields['field_collection_item-field_publication_authors-field_publication_author_submit'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_author_submit',
+      'foreign keys' => array(),
+      'indexes' => array(
+        'value' => array(
+          0 => 'value'
+        )
+      ),
+      'module' => 'list',
+      'settings' => array(
+        'allowed_values' => array(
+          0 => '0',
+          1 => '1'
+        ),
+        'allowed_values_function' => ''
+      ),
+      'translatable' => '0',
+      'type' => 'list_boolean'
+    ),
+    'field_instance' => array(
+      'bundle' => 'field_publication_authors',
+      'default_value' => array(
+        0 => array(
+          'value' => 0
+        )
+      ),
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'list',
+          'settings' => array(),
+          'type' => 'list_default',
+          'weight' => '1'
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'field_collection_item',
+      'field_name' => 'field_publication_author_submit',
+      'label' => 'Submitting author?',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'options',
+        'settings' => array(
+          'display_label' => 1
+        ),
+        'type' => 'options_onoff',
+        'weight' => '1'
+      )
+    )
+  );
+  // Exported field: 'field_collection_item-field_publication_authors-field_publication_author_user'
+  $fields['field_collection_item-field_publication_authors-field_publication_author_user'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_author_user',
+      'foreign keys' => array(
+        'uid' => array(
+          'columns' => array(
+            'uid' => 'uid'
+          ),
+          'table' => 'users'
+        )
+      ),
+      'indexes' => array(
+        'uid' => array(
+          0 => 'uid'
+        )
+      ),
+      'module' => 'user_reference',
+      'settings' => array(
+        'referenceable_roles' => array(
+          2 => 0,
+          3 => 0,
+          4 => 0,
+          5 => 0
+        ),
+        'referenceable_status' => array(
+          0 => 0,
+          1 => 0
+        ),
+        'view' => array(
+          'args' => array(),
+          'display_name' => 'references_1',
+          'view_name' => 'users_references'
+        )
+      ),
+      'translatable' => '0',
+      'type' => 'user_reference'
+    ),
+    'field_instance' => array(
+      'bundle' => 'field_publication_authors',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'publication',
+          'settings' => array(),
+          'type' => 'publication_author',
+          'weight' => '0'
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'field_collection_item',
+      'entityconnect_unload_add' => '1',
+      'entityconnect_unload_edit' => '1',
+      'field_name' => 'field_publication_author_user',
+      'label' => 'Author',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'user_reference',
+        'settings' => array(
+          'autocomplete_match' => 'contains',
+          'autocomplete_path' => 'user_reference/autocomplete',
+          'size' => '60'
+        ),
+        'type' => 'user_reference_autocomplete',
+        'weight' => '0'
+      )
+    )
+  );
+  // Exported field: 'field_collection_item-field_publication_contributors-field_publication_cbtor_rights'
+  $fields['field_collection_item-field_publication_contributors-field_publication_cbtor_rights'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_cbtor_rights',
+      'foreign keys' => array(),
+      'indexes' => array(
+        'value' => array(
+          0 => 'value'
+        )
+      ),
+      'module' => 'list',
+      'settings' => array(
+        'allowed_values' => array(
+          'Edit & comment' => 'Edit & comment',
+          'Comment only' => 'Comment only'
+        ),
+        'allowed_values_function' => ''
+      ),
+      'translatable' => '0',
+      'type' => 'list_text'
+    ),
+    'field_instance' => array(
+      'bundle' => 'field_publication_contributors',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'list',
+          'settings' => array(),
+          'type' => 'list_default',
+          'weight' => '1'
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'field_collection_item',
+      'field_name' => 'field_publication_cbtor_rights',
+      'label' => 'Contributor rights',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'options',
+        'settings' => array(),
+        'type' => 'options_select',
+        'weight' => '2'
+      )
+    )
+  );
+  // Exported field: 'field_collection_item-field_publication_contributors-field_publication_cbtor_role'
+  $fields['field_collection_item-field_publication_contributors-field_publication_cbtor_role'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_cbtor_role',
+      'foreign keys' => array(),
+      'indexes' => array(
+        'value' => array(
+          0 => 'value'
+        )
+      ),
+      'module' => 'list',
+      'settings' => array(
+        'allowed_values' => array(
+          'Copy editor' => 'Copy editor',
+          'Mentor' => 'Mentor',
+          'Potential reviewer' => 'Potential reviewer',
+          'Colleague / Friend' => 'Colleague / Friend'
+        ),
+        'allowed_values_function' => ''
+      ),
+      'translatable' => '0',
+      'type' => 'list_text'
+    ),
+    'field_instance' => array(
+      'bundle' => 'field_publication_contributors',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'list',
+          'settings' => array(),
+          'type' => 'list_default',
+          'weight' => '2'
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'field_collection_item',
+      'field_name' => 'field_publication_cbtor_role',
+      'label' => 'Contributor role',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'options',
+        'settings' => array(),
+        'type' => 'options_select',
+        'weight' => '3'
+      )
+    )
+  );
+  // Exported field: 'field_collection_item-field_publication_contributors-field_publication_cbtor_user'
+  $fields['field_collection_item-field_publication_contributors-field_publication_cbtor_user'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_cbtor_user',
+      'foreign keys' => array(
+        'uid' => array(
+          'columns' => array(
+            'uid' => 'uid'
+          ),
+          'table' => 'users'
+        )
+      ),
+      'indexes' => array(
+        'uid' => array(
+          0 => 'uid'
+        )
+      ),
+      'module' => 'user_reference',
+      'settings' => array(
+        'referenceable_roles' => array(
+          2 => 0,
+          3 => 0,
+          4 => 0,
+          5 => 0
+        ),
+        'referenceable_status' => array(
+          0 => 0,
+          1 => 0
+        ),
+        'view' => array(
+          'args' => array(),
+          'display_name' => 'references_1',
+          'view_name' => 'users_references'
+        )
+      ),
+      'translatable' => '0',
+      'type' => 'user_reference'
+    ),
+    'field_instance' => array(
+      'bundle' => 'field_publication_contributors',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'publication',
+          'settings' => array(),
+          'type' => 'publication_author',
+          'weight' => '0'
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'field_collection_item',
+      'entityconnect_unload_add' => '1',
+      'entityconnect_unload_edit' => '1',
+      'field_name' => 'field_publication_cbtor_user',
+      'label' => 'Contributor',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'user_reference',
+        'settings' => array(
+          'autocomplete_match' => 'contains',
+          'autocomplete_path' => 'user_reference/autocomplete',
+          'size' => '60'
+        ),
+        'type' => 'user_reference_autocomplete',
+        'weight' => '1'
+      )
+    )
+  );
   // Exported field: 'field_collection_item-field_publication_figures-field_publication_figure_desc'
   $fields['field_collection_item-field_publication_figures-field_publication_figure_desc'] = array(
     'field_config' => array(
@@ -664,39 +1088,14 @@ Tables are numbered once the publication is saved.',
       'deleted' => '0',
       'entity_types' => array(),
       'field_name' => 'field_publication_authors',
-      'foreign keys' => array(
-        'uid' => array(
-          'columns' => array(
-            'uid' => 'uid'
-          ),
-          'table' => 'users'
-        )
-      ),
-      'indexes' => array(
-        'uid' => array(
-          0 => 'uid'
-        )
-      ),
-      'module' => 'user_reference',
+      'foreign keys' => array(),
+      'indexes' => array(),
+      'module' => 'field_collection',
       'settings' => array(
-        'referenceable_roles' => array(
-          2 => '2',
-          3 => '3',
-          4 => '4',
-          5 => '5'
-        ),
-        'referenceable_status' => array(
-          0 => 0,
-          1 => '1'
-        ),
-        'view' => array(
-          'args' => array(),
-          'display_name' => 'references_1',
-          'view_name' => 'users_references'
-        )
+        'path' => ''
       ),
       'translatable' => '0',
-      'type' => 'user_reference'
+      'type' => 'field_collection'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -705,16 +1104,20 @@ Tables are numbered once the publication is saved.',
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'hidden',
-          'module' => 'publication',
-          'settings' => array(),
-          'type' => 'publication_author',
-          'weight' => '3'
+          'label' => 'above',
+          'module' => 'field_collection',
+          'settings' => array(
+            'add' => 'Add',
+            'delete' => 'Delete',
+            'description' => TRUE,
+            'edit' => 'Edit',
+            'view_mode' => 'full'
+          ),
+          'type' => 'field_collection_view',
+          'weight' => 22
         )
       ),
       'entity_type' => 'publication',
-      'entityconnect_unload_add' => '1',
-      'entityconnect_unload_edit' => '1',
       'field_name' => 'field_publication_authors',
       'label' => 'Authors',
       'required' => 0,
@@ -722,15 +1125,11 @@ Tables are numbered once the publication is saved.',
         'user_register_form' => FALSE
       ),
       'widget' => array(
-        'active' => 1,
-        'module' => 'user_reference',
-        'settings' => array(
-          'autocomplete_match' => 'contains',
-          'autocomplete_path' => 'user_reference/autocomplete',
-          'size' => '60'
-        ),
-        'type' => 'user_reference_autocomplete',
-        'weight' => '26'
+        'active' => 0,
+        'module' => 'field_collection',
+        'settings' => array(),
+        'type' => 'field_collection_embed',
+        'weight' => '35'
       )
     )
   );
@@ -742,39 +1141,14 @@ Tables are numbered once the publication is saved.',
       'deleted' => '0',
       'entity_types' => array(),
       'field_name' => 'field_publication_contributors',
-      'foreign keys' => array(
-        'uid' => array(
-          'columns' => array(
-            'uid' => 'uid'
-          ),
-          'table' => 'users'
-        )
-      ),
-      'indexes' => array(
-        'uid' => array(
-          0 => 'uid'
-        )
-      ),
-      'module' => 'user_reference',
+      'foreign keys' => array(),
+      'indexes' => array(),
+      'module' => 'field_collection',
       'settings' => array(
-        'referenceable_roles' => array(
-          2 => '2',
-          3 => '3',
-          4 => '4',
-          5 => '5'
-        ),
-        'referenceable_status' => array(
-          0 => 0,
-          1 => '1'
-        ),
-        'view' => array(
-          'args' => array(),
-          'display_name' => 'references_1',
-          'view_name' => 'users_references'
-        )
+        'path' => ''
       ),
       'translatable' => '0',
-      'type' => 'user_reference'
+      'type' => 'field_collection'
     ),
     'field_instance' => array(
       'bundle' => 'pensoft',
@@ -783,110 +1157,32 @@ Tables are numbered once the publication is saved.',
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'inline',
-          'module' => 'publication',
-          'settings' => array(),
-          'type' => 'publication_author',
-          'weight' => '7'
+          'label' => 'above',
+          'module' => 'field_collection',
+          'settings' => array(
+            'add' => 'Add',
+            'delete' => 'Delete',
+            'description' => TRUE,
+            'edit' => 'Edit',
+            'view_mode' => 'full'
+          ),
+          'type' => 'field_collection_view',
+          'weight' => 23
         )
       ),
       'entity_type' => 'publication',
-      'entityconnect_unload_add' => '1',
-      'entityconnect_unload_edit' => '1',
       'field_name' => 'field_publication_contributors',
-      'label' => 'Other Contributors',
+      'label' => 'Contributors',
       'required' => 0,
       'settings' => array(
         'user_register_form' => FALSE
       ),
       'widget' => array(
-        'active' => 1,
-        'module' => 'user_reference',
-        'settings' => array(
-          'autocomplete_match' => 'contains',
-          'autocomplete_path' => 'user_reference/autocomplete',
-          'size' => '60'
-        ),
-        'type' => 'user_reference_autocomplete',
-        'weight' => '32'
-      )
-    )
-  );
-  // Exported field: 'publication-pensoft-field_publication_copy_editor'
-  $fields['publication-pensoft-field_publication_copy_editor'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_publication_copy_editor',
-      'foreign keys' => array(
-        'uid' => array(
-          'columns' => array(
-            'uid' => 'uid'
-          ),
-          'table' => 'users'
-        )
-      ),
-      'indexes' => array(
-        'uid' => array(
-          0 => 'uid'
-        )
-      ),
-      'module' => 'user_reference',
-      'settings' => array(
-        'referenceable_roles' => array(
-          2 => 0,
-          3 => 0,
-          4 => 0,
-          5 => 0
-        ),
-        'referenceable_status' => array(
-          0 => 0,
-          1 => 0
-        ),
-        'view' => array(
-          'args' => array(),
-          'display_name' => 'references_1',
-          'view_name' => 'users_references'
-        )
-      ),
-      'translatable' => '0',
-      'type' => 'user_reference'
-    ),
-    'field_instance' => array(
-      'bundle' => 'pensoft',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'inline',
-          'module' => 'publication',
-          'settings' => array(),
-          'type' => 'publication_author',
-          'weight' => '5'
-        )
-      ),
-      'entity_type' => 'publication',
-      'entityconnect_unload_add' => '1',
-      'entityconnect_unload_edit' => '1',
-      'field_name' => 'field_publication_copy_editor',
-      'label' => 'Copy editor',
-      'required' => 0,
-      'settings' => array(
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'user_reference',
-        'settings' => array(
-          'autocomplete_match' => 'contains',
-          'autocomplete_path' => 'user_reference/autocomplete',
-          'size' => '60'
-        ),
-        'type' => 'user_reference_autocomplete',
-        'weight' => '30'
+        'active' => 0,
+        'module' => 'field_collection',
+        'settings' => array(),
+        'type' => 'field_collection_embed',
+        'weight' => '36'
       )
     )
   );
@@ -1195,162 +1491,6 @@ Tables are numbered once the publication is saved.',
       )
     )
   );
-  // Exported field: 'publication-pensoft-field_publication_ling_editor'
-  $fields['publication-pensoft-field_publication_ling_editor'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_publication_ling_editor',
-      'foreign keys' => array(
-        'uid' => array(
-          'columns' => array(
-            'uid' => 'uid'
-          ),
-          'table' => 'users'
-        )
-      ),
-      'indexes' => array(
-        'uid' => array(
-          0 => 'uid'
-        )
-      ),
-      'module' => 'user_reference',
-      'settings' => array(
-        'referenceable_roles' => array(
-          2 => 0,
-          3 => 0,
-          4 => 0,
-          5 => 0
-        ),
-        'referenceable_status' => array(
-          0 => 0,
-          1 => 0
-        ),
-        'view' => array(
-          'args' => array(),
-          'display_name' => 'references_1',
-          'view_name' => 'users_references'
-        )
-      ),
-      'translatable' => '0',
-      'type' => 'user_reference'
-    ),
-    'field_instance' => array(
-      'bundle' => 'pensoft',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'inline',
-          'module' => 'publication',
-          'settings' => array(),
-          'type' => 'publication_author',
-          'weight' => '4'
-        )
-      ),
-      'entity_type' => 'publication',
-      'entityconnect_unload_add' => '1',
-      'entityconnect_unload_edit' => '1',
-      'field_name' => 'field_publication_ling_editor',
-      'label' => 'Linguistic editor',
-      'required' => 0,
-      'settings' => array(
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'user_reference',
-        'settings' => array(
-          'autocomplete_match' => 'contains',
-          'autocomplete_path' => 'user_reference/autocomplete',
-          'size' => '60'
-        ),
-        'type' => 'user_reference_autocomplete',
-        'weight' => '29'
-      )
-    )
-  );
-  // Exported field: 'publication-pensoft-field_publication_mentor'
-  $fields['publication-pensoft-field_publication_mentor'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_publication_mentor',
-      'foreign keys' => array(
-        'uid' => array(
-          'columns' => array(
-            'uid' => 'uid'
-          ),
-          'table' => 'users'
-        )
-      ),
-      'indexes' => array(
-        'uid' => array(
-          0 => 'uid'
-        )
-      ),
-      'module' => 'user_reference',
-      'settings' => array(
-        'referenceable_roles' => array(
-          2 => 0,
-          3 => 0,
-          4 => 0,
-          5 => 0
-        ),
-        'referenceable_status' => array(
-          0 => 0,
-          1 => 0
-        ),
-        'view' => array(
-          'args' => array(),
-          'display_name' => 'references_1',
-          'view_name' => 'users_references'
-        )
-      ),
-      'translatable' => '0',
-      'type' => 'user_reference'
-    ),
-    'field_instance' => array(
-      'bundle' => 'pensoft',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'inline',
-          'module' => 'publication',
-          'settings' => array(),
-          'type' => 'publication_author',
-          'weight' => '6'
-        )
-      ),
-      'entity_type' => 'publication',
-      'entityconnect_unload_add' => '1',
-      'entityconnect_unload_edit' => '1',
-      'field_name' => 'field_publication_mentor',
-      'label' => 'Mentor',
-      'required' => 0,
-      'settings' => array(
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'user_reference',
-        'settings' => array(
-          'autocomplete_match' => 'contains',
-          'autocomplete_path' => 'user_reference/autocomplete',
-          'size' => '60'
-        ),
-        'type' => 'user_reference_autocomplete',
-        'weight' => '31'
-      )
-    )
-  );
   // Exported field: 'publication-pensoft-field_publication_methods'
   $fields['publication-pensoft-field_publication_methods'] = array(
     'field_config' => array(
@@ -1548,84 +1688,6 @@ Tables are numbered once the publication is saved.',
         ),
         'type' => 'text_textarea',
         'weight' => '5'
-      )
-    )
-  );
-  // Exported field: 'publication-pensoft-field_publication_submit_author'
-  $fields['publication-pensoft-field_publication_submit_author'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_publication_submit_author',
-      'foreign keys' => array(
-        'uid' => array(
-          'columns' => array(
-            'uid' => 'uid'
-          ),
-          'table' => 'users'
-        )
-      ),
-      'indexes' => array(
-        'uid' => array(
-          0 => 'uid'
-        )
-      ),
-      'module' => 'user_reference',
-      'settings' => array(
-        'referenceable_roles' => array(
-          2 => '2',
-          3 => '3',
-          4 => '4',
-          5 => '5'
-        ),
-        'referenceable_status' => array(
-          0 => 0,
-          1 => '1'
-        ),
-        'view' => array(
-          'args' => array(),
-          'display_name' => 'references_1',
-          'view_name' => 'users_references'
-        )
-      ),
-      'translatable' => '0',
-      'type' => 'user_reference'
-    ),
-    'field_instance' => array(
-      'bundle' => 'pensoft',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => 'Please specify the submitting author. This is used when submitting the publication, but is not displayed. The author must be present in the authors list.',
-      'display' => array(
-        'default' => array(
-          'label' => 'hidden',
-          'module' => 'publication',
-          'settings' => array(),
-          'type' => 'publication_author',
-          'weight' => '2'
-        )
-      ),
-      'entity_type' => 'publication',
-      'entityconnect_unload_add' => '1',
-      'entityconnect_unload_edit' => '1',
-      'field_name' => 'field_publication_submit_author',
-      'label' => 'Submitting author',
-      'required' => 0,
-      'settings' => array(
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'user_reference',
-        'settings' => array(
-          'autocomplete_match' => 'contains',
-          'autocomplete_path' => 'user_reference/autocomplete',
-          'size' => '60'
-        ),
-        'type' => 'user_reference_autocomplete',
-        'weight' => '27'
       )
     )
   );
@@ -2291,7 +2353,13 @@ Tables are numbered once the publication is saved.',
   // Included for use with string extractors like potx.
   t('Abstract');
   t('Acknowledgments');
-  t('Copy editor');
+  t('Author');
+  t('Author rights');
+  t('Authors');
+  t('Contributor');
+  t('Contributor rights');
+  t('Contributor role');
+  t('Contributors');
   t('Data resources');
   t('Description');
   t('Discussion');
@@ -2303,17 +2371,13 @@ Tables are numbered once the publication is saved.',
   t('Included fields');
   t('Introduction');
   t('Keywords');
-  t('Linguistic editor');
   t('Material & Methods');
-  t('Mentor');
-  t('Other Contributors');
-  t('Authors');
   t('Paratype(s)');
   t('Please enter a list of publication keywords, comma separated.');
   t('Publication title');
   t('Reference');
   t('Results');
-  t('Submitting author');
+  t('Submitting author?');
   t('Supplementary files');
   t('Systematics');
   t('Table');
