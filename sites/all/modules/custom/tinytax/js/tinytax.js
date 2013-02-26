@@ -1,5 +1,12 @@
 (function($){
   Drupal.behaviors.tinytax = {attach: function(context, settings){
+    $('.tinytax-toggle-checkbox').change(function(){
+      if($(this).attr('checked')) {
+        $('.vid-' + $(this).data('vid') + '.toggleable').hide();
+      } else {
+        $('.vid-' + $(this).data('vid') + '.toggleable').show();
+      }
+    });
     $('img.click', context).once().click(function(){
       var img_clicked = $(this);
       // If we're clicking a plus
@@ -14,6 +21,13 @@
             img_clicked.parent('li').append(data[1]['data']);
             Drupal.attachBehaviors(img_clicked.parent('li').children('ul'));
             img_clicked.attr('src', Drupal.settings.tinytax.minus);
+            $('.tinytax-toggle-checkbox').each(function(){
+              if($(this).attr('checked')) {
+                $('.vid-' + $(this).data('vid') + '.toggleable').hide();
+              } else {
+                $('.vid-' + $(this).data('vid') + '.toggleable').show();
+              }
+            });
           });
         }
       }
@@ -27,7 +41,7 @@
     $('.tinytax li:last-child').addClass('last');
     $('.tinytax li:last-child').each(function(){
       $(this).parents().each(function(){
-        if($(this).css('background-color') != 'transparent' && !background_colour){
+        if($(this).css('background-color') != 'transparent' && !background_colour) {
           background_colour = $(this).css('background-color');
           $('.tinytax li:last-child').addClass('last').css('background-color', background_colour);
         }

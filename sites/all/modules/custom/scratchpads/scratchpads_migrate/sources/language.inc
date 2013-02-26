@@ -13,7 +13,7 @@ class LanguageMigration extends DrupalMigration{
     $this->map = new MigrateSQLMap($this->machineName, array(
       'language' => array(
         'type' => 'varchar',
-        'length' => 4,
+        'length' => 12,
         'not null' => TRUE
       )
     ), MigrateDestinationTable::getKeySchema($table_name));

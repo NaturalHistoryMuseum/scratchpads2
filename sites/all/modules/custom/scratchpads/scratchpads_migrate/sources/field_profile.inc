@@ -100,6 +100,27 @@ class DrupalFieldProfileMigration extends DrupalMigration{
           'title_value' => ''
         );
         break;
+      case 'selection':
+        $allowed_values = array();
+        if (!empty($row->options)) {
+          $options = explode("\n", preg_replace('/(\r|\n)+/', "\n", $row->options));
+          foreach ($options as $o) {
+            $o = trim($o);
+            if (!empty($o)) {
+              $allowed_values[$o] = $o;
+            }
+          }
+        }
+        $row->module = 'list';
+        $row->type = 'list_text';
+        $row->widget_type = 'options_select';
+        $row->widget_module = 'options';
+        $row->widget_settings = array();
+        $row->global_settings = array(
+          'allowed_values' => $allowed_values,
+          'allowed_values_function' => ''
+        );
+        break;
       default:
         watchdog('scratchpads_migrate', 'Could not create profile field %field_name, unknown type %type', array(
           '%field_name' => $row->name,

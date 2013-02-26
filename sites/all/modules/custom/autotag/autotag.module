@@ -65,6 +65,7 @@ function autotag_search_text($text, $vid){
   // Lower the text!
   $text = strtolower($text);
   $words = array_unique(preg_split('/[\ `!"£$%^&*()_\-+={\[}\]:;@\'~#<,>.?\/|\\\]/', $text, -1, PREG_SPLIT_NO_EMPTY));
+  if(!count($words)){return $tags_to_return;}
   // We have the words, we need to check
   // We create a temporary table with all the words in it, and then compare this
   // temporary table against the taxonomy_term_data table.

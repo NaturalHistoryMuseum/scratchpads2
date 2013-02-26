@@ -106,6 +106,7 @@ function scratchpads_simple_taxonomy_page_form_taxonomy_form_vocabulary_alter(&$
       }
       $form['simple_taxonomy_display']['default_term_link'] = array(
         '#title' => t('Default taxonomy term.'),
+        '#weight' => 2,
         '#description' => t('Select the default term to display when viewing this classification.  Leave blank to use the first term in the classification.'),
         '#type' => 'textfield',
         '#autocomplete_path' => 'simpletaxonomy/autocomplete/' . $form['vid']['#value'],

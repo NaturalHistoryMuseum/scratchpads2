@@ -51,10 +51,10 @@
            echo t('Unranked');
         } ?>:</div>
       <div class="field-items">
-        <div class='field-item'>
+        <div class="field-item" style="padding-left:3px;">
         <?php
           // Add author inline with name
-          $full_name = $name; 
+          $full_name = theme('scratchpads_species_name', array('term' => $term));
           if (!empty($content['field_authors'][0]['#markup'])) {
             $full_name = $full_name . ' ' . $content['field_authors'][0]['#markup'];
             hide($content['field_authors']);
@@ -106,6 +106,3 @@
     ?>
   </div>
 </div>
-
-
-
