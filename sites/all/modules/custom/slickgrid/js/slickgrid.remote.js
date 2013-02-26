@@ -111,7 +111,7 @@
         window.clearTimeout(timeoutID);
         timeoutID = window.setTimeout(function(){
           this_copy.ensureData(0, 50);
-        }, 300);
+        }, 700);
       }
     }
     init();
