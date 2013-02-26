@@ -18,6 +18,7 @@
     var onDataLoaded = new Slick.Event();
     var fromPage = 0;
     var toPage = 0;
+    var timeoutID = 0;
     function init(){}
     function isDataLoaded(from, to){
       for( var i = from; i <= to; i++) {
@@ -32,6 +33,8 @@
         delete data[key];
       }
       data.length = 0;
+      fromPage = 0;
+      toPage = 0;
     }
     function ensureData(from, to){
       if(req) {
@@ -48,7 +51,7 @@
         fromPage++;
       while(data[toPage * PAGESIZE] !== undefined && fromPage < toPage)
         toPage--;
-      if(fromPage > toPage || ((fromPage == toPage) && data[fromPage * PAGESIZE] !== undefined)) {
+      if(fromPage > toPage || ((fromPage == toPage) && (data[fromPage * PAGESIZE] !== undefined && data[fromPage * PAGESIZE] !== null))) {
         // TODO: look-ahead
         return;
       }
@@ -94,8 +97,13 @@
       clear();
     }
     function setFilters(fltrs){
-      console.log(fltrs);
       filters = fltrs;
+      var this_copy = this;
+      this.clear();
+      window.clearTimeout(timeoutID);
+      timeoutID = window.setTimeout(function(){
+        this_copy.ensureData(0, 50);
+      }, 300);
     }
     init();
     return {

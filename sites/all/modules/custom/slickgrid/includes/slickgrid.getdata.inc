@@ -38,6 +38,26 @@ function slickgrid_get_data($view_name, $offset, $sortcol = FALSE, $sortdir = 'a
     }
     $view->display['default']->display_options['sorts'][$key] = $sort;
   }
+  $potential_filters = $_GET;
+  unset($potential_filters['q']);
+  foreach($potential_filters as $field => $value){
+    $filter = array(
+      'id' => $field,
+      'table' => 'node',
+      'field' => $field,
+      'relationship' => 'none',
+      'group_type' => 'group',
+      'ui_name' => '',
+      'operator' => 'contains',
+      'value' => $value,
+      'group' => 1,
+      'exposed' => FALSE,
+      'expose' => array(),
+      'is_grouped' => FALSE,
+      'group_info' => array()
+    );
+    $view->display['default']->display_options['filters'][$field] = $filter;
+  }
   $view->render();
   drupal_add_http_header('Content-Type', 'application/json; charset=utf-8');
   echo drupal_json_encode($view->data);

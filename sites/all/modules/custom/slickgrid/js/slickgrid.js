@@ -348,11 +348,14 @@ if(!Array.prototype.indexOf) {
       for( var i = 0; i < columns.length; i++) {
         if(columns[i].filter) {
           var header = grid.getHeaderRowColumn(columns[i].id);
+          $(header).empty();
           var c = grid.getColumns()[grid.getColumnIndex(columns[i].id)];
-          console.log(c);
           if(typeof c == 'object') {
-            var $input = $("<input type='text'>");
-            Drupal.theme('slickgridFilter', $input, options['columns'][c.id]['filter']).appendTo(header);
+            c.filter = eval('new ' + columns[i].filter + '("' + c.id + '")');
+            if(typeof c.filter.input === 'function') {
+              var $input = c.filter.input().data("columnId", c.id).val(columnFilters[c.id]);
+              Drupal.theme('slickgridFilter', $input, options['columns'][c.id]['filter']).appendTo(header);
+            }
           }
         }
       }
