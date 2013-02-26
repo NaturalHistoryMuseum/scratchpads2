@@ -51,23 +51,25 @@ if(!Array.prototype.indexOf) {
       }
       // Initialise the remotemodel & slickgrid
       var loader = new Slick.Data.RemoteModel(viewName);
+      // Temporarily show the header row.
+      options.showHeaderRow = true;
       grid = new Slick.Grid(container, loader.data, columns, options);
       // Load the data when the scroll bar is touched (etc).
-      grid.onViewportChanged.subscribe(function (e, args) {
+      grid.onViewportChanged.subscribe(function(e, args){
         var vp = grid.getViewport();
         loader.ensureData(vp.top, vp.bottom);
       });
       // Are sortable columns enabled?
       // Sortable columns won't work with collapsible taxonomy fields
       if(options['sortable_columns']) {
-        grid.onSort.subscribe(function (e, args) {
+        grid.onSort.subscribe(function(e, args){
           loader.setSort(args.sortCol.field, args.sortAsc ? 1 : -1);
           var vp = grid.getViewport();
           loader.ensureData(vp.top, vp.bottom);
         });
       }
-      loader.onDataLoading.subscribe(function () {
-        if (!loadingIndicator) {
+      loader.onDataLoading.subscribe(function(){
+        if(!loadingIndicator) {
           loadingIndicator = $('<div class="loading-indicator"><div><img src="' + Drupal.settings.slickgrid.loading_image_url + '"/></div></div>').appendTo(document.body);
           loadingIndicator.css("position", "absolute");
           loadingIndicator.css("top", $(container).offset().top);
@@ -79,13 +81,16 @@ if(!Array.prototype.indexOf) {
           loadingIndicator.css("border", "solid 1px #232323");
           loadingIndicator.fadeTo("fast", 0.3);
           loadingIndicator.children().css("position", "relative");
-          loadingIndicator.children().css('top', (loadingIndicator.height()/2)-24);
-          loadingIndicator.children().css('left', (loadingIndicator.width()/2)-24);
+          loadingIndicator.children().css('top', (loadingIndicator.height() / 2) - 24);
+          loadingIndicator.children().css('left', (loadingIndicator.width() / 2) - 24);
+          // We set the header row as initially visible so that the height of
+          // the grid is set correctly.
+          grid.setHeaderRowVisibility(false);
         }
         loadingIndicator.fadeIn();
       });
-      loader.onDataLoaded.subscribe(function (e, args) {
-        for (var i = args.from; i <= args.to; i++) {
+      loader.onDataLoaded.subscribe(function(e, args){
+        for( var i = args.from; i <= args.to; i++) {
           grid.invalidateRow(i);
         }
         grid.updateRowCount();
@@ -125,7 +130,7 @@ if(!Array.prototype.indexOf) {
       }
       // Does the grid have filters that need adding?
       if(options['filterable']) {
-        initFilters();
+        initFilters(loader);
       }
       grid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow: false
       // Do not select active row
@@ -148,18 +153,14 @@ if(!Array.prototype.indexOf) {
       // Register events for my handling of active rows
       grid.onBeforeEditCell.subscribe(handleBeforeEditCell);
       grid.onBeforeCellEditorDestroy.subscribe(handleBeforeCellEditorDestroy);
-      /*dataView.onRowCountChanged.subscribe(function(e, args){
-        grid.updateRowCount();
-        grid.render();
-      });
-      dataView.onRowsChanged.subscribe(function(e, args){
-        grid.invalidateRows(args.rows);
-        grid.render();
-      });
-      dataView.beginUpdate();
-      // Add the data to the dataView
-      dataView.setItems(data);
-      */
+      /*
+       * dataView.onRowCountChanged.subscribe(function(e, args){
+       * grid.updateRowCount(); grid.render(); });
+       * dataView.onRowsChanged.subscribe(function(e, args){
+       * grid.invalidateRows(args.rows); grid.render(); });
+       * dataView.beginUpdate(); // Add the data to the dataView
+       * dataView.setItems(data);
+       */
       // If a grouping field has been chosen, group the data
       // NB: needs to come after the data has been added to the dataView
       if(options['grouping_field']) {
@@ -169,15 +170,13 @@ if(!Array.prototype.indexOf) {
       if(options['collapsible_taxonomy_field']) {
         initCollapsibleTaxonomyField(options['collapsible_taxonomy_field']);
       }
-      //dataView.endUpdate();
+      // dataView.endUpdate();
       addGridEventHandlers();
       // If has_filter is true, there are header filters being used
       // Apply the filter to the dataView
       /*
-      if(options['filterable']) {
-        dataView.setFilter(filter);
-      }
-      */
+       * if(options['filterable']) { dataView.setFilter(filter); }
+       */
       $(container).trigger('onSlickgridInit');
     }
     // Add handlers to grid events
@@ -241,6 +240,7 @@ if(!Array.prototype.indexOf) {
       updateSettings('hidden_columns', hiddenColumns);
       // Add column filters back into the grid
       if(options['has_filters']) {
+        // FIXME - This may need to pass loader.
         initFilters();
       }
     }
@@ -324,7 +324,7 @@ if(!Array.prototype.indexOf) {
       });
       return entityIDs;
     }
-    function initFilters(){
+    function initFilters(loader){
       $('#slickgrid-toggle-search-panel').click(function(){
         var options = grid.getOptions();
         grid.setHeaderRowVisibility(!options.showHeaderRow);
@@ -333,7 +333,7 @@ if(!Array.prototype.indexOf) {
       // Apply filters to the input kep up event
       $(grid.getHeaderRow()).delegate(":input", "change keyup", function(e){
         columnFilters[$(this).data("columnId")] = $.trim($(this).val());
-        dataView.refresh();
+        loader.setFilters(columnFilters);
       });
       // Register events for the header inputs
       grid.onColumnsReordered.subscribe(function(e, args){
@@ -348,14 +348,11 @@ if(!Array.prototype.indexOf) {
       for( var i = 0; i < columns.length; i++) {
         if(columns[i].filter) {
           var header = grid.getHeaderRowColumn(columns[i].id);
-          $(header).empty();
           var c = grid.getColumns()[grid.getColumnIndex(columns[i].id)];
+          console.log(c);
           if(typeof c == 'object') {
-            c.filter = eval('new ' + columns[i].filter + '("' + c.id + '")');
-            if(typeof c.filter.input === 'function') {
-              var $input = c.filter.input().data("columnId", c.id).val(columnFilters[c.id]);
-              Drupal.theme('slickgridFilter', $input, options['columns'][c.id]['filter']).appendTo(header);
-            }
+            var $input = $("<input type='text'>");
+            Drupal.theme('slickgridFilter', $input, options['columns'][c.id]['filter']).appendTo(header);
           }
         }
       }
