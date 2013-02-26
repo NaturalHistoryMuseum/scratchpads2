@@ -8,8 +8,8 @@
     // private
     var PAGESIZE = 50;
     var data = {length: 0};
-    var searchstr = "apple";
     var sortcol = null;
+    var filters = null;
     var sortdir = 1;
     var h_request = null;
     var req = null; // ajax request
@@ -64,7 +64,7 @@
           data[i * PAGESIZE] = null; // null indicates a 'requested but not
         // available yet'
         onDataLoading.notify({from: from, to: to});
-        req = $.getJSON(url, onSuccess);
+        req = $.getJSON(url, filters, onSuccess);
         req.fromPage = fromPage;
         req.toPage = toPage;
       }, 50);
@@ -93,16 +93,16 @@
       sortdir = dir;
       clear();
     }
-    function setSearch(str){
-      searchstr = str;
-      clear();
+    function setFilters(fltrs){
+      console.log(fltrs);
+      filters = fltrs;
     }
     init();
     return {
     // properties
     "data": data,
     // methods
-    "clear": clear, "isDataLoaded": isDataLoaded, "ensureData": ensureData, "reloadData": reloadData, "setSort": setSort, "setSearch": setSearch,
+    "clear": clear, "isDataLoaded": isDataLoaded, "ensureData": ensureData, "reloadData": reloadData, "setSort": setSort, "setFilters": setFilters,
     // events
     "onDataLoading": onDataLoading, "onDataLoaded": onDataLoaded};
   }
