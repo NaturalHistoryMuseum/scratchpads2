@@ -41,6 +41,7 @@ function slickgrid_get_data($view_name, $offset, $sortcol = FALSE, $sortdir = 'a
   $potential_filters = $_GET;
   unset($potential_filters['q']);
   foreach($potential_filters as $field => $value){
+    // Start with a basic text filter - this will work with most fields.
     $filter = array(
       'id' => $field,
       'table' => 'node',
@@ -56,10 +57,46 @@ function slickgrid_get_data($view_name, $offset, $sortcol = FALSE, $sortdir = 'a
       'is_grouped' => FALSE,
       'group_info' => array()
     );
+    $real_field = field_info_field($field);
+    if($real_field){
+      foreach($real_field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
+        foreach($more_info as $key => $name){
+          if($key != 'format'){
+            $field = $name;
+            $filter['id'] = $name;
+            $filter['field'] = $name;
+            $filter['table'] = $table;
+            break;
+          }
+        }
+      }
+      switch($real_field['type']){
+        case 'taxonomy_term_reference':
+          foreach($real_field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
+            foreach($more_info as $key => $name){
+              if($key != 'format'){
+                $filter['operator'] = 'or';
+                $filter['value'] = array_keys(taxonomy_get_term_by_name($value));
+                $filter['reduce_duplicates'] = 0;
+                $filter['type'] = 'textfield';
+                $filter['limit'] = 100;
+                $filter['vocabulary'] = 'cod'; // FIXME
+                $filter['hierarchy'] = 0;
+                break;
+              }
+            }
+          }
+          break;
+      }
+    }
     $view->display['default']->display_options['filters'][$field] = $filter;
   }
   $view->render();
   drupal_add_http_header('Content-Type', 'application/json; charset=utf-8');
+  // Prevent null from being returned when there are no results.
+  if(!$view->data){
+    $view->data = array();
+  }
   echo drupal_json_encode($view->data);
   ajax_footer();
 }
