@@ -24,18 +24,16 @@ function pensoft_publication_process_relation_select_field(&$variables){
  * Implement hook_publication_prepare_build to alter the build array.
  * This is called from pensoft_publication_alter
  */
-function pensoft_publication_publication_prepare_build(&$build) {
-  if (empty($build['field_publication_treatments'])) {
-    return;
-  }
+function pensoft_publication_publication_prepare_build(&$build){
+  if(empty($build['field_publication_treatments'])){return;}
   $treatments_build = array(
     '#weight' => $build['field_publication_treatments']['#weight'],
     '#title' => $build['field_publication_treatments']['#title'],
     '#access' => $build['field_publication_treatments']['#access'],
     '#prefix' => '<div class="field">',
-    '#suffix' => '</div>',
+    '#suffix' => '</div>'
   );
-  foreach (element_children($build['field_publication_treatments']) as $delta) {
+  foreach(element_children($build['field_publication_treatments']) as $delta){
     $relation = $build['field_publication_treatments'][$delta]['relation']['#relation'];
     $treatment = $build['field_publication_treatments'][$delta]['relation']['#related_entities'][0];
     $weight = 0;
@@ -62,17 +60,16 @@ function pensoft_publication_publication_prepare_build(&$build) {
     $fields = explode(',', $relation->field_publication_treat_fields[LANGUAGE_NONE][0]['value']);
     foreach($fields as $fdelta => $field_name){
       $field = field_view_field('node', $treatment, $field_name);
-      if (!empty($treatment->{$field_name}[LANGUAGE_NONE][0]['format'])) {
+      if(!empty($treatment->{$field_name}[LANGUAGE_NONE][0]['format'])){
         // We don't want all filters to run, only filter out html
         $markup = $treatment->{$field_name}[LANGUAGE_NONE][0]['value'];
         $field[0]['#markup'] = filter_xss($markup);
       }
       $field['#weight'] = $weight++;
-      $current_treatment_build[] = $field;      
+      $current_treatment_build[] = $field;
     }
     $treatments_build[] = $current_treatment_build;
   }
-
   $build['field_publication_treatments'] = $treatments_build;
 }
 
@@ -296,35 +293,34 @@ function pensoft_publication_publication_edit_form_submit($form, &$form_state){
  *   if it was a list of fields ;
  * - The first column of the value itself if the value had multiple properties
  */
-function entity_metadata_simple_values($field, $sanitized = TRUE) {
+function entity_metadata_simple_values($field, $sanitized = TRUE){
   $fields = array();
   $values = array();
   $info = $field->info();
-  if (strpos($info['type'], 'list<') === 0) {
-    foreach ($field->getIterator() as $field_iteration) {
+  if(strpos($info['type'], 'list<') === 0){
+    foreach($field->getIterator() as $field_iteration){
       $fields[] = $field_iteration;
     }
-  } else {
+  }else{
     $fields[] = $field;
   }
-  foreach ($fields as $final_field) {
+  foreach($fields as $final_field){
     $ff_info = $final_field->info();
-    if (isset($ff_info['property info'])) {
+    if(isset($ff_info['property info'])){
       $column = reset(array_keys($ff_info['property info']));
-      if ($sanitized) {
+      if($sanitized){
         $values[] = $final_field->{$column}->value();
-      } else {
+      }else{
         $values[] = $final_field->{$column}->raw();
       }
-    } else {
-      if ($sanitized) {
+    }else{
+      if($sanitized){
         $values[] = $final_field->value();
-      } else {
+      }else{
         $values[] = $final_field->raw();
       }
     }
   }
-  
   return $values;
 }
 
@@ -336,15 +332,15 @@ function pensoft_publication_publication_parse_references($entity){
   if($entity->type != 'pensoft'){return;}
   $wrapper = entity_metadata_wrapper('publication', $entity);
   $references_to_add = array();
-  foreach($wrapper->relation_publication_treatments_node->getIterator() as $delta => $treat_entity_wrapper) {
+  foreach($wrapper->relation_publication_treatments_node->getIterator() as $delta => $treat_entity_wrapper){
     // Unfortunately entity metadata wrapper doesn't give access to the relation fields
     $relation_fields = $entity->field_publication_treatments[LANGUAGE_NONE][$delta]['relation_fields'];
     $treat_fields_str = $relation_fields['field_publication_treat_fields'][LANGUAGE_NONE][0]['value'];
     $treat_fields = explode(',', $treat_fields_str);
-    foreach ($treat_fields as $treatment_field) {
+    foreach($treat_fields as $treatment_field){
       $values = entity_metadata_simple_values($treat_entity_wrapper->{$treatment_field}, FALSE);
-      foreach ($values as $value) {
-        if (is_string($value) && preg_match('/\[bib\]\s*(\d+)\s*\[\/bib\]/', $value, $matches)) {
+      foreach($values as $value){
+        if(is_string($value) && preg_match('/\[bib\]\s*(\d+)\s*\[\/bib\]/', $value, $matches)){
           $references_to_add[] = $matches[1];
         }
       }
@@ -383,7 +379,7 @@ function pensoft_publication_form_publication_type_form_alter(&$form, &$form_sta
     '#type' => 'textfield',
     '#title' => 'Pensoft API URL',
     '#required' => TRUE,
-    '#default_value' => variable_get('pensoft_submit_url', 'http://test.pwt.pensoft.eu/api.php'),
+    '#default_value' => variable_get('pensoft_submit_url', 'http://pwt.pensoft.net/api.php'),
     '#weight' => 10
   );
   $form['#submit'][] = 'pensoft_publication_type_form_submit';
@@ -473,7 +469,7 @@ function pensoft_publication_publish_form_submit($form, &$form_state){
     drupal_set_message('Could not process XML as required', 'error');
     return;
   }
-  $url = variable_get('pensoft_submit_url', 'http://test.pwt.pensoft.eu/api.php');
+  $url = variable_get('pensoft_submit_url', 'http://pwt.pensoft.net/api.php');
   $data = array(
     'username' => $form_state['values']['pensoft_username'],
     'password' => $form_state['values']['pensoft_password'],
@@ -519,10 +515,8 @@ function pensoft_publication_publish_form_submit($form, &$form_state){
 function _pensoft_publication_build_xml($publication){
   module_load_include('xml.inc', 'publication', 'includes/publication');
   module_load_include('xml.schema.inc', 'pensoft_publication');
-  
   // Parse the schema
-  $url = variable_get('pensoft_publication_xml_schema_url', 'http://localhost/scratchpads/sites/all/modules/custom/publication/modules/pensoft_publication/research_article.xsd');
-  //$source_schema = _pensoft_publication_xml_parse_schema($url);
+  $url = variable_get('pensoft_publication_xml_schema_url', drupal_get_path('module', 'pensoft_publication') . '/taxonomic_paper.xsd');
   try{
     $parser = new PublicationXSDParser($url);
     $source_schema = $parser->get_schema_array();
@@ -538,12 +532,18 @@ function _pensoft_publication_build_xml($publication){
         'article_metadata' => _pensoft_publication_xml_article_metadata_schema(),
         'introduction' => _pensoft_publication_xml_introduction_schema(),
         'material_and_methods' => _pensoft_publication_xml_material_and_methods_schema(),
+        'data_resources' => _pensoft_publication_xml_data_resources_schema(),
+        'results' => _pensoft_publication_xml_results_schema(),
+        //'checklist' => _pensoft_publication_xml_checklist_schema(),
         'systematics' => _pensoft_publication_xml_systematics_schema(),
+        'discussion' => _pensoft_publication_xml_discussion_schema(),
+        //identification_keys => _pensoft_publication_xml_identification_keys_schema(),
         'acknowledgements' => _pensoft_publication_xml_acknowledgements_schema(),
+        'references' => _pensoft_publication_xml_references_schema(),
         'supplementary_files' => _pensoft_publication_xml_files_schema()
-      )
-      //'figures' => _pensoft_publication_xml_figures_schema(),
-      //'tables' => _pensoft_publication_xml_tables_schema(),
+      ),
+      'figures' => _pensoft_publication_xml_figures_schema(),
+      'tables' => _pensoft_publication_xml_tables_schema()
     )
   );
   $schema = $parser->merge_schemas($source_schema, $map_schema);
@@ -558,7 +558,6 @@ function _pensoft_publication_build_xml($publication){
     drupal_set_message($e->getMessage(), 'error');
     return FALSE;
   }
-
   // Validation and error display. Try to break the XML down in lines such that we don't disturb content by adding unwanted
   // carriage returns (that would affect enumerations for instance).
   $xml_per_line = preg_replace('/(<\/.*?>)/', "$1\n", $xml);
@@ -594,7 +593,6 @@ function _pensoft_publication_build_xml($publication){
   libxml_use_internal_errors(false);
   return $xml;
 }
-
 
 /**
  * Implement hook_scratchpads_default_permissions
