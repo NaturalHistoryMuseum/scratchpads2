@@ -82,14 +82,26 @@
       onDataLoaded.notify({from: 0, to: to});
     }
     function reloadData(from, to){
-      for( var i = from; i <= to; i++)
-        delete data[i];
+      for( var i = from; i <= to; i++) {
+        if(data[i]) {
+          data.length--;
+          delete data[i];
+        }
+      }
       ensureData(from, to);
     }
     function setSort(column, dir){
       sortcol = column;
       sortdir = dir;
       clear();
+    }
+    function getRowById(id){
+      for( var i = 0; i < data.length; i++) {
+        if(data[i].id == id) {
+          return i;
+        }
+      }
+      return false;
     }
     function setFilters(fltrs){
       doSetFilters = false;
@@ -114,7 +126,7 @@
     // properties
     "data": data,
     // methods
-    "clear": clear, "isDataLoaded": isDataLoaded, "ensureData": ensureData, "reloadData": reloadData, "setSort": setSort, "setFilters": setFilters,
+    "clear": clear, "isDataLoaded": isDataLoaded, "ensureData": ensureData, "reloadData": reloadData, "setSort": setSort, "setFilters": setFilters, "getRowById": getRowById,
     // events
     "onDataLoading": onDataLoading, "onDataLoaded": onDataLoaded};
   }
