@@ -102,15 +102,15 @@ if(!Array.prototype.indexOf) {
       // Add all the controls
       // delete control (requires row selection checkbox)
       if(options['delete'] && options['row_selection_checkbox']) {
-        var deleteControl = new Slick.Controls.Delete(loader, grid, $("#slickgrid-delete"));
+        var deleteControl = new Slick.Controls.Delete(grid, $("#slickgrid-delete"));
       }
       // export control
       if(options['export']) {
-        var exportControl = new Slick.Controls.Export(loader, grid, $("#slickgrid-export"));
+        var exportControl = new Slick.Controls.Export(grid, $("#slickgrid-export"));
       }
       // export control (requires row selection checkbox)
       if(options['clone'] && options['row_selection_checkbox']) {
-        var cloneControl = new Slick.Controls.Clone(dataView, grid, $("#slickgrid-clone"));
+        var cloneControl = new Slick.Controls.Clone(grid, $("#slickgrid-clone"));
       }
       // Users can show / hide columns
       if(options['select_columns']) {
@@ -123,7 +123,7 @@ if(!Array.prototype.indexOf) {
       // Add tabs control (Needs to come after columnpicker control & hidden
       // columns is added)
       if(options['tabs']) {
-        tabs = new Slick.Controls.Tabs(dataView, grid, $("#slickgrid-tabs"), options['default_active_tab']);
+        tabs = new Slick.Controls.Tabs(loader, grid, $("#slickgrid-tabs"), options['default_active_tab']);
       }
       if(options['default_filter']) {
         setColumnFilter(options['default_filter']['field'], options['default_filter']['value']);
@@ -153,16 +153,7 @@ if(!Array.prototype.indexOf) {
       // Register events for my handling of active rows
       grid.onBeforeEditCell.subscribe(handleBeforeEditCell);
       grid.onBeforeCellEditorDestroy.subscribe(handleBeforeCellEditorDestroy);
-      /*
-       * dataView.onRowCountChanged.subscribe(function(e, args){
-       * grid.updateRowCount(); grid.render(); });
-       * dataView.onRowsChanged.subscribe(function(e, args){
-       * grid.invalidateRows(args.rows); grid.render(); });
-       * dataView.beginUpdate(); // Add the data to the dataView
-       * dataView.setItems(data);
-       */
       // If a grouping field has been chosen, group the data
-      // NB: needs to come after the data has been added to the dataView
       if(options['grouping_field']) {
         initGroups();
       }
@@ -170,17 +161,6 @@ if(!Array.prototype.indexOf) {
       if(options['collapsible_taxonomy_field']) {
         initCollapsibleTaxonomyField(options['collapsible_taxonomy_field']);
       }
-      // dataView.endUpdate();
-      addGridEventHandlers();
-      // If has_filter is true, there are header filters being used
-      // Apply the filter to the dataView
-      /*
-       * if(options['filterable']) { dataView.setFilter(filter); }
-       */
-      $(container).trigger('onSlickgridInit');
-    }
-    // Add handlers to grid events
-    function addGridEventHandlers(){
       grid.onColumnsReordered.subscribe(handleColumnsReordered);
       // There isn't a grid event when a column is shown / hidden - tag one onto
       // onHeaderContextMenu()
@@ -193,6 +173,7 @@ if(!Array.prototype.indexOf) {
           handleViewportResized(ui.size.height);
         }
       }});
+      $(container).trigger('onSlickgridInit');
     }
     function handleValidationError(eventData, error){
       updateStatus(true, [{'type': 'error', 'message': error.validationResults.msg}]);
@@ -316,9 +297,9 @@ if(!Array.prototype.indexOf) {
       }
       $.each(grid.getSelectedRows(), function(i, row){
         // Retrieve the data item of the selected row
-        var selected_item = dataView.getItem(row);
+        var selected_item = loader.data[row];
         if(entityIDs.indexOf(selected_item.id) === -1) {
-          // Add the NID to the edited nids object
+          // Add the id to the edited ids object
           entityIDs.push(selected_item.id);
         }
       });
@@ -382,8 +363,6 @@ if(!Array.prototype.indexOf) {
       return(x == y ? 0 : (x > y ? 1 : -1));
     }
     function initGroups(){
-      // var groupsUI = new Slick.Controls.GroupsUI(dataView, grid,
-      // $("#controls"));
       var groupingFieldLabel = options['columns'][options['grouping_field']]['label'];
       // Set the grouping field
       dataView.groupBy(options['grouping_field'], function(g){

@@ -2,7 +2,7 @@
  * Controller for deleting items
  */
 (function($){
-  function SlickGridDelete(dataView, grid, $container){
+  function SlickGridDelete(grid, $container){
     var $control;
     var enabled;
     function init(){

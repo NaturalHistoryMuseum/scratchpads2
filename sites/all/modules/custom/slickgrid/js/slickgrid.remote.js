@@ -104,7 +104,7 @@
       return false;
     }
     function setFilters(fltrs){
-      doSetFilters = false;
+      var doSetFilters = false;
       var keys = Object.keys(fltrs);
       for( var i in keys) {
         if(fltrs[keys[i]] !== filters[keys[i]]) {

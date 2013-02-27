@@ -2,7 +2,7 @@
  * Controller for exporting items
  */
 (function($){
-  function SlickGridExport(dataView, grid, $container){
+  function SlickGridExport(grid, $container){
     var $form;
     function init(){
       constructUI();

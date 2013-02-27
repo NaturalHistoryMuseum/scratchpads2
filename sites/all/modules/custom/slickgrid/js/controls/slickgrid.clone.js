@@ -2,7 +2,7 @@
  * Controller for cloning nodes
  */
 (function($){
-  function SlickGridClone(dataView, grid, $container){
+  function SlickGridClone(grid, $container){
     var $control;
     var enabled;
     function init(){
