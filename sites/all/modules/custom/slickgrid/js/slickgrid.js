@@ -1,7 +1,6 @@
 // Grid & dataView need to be globals so they can be accessed from formatters
 // etc.,
 var grid;
-var dataView;
 if(!Array.prototype.indexOf) {
   Array.prototype.indexOf = function(obj, start){
     for( var i = (start || 0), j = this.length; i < j; i++) {
@@ -103,11 +102,11 @@ if(!Array.prototype.indexOf) {
       // Add all the controls
       // delete control (requires row selection checkbox)
       if(options['delete'] && options['row_selection_checkbox']) {
-        var deleteControl = new Slick.Controls.Delete(dataView, grid, $("#slickgrid-delete"));
+        var deleteControl = new Slick.Controls.Delete(loader, grid, $("#slickgrid-delete"));
       }
       // export control
       if(options['export']) {
-        var exportControl = new Slick.Controls.Export(dataView, grid, $("#slickgrid-export"));
+        var exportControl = new Slick.Controls.Export(loader, grid, $("#slickgrid-export"));
       }
       // export control (requires row selection checkbox)
       if(options['clone'] && options['row_selection_checkbox']) {
@@ -484,25 +483,29 @@ if(!Array.prototype.indexOf) {
       var status = {loading: false, success: 0, errors: 0};
       if(response) {
         // Are there any update nodes
-        $.each(response.updated, function(id, entity){
-          status.success++;
-        });
+        if(response.updated) {
+          $.each(response.updated, function(id, entity){
+            status.success++;
+          });
+        }
         // Are we allowing undoing content (there will be a command queue if
         // we are)
         if(options['undo'] && response.op == 'update' && status.success > 0) {
           // Add the update items to the undo command queue
           undoControl.queueCommand(response.updated);
         }
-        // Loop through each deleted.
-        $.each(response.deleted, function(i, id){
-          status.success++;
-        });
+        if(response.deleted) {
+          // Loop through each deleted.
+          $.each(response.deleted, function(i, id){
+            status.success++;
+          });
+        }
       }
       // Were there any errors?
       if(typeof response.errors !== 'undefined') {
         $.each(response.errors, function(id, err){
           // Get the row denoted by the nid
-          row = dataView.getRowById(id);
+          row = loader.getRowById(id);
           // Get the data item for the row
           cell = grid.getColumnIndex(response.field_id);
           cellNode = grid.getCellNode(row, cell);
