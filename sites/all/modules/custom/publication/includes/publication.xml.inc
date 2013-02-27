@@ -228,7 +228,8 @@ class PublicationXSDParser{
 class PublicationXMLBuilder{
 
   /**
-   * Creatre a new builder from a schema and settings.
+   * Creatre a new builder from a schema and settings and
+   * a number of modifiers (objects that implement PublicationXMLModifierInterface)
    * 
    * The settings is an associative array which may define:
    * 'force-empty-values' : If the schema defines that a tag associated with
@@ -239,9 +240,10 @@ class PublicationXMLBuilder{
    * 'no-error' : Ignore contraint errors (no exception thrown). Default
    *              is FALSE
    */
-  function __construct($array_schema, $settings){
+  function __construct($array_schema, $settings, $modifiers = array()){
     $this->array_schema = $array_schema;
     $this->settings = $settings;
+    $this->modifiers = $modifiers;
   }
 
   /**
@@ -255,6 +257,9 @@ class PublicationXMLBuilder{
   function build_xml($object, $version = '1.0', $encoding = 'UTF-8'){
     $this->_root_object = $object;
     $this->_dom = new DOMDocument($version, $encoding);
+    foreach ($this->modifiers as $modifier) {
+      $modifier->start_building($this->array_schema, $this->_root_object, $this->_dom);
+    }
     $this->_build_xml_iteration($this->array_schema, $this->_root_object, $this->_dom);
     return $this->_dom->saveXML();
   }
@@ -320,6 +325,9 @@ class PublicationXMLBuilder{
   function _build_schema_insert_field($schema, $tag, $object, $xml_element){
     $field = $schema['#field'];
     $values = $this->_read_values($object->$field);
+    foreach ($this->modifiers as $modifier) {
+      $values = $modifier->insert_value_array($schema, $tag, $values);
+    }
     $inserted = FALSE;
     foreach($values as $value){
       $value_to_insert = $value;
@@ -332,7 +340,9 @@ class PublicationXMLBuilder{
         // XXX doing this test here means we're not checking against min/max occurs.
         continue;
       }
-      $child_element = $this->_insert_xml_element($tag, $schema, $value_to_insert, $xml_element);
+      // XXX The new Modifier functionality means we might end up with a NULL value, and thus
+      // should set $inserted to FALSE (depending on min_ocurrence) to provide adequate backtracking.
+      $child_element = $this->_insert_xml_element($schema, $tag, $value_to_insert, $xml_element);
       $inserted = TRUE;
       $this->_build_xml_iteration($schema, $child_object, $child_element);
     }
@@ -346,8 +356,11 @@ class PublicationXMLBuilder{
   function _build_schema_insert_value($schema, $tag, $object, $xml_element){
     $inserted = FALSE;
     $count = (!isset($schema['#min_occurence']) || $schema['#min_occurence'] == 0) ? 1 : $schema['#min_occurence'];
+    $value = $schema['#value'];
     for($i = 0; $i < $count; $i++){
-      $child_element = $this->_insert_xml_element($tag, $schema, $schema['#value'], $xml_element);
+      // XXX The new Modifier functionality means we might end up with a NULL value, and thus
+      // should set $inserted to FALSE (depending on min_ocurrence) to provide adequate backtracking.
+      $child_element = $this->_insert_xml_element($schema, $tag, $value, $xml_element);
       $inserted = TRUE;
       $this->_build_xml_iteration($schema, $object, $child_element);
     }
@@ -364,7 +377,9 @@ class PublicationXMLBuilder{
     $count = ((!isset($schema['#min_occurence']) || $min_occurence == 0) ? 1 : $schema['#min_occurence']);
     $inserted = FALSE;
     for($i = 0; $i < $count; $i++){
-      $child_element = $this->_insert_xml_element($tag, $schema, NULL, $xml_element);
+      // XXX The new Modifier functionality means we might end up with a non NULL , and thus
+      // should set $inserted to TRUE to provide adequate backtracking.
+      $child_element = $this->_insert_xml_element($schema, $tag, NULL, $xml_element);
       $insert_child = $this->_build_xml_iteration($schema, $object, $child_element);
       if(!$insert_child && $min_occurence == 0){
         $xml_element->removeChild($child_element);
@@ -396,7 +411,7 @@ class PublicationXMLBuilder{
    * Insert an element given it's array schema into the DOM.
    * 
    */
-  function _insert_xml_element($tag, $schema, $value, $xml_element){
+  function _insert_xml_element($schema, $tag, $value, $xml_element){
     // Apply process function
     if(isset($schema['#process'])){
       $f = $schema['#process'];
@@ -423,6 +438,9 @@ class PublicationXMLBuilder{
       }
     }
     // Add value
+    foreach ($this->modifiers as $modifier) {
+      $value = $modifier->insert_value($tag, $schema, $value);
+    }
     if($value !== NULL){
       // simpleXML escapes HTML tags, but not HTML entities ; however not all entities (such as &nbsp;) are supported
       // in XML. All numerical entities are fine, so we only need to escape named entities.
@@ -498,6 +516,71 @@ class PublicationXMLBuilder{
       );
     }
   }
+}
+
+/**
+ * This interface defines a publication xml modifier
+ *
+ * Such objects are given to the PublicationXMLBuilder,
+ * and are called at every iteration. They can be used
+ * to:
+ * - Track references ;
+ * - Order fields ;
+ * - Modify/filter content
+ * 
+ * Note: we use registered objects rather than hooks,
+ * because the main purpose of this is to rename
+ * citations and order cited objects accordingly
+ * (eg. Table 1, Table 2, etc.) - this requires that
+ * we keep context throughout the process which is
+ * not always practical with hooks.
+ */
+interface PublicationXMLModifierInterface {
+  /**
+   * function start_building
+   * 
+   * This is called before the XML building starts.
+   * 
+   * $schema: The array schema used for building the XML
+   * 
+   * $object: the object from which the XML
+   * will be build
+   * 
+   * $dom: The empty DomDocument object
+   */
+  public function start_building($schema, $object, $dom);
+  
+  /**
+   * function insert_value
+   * 
+   * This is called when an actual value is about to be
+   * inserted into the DOM, and should return the
+   * modified value to insert. Classes implementing
+   * this interface should at least return $value here.
+   * 
+   * $tag: The tag of the value being inserted 
+   * $schema: The schema for the tag
+   * $value: The value itself
+   */
+  public function insert_value($schema, $tag, $value);
+
+  /**
+   * function insert_value_array
+   * 
+   * This is called when a number of values comming from the
+   * same field are going to be inserted sequencially with the
+   * same tag. This should return the array of values, and
+   * can be used to filter out some values or to order the values.
+   * Classes implementing this interface should at least return $values
+   * here.
+   * 
+   * Note that each individual value will still go throug 'insert_value'
+   * 
+   * $schema: The schema for the tag
+   * $tag: The tag of the value being inserted
+   * $values: The array of values
+   */
+  public function insert_value_array($schema, $tag, $values);
 }
 
 /**

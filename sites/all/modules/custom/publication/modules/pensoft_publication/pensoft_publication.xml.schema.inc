@@ -714,6 +714,14 @@ function _pensoft_publication_xml_systematics_schema(){
     */
   );
   $description = array(
+    'fields' => array(
+      'description' => array(
+        '#condition' => 'field_general_description',
+        'value' => array(
+          '#field' => 'field_general_description',
+        )
+      )
+    ),
     'subsection' => array(
       '#condition' => 'field_behavious',
       'fields' => array(
@@ -1414,7 +1422,7 @@ function _pensoft_publication_xml_discussion_schema() {
   $results = array(
     'fields' => array(
       '#condition' => 'field_publication_discussion',
-      'results' => array(
+      'discussions' => array(
         'value' => array(
           '#field' => 'field_publication_discussion',
         ),
@@ -1737,6 +1745,8 @@ function _pensoft_publication_xml_figures_schema(){
 function _pensoft_publication_xml_tables_schema(){
   $f = array(
     'table' => array(
+      '#min_occurence' => 0,
+      '#max_occurence' => -1,
       '#field' => 'field_publication_tables',
       '#value' => '',
       '#load' => '_pensoft_publication_xml_load_table',

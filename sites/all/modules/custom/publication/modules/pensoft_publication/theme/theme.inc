@@ -17,9 +17,9 @@ function pensoft_publication_preprocess_publication_field_group(&$variables) {
     $authors = array();
     $institutions = array();
     foreach (element_children($element['field_publication_authors']) as $key) {
-      $collection = reset($element['field_publication_authors'][$key]['entity']['field_collection_item']); 
-      $author = $collection['field_publication_author_user'][0];
-      if (!empty($author)) {
+      $collection = reset($element['field_publication_authors'][$key]['entity']['field_collection_item']);
+      if (!empty($collection['field_publication_author_user'][0])) {
+        $author = $collection['field_publication_author_user'][0];
         $authors[] = $author;
         if (!empty($author['#publication_author_institution'])) {
           $institutions[] = $author['#publication_author_institution'];

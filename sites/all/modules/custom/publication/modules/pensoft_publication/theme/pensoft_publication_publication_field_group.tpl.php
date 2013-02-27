@@ -30,7 +30,7 @@
 		  <?php endforeach; ?>
 		</div>
       </div>
-    <?php endif; ?>    
+    <?php endif; ?>
    <?php elseif (TRUE && $element_id == 'publication_pensoft_full_group_pensoft_files'): ?>
      <?php /* References */ ?>
      <?php if (isset($element['field_publication_references']) && count(element_children($element['field_publication_references']))) : ?>

@@ -8,12 +8,12 @@ function publication_html_format_entity_view_alter(&$build, $type){
   if($type != 'publication'){return;}
   // We need the full build array now, in order to match all references/figures/tables.
   $modules = module_implements('publication_prepare_build');
-  foreach ($modules as $module) {
+  foreach($modules as $module){
     $function = $module . '_publication_prepare_build';
-    if (function_exists($function)) {
+    if(function_exists($function)){
       $function($build);
     }
-  }      
+  }
   // Change the citations and get the order of the tables & figures
   $process = new PublicationHtmlFormatChangeCitations();
   $process->process($build);
@@ -56,30 +56,39 @@ function publication_html_format_entity_view_alter(&$build, $type){
   }
   // Re-order the references by first author name
   $order = array();
-  foreach(element_children($build['field_publication_references']) as $key) {
-    if (empty($build['field_publication_references']['#items'][$key]['nid'])) {
+  foreach(element_children($build['field_publication_references']) as $key){
+    if(empty($build['field_publication_references']['#items'][$key]['nid'])){
       continue;
     }
     $nid = $build['field_publication_references']['#items'][$key]['nid'];
     $node = node_load($nid);
-    if (!empty($node->biblio_contributors)) {
+    if(!empty($node->biblio_contributors)){
       $contributor = reset($node->biblio_contributors);
       $order[$key] = strtolower($contributor['lastname']);
-    } else {
+    }else{
       $order[$key] = '';
     }
   }
   asort($order);
   $weight = 0;
-  foreach ($order as $key => $name) {
+  foreach($order as $key => $name){
     $build['field_publication_references'][$key]['#weight'] = $weight;
     $weight++;
   }
 }
 
 /**
- * This class is used to process a renderable array and rename citations
- * such that they are in the order they were found
+ * Class PublicationHtmlFormatChangeCitations
+ *
+ * This class is used to parse data and rename citations (table/figure) such that
+ * they are in the order they were found. It also changes [bib] tags into reference
+ * citations.
+ *
+ * At the end of the process, $table_ids and $figure_ids provide the table and figure ids
+ * in the order they were found.
+ *
+ * This class can be used as is, and also provides functionality for recursively applying
+ * the renaming process to the #markup elements of a render array.
  */
 class PublicationHtmlFormatChangeCitations{
 
@@ -89,7 +98,7 @@ class PublicationHtmlFormatChangeCitations{
 
   /**
    * The main process function
-   */
+  */
   function process(&$build){
     if(isset($build['#markup'])){
       // XXX we should enforce a stricter type for citations ids.
@@ -143,25 +152,24 @@ class PublicationHtmlFormatChangeCitations{
     $out = $matches[1] . t('Figure') . ' ' . $figure_number . $matches[3];
     return $out;
   }
-  
+
   /**
    * preg_replace callback function for replacing reference citations
    */
-  function _replace_reference_citation($matches) {
+  function _replace_reference_citation($matches){
     $nid = $matches[2];
     $node = node_load($nid);
     $all_authors = array();
-    foreach ($node->biblio_contributors as $contributor) {
+    foreach($node->biblio_contributors as $contributor){
       $all_authors[] = $contributor['lastname'];
     }
-    if (count($all_authors) > 2) {
+    if(count($all_authors) > 2){
       $authors = $all_authors[0] . ' et al.';
-    } else {
+    }else{
       $authors = implode(' and ', $all_authors);
     }
     $year = $node->biblio_year;
-    return '<reference_citation citation_id="' . $nid . '" contenteditable="false" style="background: #DDD;">' 
-           . "$authors $year</reference_citation>";
+    return '<reference_citation citation_id="' . $nid . '" contenteditable="false" style="background: #DDD;">' . "$authors $year</reference_citation>";
   }
 }
 
@@ -259,7 +267,7 @@ function publication_html_format_entity_update($entity, $type){
 
 function _publication_html_format_entity_upsert($entity, $type){
   if($type != 'publication'){return;}
-  if (!empty($entity->publication_html_format_processed)) {return;}
+  if(!empty($entity->publication_html_format_processed)){return;}
   // We might need to re-save the entity. Even though it's already been saved, it might still
   // be marked as new - so ensure it isn't.
   $need_saving = FALSE;
@@ -274,7 +282,7 @@ function _publication_html_format_entity_upsert($entity, $type){
   }
   // References found by other modules
   $references_to_add = array_merge($references_to_add, module_invoke_all('publication_parse_references', $entity));
-  if (!empty($references_to_add)) {
+  if(!empty($references_to_add)){
     $existing_references = array();
     foreach($entity->field_publication_references[LANGUAGE_NONE] as $key => $value){
       $existing_references[] = $value['nid'];
@@ -344,7 +352,7 @@ function publication_html_format_ckeditor_plugin(){
   $items['pensoft_publication_reference_editor'] = array(
     'name' => 'pensoft_publication_reference_editor',
     'desc' => t('This plugin allows editing the text of references'),
-    'path' => drupal_get_path('module', 'publication_html_format') . '/plugins/reference_editor/',
+    'path' => drupal_get_path('module', 'publication_html_format') . '/plugins/reference_editor/'
   );
   return $items;
 }

@@ -90,7 +90,7 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
   // Load the field selector for the treatments
   foreach(element_children($form['field_publication_treatments'][LANGUAGE_NONE]) as $key){
     $treatment_form = $form['field_publication_treatments']['und'][$key];
-    if(isset($form_state['values'])){
+    if(isset($form_state['values']['field_publication_treatments'])){
       $values = $form_state['values']['field_publication_treatments'][LANGUAGE_NONE][$key];
     }else{
       $values = array();
@@ -338,6 +338,8 @@ function pensoft_publication_publication_parse_references($entity){
     $treat_fields_str = $relation_fields['field_publication_treat_fields'][LANGUAGE_NONE][0]['value'];
     $treat_fields = explode(',', $treat_fields_str);
     foreach($treat_fields as $treatment_field){
+      $treatment_field = trim($treatment_field);
+      if (!$treatment_field) {continue;}
       $values = entity_metadata_simple_values($treat_entity_wrapper->{$treatment_field}, FALSE);
       foreach($values as $value){
         if(is_string($value) && preg_match('/\[bib\]\s*(\d+)\s*\[\/bib\]/', $value, $matches)){
@@ -547,10 +549,15 @@ function _pensoft_publication_build_xml($publication){
     )
   );
   $schema = $parser->merge_schemas($source_schema, $map_schema);
+  // Create a modifier for the publication_html_format module to rename and reorder citations
+  module_load_include('xml.inc', 'publication_html_format', 'includes/publication_html_format');
+  $modifier = new PublicationHtmlFormatXMLModifier();
   // Build the XML
   try{
     $builder = new PublicationXMLBuilder($schema, array(
       'force-empty-values' => FALSE
+    ), array(
+      $modifier
     ));
     $xml = $builder->build_xml($publication);
   }

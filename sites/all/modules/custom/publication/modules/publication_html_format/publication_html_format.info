@@ -10,6 +10,7 @@ dependencies[] = "media"
 dependencies[] = "twitterscript"
 dependencies[] = "insert_from_view"
 dependencies[] = "ckeditor"
+dependencies[] = "relation_select"
 
 features[filter][] = "publication_html"
 features[ctools][] = "views:views_default:3.0"
