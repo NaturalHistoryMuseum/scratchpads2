@@ -6,7 +6,7 @@
  * @version 0.9.5 release candidate 1  (5/20/2009)
  */
  
-jQuery.bt = {version: '0.9.5-rc1'};
+jQuery.bt = {version: '0.9.7'};
  
 /*
  * @type jQuery
@@ -109,8 +109,8 @@ jQuery.bt = {version: '0.9.5-rc1'};
   
       if (opts.killTitle) {
         $(this).find('[title]').andSelf().each(function() {
-          if (!$(this).attr('bt-xTitle')) {
-            $(this).attr('bt-xTitle', $(this).attr('title')).attr('title', '');
+          if (!$(this).prop('bt-xTitle')) {
+            $(this).prop('bt-xTitle', $(this).prop('title')).prop('title', '');
           }
         });
       }    
@@ -155,7 +155,7 @@ jQuery.bt = {version: '0.9.5-rc1'};
         // $('#selector').btOn();
         // $('#selector').btOff();
       }
-      else if (opts.trigger.length > 1 && opts.trigger[0] != opts.trigger[1]) { 
+      else if (opts.trigger.length > 1 && opts.trigger[0] != opts.trigger[1]) {
         $(this)
           .bind(opts.trigger[0], function() {
             this.btOn();
@@ -185,7 +185,7 @@ jQuery.bt = {version: '0.9.5-rc1'};
         if (typeof $(this).data('bt-box') == 'object') {
           // if there's already a popup, remove it before creating a new one.
           this.btOff();
-        } 
+        }
   
         // trigger preBuild function
         // preBuild has no argument since the box hasn't been built yet
@@ -202,13 +202,13 @@ jQuery.bt = {version: '0.9.5-rc1'};
           // bizarre, I know
           if (opts.killTitle) {
             // if we've killed the title attribute, it's been stored in 'bt-xTitle' so get it..
-            $(this).attr('title', $(this).attr('bt-xTitle'));
+            $(this).prop('title', $(this).prop('bt-xTitle'));
           }
           // then evaluate the selector... title is now in place
           content = $.isFunction(opts.contentSelector) ? opts.contentSelector.apply(this) : eval(opts.contentSelector);
           if (opts.killTitle) {
             // now remove the title again, so we don't get double tips
-            $(this).attr('title', '');
+            $(this).prop('title', '');
           }
         }
         
@@ -343,10 +343,7 @@ jQuery.bt = {version: '0.9.5-rc1'};
         if (typeof content == 'object') {
           // if content is a DOM object (as opposed to text)
           // use a clone, rather than removing the original element
-          // and ensure that it's visible 
-          if (content == null) {
-            return;
-          }
+          // and ensure that it's visible
           var original = content;
           var clone = $(original).clone(true).show();
           // also store a reference to the original object in the clone data
@@ -586,7 +583,7 @@ jQuery.bt = {version: '0.9.5-rc1'};
         } // </ switch >
         
         var canvas = document.createElement('canvas');
-        $(canvas).attr('width', (numb($text.btOuterWidth(true)) + opts.strokeWidth*2 + shadowMarginX)).attr('height', (numb($text.outerHeight(true)) + opts.strokeWidth*2 + shadowMarginY)).appendTo($box).css({position: 'absolute', zIndex: opts.boxzIndex});
+        $(canvas).prop('width', (numb($text.btOuterWidth(true)) + opts.strokeWidth*2 + shadowMarginX)).prop('height', (numb($text.outerHeight(true)) + opts.strokeWidth*2 + shadowMarginY)).appendTo($box).css({position: 'absolute', zIndex: opts.boxzIndex});
 
   
         // if excanvas is set up, we need to initialize the new canvas element
@@ -715,21 +712,13 @@ jQuery.bt = {version: '0.9.5-rc1'};
         // trigger postShow function
         // function receives the box element (the balloon wrapper div) as an argument
         opts.postShow.apply(this, [$box[0]]);
-
-        // Allow trigger btContentHover to turn off on tip on moueout of actual tip
-        currentDiv = this;
-        $(".bt-content").mouseout(function() {
-          $(currentDiv).trigger('btContentHover');
-        });
+  
   
       }; // </ turnOn() >
   
       this.btOff = function() {
       
         var box = $(this).data('bt-box');
-        if (typeof box == 'undefined') {
-          return;
-        }
   
         // trigger preHide function
         // function receives the box element (the balloon wrapper div) as an argument
@@ -861,9 +850,15 @@ jQuery.bt = {version: '0.9.5-rc1'};
           // WebKit.. let's go!
           return true;
         }
-        else if (/gecko|mozilla/.test(userAgent) && parseFloat(userAgent.match(/firefox\/(\d+(?:\.\d+)+)/)[1]) >= 3.1){
+        if (/gecko|mozilla/.test(userAgent)) {
+          var match = userAgent.match(/firefox\/(\d+(?:\.\d+)+)/);
+          if (match && match.length >= 2 && parseFloat(match[1]) >= 3.1) {
           // Mozilla 3.1 or higher
           return true;
+          }
+        }
+        if (/trident\/5.0/.test(userAgent)) {
+            return true;
         }
       }
       catch(err) {
@@ -1176,7 +1171,7 @@ jQuery.bt = {version: '0.9.5-rc1'};
                                                  
     activeClass:      'bt-active',           // class added to TARGET element when its BeautyTip is active
   
-    contentSelector:  "$(this).attr('title')", // if there is no content argument, use this selector to retrieve the title
+    contentSelector:  "$(this).prop('title')", // if there is no content argument, use this selector to retrieve the title
                                              // a function which returns the content may also be passed here
   
     ajaxPath:         null,                  // if using ajax request for content, this contains url and (opt) selector
@@ -1191,8 +1186,8 @@ jQuery.bt = {version: '0.9.5-rc1'};
                                              // the result of which will be used as the ajaxPath
                                              // the second (optional) value is the content selector as above
                                              // examples:
-                                             //    ["$(this).attr('href')", 'div#content']
-                                             //    ["$(this).parents('.wrapper').find('.title').attr('href')"]
+                                             //    ["$(this).prop('href')", 'div#content']
+                                             //    ["$(this).parents('.wrapper').find('.title').prop('href')"]
                                              //    ["$('#some-element').val()"]
                                              
     ajaxError:        '<strong>ERROR:</strong> <em>%error</em>',
