@@ -195,7 +195,7 @@ jQuery.fn = jQuery.prototype = {
 		// ignore negative width and height values
 		if ( (key == 'width' || key == 'height') && parseFloat(value) < 0 )
 			value = undefined;
-		return this.attr( key, value, "curCSS" );
+		return this.attr( key, value, "css" );
 	},
 
 	text: function( text ) {
@@ -701,7 +701,7 @@ jQuery.extend({
 			value = value.call( elem, i );
 
 		// Handle passing in a number to a CSS property
-		return typeof value === "number" && type == "curCSS" && !exclude.test( name ) ?
+		return typeof value === "number" && type == "css" && !exclude.test( name ) ?
 			value + "px" :
 			value;
 	},
@@ -759,11 +759,11 @@ jQuery.extend({
 
 				jQuery.each( which, function() {
 					if ( !extra )
-						val -= parseFloat(jQuery.curCSS( elem, "padding" + this, true)) || 0;
+						val -= parseFloat(jQuery.css( elem, "padding" + this, true)) || 0;
 					if ( extra === "margin" )
-						val += parseFloat(jQuery.curCSS( elem, "margin" + this, true)) || 0;
+						val += parseFloat(jQuery.css( elem, "margin" + this, true)) || 0;
 					else
-						val -= parseFloat(jQuery.curCSS( elem, "border" + this + "Width", true)) || 0;
+						val -= parseFloat(jQuery.css( elem, "border" + this + "Width", true)) || 0;
 				});
 			}
 
@@ -775,10 +775,10 @@ jQuery.extend({
 			return Math.max(0, Math.round(val));
 		}
 
-		return jQuery.curCSS( elem, name, force );
+		return jQuery.css( elem, name, force );
 	},
 
-	curCSS: function( elem, name, force ) {
+	css: function( elem, name, force ) {
 		var ret, style = elem.style;
 
 		// We need to handle opacity special in IE
@@ -1264,7 +1264,7 @@ jQuery.each({
 
 // Helper function used by the dimensions and offset modules
 function num(elem, prop) {
-	return elem[0] && parseInt( jQuery.curCSS(elem[0], prop, true), 10 ) || 0;
+	return elem[0] && parseInt( jQuery.css(elem[0], prop, true), 10 ) || 0;
 }
 var expando = "jQuery" + now(), uuid = 0, windowData = {};
 
@@ -4030,7 +4030,7 @@ jQuery.fx.prototype = {
 			return this.elem[ this.prop ];
 
 		var r = parseFloat(jQuery.css(this.elem, this.prop, force));
-		return r && r > -10000 ? r : parseFloat(jQuery.curCSS(this.elem, this.prop)) || 0;
+		return r && r > -10000 ? r : parseFloat(jQuery.css(this.elem, this.prop)) || 0;
 	},
 
 	// Start an animation from one number to another
@@ -4249,8 +4249,8 @@ jQuery.offset = {
 		jQuery.offset.initialized || jQuery.offset.initialize();
 		var top = body.offsetTop, left = body.offsetLeft;
 		if ( jQuery.offset.doesNotIncludeMarginInBodyOffset )
-			top  += parseInt( jQuery.curCSS(body, 'marginTop',  true), 10 ) || 0,
-			left += parseInt( jQuery.curCSS(body, 'marginLeft', true), 10 ) || 0;
+			top  += parseInt( jQuery.css(body, 'marginTop',  true), 10 ) || 0,
+			left += parseInt( jQuery.css(body, 'marginLeft', true), 10 ) || 0;
 		return { top: top, left: left };
 	}
 };
