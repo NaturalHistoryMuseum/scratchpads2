@@ -6,7 +6,7 @@
  * Note, this function may need to be tweaked if we wish to accept arguments
  * to a view.
  */
-function slickgrid_get_data($view_name, $offset, $sortcol = FALSE, $sortdir = 'asc'){
+function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortdir = 'asc'){
   $view = views_get_view($view_name);
   if($sortcol){
     $sort = array(

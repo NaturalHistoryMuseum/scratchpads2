@@ -27,11 +27,12 @@ function slickgrid_menu(){
       'type' => MENU_CALLBACK,
       'file' => 'includes/slickgrid.callbacks.inc'
     ),
-    'slickgrid/get/data/%/%' => array(
+    'slickgrid/get/data/%/%/%' => array(
       'page callback' => 'slickgrid_get_data',
       'page arguments' => array(
         3,
-        4
+        4,
+        5
       ),
       'access arguments' => array(
         'access content'
@@ -158,8 +159,8 @@ function slickgrid_library(){
 function slickgrid_views_pre_execute(&$view){
   if(get_class($view->style_plugin) == 'slickgrid_views_plugin'){
     if(substr($_GET['q'], 0, 18) == 'slickgrid/get/data'){
-      $view->query->limit = 50;
-      $view->query->offset = arg(4) * 50;
+      $view->query->limit = arg(5);
+      $view->query->offset = arg(4);
     }else{
       $view->query->limit = 1;
     }
