@@ -83,6 +83,9 @@ function beautytips_textinput_form_change(&$form, $form_state, $form_id) {
         }
         else if ($(this).parent('.form-textarea-wrapper').parent('.form-item').nextAll('.description:eq(0)').length !== 0) {
           $(this).parent('.form-textarea-wrapper').parent('.form-item').nextAll('.description:eq(0)').hide().html();
+        }
+        else {
+          null;
         }";
       $options['bt_text_area'] = array(
         'cssSelect' => 'textarea.form-textarea',

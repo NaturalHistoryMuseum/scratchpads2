@@ -95,6 +95,7 @@ function beautytips_manager_custom_tips_form($form, &$form_state, $id = NULL) {
     '#type' => 'textfield',
     '#title' => t('Element'),
     '#required' => TRUE,
+    '#maxlength' => 255,
     '#default_value' => is_object($tip) ? $tip->element : '',
   );
   $form['tip']['enabled'] = array(

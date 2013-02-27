@@ -70,16 +70,16 @@ function beautytips_drupal_help_theme_change(&$theme_registry) {
  * Returns code that emits the 'more help'-link.
  * Overrides theme_more_help_link
  */
-function theme_beautytips_drupal_help_more_help_link($url) {
+function theme_beautytips_drupal_help_more_help_link($variables) {
   $options = array();
   $options['bt_drupal_help'] = array(
     'cssSelect' => '.more-help-link a',
-    'ajaxPath' => array(0 => "$(this).attr('href')", 1 => '.clear-block p'),
+    'ajaxPath' => array("$(this).attr('href')", '#content'),
     'trigger' => array(0 => 'mouseover', 1 => 'click'),
-    'width' => 350,
+    'width' => 600,
   );
   beautytips_add_beautytips($options);
-  return theme_drupal_help_more_help_link($url);
+  return theme_more_help_link($variables);
 }
 
 /**
