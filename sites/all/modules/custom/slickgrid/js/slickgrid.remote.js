@@ -50,7 +50,7 @@
         // TODO: look-ahead
         return;
       }
-      var url = Drupal.settings.slickgrid.get_data_callback_url + viewName + "/" + fromPage;
+      var url = Drupal.settings.slickgrid.get_data_callback_url + viewName + "/" + (fromPage * PAGESIZE) + "/" + PAGESIZE;
       if(sortcol) {
         url += "/" + sortcol + "/" + ((sortdir > 0) ? "asc" : "desc");
       }
@@ -105,7 +105,7 @@
         this.clear();
         window.clearTimeout(timeoutID);
         timeoutID = window.setTimeout(function(){
-          this_copy.ensureData(0, 50);
+          this_copy.ensureData(0, PAGESIZE);
         }, 700);
       }
     }
