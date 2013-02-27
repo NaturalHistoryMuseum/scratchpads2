@@ -54,6 +54,7 @@ function scratchpads_user_user_load($entities){
     if($entity->uid && empty($entity->pass)){
       // Is this user just a stub - cannot login
       $entities[$entity_id]->stub_user = true;
+      $entities[$entity_id]->status = 1;
       // Following edited as it throws up an error on install with UID 1.
       $new_name = FALSE;
       preg_match('/(.*) [0-9]*$/', $entities[$entity_id]->name, $matches);
