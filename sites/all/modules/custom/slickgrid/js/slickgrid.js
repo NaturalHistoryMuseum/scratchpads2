@@ -18,7 +18,7 @@ if(!Array.prototype.indexOf) {
   // Loading indicator div.
   var loadingIndicator = null;
   // Slickgrid class implementation
-  function Slickgrid(container, viewName, viewDisplayID, callbackPath, loader){
+  function Slickgrid(container, viewName, viewDisplayID, callbackPath){
     var columnFilters = {};
     var objHttpDataRequest;
     var checkboxSelector;
@@ -26,6 +26,7 @@ if(!Array.prototype.indexOf) {
     var activeRow; // The row currently being edited
     var commandQueue = [];
     var locked;
+    var loader;
     // Remove
     var $status; // $status container for result icons & messages & loading ic
     // Controls
@@ -50,7 +51,7 @@ if(!Array.prototype.indexOf) {
         undoControl = new Slick.Controls.Undo($("#slickgrid-undo"));
       }
       // Initialise the remotemodel & slickgrid
-      var loader = new Slick.Data.RemoteModel(viewName);
+      loader = new Slick.Data.RemoteModel(viewName);
       // Temporarily show the header row.
       options.showHeaderRow = true;
       grid = new Slick.Grid(container, loader.data, columns, options);
@@ -483,58 +484,43 @@ if(!Array.prototype.indexOf) {
       var status = {loading: false, success: 0, errors: 0};
       if(response) {
         // Are there any update nodes
-        if(response.updated) {
-          $.each(response.updated, function(id, entity){
-            // Get the row denoted by the nid
-            row = dataView.getRowById(id);
-            // Get the data item for the row
-            var item = dataView.getItem(row);
-            // Update the item with the new value (if necessary)
-            if(item[response.field_id] != entity.value) {
-              // Change the value
-              item[response.field_id] = entity.value;
-              // Update the dataView
-              dataView.updateItem(item.id, item);
-            }
-            status.success++;
-          });
-          // Are we allowing undoing content (there will be a command queue if
-          // we are)
-          if(options['undo'] && response.op == 'update' && status.success > 0) {
-            // Add the update items to the undo command queue
-            undoControl.queueCommand(response.updated);
-          }
+        $.each(response.updated, function(id, entity){
+          status.success++;
+        });
+        // Are we allowing undoing content (there will be a command queue if
+        // we are)
+        if(options['undo'] && response.op == 'update' && status.success > 0) {
+          // Add the update items to the undo command queue
+          undoControl.queueCommand(response.updated);
         }
-        // Were there any errors?
-        if(typeof response.errors !== 'undefined') {
-          $.each(response.errors, function(id, err){
-            // Get the row denoted by the nid
-            row = dataView.getRowById(id);
-            // Get the data item for the row
-            cell = grid.getColumnIndex(response.field_id);
-            cellNode = grid.getCellNode(row, cell);
-            $(cellNode).addClass('invalid');
-            $(cellNode).stop(true, true).effect("highlight", {color: "red"}, 300);
-            status.errors++;
-          });
-        }
-        // Are there items to be deleted?
-        if(response.deleted) {
-          $.each(response.deleted, function(i, id){
-            dataView.deleteItem(id);
-            status.success++;
-          });
-        }
-        updateStatus(status, response.messages);
-        // If the callback has returned a new data array (which will happen on
-        // node clone & node add) reload the data
-        if(typeof response.data === 'object') {
-          reload(response.data);
-        }
-        // If the callback has returned a column array, update the columns
-        if(typeof response.columns === 'string') {
-          updateColumns(response.columns);
-        }
+        // Loop through each deleted.
+        $.each(response.deleted, function(i, id){
+          status.success++;
+        });
+      }
+      // Were there any errors?
+      if(typeof response.errors !== 'undefined') {
+        $.each(response.errors, function(id, err){
+          // Get the row denoted by the nid
+          row = dataView.getRowById(id);
+          // Get the data item for the row
+          cell = grid.getColumnIndex(response.field_id);
+          cellNode = grid.getCellNode(row, cell);
+          $(cellNode).addClass('invalid');
+          $(cellNode).stop(true, true).effect("highlight", {color: "red"}, 300);
+          status.errors++;
+        });
+      }
+      loader.reloadData(0, loader.data.length);
+      updateStatus(status, response.messages);
+      // If the callback has returned a new data array (which will happen on
+      // node clone & node add) reload the data
+      if(typeof response.data === 'object') {
+        reload(response.data);
+      }
+      // If the callback has returned a column array, update the columns
+      if(typeof response.columns === 'string') {
+        updateColumns(response.columns);
       }
       $(container).trigger('onSlickgridCallback', {status: status, response: response});
     }
