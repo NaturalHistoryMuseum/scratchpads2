@@ -51,6 +51,9 @@ class MigrateDestinationField extends MigrateDestination{
           if($label !== NULL){
             $field_instance['display'][$display]['label'] = $label;
           }
+          if (!isset($field_instance['display'][$display]['settings'])) {
+            $field_instance['display'][$display]['settings'] = array();
+          }
         }else{
           unset($field_instance['display'][$display]);
         }
@@ -67,7 +70,7 @@ class MigrateDestinationField extends MigrateDestination{
       'entity_types' => array(
         $object->entity_type
       ),
-      'field_name' => $object->field_name,
+      'field_name' => strtolower($object->field_name),
       'module' => $object->module,
       'settings' => $object->global_settings,
       'translatable' => '1',

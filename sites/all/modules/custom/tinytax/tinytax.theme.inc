@@ -19,10 +19,20 @@ function theme_tinytax_block($variables){
       $variables['ancestors'] = 0;
     }
   }
-  return '<div class="tinytax">' . theme('tinytax_branch', array(
+  $toggle = variable_get('tinytax_hidden_field_and_value_' . $variables['vid'], array());
+  $toggle_form = '';
+  if(count($toggle)){
+    $toggle_form = '<form><input class="tinytax-toggle-checkbox" data-vid="' . $variables['vid'] . '" id="tinytax-toggle-' . $variables['vid'] . '" type="checkbox" value="0" name="tinytax_toggle_' . $variables['vid'] . '"/>
+  <label class="option" for="tinytax-toggle-' . $variables['vid'] . '">' . t('Hide %values terms', array(
+      '%values' => implode(', ', current($toggle))
+    )) . '</label>
+</form>';
+  }
+  return '<div class="tinytax">' . $toggle_form . theme('tinytax_branch', array(
     'vid' => $variables['vid'],
     'open_tids' => $variables['open_tids'],
-    'ancestors' => $variables['ancestors']
+    'ancestors' => $variables['ancestors'],
+    'toggle' => $toggle
   )) . '</div>';
 }
 
@@ -38,7 +48,8 @@ function theme_tinytax_branch($variables){
     $output .= theme('tinytax_term', array(
       'term' => $term,
       'ancestors' => $variables['ancestors'],
-      'open_tids' => $variables['open_tids']
+      'open_tids' => $variables['open_tids'],
+      'toggle' => $variables['toggle']
     ));
   }
   return $output . '</ul>';
@@ -77,14 +88,25 @@ function theme_tinytax_term_count($variables){
  * tinytax_term theme function
  */
 function theme_tinytax_term($variables){
-  $term = menu_get_object('taxonomy_term', 2);
   if($term->tid == $variables['term']->tid){
     $active = TRUE;
   }else{
     $active = FALSE;
   }
   $has_children = count(taxonomy_get_children($variables['term']->tid));
-  $output = '<li id="tinytax-' . $variables['term']->tid . '">';
+  $class = '';
+  if($variables['toggle']){
+    foreach($variables['toggle'] as $field_name => $toggle_values){
+      foreach($variables['term']->{$field_name} as $lng => $values){
+        foreach($values as $value){
+          if(in_array($value['value'], $toggle_values)){
+            $class = " class=\"vid-{$variables['term']->vid} toggleable\"";
+          }
+        }
+      }
+    }
+  }
+  $output = "<li id=\"tinytax-{$variables['term']->tid}\"$class>";
   if($has_children){
     // Plus or minus.
     if(in_array($variables['term']->tid, $variables['open_tids'])){

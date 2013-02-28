@@ -25,7 +25,8 @@ function tinytax_theme(){
         'open_tids' => array(),
         'ancestors' => FALSE,
         'tid' => 0,
-        'vid' => FALSE
+        'vid' => FALSE,
+        'toggle' => FALSE
       ),
       'file' => 'tinytax.theme.inc'
     ),
@@ -33,7 +34,8 @@ function tinytax_theme(){
       'variables' => array(
         'term' => FALSE,
         'ancestors' => FALSE,
-        'open_tids' => array()
+        'open_tids' => array(),
+        'toggle' => FALSE
       ),
       'file' => 'tinytax.theme.inc'
     ),
@@ -64,7 +66,8 @@ function tinytax_js($term){
   return theme('tinytax_branch', array(
     'tid' => $term->tid,
     'vid' => $term->vid,
-    'ancestors' => $ancestors
+    'ancestors' => $ancestors,
+    'toggle' => variable_get('tinytax_hidden_field_and_value_' . $term->vid, FALSE)
   ));
 }
 
@@ -140,19 +143,69 @@ function tinytax_block_view($delta = ''){
  * Implements hook_block_configure().
  */
 function tinytax_block_configure($delta = ''){
-  return array(
+  $form = array(
     'tinytax_ancestors' => array(
       '#type' => 'checkbox',
       '#title' => t('Tick to show the total number of descendants of each term.'),
       '#default_value' => variable_get('tinytax_ancestors_' . $delta, 0)
     )
   );
+  // We get a list of all the fields that are attached to this bundle.
+  $vocabulary = taxonomy_vocabulary_load($delta);
+  $fields = field_info_fields();
+  $options = array();
+  $form['hide_terms'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Toggle visibility of terms')
+  );
+  $default_value = variable_get('tinytax_hidden_field_and_value_' . $delta, array());
+  foreach($fields as $field_name => $field){
+    if(isset($field['bundles']['taxonomy_term']) && in_array($vocabulary->machine_name, $field['bundles']['taxonomy_term'])){
+      if($field['type'] == 'list_text'){
+        $keep_hide_terms = TRUE;
+        $instance = field_info_instance('taxonomy_term', $field_name, $vocabulary->machine_name);
+        $options[$field_name] = $instance['label'];
+        $form['hide_terms']['allowed_values_' . $field_name] = array(
+          '#type' => 'select',
+          '#title' => t('Values to hide'),
+          '#default_value' => isset($default_value[$field_name]) ? $default_value[$field_name] : '',
+          '#options' => list_allowed_values($field, $instance, 'taxonomy_term'),
+          '#multiple' => TRUE,
+          '#states' => array(
+            'visible' => array(
+              ':input[name="hide_terms_field"]' => array(
+                'value' => $field_name
+              )
+            )
+          )
+        );
+      }
+    }
+  }
+  if(count($options)){
+    $form['hide_terms']['hide_terms_field'] = array(
+      '#type' => 'select',
+      '#title' => t('Field to match against'),
+      '#default_value' => array_pop(array_keys($default_value)),
+      '#options' => $options,
+      '#weight' => -100,
+      '#empty_value' => 0
+    );
+  }else{
+    unset($form['hide_terms']);
+  }
+  return $form;
 }
 
 /**
  * Implements hook_block_save().
  */
 function tinytax_block_save($delta = '', $edit = array()){
+  if($edit['hide_terms_field']){
+    variable_set('tinytax_hidden_field_and_value_' . $delta, array(
+      $edit['hide_terms_field'] => $edit['allowed_values_' . $edit['hide_terms_field']]
+    ));
+  }
   variable_set('tinytax_ancestors_' . $delta, $edit['tinytax_ancestors']);
 }
 
