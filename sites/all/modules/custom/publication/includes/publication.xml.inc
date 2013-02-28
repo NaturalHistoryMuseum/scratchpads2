@@ -54,6 +54,12 @@
  *                           where the field defined in #condition is tested against $val using operator
  *                           $op.
  *
+ *    #error_info:      If present, this will be used instead of the field name in error messages
+ *                      (eg. field ... is required)
+ *
+ *    #error_field      If present, the string '%' in the #error_info will be substituted for the value
+ *                      of that field on the current object
+ *
  *   <tag name>:        A schema array for child elements. There can be any number of
  *                      such entries. To allow for several of the same tag (for instance, several
  *                      iteration of a tag mapping to different fields) add #<number> at the end
@@ -240,7 +246,8 @@ class PublicationXMLBuilder{
    * 'no-error' : Ignore contraint errors (no exception thrown). Default
    *              is FALSE
    */
-  function __construct($array_schema, $settings, $modifiers = array()){
+  function __construct($publication_name, $array_schema, $settings, $modifiers = array()){
+    $this->publication_name = $publication_name;
     $this->array_schema = $array_schema;
     $this->settings = $settings;
     $this->modifiers = $modifiers;
@@ -257,7 +264,7 @@ class PublicationXMLBuilder{
   function build_xml($object, $version = '1.0', $encoding = 'UTF-8'){
     $this->_root_object = $object;
     $this->_dom = new DOMDocument($version, $encoding);
-    foreach ($this->modifiers as $modifier) {
+    foreach($this->modifiers as $modifier){
       $modifier->start_building($this->array_schema, $this->_root_object, $this->_dom);
     }
     $this->_build_xml_iteration($this->array_schema, $this->_root_object, $this->_dom);
@@ -325,7 +332,7 @@ class PublicationXMLBuilder{
   function _build_schema_insert_field($schema, $tag, $object, $xml_element){
     $field = $schema['#field'];
     $values = $this->_read_values($object->$field);
-    foreach ($this->modifiers as $modifier) {
+    foreach($this->modifiers as $modifier){
       $values = $modifier->insert_value_array($schema, $tag, $values);
     }
     $inserted = FALSE;
@@ -334,7 +341,13 @@ class PublicationXMLBuilder{
       if(isset($schema['#value'])){
         $value_to_insert = $schema['#value'];
       }
-      $child_object = $this->_load_child_object($schema, $object, $value);
+      try{
+        $child_object = $this->_load_child_object($schema, $object, $value);
+      }
+      catch(Exception $e){
+        $this->_generate_error($e->getMessage());
+        $child_object = NULL;
+      }
       if(!$child_object){
         // It's up to the loader to raise errors if need be. Here an empty return means skip it.
         // XXX doing this test here means we're not checking against min/max occurs.
@@ -438,7 +451,7 @@ class PublicationXMLBuilder{
       }
     }
     // Add value
-    foreach ($this->modifiers as $modifier) {
+    foreach($this->modifiers as $modifier){
       $value = $modifier->insert_value($tag, $schema, $value);
     }
     if($value !== NULL){
@@ -483,16 +496,58 @@ class PublicationXMLBuilder{
       }
       $count = count($field_value);
       if($count < $min_occurence || ($max_occurence >= 0 && $count > $max_occurence)){
+        $message_prepare = "the field %field";
+        if($count == 0){
+          $message_prepare .= " is required.";
+        }else if($count < $min_occurence){
+          $message_prepare .= " must be present at least %min times, but is only here %count times.";
+        }else{
+          $message_prepare .= " can be present at most %max times, but is here %count times.";
+        }
+        $message_prepare .= " (Technical note: the associated XML tag was %tag)";
+        $error_field = $field;
+        if(isset($schema['#error_info'])){
+          $error_field = $schema['#error_info'];
+          if(isset($schema['#error_field'])){
+            $error_context_field = $schema['#error_field'];
+            if(isset($object->$error_context_field)){
+              $error_context = reset($this->_read_values($object->$error_context_field));
+              $error_field = str_replace('%', $error_context, $error_field);
+            }
+          }
+        }
+        $message = t($message_prepare, array(
+          '%field' => $error_field,
+          '%min' => $min_occurence,
+          '%max' => $max_occurence,
+          '%count' => $count,
+          '%tag' => $tag
+        ));
+        $this->_generate_error($message);
         if($this->settings['force-empty-values'] && $count == 0){
+          // If no exception was raised and we are asked to enter empty values, make sure we adapt the schema
           $schema['#value'] = '';
           unset($schema['#field']);
-          drupal_set_message("Ignored: XML contraint violation: $tag occurence is $min_occurence, $max_occurence ; " . "associated field $field appears $count times. Value forced to empty string.", "warning");
-        }else if($this->settings['no-error']){
-          drupal_set_message("Ignored: XML contraint violation: $tag occurence is $min_occurence, $max_occurence ; " . "associated field $field appears $count times", "warning");
-        }else{
-          throw new Exception("XML contraint violation: $tag occurence is $min_occurence, $max_occurence ; associated field $field appears $count times");
         }
       }
+    }
+  }
+
+  /**
+   * This function registers an error and either interupts processing by
+   * throwing an exception, or logs the error and returns
+   */
+  function _generate_error($message){
+    $message = t('The publication %publication could not be generated, because !message', array(
+      '%publication' => $this->publication_name,
+      '!message' => $message
+    ));
+    if($this->settings['force-empty-values'] && $count == 0){
+      drupal_set_message(t("The following error happened but was ignored due to settings, and an empty value was set in it's place: ") . $message, 'warning');
+    }else if($this->settings['no-error']){
+      drupal_set_message(t("The following error happened but was ignored due to settings: ") . $message, 'warning');
+    }else{
+      throw new Exception($message);
     }
   }
 
@@ -527,7 +582,7 @@ class PublicationXMLBuilder{
  * - Track references ;
  * - Order fields ;
  * - Modify/filter content
- * 
+ *
  * Note: we use registered objects rather than hooks,
  * because the main purpose of this is to rename
  * citations and order cited objects accordingly
@@ -535,29 +590,30 @@ class PublicationXMLBuilder{
  * we keep context throughout the process which is
  * not always practical with hooks.
  */
-interface PublicationXMLModifierInterface {
+interface PublicationXMLModifierInterface{
+
   /**
    * function start_building
-   * 
+   *
    * This is called before the XML building starts.
-   * 
+   *
    * $schema: The array schema used for building the XML
-   * 
+   *
    * $object: the object from which the XML
    * will be build
-   * 
+   *
    * $dom: The empty DomDocument object
    */
   public function start_building($schema, $object, $dom);
-  
+
   /**
    * function insert_value
-   * 
+   *
    * This is called when an actual value is about to be
    * inserted into the DOM, and should return the
    * modified value to insert. Classes implementing
    * this interface should at least return $value here.
-   * 
+   *
    * $tag: The tag of the value being inserted 
    * $schema: The schema for the tag
    * $value: The value itself
@@ -573,7 +629,7 @@ interface PublicationXMLModifierInterface {
    * can be used to filter out some values or to order the values.
    * Classes implementing this interface should at least return $values
    * here.
-   * 
+   *
    * Note that each individual value will still go throug 'insert_value'
    * 
    * $schema: The schema for the tag
@@ -586,7 +642,7 @@ interface PublicationXMLModifierInterface {
 /**
  * Process a country field to return either the iso2 code or
  * the country name
- * 
+ *
  */
 function _publication_xml_process_country($value, $type = 'name'){
   if($type == 'iso2'){

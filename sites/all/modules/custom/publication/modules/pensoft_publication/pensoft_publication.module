@@ -554,7 +554,7 @@ function _pensoft_publication_build_xml($publication){
   $modifier = new PublicationHtmlFormatXMLModifier();
   // Build the XML
   try{
-    $builder = new PublicationXMLBuilder($schema, array(
+    $builder = new PublicationXMLBuilder('Pensoft Publication', $schema, array(
       'force-empty-values' => FALSE
     ), array(
       $modifier

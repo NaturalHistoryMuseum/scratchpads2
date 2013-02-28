@@ -12,7 +12,8 @@
  */
 function _pensoft_publication_xml_process_salutation($value){
   $map = array(
-    'Prof.' => 'Prof'
+    'Prof.' => 'Prof',
+    'Miss' => 'Ms'
   );
   if(isset($map[$value['value']])){
     return array(
@@ -114,14 +115,17 @@ function _pensoft_publication_xml_load_biblio($value) {
     108 => 'Thesis',
     113 => 'Software',
     132 => 'Website',
+    107 => 'Website' // Re-map Web Artcile to Website
   );
 
   $node = node_load($value);
   if (isset($type_map[$node->biblio_type])) {
     $node->pensoft_type = $type_map[$node->biblio_type];
   } else {
-    // Use actual name so the user gets a meaningfull error message
-    $node->pensoft_type = $node->biblio_type_name;
+    throw new Exception(t("Pensoft only supports the following reference types: %types. This was a problem for reference %title", array(
+      '%types' => implode(',', array_unique($type_map)),
+      '%title' => $node->title
+    )));
   }
   // Biblio re-uses fields depending on the type, Pensoft doesn't -
   // so match fields depending on the type
@@ -219,6 +223,8 @@ function _pensoft_publication_xml_article_metadata_schema(){
       ),
       'salutation' => array(
         'value' => array(
+          '#error_info' => 'Title for user %',
+          '#error_field' => 'name',
           '#field' => 'field_user_title',
           '#process' => '_pensoft_publication_xml_process_salutation'
         )
@@ -309,6 +315,8 @@ function _pensoft_publication_xml_article_metadata_schema(){
         ),
         'salutation' => array(
           'value' => array(
+            '#error_info' => 'Title for user %',
+            '#error_field' => 'name',
             '#field' => 'field_user_title',
             '#process' => '_pensoft_publication_xml_process_salutation'
           )
@@ -466,7 +474,10 @@ function _pensoft_publication_xml_systematics_schema(){
   $distribution = array(
     'fields' => array(
       'distribution' => array(
-        '#field' => 'field_distribution'
+        '#condition' => 'field_distribution',
+        'value' => array(
+          '#field' => 'field_distribution'
+        )
       )
     ),
     'subsection#2' => array(
@@ -488,7 +499,10 @@ function _pensoft_publication_xml_systematics_schema(){
   $ecology = array(
     'fields' => array(
       'ecology' => array(
-        '#field' => 'field_ecology'
+        '#condition' => 'field_ecology',
+        'value' => array(
+          '#field' => 'field_ecology'
+        )
       )
     ),
     'subsection#1' => array(
