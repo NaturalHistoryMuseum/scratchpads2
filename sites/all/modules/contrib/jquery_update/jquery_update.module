@@ -268,12 +268,12 @@ function jquery_update_jqueryui_replace(&$javascript, $cdn, $path, $min) {
 
   switch($cdn) {
     case 'google':
-      $cdn = 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.11/jquery-ui' . $min . '.js';
+      $cdn = 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.24/jquery-ui' . $min . '.js';
       jquery_update_jqueryui_cdn($cdn, $javascript, $path, $min, $names);
       jquery_update_jqueryui_backup($javascript, $path, $min);
       break;
     case 'microsoft':
-      $cdn = 'http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.11/jquery-ui' . $min . '.js';
+      $cdn = 'http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.24/jquery-ui' . $min . '.js';
       jquery_update_jqueryui_cdn($cdn, $javascript, $path, $min, $names);
       jquery_update_jqueryui_backup($javascript, $path, $min);
       break;
@@ -323,7 +323,7 @@ function jquery_update_jqueryui_cdn($cdn, &$javascript, $path, $min, $names) {
     $corefile = 'misc/ui/jquery.' . $file . '.min.js';
     // Remove the core files.
     unset($javascript[$name]['js'][$corefile]);
-    $javascript[$name]['version'] = '1.8.11';
+    $javascript[$name]['version'] = '1.8.24';
   }
 
   // UI is used by all of UI. Add the js cdn here.
@@ -354,6 +354,6 @@ function jquery_update_jqueryui_local(&$javascript, $path, $min, $names) {
   foreach ($names as $name => $file) {
     $corefile = 'misc/ui/jquery.' . $file . '.min.js';
     $javascript[$name]['js'][$corefile]['data'] = $jspath . 'jquery.' . $file . $min . '.js';
-    $javascript[$name]['version'] = '1.8.11';
+    $javascript[$name]['version'] = '1.8.24';
   }
 }
