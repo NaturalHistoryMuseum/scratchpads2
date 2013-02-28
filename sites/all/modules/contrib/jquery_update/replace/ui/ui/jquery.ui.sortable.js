@@ -1,7 +1,7 @@
-/*
- * jQuery UI Sortable 1.8.11
+/*!
+ * jQuery UI Sortable 1.8.24
  *
- * Copyright 2011, AUTHORS.txt (http://jqueryui.com/about)
+ * Copyright 2012, AUTHORS.txt (http://jqueryui.com/about)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://jquery.org/license
  *
@@ -16,6 +16,7 @@
 
 $.widget("ui.sortable", $.ui.mouse, {
 	widgetEventPrefix: "sort",
+	ready: false,
 	options: {
 		appendTo: "parent",
 		axis: false,
@@ -50,25 +51,27 @@ $.widget("ui.sortable", $.ui.mouse, {
 		this.refresh();
 
 		//Let's determine if the items are being displayed horizontally
-		this.floating = this.items.length ? (/left|right/).test(this.items[0].item.css('float')) || (/inline|table-cell/).test(this.items[0].item.css('display')) : false;
+		this.floating = this.items.length ? o.axis === 'x' || (/left|right/).test(this.items[0].item.css('float')) || (/inline|table-cell/).test(this.items[0].item.css('display')) : false;
 
 		//Let's determine the parent's offset
 		this.offset = this.element.offset();
 
 		//Initialize mouse events for interaction
 		this._mouseInit();
+		
+		//We're ready to go
+		this.ready = true
 
 	},
 
 	destroy: function() {
+		$.Widget.prototype.destroy.call( this );
 		this.element
-			.removeClass("ui-sortable ui-sortable-disabled")
-			.removeData("sortable")
-			.unbind(".sortable");
+			.removeClass("ui-sortable ui-sortable-disabled");
 		this._mouseDestroy();
 
 		for ( var i = this.items.length - 1; i >= 0; i-- )
-			this.items[i].item.removeData("sortable-item");
+			this.items[i].item.removeData(this.widgetName + "-item");
 
 		return this;
 	},
@@ -86,6 +89,7 @@ $.widget("ui.sortable", $.ui.mouse, {
 	},
 
 	_mouseCapture: function(event, overrideHandle) {
+		var that = this;
 
 		if (this.reverting) {
 			return false;
@@ -98,12 +102,12 @@ $.widget("ui.sortable", $.ui.mouse, {
 
 		//Find out if the clicked node (or one of its parents) is a actual item in this.items
 		var currentItem = null, self = this, nodes = $(event.target).parents().each(function() {
-			if($.data(this, 'sortable-item') == self) {
+			if($.data(this, that.widgetName + '-item') == self) {
 				currentItem = $(this);
 				return false;
 			}
 		});
-		if($.data(event.target, 'sortable-item') == self) currentItem = $(event.target);
+		if($.data(event.target, that.widgetName + '-item') == self) currentItem = $(event.target);
 
 		if(!currentItem) return false;
 		if(this.options.handle && !overrideHandle) {
@@ -151,11 +155,6 @@ $.widget("ui.sortable", $.ui.mouse, {
 			left: this.offset.left - this.margins.left
 		};
 
-		// Only after we got the offset, we can change the helper's position to absolute
-		// TODO: Still need to figure out a way to make relative sorting possible
-		this.helper.css("position", "absolute");
-		this.cssPosition = this.helper.css("position");
-
 		$.extend(this.offset, {
 			click: { //Where the click happened, relative to the element
 				left: event.pageX - this.offset.left,
@@ -165,6 +164,11 @@ $.widget("ui.sortable", $.ui.mouse, {
 			relative: this._getRelativeOffset() //This is a relative to absolute position minus the actual position calculation - only used for relative positioned helper
 		});
 
+		// Only after we got the offset, we can change the helper's position to absolute
+		// TODO: Still need to figure out a way to make relative sorting possible
+		this.helper.css("position", "absolute");
+		this.cssPosition = this.helper.css("position");
+		
 		//Generate the original position
 		this.originalPosition = this._generatePosition(event);
 		this.originalPageX = event.pageX;
@@ -292,7 +296,16 @@ $.widget("ui.sortable", $.ui.mouse, {
 			var item = this.items[i], itemElement = item.item[0], intersection = this._intersectsWithPointer(item);
 			if (!intersection) continue;
 
-			if(itemElement != this.currentItem[0] //cannot intersect with itself
+			// Only put the placeholder inside the current Container, skip all
+			// items form other containers. This works because when moving
+			// an item from one container to another the
+			// currentContainer is switched before the placeholder is moved.
+			//
+			// Without this moving items in "sub-sortables" can cause the placeholder to jitter
+			// beetween the outer and inner container.
+			if (item.instance !== this.currentContainer) continue;
+
+			if (itemElement != this.currentItem[0] //cannot intersect with itself
 				&&	this.placeholder[intersection == 1 ? "next" : "prev"]()[0] != itemElement //no useless actions that have been done before
 				&&	!$.ui.contains(this.placeholder[0], itemElement) //no action if the item moved is the parent of the item checked
 				&& (this.options.type == 'semi-dynamic' ? !$.ui.contains(this.element[0], itemElement) : true)
@@ -464,8 +477,8 @@ $.widget("ui.sortable", $.ui.mouse, {
 
 	_intersectsWithPointer: function(item) {
 
-		var isOverElementHeight = $.ui.isOverAxis(this.positionAbs.top + this.offset.click.top, item.top, item.height),
-			isOverElementWidth = $.ui.isOverAxis(this.positionAbs.left + this.offset.click.left, item.left, item.width),
+		var isOverElementHeight = (this.options.axis === 'x') || $.ui.isOverAxis(this.positionAbs.top + this.offset.click.top, item.top, item.height),
+			isOverElementWidth = (this.options.axis === 'y') || $.ui.isOverAxis(this.positionAbs.left + this.offset.click.left, item.left, item.width),
 			isOverElement = isOverElementHeight && isOverElementWidth,
 			verticalDirection = this._getDragVerticalDirection(),
 			horizontalDirection = this._getDragHorizontalDirection();
@@ -528,7 +541,7 @@ $.widget("ui.sortable", $.ui.mouse, {
 			for (var i = connectWith.length - 1; i >= 0; i--){
 				var cur = $(connectWith[i]);
 				for (var j = cur.length - 1; j >= 0; j--){
-					var inst = $.data(cur[j], 'sortable');
+					var inst = $.data(cur[j], this.widgetName);
 					if(inst && inst != this && !inst.options.disabled) {
 						queries.push([$.isFunction(inst.options.items) ? inst.options.items.call(inst.element) : $(inst.options.items, inst.element).not(".ui-sortable-helper").not('.ui-sortable-placeholder'), inst]);
 					}
@@ -550,7 +563,7 @@ $.widget("ui.sortable", $.ui.mouse, {
 
 	_removeCurrentsFromItems: function() {
 
-		var list = this.currentItem.find(":data(sortable-item)");
+		var list = this.currentItem.find(":data(" + this.widgetName + "-item)");
 
 		for (var i=0; i < this.items.length; i++) {
 
@@ -572,11 +585,11 @@ $.widget("ui.sortable", $.ui.mouse, {
 		var queries = [[$.isFunction(this.options.items) ? this.options.items.call(this.element[0], event, { item: this.currentItem }) : $(this.options.items, this.element), this]];
 		var connectWith = this._connectWith();
 
-		if(connectWith) {
+		if(connectWith && this.ready) { //Shouldn't be run the first time through due to massive slow-down
 			for (var i = connectWith.length - 1; i >= 0; i--){
 				var cur = $(connectWith[i]);
 				for (var j = cur.length - 1; j >= 0; j--){
-					var inst = $.data(cur[j], 'sortable');
+					var inst = $.data(cur[j], this.widgetName);
 					if(inst && inst != this && !inst.options.disabled) {
 						queries.push([$.isFunction(inst.options.items) ? inst.options.items.call(inst.element[0], event, { item: this.currentItem }) : $(inst.options.items, inst.element), inst]);
 						this.containers.push(inst);
@@ -592,7 +605,7 @@ $.widget("ui.sortable", $.ui.mouse, {
 			for (var j=0, queriesLength = _queries.length; j < queriesLength; j++) {
 				var item = $(_queries[j]);
 
-				item.data('sortable-item', targetData); // Data for target checking (mouse manager)
+				item.data(this.widgetName + '-item', targetData); // Data for target checking (mouse manager)
 
 				items.push({
 					item: item,
@@ -614,6 +627,10 @@ $.widget("ui.sortable", $.ui.mouse, {
 
 		for (var i = this.items.length - 1; i >= 0; i--){
 			var item = this.items[i];
+
+			//We ignore calculating positions of all connected containers when we're not over them
+			if(item.instance != this.currentContainer && this.currentContainer && item.item[0] != this.currentItem[0])
+				continue;
 
 			var t = this.options.toleranceElement ? $(this.options.toleranceElement, item.item) : item.item;
 
@@ -722,30 +739,31 @@ $.widget("ui.sortable", $.ui.mouse, {
 		if(this.containers.length === 1) {
 			this.containers[innermostIndex]._trigger("over", event, this._uiHash(this));
 			this.containers[innermostIndex].containerCache.over = 1;
-		} else if(this.currentContainer != this.containers[innermostIndex]) { 
+		} else if(this.currentContainer != this.containers[innermostIndex]) {
 
-			//When entering a new container, we will find the item with the least distance and append our item near it 
-			var dist = 10000; var itemWithLeastDistance = null; var base = this.positionAbs[this.containers[innermostIndex].floating ? 'left' : 'top']; 
-			for (var j = this.items.length - 1; j >= 0; j--) { 
-				if(!$.ui.contains(this.containers[innermostIndex].element[0], this.items[j].item[0])) continue; 
-				var cur = this.items[j][this.containers[innermostIndex].floating ? 'left' : 'top']; 
-				if(Math.abs(cur - base) < dist) { 
-					dist = Math.abs(cur - base); itemWithLeastDistance = this.items[j]; 
-				} 
-			} 
+			//When entering a new container, we will find the item with the least distance and append our item near it
+			var dist = 10000; var itemWithLeastDistance = null; var base = this.positionAbs[this.containers[innermostIndex].floating ? 'left' : 'top'];
+			for (var j = this.items.length - 1; j >= 0; j--) {
+				if(!$.ui.contains(this.containers[innermostIndex].element[0], this.items[j].item[0])) continue;
+				var cur = this.containers[innermostIndex].floating ? this.items[j].item.offset().left : this.items[j].item.offset().top;
+				if(Math.abs(cur - base) < dist) {
+					dist = Math.abs(cur - base); itemWithLeastDistance = this.items[j];
+					this.direction = (cur - base > 0) ? 'down' : 'up';
+				}
+			}
 
-			if(!itemWithLeastDistance && !this.options.dropOnEmpty) //Check if dropOnEmpty is enabled 
-				return; 
+			if(!itemWithLeastDistance && !this.options.dropOnEmpty) //Check if dropOnEmpty is enabled
+				return;
 
-			this.currentContainer = this.containers[innermostIndex]; 
-			itemWithLeastDistance ? this._rearrange(event, itemWithLeastDistance, null, true) : this._rearrange(event, null, this.containers[innermostIndex].element, true); 
-			this._trigger("change", event, this._uiHash()); 
-			this.containers[innermostIndex]._trigger("change", event, this._uiHash(this)); 
+			this.currentContainer = this.containers[innermostIndex];
+			itemWithLeastDistance ? this._rearrange(event, itemWithLeastDistance, null, true) : this._rearrange(event, null, this.containers[innermostIndex].element, true);
+			this._trigger("change", event, this._uiHash());
+			this.containers[innermostIndex]._trigger("change", event, this._uiHash(this));
 
-			//Update the placeholder 
-			this.options.placeholder.update(this.currentContainer, this.placeholder); 
-		
-			this.containers[innermostIndex]._trigger("over", event, this._uiHash(this)); 
+			//Update the placeholder
+			this.options.placeholder.update(this.currentContainer, this.placeholder);
+
+			this.containers[innermostIndex]._trigger("over", event, this._uiHash(this));
 			this.containers[innermostIndex].containerCache.over = 1;
 		} 
 	
@@ -980,7 +998,7 @@ $.widget("ui.sortable", $.ui.mouse, {
 
 		// We first have to update the dom position of the actual currentItem
 		// Note: don't do it if the current item is already removed (by a user), or it gets reappended (see #4088)
-		if(!this._noFinalSort && this.currentItem[0].parentNode) this.placeholder.before(this.currentItem);
+		if(!this._noFinalSort && this.currentItem.parent().length) this.placeholder.before(this.currentItem);
 		this._noFinalSort = null;
 
 		if(this.helper[0] == this.currentItem[0]) {
@@ -994,15 +1012,16 @@ $.widget("ui.sortable", $.ui.mouse, {
 
 		if(this.fromOutside && !noPropagation) delayedTriggers.push(function(event) { this._trigger("receive", event, this._uiHash(this.fromOutside)); });
 		if((this.fromOutside || this.domPosition.prev != this.currentItem.prev().not(".ui-sortable-helper")[0] || this.domPosition.parent != this.currentItem.parent()[0]) && !noPropagation) delayedTriggers.push(function(event) { this._trigger("update", event, this._uiHash()); }); //Trigger update callback if the DOM position has changed
-		if(!$.ui.contains(this.element[0], this.currentItem[0])) { //Node was moved out of the current element
-			if(!noPropagation) delayedTriggers.push(function(event) { this._trigger("remove", event, this._uiHash()); });
-			for (var i = this.containers.length - 1; i >= 0; i--){
-				if($.ui.contains(this.containers[i].element[0], this.currentItem[0]) && !noPropagation) {
-					delayedTriggers.push((function(c) { return function(event) { c._trigger("receive", event, this._uiHash(this)); };  }).call(this, this.containers[i]));
-					delayedTriggers.push((function(c) { return function(event) { c._trigger("update", event, this._uiHash(this));  }; }).call(this, this.containers[i]));
-				}
-			};
-		};
+
+		// Check if the items Container has Changed and trigger appropriate
+		// events.
+		if (this !== this.currentContainer) {
+			if(!noPropagation) {
+				delayedTriggers.push(function(event) { this._trigger("remove", event, this._uiHash()); });
+				delayedTriggers.push((function(c) { return function(event) { c._trigger("receive", event, this._uiHash(this)); };  }).call(this, this.currentContainer));
+				delayedTriggers.push((function(c) { return function(event) { c._trigger("update", event, this._uiHash(this));  }; }).call(this, this.currentContainer));
+			}
+		}
 
 		//Post events to containers
 		for (var i = this.containers.length - 1; i >= 0; i--){
@@ -1025,6 +1044,8 @@ $.widget("ui.sortable", $.ui.mouse, {
 				for (var i=0; i < delayedTriggers.length; i++) { delayedTriggers[i].call(this, event); }; //Trigger all delayed events
 				this._trigger("stop", event, this._uiHash());
 			}
+
+			this.fromOutside = false;
 			return false;
 		}
 
@@ -1067,7 +1088,7 @@ $.widget("ui.sortable", $.ui.mouse, {
 });
 
 $.extend($.ui.sortable, {
-	version: "1.8.11"
+	version: "1.8.24"
 });
 
 })(jQuery);
