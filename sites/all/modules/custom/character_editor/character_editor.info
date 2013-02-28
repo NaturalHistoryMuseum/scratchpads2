@@ -6,7 +6,6 @@ core = 7.x
 files[] = views/character_editor.views.inc
 files[] = views/character_editor_views_plugin.inc
 files[] = views/character_editor_views_handler_field.inc
-files[] = views/character_editor_plugin_style_sdd.inc
 ; Plugins
 files[] = plugins/editors/TextCharacter.inc
 files[] = plugins/editors/NumericCharacter.inc

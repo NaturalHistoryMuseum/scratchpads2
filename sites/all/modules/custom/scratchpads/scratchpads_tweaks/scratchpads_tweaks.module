@@ -324,6 +324,31 @@ function scratchpads_tweaks_menu_alter(&$items){
 }
 
 /**
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_tweaks_module_implements_alter(&$implementations, $hook){
+  if($hook == 'library_alter' && isset($implementations['jquery_update'])){
+    // Move jquery update to the end. This will make sure our hook_library_alter
+    // is always called before the jquery_update.
+    $jquery_update = $implementations['jquery_update'];
+    unset($implementations['jquery_update']);
+    $implementations['jquery_update'] = $jquery_update;
+  }
+}
+
+/**
+ * Implements hook_library_alter().
+ */
+function scratchpads_tweaks_library_alter(&$libraries, $module){
+  // If it is an admin path all we want to do is change the global $conf
+  // variable so when jquery_update runs right after us it will use 1.5.
+  if(substr(current_path(), 0, 22) == 'admin/structure/views/'){
+    global $conf;
+    $conf['jquery_update_jquery_version'] = '1.7';
+  }
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  */
 function scratchpads_tweaks_form_user_profile_form_alter(&$form, &$form_state, $form_id){
