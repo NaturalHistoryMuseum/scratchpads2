@@ -132,7 +132,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['fields']['views_bulk_operations']['vbo']['entity_load_capacity'] = '10';
   $handler->display->display_options['fields']['views_bulk_operations']['vbo']['operations'] = array(
     'action::node_assign_owner_action' => array(
-      'selected' => 0,
+      'selected' => 1,
       'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,

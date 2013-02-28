@@ -438,6 +438,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       if(isset($row->{$longTextField})){
         $row->{$longTextField} = ScratchpadsNodeMigration::parseImages($row->{$longTextField}, $row);
         $row->{$longTextField} = ScratchpadsNodeMigration::parseStyles($row->{$longTextField});
+        $row->{$longTextField} = ScratchpadsNodeMigration::lowercaseHtml($row->{$longTextField});
         $row->{$longTextField} = preg_replace('/\[(\/?)no-glossary\]/', '[$1no-lexicon]', $row->{$longTextField});
       }
     }
@@ -611,6 +612,20 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $replace = '<strong>$6</strong>';
     $html = preg_replace($regex, $replace, $html);
     return $html;
+  }
+
+  /**
+   * Ensures HTML tags are lowercase
+   */
+  public static function lowercaseHtml($html){
+    return preg_replace_callback('/<(\/?)([a-zA-Z]+)(.*?)>/s', array(
+      'ScratchpadsNodeMigration',
+      '_lowercaseHtmlCallback'
+    ), $html);
+  }
+
+  public static function _lowercaseHtmlCallback($matches){
+    return '<' . $matches[1] . strtolower($matches[2]) . $matches[3] . '>';
   }
 
   /**

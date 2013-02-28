@@ -14,7 +14,7 @@ function itis_term_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $fo
       '#type' => 'select',
       '#options' => array(
         1 => 'Animal',
-        2 => 'Plant/Fungi',
+        2 => 'Algae/Fungi/Plants',
         3 => 'Moneran'
       ),
       '#empty_option' => t('Not a biological classification'),
