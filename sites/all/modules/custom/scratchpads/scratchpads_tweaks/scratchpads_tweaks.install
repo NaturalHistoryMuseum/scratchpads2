@@ -308,6 +308,8 @@ function scratchpads_tweaks_install(){
       variable_set('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
     }
   }
+  // Set the jQuery settings
+  scratchpads_tweaks_update_7042();
 }
 
 /**
@@ -1032,4 +1034,12 @@ function scratchpads_tweaks_update_7040(){
 function scratchpads_tweaks_update_7041(){
   module_load_include('install', 'ckeditor');
   ckeditor_update_7005();
+}
+
+/**
+ * Set the jQuery update settings.
+ */
+function scratchpads_tweaks_update_7042(){
+  variable_set('jquery_update_jquery_version', '1.8');
+  variable_set('jquery_update_jquery_cdn', 'microsoft');
 }
