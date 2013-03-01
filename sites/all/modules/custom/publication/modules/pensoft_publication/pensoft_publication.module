@@ -339,7 +339,9 @@ function pensoft_publication_publication_parse_references($entity){
     $treat_fields = explode(',', $treat_fields_str);
     foreach($treat_fields as $treatment_field){
       $treatment_field = trim($treatment_field);
-      if (!$treatment_field) {continue;}
+      if(!$treatment_field){
+        continue;
+      }
       $values = entity_metadata_simple_values($treat_entity_wrapper->{$treatment_field}, FALSE);
       foreach($values as $value){
         if(is_string($value) && preg_match('/\[bib\]\s*(\d+)\s*\[\/bib\]/', $value, $matches)){
@@ -461,14 +463,16 @@ function pensoft_publication_publish_form_submit($form, &$form_state){
   $xml = _pensoft_publication_build_xml($publication);
   $mode = $form_state['values']['pensoft_return_xml'];
   if($mode == 3){
-    drupal_set_message('XML contains ' . strlen($xml) . " bytes", 'status');
+    drupal_set_message(t('XML contains %bytes bytes', array(
+      '%bytes' => strlen($xml)
+    )), 'status');
     return;
   }else if($mode == 1){
     header('Content-type: application/xml');
     echo $xml;
     exit();
   }else if(empty($xml)){
-    drupal_set_message('Could not process XML as required', 'error');
+    drupal_set_message(t('Could not process XML as required'), 'error');
     return;
   }
   $url = variable_get('pensoft_submit_url', 'http://pwt.pensoft.net/api.php');
@@ -487,26 +491,43 @@ function pensoft_publication_publish_form_submit($form, &$form_state){
   );
   $context = stream_context_create($options);
   $result = file_get_contents($url, false, $context);
-  header('Content-type: application/xml');
-  echo $result;
-  exit();
-  /*
-  $xml_result = new SimpleXMLElement($result);
-  if ($xml_result->result->returnCode == 0) {
+  try{
+    $xml_result = new SimpleXMLElement($result);
+  }
+  catch(Exception $e){
+    drupal_set_message(t('Could not parse the result returned by Pensoft'), 'error');
+    drupal_goto($_GET['q']);
+  }
+  $errors = array();
+  foreach($xml_result->errorMsg as $error){
+    $errors[] = check_plain((string)$error);
+  }
+  if($xml_result->returnCode == 0){
     $publisher_data = array(
-      'document_id' => $xml_result->result->document_id,
-      'document_link' => $xml_result->result->document_link
+      'document_id' => $xml_result->document_id,
+      'document_link' => $xml_result->document_link
     );
     $publication->published = 1;
     $publication->publisher_data = serialize($publisher_data);
-    publication_save($publication);
-    
-    drupal_set_message('notice', 'The document was succesfully published');
+    $publication->save();
+    if(count($errors)){
+      drupal_set_message(t("The publication was submitted successfully, however the following errors were reported: !message", array(
+        '!message' => '<ul><li>' . implode('</li><li>', $errors) . '</li></ul>'
+      )), 'warning');
+    }else{
+      drupal_set_message(t('The document was succesfully published'), 'notice');
+    }
     drupal_goto($_GET['q']);
-  } else {
-    drupal_set_message('error', 'The publication failed :' . $xml_result->result->errorMsg);
+  }else{
+    if(count($errors)){
+      drupal_set_message(t("The submission of the publication failed with the following errors: !message", array(
+        '!message' => '<ul><li>' . implode('</li><li>', $errors) . '</li></ul>'
+      )), 'error');
+    }else{
+      drupal_set_message(t('The submission of the publication failed'), 'error');
+    }
+    drupal_goto($_GET['q']);
   }
-  */
 }
 
 /**
@@ -559,45 +580,12 @@ function _pensoft_publication_build_xml($publication){
     ), array(
       $modifier
     ));
-    $xml = $builder->build_xml($publication);
+    $xml = $builder->build_xml($publication, $url, '1.0', 'UTF-8');
   }
   catch(Exception $e){
     drupal_set_message($e->getMessage(), 'error');
     return FALSE;
   }
-  // Validation and error display. Try to break the XML down in lines such that we don't disturb content by adding unwanted
-  // carriage returns (that would affect enumerations for instance).
-  $xml_per_line = preg_replace('/(<\/.*?>)/', "$1\n", $xml);
-  $parsed_dom = new DOMDocument('1.0', 'UTF-8');
-  $parsed_dom->loadXML($xml_per_line);
-  libxml_use_internal_errors(true);
-  if(!$parsed_dom->schemaValidate($url)){
-    $lines = explode("\n", $xml_per_line);
-    $errors = libxml_get_errors();
-    foreach($errors as $error){
-      $type = 'error';
-      if($error->level == LIBXML_ERR_WARNING){
-        $type = 'warning';
-      }
-      // Get some context.
-      $context = array();
-      $num = 5;
-      if($error->line > 2){
-        $count = ($error->line > $num) ? $num : ($error->line - 1);
-        $context = array_slice($lines, $error->line - $count - 1, $count);
-        foreach($context as $key => $value){
-          $context[$key] = htmlspecialchars($value);
-        }
-      }
-      $context[] = '<strong>' . htmlspecialchars($lines[$error->line - 1]) . '</strong>';
-      drupal_set_message('XML validation error: ' . $error->code . ' - ' . $error->message . ' : <br/>' . implode("<br/>", $context), $type);
-    }
-    libxml_clear_errors();
-    libxml_use_internal_errors(false);
-    return FALSE;
-  }
-  libxml_clear_errors();
-  libxml_use_internal_errors(false);
   return $xml;
 }
 

@@ -261,14 +261,18 @@ class PublicationXMLBuilder{
    * the DOM document.
    * 
    */
-  function build_xml($object, $version = '1.0', $encoding = 'UTF-8'){
+  function build_xml($object, $xsd_url = NULL, $version = '1.0', $encoding = 'UTF-8'){
     $this->_root_object = $object;
     $this->_dom = new DOMDocument($version, $encoding);
     foreach($this->modifiers as $modifier){
       $modifier->start_building($this->array_schema, $this->_root_object, $this->_dom);
     }
     $this->_build_xml_iteration($this->array_schema, $this->_root_object, $this->_dom);
-    return $this->_dom->saveXML();
+    $xml = $this->_dom->saveXML();
+    if($xsd_url && empty($this->settings['no-error'])){
+      $this->_validate_xml($xml, $xsd_url, $version, $encoding);
+    }
+    return $xml;
   }
 
   /**
@@ -570,6 +574,51 @@ class PublicationXMLBuilder{
         $value
       );
     }
+  }
+
+  /**
+   * Validates generated XML against an XSD schema, and throw
+   * an Excpetion if the validation fails
+   */
+  function _validate_xml($xml, $xsd_url, $version = '1.0', $encoding = 'UTF-8'){
+    // Try to break the XML down in lines such that we don't disturb content by adding unwanted
+    // carriage returns (that would affect enumerations for instance).
+    $xml_per_line = preg_replace('/(<\/.*?>)/', "$1\n", $xml);
+    $parsed_dom = new DOMDocument($version, $encoding);
+    $parsed_dom->loadXML($xml_per_line);
+    libxml_use_internal_errors(true);
+    if(!$parsed_dom->schemaValidate($xsd_url)){
+      $lines = explode("\n", $xml_per_line);
+      $errors = libxml_get_errors();
+      $error_messages = array();
+      foreach($errors as $error){
+        $type = 'error';
+        if($error->level == LIBXML_ERR_WARNING){
+          $type = 'warning';
+        }
+        // Get some context.
+        $context = array();
+        $num = 5;
+        if($error->line > 2){
+          $count = ($error->line > $num) ? $num : ($error->line - 1);
+          $context = array_slice($lines, $error->line - $count - 1, $count);
+          foreach($context as $key => $value){
+            $context[$key] = htmlspecialchars($value);
+          }
+        }
+        $context[] = '<strong>' . htmlspecialchars($lines[$error->line - 1]) . '</strong>';
+        $error_messages[] = t("XML validation error: @code - @message !context", array(
+          '@code' => $error->code,
+          '@message' => $error->message,
+          '!context' => '<br/>' . implode('<br/>', $context)
+        ));
+      }
+      libxml_clear_errors();
+      libxml_use_internal_errors(false);
+      throw new Exception('<ul><li>' . implode('</li><li>', $error_messages) . '</li></ul>');
+    }
+    libxml_clear_errors();
+    libxml_use_internal_errors(false);
   }
 }
 
