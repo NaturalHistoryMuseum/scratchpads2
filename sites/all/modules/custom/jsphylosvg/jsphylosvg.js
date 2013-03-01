@@ -2,6 +2,14 @@
   Drupal.behaviors.jsphylosvg = {attach: function(context, settings){
     var magic_number = 17;
     $('.jsphylosvg', context).each(function(){
+      // FIXME - This will need changing when we upgrade jQuery to 1.9
+      if($.browser && $.browser.msie) {
+        var version = parseInt($.browser.version.substring(0, 1), 10);
+        if(version < 9) {
+          $(this).append('<h3>' + Drupal.t('You appear to be using an older and unsupported version of Internet Explorer.  In order to view phylogenetic trees, you will need to upgrade.') + '</h3>');
+          return;
+        }
+      }
       var height = 800;
       var width = 800;
       if(Drupal.settings.jsphylosvg[$(this).attr('id')].type != 'circular') {
@@ -14,16 +22,27 @@
         var elem = $(this).children('svg')[0];
         elem.setAttribute('height', height + magic_number);
       }
-      $(this).append('<p class="jsphylosvg-save"><a style="display:none;" href="#" id="' + $(this).attr('id') + '-save">' + Drupal.t('Save tree') + '</a> | <a style="display:none;" href="#" id="' + $(this).attr('id') + '-print">' + Drupal.t('Print tree') + '</a></p>');
+      $(this).append('<p class="jsphylosvg-save"><a style="display:none;" href="#" id="' + $(this).attr('id') + '-switch">' + Drupal.t('Switch style') + '</a> | ' + '<a style="display:none;" href="#" id="' + $(this).attr('id') + '-save">' + Drupal.t('View tree') + '</a> | ' + '<a style="display:none;" href="#" id="' + $(this).attr('id') + '-print">' + Drupal.t('Print tree') + '</a></p>');
       var svgSource = phylocanvas.getSvgSource();
       svgSource = Base64.encode(svgSource);
       if(svgSource) {
-        $('#' + $(this).attr('id') + '-save')[0].href = "data:image/svg+xml;base64," + svgSource;
         $('#' + $(this).attr('id') + '-save').show();
         $('#' + $(this).attr('id') + '-print').show();
+        $('#' + $(this).attr('id') + '-switch').show();
+        $('#' + $(this).attr('id') + '-save')[0].href = "data:image/svg+xml;base64," + svgSource;
         $('#' + $(this).attr('id') + '-print').click(function(){
           pwin = window.open("data:image/svg+xml;base64," + svgSource, "_blank");
           setTimeout("pwin.print()", 2000);
+        });
+        var this_copy = this;
+        $('#' + $(this).attr('id') + '-switch').click(function(){
+          $(this_copy).empty();
+          if(Drupal.settings.jsphylosvg[$(this_copy).attr('id')].type == 'circular') {
+            Drupal.settings.jsphylosvg[$(this_copy).attr('id')].type = 'rectangular';
+          } else {
+            Drupal.settings.jsphylosvg[$(this_copy).attr('id')].type = 'circular';
+          }
+          Drupal.behaviors.jsphylosvg.attach($('body'));
         });
       }
     });
