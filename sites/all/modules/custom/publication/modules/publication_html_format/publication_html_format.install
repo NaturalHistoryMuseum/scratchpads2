@@ -33,7 +33,7 @@ function publication_html_format_install(){
  * after this was re-factored out of the pensoft_publication
  * module
  */
-function publication_html_format_update_7001() {
+function publication_html_format_update_7001(){
   insert_from_view_delete_instance('pensoft_publication_references', FALSE);
   insert_from_view_delete_instance('pensoft_publication_figures', FALSE);
   insert_from_view_delete_instance('pensoft_publication_specimens', FALSE);
@@ -44,17 +44,24 @@ function publication_html_format_update_7001() {
  * Ensure we are heavier than relation_select, as relation_select
  * incorrectly uses hook_entity_insert to save it's data.
  */
-function publication_html_format_update_7002() {
+function publication_html_format_update_7002(){
   // Get the weight of relation_select
-  $rlw = db_select('system', 's')
-  ->fields('s', array('weight'))
-  ->condition('type', 'module')
-  ->condition('name', 'relation_select')
-  ->execute()->fetchField();
+  $rlw = db_select('system', 's')->fields('s', array(
+    'weight'
+  ))->condition('type', 'module')->condition('name', 'relation_select')->execute()->fetchField();
   // Set our module's weight
-  db_update('system')
-  ->fields(array('weight' => $rlw+1))
-  ->condition('type', 'module')
-  ->condition('name', 'publication_html_format')
-  ->execute();
+  db_update('system')->fields(array(
+    'weight' => $rlw + 1
+  ))->condition('type', 'module')->condition('name', 'publication_html_format')->execute();
+}
+
+/**
+ * Revert the Publication HTML CKEditor profile
+ */
+function publication_html_format_update_7004(){
+  features_revert(array(
+    'publication_html_format' => array(
+      'ckeditor_profile'
+    )
+  ));
 }

@@ -76,14 +76,14 @@ function publication_html_format_ckeditor_profile_defaults(){
           'autogrow' => array(
             'name' => 'autogrow',
             'desc' => 'Auto Grow plugin',
-            'path' => '%base_path%%editor_path%plugins/autogrow/',
+            'path' => '%editor_path%plugins/autogrow/',
             'buttons' => FALSE,
             'default' => 'f'
           ),
           'counter' => array(
             'name' => 'counter',
             'desc' => 'Plugin to count symbols, symbols without blanks and words',
-            'path' => '%base_path%%plugin_dir%counter/',
+            'path' => '%plugin_dir%counter/',
             'buttons' => FALSE,
             'default' => 'f'
           ),
@@ -140,7 +140,7 @@ function publication_html_format_ckeditor_profile_defaults(){
           'tableresize' => array(
             'name' => 'tableresize',
             'desc' => 'Table Resize plugin',
-            'path' => '%base_path%%editor_path%plugins/tableresize/',
+            'path' => '%editor_path%plugins/tableresize/',
             'buttons' => FALSE,
             'default' => 't'
           )

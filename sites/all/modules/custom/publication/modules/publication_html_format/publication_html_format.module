@@ -211,10 +211,7 @@ function _publication_html_format_filter_process_format($element){
     list($eid, $vid, $bundle) = entity_extract_ids($element['#entity_type'], $element['#entity']);
     // Only set a default on new entities
     if(empty($eid) && isset($element['format']['format']['#options']['publication_html'])){
-      // XXX There is a problem with this field - disable it here for now.
-      if($element['#bundle'] != 'field_publication_tables'){
-        $element['format']['format']['#default_value'] = 'publication_html';
-      }
+      $element['format']['format']['#default_value'] = 'publication_html';
     }
   }
   return $element;
