@@ -22,9 +22,13 @@
         var elem = $(this).children('svg')[0];
         elem.setAttribute('height', height + magic_number);
       }
-      $(this).append('<p class="jsphylosvg-save"><a style="display:none;" href="#" id="' + $(this).attr('id') + '-switch">' + Drupal.t('Switch style') + '</a> | ' + '<a style="display:none;" href="#" id="' + $(this).attr('id') + '-save">' + Drupal.t('View tree') + '</a> | ' + '<a style="display:none;" href="#" id="' + $(this).attr('id') + '-print">' + Drupal.t('Print tree') + '</a></p>');
+      $(this).append('<p class="jsphylosvg-save"><a href="#" id="' + $(this).attr('id') + '-get">' + Drupal.t('Show/Hide data') + '</a> | <a style="display:none;" href="#" id="' + $(this).attr('id') + '-switch">' + Drupal.t('Switch style') + '</a> | <a style="display:none;" href="#" id="' + $(this).attr('id') + '-save">' + Drupal.t('View tree') + '</a> | ' + '<a style="display:none;" href="#" id="' + $(this).attr('id') + '-print">' + Drupal.t('Print tree') + '</a></p>');
       var svgSource = phylocanvas.getSvgSource();
       svgSource = Base64.encode(svgSource);
+      $('#' + $(this).attr('id') + '-get').click(function(){
+        $(this).parent().parent().children('.jsphylosvg-data').toggle();
+        return false;
+      });
       if(svgSource) {
         $('#' + $(this).attr('id') + '-save').show();
         $('#' + $(this).attr('id') + '-print').show();
