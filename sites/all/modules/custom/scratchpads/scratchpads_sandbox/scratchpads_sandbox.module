@@ -8,7 +8,7 @@ function scratchpads_sandbox_block_info(){
     'timer' => array(
       'info' => t('Sandbox timer'),
       'cache' => DRUPAL_NO_CACHE,
-      'region' => 'content',
+      'region' => 'footer',
       'status' => 1
     ),
     'login_details' => array(

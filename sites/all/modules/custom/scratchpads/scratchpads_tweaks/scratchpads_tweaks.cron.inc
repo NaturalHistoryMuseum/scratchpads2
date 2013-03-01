@@ -45,7 +45,7 @@ function _scratchpads_tweaks_cron(){
         'profile' => variable_get('install_profile', 'scratchpad_profile')
       );
       foreach($central_servers as $central_server){
-        file_get_contents($central_server . 'report_scratchpad?data=' . urlencode(serialize($report_data))); // Could run into GET limits here. Ho hum!
+        exec('wget "'.$central_server . 'report_scratchpad?data=' . urlencode(serialize($report_data)).'" -O /dev/null'); // Could run into GET limits here. Ho hum!
       }
       variable_set('scratchpad_last_reported', time());
     }

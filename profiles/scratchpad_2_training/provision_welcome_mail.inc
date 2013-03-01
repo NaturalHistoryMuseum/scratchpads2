@@ -12,3 +12,17 @@ $mail = array();
 module_disable(array(
   'scratchpads_statistics'
 ));
+$msg = st('Training site !url ready', array(
+  '!url' => url('', array(
+    'absolute' => TRUE
+  ))
+));
+$mail = array(
+  'from' => 'Scratchpad Team <no-reply@scratchpads.eu>',
+  'subject' => $msg,
+  'body' => "$msg
+
+Simon
+--
+http://scratchpads.eu/"
+);

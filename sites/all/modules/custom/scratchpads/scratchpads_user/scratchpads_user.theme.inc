@@ -7,7 +7,6 @@ function _scratchpads_user_register_field_sort($a, $b){
 function theme_scratchpads_user_register_form($variables){
   // Add CSS
   drupal_add_css(drupal_get_path('module', 'scratchpads_user') . '/css/scratchpads_user.css');
-  
   $output = '
 <div class="clearfix">
   <div class="scratchpads-user-left">
