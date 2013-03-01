@@ -80,13 +80,6 @@ function publication_html_format_ckeditor_profile_defaults(){
             'buttons' => FALSE,
             'default' => 'f'
           ),
-          'counter' => array(
-            'name' => 'counter',
-            'desc' => 'Plugin to count symbols, symbols without blanks and words',
-            'path' => '%plugin_dir%counter/',
-            'buttons' => FALSE,
-            'default' => 'f'
-          ),
           'insert_from_view_pensoft_publication_specimens' => array(
             'name' => 'insert_from_view_pensoft_publication_specimens',
             'desc' => 'This plugin allows the selection and insertion of items picked from the view textarea_insert_select_specimen_table',
