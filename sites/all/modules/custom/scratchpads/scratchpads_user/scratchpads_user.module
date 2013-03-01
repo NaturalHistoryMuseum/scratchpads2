@@ -133,6 +133,16 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
       'name'
     ))->condition('uid', $form['#user']->uid)->execute()->fetchCol(0);
     $form['account']['name']['#default_value'] = array_pop($row);
+    // Set certain fields to not be required.
+    $form['field_user_given_names'][LANGUAGE_NONE][0]['value']['#required'] = FALSE;
+    $form['field_user_title'][LANGUAGE_NONE][0]['select_other_list']['#required'] = FALSE;
+    $form['field_user_country'][LANGUAGE_NONE]['#required'] = FALSE;
+    // Because "title" defaults to "Mr", we need to set the default to "" if a 
+    // default value isn't provided.
+    $form['field_user_title'][LANGUAGE_NONE][0]['select_other_list']['#options'][NULL] = t('- None -');
+    if(!count($form['#user']->field_user_title)){
+      unset($form['field_user_title'][LANGUAGE_NONE][0]['select_other_list']['#default_value']);
+    }
   }else{
     $form['create_user_account']['#default_value'] = 1;
     if($user->uid == 1){
@@ -164,6 +174,7 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
  */
 function _scratchpads_user_form_alter(&$form, &$form_state){
   global $user;
+  $form['#attached']['js'][] = drupal_get_path('module', 'scratchpads_user') . '/js/scratchpads_user.js';
   $form['account']['#type'] = 'fieldset';
   $form['account']['#title'] = t('User account settings');
   if($user->uid > 0){
@@ -199,7 +210,7 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
   $form['#fields'] = field_info_instances($form['#entity_type'], $form['#bundle']);
   // Add the theme function to make this form look better
   array_unshift($form['#theme'], 'scratchpads_user_register_form');
-  // If the user isn't creating a user account, limit the validation errors to email & extra fields
+  // If the user isn't creating a user account, limit the validation errors to & extra fields
   if(count($form_state['input']) && !isset($form_state['input']['create_user_account']) && (!$form['#user']->uid || $form_state['input']['name'] == '')){
     $form['actions']['submit']['#limit_validation_errors'] = array(
       array(
