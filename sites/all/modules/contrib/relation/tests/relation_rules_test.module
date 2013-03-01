@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Test for Relation's Rules implementation.
+ */
+
+/**
  * Implementation of hook_default_rules_configuration().
  */
 function relation_rules_test_default_rules_configuration() {

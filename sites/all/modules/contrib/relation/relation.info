@@ -7,13 +7,15 @@ files[] = tests/relation.test
 files[] = tests/relation.rules.test
 files[] = tests/relation.views.test
 files[] = views/relation_handler_relationship.inc
-configure = admin/structure/relation
+files[] = views/views_handler_field_relation_link.inc
+files[] = views/views_handler_field_relation_link_delete.inc
+files[] = views/views_handler_field_relation_link_edit.inc
 dependencies[] = relation_endpoint
-dependencies[] = ctools (!=7.x-1.0-rc1)
+;dependencies[] = ctools (!=7.x-1.0-rc1)
 
-; Information added by drupal.org packaging script on 2012-02-01
-version = "7.x-1.0-beta3+58-dev"
+; Information added by drupal.org packaging script on 2013-02-07
+version = "7.x-1.0-rc4"
 core = "7.x"
 project = "relation"
-datestamp = "1328057524"
+datestamp = "1360240967"
 

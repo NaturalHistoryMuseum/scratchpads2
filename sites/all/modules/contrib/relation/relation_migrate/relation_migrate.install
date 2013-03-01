@@ -1,0 +1,19 @@
+<?php
+
+/**
+ * @file
+ * Install, uninstall and update hooks for relation_migrate.module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function relation_migrate_uninstall() {
+  $types = array('entityreference', 'taxonomy_term_reference', 'node_reference', 'user_reference');
+
+  foreach ($types as $type) {
+    variable_del('relation_migrate_' . $type . '_fields');
+    variable_del('relation_migrate_' . $type . '_relation_type');
+    variable_del('relation_migrate_' . $type . '_user');
+  }
+}

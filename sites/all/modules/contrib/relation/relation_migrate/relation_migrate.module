@@ -1,0 +1,161 @@
+<?php
+
+/**
+ * @file
+ * Migrations between *reference fields and relations.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function relation_migrate_menu() {
+  $items['admin/structure/relation/migrate'] = array(
+    'title' => 'Migration',
+    'access arguments' => array('administer relation types'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('relation_migrate_configuration_form'),
+    'description' => 'Configure migration between *reference fields and relations.',
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+/**
+ * Configuration form callback.
+ */
+function relation_migrate_configuration_form($form, &$form_state) {
+  $field_types = array(
+    'entityreference',
+    'taxonomy_term_reference',
+    'node_reference',
+    'user_reference',
+  );
+
+  foreach ($field_types as $field_type_name) {
+    $field_type_info = field_info_field_types($field_type_name);
+    $fields = field_read_fields(array('type' => $field_type_name));
+    if (!empty($field_type_info) && !empty($fields)) {
+      $form[$field_type_name] = array(
+        '#type' => 'fieldset',
+        '#title' => check_plain($field_type_info['label']),
+      );
+
+      $options = array();
+      foreach ($fields as $name => $field) {
+        $options[$name] = check_plain($name);
+      }
+
+      $form[$field_type_name]['relation_migrate_' . $field_type_name . '_fields'] = array(
+        '#type' => 'checkboxes',
+        '#title' => t('Fields'),
+        '#options' => $options,
+        '#default_value' => variable_get('relation_migrate_' . $field_type_name . '_fields', array()),
+        '#description' => t('Select fields of type %type, that should be migrated to relation entites.', array('%type' => $field_type_info['label'])),
+      );
+
+      $types = relation_get_types();
+      $rel_types = array();
+      foreach ($types as $machine_name => $type) {
+        $rel_types[$machine_name] = check_plain($type->label);
+      }
+
+      $form[$field_type_name]['relation_migrate_' . $field_type_name . '_relation_type'] = array(
+        '#type' => 'select',
+        '#title' => t('Relation type'),
+        '#options' => $rel_types,
+        '#default_value' => variable_get('relation_migrate_' . $field_type_name . '_relation_type', NULL),
+        '#description' => t('Select relation type that should be used when migrating reference fields.'),
+        '#element_validate' => array('_relation_migrate_validate_type'),
+      );
+
+      $user = user_load(variable_get('relation_migrate_' . $field_type_name . '_user', 1));
+      $form[$field_type_name]['relation_migrate_' . $field_type_name . '_user'] = array(
+        '#type' => 'textfield',
+        '#title' => t('User'),
+        '#default_value' => $user->name,
+        '#description' => t('User that should own created relations.'),
+        '#autocomplete_path' => 'user/autocomplete',
+        '#element_validate' => array('_relation_migrate_uid_validate'),
+      );
+    }
+  }
+
+  return system_settings_form($form);
+}
+
+/**
+ * Validate function for UID field at configuration form.
+ * Transforms user name to UID.
+ */
+function _relation_migrate_uid_validate($element, &$form_state, $form) {
+  $user = user_load_by_name($form_state['values'][$element['#name']]);
+  if ($user) {
+    $form_state['values'][$element['#name']] = $user->uid;
+  }
+  else {
+    form_error($element, t('User not found.'));
+  }
+}
+
+
+/**
+ * Validates relation type selection on configuration form.
+ *
+ * Check if selected relation type allows usage of source bundle.
+ */
+function _relation_migrate_validate_type($element, &$form_state, $form) {
+  if (!empty($form_state['input']['relation_migrate_' . $element['#array_parents'][0] . '_relation_type'])) {
+    module_load_include('inc', 'relation_migrate', 'relation_migrate.modules');
+    $field_type = field_info_field_types($element['#array_parents'][0]);
+    $relation_type = relation_type_load($form_state['input']['relation_migrate_' . $element['#array_parents'][0] . '_relation_type']);
+
+    $function = $field_type['module'] . '_relation_migrate_type_target_validate';
+    if (function_exists($function)) {
+      if (!$function($element, $form_state, $form) || !_relation_migrate_validate_type_source($form_state['input']['relation_migrate_' . $element['#array_parents'][0] . '_fields'], $relation_type)) {
+        form_error($element, t('Relation type %relation_type cannot be used with one of the selected %field_type fields. <a href="@rel_type_url">Check allowed source/target bundles for the relation type</a>.', array('%relation_type' => $relation_type->label, '%field_type' => $field_type['label'], '@rel_type_url' => url('admin/structure/relation/manage/' . $relation_type->relation_type . '/edit'))));
+      }
+    }
+  }
+}
+
+/**
+ * Checks if selected relation type supports all possible source bundles of a
+ * given field.
+ */
+function _relation_migrate_validate_type_source($fields, $relation_type) {
+  $allowed_bundles = $relation_type->source_bundles;
+  $fields = array_filter($fields);
+
+  foreach ($fields as $field_name) {
+    $field = field_info_field($field_name);
+    foreach ($field['bundles'] as $entity_type => $bundles) {
+      if (!in_array($entity_type . ':*', $allowed_bundles)) {
+        foreach ($bundles as $bundle) {
+          if (!in_array($entity_type . ':' . $bundle, $allowed_bundles)) {
+            return FALSE;
+          }
+        }
+      }
+    }
+  }
+
+  return TRUE;
+}
+
+
+/**
+ * Implements hook_migrate_api().
+ */
+function relation_migrate_migrate_api() {
+  $api = array(
+    'api' => 2,
+    'migrations' => array(
+      'RelationMigrateEntityReference' => array('class_name' => 'RelationMigrateEntityReference'),
+      'RelationMigrateNodeReference' => array('class_name' => 'RelationMigrateNodeReference'),
+      'RelationMigrateUserReference' => array('class_name' => 'RelationMigrateUserReference'),
+      'RelationMigrateTermReference' => array('class_name' => 'RelationMigrateTermReference'),
+    )
+  );
+  return $api;
+}

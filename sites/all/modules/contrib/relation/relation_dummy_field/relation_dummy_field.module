@@ -144,6 +144,7 @@ function relation_dummy_field_field_formatter_view($entity_type, $entity, $field
         $relation_type = relation_type_load($relation->relation_type);
 
         $subject = entity_label($entity_type, $entity) . ' '; // Subject of the sentence.
+        $subject_is_source = ($relation->endpoints[LANGUAGE_NONE]['0']['entity_id']) == $id ? TRUE : FALSE;
         $count = 0; // For comma separation of objects.
         $duplicate = FALSE; // To make sure duplicates of $entity get included in object list.
         $objects = ''; // Comma separated list of entities that are the object of the sentence.
@@ -162,14 +163,20 @@ function relation_dummy_field_field_formatter_view($entity_type, $entity, $field
             }
           }
           else {
-            $object_entities = entity_load($endpoint['entity_type'], array($endpoint['entity_id']));
-            $object_entity = reset($object_entities);
-            $object_label = entity_label($endpoint['entity_type'], $object_entity);
-            $object_uri = entity_uri($endpoint['entity_type'], $object_entity);
-            // Just add a space before the first element, comma and space before further ones.
-            $objects .= $count ? ', ' : ' ';
-            $count += 1;
-            $objects .= l($object_label, $object_uri['path']);
+            // If the relation is directional and the subject isn't the source,
+            // we want to list the source without any siblings. If it is
+            // directional and the subject is a source, list all targets.
+            // If non-directional, list everything as normal.
+            if (!$relation_type->directional || $subject_is_source || $endpoint['r_index'] == 0) {
+              $object_entities = entity_load($endpoint['entity_type'], array($endpoint['entity_id']));
+              $object_entity = reset($object_entities);
+              $object_label = entity_label($endpoint['entity_type'], $object_entity);
+              $object_uri = entity_uri($endpoint['entity_type'], $object_entity);
+              // Just add a space before the first element, comma and space before further ones.
+              $objects .= $count ? ', ' : ' ';
+              $count += 1;
+              $objects .= l($object_label, $object_uri['path']);
+            }
           }
         }
         $element[$delta]['relation'] = array(
@@ -189,7 +196,7 @@ function relation_dummy_field_field_formatter_view($entity_type, $entity, $field
 function relation_dummy_field_field_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays) {
   foreach ($entities as $id => $entity) {
     $relation_types = $instances[$id]['settings']['relation_type'];
-    $query = relation_query($entity_type, $id);
+    $query = relation_query($entity_type, $id)->range(0, 50);
     if ($relation_types) {
       $query->entityCondition('bundle', $relation_types, 'IN');
     }

@@ -1,0 +1,197 @@
+<?php
+
+/**
+ * @file
+ * Tests for Relation UI module.
+ */
+
+/**
+ * Tests Relation UI.
+ *
+ * Check that relation administration interface works.
+ */
+class RelationUITestCase extends RelationTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Relation UI test',
+      'description' => 'Tests Relation UI.',
+      'group' => 'Relation',
+    );
+  }
+
+  function setUp() {
+    // This is necessary for the ->propertyOrderBy('created', 'DESC') test.
+    $this->sleep = TRUE;
+    parent::setUp('relation_ui');
+  }
+
+  /**
+   * Tests deletion of a relation.
+   */
+  function testRelationDelete() {
+    $relations = relation_query('node', $this->node1->nid)
+      ->propertyOrderBy('created', 'DESC')
+      ->execute();
+    $relation = $relations[$this->rid_directional];
+
+    $this->drupalPost("relation/$relation->rid/delete", array(), t('Delete'));
+    $arg = array(':rid' => $relation->rid);
+    $this->assertFalse((bool) db_query_range('SELECT * FROM {relation} WHERE rid = :rid', 0, 1, $arg)->fetchField(), 'Nothing in relation table after delete.');
+    $this->assertFalse((bool) db_query_range('SELECT * FROM {relation_revision} WHERE rid = :rid', 0, 1, $arg)->fetchField(), 'Nothing in relation revision table after delete.');
+    $skeleton_relation = entity_create_stub_entity('relation', array($relation->rid, $relation->vid, $relation->relation_type));
+    field_attach_load('relation', array($relation->rid => $skeleton_relation));
+    $this->assertIdentical($skeleton_relation->endpoints, array(), t('Field data not present after delete'));
+
+    // Try deleting the content types.
+    $this->drupalGet("admin/structure/relation/manage/$this->relation_type_symmetric/delete");
+    $num_relations = 1;
+    // See relation_type_delete_confirm() in relation_ui.module
+    $this->assertRaw(format_plural($num_relations, 'The %label relation type is used by 1 relation on your site. If you remove this relation type, you will not be able to edit  %label relations and they may not display correctly.', 'The %label relation type is used by @count relations on your site. If you remove %label, you will not be able to edit %label relations and they may not display correctly.', array('%label' => $this->relation_types['symmetric']['label'], '@count' => $num_relations)), 'Correct number of relations found (1) for ' . $this->relation_types['symmetric']['label'] . ' relation type.');
+  }
+
+  /**
+   * Tests importing method.
+   */
+  function testRelationImport() {
+    // Tests navigate to import page and all fields are available.
+    $this->drupalGet('admin/structure/relation');
+    $this->clickLink(t('Import relation type'));
+    $this->assertFieldByName('name');
+    $this->assertFieldByName('relation_type');
+    $this->assertFieldByName('op', t('Import'));
+
+    // Tests import a relation. The relation name is coming from source. So
+    // first imports a simple relation without adding a different name, check
+    // status message and return to the relations listing page to check the
+    // imported relation is available.
+    $post = array(
+      'relation_type' => '
+        $relation_type = new stdClass();
+        $relation_type->disabled = FALSE; /* Edit this to true to make a default relation_type disabled initially */
+        $relation_type->api_version = 1;
+        $relation_type->relation_type = \'is_similar_to\';
+        $relation_type->label = \'is similar to\';
+        $relation_type->reverse_label = \'is similar to\';
+        $relation_type->directional = 0;
+        $relation_type->transitive = 1;
+        $relation_type->r_unique = 1;
+        $relation_type->min_arity = 4;
+        $relation_type->max_arity = 5;
+        $relation_type->source_bundles = array(
+          0 => \'node:*\',
+        );
+        $relation_type->target_bundles = array();
+      ',
+    );
+    $this->drupalPost(NULL, $post, t('Import'));
+    $this->assertText(t('Successfully imported is_similar_to'));
+    $this->drupalGet('admin/structure/relation');
+    $this->assertLink('is similar to', 0, t('The imported relation is exist'));
+
+    // Navaigates to edit page, checks machine name and the imported data. The
+    // imported data contains the following field checks:
+    // - the selected bundle
+    // - directional checkbox
+    // - transivite checkbox
+    // - unique checkbox
+    // - minimum and maximum arity select lists
+    $this->clickLink('is similar to');
+    // Checks the corect url.
+    $this->assertUrl('admin/structure/relation/manage/is_similar_to', array(), t('The imported machine name is correct.'));
+    // Checks that only the correct bundle is selected.
+    $bundle_options = $this->xpath('//select[@id=:id]//option', array(':id' => 'edit-source-bundles'));
+    foreach ($bundle_options as $option) {
+      $this->assertIdentical((string) $option['value'] == 'node:*', isset($option['selected']));
+    }
+    // Checks other datas.
+    $this->assertNoFieldChecked('edit-directional', t('Directional data is imported correct.'));
+    $this->assertFieldChecked('edit-advanced-transitive', t('Transitive data is imported correct.'));
+    $this->assertFieldChecked('edit-advanced-r-unique', t('Unique data is imported correct.'));
+    $this->assertOptionSelected('edit-advanced-min-arity', '4', t('Minimum arity data is imported correct.'));
+    $this->assertOptionSelected('edit-advanced-max-arity', '5', t('Maximum arity data is imported correct.'));
+
+    // Tests validation of duplication import.
+    $post = array(
+      'relation_type' => '
+        $relation_type = new stdClass();
+        $relation_type->disabled = FALSE; /* Edit this to true to make a default relation_type disabled initially */
+        $relation_type->api_version = 1;
+        $relation_type->relation_type = \'is_similar_to\';
+        $relation_type->label = \'is similar to\';
+        $relation_type->reverse_label = \'is similar to\';
+        $relation_type->directional = 0;
+        $relation_type->transitive = 1;
+        $relation_type->r_unique = 1;
+        $relation_type->min_arity = 4;
+        $relation_type->max_arity = 5;
+        $relation_type->source_bundles = array(
+          0 => \'node:*\',
+        );
+        $relation_type->target_bundles = array();
+      ',
+    );
+    $this->drupalPost('admin/structure/relation/import', $post, t('Import'));
+    $this->assertNoText(t('Successfully imported is_similar_to'));
+    $this->assertText(t('A relation type by that name already exists; please choose a different name'));
+
+    // Delete unused relation.
+    relation_type_delete('is_similar_to');
+
+    // Tests importing with overridden machine name. So after imporing check
+    // the status message, check that the imported relation is available and
+    // check the modified machine name.
+    $post = array(
+      'name' => 'overridden_import_test',
+      'relation_type' => '
+        $relation_type = new stdClass();
+        $relation_type->disabled = FALSE; /* Edit this to true to make a default relation_type disabled initially */
+        $relation_type->api_version = 1;
+        $relation_type->relation_type = \'is_similar_to\';
+        $relation_type->label = \'is similar to\';
+        $relation_type->reverse_label = \'is similar to\';
+        $relation_type->directional = 0;
+        $relation_type->transitive = 1;
+        $relation_type->r_unique = 1;
+        $relation_type->min_arity = 4;
+        $relation_type->max_arity = 5;
+        $relation_type->source_bundles = array(
+          0 => \'node:*\',
+        );
+        $relation_type->target_bundles = array();
+      ',
+    );
+    $this->drupalPost('admin/structure/relation/import', $post, t('Import'));
+    $this->assertText(t('Successfully imported overridden_import_test'));
+    $this->drupalGet('admin/structure/relation');
+    $this->assertLink('is similar to', 0, t('The imported relation is exist'));
+    $this->clickLink('is similar to');
+    $this->assertUrl('admin/structure/relation/manage/overridden_import_test', array(), t('The imported machine name is correct.'));
+
+    // Test that relations of imported relation type are accessible from
+    // admin/content
+    $endpoint = array('entity_type' => 'node', 'entity_id' => $this->node1->nid);
+    $relation = relation_create('overridden_import_test', array_fill(0, 5, $endpoint));
+    $rid = relation_save($relation);
+    $this->drupalGet('admin/content/relation');
+    $this->assertLink(t('Relation') . ' ' . $rid, 0, t('Relation of imported type is listed in admin/content'));
+
+    // Delete unused relation.
+    relation_type_delete('overridden_import_test');
+  }
+
+  /**
+   * Tests endpoint field settings.
+   */
+  function testRelationEndpointsField() {
+    $field_label = $this->randomName();
+    $edit = array(
+      'instance[label]' => $field_label,
+    );
+    $this->drupalPost('admin/structure/relation/manage/symmetric/fields/endpoints', $edit, t('Save settings'));
+    $this->assertText(t('Saved @label configuration.', array('@label' => $field_label)));
+
+    $this->drupalGet('admin/structure/relation/manage/symmetric/fields');
+    $this->assertFieldByXPath('//table[@id="field-overview"]//td[1]', $field_label, t('Endpoints field label appears to be changed in the overview table.'));
+  }
+}

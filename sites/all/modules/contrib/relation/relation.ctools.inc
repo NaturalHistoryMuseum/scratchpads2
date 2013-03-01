@@ -14,6 +14,9 @@ function relation_export_relation_type($form, &$form_state, $type) {
   $result = ctools_export_load_object('relation_type', 'names', array($type->relation_type));
   $code = relation_relation_type_export($result[$type->relation_type]);
   $lines = substr_count($code, "\n");
+  if (!function_exists('ctools_export_crud_load_multiple')) {
+    drupal_set_message(t('While manual import works, if you want to save this into a relation_type_default.inc file you need a newer CTools for relation to pick it up later.'), 'warning');
+  }
 
   $form['export'] = array(
     '#title' => t('Export data'),

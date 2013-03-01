@@ -1,4 +1,13 @@
 <?php
+
+/**
+ * @file
+ * Relation default views.
+ */
+
+/**
+ * Relation's default views.
+ */
 function relation_views_default_views() {
   $views = array();
 

@@ -79,6 +79,39 @@ class RelationRulesTestCase extends RelationTestCase {
       // we fetched the endpoits from that relation.
       $correct = ($relation->endpoints[LANGUAGE_NONE][0]['entity_id'] == $node->nid) && ($relation->endpoints[LANGUAGE_NONE][1]['entity_id'] == $user->uid);
       $this->assertTrue($correct, 'Relation was created by fetching endpoints from another relation and saving it.');
+
+
+      // Tests that relation properties are available in rules. So create a new
+      // rule with relation action, and check that the text is available among the
+      // "Data selectors" list.
+
+      // Enables UI module for rules.
+      module_enable(array('rules_admin'));
+      // Resets permissions, because module_enable() doesn't clear static cache.
+      $this->checkPermissions(array(), TRUE);
+      // Creates new user.
+      $user = $this->drupalCreateUser(array('administer rules'));
+      $this->drupalLogin($user);
+
+      // Cleares the cache, becaues UI module's menu items don't exists.
+      drupal_flush_all_caches();
+
+      // Creates rule.
+      $this->drupalGet('admin/config/workflow/rules/reaction/add');
+      $post = array(
+        'settings[label]' => 'Similar',
+        'settings[name]' => 'similar',
+        'event' => 'node_view',
+      );
+      $this->drupalPost(NULL, $post, t('Save'));
+
+      // Adds action.
+      $this->clickLink(t('Add action'));
+      $post = array(
+        'element_name' => 'relation_rules_load_related',
+      );
+      $this->drupalPost(NULL, $post, t('Continue'));
+      $this->assertText('node:relation-directional-node-reverse:0', t('The created relation porperties\' are found.'));
     }
   }
 
@@ -92,14 +125,14 @@ class RelationRulesTestCase extends RelationTestCase {
         $property = "node$i";
         $node = $this->$property;
         if ($node->nid == $nid) {
-          $this->assertFalse(db_query('SELECT COUNT(*) FROM {node} WHERE nid = :nid', array(':nid' => $nid))->fetchField(), t('The right node is deleted'));
+          $this->assertFalse((bool) db_query_range('SELECT * FROM {node} WHERE nid = :nid', 0, 1, array(':nid' => $nid))->fetchField(), t('The correct node was deleted'));
         }
         else {
           $nids[] = $node->nid;
         }
       }
       $count = count($nids);
-      $this->assertEqual($count, db_query('SELECT COUNT(*) FROM {node} WHERE nid IN (:nids)', array(':nids' => $nids))->fetchField(), t('@count other nodes are found', array('@count' => $count)));
+      $this->assertEqual($count, db_query('SELECT COUNT(*) FROM {node} WHERE nid IN (:nids)', array(':nids' => $nids))->fetchField(), t('@count other nodes were found', array('@count' => $count)));
     }
   }
 }

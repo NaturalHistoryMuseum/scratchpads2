@@ -19,7 +19,7 @@ class RelationEntityCollectorTestCase extends RelationTestCase {
   }
 
   function setUp() {
-    parent::setUp('relation', 'relation_entity_collector');
+    parent::setUp('relation', 'relation_ui', 'relation_entity_collector');
     $this->drupalLogin($this->web_user);
   }
 

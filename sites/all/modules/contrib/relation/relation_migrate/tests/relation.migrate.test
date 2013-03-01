@@ -1,0 +1,290 @@
+<?php
+
+/**
+ * @file
+ * Test case that tests relation_migrate.module.
+ */
+
+/**
+ * Functional tests of Relation's integration with Migrate.
+ */
+class RelationMigrateTestCase extends RelationTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Relation Migrate test',
+      'description' => 'Tests the Relation Migrate support.',
+      'group' => 'Relation',
+    );
+  }
+
+  function setUp() {
+    // Entity reference complains if views not enabled.
+    parent::setUp('relation');
+    module_enable(array('migrate_ui', 'relation_migrate_test', 'relation_migrate'), TRUE);
+    $this->resetAll();
+
+    if (!module_exists('migrate') || !module_exists('migrate_ui') || !module_exists('node_reference') || !module_exists('user_reference') || !module_exists('entityreference')) {
+      return;
+    }
+
+    $permissions = array(
+      'create article content',
+      'create page content',
+      'administer relation types',
+      'administer relations',
+      'access relations',
+      'create relations',
+      'edit relations',
+      'delete relations',
+      'administer content types',
+      'migration information',
+    );
+    $this->web_user = $this->drupalCreateUser($permissions);
+
+    $this->createNodes();
+    $this->anonymous_user = $this->drupalCreateUser(array('access content'));
+  }
+
+  private function createNodes() {
+    $this->node1 = $this->drupalCreateNode(array('type' => 'article'));
+    $this->node2 = $this->drupalCreateNode(array('type' => 'article'));
+    $this->node3 = $this->drupalCreateNode(array('type' => 'article'));
+    $this->node4 = $this->drupalCreateNode(array('type' => 'article'));
+    $this->node5 = $this->drupalCreateNode(array('type' => 'article'));
+    $this->tag = (object) array(
+      'name' => $this->randomName(8),
+      'vid' => 1,
+    );
+    taxonomy_term_save($this->tag);
+
+    // Node reference.
+    $this->node1->field_node[LANGUAGE_NONE][0]['nid'] = $this->node2->nid;
+    $this->node2->field_node[LANGUAGE_NONE][0]['nid'] = $this->node3->nid;
+    $this->node3->field_node[LANGUAGE_NONE][0]['nid'] = $this->node4->nid;
+    $this->node4->field_node[LANGUAGE_NONE][0]['nid'] = $this->node5->nid;
+    $this->node5->field_node[LANGUAGE_NONE][0]['nid'] = $this->node1->nid;
+
+    //User reference
+    $this->node1->field_user[LANGUAGE_NONE][0]['uid'] = $this->user1->uid;
+    $this->node2->field_user[LANGUAGE_NONE][0]['uid'] = $this->user1->uid;
+    $this->node3->field_user[LANGUAGE_NONE][0]['uid'] = $this->user1->uid;
+    $this->node4->field_user[LANGUAGE_NONE][0]['uid'] = $this->user1->uid;
+    $this->node5->field_user[LANGUAGE_NONE][0]['uid'] = $this->user1->uid;
+
+    // Entity reference
+    $this->node1->field_entity[LANGUAGE_NONE][0]['target_id'] = $this->node5->nid;
+    $this->node2->field_entity[LANGUAGE_NONE][0]['target_id'] = $this->node4->nid;
+    $this->node3->field_entity[LANGUAGE_NONE][0]['target_id'] = $this->node3->nid;
+    $this->node4->field_entity[LANGUAGE_NONE][0]['target_id'] = $this->node2->nid;
+    $this->node5->field_entity[LANGUAGE_NONE][0]['target_id'] = $this->node1->nid;
+
+    // Term reference
+    $this->node1->field_tags[LANGUAGE_NONE][0]['tid'] = $this->tag->tid;
+    $this->node2->field_tags[LANGUAGE_NONE][0]['tid'] = $this->tag->tid;
+    $this->node3->field_tags[LANGUAGE_NONE][0]['tid'] = $this->tag->tid;
+    $this->node4->field_tags[LANGUAGE_NONE][0]['tid'] = $this->tag->tid;
+    $this->node5->field_tags[LANGUAGE_NONE][0]['tid'] = $this->tag->tid;
+
+    // Save nodes again
+    node_save($this->node1); node_save($this->node2); node_save($this->node3);
+    node_save($this->node4); node_save($this->node5);
+  }
+
+  function testRelationMigrate() {
+    if (!module_exists('migrate') || !module_exists('migrate_ui') || !module_exists('node_reference') || !module_exists('user_reference') || !module_exists('entityreference')) {
+      return;
+    }
+
+    /*
+     * Test configuration form:
+     *   - not accessible to user with unproper permission
+     *   - saves when settings are OK
+     *   - refuses to save when using a relation type with insufficent source/target configuration
+     */
+    $this->drupalLogout();
+    $this->drupalGet('admin/structure/relation/migrate');
+    $this->assertResponse(403, t('Anonymous user is not allowed to access Relation migrate configuration page.'));
+
+    $this->drupalLogin($this->web_user);
+    $this->drupalGet('admin/structure/relation/migrate');
+    $this->assertResponse(200, t('User with right permission has access to Relation migrate configuration page.'));
+    $this->assertText('field_tags', t('Taxonomy term reference field is present on config form.'));
+    $this->assertText('field_user', t('User reference field is present on config form.'));
+    $this->assertText('field_node', t('Node reference field is present on config form.'));
+    $this->assertText('field_entity', t('Entity reference field is present on config form.'));
+
+    $this->drupalPost("admin/structure/relation/migrate", array(
+      'relation_migrate_entityreference_relation_type' => 'symmetric',
+      'relation_migrate_node_reference_relation_type' => 'symmetric',
+      'relation_migrate_user_reference_relation_type' => 'symmetric',
+      'relation_migrate_taxonomy_term_reference_relation_type' => 'symmetric',
+      'relation_migrate_entityreference_fields[field_entity]' => TRUE,
+      'relation_migrate_node_reference_fields[field_node]' => TRUE,
+      'relation_migrate_user_reference_fields[field_user]' => TRUE,
+      'relation_migrate_taxonomy_term_reference_fields[field_tags]' => TRUE,
+    ), t('Save configuration'));
+    $this->assertText(t('The configuration options have been saved.'), t('Settings saved successfully.'));
+
+    $this->drupalPost("admin/structure/relation/manage/symmetric/edit", array('source_bundles[]' => array('node:*', 'taxonomy_term:*')), t('Save'));
+    $this->drupalPost("admin/structure/relation/migrate", array(), t('Save configuration'));
+    $this->assertNoText(t('The configuration options have been saved.'), t('Settings not saved due to unproper configuration.'));
+
+    $this->drupalPost("admin/structure/relation/manage/symmetric/edit", array('source_bundles[]' => array('node:*', 'user:*')), t('Save'));
+    $this->drupalPost("admin/structure/relation/migrate", array(), t('Save configuration'));
+    $this->assertNoText(t('The configuration options have been saved.'), t('Settings not saved due to unproper configuration.'));
+
+    $this->drupalPost("admin/structure/relation/manage/symmetric/edit", array('source_bundles[]' => array('taxonomy_term:*', 'user:*')), t('Save'));
+    $this->drupalPost("admin/structure/relation/migrate", array(), t('Save configuration'));
+    $this->assertNoText(t('The configuration options have been saved.'), t('Settings not saved due to unproper configuration.'));
+
+    $this->drupalPost(
+      "admin/structure/relation/manage/symmetric/edit",
+      array(
+        'directional' => TRUE,
+        'source_bundles[]' => array('user:*'),
+        'target_bundles[]' => array('node:*', 'taxonomy_term:*', 'user:*')
+      ),
+      t('Save')
+    );
+    $this->drupalPost("admin/structure/relation/migrate", array(), t('Save configuration'));
+    $this->assertNoText(t('The configuration options have been saved.'), t('Settings not saved due to unproper configuration.'));
+
+    $this->drupalPost(
+      "admin/structure/relation/manage/symmetric/edit",
+      array(
+        'directional' => TRUE,
+        'source_bundles[]' => array('node:*'),
+        'target_bundles[]' => array('node:page', 'taxonomy_term:*', 'user:*')
+      ),
+      t('Save')
+    );
+    $this->drupalPost("admin/structure/relation/migrate", array(), t('Save configuration'));
+    $this->assertNoText(t('The configuration options have been saved.'), t('Settings not saved due to unproper configuration.'));
+
+    $this->drupalPost(
+      "admin/structure/relation/manage/symmetric/edit",
+      array(
+        'directional' => TRUE,
+        'source_bundles[]' => array('node:*'),
+        'target_bundles[]' => array('node:*', 'user:*')
+      ),
+      t('Save')
+    );
+    $this->drupalPost("admin/structure/relation/migrate", array(), t('Save configuration'));
+    $this->assertNoText(t('The configuration options have been saved.'), t('Settings not saved due to unproper configuration.'));
+
+    $this->drupalPost(
+      "admin/structure/relation/manage/symmetric/edit",
+      array(
+        'directional' => TRUE,
+        'source_bundles[]' => array('node:*'),
+        'target_bundles[]' => array('node:*', 'user:*', 'taxonomy_term:*')
+      ),
+      t('Save')
+    );
+    $this->drupalPost("admin/structure/relation/migrate", array(), t('Save configuration'));
+    $this->assertText(t('The configuration options have been saved.'), t('Settings saved successfully.'));
+
+    $this->drupalPost(
+      "admin/structure/relation/migrate",
+      array(
+        'relation_migrate_entityreference_fields[field_entity]' => FALSE,
+        'relation_migrate_node_reference_fields[field_node]' => FALSE,
+        'relation_migrate_user_reference_fields[field_user]' => FALSE,
+        'relation_migrate_taxonomy_term_reference_fields[field_tags]' => FALSE,
+      ),
+      t('Save configuration')
+    );
+    $this->assertText(t('The configuration options have been saved.'), t('Settings saved successfully.'));
+
+    /*
+     * Test migration classes for *reference fields.
+     *   - check for presence of *reference migration classes
+     *   - check for correct count of relations to be migrated
+     *   - run migration
+     *   - check for correct count of relations that were migrated
+     *   - check integrity of migrated relations
+     */
+    $this->drupalGet('admin/content/migrate');
+    $this->assertText('RelationMigrateEntityReference', t('Entity reference migrate class is present.'));
+    $this->assertText('RelationMigrateUserReference', t('User reference migrate class is present.'));
+    $this->assertText('RelationMigrateNodeReference', t('Node reference migrate class is present.'));
+    $this->assertText('RelationMigrateTermReference', t('Term reference migrate class is present.'));
+    $this->assertRaw('RelationMigrateEntityReference</a></td><td>0</td>', t('There are 0 rows to be migrated from Entity reference.'));
+    $this->assertRaw('RelationMigrateUserReference</a></td><td>0</td>', t('There are 0 rows to be migrated from User reference.'));
+    $this->assertRaw('RelationMigrateNodeReference</a></td><td>0</td>', t('There are 0 rows to be migrated from Node reference.'));
+    $this->assertRaw('RelationMigrateTermReference</a></td><td>0</td>', t('There are 0 rows to be migrated from Term reference.'));
+
+    $this->drupalPost(
+      "admin/structure/relation/migrate",
+      array(
+        'relation_migrate_entityreference_fields[field_entity]' => TRUE,
+        'relation_migrate_node_reference_fields[field_node]' => TRUE,
+        'relation_migrate_user_reference_fields[field_user]' => TRUE,
+        'relation_migrate_taxonomy_term_reference_fields[field_tags]' => TRUE,
+      ),
+      t('Save configuration')
+    );
+    $this->drupalGet('admin/content/migrate');
+    $this->assertRaw('RelationMigrateEntityReference</a></td><td>5</td><td>0</td><td>5</td>', t('There are 5 rows to be migrated from Entity reference.'));
+    $this->assertRaw('RelationMigrateUserReference</a></td><td>5</td><td>0</td><td>5</td>', t('There are 5 rows to be migrated from User reference.'));
+    $this->assertRaw('RelationMigrateNodeReference</a></td><td>5</td><td>0</td><td>5</td>', t('There are 5 rows to be migrated from Node reference.'));
+    $this->assertRaw('RelationMigrateTermReference</a></td><td>5</td><td>0</td><td>5</td>', t('There are 5 rows to be migrated from Term reference.'));
+
+    $this->drupalPost(
+      "admin/content/migrate",
+      array(
+        'dashboard[RelationMigrateEntityReference]' => TRUE,
+        'dashboard[RelationMigrateUserReference]' => TRUE,
+        'dashboard[RelationMigrateTermReference]' => TRUE,
+        'dashboard[RelationMigrateNodeReference]' => TRUE,
+      ),
+      t('Execute')
+    );
+    $this->drupalGet('admin/content/migrate');
+    $this->assertRaw('RelationMigrateEntityReference</a></td><td>5</td><td>5</td><td>0</td>', t('5 rows were successfully migrated from Entity reference.'));
+    $this->assertRaw('RelationMigrateUserReference</a></td><td>5</td><td>5</td><td>0</td>', t('5 rows were successfully migrated from User reference.'));
+    $this->assertRaw('RelationMigrateNodeReference</a></td><td>5</td><td>5</td><td>0</td>', t('5 rows were successfully migrated from Node reference.'));
+    $this->assertRaw('RelationMigrateTermReference</a></td><td>5</td><td>5</td><td>0</td>', t('5 rows were successfully migrated from Term reference.'));
+
+    $this->drupalGet('admin/content/relation');
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node1->nid) . '">' . $this->node1->title . '</a> → <a href="' . url('node/' . $this->node2->nid) . '">' . $this->node2->title . '</a></td>', t('Node reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node2->nid) . '">' . $this->node2->title . '</a> → <a href="' . url('node/' . $this->node3->nid) . '">' . $this->node3->title . '</a></td>', t('Node reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node3->nid) . '">' . $this->node3->title . '</a> → <a href="' . url('node/' . $this->node4->nid) . '">' . $this->node4->title . '</a></td>', t('Node reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node4->nid) . '">' . $this->node4->title . '</a> → <a href="' . url('node/' . $this->node5->nid) . '">' . $this->node5->title . '</a></td>', t('Node reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node5->nid) . '">' . $this->node5->title . '</a> → <a href="' . url('node/' . $this->node1->nid) . '">' . $this->node1->title . '</a></td>', t('Node reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node1->nid) . '">' . $this->node1->title . '</a> → <a href="' . url('user/' . $this->user1->uid) . '">' . $this->user1->name . '</a></td>', t('User reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node2->nid) . '">' . $this->node2->title . '</a> → <a href="' . url('user/' . $this->user1->uid) . '">' . $this->user1->name . '</a></td>', t('User reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node3->nid) . '">' . $this->node3->title . '</a> → <a href="' . url('user/' . $this->user1->uid) . '">' . $this->user1->name . '</a></td>', t('User reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node4->nid) . '">' . $this->node4->title . '</a> → <a href="' . url('user/' . $this->user1->uid) . '">' . $this->user1->name . '</a></td>', t('User reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node5->nid) . '">' . $this->node5->title . '</a> → <a href="' . url('user/' . $this->user1->uid) . '">' . $this->user1->name . '</a></td>', t('User reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node1->nid) . '">' . $this->node1->title . '</a> → <a href="' . url('taxonomy/term/' . $this->tag->tid) . '">' . $this->tag->name . '</a></td>', t('Term reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node2->nid) . '">' . $this->node2->title . '</a> → <a href="' . url('taxonomy/term/' . $this->tag->tid) . '">' . $this->tag->name . '</a></td>', t('Term reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node3->nid) . '">' . $this->node3->title . '</a> → <a href="' . url('taxonomy/term/' . $this->tag->tid) . '">' . $this->tag->name . '</a></td>', t('Term reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node4->nid) . '">' . $this->node4->title . '</a> → <a href="' . url('taxonomy/term/' . $this->tag->tid) . '">' . $this->tag->name . '</a></td>', t('Term reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node5->nid) . '">' . $this->node5->title . '</a> → <a href="' . url('taxonomy/term/' . $this->tag->tid) . '">' . $this->tag->name . '</a></td>', t('Term reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node1->nid) . '">' . $this->node1->title . '</a> → <a href="' . url('node/' . $this->node5->nid) . '">' . $this->node5->title . '</a></td>', t('Entity reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node2->nid) . '">' . $this->node2->title . '</a> → <a href="' . url('node/' . $this->node4->nid) . '">' . $this->node4->title . '</a></td>', t('Entity reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node3->nid) . '">' . $this->node3->title . '</a> → <a href="' . url('node/' . $this->node3->nid) . '">' . $this->node3->title . '</a></td>', t('Entity reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node4->nid) . '">' . $this->node4->title . '</a> → <a href="' . url('node/' . $this->node2->nid) . '">' . $this->node2->title . '</a></td>', t('Entity reference migrated successfully.'));
+    $this->assertRaw('<td><a href="' . url('node/' . $this->node5->nid) . '">' . $this->node5->title . '</a> → <a href="' . url('node/' . $this->node1->nid) . '">' . $this->node1->title . '</a></td>', t('Entity reference migrated successfully.'));
+
+    // Test if duplicated relations get migrated properly - add one first
+    $this->node1->field_tags[LANGUAGE_NONE][1]['tid'] = $this->tag->tid;
+    node_save($this->node1);
+
+    // Check if new reference appeared and migrate it to relation.
+    $this->drupalGet('admin/content/migrate');
+    $this->assertRaw('RelationMigrateTermReference</a></td><td>6</td><td>5</td><td>1</td>', t('There is 1 new row to be migrated from Term reference.'));
+
+    $this->drupalPost(
+      "admin/content/migrate",
+      array(
+        'dashboard[RelationMigrateTermReference]' => TRUE,
+      ),
+      t('Execute')
+    );
+    $this->drupalGet('admin/content/migrate');
+    $this->assertRaw('RelationMigrateTermReference</a></td><td>6</td><td>6</td><td>0</td>', t('6 rows were successfully migrated from Term reference.'));
+  }
+}
