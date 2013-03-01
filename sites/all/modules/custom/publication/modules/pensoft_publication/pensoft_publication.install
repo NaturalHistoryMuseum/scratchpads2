@@ -1,26 +1,26 @@
 <?php
 
 /**
- * Implement hook_install
- *
+ * Update field types and views
  */
-function pensoft_publication_install(){
-  // Create insert_from_view instances
-  insert_from_view_new_instance('Pensoft publication references', 'Add Reference citation', 'publication_citations_references', 'references', array(
-    'key' => 'pensoft_publication_references',
-    'field' => 'nothing',
-    'icon' => drupal_get_path('module', 'pensoft_publication') . '/images/references.png'
-  ));
-  insert_from_view_new_instance('Pensoft publication figures', 'Add Figure citation', 'publication_citations_figures', 'figures', array(
-    'key' => 'pensoft_publication_figures',
-    'field' => 'nothing',
-    'icon' => drupal_get_path('module', 'pensoft_publication') . '/images/figures.png'
-  ));
-  insert_from_view_new_instance('Pensoft publication specimens', 'Create specimen table', 'publication_create_specimens', 'default', array(
-    'key' => 'pensoft_publication_specimens',
-    'field' => 'nothing',
-    'icon' => drupal_get_path('module', 'pensoft_publication') . '/images/specimens.png',
-    'wrap_tag' => 'table',
-    'row_tag' => 'tr'
+function pensoft_publication_update_7000(){
+  // Delete the field types we want to revert. This module is
+  // still experimental, and no data will be lost.
+  field_delete_field('field_publication_authors');
+  field_delete_field('field_publication_submit_author');
+  field_delete_field('field_publication_contributors');
+  field_delete_field('field_publication_copy_editor');
+  field_delete_field('field_publication_ling_editor');
+  field_delete_field('field_publication_mentor');
+  // Now revert the features
+  features_revert(array(
+    'pensoft_publication' => array(
+      'field',
+      'field_group',
+      'views_view'
+    ),
+    'publication_html_format' => array(
+      'views_view'
+    )
   ));
 }

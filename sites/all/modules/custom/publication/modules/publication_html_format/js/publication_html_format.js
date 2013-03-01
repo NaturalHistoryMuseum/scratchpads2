@@ -18,7 +18,7 @@
         }
 
         for ( var i = 0; i < inserts.length; i++) {
-          var matches = inserts[i].match(/^(\d+):\((.+)\)(\d+)$/);
+          var matches = inserts[i].match(/^(\d+):\((.*)\)(\d+)$/);
           if (matches != null && matches.length > 0) {
             var nid = matches[1];
             var year = matches[3];

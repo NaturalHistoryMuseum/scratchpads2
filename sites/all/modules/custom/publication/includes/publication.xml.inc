@@ -54,6 +54,12 @@
  *                           where the field defined in #condition is tested against $val using operator
  *                           $op.
  *
+ *    #error_info:      If present, this will be used instead of the field name in error messages
+ *                      (eg. field ... is required)
+ *
+ *    #error_field      If present, the string '%' in the #error_info will be substituted for the value
+ *                      of that field on the current object
+ *
  *   <tag name>:        A schema array for child elements. There can be any number of
  *                      such entries. To allow for several of the same tag (for instance, several
  *                      iteration of a tag mapping to different fields) add #<number> at the end
@@ -65,7 +71,7 @@
  * This class is used to parse an XSD schema into a schema array
  * 
  */
-class PensoftPublicationXSDParser{
+class PublicationXSDParser{
 
   /**
    * Construct the parser from the URL
@@ -225,10 +231,11 @@ class PensoftPublicationXSDParser{
  * This class is used to build XML from an array schema
  * 
  */
-class PensoftPublicationXMLBuilder{
+class PublicationXMLBuilder{
 
   /**
-   * Creatre a new builder from a schema and settings.
+   * Creatre a new builder from a schema and settings and
+   * a number of modifiers (objects that implement PublicationXMLModifierInterface)
    * 
    * The settings is an associative array which may define:
    * 'force-empty-values' : If the schema defines that a tag associated with
@@ -239,9 +246,11 @@ class PensoftPublicationXMLBuilder{
    * 'no-error' : Ignore contraint errors (no exception thrown). Default
    *              is FALSE
    */
-  function __construct($array_schema, $settings){
+  function __construct($publication_name, $array_schema, $settings, $modifiers = array()){
+    $this->publication_name = $publication_name;
     $this->array_schema = $array_schema;
     $this->settings = $settings;
+    $this->modifiers = $modifiers;
   }
 
   /**
@@ -252,11 +261,18 @@ class PensoftPublicationXMLBuilder{
    * the DOM document.
    * 
    */
-  function build_xml($object, $version = '1.0', $encoding = 'UTF-8'){
+  function build_xml($object, $xsd_url = NULL, $version = '1.0', $encoding = 'UTF-8'){
     $this->_root_object = $object;
     $this->_dom = new DOMDocument($version, $encoding);
+    foreach($this->modifiers as $modifier){
+      $modifier->start_building($this->array_schema, $this->_root_object, $this->_dom);
+    }
     $this->_build_xml_iteration($this->array_schema, $this->_root_object, $this->_dom);
-    return $this->_dom->saveXML();
+    $xml = $this->_dom->saveXML();
+    if($xsd_url && empty($this->settings['no-error'])){
+      $this->_validate_xml($xml, $xsd_url, $version, $encoding);
+    }
+    return $xml;
   }
 
   /**
@@ -320,19 +336,30 @@ class PensoftPublicationXMLBuilder{
   function _build_schema_insert_field($schema, $tag, $object, $xml_element){
     $field = $schema['#field'];
     $values = $this->_read_values($object->$field);
+    foreach($this->modifiers as $modifier){
+      $values = $modifier->insert_value_array($schema, $tag, $values);
+    }
     $inserted = FALSE;
     foreach($values as $value){
       $value_to_insert = $value;
       if(isset($schema['#value'])){
         $value_to_insert = $schema['#value'];
       }
-      $child_object = $this->_load_child_object($schema, $object, $value);
+      try{
+        $child_object = $this->_load_child_object($schema, $object, $value);
+      }
+      catch(Exception $e){
+        $this->_generate_error($e->getMessage());
+        $child_object = NULL;
+      }
       if(!$child_object){
         // It's up to the loader to raise errors if need be. Here an empty return means skip it.
         // XXX doing this test here means we're not checking against min/max occurs.
         continue;
       }
-      $child_element = $this->_insert_xml_element($tag, $schema, $value_to_insert, $xml_element);
+      // XXX The new Modifier functionality means we might end up with a NULL value, and thus
+      // should set $inserted to FALSE (depending on min_ocurrence) to provide adequate backtracking.
+      $child_element = $this->_insert_xml_element($schema, $tag, $value_to_insert, $xml_element);
       $inserted = TRUE;
       $this->_build_xml_iteration($schema, $child_object, $child_element);
     }
@@ -346,8 +373,11 @@ class PensoftPublicationXMLBuilder{
   function _build_schema_insert_value($schema, $tag, $object, $xml_element){
     $inserted = FALSE;
     $count = (!isset($schema['#min_occurence']) || $schema['#min_occurence'] == 0) ? 1 : $schema['#min_occurence'];
+    $value = $schema['#value'];
     for($i = 0; $i < $count; $i++){
-      $child_element = $this->_insert_xml_element($tag, $schema, $schema['#value'], $xml_element);
+      // XXX The new Modifier functionality means we might end up with a NULL value, and thus
+      // should set $inserted to FALSE (depending on min_ocurrence) to provide adequate backtracking.
+      $child_element = $this->_insert_xml_element($schema, $tag, $value, $xml_element);
       $inserted = TRUE;
       $this->_build_xml_iteration($schema, $object, $child_element);
     }
@@ -364,7 +394,9 @@ class PensoftPublicationXMLBuilder{
     $count = ((!isset($schema['#min_occurence']) || $min_occurence == 0) ? 1 : $schema['#min_occurence']);
     $inserted = FALSE;
     for($i = 0; $i < $count; $i++){
-      $child_element = $this->_insert_xml_element($tag, $schema, NULL, $xml_element);
+      // XXX The new Modifier functionality means we might end up with a non NULL , and thus
+      // should set $inserted to TRUE to provide adequate backtracking.
+      $child_element = $this->_insert_xml_element($schema, $tag, NULL, $xml_element);
       $insert_child = $this->_build_xml_iteration($schema, $object, $child_element);
       if(!$insert_child && $min_occurence == 0){
         $xml_element->removeChild($child_element);
@@ -396,7 +428,7 @@ class PensoftPublicationXMLBuilder{
    * Insert an element given it's array schema into the DOM.
    * 
    */
-  function _insert_xml_element($tag, $schema, $value, $xml_element){
+  function _insert_xml_element($schema, $tag, $value, $xml_element){
     // Apply process function
     if(isset($schema['#process'])){
       $f = $schema['#process'];
@@ -409,7 +441,8 @@ class PensoftPublicationXMLBuilder{
       }
       $value = call_user_func_array($f, $args);
     }
-    // Check for standard drupal field value format
+    // Check for standard drupal field value format. Anything that is a direct value, or
+    // an array definined 'value' will need a 'process' function defined.
     if(is_array($value) && isset($value['value'])){
       $value = $value['value'];
     }
@@ -422,13 +455,30 @@ class PensoftPublicationXMLBuilder{
       }
     }
     // Add value
+    foreach($this->modifiers as $modifier){
+      $value = $modifier->insert_value($tag, $schema, $value);
+    }
     if($value !== NULL){
       // simpleXML escapes HTML tags, but not HTML entities ; however not all entities (such as &nbsp;) are supported
       // in XML. All numerical entities are fine, so we only need to escape named entities.
-      $escaped_value = preg_replace('/&([a-zA-Z]+);/', '&amp;$1;', (string)$value);
+      $escaped_value = preg_replace_callback('/&([a-zA-Z]+;)?/', array(
+        $this,
+        '_escape_html_entities'
+      ), (string)$value);
       $child_element->nodeValue = (string)$escaped_value;
     }
     return $child_element;
+  }
+
+  /**
+   * A function for escaping html entities called from preg_replace_callback
+   */
+  function _escape_html_entities($matches){
+    $entity = '';
+    if(!empty($matches[1]) && $matches[1] != 'amp;'){
+      $entity = $matches[1];
+    }
+    return '&amp;' . $entity;
   }
 
   /**
@@ -450,16 +500,58 @@ class PensoftPublicationXMLBuilder{
       }
       $count = count($field_value);
       if($count < $min_occurence || ($max_occurence >= 0 && $count > $max_occurence)){
+        $message_prepare = "the field %field";
+        if($count == 0){
+          $message_prepare .= " is required.";
+        }else if($count < $min_occurence){
+          $message_prepare .= " must be present at least %min times, but is only here %count times.";
+        }else{
+          $message_prepare .= " can be present at most %max times, but is here %count times.";
+        }
+        $message_prepare .= " (Technical note: the associated XML tag was %tag)";
+        $error_field = $field;
+        if(isset($schema['#error_info'])){
+          $error_field = $schema['#error_info'];
+          if(isset($schema['#error_field'])){
+            $error_context_field = $schema['#error_field'];
+            if(isset($object->$error_context_field)){
+              $error_context = reset($this->_read_values($object->$error_context_field));
+              $error_field = str_replace('%', $error_context, $error_field);
+            }
+          }
+        }
+        $message = t($message_prepare, array(
+          '%field' => $error_field,
+          '%min' => $min_occurence,
+          '%max' => $max_occurence,
+          '%count' => $count,
+          '%tag' => $tag
+        ));
+        $this->_generate_error($message);
         if($this->settings['force-empty-values'] && $count == 0){
+          // If no exception was raised and we are asked to enter empty values, make sure we adapt the schema
           $schema['#value'] = '';
           unset($schema['#field']);
-          drupal_set_message("Ignored: XML contraint violation: $tag occurence is $min_occurence, $max_occurence ; " . "associated field $field appears $count times. Value forced to empty string.", "warning");
-        }else if($this->settings['no-error']){
-          drupal_set_message("Ignored: XML contraint violation: $tag occurence is $min_occurence, $max_occurence ; " . "associated field $field appears $count times", "warning");
-        }else{
-          throw new Exception("XML contraint violation: $tag occurence is $min_occurence, $max_occurence ; associated field $field appears $count times");
         }
       }
+    }
+  }
+
+  /**
+   * This function registers an error and either interupts processing by
+   * throwing an exception, or logs the error and returns
+   */
+  function _generate_error($message){
+    $message = t('The publication %publication could not be generated, because !message', array(
+      '%publication' => $this->publication_name,
+      '!message' => $message
+    ));
+    if($this->settings['force-empty-values'] && $count == 0){
+      drupal_set_message(t("The following error happened but was ignored due to settings, and an empty value was set in it's place: ") . $message, 'warning');
+    }else if($this->settings['no-error']){
+      drupal_set_message(t("The following error happened but was ignored due to settings: ") . $message, 'warning');
+    }else{
+      throw new Exception($message);
     }
   }
 
@@ -472,7 +564,7 @@ class PensoftPublicationXMLBuilder{
    * array, this is removed to return the values directly
    * 
    */
-  function _read_values($value, $language = 'und'){
+  function _read_values($value, $language = LANGUAGE_NONE){
     if(is_array($value) && isset($value[$language])){
       return $this->_read_values($value[$language], $language);
     }else if(is_array($value)){
@@ -483,95 +575,125 @@ class PensoftPublicationXMLBuilder{
       );
     }
   }
-}
 
-/**
- * Build the XML for a publication. This function builds the
- * overall document structure, and then calls functions to build
- * each section.
- */
-function _pensoft_publication_build_xml($publication){
-  // Parse the schema
-  $url = variable_get('pensoft_publication_xml_schema_url', 'http://localhost/scratchpads/sites/all/modules/custom/publication/modules/pensoft_publication/research_article.xsd');
-  //$source_schema = _pensoft_publication_xml_parse_schema($url);
-  try{
-    $parser = new PensoftPublicationXSDParser($url);
-    $source_schema = $parser->get_schema_array();
-  }
-  catch(Exception $e){
-    drupal_set_message("The publication could not be published because we were unable to parse the Pensoft XSD Schema : " . $e->getMessage(), 'error');
-  }
-  // Now merge the schema with drupal field mapping
-  include ('pensoft_publication.xml.schema.inc');
-  $map_schema = array(
-    'document' => array(
-      'document_info' => _pensoft_publication_xml_document_info_schema(),
-      'objects' => array(
-        'article_metadata' => _pensoft_publication_xml_article_metadata_schema(),
-        'introduction' => _pensoft_publication_xml_introduction_schema(),
-        'material_and_methods' => _pensoft_publication_xml_material_and_methods_schema(),
-        'systematics' => _pensoft_publication_xml_systematics_schema(),
-        'acknowledgements' => _pensoft_publication_xml_acknowledgements_schema(),
-        'supplementary_files' => _pensoft_publication_xml_files_schema()
-      )
-    //'figures' => _pensoft_publication_xml_figures_schema(),
-    //'tables' => _pensoft_publication_xml_tables_schema(),    
-    )
-  );
-  $schema = $parser->merge_schemas($source_schema, $map_schema);
-  // Build the XML
-  try{
-    $builder = new PensoftPublicationXMLBuilder($schema, array(
-      'force-empty-values' => FALSE
-    ));
-    $xml = $builder->build_xml($publication);
-  }
-  catch(Exception $e){
-    drupal_set_message($e->getMessage(), 'error');
-    return FALSE;
-  }
-  return $xml;
-  // Validation and error display. Try to break the XML down in lines such that we don't disturb content by adding unwanted
-  // carriage returns (that would effecut enumerations for instance).
-  $xml_per_line = preg_replace('/(<\/.*?>)/', "$1\n", $xml);
-  $parsed_dom = new DOMDocument('1.0', 'UTF-8');
-  $parsed_dom->loadXML($xml_per_line);
-  libxml_use_internal_errors(true);
-  if(!$parsed_dom->schemaValidate($url)){
-    $lines = explode("\n", $xml_per_line);
-    $errors = libxml_get_errors();
-    foreach($errors as $error){
-      $type = 'error';
-      if($error->level == LIBXML_ERR_WARNING){
-        $type = 'warning';
-      }
-      // Get some context.
-      $context = array();
-      $num = 5;
-      if($error->line > 2){
-        $count = ($error->line > $num) ? $num : ($error->line - 1);
-        $context = array_slice($lines, $error->line - $count - 1, $count);
-        foreach($context as $key => $value){
-          $context[$key] = htmlspecialchars($value);
+  /**
+   * Validates generated XML against an XSD schema, and throw
+   * an Excpetion if the validation fails
+   */
+  function _validate_xml($xml, $xsd_url, $version = '1.0', $encoding = 'UTF-8'){
+    // Try to break the XML down in lines such that we don't disturb content by adding unwanted
+    // carriage returns (that would affect enumerations for instance).
+    $xml_per_line = preg_replace('/(<\/.*?>)/', "$1\n", $xml);
+    $parsed_dom = new DOMDocument($version, $encoding);
+    $parsed_dom->loadXML($xml_per_line);
+    libxml_use_internal_errors(true);
+    if(!$parsed_dom->schemaValidate($xsd_url)){
+      $lines = explode("\n", $xml_per_line);
+      $errors = libxml_get_errors();
+      $error_messages = array();
+      foreach($errors as $error){
+        $type = 'error';
+        if($error->level == LIBXML_ERR_WARNING){
+          $type = 'warning';
         }
+        // Get some context.
+        $context = array();
+        $num = 5;
+        if($error->line > 2){
+          $count = ($error->line > $num) ? $num : ($error->line - 1);
+          $context = array_slice($lines, $error->line - $count - 1, $count);
+          foreach($context as $key => $value){
+            $context[$key] = htmlspecialchars($value);
+          }
+        }
+        $context[] = '<strong>' . htmlspecialchars($lines[$error->line - 1]) . '</strong>';
+        $error_messages[] = t("XML validation error: @code - @message !context", array(
+          '@code' => $error->code,
+          '@message' => $error->message,
+          '!context' => '<br/>' . implode('<br/>', $context)
+        ));
       }
-      $context[] = '<strong>' . htmlspecialchars($lines[$error->line - 1]) . '</strong>';
-      drupal_set_message('XML validation error: ' . $error->code . ' - ' . $error->message . ' : <br/>' . implode("<br/>", $context), $type);
+      libxml_clear_errors();
+      libxml_use_internal_errors(false);
+      throw new Exception('<ul><li>' . implode('</li><li>', $error_messages) . '</li></ul>');
     }
     libxml_clear_errors();
     libxml_use_internal_errors(false);
-    return FALSE;
   }
-  libxml_clear_errors();
-  libxml_use_internal_errors(false);
-  return $xml;
 }
 
 /**
- * Proccess a field to insert a country value
- * 
+ * This interface defines a publication xml modifier
+ *
+ * Such objects are given to the PublicationXMLBuilder,
+ * and are called at every iteration. They can be used
+ * to:
+ * - Track references ;
+ * - Order fields ;
+ * - Modify/filter content
+ *
+ * Note: we use registered objects rather than hooks,
+ * because the main purpose of this is to rename
+ * citations and order cited objects accordingly
+ * (eg. Table 1, Table 2, etc.) - this requires that
+ * we keep context throughout the process which is
+ * not always practical with hooks.
  */
-function _pensoft_publication_xml_process_country($value, $type = 'name'){
+interface PublicationXMLModifierInterface{
+
+  /**
+   * function start_building
+   *
+   * This is called before the XML building starts.
+   *
+   * $schema: The array schema used for building the XML
+   *
+   * $object: the object from which the XML
+   * will be build
+   *
+   * $dom: The empty DomDocument object
+   */
+  public function start_building($schema, $object, $dom);
+
+  /**
+   * function insert_value
+   *
+   * This is called when an actual value is about to be
+   * inserted into the DOM, and should return the
+   * modified value to insert. Classes implementing
+   * this interface should at least return $value here.
+   *
+   * $tag: The tag of the value being inserted 
+   * $schema: The schema for the tag
+   * $value: The value itself
+   */
+  public function insert_value($schema, $tag, $value);
+
+  /**
+   * function insert_value_array
+   * 
+   * This is called when a number of values comming from the
+   * same field are going to be inserted sequencially with the
+   * same tag. This should return the array of values, and
+   * can be used to filter out some values or to order the values.
+   * Classes implementing this interface should at least return $values
+   * here.
+   *
+   * Note that each individual value will still go throug 'insert_value'
+   * 
+   * $schema: The schema for the tag
+   * $tag: The tag of the value being inserted
+   * $values: The array of values
+   */
+  public function insert_value_array($schema, $tag, $values);
+}
+
+/**
+ * Process a country field to return either the iso2 code or
+ * the country name
+ *
+ */
+function _publication_xml_process_country($value, $type = 'name'){
   if($type == 'iso2'){
     return $value['iso2'];
   }else{
@@ -581,25 +703,9 @@ function _pensoft_publication_xml_process_country($value, $type = 'name'){
 }
 
 /**
- * Process a salutation
+ * Process a map field to return just one property (by default the latitude)
  */
-function _pensoft_publication_xml_process_salutation($value){
-  $map = array(
-    'Prof.' => 'Prof'
-  );
-  if(isset($map[$value['value']])){
-    return array(
-      'value' => $map[$value['value']]
-    );
-  }else{
-    return $value;
-  }
-}
-
-/**
- * Process a map field
- */
-function _pensoft_publication_xml_process_map($value, $type = 'latitude'){
+function _publication_xml_process_map($value, $type = 'latitude'){
   $map = $value[LANGUAGE_NONE][0];
   return $map->$type;
 }
@@ -607,16 +713,26 @@ function _pensoft_publication_xml_process_map($value, $type = 'latitude'){
 /**
  * Loader function for the author/contributor fields
  */
-function _pensoft_publication_xml_load_user($value){
+function _publication_xml_load_user($value){
   $user = user_load($value);
-  $user->processed_full_name = $user->field_user_title . ' ' . $user->field_user_given_names . ' ' . $user->field_user_family_name;
+  $wrapper = entity_metadata_wrapper('user', $user);
+  $given_names = explode(' ', $wrapper->field_user_given_names->value());
+  $user->processed_full_name = implode(' ', array(
+    $wrapper->field_user_title->value(),
+    $wrapper->field_user_given_names->value(),
+    $wrapper->field_user_family_name->value()
+  ));
+  $user->processed_first_name = array_shift($given_names);
+  if(count($given_names)){
+    $user->processed_middle_names = implode(' ', $given_names);
+  }
   return $user;
 }
 
 /**
  * Loader function for files
  */
-function _pensoft_publication_xml_load_file($value){
+function _publication_xml_load_file($value){
   $value['url'] = url($value['uri'], array(
     'absolute' => TRUE
   ));
@@ -624,24 +740,9 @@ function _pensoft_publication_xml_load_file($value){
 }
 
 /**
- * Loader function for the treatment/taxon description
- */
-function _pensoft_publication_xml_load_treatment($value){
-  $endpoint = array_shift(array_values($value['endpoints']));
-  list($type, $nid) = explode(':', $endpoint);
-  $rid = $value['relation_id'];
-  $relation = relation_load($rid);
-  $node = node_load($nid);
-  $tid = $node->field_taxonomic_name["und"][0]["tid"];
-  $term = taxonomy_term_load($tid);
-  $combine = array_merge((array)$node, (array)$relation, (array)$term);
-  return ((object)$combine);
-}
-
-/**
  * Loads the parent of the given term
  */
-function _pensoft_publication_xml_load_parent_term($value, $rank = NULL, $default = NULL){
+function _publication_xml_load_parent_term($value, $rank = NULL, $default = NULL){
   $terms = taxonomy_get_parents($value['tid']);
   while(!empty($terms)){
     $current = array_shift($terms);
@@ -655,7 +756,7 @@ function _pensoft_publication_xml_load_parent_term($value, $rank = NULL, $defaul
 /**
  * Loader function for materials
  */
-function _pensoft_publication_xml_load_specimen($value){
+function _publication_xml_load_specimen($value){
   $specimen = node_load($value['nid']);
   if(!empty($specimen->field_location[$specimen->language][0]['nid'])){
     $location = node_load($specimen->field_location[$specimen->language][0]['nid']);
@@ -665,8 +766,3 @@ function _pensoft_publication_xml_load_specimen($value){
   }
   return $specimen;
 }
-
-
-
-
-
