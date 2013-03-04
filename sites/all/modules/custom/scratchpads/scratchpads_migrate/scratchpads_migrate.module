@@ -39,8 +39,8 @@ function _scratchpads_migrate_settings(){
     // As we are running in top level, we can't rely on Drupal for error management.
     // It is better to cancel all processing now than to allow a broken migration install
     // to continue.
-    echo "Migration error: Could not reliably determine Scratchpad 1 host name from the host name $host";
-    exit(1);
+    //echo "Migration error: Could not reliably determine Scratchpad 1 host name from the host name $host";
+    //exit(1);
   }
   $filename = SCRATCHPADS_MIGRATE_SPAD1_SETTINGS_PATH . $s1_domain . '.scratchpad_1.php';
   if(file_exists($filename)){
