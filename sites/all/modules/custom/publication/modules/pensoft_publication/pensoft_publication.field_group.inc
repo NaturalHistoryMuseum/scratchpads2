@@ -214,8 +214,7 @@ function pensoft_publication_field_group_info(){
     'label' => 'Authors',
     'weight' => '1',
     'children' => array(
-      0 => 'field_publication_authors',
-      1 => 'field_publication_submit_author'
+      0 => 'field_publication_authors'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -241,10 +240,7 @@ function pensoft_publication_field_group_info(){
     'label' => 'Contributors',
     'weight' => '3',
     'children' => array(
-      0 => 'field_publication_contributors',
-      1 => 'field_publication_ling_editor',
-      2 => 'field_publication_copy_editor',
-      3 => 'field_publication_mentor'
+      0 => 'field_publication_contributors'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
