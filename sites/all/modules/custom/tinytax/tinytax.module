@@ -201,10 +201,14 @@ function tinytax_block_configure($delta = ''){
  * Implements hook_block_save().
  */
 function tinytax_block_save($delta = '', $edit = array()){
-  if($edit['hide_terms_field']){
-    variable_set('tinytax_hidden_field_and_value_' . $delta, array(
-      $edit['hide_terms_field'] => $edit['allowed_values_' . $edit['hide_terms_field']]
-    ));
+  if(isset($edit['hide_terms_field'])){
+    if($edit['hide_terms_field']){
+      variable_set('tinytax_hidden_field_and_value_' . $delta, array(
+        $edit['hide_terms_field'] => $edit['allowed_values_' . $edit['hide_terms_field']]
+      ));
+    }else{
+      variable_del('tinytax_hidden_field_and_value_' . $delta);
+    }
   }
   variable_set('tinytax_ancestors_' . $delta, $edit['tinytax_ancestors']);
 }

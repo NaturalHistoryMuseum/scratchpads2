@@ -88,7 +88,7 @@ function jsphylosvg_field_formatter_view($entity_type, $entity, $field, $instanc
       $count = count(explode(',', $xml));
     }
     $element[$key] = array(
-      '#markup' => '<div class="jsphylosvg ' . check_plain($display['settings']['display_type']) . '" id="' . $instance['field_name'] . '-' . $key . '"></div>',
+      '#markup' => '<div class="jsphylosvg ' . check_plain($display['settings']['display_type']) . '" id="' . $instance['field_name'] . '-' . $key . '"><form class="jsphylosvg-data"><textarea rows="10" id="' . $instance['field_name'] . '-' . $key . '-data">'.$item['value'].'</textarea></div>',
       '#attached' => array(
         'js' => array(
           $path . '/library/raphael-min.js',
