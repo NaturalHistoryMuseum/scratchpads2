@@ -51,7 +51,7 @@ function scratchpads_user_menu_alter(&$items){
 function scratchpads_user_user_load($entities){
   // For entitites with a dummy username, use the name/surname
   foreach($entities as $entity_id => $entity){
-    if($entity->uid && empty($entity->pass)){
+    if($entity->uid > 1 && empty($entity->pass)){
       // Is this user just a stub - cannot login
       $entities[$entity_id]->stub_user = true;
       $entities[$entity_id]->status = 1;
