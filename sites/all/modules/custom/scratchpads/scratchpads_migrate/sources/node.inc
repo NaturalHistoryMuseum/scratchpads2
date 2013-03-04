@@ -644,7 +644,10 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       $node->nid = $nid;
       $node->vid = $vid;
       $node->is_new = true;
-      // Crap OG requires the original uid
+      // OG requires the original uid
+      if (!isset($node->original)) {
+        $node->original = new StdClass;
+      }
       $node->original->uid = $node->uid;
       return $node;
     }
@@ -736,7 +739,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   }
 
   /**
-   * Decode the fucking weight to get stickiness
+   * Decode the weight to get stickiness
    */
   public static function weightDecode(&$row){
     if($row->sticky == 0 || $row->sticky == 1){

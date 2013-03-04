@@ -45,7 +45,7 @@ function _scratchpads_tweaks_cron(){
         'profile' => variable_get('install_profile', 'scratchpad_profile')
       );
       foreach($central_servers as $central_server){
-        exec('wget "'.$central_server . 'report_scratchpad?data=' . urlencode(serialize($report_data)).'" -O /dev/null'); // Could run into GET limits here. Ho hum!
+        exec('wget "' . $central_server . 'report_scratchpad?data=' . urlencode(serialize($report_data)) . '" -O /dev/null'); // Could run into GET limits here. Ho hum!
       }
       variable_set('scratchpad_last_reported', time());
     }
@@ -90,6 +90,19 @@ function _scratchpads_tweaks_cron(){
   if(count($modules_to_enable)){
     module_enable($modules_to_enable);
     menu_rebuild();
+  }
+  // If we are using memcache, we truncate the cache tables to save space and to
+  // also reduce database backup times.
+  global $conf;
+  if($conf['cache_default_class'] == 'MemCacheDrupal'){
+    $results = db_query('SHOW TABLES');
+    foreach($results as $row){
+      foreach($row as $table_name){
+        if(substr($table_name, 0, 5) == 'cache'){
+          db_delete($table_name)->execute();
+        }
+      }
+    }
   }
   // Delete certain messages from the watchdog as we know they can be safely
   // ignored.
