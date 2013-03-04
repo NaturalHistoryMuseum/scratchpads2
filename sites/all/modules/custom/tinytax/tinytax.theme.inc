@@ -23,7 +23,7 @@ function theme_tinytax_block($variables){
   $toggle_form = '';
   if(count($toggle)){
     $toggle_form = '<form><input class="tinytax-toggle-checkbox" data-vid="' . $variables['vid'] . '" id="tinytax-toggle-' . $variables['vid'] . '" type="checkbox" value="0" name="tinytax_toggle_' . $variables['vid'] . '"/>
-  <label class="option" for="tinytax-toggle-' . $variables['vid'] . '">' . t('Hide/Show (%values)', array(
+  <label class="option" for="tinytax-toggle-' . $variables['vid'] . '">' . t('Hide %values terms', array(
       '%values' => implode(', ', current($toggle))
     )) . '</label>
 </form>';

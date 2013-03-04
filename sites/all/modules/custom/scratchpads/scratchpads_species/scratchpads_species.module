@@ -118,7 +118,7 @@ function scratchpads_species_contextual_links_view_alter(&$element, $items){
   // Add another class to all contextual link lists to facilitate custom
   // styling.
   //$element['#attributes']['class'][] = 'custom-class';
-  if(@isset($element['#contextual_links']['block'][1][0]) && $element['#contextual_links']['block'][1][0] == 'tinytax'){
+  if(@isset($element['#contextual_links']['block'][1][0]) && $element['#contextual_links']['block'][1][0] == 'tinytax' && user_access('administer taxonomy')){
     $vocabulary = taxonomy_vocabulary_load($element['#contextual_links']['block'][1][1]);
     if($vocabulary){
       $element['#links']['vocabulary-configure'] = array(
