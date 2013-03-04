@@ -122,3 +122,22 @@ function scratchpads_user_update_7005(){
     }
   }
 }
+
+/**
+ * Update all stub users to be inactive (following a previous update, editing
+ * a stub user could have activated their account).
+ */
+function scratchpads_user_update_7006(){
+  db_update('users')->fields(array(
+    'status' => 0
+  ))->condition('pass', '')->condition('uid', 1, '>')->execute();
+}
+
+/**
+ * Update user 1 (Scratchpads Team) to be active.
+ */
+function scratchpads_user_update_7007(){
+  $u1 = user_load(1);
+  $u1->status = 1;
+  user_save($u1);
+}

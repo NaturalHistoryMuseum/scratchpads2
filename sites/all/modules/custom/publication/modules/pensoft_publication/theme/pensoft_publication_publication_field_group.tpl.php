@@ -22,28 +22,15 @@
       </div>
 	</div>
   
-    <?php
-    $other = array(
-      'field_publication_copy_editor',
-      'field_publication_linguistic_editor',
-      'field_publication_mentor',
-      'field_publication_contributors'
-    );
-    foreach($other as $field):
-      if(!empty($element[$field]['#children'])):
-        ?>
-          <div
-		class='field field-publication-background field-publication-secondary'>
+    <?php if (!empty($variables['contributors'])): ?>
+      <div class='field field-publication-background'>
 		<div class='field-items'>
-              <?php echo $element[$field]['#children']; ?>
-            </div>
-	</div>
-     
-      <?php
-        endif;
-    endforeach
-    ;
-    ?>
+		  <?php foreach($variables['contributors'] as $role => $name): ?>
+		    <div class="field-item"><?php echo $role.': ' . $name; ?></div>
+		  <?php endforeach; ?>
+		</div>
+      </div>
+    <?php endif; ?>
    <?php elseif (TRUE && $element_id == 'publication_pensoft_full_group_pensoft_files'): ?>
      <?php /* References */ ?>
      <?php if (isset($element['field_publication_references']) && count(element_children($element['field_publication_references']))) : ?>
