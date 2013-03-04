@@ -1130,6 +1130,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         '#condition' => 'field_collector',
         '#load' => '_publication_xml_load_user',
         '#field' => 'field_collector',
+        '#value' => '',
         'value' => array(
           '#field' => 'processed_full_name'
         )
