@@ -1665,9 +1665,9 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_spm_map']['click_sort_column'] = 'region_id';
   $handler->display->display_options['fields']['field_spm_map']['type'] = 'gm3_text';
   $handler->display->display_options['fields']['field_spm_map']['settings'] = array(
-    'display_convex_hull' => FALSE
+    'display_convex_hull' => '0'
   );
-  $handler->display->display_options['fields']['field_spm_map']['group_rows'] = 1;
+  $handler->display->display_options['fields']['field_spm_map']['group_rows'] = 0;
   $handler->display->display_options['fields']['field_spm_map']['delta_offset'] = '0';
   $handler->display->display_options['fields']['field_spm_map']['delta_reversed'] = 0;
   $handler->display->display_options['fields']['field_spm_map']['delta_first_last'] = 0;
