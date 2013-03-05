@@ -169,7 +169,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['html'] = 0;
   $handler->display->display_options['fields']['field_unacceptability_reason']['element_label_colon'] = 1;
   $handler->display->display_options['fields']['field_unacceptability_reason']['element_default_classes'] = 1;
-  $handler->display->display_options['fields']['field_unacceptability_reason']['empty'] = '[field_usage]';
+  $handler->display->display_options['fields']['field_unacceptability_reason']['empty'] = '[field_unacceptability_reason]';
   $handler->display->display_options['fields']['field_unacceptability_reason']['hide_empty'] = 0;
   $handler->display->display_options['fields']['field_unacceptability_reason']['empty_zero'] = 0;
   $handler->display->display_options['fields']['field_unacceptability_reason']['hide_alter_empty'] = 1;
