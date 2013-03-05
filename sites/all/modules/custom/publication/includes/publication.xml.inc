@@ -37,12 +37,16 @@
  *                      array("und" => array("value" => ...)). If the format is different, use '#process'
  *                      to read the value from the array.
  *                      
- *                      If the field is multi-valued, then each value is inserted as a separate entry
- *                      (as long as the min/max constraints are respected)
+ *                      If the field is multi-valued and #merge is not defined, then each value is inserted 
+ *                      as a separate entry (as long as the min/max constraints are respected).
  *    
  *    #value :          A static value to insert when generating the XML. This is inserted as many
  *                      times as required by #min_occurence.
  *                      
+ *    #merge :          If a field (as defined by #field) is multi valued and '#merge' is defined and is
+ *                      an existing function name, then that function is called and only one value (the 
+ *                      return value of that function) is inserted.
+ *
  *                      If both #value and #field are present, #field is used for constraint checking
  *                      (and for #load), but it's the value of #value that is inserted.
  *     
@@ -267,6 +271,7 @@ class PublicationXMLBuilder{
     foreach($this->modifiers as $modifier){
       $modifier->start_building($this->array_schema, $this->_root_object, $this->_dom);
     }
+    $this->path = array();
     $this->_build_xml_iteration($this->array_schema, $this->_root_object, $this->_dom);
     $xml = $this->_dom->saveXML();
     if($xsd_url && empty($this->settings['no-error'])){
@@ -315,6 +320,7 @@ class PublicationXMLBuilder{
       // Check the occurence constraint works
       $this->_build_xml_check_constraint($child_schema, $tag, $object);
       // Insert the value and recurse
+      $this->path[] = $tag;
       if(isset($child_schema['#field'])){
         $insert_child = $this->_build_schema_insert_field($child_schema, $tag, $object, $xml_element);
         $inserted = $inserted || $insert_child;
@@ -325,6 +331,7 @@ class PublicationXMLBuilder{
         $insert_child = $this->_build_schema_insert_blank($child_schema, $tag, $object, $xml_element);
         $inserted = $inserted || $insert_child;
       }
+      array_pop($this->path);
     }
     return $inserted;
   }
@@ -335,7 +342,14 @@ class PublicationXMLBuilder{
    */
   function _build_schema_insert_field($schema, $tag, $object, $xml_element){
     $field = $schema['#field'];
-    $values = $this->_read_values($object->$field);
+    if(isset($schema['#merge']) && function_exists($schema['#merge'])){
+      $merge_function = $schema['#merge'];
+      $values = array(
+        $merge_function($object->$field)
+      );
+    }else{
+      $values = $this->_read_values($object->$field);
+    }
     foreach($this->modifiers as $modifier){
       $values = $modifier->insert_value_array($schema, $tag, $values);
     }
@@ -494,11 +508,15 @@ class PublicationXMLBuilder{
     if(!empty($schema['#field'])){
       $field = $schema['#field'];
       if(isset($object->$field)){
-        $field_value = $this->_read_values($object->$field);
+        if(isset($schema['#merge'])){
+          $count = 1;
+        }else{
+          $field_value = $this->_read_values($object->$field);
+          $count = count($field_value);
+        }
       }else{
-        $field_value = array();
+        $count = 0;
       }
-      $count = count($field_value);
       if($count < $min_occurence || ($max_occurence >= 0 && $count > $max_occurence)){
         $message_prepare = "the field %field";
         if($count == 0){
@@ -508,7 +526,6 @@ class PublicationXMLBuilder{
         }else{
           $message_prepare .= " can be present at most %max times, but is here %count times.";
         }
-        $message_prepare .= " (Technical note: the associated XML tag was %tag)";
         $error_field = $field;
         if(isset($schema['#error_info'])){
           $error_field = $schema['#error_info'];
@@ -542,9 +559,10 @@ class PublicationXMLBuilder{
    * throwing an exception, or logs the error and returns
    */
   function _generate_error($message){
-    $message = t('The publication %publication could not be generated, because !message', array(
+    $message = t('The publication %publication could not be generated, because !message. (XML Path where error occured: %path)', array(
       '%publication' => $this->publication_name,
-      '!message' => $message
+      '!message' => $message,
+      '%path' => implode(' >> ', $this->path)
     ));
     if($this->settings['force-empty-values'] && $count == 0){
       drupal_set_message(t("The following error happened but was ignored due to settings, and an empty value was set in it's place: ") . $message, 'warning');
@@ -711,6 +729,16 @@ function _publication_xml_process_map($value, $type = 'latitude'){
 }
 
 /**
+ * Loader function which simply returns the value.
+ *
+ * This has the effect of replacing the current object
+ * with the current value
+ */
+function _publication_xml_load_replace($value){
+  return $value;
+}
+
+/**
  * Loader function for the author/contributor fields
  */
 function _publication_xml_load_user($value){
@@ -727,6 +755,21 @@ function _publication_xml_load_user($value){
     $user->processed_middle_names = implode(' ', $given_names);
   }
   return $user;
+}
+
+/**
+ * Merge function for merging multiple users into one
+ */
+function _publication_xml_merge_user($field){
+  $values = $field[LANGUAGE_NONE];
+  $output = array();
+  foreach($values as $value){
+    $user = _publication_xml_load_user($value);
+    $output[] = $user->processed_full_name;
+  }
+  $obj = new StdClass();
+  $obj->merged_full_name = implode(', ', $output);
+  return $obj;
 }
 
 /**
