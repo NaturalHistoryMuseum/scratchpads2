@@ -234,9 +234,15 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
       )
     );
     foreach($form['#fields'] as $field_name => $field){
-      $form['actions']['submit']['#limit_validation_errors'][] = array(
-        $field_name
-      );
+      if(!in_array($field_name, array(
+        'field_user_title',
+        'field_user_given_names',
+        'field_user_country'
+      ))){
+        $form['actions']['submit']['#limit_validation_errors'][] = array(
+          $field_name
+        );
+      }
     }
   }
 }
