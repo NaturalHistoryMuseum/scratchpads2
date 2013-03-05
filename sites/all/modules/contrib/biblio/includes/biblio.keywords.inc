@@ -216,7 +216,7 @@ function biblio_insert_keywords($node, $update = FALSE) {
     $tids = array();
     $lang = isset($freetag_vocab->language) ? $freetag_vocab->language : 'und';
     if (isset($node->{$ft_field}[$lang])) {
-      foreach($node->{$ft_field}[$lang] as $tag) {
+      foreach ($node->{$ft_field}[$lang] as $tag) {
         $tids[] = $tag['tid'];
       }
     }
@@ -447,7 +447,7 @@ function biblio_get_term_ref_fields() {
 }
 
 function biblio_create_term_ref($vocabulary) {
-  $field_name = 'field_'. $vocabulary->machine_name . '_ref';
+  $field_name = 'field_' . $vocabulary->machine_name . '_ref';
 
   $field = array(
       'field_name' => $field_name,
@@ -471,7 +471,7 @@ function biblio_create_term_ref($vocabulary) {
       'entity_type' => 'node',
       'label' => $vocabulary->name,
       'bundle' => 'biblio',
-      'required' => false,
+      'required' => FALSE,
       'widget' => array(
           'type' => 'options_select',
           'cardinality' => -1

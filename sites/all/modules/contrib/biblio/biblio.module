@@ -523,7 +523,8 @@ function biblio_permission() {
  * Implementation of hook_user().
  */
 function biblio_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
-   $account = $form['#user'];
+  if ($form['#user_category'] == 'account') {
+    $account = $form['#user'];
     include_once drupal_get_path('module', 'biblio') . '/includes/biblio.admin.inc';
     $show_form = variable_get('biblio_show_user_profile_form', '1')     ||
                  variable_get('biblio_show_crossref_profile_form', '1') ||
@@ -541,15 +542,19 @@ function biblio_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
       if ($admin_show_form || variable_get('biblio_show_user_profile_form', '1')) {
         $form['biblio_fieldset'] += _biblio_get_user_profile_form($account);
       }
+      else {
+        $form['biblio_fieldset'] += _biblio_drupal_author_user_map($account);
+      }
       if ($admin_show_form || variable_get('biblio_show_openurl_profile_form', '1')) {
         $form['biblio_fieldset'] += _biblio_get_user_openurl_form($account);
       }
       if ($admin_show_form || variable_get('biblio_show_crossref_profile_form', '1')) {
         $form['biblio_fieldset'] += _biblio_get_user_doi_form($account);
       }
-
     }
   }
+}
+
 function biblio_forms() {
   $forms['biblio_admin_author_types_form_new'] = array(
     'callback' => 'biblio_admin_author_types_form',

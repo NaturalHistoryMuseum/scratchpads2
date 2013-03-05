@@ -28,21 +28,28 @@ function _scratchpads_migrate_settings(){
   // - s2.DOMAIN (if we control the domain name) ;
   // - DOMAIN.myspecies.info (if we don't control the domain name) ;
   // - DOMAIN.migration.local (for local development)
+  // - We accept DOMAIN for sites that have been moved but still have
+  //   migration module enabled if the relevant DOMAIN.scratchpad_1.php
+  //   file is present.
   $host = parse_url($base_url, PHP_URL_HOST);
+  $s1_domain = $host;
+  $is_dev = FALSE;
   if(strpos($host, 's2') === 0){
     $s1_domain = substr($host, 3);
   }else if(preg_match('/\.myspecies\.info$/', $host)){
     $s1_domain = str_replace('.myspecies.info', '', $host);
   }else if(preg_match('/\.migration\.local$/', $host)){
     $s1_domain = str_replace('.migration.local', '', $host);
-  }else{
+    $is_dev = TRUE;
+  }
+  $filename = SCRATCHPADS_MIGRATE_SPAD1_SETTINGS_PATH . $s1_domain . '.scratchpad_1.php';
+  if(!file_exists($filename) && !$is_dev){
     // As we are running in top level, we can't rely on Drupal for error management.
     // It is better to cancel all processing now than to allow a broken migration install
     // to continue.
     echo "Migration error: Could not reliably determine Scratchpad 1 host name from the host name $host";
     exit(1);
   }
-  $filename = SCRATCHPADS_MIGRATE_SPAD1_SETTINGS_PATH . $s1_domain . '.scratchpad_1.php';
   if(file_exists($filename)){
     require_once ($filename);
   }else{

@@ -88,11 +88,11 @@ function theme_biblio_citeproc_style($variables) {
     if (!empty($csl_id)) {
       $csl = db_query('SELECT parent,csl FROM {biblio_citeproc_styles} WHERE filename = :id', array(':id' => $csl_id))->fetchObject();
       if (!isset($csl->csl)) {
-        drupal_set_message(t('Biblio-CiteProc could not fetch the style file: !csl_id from the database. Check your CiteProc settings.', array('!csl_id' => $csl_id)), 'error');
+        drupal_set_message(t('Biblio-CiteProc could not fetch the style file: @csl_id from the database. Check your CiteProc settings.', array('@csl_id' => $csl_id)), 'error');
         return;
       }
       if (!empty($csl->parent)) {
-        $csl_file_contents = db_query("SELECT csl FROM biblio_citeproc_styles WHERE id = :id", array(':id' => $csl->parent))->fetchField();
+        $csl_file_contents = db_query("SELECT csl FROM {biblio_citeproc_styles} WHERE id = :id", array(':id' => $csl->parent))->fetchField();
 
       }
       else {
@@ -110,8 +110,8 @@ function theme_biblio_citeproc_style($variables) {
     }
   }
   $styled_node = $citeproc->render($node);
-
-  return ($styled_node . filter_xss($node->biblio_coins, array('span')));
+  $coins_data = isset($node->biblio_coins) ? filter_xss($node->biblio_coins, array('span')) : '';
+  return ($styled_node . $coins_data);
 }
 
 function biblio_citeproc_csl_map_reset($type = NULL) {
