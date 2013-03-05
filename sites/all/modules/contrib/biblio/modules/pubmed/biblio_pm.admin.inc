@@ -56,7 +56,7 @@ function biblio_pm_settings_form() {
       '#description' => t('How frequently should we check for updates.'),
       '#states' => array(
           'invisible' => array(
-              'input[name="biblio_pm_auto_update"]' => array('checked' =>FALSE),
+              'input[name="biblio_pm_auto_update"]' => array('checked' => FALSE),
           ),
       ),
   );
@@ -74,7 +74,7 @@ function biblio_pm_settings_form() {
       '#description' => t('The maximum number of items updated in each pass of a cron maintenance task. If necessary, reduce the number of items to prevent timeouts and memory errors while updating.'),
       '#states' => array(
           'invisible' => array(
-              'input[name="biblio_pm_auto_update"]' => array('checked' =>FALSE),
+              'input[name="biblio_pm_auto_update"]' => array('checked' => FALSE),
           ),
       ),
   );
@@ -91,7 +91,7 @@ function biblio_pm_settings_form() {
       '#description' => t('Wait this long before checking for updates on a given node again.'),
       '#states' => array(
           'invisible' => array(
-              'input[name="biblio_pm_auto_update"]' => array('checked' =>FALSE),
+              'input[name="biblio_pm_auto_update"]' => array('checked' => FALSE),
           ),
       ),
   );

@@ -66,9 +66,10 @@ class biblio_handler_citation extends views_handler_field {
         entity_prepare_view('node',  $nodes, $langcode);
 
         foreach ($values as $key => $result) {
-          $values[$key]->node = $nodes[$result->nid];
+          if (isset($result->{$this->aliases['nid']})) {
+            $values[$key]->node = $nodes[$result->{$this->aliases['nid']}];
+          }
         }
-
       }
     }
   }
@@ -76,11 +77,15 @@ class biblio_handler_citation extends views_handler_field {
   function render($values) {
     $output = '';
 
+    if (!isset($values->node) || $values->node->type != 'biblio') {
+      return;
+    }
+
     if (empty($this->biblio_base)) {
       $this->biblio_base = variable_get('biblio_base', 'biblio');
     }
+
     $item = $values->node;
-    if ($item->type != 'biblio') return;
 
     if (isset($item->biblio_year)) $item->biblio_year = _biblio_text_year($item->biblio_year);
     if (variable_get('biblio_hide_bibtex_braces', 0)) {

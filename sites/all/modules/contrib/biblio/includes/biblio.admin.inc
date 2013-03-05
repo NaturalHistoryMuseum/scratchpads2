@@ -450,7 +450,7 @@ function biblio_admin_settings() {
 
   $form['links']['author']['token_tree'] = array(
       '#theme' => 'token_tree',
-      '#token_types' => 'all',
+      '#token_types' => array('user'),
   );
 
   $form['openurl'] = array(
@@ -1684,7 +1684,6 @@ function biblio_admin_types_reset_form_submit($form, & $form_state) {
  *   - if $user is set, then it is being called from the user profile page
  */
 function _biblio_get_user_profile_form($profile_user = FALSE) {
-  global $user;
   $form = array();
   $allow_edit = variable_get('biblio_show_user_profile_form', '1');
   $allow_edit = $allow_edit || user_access('administer biblio');
@@ -1728,49 +1727,58 @@ function _biblio_get_user_profile_form($profile_user = FALSE) {
   $form['#biblio_my_pubs_menu'] =  $form['biblio_my_pubs_menu']['#default_value'];
 
   if ($profile_user) {
-    $db_result = db_query("SELECT cd.lastname, cd.firstname, cd.initials, cd.cid FROM {biblio_contributor_data} cd
-            ORDER by cd.lastname ASC ");
-    $options = array();
-    $options[0] = t('(None)');
+    $form += _biblio_drupal_author_user_map($profile_user, $allow_edit);
+  }
 
-    foreach ($db_result as $row) {
-        $options[$row->cid] =  "$row->lastname, $row->firstname $row->initials ";
-    }
-    if (isset($profile_user->data['biblio_id_change_count']) && $profile_user->data['biblio_id_change_count'] > 2) {
-      $allow_edit = 0;
-      $msg = t('This control has been disabled because the author mapping has been changed more than 3 times, please see your system administrator to have it reset.');
-    }
-    else {
-      $msg = t('This will link your profile to the selected author from the biblio database, then all publications containing this author to be displayed on your "Publications" tab.');
-    }
-    $form['biblio_contributor_id'] = array(
-    '#type' => 'select',
-    '#title' => t('Link My Profile with this Author from the Biblio database'),
-    '#default_value' => isset($profile_user->data['biblio_contributor_id']) ? $profile_user->data['biblio_contributor_id'] : 0,
-    '#disabled' => ($user->uid == 1 || user_access('administer biblio')) ? FALSE : !$allow_edit,
-    '#options' => $options,
-    '#description' => $msg,
-    );
-    $form['biblio_id_change_count'] = array(
-    '#type' => 'textfield',
-    '#size' => 2,
-    '#title' => t('Drupal UserID to Biblio AuthorID mapping change count'),
-    '#default_value' => isset($profile_user->data['biblio_id_change_count']) ?  $profile_user->data['biblio_id_change_count'] : 0,
-    '#disabled' => ($user->uid == 1 || user_access('administer biblio')) ? FALSE : TRUE,
-    '#description' => 'When this value is >= 3, the user will no longer be able to change their author id mapping',
-    );
-    $options = array();
-    $options['system'] = t('System default');
-    $options = array_merge($options, biblio_get_styles() );
-    $form['biblio_user_style'] = array(
-    '#type' => 'select',
-    '#title' => t('Style'),
-    '#default_value' => (isset($profile_user->data['biblio_user_style']) ? $profile_user->data['biblio_user_style'] : 'system'),
-    '#options' => $options,
-    '#description' => t('Set the bibliographic style of the "list" view.')
+  $options = array();
+  $options['system'] = t('System default');
+  $options = array_merge($options, biblio_get_styles() );
+  $form['biblio_user_style'] = array(
+      '#type' => 'select',
+      '#title' => t('Style'),
+      '#default_value' => (isset($profile_user->data['biblio_user_style']) ? $profile_user->data['biblio_user_style'] : 'system'),
+      '#options' => $options,
+      '#description' => t('Set the bibliographic style of the "list" view.')
   );
 
+  return $form;
+}
+
+function _biblio_drupal_author_user_map($profile_user, $allow_edit = TRUE) {
+  global $user;
+
+  $db_result = db_query("SELECT cd.lastname, cd.firstname, cd.initials, cd.cid FROM {biblio_contributor_data} cd
+      ORDER by cd.lastname ASC ");
+  $options = array();
+  $options[0] = t('(None)');
+
+  foreach ($db_result as $row) {
+    $options[$row->cid] =  "$row->lastname, $row->firstname $row->initials ";
   }
+  if (isset($profile_user->data['biblio_id_change_count']) && $profile_user->data['biblio_id_change_count'] > 2) {
+    $allow_edit = 0;
+    $msg = t('This control has been disabled because the author mapping has been changed more than 3 times, please see your system administrator to have it reset.');
+  }
+  else {
+    $msg = t('This will link your profile to the selected author from the biblio database, then all publications containing this author to be displayed on your "Publications" tab.');
+  }
+  $form['biblio_contributor_id'] = array(
+      '#type' => 'select',
+      '#title' => t('Link My Profile with this Author from the Biblio database:'),
+      '#default_value' => isset($profile_user->data['biblio_contributor_id']) ? $profile_user->data['biblio_contributor_id'] : 0,
+      '#disabled' => ($user->uid == 1 || user_access('administer biblio')) ? FALSE : !$allow_edit,
+      '#options' => $options,
+      '#description' => $msg,
+  );
+  $form['biblio_id_change_count'] = array(
+      '#type' => 'textfield',
+      '#size' => 2,
+      '#title' => t('Drupal UserID to Biblio AuthorID mapping change count:'),
+      '#default_value' => isset($profile_user->data['biblio_id_change_count']) ?  $profile_user->data['biblio_id_change_count'] : 0,
+      '#disabled' => ($user->uid == 1 || user_access('administer biblio')) ? FALSE : TRUE,
+      '#description' => 'When this value is >= 3, you will no longer be able to change your author id mapping.  Contact your system administrator to reset this value.',
+  );
+
   return $form;
 }
 /**

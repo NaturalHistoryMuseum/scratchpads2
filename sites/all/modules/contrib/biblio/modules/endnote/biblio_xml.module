@@ -26,8 +26,8 @@ function biblio_xml_biblio_mapper_options() {
       ),
     'endnote8' => array(
       'title' => t('EndNote X3 XML'),
-  		'export' => TRUE,
-  		),
+      'export' => TRUE,
+      ),
   );
 }
 

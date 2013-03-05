@@ -147,7 +147,7 @@ function biblio_tagged_biblio_export($nids) {
  */
 
 function _biblio_tagged_import($file, $terms = array(), $batch = FALSE, $session_id = NULL) {
-  ini_set('auto_detect_line_endings', true);
+  ini_set('auto_detect_line_endings', TRUE);
   if (!($fp = fopen($file->uri, "r"))) {
     drupal_set_message(t("Could not open EndNote Tagged input"), 'error');
     return;
@@ -248,8 +248,8 @@ function _biblio_tagged_import($file, $terms = array(), $batch = FALSE, $session
 
   if (!empty($ignored_tags)) {
     $ignored_tags = array_unique($ignored_tags);
-    $message = t("The following elements were ignored because they do not map to any biblio fields: ");
-    $message .= implode(', ',$ignored_tags);
+    $message = t("The following elements were ignored because they do not map to any biblio fields:") . ' ';
+    $message .= implode(', ', $ignored_tags);
     if (user_access('administer biblio')) {
       $message .= '. ' . t('Click !url if you wish to check the field mapping', array('!url' => l(t('here'), 'admin/config/content/biblio/iomap/edit/tagged')));
     }

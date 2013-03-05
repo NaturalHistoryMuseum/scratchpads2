@@ -219,16 +219,16 @@ function _biblio_bibtex_import($entries, $terms = array(), $batch = FALSE, $sess
     }
     if (!empty($entry['author'])) {
       // split on ' and '
-      $authorArray = preg_split("/\s(and|&)\s/i", trim($entry['author']));
-      foreach ($authorArray as $key => $author) {
+      $author_array = preg_split("/\s(and|&)\s/i", trim($entry['author']));
+      foreach ($author_array as $key => $author) {
         $node->biblio_contributors[]= array('name' => $author, 'auth_category' => 1, 'auth_type' => _biblio_get_auth_type(1, $node->biblio_type));
       }
     }
 
     $node->biblio_citekey = (!empty($entry['bibtexCitation'])) ? $entry['bibtexCitation'] : NULL;
     if (!empty($entry['editor'])) {
-      $authorArray = preg_split("/\s(and|&)\s/i", trim($entry['editor']));
-      foreach ($authorArray as $key => $author) {
+      $author_array = preg_split("/\s(and|&)\s/i", trim($entry['editor']));
+      foreach ($author_array as $key => $author) {
         $node->biblio_contributors[]= array('name' => $author, 'auth_category' => 2, 'auth_type' => _biblio_get_auth_type(2, $node->biblio_type));
       }
     }
