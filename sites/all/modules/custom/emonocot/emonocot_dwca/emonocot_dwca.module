@@ -33,6 +33,8 @@ function emonocot_dwca_views_default_views_alter(&$views){
           $view->display['default']->display_options['fields']['wcm_id_1']['relationship'] = $relationship;
         }
         $view->display['default']->display_options['fields']['wcm_id_1']['label'] = 'Parent ID';
+        $view->display['default']->display_options['fields']['wcm_id_1']['exclude'] = TRUE;
+        $view->display['default']->display_options['fields']['field_unacceptability_reason_1']['empty'] = '[wcm_id_1]';
       }
     }
     //Sort out protologue links in references.txt
