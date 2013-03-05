@@ -101,3 +101,66 @@ function dwca_export_permission(){
     )
   );
 }
+
+
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function dwca_export_field_formatter_info(){
+  return array(
+    'taxon_status' => array(
+      'label' => t('Taxon Status'),
+      'description' => t('GBIF compliant taxon status for DwC-A.'),
+      'field types' => array(
+        'list_text'
+      )
+    ),
+  );
+}
+
+
+/**
+ * Implements hook_field_formatter_view().
+ * 
+ * For a node_reference that links to a Biblio node returns a link to the URL field as either a predefined image
+ * or the favicon of the site that is linked to.
+ * 
+ * For all node types returns link to attached files as an image 
+ */
+function dwca_export_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  GLOBAL $base_url;
+  $markup = '';
+  
+  $reason_map = array(
+    'synonym' => 'synonym',
+    'homotypic (nomenclatural) synonym' => 'homotypicSynonym',
+    'heterotypic (taxonomic) synonym' => 'heterotypicSynonym',
+    'homonym (illegitimate)' => '',
+    'superfluous renaming (illegitimate)' => '',
+    'rejected name' => '',
+    'invalidly published, nomen nudum' => '',
+    'invalidly published, other' => '',
+    'misapplied' => 'misapplied',
+    'pro parte' => 'proParteSynonym',
+    'horticultural' => '',
+    'database artifact' => '',
+    'orthographic variant (misspelling)' => '',
+    'other' => '',
+  );
+  
+  switch($display['type']){
+    case 'taxon_status':
+      $element = array();
+      if (isset($entity->field_usage['und'][0]['value'])){
+      	if ($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
+      		$markup = 'accepted';
+      	} else {
+      		$markup = $reason_map[$entity->field_unacceptability_reason['und'][0]['value']];
+      	}
+      }
+      $element[] = array('#markup' => $markup);
+      return $element;
+      break;
+  }
+}

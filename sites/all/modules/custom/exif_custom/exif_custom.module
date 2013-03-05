@@ -385,6 +385,7 @@ function exif_custom_process_entity(&$file){
   //$file = file_load($file->fid);
   if($file->type != 'image'){return;}
   if(arg(3) == 'exif_custom'){return;}
+  if(arg(2) == 'edit'){return;}
   $mappings = exif_custom_get_mapping();
   $data = exif_custom_get_exif_fields($file->uri, TRUE);
   if($data == FALSE){return;}
