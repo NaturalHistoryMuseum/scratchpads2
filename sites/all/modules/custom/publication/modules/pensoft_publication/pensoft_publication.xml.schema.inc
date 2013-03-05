@@ -1128,11 +1128,12 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       'recordedby' => array(
         '#condition' => 'field_collector',
-        '#load' => '_publication_xml_load_user',
         '#field' => 'field_collector',
+        '#merge' => '_publication_xml_merge_user',
+        '#load' => '_publication_xml_load_replace',
         '#value' => '',
         'value' => array(
-          '#field' => 'processed_full_name'
+          '#field' => 'merged_full_name'
         )
       ),
       //individualid - would that be the title ?
