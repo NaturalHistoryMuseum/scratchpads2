@@ -129,6 +129,6 @@ function scratchpads_file_colorboxed_entity_simple_view($fid){
       )
     )) . ' ' . t('uploaded by:') . ' ' . l($image_user->name, 'user/' . $image_user->uid) . '</p>';
   }
-  echo '<div style="' . $width . 'padding:10px">' . drupal_render($content) . $image_links . '</div>';
-  exit();
+  echo scratchpads_tweaks_translate_after_check_plain('<div style="' . $width . 'padding:10px">' . drupal_render($content) . $image_links . '</div>');
+  drupal_exit();
 }

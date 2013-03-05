@@ -672,7 +672,7 @@ class csl_name extends csl_format {
     $text = implode($this->delimiter, $authors);
 
     if (!empty($authors) && $et_al_triggered) {
-      switch($this->{'delimiter-precedes-et-al'}) {
+      switch ($this->{'delimiter-precedes-et-al'}) {
         case 'never':
           $text = $text . " $etal";
           break;
@@ -841,7 +841,7 @@ class csl_names extends csl_format {
     foreach ($variables as $var) {
       if (in_array($var, $this->citeproc->quash)) continue;
       list($contributor, $category) = explode(':', $var);
-      if (!empty($contributor) && $this->_get_category($data->{$contributor}, $category) ) {
+      if ((isset($data->{$contributor}) && !empty($data->{$contributor})) && $this->_get_category($data->{$contributor}, $category) ) {
         $matches[] =  $var;
       }
     }
@@ -853,7 +853,7 @@ class csl_names extends csl_format {
             $sub_variables  = explode(' ', $element->variable);
             foreach ($sub_variables as $var) {
               list($contributor, $category) = explode(':', $var);
-              if (!empty($contributor) && $this->_get_category($data->{$contributor}, $category)) {
+              if ((isset($data->{$contributor}) && !empty($data->{$contributor})) && $this->_get_category($data->{$contributor}, $category)) {
                 $matches[] =  $var;
                 $this->citeproc->quash[] = $var;
               }
@@ -1323,7 +1323,7 @@ class csl_group extends csl_format{
           //check to see if the delimiter is already the last character of the text string
           //if so, remove it so we don't have two of them when we paste together the group
           $stext = strip_tags(trim($text));
-          if((strrpos($stext, $delimiter[0])+1) == drupal_strlen($stext) && drupal_strlen($stext) > 1) {
+          if ((strrpos($stext, $delimiter[0])+1) == drupal_strlen($stext) && drupal_strlen($stext) > 1) {
             $text = str_replace($stext, '----REPLACE----', $text);
             $stext = drupal_substr($stext, 0, -1);
             $text = str_replace('----REPLACE----', $stext, $text);
@@ -1636,7 +1636,7 @@ class csl_locale  {
         if (!$term) {
           $term = $this->locale->xpath("//cs:term[@name='$arg1'$form]$plural");
         }
-        if (isset($term[0])){
+        if (isset($term[0])) {
           if (isset($arg3) && isset($term[0]->{$arg3})) return (string)$term[0]->{$arg3};
           if (!isset($arg3) && isset($term[0]->single)) return (string)$term[0]->single;
           return (string)$term[0];

@@ -21,7 +21,9 @@ class biblio_handler_field extends views_handler_field {
   function query() {
     // add the biblio_type field as tid
     $this->ensure_my_table();
-    $this->query->add_field($this->table_alias, 'biblio_type', 'biblio_tid');
+    if ($this->options['biblio_label']) {
+      $this->query->add_field($this->table_alias, 'biblio_type', 'biblio_tid');
+    }
     parent::query();
   }
 

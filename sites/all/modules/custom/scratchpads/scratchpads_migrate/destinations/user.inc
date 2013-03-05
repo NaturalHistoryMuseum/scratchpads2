@@ -14,6 +14,9 @@ class MigrateDestinationScratchpadsUser extends MigrateDestinationUser{
       $account->original = $account;
       $account->is_new = true;
     }
+    if (!isset($account->stub_user)) {
+      $account->stub_user = FALSE;
+    }
     return parent::import($account, $row);
   }
 
