@@ -370,28 +370,28 @@ function emonocot_dwca_add_wcm_parent_field(&$view){
 
 function emonocot_dwca_source_field(){
  $field = array();/* Field: Taxonomy term: Protologue Link */
- $field['biblio_url']['id'] = 'biblio_url';
-$field['biblio_url']['table'] = 'biblio';
-$field['biblio_url']['field'] = 'biblio_url';
-$field['biblio_url']['alter']['alter_text'] = 0;
-$field['biblio_url']['alter']['make_link'] = 0;
-$field['biblio_url']['alter']['absolute'] = 0;
-$field['biblio_url']['alter']['external'] = 0;
-$field['biblio_url']['alter']['replace_spaces'] = 0;
-$field['biblio_url']['alter']['trim_whitespace'] = 0;
-$field['biblio_url']['alter']['nl2br'] = 0;
-$field['biblio_url']['alter']['word_boundary'] = 1;
-$field['biblio_url']['alter']['ellipsis'] = 1;
-$field['biblio_url']['alter']['more_link'] = 0;
-$field['biblio_url']['alter']['strip_tags'] = 0;
-$field['biblio_url']['alter']['trim'] = 0;
-$field['biblio_url']['alter']['html'] = 0;
-$field['biblio_url']['element_label_colon'] = 1;
-$field['biblio_url']['element_default_classes'] = 1;
-$field['biblio_url']['hide_empty'] = 0;
-$field['biblio_url']['empty_zero'] = 0;
-$field['biblio_url']['hide_alter_empty'] = 1;
-$field['biblio_url']['biblio_label'] = 1;
+ $field['id'] = 'biblio_url';
+$field['table'] = 'biblio';
+$field['field'] = 'biblio_url';
+$field['alter']['alter_text'] = 0;
+$field['alter']['make_link'] = 0;
+$field['alter']['absolute'] = 0;
+$field['alter']['external'] = 0;
+$field['alter']['replace_spaces'] = 0;
+$field['alter']['trim_whitespace'] = 0;
+$field['alter']['nl2br'] = 0;
+$field['alter']['word_boundary'] = 1;
+$field['alter']['ellipsis'] = 1;
+$field['alter']['more_link'] = 0;
+$field['alter']['strip_tags'] = 0;
+$field['alter']['trim'] = 0;
+$field['alter']['html'] = 0;
+$field['element_label_colon'] = 1;
+$field['element_default_classes'] = 1;
+$field['hide_empty'] = 0;
+$field['empty_zero'] = 0;
+$field['hide_alter_empty'] = 1;
+$field['biblio_label'] = 1;
 
   return $field;
 }
