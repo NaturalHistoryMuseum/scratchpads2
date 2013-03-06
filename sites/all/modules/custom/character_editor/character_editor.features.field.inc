@@ -207,7 +207,7 @@ function character_editor_field_default_fields(){
       'module' => 'relation_select',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'relation'
+      'type' => 'relation_select'
     ),
     'field_instance' => array(
       'bundle' => 'controlled',
@@ -385,7 +385,7 @@ function character_editor_field_default_fields(){
       'module' => 'relation_select',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'relation'
+      'type' => 'relation_select'
     ),
     'field_instance' => array(
       'bundle' => 'dna',
@@ -579,7 +579,7 @@ function character_editor_field_default_fields(){
       'module' => 'relation_select',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'relation'
+      'type' => 'relation_select'
     ),
     'field_instance' => array(
       'bundle' => 'group',
@@ -830,7 +830,7 @@ other|Other',
       'module' => 'relation_select',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'relation'
+      'type' => 'relation_select'
     ),
     'field_instance' => array(
       'bundle' => 'numeric',
@@ -1016,7 +1016,7 @@ other|Other',
       'module' => 'relation_select',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'relation'
+      'type' => 'relation_select'
     ),
     'field_instance' => array(
       'bundle' => 'text',
@@ -1175,7 +1175,7 @@ other|Other',
       'module' => 'relation_select',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'relation'
+      'type' => 'relation_select'
     ),
     'field_instance' => array(
       'bundle' => 'default_character_project',
