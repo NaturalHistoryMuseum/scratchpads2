@@ -81,6 +81,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['uuid']['id'] = 'uuid';
   $handler->display->display_options['fields']['uuid']['table'] = 'taxonomy_term_data';
   $handler->display->display_options['fields']['uuid']['field'] = 'uuid';
+  $handler->display->display_options['fields']['uuid']['exclude'] = TRUE;
   $handler->display->display_options['fields']['uuid']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['uuid']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['uuid']['alter']['absolute'] = 0;
@@ -122,6 +123,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['name_1']['empty_zero'] = 0;
   $handler->display->display_options['fields']['name_1']['hide_alter_empty'] = 0;
   $handler->display->display_options['fields']['name_1']['link_to_taxonomy'] = 0;
+<<<<<<< HEAD
   /* Field: Taxonomy term: Vernacular names */
   $handler->display->display_options['fields']['field_vernacular_names']['id'] = 'field_vernacular_names';
   $handler->display->display_options['fields']['field_vernacular_names']['table'] = 'field_data_field_vernacular_names';
@@ -149,6 +151,8 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_vernacular_names']['delta_reversed'] = 0;
   $handler->display->display_options['fields']['field_vernacular_names']['delta_first_last'] = 0;
   $handler->display->display_options['fields']['field_vernacular_names']['field_api_classes'] = 0;
+=======
+>>>>>>> dfa57839ff353a305266fdf0fe28e2a01aede7f0
   /* Field: Taxonomy term: Unacceptability Reason */
   $handler->display->display_options['fields']['field_unacceptability_reason']['id'] = 'field_unacceptability_reason';
   $handler->display->display_options['fields']['field_unacceptability_reason']['table'] = 'field_data_field_unacceptability_reason';
@@ -272,32 +276,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['uuid_1']['hide_empty'] = 0;
   $handler->display->display_options['fields']['uuid_1']['empty_zero'] = 0;
   $handler->display->display_options['fields']['uuid_1']['hide_alter_empty'] = 1;
-  /* Field: Taxonomy term: Unacceptability Reason */
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['id'] = 'field_unacceptability_reason_1';
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['table'] = 'field_data_field_unacceptability_reason';
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['field'] = 'field_unacceptability_reason';
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['label'] = 'parent name';
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['alter']['alter_text'] = 1;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['alter']['text'] = ' ';
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['alter']['make_link'] = 0;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['alter']['absolute'] = 0;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['alter']['external'] = 0;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['alter']['replace_spaces'] = 0;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['alter']['trim_whitespace'] = 0;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['alter']['nl2br'] = 0;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['alter']['word_boundary'] = 1;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['alter']['ellipsis'] = 1;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['alter']['more_link'] = 0;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['alter']['strip_tags'] = 0;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['alter']['trim'] = 0;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['element_label_colon'] = 1;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['element_default_classes'] = 1;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['empty'] = '[uuid_1]';
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['hide_empty'] = 0;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['hide_alter_empty'] = 0;
-  $handler->display->display_options['fields']['field_unacceptability_reason_1']['field_api_classes'] = 0;
   /* Sort criterion: Taxonomy term: Term ID */
   $handler->display->display_options['sorts']['tid']['id'] = 'tid';
   $handler->display->display_options['sorts']['tid']['table'] = 'taxonomy_term_data';
@@ -1665,7 +1643,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_spm_map']['click_sort_column'] = 'region_id';
   $handler->display->display_options['fields']['field_spm_map']['type'] = 'gm3_text';
   $handler->display->display_options['fields']['field_spm_map']['settings'] = array(
-    'display_convex_hull' => '0'
+    'display_convex_hull' => FALSE
   );
   $handler->display->display_options['fields']['field_spm_map']['group_rows'] = 0;
   $handler->display->display_options['fields']['field_spm_map']['delta_offset'] = '0';

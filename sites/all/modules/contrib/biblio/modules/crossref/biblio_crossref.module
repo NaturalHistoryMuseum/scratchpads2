@@ -23,7 +23,7 @@ function biblio_crossref_form_biblio_node_form_alter(&$form, &$form_state) {
       $form['biblio_doi_lookup']['doi_register'] = array(
           '#prefix' => '<p><b>',
           '#suffix' => '</b></p>',
-          '#markup' => t('!url1 and then enter your CrossRef UserID in the "<i>CrossRef Login Information</i>" section of your account profile !url2', array('!url1' => l('You need to register with CrossRef', 'http://www.crossref.org/requestaccount/', array('attributes' => array('target' => '_blank'), 'absolue' => TRUE)), '!url2' => l('here...', "user/$user->uid/edit"))),
+          '#markup' => t('!url1 and then enter your CrossRef UserID in the "<i>CrossRef Login Information</i>" section of your account profile !url2', array('!url1' => l(t('You need to register with CrossRef'), 'http://www.crossref.org/requestaccount/', array('attributes' => array('target' => '_blank'), 'absolue' => TRUE)), '!url2' => l(t('here...'), "user/$user->uid/edit"))),
       );
     }
 
@@ -64,7 +64,7 @@ function biblio_crossref_form_biblio_node_form_submit($form, &$form_state) {
         }
 
         if (empty($crossref_pid)) {
-          form_set_error('doi_data', t(l('You need to register with CrossRef', 'http://www.crossref.org/requestaccount/', array('attributes' => array('target' => '_blank'), 'absolue' => TRUE)). t(' and then enter your CrossRef UserID in the "<i>CrossRef Login Information</i>" section of your account profile !url', array('!url' => l('here...', "user/$user->uid/edit")))));
+          form_set_error('doi_data', l(t('You need to register with CrossRef'), 'http://www.crossref.org/requestaccount/', array('attributes' => array('target' => '_blank'), 'absolue' => TRUE)) . ' ' . t('and then enter your CrossRef UserID in the "<i>CrossRef Login Information</i>" section of your account profile !url', array('!url' => l(t('here...'), "user/$user->uid/edit"))));
           return;
         }
 
