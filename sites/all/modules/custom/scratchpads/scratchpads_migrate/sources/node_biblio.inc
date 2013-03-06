@@ -86,6 +86,7 @@ class ScratchpadsNodeBiblioMigration extends ScratchpadsNodeMigration{
   protected function buildStubNode($migration, $nid){
     $node = parent::buildStubNode($migration, $nid);
     $node->biblio_type = 100;
+    $node->biblio_keywords = '';
     return $node;
   }
 }

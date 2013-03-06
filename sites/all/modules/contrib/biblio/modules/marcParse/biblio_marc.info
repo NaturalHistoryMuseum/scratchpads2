@@ -5,9 +5,9 @@ package = Biblio
 dependencies[] = biblio
 files[] = php-marc.php
 
-; Information added by drupal.org packaging script on 2013-01-27
-version = "7.x-1.0-rc4+86-dev"
+; Information added by drupal.org packaging script on 2013-03-01
+version = "7.x-1.0-rc5+6-dev"
 core = "7.x"
 project = "biblio"
-datestamp = "1359290209"
+datestamp = "1362098197"
 

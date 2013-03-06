@@ -120,7 +120,7 @@ function theme_biblio_citeproc_style_manager_form($variables) {
               array('data' => drupal_render($form['available_styles']) . '<br>' . drupal_render($form['install_all'])
               ),
             );
-  $rows[] = array(array('data' => drupal_render($form['import_csl_file']) .  drupal_render($form['import']),'colspan' => 3) );
+  $rows[] = array(array('data' => drupal_render($form['import_csl_file']) . drupal_render($form['import']), 'colspan' => 3) );
   $output .= theme('table', array('rows' => $rows));
 
   $output .= drupal_render_children($form);
@@ -130,8 +130,7 @@ function theme_biblio_citeproc_style_manager_form($variables) {
 function biblio_citeproc_style_manager_form_validate($form, &$form_state) {
   if ($form_state['clicked_button']['#value'] == '<--' && count( $form_state['values']['available_styles'])) {
     if (count($form_state['values']['available_styles']) > 60) {
-      $message = t('You may not select more than 60 styles for installation at one time');
-      form_error($form['available_styles'], $message);
+      form_error($form['available_styles'], t('You may not select more than 60 styles for installation at one time'));
     }
   }
  if ($form_state['clicked_button']['#value'] ==  t('Set as site default') && !count( $form_state['values']['installed_styles'])) {
@@ -206,30 +205,30 @@ function biblio_citeproc_csl_file_import_submit($form, &$form_state) {
 }
 function _get_github_repo_tree($path = '') {
   $options = array();
-    $treeURL = 'https://api.github.com/repos/citation-style-language/styles/contents';
+    $tree_url = 'https://api.github.com/repos/citation-style-language/styles/contents';
     if (!empty($path)) {
-      $treeURL .= '/' . $path;
+      $tree_url .= '/' . $path;
     }
 
-    $result=  drupal_http_request($treeURL);
+    $result=  drupal_http_request($tree_url);
     if ($result->code == 200) {
       $tree = json_decode($result->data);
     }
     else {
-      $message = t('Attempt to get list of styles from GitHub resulted in an HTTP error: !code. ', array('!code' => $result->code));
+      $message = t('Attempt to get list of styles from GitHub resulted in an HTTP error: !code.', array('!code' => $result->code));
 
       $cache = cache_get('github_csl_repo');
 
       if ($cache) {
-        $message .= t('I will use cached data instead.');
+        $message .= ' ' . t('I will use cached data instead.');
         $mess_type = 'warning';
         $options = $cache->data;
       }
       else {
-        $message .= t('I have no cached data, so you will not be able to install new styles at this time.');
+        $message .= ' ' . t('I have no cached data, so you will not be able to install new styles at this time.');
         $mess_type = 'error';
       }
-      drupal_set_message($message, $mess_type);
+      drupal_set_message(check_plain($message), $mess_type);
       return $options;
     }
 
@@ -270,7 +269,7 @@ function _install_csl($name, $csl, $sha = NULL, $all = FALSE) {
       }
     }
     if (!$all && !empty($parent)) {
-      $csl_file_contents = db_query("SELECT csl FROM biblio_citeproc_styles WHERE id = :parent", array(':parent' => $parent))->fetchField();
+      $csl_file_contents = db_query("SELECT csl FROM {biblio_citeproc_styles} WHERE id = :parent", array(':parent' => $parent))->fetchField();
       if (!$csl_file_contents) {
         _install_csl_from_github(basename($parent) . '.csl');
       }
@@ -295,9 +294,9 @@ function _install_csl($name, $csl, $sha = NULL, $all = FALSE) {
     elseif ($record['sha1'] != $installed[$record['id']]->sha1) {
       db_update('biblio_citeproc_styles')->condition('id', $record['id'])->fields($record)->execute();
     }
-    elseif(($record['sha1'] == $installed[$record['id']]->sha1)) {
+    elseif (($record['sha1'] == $installed[$record['id']]->sha1)) {
       $message = t('The CSL file you supplied: !name, is already installed', array('!name' => $name));
-      drupal_set_message($message, 'warning');
+      drupal_set_message(check_plain($message), 'warning');
     }
   }
   else {
@@ -317,8 +316,8 @@ function _get_zip_from_github(&$context = NULL) {
 
 function _install_csl_from_github($path) {
   $csl = '';
-  $github_URL = 'https://api.github.com/repos/citation-style-language/styles/contents/';
-  $URL = $github_URL . $path;
+  $github_url = 'https://api.github.com/repos/citation-style-language/styles/contents/';
+  $URL = $github_url . $path;
   $result = drupal_http_request($URL);
   if ($result->code == 200) {
     $file  = json_decode($result->data);
@@ -330,9 +329,9 @@ function _install_csl_from_github($path) {
     _install_csl($file->name, $csl, $file->sha);
   }
   else {
-    $message = t('Attempt to get style: %name from GitHub resulted in an HTTP error: !code. ', array('%name' => $path, '!code' => $result->code));
+    $message = t('Attempt to get style: %name from GitHub resulted in an HTTP error: !code.', array('%name' => $path, '!code' => $result->code));
     $mess_type = 'error';
-    drupal_set_message($message, $mess_type);
+    drupal_set_message(check_plain($message), $mess_type);
   }
   return;
 }
@@ -347,7 +346,7 @@ function _install_from_zip(&$context = NULL) {
     $za = new ZipArchive();
 
     if ($za->open($destination) !== TRUE) {
-      $message = t('Could not open zip file containing styles: !file', array('!file' => realpath($destination)));
+      $message = t('Could not open zip file containing styles: @file', array('@file' => realpath($destination)));
       $message = check_plain($message);
       drupal_set_message($message, 'error');
       return;
@@ -419,11 +418,11 @@ function biblio_citeproc_csl_editor($form, &$form_state, $style) {
 
   $csl = db_query('SELECT id,parent,csl FROM {biblio_citeproc_styles} WHERE filename = :id', array(':id' => $style))->fetchObject();
   if (!isset($csl->csl)) {
-    drupal_set_message(t('Biblio-CiteProc could not fetch the style file: !csl_id from the database. Check your CiteProc settings.', array('!csl_id' => $style)), 'error');
+    drupal_set_message(t('Biblio-CiteProc could not fetch the style file: @csl_id from the database. Check your CiteProc settings.', array('@csl_id' => $style)), 'error');
     return;
   }
   if (!empty($csl->parent)) {
-    $csl = db_query("SELECT id,csl FROM biblio_citeproc_styles WHERE id = :id", array(':id' => $csl->parent))->fetchObject();
+    $csl = db_query("SELECT id,csl FROM {biblio_citeproc_styles} WHERE id = :id", array(':id' => $csl->parent))->fetchObject();
 
   }
   if (isset($csl->csl)) {
@@ -489,7 +488,7 @@ function biblio_citeproc_validate_csl_file($file) {
 }
 
 function biblio_citeproc_validate_csl($csl) {
-  $rng_schema = drupal_get_path('module', 'biblio_citeproc') .'/schema/csl.rng';
+  $rng_schema = drupal_get_path('module', 'biblio_citeproc') . '/schema/csl.rng';
   $doc = new DOMDocument();
   $doc->loadXML($csl);
   $updated = $doc->getElementsByTagName('updated')->item(0);
