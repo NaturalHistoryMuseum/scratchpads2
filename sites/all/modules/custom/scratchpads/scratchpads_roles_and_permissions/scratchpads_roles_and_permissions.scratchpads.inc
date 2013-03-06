@@ -28,6 +28,20 @@ function scratchpads_roles_and_permissions_scratchpads_default_permissions(){
 }
 
 /**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function weight_scratchpads_default_permissions(){
+  return array(
+    'contributor' => array(
+      'assign node weight'
+    ),
+    'maintainer' => array(
+      'administer weight'
+    )
+  );
+}
+
+/**
  * EntityConnect module
  */
 function entityconnect_scratchpads_default_permissions(){
@@ -621,11 +635,11 @@ function exif_custom_scratchpads_default_permissions(){
   return array(
     'contributor' => array(
       'have default image metadata profile',
-      'view image metadata',
+      'view image metadata'
     ),
     'maintainer' => array(
-      'administer image metadata',
-    ),
+      'administer image metadata'
+    )
   );
 }
 
