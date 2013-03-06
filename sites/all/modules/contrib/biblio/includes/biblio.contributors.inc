@@ -337,8 +337,8 @@ function biblio_update_contributor(&$author) {
  * @param unknown_type $authors
  */
 function _biblio_contributor_sort(&$authors) {
-  foreach($authors as $key => $author) {
-    if(!isset($author['rank']) || empty($author['rank'])) {
+  foreach ($authors as $key => $author) {
+    if (!isset($author['rank']) || empty($author['rank'])) {
       $authors[$key]['rank'] = $key;
     }
   }
@@ -351,8 +351,8 @@ function _biblio_contributor_sort(&$authors) {
  * @return number
  */
 function _biblio_contributor_usort($a, $b) {
-  if(empty($a['name'])) return 1;
-  if(empty($b['name'])) return -1;
+  if (empty($a['name'])) return 1;
+  if (empty($b['name'])) return -1;
   return ($a['rank'] < $b['rank']) ? -1 : 1;
 }
 /**

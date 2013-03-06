@@ -7,7 +7,9 @@ function scratchpads_load_time_log_install(){
   // Generate a randomly named file.
   $time = time();
   variable_set('scratchpads_load_time_log_last_clear', $time);
-  variable_set('scratchpads_load_time_log_filename', 'public://scratchpads_load_time_log-' . md5($time) . '.csv');
+  $filename = 'public://scratchpads_load_time_log-' . md5($time) . '.csv';
+  variable_set('scratchpads_load_time_log_filename', $filename);
+  @file_put_contents($filename, '"Path","Load time","UID","Timestamp"' . "\n");
 }
 
 /**

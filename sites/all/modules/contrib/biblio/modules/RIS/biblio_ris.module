@@ -221,8 +221,8 @@ function _biblio_ris_import_string($string) {
   } // end while
   if (!empty($unmapped)) {
     $ignored_tags = array_unique($unmapped);
-    $message = t("The following elements were ignored because they do not map to any biblio fields: ");
-    $message .= implode(', ',$ignored_tags);
+    $message = t("The following elements were ignored because they do not map to any biblio fields:") . ' ';
+    $message .= implode(', ', $ignored_tags);
     if (user_access('administer biblio')) {
       $message .= '. ' . t('Click !url if you wish to check the field mapping', array('!url' => l(t('here'), 'admin/config/content/biblio/iomap/edit/ris')));
     }
@@ -231,7 +231,7 @@ function _biblio_ris_import_string($string) {
 }
 
 function _biblio_ris_import($file, $terms = array(), $batch = FALSE, $session_id = NULL) {
-  ini_set('auto_detect_line_endings', true);
+  ini_set('auto_detect_line_endings', TRUE);
   if (!($fp = fopen($file->uri, "r"))) {
     drupal_set_message(t("Could not open RIS input file for reading."), 'error');
     return;
@@ -286,8 +286,8 @@ function _biblio_ris_import($file, $terms = array(), $batch = FALSE, $session_id
 
   if (!empty($unmapped)) {
     $ignored_tags = array_unique($unmapped);
-    $message = t("The following elements were ignored because they do not map to any biblio fields: ");
-    $message .= implode(', ',$ignored_tags);
+    $message = t('The following elements were ignored because they do not map to any biblio fields:') . ' ';
+    $message .= implode(', ', $ignored_tags);
     if (user_access('administer biblio')) {
       $message .= '. ' . t('Click !url if you wish to check the field mapping', array('!url' => l(t('here'), 'admin/config/content/biblio/iomap/edit/ris')));
     }

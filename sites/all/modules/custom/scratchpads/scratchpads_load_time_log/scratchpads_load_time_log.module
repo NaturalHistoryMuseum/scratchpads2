@@ -19,16 +19,20 @@ function scratchpads_load_time_log_shutdown(){
   }else{
     $path = variable_get('site_frontpage', 'node');
   }
-  $filename = variable_get('scratchpads_load_time_log_filename', FALSE);
-  // We clear the log at the start of the week.
-  $time = time();
-  if((variable_get('scratchpads_load_time_log_last_clear', 0) + 604800) < $time){
-    variable_set('scratchpads_load_time_log_last_clear', $time);
-    @file_put_contents($filename, '"Path","Load time","UID","Timestamp"' . "\n");
-  }
-  if($filename){
+  if(($filename = variable_get('scratchpads_load_time_log_filename', FALSE)) != FALSE){
+    // We clear the log at the start of the week.
+    $time = time();
+    if((variable_get('scratchpads_load_time_log_last_clear', 0) + 604800) < $time){
+      variable_set('scratchpads_load_time_log_last_clear', $time);
+      @file_put_contents($filename, '"Path","Load time","UID","Timestamp","Method"' . "\n");
+    }
     global $user;
-    @file_put_contents($filename, '"' . $path . '","' . timer_read('page') . '","' . $user->uid . '","' . $time . "\"\n", FILE_APPEND);
+    @file_put_contents($filename, '"' . $path . '","' . timer_read('page') . '","' . $user->uid . '","' . $time . '","' . $_SERVER['REQUEST_METHOD'] . "\"\n", FILE_APPEND);
+  }else{
+    // This really shouldn't happen, but in case it does, we'll try to run the
+    // install again.
+    module_load_include('install', 'scratchpads_load_time_log');
+    scratchpads_load_time_log_install();
   }
 }
 

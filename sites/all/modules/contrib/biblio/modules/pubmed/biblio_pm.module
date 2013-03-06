@@ -30,8 +30,8 @@ function biblio_pm_cron() {
           foreach ($nids as $nid) {
             $message = '';
             $message = t('!nid was updated due to changes originating at !url', array(
-                '!nid' => l($nid, 'node/'. $nid),
-                '!url' => l('PubMed', 'http://www.ncbi.nlm.nih.gov/pubmed/'. $ids[$nid]),
+                '!nid' => l($nid, 'node/' . $nid),
+                '!url' => l(t('PubMed'), 'http://www.ncbi.nlm.nih.gov/pubmed/' . $ids[$nid]),
               )
             );
             watchdog('biblio_pm', $message, array(), WATCHDOG_WARNING);
@@ -54,7 +54,7 @@ function biblio_pm_cron() {
       }
       else {
         $message = t('There were no PubMed entries older than @age to check.', array(
-                     '@age' => format_interval($age),)
+                     '@age' => format_interval($age))
                     );
       }
       watchdog('biblio_pm', $message, array(), WATCHDOG_INFO);
@@ -226,8 +226,8 @@ function biblio_pm_biblio_import($file, $terms = array(), $batch = FALSE, $sessi
 function biblio_pm_xml_biblio_import($file, $terms = array(), $batch = FALSE, $session_id = NULL) {
   libxml_use_internal_errors(true);
   $xml = @simplexml_load_file($file->uri);
-  if(empty($xml) || isset($xml->body->pre->ERROR)) {
-    drupal_set_message("Could not parse file as PubMed XML", 'error');
+  if (empty($xml) || isset($xml->body->pre->ERROR)) {
+    drupal_set_message(t("Could not parse file as PubMed XML"), 'error');
     return;
   }
   return _biblio_pm_create_node_from_xml($xml, $terms, $batch, $session_id);
@@ -312,7 +312,7 @@ function _biblio_pm_create_node_from_xml($xml, $terms, $batch, $session_id) {
         $curr_date = format_date(time());
         $node->log = t('Automatically updated by the Biblio PubMed module on !date due to changes at !url', array(
                        '!date' => $curr_date,
-                       '!url' => l('PubMed', 'http://www.ncbi.nlm.nih.gov/pubmed/'. $node->biblio_pubmed_id),
+                       '!url' => l('PubMed', 'http://www.ncbi.nlm.nih.gov/pubmed/' . $node->biblio_pubmed_id),
                        ));
         $dup = NULL;
       }
@@ -355,8 +355,8 @@ function biblio_pm_biblio_lookup_link($node) {
 
   $link  = 'http://www.ncbi.nlm.nih.gov/pubmed/' . $node->biblio_pubmed_id . '?dopt=Abstract';
   $attrs = array('title' => t("Click to view the PubMed listing for this node"));
-  if (variable_get('biblio_links_target_new_window', null)){
-    $attrs = array_merge($attrs, array('target'=>'_blank'));
+  if (variable_get('biblio_links_target_new_window', NULL)) {
+    $attrs = array_merge($attrs, array('target' => '_blank'));
   }
   return array('biblio_pubmed' => array(
         'title'      => t('PubMed'),
@@ -505,9 +505,9 @@ function biblio_pm_biblio_node_table_rows_alter(&$rows, $node) {
         )
     );
   }
-  if(isset($node->biblio_pubmed_grants) &&  is_array($node->biblio_pubmed_grants)) {
+  if (isset($node->biblio_pubmed_grants) &&  is_array($node->biblio_pubmed_grants)) {
 
-    foreach($node->biblio_pubmed_grants as $grant) {
+    foreach ($node->biblio_pubmed_grants as $grant) {
       $list[] = check_plain(implode(' / ', $grant));
     }
     $rows[] = array(
