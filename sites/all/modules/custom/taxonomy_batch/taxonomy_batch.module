@@ -93,7 +93,7 @@ function taxonomy_batch_vocabulary_delete_batch($vid, &$context){
     taxonomy_term_delete($row->tid);
     $context['sandbox']['total_deleted']++;
     $num_rows_processed++;
-    if($num_rows_processed == 10){
+    if($num_rows_processed == 3){
       break;
     }
   }
