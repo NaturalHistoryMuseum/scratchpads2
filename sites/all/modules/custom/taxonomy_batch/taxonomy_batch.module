@@ -85,10 +85,9 @@ function taxonomy_batch_vocabulary_delete_batch($vid, &$context){
     }
   }
   // Get the terms to delete
-  $clause = db_select('taxonomy_term_data', 't')->fields('t', array(
+  $results = db_select('taxonomy_term_data', 't')->fields('t', array(
     'tid'
-  ))->condition('vid', $vid);
-  $results = db_select('taxonomy_term_hierarchy', 'h')->fields('h')->condition('parent', 0)->condition('tid', $clause, 'IN')->execute();
+  ))->condition('vid', $vid)->execute();
   $num_rows_processed = 0;
   foreach($results as $row){
     taxonomy_term_delete($row->tid);
