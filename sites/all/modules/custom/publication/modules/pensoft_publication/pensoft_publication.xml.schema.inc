@@ -247,7 +247,6 @@ function _pensoft_publication_xml_article_metadata_schema(){
       ),
       // corresponding_author
       'rights' => array(
-        '#condition' => 'processed_rights',
         'value' => array(
           '#field' => 'processed_rights'  //"Edit & comment" or "Comment only"
         )
@@ -1353,6 +1352,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         '#condition' => 'field_identified_by',
         '#load' => '_publication_xml_load_user',
         '#field' => 'field_identified_by',
+        '#value' => '',
         'value' => array(
           '#field' => 'processed_full_name'
         )

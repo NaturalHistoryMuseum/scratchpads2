@@ -59,6 +59,9 @@ function pensoft_publication_publication_prepare_build(&$build){
     // Render the treatment fields
     $fields = explode(',', $relation->field_publication_treat_fields[LANGUAGE_NONE][0]['value']);
     foreach($fields as $fdelta => $field_name){
+      if(empty($field_name)){
+        continue;
+      }
       $field = field_view_field('node', $treatment, $field_name);
       if(!empty($treatment->{$field_name}[LANGUAGE_NONE][0]['format'])){
         // We don't want all filters to run, only filter out html
