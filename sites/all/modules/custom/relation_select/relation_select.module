@@ -722,8 +722,8 @@ function relation_select_field_insert($entity_type, $entity, $field, $instance, 
                 $langcode = array_shift(array_keys($relation_field));
                 $relation_field_items = array_shift($relation_field);
                 $relation_field = field_info_field($relation_field_name);
-                field_default_submit('relation', $relation, $relation_field, $relation_fields[$relation_field_name], $langcode, $relation_field_items, $item, $form_state);
                 unset($relation_field_items['add_more']);
+                field_default_submit('relation', $relation, $relation_field, $relation_fields[$relation_field_name], $langcode, $relation_field_items, $item, $form_state);
                 $relation->{$relation_field_name}[$langcode] = $relation_field_items;
               }
               else {
