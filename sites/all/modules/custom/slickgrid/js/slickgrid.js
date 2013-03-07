@@ -53,6 +53,13 @@ if(!Array.prototype.indexOf) {
       loader = new Slick.Data.RemoteModel(viewName);
       // Temporarily show the header row.
       options.showHeaderRow = true;
+      $.extend(true, options, {defaultFormatter: function(row, cell, value, columnDef, dataContext){
+        if(value == null) {
+          return "";
+        } else {
+          return value;
+        }
+      }});
       grid = new Slick.Grid(container, loader.data, columns, options);
       // Load the data when the scroll bar is touched (etc).
       grid.onViewportChanged.subscribe(function(e, args){
