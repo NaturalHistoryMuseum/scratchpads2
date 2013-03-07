@@ -14,6 +14,7 @@
     var fromPage = 0;
     var toPage = 0;
     var timeoutID = 0;
+    var base_url = Drupal.settings.slickgrid.get_data_callback_url + viewName + "/";
     function init(){}
     function isDataLoaded(from, to){
       for( var i = from; i <= to; i++) {
@@ -50,7 +51,7 @@
         // TODO: look-ahead
         return;
       }
-      var url = Drupal.settings.slickgrid.get_data_callback_url + viewName + "/" + (fromPage * PAGESIZE) + "/" + PAGESIZE;
+      var url = base_url + (fromPage * PAGESIZE) + "/" + PAGESIZE;
       if(sortcol) {
         url += "/" + sortcol + "/" + ((sortdir > 0) ? "asc" : "desc");
       }
@@ -72,10 +73,10 @@
     }
     function onSuccess(resp){
       var from = fromPage * PAGESIZE;
-      var to = from + resp.length;
-      data.length += resp.length;
-      for( var i = 0; i < resp.length; i++) {
-        data[from + i] = resp[i];
+      var to = from + resp.data.length;
+      data.length += resp.data.length;
+      for( var i = 0; i < resp.data.length; i++) {
+        data[from + i] = resp.data[i];
         data[from + i].index = from + i;
       }
       req = null;

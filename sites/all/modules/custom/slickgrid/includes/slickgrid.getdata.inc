@@ -97,6 +97,8 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
   if(!$view->data){
     $view->data = array();
   }
-  echo drupal_json_encode($view->data);
+  echo drupal_json_encode(array(
+    'data' => $view->data
+  ));
   ajax_footer();
 }

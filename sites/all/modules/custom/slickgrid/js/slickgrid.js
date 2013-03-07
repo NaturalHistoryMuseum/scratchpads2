@@ -576,8 +576,7 @@ if(!Array.prototype.indexOf) {
     }
     // Reload the whole grid
     function reload(data){
-      dataView.setItems(data);
-      dataView.refresh();
+      loader.reloadData(0, loader.data.length - 1);
     }
     function updateColumns(updatedColumns){
       columns = eval('(' + updatedColumns + ')');
