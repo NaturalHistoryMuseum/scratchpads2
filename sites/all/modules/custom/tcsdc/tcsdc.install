@@ -33,11 +33,13 @@ function tcsdc_schema(){
           'type' => 'text'
         )
       ),
-      'indexes' => array(
+      'unique keys' => array(
         'tcsdc_data_unique_id_and_bid' => array(
           'id',
           'bid'
-        ),
+        )
+      ),
+      'indexes' => array(
         'tcsdc_data_parent_index' => array(
           'parent'
         ),
@@ -79,7 +81,7 @@ function tcsdc_schema(){
  */
 function tcsdc_update_7001(){
   db_drop_primary_key('tcsdc_data');
-  db_add_index('tcsdc_data', 'tcsdc_data_unique_id_and_bid', array(
+  db_add_unique_key('tcsdc_data', 'tcsdc_data_unique_id_and_bid', array(
     'id',
     'bid'
   ));
