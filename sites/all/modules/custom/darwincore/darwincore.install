@@ -100,16 +100,18 @@ function darwincore_update_7005(){
     'field_identified_by'
   ) as $field_name){
     $field = field_info_field($field_name);
-    $field['settings'] = array(
-      'referenceable_roles' => array(),
-      'referenceable_status' => array(),
-      'view' => array(
-        'view_name' => 'users_references',
-        'display_name' => 'references_1',
-        'args' => array()
-      )
-    );
-    field_update_field($field);
+    if($field){
+      $field['settings'] = array(
+        'referenceable_roles' => array(),
+        'referenceable_status' => array(),
+        'view' => array(
+          'view_name' => 'users_references',
+          'display_name' => 'references_1',
+          'args' => array()
+        )
+      );
+      field_update_field($field);
+    }
   }
 }
 
@@ -131,16 +133,18 @@ function darwincore_update_7007(){
     'field_identified_by'
   ) as $field_name){
     $field = field_info_field($field_name);
-    $field['settings'] = array(
-      'referenceable_roles' => array(),
-      'referenceable_status' => array(),
-      'view' => array(
-        'view_name' => 'users_references',
-        'display_name' => 'references_1',
-        'args' => array()
-      )
-    );
-    field_update_field($field);
+    if($field){
+      $field['settings'] = array(
+        'referenceable_roles' => array(),
+        'referenceable_status' => array(),
+        'view' => array(
+          'view_name' => 'users_references',
+          'display_name' => 'references_1',
+          'args' => array()
+        )
+      );
+      field_update_field($field);
+    }
   }
 }
 
@@ -155,5 +159,37 @@ function darwincore_update_7010(){
     if(substr($key, 0, 13) == 'node-location'){
       field_update_instance($field['field_instance']);
     }
+  }
+}
+
+/**
+ * Update the Widget used by the user reference fields
+ * (field_identified_by and field_collector)
+ */
+function darwincore_update_7011(){
+  $user_fields = array(
+    'field_collector',
+    'field_identified_by'
+  );
+  foreach($user_fields as $user_field){
+    $info = field_info_field($user_field);
+    // If the field doesn't exist, or isn't a user_reference (if the maintainers have changed it), skip it
+    if(!$info || $info['type'] != 'user_reference'){
+      continue;
+    }
+    $field_instance = field_info_instance('node', $user_field, 'specimen_observation');
+    // If the field instance doesn't exist, or isn't using the widget we'd expect it to use
+    // (if the maintainers have changed it), skip it
+    if(!$field_instance || $field_instance['widget']['module'] != 'options' || $field_instance['widget']['type'] != 'options_select'){
+      continue;
+    }
+    $field_instance['widget']['module'] = 'user_reference';
+    $field_instance['widget']['type'] = 'user_reference_autocomplete';
+    $field_instance['widget']['settings'] = array(
+      'autocomplete_match' => 'contains',
+      'autocomplete_path' => 'user_reference/autocomplete',
+      'size' => '60'
+    );
+    field_update_instance($field_instance);
   }
 }
