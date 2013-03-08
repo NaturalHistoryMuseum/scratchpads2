@@ -1,0 +1,13 @@
+.scratchpads_messages {
+  padding: 3px 50px !important;
+  background-color: #f5f5b5;
+}
+
+.toolbar-drawer {
+  box-shadow: 0 3px 5px #000000;
+}
+
+.scratchpads_messages .item-list li {
+  display: block;
+  float: none !important;
+}

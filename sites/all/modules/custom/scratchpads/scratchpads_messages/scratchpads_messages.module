@@ -1,0 +1,111 @@
+<?php
+
+/**
+ * Implements hook_user_login().
+ */
+function scratchpads_messages_user_login(&$edit, $account){
+  $_SESSION['scratchpads_messages'] = TRUE;
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function scratchpads_messages_theme_registry_alter(&$theme_registry){
+  $theme_registry['toolbar']['path'] = drupal_get_path('module', 'scratchpads_messages');
+  $theme_registry['toolbar']['theme path'] = $theme_registry['toolbar']['path'];
+}
+
+/**
+ * Implements hook_user_load().
+ */
+function scratchpads_messages_user_load($users){
+  $results = db_select('scratchpads_messages_user_settings', 's')->fields('s')->condition('uid', array_keys($users))->execute();
+  foreach($results as $record){
+    foreach(unserialize($record->setting) as $key => $value){
+      $users[$record->uid]->{$key} = $value;
+    }
+  }
+}
+
+/**
+ * Implements hook_user_delete().
+ */
+function scratchpads_user_delete($account){
+  db_delete('scratchpads_messages_user_settings')->condition('uid', $account->uid)->execute();
+}
+
+/**
+ * Implements hook_user_insert().
+ */
+function scratchpads_messages_user_insert(&$edit, $account, $category){
+  db_merge('scratchpads_messages_user_settings')->key(array(
+    'uid' => $account->uid
+  ))->fields(array(
+    'uid' => $account->uid,
+    'setting' => serialize(array(
+      'scratchpads_messages_hide_tips' => $edit['scratchpads_messages_hide_tips']
+    ))
+  ))->execute();
+}
+
+/**
+ * Implements hook_user_update().
+ */
+function scratchpads_messages_user_update(&$edit, $account, $category){
+  return scratchpads_messages_user_insert($edit, $account, $category);
+}
+
+/**
+ * Implement hook_form_FORM_ID_alter().
+ * 
+ * The "Edit" user form.  This needs to be able to handle both login and 
+ * loginless changes.
+ */
+function scratchpads_messages_form_user_profile_form_alter(&$form, &$form_state){
+  if($form['#user']->uid && empty($form['#user']->stub_user)){
+    $form['messages'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Scratchpads messages'),
+      '#collapsed' => TRUE,
+      '#collapsible' => TRUE,
+      'scratchpads_messages_hide_tips' => array(
+        '#type' => 'checkbox',
+        '#title' => t('Hide Scratchpads tips'),
+        '#default_value' => !empty($form['#user']->scratchpads_messages_hide_tips) ? 1 : 0
+      )
+    );
+  }
+}
+
+/**
+ * Implements hook_page_alter().
+ * 
+ * Adds the messages depending on the type of message, and whether or not the
+ * user actually wants to see the message.
+ */
+function scratchpads_messages_page_alter(&$page){
+  if(!empty($_SESSION['scratchpads_messages'])){
+    $messages = array(
+      '<p>One message</p>',
+      '<p>Two message</p>'
+    );
+    if(count($messages)){
+      $page['page_top']['toolbar']['extra_messages'] = array(
+        '#attached' => array(
+          'css' => array(
+            drupal_get_path('module', 'scratchpads_messages') . '/css/scratchpads_messages.css'
+          )
+        ),
+        '#theme' => 'item_list',
+        '#items' => $messages
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_cron().
+ * 
+ * Gets the messages from the help.scratchpads.eu wiki.
+ */
+function scratchpads_messages_cron(){}
