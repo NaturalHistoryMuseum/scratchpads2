@@ -198,11 +198,19 @@ class PublicationXSDParser{
   /**
    * Merge two schema arrays into one
    */
-  function merge_schemas($a, $b){
+  function merge_schemas($a, $b, $diff = FALSE){
     // Base case if either $a or $b is not an array
-    if(!is_array($a)){return $b;}
+    if(!is_array($a)){
+      if(is_array($b) && $diff){
+        $b['#comment'] .= " DIFF:Type mismatch, this value was not an array in the source schema;";
+      }
+      return $b;
+    }
     if(!is_array($b)){
       $a[] = $b;
+      if($diff){
+        $a['#comment'] .= " DIFF:Type mismatch, this value was not an array in the provided schema;";
+      }
       return $a;
     }
     // Prepare for processing
@@ -213,21 +221,175 @@ class PublicationXSDParser{
       // Match same keys
       if(!isset($b[$a_key])){
         $r[$a_key] = $a[$a_key];
+        if($diff && strpos($a_key, '#') === FALSE){
+          $r['#comment'] .= " DIFF: $a_key missing in provided schema;";
+        }
       }else{
-        $r[$a_key] = $this->merge_schemas($a[$a_key], $b[$a_key]);
+        $r[$a_key] = $this->merge_schemas($a[$a_key], $b[$a_key], $diff);
         unset($b[$a_key]);
       }
       // Match number #x keys
       foreach($b_keys as $b_key){
         if(preg_match('/^' . preg_quote($a_key, '/') . '#\d+$/', $b_key)){
-          $r[$b_key] = $this->merge_schemas($a[$a_key], $b[$b_key]);
+          $r[$b_key] = $this->merge_schemas($a[$a_key], $b[$b_key], $diff);
           unset($b[$b_key]);
         }
       }
     }
     // Now add what is left in $b
+    if($diff){
+      foreach($b as $b_key => $b_val){
+        if(strpos($b_key, '#') === FALSE){
+          $b['#comment'] .= " DIFF:$b_key missing in source schema;";
+        }
+      }
+    }
     $r = array_merge($r, $b);
     return $r;
+  }
+}
+
+/**
+ * This class is used to generate a readable output of how Drupal
+ * fields are mapped to an XML type by parsing an array schema
+ */
+class PublicationXMLSchemaExplain{
+
+  /**
+   * Create a new schema parser from
+   * an array schema
+   */
+  function __construct($schema){
+    $this->schema = $schema;
+  }
+
+  /**
+   * Generates XML-like data which shows the strcuture of the
+   * generated XML and the associated Drupal fields/functions
+   */
+  function explain_with_xml(){
+    $output = array();
+    $this->_path = array();
+    foreach($this->schema as $tag => $child_schema){
+      $output[] = "<$tag>";
+      $output[] = $this->_explain_with_xml_generate($child_schema);
+      $output[] = "</$tag>";
+    }
+    return $this->_implode_indent($output);
+  }
+
+  /**
+   * Helper function to build the XML explanation
+   */
+  function _explain_with_xml_generate($schema){
+    $output = array();
+    // Show comments
+    if(!empty($schema['#comment'])){
+      $output[] = "COMMENT: " . $schema['#comment'];
+    }
+    // Add attributes
+    if(!empty($schema['#attributes'])){
+      foreach($schema['#attributes'] as $attr_name => $attr_value){
+        $output[] = "SET ATTR $attr_name = $attr_value;";
+      }
+    }
+    // Add values
+    $value_to_set = '';
+    if(isset($schema['#value'])){
+      $value_to_set = $schema['#value'];
+    }else if(!empty($schema['#field'])){
+      $value_to_set = $this->_field_name($schema['#field']);
+    }
+    if($value_to_set){
+      if(!isset($schema['#value']) && isset($schema['#merge'])){
+        $value_to_set = $schema['#merge'] . '(' . $value_to_set . ')';
+      }
+      if(isset($schema['#process'])){
+        // XXX need to display process arguments
+        $value_to_set = $schema['#process'] . '(' . $value_to_set . ')';
+      }
+      $output[] = "SET VALUE = " . $value_to_set . ";";
+    }
+    // Add conditions
+    $condition = FALSE;
+    if(isset($schema['#condition'])){
+      $elem = $this->_field_name($schema['#condition']);
+      if(isset($schema['#condition arguments'])){
+        $condition = "$elem " . $schema['#condition arguments'][0] . ' ' . $schema['#condition arguments'][1];
+      }else{
+        $condition = "$elem";
+      }
+      $output[] = "IF ($condition) {";
+    }
+    // Load new object
+    $has_load = FALSE;
+    if(isset($schema['#load'])){
+      $elem = $this->_field_name($schema['#field']);
+      $path = $schema['#load'] . '(' . $elem;
+      if(isset($schema['#load arguments'])){
+        $arguments = array();
+        foreach($schema['#load arguments'] as $argument){
+          if (is_string($argument) && preg_match('/^field:(.+)$/', $argument, $matches)) {
+            $load_elem = $this->_field_name($matches[1]);
+            $arguments[] = $load_elem;
+          } else {
+            $arguments[] = 'unserialize("' . serialize($argument) . '")';
+          }
+        }
+        $path .= ', ' . implode(', ', $arguments);
+      }
+      $this->_path[] = $path . ')';
+      $has_load = TRUE;
+    }
+    // Recurse
+    $sub = array();
+    foreach($schema as $tag => $child_schema){
+      if(strpos($tag, '#') === 0){
+        continue;
+      }
+      $sub[] = "<$tag>";
+      $sub[] = $this->_explain_with_xml_generate($child_schema);
+      $sub[] = "</$tag>";
+    }
+    if($condition){
+      $output[] = $sub;
+      $output[] = "} /* $condition */";
+    }else{
+      $output = array_merge($output, $sub);
+    }
+    if($has_load){
+      array_pop($this->_path);
+    }
+    return $output;
+  }
+
+  /**
+   * Helper function to produce field name from series or loads
+   */
+  function _field_name($field){
+    if(count($this->_path)){
+      return $this->_path[count($this->_path) - 1] . '->' . $field;
+    }else{
+      return '$publication->' . $field;
+    }
+  }
+
+  /**
+   * Helper function for indenting text
+   */
+  function _implode_indent($struct, $indent = 0){
+    $out = "";
+    foreach($struct as $val){
+      if(is_array($val)){
+        $sub = $this->_implode_indent($val, $indent + 1);
+        if(trim($sub)){
+          $out .= $sub;
+        }
+      }else{
+        $out .= str_repeat('  ', $indent) . $val . "\n";
+      }
+    }
+    return $out;
   }
 }
 
@@ -431,7 +593,16 @@ class PublicationXMLBuilder{
         $value
       );
       if(isset($schema['#load arguments'])){
-        $arguments = array_merge($arguments, $schema['#load arguments']);
+        foreach ($schema['#load arguments'] as $argument) {
+          if (is_string($argument) && preg_match('/^field:(.+)$/', $argument, $matches)) {
+            $arg_field = $matches[1];
+            if (isset($object->$arg_field)) {
+              $arguments[] = $object->$arg_field;
+            }
+          } else {
+            $arguments[] = $argument;
+          }
+        }
       }
       $object = call_user_func_array($schema['#load'], $arguments);
     }
@@ -533,6 +704,9 @@ class PublicationXMLBuilder{
             $error_context_field = $schema['#error_field'];
             if(isset($object->$error_context_field)){
               $error_context = reset($this->_read_values($object->$error_context_field));
+              if(is_array($error_context) && isset($error_context['value'])){
+                $error_context = $error_context['value'];
+              }
               $error_field = str_replace('%', $error_context, $error_field);
             }
           }
@@ -724,8 +898,12 @@ function _publication_xml_process_country($value, $type = 'name'){
  * Process a map field to return just one property (by default the latitude)
  */
 function _publication_xml_process_map($value, $type = 'latitude'){
-  $map = $value[LANGUAGE_NONE][0];
-  return $map->$type;
+  if (isset($value[LANGUAGE_NONE][0])) {
+    $map = (array)($value[LANGUAGE_NONE][0]);
+  } else {
+    $map = (array)$value;
+  }
+  return $map[$type];
 }
 
 /**
@@ -742,7 +920,13 @@ function _publication_xml_load_replace($value){
  * Loader function for the author/contributor fields
  */
 function _publication_xml_load_user($value){
+  if(is_array($value) && isset($value['uid'])){
+    $value = $value['uid'];
+  }
   $user = user_load($value);
+  if(!$user){throw new Exception(t("No such user id %uid - it looks like a user referenced from your publication has been deleted from the site", array(
+      '%uid' => $value
+    )));}
   $wrapper = entity_metadata_wrapper('user', $user);
   $given_names = explode(' ', $wrapper->field_user_given_names->value());
   $user->processed_full_name = implode(' ', array(
@@ -783,10 +967,24 @@ function _publication_xml_load_file($value){
 }
 
 /**
+ * Loads the given term
+ */
+function _publication_xml_load_term($value, $final_name = NULL){
+  $term = taxonomy_term_load($value['tid']);
+  if ($final_name) {
+    $term->name = $final_name;
+  }
+  return $term;
+}
+
+/**
  * Loads the parent of the given term
  */
 function _publication_xml_load_parent_term($value, $rank = NULL, $default = NULL){
-  $terms = taxonomy_get_parents($value['tid']);
+  if (is_array($value) && isset($value['tid'])) {
+    $value = $value['tid'];
+  }
+  $terms = taxonomy_get_parents($value);
   while(!empty($terms)){
     $current = array_shift($terms);
     if($rank === NULL || $current->field_rank[LANGUAGE_NONE][0]['value'] == $rank){return $current;}
@@ -807,5 +1005,7 @@ function _publication_xml_load_specimen($value){
     unset($location->title);
     $specimen = ((object)(array_merge((array)$specimen, (array)($location))));
   }
+  $specimen->field_collector[LANGUAGE_NONE] = array();
+  $specimen->field_identified_by[LANGUAGE_NONE] = array();
   return $specimen;
 }
