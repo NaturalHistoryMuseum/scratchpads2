@@ -38,33 +38,33 @@ class FeedsMapperFieldTestCase extends FeedsMapperTestCase {
     $this->setSettings('csv', NULL, array('content_type' => '', 'import_period' => FEEDS_SCHEDULE_NEVER));
     $this->setPlugin('csv', 'FeedsFileFetcher');
     $this->setPlugin('csv', 'FeedsCSVParser');
-    $this->setSettings('csv', 'FeedsNodeProcessor', array('content_type' => $typename));
+    $this->setSettings('csv', 'FeedsNodeProcessor', array('bundle' => $typename));
     $this->addMappings('csv', array(
-      array(
+      0 => array(
         'source' => 'title',
         'target' => 'title',
       ),
-      array(
+      1 => array(
         'source' => 'created',
         'target' => 'created',
       ),
-      array(
+      2 => array(
         'source' => 'body',
         'target' => 'body',
       ),
-      array(
+      3 => array(
         'source' => 'alpha',
         'target' => 'field_alpha',
       ),
-      array(
+      4 => array(
         'source' => 'beta',
         'target' => 'field_beta',
       ),
-      array(
+      5 => array(
         'source' => 'gamma',
         'target' => 'field_gamma',
       ),
-      array(
+      6 => array(
         'source' => 'delta',
         'target' => 'field_delta',
       ),

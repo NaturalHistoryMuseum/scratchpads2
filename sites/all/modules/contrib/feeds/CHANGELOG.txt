@@ -1,3 +1,141 @@
+Feeds 7.x 2.0 Alpha 5, 2012-05-28
+---------------------------------
+
+- Issue #1515204 by gnucifer: Malformed destination uri in FeedsEnclosure.
+- Issue #1450714 by getgood: ATOM parser ignores 'updated' tag
+- Issue #1152940 by bblake, rickmanelius, g089h515r806, darrylri, iMiksu,
+  sdrycroft, johnbarclay, batje, axel.rutz, GaëlG: Feeds term import with
+  hierarchy and weight
+- Issue #1406260 by Xen, logaritmisk: Fetchers without source configuration
+  fails.
+- Issue #1407670 by Ivan Simonov, GaëlG, franz: drupal_strlen() doesn't work
+  when parsing multibyte strings in CSVParser.
+- Issue #1213472 by paulgemini, Nigel_S, emarchak, Jorenm: Fixed Unsupported
+  operand types in FeedsConfigurable.
+- Follow-up to #1245094 by agoradesign: menu links not really fixed.
+- Issue #1245094 by chrisdejager, dman: Fixed Node menu link deleted on update.
+- Issue #712304 by derhasi, twistor, jerdavis, alex_b, rjbrown99, rbayliss |
+  ManyNancy: Fixed Batch import does not continue where it left off, instead
+  starts from the beginning.
+- Issue #959984 by kidrobot, desmondmorris, slashrsm, flailingmaster, rfay |
+  dasjo: Fixed taxonomy_node_get_terms() doesn't work with drupal 7.
+- Issue #1140194 by orb | emorency: Fixed SQLSTATE[HY000]: General error: 1366
+  Incorrect string value for a field with accents.
+- Issue #1427642 by elliotttf: Fixed Use drupal_exit() rather than exit() in
+  PuSH/FeedsHTTPFetcher callbacks.
+- Issue #1418382: Fixed unsubscribe requests to PuSH hubs failing due to
+  transaction in node_delete().
+- Issue #870556: Fixed PuSH verifications run before the subscription records
+  have been saved."
+- Issue #1289598 by emackn, andypost: Fixed Remove check_plain() on form
+  options.
+- Issue #996808 by twistor, marcvangend, joshuajabbour: Fixed Update existing
+  doesn't reset targets that have real_target() set.
+- Issue #1219180 by dandaman: Fixed Minor error in API code samples.
+- Issue #686470 by johnv, wojtha, febbraro | rjbrown99: Fixed Filefield mapper:
+  URLs with spaces not parsed properly.
+- Issue #1380636 by gnucifer, emackn: Fixed Wrong response headers reported on
+  3xx requests in function http_request_get().
+- Issue #1382208 by slcp: Fixed FeedsSource.inc sourceSave() and sourceDelete()
+  function descriptions are the wrong way round.
+- Issue #1372074 by twistor, emackn: Fixed feeds_http_request() does not cache
+  when using drupal_http_request().
+- Issue #1191330 by twistor: Added Allow feeds_mapper().test to set field
+  instance settings.
+- Issue #1225672 by StepanKuzmin, tekante | guillaumev: Fixed Bug when importing
+  a single year.
+- Issue #1035684 by mikejoconnor: Source / Target sort order
+- Issue #1005128 by dasjo, fago: Rules integration & enable modules to customize
+  imports.
+- Issue #1228568 by pcambra: Add user status to FeedsUserProcessor
+- Issue #1139676 by Dave Reid, cosmicdreams: Fixed feeds_alter() doesn't support
+  modulename.feeds.inc files supported by feeds_hook_info().
+- Issue #1347894 by juampy | colin_young: Fixed Clear cache causes integrity
+  constraint violation.  Fix for feeds info file
+- Issue #1298326 by twistor, Dave Reid, and emackn: Fixed Only execute
+  rebuild_menu() when necessary.
+- Issue #1228570 by pcambra: Added user language to FeedsUserProcessor.
+- Issue #1206042 by anon: Let node titles have unique option.
+- Issue #126689 by tcindie :Additional targets for nodes
+- issue #126689 by tcindie : 1298326Issue PageOnly execute rebuild_menu when
+  necessary
+- Issue #1128418 by mongolito404, Niklas Fiekas, jief: Fixed Deprecated:
+  Assigning the return value of new by reference is deprecated in
+  feeds_include_library().
+- Issue #1046916 by eosrei: importing nodes with their original NID
+- Issue #1197646: Skip importer config form validation if a machine name was not
+  provided.
+- Issue #1248712: Show an empty row result and hide the Save button if no
+  importers are available.
+- Issue #1248710: Use the core-provided machine_name FAPI element for the
+  importer machine name field.
+- Issue #1235394: Fixed menu paths violate UX standards and could not use
+  breadcrumbs.
+- Issue #1248648 by twistor, Dave Reid: Fixed bugs and inconsistencies in
+  FeedsRSStoNodesTest.
+
+Feeds 7.x 2.0 Alpha 4, 2011-06-28
+---------------------------------
+
+- Issue #1161810: Fixed declaration of FeedsSource::instance() should be
+  compatible with that of FeedsConfigurable::instance().
+- Issue #1201638: Plugins should be listed in feeds.info as files[] records for
+  the class registry.
+- Issue #1149226: Fixed invalid message parameter passed into feeds_log from
+  FeedsProcessor::process().
+- Issue #1044882 by rfay, Dave Reid: Fixed indexes for {feeds_item} are too long
+  and can cause problems during install or uninstall.
+- Fixing PHP strict error in _parser_common_syndication_atom10_parse().
+- Added support for feeds hooks to be located in modulename.feeds.inc.
+- Issue #1191554: Fixed failures in FeedsUIUserInterfaceTestCase.
+- Issue #1191564: Use FeedsWebTestCase for FeedsDateTimeTest.
+- Issue #1191494 by twistor, Dave Reid: Fixed link to node type feed importer
+  did not use node_access().
+- Issue #1191450: Fixed mismatch of arguments for t().
+- Fixed possible XSS with field labels in Feed importer mapping settings.
+- Fixed coder violations and standards.
+- Issue #723548: Added unit tests for feeds_valid_url().
+- Fixed PHP notice with undefined variables in
+  http_request_get_common_syndication().
+- Issue #723548: Added support for feed URLs with feed:// and webcal://.
+- Fixed error when calling form_set_error() and title field on follow-up to fix
+  feed node title fields not actually un-required.
+- Issue #1191210: Added feeds_field_extra_fields() so the 'Feed' fieldset can be
+  re-ordered through the Field UI.
+- Issue #1191194: Fixed test failure in FeedsCSVtoUsersTest due to lack of
+  'administer users' permission.
+- Issue #1191200: Fixed display of the description field on the feed item
+  content type.
+- Issue #1066286: Added test to ensure 'Feed items' doesn't display on non-feed
+  nodes.
+- Use hook_form_node_form_alter() rather than hook_form_alter().
+- Simplify FeedsMapperTestCase::createContentType() using
+  DrupalWebTestCase::drupalCreateContentType().
+- Issue #983220 by twistor: Fixed field mapper tests failed due to number.module
+  not being enabled.
+- Issue #1085092 by pfrenssen: Fixed module_list() is called twice in
+  feeds_alter().
+- Fixes and cleanups to tests.
+- Use fetchObject() rather than fetch() since it is more explicit.
+- Issue #1008384 by twistor: Fixed feeds not pulling publication date with feed
+  using dc:date and RSS 2.0.
+- Issue #769084: Fixed use of isset() rather than !empty() causes import
+  problems with _parser_common_syndication_RSS20_parse().
+- Issue #914210 by jyee, Dave Reid: Added mapper for user raw password.
+- Issue #974494: Fixed PHP notice 'Undefined property: stdClass::$openid in
+  FeedsUserProcessor->entitySave()'.
+- Issue #1134684 by rfay, Dave Reid: Fixed improper parameters for
+  file_field_widget_uri().
+- Issue #1055582: Fixed strict notice that FeedsDateTime::setTimezone() is not
+  compatible with DateTime::setTimezone().
+- Issue #1085194: Not all selected mappings are removed.
+- Issue #1032640: Added basic token integration.
+- Issue #1066806: Use hook_entity_insert/update/delete rather than separate
+  node, taxonomy term, and user hooks.
+- Issue #1066822: Fixed bugs and inconsistencies with test files and getInfo()
+  declarations.
+- Issue #1066810: Fixed list of 'Expire nodes' options in FeedsNodeProcessor.
+- Issue #1066286: Fixed 'View items' tab added to all content types.
 - Issue #1011958 by David Goode: Allow hashes to be updated when content in a 
   feed is updated.
 - Issue #1048642 by greg.harvey: Check for remove_flags in Feeds UI before using 

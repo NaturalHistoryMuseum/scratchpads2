@@ -61,12 +61,16 @@ function feeds_import_form($form, &$form_state, $importer_id) {
     '#tree' => TRUE,
     '#value' => feeds_source_status($source),
   );
-  $form['feeds'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Import'),
-    '#tree' => TRUE,
-  );
-  $form['feeds'] += $source->configForm($form_state);
+
+  $source_form = $source->configForm($form_state);
+  if (!empty($source_form)) {
+    $form['feeds'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Import'),
+      '#tree' => TRUE,
+    ) + $source_form;
+  }
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Import'),
@@ -92,11 +96,13 @@ function feeds_import_form_validate($form, &$form_state) {
  * Submit handler for feeds_import_form().
  */
 function feeds_import_form_submit($form, &$form_state) {
-
   // Save source and import.
   $source = feeds_source($form['#importer_id']);
-  $source->addConfig($form_state['values']['feeds']);
-  $source->save();
+
+  if (!empty($form_state['values']['feeds']) && is_array($form_state['values']['feeds'])) {
+    $source->addConfig($form_state['values']['feeds']);
+    $source->save();
+  }
 
   // Refresh feed if import on create is selected.
   if ($source->importer->config['import_on_create']) {
@@ -185,6 +191,65 @@ function feeds_delete_tab_form_submit($form, &$form_state) {
   $form_state['redirect'] = $form['#redirect'];
   $feed_nid = empty($form['#feed_nid']) ? 0 : $form['#feed_nid'];
   feeds_source($form['#importer_id'], $feed_nid)->startClear();
+}
+
+/**
+ * Render a feeds unlock form.
+ *
+ * Used on both node pages and configuration pages.
+ * Therefore $node may be missing.
+ */
+function feeds_unlock_tab_form($form, &$form_state, $importer_id, $node = NULL) {
+  if (empty($node)) {
+    $source = feeds_source($importer_id);
+    $form['#redirect'] = 'import/' . $source->id;
+  }
+  else {
+    $importer_id = feeds_get_importer_id($node->type);
+    $source = feeds_source($importer_id, $node->nid);
+    $form['#redirect'] = 'node/' . $source->feed_nid;
+  }
+  // Form cannot pass on source object.
+  $form['#importer_id'] = $source->id;
+  $form['#feed_nid'] = $source->feed_nid;
+  $form['source_status'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Status'),
+    '#tree' => TRUE,
+    '#value' => feeds_source_status($source),
+  );
+  $form = confirm_form($form, t('Unlock this importer?'), $form['#redirect'], '', t('Delete'), t('Cancel'), 'confirm feeds update');
+  if ($source->progressImporting() == FEEDS_BATCH_COMPLETE && $source->progressClearing() == FEEDS_BATCH_COMPLETE) {
+    $form['source_locked'] = array(
+      '#type' => 'markup',
+      '#title' => t('Not Locked'),
+      '#tree' => TRUE,
+      '#markup' => t('This importer is not locked, therefore it cannot be unlocked.'),
+    );
+    $form['actions']['submit']['#disabled'] = TRUE;
+    $form['actions']['submit']['#value'] = t('Unlock (disabled)');
+  }
+  else {
+    $form['actions']['submit']['#value'] = t('Unlock');
+  }
+  return $form;
+}
+
+/**
+ * Form submit handler. Resets all feeds state.
+ */
+function feeds_unlock_tab_form_submit($form, &$form_state) {
+  drupal_set_message(t('Import Unlocked'));
+  $form_state['redirect'] = $form['#redirect'];
+  $feed_nid = empty($form['#feed_nid']) ? 0 : $form['#feed_nid'];
+  $importer_id = $form['#importer_id'];
+
+  //Is there a more API-friendly way to set the state?
+  db_update('feeds_source')
+    ->condition('id', $importer_id)
+    ->condition('feed_nid', $feed_nid)
+    ->fields(array('state' => FALSE))
+    ->execute();
 }
 
 /**

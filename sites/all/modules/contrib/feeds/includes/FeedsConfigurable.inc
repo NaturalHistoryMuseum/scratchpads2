@@ -76,6 +76,13 @@ abstract class FeedsConfigurable {
   }
 
   /**
+   * Override magic method __isset(). This is needed due to overriding __get().
+   */
+  public function __isset($name) {
+    return isset($this->$name) ? TRUE : FALSE;
+  }
+
+  /**
    * Determine whether this object is persistent and enabled. I. e. it is
    * defined either in code or in the database and it is enabled.
    */
@@ -129,8 +136,8 @@ abstract class FeedsConfigurable {
   }
 
   /**
-   * Override magic method __get(). Make sure that $this->config goes
-   * through getConfig()
+   * Override magic method __get(). Make sure that $this->config goes through
+   * getConfig().
    */
   public function __get($name) {
     if ($name == 'config') {
@@ -246,18 +253,42 @@ function feeds_form($form, &$form_state, $configurable, $form_method) {
  * Validation handler for feeds_form().
  */
 function feeds_form_validate($form, &$form_state) {
-  $validate_method = $form['#feeds_form_method'] . 'Validate';
-  if (method_exists($form['#configurable'], $validate_method)) {
-    $form['#configurable']->$validate_method($form_state['values']);
-  }
+  _feeds_form_helper($form, $form_state, 'Validate');
 }
 
 /**
- * Submit handler for feeds_config_form().
+ * Submit handler for feeds_form().
  */
 function feeds_form_submit($form, &$form_state) {
-  $submit_method = $form['#feeds_form_method'] . 'Submit';
-  if (method_exists($form['#configurable'], $submit_method)) {
-    $form['#configurable']->$submit_method($form_state['values']);
+  _feeds_form_helper($form, $form_state, 'Submit');
+}
+
+/**
+ * Helper for Feeds validate and submit callbacks.
+ *
+ * @todo This is all terrible. Remove.
+ */
+function _feeds_form_helper($form, &$form_state, $action) {
+  $method = $form['#feeds_form_method'] . $action;
+  $class = get_class($form['#configurable']);
+  $id = $form['#configurable']->id;
+
+  // Re-initialize the configurable object. Using feeds_importer() and
+  // feeds_plugin() will ensure that we're using the same instance. We can't
+  // reuse the previous form instance because feeds_importer() is used to save.
+  // This will re-initialize all of the plugins anyway, causing some tricky
+  // saving issues in certain cases.
+  // See http://drupal.org/node/1672880.
+  if ($class == variable_get('feeds_importer_class', 'FeedsImporter')) {
+    $form['#configurable'] = feeds_importer($id);
+  }
+  else {
+    $importer = feeds_importer($id);
+    $plugin_key = $importer->config[$form['#configurable']->pluginType()]['plugin_key'];
+    $form['#configurable'] = feeds_plugin($plugin_key, $id);
+  }
+
+  if (method_exists($form['#configurable'], $method)) {
+    $form['#configurable']->$method($form_state['values']);
   }
 }

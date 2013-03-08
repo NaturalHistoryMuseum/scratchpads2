@@ -25,24 +25,23 @@ function feeds_token_info() {
 function feeds_tokens($type, $tokens, array $data, array $options) {
   $replacements = array();
 
-  $sanitize = !empty($options['sanitize']);
+  if ($type == 'node' && !empty($data['node']) && !empty($data['node']->nid)) {
 
-  if ($type == 'node' && !empty($data['node'])) {
-    $node = $data['node'];
+    $sanitize = !empty($options['sanitize']);
 
-    foreach ($tokens as $name => $original) {
-      switch ($name) {
-        case 'feed-source':
-          if (!empty($node->feed_nid) && $feed_source = node_load($node->feed_nid)) {
+    $feed_nid = feeds_get_feed_nid($data['node']->nid, 'node');
+
+    if ($feed_nid && $feed_source = node_load($feed_nid)) {
+      foreach ($tokens as $name => $original) {
+        switch ($name) {
+          case 'feed-source':
             $replacements[$original] = $sanitize ? check_plain($feed_source->title) : $feed_source->title;
-          }
-          break;
+            break;
+        }
       }
-    }
 
-    // Chained node token relationships.
-    if ($feed_source_tokens = token_find_with_prefix($tokens, 'feed-source')) {
-      if (!empty($node->feed_nid) && $feed_source = node_load($node->feed_nid)) {
+      // Chained node token relationships.
+      if ($feed_source_tokens = token_find_with_prefix($tokens, 'feed-source')) {
         $replacements += token_generate('node', $feed_source_tokens, array('node' => $feed_source), $options);
       }
     }

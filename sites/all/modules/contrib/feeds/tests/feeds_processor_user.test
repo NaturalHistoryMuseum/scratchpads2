@@ -31,25 +31,23 @@ class FeedsCSVtoUsersTest extends FeedsWebTestCase {
 
     // Go to mapping page and create a couple of mappings.
     $mappings = array(
-      '0' => array(
+      0 => array(
         'source' => 'name',
         'target' => 'name',
-        'unique' => 0,
-      ),
-      '1' => array(
-        'source' => 'mail',
-        'target' => 'mail',
-        'unique' => 1,
-      ),
-      '2' => array(
-        'source' => 'since',
-        'target' => 'created',
         'unique' => FALSE,
       ),
-      '3' => array(
+      1 => array(
+        'source' => 'mail',
+        'target' => 'mail',
+        'unique' => TRUE,
+      ),
+      2 => array(
+        'source' => 'since',
+        'target' => 'created',
+      ),
+      3 => array(
         'source' => 'password',
         'target' => 'pass',
-        'unique' => 0,
       ),
     );
     $this->addMappings('user_import', $mappings);
@@ -76,7 +74,7 @@ class FeedsCSVtoUsersTest extends FeedsWebTestCase {
     $this->assertText('Created 3 users');
     // 1 user has an invalid email address, all users should be assigned
     // the manager role.
-    $this->assertText('Failed importing 2 user');
+    $this->assertText('Failed importing 2 users.');
     $this->drupalGet('admin/people');
     $this->assertText('Morticia');
     $this->assertText('Fester');
@@ -86,12 +84,39 @@ class FeedsCSVtoUsersTest extends FeedsWebTestCase {
     $count = db_query("SELECT count(*) FROM {users_roles} WHERE rid = :rid", array(':rid' => $admin_rid))->fetchField();
     $this->assertEqual($count, 0, t('No imported user was assigned the administrator role.'));
 
-    // @todo Test status setting, update existing and role settings.
+    // Run import again, verify no new users.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users.csv');
+    $this->assertText('Failed importing 2 users.');
 
     // Attempt to log in as one of the imported users.
     $account = user_load_by_name('Morticia');
     $this->assertTrue($account, 'Imported user account loaded.');
     $account->pass_raw = 'mort';
+    $this->drupalLogin($account);
+
+    // Login as admin.
+    $this->drupalLogin($this->admin_user);
+
+    // Removing a mapping forces updating without needing a different file.
+    // We are also testing that if we don't map anything to the user's password
+    // that it will keep its existing one.
+    $mappings = array(
+      3 => array(
+        'source' => 'password',
+        'target' => 'pass',
+      ),
+    );
+    $this->removeMappings('user_import', $mappings);
+    $this->setSettings('user_import', 'FeedsUserProcessor', array('update_existing' => 2));
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users.csv');
+    // Assert result.
+    $this->assertText('Updated 3 users');
+    $this->assertText('Failed importing 2 user');
+
+    // Attempt to log in as one of the imported users.
+    $account = user_load_by_name('Fester');
+    $this->assertTrue($account, 'Imported user account loaded.');
+    $account->pass_raw = 'fest';
     $this->drupalLogin($account);
   }
 }

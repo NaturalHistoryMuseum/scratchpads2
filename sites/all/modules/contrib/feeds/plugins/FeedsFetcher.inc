@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Contains the FeedsFetcher and related classes.
+ */
+
+/**
  * Base class for all fetcher results.
  */
 class FeedsFetcherResult extends FeedsResult {
@@ -107,6 +112,13 @@ class FeedsFetcherResult extends FeedsResult {
  * Implements FeedsSourceInfoInterface to expose source forms to Feeds.
  */
 abstract class FeedsFetcher extends FeedsPlugin {
+
+  /**
+   * Implements FeedsPlugin::pluginType().
+   */
+  public function pluginType() {
+    return 'fetcher';
+  }
 
   /**
    * Fetch content from a source and return it.

@@ -51,19 +51,12 @@ function date_feeds_set_target($source, $entity, $target, $feed_element) {
     if (is_array($feed_element)) {
       $feed_element = $feed_element[0];
     }
-
-    // Empty string means no time - so clear the date field!
-    if (empty($feed_element) || !is_numeric($feed_element) && !date_create($feed_element)) {
-        $feed_element = new FeedsDateTimeElement(NULL, NULL);
-    }
-    elseif ($sub_field == 'end') {
+    if ($sub_field == 'end') {
       $feed_element = new FeedsDateTimeElement(NULL, $feed_element);
     }
-
     else {
       $feed_element = new FeedsDateTimeElement($feed_element, NULL);
     }
   }
   $feed_element->buildDateField($entity, $field_name);
-
 }

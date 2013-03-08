@@ -43,22 +43,21 @@ class FeedsMapperDateTestCase extends FeedsMapperTestCase {
     $this->createImporterConfiguration('Date RSS', 'daterss');
     $this->setSettings('daterss', NULL, array('content_type' => '', 'import_period' => FEEDS_SCHEDULE_NEVER));
     $this->setPlugin('daterss', 'FeedsFileFetcher');
-    $this->setPlugin('daterss', 'FeedsSyndicationParser');
-    $this->setSettings('daterss', 'FeedsNodeProcessor', array('content_type' => $typename));
+    $this->setSettings('daterss', 'FeedsNodeProcessor', array('bundle' => $typename));
     $this->addMappings('daterss', array(
-      array(
+      0 => array(
         'source' => 'title',
         'target' => 'title',
       ),
-      array(
+      1 => array(
         'source' => 'description',
         'target' => 'body',
       ),
-      array(
+      2 => array(
         'source' => 'timestamp',
         'target' => 'field_date:start',
       ),
-      array(
+      3 => array(
         'source' => 'timestamp',
         'target' => 'field_datestamp:start',
       ),
@@ -81,7 +80,7 @@ class FeedsMapperDateTestCase extends FeedsMapperTestCase {
       '01/06/2010 - 06:05',
       '01/06/2010 - 11:26',
       '01/07/2010 - 00:26',
-      );
+    );
     for ($i = 1; $i <= 6; $i++) {
       $this->drupalGet("node/$i/edit");
       $this->assertNodeFieldValue('date', $values[$i-1]);

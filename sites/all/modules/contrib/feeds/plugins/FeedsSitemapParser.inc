@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Contains FeedsSitemapParser and related classes.
+ */
+
+/**
  * A parser for the Sitemap specification http://www.sitemaps.org/protocol.php
  */
 class FeedsSitemapParser extends FeedsParser {

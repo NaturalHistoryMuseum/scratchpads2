@@ -26,27 +26,27 @@ class FeedsSitemapParserTestCase extends FeedsWebTestCase {
 
     $this->addMappings('sitemap',
       array(
-        array(
+        0 => array(
           'source' => 'changefreq',
           'target' => 'title',
           'unique' => FALSE,
         ),
-        array(
+        1 => array(
           'source' => 'priority',
           'target' => 'body',
           'unique' => FALSE,
         ),
-        array(
+        2 => array(
           'source' => 'lastmod',
           'target' => 'created',
           'unique' => FALSE,
         ),
-        array(
+        3 => array(
           'source' => 'url',
           'target' => 'url',
           'unique' => TRUE,
         ),
-         array(
+        4 => array(
           'source' => 'url',
           'target' => 'guid',
           'unique' => TRUE,

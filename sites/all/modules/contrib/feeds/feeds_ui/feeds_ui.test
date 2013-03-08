@@ -87,7 +87,7 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
       'content_type' => 'page',
       'import_period' => 3600,
     );
-    $this->drupalPost('admin/structure/feeds/test_feed/settings', $edit, 'Save');
+    $this->setSettings('test_feed', NULL, $edit);
 
     // Assert results of change.
     $this->assertText('Syndication feed');
@@ -98,11 +98,8 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
     $this->assertLink('Basic page');
 
     // Configure processor.
-    $edit = array(
-      'content_type' => 'article',
-    );
-    $this->drupalPost('admin/structure/feeds/test_feed/settings/FeedsNodeProcessor', $edit, 'Save');
-    $this->assertFieldByName('content_type', 'article');
+    $this->setSettings('test_feed', 'FeedsNodeProcessor', array('bundle' => 'article'));
+    $this->assertFieldByName('bundle', 'article');
 
     // Create a feed node.
     $edit = array(

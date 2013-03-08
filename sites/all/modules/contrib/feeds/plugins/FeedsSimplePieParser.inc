@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Contains FeedsSimplePieParser and related classes.
+ */
+
+/**
  * Adapter to present SimplePie_Enclosure as FeedsEnclosure object.
  */
 class FeedsSimplePieEnclosure extends FeedsEnclosure {
@@ -30,8 +35,8 @@ class FeedsSimplePieEnclosure extends FeedsEnclosure {
    * Ensure that the simplepie class definitions are loaded for the enclosure when unserializing.
    */
    public function __wakeup() {
-    feeds_include_library('simplepie.inc', 'simplepie');
-    $this->simplepie_enclosure = unserialize($this->_serialized_simplepie_enclosure);
+     feeds_include_simplepie();
+     $this->simplepie_enclosure = unserialize($this->_serialized_simplepie_enclosure);
   }
 
   /**
@@ -60,7 +65,11 @@ class FeedsSimplePieParser extends FeedsParser {
    * Implements FeedsParser::parse().
    */
   public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result) {
-    feeds_include_library('simplepie.inc', 'simplepie');
+    feeds_include_simplepie();
+
+    // Please be quiet SimplePie.
+    $level = error_reporting();
+    error_reporting($level ^ E_DEPRECATED ^ E_STRICT);
 
     // Initialize SimplePie.
     $parser = new SimplePie();
@@ -140,6 +149,8 @@ class FeedsSimplePieParser extends FeedsParser {
     }
     // Release parser.
     unset($parser);
+    // Set error reporting back to its previous value.
+    error_reporting($level);
     return $result;
   }
 
@@ -205,7 +216,7 @@ class FeedsSimplePieParser extends FeedsParser {
         'name' => t('Enclosures'),
         'description' => t('An array of enclosures attached to the feed item.'),
       ),
-     ) + parent::getMappingSources();
+    ) + parent::getMappingSources();
   }
 
   /**

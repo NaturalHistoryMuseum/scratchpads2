@@ -18,9 +18,10 @@ class FeedsCSVtoTermsTest extends FeedsWebTestCase {
   }
 
   /**
-   * Test node creation, refreshing/deleting feeds and feed items.
+   * Set up test.
    */
-  public function test() {
+  public function setUp() {
+    parent::setUp();
 
     // Create an importer.
     $this->createImporterConfiguration('Term import', 'term_import');
@@ -29,31 +30,33 @@ class FeedsCSVtoTermsTest extends FeedsWebTestCase {
     $this->setPlugin('term_import', 'FeedsFileFetcher');
     $this->setPlugin('term_import', 'FeedsCSVParser');
     $this->setPlugin('term_import', 'FeedsTermProcessor');
-    $mappings = array(
-      '0' => array(
-        'source' => 'name',
-        'target' => 'name',
-        'unique' => 1,
-      ),
-    );
-    $this->addMappings('term_import', $mappings);
 
-    // Use standalone form.
-    $edit = array(
-      'content_type' => '',
-    );
-    $this->drupalPost('admin/structure/feeds/term_import/settings', $edit, 'Save');
-
+    // Create vocabulary.
     $edit = array(
       'name' => 'Addams vocabulary',
       'machine_name' => 'addams',
     );
     $this->drupalPost('admin/structure/taxonomy/add', $edit, t('Save'));
 
-    $edit = array(
-      'vocabulary' => 'addams',
+    $this->setSettings('term_import', 'FeedsTermProcessor', array('bundle' => 'addams'));
+
+    // Use standalone form.
+    $this->setSettings('term_import', NULL, array('content_type' => ''));
+  }
+
+  /**
+   * Test term creation, refreshing/deleting feeds and feed items.
+   */
+  public function test() {
+
+    $mappings = array(
+      0 => array(
+        'source' => 'name',
+        'target' => 'name',
+        'unique' => 1,
+      ),
     );
-    $this->drupalPost('admin/structure/feeds/term_import/settings/FeedsTermProcessor', $edit, t('Save'));
+    $this->addMappings('term_import', $mappings);
 
     // Import and assert.
     $this->importFile('term_import', $this->absolutePath() . '/tests/feeds/users.csv');
@@ -67,6 +70,14 @@ class FeedsCSVtoTermsTest extends FeedsWebTestCase {
     // Import again.
     $this->importFile('term_import', $this->absolutePath() . '/tests/feeds/users.csv');
     $this->assertText('There are no new terms.');
+
+    // Force update.
+    $this->setSettings('term_import', 'FeedsTermProcessor', array(
+      'skip_hash_check' => TRUE,
+      'update_existing' => 2,
+    ));
+    $this->importFile('term_import', $this->absolutePath() . '/tests/feeds/users.csv');
+    $this->assertText('Updated 5 terms.');
 
     // Add a term manually, delete all terms, this term should still stand.
     $edit = array(

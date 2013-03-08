@@ -237,6 +237,7 @@ class FeedsSource extends FeedsConfigurable {
    *   method may throw the same exceptions as FeedsSource::import().
    */
   public function startImport() {
+    module_invoke_all('feeds_before_import', $this);
     $config = $this->importer->getConfig();
     if ($config['process_in_background']) {
       $this->startBackgroundJob('import');
@@ -305,18 +306,19 @@ class FeedsSource extends FeedsConfigurable {
    * Schedule background clearing tasks.
    */
   public function scheduleClear() {
-    // Schedule as soon as possible if batch is not complete.
-    if ($this->progressClearing() !== FEEDS_BATCH_COMPLETE) {
-      $job = array(
-        'type' => $this->id,
-        'id' => $this->feed_nid,
-        'period' => 0,
-        'periodic' => TRUE,
-      );
-      JobScheduler::get('feeds_source_clear')->set($job);
-    }
-    else {
+    $job = array(
+      'type' => $this->id,
+      'id' => $this->feed_nid,
+      'period' => 0,
+      'periodic' => TRUE,
+    );
+    // Remove job if batch is complete.
+    if ($this->progressClearing() === FEEDS_BATCH_COMPLETE) {
       JobScheduler::get('feeds_source_clear')->remove($job);
+    }
+    // Schedule as soon as possible if batch is not complete.
+    else {
+      JobScheduler::get('feeds_source_clear')->set($job);
     }
   }
 
@@ -363,9 +365,9 @@ class FeedsSource extends FeedsConfigurable {
     // Clean up.
     $result = $this->progressImporting();
     if ($result == FEEDS_BATCH_COMPLETE || isset($e)) {
-      module_invoke_all('feeds_after_import', $this);
       $this->imported = time();
       $this->log('import', 'Imported in !s s', array('!s' => $this->imported - $this->state[FEEDS_START]), WATCHDOG_INFO);
+      module_invoke_all('feeds_after_import', $this);
       unset($this->fetcher_result, $this->state);
     }
     $this->save();
@@ -525,6 +527,9 @@ class FeedsSource extends FeedsConfigurable {
       if (!empty($record->state)) {
         $this->state = unserialize($record->state);
       }
+      if (!is_array($this->state)) {
+        $this->state = array();
+      }
       if (!empty($record->fetcher_result)) {
         $this->fetcher_result = unserialize($record->fetcher_result);
       }
@@ -581,7 +586,8 @@ class FeedsSource extends FeedsConfigurable {
    *   An array stored for $client.
    */
   public function getConfigFor(FeedsSourceInterface $client) {
-    return $this->config[get_class($client)];
+    $class = get_class($client);
+    return isset($this->config[$class]) ? $this->config[$class] : $client->sourceDefaults();
   }
 
   /**
