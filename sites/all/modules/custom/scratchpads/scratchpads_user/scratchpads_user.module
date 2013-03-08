@@ -120,7 +120,6 @@ function scratchpads_user_form_user_register_form_alter(&$form, &$form_state){
  * loginless changes.
  */
 function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
-  global $user;
   _scratchpads_user_form_alter($form, $form_state);
   if(isset($form['#user']->stub_user)){
     $form['create_user_account']['#default_value'] = 0;
