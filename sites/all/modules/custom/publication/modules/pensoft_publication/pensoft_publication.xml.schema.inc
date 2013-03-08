@@ -200,7 +200,7 @@ function _pensoft_publication_xml_document_info_schema(){
     ),
     'journal_name' => array(
       '#attributes' => array(
-        'id' => 1
+        'id' => 1 // BDJ
       )
     )
   );
@@ -248,7 +248,10 @@ function _pensoft_publication_xml_article_metadata_schema(){
       // corresponding_author
       'rights' => array(
         'value' => array(
-          '#field' => 'processed_rights'  //"Edit & comment" or "Comment only"
+          '#field' => 'processed_rights',  //"Edit & comment" or "Comment only"
+          '#comment' => '"Edit & comment" or "Comment only"',
+          '#error_info' => 'Author rights for author %',
+          '#error_field' => 'field_user_family_name'
         )
       ),
       'submitting_author' => array(
@@ -281,7 +284,7 @@ function _pensoft_publication_xml_article_metadata_schema(){
         'value' => array(
           'title' => array(
             '#field' => 'field_publication_title'
-          )
+          ),
         )
       )
     ),
@@ -986,6 +989,44 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     )
   );
+  $taxon_name_species = array(
+    '#condition' => 'field_rank',
+    '#condition arguments' => array(
+      '=',
+      'Species'
+    ),
+    '#field' => 'field_taxonomic_name',
+    '#load' => '_publication_xml_load_term',
+    '#load arguments' => array(
+      'field:field_publication_treatment_name',
+    ),
+    '#value' => '',
+    '#comment' => 'Load argument used to override name to final name if given',
+    'fields' => array(
+      'genus' => array(
+        '#load' => '_publication_xml_load_parent_term',
+        '#load arguments' => array(
+          'Genus'
+        ),
+        '#field' => 'tid',
+        '#value' => '',
+        'value' => array(
+          '#field' => 'name',
+        )
+      ),
+      'species' => array(
+        'value' => array(
+          '#field' => 'name',
+        )
+      ),
+      'taxon_authors' => array(
+        '#condition' => 'field_authors',
+        'value' => array(
+          '#field' => 'field_authors' // from the term
+        )
+      )
+    )
+  );
   $systematics = array(
     'fields' => array(
       '#condition' => 'field_publication_systematics',
@@ -1016,7 +1057,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'rank' => array(
           'value' => array(
-            '#field' => 'field_rank' // from the term, only 'Species' or 'Genus' allowed
+            '#field' => 'field_rank',
+            '#comment' => "from the term, only 'Species' or 'Genus' allowed"
           )
         ),
         'type_of_treatment' => array(
@@ -1025,18 +1067,55 @@ function _pensoft_publication_xml_systematics_schema(){
           )
         ),
         'select_type' => array(
+          '#condition' => 'field_rank',
+          '#condition arguments' => array(
+            '=',
+            'Species'
+          ),
           'value' => array(
-            '#value' => '' // 'extant' or 'fossil' or ''. This is part of Specimen for us, not taxon ?
+            '#value' => '', 
+            '#comment' => "'extant' or 'fossil' or ''. This is part of Specimen for us, not taxon ?"
           )
         ),
         'habitat' => array(
+          '#condition' => 'field_rank',
+          '#condition arguments' => array(
+            '=',
+            'Species'
+          ),
           '#condition' => 'field_habitat',
           'value' => array(
-            '#field' => 'field_habitat' // 'terrestrial', 'marine', 'freshwater', 'N/A' or 'empty'
+            '#field' => 'field_habitat',
+            '#comment' => "'terrestrial', 'marine', 'freshwater', 'N/A' or 'empty'"
+          )
+        )
+        // parasite_of, classification_root_id, taxon_treatment_host_of, taxon_treatment_simbiotic_with, taxon_treatment_feeds_on
+      ),
+      'taxon_name_genus' => array(
+        '#condition' => 'field_rank',
+        '#condition arguments' => array(
+          '=',
+          'Genus'
+        ),
+        '#load' => '_publication_xml_load_term',
+        '#field' => 'field_taxonomic_name',
+        '#value' => '',
+        'fields' => array(
+          'genus' => array(
+            'value' => array(
+              '#field' => 'name'
+            )
+          ),
+          // year
+          'taxon_authors' => array(
+            '#condition' => 'field_authors',
+            'value' => array(
+              '#field' => 'field_authors' // from the term
+            )
           )
         )
       ),
-      'taxon_name_genus' => array(
+      'taxon_name_genus#1' => array(
         '#condition' => 'field_rank',
         '#condition arguments' => array(
           '=',
@@ -1049,7 +1128,7 @@ function _pensoft_publication_xml_systematics_schema(){
         '#field' => 'field_taxonomic_name',
         '#value' => '',
         'fields' => array(
-          'genus' => array( // Genus if we have selected a species (parent genus)
+          'genus' => array(
             'value' => array(
               '#field' => 'name'
             )
@@ -1091,7 +1170,10 @@ function _pensoft_publication_xml_systematics_schema(){
       'biology' => $biology,
       'ecology' => $ecology,
       'distribution' => $distribution,
-      'conservation' => $conservation
+      'conservation' => $conservation,
+      // taxon_discussion
+      'taxon_name_species' => $taxon_name_species,
+      // type_species_treatment, synonyms
     )
   );
   return $systematics;
