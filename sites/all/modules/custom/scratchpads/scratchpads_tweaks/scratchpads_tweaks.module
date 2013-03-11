@@ -329,6 +329,9 @@ function scratchpads_tweaks_menu_alter(&$items){
 function scratchpads_tweaks_mail_alter(&$message){
   if($message['id'] == 'install_welcome-admin'){
     $message['from'] = 'Scratchpads Team <no-reply@scratchpads.eu>';
+    $message['headers']['From'] = $message['from'];
+    $message['headers']['Sender'] = $message['from'];
+    $message['headers']['Return-Path'] = $message['from'];
   }
 }
 
