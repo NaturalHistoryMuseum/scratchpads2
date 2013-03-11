@@ -1010,6 +1010,102 @@ article.comment.odd{
  width:20px;
 }
 
+/************************ VIEWS TABLES *********************/
+
 table, tbody, tfoot, thead, tr, th, td{
  vertical-align: middle!important;
+}
+/* custom styling for views table set within views custom classes */
+.table-no-header table thead {
+    display: none;
+}
+/* table level */
+.table-no-zebra table tr:nth-child(odd),.table-no-zebra table tr.odd, .table-no-zebra table tr:nth-child(even),.table-no-zebra table tr.even {
+    background: transparent !important;
+}
+
+.table-valign-top table tr td {
+    vertical-align: top !important;
+}
+
+.table-valign-bottom table tr td {
+    vertical-align: bottom !important;
+}
+
+.table-p-sm-bottom-margin table p {
+    margin-bottom: 10px;
+}
+
+.table-no-bottom-padding table tr td {
+    padding-bottom: 0px;
+}
+/* just combine a few to make styling a bit easier */
+.table-compact-to-top table tr td {
+    vertical-align: top !important;
+    padding-bottom: 0px;
+}
+
+.table-compact-to-top table p {
+    margin-bottom: 10px;
+}
+
+/* row level */
+.row-valign-top td {
+    vertical-align: top !important;
+}
+
+.row-valign-bottom td {
+    vertical-align: bottom !important;
+}
+
+.row-p-sm-bottom-margin p {
+    margin-bottom: 10px;
+}
+
+.row-no-bottom-padding td {
+    padding-bottom: 0px;
+}
+/* just combine a few to make styling a bit easier */
+.row-compact-to-top td {
+    vertical-align: top !important;
+    padding-bottom: 0px;
+}
+
+.row-compact-to-top td p {
+    margin-bottom: 10px;
+}
+
+/* cell level */
+.table-cell-nowrap {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.table-cell-valign-top {
+    vertical-align: top !important;
+}
+
+.table-cell-valign-bottom {
+    vertical-align: bottom !important;
+}
+
+.table-cell-p-sm-bottom-margin p {
+    margin-bottom: 10px;
+}
+
+.table-cell-no-bottom-padding {
+    padding-bottom: 0px;
+}
+
+.odd td.table-cell-no-zebra {
+    background: #fff !important;
+}
+/* just combine a few to make styling a bit easier */
+.table-cell-compact-to-top {
+    vertical-align: top !important;
+    padding-bottom: 0px;
+}
+
+.table-cell-compact-to-top p {
+    margin-bottom: 10px;;
 }
