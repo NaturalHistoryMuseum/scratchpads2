@@ -297,3 +297,7 @@ form div.entityconnect-edit input:hover {
 .rs-wrapper, .rs-placeholder {
   width: 500px;
 }
+
+.diff-links li:not(.first):before{
+  content:" | "
+}
