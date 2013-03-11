@@ -1069,8 +1069,8 @@ table,tbody,tfoot,thead,tr,th,td {
 	padding-bottom: 0px;
 }
 
-.odd td.table-cell-no-zebra {
-	background: #fff !important;
+.odd td.table-cell-no-zebra, .even td.table-cell-no-zebra {
+	background: transparent !important;
 }
 /* just combine a few to make styling a bit easier */
 .table-cell-compact-to-top {
