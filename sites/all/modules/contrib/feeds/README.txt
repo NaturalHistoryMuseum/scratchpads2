@@ -49,9 +49,8 @@ Installation
   Feeds News, Feeds Import, Feeds Fast News (more info below).
 - Make sure cron is correctly configured http://drupal.org/cron
 - Go to import/ to import data.
-- To use SimplePie parser, download either the compiled or minified SimplePie 
-  and place simplepie_[version].compiled.php into feeds/libraries as 
-  simplepie.compiled.php. Recommended version: 1.3.
+- To use SimplePie parser, download SimplePie and place simplepie.inc into
+  feeds/libraries. Recommended version: 1.2.
   http://simplepie.org/
 
 Feature modules
@@ -191,8 +190,6 @@ Default:     50
 Name:        http_request_timeout
 Default:     15
 Description: Timeout in seconds to wait for an HTTP get request to finish.
-Note:        This setting could be overridden per importer in admin UI :
-             admin/structure/feeds/<your_importer>/settings/<your_fetcher> page.
 
 Name:        feeds_never_use_curl
 Default:     FALSE

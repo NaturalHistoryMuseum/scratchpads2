@@ -32,7 +32,7 @@ function feeds_import_feeds_importer_default() {
     'processor' => array(
       'plugin_key' => 'FeedsNodeProcessor',
       'config' => array(
-        'bundle' => 'article',
+        'content_type' => 'article',
         'update_existing' => 1,
         'expire' => '-1',
         'mappings' => array(

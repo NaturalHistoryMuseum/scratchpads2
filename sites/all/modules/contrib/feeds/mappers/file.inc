@@ -49,7 +49,7 @@ function file_feeds_set_target($source, $entity, $target, $value) {
   foreach ($value as $k => $v) {
     if (!($v instanceof FeedsEnclosure)) {
       if (is_string($v)) {
-        $value[$k] = new FeedsEnclosure($v, file_get_mimetype($v));
+        $value[$k] = new FeedsEnclosure($v, 'application/octet-stream');
       }
       else {
         unset($value[$k]);
@@ -60,15 +60,14 @@ function file_feeds_set_target($source, $entity, $target, $value) {
     return;
   }
 
-  $entity_type = $source->importer->processor->entityType();
-
   // Determine file destination.
   // @todo This needs review and debugging.
-  $instance_info = field_info_instance($entity_type, $target, $source->importer->processor->bundle());
+  list($entity_id, $vid, $bundle_name) = entity_extract_ids($entity->feeds_item->entity_type, $entity);
+  $instance_info = field_info_instance($entity->feeds_item->entity_type, $target, $bundle_name);
   $info = field_info_field($target);
   $data = array();
   if (!empty($entity->uid)) {
-    $data[$entity_type] = $entity;
+    $data[$entity->feeds_item->entity_type] = $entity;
   }
   $destination = file_field_widget_uri($info, $instance_info, $data);
 
@@ -76,13 +75,7 @@ function file_feeds_set_target($source, $entity, $target, $value) {
   $i = 0;
   $field = isset($entity->$target) ? $entity->$target : array();
   foreach ($value as $v) {
-    try {
-      $file = $v->getFile($destination);
-    }
-    catch (Exception $e) {
-      watchdog_exception('Feeds', $e, nl2br(check_plain($e)));
-    }
-    if ($file) {
+    if ($file = $v->getFile($destination)) {
       $field['und'][$i] = (array)$file;
       $field['und'][$i]['display'] = 1; // @todo: Figure out how to properly populate this field.
       if ($info['cardinality'] == 1) {

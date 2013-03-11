@@ -1,11 +1,6 @@
 <?php
 
 /**
- * @file
- * Tests for the common syndication parser.
- */
-
-/**
  * Test cases for common syndication parser library.
  *
  * @todo Break out into Drupal independent test framework.

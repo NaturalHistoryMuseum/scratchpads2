@@ -1,11 +1,6 @@
 <?php
 
 /**
- * @file
- * Contains FeedsSyndicationParser and related classes.
- */
-
-/**
  * Class definition for Common Syndication Parser.
  *
  * Parses RSS and Atom feeds.
@@ -76,6 +71,6 @@ class FeedsSyndicationParser extends FeedsParser {
         'name' => t('Geo Locations'),
         'description' => t('An array of geographic locations with a name and a position.'),
       ),
-    ) + parent::getMappingSources();
+     ) + parent::getMappingSources();
   }
 }

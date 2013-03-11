@@ -40,11 +40,7 @@ class FeedsUserProcessor extends FeedsProcessor {
    * Loads an existing user.
    */
   protected function entityLoad(FeedsSource $source, $uid) {
-    $user = parent::entityLoad($source, $uid);
-
-    // Copy the password so that we can compare it again at save.
-    $user->feeds_original_pass = $user->pass;
-    return $user;
+    return user_load($uid);
   }
 
   /**
@@ -63,15 +59,7 @@ class FeedsUserProcessor extends FeedsProcessor {
     if ($this->config['defuse_mail']) {
       $account->mail = $account->mail . '_test';
     }
-
-    $edit = (array) $account;
-
-    // Remove pass from $edit if the password is unchanged.
-    if (isset($account->feeds_original_pass) && $account->pass == $account->feeds_original_pass) {
-      unset($edit['pass']);
-    }
-
-    user_save($account, $edit);
+    user_save($account, (array) $account);
     if ($account->uid && !empty($account->openid)) {
       $authmap = array(
         'uid' => $account->uid,
@@ -88,7 +76,9 @@ class FeedsUserProcessor extends FeedsProcessor {
    * Delete multiple user accounts.
    */
   protected function entityDeleteMultiple($uids) {
-    user_delete_multiple($uids);
+    foreach ($uids as $uid) {
+      user_delete($uid);
+    }
   }
 
   /**
@@ -126,6 +116,13 @@ class FeedsUserProcessor extends FeedsProcessor {
         '#options' => $roles,
       );
     }
+    // @todo Implement true updating.
+    $form['update_existing'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Replace existing users'),
+      '#description' => t('If an existing user is found for an imported user, replace it. Existing users will be determined using mappings that are a "unique target".'),
+      '#default_value' => $this->config['update_existing'],
+    );
     $form['defuse_mail'] = array(
       '#type' => 'checkbox',
       '#title' => t('Defuse e-mail addresses'),
@@ -195,9 +192,7 @@ class FeedsUserProcessor extends FeedsProcessor {
 
     // Let other modules expose mapping targets.
     self::loadMappers();
-    $entity_type = $this->entityType();
-    $bundle = $this->bundle();
-    drupal_alter('feeds_processor_targets', $targets, $entity_type, $bundle);
+    feeds_alter('feeds_processor_targets', $targets, 'user', 'user');
 
     return $targets;
   }

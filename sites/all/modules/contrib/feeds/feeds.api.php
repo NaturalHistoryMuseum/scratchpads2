@@ -104,24 +104,12 @@ function hook_feeds_after_parse(FeedsSource $source, FeedsParserResult $result) 
  *  FeedsSource object that describes the source that is being imported.
  * @param $entity
  *   The entity object.
- * @param $item
- *   The parser result for this entity.
  */
-function hook_feeds_presave(FeedsSource $source, $entity, $item) {
+function hook_feeds_presave(FeedsSource $source, $entity) {
   if ($entity->feeds_item->entity_type == 'node') {
     // Skip saving this entity.
     $entity->feeds_item->skip = TRUE;
   }
-}
-
-/**
- * Invoked before a feed source import starts.
- *
- * @param $source
- *  FeedsSource object that describes the source that is going to be imported.
- */
-function hook_feeds_before_import(FeedsSource $source) {
-  // See feeds_rules module's implementation for an example.
 }
 
 /**
@@ -185,10 +173,10 @@ function hook_feeds_parser_sources_alter(&$sources, $content_type) {
  * @return
  *   The value to be extracted from the source.
  *
- * @see hook_feeds_parser_sources_alter()
- * @see locale_feeds_get_source()
+ * @see hook_feeds_parser_sources_alter().
+ * @see locale_feeds_get_source().
  */
-function my_source_get_source(FeedsSource $source, FeedsParserResult $result, $key) {
+function my_source_get_source($source, FeedsParserResult $result, $key) {
   $item = $result->currentItem();
   return my_source_parse_images($item['description']);
 }
@@ -217,11 +205,6 @@ function hook_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
       'name' => t('My custom node field'),
       'description' => t('Description of what my custom node field does.'),
       'callback' => 'my_module_set_target',
-
-      // Specify both summary_callback and form_callback to add a per mapping
-      // configuration form.
-      'summary_callback' => 'my_module_summary_callback',
-      'form_callback' => 'my_module_form_callback',
     );
     $targets['my_node_field2'] = array(
       'name' => t('My Second custom node field'),
@@ -243,67 +226,14 @@ function hook_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
  *   A string identifying the target on the node.
  * @param $value
  *   The value to populate the target with.
- * @param $mapping
- *  Associative array of the mapping settings from the per mapping
- *  configuration form.
+ *
  */
-function my_module_set_target($source, $entity, $target, $value, $mapping) {
+function my_module_set_target($source, $entity, $target, $value) {
   $entity->{$target}[$entity->language][0]['value'] = $value;
   if (isset($source->importer->processor->config['input_format'])) {
-    $entity->{$target}[$entity->language][0]['format'] =
+    $entity->{$target}[$entity->language][0]['format'] = 
       $source->importer->processor->config['input_format'];
   }
-}
-
-/**
- * Example of the summary_callback specified in
- * hook_feeds_processor_targets_alter().
- *
- * @param $mapping
- *   Associative array of the mapping settings.
- * @param $target
- *   Array of target settings, as defined by the processor or
- *   hook_feeds_processor_targets_alter().
- * @param $form
- *   The whole mapping form.
- * @param $form_state
- *   The form state of the mapping form.
- *
- * @return
- *   Returns, as a string that may contain HTML, the summary to display while
- *   the full form isn't visible.
- *   If the return value is empty, no summary and no option to view the form
- *   will be displayed.
- */
-function my_module_summary_callback($mapping, $target, $form, $form_state) {
-  if (empty($mapping['my_setting'])) {
-    return t('My setting <strong>not</strong> active');
-  }
-  else {
-    return t('My setting <strong>active</strong>');
-  }
-}
-
-/**
- * Example of the form_callback specified in
- * hook_feeds_processor_targets_alter().
- *
- * The arguments are the same that my_module_summary_callback() gets.
- *
- * @return
- *   The per mapping configuration form. Once the form is saved, $mapping will
- *   be populated with the form values.
- *
- * @see my_module_summary_callback()
- */
-function my_module_form_callback($mapping, $target, $form, $form_state) {
-  return array(
-    'my_setting' => array(
-      '#type' => 'checkbox',
-      '#title' => t('My setting checkbox'),
-      '#default_value' => !empty($mapping['my_setting']),
-    ),
-  );
 }
 
 /**

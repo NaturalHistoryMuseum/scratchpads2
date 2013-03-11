@@ -25,7 +25,10 @@ class FeedsFileFetcherTestCase extends FeedsWebTestCase {
     // Set up an importer.
     $this->createImporterConfiguration('Node import', 'node');
     // Set and configure plugins and mappings.
-    $this->setSettings('node', NULL, array('content_type' => ''));
+    $edit = array(
+      'content_type' => '',
+    );
+    $this->drupalPost('admin/structure/feeds/node/settings', $edit, 'Save');
     $this->setPlugin('node', 'FeedsFileFetcher');
     $this->setPlugin('node', 'FeedsCSVParser');
     $mappings = array(

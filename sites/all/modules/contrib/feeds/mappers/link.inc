@@ -8,7 +8,7 @@
 /**
  * Implements hook_feeds_processor_targets_alter().
  *
- * @see FeedsProcessor::getMappingTargets()
+ * @see FeedsNodeProcessor::getMappingTargets().
  */
 function link_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
   foreach (field_info_instances($entity_type, $bundle_name) as $name => $instance) {
@@ -16,18 +16,16 @@ function link_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
     if ($info['type'] == 'link_field') {
       if (array_key_exists('url', $info['columns'])) {
         $targets[$name . ':url'] = array(
-          'name' => t('@name: URL', array('@name' => $instance['label'])),
+          'name' => t('@name URL', array('@name' => $instance['label'])),
           'callback' => 'link_feeds_set_target',
-          'description' => t('The @label field of the entity.', array('@label' => $instance['label'])),
-          'real_target' => $name,
+          'description' => t('The @label field of the node.', array('@label' => $instance['label'])),
         );
       }
       if (array_key_exists('title', $info['columns'])) {
         $targets[$name . ':title'] = array(
-          'name' => t('@name: Title', array('@name' => $instance['label'])),
+          'name' => t('@name Title', array('@name' => $instance['label'])),
           'callback' => 'link_feeds_set_target',
-          'description' => t('The @label field of the entity.', array('@label' => $instance['label'])),
-          'real_target' => $name,
+          'description' => t('The @label field of the node.', array('@label' => $instance['label'])),
         );
       }
     }
@@ -52,25 +50,28 @@ function link_feeds_set_target($source, $entity, $target, $value) {
   }
 
   // Iterate over all values.
-  list($field_name, $column) = explode(':', $target);
-  $info = field_info_field($field_name);
-
-  $field = isset($entity->$field_name) ? $entity->$field_name : array();
-  $delta = 0;
-
+  $i = 0;
+  $info = field_info_field($target);
+  list($field_name, $sub_field) = explode(':', $target);
   foreach ($value as $v) {
-    if ($info['cardinality'] == $delta) {
+    if (!is_array($v) && !is_object($v)) {
+      if (strstr($target, 'url')) {
+        if (isset($entity->{$field_name}['und'][$i]['title'])) {
+          $field['und'][$i]['title'] = $entity->{$field_name}['und'][$i]['title'];
+        }
+        $field['und'][$i]['url'] = $v;
+      }
+      elseif (strstr($target, 'title')) {
+        if (isset($entity->{$field_name}['und'][$i]['url'])) {
+          $field['und'][$i]['url'] = $entity->{$field_name}['und'][$i]['url'];
+        }
+        $field['und'][$i]['title'] = $v;
+      }
+    }
+    if ($info['cardinality'] == 1) {
       break;
     }
-
-    if (is_object($v) && ($v instanceof FeedsElement)) {
-      $v = $v->getValue();
-    }
-
-    if (is_scalar($v)) {
-      $field['und'][$delta][$column] = $v;
-      $delta++;
-    }
+    $i++;
   }
-  $entity->$field_name = $field;
+  $entity->{$field_name} = $field;
 }

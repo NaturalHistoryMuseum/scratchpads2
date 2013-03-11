@@ -129,8 +129,6 @@ class FeedsFileFetcher extends FeedsFetcher {
    * Override parent::sourceFormValidate().
    */
   public function sourceFormValidate(&$values) {
-    $values['source'] = trim($values['source']);
-
     $feed_dir = 'public://feeds';
     file_prepare_directory($feed_dir, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
 

@@ -59,41 +59,41 @@ class FeedsMapperLinkTestCase extends FeedsMapperTestCase {
 
     // Create importer configuration.
     $this->createImporterConfiguration(); //Create a default importer configuration
-    $this->setSettings('syndication', 'FeedsNodeProcessor', array('bundle' => $typename)); //Processor settings
+    $this->setSettings('syndication', 'FeedsNodeProcessor', array('content_type' => $typename)); //Processor settings
     $this->addMappings('syndication', array(
-      0 => array(
+      array(
         'source' => 'title',
         'target' => 'title'
       ),
-      1 => array(
+      array(
         'source' => 'timestamp',
         'target' => 'created'
       ),
-      2 => array(
+      array(
         'source' => 'description',
         'target' => 'body'
       ),
-      3 => array(
+      array(
         'source' => 'url',
         'target' => 'field_alpha:url'
       ),
-      4 => array(
+      array(
         'source' => 'title',
         'target' => 'field_alpha:title'
       ),
-      5 => array(
+      array(
         'source' => 'url',
         'target' => 'field_beta:url'
       ),
-      6 => array(
+      array(
         'source' => 'url',
         'target' => 'field_gamma:url'
       ),
-      7 => array(
+      array(
         'source' => 'title',
         'target' => 'field_gamma:title'
       ),
-      8 => array(
+      array(
         'source' => 'url',
         'target' => 'field_omega:url'
       ),

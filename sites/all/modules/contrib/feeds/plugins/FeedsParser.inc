@@ -1,11 +1,6 @@
 <?php
 
 /**
- * @file
- * Contains FeedsParser and related classes.
- */
-
-/**
  * A result of a parsing stage.
  */
 class FeedsParserResult extends FeedsResult {
@@ -54,13 +49,6 @@ class FeedsParserResult extends FeedsResult {
 abstract class FeedsParser extends FeedsPlugin {
 
   /**
-   * Implements FeedsPlugin::pluginType().
-   */
-  public function pluginType() {
-    return 'parser';
-  }
-
-  /**
    * Parse content fetched by fetcher.
    *
    * Extending classes must implement this method.
@@ -103,18 +91,13 @@ abstract class FeedsParser extends FeedsPlugin {
   public function getMappingSources() {
     self::loadMappers();
     $sources = array();
-    $content_type = feeds_importer($this->id)->config['content_type'];
-    drupal_alter('feeds_parser_sources', $sources, $content_type);
+    feeds_alter('feeds_parser_sources', $sources, feeds_importer($this->id)->config['content_type']);
     if (!feeds_importer($this->id)->config['content_type']) {
       return $sources;
     }
     $sources['parent:uid'] = array(
       'name' => t('Feed node: User ID'),
       'description' => t('The feed node author uid.'),
-    );
-    $sources['parent:nid'] = array(
-      'name' => t('Feed node: Node ID'),
-      'description' => t('The feed node nid.'),
     );
     return $sources;
   }
@@ -138,21 +121,14 @@ abstract class FeedsParser extends FeedsPlugin {
    *   The source element from $item identified by $element_key.
    *
    * @see FeedsProcessor::map()
-   * @see FeedsCSVParser::getSourceElement()
+   * @see FeedsCSVParser::getSourceElement().
    */
   public function getSourceElement(FeedsSource $source, FeedsParserResult $result, $element_key) {
-
-    switch ($element_key) {
-
-      case 'parent:uid':
-        if ($source->feed_nid && $node = node_load($source->feed_nid)) {
-          return $node->uid;
-        }
-        break;
-      case 'parent:nid':
-        return $source->feed_nid;
+    if ($element_key == 'parent:uid' &&
+        $source->feed_nid &&
+        ($node = node_load($source->feed_nid))) {
+      return $node->uid;
     }
-
     $item = $result->currentItem();
     return isset($item[$element_key]) ? $item[$element_key] : '';
   }
@@ -373,15 +349,7 @@ class FeedsEnclosure extends FeedsElement {
           require_once drupal_get_path('module', 'transliteration') . '/transliteration.inc';
           $filename = transliteration_clean_filename($filename);
         }
-        if (file_uri_target($destination)) {
-          $destination = trim($destination, '/') . '/';
-        }
-        try {
-          $file = file_save_data($this->getContent(), $destination . $filename);
-        }
-        catch (Exception $e) {
-          watchdog_exception('Feeds', $e, nl2br(check_plain($e)));
-        }
+        $file = file_save_data($this->getContent(), "$destination/$filename");
       }
 
       // We couldn't make sense of this enclosure, throw an exception.
@@ -552,7 +520,7 @@ class FeedsDateTimeElement extends FeedsElement {
  * This class is a Drupal independent extension of the >= PHP 5.2 DateTime
  * class.
  *
- * @see FeedsDateTimeElement
+ * @see FeedsDateTimeElement class
  */
 class FeedsDateTime extends DateTime {
   public $granularity = array();
@@ -753,7 +721,7 @@ function feeds_to_unixtime($date, $default_value) {
   if (is_numeric($date)) {
     return $date;
   }
-  elseif (is_string($date) && !empty($date)) {
+  elseif (is_string($date)) {
     $date = new FeedsDateTimeElement($date);
     return $date->getValue();
   }
