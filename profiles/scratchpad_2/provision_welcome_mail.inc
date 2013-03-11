@@ -66,7 +66,6 @@ if(function_exists('drush_get_option')){
     'update'
   ), FALSE);
   $mail = array();
-  $mail['from'] = 'Scratchpad Team <scratchpad@nhm.ac.uk>';
   $mail['subject'] = st('Your new site !site has been created.');
   $mail['body'] = st("Dear !username,
 

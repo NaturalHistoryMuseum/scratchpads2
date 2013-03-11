@@ -324,6 +324,18 @@ function scratchpads_tweaks_menu_alter(&$items){
 }
 
 /**
+ * Implements hook_mail_alter().
+ */
+function scratchpads_tweaks_mail_alter(&$message){
+  if($message['id'] == 'install_welcome-admin'){
+    $message['from'] = 'Scratchpads Team <no-reply@scratchpads.eu>';
+    $message['headers']['From'] = $message['from'];
+    $message['headers']['Sender'] = $message['from'];
+    $message['headers']['Return-Path'] = $message['from'];
+  }
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  */
 function scratchpads_tweaks_form_user_profile_form_alter(&$form, &$form_state, $form_id){
