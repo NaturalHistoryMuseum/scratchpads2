@@ -77,7 +77,6 @@ function feeds_term_reference_feeds_set_target(FeedsSource $source, $entity, $ta
           ':type' => 'taxonomy_term',
           ':guid' => $v
         ))->fetchField();
-			dpm('id='.$id);
         break;
       case 'tid':
         $error_label = 'Term ID';
