@@ -194,6 +194,7 @@ function tcsdc_batch_downloader($urls, $total = 1000000, $vid, &$context){
  * Import the terms
  */
 function tcsdc_import_terms($vid, &$context){
+  ini_set('max_execution_time', 240);
   $batch = batch_get();
   if(!isset($context['sandbox']['progress'])){
     $context['sandbox']['progress'] = 0;
