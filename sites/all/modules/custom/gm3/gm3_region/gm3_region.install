@@ -38,6 +38,8 @@ function gm3_region_install(){
       'cid' => $line['cid']
     ))->fields($line)->execute();
   }
+  // Ensure that Memcache isn't used for the cache_gm3_polygon bin
+  gm3_region_update_7007();
 }
 
 /**
