@@ -286,3 +286,10 @@ function gm3_region_update_7006(){
     ))->fields($line)->execute();
   }
 }
+
+/**
+ * Force the use of the database cache for cache_gm3_polygon
+ */
+function gm3_region_update_7007(){
+  variable_set('cache_class_cache_gm3_polygon', 'DrupalDatabaseCache');
+}

@@ -98,7 +98,7 @@ function _scratchpads_tweaks_cron(){
     $results = db_query('SHOW TABLES');
     foreach($results as $row){
       foreach($row as $table_name){
-        if(substr($table_name, 0, 5) == 'cache'){
+        if(substr($table_name, 0, 5) == 'cache' && $table_name != 'cache_gm3_polygon'){
           db_delete($table_name)->execute();
         }
       }
