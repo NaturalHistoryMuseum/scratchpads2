@@ -153,8 +153,12 @@ function tcsdc_batch_downloader($urls, $total = 1000000, $vid, &$context){
   $batch = &batch_get();
   $url = array_shift($context['sandbox']['urls']);
   tcsdc_variable('tcsdc_urls', $context['sandbox']['urls']);
-  tcsdc_variable('tcsdc_vernaculars', $context['sandbox']['vernacular_urls']);
-  tcsdc_variable('tcsdc_synonyms', $context['sandbox']['synonym_urls']);
+  if(isset($context['sandbox']['vernacular_urls'])){
+    tcsdc_variable('tcsdc_vernaculars', $context['sandbox']['vernacular_urls']);
+  }
+  if(isset($context['sandbox']['synonym_urls'])){
+    tcsdc_variable('tcsdc_synonyms', $context['sandbox']['synonym_urls']);
+  }
   tcsdc_batch_downloader_helper($url, $vid);
   $context['sandbox']['urls'] = tcsdc_variable('tcsdc_urls');
   $context['sandbox']['vernacular_urls'] = tcsdc_variable('tcsdc_vernaculars');
