@@ -100,7 +100,7 @@ function scratchpads_species_form_taxonomy_form_vocabulary_alter(&$form, &$form_
     '#description' => t('Check this box to include data from synonyms on valid taxon name pages.'),
     '#type' => 'checkbox',
     '#weight' => 1,
-    '#default_value' => $form['#vocabulary']->show_synonym_data ? 1 : 0,
+    '#default_value' => empty($form['#vocabulary']->show_synonym_data) ? 0 : 1,
     '#states' => array(
       'invisible' => array(
         ':input[name="biological_classification"]' => array(
