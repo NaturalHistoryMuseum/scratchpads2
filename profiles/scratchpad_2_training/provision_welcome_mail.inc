@@ -18,7 +18,6 @@ $msg = st('Training site !url ready', array(
   ))
 ));
 $mail = array(
-  'from' => 'Scratchpad Team <no-reply@scratchpads.eu>',
   'subject' => $msg,
   'body' => "$msg
 
