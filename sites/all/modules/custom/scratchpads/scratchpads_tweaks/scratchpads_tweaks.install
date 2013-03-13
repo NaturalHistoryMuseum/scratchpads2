@@ -309,7 +309,7 @@ function scratchpads_tweaks_install(){
     }
   }
   // Set the jQuery settings
-  scratchpads_tweaks_update_7042();
+  scratchpads_tweaks_update_7043();
 }
 
 /**
@@ -1037,9 +1037,16 @@ function scratchpads_tweaks_update_7041(){
 }
 
 /**
- * Set the jQuery update settings.
+ * Set the apachesolr cron limit.
  */
 function scratchpads_tweaks_update_7042(){
+  variable_set('apachesolr_cron_limit', 50);
+}
+
+/**
+ * Set the jQuery update settings.
+ */
+function scratchpads_tweaks_update_7043(){
   variable_set('jquery_update_jquery_version', '1.8');
   variable_set('jquery_update_jquery_cdn', 'microsoft');
 }
