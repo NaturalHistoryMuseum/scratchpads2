@@ -197,10 +197,11 @@ function tcsdc_import_terms($vid, &$context){
   $batch = batch_get();
   if(!isset($context['sandbox']['progress'])){
     $context['sandbox']['progress'] = 0;
-    $context['sandbox']['max'] = array_pop(db_query('SELECT COUNT(*) FROM {tcsdc_data} WHERE vid = :vid AND bid = :bid', array(
+    $to_pop = db_query('SELECT COUNT(*) FROM {tcsdc_data} WHERE vid = :vid AND bid = :bid', array(
       ':vid' => $vid,
       ':bid' => $batch['id']
-    ))->fetchAssoc());
+    ))->fetchAssoc();
+    $context['sandbox']['max'] = array_pop($to_pop);
     $context['sandbox']['start_time'] = time();
     $_SESSION['tcsdc_import_vid'] = $vid;
   }
@@ -272,10 +273,11 @@ function tcsdc_import_terms($vid, &$context){
     db_delete('tcsdc_data')->condition('bid', $batch['id'])->condition('id', $id)->execute();
   }
   // Set the progress.
-  $terms_left = array_pop(db_query('SELECT COUNT(*) FROM {tcsdc_data} WHERE vid = :vid AND bid = :bid', array(
+  $to_pop = db_query('SELECT COUNT(*) FROM {tcsdc_data} WHERE vid = :vid AND bid = :bid', array(
     ':vid' => $vid,
     ':bid' => $batch['id']
-  ))->fetchAssoc());
+  ))->fetchAssoc();
+  $terms_left = array_pop($to_pop);
   if($terms_left){
     $context['sandbox']['progress'] = ($context['sandbox']['max'] - $terms_left) / $context['sandbox']['max'];
     $context['finished'] = $context['sandbox']['progress'];
