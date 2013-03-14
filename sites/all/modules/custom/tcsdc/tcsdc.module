@@ -279,6 +279,14 @@ function tcsdc_import_terms($vid, &$context){
     ':bid' => $batch['id']
   ))->fetchAssoc();
   $terms_left = array_pop($to_pop);
+  $time_taken_so_far = time() - $context['sandbox']['start_time'];
+  $approx_time_remaining = $context['sandbox']['progress'] == 0 ? 'Too soon to guess' : format_interval($time_taken_so_far * ((1 - $context['sandbox']['progress']) / $context['sandbox']['progress']));
+  $context['message'] = t('Imported %numnames names of approximately %totalnames', array(
+    '%numnames' => $context['sandbox']['max'] - $terms_left,
+    '%totalnames' => $context['sandbox']['max']
+  )) . '<br/>' . t('Approximate time remaining: %time_remaining', array(
+    '%time_remaining' => $approx_time_remaining
+  ));
   if($terms_left){
     $context['sandbox']['progress'] = ($context['sandbox']['max'] - $terms_left) / $context['sandbox']['max'];
     $context['finished'] = $context['sandbox']['progress'];
@@ -311,6 +319,9 @@ function tcsdc_finished_batch(&$context){
   if($_SESSION['tcsdc_import_vid']){
     $tree = taxonomy_get_tree($_SESSION['tcsdc_import_vid'], 0, 1);
     $term = array_shift($tree);
+    // The follownig four lines cause an issue with ZendStudio that stops it
+    // from recognising functions in the file (possibly it's hittin a regex or
+    // something equally silly).
     $vocabulary = taxonomy_vocabulary_load($_SESSION['tcsdc_import_vid']);
     drupal_goto('taxonomy/term/' . $term->tid, array(
       'fragment' => 'overlay=admin/structure/taxonomy/' . $vocabulary->machine_name
