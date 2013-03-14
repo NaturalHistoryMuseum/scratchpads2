@@ -94,12 +94,14 @@ function _scratchpads_tweaks_cron(){
   // If we are using memcache, we truncate the cache tables to save space and to
   // also reduce database backup times.
   global $conf;
-  if($conf['cache_default_class'] == 'MemCacheDrupal'){
-    $results = db_query('SHOW TABLES');
-    foreach($results as $row){
-      foreach($row as $table_name){
-        if(substr($table_name, 0, 5) == 'cache'){
-          db_delete($table_name)->execute();
+  if(false){
+    if($conf['cache_default_class'] == 'MemCacheDrupal'){
+      $results = db_query('SHOW TABLES');
+      foreach($results as $row){
+        foreach($row as $table_name){
+          if(substr($table_name, 0, 5) == 'cache' && variable_get('cache_class_' . $table_name, FALSE) != 'DrupalDatabaseCache'){
+            db_delete($table_name)->execute();
+          }
         }
       }
     }

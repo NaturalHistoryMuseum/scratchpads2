@@ -1033,3 +1033,10 @@ function scratchpads_tweaks_update_7041(){
   module_load_include('install', 'ckeditor');
   ckeditor_update_7005();
 }
+
+/**
+ * Set the apachesolr cron limit.
+ */
+function scratchpads_tweaks_update_7042(){
+  variable_set('apachesolr_cron_limit', 50);
+}

@@ -153,8 +153,12 @@ function tcsdc_batch_downloader($urls, $total = 1000000, $vid, &$context){
   $batch = &batch_get();
   $url = array_shift($context['sandbox']['urls']);
   tcsdc_variable('tcsdc_urls', $context['sandbox']['urls']);
-  tcsdc_variable('tcsdc_vernaculars', $context['sandbox']['vernacular_urls']);
-  tcsdc_variable('tcsdc_synonyms', $context['sandbox']['synonym_urls']);
+  if(isset($context['sandbox']['vernacular_urls'])){
+    tcsdc_variable('tcsdc_vernaculars', $context['sandbox']['vernacular_urls']);
+  }
+  if(isset($context['sandbox']['synonym_urls'])){
+    tcsdc_variable('tcsdc_synonyms', $context['sandbox']['synonym_urls']);
+  }
   tcsdc_batch_downloader_helper($url, $vid);
   $context['sandbox']['urls'] = tcsdc_variable('tcsdc_urls');
   $context['sandbox']['vernacular_urls'] = tcsdc_variable('tcsdc_vernaculars');
@@ -190,13 +194,15 @@ function tcsdc_batch_downloader($urls, $total = 1000000, $vid, &$context){
  * Import the terms
  */
 function tcsdc_import_terms($vid, &$context){
+  ini_set('max_execution_time', 240);
   $batch = batch_get();
   if(!isset($context['sandbox']['progress'])){
     $context['sandbox']['progress'] = 0;
-    $context['sandbox']['max'] = array_pop(db_query('SELECT COUNT(*) FROM {tcsdc_data} WHERE vid = :vid AND bid = :bid', array(
+    $to_pop = db_query('SELECT COUNT(*) FROM {tcsdc_data} WHERE vid = :vid AND bid = :bid', array(
       ':vid' => $vid,
       ':bid' => $batch['id']
-    ))->fetchAssoc());
+    ))->fetchAssoc();
+    $context['sandbox']['max'] = array_pop($to_pop);
     $context['sandbox']['start_time'] = time();
     $_SESSION['tcsdc_import_vid'] = $vid;
   }
@@ -268,10 +274,11 @@ function tcsdc_import_terms($vid, &$context){
     db_delete('tcsdc_data')->condition('bid', $batch['id'])->condition('id', $id)->execute();
   }
   // Set the progress.
-  $terms_left = array_pop(db_query('SELECT COUNT(*) FROM {tcsdc_data} WHERE vid = :vid AND bid = :bid', array(
+  $to_pop = db_query('SELECT COUNT(*) FROM {tcsdc_data} WHERE vid = :vid AND bid = :bid', array(
     ':vid' => $vid,
     ':bid' => $batch['id']
-  ))->fetchAssoc());
+  ))->fetchAssoc();
+  $terms_left = array_pop($to_pop);
   if($terms_left){
     $context['sandbox']['progress'] = ($context['sandbox']['max'] - $terms_left) / $context['sandbox']['max'];
     $context['finished'] = $context['sandbox']['progress'];
