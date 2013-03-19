@@ -22,6 +22,11 @@ function scratchpads_messages_schema(){
           'not null' => TRUE,
           'default' => 0
         ),
+        'expire' => array(
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0
+        ),
         'type' => array(
           'type' => 'int',
           'not null' => TRUE,
