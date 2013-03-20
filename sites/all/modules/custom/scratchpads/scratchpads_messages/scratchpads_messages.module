@@ -1,0 +1,263 @@
+<?php
+// Define two simple constants for inserting/retrieving data from the database.
+define('SCRATCHPADS_MESSAGES_ALERT', 1);
+define('SCRATCHPADS_MESSAGES_TIP', 2);
+
+/**
+ * Implements hook_user_login().
+ */
+function scratchpads_messages_user_login(&$edit, $account){
+  // Check whether or not the user wants to see tips.  Tips are shown ONLY on
+  // login and then disappear.
+  global $user;
+  if(empty($user->scratchpads_messages_hide_tips)){
+    $_SESSION['scratchpads_messages_tips'] = TRUE;
+  }
+  // Always show the alert messages.  In fact, alerts are displayed until they
+  // are dismissed.
+  $_SESSION['scratchpads_messages_alerts'] = TRUE;
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function scratchpads_messages_theme_registry_alter(&$theme_registry){
+  $theme_registry['toolbar']['path'] = drupal_get_path('module', 'scratchpads_messages');
+  $theme_registry['toolbar']['theme path'] = $theme_registry['toolbar']['path'];
+}
+
+/**
+ * Implements hook_user_load().
+ */
+function scratchpads_messages_user_load($users){
+  $results = db_select('scratchpads_messages_user_settings', 's')->fields('s')->condition('uid', array_keys($users))->execute();
+  foreach($results as $record){
+    foreach(unserialize($record->setting) as $key => $value){
+      $users[$record->uid]->{$key} = $value;
+    }
+  }
+}
+
+/**
+ * Implements hook_user_delete().
+ */
+function scratchpads_user_delete($account){
+  db_delete('scratchpads_messages_user_settings')->condition('uid', $account->uid)->execute();
+}
+
+/**
+ * Implements hook_user_insert().
+ */
+function scratchpads_messages_user_insert(&$edit, $account, $category){
+  db_merge('scratchpads_messages_user_settings')->key(array(
+    'uid' => $account->uid
+  ))->fields(array(
+    'uid' => $account->uid,
+    'setting' => serialize(array(
+      'scratchpads_messages_hide_tips' => $edit['scratchpads_messages_hide_tips']
+    ))
+  ))->execute();
+}
+
+/**
+ * Implements hook_user_update().
+ */
+function scratchpads_messages_user_update(&$edit, $account, $category){
+  return scratchpads_messages_user_insert($edit, $account, $category);
+}
+
+/**
+ * Implement hook_form_FORM_ID_alter().
+ * 
+ * The "Edit" user form.  This needs to be able to handle both login and 
+ * loginless changes.
+ */
+function scratchpads_messages_form_user_profile_form_alter(&$form, &$form_state){
+  if($form['#user']->uid && empty($form['#user']->stub_user)){
+    $form['messages'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Scratchpads messages'),
+      '#collapsed' => TRUE,
+      '#collapsible' => TRUE,
+      'scratchpads_messages_hide_tips' => array(
+        '#type' => 'checkbox',
+        '#title' => t('Hide Scratchpads tips'),
+        '#default_value' => !empty($form['#user']->scratchpads_messages_hide_tips) ? 1 : 0
+      )
+    );
+  }
+}
+
+/**
+ * Get the messages.
+ */
+function scratchpads_messages_get_messages(){
+  global $user;
+  $user = user_load($user->uid);
+  // Add in checks about Expire, Created, and whether this user has already seen
+  // the message.
+  $subquery = db_select('scratchpads_messages_viewed', 's')->fields('s', array(
+    'mid'
+  ))->condition('uid', $user->uid);
+  $query = db_select('scratchpads_messages_message', 's')->fields('s')->condition('mid', $subquery, 'NOT IN');
+  // Don't get tips if this user does not want to see them.
+  if(!empty($user->scratchpads_messages_hide_tips)){
+    $query->condition('type', SCRATCHPADS_MESSAGES_TIP, '!=');
+  }
+  $results = $query->execute();
+  $msgs = array();
+  foreach($results as $result){
+    if(empty($msgs[$result->type])){
+      $msgs[$result->type] = array();
+    }
+    $msgs[$result->type][] = (array)$result;
+  }
+  return $msgs;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function scratchpads_messages_theme($existing, $type, $theme, $path){
+  return array(
+    'scratchpads_messages_message' => array(
+      'variables' => array(
+        'msg' => array(),
+        'user' => NULL
+      )
+    )
+  );
+}
+
+/**
+ * Theme function for a single message.  This adds the link to hide the message 
+ */
+function theme_scratchpads_messages_message($vars){
+  $render = array(
+    'markup' => array(
+      '#markup' => $vars['msg']['message']
+    ),
+    'form' => drupal_get_form('scratchpads_messages_seen_msg', $vars['msg'], $vars['user'])
+  );
+  return drupal_render($render);
+}
+
+/**
+ * Form to mark a single message as "seen".
+ */
+function scratchpads_messages_seen_msg($form, $form_state, $msg, $user){
+  return array(
+    'mid' => array(
+      '#type' => 'hidden',
+      '#value' => $msg['mid']
+    ),
+    'uid' => array(
+      '#type' => 'hidden',
+      '#value' => $user->uid
+    ),
+    'seen_button' => array(
+      '#type' => 'image_button',
+      '#src' => drupal_get_path('module', 'scratchpads_messages') . '/css/close.png',
+      '#attributes' => array(
+        'alt' => t('Hide')
+      ),
+      '#ajax' => array(
+        'callback' => 'scratchpads_messages_seen_msg_submit',
+        'wrapper' => 'msg-' . $msg['mid']
+      )
+    )
+  );
+}
+
+/**
+ * Submit function for the above form.
+ */
+function scratchpads_messages_seen_msg_submit($form, $form_state){
+  db_merge('scratchpads_messages_viewed')->key(array(
+    'uid' => $form_state['values']['uid'],
+    'mid' => $form_state['values']['mid']
+  ))->fields(array(
+    'uid' => $form_state['values']['uid'],
+    'mid' => $form_state['values']['mid']
+  ))->execute();
+  // Ajaxing, we need to return magic!
+  if(arg(0) == 'system'){return array(
+      '#type' => 'ajax',
+      '#commands' => array(
+        ajax_command_remove('#msg-' . $form_state['values']['mid']),
+        ajax_command_prepend(NULL, theme('status_messages')),
+        ajax_command_invoke('body', 'body_resize_toolbar')
+      )
+    );}
+}
+
+/**
+ * Implements hook_page_alter().
+ * 
+ * Adds the messages depending on the type of message, and whether or not the
+ * user actually wants to see the message.
+ */
+function scratchpads_messages_page_alter(&$page){
+  $_SESSION['scratchpads_messages_alerts'] = TRUE;
+  global $user;
+  if(!empty($_SESSION['scratchpads_messages_alerts'])){
+    $messages = scratchpads_messages_get_messages();
+    if(!empty($messages[1])){
+      $msgs = array();
+      foreach($messages[1] as $msg){
+        $msgs[] = array(
+          'data' => theme('scratchpads_messages_message', array(
+            'msg' => $msg,
+            'user' => $user
+          )),
+          'id' => "msg-{$msg['mid']}"
+        );
+      }
+      $page['page_top']['toolbar']['extra_messages'] = array(
+        '#attached' => array(
+          'css' => array(
+            drupal_get_path('module', 'scratchpads_messages') . '/css/scratchpads_messages.css'
+          ),
+          'js' => array(
+            drupal_get_path('module', 'scratchpads_messages') . '/js/scratchpads_messages.js'
+          )
+        ),
+        '#theme' => 'item_list',
+        '#items' => $msgs
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_cron().
+ * 
+ * Gets the messages from the help.scratchpads.eu wiki.
+ */
+function scratchpads_messages_cron(){
+  $sources = variable_get('scratchpads_messages_sources', array(
+    'http://get.scratchpads.eu/messages/list.json'
+  ));
+  foreach($sources as $source){
+    $messages = json_decode(file_get_contents($source), TRUE);
+    foreach($messages as $message){
+      db_merge('scratchpads_messages_message')->key(array(
+        'message' => $message['message'],
+        'type' => $message['type'],
+        'expire' => $message['expire']
+      ))->fields(array(
+        'message' => $message['message'],
+        'type' => $message['type'],
+        'created' => $message['created'],
+        'expire' => $message['expire']
+      ))->execute();
+    }
+  }
+  // Delete expired messages
+  db_delete('scratchpads_messages_message')->condition('expire', time(), '<')->execute();
+  // Delete from viewed
+  $subquery = db_select('scratchpads_messages_message', 's')->fields('s', array(
+    'mid'
+  ));
+  db_delete('scratchpads_messages_viewed')->condition('mid', $subquery, 'NOT IN')->execute();
+}
