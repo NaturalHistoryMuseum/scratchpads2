@@ -252,6 +252,31 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['citation']['export_links'] = 0;
   $handler->display->display_options['fields']['citation']['file_attachments'] = 0;
   $handler->display->display_options['fields']['citation']['open_url_link'] = 0;
+  /* Field: Content: Path */
+  $handler->display->display_options['fields']['path']['id'] = 'path';
+  $handler->display->display_options['fields']['path']['table'] = 'node';
+  $handler->display->display_options['fields']['path']['field'] = 'path';
+  $handler->display->display_options['fields']['path']['relationship'] = 'field_reference_nid';
+  $handler->display->display_options['fields']['path']['label'] = 'NamePublishedInID';
+  $handler->display->display_options['fields']['path']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['path']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['path']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['path']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['path']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['path']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['path']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['path']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['path']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['path']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['path']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['path']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['path']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['path']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['path']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['path']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['path']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['path']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['path']['absolute'] = 1;
   /* Field: Taxonomy term: Taxonomy term UUID */
   $handler->display->display_options['fields']['uuid_1']['id'] = 'uuid_1';
   $handler->display->display_options['fields']['uuid_1']['table'] = 'taxonomy_term_data';

@@ -245,6 +245,22 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
           $node->timestamp = $changed;
         }
       }
+      // Save Organic groups memberships associated with this node
+      if(!empty($row->og_memberships)){
+        $associated_groups = og_get_group_ids('node', array(
+          $node->nid
+        ));
+        if(isset($associated_groups[$node->nid])){
+          $og_group_id = $associated_groups[$node->nid];
+          foreach($row->og_memberships as $og_membership_info){
+            $og_membership = og_membership_create($og_group_id, $og_membership_info['type'], $og_membership_info['id']);
+            if($og_membership){
+              $og_membership->save();
+            }
+          }
+        }
+      }
+      // Prepare return value
       $return = array(
         $node->vid
       );
