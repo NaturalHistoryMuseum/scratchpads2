@@ -4,7 +4,6 @@
  * Helper for the hook_cron().
  */
 function _dwca_export_cron(){
-  ini_set('memory_limit', '1024M');
   if(variable_get('dwca_export_rebuild', TRUE) && variable_get('dwca_export_zip_build_time', 0) < time() + 86400){
     // Get a list of views on which we operate.  FIXME - This should perhaps be
     // "altered" using a drupal_alter call.
