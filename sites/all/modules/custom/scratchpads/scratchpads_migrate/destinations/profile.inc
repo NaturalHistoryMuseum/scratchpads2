@@ -46,6 +46,9 @@ class MigrateDestinationScratchpadsProfile extends MigrateDestinationScratchpads
       $account->pass = NULL;
       unset($account->uid);
     }
+    if (!isset($account->picture)) {
+      $account->picture = NULL; // Ensure we have value
+    }
     $ret = parent::import($account, $row);
     // Update the var setting we have update this user's profile
     // All subsequent profiles with the same UID will be added as standalone profiles

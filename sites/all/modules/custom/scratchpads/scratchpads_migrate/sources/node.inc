@@ -388,6 +388,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
           watchdog('scratchpads_migrate', 'Could not find group id for group node %group_nid', array(
             '%group_nid' => $row->group_nid
           ), WATCHDOG_ERROR);
+          unset($row->og_public);
+          unset($row->group_nid); // Avoid this getting associated to the wrong group
         }
       }else{ // This is part of a publication group so unset it
         unset($row->og_public);
