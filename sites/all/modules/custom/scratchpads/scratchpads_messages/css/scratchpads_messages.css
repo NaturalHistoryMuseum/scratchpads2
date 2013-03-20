@@ -1,0 +1,36 @@
+.scratchpads_messages {
+  padding: 0 50px !important;
+  margin:0;
+  background-color: #f5f5b5;
+  color:#000;
+}
+
+.toolbar-drawer {
+  box-shadow: 0 3px 5px #000000;
+}
+
+.scratchpads_messages .item-list li {
+  float: none !important;
+  list-style-type: disc !important;
+  padding: 2px 0 !important;
+}
+
+.scratchpads_messages .item-list li:first-child {
+  padding-top:8px !important;
+}
+
+.scratchpads_messages .item-list li:last-child {
+  padding-bottom:6px !important;
+}
+
+.scratchpads_messages form{
+  float:right;
+}
+
+.scratchpads_messages form .form-submit{
+  background-image:url('cross.png');
+}
+
+.scratchpads_messages .ajax-progress{
+  display:none !important;
+}
