@@ -33,7 +33,6 @@ class ScratchpadsNodeOrganicGroupMigration extends ScratchpadsNodeMigration{
   }
 
   protected function nodeQuery(){
-    // Only import nodes which are in the forum vocab
     $query = Database::getConnection('default', $this->sourceConnection)->select('node', 'n')->fields('n', array(
       'nid',
       'vid',
@@ -73,6 +72,26 @@ class ScratchpadsNodeOrganicGroupMigration extends ScratchpadsNodeMigration{
       'group'
     ), 'IN');
     return $query;
+  }
+
+  /**
+   * Ensure we add information about membership to this group
+   */
+  public function prepareRow($row){
+    parent::prepareRow($row);
+    $row->og_memberships = array();
+    $query = Database::getConnection('default', $this->sourceConnection)->select('og_uid', 'og_uid');
+    $query->condition('nid', $row->nid);
+    $query->fields('og_uid', array(
+      'uid'
+    ));
+    $result = $query->execute();
+    foreach($result as $uid_row){
+      $row->og_memberships[] = array(
+        'type' => 'user',
+        'id' => $uid_row->uid
+      );
+    }
   }
 
   /**

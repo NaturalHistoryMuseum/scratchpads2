@@ -90,12 +90,14 @@ class DrupalFieldMigration extends DrupalMigration{
     }elseif(!isset($row->entity_type)){
       $row->entity_type = 'node';
     }
-    // Check the node type exists  & throw exception if it doesn't
+    // Check the node type exists
     if($row->entity_type == 'node' && !scratchpads_migrate_destination_node_type_exists($row->type_name)){
-      throw new MigrateException(t('Node type %type does not exist. Cannot create field %field_name.', array(
+      // We want to log this, but we don't want to throw an exception - this is a possible error (content types
+      // being disabled while fields are still present), and we want further processing to continue.
+      watchdog('scratchpads_migrate', 'Node type %type does not exist. Cannot create field %field_name.', array(
         '%type' => $row->type_name,
         '%field_name' => $row->field_name
-      )));
+      ), WATCHDOG_ERROR);
       return false;
     }
     // We want all image fields to use the media field
