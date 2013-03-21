@@ -123,6 +123,9 @@ function scratchpads_messages_scratchpads_default_permissions(){
  * Get the messages.
  */
 function scratchpads_messages_get_messages(){
+  if(!db_table_exists('scratchpads_messages_roles')){
+    return;
+  }
   if(!user_access('view scratchpads messages')){return FALSE;}
   global $user;
   $user = user_load($user->uid);
