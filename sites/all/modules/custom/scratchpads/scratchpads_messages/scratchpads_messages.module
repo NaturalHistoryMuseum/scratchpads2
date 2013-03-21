@@ -126,15 +126,25 @@ function scratchpads_messages_get_messages(){
   if(!user_access('view scratchpads messages')){return FALSE;}
   global $user;
   $user = user_load($user->uid);
+  $query = db_select('scratchpads_messages_message', 'm');
+  // Join to the roles table to ensure we only display messages this user can
+  // see.
+  $query->innerJoin('scratchpads_messages_roles', 'r', 'm.mid = r.mid');
+  // Select specific fields
+  $query->fields('m');
   // Add in checks about Expire, Created, and whether this user has already seen
   // the message.
-  $subquery = db_select('scratchpads_messages_viewed', 's')->fields('s', array(
+  $subquery = db_select('scratchpads_messages_viewed', 'v')->fields('v', array(
     'mid'
   ))->condition('uid', $user->uid);
-  $query = db_select('scratchpads_messages_message', 's')->fields('s')->condition('mid', $subquery, 'NOT IN');
+  $query->condition('m.mid', $subquery, 'NOT IN');
+  // Select roles (and the everyone role "0").
+  $query->condition('rid', array_merge(array(
+    0
+  ), array_keys($user->roles)));
   // If we are anonymous, or hid messages as anonymous, we hide them too
   if(!empty($_SESSION['scratchpads_messages_hidden_msgs'])){
-    $query->condition('mid', $_SESSION['scratchpads_messages_hidden_msgs'], 'NOT IN');
+    $query->condition('m.mid', $_SESSION['scratchpads_messages_hidden_msgs'], 'NOT IN');
   }
   // Don't get tips if this user does not want to see them.
   if(!empty($user->scratchpads_messages_hide_tips)){
@@ -282,6 +292,27 @@ function scratchpads_messages_page_alter(&$page){
 }
 
 /**
+ * Converts an array of role names to an array of role IDs.
+ */
+function _scratchpads_messages_role_names_to_ids($roles){
+  $rids = array();
+  if(!is_array($roles) || !count($roles)){
+    $rids[] = 0;
+  }else{
+    $results = db_select('role', 'r')->fields('r', array(
+      'rid'
+    ))->condition('name', $roles)->execute();
+    foreach($results as $row){
+      $rids[] = $row->rid;
+    }
+    if(!count($rids)){
+      $rids[] = 0;
+    }
+  }
+  return $rids;
+}
+
+/**
  * Implements hook_cron().
  * 
  * Gets the messages from the help.scratchpads.eu wiki.
@@ -303,6 +334,22 @@ function scratchpads_messages_cron(){
         'created' => $message['created'],
         'expire' => $message['expire']
       ))->execute();
+      $mid = db_select('scratchpads_messages_message', 's')->fields('s', array(
+        'mid'
+      ))->condition('message', $message['message'])->condition('type', $message['type'])->condition('expire', $message['expire'])->execute()->fetchCol();
+      $mid = array_pop($mid);
+      if($mid){
+        // We now insert the roles.  We insert "0" if all roles.
+        foreach(_scratchpads_messages_role_names_to_ids($message['roles']) as $rid){
+          db_merge('scratchpads_messages_roles')->key(array(
+            'mid' => $mid,
+            'rid' => $rid
+          ))->fields(array(
+            'mid' => $mid,
+            'rid' => $rid
+          ))->execute();
+        }
+      }
     }
   }
   // Delete expired messages
