@@ -180,10 +180,10 @@ function scratchpads_messages_theme($existing, $type, $theme, $path){
  */
 function theme_scratchpads_messages_message($vars){
   $render = array(
+    'form' => drupal_get_form('scratchpads_messages_seen_msg', $vars['msg'], $vars['user']),
     'markup' => array(
-      '#markup' => $vars['msg']['message']
-    ),
-    'form' => drupal_get_form('scratchpads_messages_seen_msg', $vars['msg'], $vars['user'])
+      '#markup' => (($vars['msg']['type'] == SCRATCHPADS_MESSAGES_TIP) ? '<h2>' . t('Scratchpads Tip') . '</h2>' : '') . $vars['msg']['message']
+    )
   );
   return drupal_render($render);
 }
@@ -255,38 +255,53 @@ function scratchpads_messages_seen_msg_submit($form, $form_state){
 function scratchpads_messages_page_alter(&$page){
   global $user;
   $messages = scratchpads_messages_get_messages();
-  if(!empty($messages[1])){
-    $msgs = array();
-    foreach($messages[1] as $msg){
-      $msgs[] = array(
-        'data' => theme('scratchpads_messages_message', array(
-          'msg' => $msg,
-          'user' => $user
-        )),
-        'id' => "msg-{$msg['mid']}"
-      );
-    }
-    $block = array(
-      '#attached' => array(
-        'css' => array(
-          drupal_get_path('module', 'scratchpads_messages') . '/css/scratchpads_messages.css'
+  if(!empty($messages[SCRATCHPADS_MESSAGES_ALERT])){
+    if(!empty($messages[SCRATCHPADS_MESSAGES_ALERT])){
+      $msgs = array();
+      foreach($messages[SCRATCHPADS_MESSAGES_ALERT] as $msg){
+        $msgs[] = array(
+          'data' => theme('scratchpads_messages_message', array(
+            'msg' => $msg,
+            'user' => $user
+          )),
+          'id' => "msg-{$msg['mid']}"
+        );
+      }
+      $block = array(
+        '#attached' => array(
+          'css' => array(
+            drupal_get_path('module', 'scratchpads_messages') . '/css/scratchpads_messages.css'
+          ),
+          'js' => array(
+            drupal_get_path('module', 'scratchpads_messages') . '/js/scratchpads_messages.js'
+          )
         ),
-        'js' => array(
-          drupal_get_path('module', 'scratchpads_messages') . '/js/scratchpads_messages.js'
-        )
-      ),
-      '#theme' => 'item_list',
-      '#items' => $msgs
-    );
-    if(user_access('access toolbar')){
-      $page['page_top']['toolbar']['extra_messages'] = $block;
-    }else{
-      $block += array(
-        '#prefix' => '<div class="scratchpads_messages notoolbar">',
-        '#suffix' => '</div>',
-        '#weight' => -1000
+        '#theme' => 'item_list',
+        '#items' => $msgs
       );
-      $page['page_top']['extra_messages'] = $block;
+      if(user_access('access toolbar')){
+        $page['page_top']['toolbar']['extra_messages'] = $block;
+      }else{
+        $block += array(
+          '#prefix' => '<div class="scratchpads_messages notoolbar">',
+          '#suffix' => '</div>',
+          '#weight' => -1000
+        );
+        $page['page_top']['extra_messages'] = $block;
+      }
+    }
+    if(!empty($messages[SCRATCHPADS_MESSAGES_TIP]) && $_SESSION['scratchpads_messages_tips']){
+      // We select a random message from the tips.
+      $key = rand(0, count($messages[SCRATCHPADS_MESSAGES_TIP]) - 1);
+      $page['page_top']['tips'] = array(
+        '#prefix' => '<div class="scratchpads_messages tips">',
+        '#suffix' => '</div>',
+        '#markup' => theme('scratchpads_messages_message', array(
+          'msg' => $messages[SCRATCHPADS_MESSAGES_TIP][$key],
+          'user' => $user
+        ))
+      );
+      //unset($_SESSION['scratchpads_messages_tips']);
     }
   }
 }
@@ -319,7 +334,8 @@ function _scratchpads_messages_role_names_to_ids($roles){
  */
 function scratchpads_messages_cron(){
   $sources = variable_get('scratchpads_messages_sources', array(
-    'http://get.scratchpads.eu/messages/list.json'
+    //'http://get.scratchpads.eu/messages/list.json'
+    'http://d6.monkey.nhm.ac.uk/messages/list.json'
   ));
   foreach($sources as $source){
     $messages = json_decode(file_get_contents($source), TRUE);
