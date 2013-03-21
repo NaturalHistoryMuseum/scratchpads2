@@ -6,7 +6,6 @@
 function scratchpads_messages_schema(){
   return array(
     'scratchpads_messages_message' => array(
-      'description' => 'Stores user data.',
       'fields' => array(
         'mid' => array(
           'type' => 'serial',
@@ -40,6 +39,24 @@ function scratchpads_messages_schema(){
         'scratchpads_messages_message_created' => array(
           'created'
         )
+      )
+    ),
+    'scratchpads_messages_roles' => array(
+      'fields' => array(
+        'mid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'rid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        )
+      ),
+      'primary key' => array(
+        'rid',
+        'mid'
       )
     ),
     'scratchpads_messages_viewed' => array(
@@ -78,4 +95,12 @@ function scratchpads_messages_schema(){
       )
     )
   );
+}
+
+/**
+ * Add the scratchpads_messages_roles table.
+ */
+function scratchpads_messages_update_7001(){
+  $schema = scratchpads_messages_schema();
+  db_create_table('scratchpads_messages_roles', $schema['scratchpads_messages_roles']);
 }
