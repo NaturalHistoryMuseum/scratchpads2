@@ -14,5 +14,6 @@ function dwca_export_drush_rebuild(){
   variable_set('dwca_export_rebuild', TRUE);
   variable_set('dwca_Export_zip_build_time', 0);
   module_load_include('cron.inc', 'dwca_export');
+  ini_set('memory_limit', '2048M');
   _dwca_export_cron();
 }
