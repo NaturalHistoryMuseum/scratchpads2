@@ -4,7 +4,9 @@
   background-color: #f5f5b5;
   color:#000;
 }
-
+.scratchpads_messages.notoolbar{
+  border-bottom:solid 1px black;
+}
 .toolbar-drawer {
   box-shadow: 0 3px 5px #000000;
 }
