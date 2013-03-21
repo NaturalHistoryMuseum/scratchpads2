@@ -43,7 +43,7 @@
   position: absolute;
   display: none;
   border: solid 1px black;
-  z-index: 1000;
+  z-index: 700;
   top: -200px;
   background-color: white;
   padding: 10px !important;

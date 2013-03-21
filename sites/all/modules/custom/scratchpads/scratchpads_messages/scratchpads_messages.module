@@ -123,9 +123,6 @@ function scratchpads_messages_scratchpads_default_permissions(){
  * Get the messages.
  */
 function scratchpads_messages_get_messages(){
-  if(!db_table_exists('scratchpads_messages_roles')){
-    return;
-  }
   if(!user_access('view scratchpads messages')){return FALSE;}
   global $user;
   $user = user_load($user->uid);
@@ -337,8 +334,7 @@ function _scratchpads_messages_role_names_to_ids($roles){
  */
 function scratchpads_messages_cron(){
   $sources = variable_get('scratchpads_messages_sources', array(
-    //'http://get.scratchpads.eu/messages/list.json'
-    'http://d6.monkey.nhm.ac.uk/messages/list.json'
+    'http://get.scratchpads.eu/messages/list.json'
   ));
   foreach($sources as $source){
     $messages = json_decode(file_get_contents($source), TRUE);
