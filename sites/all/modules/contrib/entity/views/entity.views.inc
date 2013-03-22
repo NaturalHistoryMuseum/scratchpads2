@@ -21,6 +21,7 @@ function entity_views_data() {
   $data = array();
 
   foreach (entity_crud_get_info() as $type => $info) {
+  	
     // Provide default integration with the basic controller class if we know
     // the module providing the entity and it does not provide views integration.
     if (!isset($info['views controller class'])) {
@@ -43,13 +44,6 @@ function entity_views_data() {
     if ($table) {
       $data['entity_' . $type] = $table;
     }
-    // Generally expose properties marked as 'entity views field'.
-    $data['views_entity_' . $type] = array();
-    foreach (entity_get_all_property_info($type) as $key => $property) {
-      if (!empty($property['entity views field'])) {
-        entity_views_field_definition($key, $property, $data['views_entity_' . $type]);
-      }
-    }
   }
 
   // Expose generally usable entity-related fields.
@@ -69,19 +63,6 @@ function entity_views_data() {
       );
     }
   }
-
-  $data['entity__global']['table']['group'] = t('Entity');
-  $data['entity__global']['table']['join'] = array(
-    // #global let's it appear all the time.
-    '#global' => array(),
-  );
-  $data['entity__global']['entity'] = array(
-    'title' => t('Rendered entity'),
-    'help' => t('Displays a single chosen entity.'),
-    'area' => array(
-      'handler' => 'entity_views_handler_area_entity',
-    ),
-  );
 
   return $data;
 }
@@ -118,10 +99,6 @@ function entity_views_data() {
  *
  * @param $type
  *   The entity type whose table definition should be returned.
- * @param $exclude
- *   Whether properties already exposed as 'entity views field' should be
- *   excluded. Defaults to TRUE, as they are available for all views tables for
- *   the entity type anyways.
  *
  * @return
  *   An array containing the data selection Views table definition for the
@@ -129,7 +106,7 @@ function entity_views_data() {
  *
  * @see entity_views_field_definition()
  */
-function entity_views_table_definition($type, $exclude = TRUE) {
+function entity_views_table_definition($type) {
   // As other modules might want to copy these tables as a base for their own
   // Views integration, we statically cache the tables to save some time.
   $tables = &drupal_static(__FUNCTION__, array());
@@ -148,9 +125,7 @@ function entity_views_table_definition($type, $exclude = TRUE) {
       'entity type' => $type,
     );
     foreach (entity_get_all_property_info($type) as $key => $property) {
-      if (!$exclude || empty($property['entity views field'])) {
-        entity_views_field_definition($key, $property, $tables[$type]);
-      }
+      entity_views_field_definition($key, $property, $tables[$type]);
     }
   }
 
@@ -309,20 +284,10 @@ function _entity_views_field_identifier($field, array $table) {
  * Implements hook_views_plugins().
  */
 function entity_views_plugins() {
-  // Have views cache the table list for us so it gets
-  // cleared at the appropriate times.
-  $data = views_cache_get('entity_base_tables', TRUE);
-  if (!empty($data->data)) {
-    $base_tables = $data->data;
-  }
-  else {
-    $base_tables = array();
-    foreach (views_fetch_data() as $table => $data) {
-      if (!empty($data['table']['entity type']) && !empty($data['table']['base'])) {
-        $base_tables[] = $table;
-      }
+  foreach (views_fetch_data() as $table => $data) {
+    if (!empty($data['table']['entity type']) && !empty($data['table']['base'])) {
+      $base_tables[] = $table;
     }
-    views_cache_set('entity_base_tables', $base_tables, TRUE);
   }
   if (!empty($base_tables)) {
     return array(
@@ -366,8 +331,7 @@ class EntityDefaultViewsController {
    */
   public function views_data() {
     $data = array();
-    $this->relationships = array();
-
+    $this->relationships = array();    
     if (!empty($this->info['base table'])) {
       $table = $this->info['base table'];
       // Define the base group of this table. Fields that don't
@@ -375,11 +339,9 @@ class EntityDefaultViewsController {
       $data[$table]['table']['group']  = drupal_ucfirst($this->info['label']);
       $data[$table]['table']['entity type'] = $this->type;
 
-      // If the plural label isn't available, use the regular label.
-      $label = isset($this->info['plural label']) ? $this->info['plural label'] : $this->info['label'];
       $data[$table]['table']['base'] = array(
         'field' => $this->info['entity keys']['id'],
-        'title' => drupal_ucfirst($label),
+        'title' => drupal_ucfirst($this->info['label']),
         'help' => isset($this->info['description']) ? $this->info['description'] : '',
       );
       $data[$table]['table']['entity type'] = $this->type;
@@ -407,6 +369,7 @@ class EntityDefaultViewsController {
         }
       }
     }
+
     return $data;
   }
 
@@ -426,7 +389,7 @@ class EntityDefaultViewsController {
 
     $description = array(
       'title' => $property_info['label'],
-      'help' => isset($property_info['description']) ? $property_info['description'] : NULL,
+      'help' => $property_info['description'],
     );
 
       // Add in relationships to related entities.
@@ -584,17 +547,11 @@ class EntityDefaultViewsController {
       break;
     }
 
-    // If there is an options list callback, add to the filter and field.
+    // If there is an options list callback, add to the filter.
     if (isset($return['filter']) && !empty($property_info['options list'])) {
       $return['filter']['handler'] = 'views_handler_filter_in_operator';
       $return['filter']['options callback'] = array('EntityDefaultViewsController', 'optionsListCallback');
       $return['filter']['options arguments'] = array($this->type, $property_name, 'view');
-    }
-    // @todo: This class_exists is needed until views 3.2.
-    if (isset($return['field']) && !empty($property_info['options list']) && class_exists('views_handler_field_machine_name')) {
-      $return['field']['handler'] = 'views_handler_field_machine_name';
-      $return['field']['options callback'] = array('EntityDefaultViewsController', 'optionsListCallback');
-      $return['field']['options arguments'] = array($this->type, $property_name, 'view');
     }
     return $return;
   }
