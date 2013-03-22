@@ -140,7 +140,8 @@ function scratchpads_messages_get_messages(){
   $query = db_select('scratchpads_messages_message', 'm');
   // Add in checks about Expire, Created,
   $query->condition('expire', time(), '>');
-  $query->condition('created', time(), '<');
+  $or = db_or()->condition('created', time(), '<')->condition('created', 0);
+  $query->condition($or);
   // Join to the roles table to ensure we only display messages this user can
   // see.
   $query->innerJoin('scratchpads_messages_roles', 'r', 'm.mid = r.mid');
@@ -319,7 +320,7 @@ function scratchpads_messages_page_alter(&$page){
           'user' => $user
         ))
       );
-      //unset($_SESSION['scratchpads_messages_tips']);
+      unset($_SESSION['scratchpads_messages_tips']);
     }
   }
 }

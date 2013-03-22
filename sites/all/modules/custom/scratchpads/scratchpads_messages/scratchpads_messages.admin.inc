@@ -29,7 +29,7 @@ function scratchpads_messages_list_form($form, $form_state){
       '#markup' => count($roles) ? implode('<br/>', $roles) : t('All roles')
     );
     $form['expire'][$msg->mid] = array(
-      '#markup' => format_date($msg->expire)
+      '#markup' => $msg->expire ? format_date($msg->expire) : t('Never')
     );
   }
   $form['msgs'] = array(
@@ -162,10 +162,9 @@ function scratchpads_messages_add_form($form, $form_state){
       '#title' => t('Expire'),
       '#type' => 'textfield',
       '#default_value' => $expire,
-      '#description' => t('Note, the default expiry date is two days hence.') . '<br/>' . t('Ensure the date format is kept <em>exactly</em> like !example_date', array(
+      '#description' => t('Note, the default expiry date is two days hence.') . '<br/>' . t('Ensure the date format is kept <em>exactly</em> like !example_date, or blank to never expire.', array(
         '!example_date' => $expire
-      )) . '<br/>' . t('Note, you may "tips" to expire long into the future.'),
-      '#required' => TRUE
+      ))
     ),
     'type' => array(
       '#title' => t('Type'),
@@ -198,10 +197,12 @@ function scratchpads_messages_add_form_validate(&$form, &$form_state){
     form_set_error('created', t('Ensure you keep the time format.'));
     unset($form['#redirect']);
   }
-  $expire = strtotime($form_state['values']['expire']);
-  if(!$expire){
-    form_set_error('expire', t('Ensure you keep the time format.'));
-    unset($form['#redirect']);
+  if(strlen($form_state['values']['expire'])){
+    $expire = strtotime($form_state['values']['expire']);
+    if(!$expire){
+      form_set_error('expire', t('Ensure you keep the time format.'));
+      unset($form['#redirect']);
+    }
   }
 }
 
@@ -214,7 +215,7 @@ function scratchpads_messages_add_form_submit(&$form, &$form_state){
   $mid = db_insert('scratchpads_messages_message')->fields(array(
     'message' => $form_state['values']['message'],
     'created' => $created,
-    'expire' => $expire,
+    'expire' => $expire ? $expire : 0,
     'type' => $form_state['values']['type']
   ))->execute();
   if($mid){
