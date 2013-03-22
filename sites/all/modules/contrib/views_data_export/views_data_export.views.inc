@@ -47,6 +47,7 @@ function views_data_export_views_plugins() {
         'path' => $path . '/plugins',
         'theme path' => $path . '/theme',
         'theme file' => 'views_data_export.theme.inc',
+        'type' => 'normal',
       ),
       'views_data_export_csv' => array(
         'title' => t('CSV file'),
