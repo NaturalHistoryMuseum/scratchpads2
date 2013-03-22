@@ -58,7 +58,7 @@ function theme_views_data_export_feed_icon($variables) {
 function theme_views_data_export_complete_page($variables) {
   extract($variables, EXTR_SKIP);
   drupal_set_title(t('Data export successful'));
-  drupal_add_html_head(array('#tag' => 'meta', '#attributes' => array('http-equiv' =>"refresh", 'content' => '3;url='. $file)), 'views_data_export_download');
+  drupal_add_html_head(array('#tag' => 'meta', '#attributes' => array('http-equiv' =>"Refresh", 'content' => '3;url='. $file)), 'views_data_export_download');
   $output = '';
   $output .= '<p>';
   $output .= t('Your export has been created. View/download the file <a href="@link">here</a> (will automatically download in 3 seconds.)', array('@link' => $file));
@@ -105,7 +105,8 @@ function template_preprocess_views_data_export_csv_header(&$vars) {
 
   // Format header values.
   foreach ($vars['header'] as $key => $value) {
-    $output = decode_entities(strip_tags($value));
+    $output = decode_entities($value);
+    $output = (empty($vars['options']['keep_html'])) ? strip_tags($output) : $output;
     if (!empty($vars['options']['trim'])) {
       $output = trim($output);
     }
@@ -119,7 +120,7 @@ function template_preprocess_views_data_export_csv_header(&$vars) {
             break;
         }
       }
-      
+
     $vars['header'][$key] = $wrap . str_replace('"', $replace_value, $output) . $wrap;
   }
 }
@@ -148,7 +149,8 @@ function template_preprocess_views_data_export_csv_body(&$vars) {
   // Format row values.
   foreach ($vars['themed_rows'] as $i => $values) {
     foreach ($values as $j => $value) {
-      $output = decode_entities(strip_tags($value));
+      $output = decode_entities($value);
+      $output = (empty($vars['options']['keep_html'])) ? strip_tags($output) : $output;
       if (!empty($vars['options']['trim'])) {
         $output = trim($output);
       }
@@ -242,6 +244,8 @@ function template_preprocess_views_data_export_csv(&$vars) {
  */
 function template_preprocess_views_data_export_txt_body(&$vars) {
   _views_data_export_header_shared_preprocess($vars);
+  // We support not outputting fields when they are empty, so indicate so.
+  $vars['hide_empty_support'] = TRUE;
   _views_data_export_body_shared_preprocess($vars);
 }
 
@@ -371,6 +375,8 @@ function template_preprocess_views_data_export_xml_footer(&$vars) {
  */
 function template_preprocess_views_data_export_xml_body(&$vars) {
   _views_data_export_header_shared_preprocess($vars);
+  // We support not outputting fields when they are empty, so indicate so.
+  $vars['hide_empty_support'] = TRUE;
   _views_data_export_body_shared_preprocess($vars);
 
   // Compute the tag name based on the views base table, minus any trailing 's'.
@@ -391,7 +397,9 @@ function template_preprocess_views_data_export_xml_body(&$vars) {
 
   foreach ($vars['header'] as $field => $header) {
     // If there is no field label, use 'no name'.
-    $vars['xml_tag'][$field] = !empty($header) ? $header : 'no name';
+    if (empty($header)) {
+      $header = 'no name';
+    }
     if ($vars['options']['transform']) {
       switch ($vars['options']['transform_type']) {
         case 'dash':
@@ -438,6 +446,12 @@ function _views_data_export_xml_tag_clean($tag) {
   // Need to trim invalid characters from the start of the string:
   $tag = ltrim($tag, $invalid_start_chars);
 
+  // As a last line of defense, if we've stripped out everything, set it to
+  // something.
+  if (empty($tag)) {
+    $tag = 'invalid-tag-name';
+  }
+
   return $tag;
 }
 
@@ -463,6 +477,7 @@ function _views_data_export_header_shared_preprocess(&$vars) {
 function _views_data_export_body_shared_preprocess(&$vars) {
   $view     = $vars['view'];
   $fields   = &$view->field;
+  $hide_empty_support = !empty($vars['hide_empty_support']);
 
   $rows = $vars['rows'];
 
@@ -473,7 +488,15 @@ function _views_data_export_body_shared_preprocess(&$vars) {
 
     foreach ($keys as $id) {
       if (empty($fields[$id]->options['exclude'])) {
-        $vars['themed_rows'][$num][$id] = $view->style_plugin->rendered_fields[$num][$id];
+        $content = $view->style_plugin->rendered_fields[$num][$id];
+
+        if ($hide_empty_support && !empty($fields[$id]->options['hide_empty'])) {
+          if ($fields[$id]->is_value_empty($content, $fields[$id]->options['empty_zero'])) {
+            continue;
+          }
+        }
+
+        $vars['themed_rows'][$num][$id] = $content;
       }
     }
   }
