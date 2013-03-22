@@ -76,6 +76,14 @@ function scratchpads_messages_user_update(&$edit, $account, $category){
 }
 
 /**
+ * Implements hook_user_delete().
+ */
+function scratchpads_messages_user_delete($account){
+  db_delete('scratchpads_messages_viewed')->condition('uid', $account->uid)->execute();
+  db_delete('scratchpads_messages_user_settings')->condition('uid', $account->uid)->execute();
+}
+
+/**
  * Implement hook_form_FORM_ID_alter().
  * 
  * The "Edit" user form.  This needs to be able to handle both login and 
@@ -104,6 +112,9 @@ function scratchpads_messages_permission(){
   return array(
     'view scratchpads messages' => array(
       'title' => t('View Scratchpads messages')
+    ),
+    'administer scratchpads messages' => array(
+      'title' => t('Administer Scratchpads messages')
     )
   );
 }
@@ -127,12 +138,16 @@ function scratchpads_messages_get_messages(){
   global $user;
   $user = user_load($user->uid);
   $query = db_select('scratchpads_messages_message', 'm');
+  // Add in checks about Expire, Created,
+  $query->condition('expire', time(), '>');
+  $or = db_or()->condition('created', time(), '<')->condition('created', 0);
+  $query->condition($or);
   // Join to the roles table to ensure we only display messages this user can
   // see.
   $query->innerJoin('scratchpads_messages_roles', 'r', 'm.mid = r.mid');
   // Select specific fields
   $query->fields('m');
-  // Add in checks about Expire, Created, and whether this user has already seen
+  // Add a check for whether this user has already seen
   // the message.
   $subquery = db_select('scratchpads_messages_viewed', 'v')->fields('v', array(
     'mid'
@@ -166,6 +181,10 @@ function scratchpads_messages_get_messages(){
  */
 function scratchpads_messages_theme($existing, $type, $theme, $path){
   return array(
+    'scratchpads_messages_list_messages' => array(
+      'variables' => NULL,
+      'file' => 'scratchpads_messages.admin.inc'
+    ),
     'scratchpads_messages_message' => array(
       'variables' => array(
         'msg' => array(),
@@ -301,9 +320,59 @@ function scratchpads_messages_page_alter(&$page){
           'user' => $user
         ))
       );
-      //unset($_SESSION['scratchpads_messages_tips']);
+      unset($_SESSION['scratchpads_messages_tips']);
     }
   }
+}
+
+/**
+ * Simple function to give an array of message types.
+ */
+function scratchpads_messages_types($key = FALSE){
+  $types = array(
+    SCRATCHPADS_MESSAGES_ALERT => t('Status'),
+    SCRATCHPADS_MESSAGES_TIP => t('Tip')
+  );
+  if($key){return $types[$key];}
+  return $types;
+}
+
+/**
+ * Implements hook_menu()
+ */
+function scratchpads_messages_menu(){
+  return array(
+    'admin/config/system/scratchpads-messages' => array(
+      'title' => 'Scratchpads messages',
+      'description' => 'Add/view/delete Scratchpads status messages and Scratchpads tips.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_messages_list_form'
+      ),
+      'access arguments' => array(
+        'administer scratchpads messages'
+      ),
+      'file' => 'scratchpads_messages.admin.inc'
+    ),
+    'admin/config/system/scratchpads-messages/list' => array(
+      'title' => 'List',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10
+    ),
+    'admin/config/system/scratchpads-messages/add' => array(
+      'title' => 'Add',
+      'description' => 'Add a Scratchpads message or tip',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_messages_add_form'
+      ),
+      'access arguments' => array(
+        'administer scratchpads messages'
+      ),
+      'file' => 'scratchpads_messages.admin.inc',
+      'type' => MENU_LOCAL_TASK
+    )
+  );
 }
 
 /**
