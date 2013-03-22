@@ -406,6 +406,21 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
 }
 
 /**
+ * Implements hook_taxonomy_term_insert().
+ */
+function itis_term_taxonomy_term_presave($term){
+  $wrapper = entity_metadata_wrapper('taxonomy_term', $term);
+  if($wrapper->field_unit_name1->value()){
+    $name = '';
+    for($i = 1; $i <= 4; $i++){
+      $name = trim($name) . ' ' . $wrapper->{"field_unit_name" . $i}->value();
+      $name = trim($name) . ' ' . $wrapper->{"field_unit_indicator" . $i}->value();
+    }
+    $term->name = trim($name);
+  }
+}
+
+/**
  * Implementation of hook_form_alter.
  */
 function itis_term_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
