@@ -44,11 +44,14 @@ class views_data_export_plugin_style_export_csv extends views_data_export_plugin
       'default' => TRUE,
       'translatable' => FALSE,
     );
+    $options['keep_html'] = array(
+      'default' => FALSE,
+      'translatable' => FALSE,
+    );
     $options['encoding'] = array(
       'default' => '',
       'translatable' => FALSE,
     );
-
 
     return $options;
   }
@@ -93,13 +96,18 @@ class views_data_export_plugin_style_export_csv extends views_data_export_plugin
       '#type' => 'textfield',
       '#title' => t('Replacement'),
       '#default_value' => $this->options['newline_replacement'],
-      '#process' => array('form_process_checkboxes', 'ctools_dependent_process'),
+      '#process' => array('ctools_dependent_process'),
       '#dependency' => array('edit-style-options-replace-newlines' => array(TRUE)),
     );
     $form['header'] = array(
       '#type' => 'checkbox',
       '#title' => t('Make first row a list of column headers.'),
       '#default_value' => !empty($this->options['header']),
+    );
+    $form['keep_html'] = array(
+      '#type' => 'checkbox',
+      '#default_value' => !empty($this->options['keep_html']),
+      '#title' => t('Keep HTML tags.'),
     );
     $form['encoding'] = array(
       '#type' => 'select',
