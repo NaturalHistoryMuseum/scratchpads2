@@ -63,7 +63,7 @@ function scratchpads_messages_user_insert(&$edit, $account, $category){
   ))->fields(array(
     'uid' => $account->uid,
     'setting' => serialize(array(
-      'scratchpads_messages_hide_tips' => $edit['scratchpads_messages_hide_tips']
+      'scratchpads_messages_hide_tips' => empty($edit['scratchpads_messages_hide_tips']) ? 0 : 1
     ))
   ))->execute();
 }
