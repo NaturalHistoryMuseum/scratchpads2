@@ -139,8 +139,8 @@ function scratchpads_messages_get_messages(){
   $user = user_load($user->uid);
   $query = db_select('scratchpads_messages_message', 'm');
   // Add in checks about Expire, Created,
-  $query->condition('expire', time(), '>');
-  $or = db_or()->condition('created', time(), '<')->condition('created', 0);
+  $query->condition('created', time(), '<');
+  $or = db_or()->condition('expire', time(), '>')->condition('expire', 0);
   $query->condition($or);
   // Join to the roles table to ensure we only display messages this user can
   // see.
@@ -437,7 +437,7 @@ function scratchpads_messages_cron(){
     }
   }
   // Delete expired messages
-  db_delete('scratchpads_messages_message')->condition('expire', time(), '<')->execute();
+  db_delete('scratchpads_messages_message')->condition('expire', time(), '<')->condition('expire', 0, '!=')->execute();
   // Delete from viewed
   $subquery = db_select('scratchpads_messages_message', 's')->fields('s', array(
     'mid'
