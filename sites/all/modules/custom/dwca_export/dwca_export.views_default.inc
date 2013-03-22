@@ -327,7 +327,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['style_options']['parent_sort'] = 0;
   $handler->display->display_options['style_options']['quote'] = 1;
   $handler->display->display_options['style_options']['trim'] = 1;
-  $handler->display->display_options['style_options']['keep_html'] = 1
+  $handler->display->display_options['style_options']['keep_html'] = 1;
   $handler->display->display_options['style_options']['replace_newlines'] = 1;
   $handler->display->display_options['style_options']['newline_replacement'] = '\\r';
   $handler->display->display_options['style_options']['header'] = 0;
@@ -866,7 +866,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['style_options']['parent_sort'] = 0;
   $handler->display->display_options['style_options']['quote'] = 1;
   $handler->display->display_options['style_options']['trim'] = 1;
-  $handler->display->display_options['style_options']['keep_html'] = 1
+  $handler->display->display_options['style_options']['keep_html'] = 1;
   $handler->display->display_options['style_options']['replace_newlines'] = 1;
   $handler->display->display_options['style_options']['newline_replacement'] = '\\r';
   $handler->display->display_options['style_options']['header'] = 0;
@@ -1216,7 +1216,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['style_options']['parent_sort'] = 0;
   $handler->display->display_options['style_options']['quote'] = 1;
   $handler->display->display_options['style_options']['trim'] = 0;
-  $handler->display->display_options['style_options']['keep_html'] = 1
+  $handler->display->display_options['style_options']['keep_html'] = 1;
   $handler->display->display_options['style_options']['replace_newlines'] = 1;
   $handler->display->display_options['style_options']['newline_replacement'] = '\\r';
   $handler->display->display_options['style_options']['header'] = 0;
@@ -1390,7 +1390,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['style_options']['parent_sort'] = 0;
   $handler->display->display_options['style_options']['quote'] = 1;
   $handler->display->display_options['style_options']['trim'] = 1;
-  $handler->display->display_options['style_options']['keep_html'] = 1
+  $handler->display->display_options['style_options']['keep_html'] = 1;
   $handler->display->display_options['style_options']['replace_newlines'] = 1;
   $handler->display->display_options['style_options']['newline_replacement'] = '\\r';
   $handler->display->display_options['style_options']['header'] = 0;
@@ -1582,7 +1582,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['style_options']['parent_sort'] = 0;
   $handler->display->display_options['style_options']['quote'] = 1;
   $handler->display->display_options['style_options']['trim'] = 1;
-  $handler->display->display_options['style_options']['keep_html'] = 1
+  $handler->display->display_options['style_options']['keep_html'] = 1;
   $handler->display->display_options['style_options']['replace_newlines'] = 1;
   $handler->display->display_options['style_options']['newline_replacement'] = '\\r';
   $handler->display->display_options['style_options']['header'] = 0;
@@ -1715,7 +1715,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['style_options']['parent_sort'] = 0;
   $handler->display->display_options['style_options']['quote'] = 1;
   $handler->display->display_options['style_options']['trim'] = 1;
-  $handler->display->display_options['style_options']['keep_html'] = 1
+  $handler->display->display_options['style_options']['keep_html'] = 1;
   $handler->display->display_options['style_options']['replace_newlines'] = 1;
   $handler->display->display_options['style_options']['newline_replacement'] = '\\r';
   $handler->display->display_options['style_options']['header'] = 0;
@@ -1814,7 +1814,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['style_options']['parent_sort'] = 0;
   $handler->display->display_options['style_options']['quote'] = 1;
   $handler->display->display_options['style_options']['trim'] = 0;
-  $handler->display->display_options['style_options']['keep_html'] = 1
+  $handler->display->display_options['style_options']['keep_html'] = 1;
   $handler->display->display_options['style_options']['replace_newlines'] = 0;
   $handler->display->display_options['style_options']['header'] = 0;
   $handler->display->display_options['path'] = 'dwca_export/vernacular_names/csv';
@@ -2311,7 +2311,7 @@ function _dwca_export_view_description($desc_type){
   $handler->display->display_options['style_options']['parent_sort'] = 0;
   $handler->display->display_options['style_options']['quote'] = 1;
   $handler->display->display_options['style_options']['trim'] = 1;
-  $handler->display->display_options['style_options']['keep_html'] = 1
+  $handler->display->display_options['style_options']['keep_html'] = 1;
   $handler->display->display_options['style_options']['replace_newlines'] = 1;
   $handler->display->display_options['style_options']['newline_replacement'] = '<br/>';
   $handler->display->display_options['style_options']['header'] = 0;
