@@ -385,8 +385,8 @@ function itis_term_taxonomy_term_presave($term){
   if($wrapper->field_unit_name1->value()){
     $name = '';
     for($i = 1; $i <= 4; $i++){
-      $name = trim($name) . ' ' . $wrapper->{"field_unit_name" . $i}->value();
       $name = trim($name) . ' ' . $wrapper->{"field_unit_indicator" . $i}->value();
+      $name = trim($name) . ' ' . $wrapper->{"field_unit_name" . $i}->value();
     }
     $term->name = trim($name);
   }
