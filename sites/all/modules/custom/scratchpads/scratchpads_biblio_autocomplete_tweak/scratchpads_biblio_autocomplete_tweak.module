@@ -78,6 +78,9 @@ function scratchpads_biblio_autocomplete_tweak_node_reference_potential_referenc
  */
 function _scratchpads_biblio_autocomplete_tweak_node_reference_potential_references_standard($field, $options){
   // Avoid useless work
+  // V. Blagoderov says that 10 references is not enough, so we'll up the limit
+  // to 20.
+  $options['limit'] = 20;
   if(!count($field['settings']['referenceable_types'])){return array();}
   $query = db_select('node', 'n');
   $node_nid_alias = $query->addField('n', 'nid');
