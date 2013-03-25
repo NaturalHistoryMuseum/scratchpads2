@@ -100,8 +100,27 @@ function scratchpads_messages_form_user_profile_form_alter(&$form, &$form_state)
         '#type' => 'checkbox',
         '#title' => t('Hide Scratchpads tips'),
         '#default_value' => !empty($form['#user']->scratchpads_messages_hide_tips) ? 1 : 0
+      ),
+      'scratchpads_messages_reset_tips' => array(
+        '#prefix' => '<div class="form-item" style="margin-top:10px">',
+        '#suffix' => '<label class="option" style="display:block;clear:both">' . t('Reset the "viewed" status of all messages related to this account.  All tips will be shown again on login, and all current status messages will be shown immediately.') . '</label></div>',
+        '#type' => 'submit',
+        '#value' => t('Reset messages'),
+        '#submit' => array(
+          'scratchpads_messages_reset_user'
+        ),
+        '#limit_validation_errors' => array()
       )
     );
+  }
+}
+
+/**
+ * Reset the viewed status of all messages related to a specific user.
+ */
+function scratchpads_messages_reset_user($form, &$form_state){
+  if(@isset($form_state['complete form']['#user']->uid)){
+    db_delete('scratchpads_messages_viewed')->condition('uid', $form_state['complete form']['#user']->uid)->execute();
   }
 }
 
