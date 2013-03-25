@@ -228,7 +228,7 @@ function scratchpads_biblio_search_block_view_alter(&$data, $block){
       if($delta == $block->delta && isset($facet_info[$facet->facet])){
         $data['subject'] = $facet_info[$facet->facet]['label'];
         if($facet->facet == 'im_biblio_contributor'){
-          if(count($data['content']['im_biblio_contributor']['#items']) > $data['content']['#settings']->settings['soft_limit']){
+          if(@isset($data['content']['im_biblio_contributor']['#items']) && @isset($data['content']['#settings']->settings['soft_limit']) && count($data['content']['im_biblio_contributor']['#items']) > $data['content']['#settings']->settings['soft_limit']){
             $form = drupal_get_form('scratchpads_biblio_search_facet_im_biblio_contributor_form', 'im_biblio_contributor', t('Enter author name...'));
             $data['content']['search_box'] = array(
               '#markup' => drupal_render($form),
@@ -236,7 +236,7 @@ function scratchpads_biblio_search_block_view_alter(&$data, $block){
             );
           }
         }elseif($facet->facet == 'tus_biblio_year'){
-          if(count($data['content']['tus_biblio_year']['#items']) > $data['content']['#settings']->settings['soft_limit']){
+          if(@isset($data['content']['tus_biblio_year']['#items']) && @isset($data['content']['#settings']->settings['soft_limit']) && count($data['content']['tus_biblio_year']['#items']) > $data['content']['#settings']->settings['soft_limit']){
             $form = drupal_get_form('scratchpads_biblio_search_facet_tus_biblio_year_form', 'tus_biblio_year', t('Enter year...'));
             $data['content']['search_box'] = array(
               '#markup' => drupal_render($form),
@@ -244,7 +244,7 @@ function scratchpads_biblio_search_block_view_alter(&$data, $block){
             );
           }
         }elseif($facet->facet == 'im_biblio_secondary_title'){
-          if(count($data['content']['im_biblio_secondary_title']['#items']) > $data['content']['#settings']->settings['soft_limit']){
+          if(@isset($data['content']['im_biblio_secondary_title']['#items']) && @isset($data['content']['#settings']->settings['soft_limit']) && count($data['content']['im_biblio_secondary_title']['#items']) > $data['content']['#settings']->settings['soft_limit']){
             $form = drupal_get_form('scratchpads_biblio_search_facet_im_biblio_secondary_title_form', 'im_biblio_secondary_title', t('Enter journal...'));
             $data['content']['search_box'] = array(
               '#markup' => drupal_render($form),
@@ -252,7 +252,7 @@ function scratchpads_biblio_search_block_view_alter(&$data, $block){
             );
           }
         }elseif($facet->facet == 'im_biblio_keyword'){
-          if(count($data['content']['im_biblio_keyword']['#items']) > $data['content']['#settings']->settings['soft_limit']){
+          if(@isset($data['content']['#settings']->settings['soft_limit']) && @isset($data['content']['im_biblio_keyword']['#items']) && count($data['content']['im_biblio_keyword']['#items']) > $data['content']['#settings']->settings['soft_limit']){
             $form = drupal_get_form('scratchpads_biblio_search_facet_im_biblio_secondary_title_form', 'im_biblio_keyword', t('Enter keyword...'));
             $data['content']['search_box'] = array(
               '#markup' => drupal_render($form),
