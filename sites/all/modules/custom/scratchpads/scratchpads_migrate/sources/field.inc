@@ -61,6 +61,10 @@ class DrupalFieldMigration extends DrupalMigration{
     $query->fields('f');
     $query->condition('i.widget_active', 1);
     $query->condition('i.type_name', $this->excludedNodeTypes(), 'NOT IN');
+    $query->condition('f.type', array(
+      'noderelationships_backref', // We use a special migration class for these
+      'nodereferrer'
+    ), 'NOT IN');
     return $query;
   }
 
