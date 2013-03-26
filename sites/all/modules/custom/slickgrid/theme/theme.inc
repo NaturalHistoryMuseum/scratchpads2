@@ -315,7 +315,7 @@ function theme_slickgrid($variables){
   $js[] = 'var slickgrid;';
   $js[] = '(function($) {';
   $js[] = '$(document).ready(function(){';
-  $js[] = 'slickgrid = new Slickgrid("#slickgrid", "' . $view->name . '", "' . $view->current_display . '", "' . url(SLICKGRID_CALLBACK_PATH) . '");';
+  $js[] = 'slickgrid = new Slickgrid("#slickgrid", "' . $view->name . '", "' . $view->current_display . '", "' . url(slickgrid / callback) . '");';
   $js[] = '});';
   $js[] = '})(jQuery);';
   drupal_add_js(implode("\n", $js), array(
@@ -385,8 +385,23 @@ function theme_slickgrid_control($variables){
   $output = '';
   $control = $variables['control'];
   if($variables['view']->style_plugin->options[$control]){
+    drupal_add_js($variables['path'] . '/js/controls/slickgrid.control.js');
     drupal_add_js($variables['path'] . '/js/controls/slickgrid.' . $control . '.js');
-    $output = '<div class="slickgrid-control" id="slickgrid-' . $control . '"></div>';
+    drupal_add_js(array(
+      'slickgrid' => array(
+        'get_form_callback_url' => url('slickgrid/get/form/', array(
+          'absolute' => TRUE
+        ))
+      )
+    ), 'setting');
+    $output = '<div class="slickgrid-control" id="slickgrid-' . $control . '">' . l('<span title="' . ucfirst($control) . '" class="slickgrid-control-button"/>', 'slickgrid/get/form/slickgrid_' . $control . '_form', array(
+      'html' => TRUE,
+      'attributes' => array(
+        'class' => array(
+          'use-ajax'
+        )
+      )
+    )) . '</div>';
   }
   return $output;
 }
@@ -399,7 +414,7 @@ function slickgrid_preprocess_slickgrid_control__add(&$variables){
     foreach($variables['view']->style_plugin->options['add'] as $add){
       list($entity_type, $bundle) = explode('/', $add);
       $class = drupal_html_class('slickgrid-add-' . $entity_type . '-' . $bundle);
-      $path = SLICKGRID_CALLBACK_PATH . '/add/' . $add . '/' . $variables['view']->name . '/' . $variables['view']->current_display;
+      $path = 'slickgrid/callback/add/' . $add . '/' . $variables['view']->name . '/' . $variables['view']->current_display;
       $label = $entity_info[$entity_type]['bundles'][$bundle]['label'];
       if(count($variables['view']->args)){
         $path .= '/' . implode('/', $variables['view']->args);

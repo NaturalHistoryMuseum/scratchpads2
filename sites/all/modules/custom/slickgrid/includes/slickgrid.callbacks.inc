@@ -37,7 +37,6 @@ function slickgrid_callback_get_messages(&$json){
     }
   }
 }
-
 /**
  * Callback function - delete a node
  */
