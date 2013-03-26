@@ -79,6 +79,7 @@ if(!Array.prototype.indexOf) {
         if(!loadingIndicator) {
           loadingIndicator = $('<div class="loading-indicator"><div><img src="' + Drupal.settings.slickgrid.loading_image_url + '"/></div></div>').appendTo(document.body);
           loadingIndicator.css("position", "absolute");
+          $('body').css('position','relative');
           loadingIndicator.css("top", $(container).offset().top);
           loadingIndicator.css("left", $(container).offset().left);
           loadingIndicator.css("width", $(container).width());
