@@ -67,9 +67,9 @@ function _tinytax_sort_terms($a, $b){
     // As we use 'valid' for default value, it may be that we have one as 'valid' and one as 'accepted'
     $a_usage = ($a_usage == 'valid' || $a_usage == 'accepted');
     $b_usage = ($b_usage == 'valid' || $b_usage == 'accepted');
-    if ($a_usage == $b_usage) {
+    if($a_usage == $b_usage){
       return strcmp($a->name, $b->name);
-    } else {
+    }else{
       return $a_usage ? 1 : -1;
     }
   }
@@ -91,11 +91,6 @@ function theme_tinytax_term_count($variables){
  * tinytax_term theme function
  */
 function theme_tinytax_term($variables){
-  if($term->tid == $variables['term']->tid){
-    $active = TRUE;
-  }else{
-    $active = FALSE;
-  }
   $has_children = count(taxonomy_get_children($variables['term']->tid));
   $class = '';
   if($variables['toggle']){
@@ -153,6 +148,11 @@ function theme_tinytax_term($variables){
   ));
   if(!$term_text){
     $term_text = check_plain($variables['term']->name);
+  }
+  if($variables['term']->tid == arg(2) && arg(0) == 'taxonomy' && arg(1) == 'term'){
+    $active = TRUE;
+  }else{
+    $active = FALSE;
   }
   $term_text = l($term_text, $term_uri['path'], array(
     'html' => TRUE,

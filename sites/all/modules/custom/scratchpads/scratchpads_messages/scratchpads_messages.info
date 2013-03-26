@@ -1,0 +1,4 @@
+name = "Scratchpads Messages"
+description = "Displays two different messages on a Scratchpad."
+package = "Scratchpads"
+core = 7.x

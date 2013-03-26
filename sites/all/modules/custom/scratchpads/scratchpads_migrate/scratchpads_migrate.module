@@ -702,16 +702,8 @@ function scratchpads_migrate_get_machine_name($type, $name){
   // Make sure the type is uppercase
   $type = ucwords($type);
   // Format the name
-  $name = str_replace('_', ' ', $name);
-  $name = ucwords($name);
-  $name = str_replace(' ', '', $name);
-  $name = str_replace(array(
-    '-',
-    '(',
-    ')',
-    '/',
-    '\''
-  ), '', $name);
+  $name = ucwords(str_replace('_', ' ', $name));
+  $name = preg_replace('/[^a-zA-Z0-9]/', '', $name);
   return $type . $name;
 }
 

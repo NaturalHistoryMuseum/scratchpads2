@@ -76,6 +76,7 @@ dependencies[] = scratchpads_legal
 dependencies[] = scratchpads_load_time_log
 dependencies[] = scratchpads_logins
 dependencies[] = scratchpads_media_gallery
+dependencies[] = scratchpads_messages
 dependencies[] = scratchpads_metadata_service
 dependencies[] = scratchpads_mollom
 dependencies[] = scratchpads_pages

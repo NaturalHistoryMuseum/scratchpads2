@@ -61,9 +61,12 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
    */
   function option_definition() {
     $options = parent::option_definition();
-    $options['use_batch'] = array('default' => $this->is_compatible());
+    $options['use_batch'] = array('default' => 'no_batch');
     $options['items_per_page'] = array('default' => '0');
     $options['style_plugin']['default'] = 'views_data_export_csv';
+
+    // This is the default size of a segment when doing a batched export.
+    $options['segment_size']['default'] = 100;
 
     if (isset($options['defaults']['default']['items_per_page'])) {
       $options['defaults']['default']['items_per_page'] = FALSE;
@@ -86,7 +89,7 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
     $options['use_batch'] = array(
       'category' => 'page',
       'title' => t('Batched export'),
-      'value' => ($this->get_option('use_batch') ? t('Yes') : t('No')),
+      'value' => ($this->get_option('use_batch') == 'batch' ? t('Yes') : t('No')),
     );
 
     if (!$this->is_compatible() && $this->get_option('use_batch')) {
@@ -109,13 +112,25 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
           '#description' => t(''),
           '#default_value' => $this->get_option('use_batch'),
           '#options' => array(
-            TRUE => t('Export data in small segments to build a complete export. Recommended for large exports sets (1000+ rows)'),
-            FALSE => t('Export data all in one segment. Possible time and memory limit issues.'),
+            'no_batch' => t('Export data all in one segment. Possible time and memory limit issues.'),
+            'batch' => t('Export data in small segments to build a complete export. Recommended for large exports sets (1000+ rows)'),
+          ),
+        );
+        // Allow the administrator to configure the number of items exported per batch.
+        $form['segment_size'] = array(
+          '#type' => 'select',
+          '#title' => t('Segment size'),
+          '#description' => t('If each row of your export consumes a lot of memory to render, then reduce this value. Higher values will generally mean that the export completes in less time but will have a higher peak memory usage.'),
+          '#options' => drupal_map_assoc(range(1, 500)),
+          '#default_value' => $this->get_option('segment_size'),
+          '#process' => array('ctools_dependent_process'),
+          '#dependency' => array(
+            'radio:use_batch' => array('batch')
           ),
         );
         if (!$this->is_compatible()) {
           $form['use_batch']['#disabled'] = TRUE;
-          $form['use_batch']['#default_value'] = 0;
+          $form['use_batch']['#default_value'] = 'no_batch';
           $form['use_batch']['message'] = array (
             '#type' => 'markup',
             '#markup' => theme('views_data_export_message', array('message' => t('The underlying database (!db_driver) is incompatible with the batched export option and it has been disabled.', array('!db_driver' => $this->_get_database_driver())), 'type' => 'warning')),
@@ -123,7 +138,33 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
           );
         }
         break;
+
+      case 'cache':
+        // We're basically going to disable using cache plugins, by disabling
+        // the UI.
+        if (isset($form['cache']['type']['#options'])) {
+          foreach ($form['cache']['type']['#options'] as $id => $v) {
+            if ($id != 'none') {
+              unset($form['cache']['type']['#options'][$id]);
+            }
+            $form['cache']['type']['#description'] = t("Views data export isn't currently compatible with caching plugins.");
+          }
+        }
+        break;
+
     }
+  }
+
+  function get_option($option) {
+    // Force people to never use caching with Views data export. Sorry folks,
+    // but it causes too many issues for our workflow. If you really want to add
+    // caching back, then you can subclass this display handler and override
+    // this method to add it back.
+    if ($option == 'cache') {
+      return array('type' => 'none');
+    }
+
+    return parent::get_option($option);
   }
 
   /**
@@ -135,6 +176,7 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
     switch ($form_state['section']) {
       case 'use_batch':
         $this->set_option('use_batch', $form_state['values']['use_batch']);
+        $this->set_option('segment_size', $form_state['values']['segment_size']);
         break;
     }
   }
@@ -144,7 +186,7 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
    */
   function is_batched() {
     // The source of this option may change in the future.
-    return $this->get_option('use_batch') && empty($this->view->live_preview);
+    return ($this->get_option('use_batch') == 'batch') && empty($this->view->live_preview);
   }
 
   /**
@@ -257,7 +299,7 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
     // If we were attached to another view, grab that for the final URL.
     if (!empty($_GET['attach']) && isset($this->view->display[$_GET['attach']])) {
       // Get the path of the attached display:
-      $querystring['return-url'] = $this->view->display[$_GET['attach']]->handler->get_path();
+      $querystring['return-url'] = $this->view->get_url(NULL, $this->view->display[$_GET['attach']]->handler->get_path());
     }
 
     //Set the batch off
@@ -433,7 +475,7 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
 
           // Grab our results from the index, and push them into the view result.
           // TODO: Handle external databases.
-          $result = db_query_range('SELECT * FROM {' . $this->index_tablename() . '} ORDER BY ' . $this->batched_execution_state->sandbox['weight_field_alias'] . ' ASC', 0, 100);
+          $result = db_query_range('SELECT * FROM {' . $this->index_tablename() . '} ORDER BY ' . $this->batched_execution_state->sandbox['weight_field_alias'] . ' ASC', 0, $this->get_option('segment_size'));
           $this->view->result = array();
           foreach ($result as $item_hashed) {
             $item = new stdClass();
@@ -490,8 +532,10 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
     if (!$this->is_batched()) {
       // Can replace with return parent::preview() when views 2.12 lands.
       if (!empty($this->view->live_preview)) {
-        // Change the items per page:
+        // Change the items per page.
         $this->view->set_items_per_page(20);
+        // Force a pager to be used.
+        $this->set_option('pager', array('type' => 'some', 'options' => array()));
         return '<p>' . t('A maximum of 20 items will be shown here, all results will be shown on export.') . '</p><pre>' . check_plain($this->view->render()) . '</pre>';
       }
       return $this->view->render();
@@ -673,7 +717,7 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
   *   An array containing the file information, or 0 in the event of an error.
   */
   function file_save_file($filepath) {
-    return file_save_data('', $filepath);
+    return file_save_data('', $filepath, FILE_EXISTS_REPLACE);
   }
 
   /**
@@ -711,7 +755,7 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
   function  _get_database_driver() {
     $name = !empty($this->view->base_database) ? $this->view->base_database : 'default';
     $conn_info = Database::getConnectionInfo($name);
-    return $conn_info[$name]['driver'];
+    return $conn_info['default']['driver'];
   }
 }
 

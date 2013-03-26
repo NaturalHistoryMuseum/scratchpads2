@@ -78,6 +78,9 @@ function scratchpads_biblio_autocomplete_tweak_node_reference_potential_referenc
  */
 function _scratchpads_biblio_autocomplete_tweak_node_reference_potential_references_standard($field, $options){
   // Avoid useless work
+  // V. Blagoderov says that 10 references is not enough, so we'll up the limit
+  // to 20.
+  $options['limit'] = 20;
   if(!count($field['settings']['referenceable_types'])){return array();}
   $query = db_select('node', 'n');
   $node_nid_alias = $query->addField('n', 'nid');
@@ -92,17 +95,23 @@ function _scratchpads_biblio_autocomplete_tweak_node_reference_potential_referen
   $query->addTag('node_access')->addMetaData('id', ' _node_reference_potential_references_standard')->addMetaData('field', $field)->addMetaData('options', $options);
   $query->condition('n.type', 'biblio');
   if($options['string'] !== ''){
-    switch($options['match']){
-      case 'contains':
-        $condition = db_or()->condition('b.biblio_year', '%' . $options['string'] . '%', 'LIKE')->condition('n.title', '%' . $options['string'] . '%', 'LIKE')->condition('bcd.name', '%' . $options['string'] . '%', 'LIKE');
-        break;
-      case 'starts_with':
-        $condition = db_or()->condition('b.biblio_year', $options['string'] . '%', 'LIKE')->condition('n.title', $options['string'] . '%', 'LIKE')->condition('bcd.name', $options['string'] . '%', 'LIKE');
-        break;
-      case 'equals':
-      default: // no match type or incorrect match type: use "="
-        $condition = db_or()->condition('b.biblio_year', $options['string'])->condition('n.title', $options['string'])->condition('bcd.name', $options['string']);
-        break;
+    preg_match('/([^0-9]*)([0-9]{2,4})/', $options['string'], $matches);
+    if(count($matches) == 3){
+      // Note, we trim $matches[1] as it includes the delimitting space.
+      $condition = db_and()->condition('b.biblio_year', '%' . $matches[2] . '%', 'LIKE')->condition('bcd.name', '%' . trim($matches[1]) . '%', 'LIKE');
+    }else{
+      switch($options['match']){
+        case 'contains':
+          $condition = db_or()->condition('b.biblio_year', '%' . $options['string'] . '%', 'LIKE')->condition('n.title', '%' . $options['string'] . '%', 'LIKE')->condition('bcd.name', '%' . $options['string'] . '%', 'LIKE');
+          break;
+        case 'starts_with':
+          $condition = db_or()->condition('b.biblio_year', $options['string'] . '%', 'LIKE')->condition('n.title', $options['string'] . '%', 'LIKE')->condition('bcd.name', $options['string'] . '%', 'LIKE');
+          break;
+        case 'equals':
+        default: // no match type or incorrect match type: use "="
+          $condition = db_or()->condition('b.biblio_year', $options['string'])->condition('n.title', $options['string'])->condition('bcd.name', $options['string']);
+          break;
+      }
     }
   }
   $query->condition($condition);
