@@ -1,8 +1,3 @@
-/**
- * Slick filters
- * 
- * BASIC TEXT FILTER
- */
 (function($){
   function textFilter(field){
     function input(){

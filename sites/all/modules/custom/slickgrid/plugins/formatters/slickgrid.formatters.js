@@ -1,6 +1,3 @@
-/**
- * ************************** COLLAPSIBLE FORMATTER ***************************
- */
 var collapsibleFormatter = function(row, cell, value, columnDef, dataContext){
   if(value === null) {
     return;
