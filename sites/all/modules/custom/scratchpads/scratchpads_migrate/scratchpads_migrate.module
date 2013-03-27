@@ -354,6 +354,18 @@ function scratchpads_migrate_register_migrations(){
   // We just use the migrate_d2d D6 migration class as-is.
   Migration::registerMigration('DrupalFieldFileAttachmentMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
+   * Backreference field
+  ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of backreference fields from Drupal 6'),
+    'machine_name' => 'FieldBackreference',
+    'dependencies' => array(
+      'ContentType'
+    ),
+    'group' => MigrateGroup::getInstance('fields')
+  );
+  Migration::registerMigration('DrupalFieldBackreferenceMigration', $arguments['machine_name'], $arguments);  
+  /*********************************************************************************************
        * Field groups
        ********************************************************************************************/
   $arguments = $common_arguments + array(
@@ -362,7 +374,7 @@ function scratchpads_migrate_register_migrations(){
     'dependencies' => array(
       'Field',
       'FieldBody',
-      'FieldTaxonomy'
+      'FieldTaxonomy',
     ),
     'group' => MigrateGroup::getInstance('fields')
   );
