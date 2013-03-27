@@ -181,10 +181,9 @@ if(!Array.prototype.indexOf) {
           handleViewportResized(ui.size.height);
         }
       }});
-      $(container).trigger('onSlickgridInit');
     }
     function handleValidationError(eventData, error){
-      updateStatus(true, [{'type': 'error', 'message': error.validationResults.msg}]);
+      alert(Drupal.t('There has been an error, please reload the page.'))
     }
     function handleSelectedRowsChanged(){
       closeDialog();
@@ -340,10 +339,12 @@ if(!Array.prototype.indexOf) {
           $(header).empty();
           var c = grid.getColumns()[grid.getColumnIndex(columns[i].id)];
           if(typeof c == 'object') {
-            c.filter = eval('new ' + columns[i].filter + '("' + c.id + '")');
-            if(typeof c.filter.input === 'function') {
-              var $input = c.filter.input().data("columnId", c.id).val(columnFilters[c.id]);
-              Drupal.theme('slickgridFilter', $input, options['columns'][c.id]['filter']).appendTo(header);
+            if(typeof c.filter == 'string') {
+              c.filter = eval('new ' + columns[i].filter + '("' + c.id + '")');
+              if(typeof c.filter.input === 'function') {
+                var $input = c.filter.input().data("columnId", c.id).val(columnFilters[c.id]);
+                Drupal.theme('slickgridFilter', $input, options['columns'][c.id]['filter']).appendTo(header);
+              }
             }
           }
         }
