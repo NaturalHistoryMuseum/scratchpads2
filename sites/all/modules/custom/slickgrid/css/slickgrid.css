@@ -363,6 +363,12 @@ ul.slickgrid-messages li ul li {
   display: none;
 }
 
+.slick-columnpicker li:nth-last-child(2) {
+  border-top: solid 1px #ccc;
+  margin-top: 3px;
+  padding-top: 3px;
+}
+
 /* Dialog */
 .bt-content {
   background-color: #fff;
