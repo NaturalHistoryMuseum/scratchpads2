@@ -183,6 +183,10 @@ function slickgrid_views_pre_view(&$view, $display_id, $args){
       'display_id' => $display_id
     ));
   }
+  // FIXME - The following code is used to remove hidden columns from export
+  // data.  This was also being run on standard slickgrid views which prevent
+  // re-enabling of hidden columns
+  /*
   // If there are hidden columns
   if(isset($view->slickgrid_settings['hidden_columns']) && !empty($view->slickgrid_settings['hidden_columns'])){
     // Remove them from the exported file
@@ -190,6 +194,7 @@ function slickgrid_views_pre_view(&$view, $display_id, $args){
       $view->set_item($display_id, 'field', $hidden_column, null);
     }
   }
+  */
   // If row selection checkboxes are enabled, allow users to only export selected nodes.
   if(isset($_POST['export_selected_rows']) && isset($_POST['entity_ids'])){
     // Remove all existing arguments - we'll limit result set by entity ID only
