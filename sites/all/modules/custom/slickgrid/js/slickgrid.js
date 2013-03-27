@@ -582,7 +582,9 @@ if(!Array.prototype.indexOf) {
     function updateColumns(updatedColumns){
       columns = eval('(' + updatedColumns + ')');
       grid.setColumns(columns);
-      tabs.rebuild();
+      if(tabs){
+        tabs.rebuild();
+      }
     }
     function setColumnFilter(field, value){
       columnFilters[field] = value;
