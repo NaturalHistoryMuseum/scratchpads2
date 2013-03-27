@@ -410,7 +410,8 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
  */
 function itis_term_taxonomy_term_presave($term){
   $wrapper = entity_metadata_wrapper('taxonomy_term', $term);
-  if($wrapper->field_unit_name1->value()){
+  $info = $wrapper->getPropertyInfo();
+  if(isset($info['field_unit_name1']) && $wrapper->field_unit_name1->value()){
     $name = '';
     for($i = 1; $i <= 4; $i++){
       $name = trim($name) . ' ' . $wrapper->{"field_unit_indicator" . $i}->value();
