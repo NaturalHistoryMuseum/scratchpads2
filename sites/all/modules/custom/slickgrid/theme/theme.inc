@@ -419,7 +419,7 @@ function slickgrid_preprocess_slickgrid_control__add(&$variables){
     foreach($variables['view']->style_plugin->options['add'] as $add){
       list($entity_type, $bundle) = explode('/', $add);
       $class = drupal_html_class('slickgrid-add-' . $entity_type . '-' . $bundle);
-      $path = 'slickgrid/callback/add/' . $add . '/' . $variables['view']->name . '/' . $variables['view']->current_display;
+      $path = 'slickgrid/callback/add/' . $add;
       $label = $entity_info[$entity_type]['bundles'][$bundle]['label'];
       if(count($variables['view']->args)){
         $path .= '/' . implode('/', $variables['view']->args);

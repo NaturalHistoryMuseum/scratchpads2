@@ -76,7 +76,7 @@ function slickgrid_callback_update(){
 /**
  * Callback function - add an entity
  */
-function slickgrid_callback_add($entity_type, $bundle_type, $view_name, $display_id){
+function slickgrid_callback_add($entity_type, $bundle_type){
   global $user;
   $entity_info = entity_get_info($entity_type);
   $args = array_slice(func_get_args(), 4);
@@ -102,10 +102,6 @@ function slickgrid_callback_add($entity_type, $bundle_type, $view_name, $display
     $output[] = ctools_modal_command_dismiss();
     $result = array();
     slickgrid_callback_get_messages($result);
-    // Reload the view
-    $view = slickgrid_get_view($view_name, $display_id, array(), $args);
-    $result['data'] = $view->data;
-    $result['columns'] = slickgrid_encode_columns($view->columns);
     $output[] = array(
       'command' => 'slickgrid',
       'response' => array(
