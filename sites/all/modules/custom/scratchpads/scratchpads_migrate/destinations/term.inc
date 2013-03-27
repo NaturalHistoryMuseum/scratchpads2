@@ -162,8 +162,8 @@ class ScratchpadsMigrateDestinationTerm extends MigrateDestinationTerm{
     $final = array();
     for($i = 1; $i <= 4; $i++){
       try {
-        $name = $w->get("field_unit_name$i")->value();
-        $ind = $w->get("field_unit_indicator$i")->value();
+        $name = trim($w->get("field_unit_name$i")->value());
+        $ind = trim($w->get("field_unit_indicator$i")->value());
       } catch (Exception $e) {
         // While this was flagged as a biological classification, it doesn't have the fields we expect. Just ignore it.
         return;
@@ -177,10 +177,6 @@ class ScratchpadsMigrateDestinationTerm extends MigrateDestinationTerm{
     }
     $final_name = trim(implode(' ', $final));
     if($final_name && $final_name != $w->name->value()){
-      echo (t('Rewritting ITIS term name from %old to %new', array(
-        '%old' => $w->name->value(),
-        '%new' => $final_name
-      )));
       if(module_exists('redirect')){
         // Redirect/pathauto combo is broken. If there is already a redirect for that term, delete it.
         $rq = db_select('redirect', 'r');
