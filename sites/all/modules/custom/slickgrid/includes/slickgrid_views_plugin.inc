@@ -57,6 +57,10 @@ class slickgrid_views_plugin extends views_plugin_style{
     $options['asyncEditorLoading'] = array(
       'default' => TRUE
     );
+    // maps to slickgrid option syncColumnCellResize
+    $options['syncColumnCellResize'] = array(
+      'default' => TRUE
+    );
     // maps to slickgrid option forceFitColumns
     $options['forceFitColumns'] = array(
       'default' => false
