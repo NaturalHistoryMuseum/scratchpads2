@@ -392,6 +392,10 @@ ul.slickgrid-messages li ul li{
   border: 1px inset #B2B2B2;
 }
 
+.slick-columnpicker li:last-child{
+  display:none;
+}
+
 /* Dialog */
 .bt-content{
   background-color: #fff;
