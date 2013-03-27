@@ -5,7 +5,7 @@
  */
 function slickgrid_menu(){
   return array(
-    'slickgrid/callback/%' => array(
+    /*'slickgrid/callback/%' => array(
       'page callback' => 'slickgrid_callback',
       'page arguments' => array(
         2
@@ -15,7 +15,7 @@ function slickgrid_menu(){
       ),
       'type' => MENU_CALLBACK,
       'file' => 'includes/slickgrid.callbacks.inc'
-    ),
+    ),*/
     'slickgrid/get/form/%' => array(
       'page callback' => 'slickgrid_get_form',
       'page arguments' => array(

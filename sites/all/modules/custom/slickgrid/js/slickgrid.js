@@ -17,7 +17,7 @@ if(!Array.prototype.indexOf) {
   // Loading indicator div.
   var loadingIndicator = null;
   // Slickgrid class implementation
-  function Slickgrid(container, viewName, viewDisplayID, callbackPath){
+  function Slickgrid(container, viewName, viewDisplayID){
     var columnFilters = {};
     var objHttpDataRequest;
     var checkboxSelector;
@@ -79,7 +79,7 @@ if(!Array.prototype.indexOf) {
         if(!loadingIndicator) {
           loadingIndicator = $('<div class="loading-indicator"><div><img src="' + Drupal.settings.slickgrid.loading_image_url + '"/></div></div>').appendTo(document.body);
           loadingIndicator.css("position", "absolute");
-          $('body').css('position','relative');
+          $('body').css('position', 'relative');
           loadingIndicator.css("top", $(container).offset().top);
           loadingIndicator.css("left", $(container).offset().left);
           loadingIndicator.css("width", $(container).width());
@@ -434,7 +434,7 @@ if(!Array.prototype.indexOf) {
         // Abort the AJAX request.
         objHttpDataRequest.abort();
       }
-      ajaxOptions = {type: 'POST', dataType: "json", success: callbackSuccess, error: callbackError, complete: callbackComplete, url: callbackPath + '/' + op, data: data};
+      ajaxOptions = {type: 'POST', dataType: "json", success: callbackSuccess, error: callbackError, complete: callbackComplete, url: Drupal.settings.slickgrid.slickgrid_callback_url + op, data: data};
       objHttpDataRequest = $.ajax(ajaxOptions);
     }
     // Error handling function
@@ -543,9 +543,6 @@ if(!Array.prototype.indexOf) {
     function getViewDisplayID(){
       return viewDisplayID;
     }
-    function getCallbackPath(){
-      return callbackPath;
-    }
     // Lock the grid
     function lock(){
       locked = true;
@@ -594,7 +591,7 @@ if(!Array.prototype.indexOf) {
     // /////////////////////////////////////////////
     $.extend(this, {
     // Methods
-    "callback": callback, "getViewName": getViewName, "getViewDisplayID": getViewDisplayID, "getEntityIDs": getEntityIDs, "getContainer": getContainer, "openDialog": openDialog, "closeDialog": closeDialog, "getCallbackPath": getCallbackPath, "reload": reload, 'setColumnFilter': setColumnFilter, 'updateFilters': updateFilters});
+    "callback": callback, "getViewName": getViewName, "getViewDisplayID": getViewDisplayID, "getEntityIDs": getEntityIDs, "getContainer": getContainer, "openDialog": openDialog, "closeDialog": closeDialog, "reload": reload, 'setColumnFilter': setColumnFilter, 'updateFilters': updateFilters});
     init();
   }
 })(jQuery);

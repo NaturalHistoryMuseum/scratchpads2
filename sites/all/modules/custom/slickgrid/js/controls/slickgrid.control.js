@@ -1,8 +1,13 @@
 (function($){
   // Extend the jQuery object so that we can easily add a form to the slickgrid
   // container.
-  $.prototype.slickgrid_add_form = function(something){
-    $('#slickgrid').append(something);
+  $.prototype.slickgrid_add_form = function(form){
+    form = $(form);
+    $(this).append(form);
+    var button_offset = $(this).offset();
+    button_offset.top -= 50;
+    button_offset.left -= 150;
+    $(form).offset(button_offset);
     Drupal.behaviors.AJAX.attach('', Drupal.settings);
   }
 })(jQuery);

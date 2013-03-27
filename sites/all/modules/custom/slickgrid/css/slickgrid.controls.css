@@ -195,3 +195,15 @@
   background: #E8E8E8;
   z-index: 100;
 }
+
+/* Form */
+#controls input {
+  margin-right: 3px;
+}
+
+#controls .ajax-progress {
+  background-color: #fff;
+  border: solid 1px #A5A5A5;
+  position: absolute;
+  left: 50px;
+}

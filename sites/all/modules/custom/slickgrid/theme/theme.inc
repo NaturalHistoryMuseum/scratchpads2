@@ -295,6 +295,9 @@ function theme_slickgrid($variables){
   drupal_add_css($path . '/css/slickgrid.css');
   drupal_add_js(array(
     'slickgrid' => array(
+      'slickgrid_callback_url' => url('slickgrid/callback/', array(
+        'absolute' => TRUE
+      )),
       'get_data_callback_url' => url('slickgrid/get/data/', array(
         'absolute' => TRUE
       )),
@@ -315,7 +318,7 @@ function theme_slickgrid($variables){
   $js[] = 'var slickgrid;';
   $js[] = '(function($) {';
   $js[] = '$(document).ready(function(){';
-  $js[] = 'slickgrid = new Slickgrid("#slickgrid", "' . $view->name . '", "' . $view->current_display . '", "' . url(slickgrid / callback) . '");';
+  $js[] = 'slickgrid = new Slickgrid("#slickgrid", "' . $view->name . '", "' . $view->current_display . '");';
   $js[] = '});';
   $js[] = '})(jQuery);';
   drupal_add_js(implode("\n", $js), array(
@@ -394,9 +397,11 @@ function theme_slickgrid_control($variables){
         ))
       )
     ), 'setting');
-    $output = '<div class="slickgrid-control" id="slickgrid-' . $control . '">' . l('<span title="' . ucfirst($control) . '" class="slickgrid-control-button"/>', 'slickgrid/get/form/slickgrid_' . $control . '_form', array(
+    $form_id = 'slickgrid_' . $control . '_form';
+    $output = '<div class="slickgrid-control ' . $form_id . '" id="slickgrid-' . $control . '">' . l('<span title="' . ucfirst($control) . '" class="slickgrid-control-button"/>', 'slickgrid/get/form/' . $form_id, array(
       'html' => TRUE,
       'attributes' => array(
+        'id' => $form_id,
         'class' => array(
           'use-ajax'
         )
