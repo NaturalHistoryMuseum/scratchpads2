@@ -52,7 +52,9 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
     );
     parent::__construct($arguments);
     // Add location
-    $this->addFieldMapping('field_location', 'locationnode')->sourceMigration('Darwincorelocation');
+    if(ScratchpadsNodeDarwincorelocationMigration::tableExists($this->sourceConnection)){
+      $this->addFieldMapping('field_location', 'locationnode')->sourceMigration('Darwincorelocation');
+    }
     // There isn't a media field
     $this->addUnmigratedDestinations(array(
       'field_media',
@@ -87,7 +89,7 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
     // Only import nodes which are in the forum vocab
     $query = parent::nodeQuery();
     $query->innerJoin('darwincore', 'd', 'd.vid = n.vid');
-    $query->fields('d', array(
+    $fields = array(
       'sex',
       'basisofrecord',
       'typestatus',
@@ -110,9 +112,12 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
       'earliestdatecollected',
       'dateidentifiedmonth',
       'dateidentifiedday',
-      'latestdatecollected',
-      'locationnode'
-    ));
+      'latestdatecollected'
+    );
+    if(ScratchpadsNodeDarwincorelocationMigration::tableExists($this->sourceConnection)){
+      $fields[] = 'locationnode';
+    }
+    $query->fields('d', $fields);
     return $query;
   }
 
