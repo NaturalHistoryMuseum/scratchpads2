@@ -316,12 +316,12 @@ class FeedsFileProcessor extends FeedsProcessor{
     foreach($this->uniqueTargets($source, $result) as $target => $value){
       switch($target){
         case 'fid':
-          $nid = db_query("SELECT fid FROM {file_managed} WHERE fid = :fid", array(
+          $fid = db_query("SELECT fid FROM {file_managed} WHERE fid = :fid", array(
             ':fid' => $value
           ))->fetchField();
           break;
         case 'filename':
-          $nid = db_query("SELECT fid FROM {file_managed} WHERE filename = :filename", array(
+          $fid = db_query("SELECT fid FROM {file_managed} WHERE filename = :filename", array(
             ':filename' => $value
           ))->fetchField();
           break;

@@ -265,6 +265,7 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
     $status = drupal_write_record('taxonomy_term_data', $term);
     if($status){
       taxonomy_term_save($term);
+      ScratchpadsMigrateDestinationTerm::ensure_itis_name($term);
     }
     return $status;
   }

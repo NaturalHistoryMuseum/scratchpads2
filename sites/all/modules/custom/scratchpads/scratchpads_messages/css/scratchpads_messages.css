@@ -9,8 +9,12 @@
   border-bottom: solid 1px black;
 }
 
-.toolbar-drawer {
+div.toolbar-drawer {
   box-shadow: 0 3px 5px #000000;
+}
+
+.scratchpads_messages .item-list {
+  background-color: inherit !important;
 }
 
 .scratchpads_messages .item-list li {

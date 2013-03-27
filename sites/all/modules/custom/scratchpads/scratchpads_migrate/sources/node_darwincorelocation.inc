@@ -61,10 +61,15 @@ class ScratchpadsNodeDarwincorelocationMigration extends ScratchpadsNodeMigratio
     return $fields;
   }
 
+  static function tableExists($cnx) {
+    return Database::getConnection('default', $cnx)->schema()->tableExists('darwincorelocation');
+  }
+
   protected function nodeQuery(){
     $query = parent::nodeQuery();
-    $query->innerJoin('darwincorelocation', 'dl', 'dl.vid = n.vid');
-    $query->fields('dl', array(
+    if (ScratchpadsNodeDarwincorelocationMigration::tableExists($this->sourceConnection)) {
+      $query->innerJoin('darwincorelocation', 'dl', 'dl.vid = n.vid');
+      $query->fields('dl', array(
       'continentocean',
       'islandgroup',
       'island',
@@ -80,12 +85,19 @@ class ScratchpadsNodeDarwincorelocationMigration extends ScratchpadsNodeMigratio
       'maxelevation',
       'mindepth',
       'maxdepth'
-    ));
+      ));
+    } else {
+      $query->condition('n.nid', 0); // FALSE
+    }
     return $query;
   }
   protected function countQuery(){
     $query = parent::countQuery();
-    $query->innerJoin('darwincorelocation', 'dl', 'dl.vid = n.vid');
+    if (ScratchpadsNodeDarwincorelocationMigration::tableExists($this->sourceConnection)) {
+      $query->innerJoin('darwincorelocation', 'dl', 'dl.vid = n.vid');
+    } else {
+      $query->condition('n.nid', 0); // FALSE
+    }
     return $query;
   }
 
@@ -126,7 +138,7 @@ class ScratchpadsNodeDarwincorelocationMigration extends ScratchpadsNodeMigratio
       }
     }
     // If lat/long is 0 remove the field so we don't get an empty map
-    if($row->location_latlong == '0.000000,0.000000'){
+    if(isset($row->location_latlong) && $row->location_latlong == '0.000000,0.000000'){
       unset($row->location_latlong);
     }
   }
