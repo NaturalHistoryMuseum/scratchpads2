@@ -211,12 +211,14 @@ if(!Array.prototype.indexOf) {
     // User has shown / hidden a column - save it to the backend
     function handleColumnsChanged(){
       var hiddenColumns = [];
-      $('input[id^=columnpicker]', '.slick-columnpicker').each(function(i, e){
-        if($(this).is(":visible")) {
-          if($(this).is(":checked")) {
-            columns[i]['hidden'] = false;
-          } else {
-            columns[i]['hidden'] = true;
+      $('input', '.slick-columnpicker').each(function(i, e){
+        if(columns[i]) {
+          if($(this).is(":visible")) {
+            if($(this).is(":checked")) {
+              columns[i]['hidden'] = false;
+            } else {
+              columns[i]['hidden'] = true;
+            }
           }
         }
       });
@@ -240,7 +242,7 @@ if(!Array.prototype.indexOf) {
         $('.slick-columnpicker li').eq(0).hide()
       }
       // User has changed the columns
-      $('input[id^=columnpicker]', '.slick-columnpicker').change(handleColumnsChanged);
+      $('input', '.slick-columnpicker').change(handleColumnsChanged);
       // Auto resize does not fire column resize - so need to call it manually
       $('#autoresize').change(function(){
         handleAutoResize($(this).is(':checked') ? 1 : 0);
