@@ -248,6 +248,20 @@ function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
   }
 }
 
+/**
+ * Implements hook_theme_registry_alter()
+ */
+function scratchpads_tweaks_theme_registry_alter(&$reg){
+  $reg['filter_guidelines']['function'] = 'theme_scratchpads_tweaks_filter_guidelines';
+}
+
+/**
+ * Hide the filter guidelines
+ */
+function theme_scratchpads_tweaks_filter_guidelines($vars){
+  return '';
+}
+
 function scratchpads_tweaks_form_system_theme_settings_submit($form, &$form_state){
   variable_set('resize_logo', $form_state['values']['resize_logo']);
 }
