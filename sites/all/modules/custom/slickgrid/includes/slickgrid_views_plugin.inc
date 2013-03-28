@@ -7,14 +7,6 @@ class slickgrid_views_plugin extends views_plugin_style{
 
   var $locked_fields = array();
 
-  function init(&$view, &$display, $options = NULL){
-    parent::init($view, $display, $options);
-    if(isset($options['pager']) && $options['pager']){
-      // If using slickgrid pager, need to set items per page to 0 so all items are available
-      $this->display->handler->default_display->options['pager']['options']['items_per_page'] = 0;
-    }
-  }
-
   /**
    * Set default options
    */
@@ -65,15 +57,15 @@ class slickgrid_views_plugin extends views_plugin_style{
     $options['forceFitColumns'] = array(
       'default' => false
     );
-    $options['pager'] = array(
-      'default' => false
-    );
     // maps to slickgrid option headerHeight
     $options['headerHeight'] = array(
       'default' => 42
     );
     $options['viewport_height'] = array(
       'default' => 500
+    );
+    $options['height_expand'] = array(
+      'default' => TRUE
     );
     // maps to slickgrid option rowHeight
     $options['rowHeight'] = array(
@@ -340,6 +332,15 @@ class slickgrid_views_plugin extends views_plugin_style{
         'enableColumnReorder'
       )
     );
+    $form['settings']['height_expand'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Enable automatic resizing of the grid to fill available vertical space'),
+      '#default_value' => $this->options['height_expand'],
+      '#parents' => array(
+        'style_options',
+        'height_expand'
+      )
+    );
     $form['settings']['select_columns'] = array(
       '#type' => 'checkbox',
       '#title' => t('Column visibility'),
@@ -367,16 +368,6 @@ class slickgrid_views_plugin extends views_plugin_style{
       '#parents' => array(
         'style_options',
         'forceFitColumns'
-      )
-    );
-    $form['settings']['pager'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Override paging'),
-      '#default_value' => $this->options['pager'],
-      '#description' => t('If selected, use slickgrid\'s in-built pagination instead of views\'.'),
-      '#parents' => array(
-        'style_options',
-        'pager'
       )
     );
     $form['settings']['headerHeight'] = array(

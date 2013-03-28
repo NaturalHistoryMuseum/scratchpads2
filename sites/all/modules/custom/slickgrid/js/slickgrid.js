@@ -83,7 +83,7 @@ if(!Array.prototype.indexOf) {
           // required.
           // This feels like a similar issue to what we were having with the
           // toolbar module.
-          // $('body').css('position', 'relative');
+          $('body').css('position', 'relative');
           loadingIndicator.css("top", $(container).offset().top);
           loadingIndicator.css("left", $(container).offset().left);
           loadingIndicator.css("width", $(container).width());
@@ -185,6 +185,18 @@ if(!Array.prototype.indexOf) {
           handleViewportResized(ui.size.height);
         }
       }});
+      // We dynamically increase the height of the grid so that it fills the
+      // window.
+      if(options['height_expand']) {
+        // At this point we do not usually have the margin-top for the body, so
+        // the "100" has been added to allow for that.
+        // (window.height - (top offset + header and footer height + body top \
+        // margin + 100)) - current height
+        var increase_by = ($(window).height() - ($('#slickgrid').offset().top + ($('#slickgrid').parent().height() - $('#slickgrid').height() + parseInt($('body').css('marginTop')) + 100))) - $('#slickgrid').height();
+        if(increase_by > 20) {
+          $('#slickgrid').animate().height($('#slickgrid').height() + increase_by);
+        }
+      }
     }
     function handleValidationError(eventData, error){
       alert(Drupal.t('There has been an error, please reload the page.'))
@@ -347,10 +359,10 @@ if(!Array.prototype.indexOf) {
           if(typeof c == 'object') {
             if(typeof c.filter == 'string') {
               c.filter = eval('new ' + columns[i].filter + '("' + c.id + '")');
-              if(typeof c.filter.input === 'function') {
-                var $input = c.filter.input().data("columnId", c.id).val(columnFilters[c.id]);
-                Drupal.theme('slickgridFilter', $input, options['columns'][c.id]['filter']).appendTo(header);
-              }
+            }
+            if(typeof c.filter.input === 'function') {
+              var $input = c.filter.input().data("columnId", c.id).val(columnFilters[c.id]);
+              Drupal.theme('slickgridFilter', $input, options['columns'][c.id]['filter']).appendTo(header);
             }
           }
         }
