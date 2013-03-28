@@ -25,8 +25,6 @@ function slickgrid_clone_form($form, $form_state, $entity_type, $entity_ids){
   $form['description_text']['#markup'] = '<p>' . format_plural(count($entity_ids), t('Do you want to clone the selected row'), t('Do you want to clone the @num selected rows', array(
     '@num' => count($entity_ids)
   ))) . '</p>';
-  $form['actions']['cancel']['#ajax']['callback'] = 'slickgrid_clone_form_submit';
-  $form['actions']['do']['#ajax']['callback'] = 'slickgrid_clone_form_submit';
   $form['actions']['do']['#value'] = t('Clone');
   return $form;
 }
@@ -37,15 +35,68 @@ function slickgrid_clone_form($form, $form_state, $entity_type, $entity_ids){
 function slickgrid_clone_form_submit($form, &$form_state){
   $commands = array();
   if($form_state['values']['op'] == $form_state['values']['do']){
-    // FIXME - Actually do the clone here.
-    // FIXME - Change this from an alert to something a little nicer.
-    $commands[] = ajax_command_alert(t('Cloned the selected rows'));
+    //entity_delete_multiple($form_state['values']['entity_type'], $form_state['values']['entity_ids']);
+    module_load_include('ui.inc', 'entity', 'includes/entity');
+    $entities_to_clone = entity_load($form_state['values']['entity_type'], $form_state['values']['entity_ids']);
+    foreach($entities_to_clone as $entity_to_clone){
+      $new_entity = _slickgrid_clone_entity($form_state['values']['entity_type'], $entity_to_clone);
+      entity_save($form_state['values']['entity_type'], $new_entity);
+    }
+    $commands[] = ajax_command_invoke('', 'slickgrid_messages', array(
+      array(
+        array(
+          'type' => 'status',
+          'message' => format_plural(count($form_state['values']['entity_ids']), t('Cloned the selected row'), t('Cloned the @num selected rows', array(
+            '@num' => count($form_state['values']['entity_ids'])
+          )))
+        )
+      )
+    ));
+    $commands[] = ajax_command_invoke('', 'slickgrid_refresh');
   }
   $commands[] = ajax_command_remove('#' . $form_state['values']['form_id'] . ' ~ div');
+  $form_state['slickgrid_commands'] = $commands;
+}
+
+/**
+ * 
+ */
+function slickgrid_return_commands_from_form($form, $form_state){
   return array(
     '#type' => 'ajax',
-    '#commands' => $commands
+    '#commands' => $form_state['slickgrid_commands']
   );
+}
+
+/**
+ * Clones the entity object and makes sure it will get saved as new entity.
+ *
+ * This is a fixed version of "entity_ui_clone_entity"
+ */
+function _slickgrid_clone_entity($entity_type, $entity){
+  // Clone the entity and make sure it will get saved as a new entity.
+  $entity = clone $entity;
+  $entity_info = entity_get_info($entity_type);
+  $entity->{$entity_info['entity keys']['id']} = FALSE;
+  if(!empty($entity_info['entity keys']['name'])){
+    $entity->{$entity_info['entity keys']['name']} = FALSE;
+  }
+  if(!empty($entity_info['entity keys']['revision'])){
+    $entity->{$entity_info['entity keys']['revision']} = FALSE;
+  }
+  if(!empty($entity_info['entity keys']['uuid'])){
+    $entity->{$entity_info['entity keys']['uuid']} = FALSE;
+  }
+  if(!empty($entity_info['entity keys']['vuuid'])){
+    $entity->{$entity_info['entity keys']['vuuid']} = FALSE;
+  }
+  $entity->is_new = TRUE;
+  // Make sure the status of a cloned exportable is custom.
+  if(!empty($entity_info['exportable'])){
+    $status_key = isset($entity_info['entity keys']['status']) ? $entity_info['entity keys']['status'] : 'status';
+    $entity->$status_key = ENTITY_CUSTOM;
+  }
+  return $entity;
 }
 
 /**
@@ -71,14 +122,16 @@ function slickgrid_delete_form($form, $form_state, $entity_type, $entity_ids){
         '#type' => 'submit',
         '#value' => t('Cancel'),
         '#ajax' => array(
-          'callback' => 'slickgrid_delete_form_submit'
+          // We need an empty callback, as all the logic is handled in the submit
+          // function.
+          'callback' => 'slickgrid_return_commands_from_form'
         )
       ),
       'do' => array(
         '#type' => 'submit',
         '#value' => t('Delete'),
         '#ajax' => array(
-          'callback' => 'slickgrid_delete_form_submit'
+          'callback' => 'slickgrid_return_commands_from_form'
         )
       )
     )
@@ -91,21 +144,19 @@ function slickgrid_delete_form($form, $form_state, $entity_type, $entity_ids){
 function slickgrid_delete_form_submit($form, &$form_state){
   $commands = array();
   if($form_state['values']['op'] == $form_state['values']['do']){
-    // FIXME - Actually do the delete here.
-    //entity_delete_multiple($form_state['values']['entity_type'], $form_state['values']['entity_ids']);
+    entity_delete_multiple($form_state['values']['entity_type'], $form_state['values']['entity_ids']);
     $commands[] = ajax_command_invoke('', 'slickgrid_messages', array(
       array(
         array(
           'type' => 'status',
-          'message' => t('Deleted the selected rows')
+          'message' => format_plural(count($form_state['values']['entity_ids']), t('Deleted the selected row'), t('Delete the @num selected rows', array(
+            '@num' => count($form_state['values']['entity_ids'])
+          )))
         )
       )
     ));
     $commands[] = ajax_command_invoke('', 'slickgrid_refresh');
   }
   $commands[] = ajax_command_remove('#' . $form_state['values']['form_id'] . ' ~ div');
-  return array(
-    '#type' => 'ajax',
-    '#commands' => $commands
-  );
+  $form_state['slickgrid_commands'] = $commands;
 }
