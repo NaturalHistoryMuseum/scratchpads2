@@ -79,7 +79,11 @@ if(!Array.prototype.indexOf) {
         if(!loadingIndicator) {
           loadingIndicator = $('<div class="loading-indicator"><div><img src="' + Drupal.settings.slickgrid.loading_image_url + '"/></div></div>').appendTo(document.body);
           loadingIndicator.css("position", "absolute");
-          $('body').css('position', 'relative');
+          // FIXME - The following "position" command may or may not be
+          // required.
+          // This feels like a similar issue to what we were having with the
+          // toolbar module.
+          // $('body').css('position', 'relative');
           loadingIndicator.css("top", $(container).offset().top);
           loadingIndicator.css("left", $(container).offset().left);
           loadingIndicator.css("width", $(container).width());
@@ -557,10 +561,7 @@ if(!Array.prototype.indexOf) {
     // Open a dialog (currently via beautytips)
     function openDialog($selector, content, options){
       var options = {positions: 'left', fill: '#fff', strokeWidth: 0, spikeLength: 5, strokeStyle: '#A5A5A5', strokeWidth: 1, width: 200, trigger: 'none', // Already
-      // clicked
-      // so
-      // manually
-      // activate
+      // clicked so manually activate
       cornerRadius: 0, overlap: 3};
       if(typeof content == 'object') {
         content.addClass('slickgrid-dialog');
@@ -582,7 +583,7 @@ if(!Array.prototype.indexOf) {
     function updateColumns(updatedColumns){
       columns = eval('(' + updatedColumns + ')');
       grid.setColumns(columns);
-      if(tabs){
+      if(tabs) {
         tabs.rebuild();
       }
     }
@@ -592,11 +593,7 @@ if(!Array.prototype.indexOf) {
     function getContainer(){
       return container;
     }
-    // /////////////////////////////////////////// Public API
-    // /////////////////////////////////////////////
-    $.extend(this, {
-    // Methods
-    "callback": callback, "getViewName": getViewName, "getViewDisplayID": getViewDisplayID, "getEntityIDs": getEntityIDs, "getContainer": getContainer, "openDialog": openDialog, "closeDialog": closeDialog, "reload": reload, 'setColumnFilter': setColumnFilter, 'updateFilters': updateFilters});
+    $.extend(this, {"callback": callback, "getViewName": getViewName, "getViewDisplayID": getViewDisplayID, "getEntityIDs": getEntityIDs, "getContainer": getContainer, "openDialog": openDialog, "closeDialog": closeDialog, "reload": reload, 'setColumnFilter': setColumnFilter, 'updateFilters': updateFilters, 'updateStatus': updateStatus});
     init();
   }
 })(jQuery);

@@ -10,4 +10,15 @@
     $(form).offset(button_offset);
     Drupal.behaviors.AJAX.attach('', Drupal.settings);
   }
+  // Extend the jQuery object so that we can easily add slickgrid messages from
+  // the server.
+  $.prototype.slickgrid_messages = function(messages){
+    slickgrid.updateStatus({success: messages.length}, messages);
+  }
+  // Extend the jQuery object so that we can easily update all the data within
+  // the slickgrid.
+  $.prototype.slickgrid_refresh = function(){
+    slickgrid.reload()
+    $('#slickgrid input[type="checkbox"]').attr('checked', false);
+  }
 })(jQuery);

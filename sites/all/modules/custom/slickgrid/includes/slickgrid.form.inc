@@ -38,7 +38,7 @@ function slickgrid_clone_form_submit($form, &$form_state){
   $commands = array();
   if($form_state['values']['op'] == $form_state['values']['do']){
     // FIXME - Actually do the clone here.
-    // FIXME - Change this from an alter to something a little nicer.
+    // FIXME - Change this from an alert to something a little nicer.
     $commands[] = ajax_command_alert(t('Cloned the selected rows'));
   }
   $commands[] = ajax_command_remove('#' . $form_state['values']['form_id'] . ' ~ div');
@@ -92,23 +92,20 @@ function slickgrid_delete_form_submit($form, &$form_state){
   $commands = array();
   if($form_state['values']['op'] == $form_state['values']['do']){
     // FIXME - Actually do the delete here.
-    // FIXME - Change this from an alter to something a little nicer.
-    $commands[] = ajax_command_alert(t('Deleted the selected rows'));
+    //entity_delete_multiple($form_state['values']['entity_type'], $form_state['values']['entity_ids']);
+    $commands[] = ajax_command_invoke('', 'slickgrid_messages', array(
+      array(
+        array(
+          'type' => 'status',
+          'message' => t('Deleted the selected rows')
+        )
+      )
+    ));
+    $commands[] = ajax_command_invoke('', 'slickgrid_refresh');
   }
   $commands[] = ajax_command_remove('#' . $form_state['values']['form_id'] . ' ~ div');
   return array(
     '#type' => 'ajax',
     '#commands' => $commands
   );
-  /*
-//Callback function - delete a node
-function slickgrid_callback_delete(){
-  foreach($_POST['entity_ids'] as $entity_id){
-    entity_delete($_POST['entity_type'], $entity_id);
-  }
-  drupal_set_message(format_plural(count($_POST['entity_ids']), '1 item was deleted.', '@count items were deleted.'));
-  return array(
-    'deleted' => $_POST['entity_ids']
-  );
-}*/
 }
