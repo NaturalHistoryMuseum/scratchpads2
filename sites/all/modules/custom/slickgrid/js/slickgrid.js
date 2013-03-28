@@ -578,6 +578,7 @@ if(!Array.prototype.indexOf) {
     }
     // Reload the whole grid
     function reload(data){
+      grid.setSelectedRows([]);
       loader.reloadData(0, loader.data.length - 1);
     }
     function updateColumns(updatedColumns){

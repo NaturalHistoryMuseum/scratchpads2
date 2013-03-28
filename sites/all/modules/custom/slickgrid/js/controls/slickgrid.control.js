@@ -19,6 +19,5 @@
   // the slickgrid.
   $.prototype.slickgrid_refresh = function(){
     slickgrid.reload()
-    $('#slickgrid input[type="checkbox"]').attr('checked', false);
   }
 })(jQuery);
