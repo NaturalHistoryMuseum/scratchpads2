@@ -1252,6 +1252,12 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['filters']['uri']['field'] = 'uri';
   $handler->display->display_options['filters']['uri']['operator'] = 'not';
   $handler->display->display_options['filters']['uri']['value'] = '/eolapi/';
+  /* Filter criterion: Content: Published */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'node';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['relationship'] = 'file_to_node';
+  $handler->display->display_options['filters']['status']['value'] = '1';
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'some';
