@@ -85,6 +85,17 @@ function emonocot_biblio_install(){
   $update = db_update('apachesolr_search_page')->fields(array(
     'settings' => $dbresults
   ))->condition('page_id', 'biblio_search', '=')->execute();
+   $weight = db_select('system', 's')
+              ->fields('s', array('weight'))
+              ->condition('name', 'feeds', '=')
+              ->execute()
+              ->fetchField();
+
+  db_update('system')
+    ->fields(array('weight' => $weight +1))
+    ->condition('name', 'emonocot_bilbio', '=')
+    ->execute();
+  
 }
 
 /**
@@ -113,4 +124,17 @@ function emonocot_biblio_update_7002(){
 
 function emonocot_biblio_update_7004(){
   emonocot_biblio_update_7001();
+}
+
+function emonocot_biblio_update_7005(){
+  $weight = db_select('system', 's')
+              ->fields('s', array('weight'))
+              ->condition('name', 'feeds', '=')
+              ->execute()
+              ->fetchField();
+
+  db_update('system')
+    ->fields(array('weight' => $weight +1))
+    ->condition('name', 'emonocot_bilbio', '=')
+    ->execute();
 }

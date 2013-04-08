@@ -186,7 +186,11 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
               // D6 doesn't seperate type of file fields, so chceck the
               // widget here
               $widget_type = $this->getFieldWidgetType($delta);
-              $file_destination_field = 'field_media';
+              if ($delta == 'field_mediafiles') {
+                $file_destination_field = 'field_mediafiles';
+              } else {
+                $file_destination_field = 'field_media';
+              }
               if($widget_type == 'nodereference_select'){
                 $file_destination_field = $delta;
                 $this->extraImageFields[] = $delta;
@@ -205,7 +209,9 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
                 $file_destination_field . ':destination_dir',
                 $file_destination_field . ':destination_file',
                 $file_destination_field . ':preserve_files',
-                $file_destination_field . ':source_dir'
+                $file_destination_field . ':source_dir',
+                $file_destination_field . ':alt',
+                $file_destination_field . ':title'
               ));
               break;
             case 'node_reference':
@@ -333,8 +339,13 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     // NOTE: OG works with NID, not VID
     $query->leftJoin('og_ancestry', 'oga', 'oga.nid = n.nid');
     $query->addField('oga', 'group_nid', 'group_nid');
-    $query->leftJoin('og_access_post', 'ogap', 'ogap.nid = n.nid');
-    $query->addField('ogap', 'og_public', 'og_public');
+    if (Database::getConnection('default', $this->sourceConnection)->schema()->tableExists('og_access_post')) {
+      $query->leftJoin('og_access_post', 'ogap', 'ogap.nid = n.nid');
+      $query->addField('ogap', 'og_public', 'og_public');
+    } else {
+      // Simulate an empty left join.
+      $query->addExpression(':null', 'og_public', array(':null' => NULL));
+    }
     $query->condition('n.title', 'Taskguide', '!=');
     $query->orderBy('nr.vid');
     return $query;
