@@ -141,6 +141,22 @@ function scratchpads_hands_off_menu_alter(&$items){
 }
 
 /**
+ * Implements hook_contextual_links_view_alter().
+ * 
+ * Prevent editing of blocks from contextual links
+ */
+function scratchpads_hands_off_contextual_links_view_alter(&$element, $items){
+  if(@isset($element['#contextual_links']['block'][1][0]) && in_array($element['#contextual_links']['block'][1][0], array(
+    'facetapi',
+    'apachesolr_search',
+    'scratchpads_blocks',
+    'system'
+  )) && !user_access('scratchpad team')){
+    $element = array();
+  }
+}
+
+/**
  * Tweak the file overview page.
  */
 function scratchpads_hands_off_file_entity_list_types_page(){

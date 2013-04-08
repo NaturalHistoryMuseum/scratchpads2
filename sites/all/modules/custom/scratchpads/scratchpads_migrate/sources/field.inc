@@ -106,7 +106,9 @@ class DrupalFieldMigration extends DrupalMigration{
     }
     // We want all image fields to use the media field
     if($row->type == 'image' || $row->type == 'filefield'){
-      $row->field_name = 'field_media';
+      if ($row->field_name != 'field_mediafiles') {
+        $row->field_name = 'field_media';
+      }
     }
     // Special cases for node references
     if($row->type == 'nodereference'){

@@ -183,8 +183,11 @@ class MigrateDestinationField extends MigrateDestination{
         );
         break;
       case 'options_select':
+      case 'optionwidgets_select':
       case 'options_buttons':
+      case 'optionwidgets_buttons':
       case 'options_onoff':
+      case 'optionwidgets_onoff':
         switch($field_config['type']){
           case 'number_integer':
             $field_config['type'] = 'list_integer';
@@ -207,7 +210,7 @@ class MigrateDestinationField extends MigrateDestination{
             $allowed_values = $field_config['settings']['allowed_values'];
           }
           $allowed_values = str_replace(array(
-            "<p>", // FFS!!!! Some muppets have wrapped <p> tags around allowed values!! Strip them out
+            "<p>", // Some users have wrapped <p> tags around allowed values!! Strip them out
             "</p>",
             "\r",
             "\r\n",
