@@ -284,23 +284,25 @@ function exif_custom_map_edit_submit($form, $form_state){
 }
 
 function exif_custom_mappings(){
+	$output = '';
   $mappings = _exif_custom_get_maps();
   if($mappings == false){
-    drupal_set_message('You have not created any mappings.', 'status');
-  }
-  $site_default_mid = variable_get('exif_custom_default', -1);
-  $output = '<table>';
-  while($result = $mappings->fetchObject()){
-    if(exif_custom_get_user_default() == $result->mid){
-      $default = '<strong>User Default</strong>';
-    }else if($site_default_mid == $result->mid){
-      $default = 'Site Default';
-    }else{
-      $default = '';
+    $output .= '<p>You have not yet created any mappings.</p>';
+  } else {
+    $site_default_mid = variable_get('exif_custom_default', -1);
+    $output .= '<table>';
+    while($result = $mappings->fetchObject()){
+      if(exif_custom_get_user_default() == $result->mid){
+        $default = '<strong>User Default</strong>';
+      }else if($site_default_mid == $result->mid){
+        $default = 'Site Default';
+      }else{
+        $default = '';
+      }
+      $output .= '<tr><td>' . $result->name . '</td><td>' . l('edit', 'admin/config/content/exif_custom/map/' . $result->mid) . '</td><td>' . $default . '</tr>';
     }
-    $output .= '<tr><td>' . $result->name . '</td><td>' . l('edit', 'admin/config/content/exif_custom/map/' . $result->mid) . '</td><td>' . $default . '</tr>';
+    $output .= '</table>';
   }
-  $output .= '</table>';
   return $output;
 }
 
@@ -361,7 +363,7 @@ function exif_custom_new_map_submit($form, $form_state){
     db_query($sql, array(
       ':mid' => $mid,
       ':exif_field' => $key,
-      ':exif_example' => utf8_encode($value),
+      ':exif_example' => $value,
       ':img_field' => 'none'
     ));
   }
@@ -371,7 +373,11 @@ function exif_custom_new_map_submit($form, $form_state){
 function _exif_custom_get_maps(){
   $sql = "SELECT mid, name FROM {exif_custom_maps};";
   $results = db_query($sql);
-  return $results;
+  if ($results->rowCount() > 0) {
+    return $results;
+  } else {
+  	return FALSE;
+  }
 }
 
 function exif_custom_entity_presave($file){
@@ -383,6 +389,7 @@ function exif_custom_entity_presave($file){
 
 function exif_custom_process_entity(&$file){
   //$file = file_load($file->fid);
+  if(!isset($file->type) || !isset($file->uri)){return;}
   if($file->type != 'image'){return;}
   if(arg(3) == 'exif_custom'){return;}
   if(arg(2) == 'edit'){return;}
@@ -490,7 +497,7 @@ function exif_custom_get_exif_fields($uri, $concatenate_arrays = TRUE){
   foreach ($info as $block){
     $iptc = iptcparse($block);
   
-  if(isset($iptc)){
+  if($iptc){
     //IPTC:2#254 can contain name=value pairs
     if(isset($iptc['2#254']) && is_array($iptc['2#254'])){
       $i = 0;
@@ -552,6 +559,9 @@ function _exif_custom_taxonomy_autocomplete_validate(&$element, $vocabularies){
 }
 
 function exif_custom_check_plain($text){
+  if (is_null($text)) {
+    $text = "";
+  }
   if(!mb_detect_encoding($text, 'UTF-8', true)){
     $text = mb_convert_encoding($text, 'UTF-8', 'ISO-8859-1');
   }
