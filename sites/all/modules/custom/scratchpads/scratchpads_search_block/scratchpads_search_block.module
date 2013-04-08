@@ -114,14 +114,31 @@ function scratchpads_search_block_form_submit($form, &$form_state){
     $search_string = trim($form_state['values'][$form_id]);
     switch($form_state['values']['facet']){
       case '_taxonomy':
+        $hierarchy = explode(" » ", trim($form_state['values'][$form_id]));
+        $hierarchy_count = count($hierarchy);
         // We attempt to load a term with the name sent.
-        $terms = taxonomy_get_term_by_name(trim($form_state['values'][$form_id]));
+        $terms = taxonomy_get_term_by_name($hierarchy[count($hierarchy) - 1]);
         if($terms){
-          $term = array_shift($terms);
-          drupal_goto('taxonomy/term/' . $term->tid);
-        }else{
-          $search_string = trim($form_state['values'][$form_id]);
+          foreach($terms as $term){
+            $term_found = TRUE;
+            $parents = taxonomy_get_parents_all($term->tid);
+            // If we have a different number in our hierarchy, we must have the
+            // wrong term.
+            if(count($parents) == $hierarchy_count){
+              $parents = array_reverse($parents);
+              for($i = 0; $i < $hierarchy_count; $i++){
+                if($hierarchy[$i] != $parents[$i]->name){
+                  $term_found = FALSE;
+                  break;
+                }
+              }
+              if($term_found){
+                drupal_goto('taxonomy/term/' . $term->tid);
+              }
+            }
+          }
         }
+        $search_string = trim($form_state['values'][$form_id]);
         break;
       case '_media':
         drupal_goto('gallery/' . $form_state['values']['search_block_form']);
