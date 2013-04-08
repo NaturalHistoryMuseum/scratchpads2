@@ -60,19 +60,21 @@ class ScratchpadsNodeSpmMigration extends ScratchpadsNodeMigration{
       'Uses' => 'field_uses'
     );
     parent::__construct($arguments);
-    $this->addUnmigratedDestinations(array(
-      'field_media',
-      'field_media:file_class',
-      'field_media:language',
-      'field_media:destination_dir',
-      'field_media:destination_file',
-      'field_media:file_replace',
-      'field_media:preserve_files',
-      'field_media:source_dir',
-      'field_media:description',
-      'field_media:display',
-      'field_spm_map'
-    ));
+    if(empty($this->fieldMappings['field_media'])){
+      $this->addUnmigratedDestinations(array(
+        'field_media',
+        'field_media:file_class',
+        'field_media:language',
+        'field_media:destination_dir',
+        'field_media:destination_file',
+        'field_media:file_replace',
+        'field_media:preserve_files',
+        'field_media:source_dir',
+        'field_media:description',
+        'field_media:display',
+        'field_spm_map'
+      ));
+    }
   }
 
   protected function nodeQuery(){
