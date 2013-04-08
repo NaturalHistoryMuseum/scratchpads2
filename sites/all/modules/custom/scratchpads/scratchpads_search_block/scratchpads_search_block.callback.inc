@@ -13,6 +13,12 @@ function scratchpads_search_block_autocomplete($search = ''){
     ))->condition('t.name', '%' . db_like($search) . '%', 'LIKE')->range(0, 10)->execute()->fetchAllKeyed();
     $term_matches = array();
     foreach($tags_return as $tid => $name){
+      $parents = taxonomy_get_parents_all($tid);
+      $parents = array_reverse($parents, FALSE);
+      foreach($parents as $key => $parent){
+        $parents[$key] = $parent->name;
+      }
+      $name = implode(" » ", $parents);
       $term_matches[$name] = check_plain($name);
     }
   }
