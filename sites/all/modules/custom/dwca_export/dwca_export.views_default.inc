@@ -361,6 +361,11 @@ function dwca_export_views_default_views(){
     'imaging_technique' => 'imaging_technique',
     'preparation_technique' => 'preparation_technique'
   );
+  /* Filter criterion: Taxonomy term: Unit name 1 (field_unit_name1) */
+  $handler->display->display_options['filters']['field_unit_name1_value']['id'] = 'field_unit_name1_value';
+  $handler->display->display_options['filters']['field_unit_name1_value']['table'] = 'field_data_field_unit_name1';
+  $handler->display->display_options['filters']['field_unit_name1_value']['field'] = 'field_unit_name1_value';
+  $handler->display->display_options['filters']['field_unit_name1_value']['operator'] = 'not empty';
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
   $handler->display->display_options['path'] = 'dwca_export/classification/page';
