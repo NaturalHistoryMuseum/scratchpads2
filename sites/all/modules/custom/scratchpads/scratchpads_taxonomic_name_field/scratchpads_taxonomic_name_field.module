@@ -119,15 +119,18 @@ function scratchpads_taxonomic_name_field_autocomplete_validate($element, &$form
           $value[] = (array)$term;
         }
       }else{
-        $vocabulary = reset($vocabularies);
         foreach($vocabularies as $vocabulary){
-          $term = array(
-            'tid' => 'autocreate',
-            'vid' => $vocabulary->vid,
-            'name' => $typed_term,
-            'vocabulary_machine_name' => $vocabulary->machine_name
-          );
-          $value[] = (array)$term;
+          if(isset($vocabulary->biological_classification) && $vocabulary->biological_classification){
+            drupal_set_message(t('Biological terms must be added using the classification editor.'), 'error', FALSE);
+          }else{
+            $term = array(
+              'tid' => 'autocreate',
+              'vid' => $vocabulary->vid,
+              'name' => $typed_term,
+              'vocabulary_machine_name' => $vocabulary->machine_name
+            );
+            $value[] = (array)$term;
+          }
         }
       }
     }
