@@ -117,12 +117,14 @@ function scratchpads_migrate_register_migrations(){
   /*********************************************************************************************
    * Citation
    ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of citations from Drupal 6'),
-    'machine_name' => 'Citations',
-    'group' => MigrateGroup::getInstance('setup')
-  );
-  Migration::registerMigration('CitationMigration', $arguments['machine_name'], $arguments);
+  if (scratchpads_migrate_source_table_exists('citation')) {
+    $arguments = $common_arguments + array(
+      'description' => t('Migration of citations from Drupal 6'),
+      'machine_name' => 'Citations',
+      'group' => MigrateGroup::getInstance('setup')
+    );
+    Migration::registerMigration('CitationMigration', $arguments['machine_name'], $arguments);
+  }
   /*********************************************************************************************
        * Variables
        ********************************************************************************************/
