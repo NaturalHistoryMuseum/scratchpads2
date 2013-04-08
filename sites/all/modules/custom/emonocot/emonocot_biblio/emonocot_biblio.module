@@ -537,8 +537,9 @@ function emonocot_biblio_feeds_importer_default(){
 }
 
 function emonocot_biblio_form_alter(&$form, &$form_state, $form_id){
+  global $base_url;
   if ($form_id == 'feeds_import_form'  && $form['#importer_id'] == 'emonocot_protologue') {
-  	$text = '<div class="help"><p><a href="'. drupal_get_path('module', 'emonocot_biblio') .'/protologue_template.xls" target="_blank" class="overlay-exclude">Excel template file</a> for this import.</p></div>';
+  	$text = '<div class="help"><p><a href="'. $base_url . drupal_get_path('module', 'emonocot_biblio') .'/protologue_template.xls" target="_blank" class="overlay-exclude">Excel template file</a> for this import.</p></div>';
   	$form['feeds']['FeedsExcelParser']['help']['text']['#markup'] = $text;
   }
 }
