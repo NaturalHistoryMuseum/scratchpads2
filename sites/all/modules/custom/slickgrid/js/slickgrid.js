@@ -107,6 +107,8 @@ if(!Array.prototype.indexOf) {
         }
         grid.updateRowCount();
         grid.render();
+        // FIXME - The loading indicator is causing the horizontal scroll bar
+        // to appear on screen.
         loadingIndicator.fadeOut();
       });
       // load the first page

@@ -5,6 +5,8 @@
  */
 function slickgrid_menu(){
   return array(
+    // FIXME - I still need to remove the following, although all CSRF are
+    // sorted!
     'slickgrid/callback/%' => array(
       'page callback' => 'slickgrid_callback',
       'page arguments' => array(
@@ -242,21 +244,12 @@ function slickgrid_views_pre_view(&$view, $display_id, $args){
 }
 
 /**
- * 
  * Implements hook_user_delete()
- * @param user account object $account
  */
 function slickgrid_user_delete($account){
-  slickgrid_delete_settings(array(
-    'uid' => $account->uid
-  ));
+  $query = db_delete('slickgrid')->condition('uid', $account->uid)->execute();
 }
 
-/*********************************************************************************************
- * 
- * CTOOLS PLUGIN INTEGRATION
- * 
- ********************************************************************************************/
 /**
  * Implements hook_ctools_plugin_api().
  */
@@ -334,11 +327,6 @@ function slickgrid_plugin_load_class($type, $id, $class_name){
   return $class;
 }
 
-/*********************************************************************************************
- * 
- * DAO GET / SETTERS
- * 
- ********************************************************************************************/
 function slickgrid_set_settings($uid, $view_name, $display_id, $settings){
   $record = new stdClass();
   $record->uid = $uid;
@@ -389,100 +377,6 @@ function slickgrid_get_settings($conditions = array(), $setting = null){
   }
 }
 
-function slickgrid_delete_settings($conditions = array()){
-  if(count($conditions)){
-    $query = db_delete('slickgrid');
-    foreach($conditions as $field => $condition){
-      $query->condition($field, $condition);
-    }
-    return $query->execute();
-  }
-  return false;
-}
-
-/*********************************************************************************************
- * 
- * ADDITIONAL MODULE FUNCTIONS
- * 
- ********************************************************************************************/
-/**
- * 
- * Add ctools modal plugin
- */
-function slickgrid_add_modal(){
-  // Include the CTools tools that we need.
-  ctools_include('ajax');
-  ctools_include('modal');
-  // Add CTools' javascript to the page.
-  ctools_modal_add_js();
-  // Create our own javascript that will be used to theme a modal.
-  $style_settings = array(
-    'ctools-modal-slickgrid-fixed' => array(
-      'modalSize' => array(
-        'type' => 'fixed',
-        'width' => 550,
-        'height' => 300,
-        'addWidth' => 20,
-        'addHeight' => 15
-      ),
-      'modalOptions' => array(
-        'opacity' => .5,
-        'background-color' => '#000'
-      ),
-      'animation' => 'fadeIn',
-      'modalTheme' => 'SlickgridModal',
-      'throbber' => theme('image', array(
-        'path' => ctools_image_path('ajax-loader.gif', 'ctools_ajax_sample'),
-        'alt' => t('Loading...'),
-        'title' => t('Loading')
-      )),
-      'closeImage' => theme('image', array(
-        'path' => ctools_image_path('close.png', 'slickgrid'),
-        'title' => t('Close window'),
-        'alt' => t('Close window')
-      ))
-    ),
-    'ctools-modal-slickgrid-scale' => array(
-      'modalSize' => array(
-        'type' => 'scale'
-      ),
-      'modalOptions' => array(
-        'opacity' => .5,
-        'background-color' => '#000'
-      ),
-      'animation' => 'fadeIn',
-      'modalTheme' => 'SlickgridModal',
-      'throbber' => theme('image', array(
-        'path' => ctools_image_path('ajax-loader.gif', 'ctools_ajax_sample'),
-        'alt' => t('Loading...'),
-        'title' => t('Loading')
-      )),
-      'closeImage' => theme('image', array(
-        'path' => ctools_image_path('close.png', 'slickgrid'),
-        'title' => t('Close window'),
-        'alt' => t('Close window')
-      ))
-    )
-  );
-  drupal_add_js($style_settings, 'setting');
-}
-
-/**
- * 
- * Encode the columns as a json array
- * We can't simply use drupal_json_encode as the column definitions contain function names
- * @param array $columns
- */
-function slickgrid_encode_columns($columns){
-  $encoded_columns = drupal_json_encode($columns);
-  foreach(slickgrid_get_plugin_types() as $type => $plugin){
-    $encoded_columns = preg_replace('/("' . $type . '":)"([a-z]*)"/i', '$1$2', $encoded_columns);
-  }
-  // Width need to be parsed an integers, so remove the "s
-  $encoded_columns = preg_replace('/("width":)"([0-9]*)"/i', '$1$2', $encoded_columns);
-  return $encoded_columns;
-}
-
 /**
  * 
  * Get a views filtered by NIDs 
@@ -516,26 +410,7 @@ function slickgrid_get_view($view_name, $display_id, $entity_ids = array(), $arg
   return $view;
 }
 
-function slickgrid_get_entity_keys($entity_type = null, $keys_to_ignore = array('label')){
-  $entity_keys = array();
-  if($entity_type){
-    $entities_info = array(
-      entity_get_info($entity_type)
-    );
-  }else{
-    $entities_info = entity_get_info();
-  }
-  foreach($entities_info as $entity_info){
-    foreach($keys_to_ignore as $key_to_ignore){
-      unset($entity_info['entity keys'][$key_to_ignore]);
-    }
-    $entity_keys += array_values($entity_info['entity keys']);
-  }
-  return $entity_keys;
-}
-
 /**
- * 
  * Get all fields of a aprticular type
  * @param string $type
  * @param string $entity_type
@@ -638,6 +513,37 @@ function slickgrid_editor_form($form, &$form_state){
   return $form;
 }
 
+function slickgrid_editor_form_submit($form, &$form_state){
+  $editor = &$form_state['editor'];
+  foreach($editor->entities as $entity){
+    // Get the entity ids
+    list($id, $vid, $bundle_name) = entity_extract_ids($editor->entity_type, $entity);
+    // Create an instance of the field
+    if(!isset($form['#entity_property'])){
+      if(!$instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
+        // Add entity to the editor's error array
+        $editor->set_error($id, t('Field does not exist for this bundle'), 'submit');
+        continue;
+      }
+    }
+    // Populate the entity with the submitted values
+    entity_form_submit_build_entity($editor->entity_type, $entity, $form, $form_state);
+    // Try to save the entity
+    try{
+      entity_save($editor->entity_type, $entity);
+      // Add entity to the editor's updated array
+      $editor->updated[$id] = array(
+        'vid' => $vid
+      );
+    }
+    // ERROR: Entity save callback has thrown an exception
+    catch(Exception $e){
+      // Add entity to the editor's error array
+      $editor->set_error($id, t('Error trying to update entity'), 'submit');
+    }
+  }
+}
+
 /**
  * 
  * Validate the slickgrid editor form
@@ -707,44 +613,10 @@ function slickgrid_field_attach_validate($entity_type, $entity, &$errors){
   }
 }
 
-function slickgrid_editor_form_submit($form, &$form_state){
-  $editor = &$form_state['editor'];
-  foreach($editor->entities as $entity){
-    // Get the entity ids
-    list($id, $vid, $bundle_name) = entity_extract_ids($editor->entity_type, $entity);
-    // Create an instance of the field
-    if(!isset($form['#entity_property'])){
-      if(!$instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
-        // Add entity to the editor's error array
-        $editor->set_error($id, t('Field does not exist for this bundle'), 'submit');
-        continue;
-      }
-    }
-    // Populate the entity with the submitted values
-    entity_form_submit_build_entity($editor->entity_type, $entity, $form, $form_state);
-    // Try to save the entity
-    try{
-      entity_save($editor->entity_type, $entity);
-      // Add entity to the editor's updated array
-      $editor->updated[$id] = array(
-        'vid' => $vid
-      );
-    }
-    // ERROR: Entity save callback has thrown an exception
-    catch(Exception $e){
-      // Add entity to the editor's error array
-      $editor->set_error($id, t('Error trying to update entity'), 'submit');
-    }
-  }
-}
-
 /**
+ * Implentats hook_form_alter
  * 
- * Implentation of hook_form_alter
  * Add an after build function to supress redirecting forms when used in the slickgrid callback
- * @param array $form
- * @param array $form_state
- * @param string $form_id
  */
 function slickgrid_form_alter(&$form, &$form_state, $form_id){
   if(arg(0) == 'slickgrid' && arg(1) == 'callback'){
@@ -753,10 +625,7 @@ function slickgrid_form_alter(&$form, &$form_state, $form_id){
 }
 
 /**
- * 
  * After build form function - set no redirect
- * @param array $form
- * @param array $form_state
  */
 function slickgrid_form_redirect_handler(&$form, &$form_state){
   $form_state['no_redirect'] = true;

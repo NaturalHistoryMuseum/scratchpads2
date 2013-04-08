@@ -474,3 +474,80 @@ function theme_slickgrid_views_plugin_table($variables){
   $output .= drupal_render_children($form);
   return $output;
 }
+
+/**
+ *
+ * Add ctools modal plugin
+ */
+function slickgrid_add_modal(){
+  // Include the CTools tools that we need.
+  ctools_include('ajax');
+  ctools_include('modal');
+  // Add CTools' javascript to the page.
+  ctools_modal_add_js();
+  // Create our own javascript that will be used to theme a modal.
+  $style_settings = array(
+    'ctools-modal-slickgrid-fixed' => array(
+      'modalSize' => array(
+        'type' => 'fixed',
+        'width' => 550,
+        'height' => 300,
+        'addWidth' => 20,
+        'addHeight' => 15
+      ),
+      'modalOptions' => array(
+        'opacity' => .5,
+        'background-color' => '#000'
+      ),
+      'animation' => 'fadeIn',
+      'modalTheme' => 'SlickgridModal',
+      'throbber' => theme('image', array(
+        'path' => ctools_image_path('ajax-loader.gif', 'ctools_ajax_sample'),
+        'alt' => t('Loading...'),
+        'title' => t('Loading')
+      )),
+      'closeImage' => theme('image', array(
+        'path' => ctools_image_path('close.png', 'slickgrid'),
+        'title' => t('Close window'),
+        'alt' => t('Close window')
+      ))
+    ),
+    'ctools-modal-slickgrid-scale' => array(
+      'modalSize' => array(
+        'type' => 'scale'
+      ),
+      'modalOptions' => array(
+        'opacity' => .5,
+        'background-color' => '#000'
+      ),
+      'animation' => 'fadeIn',
+      'modalTheme' => 'SlickgridModal',
+      'throbber' => theme('image', array(
+        'path' => ctools_image_path('ajax-loader.gif', 'ctools_ajax_sample'),
+        'alt' => t('Loading...'),
+        'title' => t('Loading')
+      )),
+      'closeImage' => theme('image', array(
+        'path' => ctools_image_path('close.png', 'slickgrid'),
+        'title' => t('Close window'),
+        'alt' => t('Close window')
+      ))
+    )
+  );
+  drupal_add_js($style_settings, 'setting');
+}
+
+/**
+ * Encode the columns as a json array
+ * We can't simply use drupal_json_encode as the column definitions contain function names
+ * @param array $columns
+ */
+function slickgrid_encode_columns($columns){
+  $encoded_columns = drupal_json_encode($columns);
+  foreach(slickgrid_get_plugin_types() as $type => $plugin){
+    $encoded_columns = preg_replace('/("' . $type . '":)"([a-z]*)"/i', '$1$2', $encoded_columns);
+  }
+  // Width need to be parsed an integers, so remove the "s
+  $encoded_columns = preg_replace('/("width":)"([0-9]*)"/i', '$1$2', $encoded_columns);
+  return $encoded_columns;
+}

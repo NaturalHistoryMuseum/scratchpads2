@@ -559,3 +559,25 @@ class slickgrid_views_plugin extends views_plugin_style{
     $this->view->query->set_distinct();
   }
 }
+
+/**
+ * Helper function for the above class.  Returns an array of entity keys which
+ * must not be edited.
+ */
+function slickgrid_get_entity_keys($entity_type = null, $keys_to_ignore = array('label')){
+  $entity_keys = array();
+  if($entity_type){
+    $entities_info = array(
+      entity_get_info($entity_type)
+    );
+  }else{
+    $entities_info = entity_get_info();
+  }
+  foreach($entities_info as $entity_info){
+    foreach($keys_to_ignore as $key_to_ignore){
+      unset($entity_info['entity keys'][$key_to_ignore]);
+    }
+    $entity_keys += array_values($entity_info['entity keys']);
+  }
+  return $entity_keys;
+}
