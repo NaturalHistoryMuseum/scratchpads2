@@ -49,12 +49,23 @@ function slickgrid_callback_add_messages(&$json){
  * Callback function - update a view's settings
  */
 function slickgrid_callback_settings(){
+  // Set the settings.
   global $user;
-  if($user->uid){ // do not save settings for anonymous users
+  // do not save settings for anonymous users
+  if($user->uid){
+    // FIXME - This does not add any checks!
     slickgrid_set_settings($user->uid, $_POST['view'], $_POST['display_id'], array(
       $_POST['setting'] => $_POST['value']
     ));
   }
+  // Basic output.
+  $json = array(
+    'status' => TRUE,
+    'op' => 'settings'
+  );
+  slickgrid_callback_add_messages($json);
+  // Return the json
+  drupal_json_output($json);
 }
 
 /**
@@ -62,14 +73,25 @@ function slickgrid_callback_settings(){
  * This is the slickgrid.js update function. 
  */
 function slickgrid_callback_update(){
+  // Basic required json
+  $json = array(
+    'status' => TRUE,
+    'op' => 'update'
+  );
   ctools_include('plugins');
   $plugin_definition = ctools_get_plugins('slickgrid', 'editor', $_POST['plugin']);
   require_once DRUPAL_ROOT . '/' . drupal_get_path('module', $plugin_definition['plugin module']) . "/plugins/editors/handler.class.php";
   $class = ctools_plugin_get_class($plugin_definition, 'handler');
   if($class){
     $editor_plugin = new $class($plugin_definition);
-    return $editor_plugin->update();
+    $extra_json = $editor_plugin->update();
+    if(is_array($extra_json)){
+      $json += $extra_json;
+    }
   }
+  slickgrid_callback_add_messages($json);
+  // Return the json
+  drupal_json_output($json);
 }
 
 /**
@@ -112,35 +134,4 @@ function slickgrid_callback_add($entity_type, $bundle_type){
   }
   print ajax_render($output);
   exit();
-}
-
-/**
- * Callback function - undo (revert nodes)
- */
-function slickgrid_callback_undo(){
-  // FIXME - This method needs updating.
-  $field_name = $_POST['field_name'];
-  $field_id = $_POST['field_id'];
-  $updated_nodes = $_POST['updated'];
-  if(is_array($updated_nodes)){
-    foreach($updated_nodes as $nid => $node){
-      $node_revision = node_load($nid, $node['vid']);
-      $node_revision->revision = 1;
-      $node_revision->log = t('Copy of the revision from %date.', array(
-        '%date' => format_date($node_revision->revision_timestamp)
-      ));
-      node_save($node_revision);
-    }
-    // All nodes have been reverted - need to get the values from the view
-    $view = slickgrid_get_view($_POST['view'], $_POST['display_id'], array_keys($updated_nodes));
-    foreach($view->result as $count => $row){
-      $updated_nodes[$row->nid]['value'] = $view->render_field($field_id, $count);
-    }
-  }
-  drupal_set_message(format_plural(count($updated_nodes), 'Reset changes to 1 item.', 'Reset changes to @count items.'));
-  return array(
-    'updated' => $updated_nodes,
-    'field_name' => $field_name,
-    'field_id' => $field_id
-  );
 }
