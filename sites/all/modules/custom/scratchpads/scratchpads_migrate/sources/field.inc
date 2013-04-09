@@ -109,6 +109,8 @@ class DrupalFieldMigration extends DrupalMigration{
       if ($row->field_name != 'field_mediafiles') {
         $row->field_name = 'field_media';
       }
+    } else {
+      $row->field_name = DrupalFieldMigration::getCustomMapping($row->field_name, $row->type);
     }
     // Special cases for node references
     if($row->type == 'nodereference'){
@@ -210,5 +212,16 @@ class DrupalFieldMigration extends DrupalMigration{
       }
     }
     return $node_types;
+  }
+
+  /**
+   * Provide additional custom field name mapping
+   */
+  static public function getCustomMapping($field_name, $field_type = NULL) {
+    // Ensure that text-based country fields do not get mapped to the field_country field.
+    if ($field_name == 'field_country' && $field_type == 'text') {
+      return 'field_country_text';
+    }
+    return $field_name;
   }
 }
