@@ -1,11 +1,5 @@
-/**
- * JS for admin (views)
- */
 (function($){
-  /**
-   * Attaches the AJAX behavior to Views exposed filter forms and key View
-   * links.
-   */
+  // Attaches the AJAX behavior to Views exposed filter forms and key View links
   Drupal.behaviors.slickgridAdmin = {};
   Drupal.behaviors.slickgridAdmin.attach = function(){
     var dependencies = {filter: 'collapsibleFilter', formatter: 'collapsibleFormatter',}
