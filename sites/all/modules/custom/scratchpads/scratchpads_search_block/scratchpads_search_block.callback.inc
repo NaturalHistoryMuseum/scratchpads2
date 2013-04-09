@@ -19,7 +19,7 @@ function scratchpads_search_block_autocomplete($search = ''){
         $parents[$key] = $parent->name;
       }
       $name = implode(" » ", $parents);
-      $term_matches[$name] = check_plain($name);
+      $term_matches[$parent->name . ' [' . $tid . ']'] = check_plain($name);
     }
   }
   drupal_json_output($term_matches);
