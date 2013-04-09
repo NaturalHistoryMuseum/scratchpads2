@@ -23,6 +23,12 @@ function slickgrid_callback($op){
   drupal_json_output($json);
 }
 
+/**
+ * Alters a JSON array to add the messages.
+ * 
+ * Note, although this function is named slickgrid_callback_*, it is NOT a 
+ * function to be called from "slickgrid_callback".
+ */
 function slickgrid_callback_add_messages(&$json){
   // Add any drupal messages that have been created
   foreach(drupal_get_messages() as $type => $messages){
@@ -49,13 +55,6 @@ function slickgrid_callback_settings(){
       $_POST['setting'] => $_POST['value']
     ));
   }
-}
-
-/**
- * Callback function - log an message 
- */
-function slickgrid_callback_log(){
-  watchdog('slickgrid', $_POST['error'], array(), WATCHDOG_ERROR);
 }
 
 /**

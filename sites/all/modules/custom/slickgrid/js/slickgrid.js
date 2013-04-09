@@ -461,26 +461,11 @@ if(!Array.prototype.indexOf) {
     // Error handling function
     function callbackError(jqXHR, status, errorThrown){
       grid.getEditController().cancelCurrentEdit();
-      var errorMessage = []; // Error message for user
-      var errorLog; // Error message for log
+      var errorMessage = [];
       if(jqXHR.status == 0) {
         errorMessage.push({type: 'error', message: 'Could not connect to server. Your website may be unavailable!'});
       } else {
         errorMessage.push({type: 'error', message: 'Sorry there was an error - please reload this page and try again.'});
-        if(jqXHR.status == 404) {
-          errorLog = '404: Requested URL not found.';
-        } else if(jqXHR.status == 500) {
-          errorLog = '500: Internel Server Error.';
-        } else if(status == 'parsererror') {
-          errorLog = 'Error parsing JSON Request.';
-        } else if(status == 'timeout') {
-          errorLog = 'Request Time out.';
-        } else {
-          errorLog = 'Unknown Error';
-        }
-        // Pass the error to the callback function so we can try and fix any
-        // errors.
-        callback('log', {error: errorLog});
       }
       updateStatus(true, errorMessage);
     }
