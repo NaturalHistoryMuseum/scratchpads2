@@ -300,8 +300,6 @@ if(!Array.prototype.indexOf) {
       unsetActiveRow();
     }
     function handleModalResponse(ajax, modal, status){
-      var editor = grid.getEditController();
-      editor.commitCurrentEdit();
       if(typeof modal.response.result === 'object') {
         callbackSuccess(modal.response.result);
       }
