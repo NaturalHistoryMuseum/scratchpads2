@@ -1,33 +1,7 @@
 <?php
 
-/** 
- * hook_menu callback; 
- * Universal json callback - builds function name and returns error = true 
- */
-function slickgrid_callback($op){
-  $func = 'slickgrid_callback_' . $op;
-  // Get any additonal arguments passed to the callback function & shift off the first one (the $op)  
-  $args = func_get_args();
-  array_shift($args);
-  // Basic required json 
-  $json = array(
-    'status' => TRUE,
-    'op' => $op
-  );
-  // The callback can append extra json
-  if(is_array($additonal_json = call_user_func_array($func, $args))){
-    $json += $additonal_json;
-  }
-  slickgrid_callback_add_messages($json);
-  // Return the json
-  drupal_json_output($json);
-}
-
 /**
  * Alters a JSON array to add the messages.
- * 
- * Note, although this function is named slickgrid_callback_*, it is NOT a 
- * function to be called from "slickgrid_callback".
  */
 function slickgrid_callback_add_messages(&$json){
   // Add any drupal messages that have been created
@@ -45,35 +19,33 @@ function slickgrid_callback_add_messages(&$json){
 }
 
 /**
- * 
  * Callback function - update a view's settings
+ * 
+ * TODO: Is this safe?
  */
 function slickgrid_callback_settings(){
-  // Set the settings.
   global $user;
   // do not save settings for anonymous users
   if($user->uid){
-    // FIXME - This does not add any checks!
     slickgrid_set_settings($user->uid, $_POST['view'], $_POST['display_id'], array(
       $_POST['setting'] => $_POST['value']
     ));
   }
-  // Basic output.
   $json = array(
     'status' => TRUE,
     'op' => 'settings'
   );
   slickgrid_callback_add_messages($json);
-  // Return the json
   drupal_json_output($json);
 }
 
 /**
  * Callback function - update a node
- * This is the slickgrid.js update function. 
+ * This is the slickgrid.js update function.
+ * 
+ * TODO: Is this safe?
  */
 function slickgrid_callback_update(){
-  // Basic required json
   $json = array(
     'status' => TRUE,
     'op' => 'update'
@@ -90,12 +62,13 @@ function slickgrid_callback_update(){
     }
   }
   slickgrid_callback_add_messages($json);
-  // Return the json
   drupal_json_output($json);
 }
 
 /**
  * Callback function - add an entity
+ * 
+ * TODO: Is this safe?
  */
 function slickgrid_callback_add($entity_type, $bundle_type){
   global $user;
