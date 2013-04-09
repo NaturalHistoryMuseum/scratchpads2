@@ -4,7 +4,15 @@
  * Returns a form to the browser which can then be submitted - avoiding CSRF!
  */
 function slickgrid_get_form($form_id){
-  $form = drupal_get_form($form_id, $_POST['entity_type'], $_POST['entity_ids']);
+  switch($form_id){
+    case 'slickgrid_clone_form':
+    case 'slickgrid_delete_form':
+      $form = drupal_get_form($form_id, $_POST['entity_type'], $_POST['entity_ids']);
+      break;
+    case 'slickgrid_undo_form':
+      $form = drupal_get_form($form_id, $_POST['entity_type'], $_POST['command']);
+      break;
+  }
   $form['#prefix'] = '<div style="position:absolute;z-index:10000;border:solid 1px #ccc;padding:10px;background-color:white;">';
   $form['#suffix'] = '</div>';
   return array(
@@ -152,6 +160,87 @@ function slickgrid_delete_form_submit($form, &$form_state){
           'message' => format_plural(count($form_state['values']['entity_ids']), t('Deleted the selected row'), t('Delete the @num selected rows', array(
             '@num' => count($form_state['values']['entity_ids'])
           )))
+        )
+      )
+    ));
+    $commands[] = ajax_command_invoke('', 'slickgrid_refresh');
+  }
+  $commands[] = ajax_command_remove('#' . $form_state['values']['form_id'] . ' ~ div');
+  $form_state['slickgrid_commands'] = $commands;
+}
+
+/**
+ * Undo form.
+ */
+function slickgrid_undo_form($form, &$form_state, $entity_type, $command){
+  $keys = array_keys($command);
+  $id = array_pop($keys);
+  $entity = entity_load_single($entity_type, $id);
+  $info = entity_get_info('node');
+  return array(
+    'entity_type' => array(
+      '#type' => 'hidden',
+      '#value' => $entity_type
+    ),
+    'entity_id' => array(
+      '#type' => 'hidden',
+      '#value' => $id
+    ),
+    'revision_id' => array(
+      '#type' => 'hidden',
+      '#value' => $command[$id]
+    ),
+    'description_text' => array(
+      '#markup' => '<p>' . t('Do you want to undo the latest change to @entity_type %entity_label?', array(
+        '@entity_type' => $entity_type,
+        '%entity_label' => $entity->{$info['entity keys']['label']}
+      )) . '</p>'
+    ),
+    'actions' => array(
+      'cancel' => array(
+        '#type' => 'submit',
+        '#value' => t('Cancel'),
+        '#ajax' => array(
+          // We need an empty callback, as all the logic is handled in the submit
+          // function.
+          'callback' => 'slickgrid_return_commands_from_form'
+        )
+      ),
+      'do' => array(
+        '#type' => 'submit',
+        '#value' => t('Undo'),
+        '#ajax' => array(
+          'callback' => 'slickgrid_return_commands_from_form'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Submit function for the deletion of entities.
+ */
+function slickgrid_undo_form_submit($form, &$form_state){
+  $commands = array();
+  if($form_state['values']['op'] == $form_state['values']['do']){
+    // I'm not happy about this, but we're hard coding entity types for undo
+    // here.  A generic solution needs to be implemented.
+    switch($form_state['values']['entity_type']){
+      case 'node':
+        // We get the highest vid for this node which is earlier than the
+        // current one.
+        $node_revision = node_load($form_state['values']['entity_id'], $form_state['values']['revision_id']['vid']);
+        $node_revision->revision = 1;
+        $node_revision->log = t('Copy of the revision from %date.', array(
+          '%date' => format_date($node_revision->revision_timestamp)
+        ));
+        node_save($node_revision);
+    }
+    $commands[] = ajax_command_invoke('', 'slickgrid_messages', array(
+      array(
+        array(
+          'type' => 'status',
+          'message' => t('Undone')
         )
       )
     ));
