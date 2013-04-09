@@ -48,7 +48,10 @@
 .views-slideshow-controls-bottom{
   min-width: 620px;
 }
-
+/* Reduce padding on node links */
+.node-links{
+  padding-top:0 !important;
+}
 /* Large text block */
 .view-front-page-content li{
   margin: 0!important;

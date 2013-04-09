@@ -43,6 +43,18 @@ function scratchpads_help_add_help($data = NULL){
 function scratchpads_help_get_help(){
   $help = scratchpads_help_add_help();
   $path = menu_tab_root_path();
+  if(strpos($path, '%')){
+    // We have '%' in the path, we need to convert them to actual strings.
+    $path_parts = explode('/', $path);
+    $index = 0;
+    foreach($path_parts as $path_part){
+      if($path_part == '%'){
+        $path_parts[$index] = arg($index);
+      }
+      $index ++;
+    }
+    $path = implode('/', $path_parts);
+  }
   if($path && db_table_exists('scratchpads_help')){
     $results = db_select('scratchpads_help', 's')->condition('path', $path)->fields('s', array(
       'page',
