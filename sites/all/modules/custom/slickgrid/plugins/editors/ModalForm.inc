@@ -46,7 +46,7 @@ function slickgrid_plugin_modal_form_process($editor){
   if(!empty($form_state['executed'])){ // Form has succesfully completed  	
     // We're going to exit the process, so get editor result manually
     $result = $form_state['editor']->get_result();
-    slickgrid_callback_get_messages($result);
+    slickgrid_callback_add_messages($result);
     // Build a ctools ajax output array
     $output = array(
       array(

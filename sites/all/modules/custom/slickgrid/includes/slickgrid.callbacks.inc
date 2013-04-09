@@ -18,12 +18,12 @@ function slickgrid_callback($op){
   if(is_array($additonal_json = call_user_func_array($func, $args))){
     $json += $additonal_json;
   }
-  slickgrid_callback_get_messages($json);
+  slickgrid_callback_add_messages($json);
   // Return the json
   drupal_json_output($json);
 }
 
-function slickgrid_callback_get_messages(&$json){
+function slickgrid_callback_add_messages(&$json){
   // Add any drupal messages that have been created
   foreach(drupal_get_messages() as $type => $messages){
     foreach($messages as $message){
@@ -101,7 +101,7 @@ function slickgrid_callback_add($entity_type, $bundle_type){
     $output = array();
     $output[] = ctools_modal_command_dismiss();
     $result = array();
-    slickgrid_callback_get_messages($result);
+    slickgrid_callback_add_messages($result);
     $output[] = array(
       'command' => 'slickgrid',
       'response' => array(
