@@ -60,6 +60,12 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         foreach(array_keys($this->manualFieldMapping) as $field_mapping){
           if($field_name == strtolower($field_mapping)){return $this->manualFieldMapping[$field_mapping];}
         }
+        // Manual mapping without using a class
+        $type = $this->getFieldType($field_name);
+        $final = DrupalFieldMigration::getCustomMapping($field_name, $type);
+        if ($final != $field_name) {
+          return $final;
+        }
         return false;
       }
     }else{
