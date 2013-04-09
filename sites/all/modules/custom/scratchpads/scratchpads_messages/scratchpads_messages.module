@@ -243,7 +243,8 @@ function scratchpads_messages_seen_msg($form, $form_state, $msg, $user){
       '#type' => 'image_button',
       '#src' => drupal_get_path('module', 'scratchpads_messages') . '/css/close.png',
       '#attributes' => array(
-        'alt' => t('Hide')
+        'alt' => t('Hide permanently'),
+        'title' => t('Hide permanently')
       ),
       '#ajax' => array(
         'callback' => 'scratchpads_messages_seen_msg_submit',
@@ -328,19 +329,27 @@ function scratchpads_messages_page_alter(&$page){
         $page['page_top']['extra_messages'] = $block;
       }
     }
-    if(!empty($messages[SCRATCHPADS_MESSAGES_TIP]) && $_SESSION['scratchpads_messages_tips']){
-      // We select a random message from the tips.
-      $key = rand(0, count($messages[SCRATCHPADS_MESSAGES_TIP]) - 1);
-      $page['page_top']['tips'] = array(
-        '#prefix' => '<div class="scratchpads_messages tips">',
-        '#suffix' => '</div>',
-        '#markup' => theme('scratchpads_messages_message', array(
-          'msg' => $messages[SCRATCHPADS_MESSAGES_TIP][$key],
-          'user' => $user
-        ))
-      );
-      unset($_SESSION['scratchpads_messages_tips']);
-    }
+  }
+  if(!empty($messages[SCRATCHPADS_MESSAGES_TIP]) && $_SESSION['scratchpads_messages_tips']){
+    // We select a random message from the tips.
+    $key = rand(0, count($messages[SCRATCHPADS_MESSAGES_TIP]) - 1);
+    $page['page_top']['tips'] = array(
+      '#attached' => array(
+        'css' => array(
+          drupal_get_path('module', 'scratchpads_messages') . '/css/scratchpads_messages.css'
+        ),
+        'js' => array(
+          drupal_get_path('module', 'scratchpads_messages') . '/js/scratchpads_messages.js'
+        )
+      ),
+      '#prefix' => '<div class="scratchpads_messages tips">',
+      '#suffix' => '</div>',
+      '#markup' => theme('scratchpads_messages_message', array(
+        'msg' => $messages[SCRATCHPADS_MESSAGES_TIP][$key],
+        'user' => $user
+      ))
+    );
+    unset($_SESSION['scratchpads_messages_tips']);
   }
 }
 
