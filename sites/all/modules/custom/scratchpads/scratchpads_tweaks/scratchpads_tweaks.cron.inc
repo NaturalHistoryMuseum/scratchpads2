@@ -19,9 +19,9 @@ function _scratchpads_tweaks_cron(){
         $nodes[$row->type] = $row->count;
       }
       $users = db_query("SELECT COUNT(uid) AS users FROM users WHERE status = 1 AND uid > 1")->fetchField(); //Total users
-      $users_login = db_query("SELECT COUNT(uid) AS users FROM users WHERE login != 0")->fetchField(); //Total users logged in
-      $users_week = db_query("SELECT COUNT(uid) AS users FROM users WHERE login > UNIX_TIMESTAMP()-604800")->fetchField(); //Week users
-      $users_month = db_query("SELECT COUNT(uid) AS users FROM users WHERE login > UNIX_TIMESTAMP()-2592000")->fetchField(); //Month users
+      $users_login = db_query("SELECT COUNT(uid) AS users FROM users WHERE login != 0 AND uid > 1")->fetchField(); //Total users logged in
+      $users_week = db_query("SELECT COUNT(uid) AS users FROM users WHERE login > UNIX_TIMESTAMP()-604800 AND uid > 1")->fetchField(); //Week users
+      $users_month = db_query("SELECT COUNT(uid) AS users FROM users WHERE login > UNIX_TIMESTAMP()-2592000 AND uid > 1")->fetchField(); //Month users
       $results = db_query("SELECT mail FROM {users} u, {users_roles} ur WHERE u.uid = ur.uid AND rid = 5");
       $mails = array();
       foreach($results as $row){
