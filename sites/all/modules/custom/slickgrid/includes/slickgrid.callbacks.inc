@@ -19,31 +19,8 @@ function slickgrid_callback_add_messages(&$json){
 }
 
 /**
- * Callback function - update a view's settings
- * 
- * TODO: Is this safe?
- */
-function slickgrid_callback_settings(){
-  global $user;
-  // do not save settings for anonymous users
-  if($user->uid){
-    slickgrid_set_settings($user->uid, $_POST['view'], $_POST['display_id'], array(
-      $_POST['setting'] => $_POST['value']
-    ));
-  }
-  $json = array(
-    'status' => TRUE,
-    'op' => 'settings'
-  );
-  slickgrid_callback_add_messages($json);
-  drupal_json_output($json);
-}
-
-/**
  * Callback function - update a node
  * This is the slickgrid.js update function.
- * 
- * TODO: Is this safe?
  */
 function slickgrid_callback_update(){
   $json = array(
@@ -67,8 +44,6 @@ function slickgrid_callback_update(){
 
 /**
  * Callback function - add an entity
- * 
- * TODO: Is this safe?
  */
 function slickgrid_callback_add($entity_type, $bundle_type){
   global $user;
