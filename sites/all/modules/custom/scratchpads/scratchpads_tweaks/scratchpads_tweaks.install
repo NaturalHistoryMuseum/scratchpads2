@@ -620,13 +620,6 @@ function scratchpads_tweaks_update_7014(){
     'theme_config_js' => 'f',
     'js_conf' => '',
     'loadPlugins' => array(
-      'autogrow' => array(
-        'name' => 'autogrow',
-        'desc' => 'Auto Grow plugin',
-        'path' => '%editor_path%plugins/autogrow/',
-        'buttons' => false,
-        'default' => 'f'
-      ),
       'counter' => array(
         'name' => 'counter',
         'desc' => 'Plugin to count symbols, symbols without blanks and words',
@@ -735,13 +728,6 @@ function scratchpads_tweaks_update_7014(){
     'theme_config_js' => 'f',
     'js_conf' => '',
     'loadPlugins' => array(
-      'autogrow' => array(
-        'name' => 'autogrow',
-        'desc' => 'Auto Grow plugin',
-        'path' => '%editor_path%plugins/autogrow/',
-        'buttons' => false,
-        'default' => 'f'
-      ),
       'linkit' => array(
         'name' => 'linkit',
         'desc' => 'Support for Linkit module',
@@ -1039,4 +1025,11 @@ function scratchpads_tweaks_update_7041(){
  */
 function scratchpads_tweaks_update_7042(){
   variable_set('apachesolr_cron_limit', 50);
+}
+
+/**
+ * Disable autogrow for the WYSIWYG editor.
+ */
+function scratchpads_tweaks_update_7043(){
+  scratchpads_tweaks_update_7014();
 }
