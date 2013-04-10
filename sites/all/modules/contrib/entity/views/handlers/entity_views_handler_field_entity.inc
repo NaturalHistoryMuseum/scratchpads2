@@ -158,7 +158,7 @@ class entity_views_handler_field_entity extends views_handler_field {
       return '';
     }
     $render = $this->render_single_value($entity, $values);
-    if (!$this->options['link_to_entity']) {
+    if (!$this->options['link_to_entity'] || $this->options['display'] == 'view') {
       return $render;
     }
     if (is_object($entity) && ($url = entity_uri($type, $entity))) {

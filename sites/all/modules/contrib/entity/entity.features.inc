@@ -49,6 +49,7 @@ class EntityDefaultFeaturesController {
         'default_hook' => isset($this->info['export']['default hook']) ? $this->info['export']['default hook'] : 'default_' . $this->type,
         // Use the provided component callbacks making use of the controller.
         'base' => 'entity',
+        'file' => drupal_get_path('module', 'entity') . '/entity.features.inc',
       ),
     );
   }
