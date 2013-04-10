@@ -361,3 +361,163 @@ function scratchpads_user_register_form_post_submit($form, &$form_state){
   $form['#user']->pass = '';
   user_save($form['#user']);
 }
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function scratchpads_user_field_formatter_info(){
+  return array(
+    'scratchpads_user_full_name' => array(
+      'label' => t('Full name'),
+      'description' => t('Display as full name'),
+      'field types' => array(
+        'user_reference'
+      ),
+      'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+      'settings' => array(
+        'show_name_as_link' => 0,
+        'separator_option' => ', ',
+        'element_option' => '- None -',
+        'element_class' => ''
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function scratchpads_user_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state){
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $element = array();
+  switch($display['type']){
+    case 'scratchpads_user_full_name':
+      $element['show_name_as_link'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Show name as link to user'),
+        '#description' => t('Check this if you want to show the name as link to user'),
+        '#default_value' => $settings['show_name_as_link']
+      );
+      $element['separator_option'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Separator'),
+        '#description' => t('The separator to use, including leading and trailing spaces'),
+        '#default_value' => $settings['separator_option']
+      );
+      $element['element_option'] = array(
+        '#type' => 'select',
+        '#title' => t('Element'),
+        '#description' => t('The HTML element to wrap each name in'),
+        '#default_value' => $settings['element_option'],
+        '#options' => array(
+          '- None -' => '- None -',
+          'span' => 'span',
+          'h1' => 'h1',
+          'h2' => 'h2',
+          'h3' => 'h3',
+          'h4' => 'h4',
+          'h5' => 'h5',
+          'strong' => 'h6',
+          'em' => 'h7'
+        )
+      );
+      $element['element_class'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Element Class'),
+        '#description' => t('The class assigned to the element'),
+        '#default_value' => $settings['element_class']
+      );
+      break;
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function scratchpads_user_field_formatter_settings_summary($field, $instance, $view_mode){
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $summary = array();
+  switch($display['type']){
+    case 'scratchpads_user_full_name':
+      if($settings['separator_option']){
+        $summary[] = t('Full names will be displayed separated by "@separator"', array(
+          '@separator' => $settings['separator_option']
+        ));
+      }else{
+        $summary[] = t('Full names will not have a separator');
+      }
+      if($settings['show_name_as_link']){
+        $summary[] = t("Full names will link to the user");
+      }else{
+        $summary[] = t("Full names will not link to the user");
+      }
+      if($settings['element_option'] != "- None -"){
+        $summary[] = t('Elements will be wrapped in a "@element" tag', array(
+          '@element' => $settings['element_option']
+        ));
+        if(!empty($settings['element_class'])){
+          $summary[] = t(' with the class of @elemclass', array(
+            '@elemclass' => $settings['element_class']
+          ));
+        }
+      }
+      break;
+  }
+  $summary = theme('item_list', array(
+    'type' => 'ul',
+    'items' => $summary
+  ));
+  return $summary;
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function scratchpads_user_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  $settings = $display['settings'];
+  $element = array();
+  $number_of_items = count($items);
+  switch($display['type']){
+    case 'scratchpads_user_full_name':
+      foreach($items as $delta => $item){
+        if($settings['element_option'] != '- None -'){
+          $element[$delta] = array(
+            '#type' => 'html_tag',
+            '#tag' => $settings['element_option'],
+            '#value' => _scratchpads_user_field_formatter_view($number_of_items, $delta, $item, $settings)
+          );
+          if($settings['element_class']){
+            $element[$delta]['#attributes']['class'] = $settings['element_class'];
+          }
+        }else{
+          $element[$delta] = array(
+            '#type' => 'markup',
+            '#markup' => _scratchpads_user_field_formatter_view($number_of_items, $delta, $item, $settings)
+          );
+        }
+      }
+      break;
+  }
+  return $element;
+}
+
+function _scratchpads_user_field_formatter_view($number_of_items, $delta, $item, array $settings = NULL){
+  $user = user_load($item['uid']);
+  $content = isset($user->field_user_given_names[LANGUAGE_NONE]) ? $user->field_user_given_names[LANGUAGE_NONE][0]['safe_value'] : '';
+  $content .= ' ';
+  $content .= (isset($user->field_user_family_name[LANGUAGE_NONE]) ? $user->field_user_family_name[LANGUAGE_NONE][0]['safe_value'] : '');
+  $content = trim($content);
+  if(!$content){
+    $content = $user->name;
+  }
+  if($settings['show_name_as_link']){
+    $content = l($content, 'user/' . $item['uid']);
+  }
+  if($settings['separator_option'] && $delta < ($number_of_items - 1)){
+    $content .= $settings['separator_option'];
+  }
+  return $content;
+}
