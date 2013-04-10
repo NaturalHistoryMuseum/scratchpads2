@@ -438,8 +438,13 @@ if(!Array.prototype.indexOf) {
       selectionModel.setSelectedRanges(ranges);
     }
     function updateSettings(setting, value){
-      data = {'view': viewName, 'setting': setting, 'display_id': viewDisplayID, 'value': value}
-      callback('settings', data);
+      // We get a form, and then submit the form.
+      $.ajax({type: 'POST', dataType: "json", success: function(response, status){
+        if(response[1]['arguments'][0]) {
+          // $(response[1]['arguments'][0]).appendTo('body').css({top:'-10000px'}).children('form').submit();
+          $.post($(response[1]['arguments'][0]).children('form').attr('action'), $(response[1]['arguments'][0]).children('form').serialize());
+        }
+      }, url: Drupal.settings.slickgrid.get_form_callback_url + 'slickgrid_settings_form', data: {'view': viewName, 'setting': setting, 'display_id': viewDisplayID, 'value': value}});
     }
     // All callbacks should be routed through this function
     function callback(op, data){
