@@ -9,6 +9,9 @@ function slickgrid_get_form($form_id){
     case 'slickgrid_delete_form':
       $form = drupal_get_form($form_id, $_POST['entity_type'], $_POST['entity_ids']);
       break;
+    case 'slickgrid_settings_form':
+      $form = drupal_get_form($form_id, $_POST['view'], $_POST['setting'], $_POST['display_id'], $_POST['value']);
+      break;
     case 'slickgrid_undo_form':
       $form = drupal_get_form($form_id, $_POST['entity_type'], $_POST['command']);
       break;
@@ -23,6 +26,57 @@ function slickgrid_get_form($form_id){
       ))
     )
   );
+}
+
+/**
+ * Settings form.
+ */
+function slickgrid_settings_form($form, &$form_state, $view, $setting, $display_id, $value){
+  // The whole form can be hidden, all we need to do is submit it via JS.
+  global $user;
+  return array(
+    'uid' => array(
+      '#type' => 'hidden',
+      '#value' => $user->uid
+    ),
+    'view' => array(
+      '#type' => 'hidden',
+      '#value' => $view
+    ),
+    'setting' => array(
+      '#type' => 'hidden',
+      '#value' => $setting
+    ),
+    'display_id' => array(
+      '#type' => 'hidden',
+      '#value' => $display_id
+    ),
+    'value' => array(
+      '#type' => 'hidden',
+      '#value' => $value
+    ),
+    'actions' => array(
+      'do' => array(
+        '#type' => 'submit',
+        '#value' => t('Save settings'),
+        '#ajax' => array(
+          'callback' => 'slickgrid_return_commands_from_form'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Submit function for the deletion of entities.
+ */
+function slickgrid_settings_form_submit($form, &$form_state){
+  // do not save settings for anonymous users
+  if($form_state['values']['uid']){
+    slickgrid_set_settings($form_state['values']['uid'], $form_state['values']['view'], $form_state['values']['display_id'], array(
+      $form_state['values']['setting'] => $form_state['values']['value']
+    ));
+  }
 }
 
 /**
