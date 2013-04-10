@@ -39,9 +39,12 @@ function tui_ajax_form_callback(&$form, &$form_state){
     ));
     $ajax['#commands'][] = ajax_command_invoke('[data-tui-this-term="' . $parent_tid . '"] div span', 'click');
   }
-  // Unfortunately, we unset the actions as the form must be reloaded before
-  // it can be used for editing again!
-  unset($form['actions']);
+  if(!form_get_errors()){
+    // Unfortunately, we unset the actions as the form must be reloaded before
+    // it can be used for editing again!  We only do this if the form doesn't
+    // have errors (error forms may be submitted again).
+    unset($form['actions']);
+  }
   $ajax['#commands'][] = ajax_command_insert(NULL, drupal_render($form));
   $ajax['#commands'][] = ajax_command_prepend(NULL, theme('status_messages'));
   return $ajax;
