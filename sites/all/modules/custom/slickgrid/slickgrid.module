@@ -628,6 +628,47 @@ function slickgrid_form_alter(&$form, &$form_state, $form_id){
 }
 
 /**
+ * Implement hook_form_FORM_ID_alter().
+ * 
+ * The "Edit" user form.  This needs to be able to handle both login and 
+ * loginless changes.
+ */
+function slickgrid_form_user_profile_form_alter(&$form, &$form_state){
+  if($form['#user']->uid){
+    $disabled = db_select('slickgrid', 's')->fields('s')->condition('uid', $form['#user']->uid)->countQuery()->execute()->fetchCol();
+    $form['slickgrid'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Slickgrid'),
+      '#collapsed' => TRUE,
+      '#collapsible' => TRUE
+    );
+    if($disabled[0]){
+      $form['slickgrid']['scratchpads_messages_reset_tips'] = array(
+        '#type' => 'submit',
+        '#value' => t('Reset Slickgrid settings'),
+        '#submit' => array(
+          'slickgrid_reset_user'
+        ),
+        '#limit_validation_errors' => array()
+      );
+    }else{
+      $form['slickgrid']['scratchpads_messages_reset_tips'] = array(
+        '#markup' => '<p>' . t('You do not currently have any custom settings.') . '</p>'
+      );
+    }
+  }
+}
+
+/**
+ * Reset the viewed status of all messages related to a specific user.
+ */
+function slickgrid_reset_user($form, &$form_state){
+  if(@isset($form_state['complete form']['#user']->uid)){
+    db_delete('slickgrid')->condition('uid', $form_state['complete form']['#user']->uid)->execute();
+  }
+}
+
+/**
  * After build form function - set no redirect
  */
 function slickgrid_form_redirect_handler(&$form, &$form_state){
