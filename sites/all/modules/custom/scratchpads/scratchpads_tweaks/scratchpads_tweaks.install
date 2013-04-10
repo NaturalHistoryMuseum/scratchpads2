@@ -622,13 +622,6 @@ function scratchpads_tweaks_update_7014(){
     'theme_config_js' => 'f',
     'js_conf' => '',
     'loadPlugins' => array(
-      'autogrow' => array(
-        'name' => 'autogrow',
-        'desc' => 'Auto Grow plugin',
-        'path' => '%editor_path%plugins/autogrow/',
-        'buttons' => false,
-        'default' => 'f'
-      ),
       'counter' => array(
         'name' => 'counter',
         'desc' => 'Plugin to count symbols, symbols without blanks and words',
@@ -737,13 +730,6 @@ function scratchpads_tweaks_update_7014(){
     'theme_config_js' => 'f',
     'js_conf' => '',
     'loadPlugins' => array(
-      'autogrow' => array(
-        'name' => 'autogrow',
-        'desc' => 'Auto Grow plugin',
-        'path' => '%editor_path%plugins/autogrow/',
-        'buttons' => false,
-        'default' => 'f'
-      ),
       'linkit' => array(
         'name' => 'linkit',
         'desc' => 'Support for Linkit module',
@@ -1044,9 +1030,16 @@ function scratchpads_tweaks_update_7042(){
 }
 
 /**
- * Set the jQuery update settings.
+ * Disable autogrow for the WYSIWYG editor.
  */
 function scratchpads_tweaks_update_7043(){
+  scratchpads_tweaks_update_7014();
+}
+
+/**
+ * Set the jQuery update settings.
+ */
+function scratchpads_tweaks_update_7044(){
   variable_set('jquery_update_jquery_version', '1.8');
   variable_set('jquery_update_jquery_cdn', 'microsoft');
 }
