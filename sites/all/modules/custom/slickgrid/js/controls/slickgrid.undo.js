@@ -13,6 +13,16 @@
       opts.data = $.param({entity_type: options['entity_type'], command: command}) + '&' + opts.data;
     }
   }}
+  // Extend the jQuery object so that we can easily pop commands from the undo
+  // log.
+  $.prototype.slickgrid_undo_pop = function(messages){
+    if(commandQueue.length) {
+      commandQueue.pop();
+    }
+    if(!commandQueue.length) {
+      undoControl.disable();
+    }
+  }
   // The Undo button.
   function SlickGridUndo(container){
     var enabled;
@@ -40,7 +50,7 @@
       commandQueue.push(editCommand);
       editCommand.execute();
     }
-    $.extend(this, {"queueAndExecuteCommand": queueAndExecuteCommand, "queueCommand": queueCommand});
+    $.extend(this, {"queueAndExecuteCommand": queueAndExecuteCommand, "queueCommand": queueCommand, "disable": disable});
     init();
   }
   // Slick.Controls.Undo

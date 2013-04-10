@@ -1,6 +1,7 @@
 // Grid & dataView need to be globals so they can be accessed from formatters
 // etc.,
 var grid;
+var undoControl;
 if(!Array.prototype.indexOf) {
   Array.prototype.indexOf = function(obj, start){
     for( var i = (start || 0), j = this.length; i < j; i++) {
@@ -29,7 +30,6 @@ if(!Array.prototype.indexOf) {
     // Remove
     var $status; // $status container for result icons & messages & loading ic
     // Controls
-    var undoControl;
     var tabs;
     function init(){
       // Set up an ajax commmand to handle any modal form responses

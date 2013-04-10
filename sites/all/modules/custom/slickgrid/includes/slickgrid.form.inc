@@ -290,6 +290,7 @@ function slickgrid_undo_form_submit($form, &$form_state){
         ));
         node_save($node_revision);
     }
+    $commands[] = ajax_command_invoke('', 'slickgrid_undo_pop');
     $commands[] = ajax_command_invoke('', 'slickgrid_messages', array(
       array(
         array(
