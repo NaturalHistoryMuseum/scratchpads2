@@ -5,18 +5,8 @@
  */
 function slickgrid_menu(){
   return array(
-    // FIXME - I still need to remove the following, although all CSRF are
-    // sorted!
     'slickgrid/callback/add' => array(
       'page callback' => 'slickgrid_callback_add',
-      'access arguments' => array(
-        'access content'
-      ),
-      'type' => MENU_CALLBACK,
-      'file' => 'includes/slickgrid.callbacks.inc'
-    ),
-    'slickgrid/callback/settings' => array(
-      'page callback' => 'slickgrid_callback_settings',
       'access arguments' => array(
         'access content'
       ),
