@@ -16,7 +16,7 @@ function scratchpads_user_theme(){
 
 /**
  * Implements hook_admin_paths().
- *
+ * 
  * Add the user/register as an admin path (the registration form looks 100x
  * better in an overlay).
  */
@@ -28,10 +28,10 @@ function scratchpads_user_admin_paths(){
 
 /**
  * Implements hook_menu_alter().
- *
+ * 
  * Override the admin/people page to add columns and display stub users
  * correctly.
- *
+ * 
  * Alter the user_reference/autocomplete function so that we can make the names
  * look a little more beautiful.
  */
@@ -42,8 +42,9 @@ function scratchpads_user_menu_alter(&$items){
 }
 
 /**
+ * 
  * Implements hook_ENTITY_TYPE_load().
- *
+ * 
  * Add the "stub_user" property, and also set the name to the given name/surname
  * fields.
  */
@@ -67,7 +68,7 @@ function scratchpads_user_user_load($entities){
 
 /**
  * Implements hook_ENTITY_TYPE_save().
- *
+ * 
  * Prevent saving of a "1" status for stub users.
  */
 function scratchpads_user_user_presave(&$edit, $account, $category){
@@ -80,7 +81,7 @@ function scratchpads_user_user_presave(&$edit, $account, $category){
 
 /**
  * Implements hook_module_implements_alter()
- *
+ * 
  * Execute our form_alter functions last.
  */
 function scratchpads_user_module_implements_alter(&$imps, $hook){
@@ -95,8 +96,8 @@ function scratchpads_user_module_implements_alter(&$imps, $hook){
 
 /**
  * Implement hook_form_FORM_ID_alter().
- *
- * The "Create" user form. This needs to be able to handle both login and
+ * 
+ * The "Create" user form.  This needs to be able to handle both login and 
  * loginless changes.
  */
 function scratchpads_user_form_user_register_form_alter(&$form, &$form_state){
@@ -114,8 +115,8 @@ function scratchpads_user_form_user_register_form_alter(&$form, &$form_state){
 
 /**
  * Implement hook_form_FORM_ID_alter().
- *
- * The "Edit" user form. This needs to be able to handle both login and
+ * 
+ * The "Edit" user form.  This needs to be able to handle both login and 
  * loginless changes.
  */
 function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
@@ -138,7 +139,7 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
     $form['field_user_given_names'][LANGUAGE_NONE][0]['value']['#required'] = FALSE;
     $form['field_user_title'][LANGUAGE_NONE][0]['select_other_list']['#required'] = FALSE;
     $form['field_user_country'][LANGUAGE_NONE]['#required'] = FALSE;
-    // Because "title" defaults to "Mr", we need to set the default to "" if a
+    // Because "title" defaults to "Mr", we need to set the default to "" if a 
     // default value isn't provided.
     $form['field_user_title'][LANGUAGE_NONE][0]['select_other_list']['#options'][NULL] = t('- None -');
     if(!count($form['#user']->field_user_title)){
@@ -164,8 +165,8 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
 }
 
 /**
- * helper function - make alterations to both the user_profile_form() &
- * user_register_form() forms
+ * 
+ * helper function - make alterations to both the user_profile_form() & user_register_form() forms
  */
 function _scratchpads_user_form_alter(&$form, &$form_state){
   global $user;
@@ -205,8 +206,7 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
   $form['#fields'] = field_info_instances($form['#entity_type'], $form['#bundle']);
   // Add the theme function to make this form look better
   array_unshift($form['#theme'], 'scratchpads_user_register_form');
-  // If the user isn't creating a user account, limit the validation errors to &
-  // extra fields
+  // If the user isn't creating a user account, limit the validation errors to & extra fields
   if(count($form_state['input']) && !isset($form_state['input']['create_user_account']) && (!$form['#user']->uid || $form_state['input']['name'] == '')){
     $form['actions']['submit']['#limit_validation_errors'] = array(
       array(
@@ -225,8 +225,7 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
 }
 
 /**
- * Helper function to replace a submit handler in a form with any other number
- * of handlers
+ * Helper function to replace a submit handler in a form with any other number of handlers
  */
 function _scratchpads_user_replace_submit_handler(&$form, $origin_handler, $handlers){
   if(!isset($form['actions']['submit']['#submit'])){
@@ -286,9 +285,8 @@ function scratchpads_user_user_register_validate($form, &$form_state){
 /**
  * Submit function called before user_register_submit()
  * Used to manipulate the values before the user is saved
- *
- * @param array $form          
- * @param array $form_state          
+ * @param array $form
+ * @param array $form_state
  */
 function scratchpads_user_register_form_pre_submit($form, &$form_state){
   $form_state['values']['administer_users'] = 1;
@@ -343,16 +341,14 @@ function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state)
 /**
  * Submit function called after user_register_submit()
  * Used to manipulate the message displayed to the user
- *
- * @param array $form          
- * @param array $form_state          
+ * @param array $form
+ * @param array $form_state
  */
 function scratchpads_user_register_form_post_submit($form, &$form_state){
   // Reset the messages
   drupal_get_messages('status');
   // Reset the error messages, as the following error is displayed:
-  // Notice: Undefined index: pass in user_register_submit() (line 3752 of
-  // /home/simor/Zend/workspaces/DefaultWorkspace7/Scratchpads-2.0/modules/user/user.module).
+  // Notice: Undefined index: pass in user_register_submit() (line 3752 of /home/simor/Zend/workspaces/DefaultWorkspace7/Scratchpads-2.0/modules/user/user.module).
   drupal_get_messages('error');
   drupal_set_message(t('Created a new profile for @user_title @user_given_name @user_family_name.', array(
     '@user_title' => $form_state['values']['field_user_title'][LANGUAGE_NONE][0]['value'],

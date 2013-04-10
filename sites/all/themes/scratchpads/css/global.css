@@ -1083,8 +1083,6 @@ table,tbody,tfoot,thead,tr,th,td {
 }
 
 /* field items */ 
- .field-label-inline .field-item {
+.field-label-inline .field-item {
   margin-right: 3px;
 }
-/* */
- */
