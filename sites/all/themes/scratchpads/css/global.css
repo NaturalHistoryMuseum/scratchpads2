@@ -1079,5 +1079,10 @@ table,tbody,tfoot,thead,tr,th,td {
 }
 
 .table-cell-compact-to-top p {
-  margin-bottom: 10px;;
+  margin-bottom: 10px;
+}
+
+/* field items */ 
+.field-label-inline .field-item {
+  margin-right: 3px;
 }
