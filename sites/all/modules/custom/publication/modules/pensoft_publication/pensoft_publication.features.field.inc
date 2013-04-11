@@ -2154,7 +2154,7 @@ Tables are numbered once the publication is saved.',
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '3'
+        'weight' => '4'
       )
     )
   );
@@ -2285,18 +2285,18 @@ Tables are numbered once the publication is saved.',
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => '1'
+        'weight' => '3'
       )
     )
   );
-  // Exported field: 'relation-publication_treatments-field_publication_treatment_name'
-  $fields['relation-publication_treatments-field_publication_treatment_name'] = array(
+  // Exported field: 'relation-publication_treatments-field_publication_treat_genus'
+  $fields['relation-publication_treatments-field_publication_treat_genus'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_publication_treatment_name',
+      'field_name' => 'field_publication_treat_genus',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
@@ -2321,7 +2321,7 @@ Tables are numbered once the publication is saved.',
       'bundle' => 'publication_treatments',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => 'If this taxon should have a different name in the final publication, enter it here.',
+      'description' => 'The Genus for this treatment',
       'display' => array(
         'default' => array(
           'label' => 'hidden',
@@ -2331,8 +2331,8 @@ Tables are numbered once the publication is saved.',
         )
       ),
       'entity_type' => 'relation',
-      'field_name' => 'field_publication_treatment_name',
-      'label' => 'Final name',
+      'field_name' => 'field_publication_treat_genus',
+      'label' => 'Genus',
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
@@ -2346,6 +2346,126 @@ Tables are numbered once the publication is saved.',
         ),
         'type' => 'text_textfield',
         'weight' => '0'
+      )
+    )
+  );
+  // Exported field: 'relation-publication_treatments-field_publication_treat_species'
+  $fields['relation-publication_treatments-field_publication_treat_species'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_treat_species',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255'
+      ),
+      'translatable' => '0',
+      'type' => 'text'
+    ),
+    'field_instance' => array(
+      'bundle' => 'publication_treatments',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => 'The species for this treatment',
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => '6'
+        )
+      ),
+      'entity_type' => 'relation',
+      'field_name' => 'field_publication_treat_species',
+      'label' => 'Species',
+      'required' => 0,
+      'settings' => array(
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'size' => '60'
+        ),
+        'type' => 'text_textfield',
+        'weight' => '1'
+      )
+    )
+  );
+  // Exported field: 'relation-publication_treatments-field_publication_treat_authy'
+  $fields['relation-publication_treatments-field_publication_treat_authy'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_publication_treat_authy',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255'
+      ),
+      'translatable' => '0',
+      'type' => 'text'
+    ),
+    'field_instance' => array(
+      'bundle' => 'publication_treatments',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => 'The treatment author/year',
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => '6'
+        )
+      ),
+      'entity_type' => 'relation',
+      'field_name' => 'field_publication_treat_authy',
+      'label' => 'Author / Year',
+      'required' => 0,
+      'settings' => array(
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'size' => '60'
+        ),
+        'type' => 'text_textfield',
+        'weight' => '2'
       )
     )
   );
@@ -2365,7 +2485,9 @@ Tables are numbered once the publication is saved.',
   t('Discussion');
   t('Figure');
   t('Figures');
-  t('Final name');
+  t('Genus');
+  t('Species');
+  t('Author / Year');
   t('Holotype');
   t('If this taxon should have a different name in the final publication, enter it here.');
   t('Included fields');
