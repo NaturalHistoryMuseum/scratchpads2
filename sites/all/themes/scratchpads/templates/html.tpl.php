@@ -18,9 +18,6 @@
 </script>
 </head>
 <body<?php print $attributes;?>>
-	<?php if ($beta): ?>
-	<?php print $beta; ?>
-	<?php endif; ?>
   <div id="skip-link">
     <a href="#main-content" class="element-invisible element-focusable"><?php print t('Skip to main content'); ?></a>
   </div>
