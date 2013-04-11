@@ -15,7 +15,7 @@
  *                      An exception will be raised if this constraint is not respected
  *    #max_occurence':  Maximum number of occurence. Defaults to 1, use -1 for unlimited
  *                      An expception will be raised if this constraint is not respected
- *    #attributes:      Attributes to add to the element, as an array of name => value
+ *    #attributes:      Attributes to add to the element, as an array of name => value/callable function
  *    #process:         Optional function to process the value of the node before insertion.
  *                      available functions are:
  *                        - _pensoft_publication_xml_process_html: to insert HTML values
@@ -51,13 +51,9 @@
  *                      (and for #load), but it's the value of #value that is inserted.
  *     
  *    #condition:       If present, the current node (and it's children) are only processed if the field
- *                      described by #condition is not empty.
+ *                      described by #condition is not empty, or the callable function indicated by
+ *                      #condition returns TRUE.
  *                      
- *    #condition arguments : If present in combination with #condition, then this modifies the test
- *                           done by #condition. #condition arguments is an array like array($op, $val)
- *                           where the field defined in #condition is tested against $val using operator
- *                           $op.
- *
  *    #error_info:      If present, this will be used instead of the field name in error messages
  *                      (eg. field ... is required)
  *
@@ -313,13 +309,13 @@ class PublicationXMLSchemaExplain{
     // Add conditions
     $condition = FALSE;
     if(isset($schema['#condition'])){
-      $elem = $this->_field_name($schema['#condition']);
-      if(isset($schema['#condition arguments'])){
-        $condition = "$elem " . $schema['#condition arguments'][0] . ' ' . $schema['#condition arguments'][1];
+      if(is_callable($schema['#condition'])){
+        $output[] = "IF " . $schema['#condition'] . " {";
       }else{
+        $elem = $this->_field_name($schema['#condition']);
         $condition = "$elem";
+        $output[] = "IF ($condition) {";
       }
-      $output[] = "IF ($condition) {";
     }
     // Load new object
     $has_load = FALSE;
@@ -420,6 +416,36 @@ class PublicationXMLBuilder{
   }
 
   /**
+   * This function sets the active build context
+   */
+  function _set_context($context){
+    $default = array(
+      'object' => NULL,
+      'child_object' => NULL,
+      'field' => NULL,
+      'delta' => NULL,
+      'raw_value' => NULL,
+      'value_to_insert' => NULL,
+      'schema' => NULL
+    );
+    $this->_build_context[] = (object)array_merge($default, $context);
+  }
+
+  /**
+   * This functions gets the active build context, as an object
+   */
+  function _get_context(){
+    return end($this->_build_context);
+  }
+
+  /**
+   * This function pops the build context stack
+   */
+  function _pop_context(){
+    return array_pop($this->_build_context);
+  }
+
+  /**
    * This function builds the XML from the given object.
    * 
    * This function will throw an exception on errors
@@ -434,7 +460,13 @@ class PublicationXMLBuilder{
       $modifier->start_building($this->array_schema, $this->_root_object, $this->_dom);
     }
     $this->path = array();
+    $this->_build_context = array();
+    $this->_set_context(array(
+      'object' => $this->_root_object,
+      'schema' => $this->array_schema
+    ));
     $this->_build_xml_iteration($this->array_schema, $this->_root_object, $this->_dom);
+    $this->_pop_context();
     $xml = $this->_dom->saveXML();
     if($xsd_url && empty($this->settings['no-error'])){
       $this->_validate_xml($xml, $xsd_url, $version, $encoding);
@@ -464,19 +496,16 @@ class PublicationXMLBuilder{
       }
       // Check if there is a conditional
       if(isset($child_schema['#condition'])){
-        $field = $child_schema['#condition'];
-        if(!empty($child_schema['#condition arguments'])){
-          $cond_op = $child_schema['#condition arguments'][0];
-          $cond_val = $child_schema['#condition arguments'][1];
+        if(is_callable($child_schema['#condition'])){
+          $cond_func = $child_schema['#condition'];
+          if(!$cond_func($this->_get_context())){
+            continue;
+          }
+        }else{
+          $field = $child_schema['#condition'];
           if(empty($object->$field)){
             continue;
           }
-          $field_val = $object->$field;
-          if($cond_op == '=' && $field_val[LANGUAGE_NONE][0]['value'] != $cond_val){
-            continue;
-          }
-        }else if(empty($object->$field)){
-          continue;
         }
       }
       // Check the occurence constraint works
@@ -516,7 +545,7 @@ class PublicationXMLBuilder{
       $values = $modifier->insert_value_array($schema, $tag, $values);
     }
     $inserted = FALSE;
-    foreach($values as $value){
+    foreach($values as $delta => $value){
       $value_to_insert = $value;
       if(isset($schema['#value'])){
         $value_to_insert = $schema['#value'];
@@ -533,11 +562,21 @@ class PublicationXMLBuilder{
         // XXX doing this test here means we're not checking against min/max occurs.
         continue;
       }
+      $this->_set_context(array(
+        'object' => $object,
+        'child_object' => $child_object,
+        'field' => $field,
+        'delta' => $delta,
+        'raw_value' => $value,
+        'value_to_insert' => $value_to_insert,
+        'schema' => $schema
+      ));
       // XXX The new Modifier functionality means we might end up with a NULL value, and thus
       // should set $inserted to FALSE (depending on min_ocurrence) to provide adequate backtracking.
       $child_element = $this->_insert_xml_element($schema, $tag, $value_to_insert, $xml_element);
       $inserted = TRUE;
       $this->_build_xml_iteration($schema, $child_object, $child_element);
+      $this->_pop_context();
     }
     return $inserted;
   }
@@ -551,11 +590,19 @@ class PublicationXMLBuilder{
     $count = (!isset($schema['#min_occurence']) || $schema['#min_occurence'] == 0) ? 1 : $schema['#min_occurence'];
     $value = $schema['#value'];
     for($i = 0; $i < $count; $i++){
+      $this->_set_context(array(
+        'object' => $object,
+        'delta' => $i,
+        'raw_value' => $value,
+        'value_to_insert' => $value,
+        'schema' => $schema
+      ));
       // XXX The new Modifier functionality means we might end up with a NULL value, and thus
       // should set $inserted to FALSE (depending on min_ocurrence) to provide adequate backtracking.
       $child_element = $this->_insert_xml_element($schema, $tag, $value, $xml_element);
       $inserted = TRUE;
       $this->_build_xml_iteration($schema, $object, $child_element);
+      $this->_pop_context();
     }
     return $inserted;
   }
@@ -570,10 +617,16 @@ class PublicationXMLBuilder{
     $count = ((!isset($schema['#min_occurence']) || $min_occurence == 0) ? 1 : $schema['#min_occurence']);
     $inserted = FALSE;
     for($i = 0; $i < $count; $i++){
+      $this->_set_context(array(
+        'object' => $object,
+        'delta' => $i,
+        'schema' => $schema
+      ));
       // XXX The new Modifier functionality means we might end up with a non NULL , and thus
       // should set $inserted to TRUE to provide adequate backtracking.
       $child_element = $this->_insert_xml_element($schema, $tag, NULL, $xml_element);
       $insert_child = $this->_build_xml_iteration($schema, $object, $child_element);
+      $this->_pop_context();
       if(!$insert_child && $min_occurence == 0){
         $xml_element->removeChild($child_element);
       }else if($insert_child){
@@ -636,6 +689,9 @@ class PublicationXMLBuilder{
     // Add attributes
     if(!empty($schema['#attributes'])){
       foreach($schema['#attributes'] as $attr_name => $attr_value){
+        if(is_callable($attr_value)){
+          $attr_value = $attr_value($this->_get_context());
+        }
         $child_element->setAttribute($attr_name, $attr_value);
       }
     }
@@ -649,6 +705,8 @@ class PublicationXMLBuilder{
       // Escape the value if needed
       if(empty($schema['#raw'])){
         $final_value = htmlspecialchars($final_value);
+      }else{
+        $final_value = '<div>' . $final_value . '</div>';
       }
       // Ensure entities are numerical
       $final_value = _publication_xml_translate_entities($final_value);
