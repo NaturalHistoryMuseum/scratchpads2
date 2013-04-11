@@ -129,11 +129,11 @@ function _pensoft_publication_xml_load_biblio($value) {
   }
   // Biblio re-uses fields depending on the type, Pensoft doesn't -
   // so match fields depending on the type
-  if ($node->type == 100) {
+  if ($node->biblio_type == 100) {
     $node->pensoft_number_of_pages = $node->biblio_pages;
     $node->pensoft_book_title = $node->title;
     $node->pensoft_city = $node->biblio_place_published;
-  } else if ($node->type == 101) {
+  } else if ($node->biblio_type == 101) {
     $node->pensoft_chapter_title = $node->title;
     $node->pensoft_book_title = $node->secondary_title;
     $node->pensoft_city = $node->biblio_place_published;
@@ -144,14 +144,14 @@ function _pensoft_publication_xml_load_biblio($value) {
     if (count($pages) > 1) {
       $node->pensoft_last_page = $pages[1];
     }
-  } else if ($node->type == 102) {
+  } else if ($node->biblio_type == 102) {
     $node->pensoft_article_title = $node->title;
     $node->pensoft_journal_name = $node->biblio_secondary_title;
     $node->pensoft_journal_volume = $node->biblio_volume;
-  } else if ($node->type == 103) {
+  } else if ($node->biblio_type == 103) {
     $node->pensoft_conference_name = $node->biblio_secondary_title;
     $node->conference_location = $node->biblio_place_published;
-  } else if ($node->type == 104) {
+  } else if ($node->biblio_type == 104) {
     $node->pensoft_conference_name = $node->biblio_secondary_title;
     $node->conference_location = $node->biblio_place_published;
   }
@@ -166,8 +166,8 @@ function _pensoft_publication_xml_load_biblio($value) {
  */
 function _pensoft_publication_xml_load_biblio_author($value) {
   $biblio_author = array(1,2,3,4,5);
-  if (in_array($value->auth_type, $biblio_author)) {
-    return $value;
+  if (in_array($value['auth_type'], $biblio_author)) {
+    return (object)$value;
   } else {
     return NULL;
   }
@@ -180,8 +180,8 @@ function _pensoft_publication_xml_load_biblio_author($value) {
  */
 function _pensoft_publication_xml_load_biblio_editor($value) {
   $biblio_editor = array(10, 14);
-  if (in_array($value->auth_type, $biblio_editor)) {
-    return $value;
+  if (in_array($value['auth_type'], $biblio_editor)) {
+    return (object)$value;
   } else {
     return NULL;
   }
@@ -282,9 +282,10 @@ function _pensoft_publication_xml_article_metadata_schema(){
     'fields' => array(
       'title' => array(
         'value' => array(
-          'title' => array(
-            '#field' => 'field_publication_title'
-          ),
+          //'title' => array(
+            '#field' => 'field_publication_title',
+            '#raw' => TRUE,
+          //)
         )
       )
     ),
@@ -294,7 +295,8 @@ function _pensoft_publication_xml_article_metadata_schema(){
     'fields' => array(
       'abstract' => array(
         'value' => array(
-          '#field' => 'field_publication_abstract'
+          '#field' => 'field_publication_abstract',
+          '#raw' => TRUE
         )
       ),
       'keywords' => array(
@@ -408,7 +410,8 @@ function _pensoft_publication_xml_introduction_schema(){
     'fields' => array(
       'introduction' => array(
         'value' => array(
-          '#field' => 'field_publication_introduction'
+          '#field' => 'field_publication_introduction',
+          '#raw' => TRUE,
         )
       )
     )
@@ -425,7 +428,8 @@ function _pensoft_publication_xml_material_and_methods_schema(){
       '#condition' => 'field_publication_methods',
       'materials' => array(
         'value' => array(
-          '#field' => 'field_publication_methods'
+          '#field' => 'field_publication_methods',
+          '#raw' => TRUE,
         )
       )
     )
@@ -443,6 +447,7 @@ function _pensoft_publication_xml_data_resources_schema() {
       'data_resources' => array(
         'value' => array(
           '#field' => 'field_publication_data_resources',
+          '#raw' => TRUE,
         ),
       ),
     )
@@ -461,6 +466,7 @@ function _pensoft_publication_xml_results_schema() {
       'results' => array(
         'value' => array(
           '#field' => 'field_publication_results',
+          '#raw' => TRUE,
         ),
       ),
     )
@@ -478,7 +484,8 @@ function _pensoft_publication_xml_systematics_schema(){
       'distribution' => array(
         '#condition' => 'field_distribution',
         'value' => array(
-          '#field' => 'field_distribution'
+          '#field' => 'field_distribution',
+          '#raw' => TRUE
         )
       )
     ),
@@ -487,12 +494,14 @@ function _pensoft_publication_xml_systematics_schema(){
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
-            '#value' => 'Dispersal'
+            '#value' => 'Dispersal',
+            '#raw' => TRUE
           )
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_dispersal'
+            '#field' => 'field_dispersal',
+            '#raw' => TRUE
           )
         )
       )
@@ -503,7 +512,8 @@ function _pensoft_publication_xml_systematics_schema(){
       'ecology' => array(
         '#condition' => 'field_ecology',
         'value' => array(
-          '#field' => 'field_ecology'
+          '#field' => 'field_ecology',
+          '#raw' => TRUE
         )
       )
     ),
@@ -517,7 +527,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_associations'
+            '#field' => 'field_associations',
+            '#raw' => TRUE
           )
         )
       )
@@ -532,7 +543,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_cyclicity'
+            '#field' => 'field_cyclicity',
+            '#raw' => TRUE
           )
         )
       )
@@ -547,7 +559,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_habitat'
+            '#field' => 'field_habitat',
+            '#raw' => TRUE
           )
         )
       )
@@ -562,7 +575,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_life_cycle'
+            '#field' => 'field_life_cycle',
+            '#raw' => TRUE
           )
         )
       )
@@ -577,7 +591,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_life_expectancy'
+            '#field' => 'field_life_expectancy',
+            '#raw' => TRUE
           )
         )
       )
@@ -592,7 +607,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_migration'
+            '#field' => 'field_migration',
+            '#raw' => TRUE
           )
         )
       )
@@ -607,7 +623,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_population_biology'
+            '#field' => 'field_population_biology',
+            '#raw' => TRUE
           )
         )
       )
@@ -622,7 +639,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_reproduction'
+            '#field' => 'field_reproduction',
+            '#raw' => TRUE
           )
         )
       )
@@ -637,7 +655,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_trophic_strategy'
+            '#field' => 'field_trophic_strategy',
+            '#raw' => TRUE
           )
         )
       )
@@ -647,7 +666,8 @@ function _pensoft_publication_xml_systematics_schema(){
     'fields' => array(
       'conservation' => array(
         'value' => array(
-          '#field' => 'field_conservation_status'
+          '#field' => 'field_conservation_status',
+          '#raw' => TRUE
         )
       )
     ),
@@ -735,6 +755,7 @@ function _pensoft_publication_xml_systematics_schema(){
         '#condition' => 'field_general_description',
         'value' => array(
           '#field' => 'field_general_description',
+          '#raw' => TRUE
         )
       )
     ),
@@ -748,7 +769,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_behavious'
+            '#field' => 'field_behavious',
+            '#raw' => TRUE
           )
         )
       )
@@ -763,7 +785,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_cytology'
+            '#field' => 'field_cytology',
+            '#raw' => TRUE
           )
         )
       )
@@ -778,7 +801,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_diagnostic_description'
+            '#field' => 'field_diagnostic_description',
+            '#raw' => TRUE
           )
         )
       )
@@ -793,7 +817,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_genetics'
+            '#field' => 'field_genetics',
+            '#raw' => TRUE
           )
         )
       )
@@ -808,7 +833,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_growth'
+            '#field' => 'field_growth',
+            '#raw' => TRUE
           )
         )
       )
@@ -823,7 +849,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_look_alikes'
+            '#field' => 'field_look_alikes',
+            '#raw' => TRUE
           )
         )
       )
@@ -838,7 +865,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_molecular_biology'
+            '#field' => 'field_molecular_biology',
+            '#raw' => TRUE
           )
         )
       )
@@ -853,7 +881,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_morphology'
+            '#field' => 'field_morphology',
+            '#raw' => TRUE
           )
         )
       )
@@ -868,7 +897,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_physiology'
+            '#field' => 'field_physiology',
+            '#raw' => TRUE
           )
         )
       )
@@ -883,7 +913,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_size'
+            '#field' => 'field_size',
+            '#raw' => TRUE
           )
         )
       )
@@ -898,7 +929,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_taxon_biology'
+            '#field' => 'field_taxon_biology',
+            '#raw' => TRUE
           )
         )
       )
@@ -914,7 +946,8 @@ function _pensoft_publication_xml_systematics_schema(){
       ),
       'content' => array(
         'value' => array(
-          '#field' => 'field_evolution'
+          '#field' => 'field_evolution',
+          '#raw' => TRUE
         )
       )
     ),
@@ -928,7 +961,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_phylogeny'
+            '#field' => 'field_phylogeny',
+            '#raw' => TRUE
           )
         )
       )
@@ -939,7 +973,8 @@ function _pensoft_publication_xml_systematics_schema(){
       '#condition' => 'field_biology',
       'biology' => array(
         'value' => array(
-          '#field' => 'field_biology' // Originally from "overview" group
+          '#field' => 'field_biology',
+          '#raw' => TRUE
         )
       )
     )
@@ -949,7 +984,8 @@ function _pensoft_publication_xml_systematics_schema(){
       '#condition' => 'field_diseases',
       'content' => array(
         'value' => array(
-          '#field' => 'field_diseases'
+          '#field' => 'field_diseases',
+          '#raw' => TRUE
         )
       ),
       'title' => array(
@@ -968,7 +1004,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_risk_statement'
+            '#field' => 'field_risk_statement',
+            '#raw' => TRUE
           )
         )
       )
@@ -983,7 +1020,8 @@ function _pensoft_publication_xml_systematics_schema(){
         ),
         'content' => array(
           'value' => array(
-            '#field' => 'field_uses'
+            '#field' => 'field_uses',
+            '#raw' => TRUE
           )
         )
       )
@@ -995,34 +1033,20 @@ function _pensoft_publication_xml_systematics_schema(){
       '=',
       'Species'
     ),
-    '#field' => 'field_taxonomic_name',
-    '#load' => '_publication_xml_load_term',
-    '#load arguments' => array(
-      'field:field_publication_treatment_name',
-    ),
-    '#value' => '',
-    '#comment' => 'Load argument used to override name to final name if given',
     'fields' => array(
       'genus' => array(
-        '#load' => '_publication_xml_load_parent_term',
-        '#load arguments' => array(
-          'Genus'
-        ),
-        '#field' => 'tid',
-        '#value' => '',
         'value' => array(
-          '#field' => 'name',
+          '#field' => 'field_publication_treat_genus',
         )
       ),
       'species' => array(
         'value' => array(
-          '#field' => 'name',
+          '#field' => 'field_publication_treat_species',
         )
       ),
       'taxon_authors' => array(
-        '#condition' => 'field_authors',
         'value' => array(
-          '#field' => 'field_authors' // from the term
+          '#field' => 'field_publication_treat_authy',
         )
       )
     )
@@ -1032,7 +1056,8 @@ function _pensoft_publication_xml_systematics_schema(){
       '#condition' => 'field_publication_systematics',
       'systematics' => array(
         'value' => array(
-          '#field' => 'field_publication_systematics'
+          '#field' => 'field_publication_systematics',
+          '#raw' => TRUE
         )
       )
     ),
@@ -1097,47 +1122,15 @@ function _pensoft_publication_xml_systematics_schema(){
           '=',
           'Genus'
         ),
-        '#load' => '_publication_xml_load_term',
-        '#field' => 'field_taxonomic_name',
-        '#value' => '',
         'fields' => array(
           'genus' => array(
             'value' => array(
-              '#field' => 'name'
+              '#field' => 'field_publication_treat_genus'
             )
           ),
-          // year
           'taxon_authors' => array(
-            '#condition' => 'field_authors',
             'value' => array(
-              '#field' => 'field_authors' // from the term
-            )
-          )
-        )
-      ),
-      'taxon_name_genus#1' => array(
-        '#condition' => 'field_rank',
-        '#condition arguments' => array(
-          '=',
-          'Species'
-        ),
-        '#load' => '_publication_xml_load_parent_term',
-        '#load arguments' => array(
-          'Genus'
-        ),
-        '#field' => 'field_taxonomic_name',
-        '#value' => '',
-        'fields' => array(
-          'genus' => array(
-            'value' => array(
-              '#field' => 'name'
-            )
-          ),
-          // year
-          'taxon_authors' => array(
-            '#condition' => 'field_authors',
-            'value' => array(
-              '#field' => 'field_authors' // from the term
+              '#field' => 'field_publication_treat_authy',
             )
           )
         )
@@ -1523,6 +1516,7 @@ function _pensoft_publication_xml_discussion_schema() {
       'discussions' => array(
         'value' => array(
           '#field' => 'field_publication_discussion',
+          '#raw' => TRUE
         ),
       ),
     )
@@ -1540,7 +1534,8 @@ function _pensoft_publication_xml_acknowledgements_schema(){
       'acknowledgements' => array(
         '#condition' => 'field_pensoft_acknowledgments',
         'value' => array(
-          '#field' => 'field_pensoft_acknowledgments'
+          '#field' => 'field_pensoft_acknowledgments',
+          '#raw' => TRUE
         )
       )
     )
@@ -1705,7 +1700,8 @@ function _pensoft_publication_xml_references_schema() {
       ),
       'reference_author' => array(
         '#field' => 'biblio_contributors',
-        '#load' => '_pensoft_xml_load_biblio_author',
+        '#load' => '_pensoft_publication_xml_load_biblio_author',
+        '#value' => '',
         'fields' => array(
           'name' => array(
             '#condition' => 'name',
@@ -1735,7 +1731,8 @@ function _pensoft_publication_xml_references_schema() {
       ),
       'reference_editor' => array(
         '#field' => 'biblio_contributors',
-        '#load' => '_pensoft_xml_load_biblio_editor',
+        '#load' => '_pensoft_publication_xml_load_biblio_editor',
+        '#value' => '',
         'fields' => array(
           'name' => array(
             '#condition' => 'name',
@@ -1820,7 +1817,8 @@ function _pensoft_publication_xml_figures_schema(){
         //)
       ),
       'photo_description' => array(
-        '#field' => 'field_publication_figure_desc'
+        '#field' => 'field_publication_figure_desc',
+        '#raw' => TRUE
       ),
       /*'#attributes' => array(
         'id' => '',
@@ -1852,7 +1850,8 @@ function _pensoft_publication_xml_tables_schema(){
           '#field' => 'field_publication_table_title'
       ),
       'body' => array(
-        '#field' => 'field_publication_table'
+        '#field' => 'field_publication_table',
+        '#raw' => TRUE
       )
     )
   );
