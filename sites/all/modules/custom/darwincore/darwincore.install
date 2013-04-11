@@ -120,8 +120,10 @@ function darwincore_update_7005(){
  */
 function darwincore_update_7006(){
   $field = field_info_field('field_collector');
-  $field['cardinality'] = -1;
-  field_update_field($field);
+  if($field){
+    $field['cardinality'] = -1;
+    field_update_field($field);
+  }
 }
 
 /**
