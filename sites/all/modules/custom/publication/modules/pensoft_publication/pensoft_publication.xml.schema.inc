@@ -195,7 +195,7 @@ function _pensoft_publication_xml_document_info_schema(){
   $document_info_schema = array(
     'document_type' => array(
       '#attributes' => array(
-        'id' => 1 // Taxonomy paper
+        'id' => 2 // Taxonomy paper
       )
     ),
     'journal_name' => array(
@@ -1028,11 +1028,9 @@ function _pensoft_publication_xml_systematics_schema(){
     )
   );
   $taxon_name_species = array(
-    '#condition' => 'field_rank',
-    '#condition arguments' => array(
-      '=',
-      'Species'
-    ),
+    '#condition' => function($context) {
+      return $context->child_object->field_rank[LANGUAGE_NONE][0]['value'] == 'Species';
+    },
     'fields' => array(
       'genus' => array(
         'value' => array(
@@ -1092,22 +1090,18 @@ function _pensoft_publication_xml_systematics_schema(){
           )
         ),
         'select_type' => array(
-          '#condition' => 'field_rank',
-          '#condition arguments' => array(
-            '=',
-            'Species'
-          ),
+          '#condition' => function($context) {
+            return $context->object->field_rank[LANGUAGE_NONE][0]['value'] == 'Species';
+          },
           'value' => array(
             '#value' => '', 
             '#comment' => "'extant' or 'fossil' or ''. This is part of Specimen for us, not taxon ?"
           )
         ),
         'habitat' => array(
-          '#condition' => 'field_rank',
-          '#condition arguments' => array(
-            '=',
-            'Species'
-          ),
+          '#condition' => function($context) {
+            return $context->child_object->field_rank[LANGUAGE_NONE][0]['value'] == 'Species';
+          },
           '#condition' => 'field_habitat',
           'value' => array(
             '#field' => 'field_habitat',
@@ -1117,11 +1111,9 @@ function _pensoft_publication_xml_systematics_schema(){
         // parasite_of, classification_root_id, taxon_treatment_host_of, taxon_treatment_simbiotic_with, taxon_treatment_feeds_on
       ),
       'taxon_name_genus' => array(
-        '#condition' => 'field_rank',
-        '#condition arguments' => array(
-          '=',
-          'Genus'
-        ),
+        '#condition' => function($context) {
+          return $context->child_object->field_rank[LANGUAGE_NONE][0]['value'] == 'Genus';
+        },
         'fields' => array(
           'genus' => array(
             'value' => array(
@@ -1499,7 +1491,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
   $holotype = $type_template;
   $paratypes = $type_template;
   $paratypes['#field'] = 'field_publication_treat_paratype';
-  $paratypes['fields']['type_status']['value']['#value'] = 'Paratype(s)';
+  $paratypes['fields']['type_status']['value']['#value'] = 'Paratype';
   return array(
     'material' => $holotype,
     'material#1' => $paratypes
@@ -1549,6 +1541,11 @@ function _pensoft_publication_xml_acknowledgements_schema(){
 function _pensoft_publication_xml_references_schema() {
   $references = array(
     'reference' => array(
+      '#attributes' => array(
+        'id' => function($context) {
+          return $context->raw_value['nid'];
+        }
+      ),
       '#field' => 'field_publication_references',
       '#load' => '_pensoft_publication_xml_load_biblio',
       '#value' => '',
@@ -1807,6 +1804,13 @@ function _pensoft_publication_xml_figures_schema(){
       '#field' => 'field_publication_figures',
       '#value' => '',
       '#load' => '_pensoft_publication_xml_load_figure',
+      '#attributes' => array(
+        'id' => function($context) {
+           $collection = reset(entity_load('field_collection_item', array($context->raw_value['value'])));
+           $wrapper = entity_metadata_wrapper('field_collection_item', $collection);
+           return $wrapper->field_publication_figure_figure->file->fid->value();
+       }
+      ),
       'caption' => array(
         '#field' => 'field_publication_figure_title'
       ),
@@ -1817,8 +1821,11 @@ function _pensoft_publication_xml_figures_schema(){
         //)
       ),
       'photo_description' => array(
-        '#field' => 'field_publication_figure_desc',
-        '#raw' => TRUE
+        '#condition' => 'field_publication_figure_desc',
+        'value' => array(
+          '#field' => 'field_publication_figure_desc',
+          '#raw' => TRUE
+        )
       ),
       /*'#attributes' => array(
         'id' => '',
@@ -1846,12 +1853,21 @@ function _pensoft_publication_xml_tables_schema(){
       '#field' => 'field_publication_tables',
       '#value' => '',
       '#load' => '_pensoft_publication_xml_load_table',
-      'title' => array(
+      '#attributes' => array(
+        'id' => function($context) {
+           $collection = reset(entity_load('field_collection_item', array($context->raw_value['value'])));
+           $wrapper = entity_metadata_wrapper('field_collection_item', $collection);
+           return $wrapper->field_publication_table_id->value();
+        }
+      ),
+      'caption' => array(
           '#field' => 'field_publication_table_title'
       ),
-      'body' => array(
-        '#field' => 'field_publication_table',
-        '#raw' => TRUE
+      'content' => array(
+        'value' => array(
+          '#field' => 'field_publication_table',
+          '#raw' => TRUE
+        )
       )
     )
   );
