@@ -159,7 +159,9 @@ function darwincore_update_7010(){
   $fields = darwincore_field_default_fields();
   foreach($fields as $key => $field){
     if(substr($key, 0, 13) == 'node-location'){
-      field_update_instance($field['field_instance']);
+      if(field_info_field($field['field_instance']['field_name'])){
+        field_update_instance($field['field_instance']);
+      }
     }
   }
 }
