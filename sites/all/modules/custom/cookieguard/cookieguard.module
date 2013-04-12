@@ -1,0 +1,160 @@
+<?php
+define('COOKIEGUARD_ALLOW', 1);
+define('COOKIEGUARD_DENY', 2);
+
+/**
+ * Implements hook_page_build().
+ */
+function cookieguard_page_build(&$page){
+  global $user;
+  // We need to load the full user object to ensure the cookieguard settings are
+  // there.
+  $user = user_load($user->uid);
+  if($user->cookieguard){
+    if(empty($_COOKIE['cookieguard_initialised'])){
+      // The user has clicked the "Alow/Block" before, but the cookies are not
+      // set.
+      $_COOKIE['cookieguard_initialised'] = $user->cookieguard;
+      $cookies = cookieguard_get_cookies();
+      $cookies = cookieguard_get_allow_deny($cookies, $user->cookieguard == COOKIEGUARD_DENY);
+      $_COOKIE['cookieguard_allowedCookies'] = $cookies['allowed'];
+      $_COOKIE['cookieguard_disallowedCookies'] = $cookies['disallowed'];
+    }
+  }else{
+    if($_COOKIE['cookieguard_initialised']){
+      // The user has clicked "Allow/Block" - we need to save the settings.
+      cookieguard_save_settings();
+    }else{
+      // Possibly the first time on a page (or no click).  Do the do.
+      if((module_exists('overlay') && overlay_get_mode() == 'parent') || !module_exists('overlay')){
+        $cookies = cookieguard_get_cookies();
+        $page['content']['cookieguard'] = array(
+          '#attached' => array(
+            'js' => array(
+              array(
+                'data' => array(
+                  'cookieguard' => $cookies
+                ),
+                'type' => 'setting'
+              )
+            )
+          )
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Get the allow and deny strings (depending on which button was clicked).
+ */
+function cookieguard_get_allow_deny($cookies, $deny){
+  $return = array(
+    'allowed' => array(),
+    'disallowed' => array()
+  );
+  foreach($cookies as $cookie){
+    $key = 'allowed';
+    if(!$cookie['essential'] && $deny){
+      $key = 'disallowed';
+    }
+    $return[$key][] = $cookie['keys'];
+  }
+  foreach(array(
+    'allowed',
+    'disallowed'
+  ) as $key){
+    $return[$key] = implode(',', $return[$key]);
+  }
+  return $return;
+}
+
+/**
+ * Simple function to return an array of cookies
+ */
+function cookieguard_get_cookies(){
+  $cookies = array();
+  foreach($_COOKIE as $key => $value){
+    switch($key){
+      case 'has_js':
+        $cookies['has_js'] = array(
+          'name' => 'Javascript tools',
+          'keys' => 'has_js,Drupal.toolbar.collapsed,Drupal.tableDrag.showWeight',
+          'description' => 'Informs the server that you have Javascript enabled on your browser, or have collapsed the toolbar, and other basic interface features.',
+          'essential' => true
+        );
+        break;
+      case 'DRUPAL_UID':
+        $cookies['drupal_uid'] = array(
+          'name' => 'Drupal user ID',
+          'keys' => 'DRUPAL_UID',
+          'description' => 'The user that you are logged in as.',
+          'essential' => true
+        );
+        break;
+      default:
+        if(substr($key, 0, 4) == 'SESS'){
+          $cookies['sess'] = array(
+            'name' => 'PHP Session',
+            'keys' => $key,
+            'description' => 'This cookie is used to track important logical information for the smooth operation of the site',
+            'essential' => true
+          );
+        }
+    }
+  }
+  drupal_alter('cookies', $cookies);
+  return $cookies;
+}
+
+/**
+ * Implements hook_user_load().
+ */
+function cookieguard_user_load($users){
+  $results = db_select('cookieguard_user_settings', 'c')->fields('c')->condition('uid', array_keys($users))->execute();
+  foreach($results as $row){
+    $users[$row->uid]->cookieguard = $row->deny_allow;
+  }
+}
+
+/**
+ * Save a users cookie settings.
+ */
+function cookieguard_save_settings(){
+  global $user;
+  if($user->uid){
+    db_merge('cookieguard_user_settings')->key(array(
+      'uid' => $user->uid
+    ))->fields(array(
+      'uid' => $user->uid,
+      'deny_allow' => $_COOKIE['cookieguard_initialised']
+    ))->execute();
+  }
+}
+////////////////////////////////////////////////////////////////////////////////
+/**
+ * Other modules!
+ * 
+ * Ideally, these should not be here, but until this module picks up popularity
+ * and the voice of the masses can be heard, I will have to maintain them here.
+ */
+/**
+ * Google Analytics module.
+ * 
+ * Implements hook_cookies_alter().
+ */
+function googleanalytics_cookies_alter(&$cookies){
+  $cookies['googleanalytics'] = array(
+    'name' => 'Google Analytics',
+    'keys' => '__utma,__utmb,__utmc,__utmz,__utmv',
+    'description' => 'These cookies are used to collect information about how visitors use our site. We use the information to compile reports and to help us improve the site. The cookies collect information in an anonymous form, including the number of visitors to the site, where visitors have come to the site from and the pages they visited.',
+    'essential' => false
+  );
+}
+
+/**
+ * Ctools module
+ */
+function ctools_cookies_alter(&$cookies){
+  $cookies['has_js']['keys'] .= ',ctools-collapsible-state';
+}

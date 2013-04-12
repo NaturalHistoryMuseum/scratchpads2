@@ -1,0 +1,26 @@
+<?php
+
+/**
+ * Implements hook_schema()
+ */
+function cookieguard_schema(){
+  return array(
+    'cookieguard_user_settings' => array(
+      'fields' => array(
+        'uid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'deny_allow' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        )
+      ),
+      'primary key' => array(
+        'uid'
+      )
+    )
+  );
+}
