@@ -1,72 +1,55 @@
 <?php
-define('COOKIEGUARD_ALLOW', 1);
-define('COOKIEGUARD_DENY', 2);
 
 /**
- * Implements hook_page_build().
+ * Implements hook_init().
+ * 
+ * Cookies can not be set during hook_page_build, so we do that here. 
  */
-function cookieguard_page_build(&$page){
+function cookieguard_init(){
   global $user;
   // We need to load the full user object to ensure the cookieguard settings are
   // there.
   $user = user_load($user->uid);
-  if($user->cookieguard){
-    if(empty($_COOKIE['cookieguard_initialised'])){
+  if(empty($_COOKIE['cookieguard_initialised'])){
+    if($user->cookieguard){
       // The user has clicked the "Alow/Block" before, but the cookies are not
       // set.
-      $_COOKIE['cookieguard_initialised'] = $user->cookieguard;
-      $cookies = cookieguard_get_cookies();
-      $cookies = cookieguard_get_allow_deny($cookies, $user->cookieguard == COOKIEGUARD_DENY);
-      $_COOKIE['cookieguard_allowedCookies'] = $cookies['allowed'];
-      $_COOKIE['cookieguard_disallowedCookies'] = $cookies['disallowed'];
+      setcookie('cookieguard_initialised', 1);
+      setcookie('cookieguard_allowedCookies', $user->cookieguard['allowed']);
+      setcookie('cookieguard_disallowedCookies', $user->cookieguard['disallowed']);
     }
   }else{
-    if($_COOKIE['cookieguard_initialised']){
-      // The user has clicked "Allow/Block" - we need to save the settings.
+    // Add a check here to see if the cookie settings have changed.
+    if(empty($user->cookieguard) || $_COOKIE['cookieguard_disallowedCookies'] != $user->cookieguard['disallowed'] || $_COOKIE['cookieguard_allowedCookies'] != $user->cookieguard['allowed']){
       cookieguard_save_settings();
-    }else{
-      // Possibly the first time on a page (or no click).  Do the do.
-      if((module_exists('overlay') && overlay_get_mode() == 'parent') || !module_exists('overlay')){
-        $cookies = cookieguard_get_cookies();
-        $page['content']['cookieguard'] = array(
-          '#attached' => array(
-            'js' => array(
-              array(
-                'data' => array(
-                  'cookieguard' => $cookies
-                ),
-                'type' => 'setting'
-              )
-            )
-          )
-        );
-      }
     }
   }
 }
 
 /**
- * Get the allow and deny strings (depending on which button was clicked).
+ * Implements hook_page_build().
  */
-function cookieguard_get_allow_deny($cookies, $deny){
-  $return = array(
-    'allowed' => array(),
-    'disallowed' => array()
-  );
-  foreach($cookies as $cookie){
-    $key = 'allowed';
-    if(!$cookie['essential'] && $deny){
-      $key = 'disallowed';
-    }
-    $return[$key][] = $cookie['keys'];
+function cookieguard_page_build(&$page){
+  if((module_exists('overlay') && overlay_get_mode() == 'parent') || !module_exists('overlay')){
+    $cookies = cookieguard_get_cookies();
+    $page['content']['cookieguard'] = array(
+      '#attached' => array(
+        'css' => array(
+          drupal_get_path('module', 'cookieguard').'/cookieguard.css'
+        ),
+        'js' => array(
+          drupal_get_path('module', 'cookieguard').'/jqueryCookieGuard.1.0.1.js',
+          drupal_get_path('module', 'cookieguard').'/cookieguard.js',
+          array(
+            'data' => array(
+              'cookieguard' => $cookies
+            ),
+            'type' => 'setting'
+          )
+        )
+      )
+    );
   }
-  foreach(array(
-    'allowed',
-    'disallowed'
-  ) as $key){
-    $return[$key] = implode(',', $return[$key]);
-  }
-  return $return;
 }
 
 /**
@@ -113,7 +96,10 @@ function cookieguard_get_cookies(){
 function cookieguard_user_load($users){
   $results = db_select('cookieguard_user_settings', 'c')->fields('c')->condition('uid', array_keys($users))->execute();
   foreach($results as $row){
-    $users[$row->uid]->cookieguard = $row->deny_allow;
+    $users[$row->uid]->cookieguard = array(
+      'allowed' => $row->allowed,
+      'disallowed' => $row->disallowed
+    );
   }
 }
 
@@ -127,7 +113,8 @@ function cookieguard_save_settings(){
       'uid' => $user->uid
     ))->fields(array(
       'uid' => $user->uid,
-      'deny_allow' => $_COOKIE['cookieguard_initialised']
+      'allowed' => $_COOKIE['cookieguard_allowedCookies'] ? $_COOKIE['cookieguard_allowedCookies'] : '',
+      'disallowed' => $_COOKIE['cookieguard_disallowedCookies'] ? $_COOKIE['cookieguard_disallowedCookies'] : ''
     ))->execute();
   }
 }

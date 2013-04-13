@@ -1,6 +1,3 @@
 name = cookieguard.eu
 description = Displays a basic "cookie" popup at the top of the site when a user first visits
 core = 7.x
-scripts[] = jqueryCookieGuard.1.0.min.js
-scripts[] = cookieguard.js
-stylesheets[screen][] = cookieguard.css

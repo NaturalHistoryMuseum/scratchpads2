@@ -12,10 +12,13 @@ function cookieguard_schema(){
           'unsigned' => TRUE,
           'not null' => TRUE
         ),
-        'deny_allow' => array(
-          'type' => 'int',
-          'unsigned' => TRUE,
-          'not null' => TRUE
+        'allowed' => array(
+          'type' => 'text',
+          'not null' => FALSE
+        ),
+        'disallowed' => array(
+          'type' => 'text',
+          'not null' => FALSE
         )
       ),
       'primary key' => array(
