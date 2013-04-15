@@ -288,7 +288,7 @@
       $('#cookieGuardOkay').click(function(){
         clearTimeout($.cookieguard.settings.messageHideTimeout);
         $.cookieguard.hideMessage(0);
-        $.create($.cookieguard.settings.cookiePrefix + 'initialised', '1', {expires: 365});
+        $.cookie($.cookieguard.settings.cookiePrefix + 'initialised', '1', {expires: 365});
         return false;
       });
       $('#showCookies').click(function(){

@@ -81,19 +81,14 @@ function cookieguard_get_cookies(){
   foreach($_COOKIE as $key => $value){
     switch($key){
       case 'has_js':
-        $cookies['has_js'] = array(
-          'name' => 'Javascript tools',
-          'keys' => 'has_js,Drupal.toolbar.collapsed,Drupal.tableDrag.showWeight',
-          'description' => 'Informs the server that you have Javascript enabled on your browser, or have collapsed the toolbar, and other basic interface features.',
-          'essential' => true
-        );
-        break;
       case 'DRUPAL_UID':
-        $cookies['drupal_uid'] = array(
-          'name' => 'Drupal user ID',
-          'keys' => 'DRUPAL_UID',
-          'description' => 'The user that you are logged in as.',
-          'essential' => true
+      case 'Drupal.toolbar.collapsed':
+      case 'Drupal.tableDrag.showWeight':
+        $cookies['DRUPAL_UID'] = array(
+          'name' => 'Essential Drupal cookies',
+          'keys' => 'DRUPAL_UID,has_js,Drupal.toolbar.collapsed,Drupal.tableDrag.showWeight',
+          'description' => t('Essential Drupal cookies required for the smooth running of your site.'),
+          'essential' => TRUE
         );
         break;
       default:
@@ -102,7 +97,7 @@ function cookieguard_get_cookies(){
             'name' => 'PHP Session',
             'keys' => $key,
             'description' => 'This cookie is used to track important logical information for the smooth operation of the site',
-            'essential' => true
+            'essential' => TRUE
           );
         }
     }
@@ -165,8 +160,15 @@ function googleanalytics_cookies_alter(&$cookies){
 }
 
 /**
+ * Devel module
+ */
+function devel_cookies_alter(&$cookies){
+  
+}
+
+/**
  * Ctools module
  */
 function ctools_cookies_alter(&$cookies){
-  $cookies['has_js']['keys'] .= ',ctools-collapsible-state';
+  $cookies['DRUPAL_UID']['keys'] .= ',ctools-collapsible-state';
 }

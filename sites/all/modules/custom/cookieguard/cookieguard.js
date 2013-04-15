@@ -14,7 +14,7 @@
     $('body').css({'paddingTop': parseInt($('body').css('paddingTop')) - cookieHeight});
     $('#toolbar').css({'top': 0});
     $('#cookieGuardMsg').remove();
-    if(Drupal.overlay){
+    if(Drupal.overlay) {
       Drupal.overlay.eventhandlerAlterDisplacedElements();
     }
   }
@@ -28,7 +28,7 @@
     $.cookieguard.run();
     setTimeout(function(){
       $('#denyCookies').click(function(){
-        $.cookieguard.cookies.create($.cookieguard.settings.cookiePrefix + 'initialised', '2', 365);
+        $.cookie($.cookieguard.settings.cookiePrefix + 'initialised', '1', {expires: 365});
       });
     }, $.cookieguard.settings.cookieDeleteDelay + 20);
   });
