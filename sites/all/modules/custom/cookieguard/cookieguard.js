@@ -11,17 +11,11 @@
   };
   // Override
   $.cookieguard.hideMessage = function(hideDelay){
+    $('body').css({'paddingTop': parseInt($('body').css('paddingTop')) - cookieHeight});
+    $('#toolbar').css({'top': 0});
+    $('#cookieGuardMsg').remove();
     if(Drupal.overlay){
-      $('body').css({'paddingTop': parseInt($('body').css('paddingTop')) - cookieHeight});
-      $('#toolbar').css({'top': 0});
-      $('#cookieGuardMsg').remove();
       Drupal.overlay.eventhandlerAlterDisplacedElements();
-    } else {
-      $('body').delay(hideDelay).animate({'paddingTop': parseInt($('body').css('paddingTop')) - cookieHeight}, $.cookieguard.settings.slideSpeed);
-      $('#toolbar').delay(hideDelay).animate({'top': 0}, $.cookieguard.settings.slideSpeed);
-      $('#cookieGuardMsg').delay(hideDelay).animate({'top': - cookieHeight}, $.cookieguard.settings.slideSpeed, null, function(){
-        $('#cookieGuardMsg').remove();
-      });
     }
   }
   $(document).ready(function(){

@@ -27,6 +27,27 @@ function cookieguard_init(){
 }
 
 /**
+ * Implements hook_module_implements_alter().
+ */
+function cookieguard_module_implements_alter(&$imps, $hook){
+  if($hook == 'library_alter'){
+    $move = $imps['cookieguard'];
+    unset($imps['cookieguard']);
+    $imps['cookieguard'] = $move;
+  }
+}
+
+/**
+ * Implements hook_library_alter().
+ */
+function cookieguard_library_alter(&$libraries, $module){
+  if($module != 'system'){return;}
+  $libraries['jquery.cookie']['js']['misc/jquery.cookie.js']['data'] = drupal_get_path('module', 'cookieguard') . '/jquery.cookie.js';
+  $libraries['jquery.cookie']['version'] = '1.3.1';
+  //echo "Parp";exit;
+}
+
+/**
  * Implements hook_page_build().
  */
 function cookieguard_page_build(&$page){
@@ -35,11 +56,11 @@ function cookieguard_page_build(&$page){
     $page['content']['cookieguard'] = array(
       '#attached' => array(
         'css' => array(
-          drupal_get_path('module', 'cookieguard').'/cookieguard.css'
+          drupal_get_path('module', 'cookieguard') . '/cookieguard.css'
         ),
         'js' => array(
-          drupal_get_path('module', 'cookieguard').'/jqueryCookieGuard.1.0.1.js',
-          drupal_get_path('module', 'cookieguard').'/cookieguard.js',
+          drupal_get_path('module', 'cookieguard') . '/jqueryCookieGuard.1.0.1.js',
+          drupal_get_path('module', 'cookieguard') . '/cookieguard.js',
           array(
             'data' => array(
               'cookieguard' => $cookies
@@ -116,6 +137,10 @@ function cookieguard_save_settings(){
       'allowed' => $_COOKIE['cookieguard_allowedCookies'] ? $_COOKIE['cookieguard_allowedCookies'] : '',
       'disallowed' => $_COOKIE['cookieguard_disallowedCookies'] ? $_COOKIE['cookieguard_disallowedCookies'] : ''
     ))->execute();
+    // Load the user object, to ensure that the cache is reset.
+    entity_load('user', array(
+      $user->uid
+    ), array(), TRUE);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////
