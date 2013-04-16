@@ -44,14 +44,13 @@ function cookieguard_library_alter(&$libraries, $module){
   if($module != 'system'){return;}
   $libraries['jquery.cookie']['js']['misc/jquery.cookie.js']['data'] = drupal_get_path('module', 'cookieguard') . '/jquery.cookie.js';
   $libraries['jquery.cookie']['version'] = '1.3.1';
-  //echo "Parp";exit;
 }
 
 /**
  * Implements hook_page_build().
  */
 function cookieguard_page_build(&$page){
-  if((module_exists('overlay') && overlay_get_mode() == 'parent') || !module_exists('overlay')){
+  if(!(module_exists('overlay') && overlay_get_mode() != 'parent')){
     $cookies = cookieguard_get_cookies();
     $page['content']['cookieguard'] = array(
       '#attached' => array(
@@ -78,32 +77,34 @@ function cookieguard_page_build(&$page){
  */
 function cookieguard_get_cookies(){
   $cookies = array();
-  foreach($_COOKIE as $key => $value){
-    switch($key){
-      case 'has_js':
-      case 'DRUPAL_UID':
-      case 'Drupal.toolbar.collapsed':
-      case 'Drupal.tableDrag.showWeight':
-        $cookies['DRUPAL_UID'] = array(
-          'name' => 'Essential Drupal cookies',
-          'keys' => 'DRUPAL_UID,has_js,Drupal.toolbar.collapsed,Drupal.tableDrag.showWeight',
-          'description' => t('Essential Drupal cookies required for the smooth running of your site.'),
-          'essential' => TRUE
-        );
-        break;
-      default:
-        if(substr($key, 0, 4) == 'SESS'){
-          $cookies['sess'] = array(
-            'name' => 'PHP Session',
-            'keys' => $key,
-            'description' => 'This cookie is used to track important logical information for the smooth operation of the site',
-            'essential' => TRUE
-          );
-        }
-    }
+  foreach(module_implements('cookies') as $module){
+    $cookies += call_user_func($module . '_cookies');
   }
   drupal_alter('cookies', $cookies);
   return $cookies;
+}
+
+/**
+ * Implements hook_cookies
+ */
+function cookieguard_cookies(){
+  return array(
+    'DRUPAL_UID' => array(
+      'name' => 'Essential Drupal cookies',
+      'keys' => 'DRUPAL_UID,has_js,Drupal.toolbar.collapsed,Drupal.tableDrag.showWeight',
+      'description' => t('Essential Drupal cookies required for the smooth running of your site.'),
+      'essential' => TRUE
+    )
+  );
+}
+
+/**
+ * Implements hook_cookies_alter
+ * 
+ * Alter the core Drupal cookie to add the session cookie.
+ */
+function cookieguard_cookies_alter(&$cookies){
+  $cookies['DRUPAL_UID']['keys'] .= ',' . session_name();
 }
 
 /**
@@ -133,7 +134,7 @@ function cookieguard_save_settings(){
       'disallowed' => $_COOKIE['cookieguard_disallowedCookies'] ? $_COOKIE['cookieguard_disallowedCookies'] : ''
     ))->execute();
     // Load the user object, to ensure that the cache is reset.
-    entity_load('user', array(
+    $user = entity_load('user', array(
       $user->uid
     ), array(), TRUE);
   }
@@ -150,20 +151,29 @@ function cookieguard_save_settings(){
  * 
  * Implements hook_cookies_alter().
  */
-function googleanalytics_cookies_alter(&$cookies){
-  $cookies['googleanalytics'] = array(
-    'name' => 'Google Analytics',
-    'keys' => '__utma,__utmb,__utmc,__utmz,__utmv',
-    'description' => 'These cookies are used to collect information about how visitors use our site. We use the information to compile reports and to help us improve the site. The cookies collect information in an anonymous form, including the number of visitors to the site, where visitors have come to the site from and the pages they visited.',
-    'essential' => false
+function googleanalytics_cookies(){
+  return array(
+    'googleanalytics' => array(
+      'name' => t('Google Analytics'),
+      'keys' => '__utma,__utmb,__utmc,__utmz,__utmv',
+      'description' => t('These cookies are used to collect information about how visitors use our site. We use the information to compile reports and to help us improve the site. The cookies collect information in an anonymous form, including the number of visitors to the site, where visitors have come to the site from and the pages they visited.'),
+      'essential' => FALSE
+    )
   );
 }
 
 /**
  * Devel module
  */
-function devel_cookies_alter(&$cookies){
-  
+function devel_cookies(){
+  return array(
+    'ZDEDebuggerPresent' => array(
+      'name' => t('Zend Debugger'),
+      'keys' => 'ZDEDebuggerPresent',
+      'description' => t('A flag set by the server to let the ZendToolbar know that the debugger is present on the server.'),
+      'essential' => FALSE
+    )
+  );
 }
 
 /**
