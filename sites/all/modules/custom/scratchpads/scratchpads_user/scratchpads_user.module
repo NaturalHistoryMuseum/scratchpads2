@@ -375,8 +375,8 @@ function scratchpads_user_field_formatter_info(){
       ),
       'multiple values' => FIELD_BEHAVIOR_DEFAULT,
       'settings' => array(
-        'show_name_as_link' => 0,
-        'separator_option' => ', ',
+        'show_name_as_link' => 1,
+        'separator_option' => '',
         'element_option' => '- None -',
         'element_class' => ''
       )
@@ -482,21 +482,33 @@ function scratchpads_user_field_formatter_view($entity_type, $entity, $field, $i
   $number_of_items = count($items);
   switch($display['type']){
     case 'scratchpads_user_full_name':
+      $formatted = '';
       foreach($items as $delta => $item){
-        if($settings['element_option'] != '- None -'){
-          $element[$delta] = array(
-            '#type' => 'html_tag',
-            '#tag' => $settings['element_option'],
-            '#value' => _scratchpads_user_field_formatter_view($number_of_items, $delta, $item, $settings)
-          );
-          if($settings['element_class']){
-            $element[$delta]['#attributes']['class'] = $settings['element_class'];
+        if($settings['separator_option']){
+          $formatted .= _scratchpads_user_field_formatter_view($number_of_items, $delta, $item, $settings);
+          if($settings['element_option'] != '- None -'){
+            $element[0] = array(
+              '#type' => 'html_tag',
+              '#tag' => $settings['element_option'],
+              '#value' => $formatted
+            );
+          }else{
+            $element[0]['#markup'] = $formatted;
           }
         }else{
-          $element[$delta] = array(
-            '#type' => 'markup',
-            '#markup' => _scratchpads_user_field_formatter_view($number_of_items, $delta, $item, $settings)
-          );
+          $formatted = _scratchpads_user_field_formatter_view($number_of_items, $delta, $item, $settings);
+          if($settings['element_option'] != '- None -'){
+            $element[$delta] = array(
+              '#type' => 'html_tag',
+              '#tag' => $settings['element_option'],
+              '#value' => $formatted
+            );
+          }else{
+            $element[$delta] = array(
+              '#type' => 'markup',
+              '#markup' => $formatted
+            );
+          }
         }
       }
       break;

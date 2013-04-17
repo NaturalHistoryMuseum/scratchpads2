@@ -264,6 +264,9 @@ function femail_scratchpads_default_permissions(){
   return array(
     'authenticated user' => array(
       'post by femail'
+    ),
+    'maintainer' => array(
+      'administer femail'
     )
   );
 }

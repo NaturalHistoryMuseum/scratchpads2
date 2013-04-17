@@ -15,7 +15,7 @@
  *                      An exception will be raised if this constraint is not respected
  *    #max_occurence':  Maximum number of occurence. Defaults to 1, use -1 for unlimited
  *                      An expception will be raised if this constraint is not respected
- *    #attributes:      Attributes to add to the element, as an array of name => value
+ *    #attributes:      Attributes to add to the element, as an array of name => value/callable function
  *    #process:         Optional function to process the value of the node before insertion.
  *                      available functions are:
  *                        - _pensoft_publication_xml_process_html: to insert HTML values
@@ -51,13 +51,9 @@
  *                      (and for #load), but it's the value of #value that is inserted.
  *     
  *    #condition:       If present, the current node (and it's children) are only processed if the field
- *                      described by #condition is not empty.
+ *                      described by #condition is not empty, or the callable function indicated by
+ *                      #condition returns TRUE.
  *                      
- *    #condition arguments : If present in combination with #condition, then this modifies the test
- *                           done by #condition. #condition arguments is an array like array($op, $val)
- *                           where the field defined in #condition is tested against $val using operator
- *                           $op.
- *
  *    #error_info:      If present, this will be used instead of the field name in error messages
  *                      (eg. field ... is required)
  *
@@ -313,13 +309,13 @@ class PublicationXMLSchemaExplain{
     // Add conditions
     $condition = FALSE;
     if(isset($schema['#condition'])){
-      $elem = $this->_field_name($schema['#condition']);
-      if(isset($schema['#condition arguments'])){
-        $condition = "$elem " . $schema['#condition arguments'][0] . ' ' . $schema['#condition arguments'][1];
+      if(is_callable($schema['#condition'])){
+        $output[] = "IF " . $schema['#condition'] . " {";
       }else{
+        $elem = $this->_field_name($schema['#condition']);
         $condition = "$elem";
+        $output[] = "IF ($condition) {";
       }
-      $output[] = "IF ($condition) {";
     }
     // Load new object
     $has_load = FALSE;
@@ -329,10 +325,10 @@ class PublicationXMLSchemaExplain{
       if(isset($schema['#load arguments'])){
         $arguments = array();
         foreach($schema['#load arguments'] as $argument){
-          if (is_string($argument) && preg_match('/^field:(.+)$/', $argument, $matches)) {
+          if(is_string($argument) && preg_match('/^field:(.+)$/', $argument, $matches)){
             $load_elem = $this->_field_name($matches[1]);
             $arguments[] = $load_elem;
-          } else {
+          }else{
             $arguments[] = 'unserialize("' . serialize($argument) . '")';
           }
         }
@@ -420,6 +416,36 @@ class PublicationXMLBuilder{
   }
 
   /**
+   * This function sets the active build context
+   */
+  function _set_context($context){
+    $default = array(
+      'object' => NULL,
+      'child_object' => NULL,
+      'field' => NULL,
+      'delta' => NULL,
+      'raw_value' => NULL,
+      'value_to_insert' => NULL,
+      'schema' => NULL
+    );
+    $this->_build_context[] = (object)array_merge($default, $context);
+  }
+
+  /**
+   * This functions gets the active build context, as an object
+   */
+  function _get_context(){
+    return end($this->_build_context);
+  }
+
+  /**
+   * This function pops the build context stack
+   */
+  function _pop_context(){
+    return array_pop($this->_build_context);
+  }
+
+  /**
    * This function builds the XML from the given object.
    * 
    * This function will throw an exception on errors
@@ -434,7 +460,13 @@ class PublicationXMLBuilder{
       $modifier->start_building($this->array_schema, $this->_root_object, $this->_dom);
     }
     $this->path = array();
+    $this->_build_context = array();
+    $this->_set_context(array(
+      'object' => $this->_root_object,
+      'schema' => $this->array_schema
+    ));
     $this->_build_xml_iteration($this->array_schema, $this->_root_object, $this->_dom);
+    $this->_pop_context();
     $xml = $this->_dom->saveXML();
     if($xsd_url && empty($this->settings['no-error'])){
       $this->_validate_xml($xml, $xsd_url, $version, $encoding);
@@ -464,19 +496,16 @@ class PublicationXMLBuilder{
       }
       // Check if there is a conditional
       if(isset($child_schema['#condition'])){
-        $field = $child_schema['#condition'];
-        if(!empty($child_schema['#condition arguments'])){
-          $cond_op = $child_schema['#condition arguments'][0];
-          $cond_val = $child_schema['#condition arguments'][1];
+        if(is_callable($child_schema['#condition'])){
+          $cond_func = $child_schema['#condition'];
+          if(!$cond_func($this->_get_context())){
+            continue;
+          }
+        }else{
+          $field = $child_schema['#condition'];
           if(empty($object->$field)){
             continue;
           }
-          $field_val = $object->$field;
-          if($cond_op == '=' && $field_val[LANGUAGE_NONE][0]['value'] != $cond_val){
-            continue;
-          }
-        }else if(empty($object->$field)){
-          continue;
         }
       }
       // Check the occurence constraint works
@@ -516,7 +545,7 @@ class PublicationXMLBuilder{
       $values = $modifier->insert_value_array($schema, $tag, $values);
     }
     $inserted = FALSE;
-    foreach($values as $value){
+    foreach($values as $delta => $value){
       $value_to_insert = $value;
       if(isset($schema['#value'])){
         $value_to_insert = $schema['#value'];
@@ -533,11 +562,21 @@ class PublicationXMLBuilder{
         // XXX doing this test here means we're not checking against min/max occurs.
         continue;
       }
+      $this->_set_context(array(
+        'object' => $object,
+        'child_object' => $child_object,
+        'field' => $field,
+        'delta' => $delta,
+        'raw_value' => $value,
+        'value_to_insert' => $value_to_insert,
+        'schema' => $schema
+      ));
       // XXX The new Modifier functionality means we might end up with a NULL value, and thus
       // should set $inserted to FALSE (depending on min_ocurrence) to provide adequate backtracking.
       $child_element = $this->_insert_xml_element($schema, $tag, $value_to_insert, $xml_element);
       $inserted = TRUE;
       $this->_build_xml_iteration($schema, $child_object, $child_element);
+      $this->_pop_context();
     }
     return $inserted;
   }
@@ -551,11 +590,19 @@ class PublicationXMLBuilder{
     $count = (!isset($schema['#min_occurence']) || $schema['#min_occurence'] == 0) ? 1 : $schema['#min_occurence'];
     $value = $schema['#value'];
     for($i = 0; $i < $count; $i++){
+      $this->_set_context(array(
+        'object' => $object,
+        'delta' => $i,
+        'raw_value' => $value,
+        'value_to_insert' => $value,
+        'schema' => $schema
+      ));
       // XXX The new Modifier functionality means we might end up with a NULL value, and thus
       // should set $inserted to FALSE (depending on min_ocurrence) to provide adequate backtracking.
       $child_element = $this->_insert_xml_element($schema, $tag, $value, $xml_element);
       $inserted = TRUE;
       $this->_build_xml_iteration($schema, $object, $child_element);
+      $this->_pop_context();
     }
     return $inserted;
   }
@@ -570,10 +617,16 @@ class PublicationXMLBuilder{
     $count = ((!isset($schema['#min_occurence']) || $min_occurence == 0) ? 1 : $schema['#min_occurence']);
     $inserted = FALSE;
     for($i = 0; $i < $count; $i++){
+      $this->_set_context(array(
+        'object' => $object,
+        'delta' => $i,
+        'schema' => $schema
+      ));
       // XXX The new Modifier functionality means we might end up with a non NULL , and thus
       // should set $inserted to TRUE to provide adequate backtracking.
       $child_element = $this->_insert_xml_element($schema, $tag, NULL, $xml_element);
       $insert_child = $this->_build_xml_iteration($schema, $object, $child_element);
+      $this->_pop_context();
       if(!$insert_child && $min_occurence == 0){
         $xml_element->removeChild($child_element);
       }else if($insert_child){
@@ -593,13 +646,13 @@ class PublicationXMLBuilder{
         $value
       );
       if(isset($schema['#load arguments'])){
-        foreach ($schema['#load arguments'] as $argument) {
-          if (is_string($argument) && preg_match('/^field:(.+)$/', $argument, $matches)) {
+        foreach($schema['#load arguments'] as $argument){
+          if(is_string($argument) && preg_match('/^field:(.+)$/', $argument, $matches)){
             $arg_field = $matches[1];
-            if (isset($object->$arg_field)) {
+            if(isset($object->$arg_field)){
               $arguments[] = $object->$arg_field;
             }
-          } else {
+          }else{
             $arguments[] = $argument;
           }
         }
@@ -636,6 +689,9 @@ class PublicationXMLBuilder{
     // Add attributes
     if(!empty($schema['#attributes'])){
       foreach($schema['#attributes'] as $attr_name => $attr_value){
+        if(is_callable($attr_value)){
+          $attr_value = $attr_value($this->_get_context());
+        }
         $child_element->setAttribute($attr_name, $attr_value);
       }
     }
@@ -644,26 +700,20 @@ class PublicationXMLBuilder{
       $value = $modifier->insert_value($tag, $schema, $value);
     }
     if($value !== NULL){
-      // simpleXML escapes HTML tags, but not HTML entities ; however not all entities (such as &nbsp;) are supported
-      // in XML. All numerical entities are fine, so we only need to escape named entities.
-      $escaped_value = preg_replace_callback('/&([a-zA-Z]+;)?/', array(
-        $this,
-        '_escape_html_entities'
-      ), (string)$value);
-      $child_element->nodeValue = (string)$escaped_value;
+      $fragment = $this->_dom->createDocumentFragment();
+      $final_value = $value;
+      // Escape the value if needed
+      if(empty($schema['#raw'])){
+        $final_value = htmlspecialchars($final_value);
+      }else{
+        $final_value = '<div>' . $final_value . '</div>';
+      }
+      // Ensure entities are numerical
+      $final_value = _publication_xml_translate_entities($final_value);
+      $fragment->appendXML($final_value);
+      $child_element->appendChild($fragment);
     }
     return $child_element;
-  }
-
-  /**
-   * A function for escaping html entities called from preg_replace_callback
-   */
-  function _escape_html_entities($matches){
-    $entity = '';
-    if(!empty($matches[1]) && $matches[1] != 'amp;'){
-      $entity = $matches[1];
-    }
-    return '&amp;' . $entity;
   }
 
   /**
@@ -898,9 +948,9 @@ function _publication_xml_process_country($value, $type = 'name'){
  * Process a map field to return just one property (by default the latitude)
  */
 function _publication_xml_process_map($value, $type = 'latitude'){
-  if (isset($value[LANGUAGE_NONE][0])) {
+  if(isset($value[LANGUAGE_NONE][0])){
     $map = (array)($value[LANGUAGE_NONE][0]);
-  } else {
+  }else{
     $map = (array)$value;
   }
   return $map[$type];
@@ -971,7 +1021,7 @@ function _publication_xml_load_file($value){
  */
 function _publication_xml_load_term($value, $final_name = NULL){
   $term = taxonomy_term_load($value['tid']);
-  if ($final_name) {
+  if($final_name){
     $term->name = $final_name;
   }
   return $term;
@@ -981,7 +1031,7 @@ function _publication_xml_load_term($value, $final_name = NULL){
  * Loads the parent of the given term
  */
 function _publication_xml_load_parent_term($value, $rank = NULL, $default = NULL){
-  if (is_array($value) && isset($value['tid'])) {
+  if(is_array($value) && isset($value['tid'])){
     $value = $value['tid'];
   }
   $terms = taxonomy_get_parents($value);
@@ -1008,4 +1058,267 @@ function _publication_xml_load_specimen($value){
   $specimen->field_collector[LANGUAGE_NONE] = array();
   $specimen->field_identified_by[LANGUAGE_NONE] = array();
   return $specimen;
+}
+
+/**
+ * Translate charater entities into numeric entities, as vanilla XML does
+ * not accept all HTML entities.
+ */
+function _publication_xml_translate_entities($str){
+  $map = array(
+    "&quot;" => "&#x0022;",
+    "&amp;" => "&#x0026;",
+    "&apos;" => "&#x0027;",
+    "&lt;" => "&#x003C;",
+    "&gt;" => "&#x003E;",
+    "&nbsp;" => "&#x00A0;",
+    "&iexcl;" => "&#x00A1;",
+    "&cent;" => "&#x00A2;",
+    "&pound;" => "&#x00A3;",
+    "&curren;" => "&#x00A4;",
+    "&yen;" => "&#x00A5;",
+    "&brvbar;" => "&#x00A6;",
+    "&sect;" => "&#x00A7;",
+    "&uml;" => "&#x00A8;",
+    "&copy;" => "&#x00A9;",
+    "&ordf;" => "&#x00AA;",
+    "&laquo;" => "&#x00AB;",
+    "&not;" => "&#x00AC;",
+    "&shy;" => "&#x00AD;",
+    "&reg;" => "&#x00AE;",
+    "&macr;" => "&#x00AF;",
+    "&deg;" => "&#x00B0;",
+    "&plusmn;" => "&#x00B1;",
+    "&sup2;" => "&#x00B2;",
+    "&sup3;" => "&#x00B3;",
+    "&acute;" => "&#x00B4;",
+    "&micro;" => "&#x00B5;",
+    "&para;" => "&#x00B6;",
+    "&middot;" => "&#x00B7;",
+    "&cedil;" => "&#x00B8;",
+    "&sup1;" => "&#x00B9;",
+    "&ordm;" => "&#x00BA;",
+    "&raquo;" => "&#x00BB;",
+    "&frac14;" => "&#x00BC;",
+    "&frac12;" => "&#x00BD;",
+    "&frac34;" => "&#x00BE;",
+    "&iquest;" => "&#x00BF;",
+    "&Agrave;" => "&#x00C0;",
+    "&Aacute;" => "&#x00C1;",
+    "&Acirc;" => "&#x00C2;",
+    "&Atilde;" => "&#x00C3;",
+    "&Auml;" => "&#x00C4;",
+    "&Aring;" => "&#x00C5;",
+    "&AElig;" => "&#x00C6;",
+    "&Ccedil;" => "&#x00C7;",
+    "&Egrave;" => "&#x00C8;",
+    "&Eacute;" => "&#x00C9;",
+    "&Ecirc;" => "&#x00CA;",
+    "&Euml;" => "&#x00CB;",
+    "&Igrave;" => "&#x00CC;",
+    "&Iacute;" => "&#x00CD;",
+    "&Icirc;" => "&#x00CE;",
+    "&Iuml;" => "&#x00CF;",
+    "&ETH;" => "&#x00D0;",
+    "&Ntilde;" => "&#x00D1;",
+    "&Ograve;" => "&#x00D2;",
+    "&Oacute;" => "&#x00D3;",
+    "&Ocirc;" => "&#x00D4;",
+    "&Otilde;" => "&#x00D5;",
+    "&Ouml;" => "&#x00D6;",
+    "&times;" => "&#x00D7;",
+    "&Oslash;" => "&#x00D8;",
+    "&Ugrave;" => "&#x00D9;",
+    "&Uacute;" => "&#x00DA;",
+    "&Ucirc;" => "&#x00DB;",
+    "&Uuml;" => "&#x00DC;",
+    "&Yacute;" => "&#x00DD;",
+    "&THORN;" => "&#x00DE;",
+    "&szlig;" => "&#x00DF;",
+    "&agrave;" => "&#x00E0;",
+    "&aacute;" => "&#x00E1;",
+    "&acirc;" => "&#x00E2;",
+    "&atilde;" => "&#x00E3;",
+    "&auml;" => "&#x00E4;",
+    "&aring;" => "&#x00E5;",
+    "&aelig;" => "&#x00E6;",
+    "&ccedil;" => "&#x00E7;",
+    "&egrave;" => "&#x00E8;",
+    "&eacute;" => "&#x00E9;",
+    "&ecirc;" => "&#x00EA;",
+    "&euml;" => "&#x00EB;",
+    "&igrave;" => "&#x00EC;",
+    "&iacute;" => "&#x00ED;",
+    "&icirc;" => "&#x00EE;",
+    "&iuml;" => "&#x00EF;",
+    "&eth;" => "&#x00F0;",
+    "&ntilde;" => "&#x00F1;",
+    "&ograve;" => "&#x00F2;",
+    "&oacute;" => "&#x00F3;",
+    "&ocirc;" => "&#x00F4;",
+    "&otilde;" => "&#x00F5;",
+    "&ouml;" => "&#x00F6;",
+    "&divide;" => "&#x00F7;",
+    "&oslash;" => "&#x00F8;",
+    "&ugrave;" => "&#x00F9;",
+    "&uacute;" => "&#x00FA;",
+    "&ucirc;" => "&#x00FB;",
+    "&uuml;" => "&#x00FC;",
+    "&yacute;" => "&#x00FD;",
+    "&thorn;" => "&#x00FE;",
+    "&yuml;" => "&#x00FF;",
+    "&OElig;" => "&#x0152;",
+    "&oelig;" => "&#x0153;",
+    "&Scaron;" => "&#x0160;",
+    "&scaron;" => "&#x0161;",
+    "&Yuml;" => "&#x0178;",
+    "&fnof;" => "&#x0192;",
+    "&circ;" => "&#x02C6;",
+    "&tilde;" => "&#x02DC;",
+    "&Alpha;" => "&#x0391;",
+    "&Beta;" => "&#x0392;",
+    "&Gamma;" => "&#x0393;",
+    "&Delta;" => "&#x0394;",
+    "&Epsilon;" => "&#x0395;",
+    "&Zeta;" => "&#x0396;",
+    "&Eta;" => "&#x0397;",
+    "&Theta;" => "&#x0398;",
+    "&Iota;" => "&#x0399;",
+    "&Kappa;" => "&#x039A;",
+    "&Lambda;" => "&#x039B;",
+    "&Mu;" => "&#x039C;",
+    "&Nu;" => "&#x039D;",
+    "&Xi;" => "&#x039E;",
+    "&Omicron;" => "&#x039F;",
+    "&Pi;" => "&#x03A0;",
+    "&Rho;" => "&#x03A1;",
+    "&Sigma;" => "&#x03A3;",
+    "&Tau;" => "&#x03A4;",
+    "&Upsilon;" => "&#x03A5;",
+    "&Phi;" => "&#x03A6;",
+    "&Chi;" => "&#x03A7;",
+    "&Psi;" => "&#x03A8;",
+    "&Omega;" => "&#x03A9;",
+    "&alpha;" => "&#x03B1;",
+    "&beta;" => "&#x03B2;",
+    "&gamma;" => "&#x03B3;",
+    "&delta;" => "&#x03B4;",
+    "&epsilon;" => "&#x03B5;",
+    "&zeta;" => "&#x03B6;",
+    "&eta;" => "&#x03B7;",
+    "&theta;" => "&#x03B8;",
+    "&iota;" => "&#x03B9;",
+    "&kappa;" => "&#x03BA;",
+    "&lambda;" => "&#x03BB;",
+    "&mu;" => "&#x03BC;",
+    "&nu;" => "&#x03BD;",
+    "&xi;" => "&#x03BE;",
+    "&omicron;" => "&#x03BF;",
+    "&pi;" => "&#x03C0;",
+    "&rho;" => "&#x03C1;",
+    "&sigmaf;" => "&#x03C2;",
+    "&sigma;" => "&#x03C3;",
+    "&tau;" => "&#x03C4;",
+    "&upsilon;" => "&#x03C5;",
+    "&phi;" => "&#x03C6;",
+    "&chi;" => "&#x03C7;",
+    "&psi;" => "&#x03C8;",
+    "&omega;" => "&#x03C9;",
+    "&thetasym;" => "&#x03D1;",
+    "&upsih;" => "&#x03D2;",
+    "&piv;" => "&#x03D6;",
+    "&ensp;" => "&#x2002;",
+    "&emsp;" => "&#x2003;",
+    "&thinsp;" => "&#x2009;",
+    "&zwnj;" => "&#x200C;",
+    "&zwj;" => "&#x200D;",
+    "&lrm;" => "&#x200E;",
+    "&rlm;" => "&#x200F;",
+    "&ndash;" => "&#x2013;",
+    "&mdash;" => "&#x2014;",
+    "&lsquo;" => "&#x2018;",
+    "&rsquo;" => "&#x2019;",
+    "&sbquo;" => "&#x201A;",
+    "&ldquo;" => "&#x201C;",
+    "&rdquo;" => "&#x201D;",
+    "&bdquo;" => "&#x201E;",
+    "&dagger;" => "&#x2020;",
+    "&Dagger;" => "&#x2021;",
+    "&bull;" => "&#x2022;",
+    "&hellip;" => "&#x2026;",
+    "&permil;" => "&#x2030;",
+    "&prime;" => "&#x2032;",
+    "&Prime;" => "&#x2033;",
+    "&lsaquo;" => "&#x2039;",
+    "&rsaquo;" => "&#x203A;",
+    "&oline;" => "&#x203E;",
+    "&frasl;" => "&#x2044;",
+    "&euro;" => "&#x20AC;",
+    "&image;" => "&#x2111;",
+    "&weierp;" => "&#x2118;",
+    "&real;" => "&#x211C;",
+    "&trade;" => "&#x2122;",
+    "&alefsym;" => "&#x2135;",
+    "&larr;" => "&#x2190;",
+    "&uarr;" => "&#x2191;",
+    "&rarr;" => "&#x2192;",
+    "&darr;" => "&#x2193;",
+    "&harr;" => "&#x2194;",
+    "&crarr;" => "&#x21B5;",
+    "&lArr;" => "&#x21D0;",
+    "&uArr;" => "&#x21D1;",
+    "&rArr;" => "&#x21D2;",
+    "&dArr;" => "&#x21D3;",
+    "&hArr;" => "&#x21D4;",
+    "&forall;" => "&#x2200;",
+    "&part;" => "&#x2202;",
+    "&exist;" => "&#x2203;",
+    "&empty;" => "&#x2205;",
+    "&nabla;" => "&#x2207;",
+    "&isin;" => "&#x2208;",
+    "&notin;" => "&#x2209;",
+    "&ni;" => "&#x220B;",
+    "&prod;" => "&#x220F;",
+    "&sum;" => "&#x2211;",
+    "&minus;" => "&#x2212;",
+    "&lowast;" => "&#x2217;",
+    "&radic;" => "&#x221A;",
+    "&prop;" => "&#x221D;",
+    "&infin;" => "&#x221E;",
+    "&ang;" => "&#x2220;",
+    "&and;" => "&#x2227;",
+    "&or;" => "&#x2228;",
+    "&cap;" => "&#x2229;",
+    "&cup;" => "&#x222A;",
+    "&int;" => "&#x222B;",
+    "&there4;" => "&#x2234;",
+    "&sim;" => "&#x223C;",
+    "&cong;" => "&#x2245;",
+    "&asymp;" => "&#x2248;",
+    "&ne;" => "&#x2260;",
+    "&equiv;" => "&#x2261;",
+    "&le;" => "&#x2264;",
+    "&ge;" => "&#x2265;",
+    "&sub;" => "&#x2282;",
+    "&sup;" => "&#x2283;",
+    "&nsub;" => "&#x2284;",
+    "&sube;" => "&#x2286;",
+    "&supe;" => "&#x2287;",
+    "&oplus;" => "&#x2295;",
+    "&otimes;" => "&#x2297;",
+    "&perp;" => "&#x22A5;",
+    "&sdot;" => "&#x22C5;",
+    "&lceil;" => "&#x2308;",
+    "&rceil;" => "&#x2309;",
+    "&lfloor;" => "&#x230A;",
+    "&rfloor;" => "&#x230B;",
+    "&lang;" => "&#x2329;",
+    "&rang;" => "&#x232A;",
+    "&loz;" => "&#x25CA;",
+    "&spades;" => "&#x2660;",
+    "&clubs;" => "&#x2663;",
+    "&hearts;" => "&#x2665;",
+    "&diams;" => "&#x2666;"
+  );
+  return str_replace(array_keys($map), array_values($map), $str);
 }
