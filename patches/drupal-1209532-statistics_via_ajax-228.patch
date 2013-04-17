@@ -86,10 +86,10 @@ index 81d24b7..d62e8d3 100644
        $statistics = statistics_get($node->nid);
 diff --git a/modules/statistics/statistics.php b/modules/statistics/statistics.php
 new file mode 100644
-index 0000000..e01763f
+index 0000000..d463b1e
 --- /dev/null
 +++ b/modules/statistics/statistics.php
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,31 @@
 +<?php
 +
 +/**
@@ -97,13 +97,12 @@ index 0000000..e01763f
 + * Handles counts of node views via AJAX with minimal bootstrap.
 + */
 +
-+// Change the directory to the Drupal root.
-+chdir('../..');
-+
 +/**
 +* Root directory of Drupal installation.
 +*/
-+define('DRUPAL_ROOT', getcwd());
++define('DRUPAL_ROOT', substr($_SERVER['SCRIPT_FILENAME'], 0, strpos($_SERVER['SCRIPT_FILENAME'], '/modules/statistics/statistics.php')));
++// Change the directory to the Drupal root.
++chdir(DRUPAL_ROOT);
 +
 +include_once DRUPAL_ROOT . '/includes/bootstrap.inc';
 +drupal_bootstrap(DRUPAL_BOOTSTRAP_VARIABLES);
