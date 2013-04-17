@@ -523,7 +523,7 @@ function scratchpads_statistics_update_7004(){
 }
 
 /**
- * 
+ * Enable the counting of node views.
  */
 function scratchpads_statistics_update_7005(){
   variable_set('statistics_count_content_views', 1);
