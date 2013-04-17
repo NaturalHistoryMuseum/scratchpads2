@@ -5,13 +5,12 @@
  * Handles counts of node views via AJAX with minimal bootstrap.
  */
 
-// Change the directory to the Drupal root.
-chdir('../..');
-
 /**
 * Root directory of Drupal installation.
 */
-define('DRUPAL_ROOT', getcwd());
+define('DRUPAL_ROOT', substr($_SERVER['SCRIPT_FILENAME'], 0, strpos($_SERVER['SCRIPT_FILENAME'], '/modules/statistics/statistics.php')));
+// Change the directory to the Drupal root.
+chdir(DRUPAL_ROOT);
 
 include_once DRUPAL_ROOT . '/includes/bootstrap.inc';
 drupal_bootstrap(DRUPAL_BOOTSTRAP_VARIABLES);
