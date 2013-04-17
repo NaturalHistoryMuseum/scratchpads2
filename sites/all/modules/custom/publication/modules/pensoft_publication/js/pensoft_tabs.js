@@ -139,6 +139,9 @@
                 + '.field-name-field-publication-treat-holotype,'
                 + '.field-name-field-publication-treat-type,'
                 + '.field-name-field-publication-treat-paratype,'
+                + '.field-name-field-publication-treat-genus,'
+                + '.field-name-field-publication-treat-species,'
+                + '.field-name-field-publication-treat-authy,'
                 + '.field-publication-treatments-entity-fields', $(this)).css(
             'display', 'none');
       } else {
