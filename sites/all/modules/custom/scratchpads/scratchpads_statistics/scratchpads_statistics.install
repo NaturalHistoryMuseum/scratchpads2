@@ -521,3 +521,11 @@ function scratchpads_statistics_update_7004(){
     'created' => variable_get('install_time', time())
   ))->condition('created', 0)->condition('id', 1)->execute();
 }
+
+/**
+ * 
+ */
+function scratchpads_statistics_update_7005(){
+  variable_set('statistics_count_content_views', 1);
+  variable_set('statistics_count_content_views_ajax', 1);
+}
