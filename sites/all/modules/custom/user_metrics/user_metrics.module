@@ -1,0 +1,96 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ * 
+ * @return $items
+ * A drupal menu array
+ */
+function user_metrics_menu(){
+  $items['user_metrics'] = array(
+    'title' => 'User Metrics',
+    'page callback' => 'user_metrics_show_metrics',
+    'access arguments' => TRUE,
+    'description' => t('View user metrics'),
+    'access callback' => 'user_access',
+    'type' => MENU_NORMAL_ITEM
+  );
+  return $items;
+}
+
+function user_metrics_show_metrics() {
+  $output = '';
+  
+  //TODO: For any user
+  global $user;
+  $uid = $user->uid;
+  
+  $data = module_invoke_all('user_metrics', $uid);
+  
+  $totals = array();
+  foreach ($data as $point) {
+  	foreach ($point as $key => $value) {
+  	  $totals[$key] += $value;
+  	}
+  }
+  
+  $max_value = 0;
+   foreach ($totals as $key => $value){
+   	if ($value > $max_value) {
+   		$max_value=$value;
+   	}
+   }
+  
+    $path = drupal_get_path('module', 'user_metrics');
+    drupal_add_js($path.'/SimpleRadarChart.js');
+  
+   $output .= "
+    <script type='text/javascript'>
+    window.onload = function(){
+        var radar = new SimpleRadarChart({
+                containerId: 'um-chart-user-metrics',
+                width: 500,
+                height: 500,
+                radius: 200,
+                nameColor: '#999',
+                lineColor: '#ff3399',
+                lineCap: 'round',
+                lineWidth: 2,
+                backLineColor: '#eee',
+                backLineWidth: 1,
+                vertexRadius: 4,
+                maxValue: $max_value,
+                referCount: 4,
+                descArr: [";
+   
+   foreach ($totals as $key => $value){
+   	$output .= "'$key',";
+   }
+  $output .= "              ],
+                nameArr: [";
+   foreach ($totals as $key => $value){
+   	$output .= "'$key',";
+   }
+   
+  $output .= "              ],
+                valueArr: [";
+   foreach ($totals as $key => $value){
+   	$output .= "$value,";
+   }
+                $output .= " ]
+        });
+
+        radar.render();
+        }
+    
+    </script>";
+  
+  
+  $output .= '<div class="um-charts" id="um-chart-user-metrics"></div>' . '<div id="um-chart-user-metrics-data" data-chart-title="User metrics" data-chart-type="pie" data-chart-first-column-type="string">';
+  foreach($results as $result){
+    $output .= '<span data-title="' . $result->Name . '" data-value="' . $result->Total . '"></span>';
+  }
+  $output .= '</div>';
+  
+  return $output;
+}

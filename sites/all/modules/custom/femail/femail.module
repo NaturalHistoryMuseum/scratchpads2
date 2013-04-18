@@ -14,6 +14,9 @@ function femail_permission(){
   return array(
     'post by femail' => array(
       'title' => t('Post forum topics to the site using their email.')
+    ),
+    'administer femail' => array(
+      'title' => t('Administer FEMail')
     )
   );
 }
@@ -111,6 +114,18 @@ function femail_menu(){
       ),
       'type' => MENU_CALLBACK,
       'file' => 'femail.pages.inc'
+    ),
+    'admin/config/system/femail' => array(
+      'title' => 'Forum/E-mail integration',
+      'description' => 'Reset the email addresses for your site.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'femail_reset_emails_form'
+      ),
+      'file' => 'femail.pages.inc',
+      'access arguments' => array(
+        'administer femail'
+      )
     )
   );
 }
@@ -321,8 +336,8 @@ function femail_node_insert($node){
  */
 function femail_node_update($node){
   // Do we want to send out a message when a node is updated?  Not sure!  We
-// may make this an option in the future, but for now, this is disabled.
-/*
+  // may make this an option in the future, but for now, this is disabled.
+  /*
    * DISABLED
    * 
    * femail_node_insert($node);
@@ -336,9 +351,9 @@ function femail_comment_publish($comment){
   $node = node_load($comment->nid);
   if(isset($node->forum_tid) && $node->forum_tid){
     // Get the parent msgid so that we can set the "In-reply-to" header, Note,
-    // this may not be set if there are no users subscribed to the forum, OR
-    // if the only user subscribed posted the comment.  We'll still caryy on
-    // trying to send the message though.
+  // this may not be set if there are no users subscribed to the forum, OR
+  // if the only user subscribed posted the comment.  We'll still caryy on
+  // trying to send the message though.
     $msgid = db_select('femail_msgs', 'f')->fields('f', array(
       'msgid'
     ))->condition('nid', $node->nid)->condition('cid', $comment->pid ? $comment->pid : 0)->execute()->fetchField();
