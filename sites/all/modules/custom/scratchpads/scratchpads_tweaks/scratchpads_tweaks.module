@@ -24,6 +24,16 @@ function scratchpads_tweaks_init(){
     $expire = $params['lifetime'] ? REQUEST_TIME + $params['lifetime'] : 0;
     setcookie('has_js', 1, $expire, $params['path'], $params['domain'], FALSE, $params['httponly']);
   }
+  // Alter the exception handler so that we can ignore certain exceptions.
+  set_exception_handler('scratchpads_tweaks_exception_handler');
+}
+
+/**
+ * Alternative exception handler so that we can ignore "duplicate" errors.
+ */
+function scratchpads_tweaks_exception_handler($exception){
+  if(is_object($exception) && get_class($exception) == 'PDOException' && substr($exception->getCode(), 0, 2) == '23'){return;}
+  _drupal_exception_handler($exception);
 }
 
 /**
