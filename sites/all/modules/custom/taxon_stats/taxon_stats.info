@@ -1,5 +1,5 @@
-name = "Taxon page statistics"
-description = "Provides some statistics about a taxon."
-package = "eMonocot"
+name = "Taxon and content statistics"
+description = "Provides some statistics for each taxon and overall statistics about content on the site."
+package = "Statistics"
 core = 7.x
 tool = true
