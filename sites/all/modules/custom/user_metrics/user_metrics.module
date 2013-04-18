@@ -66,16 +66,6 @@ function user_metrics_show_metrics() {
    foreach ($totals as $key => $value){
    	$output .= "'$key',";
    }
-   
-   
-   /**
-                        '$0 描述文字',
-                        '描$0 述文字',
-                        '$0 描述文字',
-                        '描述 $0 文字',
-                        '$0 描述文字',
-                        '$0 描述文字'
-  */
   $output .= "              ],
                 nameArr: [";
    foreach ($totals as $key => $value){
