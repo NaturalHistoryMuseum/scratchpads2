@@ -11,7 +11,7 @@ function cookieguard_init(){
   // there.
   $user = user_load($user->uid);
   if(empty($_COOKIE['cookieguard_initialised'])){
-    if($user->cookieguard){
+    if(!empty($user->cookieguard)){
       // The user has clicked the "Alow/Block" before, but the cookies are not
       // set.
       setcookie('cookieguard_initialised', 1);
