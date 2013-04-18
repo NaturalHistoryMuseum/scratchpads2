@@ -25,7 +25,7 @@ function scratchpads_tweaks_init(){
     setcookie('has_js', 1, $expire, $params['path'], $params['domain'], FALSE, $params['httponly']);
   }
   // Alter the exception handler so that we can ignore certain exceptions.
-  set_exception_handler('scratchpads_tweaks_exception_handler');
+  //set_exception_handler('scratchpads_tweaks_exception_handler');
 }
 
 /**
