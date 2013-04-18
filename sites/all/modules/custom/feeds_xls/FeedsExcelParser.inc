@@ -18,13 +18,16 @@ class chunkReadFilter implements PHPExcel_Reader_IReadFilter{
   private $end_row = 0;
   // Set the rows to parse.
   public function setRows($start, $size){
+    if($start > 0){
+      $start++;
+    }
     $this->start_row = $start;
     $this->end_row = $start + $size;
   }
   // Implements function.  Define whether or not we should read the contents of
   // the cell.
   public function readCell($column, $row, $worksheetName = ''){
-    if($row >= $this->start_row && $row <= $this->end_row){return TRUE;}
+    if($row > $this->start_row && $row <= $this->end_row){return TRUE;}
     return FALSE;
   }
 }
@@ -81,6 +84,8 @@ class FeedsExcelParser extends FeedsParser{
       $tempnam = drupal_tempnam('temporary://', 'feeds_xls_data_');
       file_put_contents($tempnam, serialize($this));
       $this->state->reader_object_cache_path = $tempnam;
+      // Set pointer to 0
+      $this->state->pointer = 0;
     }else{
       $previous_this = unserialize(file_get_contents($this->state->reader_object_cache_path));
       $this->reader = $previous_this->reader;
@@ -119,7 +124,7 @@ class FeedsExcelParser extends FeedsParser{
     }
     // Set the total here, most likely we've finished!
     if(!count($rows)){
-      $this->state->total = $this->state->pointer;
+      $this->state->total = $this->state->pointer - 1;
       @drupal_unlink($this->state->reader_object_cache_path);
     }
     // Try to regain some memory!
@@ -152,12 +157,6 @@ class FeedsExcelParser extends FeedsParser{
    */
   public function configForm(&$form_state){
     return array(
-      'no_headers' => array(
-        '#type' => 'checkbox',
-        '#title' => t('No headers'),
-        '#description' => t('Check if the imported Excel file does not start with a header row. If checked, mapping sources must be named \'0\', \'1\', \'2\' etc.'),
-        '#default_value' => $this->config['no_headers']
-      ),
       'all_worksheets' => array(
         '#type' => 'checkbox',
         '#title' => t('All worksheets'),
@@ -190,7 +189,6 @@ class FeedsExcelParser extends FeedsParser{
    */
   public function configDefaults(){
     return array(
-      'no_headers' => 0,
       'all_worksheets' => 0,
       'max_rows' => 65535
     );
@@ -201,7 +199,6 @@ class FeedsExcelParser extends FeedsParser{
    */
   public function sourceDefaults(){
     return array(
-      'no_headers' => $this->config['no_headers'],
       'all_worksheets' => $this->config['all_worksheets'],
       'max_rows' => $this->config['max_rows']
     );
@@ -244,14 +241,6 @@ class FeedsExcelParser extends FeedsParser{
           '!popurl' => url('import/' . $this->id . '/populated-template')
         )) : '') . '</div>'
       )
-    );
-    $form['no_headers'] = array(
-      '#prefix' => '<div style="display:none">',
-      '#suffix' => '</div>',
-      '#type' => 'checkbox',
-      '#title' => t('No Headers'),
-      '#description' => t('Check if the imported Excel file does not start with a header row. If checked, mapping sources must be named \'0\', \'1\', \'2\' etc.'),
-      '#default_value' => isset($source_config['no_headers']) ? $source_config['no_headers'] : 0
     );
     $form['all_worksheets'] = array(
       '#prefix' => '<div style="display:none">',
