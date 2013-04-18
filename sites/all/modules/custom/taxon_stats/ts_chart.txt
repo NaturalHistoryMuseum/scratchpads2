@@ -1,0 +1,26 @@
+ts_chart.txt
+
+Drawing Charts with this module
+===============================
+
+The JavaScript to draw the charts (ts_chart.js) expects the data to be supplied in the page's HTML.
+
+Two <div> elements are needed, one to draw the chart, the other to hold the data.
+
+The chart div should be a member of class ts-charts:
+
+  <div class="ts-charts" id="ts-chart-content-by-type"></div>
+  
+The data div should have the same id as the chart div with -data appended. Some metadata reqiuired to draw
+the chart should be supplied in the following data- attributes:
+
+  <div id="ts-chart-content-by-type-data" 
+       data-chart-title="Content by type" 
+       data-chart-type="pie" 
+       data-chart-first-column-type="string"
+  >
+  
+The data rows should be placed in <span> elements within the data <div>, the two columns are title and value:
+
+  <span data-title="Title" data-value="Value"></span>
+  
