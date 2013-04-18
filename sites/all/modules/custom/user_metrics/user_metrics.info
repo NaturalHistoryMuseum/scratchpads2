@@ -1,0 +1,4 @@
+core = "7.x"
+name = "User Metrics"
+description = "Aggregates user metrics from helper modules and displays them."
+package = "Statistics"

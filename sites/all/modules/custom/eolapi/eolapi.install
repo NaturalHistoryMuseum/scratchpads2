@@ -428,3 +428,10 @@ function eolapi_update_7001(){
   db_query("UPDATE {eolapi} SET source = 'EOL' WHERE source = ''");
   db_query("UPDATE {eolapi_revision} SET source = 'EOL' WHERE source = ''");
 }
+
+/**
+ * Prevent access denied for thumbnails. 
+ */
+function eolapi_update_7002(){
+  variable_set('image_allow_insecure_derivatives', TRUE);
+}
