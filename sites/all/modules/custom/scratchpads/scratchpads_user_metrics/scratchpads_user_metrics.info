@@ -1,0 +1,4 @@
+core = "7.x"
+name = "Scratchpads User Metrics"
+description = "Provides Scratchpads user metrics to the USer Metrics module."
+package = "Statistics"
