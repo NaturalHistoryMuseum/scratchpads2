@@ -644,12 +644,8 @@ function scratchpads_user_feeds_after_parse($source, $result){
    * Implements hook_user_insert().
    * 
    * Send a user notification email if the status is set to 1
-   * 
-   * NOTE: Normal account creation will also call this function so we may end up with 2 emails being sent.
    */
   function scratchpads_user_user_insert(&$edit, $account, $category) {
-    
-   
     
     // send an email
     if (($account->status == 1) && (isset($account->feeds_item))) {
