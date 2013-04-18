@@ -309,7 +309,7 @@ function scratchpads_tweaks_install(){
     }
   }
   // Set the jQuery settings
-  scratchpads_tweaks_update_7043();
+  scratchpads_tweaks_update_7045();
 }
 
 /**
@@ -1035,11 +1035,17 @@ function scratchpads_tweaks_update_7042(){
 function scratchpads_tweaks_update_7043(){
   scratchpads_tweaks_update_7014();
 }
+/**
+ * Drop the primary key from the file_display table.
+ */
+function scratchpads_tweaks_update_7044(){
+  db_drop_primary_key('file_display');
+}
 
 /**
  * Set the jQuery update settings.
  */
-function scratchpads_tweaks_update_7044(){
+function scratchpads_tweaks_update_7045(){
   variable_set('jquery_update_jquery_version', '1.8');
   variable_set('jquery_update_jquery_cdn', 'microsoft');
 }

@@ -373,6 +373,16 @@ function scratchpads_tweaks_library_alter(&$libraries, $module){
 }
 
 /**
+ * Implements hook_schema_alter().
+ */
+function scratchpads_tweaks_schema_alter(&$schema){
+  // We remove the primary key from the dile_display table due to an problem
+  // somewhere that is resulting in an attempt to insert duplicate entries in
+  // the file_display table.
+  unset($schema['file_display']['primary key']);
+}
+
+/**
  * Implements hook_mail_alter().
  */
 function scratchpads_tweaks_mail_alter(&$message){
