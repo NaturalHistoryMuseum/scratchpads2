@@ -135,6 +135,11 @@ function silver_feeds_importer_default(){
         'unique' => FALSE
       );
     }
+    
+    // here 
+    // $field_info_user_object = field_info_instances('user', 'user');
+    
+    
     $field_info = field_info_instances('node', $node_type);
     _silver_feeds_importer_default_helper($field_info, $feeds_importer, "node:$node_type:");
     $export['node_importer_' . $node_type] = $feeds_importer;

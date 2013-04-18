@@ -77,8 +77,6 @@ function scratchpads_user_user_presave(&$edit, $account, $category){
   if(!empty($account->stub_user)){
     $edit['status'] = 0;
   }
-  
-  
 }
 
 /**
@@ -311,24 +309,18 @@ function scratchpads_user_register_form_post_submit_clear_error($form, &$form_st
 function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state){
   // Don't do anything if this is a login user
   if($form_state['values']['create_user_account']){return;}
-  
   // Set the name
   $title = $form_state['values']['field_user_title'][LANGUAGE_NONE][0]['value'];
   $given = $form_state['values']['field_user_given_names'][LANGUAGE_NONE][0]['value'];
   $family = $form_state['values']['field_user_family_name'][LANGUAGE_NONE][0]['value'];
-  
-  if (@isset($form['#user']->uid)){
+  if(@isset($form['#user']->uid)){
     $user_id = $form['#user']->uid;
-  }
-  else{
+  }else{
     $user_id = '';
   }
-    
   $new_name = _scratchpads_user_get_full_name($title, $given, $family, $user_id);
-  
   $form_state['values']['name'] = $new_name;
 }
-
 
 /**
  *
@@ -336,9 +328,7 @@ function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state)
  * If this name already exists it adds a number to the end.
  */
 function _scratchpads_user_get_full_name($title, $given, $family, $uid = ''){
-   
   $name = '';
-  
   if(@isset($title)){
     $name = $name . ' ' . trim($title);
   }
@@ -349,11 +339,10 @@ function _scratchpads_user_get_full_name($title, $given, $family, $uid = ''){
     $name = $name . ' ' . trim($family);
   }
   $name = trim($name);
-  
   // Check this name does not exist, else we add a number to the end.
   $results = db_select('users', 'u')->fields('u', array(
     'name'
-  ))->condition('name', "$name%", 'LIKE')->condition('uid', $uid , '!=')->execute();
+  ))->condition('name', "$name%", 'LIKE')->condition('uid', $uid, '!=')->execute();
   $matches = array();
   foreach($results as $row){
     $matches[] = $row->name;
@@ -364,7 +353,6 @@ function _scratchpads_user_get_full_name($title, $given, $family, $uid = ''){
     $new_name = "$name $index";
     $index++;
   }
-  
   return $new_name;
 }
 
@@ -574,15 +562,13 @@ function _scratchpads_user_field_formatter_view($number_of_items, $delta, $item,
  */
 function scratchpads_user_feeds_presave($source, $entity){
   
-  // set status to 0 if email or password or username are not all given. (Includes username check by default)
-  $pass_substring = substr($entity->pass, 0, 20); 
-  $email_substring = substr($entity->pass, 0, 18);
-    
-  if (($pass_substring == "password_placeholder") || ($email_substring == "email_placeholder@")){
+  // set status to 0 if email is not given. 
+  $email_substring = substr($entity->mail, 0, 18);
+  if ($email_substring == "email_placeholder@") {
     $entity->status = 0;
   }
-    
-
+  
+  
 }
 
 /**
@@ -594,66 +580,45 @@ function scratchpads_user_feeds_presave($source, $entity){
 *   FeedsParserResult object that has been parsed from the source.
 */
 function scratchpads_user_feeds_after_parse($source, $result){
-
-
-      foreach ($result->items as $key => $item){
-           
-        
-        if (!isset($item['User name'])) {
-          
-          $new_user_name = $new_name = _scratchpads_user_get_full_name($item['Title'], $item['Other/given name(s)'], $item['Family name']);       
-    	  $result->items[$key]['User name'] = $new_user_name;
-    	  
-    	  // Unset the password, if it has been set
-    	  // This ensure that the status will later be set to 0.
-    	  if (isset($item['Unencrypted Password'])) { 	    
-    	    unset($item['Unencrypted Password']);
-    	  }
-		          
-        }
-        
-        if (!isset($item['Email address'])) {
-        
-          // create a random hash value for the email place holder
-          $random_number = rand(1000, 10000000);
-          $random_string = strval($random_number);
-          $hash_value2 = hash('md5', $random_string);
-          $shorter_hash_value2 = substr($hash_value2, 0, 10);
-          $result->items[$key]['Email address'] = 'email_placeholder@' . $shorter_hash_value2 . '.com';
-        
-        }
-        
-        
-        if (!isset($item['Unencrypted Password'])) {
-        
-          // no passsword, so set one
-          $random_number3 = rand(1, 10000000);
-          $random_string3 = strval($random_number3);
-          $hash_value3 = hash('md5', $random_string3);
-          $result->items[$key]['Unencrypted Password'] = "password_placeholder" . $hash_value3;
-        
-        }
-        
-        
-      } // end of for each
-       
-    
+  foreach($result->items as $key => $item){
+    if(!isset($item['User name'])){
+      $new_user_name = $new_name = _scratchpads_user_get_full_name($item['Title'], $item['Other/given name(s)'], $item['Family name']);
+      $result->items[$key]['User name'] = $new_user_name;
+      // Unset the password, if it has been set
+      // This ensure that the status will later be set to 0.
+      if(isset($item['Unencrypted Password'])){
+        unset($item['Unencrypted Password']);
+      }
+    }
+    if(!isset($item['Email address'])){
+      // create a random hash value for the email place holder
+      $random_number = rand(1000, 10000000);
+      $random_string = strval($random_number);
+      $hash_value2 = hash('md5', $random_string);
+      $shorter_hash_value2 = substr($hash_value2, 0, 10);
+      $result->items[$key]['Email address'] = 'email_placeholder@' . $shorter_hash_value2 . '.com';
+    }
+    if(!isset($item['Unencrypted Password'])){
+      // no passsword, so set one
+      $random_number3 = rand(1, 10000000);
+      $random_string3 = strval($random_number3);
+      $hash_value3 = hash('md5', $random_string3);
+      $result->items[$key]['Unencrypted Password'] = "password_placeholder" . $hash_value3;
+    }
   }
-  
-  /*
+}
+/*
    * Implements hook_user_insert().
    * 
    * Send a user notification email if the status is set to 1
    */
-  function scratchpads_user_user_insert(&$edit, $account, $category) {
-    
-    // send an email
-    if (($account->status == 1) && (isset($account->feeds_item))) {
-       $op = 'register_admin_created';
-       _user_mail_notify($op, $account);
-    }
-    
+function scratchpads_user_user_insert(&$edit, $account, $category){
+  // send an email
+  if(($account->status == 1) && (isset($account->feeds_item))){
+    $op = 'register_admin_created';
+    _user_mail_notify($op, $account);
   }
+}
   
  
   
