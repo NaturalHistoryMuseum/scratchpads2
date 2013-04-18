@@ -42,7 +42,7 @@ function file_entity_schema() {
         'description' => 'A serialized array of name value pairs that store the formatter settings for the display.',
       ),
     ),
-    'primary key' => array('name'),
+    //'primary key' => array('name'),
     // Exportable support via CTools.
     'export' => array(
       'key' => 'name',
