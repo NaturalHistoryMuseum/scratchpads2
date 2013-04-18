@@ -7,4 +7,6 @@
 sites/all/modules/contrib/examples/
 scratchpad_1_database.php
 index2.php
-
+cache
+sites/default/files
+sites/default/settings.php

@@ -1,6 +1,7 @@
 <?php
 define('SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL', 'http://support.scratchpads.eu/projects/scratchpads2/issues.atom');
 define('SCRATCHPADS_UWHO_URL', 'http://support.scratchpads.eu/uwho');
+
 /**
  * Implements hook_install().
  */
@@ -80,4 +81,11 @@ function scratchpads_issues_block_update_7002(){
   aggregator_remove($feed);
   aggregator_refresh($feed);
   variable_set('remote_issue_tab_uwho_url', SCRATCHPADS_UWHO_URL);
-} 
+}
+
+/**
+ * Open the help link in a new tab.
+ */
+function scratchpads_issues_block_update_7003(){
+  variable_set('remote_issue_tab_footer', '<h2>Help</h2><p>Not sure what you are doing, try the <a href="http://help.scratchpads.eu/" target="_blank">Scratchpad Help Wiki</a>.');
+}
