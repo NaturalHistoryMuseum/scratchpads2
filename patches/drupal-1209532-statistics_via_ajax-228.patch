@@ -1,0 +1,158 @@
+diff --git a/modules/statistics/statistics.admin.inc b/modules/statistics/statistics.admin.inc
+index 415fd00..e651e54 100644
+--- a/modules/statistics/statistics.admin.inc
++++ b/modules/statistics/statistics.admin.inc
+@@ -305,6 +305,17 @@ function statistics_settings_form() {
+     '#default_value' => variable_get('statistics_count_content_views', 0),
+     '#description' => t('Increment a counter each time content is viewed.'),
+   );
++  $form['content']['statistics_count_content_views_ajax'] = array(
++    '#type' => 'checkbox',
++    '#title' => t('Use AJAX to increment the counter'),
++    '#default_value' => variable_get('statistics_count_content_views_ajax', 0),
++    '#description' => t('Perform the count asynchronously after page load rather than during page generation.'),
++    '#states' => array(
++      'disabled' => array(
++        ':input[name="statistics_count_content_views"]' => array('checked' => FALSE),
++      ),
++    ),
++  );
+ 
+   return system_settings_form($form);
+ }
+diff --git a/modules/statistics/statistics.install b/modules/statistics/statistics.install
+index b857435..231c90e 100644
+--- a/modules/statistics/statistics.install
++++ b/modules/statistics/statistics.install
+@@ -11,6 +11,7 @@
+ function statistics_uninstall() {
+   // Remove variables.
+   variable_del('statistics_count_content_views');
++  variable_del('statistics_count_content_views_ajax');
+   variable_del('statistics_enable_access_log');
+   variable_del('statistics_flush_accesslog_timer');
+   variable_del('statistics_day_timestamp');
+diff --git a/modules/statistics/statistics.js b/modules/statistics/statistics.js
+new file mode 100644
+index 0000000..b7c5615
+--- /dev/null
++++ b/modules/statistics/statistics.js
+@@ -0,0 +1,10 @@
++(function ($) {
++  $(document).ready(function() {
++    $.ajax({
++      type: "POST",
++      cache: false,
++      url: Drupal.settings.statistics.url,
++      data: Drupal.settings.statistics.data
++    });
++  });
++})(jQuery);
+diff --git a/modules/statistics/statistics.module b/modules/statistics/statistics.module
+index 81d24b7..d62e8d3 100644
+--- a/modules/statistics/statistics.module
++++ b/modules/statistics/statistics.module
+@@ -57,7 +57,7 @@ function statistics_exit() {
+   // in which case we need to bootstrap to the session phase anyway.
+   drupal_bootstrap(DRUPAL_BOOTSTRAP_VARIABLES);
+ 
+-  if (variable_get('statistics_count_content_views', 0)) {
++  if (variable_get('statistics_count_content_views', 0) && !variable_get('statistics_count_content_views_ajax', 0)) {
+     // We are counting content views.
+     if (arg(0) == 'node' && is_numeric(arg(1)) && arg(2) == NULL) {
+       // A node has been viewed, so update the node's counters.
+@@ -115,6 +115,22 @@ function statistics_permission() {
+  * Implements hook_node_view().
+  */
+ function statistics_node_view($node, $view_mode) {
++  // Attach AJAX node count statistics if configured.
++  if (variable_get('statistics_count_content_views', 0) && variable_get('statistics_count_content_views_ajax', 0)) {
++    if (!empty($node->nid) && $view_mode == 'full' && node_is_page($node) && empty($node->in_preview)) {
++      $node->content['#attached']['js'] = array(
++        drupal_get_path('module', 'statistics') . '/statistics.js' => array(
++          'scope' => 'footer'
++        ),
++      );
++      $settings = array('data' => array('nid' => $node->nid), 'url' => url(drupal_get_path('module', 'statistics') . '/statistics.php'));
++      $node->content['#attached']['js'][] = array(
++        'data' => array('statistics' => $settings),
++        'type' => 'setting',
++      );
++    }
++  }
++
+   if ($view_mode != 'rss') {
+     if (user_access('view post access counter')) {
+       $statistics = statistics_get($node->nid);
+diff --git a/modules/statistics/statistics.php b/modules/statistics/statistics.php
+new file mode 100644
+index 0000000..d463b1e
+--- /dev/null
++++ b/modules/statistics/statistics.php
+@@ -0,0 +1,31 @@
++<?php
++
++/**
++ * @file
++ * Handles counts of node views via AJAX with minimal bootstrap.
++ */
++
++/**
++* Root directory of Drupal installation.
++*/
++define('DRUPAL_ROOT', substr($_SERVER['SCRIPT_FILENAME'], 0, strpos($_SERVER['SCRIPT_FILENAME'], '/modules/statistics/statistics.php')));
++// Change the directory to the Drupal root.
++chdir(DRUPAL_ROOT);
++
++include_once DRUPAL_ROOT . '/includes/bootstrap.inc';
++drupal_bootstrap(DRUPAL_BOOTSTRAP_VARIABLES);
++if (variable_get('statistics_count_content_views', 0) && variable_get('statistics_count_content_views_ajax', 0)) {
++  $nid = $_POST['nid'];
++  if (is_numeric($nid)) {
++    db_merge('node_counter')
++      ->key(array('nid' => $nid))
++      ->fields(array(
++        'daycount' => 1,
++        'totalcount' => 1,
++        'timestamp' => REQUEST_TIME,
++      ))
++      ->expression('daycount', 'daycount + 1')
++      ->expression('totalcount', 'totalcount + 1')
++      ->execute();
++  }
++}
+diff --git a/modules/statistics/statistics.test b/modules/statistics/statistics.test
+index d2155da..9f81c48 100644
+--- a/modules/statistics/statistics.test
++++ b/modules/statistics/statistics.test
+@@ -118,6 +118,22 @@ class StatisticsLoggingTestCase extends DrupalWebTestCase {
+     $node_counter = statistics_get($this->node->nid);
+     $this->assertIdentical($node_counter['totalcount'], '3');
+ 
++    // Test that AJAX logging doesn't occur when disabled.
++    $post = http_build_query(array('nid' => $this->node->nid));
++    $headers = array('Content-Type' => 'application/x-www-form-urlencoded');
++    global $base_url;
++    $stats_path = $base_url . '/' . drupal_get_path('module', 'statistics'). '/statistics.php';
++    drupal_http_request($stats_path, array('method' => 'POST', 'data' => $post, 'headers' => $headers, 'timeout' => 10000));
++    $node_counter = statistics_get($this->node->nid);
++    $this->assertIdentical($node_counter['totalcount'], '3', 'Page request was not counted via AJAX.');
++
++    // Test that AJAX logging occurs when enabled.
++    variable_set('statistics_count_content_views_ajax', 1);
++    drupal_http_request($stats_path, array('method' => 'POST', 'data' => $post, 'headers' => $headers, 'timeout' => 10000));
++    $node_counter = statistics_get($this->node->nid);
++    $this->assertIdentical($node_counter['totalcount'], '4', 'Page request was counted via AJAX.');
++    variable_set('statistics_count_content_views_ajax', 0);
++
+     // Visit edit page to generate a title greater than 255.
+     $path = 'node/' . $this->node->nid . '/edit';
+     $expected = array(
+@@ -142,7 +158,6 @@ class StatisticsLoggingTestCase extends DrupalWebTestCase {
+     $log = db_query('SELECT * FROM {accesslog}')->fetchAll(PDO::FETCH_ASSOC);
+     $this->assertTrue(is_array($log) && count($log) == 8, 'Page request was logged for a path over 255 characters.');
+     $this->assertEqual($log[7]['path'], truncate_utf8($long_path, 255));
+-
+   }
+ }
+ 
