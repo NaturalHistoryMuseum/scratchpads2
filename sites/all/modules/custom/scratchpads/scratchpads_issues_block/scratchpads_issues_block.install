@@ -74,7 +74,8 @@ function scratchpads_issues_block_update_7002(){
   $feed = aggregator_feed_load($fid);
   $feed->url = SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL;
   try{
-    aggregator_save_feed((array)$feed);
+    $feed_array = (array)$feed;
+    aggregator_save_feed($feed_array);
   }
   catch(Exception $e){
   }
