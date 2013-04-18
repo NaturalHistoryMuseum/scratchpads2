@@ -77,6 +77,8 @@ function scratchpads_user_user_presave(&$edit, $account, $category){
   if(!empty($account->stub_user)){
     $edit['status'] = 0;
   }
+  
+  
 }
 
 /**
@@ -533,3 +535,105 @@ function _scratchpads_user_field_formatter_view($number_of_items, $delta, $item,
   }
   return $content;
 }
+
+/**
+ * Invoked before a feed item is saved.
+ *
+ * @param $source
+ *  FeedsSource object that describes the source that is being imported.
+ * @param $entity
+ *   The entity object.
+ */
+function scratchpads_user_feeds_presave($source, $entity){
+  
+  //dpm($entity);
+  // send user confirmation email if 
+  //$op = 'register_no_approval_required';
+ // _user_mail_notify($op, $account);
+}
+
+/**
+* Invoked after a feed source has been parsed, before it will be processed.
+*
+* @param $source
+*  FeedsSource object that describes the source that has been imported.
+* @param $result
+*   FeedsParserResult object that has been parsed from the source.
+*/
+
+// This is not being set. Anyway, it's not the nicest way of doing this.
+// Perhaps a hash function of the other fields??
+
+
+function scratchpads_user_feeds_after_parse($source, $result){
+
+ // dpm($result);
+
+      foreach ($result->items as $key => $item){
+           
+        // create a hash value for the username, created from joining all the entered fields
+        // will this be unique???
+     /*   $field_string = '';
+        foreach ($item as $field_text) {                   
+          $field_string .= $field_text;       
+        }
+        $hash_value = hash('md5', $field_string);
+        $shorter_hash_value = substr($hash_value, 0, 10); 
+        */
+        
+
+        if (!isset($item['User name'])) {
+         
+          //$result->items[$key]['User name'] = 'username_placeholder_' . $shorter_hash_value;
+          $new_user_name = $item['Title'] . ' ' . $item['Other/given name(s)'] . ' ' . $item['Family name'];         
+    	  $result->items[$key]['User name'] = $new_user_name;
+		          
+        }
+        
+        if (!isset($item['Email address'])) {
+        
+          // create a random hash value for the email place holder
+          $random_number = rand(1000, 10000000);
+          $random_string = strval($random_number);
+          $hash_value2 = hash('md5', $random_string);
+          $shorter_hash_value2 = substr($hash_value2, 0, 10);
+          $result->items[$key]['Email address'] = 'email_placeholder@' . $shorter_hash_value2 . '.com';
+        
+        }
+        
+        
+        if (!isset($item['Unencrypted Password'])) {
+        
+          // no passsword, so set one
+          $random_number3 = rand(1, 10000000);
+          $random_string3 = strval($random_number3);
+          $hash_value3 = hash('md5', $random_string3);
+          $result->items[$key]['Unencrypted Password'] = $hash_value3;
+        
+        }
+        
+        
+      } // end of for each
+       
+   //   dpm($result);
+    
+  }
+  
+  
+  /**
+   * Invoked after a feed source has been imported.
+   *
+   * @param $source
+   *  FeedsSource object that describes the source that has been imported.
+   */
+  function scratchpads_user_feeds_after_import(FeedsSource $source) {
+    // See geotaxonomy module's implementation for an example.
+   // dpm('scratchpads_user_feeds_after_import');
+   // dpm($source);
+    
+  }
+  
+  
+
+  
+ 
