@@ -1,5 +1,0 @@
-name = "Taxon page statistics"
-description = "Provides some statistics about a taxon."
-package = "eMonocot"
-core = 7.x
-tool = true
