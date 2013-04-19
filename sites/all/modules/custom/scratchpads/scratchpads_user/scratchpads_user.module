@@ -561,11 +561,15 @@ function _scratchpads_user_field_formatter_view($number_of_items, $delta, $item,
  *   The entity object.
  */
 function scratchpads_user_feeds_presave($source, $entity){
-  // set status to 0 if email is not given. 
-  $email_substring = substr($entity->mail, 0, 18);
-  if($email_substring == "email_placeholder@"){
-    $entity->status = 0;
+  $importer_class = get_class($source->importer);
+  if($importer_class == 'FeedsImporter'){
+    // set status to 0 if email is not given. 
+    $email_substring = substr($entity->mail, 0, 18);
+    if($email_substring == "email_placeholder@"){
+      $entity->status = 0;
+    }
   }
+  
 }
 
 /**
@@ -577,63 +581,66 @@ function scratchpads_user_feeds_presave($source, $entity){
 *   FeedsParserResult object that has been parsed from the source.
 */
 function scratchpads_user_feeds_after_parse($source, $result){
-  // find source mappings from targets
-  $config_array = $source->importer->config;
-  $mappings = $config_array['processor']['config']['mappings'];
-  $name_mapping = '';
-  $mail_mapping = '';
-  $pass_mapping = '';
-  $title_mapping = '';
-  $given_names_mapping = '';
-  $family_name_mapping = '';
-  foreach($mappings as $mapping){
-    $source_string = $mapping['source'];
-    $target_string = $mapping['target'];
-    switch($target_string){
-      case 'name':
-        $name_mapping = $source_string;
-        break;
-      case 'mail':
-        $mail_mapping = $source_string;
-        break;
-      case 'pass':
-        $pass_mapping = $source_string;
-        break;
-      case 'field_user_title':
-        $title_mapping = $source_string;
-        break;
-      case 'field_user_given_names':
-        $given_names_mapping = $source_string;
-        break;
-      case 'field_user_family_name':
-        $family_name_mapping = $source_string;
-        break;
+  $importer_class = get_class($source->importer);
+  if($importer_class == 'FeedsImporter'){
+    // find source mappings from targets
+    $config_array = $source->importer->config;
+    $mappings = $config_array['processor']['config']['mappings'];
+    $name_mapping = '';
+    $mail_mapping = '';
+    $pass_mapping = '';
+    $title_mapping = '';
+    $given_names_mapping = '';
+    $family_name_mapping = '';
+    foreach($mappings as $mapping){
+      $source_string = $mapping['source'];
+      $target_string = $mapping['target'];
+      switch($target_string){
+        case 'name':
+          $name_mapping = $source_string;
+          break;
+        case 'mail':
+          $mail_mapping = $source_string;
+          break;
+        case 'pass':
+          $pass_mapping = $source_string;
+          break;
+        case 'field_user_title':
+          $title_mapping = $source_string;
+          break;
+        case 'field_user_given_names':
+          $given_names_mapping = $source_string;
+          break;
+        case 'field_user_family_name':
+          $family_name_mapping = $source_string;
+          break;
+      }
     }
-  }
-  // set default values for username, email and password if not set
-  foreach($result->items as $key => $item){
-    if(!isset($item[$name_mapping])){
-      $new_user_name = $new_name = _scratchpads_user_get_full_name($item[$title_mapping], $item[$given_names_mapping], $item[$family_name_mapping]);
-      $result->items[$key]['User name'] = $new_user_name;
-    }
-    // if an email is given but no password, set a password
-    if((!isset($item[$pass_mapping])) && (isset($item[$mail_mapping]))){
-      // no passsword, so set one
-      $random_number3 = rand(1, 100000000);
-      $random_string3 = strval($random_number3);
-      $hash_value3 = hash('md5', $random_string3);
-      $result->items[$key][$pass_mapping] = "password_placeholder" . $hash_value3;
-    }
-    if(!isset($item[$mail_mapping])){
-      // create a random hash value for the email place holder
-      $random_number = rand(1, 100000000);
-      $random_string = strval($random_number);
-      $hash_value2 = hash('md5', $random_string);
-      $shorter_hash_value2 = substr($hash_value2, 0, 10);
-      $result->items[$key][$mail_mapping] = 'email_placeholder@' . $shorter_hash_value2 . '.com';
-      // Unset the password, if it has been set
-      if(isset($item[$pass_mapping])){
-        unset($result->items[$key][$pass_mapping]);
+    // set default values for username, email and password if not set
+    foreach($result->items as $key => $item){
+      if(!isset($item[$name_mapping])){
+        $new_user_name = $new_name = _scratchpads_user_get_full_name($item[$title_mapping], $item[$given_names_mapping], $item[$family_name_mapping]);
+        $result->items[$key][$name_mapping] = $new_user_name;
+      }
+      // if an email is given but no password, set a password
+      if((!isset($item[$pass_mapping])) && (isset($item[$mail_mapping]))){
+        // no passsword, so set one
+        $random_number3 = rand(1, 100000000);
+        $random_string3 = strval($random_number3);
+        $hash_value3 = hash('md5', $random_string3);
+        $result->items[$key][$pass_mapping] = "password_placeholder" . $hash_value3;
+      }
+      if(!isset($item[$mail_mapping])){
+        // create a random hash value for the email place holder
+        $random_number = rand(1, 100000000);
+        $random_string = strval($random_number);
+        $hash_value2 = hash('md5', $random_string);
+        $shorter_hash_value2 = substr($hash_value2, 0, 10);
+        $result->items[$key][$mail_mapping] = 'email_placeholder@' . $shorter_hash_value2 . '.com';
+        // Unset the password, if it has been set
+        if(isset($item[$pass_mapping])){
+          unset($result->items[$key][$pass_mapping]);
+        }
       }
     }
   }
