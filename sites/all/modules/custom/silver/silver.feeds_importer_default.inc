@@ -201,7 +201,7 @@ function silver_feeds_importer_default(){
     $export['file_importer_' . $file_type] = $feeds_importer;
   }
   // FIXME - Remove the following line to enable the user import options.
-  return $export;
+  //return $export;
   // Users
   $feeds_importer = new stdClass();
   $feeds_importer->disabled = FALSE;
