@@ -12,13 +12,19 @@
  * See README.txt for more details.
  *
  * Available variables:
- * - $build: Array as expected by render().
+ * - $build: Array as expected by render()
+ * - $build['#node']: The $node object
  * - $title: Node title
- * - $language: Language object
- * - $view_mode: Active view mode.
+ * - $language: Language code
+ * - $view_mode: Active view mode
+ * - $simplenews_theme: Contains the path to the configured mail theme.
+ * - $simplenews_subscriber: The subscriber for which the newsletter is built.
+ *   Note that depending on the used caching strategy, the generated body might
+ *   be used for multiple subscribers. If you created personalized newsletters
+ *   and can't use tokens for that, make sure to disable caching or write a
+ *   custom caching strategy implemention.
  *
  * @see template_preprocess_simplenews_newsletter_body()
- * @see theme_simplenews_newsletter_body()
  */
 ?>
 <h2><?php print $title; ?></h2>
