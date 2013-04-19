@@ -237,11 +237,11 @@ function silver_feeds_importer_default(){
             'target' => 'name',
             'unique' => TRUE
           ),
-     //     array(
-     //       'source' => 'Status',
-     //       'target' => 'status',
-     //       'unique' => 0
-    //      )
+          array(
+            'source' => 'Password',
+            'target' => 'pass',
+            'unique' => 0
+          )
         )
       )
     ),
@@ -252,6 +252,7 @@ function silver_feeds_importer_default(){
     'process_in_background' => FALSE
   );
   $field_info = field_info_instances('user', 'user');
+  // sort it
   _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'user:user:');
   $export['file_importer_' . $file_type] = $feeds_importer;
   return $export;
@@ -262,6 +263,8 @@ function silver_feeds_importer_default(){
  */
 function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $additional = ''){
   foreach($field_info as $key => $field){
+    
+    
     $field_info = field_info_field($field['field_name']);
     switch($field_info['type']){
       case 'file':
@@ -326,7 +329,7 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
         break;
       default:
         $feeds_importer->config['processor']['config']['mappings'][] = array(
-          'source' => $field['label'],
+          'source' => trim($field['label']),
           'target' => $key,
           'unique' => 0
         );

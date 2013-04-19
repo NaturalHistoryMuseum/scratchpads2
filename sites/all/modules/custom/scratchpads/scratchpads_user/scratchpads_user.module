@@ -570,6 +570,8 @@ function scratchpads_user_feeds_presave($source, $entity){
     }
   }
   
+ // dpm($entity);
+  
 }
 
 /**
@@ -616,6 +618,8 @@ function scratchpads_user_feeds_after_parse($source, $result){
           break;
       }
     }
+    
+    
     // set default values for username, email and password if not set
     foreach($result->items as $key => $item){
       if(!isset($item[$name_mapping])){
@@ -629,6 +633,8 @@ function scratchpads_user_feeds_after_parse($source, $result){
         $random_string3 = strval($random_number3);
         $hash_value3 = hash('md5', $random_string3);
         $result->items[$key][$pass_mapping] = "password_placeholder" . $hash_value3;
+        
+       
       }
       if(!isset($item[$mail_mapping])){
         // create a random hash value for the email place holder
