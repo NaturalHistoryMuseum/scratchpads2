@@ -136,8 +136,6 @@ function silver_feeds_importer_default(){
       );
     }
     
-    // here 
-    // $field_info_user_object = field_info_instances('user', 'user');
     
     
     $field_info = field_info_instances('node', $node_type);
@@ -239,11 +237,11 @@ function silver_feeds_importer_default(){
             'target' => 'name',
             'unique' => TRUE
           ),
-          array(
-            'source' => 'Status',
-            'target' => 'status',
-            'unique' => 0
-          )
+     //     array(
+     //       'source' => 'Status',
+     //       'target' => 'status',
+     //       'unique' => 0
+    //      )
         )
       )
     ),
