@@ -3,7 +3,7 @@ DESCRIPTION
 -----------
 
 Simplenews publishes and sends newsletters to lists of subscribers. Both
-anonymous and authenticated users can opt-in to different mailing lists. 
+anonymous and authenticated users can opt-in to different mailing lists.
 HTML email can be sent by adding Mime mail module.
 
 
@@ -12,7 +12,13 @@ REQUIREMENTS
 
  * For large mailing lists, cron is required.
  * HTML-format newsletters and/or newsletters with file attachments require the
-   mime mail or HMTL mail module. 
+   mime mail or HMTL mail module.
+ * When sending newsletters on regular cron (cron.php), it is important that
+   the base url (settings.php, variable $base_url) is set correctly or links
+   inside the newsletter will not work. See the Tips (13.) below.
+ * Additionally when using Drush to start cron, it is important to use the
+   argument --uri=http://www.example.com
+
 
 INSTALLATION
 ------------
@@ -29,7 +35,7 @@ INSTALLATION
  3. ACCESS PERMISSION
 
     Grant the access at the Access control page:
-      People > Permissions. 
+      People > Permissions.
 
  4. CONFIGURE SIMPLENEWS
 
@@ -40,8 +46,8 @@ INSTALLATION
       Structure > edit content type > Publishing options
 
     Add and configure newsletter categories:
-      Structure > Newsletters > Add newsletter category
-      Structure > Newsletters > edit newsletter category
+      Structure > Web Services > Newsletters > Add newsletter category
+      Structure > Web Services > Newsletters > edit newsletter category
 
  5. ENABLE SIMPLENEWS BLOCK
 
@@ -53,16 +59,16 @@ INSTALLATION
  6. CONFIGURE SIMPLENEWS BLOCK
 
     Configure the Simplenews block on the Block configuration page. You reach
-    this page from Block admin page (Structure > Blocks). 
+    this page from Block admin page (Structure > Blocks).
     Click the 'Configure' link of the appropriate simplenews block.
- 
+
     Permission "subscribe to newsletters" is required to view the subscription
     form in the simplenews block or to view the link to the subscription form.
 
  7. SIMPLENEWS BLOCK THEMING
 
-    More control over the content of simplenews blocks can be achieved using 
-    the block theming. Theme your simplenews block by copying 
+    More control over the content of simplenews blocks can be achieved using
+    the block theming. Theme your simplenews block by copying
     simplenews-block.tpl.php into your theme directory and edit the content.
     The file is self documented listing all available variables.
 
@@ -71,7 +77,7 @@ INSTALLATION
       simplenews-block.tpl--[tid].php (for newsletter series tid)
 
  8. MULTILINGUAL SUPPORT
- 
+
     Simplenews supports multilingual newsletters for node translation,
     multilingual taxonomy and url path prefixes.
 
@@ -89,7 +95,7 @@ INSTALLATION
     Use 'per language terms' for mailing lists each with a different language.
     Newsletters of different language each have their own tag and own list of
     subscribers.
-    
+
     Path prefixes are added to footer message according to the subscribers
     preferred language.
 
@@ -98,45 +104,56 @@ INSTALLATION
     change their preferred language. Users with an account on the site will be
     subscribed with the preferred language as set in their account settings.
 
+    The confirmation mails can be translated by enableding the Simplenews
+    variables at:
+      Home > Administration > Configuration > Regional and language > Multilingual settings > Variables
+    Afterwards, the mail subject and body can be entered for every enabled
+    language.
+
 9.  NEWSLETTER THEMING
 
-    You can customize the theming of newsletters. Copy any of the *.tpl.php 
+    You can customize the theming of newsletters. Copy any of the *.tpl.php
     files from the simplenews module directory to your theme directory. Both
     general and by-newsletter theming can be performed.
     Theme newsletter body:
       simplenews-newsletter-body.tpl.php (for all newsletters)
-      simplenews-newsletter-body--[category machine name].tpl.php
+      simplenews-newsletter-body--[tid].tpl.php
       simplenews-newsletter-body--[view mode].tpl.php
-      simplenews-newsletter-body--[category machine name]--[view mode].tpl.php
+      simplenews-newsletter-body--[tid]--[view mode].tpl.php
 
-      [category machine name]: Machine readable name of the newsletter category
-      [view mode]: 'email_plain', 'email_html', 'email_textalt'
+      [tid]: Machine readable name of the newsletter category
+      [view mode]: 'email-plain', 'email-html', 'email-textalt'
       Example:
-        simplenews-newsletter-body--drupal--email_plain.tpl.php
+        simplenews-newsletter-body--1--email-plain.tpl.php
 
     Theme newsletter footer:
       simplenews-newsletter-footer.tpl.php (for all newsletters)
-      simplenews-newsletter-footer--[category machine name].tpl.php
+      simplenews-newsletter-footer--[tid].tpl.php
       simplenews-newsletter-footer--[view mode].tpl.php
-      simplenews-newsletter-footer--[category machine name]--[view mode].tpl.php
+      simplenews-newsletter-footer--[tid]--[view mode].tpl.php
 
-      [category machine name]: Machine readable name of the newsletter category
-      [view mode]: 'email_plain', 'email_html', 'email_textalt'
+      [tid]: Machine readable name of the newsletter category
+      [view mode]: 'email-plain', 'email-html', 'email-textalt'
       Example:
-        simplenews-newsletter-footer--drupal--email_plain.tpl.php
+        simplenews-newsletter-footer--1--email-plain.tpl.php
 
     The template files are self documented listing all available variables.
+    Depending on how the mails are sent (e.g. how cron is triggered), either the
+    default or the admin theme might be used, if one has been configured.
+    To prevent this, Simplenews supports the mail theme setting from the
+    mailsystem module (http://drupal.org/project/mailsystem). Install it, choose
+    the mail theme and the newsletter templates from that theme will be used no
+    matter which other themes are enabled.
 
     Using the fields Display settings each field of a simplenews newsletter can
     be displayed or hidden in 'plain text', 'HTML' and 'HTML text alternative'
-    format. You find these settings at: 
-      Structure > Content types > Manage display > Email
-
+    format. You find these settings at:
+      Structure > Content types > Manage display
+    Enable the view modes you want to configure and configure their display.
 
 10. SEND MAILING LISTS
 
-    Cron is required to send large mailing lists. Cron jobs can be triggered
-    by Poormanscron or any other cron mechanism such as crontab.
+    Cron is required to send large mailing lists.
     If you have a medium or large size mailing list (i.e. more than 500
     subscribers) always use cron to send the newsletters.
 
@@ -154,7 +171,7 @@ INSTALLATION
 
     These settings are found on the Newsletter Settings page under
     'Send mail' options at:
-      Administer > Site configuration > Simplenews > Send mail.
+      Administer > Configuration > Web Services > Newsletters > Settings > Send mail.
 
 11. (UN)SUBSCRIBE CONFIRMATION
 
@@ -162,13 +179,13 @@ INSTALLATION
     Upon confirmation the user is directed to the home page, where a message
     will be displayed. On the Simplenews subscription admin page you can
     specify an alternative destination page.
-      Structure > Newsletters > edit newsletter category > Subscription settings
+      Structure > Configuration > Web Services > Newsletters > edit newsletter category > Subscription settings
 
     To skip the confirmation page you can add parameters to the subscription URL.
       Example: [simplenews-subscribe-url]/ok
     When an alternative destination page has been defined the extra parameters
     will be added to the destination URL.
-      Example: [simplenews-subscribe-url]/ok
+      Example: [simplenews-subscriber:subscribe-url]/ok
       Destination: node/123
       Destination URL: node/123/ok
 
@@ -192,18 +209,38 @@ INSTALLATION
     vulnerable to Cross Site Request Forgeries. Email addresses may be
     (un)subscribed without a notice. Do not use this setting in uncontrolled
     environments (like the internet!).
- 
+
  13. TIPS
     A subscription page is available at: /newsletter/subscriptions
+
+    The Elysia Cron module (http://drupal.org/project/elysia_cron) can be used
+    to start the simplenews cron hook more often than others, so that newsletter
+    are sent faster without decreasing site performance due to long-running cron
+    hooks.
 
     If your unsubscribe URL looks like:
       http://newsletter/confirm/remove/8acd182182615t632
     instead of:
-      http://www.mysite.org/newsletter/confirm/remove/8acd182182615t632
+      http://www.example.com/newsletter/confirm/remove/8acd182182615t632
     You should change the base URL in the settings.php file from
       #  $base_url = 'http://www.example.com';  // NO trailing slash!
     to
-      $base_url = 'http://www.mysite.org';  // NO trailing slash!
+      $base_url = 'http://www.example.com';  // NO trailing slash!
+
+
+RELATED MODULES
+------------
+
+ * Elysia Cron
+   Allows fine grained control over cron tasks.
+   http://http://drupal.org/project/elysia_cron
+ * Mailsystem
+   Extends drupal core mailystem wirh Administrative UI and Developers API.
+   http://drupal.org/project/mailsystem
+ * Maillog
+   Captures outgoing mails, helps users debugging simplenews.
+   http://drupal.org/project/maillog
+
 
 DOCUMENTATION
 -------------
