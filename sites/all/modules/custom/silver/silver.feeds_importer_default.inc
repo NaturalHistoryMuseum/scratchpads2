@@ -223,7 +223,7 @@ function silver_feeds_importer_default(){
       'plugin_key' => 'FeedsUserProcessor',
       'config' => array(
         'status' => 1,
-        'mappings' => array(),
+        'mappings' => array()
       )
     ),
     'update' => 0,
@@ -232,10 +232,6 @@ function silver_feeds_importer_default(){
     'import_on_create' => TRUE,
     'process_in_background' => FALSE
   );
-  
-  
-  
-  
   $field_info = field_info_instances('user', 'user');
   // reorder the array
   $order = array(
@@ -253,33 +249,21 @@ function silver_feeds_importer_default(){
   }
   $field_info = $out;
   _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'user:user:');
-  
-  
-  
-  //
-  $feeds_importer->config['processor']['config']['mappings'][] =
-    array(
-      'source' => 'Mail',
-      'target' => 'mail',
-      'unique' => TRUE
-    );
-  
-  $feeds_importer->config['processor']['config']['mappings'][] =  
-    array(
-      'source' => 'Username',
-      'target' => 'name',
-      'unique' => TRUE
-    );
-  $feeds_importer->config['processor']['config']['mappings'][] =
-    array(
-      'source' => 'Password',
-      'target' => 'pass',
-      'unique' => 0
-    );
-  
-  //
-  
-  
+  $feeds_importer->config['processor']['config']['mappings'][] = array(
+    'source' => 'Mail',
+    'target' => 'mail',
+    'unique' => TRUE
+  );
+  $feeds_importer->config['processor']['config']['mappings'][] = array(
+    'source' => 'Username',
+    'target' => 'name',
+    'unique' => TRUE
+  );
+  $feeds_importer->config['processor']['config']['mappings'][] = array(
+    'source' => 'Password',
+    'target' => 'pass',
+    'unique' => 0
+  );
   $export['file_importer_' . $file_type] = $feeds_importer;
   return $export;
 }
@@ -352,8 +336,6 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
         );
         break;
       default:
-        
-        
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => trim($field['label']),
           'target' => $key,
