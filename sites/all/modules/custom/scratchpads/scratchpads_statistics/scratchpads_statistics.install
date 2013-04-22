@@ -538,3 +538,16 @@ function scratchpads_statistics_update_7006(){
     'simple_google_charts'
   ));
 }
+
+/**
+ * Lengthen the name column - names, theoretically, can be much longer than 255
+ * characters.
+ */
+function scratchpads_statistics_update_7007(){
+  db_change_field('scratchpads_statistics_user', 'name', 'name', array(
+    'type' => 'varchar',
+    'length' => 1024,
+    'not null' => TRUE,
+    'default' => ''
+  ));
+}
