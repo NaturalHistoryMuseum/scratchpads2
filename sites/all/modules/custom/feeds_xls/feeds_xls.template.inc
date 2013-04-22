@@ -9,6 +9,9 @@ define('FEEDS_EXCEL_CREATOR', 'Drupal - Excel parser');
  * Callback function to actually retrieve the file.
  */
 function feeds_xls_get_populated_template(){
+  
+  
+  
   // The path of the XLS file should be saved to a session.
   if(isset($_SESSION['feeds_xls']) && is_array($_SESSION['feeds_xls'])){
     // We should have the file path in the $results array, so we will output it
@@ -31,6 +34,9 @@ function feeds_xls_get_populated_template(){
  * Callback function to provide the populated template.
  */
 function feeds_xls_download_populated_template($feeds_importer, $bid = FALSE){
+  
+  
+  
   get_class($feeds_importer->processor);
   if(get_class($feeds_importer->parser) == 'FeedsExcelParser'){
     if(!$feeds_importer->parser->config['no_headers']){
@@ -69,6 +75,9 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
     // Increase the memory limit
     ini_set('memory_limit', '1024M');
     ini_set('max_execution_time', 240);
+    
+    
+    
     if(!isset($context['sandbox']['progress'])){
       // Calculate the total number of rows to add to this file.
       // Use the processor class to guess what entity type we're importing (this
@@ -105,6 +114,18 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
           $entity_key = 'fid';
           $context['sandbox']['entity'] = 'file';
           break;
+        case 'user':
+          $results = db_select('users', 'e')
+          ->fields('e')
+          ->condition('uid', 1, '>')
+          ->execute();
+          $entity_key = 'uid';
+          $context['sandbox']['entity'] = 'user';
+          
+
+          
+          break;
+          
       }
       $context['sandbox']['progress'] = 0;
       foreach($results as $row){
@@ -200,6 +221,9 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
               $feeds_item = feeds_xls_get_or_generate_feeds_item_entry($context['sandbox']['entity'], $entity_id, $feeds_importer->id, $guid);
               $objPHPExcel->getActiveSheet()->setCellValue($cell, _feeds_xls_get_value($feeds_item['guid']));
               break;
+              
+              case 'pass':
+                break;
             case 'parentguid':
               // For some unknown reason, we don't have the parent of this entity,
               // so we need to query the taxonomy_term_hierarchy table.
