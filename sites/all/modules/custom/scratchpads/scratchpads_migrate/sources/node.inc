@@ -96,6 +96,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $this->fieldSuffixes['link'] = 'url';
     $this->fieldSuffixes['content_taxonomy'] = 'value';
     $this->fieldSuffixes['number_float'] = 'value';
+    $this->fieldSuffixes['taxonomy_term_reference'] = 'tid';
     $this->destination = new ScratchpadsMigrateDestinationNode($this->destinationType);
     $destination_fields = $this->destination->fields();
     $fields = $this->sourceFieldList();
