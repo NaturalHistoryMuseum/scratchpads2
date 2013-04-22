@@ -174,7 +174,7 @@ function scratchpads_statistics_schema(){
         ),
         'name' => array(
           'type' => 'varchar',
-          'length' => 255,
+          'length' => 1024,
           'not null' => TRUE,
           'default' => ''
         ),
@@ -528,4 +528,26 @@ function scratchpads_statistics_update_7004(){
 function scratchpads_statistics_update_7005(){
   variable_set('statistics_count_content_views', 1);
   variable_set('statistics_count_content_views_ajax', 1);
+}
+
+/**
+ * Enable the simple_google_charts module
+ */
+function scratchpads_statistics_update_7006(){
+  module_enable(array(
+    'simple_google_charts'
+  ));
+}
+
+/**
+ * Lengthen the name column - names, theoretically, can be much longer than 255
+ * characters.
+ */
+function scratchpads_statistics_update_7007(){
+  db_change_field('scratchpads_statistics_user', 'name', 'name', array(
+    'type' => 'varchar',
+    'length' => 1024,
+    'not null' => TRUE,
+    'default' => ''
+  ));
 }
