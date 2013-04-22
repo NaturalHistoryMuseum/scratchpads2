@@ -135,9 +135,6 @@ function silver_feeds_importer_default(){
         'unique' => FALSE
       );
     }
-    
-    
-    
     $field_info = field_info_instances('node', $node_type);
     _silver_feeds_importer_default_helper($field_info, $feeds_importer, "node:$node_type:");
     $export['node_importer_' . $node_type] = $feeds_importer;
@@ -252,17 +249,21 @@ function silver_feeds_importer_default(){
     'process_in_background' => FALSE
   );
   $field_info = field_info_instances('user', 'user');
-  
-  
-  $order = array("field_user_title","field_user_given_names","field_user_family_name","field_user_country","field_homepage","field_user_institution","field_user_taxonomic_interest");
+  // reorder the array
+  $order = array(
+    "field_user_title",
+    "field_user_given_names",
+    "field_user_family_name",
+    "field_user_country",
+    "field_homepage",
+    "field_user_institution",
+    "field_user_taxonomic_interest"
+  );
   $out = array();
-  foreach($order as $element) {
+  foreach($order as $element){
     $out[$element] = $field_info[$element];
   }
   $field_info = $out;
-  
-  
-  
   _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'user:user:');
   $export['file_importer_' . $file_type] = $feeds_importer;
   return $export;
@@ -273,8 +274,6 @@ function silver_feeds_importer_default(){
  */
 function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $additional = ''){
   foreach($field_info as $key => $field){
-    
-    
     $field_info = field_info_field($field['field_name']);
     switch($field_info['type']){
       case 'file':
