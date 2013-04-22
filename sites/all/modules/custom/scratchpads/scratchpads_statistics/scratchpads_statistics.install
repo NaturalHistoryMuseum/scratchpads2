@@ -174,7 +174,7 @@ function scratchpads_statistics_schema(){
         ),
         'name' => array(
           'type' => 'varchar',
-          'length' => 255,
+          'length' => 1024,
           'not null' => TRUE,
           'default' => ''
         ),
