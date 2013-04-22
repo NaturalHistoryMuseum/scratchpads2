@@ -60,12 +60,18 @@ function scratchpads_statistics_stats_page(){
   $counts = array();
   $i = 0;
   $total = 0;
+  $eight_count = PHP_INT_MAX;
   foreach($results as $row){
-    if($i > 8){
-      if(!isset($counts['Other'])){
-        $counts['Other'] = 0;
+    if($i >= 8 && $row->sum_number_created < $eight_count){
+      if($i == 8){
+        $eight_count = $row->sum_number_created;
+        $counts[$row->name] = $row->sum_number_created;
+      }else{
+        if(!isset($counts['Other'])){
+          $counts['Other'] = 0;
+        }
+        $counts['Other'] += $row->sum_number_created;
       }
-      $counts['Other'] += $row->sum_number_created;
     }else{
       $counts[$row->name] = $row->sum_number_created;
     }
