@@ -16,7 +16,7 @@
  * - $form: newsletter subscription form *1
  * - $subscription_link: link to subscription form at 'newsletter/subscriptions' *1
  * - $newsletter_link: link to taxonomy list of the newsletter issue *2
- * - $issuelist: list of newsletters (of the $tid newsletter series) *2
+ * - $issue_list: list of newsletter issues (of the $tid newsletter series) *2
  * - $rssfeed: RSS feed of newsletter (series) *2
  * Note 1: requires 'subscribe to newsletters' permission
  * Note 2: requires 'view links in block' or 'administer newsletters' permission

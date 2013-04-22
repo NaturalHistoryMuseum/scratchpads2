@@ -55,23 +55,23 @@ function emonocot_ipni_author_short($string){
 
 function emonocot_ipni_get_author_data($string){
   $ipni_result = file_get_contents('http://www.ipni.org/ipni/advAuthorSearch.do?find_abbreviation=' . str_replace(' ', '+', $string) . '&output_format=delimited');
-  $ipni_matches = emonocot_ipni_process_file($ipni_result);
+  $ipni_matches = emonocot_ipni_process_return($ipni_result);
   return $ipni_matches;
 }
 
 function emonocot_ipni_get_publication_data($string){
   $ipni_result = file_get_contents('http://www.ipni.org/ipni/advPublicationSearch.do?find_title=' . str_replace(' ', '+', $string) . '&output_format=delimited');
-  $ipni_matches = emonocot_ipni_process_file($ipni_result);
+  $ipni_matches = emonocot_ipni_process_return($ipni_result);
   return $ipni_matches;
 }
 
 function emonocot_ipni_get_publication_data_short($string){
   $ipni_result = file_get_contents('http://www.ipni.org/ipni/advPublicationSearch.do?find_abbreviation=' . str_replace(' ', '+', $string) . '&output_format=delimited');
-  $ipni_matches = emonocot_ipni_process_file($ipni_result);
+  $ipni_matches = emonocot_ipni_process_return($ipni_result);
   return $ipni_matches;
 }
 
-function emonocot_ipni_process_file($file){
+function emonocot_ipni_process_return($file){
   $ipni_result = explode("\n", $file);
   $i = 0;
   $ipni_matches = array();

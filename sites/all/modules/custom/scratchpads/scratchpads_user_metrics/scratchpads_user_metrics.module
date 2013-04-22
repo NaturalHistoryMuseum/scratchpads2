@@ -1,0 +1,21 @@
+<?php
+
+
+function scratchpads_user_metrics_user_metrics($uid){
+  $return = array();
+  
+  $sql = "SELECT *  FROM scratchpads_statistics_data d, scratchpads_statistics_entity_bundle e WHERE d.user = :uid AND d.entity_bundle = e.id  AND captured = (SELECT MAX(captured) FROM scratchpads_statistics_data);";
+  $result = db_query($sql, array(':uid' => $uid));
+  
+  foreach ($result as $record){
+  	$return[$record->name]['created'] = $record->number_created;
+  	$return[$record->name]['edited']  = $record->number_edited;
+  	$return[$record->name]['views']   = $record->number_views;
+  }
+  
+  //TODO: Filter criteria
+  
+  //TODO: Process resulys
+  
+  return $return;
+}
