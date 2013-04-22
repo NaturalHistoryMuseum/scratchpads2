@@ -1,6 +1,61 @@
 <?php
 
 /**
+ * Implements hook_block_info()
+ */
+function scratchpads_statistics_block_info(){
+  return array(
+    'ss_facet_user' => array(
+      'info' => t('Scratchpads statistics facet - User'),
+      'cache' => DRUPAL_CACHE_PER_PAGE
+    ),
+    'ss_facet_site' => array(
+      'info' => t('Scratchpads statistics facet - Site'),
+      'cache' => DRUPAL_CACHE_PER_PAGE
+    ),
+    'ss_facet_site_category' => array(
+      'info' => t('Scratchpads statistics facet - Site Category'),
+      'cache' => DRUPAL_CACHE_PER_PAGE
+    ),
+    'ss_facet_taxon' => array(
+      'info' => t('Scratchpads statistics facet - Taxon'),
+      'cache' => DRUPAL_CACHE_PER_PAGE
+    ),
+    /*
+    'ss_facet_users' => array(
+      'info' => t('Scratchpads statistics facet - Users'),
+      'cache' => DRUPAL_CACHE_PER_PAGE
+    )
+    */
+  );
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function scratchpads_statistics_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
+/**
+ * Implements hook_block_view()
+ */
+function scratchpads_statistics_block_view($delta = ''){
+  switch($delta){
+    default:
+    case 'ss_facet_user':
+      return array(
+        'subject' => 'Pants',
+        'content' => $delta
+      );
+      break;
+  }
+}
+
+/**
  * Implements hook_cron().
  */
 function scratchpads_statistics_cron(){
