@@ -223,7 +223,8 @@ function silver_feeds_importer_default(){
       'plugin_key' => 'FeedsUserProcessor',
       'config' => array(
         'status' => 1,
-        'mappings' => array()
+        'mappings' => array(),
+        'update_existing' => '2'
       )
     ),
     'update' => 0,
