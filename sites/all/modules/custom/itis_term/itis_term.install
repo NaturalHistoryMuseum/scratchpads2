@@ -104,6 +104,7 @@ function itis_term_update_7004(){
     'languagefield',
     'field_collection'
   ));
+  cache_clear_all();
   // Delete the groups first.
   module_load_include('fields.inc', 'itis_term');
   $groups = itis_term_groups();
