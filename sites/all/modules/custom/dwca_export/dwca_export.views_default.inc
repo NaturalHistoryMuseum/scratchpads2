@@ -244,7 +244,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['citation']['hide_empty'] = 0;
   $handler->display->display_options['fields']['citation']['empty_zero'] = 0;
   $handler->display->display_options['fields']['citation']['hide_alter_empty'] = 1;
-  $handler->display->display_options['fields']['citation']['style_name'] = 'chicago-author-date.csl';
   $handler->display->display_options['fields']['citation']['export_links'] = 0;
   $handler->display->display_options['fields']['citation']['file_attachments'] = 0;
   $handler->display->display_options['fields']['citation']['open_url_link'] = 0;
@@ -347,6 +346,31 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_unacceptability_reason_2']['empty_zero'] = 0;
   $handler->display->display_options['fields']['field_unacceptability_reason_2']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['field_unacceptability_reason_2']['field_api_classes'] = 0;
+  /* Field: Taxonomy term: AssociatedAcceptedNameID */
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['id'] = 'field_unacceptability_reason_3';
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['table'] = 'field_data_field_unacceptability_reason';
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['field'] = 'field_unacceptability_reason';
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['label'] = 'AssociatedAcceptedName';
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['alter_text'] = 1;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['text'] = '[uuid_1]';
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['hide_alter_empty'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['field_api_classes'] = 0;
   /* Sort criterion: Taxonomy term: Term ID */
   $handler->display->display_options['sorts']['tid']['id'] = 'tid';
   $handler->display->display_options['sorts']['tid']['table'] = 'taxonomy_term_data';
