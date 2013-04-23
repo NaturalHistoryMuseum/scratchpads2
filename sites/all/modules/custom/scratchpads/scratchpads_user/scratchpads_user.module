@@ -673,9 +673,3 @@ function scratchpads_user_user_insert(&$edit, $account, $category){
     _user_mail_notify($op, $account);
   }
 }
-  
- 
-  
-
-  
- 
