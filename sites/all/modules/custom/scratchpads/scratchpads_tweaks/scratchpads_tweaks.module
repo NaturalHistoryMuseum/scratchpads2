@@ -92,7 +92,7 @@ function _scratchpads_tweaks_get_media_browser_query(){
       'public' => 'public'
     ),
     'file_directory' => '',
-    'file_extensions' => variable_get('upload_extensions_default', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp'),
+    'file_extensions' => variable_get('upload_extensions_default', FIELD_MEDIA_FILE_EXTENSIONS),
     'max_filesize' => file_upload_max_size(),
     'uri_scheme' => 'public',
     'multiselect' => 'true',
