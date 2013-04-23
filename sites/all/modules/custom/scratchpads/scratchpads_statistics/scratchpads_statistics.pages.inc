@@ -41,6 +41,144 @@ function scratchpads_statistics_stats_page_login_json(){
 
 function scratchpads_statistics_stats_page(){
   $content = array();
+  // Users --------------------------------------------------------------------
+  // First we get the entity_id for the user/user entity/bundle combo.
+  $id = db_select('scratchpads_statistics_entity_bundle', 's')->fields('s', array(
+    'id'
+  ))->condition('entity', 'user')->condition('bundle', 'user')->execute()->fetchCol();
+  $id = array_pop($id);
+  $query = db_select('scratchpads_statistics_data', 's')->fields('s', array(
+    'captured',
+    'site'
+  ))->condition('entity_bundle', $id);
+  $query->groupBy('site');
+  $query->groupBy('captured');
+  $query->orderBy('captured', 'ASC');
+  $query->addExpression('SUM(s.number_created)', 'sum_created');
+  $results = $query->execute();
+  $site_month_user_counts = array();
+  foreach($results as $row){
+    $site_month_user_counts[$row->site][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
+  }
+  $month_counts = array();
+  foreach($site_month_user_counts as $data){
+    foreach($data as $key => $value){
+      if(!isset($month_counts[$key])){
+        $month_counts[$key] = array(
+          'users' => 0,
+          'objects' => 0,
+          'edits' => 0,
+          'views' => 0
+        );
+      }
+      $month_counts[$key]['users'] += $value;
+    }
+  }
+  // Objects ------------------------------------------------------------------
+  $query = db_select('scratchpads_statistics_data', 's')->fields('s', array(
+    'captured',
+    'entity_bundle'
+  ));
+  $query->groupBy('entity_bundle');
+  $query->groupBy('captured');
+  $query->orderBy('captured', 'ASC');
+  $query->addExpression('SUM(s.number_created)', 'sum_created');
+  $results = $query->execute();
+  $site_month_user_counts = array();
+  foreach($results as $row){
+    $site_month_object_counts[$row->entity_bundle][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
+  }
+  foreach($site_month_object_counts as $data){
+    foreach($data as $key => $value){
+      if(!isset($month_counts[$key])){
+        $month_counts[$key] = array(
+          'users' => 0,
+          'objects' => 0,
+          'edits' => 0,
+          'views' => 0
+        );
+      }
+      $month_counts[$key]['objects'] += $value;
+    }
+  }
+  // Edits --------------------------------------------------------------------
+  $query = db_select('scratchpads_statistics_data', 's')->fields('s', array(
+    'captured',
+    'entity_bundle'
+  ));
+  $query->groupBy('entity_bundle');
+  $query->groupBy('captured');
+  $query->orderBy('captured', 'ASC');
+  $query->addExpression('SUM(s.number_edited)', 'sum_created');
+  $results = $query->execute();
+  $site_month_user_counts = array();
+  foreach($results as $row){
+    $site_month_object_counts[$row->entity_bundle][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
+  }
+  foreach($site_month_object_counts as $data){
+    foreach($data as $key => $value){
+      if(!isset($month_counts[$key])){
+        $month_counts[$key] = array(
+          'users' => 0,
+          'objects' => 0,
+          'edits' => 0,
+          'views' => 0
+        );
+      }
+      $month_counts[$key]['edits'] += $value;
+    }
+  }
+  // Views --------------------------------------------------------------------
+  $query = db_select('scratchpads_statistics_data', 's')->fields('s', array(
+    'captured',
+    'entity_bundle'
+  ));
+  $query->groupBy('entity_bundle');
+  $query->groupBy('captured');
+  $query->orderBy('captured', 'ASC');
+  $query->addExpression('SUM(s.number_views)', 'sum_created');
+  $results = $query->execute();
+  $site_month_user_counts = array();
+  foreach($results as $row){
+    $site_month_object_counts[$row->entity_bundle][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
+  }
+  foreach($site_month_object_counts as $data){
+    foreach($data as $key => $value){
+      if(!isset($month_counts[$key])){
+        $month_counts[$key] = array(
+          'users' => 0,
+          'objects' => 0,
+          'edits' => 0,
+          'views' => 0
+        );
+      }
+      $month_counts[$key]['views'] += $value;
+    }
+  }
+  $data = array(
+    array(
+      t('Year/Month'),
+      t('Objects'),
+      t('Edits'),
+      t('Users'),
+      t('Views')
+    )
+  );
+  foreach($month_counts as $key => $value){
+    $data[] = array(
+      $key,
+      $value['objects'],
+      $value['edits'],
+      $value['users'],
+      $value['views']
+    );
+  }
+  $content[] = array(
+    '#theme' => 'simple_google_chart',
+    '#type' => 'LineChart',
+    '#data' => $data,
+    '#title' => t('Number of users')
+  );
   // The following query will give us a total for each entity/bundle across all
   // of the sites.
   // Create a temporary table first which contains the sites and the max 
