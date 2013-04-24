@@ -59,6 +59,7 @@ files[] = sources/user.inc
 files[] = sources/user_picture.inc
 files[] = sources/variable.inc
 files[] = sources/vocabulary.inc
+files[] = sources/femail.inc
 
 ; Destination classes
 files[] = destinations/block.inc
@@ -84,3 +85,4 @@ files[] = destinations/term.inc
 files[] = destinations/user.inc
 files[] = destinations/variable.inc
 files[] = destinations/vocabulary.inc
+files[] = destinations/femail.inc
