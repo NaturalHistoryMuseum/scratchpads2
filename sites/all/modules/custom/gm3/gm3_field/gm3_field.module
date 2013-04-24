@@ -31,6 +31,16 @@ function gm3_field_theme(){
         'data' => array()
       )
     ),
+    'gm3_point_text_lat' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'gm3_point_text_lon' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
     'gm3_polygon_text' => array(
       'variables' => array(
         'data' => array()
@@ -632,6 +642,24 @@ function gm3_field_field_formatter_info(){
         'gm3_polyline',
         'gm3_combination'
       )
+    ),
+    'gm3_text_lat' => array(
+      'label' => t('Geo field text (latitude).'),
+      'field types' => array(
+        'gm3_point',
+        'gm3_polygon',
+        'gm3_polyline',
+        'gm3_combination'
+      )
+    ),
+    'gm3_text_lon' => array(
+      'label' => t('Geo field text (longitude).'),
+      'field types' => array(
+        'gm3_point',
+        'gm3_polygon',
+        'gm3_polyline',
+        'gm3_combination'
+      )
     )
   );
 }
@@ -683,6 +711,22 @@ function theme_gm3_point_text($variables){
     '#markup' => t('Longitude: %longitude, Latitude: %latitude', array(
       '%longitude' => $variables['data']['longitude'],
       '%latitude' => $variables['data']['latitude']
+    ))
+  );
+}
+
+function theme_gm3_point_text_lat($variables){
+  return array(
+    '#markup' => t('%latitude', array(
+      '%latitude' => $variables['data']['latitude']
+    ))
+  );
+}
+
+function theme_gm3_point_text_lon($variables){
+  return array(
+    '#markup' => t('%longitude', array(
+      '%longitude' => $variables['data']['longitude'],
     ))
   );
 }
@@ -749,6 +793,47 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
     case 'gm3_field_map':
       // Setting the ID here is easy, as we can simply use the field ID.
       $id = $instance['field_name'];
+      break;
+      
+    case 'gm3_text_lat':
+      $elements = array();
+      switch($field['type']){
+        case 'gm3_combination':
+          foreach($items as $item){
+            $elements[] = theme($item['gm3_type'] . '_text_lat', array(
+              'data' => $item
+            ));
+          }
+          break;
+        default:
+          foreach($items as $item){
+            $elements[] = theme($field['type'] . '_text_lat', array(
+              'data' => $item
+            ));
+          }
+          break;
+      }
+      return $elements;
+      break;
+    case 'gm3_text_lon':
+      $elements = array();
+      switch($field['type']){
+        case 'gm3_combination':
+          foreach($items as $item){
+            $elements[] = theme($item['gm3_type'] . '_text_lon', array(
+              'data' => $item
+            ));
+          }
+          break;
+        default:
+          foreach($items as $item){
+            $elements[] = theme($field['type'] . '_text_lon', array(
+              'data' => $item
+            ));
+          }
+          break;   
+        }
+      return $elements;
       break;
     case 'gm3_text':
     default:
