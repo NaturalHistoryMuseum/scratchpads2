@@ -176,7 +176,7 @@
 	</extension>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 	  fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
-		rowType="http://eol.org/schema/agent/Agent">
+		rowType="http://rs.gbif.org/terms/1.0/TypesAndSpecimen">
 		<files>
 			<location>specimens.txt</location>
 		</files>
