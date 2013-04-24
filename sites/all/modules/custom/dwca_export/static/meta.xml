@@ -174,4 +174,15 @@
 		<field index="4" term="http://eol.org/schema/agent/organization" />
 		<field index="5" term="http://xmlns.com/foaf/spec/#term_accountName" />
 	</extension>
+	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
+	  fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
+		rowType="http://rs.gbif.org/terms/1.0/TypesAndSpecimen">
+		<files>
+			<location>specimens.txt</location>
+		</files>
+		<coreid index="0" />
+		<field index="0" term="http://purl.org/dc/terms/identifier" />
+		<field index="1" term="http://rs.tdwg.org/dwc/terms/decimalLatitude" />
+		<field index="2" term="http://rs.tdwg.org/dwc/terms/decimalLongitude" />
+	</extension>
 </archive>
