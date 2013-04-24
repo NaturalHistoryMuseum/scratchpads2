@@ -561,7 +561,6 @@ function _scratchpads_user_field_formatter_view($number_of_items, $delta, $item,
  *   The entity object.
  */
 function scratchpads_user_feeds_presave($source, $entity){
-  
   if(get_class($source->importer->processor) == 'FeedsUserProcessor'){
     if($entity->uid && !$entity->pass){
       unset($entity->pass);
