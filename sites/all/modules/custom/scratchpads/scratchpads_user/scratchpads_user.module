@@ -561,8 +561,11 @@ function _scratchpads_user_field_formatter_view($number_of_items, $delta, $item,
  *   The entity object.
  */
 function scratchpads_user_feeds_presave($source, $entity){
-  $importer_class = get_class($source->importer);
-  if($importer_class == 'FeedsImporter'){
+  
+  if(get_class($source->importer->processor) == 'FeedsUserProcessor'){
+    if($entity->uid && !$entity->pass){
+      unset($entity->pass);
+    }
     // set status to 0 if email is not given. 
     $email_substring = substr($entity->mail, 0, 18);
     if($email_substring == "email_placeholder@"){
@@ -580,8 +583,7 @@ function scratchpads_user_feeds_presave($source, $entity){
 *   FeedsParserResult object that has been parsed from the source.
 */
 function scratchpads_user_feeds_after_parse($source, $result){
-  $importer_class = get_class($source->importer);
-  if($importer_class == 'FeedsImporter'){
+  if(get_class($source->importer->processor) == 'FeedsUserProcessor'){
     // find source mappings from targets
     $config_array = $source->importer->config;
     $mappings = $config_array['processor']['config']['mappings'];
@@ -615,19 +617,34 @@ function scratchpads_user_feeds_after_parse($source, $result){
           break;
       }
     }
+    // get an array of user emails
+    $mail_array = array();
+    $results2 = db_select('users', 'u')->fields('u', array(
+      'mail',
+      'pass'
+    ))->condition('uid', 1, '>')->execute();
+    foreach($results2 as $item2){
+      $mail_array[] = $item2->mail;
+      $mail_assoc_array[$item2->mail] = $item2->pass;
+    }
     // set default values for username, email and password if not set
     foreach($result->items as $key => $item){
+      // check to see if the email is already in the database
+      $mail_exists = in_array($item[$mail_mapping], $mail_array);
       if(!isset($item[$name_mapping])){
         $new_user_name = $new_name = _scratchpads_user_get_full_name($item[$title_mapping], $item[$given_names_mapping], $item[$family_name_mapping]);
         $result->items[$key][$name_mapping] = $new_user_name;
       }
-      // if an email is given but no password, set a password
-      if((!isset($item[$pass_mapping])) && (isset($item[$mail_mapping]))){
+      // if an email is given but not in the database, but no password is given, set a password
+      if((!isset($item[$pass_mapping])) && (isset($item[$mail_mapping])) && !$mail_exists){
         // no passsword, so set one
         $random_number3 = rand(1, 100000000);
         $random_string3 = strval($random_number3);
         $hash_value3 = hash('md5', $random_string3);
         $result->items[$key][$pass_mapping] = "password_placeholder" . $hash_value3;
+      }      // if an email is given that is in the database database, but no password is given, keep the currect password
+elseif((!isset($item[$pass_mapping])) && (isset($item[$mail_mapping])) && $mail_exists){
+        $something = 'nothing';
       }
       if(!isset($item[$mail_mapping])){
         // create a random hash value for the email place holder
