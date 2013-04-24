@@ -21,7 +21,8 @@ function beautytips_manager_schema() {
       ),
       'element' => array(
         'type' => 'varchar',
-        'length' => 64, 
+        'length' => 255,
+        'not null' => TRUE,
         'description' => t('The element to which this beautytips will be applied.'),
       ), 
       'content_type' => array(
@@ -257,4 +258,16 @@ function beautytips_manager_update_7001() {
 
   db_add_field('beautytips_custom_tips', 'disable_link', $spec);
   return $ret;
+}
+
+/**
+ * Extend the length of the element field.
+ */
+function beautytips_manager_update_7002() {
+  db_change_field('beautytips_custom_tips', 'element', 'element', array(
+    'type' => 'varchar',
+    'length' => 255,
+    'description' => t('The element to which this beautytips will be applied.'),
+    'not null' => TRUE,
+  ));
 }
