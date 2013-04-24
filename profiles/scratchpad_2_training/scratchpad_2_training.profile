@@ -26,7 +26,7 @@ function scratchpad_2_training_install_configure_form(){
   $edit = array(
     'name' => 'Scratchpad Team',
     'pass' => uniqid() . uniqid() . uniqid(),
-    'mail' => 'scratchpad@nhm.ac.uk',
+    'mail' => 'scratchpads@nhm.ac.uk',
     'status' => 1,
     'init' => '',
     'roles' => array(),
@@ -40,6 +40,7 @@ function scratchpad_2_training_install_configure_form(){
   ))->condition('uid', 1)->execute();
   // Create a new account for the trainee.
   $edit['name'] = 'username';
+  $edit['mail'] = 'scratchpad@nhm.ac.uk';
   $edit['roles'] = array(
     5 => TRUE
   );
