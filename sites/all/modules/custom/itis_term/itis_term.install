@@ -91,3 +91,14 @@ function itis_term_update_7003(){
     }
   }
 }
+
+/**
+ * Enable the modules in preparation for update 7005
+ */
+function itis_term_update_7004(){
+  // Enable the two additional modules.
+  module_enable(array(
+    'languagefield',
+    'field_collection'
+  ));
+}
