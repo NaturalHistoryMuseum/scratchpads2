@@ -40,6 +40,7 @@ function scratchpad_2_training_install_configure_form(){
   ))->condition('uid', 1)->execute();
   // Create a new account for the trainee.
   $edit['name'] = 'username';
+  $edit['mail'] = 'scratchpad@nhm.ac.uk';
   $edit['roles'] = array(
     5 => TRUE
   );
