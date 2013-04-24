@@ -3,3 +3,5 @@ description = "Provides some statistics for each taxon and overall statistics ab
 package = "Statistics"
 core = 7.x
 tool = true
+
+dependencies[] = simple_google_charts
