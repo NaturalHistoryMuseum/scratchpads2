@@ -141,7 +141,13 @@ function ctools_entity_field_value_ctools_access_check($conf, $context, $plugin)
 
   if ($field_items = field_get_items($entity_type, $context->data, $field_name)) {
     $langcode = field_language($entity_type, $context->data, $field_name);
-
+    // Get field storage columns.
+    $instance = field_info_instance($entity_type, $field_name, $bundle_type);
+    $field = field_info_field_by_id($instance['field_id']);
+    $columns = array();
+    foreach ($field['columns'] as $column => $attributes) {
+      $columns[$column] = _field_sql_storage_columnname($field_name, $column);
+    }
     foreach ($conf as $potential_field => $values) {
       if ($field_name === $potential_field) {
 
@@ -152,8 +158,14 @@ function ctools_entity_field_value_ctools_access_check($conf, $context, $plugin)
 
         // Check field value.
         foreach ($field_items as $field_value) {
-          if (in_array($field_value['value'], $conf_value_array)) {
-            return TRUE;
+          foreach ($field_value as $field_column => $value) {
+            // Iterate through config values.
+            foreach ($conf_value_array as $conf_value) {
+              //
+              if ($value == $conf_value[$field_column]) {
+                return TRUE;
+              }
+            }
           }
         }
       }
@@ -168,8 +180,8 @@ function _ctools_entity_field_value_ctools_access_get_conf_field_values($values,
   }
   $conf_values = array();
 
-  foreach ($values[$langcode] as $value) {
-    $conf_values[] = $value['value'];
+  foreach ($values[$langcode] as $delta => $value) {
+    $conf_values[$delta] = $value;
   }
 
   return $conf_values;
@@ -197,7 +209,7 @@ function ctools_entity_field_value_ctools_access_summary($conf, $context, $plugi
     }
     else {
       if (isset($conf[$conf_key])) {
-        $entity->{$field_name}[LANGUAGE_NONE][] = $conf[$conf_key];
+        $entity->{$field_name}[LANGUAGE_NONE][] = array($column => $conf[$conf_key]);
       }
     }
     $string .= " @{$column} equals @{$column}_value";

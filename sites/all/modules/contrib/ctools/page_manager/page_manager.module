@@ -140,7 +140,6 @@ function page_manager_menu() {
 
   // Provide menu items for each task.
   foreach ($tasks as $task_id => $task) {
-    $handlers = page_manager_get_task_handler_plugins($task);
     // Allow the task to add its own menu items.
     if ($function = ctools_plugin_get_function($task, 'hook menu')) {
       $function($items, $task);
@@ -694,6 +693,44 @@ function page_manager_export_task_handler($handler, $indent = '') {
   $output .= $append;
 
   return $output;
+}
+
+/**
+ * Loads page manager handler for export.
+ *
+ * Callback to load page manager handler within ctools_export_crud_load().
+ *
+ * @param string $name
+ *   The name of the handler to load.
+ *
+ * @return
+ *   Loaded page manager handler object, extended with external properties.
+ */
+function page_manager_export_task_handler_load($name) {
+  $table = 'page_manager_handlers';
+  $schema = ctools_export_get_schema($table);
+  $export = $schema['export'];
+
+  $result = ctools_export_load_object($table, 'names', array($name));
+  if (isset($result[$name])) {
+    $handler = $result[$name];
+
+    // Weight is stored in additional table so that in-code task handlers
+    // don't need to get written to the database just because they have their
+    // weight changed. Therefore, handler could have no correspondent database
+    // entry. Revert will not be performed for this handler and the weight
+    // will not be reverted. To make possible revert of the weight field
+    // export_type must simulate that the handler is stored in the database.
+    $handler->export_type = EXPORT_IN_DATABASE;
+
+    // Also, page manager handler weight should be overriden with correspondent
+    // weight from page_manager_weights table, if there is one.
+    $result = db_query('SELECT weight FROM {page_manager_weights} WHERE name = (:names)', array(':names' => $handler->name))->fetchField();
+    if (is_numeric($result)) {
+      $handler->weight = $result;
+    }
+    return $handler;
+  }
 }
 
 /**

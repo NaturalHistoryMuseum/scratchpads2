@@ -960,8 +960,7 @@ function ctools_stylizer_edit_style_form_choose_submit($form, &$form_state) {
 function ctools_stylizer_edit_style_form_default($form, &$form_state) {
   ctools_add_js('stylizer');
   ctools_add_css('stylizer');
-  drupal_add_js('misc/farbtastic/farbtastic.js');
-  drupal_add_css('misc/farbtastic/farbtastic.css');
+  drupal_add_library('system', 'farbtastic');
 
   $plugin = &$form_state['base_style_plugin'];
   $settings = &$form_state['settings'];

@@ -107,6 +107,10 @@ function page_manager_term_view_menu_alter(&$items, $task) {
  * term view, which is term_page_view().
  */
 function page_manager_term_view_page($term) {
+  // Assign the term name as the page title, just as the original page
+  // callback did.
+  drupal_set_title($term->name);
+
   // While we ordinarily should never actually get feeds through here,
   // just in case
   // Load my task plugin
