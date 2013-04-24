@@ -1,5 +1,25 @@
 <?php
 
+/**
+ * Autocomplete callback
+ * @return multitype:unknown
+ */
+function scratchpads_statistics_autocomplete($type, $string){
+  $return = array();
+  switch($type){
+    case 'site':
+      $return = array(
+        'Pants' => 'Penis'
+      );
+      break;
+  }
+  drupal_json_output($return);
+}
+
+/**
+ * 
+ * @return multitype:unknown
+ */
 function scratchpads_statistics_stats_page_json(){
   // Get the content, and build it.
   return _scratchpads_statistics_build_from_time(isset($_GET['since']) ? $_GET['since'] : 0);
@@ -41,6 +61,7 @@ function scratchpads_statistics_stats_page_login_json(){
 
 function scratchpads_statistics_stats_page(){
   $content = array();
+  return $content;
   // Users --------------------------------------------------------------------
   // First we get the entity_id for the user/user entity/bundle combo.
   $id = db_select('scratchpads_statistics_entity_bundle', 's')->fields('s', array(
@@ -179,6 +200,7 @@ function scratchpads_statistics_stats_page(){
     '#data' => $data,
     '#title' => t('Number of users')
   );
+  // Bar chart of entities ----------------------------------------------------
   // The following query will give us a total for each entity/bundle across all
   // of the sites.
   // Create a temporary table first which contains the sites and the max 
@@ -193,13 +215,25 @@ function scratchpads_statistics_stats_page(){
     'name'
   ));
   $query->addExpression('SUM(number_created)', 'sum_number_created');
+  $query->addExpression('SUM(number_edited)', 'sum_number_edited');
+  $query->addExpression('SUM(number_views)', 'sum_number_views');
   $query->orderBy('sum_number_created', 'DESC');
   $results = $query->execute();
   $counts = array();
   $i = 0;
   $total = 0;
   $eight_count = PHP_INT_MAX;
+  $data = array(
+    array(
+      t('Content types'),
+      t('Created'),
+      t('Edited'),
+      t('Views')
+    )
+  );
+  $max_value = FALSE;
   foreach($results as $row){
+    // PieChart stuff
     if($i >= 8 && $row->sum_number_created < $eight_count){
       if($i == 8){
         $eight_count = $row->sum_number_created;
@@ -215,7 +249,32 @@ function scratchpads_statistics_stats_page(){
     }
     $total += $row->sum_number_created;
     $i++;
+    // BarChart stuff.
+    if(!$max_value){
+      $max_value = (integer)$row->sum_number_created + (integer)$row->sum_number_edited;
+    }
+    if(((integer)$row->sum_number_created + (integer)$row->sum_number_edited) / $max_value > 0.03){
+      $data[] = array(
+        $row->name,
+        (integer)$row->sum_number_created,
+        (integer)$row->sum_number_edited,
+        (integer)$row->sum_number_views
+      );
+    }
   }
+  $content[] = array(
+    '#theme' => 'simple_google_chart',
+    '#type' => 'ColumnChart',
+    '#data' => $data,
+    '#title' => t('Distribution of views and edits'),
+    '#options' => array(
+      'isStacked' => TRUE,
+      'bar' => array(
+        'groupWidth' => '80%'
+      ),
+      'height' => '400'
+    )
+  );
   $data = array(
     array(
       t('Content types'),
