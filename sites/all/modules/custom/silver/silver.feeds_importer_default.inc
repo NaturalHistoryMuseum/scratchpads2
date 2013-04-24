@@ -249,7 +249,7 @@ function silver_feeds_importer_default(){
   $field_info = $out;
   _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'user:user:');
   $feeds_importer->config['processor']['config']['mappings'][] = array(
-    'source' => 'Mail',
+    'source' => 'E-Mail',
     'target' => 'mail',
     'unique' => TRUE
   );
