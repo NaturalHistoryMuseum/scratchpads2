@@ -327,9 +327,19 @@ function scratchpads_tweaks_translate_after_check_plain($string){
  * Implements hook_menu_alter().
  */
 function scratchpads_tweaks_menu_alter(&$items){
+  $items['admin/appearance']['page callback'] = 'scratchpads_tweaks_redirect';
   if(isset($items['node/%node/clone'])){
     $items['node/%node/clone']['title'] = t('Clone');
     $items['node/%node/clone']['type'] = MENU_LOCAL_TASK;
+  }
+}
+
+function scratchpads_tweaks_redirect($original_callback){
+  global $user;
+  if($user->uid > 1){
+    drupal_goto('admin/appearance/settings');
+  }else{
+    return system_themes_page();
   }
 }
 
