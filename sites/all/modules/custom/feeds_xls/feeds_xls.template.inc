@@ -224,6 +224,12 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
             case 'pass':
               // We don't do anything for password              
               break;
+            case 'name':
+            case 'mail':
+              // Check if we are a stub user - we don't want to continue
+              if(!empty($entity->stub_user)){
+                break;
+              }
             default:
               if(isset($entity->{$mapping['target']})){
                 if(is_array($entity->{$mapping['target']}) && count($entity->{$mapping['target']})){

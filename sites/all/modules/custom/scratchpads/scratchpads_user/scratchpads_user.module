@@ -569,7 +569,7 @@ function scratchpads_user_feeds_presave($source, $entity){
     }
     // Check we've not got a placeholder name
     if(substr($entity->name, 0, 28) == 'SCRATCHPADS_USER_PLACEHOLDER'){
-      $entity->name = _scratchpads_user_get_full_name(substr($entity->name, 28));
+      $entity->name = _scratchpads_user_get_full_name(substr($entity->name, 28), empty($entity->uid) ? '' : $entity->uid);
     }else if($entity->uid){
       $entity->name = _scratchpads_user_get_full_name($entity->name, $entity->uid);
     }

@@ -263,6 +263,11 @@ function silver_feeds_importer_default(){
     'target' => 'pass',
     'unique' => 0
   );
+  $feeds_importer->config['processor']['config']['mappings'][] = array(
+    'source' => 'GUID',
+    'target' => 'guid',
+    'unique' => 1
+  );
   $export['file_importer_' . $file_type] = $feeds_importer;
   return $export;
 }
