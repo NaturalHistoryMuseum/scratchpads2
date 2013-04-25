@@ -949,7 +949,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['sitename_title'] = 0;
   $handler->display->display_options['use_batch'] = 'no_batch';
   $views[$view->name] = $view;
-
+ 
   //----------------------------------------------------------------------------
   // IMAGE
   //----------------------------------------------------------------------------
