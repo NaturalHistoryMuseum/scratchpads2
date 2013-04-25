@@ -615,6 +615,10 @@ function scratchpads_user_feeds_after_parse($source, $result){
         unset($result->items[$key]);
         continue;
       }
+      if($item[$our_mappings['name']] == $user->name){
+        unset($result->items[$key]);
+        continue;
+      }
       // check to see if the email is already in the database
       if(!isset($item[$our_mappings['name']])){
         $new_user_name = $new_name = _scratchpads_user_get_full_name($item[$our_mappings['field_user_title']], $item[$our_mappings['field_user_given_names']], $item[$our_mappings['field_user_family_name']]);
