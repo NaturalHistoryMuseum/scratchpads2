@@ -605,8 +605,16 @@ function scratchpads_user_feeds_after_parse($source, $result){
         $mail_array[] = $row->mail;
       }
     }
+    // Load the currently logged in user, and ensure we don't try to change this
+    // user - we'll end up with an error if we do.
+    global $user;
     // set default values for username, email and password if not set
     foreach($result->items as $key => $item){
+      // Is this item the same as the global user, if so, unset it.
+      if($item[$our_mappings['mail']] == $user->mail){
+        unset($result->items[$key]);
+        continue;
+      }
       // check to see if the email is already in the database
       if(!isset($item[$our_mappings['name']])){
         $new_user_name = $new_name = _scratchpads_user_get_full_name($item[$our_mappings['field_user_title']], $item[$our_mappings['field_user_given_names']], $item[$our_mappings['field_user_family_name']]);
