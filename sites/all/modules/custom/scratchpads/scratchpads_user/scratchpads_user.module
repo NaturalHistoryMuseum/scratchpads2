@@ -310,16 +310,24 @@ function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state)
   // Don't do anything if this is a login user
   if($form_state['values']['create_user_account']){return;}
   // Set the name
-  $title = $form_state['values']['field_user_title'][LANGUAGE_NONE][0]['value'];
-  $given = $form_state['values']['field_user_given_names'][LANGUAGE_NONE][0]['value'];
-  $family = $form_state['values']['field_user_family_name'][LANGUAGE_NONE][0]['value'];
+  $name = '';
+  foreach(array(
+    'field_user_title',
+    'field_user_given_names',
+    'field_user_family_name'
+  ) as $field_name){
+    if(@isset($form_state['values'][$field_name][LANGUAGE_NONE][0]['value'])){
+      $name = $name . ' ' . trim($form_state['values'][$field_name][LANGUAGE_NONE][0]['value']);
+    }
+    $name = trim($name);
+  }
   if(@isset($form['#user']->uid)){
     $user_id = $form['#user']->uid;
   }else{
     $user_id = '';
   }
-  $new_name = _scratchpads_user_get_full_name($title, $given, $family, $user_id);
-  $form_state['values']['name'] = $new_name;
+  $name = _scratchpads_user_get_full_name($name, $user_id);
+  $form_state['values']['name'] = $name;
 }
 
 /**
@@ -327,18 +335,7 @@ function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state)
  * helper function - returns a full name, a concatonation of the given fields
  * If this name already exists it adds a number to the end.
  */
-function _scratchpads_user_get_full_name($title, $given, $family, $uid = ''){
-  $name = '';
-  if(@isset($title)){
-    $name = $name . ' ' . trim($title);
-  }
-  if(@isset($given)){
-    $name = $name . ' ' . trim($given);
-  }
-  if(@isset($family)){
-    $name = $name . ' ' . trim($family);
-  }
-  $name = trim($name);
+function _scratchpads_user_get_full_name($name, $uid = ''){
   // Check this name does not exist, else we add a number to the end.
   $results = db_select('users', 'u')->fields('u', array(
     'name'
@@ -570,6 +567,12 @@ function scratchpads_user_feeds_presave($source, $entity){
       $entity->mail = substr($entity->mail, 17);
       $entity->status = 0;
     }
+    // Check we've not got a placeholder name
+    if(substr($entity->name, 0, 28) == 'SCRATCHPADS_USER_PLACEHOLDER'){
+      $entity->name = _scratchpads_user_get_full_name(substr($entity->name, 28));
+    }else if($entity->uid){
+      $entity->name = _scratchpads_user_get_full_name($entity->name, $entity->uid);
+    }
   }
 }
 
@@ -621,8 +624,20 @@ function scratchpads_user_feeds_after_parse($source, $result){
       }
       // check to see if the email is already in the database
       if(!isset($item[$our_mappings['name']])){
-        $new_user_name = $new_name = _scratchpads_user_get_full_name($item[$our_mappings['field_user_title']], $item[$our_mappings['field_user_given_names']], $item[$our_mappings['field_user_family_name']]);
-        $result->items[$key][$our_mappings['name']] = $new_user_name;
+        // We set the name here as we have the mapping, but we need to check it
+        // is OK later, so we add a placeholder.
+        $name = '';
+        foreach(array(
+          'field_user_title',
+          'field_user_given_names',
+          'field_user_family_name'
+        ) as $field_name){
+          if(@isset($result->items[$key][$our_mappings[$field_name]])){
+            $name = $name . ' ' . $result->items[$key][$our_mappings[$field_name]];
+          }
+          $name = trim($name);
+        }
+        $result->items[$key][$our_mappings['name']] = 'SCRATCHPADS_USER_PLACEHOLDER' . $name;
       }
       // if an email is given but not in the database, but no password is given, set a password
       if((!isset($item[$our_mappings['pass']])) && (isset($item[$our_mappings['mail']])) && !in_array($item[$our_mappings['mail']], $mail_array)){
