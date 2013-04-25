@@ -205,8 +205,6 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
               $feeds_item = feeds_xls_get_or_generate_feeds_item_entry($context['sandbox']['entity'], $entity_id, $feeds_importer->id, $guid);
               $objPHPExcel->getActiveSheet()->setCellValue($cell, _feeds_xls_get_value($feeds_item['guid']));
               break;
-            case 'pass':
-              break;
             case 'parentguid':
               // For some unknown reason, we don't have the parent of this entity,
               // so we need to query the taxonomy_term_hierarchy table.
@@ -223,6 +221,8 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
               break;
             case 'parent':
               // We don't do anything for parent, as we use parentguid instead.
+            case 'pass':
+              // We don't do anything for password              
               break;
             default:
               if(isset($entity->{$mapping['target']})){
