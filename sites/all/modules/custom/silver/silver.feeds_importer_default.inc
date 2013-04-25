@@ -222,7 +222,7 @@ function silver_feeds_importer_default(){
       'config' => array(
         'status' => 1,
         'mappings' => array(),
-        'update_existing' => '2'
+        'update_existing' => '1'
       )
     ),
     'update' => 0,
