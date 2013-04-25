@@ -130,7 +130,7 @@ class DrupalFieldProfileMigration extends DrupalMigration{
         break;
     }
     $row->global_settings['text_processing'] = null;
-    $row->name = 'field_' . $row->name;
+    $row->name = substr('field_' . $row->name, 0, 32);
     if(field_read_instance('user', $row->name, 'user')){// Instance already exists, so skip it
       return false;}
   }
