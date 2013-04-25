@@ -117,7 +117,7 @@ function scratchpads_migrate_register_migrations(){
   /*********************************************************************************************
    * Citation
    ********************************************************************************************/
-  if (scratchpads_migrate_source_table_exists('citation')) {
+  if(scratchpads_migrate_source_table_exists('citation')){
     $arguments = $common_arguments + array(
       'description' => t('Migration of citations from Drupal 6'),
       'machine_name' => 'Citations',
@@ -366,7 +366,7 @@ function scratchpads_migrate_register_migrations(){
     ),
     'group' => MigrateGroup::getInstance('fields')
   );
-  Migration::registerMigration('DrupalFieldBackreferenceMigration', $arguments['machine_name'], $arguments);  
+  Migration::registerMigration('DrupalFieldBackreferenceMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
        * Field groups
        ********************************************************************************************/
@@ -376,7 +376,7 @@ function scratchpads_migrate_register_migrations(){
     'dependencies' => array(
       'Field',
       'FieldBody',
-      'FieldTaxonomy',
+      'FieldTaxonomy'
     ),
     'group' => MigrateGroup::getInstance('fields')
   );
@@ -502,6 +502,7 @@ function scratchpads_migrate_register_migrations(){
     $mappings[$unmapped_node_type->type] = MIGRATE_ALL;
   }
   $source_node_types = scratchpads_migrate_source_node_types();
+  $femail_dependencies = array();
   foreach($mappings as $type => $mapping){
     // Skip if we don't want to migrate this content type
     if($mapping == MIGRATE_NONE || $mapping == MIGRATE_FIELD){
@@ -539,6 +540,7 @@ function scratchpads_migrate_register_migrations(){
       'destination_type' => $destination_type
     );
     $path_dependencies[] = $arguments['machine_name'];
+    $femail_dependencies[] = $arguments['machine_name'];
     $arguments = array_merge_recursive($arguments, $common_node_arguments);
     if($type == 'darwincore'){
       $arguments['dependencies'][] = 'Darwincorelocation';
@@ -568,6 +570,7 @@ function scratchpads_migrate_register_migrations(){
       'group' => MigrateGroup::getInstance('content')
     );
     Migration::registerMigration('ScratchpadsCommentMigration', $arguments['machine_name'], $arguments);
+    $femail_dependencies[] = $arguments['machine_name'];
   }
   /*********************************************************************************************
    * PathRedirect
@@ -579,6 +582,19 @@ function scratchpads_migrate_register_migrations(){
     'group' => MigrateGroup::getInstance('final')
   );
   Migration::registerMigration('PathRedirectMigration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * Femail
+   ********************************************************************************************/
+  if(scratchpads_migrate_source_module_exists('femail')){
+    // Do not enable Femail now - wait until after forums have been migrated
+    $arguments = $common_arguments + array(
+      'description' => t('Migration of Femail mappings'),
+      'machine_name' => 'Femail',
+      'dependencies' => $femail_dependencies,
+      'group' => MigrateGroup::getInstance('final')
+    );
+    Migration::registerMigration('FemailMigration', $arguments['machine_name'], $arguments);
+  }
   /*********************************************************************************************
    * Menu
   ********************************************************************************************/
