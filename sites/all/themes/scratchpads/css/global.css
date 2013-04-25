@@ -468,7 +468,7 @@ h1.site-name,h2.site-name {
   color: #ACACAC;
 }
 
-.block-footer-menu ul li:not  (.last  ):after {
+.block-footer-menu ul li:not     (.last     ):after {
   content: "|";
 }
 
@@ -1082,7 +1082,16 @@ table,tbody,tfoot,thead,tr,th,td {
   margin-bottom: 10px;
 }
 
-/* field items */ 
+/* field items */
 .field-label-inline .field-item {
   margin-right: 3px;
+}
+
+.node-type-specimen-observation .field-name-field-media .field-item {
+  margin: 4px;
+  display: inline-block;
+  vertical-align: top;
+  /* For IE 7 */
+  zoom: 1;
+  *display: inline;
 }
