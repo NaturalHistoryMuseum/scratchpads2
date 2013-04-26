@@ -5,6 +5,7 @@ function _scratchpads_user_register_field_sort($a, $b){
 }
 
 function theme_scratchpads_user_register_form($variables){
+  
   // Add CSS
   drupal_add_css(drupal_get_path('module', 'scratchpads_user') . '/css/scratchpads_user.css');
   $output = '
@@ -28,7 +29,7 @@ function theme_scratchpads_user_register_form($variables){
   // Move the actions element outside of the columns
   $actions = $variables['form']['actions'];
   unset($variables['form']['actions']);
-  $output .= drupal_render_children($variables['form']);
+ $output .= drupal_render_children($variables['form']);
   $output .= drupal_render($variables['form']['account']['mail']);
   $output .= '
     </div>
