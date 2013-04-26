@@ -1,0 +1,90 @@
+<?php
+
+/**
+     * @file
+     * Install, update and uninstall functions for the redhen relations module.
+     */
+/**
+     * Implements hook_install().
+    */
+function scratchpad_relations_install(){
+  // Add default relationships
+  $relation_types_info = array(
+    array(
+      'relation_type' => 'works_at',
+      'label' => t('Works at'),
+      'reverse_label' => t('employs'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        'node:page'
+      ),
+      'target_bundles' => array(
+        'node:page'
+      )
+    ),
+    array(
+      'relation_type' => 'project_member',
+      'label' => t('Organizational affiliation'),
+      'reverse_label' => t('Affiliated with'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        'node:page'
+      ),
+      'target_bundles' => array(
+        'node:page'
+      )
+    ),
+    array(
+      'relation_type' => 'host_parasite',
+      'label' => t('Is host for'),
+      'reverse_label' => t('Is parasite of'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        'taxonomy_term:*'
+      )
+    )
+  );
+  foreach($relation_types_info as $relation_type_info){
+    $relation_type = relation_type_create($relation_type_info);
+    relation_type_save($relation_type);
+  }
+}
+
+/**
+   * Implements hook_uninstall()
+   */
+function scratchpad_relations_uninstall(){
+  // get all the relationship_types (bundles), find all fields
+  // delete them
+  $query = db_select('relation_bundles', 'rb')->fields('rb', array(
+    'relation_type'
+  ))->condition('rb.entity_type', 'node')->distinct()->execute();
+  while($record = $query->fetchAssoc()){
+    $relationship_type[] = $record['relation_type'];
+  }
+  foreach($relationship_type as $type){
+    // look into the database for each type
+    $relationship_query = db_select('relation', 'r')->fields('r', array(
+      'rid'
+    ))->condition('r.relation_type', $type)->execute();
+    while($result = $relationship_query->fetchAssoc()){
+      // delete all the relationships of that type
+      relation_delete($result['rid']);
+    }
+    // finally delete the relationshp_type
+    relation_type_delete($type);
+  }
+  entity_info_cache_clear();
+}

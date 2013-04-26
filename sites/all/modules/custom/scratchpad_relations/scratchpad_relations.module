@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * Implements hook_help().
+ */
+function scratchpad_relationt_help($path, $arg){
+  if($path == 'admin/help#scratchpad_relation'){return t('Set ecological relationships.');}
+}
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpad_relations_menu(){
+  $items = array();
+  $items['admin/content/scratchpad_relations/%'] = array(
+    'title' => 'Scratchpad relations',
+    'description' => 'View, edit and delete any of the available relations on your site.',
+    'page callback' => 'scratchpad_relations_admin_content',
+    'page arguments' => array(
+      3
+    ),
+    'access arguments' => array(
+      'administer Scratchpad relations'
+    ),
+    'file' => 'scratchpad_relations.admin.inc',
+    'type' => MENU_LOCAL_TASK
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function scratchpad_relations_theme(){
+  $theme = array(
+    'scratchpad_relations_admin_content' => array(
+      'variables' => array(
+        'relations' => NULL
+      ),
+      'file' => 'scratchpad_relations.admin.inc'
+    )
+  );
+  return $theme;
+}

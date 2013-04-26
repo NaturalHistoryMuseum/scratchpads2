@@ -1,0 +1,5 @@
+name = "Scratchpads relations"
+description = "Scratchpads relation features"
+core = "7.x"
+package = "Relation"
+dependencies[] = "relation"
