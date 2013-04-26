@@ -105,6 +105,11 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
           $entity_key = 'fid';
           $context['sandbox']['entity'] = 'file';
           break;
+        case 'user':
+          $results = db_select('users', 'e')->fields('e')->condition('uid', 1, '>')->execute();
+          $entity_key = 'uid';
+          $context['sandbox']['entity'] = 'user';
+          break;
       }
       $context['sandbox']['progress'] = 0;
       foreach($results as $row){
@@ -216,7 +221,15 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
               break;
             case 'parent':
               // We don't do anything for parent, as we use parentguid instead.
+            case 'pass':
+              // We don't do anything for password              
               break;
+            case 'name':
+            case 'mail':
+              // Check if we are a stub user - we don't want to continue
+              if(!empty($entity->stub_user)){
+                break;
+              }
             default:
               if(isset($entity->{$mapping['target']})){
                 if(is_array($entity->{$mapping['target']}) && count($entity->{$mapping['target']})){

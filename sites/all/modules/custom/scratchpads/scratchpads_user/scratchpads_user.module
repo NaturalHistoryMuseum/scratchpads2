@@ -321,10 +321,25 @@ function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state)
     }
     $name = trim($name);
   }
+  if(@isset($form['#user']->uid)){
+    $user_id = $form['#user']->uid;
+  }else{
+    $user_id = '';
+  }
+  $name = _scratchpads_user_get_full_name($name, $user_id);
+  $form_state['values']['name'] = $name;
+}
+
+/**
+ *
+ * helper function - returns a full name, a concatonation of the given fields
+ * If this name already exists it adds a number to the end.
+ */
+function _scratchpads_user_get_full_name($name, $uid = ''){
   // Check this name does not exist, else we add a number to the end.
   $results = db_select('users', 'u')->fields('u', array(
     'name'
-  ))->condition('name', "$name%", 'LIKE')->condition('uid', (@isset($form['#user']->uid) ? $form['#user']->uid : ''), '!=')->execute();
+  ))->condition('name', "$name%", 'LIKE')->condition('uid', $uid, '!=')->execute();
   $matches = array();
   foreach($results as $row){
     $matches[] = $row->name;
@@ -335,7 +350,7 @@ function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state)
     $new_name = "$name $index";
     $index++;
   }
-  $form_state['values']['name'] = $new_name;
+  return $new_name;
 }
 
 /**
@@ -532,4 +547,123 @@ function _scratchpads_user_field_formatter_view($number_of_items, $delta, $item,
     $content .= $settings['separator_option'];
   }
   return $content;
+}
+
+/**
+ * Invoked before a feed item is saved.
+ *
+ * @param $source
+ *  FeedsSource object that describes the source that is being imported.
+ * @param $entity
+ *   The entity object.
+ */
+function scratchpads_user_feeds_presave($source, $entity){
+  if(get_class($source->importer->processor) == 'FeedsUserProcessor'){
+    if($entity->uid && !$entity->pass){
+      unset($entity->pass);
+    }
+    // set status to 0 if email is not given.
+    if(substr($entity->mail, 0, 17) == "email_placeholder"){
+      $entity->mail = substr($entity->mail, 17);
+      $entity->status = 0;
+    }
+    // Check we've not got a placeholder name
+    if(substr($entity->name, 0, 28) == 'SCRATCHPADS_USER_PLACEHOLDER'){
+      $entity->name = _scratchpads_user_get_full_name(substr($entity->name, 28), empty($entity->uid) ? '' : $entity->uid);
+    }else if($entity->uid){
+      $entity->name = _scratchpads_user_get_full_name($entity->name, $entity->uid);
+    }
+  }
+}
+
+/**
+* Invoked after a feed source has been parsed, before it will be processed.
+*
+* @param $source
+*  FeedsSource object that describes the source that has been imported.
+* @param $result
+*   FeedsParserResult object that has been parsed from the source.
+*/
+function scratchpads_user_feeds_after_parse($source, $result){
+  if(get_class($source->importer->processor) == 'FeedsUserProcessor'){
+    // find source mappings from targets
+    $our_mappings = array();
+    foreach($source->importer->config['processor']['config']['mappings'] as $mapping){
+      $our_mappings[$mapping['target']] = $mapping['source'];
+    }
+    // get an array of user emails
+    $mail_array = array();
+    // set default values for username, email and password if not set
+    foreach($result->items as $key => $item){
+      if(!empty($item[$our_mappings['mail']])){
+        $mail_array[] = $item[$our_mappings['mail']];
+      }
+    }
+    if(count($mail_array)){
+      $results = db_select('users', 'u')->fields('u', array(
+        'mail'
+      ))->condition('uid', 1, '>')->condition('mail', $mail_array)->execute();
+      $mail_array = array();
+      foreach($results as $row){
+        $mail_array[] = $row->mail;
+      }
+    }
+    // Load the currently logged in user, and ensure we don't try to change this
+    // user - we'll end up with an error if we do.
+    global $user;
+    // set default values for username, email and password if not set
+    foreach($result->items as $key => $item){
+      // Is this item the same as the global user, if so, unset it.
+      if($item[$our_mappings['mail']] == $user->mail){
+        unset($result->items[$key]);
+        continue;
+      }
+      if($item[$our_mappings['name']] == $user->name){
+        unset($result->items[$key]);
+        continue;
+      }
+      // check to see if the email is already in the database
+      if(!isset($item[$our_mappings['name']])){
+        // We set the name here as we have the mapping, but we need to check it
+        // is OK later, so we add a placeholder.
+        $name = '';
+        foreach(array(
+          'field_user_title',
+          'field_user_given_names',
+          'field_user_family_name'
+        ) as $field_name){
+          if(@isset($result->items[$key][$our_mappings[$field_name]])){
+            $name = $name . ' ' . $result->items[$key][$our_mappings[$field_name]];
+          }
+          $name = trim($name);
+        }
+        $result->items[$key][$our_mappings['name']] = 'SCRATCHPADS_USER_PLACEHOLDER' . $name;
+      }
+      // if an email is given but not in the database, but no password is given, set a password
+      if((!isset($item[$our_mappings['pass']])) && (isset($item[$our_mappings['mail']])) && !in_array($item[$our_mappings['mail']], $mail_array)){
+        // no passsword, so set one
+        $result->items[$key][$our_mappings['pass']] = uniqid('', TRUE);
+      }
+      if(!isset($item[$our_mappings['mail']])){
+        global $base_url;
+        $url = parse_url($base_url);
+        $result->items[$key][$our_mappings['mail']] = uniqid('email_placeholder', TRUE) . '@' . $url['host'];
+        // Unset the password, if it has been set
+        if(isset($item[$our_mappings['pass']])){
+          unset($result->items[$key][$our_mappings['pass']]);
+        }
+      }
+    }
+  }
+}
+
+/**
+   * Implements hook_user_insert().
+   * 
+   * Send a user notification email if the status is set to 1
+   */
+function scratchpads_user_user_insert(&$edit, $account, $category){
+  if(($account->status == 1) && (isset($account->feeds_item))){
+    _user_mail_notify('register_admin_created', $account);
+  }
 }
