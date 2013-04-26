@@ -44,7 +44,7 @@ function scratchpad_relations_install(){
     ),
     array(
       'relation_type' => 'host_parasite',
-      'label' => t('Is host for'),
+      'label' => t('Is host of'),
       'reverse_label' => t('Is parasite of'),
       'directional' => TRUE,
       'transitive' => FALSE,
@@ -58,8 +58,7 @@ function scratchpad_relations_install(){
         'taxonomy_term:*'
       )
     )
-  )
-  ;
+  );
   foreach($relation_types_info as $relation_type_info){
     $relation_type = relation_type_create($relation_type_info);
     relation_type_save($relation_type);
