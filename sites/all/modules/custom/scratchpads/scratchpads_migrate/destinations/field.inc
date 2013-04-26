@@ -102,7 +102,10 @@ class MigrateDestinationField extends MigrateDestination{
         $field_config['type'] = 'image';
         break;
       case 'content_taxonomy':
-        $vid = $object->widget_settings['vid'];
+        $vid = 0;
+        if (isset($object->widget_settings['vid'])) {
+          $vid = $object->widget_settings['vid'];
+        }
         // If VID is 0 the d6 field is set to ANY
         // This isn't an option in D7 - so load all taxonomy VIDs and set as allowed values
         if($vid == 0){
@@ -158,7 +161,7 @@ class MigrateDestinationField extends MigrateDestination{
         $field_instance['display'] = array(
           'default' => array(
             'label' => isset($field_instance['display']['default']['label']) ? $field_instance['display']['default']['label'] : 'above',
-            'module' => ($field_instance['display']['default']['module'] == 'image') ? 'image' : 'file',
+            'module' => (isset($field_instance['display']['default']['module']) && $field_instance['display']['default']['module'] == 'image') ? 'image' : 'file',
             'settings' => isset($field_instance['display']['default']['settings']) ? $field_instance['display']['default']['settings'] : array(),
             'type' => ($field_instance['display']['default']['module'] == 'image') ? 'image' : 'styles_file_medium',
             'weight' => isset($field_instance['display']['default']['weight']) ? $field_instance['display']['default']['weight'] : 2

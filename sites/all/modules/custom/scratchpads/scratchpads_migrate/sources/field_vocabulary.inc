@@ -35,7 +35,11 @@ class DrupalFieldVocabularyMigration extends DrupalFieldMigration{
 
   public function prepareRow($row){
     $row->entity_type = 'taxonomy_term';
+    if(!$this->vocabulary){return FALSE;}
     if(parent::prepareRow($row) === FALSE){return FALSE;}
+    if(field_read_instance($row->entity_type, $row->field_name, $this->vocabulary->machine_name)){
+      return false;
+    }
   }
 
   protected function postImport(){

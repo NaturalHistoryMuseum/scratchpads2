@@ -61,7 +61,6 @@ function scratchpads_statistics_stats_page_login_json(){
 
 function scratchpads_statistics_stats_page(){
   $content = array();
-  return $content;
   // Users --------------------------------------------------------------------
   // First we get the entity_id for the user/user entity/bundle combo.
   $id = db_select('scratchpads_statistics_entity_bundle', 's')->fields('s', array(
