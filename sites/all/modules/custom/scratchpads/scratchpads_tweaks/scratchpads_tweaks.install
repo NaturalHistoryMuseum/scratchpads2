@@ -1,6 +1,8 @@
 <?php
 
 function scratchpads_tweaks_install(){
+  // Drop the primary key from the file_display table.
+  scratchpads_tweaks_update_7046();
   // Unset all 'status' and 'warning' messages.
   $messages = drupal_get_messages();
   if(isset($messages['error']) && is_array($messages['error'])){
@@ -1035,15 +1037,17 @@ function scratchpads_tweaks_update_7043(){
 }
 
 /**
- * Drop the primary key from the file_display table.
- */
-function scratchpads_tweaks_update_7044(){
-  db_drop_primary_key('file_display');
-}
-
-/**
  * Allow insecure derivatives
  */
 function scratchpads_tweaks_update_7045(){
   variable_set('image_allow_insecure_derivatives', TRUE);
+}
+
+/**
+ * Drop the primary key from the file_display table.
+ * 
+ * Renamed from from scratchpads_tweaks_update_7044.
+ */
+function scratchpads_tweaks_update_7046(){
+  db_drop_primary_key('file_display');
 }
