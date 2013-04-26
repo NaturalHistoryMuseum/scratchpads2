@@ -148,17 +148,16 @@ function scratchpads_backend_admin_content(){
         foreach(array_keys($entity_info['bundles']) as $bundle){
           $view_url = 'admin/content/scratchpad_relations/' . $bundle;
           $operations = array(
-              l(t('View'), $view_url),
-              l(t('Add (not yet)'), $view_url . '/add')
-           );
-         
-            // If there's a grid editor for this, add a link
-            if(views_get_view('slickgrid_admin_' . $bundle)){
-              $operations[] = l(t('Grid'), 'admin/content/slickgrid/' . $bundle);
-            }
-            $operations = theme('item_list', array(
-              'items' => $operations
-            ));
+            l(t('View'), $view_url),
+            l(t('Add (not yet)'), $view_url . '/add')
+          );
+          // If there's a grid editor for this, add a link
+          if(views_get_view('slickgrid_admin_' . $bundle)){
+            $operations[] = l(t('Grid'), 'admin/content/slickgrid/' . $bundle);
+          }
+          $operations = theme('item_list', array(
+            'items' => $operations
+          ));
           if($entity_info['bundles'][$bundle]['directional']){
             $description = 'Relationship between ' . $entity_info['bundles'][$bundle]['source_bundles'][0] . '<-->' . $entity_info['bundles'][$bundle]['target_bundles'][0];
           }else{
