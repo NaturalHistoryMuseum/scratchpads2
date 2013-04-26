@@ -53,9 +53,13 @@ function scratchpad_relations_install(){
       'max_arity' => 2,
       'source_bundles' => array(
         'taxonomy_term:*'
+      ),,
+      'target_bundles' => array(
+        'taxonomy_term:*'
       )
     )
-  );
+  )
+  ;
   foreach($relation_types_info as $relation_type_info){
     $relation_type = relation_type_create($relation_type_info);
     relation_type_save($relation_type);
