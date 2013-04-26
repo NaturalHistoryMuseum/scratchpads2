@@ -53,7 +53,7 @@ function scratchpad_relations_install(){
       'max_arity' => 2,
       'source_bundles' => array(
         'taxonomy_term:*'
-      ),,
+      ),
       'target_bundles' => array(
         'taxonomy_term:*'
       )
