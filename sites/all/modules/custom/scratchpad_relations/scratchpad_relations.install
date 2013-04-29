@@ -44,8 +44,8 @@ function scratchpad_relations_install(){
     ),
     array(
       'relation_type' => 'host_parasite',
-      'label' => t('Is host of'),
-      'reverse_label' => t('Is parasite of'),
+      'label' => t('HostOf'),
+      'reverse_label' => t('ParasiteOf'),
       'directional' => TRUE,
       'transitive' => FALSE,
       'r_unique' => FALSE,
