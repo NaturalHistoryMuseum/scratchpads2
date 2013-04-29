@@ -1,0 +1,13 @@
+name = Features Override
+description = Allows exported Features to be overridden
+core = 7.x
+dependencies[] = ctools
+dependencies[] = features
+package = "Features"
+
+; Information added by drupal.org packaging script on 2013-02-08
+version = "7.x-2.0-beta2"
+core = "7.x"
+project = "features_override"
+datestamp = "1360352872"
+
