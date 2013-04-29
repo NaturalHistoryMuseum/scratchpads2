@@ -57,6 +57,22 @@ function scratchpad_relations_install(){
       'target_bundles' => array(
         'taxonomy_term:*'
       )
+    ),
+    array(
+      'relation_type' => 'preysUpon_preyedUponBy',
+      'label' => t('PreysUpon'),
+      'reverse_label' => t('PreyedUponBy'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        'taxonomy_term:*'
+      )
     )
   );
   foreach($relation_types_info as $relation_type_info){
