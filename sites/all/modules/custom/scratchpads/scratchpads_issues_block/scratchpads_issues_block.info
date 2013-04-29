@@ -1,5 +1,5 @@
-name = "Scratchpads Biblio Search with Facet API integration"
-description = "Integrates Biblio with Facet API so that specific Biblio fields can be used with the Solr search."
+name = "Scratchpads Issues Block"
+description = "Provides the link that allows users to see the latest issues created on Redmine, and also allows them to create new ones."
 package = "Scratchpads"
 core = 7.x
 dependencies[] = uwho_client
