@@ -33,6 +33,12 @@ function scratchpads_apachesolr_instant_entity_update($entity, $type){
  */
 function scratchpads_apachesolr_instant_shutdown(){
   global $conf;
-  $conf['apachesolr_cron_limit'] = drupal_static('scratchpads_apachesolr_instant_entity_insert');
-  apachesolr_cron();
+  $limit = drupal_static('scratchpads_apachesolr_instant_entity_insert');
+  $max_limit = variable_get('apachesolr_cron_limit', 50);
+  if($limit > $max_limit){
+    $limit = $max_limit;
+  }
+  module_load_include('index.inc', 'apachesolr');
+  $env_id = apachesolr_default_environment();
+  apachesolr_index_entities($env_id, $limit);
 }
