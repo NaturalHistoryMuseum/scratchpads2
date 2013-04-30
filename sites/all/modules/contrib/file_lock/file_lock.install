@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the file_lock module
+ */
+
+
+/**
+ * Implements hook_uninstall().
+ */
+function file_lock_uninstall() {
+  variable_del('file_lock_mode');
+  variable_del('file_lock_pattern');
+  variable_del('file_lock_regex');
+  variable_del('file_lock_hook');
+}
+
+/**
+ * Remove old variables
+ */
+function file_lock_update_7200() {
+  variable_del('media_lock_mode');
+  variable_del('media_lock_pattern');
+  variable_del('media_lock_regex');
+  variable_del('media_lock_hook');
+}
