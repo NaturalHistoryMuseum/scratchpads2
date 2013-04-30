@@ -159,7 +159,8 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
       'text' => 'value',
       'filefield' => 'fid', // @todo: Handle list and data suffixes
       'nodereference' => 'nid',
-      'content_taxonomy' => 'value'
+      'content_taxonomy' => 'value',
+      'taxonomy_term_reference' => 'tid'
     );
     // If this is a new biological classifcation, there'll be a lot of unmapped desitnation fields
     if($new_biological_classification){

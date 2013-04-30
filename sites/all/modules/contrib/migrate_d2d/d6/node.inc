@@ -109,7 +109,17 @@ class DrupalNode6Migration extends DrupalNodeMigration {
       if (isset($this->fieldSuffixes[$field_type])) {
         $suffix = $this->fieldSuffixes[$field_type];
         $field_field = $field_name .'_'. $suffix;
- 
+
+        if (!Database::getConnection('default', $this->sourceConnection)
+          ->schema()->fieldExists($table, $field_field)) {
+          static $reported_missing_field = array();
+          if (!isset($reported_missing_field[$table . $field_field])) {
+            $reported_missing_field[$table . $field_field] = 1;
+            Migration::displayMessage("Field does not exist: content_$field_name".".$field_field or $table".".$field_field - row skipped. Source site may be broken.", 'warning');
+          }
+          continue;
+        }
+
         $row->$field_name = Database::getConnection('default', $this->sourceConnection)
                             ->select($table, 'f')
                             ->fields('f', array($field_field))
