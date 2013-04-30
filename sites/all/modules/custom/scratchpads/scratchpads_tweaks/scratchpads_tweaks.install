@@ -311,7 +311,7 @@ function scratchpads_tweaks_install(){
     }
   }
   // Set the jQuery settings
-  scratchpads_tweaks_update_7047();
+  scratchpads_tweaks_update_7048();
 }
 
 /**
@@ -1055,9 +1055,20 @@ function scratchpads_tweaks_update_7046(){
 }
 
 /**
- * Set the jQuery update settings.
+ * Enable the scratchpads_pretty_urls module if the pathauto module is enabled.
  */
 function scratchpads_tweaks_update_7047(){
+  if(module_exists('pathauto')){
+    module_enable(array(
+      'scratchpads_pretty_urls'
+    ));
+  }
+}
+
+/**
+ * Set the jQuery update settings.
+ */
+function scratchpads_tweaks_update_7048(){
   variable_set('jquery_update_jquery_version', '1.8');
   variable_set('jquery_update_jquery_cdn', 'microsoft');
 }

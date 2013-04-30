@@ -98,7 +98,7 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
  * Implements hook_menu_alter().
  */
 function scratchpads_hands_off_menu_alter(&$items){
-  foreach(array(
+  $hidden_urls = array(
     'admin/appearance/settings/scratchpads',
     'admin/appearance/settings/scratchpads_admin',
     'admin/config/content/clone',
@@ -138,7 +138,9 @@ function scratchpads_hands_off_menu_alter(&$items){
     'admin/structure/file-types/manage/%/display/file_styles_thumbnail',
     'admin/structure/file-types/manage/%/file-display',
     'user/1/edit'
-  ) as $hidden_url){
+  );
+  drupal_alter('scratchpads_hands_off_urls', $hidden_urls);
+  foreach($hidden_urls as $hidden_url){
     $length = strlen($hidden_url);
     foreach($items as $key => $item){
       if(substr($key, 0, $length) == $hidden_url){
