@@ -31,7 +31,6 @@ dependencies[] = toolbar
 
 ; Contrib
 dependencies[] = advanced_help
-dependencies[] = biblio_refbank
 dependencies[] = boost
 dependencies[] = ckeditor
 dependencies[] = clone
@@ -92,6 +91,8 @@ dependencies[] = scratchpads_user
 dependencies[] = scratchpads_width_and_height
 
 ; Custom modules
+dependencies[] = biblio_refbank
+dependencies[] = biblio_dump
 dependencies[] = eol
 dependencies[] = eol_gbif_maps
 dependencies[] = hashcash
