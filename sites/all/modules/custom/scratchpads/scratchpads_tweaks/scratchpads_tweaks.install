@@ -310,6 +310,8 @@ function scratchpads_tweaks_install(){
       variable_set('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
     }
   }
+  // Prevent optimize from running on Solr.
+  variable_set('apachesolr_last_optimize', 10000000000);
 }
 
 /**
@@ -1061,4 +1063,11 @@ function scratchpads_tweaks_update_7047(){
       'scratchpads_pretty_urls'
     ));
   }
+}
+
+/**
+ * Prevent optimize from running on Solr.
+ */
+function scratchpads_tweaks_update_7048(){
+  variable_set('apachesolr_last_optimize', 10000000000);
 }
