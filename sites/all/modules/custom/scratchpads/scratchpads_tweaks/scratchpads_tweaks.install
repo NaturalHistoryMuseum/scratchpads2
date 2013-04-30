@@ -311,7 +311,9 @@ function scratchpads_tweaks_install(){
     }
   }
   // Set the jQuery settings
-  scratchpads_tweaks_update_7048();
+  scratchpads_tweaks_update_7049();
+  // Prevent optimize from running on Solr.
+  variable_set('apachesolr_last_optimize', 10000000000);
 }
 
 /**
@@ -1066,9 +1068,16 @@ function scratchpads_tweaks_update_7047(){
 }
 
 /**
- * Set the jQuery update settings.
+ * Prevent optimize from running on Solr.
  */
 function scratchpads_tweaks_update_7048(){
+  variable_set('apachesolr_last_optimize', 10000000000);
+}
+
+/**
+ * Set the jQuery update settings.
+ */
+function scratchpads_tweaks_update_7049(){
   variable_set('jquery_update_jquery_version', '1.8');
   variable_set('jquery_update_jquery_cdn', 'microsoft');
 }
