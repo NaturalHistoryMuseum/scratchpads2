@@ -6,12 +6,37 @@
  */
 function scratchpads_statistics_autocomplete($type, $string){
   $return = array();
-  switch($type){
-    case 'site':
-      $return = array(
-        'Pants' => 'Penis'
-      );
-      break;
+  if(in_array($type, array(
+    'site',
+    'user',
+    'taxon'
+  ))){
+    switch($type){
+      case 'site':
+        $condition = db_or()->condition('title', db_like($string) . '%', 'LIKE')->condition('url', db_like($string) . '%', 'LIKE');
+        $table = 'scratchpads_statistics_site';
+        $field_expression = "CONCAT(title, ' (', url, ')')";
+        $order = 'title';
+        break;
+      case 'user':
+        $condition = db_or()->condition('name', db_like($string) . '%', 'LIKE')->condition('email', db_like($string) . '%', 'LIKE');
+        $table = 'scratchpads_statistics_user';
+        $field_expression = 'name';
+        $order = 'name';
+        break;
+      case 'taxon':
+        $condition = db_and()->condition('term', db_like($string) . '%', 'LIKE');
+        $table = 'scratchpads_statistics_term';
+        $field_expression = 'term';
+        $order = 'term';
+        break;
+    }
+    $query = db_select($table, 't')->condition($condition)->fields('t')->orderBy($order)->range(0, 20);
+    $query->addExpression($field_expression, 'matches');
+    $results = $query->execute();
+    foreach($results as $row){
+      $return[$row->matches] = $row->matches;
+    }
   }
   drupal_json_output($return);
 }
@@ -61,7 +86,6 @@ function scratchpads_statistics_stats_page_login_json(){
 
 function scratchpads_statistics_stats_page(){
   $content = array();
-  return $content;
   // Users --------------------------------------------------------------------
   // First we get the entity_id for the user/user entity/bundle combo.
   $id = db_select('scratchpads_statistics_entity_bundle', 's')->fields('s', array(
