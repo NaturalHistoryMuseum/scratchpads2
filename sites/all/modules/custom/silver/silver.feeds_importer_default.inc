@@ -339,6 +339,24 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
           'unique' => 0
         );
         break;
+      case 'taxonomy_term_reference':
+        // We add three columns for the term reference field.
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field['label'] . ' (' . t('Name') . ')',
+          'target' => $key,
+          'unique' => 0
+        );
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field['label'] . ' (TID)',
+          'target' => $key . ':tid',
+          'unique' => 0
+        );
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field['label'] . ' (GUID)',
+          'target' => $key . ':guid',
+          'unique' => 0
+        );
+        break;
       default:
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => trim($field['label']),
