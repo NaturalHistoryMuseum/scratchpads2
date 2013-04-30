@@ -222,6 +222,10 @@ class DrupalFieldMigration extends DrupalMigration{
     if ($field_name == 'field_country' && $field_type == 'text') {
       return 'field_country_text';
     }
+    // Field name field_name is reserved.
+    if ($field_name == 'field_name') {
+      return 'field_name_r';
+    }
     return $field_name;
   }
 }
