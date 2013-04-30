@@ -31,6 +31,16 @@ function scratchpads_statistics_block_info(){
 }
 
 /**
+ * Implements hook_hashcash_form_ids_alter().
+ */
+function scratchpads_statistics_hashcash_form_ids_alter(&$form_ids){
+  $form_ids[] = 'scratchpads_statistics_facet_form_user';
+  $form_ids[] = 'scratchpads_statistics_facet_form_site';
+  $form_ids[] = 'scratchpads_statistics_facet_form_category';
+  $form_ids[] = 'scratchpads_statistics_facet_form_taxon';
+}
+
+/**
  * Implements hook_ctools_plugin_api().
  */
 function scratchpads_statistics_ctools_plugin_api(){
@@ -98,6 +108,9 @@ function scratchpads_statistics_facet_form($form, $form_state, $type){
         'submit' => array(
           '#type' => 'submit',
           '#value' => t('Filter by category')
+        ),
+        '#submit' => array(
+          'scratchpads_statistics_facet_form_submit'
         )
       );
     default:
@@ -113,6 +126,15 @@ function scratchpads_statistics_facet_form($form, $form_state, $type){
             'placeholder' => t(ucfirst($type))
           ),
           '#default_value' => ''
+        ),
+        'submit' => array(
+          '#prefix' => '<div style="display:none">',
+          '#suffix' => '</div>',
+          '#value' => t('Filter'),
+          '#type' => 'submit'
+        ),
+        '#submit' => array(
+          'scratchpads_statistics_facet_form_submit'
         )
       );
   }
@@ -121,7 +143,9 @@ function scratchpads_statistics_facet_form($form, $form_state, $type){
 /**
  * Scratchpads statistics facet form submit.
  */
-function scratchpads_statistics_facet_form_submit(){}
+function scratchpads_statistics_facet_form_submit($form, &$form_state){
+  drupal_set_message(print_r($form_state['values'], 1));
+}
 
 /**
  * Implements hook_cron().
