@@ -17,8 +17,8 @@ function scratchpads_statistics_block_info(){
       'info' => t('Scratchpads statistics facet - Site Category'),
       'cache' => DRUPAL_CACHE_PER_PAGE
     ),
-    'taxon' => array(
-      'info' => t('Scratchpads statistics facet - Taxon'),
+    'term' => array(
+      'info' => t('Scratchpads statistics facet - Term'),
       'cache' => DRUPAL_CACHE_PER_PAGE
     ),
     /*
@@ -37,7 +37,7 @@ function scratchpads_statistics_hashcash_form_ids_alter(&$form_ids){
   $form_ids[] = 'scratchpads_statistics_facet_form_user';
   $form_ids[] = 'scratchpads_statistics_facet_form_site';
   $form_ids[] = 'scratchpads_statistics_facet_form_category';
-  $form_ids[] = 'scratchpads_statistics_facet_form_taxon';
+  $form_ids[] = 'scratchpads_statistics_facet_form_term';
 }
 
 /**
@@ -81,7 +81,7 @@ function scratchpads_statistics_forms($form_id, $args){
     'user',
     'site',
     'category',
-    'taxon'
+    'term'
   ) as $type){
     $forms['scratchpads_statistics_facet_form_' . $type] = array(
       'callback' => 'scratchpads_statistics_facet_form'
@@ -144,7 +144,32 @@ function scratchpads_statistics_facet_form($form, $form_state, $type){
  * Scratchpads statistics facet form submit.
  */
 function scratchpads_statistics_facet_form_submit($form, &$form_state){
-  drupal_set_message(print_r($form_state['values'], 1));
+  $query = $_GET;
+  unset($query['q']);
+  switch($form_state['values']['scratchpads_stats_facet_type']){
+    case 't':
+      $results = db_select('scratchpads_statistics_term', 's')->condition('term', $form_state['values']['scratchpads_stats_facet_entry'], 'LIKE')->fields('s', array(
+        'id'
+      ))->execute();
+      break;
+    case 'user':
+      $results = db_select('scratchpads_statistics_user', 's')->condition('name', $form_state['values']['scratchpads_stats_facet_entry'], 'LIKE')->fields('s', array(
+        'id'
+      ))->execute();
+      break;
+    case 'site':
+      $results = db_query('SELECT id FROM {scratchpads_statistics_site} WHERE CONCAT(title, \' (\', url, \')\') LIKE :query_string', array(
+        ':query_string' => $form_state['values']['scratchpads_stats_facet_entry']
+      ));
+      break;
+  }
+  $query[$form_state['values']['scratchpads_stats_facet_type']] = array();
+  foreach($results as $row){
+    $query[$form_state['values']['scratchpads_stats_facet_type']][] = $row->id;
+  }
+  drupal_goto('stats', array(
+    'query' => $query
+  ));
 }
 
 /**
