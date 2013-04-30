@@ -21,7 +21,6 @@ function _biblio_dump_cron(){
     'nid'
   ))->condition('type', 'biblio')->execute();
   foreach($results as $row){
-    $node = node_load($row->nid);
-    file_put_contents($filename, _biblio_bibtex_export($node), FILE_APPEND);
+    file_put_contents($filename, _biblio_bibtex_export(node_load($row->nid)), FILE_APPEND);
   }
 }
