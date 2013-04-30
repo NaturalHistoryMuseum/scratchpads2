@@ -2,6 +2,12 @@
 
 class ScratchpadsNodeImageMigration extends DrupalNode6Migration{
 
+  public function __construct(array $arguments){
+    parent::__construct($arguments);
+    $this->fieldSuffixes['content_taxonomy'] = 'value';
+    $this->fieldSuffixes['userreference'] = 'uid';
+  }
+
   public function getSourceFieldTypes(){
     return $this->sourceFieldTypes;
   }
