@@ -5,19 +5,19 @@
  */
 function scratchpads_statistics_block_info(){
   return array(
-    'ss_facet_user' => array(
+    'user' => array(
       'info' => t('Scratchpads statistics facet - User'),
       'cache' => DRUPAL_CACHE_PER_PAGE
     ),
-    'ss_facet_site' => array(
+    'site' => array(
       'info' => t('Scratchpads statistics facet - Site'),
       'cache' => DRUPAL_CACHE_PER_PAGE
     ),
-    'ss_facet_site_category' => array(
+    'category' => array(
       'info' => t('Scratchpads statistics facet - Site Category'),
       'cache' => DRUPAL_CACHE_PER_PAGE
     ),
-    'ss_facet_taxon' => array(
+    'taxon' => array(
       'info' => t('Scratchpads statistics facet - Taxon'),
       'cache' => DRUPAL_CACHE_PER_PAGE
     ),
@@ -28,6 +28,16 @@ function scratchpads_statistics_block_info(){
     )
     */
   );
+}
+
+/**
+ * Implements hook_hashcash_form_ids_alter().
+ */
+function scratchpads_statistics_hashcash_form_ids_alter(&$form_ids){
+  $form_ids[] = 'scratchpads_statistics_facet_form_user';
+  $form_ids[] = 'scratchpads_statistics_facet_form_site';
+  $form_ids[] = 'scratchpads_statistics_facet_form_category';
+  $form_ids[] = 'scratchpads_statistics_facet_form_taxon';
 }
 
 /**
@@ -44,32 +54,97 @@ function scratchpads_statistics_ctools_plugin_api(){
  * Implements hook_block_view()
  */
 function scratchpads_statistics_block_view($delta = ''){
-  switch($delta){
-    case 'ss_facet_site':
+  if($delta == 'category'){
+    $tagged_sites = db_select('scratchpads_statistics_site_site_type', 's')->fields('s')->countQuery()->execute()->fetchCol();
+    $tagged_sites = array_pop($tagged_sites);
+    if(!$tagged_sites){return array();}
+  }
+  return array(
+    'subject' => t('Filter by ' . ucfirst($delta)),
+    'content' => array(
+      'scratchpads_statistics_facet_form' => drupal_get_form('scratchpads_statistics_facet_form_' . $delta, $delta),
+      '#attached' => array(
+        'css' => array(
+          drupal_get_path('module', 'scratchpads_statistics') . '/css/scratchpads_statistics.css'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_forms
+ */
+function scratchpads_statistics_forms($form_id, $args){
+  $forms = array();
+  foreach(array(
+    'user',
+    'site',
+    'category',
+    'taxon'
+  ) as $type){
+    $forms['scratchpads_statistics_facet_form_' . $type] = array(
+      'callback' => 'scratchpads_statistics_facet_form'
+    );
+  }
+  return $forms;
+}
+
+/**
+ * Scratchpads statistics facet form.
+ */
+function scratchpads_statistics_facet_form($form, $form_state, $type){
+  switch($type){
+    case 'category':
+      //db_select('')
       return array(
-        'subject' => t('Filter by Site'),
-        'content' => array(
-          'filter_by_site' => array(
-            '#type' => 'textfield',
-            '#autocomplete_path' => 'scratchpads-statistics-autocomplete/site',
-            '#attributes' => array(
-              'placeholder' => t('Site')
-            )
-          ),
-          '#attached' => array(
-            'css' => array(
-              drupal_get_path('module', 'scratchpads_statistics') . '/css/scratchpads_statistics.css'
-            )
-          )
+        'scratchpads_stats_facet_type' => array(
+          '#type' => 'hidden',
+          '#value' => $type
+        ),
+        'scratchpads_stats_facet_entry' => array(
+          '#type' => 'select'
+        ),
+        'submit' => array(
+          '#type' => 'submit',
+          '#value' => t('Filter by category')
+        ),
+        '#submit' => array(
+          'scratchpads_statistics_facet_form_submit'
         )
       );
-    case 'ss_facet_user':
+    default:
       return array(
-        'subject' => 'Pants',
-        'content' => $delta
+        'scratchpads_stats_facet_type' => array(
+          '#type' => 'hidden',
+          '#value' => $type
+        ),
+        'scratchpads_stats_facet_entry' => array(
+          '#type' => 'textfield',
+          '#autocomplete_path' => 'scratchpads-statistics-autocomplete/' . $type,
+          '#attributes' => array(
+            'placeholder' => t(ucfirst($type))
+          ),
+          '#default_value' => ''
+        ),
+        'submit' => array(
+          '#prefix' => '<div style="display:none">',
+          '#suffix' => '</div>',
+          '#value' => t('Filter'),
+          '#type' => 'submit'
+        ),
+        '#submit' => array(
+          'scratchpads_statistics_facet_form_submit'
+        )
       );
-      break;
   }
+}
+
+/**
+ * Scratchpads statistics facet form submit.
+ */
+function scratchpads_statistics_facet_form_submit($form, &$form_state){
+  drupal_set_message(print_r($form_state['values'], 1));
 }
 
 /**
