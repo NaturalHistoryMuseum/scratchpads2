@@ -526,7 +526,7 @@ function scratchpads_biblio_search_apachesolr_index_document_build(ApacheSolrDoc
           default:
             if(is_string($value)){
               if($key == 'biblio_section' && is_numeric($value)){
-                $document->setField("iss_$key", $value);
+                $document->setField("fss_$key", $value);
               }
               $document->setField("tus_$key", $value);
             }else if(is_array($value)){
