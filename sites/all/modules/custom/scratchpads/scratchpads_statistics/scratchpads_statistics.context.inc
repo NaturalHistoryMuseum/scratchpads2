@@ -43,9 +43,9 @@ function scratchpads_statistics_context_default_contexts(){
           'region' => 'sidebar',
           'weight' => '-10'
         ),
-        'scratchpads_statistics-taxon' => array(
+        'scratchpads_statistics-term' => array(
           'module' => 'scratchpads_statistics',
-          'delta' => 'taxon',
+          'delta' => 'term',
           'region' => 'sidebar',
           'weight' => '-10'
         )
