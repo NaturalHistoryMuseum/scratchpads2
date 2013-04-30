@@ -112,7 +112,7 @@ class MigrateDestinationField extends MigrateDestination{
           $field_config['settings']['allowed_values'] = array();
           $vocabularies = taxonomy_vocabulary_load_multiple(FALSE);
           foreach($vocabularies as $vid => $vocabulary){
-            $field_config['settings']['allowed_values'][$vid] = array(
+            $field_config['settings']['allowed_values'][] = array(
               'vocabulary' => $vocabulary->machine_name,
               'parent' => 0
             );
@@ -163,14 +163,14 @@ class MigrateDestinationField extends MigrateDestination{
             'label' => isset($field_instance['display']['default']['label']) ? $field_instance['display']['default']['label'] : 'above',
             'module' => (isset($field_instance['display']['default']['module']) && $field_instance['display']['default']['module'] == 'image') ? 'image' : 'file',
             'settings' => isset($field_instance['display']['default']['settings']) ? $field_instance['display']['default']['settings'] : array(),
-            'type' => ($field_instance['display']['default']['module'] == 'image') ? 'image' : 'styles_file_medium',
+            'type' => (isset($field_instance['display']['default']['module']) && $field_instance['display']['default']['module'] == 'image') ? 'image' : 'styles_file_medium',
             'weight' => isset($field_instance['display']['default']['weight']) ? $field_instance['display']['default']['weight'] : 2
           ),
           'teaser' => array(
             'label' => isset($field_instance['display']['teaser']['label']) ? $field_instance['display']['teaser']['label'] : 'above',
-            'module' => ($field_instance['display']['teaser']['module'] == 'image') ? 'image' : 'file',
+            'module' => (isset($field_instance['display']['teaser']['module']) && $field_instance['display']['teaser']['module'] == 'image') ? 'image' : 'file',
             'settings' => isset($field_instance['display']['teaser']['settings']) ? $field_instance['display']['teaser']['settings'] : array(),
-            'type' => ($field_instance['display']['teaser']['type'] == 'image') ? 'image' : 'styles_file_thumbnail',
+            'type' => (isset($field_instance['display']['teaser']['type']) && $field_instance['display']['teaser']['type'] == 'image') ? 'image' : 'styles_file_thumbnail',
             'weight' => isset($field_instance['display']['teaser']['weight']) ? $field_instance['display']['teaser']['weight'] : 2
           )
         );
@@ -277,7 +277,8 @@ class MigrateDestinationField extends MigrateDestination{
       }
     }
     if(isset($field_instance['widget']['settings']['default_value'])){
-      if(is_array($field_instance['widget']['settings']['default_value'][0])){
+      if(isset($field_instance['widget']['settings']['default_value'][0])
+         && is_array($field_instance['widget']['settings']['default_value'][0])){
         $field_instance['default_value'] = array_shift($field_instance['widget']['settings']['default_value'][0]);
       }else if(is_string($field_instance['widget']['settings']['default_value'])){
         $field_instance['default_value'] = $field_instance['widget']['settings']['default_value'];
