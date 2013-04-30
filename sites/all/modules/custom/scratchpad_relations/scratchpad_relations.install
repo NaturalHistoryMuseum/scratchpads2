@@ -8,6 +8,13 @@
      * Implements hook_install().
     */
 function scratchpad_relations_install(){
+  // Find out the weight of the other module
+  $weight = db_select('system', 's')->fields('s', array(
+    'weight'
+  ))->condition('name', 'relation_select', '=')->execute()->fetchField();
+  db_update('system')->fields(array(
+    'weight' => $weight + 1
+  ))->condition('name', 'scratchpad_relations')->execute();
   // Add default relationships
   $relation_types_info = array(
     array(

@@ -98,7 +98,7 @@ function theme_scratchpad_relations_admin_content($variables){
       $rows[] = array(
         l(t('Relation') . ' ' . $relation->rid, 'relation/' . $relation->rid),
         $type->label . ' (' . $relation->relation_type . ')',
-        implode(($type->directional) ? " -> " : " -- ", $relation_column),
+        implode(($type->directional) ? " → " : " ↔ ", $relation_column),
         user_access('edit relations') ? l(t('Edit'), 'relation/' . $relation->rid . '/edit') : '',
         user_access('delete relations') ? l(t('Delete'), 'relation/' . $relation->rid . '/delete') : ''
       );

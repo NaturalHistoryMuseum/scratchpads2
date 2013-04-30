@@ -42,3 +42,24 @@ function scratchpad_relations_theme(){
   );
   return $theme;
 }
+
+function scratchpad_relations_preprocess_relation_select_field(&$variables){
+  $variables['theme_hook_suggestions'][] = 'relation_select_field__' . $variables['field_name'];
+  $variables['theme_hook_suggestions'][] = 'relation_select_field__' . $variables['entity_type'] . '__' . $variables['bundle'] . '__' . $variables['field_name'];
+  $id = $variables['entity']->tid;
+  $relation = $variables['relation'];
+  $relation_type = relation_type_load($relation->relation_type);
+  $label = $relation_type->directional ? $relation_type->reverse_label : $relation_type->label;
+  foreach($relation->endpoints[LANGUAGE_NONE] as $endpoint){
+    if($endpoint['entity_type'] == $variables['entity_type'] && $endpoint['entity_id'] == $id){
+      if($endpoint['r_index'] == 0){
+        $label = $relation_type->label;
+      }
+    }
+  }
+  $variables['items'] = array();
+  foreach($variables['related_entities'] as $related_entity){
+    $link = entity_uri($related_entity->entity_type, $related_entity);
+    $variables['items'][] = $label . ' ' . l(entity_label($related_entity->entity_type, $related_entity), $link['path']);
+  }
+}
