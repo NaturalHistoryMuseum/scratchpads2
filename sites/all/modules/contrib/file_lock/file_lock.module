@@ -87,6 +87,11 @@ function file_lock_file_operations_info() {
  *   the mode to check the file for
  */
 function file_lock_act_on($file, $lock_mode = NULL) {
+  // Do not lock temporary files.
+  if (empty($file->status)) {
+    return;
+  }
+
   if ($lock_mode == NULL) {
     $lock_mode = variable_get('file_lock_mode', 'none');
   }
@@ -123,10 +128,13 @@ function file_lock_act_on($file, $lock_mode = NULL) {
  */
 function file_lock_lock_files($files) {
   foreach ($files as $fid => $f) {
-    $file = new stdClass();
-    $file->fid = $fid;
-
-    file_lock_add_lock($file);
+    // Do not lock temporary files.
+    if (($file = file_load($fid)) && !empty($file->status)) {
+      file_lock_add_lock($file);
+    }
+    else {
+      unset($files[$fid]);
+    }
   }
   drupal_set_message(t('Locked @count files.', array('@count' => count($files))));
 }
