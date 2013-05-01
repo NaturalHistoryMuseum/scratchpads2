@@ -42,15 +42,13 @@ function scratchpad_relations_theme($existing, $type, $theme, $path){
     'relation_select_field' => array(
       'variables' => array(
         'entity' => NULL,
-        'related_entities' => NULL,
+        'relation' => NULL,
         'entity_type' => NULL,
+        'items' => NULL,
+        'related_entities' => NULL,
         'bundle' => NULL,
         'field_name' => NULL,
-        'items' => NULL,
-        'suffix' => NULL,
-        'prefix' => NULL,
-        'list_type' => NULL,
-        'relation' => NULL
+        'list_type' => NULL
       ),
       'template' => 'relation-select-field',
       'path' => $path . '/theme'
@@ -59,7 +57,7 @@ function scratchpad_relations_theme($existing, $type, $theme, $path){
   return $theme;
 }
 
-function scratchpad_relations_preprocess_relation_select_field(&$variables){
+function scratchpad_relations_preprocess_relation_select_field(&$variables, $hook){
   $id = $variables['entity']->tid;
   $relation = $variables['relation'];
   $relation_type = relation_type_load($relation->relation_type);
@@ -77,4 +75,14 @@ function scratchpad_relations_preprocess_relation_select_field(&$variables){
     $variables['items'][] = $label . ' ' . l(entity_label($related_entity->entity_type, $related_entity), $link['path']);
   }
   $variables['theme_hook_suggestions'][] = 'relation_select_field__' . $variables['field_name'];
+}
+
+function scratchpad_relations_preprocess_views_view_field(&$vars){
+  /* if($vars['view']->name == 'species_relationships' && $vars['field']->field = 'field_ecological_relationship'){
+     dpm($vars['field']);
+     $vars['output'] = str_replace('<li>', '', $vars['output']);
+     $vars['output'] = str_replace('</li>', '', $vars['output']);
+    $vars['output'] = str_replace('<ul>', '', $vars['output']);
+    $vars['output'] = str_replace('</ul>', '<br/>', $vars['output']);
+  }*/
 }
