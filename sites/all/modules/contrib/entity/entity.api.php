@@ -28,12 +28,13 @@
  * - entity class: (optional) A class the controller will use for instantiating
  *   entities. It is suggested to make use of the provided "Entity" class or to
  *   extend it.
- * - bundle of: (optional) If the described entity type is used as a bundle for
- *   another, fieldable entity type, the entity API controller can take care of
- *   invoking the field API bundle attachers. To enable this functionality,
- *   specify the name of the fieldable entity type. But note, that the usual
- *   information about the bundles is still required for the fieldable entity
- *   type, as described by the documentation of hook_entity_info(). Also,
+ * - bundle of: (optional) Entity types can be used as bundles for
+ *   other entity types. To enable this functionality, use the 'bundle of' key
+ *   to indicate which entity type this entity serves as a bundle for. But note
+ *   that the other entity type will still need to declare entities of this
+ *   type as bundles, as described by the documentation of hook_entity_info().
+ *   If the other entity type is fieldable, the entity API controller takes
+ *   care of invoking the field API bundle attachers. Note that
  *   field_attach_delete_bundle() has to be invoked manually upon module
  *   uninstallation. See entity_test_entity_info() and entity_test_uninstall()
  *   for examples.
@@ -73,6 +74,11 @@
  *   - status: (optional) The name of the entity property used by the entity
  *     CRUD API to save the exportable entity status using defined bit flags.
  *     Defaults to 'status'. See entity_has_status().
+ *   - default revision: (optional) The name of the entity property used by
+ *     the entity CRUD API to determine if a newly-created revision should be
+ *     set as the default revision. Defaults to 'default_revision'.
+ *     Note that on entity insert the created revision will be always default
+ *     regardless of the value of this entity property.
  * - export: (optional) An array of information used for exporting. For ctools
  *   exportables compatibility any export-keys supported by ctools may be added
  *   to this array too.
@@ -117,6 +123,11 @@
  *   Features module integration for exportable entities. The given class has to
  *   inherit from the default class being EntityDefaultFeaturesController. Set
  *   it to FALSE to disable this feature.
+ * - i18n controller class: (optional) A controller class for providing
+ *   i18n module integration for (exportable) entities. The given class has to
+ *   inherit from the class EntityDefaultI18nStringController. Defaults to
+ *   FALSE (disabled). See EntityDefaultI18nStringController for more
+ *   information.
  * - views controller class: (optional) A controller class for providing views
  *   integration. The given class has to inherit from the class
  *   EntityDefaultViewsController, which is set as default in case the providing
@@ -192,6 +203,8 @@ function entity_crud_hook_entity_info() {
  *   this type.
  * - deletion callback: (optional) A callback that permanently deletes an
  *   entity of this type.
+ * - revision deletion callback: (optional) A callback that deletes a revision
+ *   of the entity.
  * - view callback: (optional) A callback to render a list of entities.
  *   See entity_metadata_view_node() as example.
  * - form callback: (optional) A callback that returns a fully built edit form
@@ -230,7 +243,7 @@ function entity_metadata_hook_entity_info() {
  * can implement this hook to provide metadata about this properties.
  * For making use of the metadata have a look at the provided wrappers returned
  * by entity_metadata_wrapper().
- * For providing property information for fields see entity_field_info().
+ * For providing property information for fields see entity_hook_field_info().
  *
  * @return
  *   An array whose keys are entity type names and whose values are arrays
@@ -316,6 +329,11 @@ function entity_metadata_hook_entity_info() {
  *       computed, i.e. the property value is not stored or loaded by the
  *       entity's controller but determined on the fly by the getter callback.
  *       Defaults to FALSE.
+ *     - entity views field: (optional) If enabled, the property is
+ *       automatically exposed as views field available to all views query
+ *       backends listing this entity-type. As the property value will always be
+ *       generated from a loaded entity object, this is particularly useful for
+ *       'computed' properties. Defaults to FALSE.
  *     - sanitized: (optional) For textual properties only, whether the text is
  *       already sanitized. In this case you might want to also specify a raw
  *       getter callback. Defaults to FALSE.

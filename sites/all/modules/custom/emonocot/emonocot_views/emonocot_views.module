@@ -12,45 +12,6 @@ function emonocot_views_views_api(){
 }
 
 /**
- * Implements hook_context_load_alter().
- */
-function emonocot_views_context_load_alter(&$context){
-  if($context->name === 'species_overview' && isset($context->reactions['block'])){
-    //Replace with the eMonocot one(s)
-    $term = menu_get_object('taxonomy_term', 2);
-    if($term){
-      //Remove default Scratchpads nomenclature and specimen blocks
-      unset($context->reactions['block']['blocks']['views-species_nomenclature-block']);
-      unset($context->reactions['block']['blocks']['views-species_specimens_overview-block']);
-      foreach($context->reactions['block']['blocks'] as $name => $block){
-        if(substr($name, 0, 29) == 'views-em_species_nomenclature'){
-          unset($context->reactions['block']['blocks'][$name]);
-        }
-      }
-      $bio_id = $term->vid;
-      $context->reactions['block']['blocks']['views-em_species_nomenclature_' . $bio_id . '-block'] = array(
-        'module' => 'views',
-        'delta' => 'em_species_nomenclature_' . $bio_id . '-block',
-        'region' => 'content',
-        'weight' => -10
-      );
-      $context->reactions['block']['blocks']['typification_overview'] = array(
-        'module' => 'emonocot_blocks',
-        'delta' => 'typification_overview',
-        'region' => 'content',
-        'weight' => -30
-      );
-      $context->reactions['block']['blocks']['hybrid_children'] = array(
-        'module' => 'emonocot_blocks',
-        'delta' => 'hybrid_children',
-        'region' => 'content',
-        'weight' => -40
-      );
-    }
-  }
-}
-
-/**
  * Implements hook_field_formatter_info().
  */
 function emonocot_views_field_formatter_info(){
@@ -70,6 +31,75 @@ function emonocot_views_field_formatter_info(){
       )
     )
   );
+}
+
+function emonocot_views_wcm_ref(){
+  /* Field: Taxonomy term: WCM Protologue Reference */
+  $new_field = array();
+  $new_field['id'] = 'field_itis_em_other_ref';
+  $new_field['table'] = 'field_data_field_itis_em_other_ref';
+  $new_field['field'] = 'field_itis_em_other_ref';
+  $new_field['label'] = 'Original Publication';
+  $new_field['exclude'] = TRUE;
+  $new_field['alter']['alter_text'] = 0;
+  $new_field['alter']['make_link'] = 0;
+  $new_field['alter']['absolute'] = 0;
+  $new_field['alter']['external'] = 0;
+  $new_field['alter']['replace_spaces'] = 0;
+  $new_field['alter']['trim_whitespace'] = 0;
+  $new_field['alter']['nl2br'] = 0;
+  $new_field['alter']['word_boundary'] = 1;
+  $new_field['alter']['ellipsis'] = 1;
+  $new_field['alter']['more_link'] = 0;
+  $new_field['alter']['strip_tags'] = 0;
+  $new_field['alter']['trim'] = 0;
+  $new_field['alter']['html'] = 0;
+  $new_field['element_label_colon'] = 1;
+  $new_field['element_default_classes'] = 1;
+  $new_field['hide_empty'] = 0;
+  $new_field['empty_zero'] = 0;
+  $new_field['hide_alter_empty'] = 1;
+  $new_field['field_api_classes'] = 0;
+  return $new_field;
+}
+
+function emonocot_views_url_icon(){
+  /* Field: Taxonomy term: Reference */
+  $new_field = array();
+  $new_field['id'] = 'field_reference';
+  $new_field['table'] = 'field_data_field_reference';
+  $new_field['field'] = 'field_reference';
+  $new_field['label'] = '';
+  $new_field['alter']['alter_text'] = 0;
+  $new_field['alter']['make_link'] = 0;
+  $new_field['alter']['absolute'] = 0;
+  $new_field['alter']['external'] = 0;
+  $new_field['alter']['replace_spaces'] = 0;
+  $new_field['alter']['trim_whitespace'] = 0;
+  $new_field['alter']['nl2br'] = 0;
+  $new_field['alter']['word_boundary'] = 1;
+  $new_field['alter']['ellipsis'] = 1;
+  $new_field['alter']['more_link'] = 0;
+  $new_field['alter']['strip_tags'] = 0;
+  $new_field['alter']['trim'] = 0;
+  $new_field['alter']['html'] = 0;
+  $new_field['element_label_colon'] = FALSE;
+  $new_field['element_default_classes'] = 1;
+  $new_field['hide_empty'] = 0;
+  $new_field['empty_zero'] = 0;
+  $new_field['hide_alter_empty'] = 1;
+  $new_field['type'] = 'url_icon';
+  $new_field['field_api_classes'] = 0;
+  return $new_field;
+}
+
+function emonocot_views_views_default_views_alter(&$views){
+  foreach($views as $view){
+    if($view->name == 'species_nomenclature'){
+      $view->display['default']->display_options['fields']['wcm_ref'] = emonocot_views_wcm_ref();
+      $view->display['default']->display_options['fields']['url_icon'] = emonocot_views_url_icon();
+    }
+  }
 }
 
 /**
@@ -196,4 +226,3 @@ function emonocot_views_field_formatter_view($entity_type, $entity, $field, $ins
       return $element;
   }
 }
-
