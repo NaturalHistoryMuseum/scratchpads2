@@ -111,7 +111,7 @@ function itis_term_update_7005(){
  * 
  * Note, this update is time consuming, so should only be run from Drush.
  */
-function itis_term_update_7005(){
+function itis_term_update_7006(){
   // Delete the groups first.
   module_load_include('fields.inc', 'itis_term');
   $groups = itis_term_groups();
