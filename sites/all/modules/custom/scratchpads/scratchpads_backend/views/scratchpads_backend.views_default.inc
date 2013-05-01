@@ -504,6 +504,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['access']['perm'] = 'access content overview';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
+  $handler->display->display_options['query']['options']['distinct'] = TRUE;
   $handler->display->display_options['query']['options']['query_comment'] = FALSE;
   $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['pager']['type'] = 'full';
@@ -893,7 +894,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['reduce_duplicates'] = 0;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'gadus';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = '__temporary__';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = 0;
   /* Filter criterion: File Usage: Entity type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
@@ -921,6 +922,8 @@ function scratchpads_backend_views_default_views(){
   $handler = $view->new_display('page', 'Images', 'page_1');
   $handler->display->display_options['defaults']['title'] = FALSE;
   $handler->display->display_options['title'] = 'Image files';
+  $handler->display->display_options['defaults']['group_by'] = FALSE;
+  $handler->display->display_options['group_by'] = TRUE;
   $handler->display->display_options['defaults']['fields'] = FALSE;
   /* Field: Bulk operations: File */
   $handler->display->display_options['fields']['views_bulk_operations']['id'] = 'views_bulk_operations';
@@ -1200,6 +1203,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['fields']['type']['id'] = 'type';
   $handler->display->display_options['fields']['type']['table'] = 'file_usage';
   $handler->display->display_options['fields']['type']['field'] = 'type';
+  $handler->display->display_options['fields']['type']['exclude'] = TRUE;
   $handler->display->display_options['fields']['type']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['type']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['type']['alter']['absolute'] = 0;
@@ -1218,6 +1222,30 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['fields']['type']['hide_empty'] = 0;
   $handler->display->display_options['fields']['type']['empty_zero'] = 0;
   $handler->display->display_options['fields']['type']['hide_alter_empty'] = 1;
+  /* Field: File: File ID */
+  $handler->display->display_options['fields']['fid_2']['id'] = 'fid_2';
+  $handler->display->display_options['fields']['fid_2']['table'] = 'file_managed';
+  $handler->display->display_options['fields']['fid_2']['field'] = 'fid';
+  $handler->display->display_options['fields']['fid_2']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['fid_2']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['fid_2']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['fid_2']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['fid_2']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['fid_2']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['fid_2']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['fid_2']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['fid_2']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['fid_2']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['fid_2']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['fid_2']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['fid_2']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['fid_2']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['fid_2']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['fid_2']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['fid_2']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['fid_2']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['fid_2']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['fid_2']['link_to_file'] = 0;
   $handler->display->display_options['defaults']['arguments'] = FALSE;
   $handler->display->display_options['defaults']['filters'] = FALSE;
   /* Filter criterion: User: Name (raw) */
@@ -1257,7 +1285,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['reduce_duplicates'] = 0;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'gadus';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = '__temporary__';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = 0;
   /* Filter criterion: File: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
@@ -1280,6 +1308,13 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['type_2']['operator'] = '!=';
   $handler->display->display_options['filters']['type_2']['value'] = 'eolapi';
   $handler->display->display_options['filters']['type_2']['group'] = 2;
+  /* Filter criterion: File: File ID */
+  $handler->display->display_options['filters']['fid']['id'] = 'fid';
+  $handler->display->display_options['filters']['fid']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['fid']['field'] = 'fid';
+  $handler->display->display_options['filters']['fid']['group_type'] = 'count_distinct';
+  $handler->display->display_options['filters']['fid']['operator'] = '>=';
+  $handler->display->display_options['filters']['fid']['value']['value'] = '0';
   $handler->display->display_options['path'] = 'admin/file/image';
   $views[$view->name] = $view;
   return $views;
