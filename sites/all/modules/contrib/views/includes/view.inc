@@ -960,8 +960,16 @@ class view extends views_db_object {
 
     if ($this->display_handler->uses_exposed()) {
       $exposed_form = $this->display_handler->get_plugin('exposed_form');
+      // (1) Record the errors before rendering the exposed form widgets.
+      $errors_before = form_set_error();
       $this->exposed_widgets = $exposed_form->render_exposed_form();
-      if (form_set_error() || !empty($this->build_info['abort'])) {
+      // (2) Record the errors after rendering the exposed form widgets.
+      $errors_after = form_set_error();
+      // Find out if the validation of any of the elements in the exposed form
+      // has failed by comparing (1) and (2) above. Don't mess with the view
+      // otherwise.
+      $exposed_errors = count($errors_after) > count($errors_before);
+      if ($exposed_errors || !empty($this->build_info['abort'])) {
         $this->built = TRUE;
         // Don't execute the query, but rendering will still be executed to display the empty text.
         $this->executed = TRUE;
@@ -1258,6 +1266,7 @@ class view extends views_db_object {
         $cache->cache_set('output');
       }
     }
+    $this->render_time = microtime(TRUE) - $start;
 
     $exposed_form->post_render($this->display_handler->output);
 
@@ -1286,7 +1295,6 @@ class view extends views_db_object {
     if (!empty($this->live_preview) && variable_get('views_show_additional_queries', FALSE)) {
       $this->end_query_capture();
     }
-    $this->render_time = microtime(TRUE) - $start;
 
     return $this->display_handler->output;
   }

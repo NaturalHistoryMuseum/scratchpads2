@@ -482,13 +482,15 @@ function hook_views_data_alter(&$data) {
   $data['users']['example_field'] = array(
     'title' => t('Example field'),
     'help' => t('Some example content that references a user'),
-    'handler' => 'hook_handlers_field_example_field',
+    'field' => array(
+      'handler' => 'modulename_handler_field_example_field',
+    ),
   );
 
   // This example changes the handler of the node title field.
   // In this handler you could do stuff, like preview of the node when clicking
   // the node title.
-  $data['node']['title']['handler'] = 'modulename_handlers_field_node_title';
+  $data['node']['title']['field']['handler'] = 'modulename_handler_field_node_title';
 
   // This example adds a relationship to table {foo}, so that 'foo' views can
   // add this table using a relationship. Because we don't want to write over
@@ -663,10 +665,10 @@ function hook_views_api() {
  * This hook allows modules to provide their own views which can either be used
  * as-is or as a "starter" for users to build from.
  *
- * This hook should be placed in MODULENAME.views.inc and it will be
- * auto-loaded. MODULENAME.views.inc must be in the directory specified by the
- * 'path' key returned by MODULENAME_views_api(), or the same directory as the
- * .module file, if 'path' is unspecified.
+ * This hook should be placed in MODULENAME.views_default.inc and it will be
+ * auto-loaded. MODULENAME.views_default.inc must be in the directory specified
+ * by the 'path' key returned by MODULENAME_views_api(), or the same directory
+ * as the .module file, if 'path' is unspecified.
  *
  * The $view->disabled boolean flag indicates whether the View should be
  * enabled (FALSE) or disabled (TRUE) by default.

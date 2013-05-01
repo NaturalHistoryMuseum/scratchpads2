@@ -91,10 +91,10 @@ function views_ui_check_advanced_help() {
     $filename = db_query_range("SELECT filename FROM {system} WHERE type = 'module' AND name = 'advanced_help'", 0, 1)
       ->fetchField();
     if ($filename && file_exists($filename)) {
-      drupal_set_message(t('If you <a href="@modules">enable the advanced help module</a>, Views will provide more and better help. <a href="@hide">Hide this message.</a>', array('@modules' => url('admin/modules'),'@hide' => url('admin/structure/views/settings'))));
+      drupal_set_message(t('If you <a href="@modules">enable the advanced help module</a>, Views will provide more and better help. <a href="@hide">You can disable this message at the Views settings page.</a>', array('@modules' => url('admin/modules'),'@hide' => url('admin/structure/views/settings'))));
     }
     else {
-      drupal_set_message(t('If you install the advanced help module from !href, Views will provide more and better help. <a href="@hide">Hide this message.</a>', array('!href' => l('http://drupal.org/project/advanced_help', 'http://drupal.org/project/advanced_help'), '@hide' => url('admin/structure/views/settings'))));
+      drupal_set_message(t('If you install the advanced help module from !href, Views will provide more and better help. <a href="@hide">You can disable this message at the Views settings page.</a>', array('!href' => l('http://drupal.org/project/advanced_help', 'http://drupal.org/project/advanced_help'), '@hide' => url('admin/structure/views/settings'))));
     }
   }
 }
@@ -835,10 +835,10 @@ function theme_views_ui_view_info($variables) {
   }
 
   $output = '';
-  $output .= '<div class="views-ui-view-title">' . $title . "</div>\n";
+  $output .= '<div class="views-ui-view-title">' . check_plain($title) . "</div>\n";
   $output .= '<div class="views-ui-view-displays">' . $displays . "</div>\n";
   $output .= '<div class="views-ui-view-storage">' . $type . "</div>\n";
-  $output .= '<div class="views-ui-view-base">' . t('Type') . ': ' . $variables['base']. "</div>\n";
+  $output .= '<div class="views-ui-view-base">' . t('Type') . ': ' . check_plain($variables['base']). "</div>\n";
   return $output;
 }
 
@@ -3038,7 +3038,7 @@ function views_ui_reorder_displays_form($form, &$form_state) {
 
   foreach ($view->display as $display) {
     $form[$display->id] = array(
-      'title'  => array('#markup' => $display->display_title),
+      'title'  => array('#markup' => check_plain($display->display_title)),
       'weight' => array(
         '#type' => 'weight',
         '#value' => $display->position,
@@ -4122,8 +4122,8 @@ function views_ui_add_item_form($form, &$form_state) {
         $zebra_class = ($zebra % 2) ? 'odd' : 'even';
         $form['options']['name'][$key] = array(
           '#type' => 'checkbox',
-          '#title' => t('!group: !field', array('!group' => $option['group'], '!field' => $option['title'])),
-          '#description' => $option['help'],
+          '#title' => t('!group: !field', array('!group' => check_plain($option['group']), '!field' => check_plain($option['title']))),
+          '#description' => filter_xss_admin($option['help']),
           '#return_value' => $key,
           '#prefix' => "<div class='$zebra_class filterable-option'>",
           '#suffix' => '</div>',
@@ -5047,7 +5047,7 @@ function views_ui_autocomplete_tag($string = '') {
   $views = views_get_all_views();
   foreach ($views as $view) {
     if (!empty($view->tag) && strpos($view->tag, $string) === 0) {
-      $matches[$view->tag] = $view->tag;
+      $matches[$view->tag] = check_plain($view->tag);
       if (count($matches) >= 10) {
         break;
       }
@@ -5267,7 +5267,7 @@ function theme_views_ui_style_plugin_table($variables) {
   $rows = array();
   foreach (element_children($form['columns']) as $id) {
     $row = array();
-    $row[] = drupal_render($form['info'][$id]['name']);
+    $row[] = check_plain(drupal_render($form['info'][$id]['name']));
     $row[] = drupal_render($form['columns'][$id]);
     $row[] = drupal_render($form['info'][$id]['align']);
     $row[] = drupal_render($form['info'][$id]['separator']);

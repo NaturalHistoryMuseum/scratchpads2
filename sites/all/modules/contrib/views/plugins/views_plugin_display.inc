@@ -476,7 +476,7 @@ class views_plugin_display extends views_plugin {
           'display_description' => FALSE,
           'use_ajax' => TRUE,
           'hide_attachment_summary' => TRUE,
-          'hide_admin_links' => FALSE,
+          'hide_admin_links' => TRUE,
           'pager' => TRUE,
           'pager_options' => TRUE,
           'use_more' => TRUE,
@@ -782,6 +782,10 @@ class views_plugin_display extends views_plugin {
     $display_id = $this->get_link_display();
     if ($display_id && !empty($this->view->display[$display_id]) && is_object($this->view->display[$display_id]->handler)) {
       return $this->view->display[$display_id]->handler->get_path();
+    }
+
+    if ($this->get_option('link_display') == 'custom_url' && $link_url = $this->get_option('link_url')) {
+      return $link_url;
     }
   }
 

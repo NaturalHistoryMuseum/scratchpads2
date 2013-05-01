@@ -30,6 +30,7 @@ class views_plugin_display_page extends views_plugin_display {
         'weight' => array('default' => 0),
         'name' => array('default' => variable_get('menu_default_node_menu', 'navigation')),
         'context' => array('default' => ''),
+        'context_only_inline' => array('default' => FALSE),
        ),
     );
     $options['tab_options'] = array(
@@ -153,7 +154,7 @@ class views_plugin_display_page extends views_plugin_display {
       // Add context for contextual links.
       // @see menu_contextual_links()
       if (!empty($menu['context'])) {
-        $items[$path]['context'] = MENU_CONTEXT_INLINE;
+        $items[$path]['context'] = !empty($menu['context_only_inline']) ? MENU_CONTEXT_INLINE : (MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE);
       }
 
       // If this is a 'default' tab, check to see if we have to create teh
@@ -251,9 +252,12 @@ class views_plugin_display_page extends views_plugin_display {
       ),
     );
 
-    $path = strip_tags('/' . $this->get_option('path'));
+    $path = strip_tags($this->get_option('path'));
     if (empty($path)) {
-      $path = t('None');
+      $path = t('No path is set');
+    }
+    else {
+      $path = '/' . $path;
     }
 
     $options['path'] = array(
@@ -297,7 +301,6 @@ class views_plugin_display_page extends views_plugin_display {
    * Provide the default form for setting options.
    */
   function options_form(&$form, &$form_state) {
-    parent::options_form($form, $form_state);
     // It is very important to call the parent function here:
     parent::options_form($form, $form_state);
 
@@ -384,11 +387,22 @@ class views_plugin_display_page extends views_plugin_display {
         );
         $form['menu']['context'] = array(
           '#title' => t('Context'),
-          '#suffix' => '</div>',
           '#type' => 'checkbox',
           '#default_value' => !empty($menu['context']),
           '#description' => t('Displays the link in contextual links'),
           '#dependency' => array('radio:menu[type]' => array('tab')),
+        );
+        $form['menu']['context_only_inline'] = array(
+          '#title' => t('Hide menu tab'),
+          '#suffix' => '</div>',
+          '#type' => 'checkbox',
+          '#default_value' => !empty($menu['context_only_inline']),
+          '#description' => t('Only display menu item entry in contextual links. Menu tab should not be displayed.'),
+          '#dependency' => array(
+            'radio:menu[type]' => array('tab'),
+            'edit-menu-context' => array(1),
+          ),
+          '#dependency_count' => 2,
         );
         break;
       case 'tab_options':
