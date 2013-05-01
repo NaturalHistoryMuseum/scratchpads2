@@ -5,7 +5,6 @@
  * Install, update, and uninstall functions for the file_lock module
  */
 
-
 /**
  * Implements hook_uninstall().
  */
@@ -14,6 +13,9 @@ function file_lock_uninstall() {
   variable_del('file_lock_pattern');
   variable_del('file_lock_regex');
   variable_del('file_lock_hook');
+  db_delete('file_usage')
+    ->condition('module', 'file_lock')
+    ->execute();
 }
 
 /**
