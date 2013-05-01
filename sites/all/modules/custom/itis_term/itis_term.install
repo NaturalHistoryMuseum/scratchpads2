@@ -93,9 +93,11 @@ function itis_term_update_7003(){
 }
 
 /**
- * Enable the modules in preparation for update 7005
+ * Enable the modules in preparation for update 7006
+ * 
+ * This needs running again, because the languagefield module was not available
  */
-function itis_term_update_7004(){
+function itis_term_update_7005(){
   // Enable the two additional modules.
   module_enable(array(
     'languagefield',
