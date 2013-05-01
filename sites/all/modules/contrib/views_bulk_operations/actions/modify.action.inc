@@ -17,6 +17,7 @@ function views_bulk_operations_modify_action_info() {
     // "Create an advanced action" dropdown on admin/config/system/actions.
     'configurable' => FALSE,
     'vbo_configurable' => TRUE,
+    'triggers' => array('any'),
   ));
 }
 
@@ -31,18 +32,20 @@ function views_bulk_operations_modify_action($entity, $context) {
 
   // Handle Field API fields.
   if (!empty($context['selected']['bundle_' . $bundle_name])) {
-    $pseudo_entity = $context['entities'][$bundle_name];
+    // The pseudo entity is cloned so that changes to it don't get carried
+    // over to the next execution.
+    $pseudo_entity = clone $context['entities'][$bundle_name];
     foreach ($context['selected']['bundle_' . $bundle_name] as $key) {
       // Replace any tokens that might exist in the field columns.
       foreach ($pseudo_entity->{$key}[LANGUAGE_NONE] as $delta => &$item) {
-        foreach ($item as $column => &$value) {
+        foreach ($item as $column => $value) {
           if (is_string($value)) {
-            $value = token_replace($value, array($context['entity_type'] => $entity), array('sanitize' => FALSE));
+            $item[$column] = token_replace($value, array($context['entity_type'] => $entity), array('sanitize' => FALSE));
           }
         }
       }
 
-      if (in_array($key, $context['append']['bundle_' . $bundle_name])) {
+      if (in_array($key, $context['append']['bundle_' . $bundle_name]) && !empty($entity->$key)) {
         $entity->{$key}[LANGUAGE_NONE] = array_merge($entity->{$key}[LANGUAGE_NONE], $pseudo_entity->{$key}[LANGUAGE_NONE]);
 
         // Check if we breached cardinality, and notify the user.
@@ -114,7 +117,7 @@ function views_bulk_operations_modify_action_form($context, &$form_state) {
 
   $info = entity_get_info($entity_type);
   $properties = _views_bulk_operations_modify_action_get_properties($entity_type, $context['settings']['display_values']);
-  $bundles = _views_bulk_operations_modify_action_get_bundles($entity_type, $context['settings']['display_values']);
+  $bundles = _views_bulk_operations_modify_action_get_bundles($entity_type, $context);
 
   $form['#attached']['css'][] = drupal_get_path('module', 'views_bulk_operations') . '/css/modify.action.css';
   $form['#tree'] = TRUE;
@@ -169,7 +172,12 @@ function views_bulk_operations_modify_action_form($context, &$form_state) {
 
   foreach ($bundles as $bundle_name => $bundle) {
     $bundle_key = $info['entity keys']['bundle'];
-    $entity = entity_create($context['entity_type'], array($bundle_key => $bundle_name));
+    $default_values = array();
+    // If the bundle key exists, it must always be set on an entity.
+    if (!empty($bundle_key)) {
+      $default_values[$bundle_key] = $bundle_name;
+    }
+    $entity = entity_create($context['entity_type'], $default_values);
     $form_state['entities'][$bundle_name] = $entity;
 
     // Show the more detailed label only if the entity type has multiple bundles.
@@ -197,16 +205,16 @@ function views_bulk_operations_modify_action_form($context, &$form_state) {
     $instances = field_info_instances($entity_type, $bundle_name);
     $weight = 0;
     foreach (element_get_visible_children($form[$form_key]) as $field_name) {
+      // For our use case it makes no sense for any field widget to be required.
+      $language = $form[$form_key][$field_name]['#language'];
+      _views_bulk_operations_modify_action_unset_required($form[$form_key][$field_name][$language]);
+
       // The admin has specified which fields to display, but this field didn't
       // make the cut. Hide it with #access => FALSE and move on.
       if (empty($display_values[VBO_MODIFY_ACTION_ALL]) && empty($display_values[$bundle_name . '::' . $field_name])) {
         $form[$form_key][$field_name]['#access'] = FALSE;
         continue;
       }
-
-      // For our use case it makes no sense for any field widget to be required.
-      $language = $form[$form_key][$field_name]['#language'];
-      _views_bulk_operations_modify_action_unset_required($form[$form_key][$field_name][$language]);
 
       $field = $instances[$field_name];
       $form[$form_key]['show_value'][$field_name] = array(
@@ -278,6 +286,7 @@ function views_bulk_operations_modify_action_form($context, &$form_state) {
       '#theme' => 'token_tree',
       '#token_types' => array($token_type, 'site'),
       '#global_types' => array(),
+      '#dialog' => TRUE,
     );
   }
 
@@ -332,9 +341,14 @@ function views_bulk_operations_modify_action_validate($form, &$form_state) {
     // $form_state['entities'] being non-empty, so a new one is created.
     $info = entity_get_info($form_state['entity_type']);
     $bundle_key = $info['entity keys']['bundle'];
-    $bundle_names = array_keys($info['bundles']);
-    $bundle_name = reset($bundle_names);
-    $entity = entity_create($form_state['entity_type'], array($bundle_key => $bundle_name));
+    $default_values = array();
+    // If the bundle key exists, it must always be set on an entity.
+    if (!empty($bundle_key)) {
+      $bundle_names = array_keys($info['bundles']);
+      $bundle_name = reset($bundle_names);
+      $default_values[$bundle_key] = $bundle_name;
+    }
+    $entity = entity_create($form_state['entity_type'], $default_values);
     $wrapper = entity_metadata_wrapper($form_state['entity_type'], $entity);
 
     $properties = _views_bulk_operations_modify_action_get_properties($form_state['entity_type']);
@@ -390,7 +404,7 @@ function _views_bulk_operations_modify_action_get_properties($entity_type, $disp
   // List of properties that can't be modified.
   $disabled_properties = array('created', 'changed');
   foreach (array('id', 'bundle', 'revision') as $key) {
-    if (isset($info['entity keys'][$key])) {
+    if (!empty($info['entity keys'][$key])) {
       $disabled_properties[] = $info['entity keys'][$key];
     }
   }
@@ -440,20 +454,39 @@ function _views_bulk_operations_modify_action_get_properties($entity_type, $disp
  * (through the action settings) then only bundles that have at least one field
  * selected are returned.
  *
- * @todo Make it consult the view passed through $context, and if it has a
- * filter on the bundle key, use the selected values.
- *
  * @param $entity_type
  *   The entity type whose bundles will be fetched.
- * @param $display_values
- *   An admin-provided list of properties and fields that should be displayed
- *   for editing, used to filter the returned list of bundles.
+ * @param $context
+ *   The VBO context variable.
  */
-function _views_bulk_operations_modify_action_get_bundles($entity_type, $display_values) {
+function _views_bulk_operations_modify_action_get_bundles($entity_type, $context) {
+  $bundles = array();
+
+  $view = $context['view'];
+  $display_values = $context['settings']['display_values'];
   $info = entity_get_info($entity_type);
+  $bundle_key = $info['entity keys']['bundle'];
+  // Check if this View has a filter on the bundle key and assemble a list
+  // of allowed bundles according to the filter.
   $filtered_bundles = array();
+  if (!empty($bundle_key) && isset($view->filter[$bundle_key]) && !empty($view->filter[$bundle_key]->value)) {
+    $operator = $view->filter[$bundle_key]->operator;
+    if ($operator == 'in') {
+      $filtered_bundles = $view->filter[$bundle_key]->value;
+    }
+    elseif ($operator == 'not in') {
+      $bundle_names = array_keys($info['bundles']);
+      $filtered_bundles = array_diff($bundle_names, $view->filter[$bundle_key]->value);
+    }
+  }
 
   foreach ($info['bundles'] as $bundle_name => $bundle) {
+    // The view is limited to specific bundles, but this bundle isn't one of
+    // them. Ignore it.
+    if (!empty($filtered_bundles) && !in_array($bundle_name, $filtered_bundles)) {
+      continue;
+    }
+
     $instances = field_info_instances($entity_type, $bundle_name);
     // Ignore bundles that don't have any field instances attached.
     if (empty($instances)) {
@@ -469,11 +502,11 @@ function _views_bulk_operations_modify_action_get_bundles($entity_type, $display
     // The admin has either specified that all values should be modifiable, or
     // selected at least one field belonging to this bundle.
     if (!empty($display_values[VBO_MODIFY_ACTION_ALL]) || $has_enabled_fields) {
-      $filtered_bundles[$bundle_name] = $bundle;
+      $bundles[$bundle_name] = $bundle;
     }
   }
 
-  return $filtered_bundles;
+  return $bundles;
 }
 
 /**
