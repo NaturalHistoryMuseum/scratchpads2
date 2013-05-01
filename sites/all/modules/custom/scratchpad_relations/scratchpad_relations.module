@@ -31,21 +31,35 @@ function scratchpad_relations_menu(){
 /**
  * Implements hook_theme().
  */
-function scratchpad_relations_theme(){
+function scratchpad_relations_theme($existing, $type, $theme, $path){
   $theme = array(
     'scratchpad_relations_admin_content' => array(
       'variables' => array(
         'relations' => NULL
       ),
       'file' => 'scratchpad_relations.admin.inc'
+    ),
+    'relation_select_field' => array(
+      'variables' => array(
+        'entity' => NULL,
+        'related_entities' => NULL,
+        'entity_type' => NULL,
+        'bundle' => NULL,
+        'field_name' => NULL,
+        'items' => NULL,
+        'suffix' => NULL,
+        'prefix' => NULL,
+        'list_type' => NULL,
+        'relation' => NULL
+      ),
+      'template' => 'relation-select-field',
+      'path' => $path . '/theme'
     )
   );
   return $theme;
 }
 
 function scratchpad_relations_preprocess_relation_select_field(&$variables){
-  $variables['theme_hook_suggestions'][] = 'relation_select_field__' . $variables['field_name'];
-  $variables['theme_hook_suggestions'][] = 'relation_select_field__' . $variables['entity_type'] . '__' . $variables['bundle'] . '__' . $variables['field_name'];
   $id = $variables['entity']->tid;
   $relation = $variables['relation'];
   $relation_type = relation_type_load($relation->relation_type);
@@ -62,4 +76,5 @@ function scratchpad_relations_preprocess_relation_select_field(&$variables){
     $link = entity_uri($related_entity->entity_type, $related_entity);
     $variables['items'][] = $label . ' ' . l(entity_label($related_entity->entity_type, $related_entity), $link['path']);
   }
+  $variables['theme_hook_suggestions'][] = 'relation_select_field__' . $variables['field_name'];
 }
