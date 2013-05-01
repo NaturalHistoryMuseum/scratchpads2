@@ -1,0 +1,62 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the file_lock module
+ */
+// Modules have no id, but file_usage want's one.
+define("FILE_LOCK_ID", 0);
+/**
+ * Implements hook_install().
+ * 
+ * Set up default values for file_lock
+ * Add file lock entry to all existing files
+ */
+function scratchpads_file_lock_install(){
+  // variable used by file_lock module
+  variable_set('file_lock_mode', 'all');
+  // lock existing files
+  $result = db_select('file_managed')->fields('file_managed', array(
+    'fid'
+  ))->orderBy('fid')->execute();
+  foreach($result as $row){
+    $file = file_load($row->fid);
+    _scratchpads_file_lock_act_on($file);
+  }
+}
+
+/**
+ * set lock for $file if not already locked
+ *
+ * @param file $file
+ *   the file to lock
+ */
+function _scratchpads_file_lock_act_on($file){
+  // Do not lock temporary files.
+  if(empty($file->status)){return;}
+  if(!_scratchpads_file_lock_is_locked($file)){
+    // Only add one lock for every file.
+    file_usage_add($file, 'file_lock', 'module', FILE_LOCK_ID);
+  }
+}
+
+/**
+ * Check if a file has already an entry in file_usage for file_lock
+ *
+ * @param file $file
+ *   the file to check
+ *
+ * @return bool
+ *   TRUE if file is locked
+ *   FALSE if file is not locked
+ */
+function _scratchpads_file_lock_is_locked($file){
+  $file_usage_list = file_usage_list($file);
+  return isset($file_usage_list['file_lock']);
+}
+
+
+
+
+
+

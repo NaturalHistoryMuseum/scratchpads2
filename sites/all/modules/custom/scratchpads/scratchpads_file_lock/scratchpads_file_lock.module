@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * @file
+*  Prevents media files from being deleted when the gallery is deleted.
+*/
+/*
+ * Disable the admin pages for file_lock
+ */
+function scratchpads_file_lock_menu_alter(&$items){
+  $items['admin/config/media/lock']['access callback'] = FALSE;
+}
