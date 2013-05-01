@@ -1,6 +1,8 @@
 <?php
 
 function scratchpads_tweaks_install(){
+  // Drop the primary key from the file_display table.
+  scratchpads_tweaks_update_7046();
   // Unset all 'status' and 'warning' messages.
   $messages = drupal_get_messages();
   if(isset($messages['error']) && is_array($messages['error'])){
@@ -308,6 +310,8 @@ function scratchpads_tweaks_install(){
       variable_set('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
     }
   }
+  // Prevent optimize from running on Solr.
+  variable_set('apachesolr_last_optimize', 10000000000);
 }
 
 /**
@@ -1035,15 +1039,35 @@ function scratchpads_tweaks_update_7043(){
 }
 
 /**
- * Drop the primary key from the file_display table.
- */
-function scratchpads_tweaks_update_7044(){
-  db_drop_primary_key('file_display');
-}
-
-/**
  * Allow insecure derivatives
  */
 function scratchpads_tweaks_update_7045(){
   variable_set('image_allow_insecure_derivatives', TRUE);
+}
+
+/**
+ * Drop the primary key from the file_display table.
+ * 
+ * Renamed from from scratchpads_tweaks_update_7044.
+ */
+function scratchpads_tweaks_update_7046(){
+  db_drop_primary_key('file_display');
+}
+
+/**
+ * Enable the scratchpads_pretty_urls module if the pathauto module is enabled.
+ */
+function scratchpads_tweaks_update_7047(){
+  if(module_exists('pathauto')){
+    module_enable(array(
+      'scratchpads_pretty_urls'
+    ));
+  }
+}
+
+/**
+ * Prevent optimize from running on Solr.
+ */
+function scratchpads_tweaks_update_7048(){
+  variable_set('apachesolr_last_optimize', 10000000000);
 }

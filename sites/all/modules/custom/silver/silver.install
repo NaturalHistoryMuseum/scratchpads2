@@ -8,3 +8,12 @@ function silver_update_7001(){
     'feeds_file_processor'
   ));
 }
+
+/**
+ * Install the feeds_term_reference module.
+ */
+function silver_update_7002(){
+  module_enable(array(
+    'feeds_term_reference'
+  ));
+}

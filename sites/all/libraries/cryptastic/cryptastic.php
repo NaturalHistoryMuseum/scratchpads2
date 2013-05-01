@@ -26,21 +26,24 @@ class cryptastic{
    *         boolean false on error
    */
   public function encrypt($msg, $k, $base64 = false){
-    // open cipher module (do not change cipher/mode)
-    if(!$td = mcrypt_module_open('rijndael-128', '', 'ctr', ''))
-      return false;
-    $msg = serialize($msg); // serialize
-    $iv = mcrypt_create_iv(32, MCRYPT_RAND); // create iv
-    if(@mcrypt_generic_init($td, $k, $iv) !== 0) // initialize buffers
-      return false;
-    $msg = mcrypt_generic($td, $msg); // encrypt
-    $msg = $iv . $msg; // prepend iv
-    $mac = $this->pbkdf2($msg, $k, 1000, 32); // create mac
-    $msg .= $mac; // append mac
-    mcrypt_generic_deinit($td); // clear buffers
-    mcrypt_module_close($td); // close cipher module
-    if($base64)
-      $msg = base64_encode($msg); // base64 encode?
+    // We return the original message if we don't have mcrypt installed.
+    if(function_exists('mcrypt_module_open')){
+      // open cipher module (do not change cipher/mode)
+      if(!$td = mcrypt_module_open('rijndael-128', '', 'ctr', ''))
+        return false;
+      $msg = serialize($msg); // serialize
+      $iv = mcrypt_create_iv(32, MCRYPT_RAND); // create iv
+      if(@mcrypt_generic_init($td, $k, $iv) !== 0) // initialize buffers
+        return false;
+      $msg = mcrypt_generic($td, $msg); // encrypt
+      $msg = $iv . $msg; // prepend iv
+      $mac = $this->pbkdf2($msg, $k, 1000, 32); // create mac
+      $msg .= $mac; // append mac
+      mcrypt_generic_deinit($td); // clear buffers
+      mcrypt_module_close($td); // close cipher module
+      if($base64)
+        $msg = base64_encode($msg); // base64 encode?
+    }
     return $msg; // return iv+ciphertext+mac
   }
 
@@ -60,8 +63,8 @@ class cryptastic{
   public function decrypt($msg, $k, $base64 = false){
     if($base64)
       $msg = base64_decode($msg); // base64 decode?
-                                    // open cipher module (do not
-                                    // change cipher/mode)
+      // open cipher module (do not
+      // change cipher/mode)
     if(!$td = mcrypt_module_open('rijndael-128', '', 'ctr', ''))
       return false;
     $iv = substr($msg, 0, 32); // extract iv
@@ -100,7 +103,7 @@ class cryptastic{
     $hl = strlen(hash($a, null, true)); // Hash length
     $kb = ceil($kl / $hl); // Key blocks to compute
     $dk = ''; // Derived key
-              // Create key
+    // Create key
     for($block = 1; $block <= $kb; $block++){
       // Initial hash for this block
       $ib = $b = hash_hmac($a, $s . pack('N', $block), $p, true);

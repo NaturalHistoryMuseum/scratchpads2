@@ -32,7 +32,8 @@ function apachesolr_multisitesearch_update_metadata() {
     $solr = apachesolr_get_solr();
     $metadata_doc = apachesolr_multisitesearch_metadata();
     $solr->addDocuments(array($metadata_doc));
-    $solr->commit();
+    // Following line removed to improve performance. SDRycroft
+    //$solr->commit();
     watchdog('Apache Solr Multisite', 'Updated site meta data');
     return TRUE;
   }

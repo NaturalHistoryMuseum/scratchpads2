@@ -25,27 +25,27 @@ function scratchpads_statistics_context_default_contexts(){
   $context->reactions = array(
     'block' => array(
       'blocks' => array(
-        'scratchpads_statistics-ss_facet_user' => array(
+        'scratchpads_statistics-user' => array(
           'module' => 'scratchpads_statistics',
-          'delta' => 'ss_facet_user',
+          'delta' => 'user',
           'region' => 'sidebar',
           'weight' => '-10'
         ),
-        'scratchpads_statistics-ss_facet_site' => array(
+        'scratchpads_statistics-site' => array(
           'module' => 'scratchpads_statistics',
-          'delta' => 'ss_facet_site',
+          'delta' => 'site',
           'region' => 'sidebar',
           'weight' => '-10'
         ),
-        'scratchpads_statistics-ss_facet_site_category' => array(
+        'scratchpads_statistics-category' => array(
           'module' => 'scratchpads_statistics',
-          'delta' => 'ss_facet_site_category',
+          'delta' => 'category',
           'region' => 'sidebar',
           'weight' => '-10'
         ),
-        'scratchpads_statistics-ss_facet_taxon' => array(
+        'scratchpads_statistics-term' => array(
           'module' => 'scratchpads_statistics',
-          'delta' => 'ss_facet_taxon',
+          'delta' => 'term',
           'region' => 'sidebar',
           'weight' => '-10'
         )
