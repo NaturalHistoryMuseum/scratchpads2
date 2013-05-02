@@ -1379,7 +1379,7 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
     foreach(array_keys($fields) as $field){
       $table = 'field_data_' . $field;
       $module = $fields[$field]['widget']['module'];
-      scratchpads_backend_views_add_field($handler, $module, $table, $field, $fields[$field], $default_group);
+      scratchpads_backend_views_add_field($handler, $module, $table, $field, $fields[$field], $default_group, $fields[$field]);
     }
   }
   /* Filter criterion: Content: Type */
@@ -1415,7 +1415,7 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
  * @param unknown_type $field An instance of the field.
  * @return boolean
  */
-function scratchpads_backend_views_add_field(&$handler, $module, $table, $field_id, $field = FALSE, $tab = null, $width = 120, $sortable = 1, $filter = 'textFilter'){
+function scratchpads_backend_views_add_field(&$handler, $module, $table, $field_id, $field = FALSE, $tab = null, $field = FALSE){
   // Ignore all GM3 fields
   if($module == 'gm3_field'){return false;}
   $handler->display->display_options['fields'][$field_id]['id'] = $field_id;
@@ -1445,9 +1445,9 @@ function scratchpads_backend_views_add_field(&$handler, $module, $table, $field_
   }
   $handler->display->display_options['fields'][$field_id]['field_api_classes'] = 0;
   $handler->display->display_options['style_options']['columns'][$field_id] = array(
-    'width' => $width,
-    'sortable' => $sortable,
-    'filter' => $filter,
+    'width' => 120,
+    'sortable' => 1,
+    'filter' => ($field && $field['widget']['module'] == 'media_multiselect' ? FALSE : 'textFilter'),
     'editor' => 'ModalForm'
   );
   if($tab){

@@ -44,7 +44,7 @@ synonyms and/or term images.
 
 Two-way relations of terms is not implemented (yet).
 
-Development of this module is sponsored by Sogeti Netherlands (http://sogeti.doethetmetdrupal.nl).
+Development of this module is sponsored by LimoenGroen (http://www.limoengroen.nl).
 
 
 REQUIREMENTS

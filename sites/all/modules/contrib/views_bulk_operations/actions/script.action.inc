@@ -1,23 +1,22 @@
 <?php
 
 function views_bulk_operations_script_action_info() {
-  if (!module_exists('actions_permissions') && !user_access('administer site configuration')) return array();
-  return array('views_bulk_operations_script_action' => array(
+  $actions = array();
+  $actions['views_bulk_operations_script_action'] = array(
     'type' => 'entity',
     'label' => t('Execute arbitrary PHP script'),
     'configurable' => TRUE,
-  ));
+    'triggers' => array('any'),
+  );
+  // Provide a strict default permission if actions_permissions is disabled.
+  if (!module_exists('actions_permissions')) {
+    $actions['views_bulk_operations_script_action']['permissions'] = array('administer site configuration');
+  }
+
+  return $actions;
 }
 
 function views_bulk_operations_script_action($entity, $context) {
-  if (!module_exists('actions_permissions') && !user_access('administer site configuration')) {
-    global $user;
-    $msg = 'An attempt to execute arbitrary PHP script action by user <a href="user/!uid">%user</a> was blocked because of lack of permission.';
-    $arg = array('%user' => $user->name, '!uid' => $user->uid);
-    drupal_set_message(t($msg, $arg), 'error', FALSE);
-    watchdog('actions', $msg, $arg, WATCHDOG_ERROR);
-    return;
-  }
   $return = eval($context['script']);
   if ($return === FALSE) {
     $msg = 'Error in script.';

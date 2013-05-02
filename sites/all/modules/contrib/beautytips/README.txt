@@ -121,7 +121,17 @@
   
   Any defined style will also show up on the beautytips settings page and
   can be set as the default style.
-  
+
+  ------------------------------------------------------------------------------------
+                               Beautytips Manager
+  ------------------------------------------------------------------------------------
+  You can setup custom styles and custom tooltips using the beautytips_manage module.
+  **TODO: The Rest**
+
+  All styles are added into javascript settings in Drupal.settings.beautytipStyles
+  in case you want to use the setup styles, but want to add you tooltips through
+  javascript.
+  **TODO: The Rest**
   
 ******************************************************************************
 Beautytips options and defaults (Copied and pasted from the jQuery.bt.js file)

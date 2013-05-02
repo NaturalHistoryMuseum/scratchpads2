@@ -113,7 +113,7 @@ function views_bulk_operations_rules_action_info() {
  */
 function views_bulk_operations_views_list() {
   $selectable_displays = array();
-  foreach (views_get_all_views() as $name => $view) {
+  foreach (views_get_enabled_views() as $name => $view) {
     foreach ($view->display as $display_name => $display) {
       $view->build($display_name);
       $vbo = _views_bulk_operations_get_field($view);

@@ -7,14 +7,6 @@ class slickgrid_views_plugin extends views_plugin_style{
 
   var $locked_fields = array();
 
-  function init(&$view, &$display, $options = NULL){
-    parent::init($view, $display, $options);
-    if(isset($options['pager']) && $options['pager']){
-      // If using slickgrid pager, need to set items per page to 0 so all items are available
-      $this->display->handler->default_display->options['pager']['options']['items_per_page'] = 0;
-    }
-  }
-
   /**
    * Set default options
    */
@@ -57,11 +49,12 @@ class slickgrid_views_plugin extends views_plugin_style{
     $options['asyncEditorLoading'] = array(
       'default' => TRUE
     );
+    // maps to slickgrid option syncColumnCellResize
+    $options['syncColumnCellResize'] = array(
+      'default' => TRUE
+    );
     // maps to slickgrid option forceFitColumns
     $options['forceFitColumns'] = array(
-      'default' => false
-    );
-    $options['pager'] = array(
       'default' => false
     );
     // maps to slickgrid option headerHeight
@@ -70,6 +63,9 @@ class slickgrid_views_plugin extends views_plugin_style{
     );
     $options['viewport_height'] = array(
       'default' => 500
+    );
+    $options['height_expand'] = array(
+      'default' => TRUE
     );
     // maps to slickgrid option rowHeight
     $options['rowHeight'] = array(
@@ -336,6 +332,15 @@ class slickgrid_views_plugin extends views_plugin_style{
         'enableColumnReorder'
       )
     );
+    $form['settings']['height_expand'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Enable automatic resizing of the grid to fill available vertical space'),
+      '#default_value' => $this->options['height_expand'],
+      '#parents' => array(
+        'style_options',
+        'height_expand'
+      )
+    );
     $form['settings']['select_columns'] = array(
       '#type' => 'checkbox',
       '#title' => t('Column visibility'),
@@ -348,7 +353,7 @@ class slickgrid_views_plugin extends views_plugin_style{
     );
     $form['settings']['asyncEditorLoading'] = array(
       '#type' => 'checkbox',
-      '#title' => t('A sync editor loading'),
+      '#title' => t('Async editor loading'),
       '#default_value' => $this->options['asyncEditorLoading'],
       '#parents' => array(
         'style_options',
@@ -363,16 +368,6 @@ class slickgrid_views_plugin extends views_plugin_style{
       '#parents' => array(
         'style_options',
         'forceFitColumns'
-      )
-    );
-    $form['settings']['pager'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Override paging'),
-      '#default_value' => $this->options['pager'],
-      '#description' => t('If selected, use slickgrid\'s in-built pagination instead of views\'.'),
-      '#parents' => array(
-        'style_options',
-        'pager'
       )
     );
     $form['settings']['headerHeight'] = array(
@@ -549,8 +544,6 @@ class slickgrid_views_plugin extends views_plugin_style{
     return !in_array($field_name, $this->locked_fields);
   }
 
-
-
   function entity_label_field($field){
     static $entity_labels = array();
     if(!count($entity_labels)){
@@ -566,4 +559,25 @@ class slickgrid_views_plugin extends views_plugin_style{
     $this->view->query->set_distinct();
   }
 }
-?>
+
+/**
+ * Helper function for the above class.  Returns an array of entity keys which
+ * must not be edited.
+ */
+function slickgrid_get_entity_keys($entity_type = null, $keys_to_ignore = array('label')){
+  $entity_keys = array();
+  if($entity_type){
+    $entities_info = array(
+      entity_get_info($entity_type)
+    );
+  }else{
+    $entities_info = entity_get_info();
+  }
+  foreach($entities_info as $entity_info){
+    foreach($keys_to_ignore as $key_to_ignore){
+      unset($entity_info['entity keys'][$key_to_ignore]);
+    }
+    $entity_keys += array_values($entity_info['entity keys']);
+  }
+  return $entity_keys;
+}

@@ -190,11 +190,16 @@ function worms_batch_importer($id, $vid, &$context){
   // As we sadly don't support saving a vernacular name's language, we just pick
   // the english ones.
   $vernacular_names = array();
-  foreach($vernaculars as $vernacular){
-    if($vernacular->language_code == 'eng'){
-      $vernacular_names[] = array(
-        'value' => $vernacular->vernacular
-      );
+  include_once ('sites/all/libraries/ISO639.php');
+  if(class_exists('Text_LanguageDetect_ISO639')){
+    foreach($vernaculars as $vernacular){
+      $code = Text_LanguageDetect_ISO639::nameToCode2(Text_LanguageDetect_ISO639::code3ToName($vernacular->language_code));
+      if($code){
+        $vernacular_names[] = array(
+          'code' => $code,
+          'name' => $vernacular->vernacular
+        );
+      }
     }
   }
   $term = array(
@@ -211,9 +216,6 @@ function worms_batch_importer($id, $vid, &$context){
           'value' => $record->authority
         )
       )
-    ),
-    'field_vernacular_names' => array(
-      LANGUAGE_NONE => $vernacular_names
     ),
     'field_rank' => array(
       LANGUAGE_NONE => array(
@@ -252,6 +254,30 @@ function worms_batch_importer($id, $vid, &$context){
     $part_index++;
   }
   $term = (object)$term;
+  taxonomy_term_save($term);
+  foreach($vernacular_names as $vernacular_name){
+    // Save the vernacular names.
+    $entity = entity_create('field_collection_item', array(
+      'field_name' => 'field_vernacular_name_collection'
+    ));
+    $entity->field_vernacular_name = array(
+      LANGUAGE_NONE => array(
+        array(
+          'value' => $vernacular_name['name']
+        )
+      )
+    );
+    $entity->field_language = array(
+      LANGUAGE_NONE => array(
+        array(
+          'value' => $vernacular_name['code']
+        )
+      )
+    );
+    $entity->setHostEntity('taxonomy_term', $term, LANGUAGE_NONE, TRUE);
+    $term = $entity->hostEntity();
+    $entity->save(TRUE);
+  }
   taxonomy_term_save($term);
   $context['sandbox']['map'][$record->AphiaID] = $term->tid;
   $context['sandbox']['total']++;

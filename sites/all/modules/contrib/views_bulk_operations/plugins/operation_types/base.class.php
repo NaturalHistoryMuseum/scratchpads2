@@ -6,6 +6,7 @@
  */
 
 abstract class ViewsBulkOperationsBaseOperation {
+
   /**
    * The id of the operation.
    *
@@ -106,8 +107,7 @@ abstract class ViewsBulkOperationsBaseOperation {
    * to the admin.
    */
   public function adminLabel() {
-    $label = $this->operationInfo['label'] . ' (' . $this->operationInfo['key'] . ')';
-    return $label;
+    return $this->operationInfo['label'];
   }
 
   /**

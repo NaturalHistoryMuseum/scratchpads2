@@ -28,17 +28,32 @@ function views_bulk_operations_operation_action_list($operation_id = NULL) {
   $operations = &drupal_static(__FUNCTION__);
 
   if (!isset($operations)) {
+    // Combined list of all actions and advanced actions.
     $actions_list = actions_list() + views_bulk_operations_operation_advanced_action_list();
+    // Actions provided by Drupal that aren't usable in a VBO context.
+    $hidden_actions = array(
+      'system_block_ip_action',
+      'system_goto_action',
+      'system_message_action',
+    );
+
     $operations = array();
-    foreach ($actions_list as $callback => $action) {
-      $key = isset($action['key']) ? $action['key'] : $callback;
+    foreach ($actions_list as $key => $action) {
+      // Actions are keyed by callback.
+      // Advanced actions are keyed by aid and store the callback separately.
+      $callback = isset($action['callback']) ? $action['callback'] : $key;
+      // This action needs to be skipped.
+      if (in_array($callback, $hidden_actions)) {
+        continue;
+      }
+
       // All operations must be prefixed with the operation type.
       $new_operation_id = 'action::' . $key;
 
       $operations[$new_operation_id] = array(
         'operation_type' => 'action',
         'type' => $action['type'],
-        // Keep the unprefixed key around, for use in admin labels and action permissions.
+        // Keep the unprefixed key around, for internal use.
         'key' => $key,
         'callback' => $callback,
         'label' => isset($action['label']) ? $action['label'] : '',
@@ -75,14 +90,13 @@ function views_bulk_operations_operation_advanced_action_list() {
       'type' => $action->type,
       'configurable' => FALSE,
       'parameters' => $parameters,
-      'key' => $action->callback . (empty($parameters) ? '' : ':'. md5($action->parameters)),
     );
     foreach (array('aggregate', 'behavior', 'permissions', 'pass rows') as $attribute) {
       if (isset($static_actions[$action->callback][$attribute])) {
         $actions[$action->aid][$attribute] = $static_actions[$action->callback][$attribute];
       }
     }
-    if (isset($static_actions[$action->callback['parameters']])) {
+    if (isset($static_actions[$action->callback]['parameters'])) {
       $actions[$action->aid]['parameters'] = array_merge($actions[$action->aid]['parameters'], $static_actions[$action->callback]['parameters']);
     }
   }

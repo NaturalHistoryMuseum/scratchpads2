@@ -9,10 +9,10 @@
  */
 function lexicon_requirements($phase) {
   $requirements = array();
-  // Ensure translations don't break at install time
+  // Ensure translations don't break at install time.
   $t = get_t();
 
-  // check that php is compiled with ctype support
+  // Check that php is compiled with ctype support.
   $requirements['ctype'] = array(
     'title' => $t('Character type functions (ctype)'),
   );
@@ -30,21 +30,14 @@ function lexicon_requirements($phase) {
 }
 
 /**
- * Implements hook_install().
- */
-function lexicon_install() {
-  drupal_set_message(st('The Lexicon module has been installed. To use the module you first have to configure it <a href="@settings_uri">here</a>.', array('@settings_uri' => url('admin/config/system/lexicon'))));
-}
-
-/**
  * Implements hook_uninstall().
  * There are no tables, so we delete all variables and clear the filter cache.
- * It is left to the user to dispose of any vocabularies that are no longer needed.
+ * It is left to the user to remove any vocabularies that are no longer needed.
  */
 function lexicon_uninstall() {
   $vids = variable_get('lexicon_vids', array());
 
-  //Delete the settings for each Lexicon vocabulary
+  // Delete the settings for each Lexicon vocabulary.
   foreach ($vids as $vid) {
     variable_del('lexicon_path_' . $vid);
     variable_del('lexicon_title_' . $vid);
@@ -54,7 +47,7 @@ function lexicon_uninstall() {
     variable_del('lexicon_image_field_' . $vid);
   }
 
-  //Delete the rest of the variables
+  // Delete the rest of the variables.
   variable_del('lexicon_vids');
   variable_del('lexicon_disable_indicator');
   variable_del('lexicon_click_option');
@@ -67,6 +60,7 @@ function lexicon_uninstall() {
   variable_del('lexicon_separate_letters');
   variable_del('lexicon_allow_no_description');
   variable_del('lexicon_show_description');
+  variable_del('lexicon_link_to_term_page');
   variable_del('lexicon_link_related');
   variable_del('lexicon_term_class');
   variable_del('lexicon_mark_terms');
@@ -83,8 +77,19 @@ function lexicon_uninstall() {
   variable_del('lexicon_suppress_unused');
   variable_del('lexicon_alphabar_separator');
   variable_del('lexicon_alphabar_instruction');
+  variable_del('lexicon_block_lexicon_random_term_link');
+  variable_del('lexicon_block_lexicon_random_term_step');
+  variable_del('lexicon_block_lexicon_random_term_interval');
+  variable_del('lexicon_block_lexicon_random_term_vids');
+  variable_del('lexicon_block_lexicon_random_term_last');
+  variable_del('lexicon_block_lexicon_random_term_tid');
+  variable_del('lexicon_block_lexicon_random_term_trim');
+  variable_del('lexicon_block_lexicon_random_term_trim_length');
+  variable_del('lexicon_block_lexicon_random_term_trim_ellipsis');
+  variable_del('lexicon_block_lexicon_random_term_read_more_link');
+  variable_del('lexicon_block_lexicon_random_term_read_more_link_text');
 
-  // Let's make sure the filter cache is cleared of our stuff.
+  // Let's make sure the filter cache is cleared.
   cache_clear_all(NULL, 'cache_filter');
 
   drupal_set_message(t('The Lexicon module has been uninstalled. You will still need to decide what to do with vocabularies that were used.'), 'warning');

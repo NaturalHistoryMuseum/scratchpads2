@@ -15,8 +15,8 @@ function relation_drush_command() {
       'number_relations' => dt('The number of relations to generate.'),
     ),
     'options' => array(
-      'kill' => 'Delete all content before generating new content.',
-      'types' => 'A comma delimited list of content types to create. Defaults to page,article.',
+      'kill' => 'Delete all relations before generating new ones.',
+      'types' => 'A comma delimited list of relation types to create.',
     ),
     'aliases' => array('genrel'),
   );
@@ -36,6 +36,12 @@ function drush_relation_generate($number_relations) {
   relation_generate_relations($number_relations, $types, $kill);
 }
 
+/**
+ * Sends message to drush log, if enabled.
+ *
+ * @param $message
+ *   Text of message.
+ */
 function relation_generate_message($message) {
   if (function_exists('drush_log')) {
     drush_log($message, 'ok');
@@ -87,7 +93,7 @@ function relation_generate_relations($number_relations = 10, $types = array(), $
         if ($relation_type->directional && $r_index > 0) {
           $direction = 'target';
         }
-        else { //use source bundles
+        else { // use source bundles
           $direction = 'source';
         }
         $entity_type = array_rand($available_types[$direction]);
@@ -97,12 +103,16 @@ function relation_generate_relations($number_relations = 10, $types = array(), $
           // range(0, 1). See http://drupal.org/node/1174806
           ->range(0, 2 * $number_relations);
         if (!in_array('*', $available_types[$direction][$entity_type])) {
-          $query->entityCondition('bundle', $available_types[$direction][$entity_type], 'IN');
+          // Entities with a single bundle don't support EFQ bundle condition.
+          $entity_info = entity_get_info($entity_type);
+          if (count($entity_info['bundles']) > 1) {
+            $query->entityCondition('bundle', $available_types[$direction][$entity_type], 'IN');
+          }
         }
         $results = $query->execute();
         if ($results) {
           $entity_ids = array_keys(reset($results));
-          $key = array_rand($entity_ids); //pseudorandomise until EFQ does random.
+          $key = array_rand($entity_ids); // pseudorandomise until EFQ does random.
           $entity_keys[] = array(
             'entity_type' => $entity_type,
             'entity_id'   => $entity_ids[$key],

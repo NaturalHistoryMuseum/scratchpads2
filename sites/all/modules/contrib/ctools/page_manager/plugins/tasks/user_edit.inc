@@ -82,6 +82,9 @@ function page_manager_user_edit_page($account) {
   user_build_content($account);
 
   $output = ctools_context_handler_render($task, '', $contexts, array($account->uid));
+  if (is_array($output)) {
+    $output = drupal_render($output);
+  }  
   if ($output != FALSE) {
     return $output;
   }

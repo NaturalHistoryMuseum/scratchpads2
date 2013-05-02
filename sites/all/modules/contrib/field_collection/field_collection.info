@@ -4,12 +4,13 @@ core = 7.x
 dependencies[] = entity
 files[] = field_collection.test
 files[] = field_collection.info.inc
+files[] = views/field_collection_handler_relationship.inc
 configure = admin/structure/field-collections
 package = Fields
 
-; Information added by drupal.org packaging script on 2011-11-24
-version = "7.x-1.x-dev"
+; Information added by drupal.org packaging script on 2012-12-26
+version = "7.x-1.0-beta5+0-dev"
 core = "7.x"
 project = "field_collection"
-datestamp = "1322093868"
+datestamp = "1356483467"
 
