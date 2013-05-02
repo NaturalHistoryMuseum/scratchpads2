@@ -53,6 +53,8 @@ function scratchpads_statistics_install(){
     }
   }
   $query->execute();
+  // Set the variables
+  scratchpads_statistics_update_7008();
 }
 
 /**
@@ -523,14 +525,6 @@ function scratchpads_statistics_update_7004(){
 }
 
 /**
- * Enable the counting of node views.
- */
-function scratchpads_statistics_update_7005(){
-  variable_set('statistics_count_content_views', 1);
-  variable_set('statistics_count_content_views_ajax', 1);
-}
-
-/**
  * Enable the simple_google_charts module
  */
 function scratchpads_statistics_update_7006(){
@@ -550,4 +544,12 @@ function scratchpads_statistics_update_7007(){
     'not null' => TRUE,
     'default' => ''
   ));
+}
+
+/**
+ * Enable the counting of node views.
+ */
+function scratchpads_statistics_update_7008(){
+  variable_set('statistics_count_content_views', 1);
+  variable_set('statistics_count_content_views_ajax', 1);
 }
