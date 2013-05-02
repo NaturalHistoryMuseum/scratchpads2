@@ -15,6 +15,10 @@
   padding-right: 300px !important;
 }
 
+.vertical-tabs {
+  margin: 0 0 10px !important;
+}
+
 /* Admin content table */
 table.scratchpads-admin-content  caption {
   text-align: left;
@@ -291,6 +295,6 @@ form div.entityconnect-add input:hover,form div.entityconnect-edit input:hover
   width: 500px;
 }
 
-.diff-links li:not (.first ):before {
+.diff-links li:not  (.first  ):before {
   content: " | "
 }

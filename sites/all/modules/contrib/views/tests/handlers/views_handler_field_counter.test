@@ -1,10 +1,18 @@
 <?php
 
+/**
+ * @file
+ * Definition of ViewsHandlerFilterCounterTest.
+ */
+
+/**
+ * Tests the views_handler_field_counter handler.
+ */
 class ViewsHandlerFilterCounterTest extends ViewsSqlTest {
   public static function getInfo() {
     return array(
       'name' => 'Field: Counter',
-      'description' => 'Tests the views_handler_field_counter handler',
+      'description' => 'Tests the views_handler_field_counter handler.',
       'group' => 'Views Handlers',
     );
   }

@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Definition of views_handler_argument_string.
+ */
+
+/**
  * Basic argument handler to implement string arguments that may have length
  * limits.
  *
@@ -21,16 +26,16 @@ class views_handler_argument_string extends views_handler_argument {
   function option_definition() {
     $options = parent::option_definition();
 
-    $options['glossary'] = array('default' => FALSE);
+    $options['glossary'] = array('default' => FALSE, 'bool' => TRUE);
     $options['limit'] = array('default' => 0);
     $options['case'] = array('default' => 'none');
     $options['path_case'] = array('default' => 'none');
-    $options['transform_dash'] = array('default' => FALSE);
-    $options['break_phrase'] = array('default' => FALSE);
+    $options['transform_dash'] = array('default' => FALSE, 'bool' => TRUE);
+    $options['break_phrase'] = array('default' => FALSE, 'bool' => TRUE);
 
     if (!empty($this->definition['many to one'])) {
-      $options['add_table'] = array('default' => FALSE);
-      $options['require_value'] = array('default' => FALSE);
+      $options['add_table'] = array('default' => FALSE, 'bool' => TRUE);
+      $options['require_value'] = array('default' => FALSE, 'bool' => TRUE);
     }
 
     return $options;
@@ -124,7 +129,6 @@ class views_handler_argument_string extends views_handler_argument {
    * Build the summary query based on a string
    */
   function summary_query() {
-    $this->placeholder_length = $this->placeholder();
     if (empty($this->definition['many to one'])) {
       $this->ensure_my_table();
     }
@@ -140,13 +144,7 @@ class views_handler_argument_string extends views_handler_argument {
     else {
       // Add the field.
       $formula = $this->get_formula();
-      $params = array(
-        'placeholders' => array(
-          $this->placeholder_length => intval($this->options['limit']),
-        ),
-      );
-
-      $this->base_alias = $this->query->add_field(NULL, $formula, $this->field . '_truncated', $params);
+      $this->base_alias = $this->query->add_field(NULL, $formula, $this->field . '_truncated');
       $this->query->set_count_field(NULL, $formula, $this->field, $this->field . '_truncated');
     }
 
@@ -160,7 +158,7 @@ class views_handler_argument_string extends views_handler_argument {
    * $this->ensure_my_table() MUST have been called prior to this.
    */
   function get_formula() {
-    return "SUBSTRING($this->table_alias.$this->real_field, 1, $this->placeholder_length)";
+    return "SUBSTRING($this->table_alias.$this->real_field, 1, " . intval($this->options['limit']) . ")";
   }
 
   /**
@@ -171,7 +169,6 @@ class views_handler_argument_string extends views_handler_argument {
     if (!empty($this->options['transform_dash'])) {
       $argument = strtr($argument, '-', ' ');
     }
-    $this->placeholder_length = $this->placeholder();
 
     if (!empty($this->options['break_phrase'])) {
       views_break_phrase_string($argument, $this);
@@ -186,8 +183,6 @@ class views_handler_argument_string extends views_handler_argument {
         $this->helper->formula = TRUE;
       }
       $this->helper->ensure_my_table();
-
-      $this->helper->placeholders = array($this->placeholder_length => intval($this->options['limit']));
       $this->helper->add_filter();
       return;
     }
@@ -212,7 +207,6 @@ class views_handler_argument_string extends views_handler_argument {
 
     if ($formula) {
       $placeholder = $this->placeholder();
-      $placeholder_length = $this->placeholder_length;
       if ($operator == 'IN') {
         $field .= " IN($placeholder)";
       }
@@ -220,7 +214,6 @@ class views_handler_argument_string extends views_handler_argument {
         $field .= ' = ' . $placeholder;
       }
       $placeholders = array(
-        $placeholder_length => intval($this->options['limit']),
         $placeholder => $argument,
       );
       $this->query->add_where_expression(0, $field, $placeholders);
@@ -231,7 +224,7 @@ class views_handler_argument_string extends views_handler_argument {
   }
 
   function summary_argument($data) {
-    $value = $this->case_transform($data->{$this->base_alias}, 'path_case');
+    $value = $this->case_transform($data->{$this->base_alias}, $this->options['path_case']);
     if (!empty($this->options['transform_dash'])) {
       $value = strtr($value, ' ', '-');
     }

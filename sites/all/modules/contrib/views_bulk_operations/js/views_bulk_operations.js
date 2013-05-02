@@ -14,7 +14,7 @@
     // markup gets inserted below the table header.
     var selectAllMarkup = $('.vbo-table-select-all-markup', form);
     if (selectAllMarkup.length) {
-      $('tbody', form).prepend('<tr class="views-table-row-select-all even">></tr>');
+      $('.views-table > tbody', form).prepend('<tr class="views-table-row-select-all even">></tr>');
       var colspan = $('table th', form).length;
       $('.views-table-row-select-all', form).html('<td colspan="' + colspan + '">' + selectAllMarkup.html() + '</td>');
 

@@ -30,6 +30,7 @@ class Entity {
   protected $entityType;
   protected $entityInfo;
   protected $idKey, $nameKey, $statusKey;
+  protected $defaultLabel = FALSE;
 
   /**
    * Creates a new entity.
@@ -38,7 +39,7 @@ class Entity {
    */
   public function __construct(array $values = array(), $entityType = NULL) {
     if (empty($entityType)) {
-      throw new Exception('Cannot created an instance of Entity without a specified entity type.');
+      throw new Exception('Cannot create an instance of Entity without a specified entity type.');
     }
     $this->entityType = $entityType;
     $this->setUp();
@@ -100,6 +101,17 @@ class Entity {
   }
 
   /**
+   * Returns the bundle of the entity.
+   *
+   * @return
+   *   The bundle of the entity. Defaults to the entity type if the entity type
+   *   does not make use of different bundles.
+   */
+  public function bundle() {
+    return !empty($this->entityInfo['entity keys']['bundle']) ? $this->{$this->entityInfo['entity keys']['bundle']} : $this->entityType;
+  }
+
+  /**
    * Returns the label of the entity.
    *
    * Modules may alter the label by specifying another 'label callback' using
@@ -108,19 +120,30 @@ class Entity {
    * @see entity_label()
    */
   public function label() {
-    if (isset($this->entityInfo['label callback']) && $this->entityInfo['label callback'] == 'entity_class_label') {
+    // If the default label flag is enabled, this is being invoked recursively.
+    // In this case we need to use our default label callback directly. This may
+    // happen if a module provides a label callback implementation different
+    // from ours, but then invokes Entity::label() or entity_class_label() from
+    // there.
+    if ($this->defaultLabel || (isset($this->entityInfo['label callback']) && $this->entityInfo['label callback'] == 'entity_class_label')) {
       return $this->defaultLabel();
     }
-    return entity_label($this->entityType, $this);
+    $this->defaultLabel = TRUE;
+    $label = entity_label($this->entityType, $this);
+    $this->defaultLabel = FALSE;
+    return $label;
   }
 
   /**
-   * Override this in order to implement a custom default label and specify
-   * 'entity_class_label' as 'label callback' hook_entity_info(). As an
-   * alternative to that the label key may be provided in hook_entity_info().
+   * Defines the entity label if the 'entity_class_label' callback is used.
+   *
+   * Specify 'entity_class_label' as 'label callback' in hook_entity_info() to
+   * let the entity label point to this method. Override this in order to
+   * implement a custom default label.
    */
   protected function defaultLabel() {
-    return 'unlabelled';
+    // Add in the translated specified label property.
+    return $this->getTranslation($this->entityInfo['entity keys']['label']);
   }
 
   /**
@@ -211,6 +234,62 @@ class Entity {
    */
   public function buildContent($view_mode = 'full', $langcode = NULL) {
     return entity_get_controller($this->entityType)->buildContent($this, $view_mode, $langcode);
+  }
+
+  /**
+   * Gets the raw, translated value of a property or field.
+   *
+   * Supports retrieving field translations as well as i18n string translations.
+   *
+   * Note that this returns raw data values, which might not reflect what
+   * has been declared for hook_entity_property_info() as no 'getter callbacks'
+   * are invoked or no referenced entities are loaded. For retrieving values
+   * reflecting the property info make use of entity metadata wrappers, see
+   * entity_metadata_wrapper().
+   *
+   * @param $property_name
+   *   The name of the property to return; e.g., 'title'.
+   * @param $langcode
+   *   (optional) The language code of the language to which the value should
+   *   be translated. If set to NULL, the default display language is being
+   *   used.
+   *
+   * @return
+   *   The raw, translated property value; or the raw, un-translated value if no
+   *   translation is available.
+   *
+   * @todo Implement an analogous setTranslation() method for updating.
+   */
+  public function getTranslation($property, $langcode = NULL) {
+    $all_info = entity_get_all_property_info($this->entityType);
+    // Assign by reference to avoid triggering notices if metadata is missing.
+    $property_info = &$all_info[$property];
+
+    if (!empty($property_info['translatable'])) {
+      if (!empty($property_info['field'])) {
+        return field_get_items($this->entityType, $this, $property, $langcode);
+      }
+      elseif (!empty($property_info['i18n string'])) {
+        $name = $this->entityInfo['module'] . ':' . $this->entityType . ':' . $this->identifier() . ':' . $property;
+        return entity_i18n_string($name, $this->$property, $langcode);
+      }
+    }
+    return $this->$property;
+  }
+
+  /**
+   * Checks whether the entity is the default revision.
+   *
+   * @return Boolean
+   *
+   * @see entity_revision_is_default()
+   */
+  public function isDefaultRevision() {
+    if (!empty($this->entityInfo['entity keys']['revision'])) {
+      $key = !empty($this->entityInfo['entity keys']['default revision']) ? $this->entityInfo['entity keys']['default revision'] : 'default_revision';
+      return !empty($this->$key);
+    }
+    return TRUE;
   }
 
   /**

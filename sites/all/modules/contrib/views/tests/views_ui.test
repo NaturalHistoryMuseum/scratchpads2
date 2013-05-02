@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Tests views UI Wizard.
+ * Tests Views UI Wizard.
  */
 
 /**
@@ -19,6 +19,9 @@ class ViewsUIWizardHelper extends DrupalWebTestCase {
   }
 }
 
+/**
+ * Tests creating views with the wizard and viewing them on the listing page.
+ */
 class ViewsUIWizardBasicTestCase extends ViewsUIWizardHelper {
   public static function getInfo() {
     return array(
@@ -136,7 +139,7 @@ class ViewsUIWizardBasicTestCase extends ViewsUIWizardHelper {
 
     // Check if the export screen works.
     $this->drupalGet('admin/structure/views/view/' . $view3['name'] . '/export');
-    $this->assertRaw('$view = new view;');
+    $this->assertRaw('$view = new view();');
     $this->assertRaw($view3['human_name']);
     $this->assertRaw($view3['description']);
 
@@ -145,6 +148,9 @@ class ViewsUIWizardBasicTestCase extends ViewsUIWizardHelper {
   }
 }
 
+/**
+ * Tests enabling, disabling, and reverting default views via the listing page.
+ */
 class ViewsUIWizardDefaultViewsTestCase extends ViewsUIWizardHelper {
   public static function getInfo() {
     return array(
@@ -155,7 +161,7 @@ class ViewsUIWizardDefaultViewsTestCase extends ViewsUIWizardHelper {
   }
 
   /**
-   * Test default views.
+   * Tests default views.
    */
   function testDefaultViews() {
     // Make sure the front page view starts off as disabled (does not appear on
@@ -250,6 +256,9 @@ class ViewsUIWizardDefaultViewsTestCase extends ViewsUIWizardHelper {
   }
 }
 
+/**
+ * Tests the ability of the views wizard to create views filtered by taxonomy.
+ */
 class ViewsUIWizardTaggedWithTestCase extends ViewsUIWizardHelper {
   protected $node_type_with_tags;
   protected $node_type_without_tags;
@@ -319,7 +328,7 @@ class ViewsUIWizardTaggedWithTestCase extends ViewsUIWizardHelper {
   }
 
   /**
-   * Test the "tagged with" functionality.
+   * Tests the "tagged with" functionality.
    */
   function testTaggedWith() {
     // In this test we will only create nodes that have an instance of the tag
@@ -383,7 +392,7 @@ class ViewsUIWizardTaggedWithTestCase extends ViewsUIWizardHelper {
   }
 
   /**
-   * Test that the "tagged with" form element only shows for node types that support it.
+   * Tests that the "tagged with" form element only shows for node types that support it.
    */
   function testTaggedWithByNodeType() {
     // The tagging field is associated with one of our node types only. So the
@@ -415,6 +424,9 @@ class ViewsUIWizardTaggedWithTestCase extends ViewsUIWizardHelper {
   }
 }
 
+/**
+ * Tests the ability of the views wizard to create views with sorts.
+ */
 class ViewsUIWizardSortingTestCase extends ViewsUIWizardHelper {
   public static function getInfo() {
     return array(
@@ -425,7 +437,7 @@ class ViewsUIWizardSortingTestCase extends ViewsUIWizardHelper {
   }
 
   /**
-   * Test the sorting functionality.
+   * Tests the sorting functionality.
    */
   function testSorting() {
     // Create nodes, each with a different creation time so that we can do a
@@ -482,6 +494,9 @@ class ViewsUIWizardSortingTestCase extends ViewsUIWizardHelper {
   }
 }
 
+/**
+ * Tests the ability of the views wizard to specify the number of items per page.
+ */
 class ViewsUIWizardItemsPerPageTestCase extends ViewsUIWizardHelper {
   public static function getInfo() {
     return array(
@@ -492,7 +507,7 @@ class ViewsUIWizardItemsPerPageTestCase extends ViewsUIWizardHelper {
   }
 
   /**
-   * Test the number of items per page.
+   * Tests the number of items per page.
    */
   function testItemsPerPage() {
     // Create articles, each with a different creation time so that we can do a
@@ -564,6 +579,9 @@ class ViewsUIWizardItemsPerPageTestCase extends ViewsUIWizardHelper {
   }
 }
 
+/**
+ * Tests the ability of the views wizard to put views in a menu.
+ */
 class ViewsUIWizardMenuTestCase extends ViewsUIWizardHelper {
   public static function getInfo() {
     return array(
@@ -574,7 +592,7 @@ class ViewsUIWizardMenuTestCase extends ViewsUIWizardHelper {
   }
 
   /**
-   * Test the menu functionality.
+   * Tests the menu functionality.
    */
   function testMenus() {
     // Create a view with a page display and a menu link in the Main Menu.
@@ -609,6 +627,9 @@ class ViewsUIWizardMenuTestCase extends ViewsUIWizardHelper {
   }
 }
 
+/**
+ * Tests the ability of the views wizard to create views with a jump menu style plugin.
+ */
 class ViewsUIWizardJumpMenuTestCase extends ViewsUIWizardHelper {
   public static function getInfo() {
     return array(
@@ -619,7 +640,7 @@ class ViewsUIWizardJumpMenuTestCase extends ViewsUIWizardHelper {
   }
 
   /**
-   * Test the jump menu style plugin.
+   * Tests the jump menu style plugin.
    */
   function testJumpMenus() {
     // We'll run this test for several different base tables that appear in the
@@ -767,6 +788,9 @@ class ViewsUIWizardJumpMenuTestCase extends ViewsUIWizardHelper {
   }
 }
 
+/**
+ * Tests that displays can be correctly overridden via the user interface.
+ */
 class ViewsUIWizardOverrideDisplaysTestCase extends ViewsUIWizardHelper {
   public static function getInfo() {
     return array(
@@ -777,7 +801,7 @@ class ViewsUIWizardOverrideDisplaysTestCase extends ViewsUIWizardHelper {
   }
 
   /**
-   * Test that displays can be overridden via the UI.
+   * Tests that displays can be overridden via the UI.
    */
   function testOverrideDisplays() {
     // Create a basic view that shows all content, with a page and a block
@@ -838,7 +862,7 @@ class ViewsUIWizardOverrideDisplaysTestCase extends ViewsUIWizardHelper {
   }
 
   /**
-   * Test that the wizard correctly sets up default and overridden displays.
+   * Tests that the wizard correctly sets up default and overridden displays.
    */
   function testWizardMixedDefaultOverriddenDisplays() {
     // Create a basic view with a page, block, and feed. Give the page and feed

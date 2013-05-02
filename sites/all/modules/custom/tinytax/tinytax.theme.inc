@@ -149,7 +149,7 @@ function theme_tinytax_term($variables){
   if(!$term_text){
     $term_text = check_plain($variables['term']->name);
   }
-  if($variables['term']->tid == arg(2) && arg(0) == 'taxonomy' && arg(1) == 'term'){
+  if($variables['term']->tid == arg(2) && strpos(arg(0), 'axonomy') && arg(1) == 'term'){
     $active = TRUE;
   }else{
     $active = FALSE;

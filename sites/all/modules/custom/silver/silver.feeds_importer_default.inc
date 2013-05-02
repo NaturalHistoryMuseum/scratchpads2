@@ -195,8 +195,6 @@ function silver_feeds_importer_default(){
     _silver_feeds_importer_default_helper($field_info, $feeds_importer, "file:$file_type:");
     $export['file_importer_' . $file_type] = $feeds_importer;
   }
-  // FIXME - Remove the following line to enable the user import options.
-  return $export;
   // Users
   $feeds_importer = new stdClass();
   $feeds_importer->disabled = FALSE;
@@ -223,23 +221,8 @@ function silver_feeds_importer_default(){
       'plugin_key' => 'FeedsUserProcessor',
       'config' => array(
         'status' => 1,
-        'mappings' => array(
-          array(
-            'source' => 'Mail',
-            'target' => 'mail',
-            'unique' => TRUE
-          ),
-          array(
-            'source' => 'Username',
-            'target' => 'name',
-            'unique' => TRUE
-          ),
-          array(
-            'source' => 'Status',
-            'target' => 'status',
-            'unique' => 0
-          )
-        )
+        'mappings' => array(),
+        'update_existing' => '1'
       )
     ),
     'update' => 0,
@@ -249,7 +232,42 @@ function silver_feeds_importer_default(){
     'process_in_background' => FALSE
   );
   $field_info = field_info_instances('user', 'user');
+  // reorder the array
+  $order = array(
+    "field_user_title",
+    "field_user_given_names",
+    "field_user_family_name",
+    "field_user_country",
+    "field_homepage",
+    "field_user_institution",
+    "field_user_taxonomic_interest"
+  );
+  $out = array();
+  foreach($order as $element){
+    $out[$element] = $field_info[$element];
+  }
+  $field_info = $out;
   _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'user:user:');
+  $feeds_importer->config['processor']['config']['mappings'][] = array(
+    'source' => 'E-Mail',
+    'target' => 'mail',
+    'unique' => TRUE
+  );
+  $feeds_importer->config['processor']['config']['mappings'][] = array(
+    'source' => 'Username',
+    'target' => 'name',
+    'unique' => TRUE
+  );
+  $feeds_importer->config['processor']['config']['mappings'][] = array(
+    'source' => 'Password',
+    'target' => 'pass',
+    'unique' => 0
+  );
+  $feeds_importer->config['processor']['config']['mappings'][] = array(
+    'source' => 'GUID',
+    'target' => 'guid',
+    'unique' => 1
+  );
   $export['file_importer_' . $file_type] = $feeds_importer;
   return $export;
 }
@@ -321,9 +339,27 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
           'unique' => 0
         );
         break;
+      case 'taxonomy_term_reference':
+        // We add three columns for the term reference field.
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field['label'] . ' (' . t('Name') . ')',
+          'target' => $key,
+          'unique' => 0
+        );
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field['label'] . ' (TID)',
+          'target' => $key . ':tid',
+          'unique' => 0
+        );
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field['label'] . ' (GUID)',
+          'target' => $key . ':guid',
+          'unique' => 0
+        );
+        break;
       default:
         $feeds_importer->config['processor']['config']['mappings'][] = array(
-          'source' => $field['label'],
+          'source' => trim($field['label']),
           'target' => $key,
           'unique' => 0
         );

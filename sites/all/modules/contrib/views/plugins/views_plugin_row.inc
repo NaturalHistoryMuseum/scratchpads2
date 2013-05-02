@@ -1,25 +1,24 @@
 <?php
+
 /**
  * @file
  * Contains the base row style plugin.
  */
 
 /**
- * @defgroup views_row_plugins Views' row plugins
+ * @defgroup views_row_plugins Views row plugins
  * @{
+ * Row plugins control how Views outputs an individual record.
  *
- * Row plugins control how Views outputs an individual record. They are
- * tightly coupled to style plugins, in that a style plugin is what calls
- * the row plugin.
+ * They are tightly coupled to style plugins, in that a style plugin is what
+ * calls the row plugin.
  *
- * @see hook_views_plugins
+ * @see hook_views_plugins()
  */
 
 /**
  * Default plugin to view a single row of a table. This is really just a wrapper around
  * a theme function.
- *
- * @ingroup views_row_plugins
  */
 class views_plugin_row extends views_plugin {
   /**
@@ -130,6 +129,12 @@ class views_plugin_row extends views_plugin {
   /**
    * Render a row object. This usually passes through to a theme template
    * of some form, but not always.
+   *
+   * @param stdClass $row
+   *   A single row of the query result, so an element of $view->result.
+   *
+   * @return string
+   *   The rendered output of a single row, used by the style plugin.
    */
   function render($row) {
     return theme($this->theme_functions(),

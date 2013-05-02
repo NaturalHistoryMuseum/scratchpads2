@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Definition of views_handler_field_file_filemime.
+ */
+
+/**
  * Field handler to add rendering MIME type images as an option on the filemime field.
  *
  * @ingroup views_field_handlers
@@ -8,7 +13,7 @@
 class views_handler_field_file_filemime extends views_handler_field_file {
   function option_definition() {
     $options = parent::option_definition();
-    $options['filemime_image'] = array('default' => FALSE);
+    $options['filemime_image'] = array('default' => FALSE, 'bool' => TRUE);
     return $options;
   }
 

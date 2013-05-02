@@ -2,14 +2,9 @@
 
 /**
  * @file
- *
  * Provides views data and handlers for locale.module.
- */
-
-/**
- * @defgroup views_locale_module locale.module handlers
  *
- * @{
+ * @ingroup views_module_handlers
  */
 
 /**
@@ -202,5 +197,25 @@ function locale_views_data() {
 }
 
 /**
- * @}
+ * Implements hook_views_data_alter().
  */
+function locale_views_data_alter(&$data) {
+  // Language field
+  $data['node']['language'] = array(
+    'title' => t('Language'),
+    'help' => t('The language the content is in.'),
+    'field' => array(
+      'handler' => 'views_handler_field_node_language',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_node_language',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_node_language',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+}

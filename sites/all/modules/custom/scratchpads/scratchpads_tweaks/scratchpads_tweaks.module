@@ -258,6 +258,20 @@ function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
   }
 }
 
+/**
+ * Implements hook_theme_registry_alter()
+ */
+function scratchpads_tweaks_theme_registry_alter(&$reg){
+  $reg['filter_guidelines']['function'] = 'theme_scratchpads_tweaks_filter_guidelines';
+}
+
+/**
+ * Hide the filter guidelines
+ */
+function theme_scratchpads_tweaks_filter_guidelines($vars){
+  return '';
+}
+
 function scratchpads_tweaks_form_system_theme_settings_submit($form, &$form_state){
   variable_set('resize_logo', $form_state['values']['resize_logo']);
 }
@@ -348,6 +362,19 @@ function scratchpads_tweaks_redirect(){
 }
 
 /**
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_tweaks_module_implements_alter(&$implementations, $hook){
+  if($hook == 'library_alter' && isset($implementations['jquery_update'])){
+    // Move jquery update to the end. This will make sure our hook_library_alter
+    // is always called before the jquery_update.
+    $jquery_update = $implementations['jquery_update'];
+    unset($implementations['jquery_update']);
+    $implementations['jquery_update'] = $jquery_update;
+  }
+}
+
+/**
  * Implements hook_schema_alter().
  */
 function scratchpads_tweaks_schema_alter(&$schema){
@@ -417,12 +444,6 @@ function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
       $info['tool'] = TRUE;
       $info['name'] = 'Views';
       $info['description'] = 'Allows you to create custom reports or views of the data held on your Scratchpad';
-      break;
-    case 'pathauto':
-      $info['dependencies'][] = 'redirect';
-      $info['tool'] = TRUE;
-      $info['name'] = 'Pretty URLs';
-      $info['description'] = 'Automatically generates pretty URLs based on the title of the content being edited/created. e.g. A page titled "About this site" will be given the URL content/about-this-site, instead of node/x.';
       break;
     case 'rules':
       $info['dependencies'][] = 'trigger';
