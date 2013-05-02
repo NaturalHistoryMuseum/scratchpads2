@@ -61,7 +61,7 @@ function _scratchpads_statistics_cron($force_update = FALSE){
   $select->addField('u', 'access');
   $query = db_insert('scratchpads_statistics_login')->from($select)->execute();
   // Ensure we have a comprehensive list of terms
-  db_query('INSERT INTO {scratchpads_statistics_term} (term) SELECT DISTINCT LOWER(name) FROM {taxonomy_term_data} WHERE name NOT IN (SELECT name FROM {scratchpads_statistics_term})');
+  db_query('INSERT INTO {scratchpads_statistics_term} (term) SELECT DISTINCT LOWER(name) FROM {taxonomy_term_data} WHERE name NOT IN (SELECT term FROM {scratchpads_statistics_term}) ORDER BY tid');
   //
   // Create the data.
   //
@@ -151,7 +151,7 @@ function _scratchpads_statistics_cron($force_update = FALSE){
             }
             // Number of views
             if(isset($result->totalcount)){
-              $counts[$result->ss_user_id][$tid]['number_views'] = $result->totalcount;
+              $counts[$result->ss_user_id][$tid]['number_views'] += $result->totalcount;
             }
           }
           $query = db_insert('scratchpads_statistics_data_temp')->fields(array(
