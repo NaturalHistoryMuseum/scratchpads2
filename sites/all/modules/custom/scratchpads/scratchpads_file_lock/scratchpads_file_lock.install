@@ -10,15 +10,31 @@ function scratchpads_file_lock_enable(){
   // variable used by file_lock module
   variable_set('file_lock_mode', 'all');
   // lock existing files
-  $result = db_select('file_managed')->fields('file_managed', array(
+  $or = db_or()->condition('module', 'file_lock')->condition('type', 'eolapi');
+  $subquery = db_select('file_usage', 'f')->fields('f', array(
     'fid'
-  ))->orderBy('fid')->execute();
-  foreach($result as $row){
-    $file = file_load($row->fid);
-    scratchpads_file_lock_act_on($file);
+  ))->condition($or);
+  $fids = db_select('file_managed', 'f')->fields('f', array(
+    'fid'
+  ))->condition('fid', $subquery, 'NOT IN')->condition('status', '0', '>')->execute()->fetchAll(PDO::FETCH_COLUMN);
+  if(count($fids)){
+    // Finally, do the insert.
+    $query = db_insert('file_usage')->fields(array(
+      'fid',
+      'module',
+      'type',
+      'id',
+      'count'
+    ));
+    foreach($fids as $fid){
+      $query->values(array(
+        'fid' => $fid,
+        'module' => 'file_lock',
+        'type' => 'module',
+        'id' => 0,
+        'count' => 1
+      ));
+    }
+    $query->execute();
   }
 }
-
-
-
-
