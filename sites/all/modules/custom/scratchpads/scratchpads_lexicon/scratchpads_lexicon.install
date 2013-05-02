@@ -28,6 +28,7 @@ function scratchpads_lexicon_install(){
     'status' => 1,
     'settings' => serialize(array())
   ))->execute();
+  variable_set('lexicon_match', 'b');
 }
 
 /**
@@ -45,4 +46,11 @@ function scratchpads_lexicon_disable(){
  */
 function scratchpads_lexicon_update_7001(){
   scratchpads_lexicon_install();
+}
+
+/**
+ * Set the match type for Lexicon to whole words only.
+ */
+function scratchpads_lexicon_update_7002(){
+  variable_set('lexicon_match', 'b');
 }
