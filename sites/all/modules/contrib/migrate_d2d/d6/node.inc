@@ -93,7 +93,15 @@ class DrupalNode6Migration extends DrupalNodeMigration {
     if (parent::prepareRow($row) === FALSE) {
       return FALSE;
     }
-
+    // Field types that don't have a table and don't need to be queried.
+    // $this->sourceFieldTypes is populated regardless of whether a particular
+    // field is migrated or not, which is what would need fixing even though a fix
+    // here is safer as it's less likely to have side effects.
+    $exclude_types = array(
+      'taxonomy_term',
+      'noderelationships_backref',
+      'nodereferrer'
+    );
     // Load up field data for dynamically mapped fields
     foreach ($this->sourceFieldTypes as $field_name => $field_type) {
       // Find the data. Simple unshared unmultiple fields will be in
@@ -147,7 +155,7 @@ class DrupalNode6Migration extends DrupalNodeMigration {
         }
         
       }
-      else if ($field_type != 'taxonomy_term') {
+      else if (!in_array($field_type, $exclude_types)) {
         // Only report once per field type
         static $reported_field_types = array();
         if (!isset($reported_field_types[$field_type])) {
