@@ -128,3 +128,14 @@ function spm_update_7008(){
     field_update_instance($fields['node-spm-field_general_description']['field_instance']);
   }
 }
+
+/**
+ * Set the weight of the "Taxonomic Name".
+ */
+function spm_update_7009(){
+  module_load_include('features.field.inc', 'spm');
+  $fields = spm_field_default_fields();
+  if(field_info_field('field_taxonomic_name')){
+    field_update_instance($fields['node-spm-field_taxonomic_name']['field_instance']);
+  }
+}
