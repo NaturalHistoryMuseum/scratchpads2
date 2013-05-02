@@ -1,6 +1,7 @@
 <?php
+
 /**
- * @file views_ui.module
+ * @file
  * Provide structure for the administrative interface to Views.
  */
 
@@ -9,15 +10,6 @@
  */
 function views_ui_menu() {
   $items = array();
-
-  //module_load_include('inc', 'views_ui', 'includes/admin');
-
-  // Drupal core loads the module file when uninstall a module. So views.module is not loaded.
-  // There is a core bug filled, remove it once the bug is fixed.
-  // @see http://drupal.org/node/1029606
-  if (!module_exists('views')) {
-    return;
-  }
 
   // Minor code reduction technique.
   $base = array(
@@ -152,10 +144,24 @@ function views_ui_menu() {
   ) + $base;
 
   // A page in the Reports section to show usage of fields in all views
-  $items['admin/reports/views-fields'] = array(
-    'title' => 'Fields used in views',
+  $items['admin/reports/fields/list'] = array(
+    'title' => 'List',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['admin/reports/fields/views-fields'] = array(
+    'title' => 'Used in views',
     'description' => 'Overview of fields used in all views.',
     'page callback' => 'views_ui_field_list',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 0,
+  ) + $base;
+
+  // A page in the Reports section to show usage of plugins in all views.
+  $items['admin/reports/views-plugins'] = array(
+    'title' => 'Views plugins',
+    'description' => 'Overview of plugins used in all views.',
+    'page callback' => 'views_ui_plugin_list',
   ) + $base;
 
   return $items;
@@ -201,6 +207,12 @@ function views_ui_theme() {
     'views_ui_view_info' => array(
       'variables' => array('view' => NULL, 'base' => NULL),
       'file' => "includes/admin.inc",
+    ),
+
+    // Group of filters.
+    'views_ui_build_group_filter_form' => array(
+      'render element' => 'form',
+      'file' => 'includes/admin.inc',
     ),
 
     // tab themes
@@ -833,23 +845,11 @@ function _views_ui_get_displays_list($view) {
 
 function views_ui_library_alter(&$libraries, $module) {
   if ($module == 'system' && isset($libraries['ui.dialog'])) {
-    if (version_compare($libraries['ui.dialog']['version'], '1.7.2', '>=')) {
+    // Only apply the fix, if we don't have an up to date jQueryUI version.
+    if (version_compare($libraries['ui.dialog']['version'], '1.7.2', '>=') && version_compare($libraries['ui.dialog']['version'], '1.10.0', '<')) {
       $libraries['ui.dialog']['js'][drupal_get_path('module', 'views') . '/js/jquery.ui.dialog.patch.js'] = array();
     }
   }
-}
-
-/**
- * Handle bad updates from alpha versions to beta versions.
- *
- * This function will ONLY be called if there is an old menu entry for
- * this hanging around. This will force a menu rebuild and a cache clear
- * which should resolve the problem.
- */
-function views_ui_list_views() {
-  drupal_flush_all_caches();
-  menu_rebuild();
-  drupal_goto($_GET['q']);
 }
 
 /**

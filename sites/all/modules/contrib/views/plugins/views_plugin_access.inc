@@ -1,9 +1,20 @@
 <?php
 
 /**
- * The base plugin to handle access control.
+ * @file
+ * Definition of views_plugin_access.
+ */
+
+/**
+ * @defgroup views_access_plugins Views access plugins
+ * @{
+ * @todo.
  *
- * @ingroup views_access_plugins
+ * @see hook_views_plugins()
+ */
+
+/**
+ * The base plugin to handle access control.
  */
 class views_plugin_access extends views_plugin {
   /**
@@ -79,3 +90,7 @@ class views_plugin_access extends views_plugin {
     return TRUE;
   }
 }
+
+/**
+ * @}
+ */

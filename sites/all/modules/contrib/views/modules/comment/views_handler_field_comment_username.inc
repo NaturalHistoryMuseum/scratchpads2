@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * @file
+ * Definition of views_handler_field_comment_username.
+ */
+
 /**
  * Field handler to allow linking to a user account or homepage.
  *
@@ -16,7 +22,7 @@ class views_handler_field_comment_username extends views_handler_field {
 
   function option_definition() {
     $options = parent::option_definition();
-    $options['link_to_user'] = array('default' => TRUE);
+    $options['link_to_user'] = array('default' => TRUE, 'bool' => TRUE);
     return $options;
   }
 

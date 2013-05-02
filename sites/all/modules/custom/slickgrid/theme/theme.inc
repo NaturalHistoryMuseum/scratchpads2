@@ -112,7 +112,7 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
             $view->style_plugin->options['filterable'] = TRUE;
             // Don't show header row if this is a collapsibleFilter plugin - that happens within the data
             if($view->style_plugin->options['columns'][$field_id][$plugin_type] != 'collapsibleFilter'){
-              $view->style_plugin->options['showHeaderRow'] = TRUE;
+              //$view->style_plugin->options['showHeaderRow'] = TRUE;
               // A default value can be passed into a filter
               // Check if it exists and if it does set the default_filter option
               if(isset($_GET[$field_id]) && !isset($view->style_plugin->options['default_filter'])){
@@ -132,7 +132,10 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
     }
     // Is this field sortable?
     // If any fields are sortable, set style option so we can access it in the js
-    if(isset($view->style_plugin->options['columns'][$field_id]['sortable']) && $view->style_plugin->options['columns'][$field_id]['sortable']){
+    if(!in_array($handlers[$field_id]->field_info['type'], array(
+      'text_with_summary',
+      'file'
+    ))){
       $view->style_plugin->options['sortable_columns'] = TRUE;
       $column['sortable'] = 1;
     }
@@ -288,7 +291,19 @@ function theme_slickgrid($variables){
   // Add bespoke slickgrid js/css
   drupal_add_js($path . '/js/slickgrid.js');
   drupal_add_js($path . '/js/slickgrid.theme.js');
+  drupal_add_js($path . '/js/slickgrid.remote.js');
   drupal_add_css($path . '/css/slickgrid.css');
+  drupal_add_js(array(
+    'slickgrid' => array(
+      'slickgrid_callback_url' => url('slickgrid/callback/', array(
+        'absolute' => TRUE
+      )),
+      'get_data_callback_url' => url('slickgrid/get/data/', array(
+        'absolute' => TRUE
+      )),
+      'loading_image_url' => file_create_url(drupal_get_path('module', 'views') . '/images/loading.gif')
+    )
+  ), 'setting');
   // Add beautytips
   beautytips_add_beautytips();
   // If this slickgrid is editable, add the ctools modal plugins
@@ -299,14 +314,11 @@ function theme_slickgrid($variables){
   $js = array();
   $js[] = 'var options = ' . drupal_json_encode($view->style_plugin->options) . ';';
   $js[] = 'var data = [];';
-  if(count($view->data)){
-    $js[] = 'data = ' . drupal_json_encode($view->data) . ';';
-  }
   $js[] = 'var columns = ' . slickgrid_encode_columns($view->columns) . ';';
   $js[] = 'var slickgrid;';
   $js[] = '(function($) {';
   $js[] = '$(document).ready(function(){';
-  $js[] = 'slickgrid = new Slickgrid("#slickgrid", "' . $view->name . '", "' . $view->current_display . '", "' . url(SLICKGRID_CALLBACK_PATH) . '");';
+  $js[] = 'slickgrid = new Slickgrid("#slickgrid", "' . $view->name . '", "' . $view->current_display . '");';
   $js[] = '});';
   $js[] = '})(jQuery);';
   drupal_add_js(implode("\n", $js), array(
@@ -376,8 +388,25 @@ function theme_slickgrid_control($variables){
   $output = '';
   $control = $variables['control'];
   if($variables['view']->style_plugin->options[$control]){
+    drupal_add_js($variables['path'] . '/js/controls/slickgrid.control.js');
     drupal_add_js($variables['path'] . '/js/controls/slickgrid.' . $control . '.js');
-    $output = '<div class="slickgrid-control" id="slickgrid-' . $control . '"></div>';
+    drupal_add_js(array(
+      'slickgrid' => array(
+        'get_form_callback_url' => url('slickgrid/get/form/', array(
+          'absolute' => TRUE
+        ))
+      )
+    ), 'setting');
+    $form_id = 'slickgrid_' . $control . '_form';
+    $output = '<div class="slickgrid-control ' . $form_id . '" id="slickgrid-' . $control . '">' . l('<span title="' . ucfirst($control) . '" class="slickgrid-control-button"/>', 'slickgrid/get/form/' . $form_id, array(
+      'html' => TRUE,
+      'attributes' => array(
+        'id' => $form_id,
+        'class' => array(
+          'use-ajax'
+        )
+      )
+    )) . '</div>';
   }
   return $output;
 }
@@ -386,10 +415,11 @@ function slickgrid_preprocess_slickgrid_control__add(&$variables){
   $entity_info = entity_get_info();
   $variables['add_links'] = array();
   if(array_filter($variables['view']->style_plugin->options['add'])){
+    ctools_include('ajax');
     foreach($variables['view']->style_plugin->options['add'] as $add){
       list($entity_type, $bundle) = explode('/', $add);
       $class = drupal_html_class('slickgrid-add-' . $entity_type . '-' . $bundle);
-      $path = SLICKGRID_CALLBACK_PATH . '/add/' . $add . '/' . $variables['view']->name . '/' . $variables['view']->current_display;
+      $path = 'slickgrid/callback/add/' . $add;
       $label = $entity_info[$entity_type]['bundles'][$bundle]['label'];
       if(count($variables['view']->args)){
         $path .= '/' . implode('/', $variables['view']->args);
@@ -443,4 +473,81 @@ function theme_slickgrid_views_plugin_table($variables){
   $output .= theme('table', $variables);
   $output .= drupal_render_children($form);
   return $output;
+}
+
+/**
+ *
+ * Add ctools modal plugin
+ */
+function slickgrid_add_modal(){
+  // Include the CTools tools that we need.
+  ctools_include('ajax');
+  ctools_include('modal');
+  // Add CTools' javascript to the page.
+  ctools_modal_add_js();
+  // Create our own javascript that will be used to theme a modal.
+  $style_settings = array(
+    'ctools-modal-slickgrid-fixed' => array(
+      'modalSize' => array(
+        'type' => 'fixed',
+        'width' => 550,
+        'height' => 300,
+        'addWidth' => 20,
+        'addHeight' => 15
+      ),
+      'modalOptions' => array(
+        'opacity' => .5,
+        'background-color' => '#000'
+      ),
+      'animation' => 'fadeIn',
+      'modalTheme' => 'SlickgridModal',
+      'throbber' => theme('image', array(
+        'path' => ctools_image_path('ajax-loader.gif', 'ctools_ajax_sample'),
+        'alt' => t('Loading...'),
+        'title' => t('Loading')
+      )),
+      'closeImage' => theme('image', array(
+        'path' => ctools_image_path('close.png', 'slickgrid'),
+        'title' => t('Close window'),
+        'alt' => t('Close window')
+      ))
+    ),
+    'ctools-modal-slickgrid-scale' => array(
+      'modalSize' => array(
+        'type' => 'scale'
+      ),
+      'modalOptions' => array(
+        'opacity' => .5,
+        'background-color' => '#000'
+      ),
+      'animation' => 'fadeIn',
+      'modalTheme' => 'SlickgridModal',
+      'throbber' => theme('image', array(
+        'path' => ctools_image_path('ajax-loader.gif', 'ctools_ajax_sample'),
+        'alt' => t('Loading...'),
+        'title' => t('Loading')
+      )),
+      'closeImage' => theme('image', array(
+        'path' => ctools_image_path('close.png', 'slickgrid'),
+        'title' => t('Close window'),
+        'alt' => t('Close window')
+      ))
+    )
+  );
+  drupal_add_js($style_settings, 'setting');
+}
+
+/**
+ * Encode the columns as a json array
+ * We can't simply use drupal_json_encode as the column definitions contain function names
+ * @param array $columns
+ */
+function slickgrid_encode_columns($columns){
+  $encoded_columns = drupal_json_encode($columns);
+  foreach(slickgrid_get_plugin_types() as $type => $plugin){
+    $encoded_columns = preg_replace('/("' . $type . '":)"([a-z]*)"/i', '$1$2', $encoded_columns);
+  }
+  // Width need to be parsed an integers, so remove the "s
+  $encoded_columns = preg_replace('/("width":)"([0-9]*)"/i', '$1$2', $encoded_columns);
+  return $encoded_columns;
 }

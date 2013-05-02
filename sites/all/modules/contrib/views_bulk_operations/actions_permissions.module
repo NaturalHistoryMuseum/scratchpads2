@@ -6,13 +6,11 @@
 function actions_permissions_permission() {
   $permissions = array();
   $actions = actions_list() + _actions_permissions_advanced_actions_list();
-  foreach ($actions as $callback => $action) {
-    $key = !empty($action['key']) ? $action['key'] : $callback;
+  foreach ($actions as $key => $action) {
     $permission = actions_permissions_get_perm($action['label'], $key);
 
     $permissions[$permission] = array(
       'title' => t('Execute %label', array('%label' => $action['label'])),
-      'description' => t('Execute action %label (!key).', array('%label' => $action['label'], '!key' => $key)),
     );
   }
   return $permissions;
@@ -20,19 +18,26 @@ function actions_permissions_permission() {
 
 /**
  * Get a list of advanced actions (created through the Action UI).
- *
- * Intentionally not using the "list callback" of the action plugin, so that
- * this module doesn't need to depend on Views Bulk Operations.
  */
 function _actions_permissions_advanced_actions_list() {
   $actions = array();
+  // Actions provided by Drupal that aren't usable in a VBO context.
+  $hidden_actions = array(
+    'system_block_ip_action',
+    'system_goto_action',
+    'system_message_action',
+  );
+
   $result = db_query("SELECT * FROM {actions} WHERE parameters > ''");
   foreach ($result as $action) {
+    if (in_array($action->callback, $hidden_actions)) {
+      continue;
+    }
+
     $parameters = unserialize($action->parameters);
     $actions[$action->aid] = array(
       'label' => $action->label,
       'type' => $action->type,
-      'key' => $action->callback . (empty($parameters) ? '' : ':'. md5($action->parameters)),
     );
   }
   return $actions;
@@ -41,6 +46,6 @@ function _actions_permissions_advanced_actions_list() {
 /**
  * Returns the permission name used in user_access().
  */
-function actions_permissions_get_perm($label, $callback) {
-  return "execute $callback";
+function actions_permissions_get_perm($label, $key) {
+  return "execute $key";
 }

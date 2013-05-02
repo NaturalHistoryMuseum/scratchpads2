@@ -1,6 +1,21 @@
 <?php
 
 /**
+ * @file
+ * Definition of views_plugin_exposed_form.
+ */
+
+/**
+ * @defgroup views_exposed_form_plugins Views exposed form plugins
+ * @{
+ * Plugins that handle the validation/submission and rendering of exposed forms.
+ *
+ * If needed, it is possible to use them to add additional form elements.
+ *
+ * @see hook_views_plugins()
+ */
+
+/**
  * The base plugin to handle exposed filter forms.
  */
 class views_plugin_exposed_form extends views_plugin {
@@ -22,14 +37,15 @@ class views_plugin_exposed_form extends views_plugin {
 
   function option_definition() {
     $options = parent::option_definition();
-    $options['submit_button'] = array('default' => t('Apply'), 'translatable' => TRUE);
+    $options['submit_button'] = array('default' => 'Apply', 'translatable' => TRUE);
     $options['reset_button'] = array('default' => FALSE, 'bool' => TRUE);
     $options['reset_button_label'] = array('default' => 'Reset', 'translatable' => TRUE);
     $options['exposed_sorts_label'] = array('default' => 'Sort by', 'translatable' => TRUE);
+    $options['expose_sort_order'] = array('default' => TRUE, 'bool' => TRUE);
     $options['sort_asc_label'] = array('default' => 'Asc', 'translatable' => TRUE);
     $options['sort_desc_label'] = array('default' => 'Desc', 'translatable' => TRUE);
-    $options['autosubmit'] = array('default' => FALSE);
-    $options['autosubmit_hide'] = array('default' => TRUE);
+    $options['autosubmit'] = array('default' => FALSE, 'bool' => TRUE);
+    $options['autosubmit_hide'] = array('default' => TRUE, 'bool' => TRUE);
     return $options;
   }
 
@@ -69,12 +85,20 @@ class views_plugin_exposed_form extends views_plugin {
       '#required' => TRUE,
     );
 
+    $form['expose_sort_order'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Expose sort order'),
+      '#description' => t('Allow the user to choose the sort order. If sort order is not exposed, the sort criteria settings for each sort will determine its order.'),
+      '#default_value' => $this->options['expose_sort_order'],
+    );
+
     $form['sort_asc_label'] = array(
       '#type' => 'textfield',
       '#title' => t('Ascending'),
       '#description' => t('Text to use when exposed sort is ordered ascending.'),
       '#default_value' => $this->options['sort_asc_label'],
       '#required' => TRUE,
+      '#dependency' => array('edit-exposed-form-options-expose-sort-order' => array(TRUE)),
     );
 
     $form['sort_desc_label'] = array(
@@ -83,6 +107,7 @@ class views_plugin_exposed_form extends views_plugin {
       '#description' => t('Text to use when exposed sort is ordered descending.'),
       '#default_value' => $this->options['sort_desc_label'],
       '#required' => TRUE,
+      '#dependency' => array('edit-exposed-form-options-expose-sort-order' => array(TRUE)),
     );
 
     $form['autosubmit'] = array(
@@ -216,12 +241,14 @@ class views_plugin_exposed_form extends views_plugin {
         $form_state['input']['sort_by'] = array_shift($keys);
       }
 
-      $form['sort_order'] = array(
-        '#type' => 'select',
-        '#options' => $sort_order,
-        '#title' => t('Order'),
-        '#default_value' => $default_sort_order,
-      );
+      if ($this->options['expose_sort_order']) {
+        $form['sort_order'] = array(
+          '#type' => 'select',
+          '#options' => $sort_order,
+          '#title' => t('Order'),
+          '#default_value' => $default_sort_order,
+        );
+      }
       $form['submit']['#weight'] = 10;
       if (isset($form['reset'])) {
         $form['reset']['#weight'] = 10;
@@ -297,6 +324,11 @@ class views_plugin_exposed_form extends views_plugin {
       $this->view->exposed_data = array();
     }
 
+    $form_state['redirect'] = current_path();
     $form_state['values'] = array();
   }
 }
+
+/**
+ * @}
+ */

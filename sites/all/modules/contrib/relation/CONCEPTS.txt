@@ -1,17 +1,38 @@
 -- SUMMARY --
 
-Describes relations between entities.
+Describes relations between entities (comment, node, user etc).
 
-The intent of this module is to provide an API that describes the relations
-between entities. For example:
-  comments <--> nodes
-  users <--> images
+Here's how every relation looks:
 
-Relations can relate more than two entities, eg:
-  areSiblings -> (john, jen, jack, jess)
+  Relation
+       |
+       +----+ entity 1
+       |
+       +----+ entity 2
+       |
+      ...
+       |
+       +----+ entity N
 
-And for 2-ary relations, relations can be directional, ie:
-  bruno -> isChildOf -> boglarka
+
+Every relation looks like this. N is called the arity of the relation.
+For directional relations, entity 1 is called the source, the rest are called
+targets.
+
+An example of a non-directional, n-ary relation:
+
+  siblings(john, jen, jack, jess)
+
+A binary, directional relation:
+
+  child(bruno, Boglarka)
+
+Relations can be directional, ie:
+  parent(boglarka, bruno, sara)
+
+Where Bruno and Sara are siblings http://www.flickr.com/photos/pnegyesi/6041665852
+and Boglarka are their mother. Once again, the first entity has a special
+role, in this case, it's the parent.
 
 Relations are entities, so they can relate relations to other entities, for
 example:
