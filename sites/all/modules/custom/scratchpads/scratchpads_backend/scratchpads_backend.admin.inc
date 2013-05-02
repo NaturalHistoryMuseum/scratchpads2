@@ -215,7 +215,7 @@ function scratchpads_backend_statistics($entity_info, $bundle = true){
   // If this is a file type, hide the eol files
   if($entity_info['base table'] == 'file_managed'){
     $query->leftJoin('file_usage', 'f', 't.fid = f.fid');
-    $query->where("f.type != :type OR f.type IS NULL", array(
+    $query->where('f.type != :type OR f.type IS NULL', array(
       ':type' => 'eolapi'
     ));
   }
