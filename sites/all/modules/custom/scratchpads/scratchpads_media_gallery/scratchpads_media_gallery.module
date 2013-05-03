@@ -99,6 +99,25 @@ function scratchpads_media_gallery_ctools_plugin_api(){
 }
 
 /**
+ * Implements hook_views_default_views_alter
+ */
+function scratchpads_media_gallery_views_default_views_alter(&$views){
+  if(isset($views['media_default'])){
+    foreach(array(
+      'default',
+      'media_browser_1',
+      'media_browser_my_files'
+    ) as $display_id){
+      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['id'] = 'uri';
+      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['table'] = 'file_managed';
+      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['field'] = 'uri';
+      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['operator'] = 'not';
+      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['value'] = '/eolapi/';
+    }
+  }
+}
+
+/**
  * Implementation of hook_block_view_alter()
  */
 function scratchpads_media_gallery_block_view_alter(&$data, $block){
