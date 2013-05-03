@@ -1,15 +1,14 @@
 <?php
+
 /**
  * @file
  * scratchpads_biography.field_group.inc
  */
-
 /**
  * Implements hook_field_group_info().
  */
-function scratchpads_biography_field_group_info() {
+function scratchpads_biography_field_group_info(){
   $export = array();
-
   $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
@@ -31,7 +30,7 @@ function scratchpads_biography_field_group_info() {
       5 => 'field_date_active',
       6 => 'field_signature',
       7 => 'group_born_place',
-      8 => 'group_died_place',
+      8 => 'group_died_place'
     ),
     'format_type' => 'fieldset',
     'format_settings' => array(
@@ -39,12 +38,11 @@ function scratchpads_biography_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_biography|user|user|form'] = $field_group;
-
   $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
@@ -63,7 +61,7 @@ function scratchpads_biography_field_group_info() {
       2 => 'field_born_island_',
       3 => 'field_born_island_group_',
       4 => 'field_born_locality_',
-      5 => 'field_born_state_province_',
+      5 => 'field_born_state_province_'
     ),
     'format_type' => 'fieldset',
     'format_settings' => array(
@@ -72,13 +70,12 @@ function scratchpads_biography_field_group_info() {
         'display_mode' => '',
         'required_fields' => 1,
         'classes' => '',
-        'description' => '',
+        'description' => ''
       ),
-      'formatter' => 'collapsible',
-    ),
+      'formatter' => 'collapsible'
+    )
   );
   $export['group_born_place|user|user|form'] = $field_group;
-
   $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
@@ -97,7 +94,7 @@ function scratchpads_biography_field_group_info() {
       2 => 'field_died_island_',
       3 => 'field_died_island_group_',
       4 => 'field_died_locality_',
-      5 => 'field_died_state_province_',
+      5 => 'field_died_state_province_'
     ),
     'format_type' => 'fieldset',
     'format_settings' => array(
@@ -106,12 +103,11 @@ function scratchpads_biography_field_group_info() {
         'display_mode' => '',
         'required_fields' => 1,
         'classes' => '',
-        'description' => '',
+        'description' => ''
       ),
-      'formatter' => 'collapsible',
-    ),
+      'formatter' => 'collapsible'
+    )
   );
   $export['group_died_place|user|user|form'] = $field_group;
-
   return $export;
 }

@@ -1,16 +1,15 @@
 <?php
+
 /**
  * @file
  * scratchpads_biography.views_default.inc
  */
-
 /**
  * Implements hook_views_default_views().
  */
-function scratchpads_biography_views_default_views() {
+function scratchpads_biography_views_default_views(){
   $export = array();
-
-  $view = new view;
+  $view = new view();
   $view->name = 'biography';
   $view->description = '';
   $view->tag = 'default';
@@ -21,7 +20,7 @@ function scratchpads_biography_views_default_views() {
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
+    $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Biographies';
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['access']['perm'] = 'access user profiles';
@@ -38,14 +37,14 @@ function scratchpads_biography_views_default_views() {
     'view_user' => array(
       'tab' => 'Overview',
       'width' => '100',
-      'filter' => '',
+      'filter' => ''
     ),
     'field_user_title' => array(
       'tab' => 'Overview',
       'width' => '100',
       'sortable' => 0,
       'filter' => '',
-      'editor' => '',
+      'editor' => ''
     ),
     'field_user_given_names' => array(
       'tab' => 'Overview',
@@ -53,7 +52,7 @@ function scratchpads_biography_views_default_views() {
       'sortable' => 1,
       'filter' => 'textFilter',
       'editor' => '',
-      'validator' => '',
+      'validator' => ''
     ),
     'field_user_family_name' => array(
       'tab' => 'Overview',
@@ -61,21 +60,21 @@ function scratchpads_biography_views_default_views() {
       'sortable' => 1,
       'filter' => 'textFilter',
       'editor' => '',
-      'validator' => '',
+      'validator' => ''
     ),
     'field_born_date_' => array(
       'tab' => 'Born',
       'width' => '100',
       'sortable' => 1,
       'filter' => 'textFilter',
-      'editor' => '',
+      'editor' => ''
     ),
     'field_born_country_' => array(
       'tab' => 'Born',
       'width' => '100',
       'sortable' => 1,
       'filter' => 'textFilter',
-      'editor' => '',
+      'editor' => ''
     ),
     'field_born_island_' => array(
       'tab' => 'Born',
@@ -83,7 +82,7 @@ function scratchpads_biography_views_default_views() {
       'sortable' => 0,
       'filter' => '',
       'editor' => '',
-      'validator' => '',
+      'validator' => ''
     ),
     'field_born_island_group_' => array(
       'tab' => 'Born',
@@ -91,7 +90,7 @@ function scratchpads_biography_views_default_views() {
       'sortable' => 0,
       'filter' => '',
       'editor' => '',
-      'validator' => '',
+      'validator' => ''
     ),
     'field_born_state_province_' => array(
       'tab' => 'Born',
@@ -99,7 +98,7 @@ function scratchpads_biography_views_default_views() {
       'sortable' => 0,
       'filter' => '',
       'editor' => '',
-      'validator' => '',
+      'validator' => ''
     ),
     'field_born_county' => array(
       'tab' => 'Born',
@@ -107,7 +106,7 @@ function scratchpads_biography_views_default_views() {
       'sortable' => 1,
       'filter' => 'textFilter',
       'editor' => '',
-      'validator' => '',
+      'validator' => ''
     ),
     'field_born_locality_' => array(
       'tab' => 'Born',
@@ -115,21 +114,21 @@ function scratchpads_biography_views_default_views() {
       'sortable' => 0,
       'filter' => '',
       'editor' => '',
-      'validator' => '',
+      'validator' => ''
     ),
     'field_died_date_' => array(
       'tab' => 'Died',
       'width' => '100',
       'sortable' => 1,
       'filter' => 'textFilter',
-      'editor' => '',
+      'editor' => ''
     ),
     'field_died_country_' => array(
       'tab' => 'Died',
       'width' => '100',
       'sortable' => 1,
       'filter' => 'textFilter',
-      'editor' => '',
+      'editor' => ''
     ),
     'field_died_island_' => array(
       'tab' => 'Died',
@@ -137,7 +136,7 @@ function scratchpads_biography_views_default_views() {
       'sortable' => 0,
       'filter' => '',
       'editor' => '',
-      'validator' => '',
+      'validator' => ''
     ),
     'field_died_island_group_' => array(
       'tab' => 'Died',
@@ -145,7 +144,7 @@ function scratchpads_biography_views_default_views() {
       'sortable' => 0,
       'filter' => '',
       'editor' => '',
-      'validator' => '',
+      'validator' => ''
     ),
     'field_died_county_' => array(
       'tab' => 'Died',
@@ -153,7 +152,7 @@ function scratchpads_biography_views_default_views() {
       'sortable' => 0,
       'filter' => '',
       'editor' => '',
-      'validator' => '',
+      'validator' => ''
     ),
     'field_died_state_province_' => array(
       'tab' => 'Died',
@@ -161,7 +160,7 @@ function scratchpads_biography_views_default_views() {
       'sortable' => 0,
       'filter' => '',
       'editor' => '',
-      'validator' => '',
+      'validator' => ''
     ),
     'field_died_locality_' => array(
       'tab' => 'Died',
@@ -169,58 +168,58 @@ function scratchpads_biography_views_default_views() {
       'sortable' => 0,
       'filter' => '',
       'editor' => '',
-      'validator' => '',
+      'validator' => ''
     ),
     'field_gender' => array(
       'tab' => 'Overview',
       'width' => '100',
       'sortable' => 1,
       'filter' => 'textFilter',
-      'editor' => '',
+      'editor' => ''
     ),
     'field_file_attachments' => array(
       'tab' => 'Details',
       'width' => '100',
       'sortable' => 0,
       'filter' => '',
+      'editor' => ''
+    ),
+    'picture' => array(
+      'tab' => 'Overview',
+      'width' => '100',
+      'sortable' => 0,
+      'filter' => ''
+    ),
+    'field_date_active' => array(
+      'tab' => 'Details',
+      'width' => '100',
+      'sortable' => 0,
+      'filter' => '',
+      'editor' => ''
+    ),
+    'field_signature' => array(
+      'tab' => 'Details',
+      'width' => '100',
+      'sortable' => 0,
+      'filter' => '',
+      'editor' => ''
+    ),
+    'field_biography_notes' => array(
+      'tab' => 'Details',
+      'width' => '100',
+      'sortable' => 0,
+      'filter' => '',
       'editor' => '',
-      ),
-      'picture' => array(
-        'tab' => 'Overview',
-        'width' => '100',
-        'sortable' => 0,
-        'filter' => '',
-      ),
-      'field_date_active' => array(
-        'tab' => 'Details',
-        'width' => '100',
-        'sortable' => 0,
-        'filter' => '',
-        'editor' => '',
-      ),
-      'field_signature' => array(
-        'tab' => 'Details',
-        'width' => '100',
-        'sortable' => 0,
-        'filter' => '',
-        'editor' => '',
-      ),
-      'field_biography_notes' => array(
-        'tab' => 'Details',
-        'width' => '100',
-        'sortable' => 0,
-        'filter' => '',
-        'editor' => '',
-        'validator' => '',
-      ),
-      'field_user_institution' => array(
+      'validator' => ''
+    ),
+    'field_user_institution' => array(
       'tab' => 'Overview',
       'width' => '100',
       'sortable' => 0,
       'filter' => '',
       'editor' => '',
-        'validator' => '',
-    ),
+      'validator' => ''
+    )
   );
   $handler->display->display_options['style_options']['grouping_field'] = '';
   $handler->display->display_options['style_options']['collapse_groups_by_default'] = 0;
@@ -362,7 +361,7 @@ Details';
     'fromto' => 'both',
     'multiple_number' => '',
     'multiple_from' => '',
-    'multiple_to' => '',
+    'multiple_to' => ''
   );
   $handler->display->display_options['fields']['field_born_date_']['field_api_classes'] = 0;
   /* Field: Born:Country */
@@ -544,7 +543,7 @@ Details';
     'fromto' => 'both',
     'multiple_number' => '',
     'multiple_from' => '',
-    'multiple_to' => '',
+    'multiple_to' => ''
   );
   $handler->display->display_options['fields']['field_died_date_']['field_api_classes'] = 0;
   /* Field: Died: Country */
@@ -721,7 +720,6 @@ Details';
   $handler->display->display_options['fields']['field_gender']['empty_zero'] = 0;
   $handler->display->display_options['fields']['field_gender']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['field_gender']['field_api_classes'] = 0;
-  
   /* Field: User: File Attachments */
   $handler->display->display_options['fields']['field_file_attachments']['id'] = 'field_file_attachments';
   $handler->display->display_options['fields']['field_file_attachments']['table'] = 'field_data_field_file_attachments';
@@ -768,7 +766,7 @@ Details';
     'fromto' => 'both',
     'multiple_number' => '',
     'multiple_from' => '',
-    'multiple_to' => '',
+    'multiple_to' => ''
   );
   /* Field: User: Signature */
   $handler->display->display_options['fields']['field_signature']['id'] = 'field_signature';
@@ -778,7 +776,7 @@ Details';
   $handler->display->display_options['fields']['field_signature']['click_sort_column'] = 'fid';
   $handler->display->display_options['fields']['field_signature']['settings'] = array(
     'image_style' => 'linkit_thumb',
-    'image_link' => '',
+    'image_link' => ''
   );
   /* Field: User: Notes */
   $handler->display->display_options['fields']['field_biography_notes']['id'] = 'field_biography_notes';
@@ -789,16 +787,15 @@ Details';
   $handler->display->display_options['fields']['field_biography_notes']['alter']['html'] = TRUE;
   $handler->display->display_options['fields']['field_biography_notes']['element_label_colon'] = FALSE;
   $handler->display->display_options['fields']['field_biography_notes']['settings'] = array(
-    'trim_length' => '100',
+    'trim_length' => '100'
   );
   /* Filter criterion: User: Make this profile public? (field_make_this_profile_public_) */
   $handler->display->display_options['filters']['field_make_this_profile_public__value']['id'] = 'field_make_this_profile_public__value';
   $handler->display->display_options['filters']['field_make_this_profile_public__value']['table'] = 'field_data_field_make_this_profile_public_';
   $handler->display->display_options['filters']['field_make_this_profile_public__value']['field'] = 'field_make_this_profile_public__value';
   $handler->display->display_options['filters']['field_make_this_profile_public__value']['value'] = array(
-    1 => '1',
+    1 => '1'
   );
-
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
   $handler->display->display_options['path'] = 'biographies';
@@ -808,6 +805,5 @@ Details';
   $handler->display->display_options['menu']['name'] = 'main-menu';
   $handler->display->display_options['menu']['context'] = 0;
   $export['biography'] = $view;
-
   return $export;
 }
