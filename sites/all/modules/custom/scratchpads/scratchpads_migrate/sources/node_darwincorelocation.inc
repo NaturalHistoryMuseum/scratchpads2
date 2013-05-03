@@ -103,6 +103,10 @@ class ScratchpadsNodeDarwincorelocationMigration extends ScratchpadsNodeMigratio
 
   public function prepareRow($row){
     parent::prepareRow($row);
+    // Allow for broken data
+    if ($row->coordinateuncertainty == 'NULL') {
+      $row->coordinateuncertainty = NULL;
+    }
     foreach($this->termMappings as $delta => $term_mapping){
       if(isset($row->{$delta})){
         if($row->{$delta} == 0){
