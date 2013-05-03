@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Contains the node RSS row style plugin.
@@ -27,7 +28,7 @@ class views_plugin_row_comment_view extends views_plugin_row {
 
   function option_definition() {
     $options = parent::option_definition();
-    $options['links'] = array('default' => TRUE);
+    $options['links'] = array('default' => TRUE, 'bool' => TRUE);
     $options['view_mode'] = array('default' => 'full');
     return $options;
   }

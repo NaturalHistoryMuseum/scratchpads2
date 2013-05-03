@@ -96,6 +96,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $this->fieldSuffixes['link'] = 'url';
     $this->fieldSuffixes['content_taxonomy'] = 'value';
     $this->fieldSuffixes['number_float'] = 'value';
+    $this->fieldSuffixes['taxonomy_term_reference'] = 'tid';
+    $this->fieldSuffixes['userreference'] = 'uid';
     $this->destination = new ScratchpadsMigrateDestinationNode($this->destinationType);
     $destination_fields = $this->destination->fields();
     $fields = $this->sourceFieldList();
@@ -230,6 +232,14 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
               // We don't care about the node type - just need to specify any node migration to use to create a stub
               $this->addFieldMapping($destination_field, $delta)->sourceMigration(array(
                 $sourceMigration
+              ));
+              break;
+            case 'noderelationships_backref':
+            case 'nodereferrer':
+              // These fields don't actually contain content, we don't want them migrated
+              $this->removeFieldMapping($delta);
+              $this->addUnmigratedSources(array(
+                $delta
               ));
               break;
             default:

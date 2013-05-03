@@ -116,6 +116,7 @@ class DateMigrateFieldHandler extends MigrateFieldHandler{
         $to = $from;
       }
       $from_timestamp = MigrationBase::timestamp($from);
+      $to_timestamp = NULL;
       if($to){
         $to_timestamp = MigrationBase::timestamp($to);
       }
@@ -126,7 +127,7 @@ class DateMigrateFieldHandler extends MigrateFieldHandler{
         $from .= '-00-00T00:00:00';
       }
       if(strlen($to_timestamp) == 4){
-        unset($to_timestamp);
+        $to_timestamp = NULL;
         $to .= '-00-00T00:00:00';
       }
       // What does the destination field expect?
@@ -151,7 +152,7 @@ class DateMigrateFieldHandler extends MigrateFieldHandler{
           }else{
             $from = str_replace(' ', 'T', $from);
           }
-          if(isset($to_timestamp) && $to_timestamp){
+          if($to_timestamp){
             $to = format_date($to_timestamp, 'custom', 'Y-m-d\TH:i:s', $timezone);
           }else{
             $to = str_replace(' ', 'T', $to);

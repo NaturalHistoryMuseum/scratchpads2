@@ -483,6 +483,7 @@ class EntityStructureWrapper extends EntityMetadataWrapper implements IteratorAg
 
       // If the setter has not thrown any exceptions, proceed and apply the
       // update to the current and any parent wrappers as necessary.
+      $data = $this->info['type'] == 'entity' ? $this : $data;
       $this->set($data);
 
       // Clear the cache of properties dependent on this value.
@@ -675,7 +676,10 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
 
     if ($this->bundle && isset($this->propertyInfo['bundles'][$this->bundle])) {
       $bundle_info = (array) $this->propertyInfo['bundles'][$this->bundle] + array('properties' => array());
-      $this->propertyInfo['properties'] += $bundle_info['properties'];
+      // Allow bundles to re-define existing properties, such that the bundle
+      // can add in more bundle-specific details like the bundle of a referenced
+      // entity.
+      $this->propertyInfo['properties'] = $bundle_info['properties'] + $this->propertyInfo['properties'];
     }
   }
 
@@ -724,11 +728,24 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
   }
 
   /**
+   * Returns the entity prepared for rendering.
+   *
+   * @see entity_view()
+   */
+  public function view($view_mode = 'full', $langcode = NULL, $page = NULL) {
+    return entity_view($this->type(), array($this->value()), $view_mode, $langcode, $page);
+  }
+
+  /**
    * Overridden to support setting the entity by either the object or the id.
    */
   public function set($value) {
     if (!$this->validate($value)) {
       throw new EntityMetadataWrapperException('Invalid data value given. Be sure it matches the required data type and format.');
+    }
+    if ($this->info['type'] == 'entity' && $value === $this) {
+      // Nothing to do.
+      return $this;
     }
     $previous_id = $this->id;
     $previous_type = $this->type;
@@ -780,7 +797,7 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
       try {
         $this->value(array('identifier' => TRUE));
       }
-      catch (EntityMetadataWrapper $e) {
+      catch (EntityMetadataWrapperException $e) {
         // If loading data fails, we cannot determine the concrete entity type.
       }
     }
@@ -800,6 +817,9 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
   /**
    * Permanently save the wrapped entity.
    *
+   * @throws EntityMetadataWrapperException
+   *   If the entity type does not support saving.
+   *
    * @return EntityDrupalWrapper
    */
   public function save() {
@@ -807,7 +827,7 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
       if (!entity_type_supports($this->type, 'save')) {
         throw new EntityMetadataWrapperException("There is no information about how to save entities of type " . check_plain($this->type) . '.');
       }
-      $return = entity_save($this->type, $this->data);
+      entity_save($this->type, $this->data);
       // On insert, update the identifier afterwards.
       if (!$this->id) {
         list($this->id, , ) = entity_extract_ids($this->type, $this->data);
@@ -1028,7 +1048,7 @@ class EntityListWrapper extends EntityMetadataWrapper implements IteratorAggrega
   }
 
   public function offsetExists($delta) {
-    return $this->dataAvailable() && ($data = $this->value()) && isset($data[$delta]);
+    return $this->dataAvailable() && ($data = $this->value()) && array_key_exists($delta, $data);
   }
 
   public function offsetSet($delta, $value) {
@@ -1120,11 +1140,11 @@ class EntityMetadataWrapperIterator implements RecursiveIterator {
     return isset($this->keys[$this->position]);
   }
 
-  public function hasChildren () {
+  public function hasChildren() {
     return $this->current() instanceof IteratorAggregate;
   }
 
-  public function getChildren () {
+  public function getChildren() {
     return $this->current()->getIterator();
   }
 }
@@ -1153,7 +1173,7 @@ class EntityMetadataArrayObject implements ArrayAccess, Countable, IteratorAggre
   }
 
   public function offsetExists($delta) {
-    return isset($this->data[$delta]);
+    return array_key_exists($delta, $this->data);
   }
 
   public function offsetSet($delta, $value) {

@@ -14,9 +14,8 @@ function theme_scratchpads_user_register_form($variables){
     <div>';
   $fields = $variables['form']['#fields'];
   uasort($fields, '_scratchpads_user_register_field_sort');
-  $field_names = array_keys($fields);
   // Add each field
-  foreach($field_names as $field_name){
+  foreach(array_keys($fields) as $field_name){
     $output .= drupal_render($variables['form'][$field_name]);
   }
   $output .= '

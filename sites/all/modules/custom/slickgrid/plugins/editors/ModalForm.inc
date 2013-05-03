@@ -22,7 +22,6 @@ $plugin = array(
   'form_id' => 'slickgrid_editor_form'
 ); // No specified field_types, so this plugin can be used for all fields
 
-
 /**
  * 
  * Retrieve form / process a modal form
@@ -41,12 +40,12 @@ function slickgrid_plugin_modal_form_process($editor){
   ));
   $form_state['ajax'] = true;
   // Pass the editor object into the form_state
-  $form_state['editor'] = $editor; 
+  $form_state['editor'] = $editor;
   $output = ctools_modal_form_wrapper($editor->plugin['form_id'], $form_state);
   if(!empty($form_state['executed'])){ // Form has succesfully completed  	
     // We're going to exit the process, so get editor result manually
     $result = $form_state['editor']->get_result();
-    slickgrid_callback_get_messages($result);
+    slickgrid_callback_add_messages($result);
     // Build a ctools ajax output array
     $output = array(
       array(
@@ -68,6 +67,3 @@ function slickgrid_plugin_modal_form_error($id, $error, $op){
     exit();
   }
 }
-
-
-

@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Definition of views_handler_field_field.
+ */
+
+/**
  * Helper function: Return an array of formatter options for a field type.
  *
  * Borrowed from field_ui.
@@ -28,18 +33,53 @@ function _field_view_formatter_options($field_type = NULL) {
 }
 
 /**
- * A field that displays fields.
+ * A field that displays fieldapi fields.
+ *
+ * @ingroup views_field_handlers
  */
 class views_handler_field_field extends views_handler_field {
   /**
    * An array to store field renderable arrays for use by render_items.
+   *
+   * @var array
    */
   public $items = array();
 
   /**
-   * Store the field informations.
+   * Store the field information.
+   *
+   * @var array
    */
   public $field_info = array();
+
+
+  /**
+   * Does the field supports multiple field values.
+   *
+   * @var bool
+   */
+  public $multiple;
+
+  /**
+   * Does the rendered fields get limited.
+   *
+   * @var bool
+   */
+  public $limit_values;
+
+  /**
+   * A shortcut for $view->base_table.
+   *
+   * @var string
+   */
+  public $base_table;
+
+  /**
+   * Store the field instance.
+   *
+   * @var array
+   */
+  public $instance;
 
   function init(&$view, &$options) {
     parent::init($view, $options);
@@ -68,10 +108,19 @@ class views_handler_field_field extends views_handler_field {
         $this->limit_values = TRUE;
       }
     }
+
+    // Convert old style entity id group column to new format.
+    // @todo Remove for next major version.
+    if ($this->options['group_column'] == 'entity id') {
+      $this->options['group_column'] = 'entity_id';
+    }
   }
 
   /**
-   * Return TRUE if the user has access to view this field.
+   * Check whether current user has access to this handler.
+   *
+   * @return bool
+   *   Return TRUE if the user has access to view this field.
    */
   function access() {
     $base_table = $this->get_base_table();
@@ -80,6 +129,9 @@ class views_handler_field_field extends views_handler_field {
 
   /**
    * Set the base_table and base_table_alias.
+   *
+   * @return string
+   *   The base table which is used in the current view "context".
    */
   function get_base_table() {
     if (!isset($this->base_table)) {
@@ -170,7 +222,7 @@ class views_handler_field_field extends views_handler_field {
         $options = array($this->options['group_column'] => $this->options['group_column']);
       }
 
-      $options += $this->options['group_columns'];
+      $options += is_array($this->options['group_columns']) ? $this->options['group_columns'] : array();
 
 
       $fields = array();
@@ -206,7 +258,8 @@ class views_handler_field_field extends views_handler_field {
                                 $this->view->display_handler->options['field_language']);
         $placeholder = $this->placeholder();
         $language_fallback_candidates = array($language);
-        if (variable_get('locale_field_language_fallback', TRUE) && module_exists('locale')) {
+        if (variable_get('locale_field_language_fallback', TRUE)) {
+          require_once DRUPAL_ROOT . '/includes/language.inc';
           $language_fallback_candidates = array_merge($language_fallback_candidates, language_fallback_get_candidates());
         }
         else {
@@ -312,6 +365,7 @@ class views_handler_field_field extends views_handler_field {
     // Options used for multiple value fields.
     $options['group_rows'] = array(
       'default' => TRUE,
+      'bool' => TRUE,
     );
     // If we know the exact number of allowed values, then that can be
     // the default. Otherwise, default to 'all'.
@@ -323,9 +377,11 @@ class views_handler_field_field extends views_handler_field {
     );
     $options['delta_reversed'] = array(
       'default' => FALSE,
+      'bool' => TRUE,
     );
     $options['delta_first_last'] = array(
       'default' => FALSE,
+      'bool' => TRUE,
     );
 
     $options['multi_type'] = array(
@@ -337,6 +393,7 @@ class views_handler_field_field extends views_handler_field {
 
     $options['field_api_classes'] = array(
       'default' => FALSE,
+      'bool' => TRUE,
     );
 
     return $options;
@@ -364,7 +421,7 @@ class views_handler_field_field extends views_handler_field {
     else {
       $form['click_sort_column'] = array(
         '#type' => 'select',
-        '#title' => t('Click sort column'),
+        '#title' => t('Column used for click sorting'),
         '#options' => drupal_map_assoc($column_names),
         '#default_value' => $this->options['click_sort_column'],
         '#description' => t('Used by Style: Table to determine the actual column to click sort the field on. The default is usually fine.'),
@@ -405,10 +462,10 @@ class views_handler_field_field extends views_handler_field {
 
     // Provide an instance array for hook_field_formatter_settings_form().
     ctools_include('fields');
-    $instance = ctools_fields_fake_field_instance($this->definition['field_name'], '_dummy', $formatter, $settings);
+    $this->instance = ctools_fields_fake_field_instance($this->definition['field_name'], '_custom', $formatter, $settings);
 
-    // Store the settings in a '_dummy' view mode.
-    $instance['display']['_dummy'] = array(
+    // Store the settings in a '_custom' view mode.
+    $this->instance['display']['_custom'] = array(
       'type' => $format,
       'settings' => $settings,
     );
@@ -417,7 +474,7 @@ class views_handler_field_field extends views_handler_field {
     $settings_form = array('#value' => array());
     $function = $formatter['module'] . '_field_formatter_settings_form';
     if (function_exists($function)) {
-      $settings_form = $function($field, $instance, '_dummy', $form, $form_state);
+      $settings_form = $function($field, $this->instance, '_custom', $form, $form_state);
     }
     $form['settings'] = $settings_form;
   }
@@ -574,7 +631,7 @@ class views_handler_field_field extends views_handler_field {
       $entities_by_type = array();
       $revisions_by_type = array();
       foreach ($values as $key => $object) {
-        if (isset($object->{$this->field_alias}) && !isset($values[$key]->_field_data[$this->field_alias])) {
+        if (isset($this->aliases['entity_type']) && isset($object->{$this->aliases['entity_type']}) && isset($object->{$this->field_alias}) && !isset($values[$key]->_field_data[$this->field_alias])) {
           $entity_type = $object->{$this->aliases['entity_type']};
           if (empty($this->definition['is revision'])) {
             $entity_id = $object->{$this->field_alias};
@@ -804,7 +861,7 @@ class views_handler_field_field extends views_handler_field {
       if (isset($render_array['#access'])) {
         $items[$count]['rendered']['#access'] = $render_array['#access'];
       }
-      // Only add the raw field items (for use in tokens) if the curent user
+      // Only add the raw field items (for use in tokens) if the current user
       // has access to view the field content.
       if ((!isset($items[$count]['rendered']['#access']) || $items[$count]['rendered']['#access']) && !empty($render_array['#items'][$count])) {
         $items[$count]['raw'] = $render_array['#items'][$count];

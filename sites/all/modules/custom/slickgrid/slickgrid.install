@@ -88,3 +88,10 @@ function slickgrid_schema(){
   );
   return $schema;
 }
+
+/**
+ * Set the jQuery update settings.
+ */
+function slickgrid_update_7200(){
+  variable_set('jquery_update_jquery_version', '1.8');
+}

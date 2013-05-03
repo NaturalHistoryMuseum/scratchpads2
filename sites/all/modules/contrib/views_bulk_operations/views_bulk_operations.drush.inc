@@ -115,6 +115,82 @@ function views_bulk_operations_drush_execute($vid = NULL, $operation_id = NULL) 
   $user = user_load(1);
   drupal_save_session(FALSE);
 
-  // Execute the VBO.
-  views_bulk_operations_execute($vid, $operation_id, $operation_arguments, $view_exposed_input, $view_arguments);
+  // Load the view.
+  $view = views_get_view($vid);
+  if (!is_object($view)) {
+    _views_bulk_operations_report_error('Could not find view %vid.', array('%vid' => $vid));
+    return;
+  }
+
+  // Build the view, so that the VBO field can be found.
+  $view->set_exposed_input($view_exposed_input);
+  $view->set_arguments($view_arguments);
+  $view->build();
+  $view->query->set_limit(NULL); // reset the work done by the pager
+  $view->query->set_offset(NULL);
+
+  // Find the VBO field.
+  $vbo = _views_bulk_operations_get_field($view);
+  if (!$vbo) {
+    _views_bulk_operations_report_error('Could not find a VBO field in view %vid.', array('%vid' => $vid));
+    return;
+  }
+
+  $view->execute();
+
+  // Find the selected operation.
+  $operations = $vbo->get_selected_operations();
+  if (!isset($operations[$operation_id])) {
+    _views_bulk_operations_report_error('Could not find operation %operation_id in view %vid.', array('%operation_id' => $operation_id, '%vid' => $vid));
+    return;
+  }
+  $operation = views_bulk_operations_get_operation($operation_id, $vbo->get_entity_type(), $vbo->get_operation_options($operation_id));
+  if ($operation_arguments) {
+    $operation->formOptions = $operation_arguments;
+  }
+
+  // Select all rows.
+  $rows = array();
+  $current = 1;
+  foreach ($view->result as $row_index => $result) {
+    $rows[$row_index] = array(
+      'entity_id' => $vbo->get_value($result),
+      'views_row' => array(),
+      'position' => array(
+        'current' => $current++,
+        'total' => $view->total_rows,
+      ),
+    );
+    // Some operations require full selected rows.
+    if ($operation->needsRows()) {
+      $rows[$row_index]['views_row'] = $result;
+    }
+  }
+
+  // Enqueue the fetched rows.
+  $queue_name = 'views_bulk_operations_active_queue_' . db_next_id();
+  $options = array(
+    'revision' => $vbo->revision,
+    'entity_load_capacity' => $vbo->get_vbo_option('entity_load_capacity', 10),
+  );
+  views_bulk_operations_enqueue_rows($queue_name, $rows, $operation, $options);
+
+  // Process the queue using Batch API.
+  $batch = array(
+    'file' => drupal_get_path('module', 'views_bulk_operations') . '/views_bulk_operations.module',
+    'operations' => array(
+      array('views_bulk_operations_active_queue_process', array($queue_name, $operation, $vbo->view->total_rows)),
+    ),
+    'finished' => '_views_bulk_operations_execute_finished',
+    'title' => t('Performing %operation on the selected items...', array('%operation' => $operation->label())),
+  );
+  batch_set($batch);
+  drush_backend_batch_process();
+
+  // Looks like drush has no way to show messages set in subprocesses,
+  // so all batch messages get lost. Setting a success message manually here.
+  drush_log(dt('Performed "!operation" on @items.', array(
+      '!operation' => $operation->label(),
+      '@items' => format_plural($vbo->view->total_rows, '1 item', '@count items'),
+    )), 'ok');
 }

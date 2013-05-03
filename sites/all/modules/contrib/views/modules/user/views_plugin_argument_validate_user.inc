@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Definition of views_plugin_argument_validate_user.
+ */
+
+/**
  * Validate whether an argument is a valid user.
  *
  * This supports either numeric arguments (UID) or strings (username) and
@@ -11,7 +16,7 @@ class views_plugin_argument_validate_user extends views_plugin_argument_validate
   function option_definition() {
     $options = parent::option_definition();
     $options['type'] = array('default' => 'uid');
-    $options['restrict_roles'] = array('default' => FALSE);
+    $options['restrict_roles'] = array('default' => FALSE, 'bool' => TRUE);
     $options['roles'] = array('default' => array());
 
     return $options;
@@ -117,7 +122,7 @@ class views_plugin_argument_validate_user extends views_plugin_argument_validate
     }
 
     $this->argument->argument = $account->uid;
-    $this->argument->validated_title = isset($account->name) ? check_plain($account->name) : check_plain(variable_get('anonymous', t('Anonymous')));
+    $this->argument->validated_title = check_plain(format_username($account));
     return TRUE;
   }
 

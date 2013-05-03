@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Definition of views_handler_field_machine_name.
+ */
+
+/**
  * Field handler whichs allows to show machine name content as human name.
  * @ingroup views_field_handlers
  *
@@ -34,7 +39,7 @@ class views_handler_field_machine_name extends views_handler_field {
 
   function option_definition() {
     $options = parent::option_definition();
-    $options['machine_name'] = array('default' => FALSE);
+    $options['machine_name'] = array('default' => FALSE, 'bool' => TRUE);
 
     return $options;
   }

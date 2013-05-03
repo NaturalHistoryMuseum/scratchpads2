@@ -1,7 +1,13 @@
 <?php
 
 /**
- * @defgroup views_argument_handlers Handlers for arguments
+ * @file
+ * @todo.
+ */
+
+/**
+ * @defgroup views_argument_handlers Views argument handlers
+ * Handlers to tell Views how to contextually filter queries.
  * @{
  */
 
@@ -78,6 +84,9 @@ class views_handler_argument extends views_handler {
     if (!isset($options['summary']['format']) && !empty($options['style_plugin'])) {
       $this->options['summary']['format'] = $options['style_plugin'];
     }
+
+    // Setup default value.
+    $options['style_options'] = isset($options['style_options']) ? $options['style_options'] : array();
 
     if (!isset($options['summary']['sort_order']) && !empty($options['default_action']) && $options['default_action'] == 'summary asc') {
       $this->options['default_action'] = 'summary';
@@ -173,17 +182,17 @@ class views_handler_argument extends views_handler {
     $options['exception'] = array(
       'contains' => array(
         'value' => array('default' => 'all'),
-        'title_enable' => array('default' => 0),
-        'title' => array('default' => t('All'), 'translatable' => TRUE),
+        'title_enable' => array('default' => FALSE, 'bool' => TRUE),
+        'title' => array('default' => 'All', 'translatable' => TRUE),
       ),
     );
-    $options['title_enable'] = array('default' => 0);
+    $options['title_enable'] = array('default' => FALSE, 'bool' => TRUE);
     $options['title'] = array('default' => '', 'translatable' => TRUE);
-    $options['breadcrumb_enable'] = array('default' => 0);
+    $options['breadcrumb_enable'] = array('default' => FALSE, 'bool' => TRUE);
     $options['breadcrumb'] = array('default' => '', 'translatable' => TRUE);
     $options['default_argument_type'] = array('default' => 'fixed', 'export' => 'export_plugin');
     $options['default_argument_options'] = array('default' => array(), 'export' => FALSE);
-    $options['default_argument_skip_url'] = array('default' => FALSE);
+    $options['default_argument_skip_url'] = array('default' => FALSE, 'bool' => TRUE);
     $options['summary_options'] = array('default' => array(), 'export' => FALSE);
     $options['summary'] = array(
       'contains' => array(
@@ -192,7 +201,7 @@ class views_handler_argument extends views_handler {
         'format' => array('default' => 'default_summary', 'export' => 'export_summary'),
       ),
     );
-    $options['specify_validation'] = array('default' => 0);
+    $options['specify_validation'] = array('default' => FALSE, 'bool' => TRUE);
     $options['validate'] = array(
       'contains' => array(
         'type' => array('default' => 'none', 'export' => 'export_validation'),
@@ -371,6 +380,7 @@ class views_handler_argument extends views_handler {
               '#prefix' => '<div id="edit-options-validate-options-' . $id . '-wrapper">',
               '#suffix' => '</div>',
               '#type' => 'item',
+              // Even if the plugin has no options add the key to the form_state.
               '#input' => TRUE, // trick it into checking input to make #process run
               '#dependency' => array(
                 'edit-options-specify-validation' => array('1'),
@@ -507,6 +517,11 @@ class views_handler_argument extends views_handler {
         'method' => 'default_empty',
         'breadcrumb' => TRUE, // generate a breadcrumb to here
       ),
+      'access denied' => array(
+        'title' => t('Display "Access Denied"'),
+        'method' => 'default_access_denied',
+        'breadcrumb' => FALSE, // generate a breadcrumb to here
+      ),
     );
 
     if ($this->view->display_handler->has_path()) {
@@ -565,6 +580,8 @@ class views_handler_argument extends views_handler {
             '#suffix' => '</div>',
             '#id' => 'edit-options-argument-default-options-' . $id,
             '#type' => 'item',
+            // Even if the plugin has no options add the key to the form_state.
+            '#input' => TRUE,
             '#dependency' => array(
               'radio:options[default_action]' => array('default'),
               'edit-options-default-argument-type' => array($id)
@@ -703,6 +720,17 @@ class views_handler_argument extends views_handler {
   function default_not_found() {
     // Set a failure condition and let the display manager handle it.
     $this->view->build_info['fail'] = TRUE;
+    return FALSE;
+  }
+
+  /**
+   * Default action: access denied.
+   *
+   * If an argument was expected and was not given, in this case, report
+   * the view as 'access denied'.
+   */
+  function default_access_denied() {
+    $this->view->build_info['denied'] = TRUE;
     return FALSE;
   }
 

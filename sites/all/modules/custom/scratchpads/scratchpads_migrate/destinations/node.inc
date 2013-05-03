@@ -99,6 +99,7 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
     //
     // Updating previously-migrated content? Or creating actual content for stub nodes.
     $migration = Migration::currentMigration();
+    $node_replace_stub = FALSE;
     if(isset($row->migrate_map_destid1)){
       // Make sure is_new is off
       $node->is_new = FALSE;
@@ -128,9 +129,17 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
     }else{
       // Do we already have this node? IF we do save a revision of it
       if($original = entity_load_unchanged('node', $node->nid)){
-        unset($node->is_new);
-        $node->revision = 1;
-        $node->revision_uid = $node->uid;
+        $is_stub = preg_match('/^Stub for \d+$/', trim($original->title));
+        $is_stub = $is_stub || ($original->title == '[node:field-institution-code] - [node:field-collection-code] - [node:field-catalogue-number]');
+        if ($is_stub) {
+          unset($node->is_new);
+          unset($node->revision);
+          $node_replace_stub = TRUE;
+        } else {
+          unset($node->is_new);
+          $node->revision = 1;
+          $node->revision_uid = $node->uid;
+        }
       }
     }
     // The rest of this function is a direct copy of MigrateDestinationNode:import()
@@ -207,7 +216,7 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
     }else{
       $updating = FALSE;
     }
-    if(isset($row->migrate_map_destid1)){
+    if($node_replace_stub || isset($row->migrate_map_destid1)){
       // And we don't want to create a revision if we're just updating a stub
       unset($node->revision);
     }

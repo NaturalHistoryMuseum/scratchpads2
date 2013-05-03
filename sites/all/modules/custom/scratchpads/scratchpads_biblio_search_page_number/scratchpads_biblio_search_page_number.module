@@ -29,7 +29,7 @@ function scratchpads_biblio_search_page_number_theme(){
  */
 function scratchpads_biblio_search_page_number_apache_solr_default_sorts_alter(&$default_sorts){
   $default_sorts = array_merge(array(
-    'iss_biblio_section' => array(
+    'fss_biblio_section' => array(
       'title' => t('Section'),
       'default' => 'asc'
     )
@@ -45,11 +45,11 @@ function scratchpads_biblio_search_page_number_apache_solr_sortstring_alter(&$so
     if(isset($_GET['order'])){
       switch($_GET['order']){
         case t('Page'):
-          $sortstring = 'iss_biblio_section ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
+          $sortstring = 'fss_biblio_section ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
           break;
       }
     }else{
-      $sortstring = 'iss_biblio_section asc';
+      $sortstring = 'fss_biblio_section asc';
     }
   }
 }

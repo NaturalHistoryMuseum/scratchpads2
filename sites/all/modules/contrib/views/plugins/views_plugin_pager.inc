@@ -1,9 +1,20 @@
 <?php
 
 /**
- * The base plugin to handle pager.
+ * @file
+ * Definition of views_plugin_pager.
+ */
+
+/**
+ * @defgroup views_pager_plugins Views pager plugins
+ * @{
+ * @todo.
  *
- * @ingroup views_pager_plugins
+ * @see hook_views_plugins()
+ */
+
+/**
+ * The base plugin to handle pager.
  */
 class views_plugin_pager extends views_plugin {
   var $current_page = NULL;
@@ -219,3 +230,7 @@ class views_plugin_pager extends views_plugin {
     return FALSE;
   }
 }
+
+/**
+ * @}
+ */

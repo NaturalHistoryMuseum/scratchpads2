@@ -55,7 +55,7 @@ function scratchpads_lexicon_form_lexicon_general_settings_form_alter(&$form, &$
   $form['mark_terms']['lexicon_mark_terms']['#default_value'] = variable_get('lexicon_mark_terms', 1);
   unset($form['mark_terms']['#description']);
   // Try to encourage the "Left substring" match type.
-  $form['mark_terms']['match']['lexicon_match']['#default_value'] = 'l';
+  $form['mark_terms']['match']['lexicon_match']['#default_value'] = 'b';
   // Always case insensitive.
   $form['mark_terms']['match']['lexicon_case'] = $off;
   // Always case insensitive.
