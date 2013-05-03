@@ -1,0 +1,10 @@
+<?php
+/*
+ * Implements hook_disable
+ */
+function scratchpads_biography_disable(){
+  
+  drupal_set_message('The biography module has been disabled. Please note that if you wish to remove the biography fields, this needs to be done manually.');
+  
+}
+

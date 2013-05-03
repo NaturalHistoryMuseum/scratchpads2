@@ -1,0 +1,813 @@
+<?php
+/**
+ * @file
+ * scratchpads_biography.views_default.inc
+ */
+
+/**
+ * Implements hook_views_default_views().
+ */
+function scratchpads_biography_views_default_views() {
+  $export = array();
+
+  $view = new view;
+  $view->name = 'biography';
+  $view->description = '';
+  $view->tag = 'default';
+  $view->base_table = 'users';
+  $view->human_name = 'Biography';
+  $view->core = 7;
+  $view->api_version = '3.0';
+  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+  /* Display: Master */
+  $handler = $view->new_display('default', 'Master', 'default');
+  $handler->display->display_options['title'] = 'Biographies';
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['access']['perm'] = 'access user profiles';
+  $handler->display->display_options['cache']['type'] = 'none';
+  $handler->display->display_options['query']['type'] = 'views_query';
+  $handler->display->display_options['query']['options']['query_comment'] = FALSE;
+  $handler->display->display_options['exposed_form']['type'] = 'basic';
+  $handler->display->display_options['exposed_form']['options']['autosubmit'] = 0;
+  $handler->display->display_options['exposed_form']['options']['autosubmit_hide'] = 1;
+  $handler->display->display_options['pager']['type'] = 'full';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '10';
+  $handler->display->display_options['style_plugin'] = 'slickgrid';
+  $handler->display->display_options['style_options']['columns'] = array(
+    'view_user' => array(
+      'tab' => 'Overview',
+      'width' => '100',
+      'filter' => '',
+    ),
+    'field_user_title' => array(
+      'tab' => 'Overview',
+      'width' => '100',
+      'sortable' => 0,
+      'filter' => '',
+      'editor' => '',
+    ),
+    'field_user_given_names' => array(
+      'tab' => 'Overview',
+      'width' => '100',
+      'sortable' => 1,
+      'filter' => 'textFilter',
+      'editor' => '',
+      'validator' => '',
+    ),
+    'field_user_family_name' => array(
+      'tab' => 'Overview',
+      'width' => '100',
+      'sortable' => 1,
+      'filter' => 'textFilter',
+      'editor' => '',
+      'validator' => '',
+    ),
+    'field_born_date_' => array(
+      'tab' => 'Born',
+      'width' => '100',
+      'sortable' => 1,
+      'filter' => 'textFilter',
+      'editor' => '',
+    ),
+    'field_born_country_' => array(
+      'tab' => 'Born',
+      'width' => '100',
+      'sortable' => 1,
+      'filter' => 'textFilter',
+      'editor' => '',
+    ),
+    'field_born_island_' => array(
+      'tab' => 'Born',
+      'width' => '100',
+      'sortable' => 0,
+      'filter' => '',
+      'editor' => '',
+      'validator' => '',
+    ),
+    'field_born_island_group_' => array(
+      'tab' => 'Born',
+      'width' => '100',
+      'sortable' => 0,
+      'filter' => '',
+      'editor' => '',
+      'validator' => '',
+    ),
+    'field_born_state_province_' => array(
+      'tab' => 'Born',
+      'width' => '100',
+      'sortable' => 0,
+      'filter' => '',
+      'editor' => '',
+      'validator' => '',
+    ),
+    'field_born_county' => array(
+      'tab' => 'Born',
+      'width' => '100',
+      'sortable' => 1,
+      'filter' => 'textFilter',
+      'editor' => '',
+      'validator' => '',
+    ),
+    'field_born_locality_' => array(
+      'tab' => 'Born',
+      'width' => '100',
+      'sortable' => 0,
+      'filter' => '',
+      'editor' => '',
+      'validator' => '',
+    ),
+    'field_died_date_' => array(
+      'tab' => 'Died',
+      'width' => '100',
+      'sortable' => 1,
+      'filter' => 'textFilter',
+      'editor' => '',
+    ),
+    'field_died_country_' => array(
+      'tab' => 'Died',
+      'width' => '100',
+      'sortable' => 1,
+      'filter' => 'textFilter',
+      'editor' => '',
+    ),
+    'field_died_island_' => array(
+      'tab' => 'Died',
+      'width' => '100',
+      'sortable' => 0,
+      'filter' => '',
+      'editor' => '',
+      'validator' => '',
+    ),
+    'field_died_island_group_' => array(
+      'tab' => 'Died',
+      'width' => '100',
+      'sortable' => 0,
+      'filter' => '',
+      'editor' => '',
+      'validator' => '',
+    ),
+    'field_died_county_' => array(
+      'tab' => 'Died',
+      'width' => '100',
+      'sortable' => 0,
+      'filter' => '',
+      'editor' => '',
+      'validator' => '',
+    ),
+    'field_died_state_province_' => array(
+      'tab' => 'Died',
+      'width' => '100',
+      'sortable' => 0,
+      'filter' => '',
+      'editor' => '',
+      'validator' => '',
+    ),
+    'field_died_locality_' => array(
+      'tab' => 'Died',
+      'width' => '100',
+      'sortable' => 0,
+      'filter' => '',
+      'editor' => '',
+      'validator' => '',
+    ),
+    'field_gender' => array(
+      'tab' => 'Overview',
+      'width' => '100',
+      'sortable' => 1,
+      'filter' => 'textFilter',
+      'editor' => '',
+    ),
+    'field_file_attachments' => array(
+      'tab' => 'Details',
+      'width' => '100',
+      'sortable' => 0,
+      'filter' => '',
+      'editor' => '',
+      ),
+      'picture' => array(
+        'tab' => 'Overview',
+        'width' => '100',
+        'sortable' => 0,
+        'filter' => '',
+      ),
+      'field_date_active' => array(
+        'tab' => 'Details',
+        'width' => '100',
+        'sortable' => 0,
+        'filter' => '',
+        'editor' => '',
+      ),
+      'field_signature' => array(
+        'tab' => 'Details',
+        'width' => '100',
+        'sortable' => 0,
+        'filter' => '',
+        'editor' => '',
+      ),
+      'field_biography_notes' => array(
+        'tab' => 'Details',
+        'width' => '100',
+        'sortable' => 0,
+        'filter' => '',
+        'editor' => '',
+        'validator' => '',
+      ),
+      'field_user_institution' => array(
+      'tab' => 'Overview',
+      'width' => '100',
+      'sortable' => 0,
+      'filter' => '',
+      'editor' => '',
+        'validator' => '',
+    ),
+  );
+  $handler->display->display_options['style_options']['grouping_field'] = '';
+  $handler->display->display_options['style_options']['collapse_groups_by_default'] = 0;
+  $handler->display->display_options['style_options']['tabs'] = 'Overview
+Born
+Died
+Details';
+  $handler->display->display_options['style_options']['default_active_tab'] = '';
+  $handler->display->display_options['style_options']['enableColumnResize'] = 1;
+  $handler->display->display_options['style_options']['enableColumnReorder'] = 1;
+  $handler->display->display_options['style_options']['select_columns'] = 1;
+  $handler->display->display_options['style_options']['asyncEditorLoading'] = 1;
+  $handler->display->display_options['style_options']['forceFitColumns'] = 1;
+  $handler->display->display_options['style_options']['pager'] = 0;
+  $handler->display->display_options['style_options']['headerHeight'] = '42';
+  $handler->display->display_options['style_options']['viewport_height'] = '500';
+  $handler->display->display_options['style_options']['height_expand'] = 1;
+  $handler->display->display_options['style_options']['rowHeight'] = '30';
+  $handler->display->display_options['style_options']['row_selection_checkbox'] = 0;
+  $handler->display->display_options['style_options']['multi_edit'] = 0;
+  $handler->display->display_options['style_options']['delete'] = 0;
+  $handler->display->display_options['style_options']['clone'] = 0;
+  $handler->display->display_options['style_options']['export_selected_rows'] = 0;
+  $handler->display->display_options['style_options']['add'] = array();
+  $handler->display->display_options['style_options']['autoEdit'] = 0;
+  /* No results behavior: Global: Text area */
+  $handler->display->display_options['empty']['area']['id'] = 'area';
+  $handler->display->display_options['empty']['area']['table'] = 'views';
+  $handler->display->display_options['empty']['area']['field'] = 'area';
+  $handler->display->display_options['empty']['area']['empty'] = FALSE;
+  $handler->display->display_options['empty']['area']['content'] = 'There are currently no recorded biographies.';
+  $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
+  $handler->display->display_options['empty']['area']['tokenize'] = 0;
+  /* Field: User: Link */
+  $handler->display->display_options['fields']['view_user']['id'] = 'view_user';
+  $handler->display->display_options['fields']['view_user']['table'] = 'users';
+  $handler->display->display_options['fields']['view_user']['field'] = 'view_user';
+  $handler->display->display_options['fields']['view_user']['label'] = '';
+  $handler->display->display_options['fields']['view_user']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['view_user']['text'] = 'View Person';
+  /* Field: User: Title */
+  $handler->display->display_options['fields']['field_user_title']['id'] = 'field_user_title';
+  $handler->display->display_options['fields']['field_user_title']['table'] = 'field_data_field_user_title';
+  $handler->display->display_options['fields']['field_user_title']['field'] = 'field_user_title';
+  $handler->display->display_options['fields']['field_user_title']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_user_title']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_user_title']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_user_title']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_user_title']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_user_title']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_user_title']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_user_title']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_user_title']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_user_title']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_user_title']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_user_title']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_user_title']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_user_title']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_user_title']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_user_title']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_user_title']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_user_title']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_user_title']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_user_title']['field_api_classes'] = 0;
+  /* Field: User: Other/given name(s)  */
+  $handler->display->display_options['fields']['field_user_given_names']['id'] = 'field_user_given_names';
+  $handler->display->display_options['fields']['field_user_given_names']['table'] = 'field_data_field_user_given_names';
+  $handler->display->display_options['fields']['field_user_given_names']['field'] = 'field_user_given_names';
+  $handler->display->display_options['fields']['field_user_given_names']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_user_given_names']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_user_given_names']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_user_given_names']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_user_given_names']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_user_given_names']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_user_given_names']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_user_given_names']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_user_given_names']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_user_given_names']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_user_given_names']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_user_given_names']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_user_given_names']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_user_given_names']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_user_given_names']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_user_given_names']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_user_given_names']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['field_user_given_names']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_user_given_names']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_user_given_names']['field_api_classes'] = 0;
+  /* Field: User: Family name */
+  $handler->display->display_options['fields']['field_user_family_name']['id'] = 'field_user_family_name';
+  $handler->display->display_options['fields']['field_user_family_name']['table'] = 'field_data_field_user_family_name';
+  $handler->display->display_options['fields']['field_user_family_name']['field'] = 'field_user_family_name';
+  $handler->display->display_options['fields']['field_user_family_name']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_user_family_name']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_user_family_name']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_user_family_name']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_user_family_name']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_user_family_name']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_user_family_name']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_user_family_name']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_user_family_name']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_user_family_name']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_user_family_name']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_user_family_name']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_user_family_name']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_user_family_name']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_user_family_name']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_user_family_name']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_user_family_name']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['field_user_family_name']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_user_family_name']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_user_family_name']['field_api_classes'] = 0;
+  /* Field: User: Born (Date) */
+  $handler->display->display_options['fields']['field_born_date_']['id'] = 'field_born_date_';
+  $handler->display->display_options['fields']['field_born_date_']['table'] = 'field_data_field_born_date_';
+  $handler->display->display_options['fields']['field_born_date_']['field'] = 'field_born_date_';
+  $handler->display->display_options['fields']['field_born_date_']['label'] = 'Date';
+  $handler->display->display_options['fields']['field_born_date_']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_born_date_']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_born_date_']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_born_date_']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_born_date_']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_born_date_']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_born_date_']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_born_date_']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_born_date_']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_born_date_']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_born_date_']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_born_date_']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_born_date_']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_born_date_']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_born_date_']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_born_date_']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_born_date_']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_born_date_']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_born_date_']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_born_date_']['settings'] = array(
+    'format_type' => 'short',
+    'fromto' => 'both',
+    'multiple_number' => '',
+    'multiple_from' => '',
+    'multiple_to' => '',
+  );
+  $handler->display->display_options['fields']['field_born_date_']['field_api_classes'] = 0;
+  /* Field: Born:Country */
+  $handler->display->display_options['fields']['field_born_country_']['id'] = 'field_born_country_';
+  $handler->display->display_options['fields']['field_born_country_']['table'] = 'field_data_field_born_country_';
+  $handler->display->display_options['fields']['field_born_country_']['field'] = 'field_born_country_';
+  $handler->display->display_options['fields']['field_born_country_']['ui_name'] = 'Born:Country';
+  $handler->display->display_options['fields']['field_born_country_']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_born_country_']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_born_country_']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_born_country_']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_born_country_']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_born_country_']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_born_country_']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_born_country_']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_born_country_']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_born_country_']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_born_country_']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_born_country_']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_born_country_']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_born_country_']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_born_country_']['element_label_colon'] = 0;
+  $handler->display->display_options['fields']['field_born_country_']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_born_country_']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_born_country_']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_born_country_']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_born_country_']['field_api_classes'] = 0;
+  /* Field: Born: Island */
+  $handler->display->display_options['fields']['field_born_island_']['id'] = 'field_born_island_';
+  $handler->display->display_options['fields']['field_born_island_']['table'] = 'field_data_field_born_island_';
+  $handler->display->display_options['fields']['field_born_island_']['field'] = 'field_born_island_';
+  $handler->display->display_options['fields']['field_born_island_']['ui_name'] = 'Born: Island';
+  $handler->display->display_options['fields']['field_born_island_']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_born_island_']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_born_island_']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_born_island_']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_born_island_']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_born_island_']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_born_island_']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_born_island_']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_born_island_']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_born_island_']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_born_island_']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_born_island_']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_born_island_']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_born_island_']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_born_island_']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_born_island_']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_born_island_']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_born_island_']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_born_island_']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_born_island_']['field_api_classes'] = 0;
+  /* Field: Born: Island Group */
+  $handler->display->display_options['fields']['field_born_island_group_']['id'] = 'field_born_island_group_';
+  $handler->display->display_options['fields']['field_born_island_group_']['table'] = 'field_data_field_born_island_group_';
+  $handler->display->display_options['fields']['field_born_island_group_']['field'] = 'field_born_island_group_';
+  $handler->display->display_options['fields']['field_born_island_group_']['ui_name'] = 'Born: Island Group';
+  $handler->display->display_options['fields']['field_born_island_group_']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_born_island_group_']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_born_island_group_']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_born_island_group_']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_born_island_group_']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_born_island_group_']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_born_island_group_']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_born_island_group_']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_born_island_group_']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_born_island_group_']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_born_island_group_']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_born_island_group_']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_born_island_group_']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_born_island_group_']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_born_island_group_']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_born_island_group_']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_born_island_group_']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_born_island_group_']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_born_island_group_']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_born_island_group_']['field_api_classes'] = 0;
+  /* Field: Born: State/Province */
+  $handler->display->display_options['fields']['field_born_state_province_']['id'] = 'field_born_state_province_';
+  $handler->display->display_options['fields']['field_born_state_province_']['table'] = 'field_data_field_born_state_province_';
+  $handler->display->display_options['fields']['field_born_state_province_']['field'] = 'field_born_state_province_';
+  $handler->display->display_options['fields']['field_born_state_province_']['ui_name'] = 'Born: State/Province';
+  $handler->display->display_options['fields']['field_born_state_province_']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_born_state_province_']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_born_state_province_']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_born_state_province_']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_born_state_province_']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_born_state_province_']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_born_state_province_']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_born_state_province_']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_born_state_province_']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_born_state_province_']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_born_state_province_']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_born_state_province_']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_born_state_province_']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_born_state_province_']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_born_state_province_']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_born_state_province_']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_born_state_province_']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_born_state_province_']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_born_state_province_']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_born_state_province_']['field_api_classes'] = 0;
+  /* Field: Born:County */
+  $handler->display->display_options['fields']['field_born_county']['id'] = 'field_born_county';
+  $handler->display->display_options['fields']['field_born_county']['table'] = 'field_data_field_born_county';
+  $handler->display->display_options['fields']['field_born_county']['field'] = 'field_born_county';
+  $handler->display->display_options['fields']['field_born_county']['ui_name'] = 'Born:County';
+  $handler->display->display_options['fields']['field_born_county']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_born_county']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_born_county']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_born_county']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_born_county']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_born_county']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_born_county']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_born_county']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_born_county']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_born_county']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_born_county']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_born_county']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_born_county']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_born_county']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_born_county']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_born_county']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_born_county']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_born_county']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_born_county']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_born_county']['field_api_classes'] = 0;
+  /* Field: Born: Locality */
+  $handler->display->display_options['fields']['field_born_locality_']['id'] = 'field_born_locality_';
+  $handler->display->display_options['fields']['field_born_locality_']['table'] = 'field_data_field_born_locality_';
+  $handler->display->display_options['fields']['field_born_locality_']['field'] = 'field_born_locality_';
+  $handler->display->display_options['fields']['field_born_locality_']['ui_name'] = 'Born: Locality';
+  $handler->display->display_options['fields']['field_born_locality_']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_born_locality_']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_born_locality_']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_born_locality_']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_born_locality_']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_born_locality_']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_born_locality_']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_born_locality_']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_born_locality_']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_born_locality_']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_born_locality_']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_born_locality_']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_born_locality_']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_born_locality_']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_born_locality_']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_born_locality_']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_born_locality_']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_born_locality_']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_born_locality_']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_born_locality_']['field_api_classes'] = 0;
+  /* Field: User: Died (Date) */
+  $handler->display->display_options['fields']['field_died_date_']['id'] = 'field_died_date_';
+  $handler->display->display_options['fields']['field_died_date_']['table'] = 'field_data_field_died_date_';
+  $handler->display->display_options['fields']['field_died_date_']['field'] = 'field_died_date_';
+  $handler->display->display_options['fields']['field_died_date_']['label'] = 'Date';
+  $handler->display->display_options['fields']['field_died_date_']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_died_date_']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_died_date_']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_died_date_']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_died_date_']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_died_date_']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_died_date_']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_died_date_']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_died_date_']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_died_date_']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_died_date_']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_died_date_']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_died_date_']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_died_date_']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_died_date_']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_died_date_']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_died_date_']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_died_date_']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_died_date_']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_died_date_']['settings'] = array(
+    'format_type' => 'short',
+    'fromto' => 'both',
+    'multiple_number' => '',
+    'multiple_from' => '',
+    'multiple_to' => '',
+  );
+  $handler->display->display_options['fields']['field_died_date_']['field_api_classes'] = 0;
+  /* Field: Died: Country */
+  $handler->display->display_options['fields']['field_died_country_']['id'] = 'field_died_country_';
+  $handler->display->display_options['fields']['field_died_country_']['table'] = 'field_data_field_died_country_';
+  $handler->display->display_options['fields']['field_died_country_']['field'] = 'field_died_country_';
+  $handler->display->display_options['fields']['field_died_country_']['ui_name'] = 'Died: Country';
+  $handler->display->display_options['fields']['field_died_country_']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_died_country_']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_died_country_']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_died_country_']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_died_country_']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_died_country_']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_died_country_']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_died_country_']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_died_country_']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_died_country_']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_died_country_']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_died_country_']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_died_country_']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_died_country_']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_died_country_']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_died_country_']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_died_country_']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_died_country_']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_died_country_']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_died_country_']['field_api_classes'] = 0;
+  /* Field: Died: Island */
+  $handler->display->display_options['fields']['field_died_island_']['id'] = 'field_died_island_';
+  $handler->display->display_options['fields']['field_died_island_']['table'] = 'field_data_field_died_island_';
+  $handler->display->display_options['fields']['field_died_island_']['field'] = 'field_died_island_';
+  $handler->display->display_options['fields']['field_died_island_']['ui_name'] = 'Died: Island';
+  $handler->display->display_options['fields']['field_died_island_']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_died_island_']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_died_island_']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_died_island_']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_died_island_']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_died_island_']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_died_island_']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_died_island_']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_died_island_']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_died_island_']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_died_island_']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_died_island_']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_died_island_']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_died_island_']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_died_island_']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_died_island_']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_died_island_']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_died_island_']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_died_island_']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_died_island_']['field_api_classes'] = 0;
+  /* Field: Died: Island Group */
+  $handler->display->display_options['fields']['field_died_island_group_']['id'] = 'field_died_island_group_';
+  $handler->display->display_options['fields']['field_died_island_group_']['table'] = 'field_data_field_died_island_group_';
+  $handler->display->display_options['fields']['field_died_island_group_']['field'] = 'field_died_island_group_';
+  $handler->display->display_options['fields']['field_died_island_group_']['ui_name'] = 'Died: Island Group';
+  $handler->display->display_options['fields']['field_died_island_group_']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_died_island_group_']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_died_island_group_']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_died_island_group_']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_died_island_group_']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_died_island_group_']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_died_island_group_']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_died_island_group_']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_died_island_group_']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_died_island_group_']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_died_island_group_']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_died_island_group_']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_died_island_group_']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_died_island_group_']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_died_island_group_']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_died_island_group_']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_died_island_group_']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_died_island_group_']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_died_island_group_']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_died_island_group_']['field_api_classes'] = 0;
+  /* Field: Died: County */
+  $handler->display->display_options['fields']['field_died_county_']['id'] = 'field_died_county_';
+  $handler->display->display_options['fields']['field_died_county_']['table'] = 'field_data_field_died_county_';
+  $handler->display->display_options['fields']['field_died_county_']['field'] = 'field_died_county_';
+  $handler->display->display_options['fields']['field_died_county_']['ui_name'] = 'Died: County';
+  $handler->display->display_options['fields']['field_died_county_']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_died_county_']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_died_county_']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_died_county_']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_died_county_']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_died_county_']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_died_county_']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_died_county_']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_died_county_']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_died_county_']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_died_county_']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_died_county_']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_died_county_']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_died_county_']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_died_county_']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_died_county_']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_died_county_']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_died_county_']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_died_county_']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_died_county_']['field_api_classes'] = 0;
+  /* Field: Died: State/Province */
+  $handler->display->display_options['fields']['field_died_state_province_']['id'] = 'field_died_state_province_';
+  $handler->display->display_options['fields']['field_died_state_province_']['table'] = 'field_data_field_died_state_province_';
+  $handler->display->display_options['fields']['field_died_state_province_']['field'] = 'field_died_state_province_';
+  $handler->display->display_options['fields']['field_died_state_province_']['ui_name'] = 'Died: State/Province';
+  $handler->display->display_options['fields']['field_died_state_province_']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_died_state_province_']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_died_state_province_']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_died_state_province_']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_died_state_province_']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_died_state_province_']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_died_state_province_']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_died_state_province_']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_died_state_province_']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_died_state_province_']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_died_state_province_']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_died_state_province_']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_died_state_province_']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_died_state_province_']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_died_state_province_']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_died_state_province_']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_died_state_province_']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_died_state_province_']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_died_state_province_']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_died_state_province_']['field_api_classes'] = 0;
+  /* Field: Died: Locality */
+  $handler->display->display_options['fields']['field_died_locality_']['id'] = 'field_died_locality_';
+  $handler->display->display_options['fields']['field_died_locality_']['table'] = 'field_data_field_died_locality_';
+  $handler->display->display_options['fields']['field_died_locality_']['field'] = 'field_died_locality_';
+  $handler->display->display_options['fields']['field_died_locality_']['ui_name'] = 'Died: Locality';
+  $handler->display->display_options['fields']['field_died_locality_']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_died_locality_']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_died_locality_']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_died_locality_']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_died_locality_']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_died_locality_']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_died_locality_']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_died_locality_']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_died_locality_']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_died_locality_']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_died_locality_']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_died_locality_']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_died_locality_']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_died_locality_']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_died_locality_']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_died_locality_']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_died_locality_']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_died_locality_']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_died_locality_']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_died_locality_']['field_api_classes'] = 0;
+  /* Field: User: Gender */
+  $handler->display->display_options['fields']['field_gender']['id'] = 'field_gender';
+  $handler->display->display_options['fields']['field_gender']['table'] = 'field_data_field_gender';
+  $handler->display->display_options['fields']['field_gender']['field'] = 'field_gender';
+  $handler->display->display_options['fields']['field_gender']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_gender']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_gender']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_gender']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_gender']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_gender']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_gender']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_gender']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_gender']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_gender']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_gender']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_gender']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_gender']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_gender']['element_type'] = 'span';
+  $handler->display->display_options['fields']['field_gender']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_gender']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_gender']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['field_gender']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_gender']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_gender']['field_api_classes'] = 0;
+  
+  /* Field: User: File Attachments */
+  $handler->display->display_options['fields']['field_file_attachments']['id'] = 'field_file_attachments';
+  $handler->display->display_options['fields']['field_file_attachments']['table'] = 'field_data_field_file_attachments';
+  $handler->display->display_options['fields']['field_file_attachments']['field'] = 'field_file_attachments';
+  $handler->display->display_options['fields']['field_file_attachments']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_file_attachments']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_file_attachments']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_file_attachments']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_file_attachments']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_file_attachments']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_file_attachments']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_file_attachments']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_file_attachments']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_file_attachments']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_file_attachments']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_file_attachments']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_file_attachments']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_file_attachments']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_file_attachments']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_file_attachments']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_file_attachments']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_file_attachments']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_file_attachments']['click_sort_column'] = 'fid';
+  $handler->display->display_options['fields']['field_file_attachments']['field_api_classes'] = 0;
+  /* Field: User: Institution */
+  $handler->display->display_options['fields']['field_user_institution']['id'] = 'field_user_institution';
+  $handler->display->display_options['fields']['field_user_institution']['table'] = 'field_data_field_user_institution';
+  $handler->display->display_options['fields']['field_user_institution']['field'] = 'field_user_institution';
+  $handler->display->display_options['fields']['field_user_institution']['element_label_colon'] = FALSE;
+  /* Field: User: Picture */
+  $handler->display->display_options['fields']['picture']['id'] = 'picture';
+  $handler->display->display_options['fields']['picture']['table'] = 'users';
+  $handler->display->display_options['fields']['picture']['field'] = 'picture';
+  $handler->display->display_options['fields']['picture']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['picture']['link_photo_to_profile'] = FALSE;
+  $handler->display->display_options['fields']['picture']['image_style'] = 'linkit_thumb';
+  /* Field: User: Date Active */
+  $handler->display->display_options['fields']['field_date_active']['id'] = 'field_date_active';
+  $handler->display->display_options['fields']['field_date_active']['table'] = 'field_data_field_date_active';
+  $handler->display->display_options['fields']['field_date_active']['field'] = 'field_date_active';
+  $handler->display->display_options['fields']['field_date_active']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['field_date_active']['settings'] = array(
+    'format_type' => 'short',
+    'fromto' => 'both',
+    'multiple_number' => '',
+    'multiple_from' => '',
+    'multiple_to' => '',
+  );
+  /* Field: User: Signature */
+  $handler->display->display_options['fields']['field_signature']['id'] = 'field_signature';
+  $handler->display->display_options['fields']['field_signature']['table'] = 'field_data_field_signature';
+  $handler->display->display_options['fields']['field_signature']['field'] = 'field_signature';
+  $handler->display->display_options['fields']['field_signature']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['field_signature']['click_sort_column'] = 'fid';
+  $handler->display->display_options['fields']['field_signature']['settings'] = array(
+    'image_style' => 'linkit_thumb',
+    'image_link' => '',
+  );
+  /* Field: User: Notes */
+  $handler->display->display_options['fields']['field_biography_notes']['id'] = 'field_biography_notes';
+  $handler->display->display_options['fields']['field_biography_notes']['table'] = 'field_data_field_biography_notes';
+  $handler->display->display_options['fields']['field_biography_notes']['field'] = 'field_biography_notes';
+  $handler->display->display_options['fields']['field_biography_notes']['alter']['max_length'] = '50';
+  $handler->display->display_options['fields']['field_biography_notes']['alter']['trim'] = TRUE;
+  $handler->display->display_options['fields']['field_biography_notes']['alter']['html'] = TRUE;
+  $handler->display->display_options['fields']['field_biography_notes']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['field_biography_notes']['settings'] = array(
+    'trim_length' => '100',
+  );
+  /* Filter criterion: User: Make this profile public? (field_make_this_profile_public_) */
+  $handler->display->display_options['filters']['field_make_this_profile_public__value']['id'] = 'field_make_this_profile_public__value';
+  $handler->display->display_options['filters']['field_make_this_profile_public__value']['table'] = 'field_data_field_make_this_profile_public_';
+  $handler->display->display_options['filters']['field_make_this_profile_public__value']['field'] = 'field_make_this_profile_public__value';
+  $handler->display->display_options['filters']['field_make_this_profile_public__value']['value'] = array(
+    1 => '1',
+  );
+
+  /* Display: Page */
+  $handler = $view->new_display('page', 'Page', 'page');
+  $handler->display->display_options['path'] = 'biographies';
+  $handler->display->display_options['menu']['type'] = 'normal';
+  $handler->display->display_options['menu']['title'] = 'Biographies';
+  $handler->display->display_options['menu']['weight'] = '50';
+  $handler->display->display_options['menu']['name'] = 'main-menu';
+  $handler->display->display_options['menu']['context'] = 0;
+  $export['biography'] = $view;
+
+  return $export;
+}

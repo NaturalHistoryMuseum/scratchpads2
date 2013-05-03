@@ -18,6 +18,10 @@ function theme_scratchpads_user_register_form($variables){
   foreach(array_keys($fields) as $field_name){
     $output .= drupal_render($variables['form'][$field_name]);
   }
+  // Add biography, if it exists
+  if (isset($variables['form']['group_biography'])){
+  	$output .= drupal_render($variables['form']['group_biography']);
+  }
   $output .= '
     </div>
   </div>
