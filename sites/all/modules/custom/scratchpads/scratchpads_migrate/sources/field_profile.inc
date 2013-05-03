@@ -88,6 +88,7 @@ class DrupalFieldProfileMigration extends DrupalMigration{
         $row->module = $row->widget_module = 'text';
         break;
       case 'textarea':
+      case 'list':
         $row->type = 'text';
         $row->widget_type = 'text_textarea';
         $row->module = $row->widget_module = 'text';
@@ -130,8 +131,23 @@ class DrupalFieldProfileMigration extends DrupalMigration{
         break;
     }
     $row->global_settings['text_processing'] = null;
-    $row->name = substr('field_' . $row->name, 0, 32);
+    $row->multiple = 0;
+    $row->name = DrupalFieldProfileMigration::destinationFieldName($row->name);
     if(field_read_instance('user', $row->name, 'user')){// Instance already exists, so skip it
       return false;}
+  }
+
+  /**
+   * Generate destination field name from source field name
+   */
+  public static function destinationFieldName($field_name) {
+    $map = array(
+      'profile_url' => 'field_homepage'
+    );
+    $field_name = strtolower($field_name);
+    if (isset($map[$field_name])) {
+      return $map[$field_name];
+    }
+    return substr('field_' . $field_name, 0, 32);
   }
 }
