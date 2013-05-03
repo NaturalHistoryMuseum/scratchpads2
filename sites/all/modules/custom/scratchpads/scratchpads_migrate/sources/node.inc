@@ -234,6 +234,14 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
                 $sourceMigration
               ));
               break;
+            case 'noderelationships_backref':
+            case 'nodereferrer':
+              // These fields don't actually contain content, we don't want them migrated
+              $this->removeFieldMapping($delta);
+              $this->addUnmigratedSources(array(
+                $delta
+              ));
+              break;
             default:
               // Special use case for taxonomicname field - (darwincore)
               // Need to add taxonomicname field to biologicalClassifications array
