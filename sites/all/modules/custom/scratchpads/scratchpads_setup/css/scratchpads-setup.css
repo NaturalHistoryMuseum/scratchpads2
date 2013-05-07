@@ -28,12 +28,6 @@
   display: block;
 }
 
-.scratchpads-setup-columns {
-  column-count: 2;
-  -moz-column-count: 2;
-  -webkit-column-count: 2;
-}
-
 .scratchpads-setup-column {
   width: 50%;
   float: left;
