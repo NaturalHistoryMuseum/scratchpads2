@@ -65,7 +65,7 @@ class DrupalImageMigration extends DrupalFileMigration{
               $field_name = 'field_keywords';
               $vocabulary->name = 'keywords';
             }else{
-              $field_name = DrupalFieldTaxonomyMigration::getFieldName($vocabulary->name);
+              $field_name = DrupalFieldTaxonomyMigration::getFieldName($vocabulary->name, $this->sourceConnection);
             }
           }else{
             $field_name = 'taxonomy_forums';

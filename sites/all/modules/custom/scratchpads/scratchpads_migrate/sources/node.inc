@@ -121,7 +121,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
             if(in_array($delta, $vids)){
               $field_name = 'field_taxonomic_name';
             }else{
-              $field_name = DrupalFieldTaxonomyMigration::getFieldName($vocabulary->name);
+              $field_name = DrupalFieldTaxonomyMigration::getFieldName($vocabulary->name, $this->sourceConnection);
             }
           }else{
             $field_name = 'taxonomy_forums';
