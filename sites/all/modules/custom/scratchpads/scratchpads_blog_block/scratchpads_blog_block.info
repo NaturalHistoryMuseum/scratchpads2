@@ -1,0 +1,5 @@
+name = Scratchpads blog block
+description = Adds a block with links to individual author's blogs
+package = "Scratchpads theme"
+core = 7.x
+dependencies[] = blog

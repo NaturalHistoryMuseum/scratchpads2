@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function scratchpads_blog_block_block_info(){
+  $blocks['blog_block'] = array(
+    'info' => t('Scratchpads blog block'),
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function scratchpads_blog_block_block_view($delta = ''){
+  $block = array();
+  switch($delta){
+    case 'blog_block':
+      $query = db_select('node', 'n');
+      $query->join('users', 'u', 'n.uid = u.uid');
+      $query->fields('u', array(
+        'name'
+      ));
+      $query->fields('n', array(
+        'type'
+      ));
+      $query->fields('u', array(
+        'uid'
+      ));
+      $query->condition('u.status', 1);
+      $query->condition('n.status', 1);
+      $query->condition('n.type', 'blog', '=');
+      $query->addExpression('COUNT(n.uid)');
+      $query->groupBy('u.uid');
+      $query->groupBy('n.type');
+      $query->orderBy('COUNT(n.uid)', 'DESC');
+      $result = $query->execute();
+      $output = "<div id='blog_list'>";
+      while($record = $result->fetchAssoc()){
+        $output .= '<div class="blog_list_row">';
+        $output .= '<div class="blog_list_row_body"><a href="/blog/' . $record['uid'] . '">' . $record['name'] . 's Blog</a> Posts:(' . $record['expression'] . ')</div>';
+        $output .= '</div>';
+      }
+      $output .= '</div>';
+      $block['subject'] = t('User blogs');
+      $block['content'] = $output;
+      break;
+  }
+  return $block;
+}
+
