@@ -70,9 +70,6 @@ function scratchpads_blocks_block_info(){
     'info' => t('Scratchpads signpost'),
     'status' => 0
   );
-  $blocks['blog_list'] = array(
-    'info' => t('Scratchpads blog list')
-  );
   return $blocks;
 }
 
@@ -194,46 +191,8 @@ function scratchpads_blocks_block_view($delta = ''){
         '#items' => $links
       );
       break;
-    case 'blog_list':
-      $block['subject'] = t('User blogs');
-      $block['content'] = _user_blogs_list();
-      break;
   }
   return $block;
-}
-
-/**
- * Helper function
- * Returns a list of links to individual author's blogs, with a count of blog entries
- */
-function _user_blogs_list(){
-  $query = db_select('node', 'n');
-  $query->join('users', 'u', 'n.uid = u.uid');
-  $query->fields('u', array(
-    'name'
-  ));
-  $query->fields('n', array(
-    'type'
-  ));
-  $query->fields('u', array(
-    'uid'
-  ));
-  $query->condition('u.status', 1);
-  $query->condition('n.status', 1);
-  $query->condition('n.type', 'blog', '=');
-  $query->addExpression('COUNT(n.uid)');
-  $query->groupBy('u.uid');
-  $query->groupBy('n.type');
-  $query->orderBy('COUNT(n.uid)', 'DESC');
-  $result = $query->execute();
-  $output = "<ul id='blog_list'>";
-  while($record = $result->fetchAssoc()){
-    $output .= '<li class="blog_list_row">';
-    $output .= '<span class="blog_list_row_body"><a href="/blog/' . $record['uid'] . '">' . $record['name'] . 's Blog</a> Posts:(' . $record['expression'] . ')</span>';
-    $output .= '</li>';
-  }
-  $output .= '</ul>';
-  return $output;
 }
 
 /**
