@@ -222,6 +222,10 @@ class DrupalFieldMigration extends DrupalMigration{
     if ($field_name == 'field_country' && $field_type == 'text') {
       return 'field_country_text';
     }
+    // Custom field field_keywords that is not a taxonmy term reference need to be renamed
+    if ($field_name == 'field_keywords' && $field_type == 'text') {
+      return 'field_keywords_t';
+    }
     // Field name field_name is reserved.
     if ($field_name == 'field_name') {
       return 'field_name_r';
