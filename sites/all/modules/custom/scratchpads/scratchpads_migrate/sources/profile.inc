@@ -154,6 +154,9 @@ class ScratchpadsProfileMigration extends ScratchpadsNodeMigration{
     if(property_exists($row, 'field_title')){
       if($row->field_title == 'Dr.'){
         $row->field_title = 'Dr';
+      } else if (strlen($row->field_title) > 255) {
+        // Probably spam
+        $row->field_title = '';
       }
     }
     // Fix homepage having tags in it?
