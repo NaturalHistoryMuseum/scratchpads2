@@ -220,7 +220,7 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
         $row->field_unit_name1 = $row->name;
       }
     }else if(in_array($this->vid, $biological_classifications)){
-      $unit_names = explode(' ', $row->name);
+      $unit_names = explode(' ', $row->name, 4);
       foreach($unit_names as $i => $unit_name){
         $unit_field_name = 'field_unit_name' . ($i + 1);
         $row->{$unit_field_name} = $unit_name;
