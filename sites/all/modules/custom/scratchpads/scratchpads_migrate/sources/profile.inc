@@ -70,7 +70,7 @@ class ScratchpadsProfileMigration extends ScratchpadsNodeMigration{
         if(array_key_exists($key, $destination_fields)){
           $this->addFieldMapping($key, $key);
         }elseif(strpos($key, 'profile') !== false){ // Profile fields are prefixed with profile
-          $this->addFieldMapping(substr('field_' . $key, 0, 32), $key);
+          $this->addFieldMapping(DrupalFieldProfileMigration::destinationFieldName($key), $key);
         }
       }
     }

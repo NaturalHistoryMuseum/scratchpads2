@@ -91,6 +91,86 @@ function scratchpads_statistics_forms($form_id, $args){
 }
 
 /**
+ * Allow other modules (namely the scratchpads_setup module) to set the
+ * category for this and other sites.
+ */
+function scratchpads_statistics_set_site_categories($categories, $site = 1){
+  $query = db_insert('scratchpads_statistics_site_site_type')->fields(array(
+    'site',
+    'site_type'
+  ));
+  $do_insert = FALSE;
+  foreach($categories as $category){
+    $site_type_id = scratchpads_statistics_insert_item(array(
+      'type' => $category
+    ), 'scratchpads_statistics_site_type', 'type');
+    if($site_type_id){
+      $do_insert = TRUE;
+      $query->values(array(
+        'site' => $site,
+        'site_type' => $site_type_id
+      ));
+    }
+  }
+  if($do_insert){
+    db_delete('scratchpads_statistics_site_site_type')->condition('site', $site)->execute();
+    $query->execute();
+  }
+}
+
+/**
+ * Create/Retrieve a user
+ */
+function scratchpads_statistics_insert_item($item, $table, $key){
+  // Keep a static cache of the users.
+  $items = drupal_static(__FUNCTION__, array());
+  if(is_array($key)){
+    $itemkey = '';
+    foreach($key as $k){
+      $itemkey .= '---' . $item[$k];
+    }
+  }else{
+    $itemkey = $item[$key];
+    $key = array(
+      $key
+    );
+  }
+  if(@isset($items[$table][$itemkey])){return $items[$table][$itemkey];}
+  $query = db_merge($table);
+  foreach($key as $k){
+    $query->key(array(
+      $k => $item[$k]
+    ));
+  }
+  $output = $query->fields($item)->execute();
+  $query = db_select($table, 's')->fields('s', array(
+    'id'
+  ));
+  foreach($key as $key_item){
+    $query->condition($key_item, $item[$key_item]);
+  }
+  $col = $query->execute()->fetchCol();
+  $id = array_pop($col);
+  if(!isset($items[$table])){
+    $items[$table] = array();
+  }
+  $items[$table][$itemkey] = $id;
+  return $id;
+}
+
+/**
+ * Allow other modules (namely the scratchpads_setup module) to set the
+ * category for this and other sites.
+ */
+function scratchpads_statistics_get_site_categories($site = 1){
+  $query = db_select('scratchpads_statistics_site_type', 'st');
+  $query->innerJoin('scratchpads_statistics_site_site_type', 'sst', 'sst.site_type = st.id');
+  return $query->condition('site', $site)->fields('st', array(
+    'type'
+  ))->execute()->fetchAll(PDO::FETCH_COLUMN);
+}
+
+/**
  * Scratchpads statistics facet form.
  */
 function scratchpads_statistics_facet_form($form, $form_state, $type){
