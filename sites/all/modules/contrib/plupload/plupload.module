@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Implementation of plupload.module.
+ */
+
+/**
  * Implements hook_menu().
  */
 function plupload_menu() {
@@ -15,7 +20,7 @@ function plupload_menu() {
     'title' => 'Test Plupload',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('plupload_test'),
-    //@todo: change this to something appropriate, not sure what.
+    // @todo: change this to something appropriate, not sure what.
     'access arguments' => array('Administer site configuration'),
     'type' => MENU_CALLBACK,
   );
@@ -34,12 +39,14 @@ function plupload_upload_access() {
   return !empty($_REQUEST['plupload_token']) && drupal_valid_token($_REQUEST['plupload_token'], 'plupload-handle-uploads');
 }
 
-
+/**
+ * Form callback function for test page visible at URL "plupload-test".
+ */
 function plupload_test($form, &$form_state) {
   $form['pud'] = array(
     '#type' => 'plupload',
     '#title' => 'Plupload',
-    //'#validators' => array(...);
+    // '#validators' => array(...);
   );
 
   $form['submit'] = array(
@@ -50,11 +57,15 @@ function plupload_test($form, &$form_state) {
   return $form;
 }
 
+/**
+ * Submit callback for plupload_test form.
+ */
 function plupload_test_submit($form, &$form_state) {
   $saved_files = array();
   $scheme = variable_get('file_default_scheme', 'public') . '://';
-  // We can't use file_save_upload() because of http://www.jacobsingh.name/content/tight-coupling-no-not
-  //file_uri_to_object();
+  // We can't use file_save_upload() because of
+  // http://www.jacobsingh.name/content/tight-coupling-no-not
+  // file_uri_to_object();
   foreach ($form_state['values']['pud'] as $uploaded_file) {
     if ($uploaded_file['status'] == 'done') {
       $source = $uploaded_file['tmppath'];
@@ -84,7 +95,7 @@ function plupload_element_info() {
     '#input' => TRUE,
     '#attributes' => array('class' => array('plupload-element')),
     // @todo
-    //'#element_validate' => array('file_managed_file_validate'),
+    // '#element_validate' => array('file_managed_file_validate'),
     '#theme_wrappers' => array('form_element'),
     '#theme' => 'container',
     '#value_callback' => 'plupload_element_value',
@@ -100,6 +111,9 @@ function plupload_element_info() {
   return $types;
 }
 
+/**
+ * Validate callback for plupload form element.
+ */
 function plupload_element_value(&$element, $input = FALSE, $form_state = NULL) {
   $id = $element['#id'];
   $files = array();
@@ -156,8 +170,8 @@ function plupload_element_value(&$element, $input = FALSE, $form_state = NULL) {
         if (!variable_get('allow_insecure_uploads', 0) && preg_match('/\.(php|pl|py|cgi|asp|js)(\.|$)/i', $value) && (substr($value, -4) != '.txt')) {
           $value .= '.txt';
 
-          // The .txt extension may not be in the allowed list of extensions. We have
-          // to add it here or else the file upload will fail.
+          // The .txt extension may not be in the allowed list of extensions.
+          // We have to add it here or else the file upload will fail.
           if (!empty($extensions)) {
             $element['#upload_validators']['file_validate_extensions'][0] .= ' txt';
             drupal_set_message(t('For security reasons, your upload has been renamed to %filename.', array('%filename' => $value)));
@@ -188,11 +202,11 @@ function plupload_element_value(&$element, $input = FALSE, $form_state = NULL) {
 }
 
 /**
- * #process callback.
+ * Process callback (#process) for plupload form element.
  */
 function plupload_element_process($element) {
   // Start session if not there yet. We need session if we want security
-  // tokens to work properly
+  // tokens to work properly.
   if (!drupal_session_started()) {
     drupal_session_start();
   }
@@ -219,13 +233,14 @@ function plupload_element_validate($element, &$form_state) {
     $destination = variable_get('file_default_scheme', 'public') . '://' . $file_info['name'];
     $file = plupload_file_uri_to_object($destination);
     foreach (file_validate($file, $element['#upload_validators']) as $error_message) {
-      form_error($element, $error_message);
+      $message = t('The specified file %name could not be uploaded.', array('%name' => $file->filename));
+      form_error($element, $message . ' ' . $error_message);
     }
   }
 }
 
 /**
- * #pre_render callback to attach JavaScript settings for the plupload element.
+ * Pre render (#pre_render) callback to attach JS settings for the element.
  */
 function plupload_element_pre_render($element) {
   $settings = isset($element['#plupload_settings']) ? $element['#plupload_settings'] : array();
@@ -278,35 +293,40 @@ function plupload_library() {
       // $library_path . '/js/gears_init.js' => array(),
       $library_path . '/js/jquery.plupload.queue/jquery.plupload.queue.js' => array(),
       $library_path . '/js/plupload.full.js' => array(),
-      array('type' => 'setting', 'data' => array('plupload' => array(
-        // Element-specific settings get keyed by the element id (see
-        // plupload_element_pre_render()), so put default settings in
-        // '_default' (Drupal element ids do not have underscores, because
-        // they have hyphens instead).
-        '_default' => array(
-          // @todo Provide a settings page for configuring these.
-          'runtimes' => 'html5,flash,html4',
-          'url' => url('plupload-handle-uploads', array('query' => array('plupload_token' => drupal_get_token('plupload-handle-uploads')))),
-          'max_file_size' => file_upload_max_size() . 'b',
-          'chunk_size' => '1mb',
-          'unique_names' => TRUE,
-          'flash_swf_url' => file_create_url($library_path . '/js/plupload.flash.swf'),
-          'silverlight_xap_url' => file_create_url($library_path . '/js/plupload.silverlight.xap'),
-        ),
-        // The plupload.js integration file in the module folder can do
-        // additional browser checking to remove unsupported runtimes. This is
-        // in addition to what is done by the Plupload library.
-        '_requirements' => array(
-          'html5' => array(
-            // The Plupload library recognizes Firefox 3.5 as supporting HTML 5,
-            // but Firefox 3.5 does not support the HTML 5 "multiple" attribute
-            // for file input controls. This makes the html5 runtime much less
-            // appealing, so we treat all Firefox versions less than 3.6 as
-            // ineligible for the html5 runtime.
-            'mozilla' => '1.9.2',
+      0 => array(
+        'type' => 'setting',
+        'data' => array(
+          'plupload' => array(
+            // Element-specific settings get keyed by the element id (see
+            // plupload_element_pre_render()), so put default settings in
+            // '_default' (Drupal element ids do not have underscores, because
+            // they have hyphens instead).
+            '_default' => array(
+              // @todo Provide a settings page for configuring these.
+              'runtimes' => 'html5,flash,html4',
+              'url' => url('plupload-handle-uploads', array('query' => array('plupload_token' => drupal_get_token('plupload-handle-uploads')))),
+              'max_file_size' => file_upload_max_size() . 'b',
+              'chunk_size' => parse_size(ini_get('post_max_size')) . 'b',
+              'unique_names' => TRUE,
+              'flash_swf_url' => file_create_url($library_path . '/js/plupload.flash.swf'),
+              'silverlight_xap_url' => file_create_url($library_path . '/js/plupload.silverlight.xap'),
+            ),
+            // The plupload.js integration file in the module folder can do
+            // additional browser checking to remove unsupported runtimes.
+            // This is in addition to what is done by the Plupload library.
+            '_requirements' => array(
+              'html5' => array(
+                // The Plupload library recognizes Firefox 3.5 as supporting
+                // HTML 5, but Firefox 3.5 does not support the HTML 5
+                // "multiple" attribute for file input controls. This makes the
+                // html5 runtime much less appealing, so we treat all Firefox
+                // versions less than 3.6 as ineligible for the html5 runtime.
+                'mozilla' => '1.9.2',
+              ),
+            ),
           ),
         ),
-      ))),
+      ),
     ),
   );
 
@@ -318,10 +338,13 @@ function plupload_library() {
   return $libraries;
 }
 
+/**
+ * Callback that handles and saves uploaded files.
+ *
+ * This will respond to the URL on which plupoad library will upload files.
+ */
 function plupload_handle_uploads() {
-
   // @todo: Implement file_validate_size();
-
   // Added a variable for this because in HA environments, temporary may need
   // to be a shared location for this to work.
   $temp_directory = variable_get('plupload_temporary_uri', 'temporary://');
@@ -350,7 +373,7 @@ function plupload_handle_uploads() {
     die('{"jsonrpc" : "2.0", "error" : {"code": 105, "message": "Invalid temporary file name."}, "id" : "id"}');
   }
 
-  // Look for the content type header
+  // Look for the content type header.
   if (isset($_SERVER["HTTP_CONTENT_TYPE"])) {
     $content_type = $_SERVER["HTTP_CONTENT_TYPE"];
   }
@@ -358,13 +381,13 @@ function plupload_handle_uploads() {
     $content_type = $_SERVER["CONTENT_TYPE"];
   }
 
-  // Is this a multipart upload?
+  // Is this a multipart upload?.
   if (strpos($content_type, "multipart") !== FALSE) {
     if (isset($_FILES['file']['tmp_name']) && is_uploaded_file($_FILES['file']['tmp_name'])) {
-      // Open temp file
+      // Open temp file.
       $out = fopen($temp_directory . $file_name, $chunk == 0 ? "wb" : "ab");
       if ($out) {
-        // Read binary input stream and append it to temp file
+        // Read binary input stream and append it to temp file.
         $in = fopen($_FILES['file']['tmp_name'], "rb");
 
         if ($in) {
@@ -389,10 +412,10 @@ function plupload_handle_uploads() {
     }
   }
   else {
-    // Open temp file
+    // Open temp file.
     $out = fopen($temp_directory . $file_name, $chunk == 0 ? "wb" : "ab");
     if ($out) {
-      // Read binary input stream and append it to temp file
+      // Read binary input stream and append it to temp file.
       $in = fopen("php://input", "rb");
 
       if ($in) {
@@ -412,17 +435,18 @@ function plupload_handle_uploads() {
     }
   }
 
-  // Return JSON-RPC response
+  // Return JSON-RPC response.
   die('{"jsonrpc" : "2.0", "result" : null, "id" : "id"}');
 }
 
 /**
  * Returns a file object which can be passed to file_save().
  *
- * @param $uri
- *  A string containing the URI, path, or filename.
- * @return
- *  A file object, or FALSE on error.
+ * @param string $uri
+ *   A string containing the URI, path, or filename.
+ *
+ * @return boolean
+ *   A file object, or FALSE on error.
  *
  * @todo Replace with calls to this function with file_uri_to_object() when
  * http://drupal.org/node/685818 is fixed in core.
@@ -431,7 +455,7 @@ function plupload_file_uri_to_object($uri) {
   global $user;
   $uri = file_stream_wrapper_uri_normalize($uri);
   $wrapper = file_stream_wrapper_get_instance_by_uri($uri);
-  $file = new StdClass;
+  $file = new StdClass();
   $file->uid = $user->uid;
   $file->filename = basename($uri);
   $file->uri = $uri;
@@ -460,10 +484,10 @@ function plupload_file_uri_to_object($uri) {
  * This function therefore fixes the plupload temporary filenames so that they
  * will always use a ".tmp" extension.
  *
- * @param $filename
+ * @param string $filename
  *   The original temporary filename provided by the plupload library.
  *
- * @return
+ * @return string
  *   The corrected temporary filename, with a ".tmp" extension replacing the
  *   original one.
  */

@@ -1,6 +1,6 @@
 <?php
 // DEFINE the file extensions that we allow.
-DEFINE('FIELD_MEDIA_FILE_EXTENSIONS', 'jpg jpeg gif png txt doc docx xls xlsx pdf ppt pptx pps ppsx odt ods odp mp3 mov mp4 m4a m4v mpeg avi ogg oga ogv wmv ico xml nex phy nhx');
+DEFINE('FIELD_MEDIA_FILE_EXTENSIONS', 'jpg jpeg gif png txt doc docx xls xlsx pdf ppt pptx pps ppsx odt ods odp mp3 mov mp4 m4a m4v mpeg avi ogg oga ogv wmv ico xml nex phy nhx zip');
 include_once ('scratchpads_media_gallery.features.inc');
 
 /**
@@ -96,6 +96,25 @@ function scratchpads_media_gallery_ctools_plugin_api(){
   if($module == "file_entity" && $api == "file_default_displays"){return array(
       "version" => "1"
     );}
+}
+
+/**
+ * Implements hook_views_default_views_alter
+ */
+function scratchpads_media_gallery_views_default_views_alter(&$views){
+  if(isset($views['media_default'])){
+    foreach(array(
+      'default',
+      'media_browser_1',
+      'media_browser_my_files'
+    ) as $display_id){
+      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['id'] = 'uri';
+      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['table'] = 'file_managed';
+      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['field'] = 'uri';
+      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['operator'] = 'not';
+      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['value'] = '/eolapi/';
+    }
+  }
 }
 
 /**

@@ -575,13 +575,15 @@ function scratchpads_migrate_register_migrations(){
   /*********************************************************************************************
    * PathRedirect
    ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of URL redirects from Drupal 6'),
-    'machine_name' => 'PathRedirect',
-    'dependencies' => $path_dependencies,
-    'group' => MigrateGroup::getInstance('final')
-  );
-  Migration::registerMigration('PathRedirectMigration', $arguments['machine_name'], $arguments);
+  if (scratchpads_migrate_source_table_exists('path_redirect')) {
+    $arguments = $common_arguments + array(
+      'description' => t('Migration of URL redirects from Drupal 6'),
+      'machine_name' => 'PathRedirect',
+      'dependencies' => $path_dependencies,
+      'group' => MigrateGroup::getInstance('final')
+    );
+    Migration::registerMigration('PathRedirectMigration', $arguments['machine_name'], $arguments);
+  }
   /*********************************************************************************************
    * Femail
    ********************************************************************************************/

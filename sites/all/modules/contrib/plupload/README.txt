@@ -5,6 +5,9 @@ with Drupal forms. To install the Plupload library:
 2. Unzip it into sites/all/libraries, so that there's a
    sites/all/libraries/plupload/js/plupload.full.js file, in addition to the
    other files included in the library.
+3. Remove "examples" folder from libraries folder as it could constitute a
+   security risk to your site. See http://drupal.org/node/1895328 and
+   http://drupal.org/node/1189632 for more info.
 
 If you would like to use an alternate library location, you can install the
 http://drupal.org/project/libraries module and/or add

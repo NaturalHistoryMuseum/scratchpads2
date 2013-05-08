@@ -338,11 +338,11 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
     case 'field_unit_indicator1':
     case 'field_unit_indicator2':
       if($biological_type){return array(
-          '×' => '×'
+          'Ã—' => 'Ã—'
         );}
       return array(
         'x' => 'x',
-        '×' => '×'
+        'Ã—' => 'Ã—'
       );
     case 'field_unit_indicator3':
     case 'field_unit_indicator4':
@@ -365,7 +365,7 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
               'subf.' => 'subf.',
               'subvar.' => 'subvar.',
               'var.' => 'var.',
-              '×' => '×'
+              'Ã—' => 'Ã—'
             );
         }
       }
@@ -377,7 +377,7 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
         'subvar.' => 'subvar.',
         'var.' => 'var.',
         'x' => 'x',
-        '×' => '×'
+        'Ã—' => 'Ã—'
       );
     case 'field_usage':
       if($biological_type){
@@ -414,8 +414,12 @@ function itis_term_taxonomy_term_presave($term){
   if(isset($info['field_unit_name1']) && $wrapper->field_unit_name1->value()){
     $name = '';
     for($i = 1; $i <= 4; $i++){
+      $space = ' ';
+      if($wrapper->{"field_unit_indicator" . $i}->value() == 'Ã—' || $wrapper->{"field_unit_indicator" . $i}->value() == 'x'){
+        $space = '';
+      }
       $name = trim($name) . ' ' . $wrapper->{"field_unit_indicator" . $i}->value();
-      $name = trim($name) . ' ' . $wrapper->{"field_unit_name" . $i}->value();
+      $name = trim($name) . $space . $wrapper->{"field_unit_name" . $i}->value();
     }
     $term->name = trim($name);
   }

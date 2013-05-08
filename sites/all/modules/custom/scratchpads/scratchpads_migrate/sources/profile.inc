@@ -70,7 +70,7 @@ class ScratchpadsProfileMigration extends ScratchpadsNodeMigration{
         if(array_key_exists($key, $destination_fields)){
           $this->addFieldMapping($key, $key);
         }elseif(strpos($key, 'profile') !== false){ // Profile fields are prefixed with profile
-          $this->addFieldMapping(substr('field_' . $key, 0, 32), $key);
+          $this->addFieldMapping(DrupalFieldProfileMigration::destinationFieldName($key), $key);
         }
       }
     }
@@ -154,6 +154,9 @@ class ScratchpadsProfileMigration extends ScratchpadsNodeMigration{
     if(property_exists($row, 'field_title')){
       if($row->field_title == 'Dr.'){
         $row->field_title = 'Dr';
+      } else if (strlen($row->field_title) > 255) {
+        // Probably spam
+        $row->field_title = '';
       }
     }
     // Fix homepage having tags in it?

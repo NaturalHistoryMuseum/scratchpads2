@@ -121,7 +121,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
             if(in_array($delta, $vids)){
               $field_name = 'field_taxonomic_name';
             }else{
-              $field_name = DrupalFieldTaxonomyMigration::getFieldName($vocabulary->name);
+              $field_name = DrupalFieldTaxonomyMigration::getFieldName($vocabulary->name, $this->sourceConnection);
             }
           }else{
             $field_name = 'taxonomy_forums';
@@ -232,6 +232,14 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
               // We don't care about the node type - just need to specify any node migration to use to create a stub
               $this->addFieldMapping($destination_field, $delta)->sourceMigration(array(
                 $sourceMigration
+              ));
+              break;
+            case 'noderelationships_backref':
+            case 'nodereferrer':
+              // These fields don't actually contain content, we don't want them migrated
+              $this->removeFieldMapping($delta);
+              $this->addUnmigratedSources(array(
+                $delta
               ));
               break;
             default:
