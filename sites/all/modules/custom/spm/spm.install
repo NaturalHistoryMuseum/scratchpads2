@@ -129,15 +129,4 @@ function spm_update_7008(){
   }
 }
 
-/**
- * Set the weight of the "Taxonomic Name".
- */
-function spm_update_7009(){
-  $instances = field_read_instances(array(
-    'field_name' => 'field_taxonomic_name'
-  ));
-  foreach($instances as $field_instance){
-    $field_instance['display']['default']['weight'] = '1000';
-    field_update_instance($field_instance);
-  }
-}
+
