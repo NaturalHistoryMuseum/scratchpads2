@@ -428,31 +428,7 @@ function scratchpads_species_views_pre_view(&$view, &$display_id, &$args){
  * Add in edit links for species pages blocks
  */
 function scratchpads_species_preprocess_block(&$vars){
-  $block = $vars['block'];
-  if(isset($block->context) && $block->context == 'species_overview' && $block->module == 'views'){
-    $explode = explode('-', $block->delta);
-    if(count($explode) != 2){return;}
-    list($name, $display_id) = $explode;
-    if($view = views_get_view($name)){
-      $view->execute();
-      // If there's only one result, we can try and provide an edit link
-      if(count($view->result) === 1){
-        switch($view->base_field){
-          case 'tid':
-            $base_link = 'taxonomy/term/';
-            break;
-          case 'nid':
-            $base_link = 'node/';
-            break;
-        }
-        if(isset($base_link) && isset($view->result[0]->{$view->base_field})){
-          $vars['title_suffix']['contextual_links']['#contextual_links']['species'] = array(
-            $base_link . $view->result[0]->{$view->base_field},
-            array()
-          );
-        }
-      }
-    }
+  if(isset($vars['block']->context) && $vars['block']->context == 'species_overview' && $vars['block']->module == 'views'){
     unset($vars['title_suffix']['contextual_links']['#contextual_links']['block']);
   }
 }
