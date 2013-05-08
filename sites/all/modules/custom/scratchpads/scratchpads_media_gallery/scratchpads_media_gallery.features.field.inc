@@ -459,7 +459,7 @@ function scratchpads_media_gallery_field_default_fields(){
             'wrapper_option' => '- None -'
           ),
           'type' => 'taxonomy_term_reference_csv',
-          'weight' => '1'
+          'weight' => '1000'
         ),
         'file_styles_colorbox' => array(
           'label' => 'above',
