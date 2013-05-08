@@ -5,7 +5,10 @@
  */
 function scratchpads_blog_block_info(){
   $blocks['blog_block'] = array(
-    'info' => t('Scratchpads blog'),
+    'info' => t('Scratchpads blog')
+  );
+  $blocks['blog_taxonomy'] = array(
+    'info' => t('Scratchpads blog taxonomy')
   );
   return $blocks;
 }
@@ -39,14 +42,126 @@ function scratchpads_blog_block_view($delta = ''){
       $output = "<div id='blog_list'>";
       while($record = $result->fetchAssoc()){
         $output .= '<div class="blog_list_row">';
-        $output .= '<div class="blog_list_row_body"><a href="/blog/' . $record['uid'] . '">' . $record['name'] . 's Blog</a> Posts:(' . $record['expression'] . ')</div>';
+        $output .= '<div class="blog_list_row_body"><a href="/blog/' . $record['uid'] . '">' . $record['name'] . '</a> Posts:(' . $record['expression'] . ')</div>';
         $output .= '</div>';
       }
-      $output .= '</div>';
-      $block['subject'] = t('User blogs');
+      $output .= '</div><br/>';
+      $block['subject'] = t('Author blogs');
       $block['content'] = $output;
       break;
+    case 'blog_taxonomy':
+      $output = scratchpads_blog_taxonomy();
+      $block['subject'] = t('Filter Blogs by Taxomony');
+      $block['content'] = $output;
   }
   return $block;
+}
+
+function scratchpads_blog_taxonomy(){
+  $query = db_select('node', 'n');
+  $query->join('taxonomy_index', 't', 'n.nid = t.nid');
+  $query->join('taxonomy_term_data', 'd', 'd.tid = t.tid');
+  $query->fields('n');
+  $query->fields('t', array(
+    'tid'
+  ));
+  $query->fields('d', array(
+    'name'
+  ));
+  $query->condition('n.status', 1);
+  $query->condition('n.type', 'blog', '=');
+  $result = $query->execute();
+  $terms_names = array();
+  $tid_array = array();
+  while($record = $result->fetchAssoc()){
+    $tid_array[] = $record['tid'];
+    $terms_names[$record['tid']] = $record['name'];
+  }
+  $count_array = array_count_values($tid_array);
+  arsort($count_array);
+  $output = '';
+  $counter = 0;
+  foreach($count_array as $term_id => $blog_count){
+    $output .= '<div class="blog_term_row">';
+    $output .= "<a href='/blog//term/" . $term_id . "'>" . $terms_names[$term_id] . "</a> (" . $blog_count . ")";
+    $output .= '</div>';
+    $counter++;
+    if($counter == 5){
+      break;
+    }
+  }
+  return $output;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_blog_menu(){
+  return array(
+
+  'blog/%user_uid_optional/term/%' => array(
+  
+      'title' => 'Test blog',
+      'page callback' => 'scratchpads_blog_remake',
+      'page arguments' => array(
+        1,3
+      ),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK
+    )
+  );
+}
+
+function scratchpads_blog_remake($account, $tid){
+  
+  
+  global $user;
+  
+ // if ($account->name == ''){
+ //   $user_condition = ''
+    
+ // }
+  
+  drupal_set_title($title = t("@name's blog", array('@name' => format_username($account))), PASS_THROUGH);
+  
+  $build = array();
+  
+  // add a join here to filter by taxonomy term
+  $query = db_select('node', 'n')->extend('PagerDefault');
+  $nids = $query
+  ->fields('n', array('nid', 'sticky', 'created'))
+  ->condition('type', 'blog')
+  ->condition('uid', $account->uid)
+  ->condition('status', 1)
+  ->orderBy('sticky', 'DESC')
+  ->orderBy('created', 'DESC')
+  ->limit(variable_get('default_nodes_main', 10))
+  ->addTag('node_access')
+  ->execute()
+  ->fetchCol();
+  
+  if (!empty($nids)) {
+    $nodes = node_load_multiple($nids);
+    $build += node_view_multiple($nodes);
+    $build['pager'] = array(
+      '#theme' => 'pager',
+      '#weight' => 5,
+    );
+  }
+  else {
+    if ($account->uid == $user->uid) {
+      drupal_set_message(t('You have not created any blog entries.'));
+    }
+    else {
+      drupal_set_message(t('!author has not created any blog entries.', array('!author' => theme('username', array('account' => $account)))));
+    }
+  }
+  drupal_add_feed('blog/' . $account->uid . '/feed', t('RSS - !title', array('!title' => $title)));
+  
+  return $build;
+}
+
+function scratchpads_blog_views_query_alter(&$view, &$query){
+  $something = "nothing";
 }
 
