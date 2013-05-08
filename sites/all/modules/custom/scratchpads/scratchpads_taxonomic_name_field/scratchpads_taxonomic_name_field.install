@@ -238,3 +238,16 @@ function scratchpads_taxonomic_name_field_update_7012(){
     }
   }
 }
+
+/**
+ * Set the weight of the "Taxonomic Name".
+ */
+function scratchpads_taxonomic_name_field_update_7013(){
+  $instances = field_read_instances(array(
+    'field_name' => 'field_taxonomic_name'
+  ));
+  foreach($instances as $field_instance){
+    $field_instance['display']['default']['weight'] = '1000';
+    field_update_instance($field_instance);
+  }
+}
