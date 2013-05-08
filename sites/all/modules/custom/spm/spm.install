@@ -128,5 +128,3 @@ function spm_update_7008(){
     field_update_instance($fields['node-spm-field_general_description']['field_instance']);
   }
 }
-
-
