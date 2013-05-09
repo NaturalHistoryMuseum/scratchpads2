@@ -105,21 +105,21 @@ function _scratchpads_statistics_aggregator_insert_login_data($data, $url){
     if(!$site){
       // For one set of data, we always have the same site, so we can avoid
       // checking it for every record.
-      $user = _scratchpads_statistics_insert_item(array(
+      $user = scratchpads_statistics_insert_item(array(
         'name' => $record['owner_name'],
         'email' => $record['owner_email'],
         'country' => $record['owner_country'],
         'latitude' => $record['owner_latitude'],
         'longitude' => $record['owner_longitude']
       ), 'scratchpads_statistics_user', 'email');
-      $site = _scratchpads_statistics_insert_item(array(
+      $site = scratchpads_statistics_insert_item(array(
         'title' => $record['title'],
         'owner' => $user,
         'url' => $record['url'],
         'created' => $record['site_created']
       ), 'scratchpads_statistics_site', 'url');
     }
-    $user = _scratchpads_statistics_insert_item(array(
+    $user = scratchpads_statistics_insert_item(array(
       'name' => $record['name'],
       'email' => $record['email'],
       'country' => $record['country'],
@@ -162,21 +162,21 @@ function _scratchpads_statistics_aggregator_insert_data($data, $url){
     if(!$site){
       // For one set of data, we always have the same site, so we can avoid
       // checking it for every record.
-      $user = _scratchpads_statistics_insert_item(array(
+      $user = scratchpads_statistics_insert_item(array(
         'name' => $record['owner_name'],
         'email' => $record['owner_email'],
         'country' => $record['owner_country'],
         'latitude' => $record['owner_latitude'],
         'longitude' => $record['owner_longitude']
       ), 'scratchpads_statistics_user', 'email');
-      $site = _scratchpads_statistics_insert_item(array(
+      $site = scratchpads_statistics_insert_item(array(
         'title' => $record['title'],
         'owner' => $user,
         'url' => $record['url'],
         'created' => $record['created']
       ), 'scratchpads_statistics_site', 'url');
     }
-    $user = _scratchpads_statistics_insert_item(array(
+    $user = scratchpads_statistics_insert_item(array(
       'name' => $record['name'],
       'email' => $record['email'],
       'country' => $record['country'],
@@ -185,11 +185,11 @@ function _scratchpads_statistics_aggregator_insert_data($data, $url){
     ), 'scratchpads_statistics_user', 'email');
     $term = 0;
     if($record['term']){
-      $term = _scratchpads_statistics_insert_item(array(
+      $term = scratchpads_statistics_insert_item(array(
         'term' => $record['term']
       ), 'scratchpads_statistics_term', 'term');
     }
-    $entity_bundle = _scratchpads_statistics_insert_item(array(
+    $entity_bundle = scratchpads_statistics_insert_item(array(
       'entity' => $record['entity'],
       'bundle' => $record['bundle'],
       'name' => $record['bundle_label']
@@ -209,44 +209,4 @@ function _scratchpads_statistics_aggregator_insert_data($data, $url){
     ));
   }
   $query->execute();
-}
-
-/**
- * Create/Retrieve a user
- */
-function _scratchpads_statistics_insert_item($item, $table, $key){
-  // Keep a static cache of the users.
-  $items = drupal_static(__FUNCTION__, array());
-  if(is_array($key)){
-    $itemkey = '';
-    foreach($key as $k){
-      $itemkey .= '---' . $item[$k];
-    }
-  }else{
-    $itemkey = $item[$key];
-    $key = array(
-      $key
-    );
-  }
-  if(@isset($items[$table][$itemkey])){return $items[$table][$itemkey];}
-  $query = db_merge($table);
-  foreach($key as $k){
-    $query->key(array(
-      $k => $item[$k]
-    ));
-  }
-  $output = $query->fields($item)->execute();
-  $query = db_select($table, 's')->fields('s', array(
-    'id'
-  ));
-  foreach($key as $key_item){
-    $query->condition($key_item, $item[$key_item]);
-  }
-  $col = $query->execute()->fetchCol();
-  $id = array_pop($col);
-  if(!isset($items[$table])){
-    $items[$table] = array();
-  }
-  $items[$table][$itemkey] = $id;
-  return $id;
 }
