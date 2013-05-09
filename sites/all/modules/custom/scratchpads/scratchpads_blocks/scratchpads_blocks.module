@@ -183,7 +183,7 @@ function scratchpads_blocks_block_view($delta = ''){
         l(theme('image', array(
           'path' => $path . '/images/scratchpads.png',
           'alt' => 'Scratchpads logo',
-          'title' => 'Scratchpads'
+          'title' => 'Scratchpads TAG'
         )), 'http://scratchpads.eu/', $options)
       );
       $block['content'] = array(
