@@ -1,5 +1,6 @@
-name = Scratchpads blog block
-description = Adds a block with links to individual author's blogs
-package = "Scratchpads theme"
+name = Blogs
+description = Enables multi-user blogs.
+package = "Blog"
 core = 7.x
 dependencies[] = blog
+tool=true
