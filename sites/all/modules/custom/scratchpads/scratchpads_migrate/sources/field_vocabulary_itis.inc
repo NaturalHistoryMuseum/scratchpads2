@@ -22,7 +22,7 @@ class DrupalFieldVocabularyItisTermMigration extends DrupalFieldVocabularyMigrat
       'field_unit_name3' => 'field_unit_name3',
       'field_unit_name4' => 'field_unit_name4',
       'field_unit_name4' => 'field_unit_name4',
-      'field_vernacular_name' => 'field_vernacular_names',
+      'field_vernacular_name' => NULL, // Special use case: maps to a field collection
       'field_accepted_name' => NULL, // Special use case: maps to field_aan_{vid}
       // TODO - Emonocot only - remove
       'field_type_references' => 'field_type_ref',
