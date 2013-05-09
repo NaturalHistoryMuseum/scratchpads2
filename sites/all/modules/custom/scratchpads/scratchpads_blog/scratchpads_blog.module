@@ -6,9 +6,12 @@
 function scratchpads_blog_block_info(){
   $blocks['blog_filters'] = array(
     'info' => t('Scratchpads blog filters'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
     'status' => 1,
+    'pages' => "blog\nblog/*",
     'region' => 'sidebar',
-    'weight' => 20
+    'weight' => 20,
+    'visibility' => BLOCK_VISIBILITY_LISTED
   );
   return $blocks;
 }
@@ -21,9 +24,7 @@ function scratchpads_blog_block_view($delta = ''){
   switch($delta){
     case 'blog_filters':
       $block['subject'] = t('');
-      $block['content']['#markup'] = scratchpads_blog_authors();
-      $block['content']['#markup'] .= scratchpads_blog_taxonomy();
-      $block['content']['#markup'] .= scratchpads_blog_date();
+      $block['content']['#markup'] = scratchpads_blog_authors() . scratchpads_blog_taxonomy() . scratchpads_blog_date();
       $block['content']['#attached']['css'][] = drupal_get_path('module', 'scratchpads_blog') . '/css/scratchpads_blog.css';
       break;
   }
