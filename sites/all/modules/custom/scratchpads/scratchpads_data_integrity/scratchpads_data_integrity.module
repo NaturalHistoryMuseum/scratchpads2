@@ -1,0 +1,80 @@
+<?php
+
+/**
+ * Implements hook_mail().
+ */
+function scratchpads_data_integrity_mail($key, &$message, $params){
+  switch($key){
+    case 'maintainer':
+      $message = array_merge($message, array(
+        'subject' => t('Your Scratchpad has incomplete data'),
+        'body' => array(
+          'Dear Scratchpad Maintainer',
+          'Your data is not in a good way, we are looking into this problem.'
+        ),
+        'from' => 'Scratchpads Team <no-reply@scratchpads.eu>'
+      ));
+      break;
+    case 'scratchpads_team':
+      $message = array_merge($message, array(
+        'subject' => t('!site_url has a data issue.', array(
+          '!site_url' => $params['site_url']
+        )),
+        'body' => array_merge(array(
+          'Scratchpads Team,',
+          t('The following issues were found with your site.', array())
+        ), $params['messages']),
+        'from' => 'Scratchpads Team <no-reply@scratchpads.eu>'
+      ));
+  }
+}
+
+/**
+ * Implements hook_scratchpads_data_integrity().
+ */
+function scratchpads_data_integrity_scratchpads_data_integrity(){
+  return array(
+    'scratchpads_tweaks_check_all_terms_have_parents' => array(
+      'file' => 'scratchpads_data_integrity.inc'
+    )
+  );
+}
+
+/**
+ * Implements hook_cron().
+ */
+function scratchpads_data_integrity_cron(){
+  // Get a list of functions to run.
+  $data_ints = array();
+  foreach(module_implements('scratchpads_data_integrity') as $module){
+    $new_ints = call_user_func($module . '_scratchpads_data_integrity');
+    foreach(array_keys($new_ints) as $key){
+      if(!empty($new_ints[$key]['file'])){
+        $new_ints[$key]['file'] = DRUPAL_ROOT . '/' . drupal_get_path('module', $module) . "/" . $new_ints[$key]['file'];
+      }
+    }
+    $data_ints = array_merge($data_ints, $new_ints);
+  }
+  // Alter the ints
+  drupal_alter('scratchpads_data_integrity', $data_ints);
+  // Loop through each, and add the messages that are returned to the list.
+  $messages = array();
+  foreach($data_ints as $func => $int){
+    if(!empty($int['file'])){
+      require_once $int['file'];
+    }
+    $output = $func();
+    if(is_array($output) && count($output)){
+      $messages = array_merge($messages, $output);
+    }
+  }
+  if(count($messages)){
+    global $language;
+    drupal_mail('scratchpads_data_integrity', 'scratchpads_team', 'Simon Rycroft <simor@monkey.nhm.ac.uk>', $language, array(
+      'site_url' => url('', array(
+        'absolute' => TRUE
+      )),
+      'messages' => $messages
+    ));
+  }
+}
