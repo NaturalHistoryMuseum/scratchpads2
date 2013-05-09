@@ -4,11 +4,23 @@
  * Implements hook_block_info().
  */
 function scratchpads_blog_block_info(){
-  $blocks['blog_block'] = array(
-    'info' => t('Scratchpads blog')
+  $blocks['blog_author'] = array(
+    'info' => t('Scratchpads blog author'),
+    'status' => 1,
+    'region' => 'sidebar',
+    'weight' => 0
   );
   $blocks['blog_taxonomy'] = array(
-    'info' => t('Scratchpads blog taxonomy')
+    'info' => t('Scratchpads blog taxonomy'),
+    'status' => 1,
+    'region' => 'sidebar',
+    'weight' => 10
+  );
+  $blocks['blog_date'] = array(
+    'info' => t('Scratchpads blog date'),
+    'status' => 1,
+    'region' => 'sidebar',
+    'weight' => 20
   );
   return $blocks;
 }
@@ -19,9 +31,40 @@ function scratchpads_blog_block_info(){
 function scratchpads_blog_block_view($delta = ''){
   $block = array();
   switch($delta){
-    case 'blog_block':
+    case 'blog_author':
+      $term_id = '';
+      if(arg(2) == 'term'){
+        $term_id = arg(3);
+        $taxonomy_operator = '=';
+      }else if(arg(2) == 'date'){
+        $date = arg(3);
+      }
+      if(arg(4) == 'term'){
+        $term_id = arg(5);
+        $taxonomy_operator = '=';
+      }elseif(arg(4) == 'date'){
+        $date = arg(5);
+      }
+      if($date != ''){
+        $date_year = substr($date, 0, 4);
+        $date_month = substr($date, -2);
+        $date1 = mktime(0, 0, 0, 0, 0, $date_year);
+        $date2 = mktime(0, 0, 0, 0, 0, $date_year + 1);
+        $date_operator1 = '>';
+        $date_operator2 = '<';
+        $date_string = '/date/' . $date;
+      }else{
+        $date_string = '';
+      }
+      if($term_id != ''){
+        $term_condition_operator = '=';
+      }else{
+        $term_condition_operator = '>';
+        $term_id = 0;
+      }
       $query = db_select('node', 'n');
       $query->join('users', 'u', 'n.uid = u.uid');
+      $query->leftjoin('taxonomy_index', 't', 'n.nid = t.nid');
       $query->fields('u', array(
         'name'
       ));
@@ -34,30 +77,91 @@ function scratchpads_blog_block_view($delta = ''){
       $query->condition('u.status', 1);
       $query->condition('n.status', 1);
       $query->condition('n.type', 'blog', '=');
-      $query->addExpression('COUNT(n.uid)');
+      if($date != ''){
+        $query->condition('n.created', $date1, $date_operator1);
+        $query->condition('n.created', $date2, $date_operator2);
+      }
+      if($term_id != 0){
+        $query->condition('t.tid', $term_id, $term_condition_operator);
+      }
+      $query->addExpression('COUNT(DISTINCT(n.nid))');
       $query->groupBy('u.uid');
       $query->groupBy('n.type');
       $query->orderBy('COUNT(n.uid)', 'DESC');
       $result = $query->execute();
       $output = "<div id='blog_list'>";
+      $counter = 0;
       while($record = $result->fetchAssoc()){
         $output .= '<div class="blog_list_row">';
-        $output .= '<div class="blog_list_row_body"><a href="/blog/' . $record['uid'] . '">' . $record['name'] . '</a> Posts:(' . $record['expression'] . ')</div>';
+        $output .= '<div class="blog_list_row_body">';
+        
+        if($term_id > 0){
+          $term_string = "/term/" . $term_id;
+        }else{
+          $term_string = '';
+        }
+        if(arg(1) == $record['uid']){
+          $path = "blog/" . $term_string . $date_string;
+          $output .= l('(-) ', $path , array('attributes'=>array('title'=>'View blogs for all users')));          
+        }
+        
+        $path2 = "blog/" . $record['uid'] . $term_string . $date_string;
+        $output .= l($record['name'], $path2 );
+     
+        $output .=' (' . $record['expression'] . ')</div>';
         $output .= '</div>';
+        $counter++;
+      }
+      if($counter == 0){
+        $output .= "No matching authors.<br/>";
       }
       $output .= '</div><br/>';
-      $block['subject'] = t('Author blogs');
+      $block['subject'] = t('Filter by Author');
       $block['content'] = $output;
       break;
     case 'blog_taxonomy':
       $output = scratchpads_blog_taxonomy();
-      $block['subject'] = t('Filter Blogs by Taxomony');
+      $block['subject'] = t('Filter by Taxomony');
       $block['content'] = $output;
+      break;
+    case 'blog_date':
+      $output = scratchpads_blog_date();
+      $block['subject'] = t('Filter by Date');
+      $block['content'] = $output;
+      break;
   }
   return $block;
 }
 
+/**
+ * Returns a string containing taxonomy filter links for blogs.
+ */
 function scratchpads_blog_taxonomy(){
+  $date = '';
+  $uid = arg(1);
+  if(arg(2) == 'term'){
+    $tid = arg(3);
+    $taxonomy_operator = '=';
+  }else if(arg(2) == 'date'){
+    $date = arg(3);
+  }
+  if(arg(4) == 'term'){
+    $tid = arg(5);
+    $taxonomy_operator = '=';
+  }elseif(arg(4) == 'date'){
+    $date = arg(5);
+  }
+  // need to get a timestamp range for the date.../date/2012-03
+  // for now, just the year
+  if($date != ''){
+    $date_year = substr($date, 0, 4);
+    $date_month = substr($date, -2);
+    $date1 = mktime(0, 0, 0, 0, 0, $date_year);
+    $date2 = mktime(0, 0, 0, 0, 0, $date_year + 1);
+    $date_string = '/date/' . $date;
+  }else{
+    $date_string = '';
+  } 
   $query = db_select('node', 'n');
   $query->join('taxonomy_index', 't', 'n.nid = t.nid');
   $query->join('taxonomy_term_data', 'd', 'd.tid = t.tid');
@@ -70,6 +174,14 @@ function scratchpads_blog_taxonomy(){
   ));
   $query->condition('n.status', 1);
   $query->condition('n.type', 'blog', '=');
+  if($uid != ''){
+    $query->condition('n.uid', $uid, '=');
+  }
+  if($date != ''){
+    $query->condition('n.created', $date1, '>');
+    $query->condition('n.created', $date2, '<');
+  }
+  $query->orderby('d.name');
   $result = $query->execute();
   $terms_names = array();
   $tid_array = array();
@@ -81,15 +193,33 @@ function scratchpads_blog_taxonomy(){
   arsort($count_array);
   $output = '';
   $counter = 0;
+  $last_count = 0;
   foreach($count_array as $term_id => $blog_count){
     $output .= '<div class="blog_term_row">';
-    $output .= "<a href='/blog//term/" . $term_id . "'>" . $terms_names[$term_id] . "</a> (" . $blog_count . ")";
+    if(arg(3) == $term_id){
+      $path = "blog/" . arg(1) . $date_string;
+      $output .= l('(-) ', $path , array('attributes'=>array('title'=>'View blogs for all taxonomy terms')));
+    }
+    
+    $path = 'blog/';
+    if($uid > 0){
+      $path .= $uid;
+    }
+    $path .= "/term/" . $term_id . $date_string;
+    $output .= l($terms_names[$term_id], $path);   
+    $output .= " (" . $blog_count . ")";
     $output .= '</div>';
     $counter++;
-    if($counter == 5){
+    
+    if(($counter >= 5)&&($last_count!=$blog_count)){
       break;
     }
+    $last_count = $blog_count;
   }
+  if($counter == 0){
+    $output .= "No matching taxonomies.<br/>";
+  }
+  $output .= "<br/>";
   return $output;
 }
 
@@ -98,70 +228,224 @@ function scratchpads_blog_taxonomy(){
  */
 function scratchpads_blog_menu(){
   return array(
-
-  'blog/%user_uid_optional/term/%' => array(
-  
-      'title' => 'Test blog',
+    'blog/%user_uid_optional/%/%' => array(
+      'title' => 'Blogs',
       'page callback' => 'scratchpads_blog_remake',
       'page arguments' => array(
-        1,3
+        1
       ),
-      'access arguments' => array('access content'),
+      'access arguments' => array(
+        'access content'
+      ),
       'type' => MENU_CALLBACK
     )
   );
 }
 
-function scratchpads_blog_remake($account, $tid){
+/**
+ *  Create the blog page when date or taxomony terms are present in the URL
+ *  Overrrides blog module
+ */
+function scratchpads_blog_remake($account){
+  $tid = 0;
   
-  
-  global $user;
-  
- // if ($account->name == ''){
- //   $user_condition = ''
+  $date = ''; // the raw date from the url;
+  $date1 = 0; // timestamp start
+  $date2 = 0; // timestamp end
+  $date_operator1 = '>';
+  $date_operator2 = '>';
+  if(arg(2) == 'term'){
+    $tid = arg(3); 
+  }else if(arg(2) == 'date'){
+    $date = arg(3);
+  }
+  if(arg(4) == 'term'){
+    $tid = arg(5);
+  }elseif(arg(4) == 'date'){
+    $date = arg(5);
+  }
+  // need to get a timestamp range for the date.../date/2012-03
+  // for now, just the year
+  if($date != ''){
+    $date_year = substr($date, 0, 4);
+    $date_month = substr($date, -2);
+    $date1 = mktime(0, 0, 0, 0, 0, $date_year);
+    $date2 = mktime(0, 0, 0, 0, 0, $date_year + 1);
+    $date_operator2 = '<';
+    $date_string = ', for ' . $date . '.';
+  }
+  else {
+    $date_string = '.';
     
- // }
-  
-  drupal_set_title($title = t("@name's blog", array('@name' => format_username($account))), PASS_THROUGH);
-  
+  }
+ // global $user;
+ // The selected user id, if any
+  $uid = arg(1);
+  if($uid != ''){
+    $user_condition_operator = '=';
+  }else{
+    $user_condition_operator = '>';
+    $uid = 0;
+  }
+  // set the title only
+  if(($uid == 0) && ($tid > 0)){
+    drupal_set_title($title = t("Blogs for all users, with taxonomy term @term@date_string", array(
+      '@term' => taxonomy_term_load($tid)->name,
+      '@date_string' => $date_string
+    )), PASS_THROUGH);
+  }elseif(($uid > 0) && ($tid > 0)){
+    drupal_set_title($title = t("@name's blog, with taxonomy term @term@date_string", array(
+      '@name' => format_username($account),
+      '@term' => taxonomy_term_load($tid)->name,
+      '@date_string' => $date_string
+    )), PASS_THROUGH);
+  }elseif(($uid > 0) && ($tid == 0)){
+      drupal_set_title($title = t("@name's blog@date_string", array(
+      '@name' => format_username($account),
+      '@date_string' => $date_string
+      )), PASS_THROUGH);
+  }elseif(($uid == 0) && ($tid == 0)){
+    drupal_set_title($title = t("Blogs for all users,  and all with taxonomy terms@date_string", array(
+      '@date_string' => $date_string
+    )), PASS_THROUGH);
+  }
   $build = array();
-  
   // add a join here to filter by taxonomy term
   $query = db_select('node', 'n')->extend('PagerDefault');
-  $nids = $query
-  ->fields('n', array('nid', 'sticky', 'created'))
-  ->condition('type', 'blog')
-  ->condition('uid', $account->uid)
-  ->condition('status', 1)
-  ->orderBy('sticky', 'DESC')
-  ->orderBy('created', 'DESC')
-  ->limit(variable_get('default_nodes_main', 10))
-  ->addTag('node_access')
-  ->execute()
-  ->fetchCol();
-  
-  if (!empty($nids)) {
+  $query->leftjoin('taxonomy_index', 't', 'n.nid = t.nid');
+  if($tid > 0){
+    $nids = $query->fields('n', array(
+      'nid',
+      'sticky',
+      'created'
+    ))->condition('n.type', 'blog')->condition('n.uid', $account->uid, $user_condition_operator)->condition('n.status', 1)->condition('n.created', $date1, $date_operator1)->condition('n.created', $date2, $date_operator2)->condition('t.tid', $tid, '=')->orderBy('n.sticky', 'DESC')->orderBy('n.created', 'DESC')->limit(variable_get('default_nodes_main', 10))->addTag('node_access')->execute()->fetchCol();
+  }else{
+    $nids = $query->fields('n', array(
+      'nid',
+      'sticky',
+      'created'
+    ))->condition('n.type', 'blog')->condition('n.uid', $account->uid, $user_condition_operator)->condition('n.status', 1)->condition('n.created', $date1, $date_operator1)->condition('n.created', $date2, $date_operator2)->orderBy('n.sticky', 'DESC')->orderBy('n.created', 'DESC')->limit(variable_get('default_nodes_main', 10))->addTag('node_access')->execute()->fetchCol();
+  }
+  if(!empty($nids)){
     $nodes = node_load_multiple($nids);
     $build += node_view_multiple($nodes);
     $build['pager'] = array(
       '#theme' => 'pager',
-      '#weight' => 5,
+      '#weight' => 5
     );
+  }else{
+    // maybe better to put a message here
+    drupal_set_title($title = t("There are no blog entires for this selection"));
   }
-  else {
-    if ($account->uid == $user->uid) {
-      drupal_set_message(t('You have not created any blog entries.'));
-    }
-    else {
-      drupal_set_message(t('!author has not created any blog entries.', array('!author' => theme('username', array('account' => $account)))));
-    }
-  }
-  drupal_add_feed('blog/' . $account->uid . '/feed', t('RSS - !title', array('!title' => $title)));
-  
   return $build;
 }
 
-function scratchpads_blog_views_query_alter(&$view, &$query){
-  $something = "nothing";
+/**
+ *  Helper funtion
+ *  Returns the date block for blogs, currently by year
+ */
+function scratchpads_blog_date(){
+  $uid = arg(1);
+  $tid = 0;
+  if(arg(2) == 'term'){
+    $tid = arg(3);
+    $taxonomy_operator = '=';
+  }else if(arg(2) == 'date'){
+    $date = arg(3);
+  }
+  if(arg(4) == 'term'){
+    $tid = arg(5);
+    $taxonomy_operator = '=';
+  }elseif(arg(4) == 'date'){
+    $date = arg(5);
+  }
+  $output = '';
+ 
+  $uid = arg(1);
+  if($uid != ''){
+    $user_condition_operator = '=';
+  }else{
+    $user_condition_operator = '>';
+    $uid = 0;
+  }
+  $query = db_select('node', 'n');
+  $query->leftjoin('taxonomy_index', 't', 'n.nid = t.nid');
+  $query->fields('n');
+  $query->fields('t', array(
+    'tid'
+  ));
+  $query->condition('n.status', 1);
+  $query->condition('n.type', 'blog', '=');
+  $query->condition('n.uid', $uid, $user_condition_operator);
+  
+  $query->groupBy('n.nid');
+  //  $query->addExpression('COUNT(DISTINCT(n.nid))');
+  $result = $query->execute();
+  $terms_names = array();
+  $tid_array = array();
+  $date_array = array();
+  $month_array = array();
+  while($record = $result->fetchAssoc()){
+    $date_array[] = date('Y', $record['created']);
+    $month_array[date('Y', $record['created'])][] = date('m', $record['created']);
+  }
+  
+  $new_month_array = array();
+  foreach($month_array as $key=>$single_year){
+    
+    $count_m_array = array_count_values($single_year);
+    arsort($count_m_array);
+    
+    $new_month_array[$key] =  $count_m_array;
+  }
+  
+ 
+  
+  $count_array = array_count_values($date_array);
+  arsort($count_array);
+  foreach($count_array as $year => $year_count){
+    $output .= '<div class="blog_date_row">';
+    // Add symbol to selected item
+    if($uid == 0){
+      $uid = '';
+    }
+    if($date == $year){
+      
+      $path = "blog/" . $uid;
+      if($tid > 0){
+        $path .= "/term/" . $tid;
+      }
+      $output .= l('(-) ', $path , array('attributes'=>array('title'=>'View blogs for all years')));
+      
+    }
+    // Add the date link
+    if($uid == 0){
+      $uid = '';
+    }
+    
+    $path = "blog/" . $uid;
+    if($tid > 0){
+      $path .= "/term/" . $tid;
+    }
+    $path .= "/date/" . $year;
+    $output .= l($year, $path); 
+    
+ 
+    $output .= " (" . $year_count . ')';
+    $output .= '</div>';
+    
+    foreach ($new_month_array[$year] as $month => $month_count){
+      $output .= '<div class="blog_date_row_month">';
+      // later repace with css
+      $output .= '&nbsp;&nbsp;- ';
+      $path = $path . '-' . $month;
+      $output .= l(date("M", mktime(0, 0, 0, $month, 10)), $path);  
+      $output .=  ' ('. $month_count . ')';
+      $output .= '</div>';
+    }
+    
+  }
+ 
+  return $output;
 }
 
