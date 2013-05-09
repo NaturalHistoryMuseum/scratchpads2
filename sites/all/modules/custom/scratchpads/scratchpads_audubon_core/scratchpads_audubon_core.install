@@ -1,0 +1,5 @@
+<?php
+
+function scratchpads_audubon_core_update_7001() {
+	features_revert(array('scratchpads_audubon_core' => array('field')));
+}

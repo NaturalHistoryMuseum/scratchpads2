@@ -856,6 +856,8 @@ function scratchpads_audubon_core_field_default_fields() {
       'indexes' => array(),
       'module' => 'date',
       'settings' => array(
+        'cache_count' => '4',
+        'cache_enabled' => 0,
         'granularity' => array(
           'day' => 'day',
           'hour' => 'hour',
@@ -1013,9 +1015,8 @@ function scratchpads_audubon_core_field_default_fields() {
           'input_format' => 'Y-m-d H:i:s',
           'input_format_custom' => '',
           'label_position' => 'above',
-          'repeat_collapsed' => 0,
           'text_parts' => array(),
-          'year_range' => '-3:+3',
+          'year_range' => '0000:+0',
         ),
         'type' => 'date_select',
         'weight' => '23',
@@ -2377,6 +2378,8 @@ function scratchpads_audubon_core_field_default_fields() {
       'indexes' => array(),
       'module' => 'date',
       'settings' => array(
+        'cache_count' => '4',
+        'cache_enabled' => 0,
         'granularity' => array(
           'day' => 'day',
           'hour' => 'hour',
@@ -2534,9 +2537,8 @@ function scratchpads_audubon_core_field_default_fields() {
           'input_format' => 'Y-m-d H:i:s',
           'input_format_custom' => '',
           'label_position' => 'above',
-          'repeat_collapsed' => 0,
           'text_parts' => array(),
-          'year_range' => '-3:+3',
+          'year_range' => '0000:+0',
         ),
         'type' => 'date_select',
         'weight' => '21',
