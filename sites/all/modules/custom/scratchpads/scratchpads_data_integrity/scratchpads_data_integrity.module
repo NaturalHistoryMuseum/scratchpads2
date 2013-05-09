@@ -38,6 +38,24 @@ function scratchpads_data_integrity_mail($key, &$message, $params){
 }
 
 /**
+ * Implements hook_menu().
+ */
+function scratchpads_data_integrity_menu(){
+  return array(
+    'admin/reports/scratchpads-data-integrity' => array(
+      'title' => 'Scratchpads Data Issues',
+      'description' => 'View a list of all issues with this Scratchpad.',
+      'page callback' => 'scratchpads_data_integrity_overview',
+      'access arguments' => array(
+        'access site reports'
+      ),
+      'weight' => -1,
+      'file' => 'scratchpads_data_integrity.pages.inc'
+    )
+  );
+}
+
+/**
  * Implements hook_scratchpads_data_integrity().
  */
 function scratchpads_data_integrity_scratchpads_data_integrity(){
@@ -49,9 +67,9 @@ function scratchpads_data_integrity_scratchpads_data_integrity(){
 }
 
 /**
- * Implements hook_cron().
+ * Helper function to get a list of messages.
  */
-function scratchpads_data_integrity_cron(){
+function scratchpads_data_integrity_get_messages($get_all = FALSE){
   // Get a list of functions to run.
   $data_ints = array();
   foreach(module_implements('scratchpads_data_integrity') as $module){
@@ -74,7 +92,7 @@ function scratchpads_data_integrity_cron(){
   $messages = array();
   $time = time();
   foreach($data_ints as $func => $int){
-    if(empty($last_run[$func]) || $last_run[$func] + $int['frequency'] < $time){
+    if($get_all || empty($last_run[$func]) || $last_run[$func] + $int['frequency'] < $time){
       if(!empty($int['file'])){
         require_once $int['file'];
       }
@@ -88,7 +106,18 @@ function scratchpads_data_integrity_cron(){
       $last_run[$func] = $time;
     }
   }
-  variable_set('scratchpads_data_integrity_last_run', $last_run);
+  if(!$get_all){
+    variable_set('scratchpads_data_integrity_last_run', $last_run);
+  }
+  return $messages;
+}
+
+/**
+ * Implements hook_cron().
+ */
+function scratchpads_data_integrity_cron(){
+  // Get a list of messages
+  $messages = scratchpads_data_integrity_get_messages();
   if(count($messages)){
     global $language;
     /*

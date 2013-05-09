@@ -15,10 +15,12 @@ function scratchpads_tweaks_check_all_terms_have_parents(){
   foreach($results as $row){
     $messages[] = " - {$row->name} ({$row->tid})";
   }
-  $messages = implode("\n", $messages);
-  $messages = array(
-    t('The following term(s) are missing a parent:'),
-    $messages
-  );
+  if(count($messages)){
+    $messages = implode("\n", $messages);
+    $messages = array(
+      t('The following term(s) are missing a parent:'),
+      $messages
+    );
+  }
   return $messages;
 }

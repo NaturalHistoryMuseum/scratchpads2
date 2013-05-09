@@ -330,7 +330,7 @@ function scratchpads_messages_page_alter(&$page){
       }
     }
   }
-  if(!empty($messages[SCRATCHPADS_MESSAGES_TIP]) && $_SESSION['scratchpads_messages_tips']){
+  if(!empty($messages[SCRATCHPADS_MESSAGES_TIP]) && !empty($_SESSION['scratchpads_messages_tips'])){
     // We select a random message from the tips.
     $key = rand(0, count($messages[SCRATCHPADS_MESSAGES_TIP]) - 1);
     $page['page_top']['tips'] = array(
