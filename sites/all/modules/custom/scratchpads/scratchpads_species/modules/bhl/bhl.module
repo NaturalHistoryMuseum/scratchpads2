@@ -163,7 +163,7 @@ function _bhl_get_namebank_titles($term_name, $limit = 20){
           //convert the titleID to numeric
           $title_id = intval($title->TitleID);
           // if the publication has already been added, just add the items
-          if($titles[$title_id]){
+          if(!empty($titles[$title_id])){
             $titles[$title_id]['items'][] = $title->Items;
           }else{ //else add some publication details - expand here for more publication data if nec.
             // convert to an array - numerical key causing error
