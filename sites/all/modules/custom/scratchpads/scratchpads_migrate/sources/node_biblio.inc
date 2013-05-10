@@ -70,8 +70,12 @@ class ScratchpadsNodeBiblioMigration extends ScratchpadsNodeMigration{
       'rank'
     ));
     $query->condition('bc.vid', $row->vid);
+    $query->orderBy('bc.rank', 'ASC');
     $result = $query->execute();
+    $rank = 0;
+    $row->biblio_contributors = array();
     while($record = $result->fetchAssoc()){
+      $record['rank'] = $rank++;
       $row->biblio_contributors[] = $record;
     }
     // Biblio abstracts are filtered html
