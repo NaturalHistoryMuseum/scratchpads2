@@ -9,6 +9,9 @@ function bhl_menu(){
   return array(
     'bhl_viewer/%' => array(
       'page callback' => 'bhl_viewer',
+      'page arguments' => array(
+        1
+      ),
       'access arguments' => array(
         'access content'
       ),
@@ -31,8 +34,22 @@ function bhl_admin_paths(){
  * Thickbox display breaks bhl view layout - but not if we use an inline iframe
  */
 function bhl_viewer($page_id){
-  $url = 'http://whbhl01.ubio.org/adore-djatoka/viewer.jsp/cat=&client=&image=&imageURL=http://www.biodiversitylibrary.org/pageimage/' . $page_id;
-  return '<iframe hspace="0" frameborder="0" id="TB_iframeContent" style="width: 100%; height: 700px;" align="center" src="' . $url . '">' . $url . '</iframe>';
+  //$url = 'http://whbhl01.ubio.org/adore-djatoka/viewer.jsp?cat=&client=&image=&imageURL=http%3A%2F%2Fwww.biodiversitylibrary.org%2Fpageimage%2F17384483&imageDetailURL=http%3A%2F%2Fwww.biodiversitylibrary.org%2Fpageimage%2F17384483&render=overlay
+  //$url = 'http://whbhl01.ubio.org/adore-djatoka/viewer.jsp/cat=&client=&image=&imageURL=http%3A%2F%2Fwww.biodiversitylibrary.org%2Fpageimage%2F';
+  //$url = 'http://whbhl01.ubio.org/adore-djatoka/viewer.jsp?cat=&client=&image=&imageURL=http%3A%2F%2Fwww.biodiversitylibrary.org%2Fpageimage%2F' . $page_id;
+  //return '<iframe hspace="0" frameborder="0" id="TB_iframeContent" style="width: 100%; height: 700px;" align="center" src="' . $url . '">' . $url . '</iframe>';
+  $url = 'http://www.biodiversitylibrary.org/pageimage/' . $page_id;
+  return array(
+    '#attached' => array(
+      'js' => array(
+        drupal_get_path('module', 'bhl') . '/js/jquery.elevateZoom-2.5.5.min.js',
+        drupal_get_path('module', 'bhl') . '/js/bhl.js',
+      )
+    ),
+    'markup' => array(
+      '#markup' => '<img id="bhl-viewer" src="' . $url . '" data-zoom-image="' . $url . '" width="100%"/>'
+    )
+  );
 }
 
 /**
