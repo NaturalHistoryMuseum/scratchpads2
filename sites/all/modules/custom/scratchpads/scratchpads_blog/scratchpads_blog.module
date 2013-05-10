@@ -97,7 +97,7 @@ function scratchpads_blog_remake($account){
   $date = ''; // the raw date from the url;
   $date1 = 0; // timestamp start
   $date2 = 0; // timestamp end
-  $date_operator1 = '>';
+  $date_operator1 = '>=';
   $date_operator2 = '>';
   if(arg(2) == 'term'){
     $tid = arg(3);
@@ -114,8 +114,8 @@ function scratchpads_blog_remake($account){
     $date_month = substr($date, 5, 2);
     if($date_month != ''){
       $d1 = ltrim($date_month, '0');
-      $date1 = mktime(0, 0, 0, $d1, 0, $date_year);
-      $date2 = mktime(0, 0, 0, $d1 + 1, 0, $date_year);
+      $date1 = mktime(0, 0, 0, $d1, 1, $date_year);
+      $date2 = mktime(0, 0, 0, $d1 + 1, 1, $date_year);
       $month_string = date('M', $date1) . ' ';
     }else{
       $date1 = mktime(0, 0, 0, 0, 0, $date_year);
@@ -124,6 +124,7 @@ function scratchpads_blog_remake($account){
     }
     $date_operator2 = '<';
     $date_string = ', Date (' . $month_string . $date_year . ').';
+    $simple_date_string = $month_string . $date_year;
   }else{
     $date_string = '.';
   }
@@ -159,8 +160,8 @@ function scratchpads_blog_remake($account){
       '@date_string' => $date_string
     ));
   }elseif(($uid == 0) && ($tid == 0) && ($date != '')){
-    $title = t("Filtered on - Date @date_string", array(
-      '@date_string' => $date_string
+    $sub_title = t("Filtered on - Date (@date_string)", array(
+      '@date_string' => $simple_date_string
     ));
   }
   $build = array();
