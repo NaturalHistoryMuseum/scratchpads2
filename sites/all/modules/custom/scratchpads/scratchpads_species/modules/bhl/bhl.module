@@ -7,7 +7,7 @@ define('BHL_API_KEY', 'aeca8ad9-b0ca-4899-9824-4b59d2d162de');
  */
 function bhl_menu(){
   return array(
-    'bhl_viewer' => array(
+    'bhl_viewer/%' => array(
       'page callback' => 'bhl_viewer',
       'access arguments' => array(
         'access content'
@@ -30,8 +30,8 @@ function bhl_admin_paths(){
 /**
  * Thickbox display breaks bhl view layout - but not if we use an inline iframe
  */
-function bhl_viewer(){
-  $url = substr(request_uri(), 12);
+function bhl_viewer($page_id){
+  $url = 'http://whbhl01.ubio.org/adore-djatoka/viewer.jsp/cat=&client=&image=&imageURL=http://www.biodiversitylibrary.org/pageimage/' . $page_id;
   return '<iframe hspace="0" frameborder="0" id="TB_iframeContent" style="width: 100%; height: 700px;" align="center" src="' . $url . '">' . $url . '</iframe>';
 }
 
@@ -68,7 +68,7 @@ function bhl_block_view($delta = ''){
           $publication_title = $title['title'];
           $pages = array();
           foreach($title['items'][0]->Item->Pages->Page as $page){
-            $viewer_url = '/bhl_viewer/' . $page->ImageUrl;
+            $viewer_url = '/bhl_viewer/' . $page->PageID;
             $link_text = trim("{$page->Prefix} $page->Number");
             if(!$link_text){
               $link_text = t('Page');
