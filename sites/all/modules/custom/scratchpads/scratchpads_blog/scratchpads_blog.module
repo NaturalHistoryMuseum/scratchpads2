@@ -24,11 +24,186 @@ function scratchpads_blog_block_view($delta = ''){
   switch($delta){
     case 'blog_filters':
       $block['subject'] = t('');
-      $block['content']['#markup'] = scratchpads_blog_authors() . scratchpads_blog_taxonomy() . scratchpads_blog_date();
+      $block['content'] = array();
+      $block['content']['scratchpads_blog_authors'] = array(
+        '#theme' => 'item_list',
+        '#items' => scratchpads_blog_authors(),
+        '#title' => t('Filter by Author'),
+        '#type' => 'ul'
+      );
+      $block['content']['scratchpads_blog_taxonomy'] = array(
+        '#theme' => 'item_list',
+        '#items' => scratchpads_blog_taxonomy(),
+        '#title' => t('Filter by Taxonomy'),
+        '#type' => 'ul'
+      );
+      $block['content']['scratchpads_blog_date'] = array(
+        '#theme' => 'item_list',
+        '#items' => scratchpads_blog_date(),
+        '#title' => t('Filter by Date'),
+        '#type' => 'ul'
+      );
       $block['content']['#attached']['css'][] = drupal_get_path('module', 'scratchpads_blog') . '/css/scratchpads_blog.css';
       break;
   }
   return $block;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_blog_menu(){
+  $items['blog/%user_uid_optional/%/%'] = array(
+    'title' => 'Blogs',
+    'page callback' => 'scratchpads_blog_remake',
+    'page arguments' => array(
+      1
+    ),
+    'access arguments' => array(
+      'access content'
+    ),
+    'type' => MENU_CALLBACK
+  );
+  // overrides the blog module
+  $items['blog'] = array(
+    'title' => 'Blogs',
+    'page callback' => 'scratchpads_blog_page_last',
+    'access arguments' => array(
+      'access content'
+    ),
+    'type' => MENU_SUGGESTED_ITEM
+  );
+  // overrides the blog module
+  $items['blog/%user_uid_optional'] = array(
+    'title' => 'My blog',
+    'page callback' => 'scratchpads_blog_page_user',
+    'page arguments' => array(
+      1
+    ),
+    'access callback' => 'blog_page_user_access',
+    'access arguments' => array(
+      1
+    )
+  );
+  return $items;
+}
+
+/**
+ *  Create the blog page when date or taxomony terms are present in the URL
+ *  Overrrides blog module
+ */
+function scratchpads_blog_remake($account){
+  $tid = 0;
+  $date = ''; // the raw date from the url;
+  $date1 = 0; // timestamp start
+  $date2 = 0; // timestamp end
+  $date_operator1 = '>';
+  $date_operator2 = '>';
+  if(arg(2) == 'term'){
+    $tid = arg(3);
+  }else if(arg(2) == 'date'){
+    $date = arg(3);
+  }
+  if(arg(4) == 'term'){
+    $tid = arg(5);
+  }elseif(arg(4) == 'date'){
+    $date = arg(5);
+  }
+  if($date != ''){
+    $date_year = substr($date, 0, 4);
+    $date_month = substr($date, 5, 2);
+    if($date_month != ''){
+      $d1 = ltrim($date_month, '0');
+      $date1 = mktime(0, 0, 0, $d1, 0, $date_year);
+      $date2 = mktime(0, 0, 0, $d1 + 1, 0, $date_year);
+      $month_string = date('M', $date1) . ' ';
+    }else{
+      $date1 = mktime(0, 0, 0, 0, 0, $date_year);
+      $date2 = mktime(0, 0, 0, 0, 0, $date_year + 1);
+      $month_string = '';
+    }
+    $date_operator2 = '<';
+    $date_string = ', Date (' . $month_string . $date_year . ').';
+  }else{
+    $date_string = '.';
+  }
+  global $user;
+  // The selected user id, if any
+  $uid = arg(1);
+  if($uid != ''){
+    $user_condition_operator = '=';
+  }else{
+    $user_condition_operator = '>';
+    $uid = 0;
+  }
+  if($user->uid == $account->uid){
+    drupal_set_title($title = t("My Blog"));
+  }else{
+    drupal_set_title($title = t("Blog"));
+  }
+  // set the sub-title
+  if(($uid == 0) && ($tid > 0)){
+    $sub_title = t("Filtered on Taxonomy term (@term)@date_string", array(
+      '@term' => taxonomy_term_load($tid)->name,
+      '@date_string' => $date_string
+    ));
+  }elseif(($uid > 0) && ($tid > 0)){
+    $sub_title = t("Filtered on Author (@name), Taxonomy term (@term)@date_string", array(
+      '@name' => format_username($account),
+      '@term' => taxonomy_term_load($tid)->name,
+      '@date_string' => $date_string
+    ));
+  }elseif(($uid > 0) && ($tid == 0)){
+    $sub_title = t("Filtered on Author (@name)@date_string", array(
+      '@name' => format_username($account),
+      '@date_string' => $date_string
+    ));
+  }elseif(($uid == 0) && ($tid == 0) && ($date != '')){
+    $title = t("Filtered on - Date @date_string", array(
+      '@date_string' => $date_string
+    ));
+  }
+  $build = array();
+  $query = db_select('node', 'n')->extend('PagerDefault');
+  $query->leftjoin('taxonomy_index', 't', 'n.nid = t.nid');
+  if($tid > 0){
+    $nids = $query->fields('n', array(
+      'nid',
+      'sticky',
+      'created'
+    ))->condition('n.type', 'blog')->condition('n.uid', $account->uid, $user_condition_operator)->condition('n.status', 1)->condition('n.created', $date1, $date_operator1)->condition('n.created', $date2, $date_operator2)->condition('t.tid', $tid, '=')->orderBy('n.sticky', 'DESC')->orderBy('n.created', 'DESC')->limit(variable_get('default_nodes_main', 10))->addTag('node_access')->execute()->fetchCol();
+  }else{
+    $nids = $query->fields('n', array(
+      'nid',
+      'sticky',
+      'created'
+    ))->condition('n.type', 'blog')->condition('n.uid', $account->uid, $user_condition_operator)->condition('n.status', 1)->condition('n.created', $date1, $date_operator1)->condition('n.created', $date2, $date_operator2)->orderBy('n.sticky', 'DESC')->orderBy('n.created', 'DESC')->limit(variable_get('default_nodes_main', 10))->addTag('node_access')->execute()->fetchCol();
+  }
+  if(!empty($nids)){
+    $nodes = node_load_multiple($nids);
+    $build += node_view_multiple($nodes);
+    $c = 1;
+    foreach(element_children($build['nodes']) as $key){
+      if($c % 2){
+        $build['nodes'][$key]['#prefix'] = '<div class="search-row-odd">';
+        $build['nodes'][$key]['#suffix'] = '</div>';
+      }
+      $c++;
+    }
+    $build['pager'] = array(
+      '#theme' => 'pager',
+      '#weight' => 5
+    );
+  }else{
+    // maybe better to put a set_message here
+    drupal_set_title($title = t("There are no blog entires for this selection"));
+  }
+  if($sub_title != ''){
+    array_unshift($build, array(
+      '#markup' => "<h2 class='blog_filter_text'>" . $sub_title . "</h2>"
+    ));
+  }
+  return $build;
 }
 
 /**
@@ -117,14 +292,9 @@ function scratchpads_blog_authors(){
     $items[] = $output;
   }
   if($counter == 0){
-    $output = "<div class='blog_no_match'>No matching authors.<div/>";
-    $items[] = $output;
+    $items[] = "<div class='blog_no_match'>No matching authors.<div/>";
   }
-  return theme('item_list', array(
-    'items' => $items,
-    'title' => t('Filter by Author'),
-    'type' => 'ul'
-  ));
+  return $items;
 }
 
 /**
@@ -217,130 +387,7 @@ function scratchpads_blog_taxonomy(){
     $output = "<div class='blog_no_match'>No matching taxonomies.<div/>";
     $items[] = $output;
   }
-  return theme('item_list', array(
-    'items' => $items,
-    'title' => t('Filter by Taxonomy'),
-    'type' => 'ul'
-  ));
-}
-
-/**
- * Implements hook_menu().
- */
-function scratchpads_blog_menu(){
-  return array(
-    'blog/%user_uid_optional/%/%' => array(
-      'title' => 'Blogs',
-      'page callback' => 'scratchpads_blog_remake',
-      'page arguments' => array(
-        1
-      ),
-      'access arguments' => array(
-        'access content'
-      ),
-      'type' => MENU_CALLBACK
-    )
-  );
-}
-
-/**
- *  Create the blog page when date or taxomony terms are present in the URL
- *  Overrrides blog module
- */
-function scratchpads_blog_remake($account){
-  $tid = 0;
-  $date = ''; // the raw date from the url;
-  $date1 = 0; // timestamp start
-  $date2 = 0; // timestamp end
-  $date_operator1 = '>';
-  $date_operator2 = '>';
-  if(arg(2) == 'term'){
-    $tid = arg(3);
-  }else if(arg(2) == 'date'){
-    $date = arg(3);
-  }
-  if(arg(4) == 'term'){
-    $tid = arg(5);
-  }elseif(arg(4) == 'date'){
-    $date = arg(5);
-  }
-  if($date != ''){
-    $date_year = substr($date, 0, 4);
-    $date_month = substr($date, 5, 2);
-    if($date_month != ''){
-      $d1 = ltrim($date_month, '0');
-      $date1 = mktime(0, 0, 0, $d1, 0, $date_year);
-      $date2 = mktime(0, 0, 0, $d1 + 1, 0, $date_year);
-      $month_string = date('M', $date1) . ' ';
-    }else{
-      $date1 = mktime(0, 0, 0, 0, 0, $date_year);
-      $date2 = mktime(0, 0, 0, 0, 0, $date_year + 1);
-      $month_string = '';
-    }
-    $date_operator2 = '<';
-    $date_string = ', Date:(' . $month_string . $date_year . ').';
-  }else{
-    $date_string = '.';
-  }
-  // global $user;
-  // The selected user id, if any
-  $uid = arg(1);
-  if($uid != ''){
-    $user_condition_operator = '=';
-  }else{
-    $user_condition_operator = '>';
-    $uid = 0;
-  }
-  // set the title
-  if(($uid == 0) && ($tid > 0)){
-    drupal_set_title($title = t("Blogs - Filtered on Taxonomy term:(@term)@date_string", array(
-      '@term' => taxonomy_term_load($tid)->name,
-      '@date_string' => $date_string
-    )), PASS_THROUGH);
-  }elseif(($uid > 0) && ($tid > 0)){
-    drupal_set_title($title = t("Blogs - Filtered on Author:(@name), Taxonomy term:(@term)@date_string", array(
-      '@name' => format_username($account),
-      '@term' => taxonomy_term_load($tid)->name,
-      '@date_string' => $date_string
-    )), PASS_THROUGH);
-  }elseif(($uid > 0) && ($tid == 0)){
-    drupal_set_title($title = t("Blogs - Filtered on Author:(@name)@date_string", array(
-      '@name' => format_username($account),
-      '@date_string' => $date_string
-    )), PASS_THROUGH);
-  }elseif(($uid == 0) && ($tid == 0) && ($date != '')){
-    drupal_set_title($title = t("Blogs - Filtered on - Date:@date_string", array(
-      '@date_string' => $date_string
-    )), PASS_THROUGH);
-  }
-  $build = array();
-  $query = db_select('node', 'n')->extend('PagerDefault');
-  $query->leftjoin('taxonomy_index', 't', 'n.nid = t.nid');
-  if($tid > 0){
-    $nids = $query->fields('n', array(
-      'nid',
-      'sticky',
-      'created'
-    ))->condition('n.type', 'blog')->condition('n.uid', $account->uid, $user_condition_operator)->condition('n.status', 1)->condition('n.created', $date1, $date_operator1)->condition('n.created', $date2, $date_operator2)->condition('t.tid', $tid, '=')->orderBy('n.sticky', 'DESC')->orderBy('n.created', 'DESC')->limit(variable_get('default_nodes_main', 10))->addTag('node_access')->execute()->fetchCol();
-  }else{
-    $nids = $query->fields('n', array(
-      'nid',
-      'sticky',
-      'created'
-    ))->condition('n.type', 'blog')->condition('n.uid', $account->uid, $user_condition_operator)->condition('n.status', 1)->condition('n.created', $date1, $date_operator1)->condition('n.created', $date2, $date_operator2)->orderBy('n.sticky', 'DESC')->orderBy('n.created', 'DESC')->limit(variable_get('default_nodes_main', 10))->addTag('node_access')->execute()->fetchCol();
-  }
-  if(!empty($nids)){
-    $nodes = node_load_multiple($nids);
-    $build += node_view_multiple($nodes);
-    $build['pager'] = array(
-      '#theme' => 'pager',
-      '#weight' => 5
-    );
-  }else{
-    // maybe better to put a set_message here
-    drupal_set_title($title = t("There are no blog entires for this selection"));
-  }
-  return $build;
+  return $items;
 }
 
 /**
@@ -400,7 +447,9 @@ function scratchpads_blog_date(){
   $count_array = array_count_values($date_array);
   arsort($count_array);
   $items = array();
+  $counter = 0;
   foreach($count_array as $year => $year_count){
+    $counter++;
     $output = '';
     // Add symbol to selected item
     if($uid == 0){
@@ -450,10 +499,104 @@ function scratchpads_blog_date(){
       $items[] = $output2;
     }
   }
-  return theme('item_list', array(
-    'items' => $items,
-    'title' => t('Filter by Year'),
-    'type' => 'ul'
-  ));
+  if($counter == 0){
+    $output = "<div class='blog_no_match'>No matching dates.<div/>";
+    $items[] = $output;
+  }
+  return $items;
+}
+
+/**
+ * Menu callback; displays a Drupal page containing recent blog entries of all users.
+ * Overrides blog_page_last() to add zebra classes
+ */
+function scratchpads_blog_page_last(){
+  global $user;
+  $build = array();
+  $query = db_select('node', 'n')->extend('PagerDefault');
+  $nids = $query->fields('n', array(
+    'nid',
+    'sticky',
+    'created'
+  ))->condition('type', 'blog')->condition('status', 1)->orderBy('sticky', 'DESC')->orderBy('created', 'DESC')->limit(variable_get('default_nodes_main', 10))->addTag('node_access')->execute()->fetchCol();
+  if(!empty($nids)){
+    $nodes = node_load_multiple($nids);
+    $build += node_view_multiple($nodes);
+    $c = 1;
+    foreach(element_children($build['nodes']) as $key){
+      if($c % 2){
+        $build['nodes'][$key]['#prefix'] = '<div class="search-row-odd">';
+        $build['nodes'][$key]['#suffix'] = '</div>';
+      }
+      $c++;
+    }
+    $build['pager'] = array(
+      '#theme' => 'pager',
+      '#weight' => 5
+    );
+  }else{
+    drupal_set_message(t('No blog entries have been created.'));
+  }
+  drupal_add_feed('blog/feed', t('RSS - blogs'));
+  return $build;
+}
+
+/**
+ * Menu callback; displays a Drupal page containing recent blog entries of a given user.
+ * Overrides blog_page_user() to add zebra classes, change title and add filter text
+ */
+function scratchpads_blog_page_user($account){
+  global $user;
+  if($user->uid == $account->uid){
+    drupal_set_title($title = t("My Blog"));
+    $sub_title = '';
+  }else{
+    drupal_set_title($title = t("Blog"));
+    $sub_title = t("Filtered on Author (@name)", array(
+      '@name' => format_username($account)
+    ));
+  }
+  $build = array();
+  $query = db_select('node', 'n')->extend('PagerDefault');
+  $nids = $query->fields('n', array(
+    'nid',
+    'sticky',
+    'created'
+  ))->condition('type', 'blog')->condition('uid', $account->uid)->condition('status', 1)->orderBy('sticky', 'DESC')->orderBy('created', 'DESC')->limit(variable_get('default_nodes_main', 10))->addTag('node_access')->execute()->fetchCol();
+  if(!empty($nids)){
+    $nodes = node_load_multiple($nids);
+    $build += node_view_multiple($nodes);
+    $c = 1;
+    foreach(element_children($build['nodes']) as $key){
+      if($c % 2){
+        $build['nodes'][$key]['#prefix'] = '<div class="search-row-odd">';
+        $build['nodes'][$key]['#suffix'] = '</div>';
+      }
+      $c++;
+    }
+    $build['pager'] = array(
+      '#theme' => 'pager',
+      '#weight' => 5
+    );
+    if($sub_title != ''){
+      array_unshift($build, array(
+        '#markup' => "<h2 class='blog_filter_text'>" . $sub_title . "</h2>"
+      ));
+    }
+  }else{
+    if($account->uid == $user->uid){
+      drupal_set_message(t('You have not created any blog entries.'));
+    }else{
+      drupal_set_message(t('!author has not created any blog entries.', array(
+        '!author' => theme('username', array(
+          'account' => $account
+        ))
+      )));
+    }
+  }
+  drupal_add_feed('blog/' . $account->uid . '/feed', t('RSS - !title', array(
+    '!title' => $title
+  )));
+  return $build;
 }
 
