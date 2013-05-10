@@ -316,8 +316,6 @@ function scratchpads_blog_taxonomy(){
   }elseif(arg(4) == 'date'){
     $date = arg(5);
   }
-  // need to get a timestamp range for the date.../date/2012-03
-  // for now, just the year
   if($date != ''){
     $date_year = substr($date, 0, 4);
     $date_month = substr($date, -2);
@@ -355,7 +353,28 @@ function scratchpads_blog_taxonomy(){
     $terms_names[$record['tid']] = $record['name'];
   }
   $count_array = array_count_values($tid_array);
+  // sort by taxonomy count
   arsort($count_array);
+  // alphabetical sort 
+  $separated = array();
+  $tax_count = 0;
+  // separate array by taxonomy count
+  foreach($count_array as $key => $tax_count){
+    $separated[$tax_count][$key] = $terms_names[$key];
+  }
+  // sort each separated array
+  foreach($separated as $key => $sep){
+    asort($sep);
+    $separated[$key] = $sep;
+  }
+  //reform array in the correct order
+  $new_array = array();
+  foreach($separated as $num => $sep){
+    foreach($sep as $id => $name){
+      $new_array[$id] = $num;
+    }
+  }
+  $count_array = $new_array;
   $output = '';
   $counter = 0;
   $last_count = 0;
