@@ -60,7 +60,10 @@ function scratchpads_data_integrity_menu(){
  */
 function scratchpads_data_integrity_scratchpads_data_integrity(){
   return array(
-    'scratchpads_tweaks_check_all_terms_have_parents' => array(
+    'scratchpads_data_integrity_check_all_terms_have_parents' => array(
+      'file' => 'scratchpads_data_integrity.inc'
+    ),
+    'scratchpads_data_integrity_check_taxonomy_for_loops' => array(
       'file' => 'scratchpads_data_integrity.inc'
     )
   );
