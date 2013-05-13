@@ -64,7 +64,13 @@ function scratchpads_blog_menu(){
     ),
     'type' => MENU_CALLBACK
   );
-  // overrides the blog module
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function scratchpads_menu_alter(&$items){
   $items['blog'] = array(
     'title' => 'Blogs',
     'page callback' => 'scratchpads_blog_page_last',
@@ -73,9 +79,8 @@ function scratchpads_blog_menu(){
     ),
     'type' => MENU_SUGGESTED_ITEM
   );
-  // overrides the blog module
   $items['blog/%user_uid_optional'] = array(
-    'title' => 'My blog',
+    'title' => 'Blog',
     'page callback' => 'scratchpads_blog_page_user',
     'page arguments' => array(
       1
@@ -85,7 +90,6 @@ function scratchpads_blog_menu(){
       1
     )
   );
-  return $items;
 }
 
 /**
@@ -137,11 +141,7 @@ function scratchpads_blog_remake($account){
     $user_condition_operator = '>';
     $uid = 0;
   }
-  if($user->uid == $account->uid){
-    drupal_set_title($title = t("My Blog"));
-  }else{
-    drupal_set_title($title = t("Blog"));
-  }
+  drupal_set_title($title = t("Blog"));
   // set the sub-title
   if(($uid == 0) && ($tid > 0)){
     $sub_title = t("Filtered on Taxonomy term (@term)@date_string", array(
@@ -226,9 +226,18 @@ function scratchpads_blog_authors(){
   }
   if($date != ''){
     $date_year = substr($date, 0, 4);
-    $date_month = substr($date, -2);
+    $date_month = substr($date, 5, 2);
     $date1 = mktime(0, 0, 0, 0, 0, $date_year);
-    $date2 = mktime(0, 0, 0, 0, 0, $date_year + 1);
+    if($date_month != ''){
+      $d1 = ltrim($date_month, '0');
+      $date1 = mktime(0, 0, 0, $d1, 1, $date_year);
+      $date2 = mktime(0, 0, 0, $d1 + 1, 1, $date_year);
+      $month_string = date('M', $date1) . ' ';
+    }else{
+      $date1 = mktime(0, 0, 0, 0, 0, $date_year);
+      $date2 = mktime(0, 0, 0, 0, 0, $date_year + 1);
+      $month_string = '';
+    }
     $date_operator1 = '>';
     $date_operator2 = '<';
     $date_string = '/date/' . $date;
@@ -318,10 +327,16 @@ function scratchpads_blog_taxonomy(){
   }
   if($date != ''){
     $date_year = substr($date, 0, 4);
-    $date_month = substr($date, -2);
-    $date1 = mktime(0, 0, 0, 0, 0, $date_year);
-    $date2 = mktime(0, 0, 0, 0, 0, $date_year + 1);
+    $date_month = substr($date, 5, 2);
     $date_string = '/date/' . $date;
+    if($date_month != ''){
+      $d1 = ltrim($date_month, '0');
+      $date1 = mktime(0, 0, 0, $d1, 1, $date_year);
+      $date2 = mktime(0, 0, 0, $d1 + 1, 1, $date_year);
+    }else{
+      $date1 = mktime(0, 0, 0, 0, 0, $date_year);
+      $date2 = mktime(0, 0, 0, 0, 0, $date_year + 1);
+    }
   }else{
     $date_string = '';
   }
@@ -531,33 +546,16 @@ function scratchpads_blog_date(){
  * Overrides blog_page_last() to add zebra classes
  */
 function scratchpads_blog_page_last(){
-  global $user;
-  $build = array();
-  $query = db_select('node', 'n')->extend('PagerDefault');
-  $nids = $query->fields('n', array(
-    'nid',
-    'sticky',
-    'created'
-  ))->condition('type', 'blog')->condition('status', 1)->orderBy('sticky', 'DESC')->orderBy('created', 'DESC')->limit(variable_get('default_nodes_main', 10))->addTag('node_access')->execute()->fetchCol();
-  if(!empty($nids)){
-    $nodes = node_load_multiple($nids);
-    $build += node_view_multiple($nodes);
-    $c = 1;
-    foreach(element_children($build['nodes']) as $key){
-      if($c % 2){
-        $build['nodes'][$key]['#prefix'] = '<div class="search-row-odd">';
-        $build['nodes'][$key]['#suffix'] = '</div>';
-      }
-      $c++;
+  module_load_include('pages.inc', 'blog');
+  $build = blog_page_last();
+  $c = 1;
+  foreach(element_children($build['nodes']) as $key){
+    if($c % 2){
+      $build['nodes'][$key]['#prefix'] = '<div class="search-row-odd">';
+      $build['nodes'][$key]['#suffix'] = '</div>';
     }
-    $build['pager'] = array(
-      '#theme' => 'pager',
-      '#weight' => 5
-    );
-  }else{
-    drupal_set_message(t('No blog entries have been created.'));
+    $c++;
   }
-  drupal_add_feed('blog/feed', t('RSS - blogs'));
   return $build;
 }
 
@@ -566,57 +564,25 @@ function scratchpads_blog_page_last(){
  * Overrides blog_page_user() to add zebra classes, change title and add filter text
  */
 function scratchpads_blog_page_user($account){
-  global $user;
-  if($user->uid == $account->uid){
-    drupal_set_title($title = t("My Blog"));
-    $sub_title = '';
-  }else{
-    drupal_set_title($title = t("Blog"));
+  module_load_include('pages.inc', 'blog');
+  $build = blog_page_user($account);
+  drupal_set_title($title = t("Blog"));
+  $c = 1;
+  foreach(element_children($build['nodes']) as $key){
+    if($c % 2){
+      $build['nodes'][$key]['#prefix'] = '<div class="search-row-odd">';
+      $build['nodes'][$key]['#suffix'] = '</div>';
+    }
+    $c++;
+  }
+  if(count($build['nodes'])){
     $sub_title = t("Filtered on Author (@name)", array(
       '@name' => format_username($account)
     ));
+    array_unshift($build, array(
+      '#markup' => "<h2 class='blog_filter_text'>" . $sub_title . "</h2>"
+    ));
   }
-  $build = array();
-  $query = db_select('node', 'n')->extend('PagerDefault');
-  $nids = $query->fields('n', array(
-    'nid',
-    'sticky',
-    'created'
-  ))->condition('type', 'blog')->condition('uid', $account->uid)->condition('status', 1)->orderBy('sticky', 'DESC')->orderBy('created', 'DESC')->limit(variable_get('default_nodes_main', 10))->addTag('node_access')->execute()->fetchCol();
-  if(!empty($nids)){
-    $nodes = node_load_multiple($nids);
-    $build += node_view_multiple($nodes);
-    $c = 1;
-    foreach(element_children($build['nodes']) as $key){
-      if($c % 2){
-        $build['nodes'][$key]['#prefix'] = '<div class="search-row-odd">';
-        $build['nodes'][$key]['#suffix'] = '</div>';
-      }
-      $c++;
-    }
-    $build['pager'] = array(
-      '#theme' => 'pager',
-      '#weight' => 5
-    );
-    if($sub_title != ''){
-      array_unshift($build, array(
-        '#markup' => "<h2 class='blog_filter_text'>" . $sub_title . "</h2>"
-      ));
-    }
-  }else{
-    if($account->uid == $user->uid){
-      drupal_set_message(t('You have not created any blog entries.'));
-    }else{
-      drupal_set_message(t('!author has not created any blog entries.', array(
-        '!author' => theme('username', array(
-          'account' => $account
-        ))
-      )));
-    }
-  }
-  drupal_add_feed('blog/' . $account->uid . '/feed', t('RSS - !title', array(
-    '!title' => $title
-  )));
   return $build;
 }
 
