@@ -1036,7 +1036,7 @@ function scratchpads_migrate_mail($key, &$message, $params){
  *   The $node object to be saved. If $node->nid is
  *   omitted (or $node->is_new is TRUE), a new node will be added.
  */
-function scratchpads_migrate_node_save($node){
+function scratchpads_migrate_node_save($node, $revision_only = FALSE){
   $transaction = db_transaction();
   try{
     // Load the stored entity, if any.
@@ -1091,13 +1091,21 @@ function scratchpads_migrate_node_save($node){
     if($node->is_new){
       // For new nodes, save new records for both the node itself and the node
       // revision.
-      drupal_write_record('node', $node);
+      if (!$revision_only) {
+        drupal_write_record('node', $node);
+      } else {
+        $update_node = FALSE;
+      }
       _node_save_revision($node, $user->uid);
       $op = 'insert';
     }else{
       // For existing nodes, update the node record which matches the value of
       // $node->nid.
-      drupal_write_record('node', $node, 'nid');
+      if (!$revision_only) {
+        drupal_write_record('node', $node, 'nid');
+      } else {
+        $update_node = FALSE;
+      }
       // Then, if a new node revision was requested, save a new record for
       // that; otherwise, update the node revision record which matches the
       // value of $node->vid.
@@ -1110,6 +1118,7 @@ function scratchpads_migrate_node_save($node){
       $op = 'update';
     }
     if($update_node){
+      // Ensures the new VID is applied
       db_update('node')->fields(array(
         'vid' => $node->vid
       ))->condition('nid', $node->nid)->execute();
