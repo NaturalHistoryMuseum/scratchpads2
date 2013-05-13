@@ -102,6 +102,19 @@ function scratchpads_solr_update_7004(){
     'name' => 'Scratchpad solr server',
     'url' => 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads2-2'
   ))->condition('env_id', 'solr')->execute();
+  // Update the content type pages to add the apachesolr_search_custom_enable
+  // setting.
+  $results = db_select('apachesolr_search_page', 'a')->fields('a', array(
+    'page_id',
+    'settings'
+  ))->condition('page_id', 'content_type_%', 'LIKE')->execute();
+  foreach($results as $row){
+    $settings = unserialize($row->settings);
+    $settings['apachesolr_search_custom_enable'] = 1;
+    db_update('apachesolr_search_page')->fields(array(
+      'settings' => serialize($settings)
+    ))->condition('page_id', $row->page_id)->execute();
+  }
 }
 
 /**
