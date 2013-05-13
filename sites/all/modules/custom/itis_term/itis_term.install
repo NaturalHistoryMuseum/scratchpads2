@@ -191,3 +191,10 @@ function itis_term_update_7006(){
   // Finally, remove the old field.
   field_delete_field('field_vernacular_names');
 }
+
+/**
+ * Removes spaces after the '×' in taxon names.
+ */
+function itis_term_update_7007(){
+  db_update('taxonomy_term_data')->expression('name', "REPLACE(name, '× ', '×')")->execute();
+}

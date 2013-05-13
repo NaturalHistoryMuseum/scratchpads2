@@ -24,6 +24,11 @@ function scratchpads_tweaks_init(){
     $expire = $params['lifetime'] ? REQUEST_TIME + $params['lifetime'] : 0;
     setcookie('has_js', 1, $expire, $params['path'], $params['domain'], FALSE, $params['httponly']);
   }
+  // Tweak the URL if we're viewing the media browser.  Note, this is here to
+  // fix what appears to be a bug!]
+  if(arg(0) == 'media' && arg(1) == 'browser'){
+    unset($_GET['schemes']);
+  }
   // Alter the exception handler so that we can ignore certain exceptions.
   //set_exception_handler('scratchpads_tweaks_exception_handler');
 }
