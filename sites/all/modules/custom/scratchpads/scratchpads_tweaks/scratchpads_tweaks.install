@@ -314,6 +314,8 @@ function scratchpads_tweaks_install(){
   scratchpads_tweaks_update_7049();
   // Prevent optimize from running on Solr.
   variable_set('apachesolr_last_optimize', 10000000000);
+  // Allow insecure derivatives
+  variable_set('image_allow_insecure_derivatives', TRUE);
 }
 
 /**
@@ -1041,13 +1043,6 @@ function scratchpads_tweaks_update_7043(){
 }
 
 /**
- * Allow insecure derivatives
- */
-function scratchpads_tweaks_update_7045(){
-  variable_set('image_allow_insecure_derivatives', TRUE);
-}
-
-/**
  * Drop the primary key from the file_display table.
  * 
  * Renamed from from scratchpads_tweaks_update_7044.
@@ -1087,4 +1082,11 @@ function scratchpads_tweaks_update_7049(){
  */
 function scratchpads_tweaks_update_7050(){
   variable_del('scratchpad_last_reported');
+}
+
+/**
+ * Allow insecure derivatives
+ */
+function scratchpads_tweaks_update_7051(){
+  variable_set('image_allow_insecure_derivatives', TRUE);
 }
