@@ -13,7 +13,7 @@ function scratchpads_solr_install(){
   // Set the Solr server
   db_update('apachesolr_environment')->fields(array(
     'name' => 'Scratchpad solr server',
-    'url' => 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads2'
+    'url' => 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads2-2'
   ))->condition('env_id', 'solr')->execute();
   // Ensure we're indexing the requried content types.
   $entity_info = entity_get_info('node');
@@ -91,4 +91,22 @@ function scratchpads_solr_update_7003(){
     'tos_name' => '3.0',
     'ts_comments' => '0.5'
   ));
+}
+
+/**
+ * Change to the new solr instance.
+ */
+function scratchpads_solr_update_7004(){
+  // Set the Solr server
+  db_update('apachesolr_environment')->fields(array(
+    'name' => 'Scratchpad solr server',
+    'url' => 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads2-2'
+  ))->condition('env_id', 'solr')->execute();
+}
+
+/**
+ * Reindex ALL content.
+ */
+function scratchpads_solr_update_7005(){
+  // TODO
 }
