@@ -310,6 +310,8 @@ function scratchpads_tweaks_install(){
       variable_set('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
     }
   }
+  // Set the jQuery settings
+  scratchpads_tweaks_update_7049();
   // Prevent optimize from running on Solr.
   variable_set('apachesolr_last_optimize', 10000000000);
 }
@@ -1070,4 +1072,19 @@ function scratchpads_tweaks_update_7047(){
  */
 function scratchpads_tweaks_update_7048(){
   variable_set('apachesolr_last_optimize', 10000000000);
+}
+
+/**
+ * Set the jQuery update settings.
+ */
+function scratchpads_tweaks_update_7049(){
+  variable_set('jquery_update_jquery_version', '1.8');
+  variable_set('jquery_update_jquery_cdn', 'microsoft');
+}
+
+/**
+ * Set the jQuery update settings.
+ */
+function scratchpads_tweaks_update_7050(){
+  variable_del('scratchpad_last_reported');
 }

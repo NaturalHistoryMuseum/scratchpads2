@@ -1,6 +1,5 @@
 <?php
-
-/*
+/**
  * @file
  * Page callbacks for the Lexicon module
  */
@@ -15,7 +14,7 @@ function _lexicon_page($letter = NULL) {
 
   $path = drupal_get_path('module', 'lexicon');
 
-  // Add the JavaScript required for the scroll effect
+  // Add the JavaScript required for the scroll effect if enabled.
   if ($scroll_enabled == 1) {
     drupal_add_js($path . '/js/jquery.scrollTo-min.js');
     drupal_add_js($path . '/js/jquery.localscroll-min.js');
@@ -24,7 +23,9 @@ function _lexicon_page($letter = NULL) {
 
   $vids = variable_get('lexicon_vids', array());
 
-  // Get the vocabulary-id for the vocabulary which the page callback is called for by comparing the current path to the path that is configured for each Lexicon
+  // Get the vocabulary-id for the vocabulary which the page callback is called
+  // for by comparing the current path to the path that is configured for each
+  // Lexicon.
   foreach ($vids as $vid) {
     $tmp_path = variable_get('lexicon_path_' . $vid, 'lexicon/' . $vid);
     if (strpos($curr_path, $tmp_path) !== FALSE) {
@@ -43,14 +44,17 @@ function _lexicon_page($letter = NULL) {
   }
 
   $voc = taxonomy_vocabulary_load($found_vid);
-  // Set the active menu to be "primary-links" to make the breadcrumb work. By default the active menu would be "navigation", causing only "Home" > $node->title to be shown.
-  menu_set_active_menu_names("primary-links");
+  // Set the active menu to be "primary-links" to make the breadcrumb work.
+  // By default the active menu would be "navigation", causing only
+  // "Home" > $node->title to be shown.
+  menu_set_active_menu_names('primary-links');
 
   return _lexicon_overview($voc, $letter);
 }
 
 /**
- * Lexicon overview function that creates all the data end renders the output through the various theme templates.
+ * Lexicon overview function that creates all the data end renders the output
+ * through the various theme templates.
  */
 function _lexicon_overview($vocab, $letter = NULL) {
   $dest = drupal_get_destination();
@@ -63,15 +67,22 @@ function _lexicon_overview($vocab, $letter = NULL) {
   $separate = variable_get('lexicon_separate_letters', FALSE);
   $page_per_letter = variable_get('lexicon_page_per_letter', FALSE);
   $show_description = variable_get('lexicon_show_description', FALSE);
+  $link_to_term_page = variable_get('lexicon_link_to_term_page', FALSE);
 
-  // If the Lexicon is configured to show one big list of terms, but there is a letter in the argument, return 404.
+  // If the Lexicon is configured to show one big list of terms, but there is a
+  // letter in the argument, return 404.
   if (!$page_per_letter && $letter) {
     return MENU_NOT_FOUND;
   }
 
-  // Set the title if the terms are displayed per letter instead of in one big list if the Lexicon is configured to be split into multiple pages and there is a letter argument.
+  // Set the title if the terms are displayed per letter instead of in one big
+  // list if the Lexicon is configured to be split into multiple pages and there
+  // is a letter argument.
   if ($page_per_letter && $letter) {
-    drupal_set_title(t('@title beginning with @let', array('@title' => variable_get('lexicon_title_' . $vid, $vocab->name), '@let' => drupal_strtoupper($letter))));
+    drupal_set_title(t('@title beginning with @let', array(
+      '@title' => variable_get('lexicon_title_' . $vid, $vocab->name),
+      '@let' => drupal_strtoupper($letter),
+    )));
   }
 
   // Load the entire vocabulary with entities.
@@ -80,7 +91,8 @@ function _lexicon_overview($vocab, $letter = NULL) {
   uasort($tree, '_lexicon_tree_sort');
 
   $lexicon_alphabar = NULL;
-  // If the overview is separated in sections per letter or the Lexicon is displayed spread over multiple pages per letter create the alphabar.
+  // If the overview is separated in sections per letter or the Lexicon is
+  // displayed spread over multiple pages per letter create the alphabar.
   if ($separate || $page_per_letter) {
     $lexicon_alphabar = _lexicon_alphabar($vid, $tree);
   }
@@ -88,12 +100,13 @@ function _lexicon_overview($vocab, $letter = NULL) {
   $lexicon_overview_sections = array();
   $lexicon_introduction = NULL;
 
-  // Check if the Lexicon is spread over multiple pages per letter and if a letter argument is present.
+  // Check if the Lexicon is spread over multiple pages per letter and if a
+  // letter argument is present.
   if (!$letter) {
     $introduction_text = variable_get('lexicon_introduction_' . $vid, NULL);
     // Display the introduction text if it is set in the configuration.
     if ($introduction_text['value'] != '') {
-      $lexicon_introduction = check_markup($introduction_text['value'], $introduction_text['format']);
+      $lexicon_introduction = t(check_markup($introduction_text['value'], $introduction_text['format']));
     }
   }
   if (!($page_per_letter && !$letter)) {
@@ -103,73 +116,95 @@ function _lexicon_overview($vocab, $letter = NULL) {
       $not_first = FALSE;
       // Build up the list by iterating through all terms within the vocabulary.
       foreach ($tree as $term) {
+        // If terms should not be marked if a term has no description continue with the next term.
+        if (!variable_get('lexicon_allow_no_description', FALSE) && empty($term->description)) {
+          continue;
+        }
         // If we're looking for a single letter, see if this is it.
         $term->let = drupal_strtolower(drupal_substr($term->name, 0, 1));
-        // If there is no letter argument or the first letter of the term equals the letter argument process the term.
+        // If there is no letter argument or the first letter of the term equals
+        // the letter argument process the term.
         if ((!$letter) || $term->let == $letter) {
           // See if it's a new section.
           if ($term->let != $current_let) {
             if ($not_first) {
               if ($separate) {
-                //Create the section output for the previous section.
+                // Create the section output for the previous section.
                 $lexicon_overview_sections[] = theme('lexicon_overview_section', array('lexicon_section' => $lexicon_section, 'lexicon_overview_items' => $lexicon_overview_items));
-                //Clear the items to fill with the items of the new section
+                // Clear the items to fill with the items of the new section.
                 $lexicon_overview_items = '';
               }
             }
             if ($separate) {
               $lexicon_section->letter = $term->let;
-              // Set the anchor id of the section used by the alphabar and linked terms. The anchor is as meaningful as possible ("letter"_$letter) for accessibility purposes.
+              // Set the anchor id of the section used by the alphabar and
+              // linked terms. The anchor is as meaningful as possible
+              // ("letter"_$letter) for accessibility purposes.
               $lexicon_section->id = 'letter_' . $lexicon_section->letter;
             }
           }
           // Create the term output.
           $term_output = _lexicon_term_add_info($term);
-          // Unset the description if it should not be shown
+          // Unset the description if it should not be shown.
           if (!$show_description) {
             unset($term_output->description);
+            unset($term_output->safe_description);
+          }
+          if ($link_to_term_page) {
+            $term_output->name = l($term_output->name, 'taxonomy/term/' . $term_output->tid);
+            $term_output->safe_name = l($term_output->safe_name, 'taxonomy/term/' . $term_output->tid);
           }
           $lexicon_overview_items .= theme('lexicon_overview_item', array('term' => $term_output));
           // For future use
-          //$lexicon_overview_items .= drupal_render(taxonomy_term_view($term_output, 'lexicon'));
+          // $lexicon_overview_items .= drupal_render(taxonomy_term_view($term_output, 'lexicon'));
           $current_let = $term->let;
           $not_first = TRUE;
         }
       }
-      // Create a section without anchor and heading if the Lexicon is not seperated into sections per letter or if there are no items to display.
+      // Create a section without anchor and heading if the Lexicon is not
+      // seperated into sections per letter or if there are no items to display.
       if (!$separate || $lexicon_overview_items == '') {
         $lexicon_section = NULL;
       }
-      //Create the last section output.
+      // Create the last section output.
       $lexicon_overview_sections[] = theme('lexicon_overview_section', array('lexicon_section' => $lexicon_section, 'lexicon_overview_items' => $lexicon_overview_items));
     }
   }
 
   $lexicon_overview = new stdClass();
   $lexicon_overview->voc_name = drupal_strtolower(_lexicon_create_valid_id($vocab->name));
+
   $lexicon_overview->description = filter_xss($vocab->description);
   $lexicon_overview->introduction = $lexicon_introduction;
   if ($separate && variable_get('lexicon_go_to_top_link', FALSE) == TRUE) {
-    $lexicon_overview->go_to_top_link["name"] = t('Go to top');
-    $lexicon_overview->go_to_top_link["fragment"] = variable_get('lexicon_go_to_top_link_fragment', 'top');
-    $lexicon_overview->go_to_top_link["attributes"] = array(
+    $lexicon_overview->go_to_top_link['name'] = t('Go to top');
+    $lexicon_overview->go_to_top_link['fragment'] = variable_get('lexicon_go_to_top_link_fragment', 'top');
+    $lexicon_overview->go_to_top_link['attributes'] = array(
       'class' => array('lexicon_go_to_top_link'),
     );
   }
 
-  //Print the overview
-  $output = theme('lexicon_overview', array(
-    'lexicon_overview' => $lexicon_overview,
-    'lexicon_alphabar' => $lexicon_alphabar,
-    'lexicon_overview_sections' => $lexicon_overview_sections,
-  ));
+  $output = array(
+    'admin_links' => array(
+      '#prefix' => '<div class="lexicon-admin-links">',
+      '#links' => _lexicon_admin_links($vocab, $dest),
+      '#theme' => 'links',
+      '#suffix' => '</div>',
+    ),
+    'overview' => array(
+      '#lexicon_overview' => $lexicon_overview,
+      '#lexicon_alphabar' => $lexicon_alphabar,
+      '#lexicon_overview_sections' => $lexicon_overview_sections,
+      '#theme' => 'lexicon_overview',
+    ),
+  );
 
-  // Return the Lexicon overview with admin links if the user has the appropriate permissions
-  return _lexicon_admin_links($vocab, $dest) . $output;
+  return $output;
 }
 
 /**
- * Function that builds up the alphabar that is displayed at the top of the Lexicon overview page.
+ * Function that builds up the alphabar that is displayed at the top of the
+ * Lexicon overview page.
  */
 function _lexicon_alphabar($vid, &$tree) {
   $path = variable_get('lexicon_path_' . $vid, 'lexicon/' . $vid);
@@ -185,28 +220,35 @@ function _lexicon_alphabar($vid, &$tree) {
     $letters = drupal_map_assoc($lets);
   }
 
-  // For each term in the vocabulary get the first letter and put it in the array with the correct link
+  // For each term in the vocabulary get the first letter and put it in the
+  // array with the correct link.
   foreach ($tree as $key => $term) {
+    // If terms should not be marked if a term has no description continue with the next term.
+    if (!variable_get('lexicon_allow_no_description', FALSE) && empty($term->description)) {
+      continue;
+    }
     $term->let = drupal_strtolower(drupal_substr($term->name, 0, 1));
-    // If the Lexicon is split up in seperate pages per letter the link must refer to the appropriate page.
+    // If the Lexicon is split up in seperate pages per letter the link must
+    // refer to the appropriate page.
     if ($page_per_letter) {
       $letters[$term->let] = l($term->let, $path . '/letter_' . $term->let, array(
         'attributes' => array(
           'class' => array(
             'lexicon-item',
-          )
-        )
+          ),
+        ),
       ));
     }
-    // If the Lexicon is displayed with all letters on one overview then the link must refer to an anchor.
+    // If the Lexicon is displayed with all letters on one overview then the
+    // link must refer to an anchor.
     else {
       $letters[$term->let] = l($term->let, $path, array(
         'fragment' => 'letter_' . $term->let,
         'attributes' => array(
           'class' => array(
             'lexicon-item',
-          )
-        )
+          ),
+        ),
       ));
     }
   }
@@ -220,21 +262,21 @@ function _lexicon_alphabar($vid, &$tree) {
 }
 
 /**
- * Lexcion admin links function. Returns an array of admin links if the user has the appropriate permissions
+ * Lexicon admin links function. Returns an array of admin links if the user has
+ * the appropriate permissions.
  */
 function _lexicon_admin_links($vocabulary, $destination) {
-  $output = '<div class="lexicon-admin-links">';
   $links = array();
   if (user_access('administer taxonomy')) {
     $links['lexicon_add_term'] = array(
       'title' => t('Add term'),
       'href' => 'admin/structure/taxonomy/' . $vocabulary->machine_name . '/add/term',
-      );
+    );
     $links['lexicon_edit'] = array(
-      'title' => decode_entities(t('Edit @name', array('@name' => drupal_strtolower($vocabulary->name)))),
+      'title' => t('Edit @name', array('@name' => drupal_strtolower(check_plain($vocabulary->name)))),
       'href' => 'admin/structure/taxonomy/' . $vocabulary->machine_name . '/edit',
       'query' => $destination,
-      );
+    );
   }
 
   if (user_access('administer filters')) {
@@ -242,13 +284,10 @@ function _lexicon_admin_links($vocabulary, $destination) {
       'title' => t('Lexicon settings'),
       'href' => 'admin/config/system/lexicon',
       'query' => $destination,
-      );
+    );
   }
 
-  if (!empty($links)) {
-    $output .= theme('links', array('links' => $links));
-  }
-  return $output . '</div>';
+  return $links;
 }
 
 /**

@@ -4,8 +4,14 @@
  * Cron helper function to keep the .module file small.
  */
 function _scratchpads_tweaks_cron(){
-  // Don't report if we're a "dev" or D6 upgrade site.
-  if(substr($_SERVER['HTTP_HOST'], 0, 3) != 's2.' && substr($_SERVER['HTTP_HOST'], 0, 4) != 'dev.' && strpos($_SERVER['HTTP_HOST'], 'training') === FALSE && strpos($_SERVER['HTTP_HOST'], 'taxon.name') === FALSE){
+  // Don't report if:
+  // - URL begins with 's2.'
+  // - URL begins with 'dev.'
+  // - URL contains 'training'
+  // - URL contains 'taxon.name'
+  // - URL contains 'myspecies.info' AND contains more than three '.' delimitted
+  //   components
+  if(substr($_SERVER['HTTP_HOST'], 0, 3) != 's2.' && substr($_SERVER['HTTP_HOST'], 0, 4) != 'dev.' && strpos($_SERVER['HTTP_HOST'], 'training') === FALSE && strpos($_SERVER['HTTP_HOST'], 'taxon.name') === FALSE && !(strpos($_SERVER['HTTP_HOST'], 'myspecies.info') && count(explode('.', $_SERVER['HTTP_HOST'])) > 3)){
     // Once a day we'll report that we exist to a central repository which can
     // then build a list of all Scratchpads.
     if(variable_get('scratchpad_last_reported', 0) < time() - 86400){ // Seconds in a day
@@ -27,6 +33,10 @@ function _scratchpads_tweaks_cron(){
       foreach($results as $row){
         $mails[] = $row->mail;
       }
+      $query = db_select('node_counter', 'n');
+      $query->addExpression('SUM(totalcount)', 'sumtotalcount');
+      $views = $query->execute()->fetchCol();
+      $views = array_pop($views);
       $report_data = array(
         'site_url' => $_SERVER['HTTP_HOST'],
         'site_title' => variable_get('site_name', 'Scratchpad'),
@@ -38,7 +48,7 @@ function _scratchpads_tweaks_cron(){
           'week' => $users_week,
           'month' => $users_month
         ),
-        'views' => 0,
+        'views' => $views,
         'maintainer_emails' => $mails,
         'last_login_time' => db_query('SELECT access FROM {users} WHERE uid > 1 ORDER BY access DESC LIMIT 1;')->fetchField(),
         'last_node_changed_time' => db_query('SELECT created FROM {node} ORDER BY created DESC LIMIT 1')->fetchField(),

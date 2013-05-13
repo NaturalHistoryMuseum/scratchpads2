@@ -1,8 +1,15 @@
 <?php
+
+/**
+ * @file
+ * Definition of views_handler_field_history_user_timestamp.
+ */
+
 /**
  * Field handler to display the marker for new content.
  *
- * The handler is named history_user, because of compability reasons, the table is history.
+ * The handler is named history_user, because of compability reasons, the table
+ * is history.
  *
  * @ingroup views_field_handlers
  */
@@ -22,7 +29,7 @@ class views_handler_field_history_user_timestamp extends views_handler_field_nod
   function option_definition() {
     $options = parent::option_definition();
 
-    $options['comments'] = array('default' => FALSE);
+    $options['comments'] = array('default' => FALSE, 'bool' => TRUE);
 
     return $options;
   }
@@ -56,12 +63,11 @@ class views_handler_field_history_user_timestamp extends views_handler_field_nod
     global $user;
     if ($user->uid) {
       $last_read = $this->get_value($values);
-      $created = $this->get_value($values, 'created');
       $changed = $this->get_value($values, 'changed');
 
       $last_comment = module_exists('comment') && !empty($this->options['comments']) ?  $this->get_value($values, 'last_comment') : 0;
 
-      if (!$last_read && $created > NODE_NEW_LIMIT) {
+      if (!$last_read && $changed > NODE_NEW_LIMIT) {
         $mark = MARK_NEW;
       }
       elseif ($changed > $last_read && $changed > NODE_NEW_LIMIT) {

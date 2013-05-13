@@ -62,12 +62,30 @@ function views_bulk_operations_load_action_includes() {
 }
 
 /**
+ * Implements hook_cron().
+ *
+ * Deletes queue items belonging to VBO active queues (used by VBO's batches)
+ * that are older than a day (since they can only be a result of VBO crashing
+ * or the execution being interrupted in some other way). This is the interval
+ * used to cleanup batches in system_cron(), so it can't be increased.
+ *
+ * Note: This code is specific to SystemQueue. Other queue implementations will
+ * need to do their own garbage collection.
+ */
+function views_bulk_operations_cron() {
+  db_delete('queue')
+    ->condition('name', db_like('views_bulk_operations_active_queue_'), 'LIKE')
+    ->condition('created', REQUEST_TIME - 864000, '<')
+    ->execute();
+}
+
+/**
  * Implements of hook_cron_queue_info().
  */
 function views_bulk_operations_cron_queue_info() {
   return array(
     'views_bulk_operations' => array(
-      'worker callback' => '_views_bulk_operations_queue_process',
+      'worker callback' => 'views_bulk_operations_queue_item_process',
       'time' => 30,
     ),
   );
@@ -264,6 +282,7 @@ function views_bulk_operations_views_form_substitutions() {
     '#default_value' => FALSE,
     '#attributes' => array('class' => array('vbo-table-select-all')),
   );
+
   return array(
     $select_all_placeholder => drupal_render($select_all),
   );
@@ -281,25 +300,32 @@ function views_bulk_operations_form_alter(&$form, &$form_state, $form_id) {
     return;
   }
 
-  // Add VBO's custom callbacks.
-  $form['#validate'][] = 'views_bulk_operations_form_validate';
-  $form['#submit'][] = 'views_bulk_operations_form_submit';
+  // Cache the built form to prevent it from being rebuilt prior to validation
+  // and submission, which could lead to data being processed incorrectly,
+  // because the views rows (and thus, the form elements as well) have changed
+  // in the meantime. Matching views issue: http://drupal.org/node/1473276.
+  $form_state['cache'] = TRUE;
 
-  // Allow VBO to work when embedded using views_embed_view(), or in a block.
-  if (empty($vbo->view->override_path)) {
+  if (empty($vbo->view->override_url)) {
+    // If the VBO view is embedded using views_embed_view(), or in a block,
+    // $view->get_url() doesn't point to the current page, which means that
+    // the form doesn't get processed.
     if (!empty($vbo->view->preview) || $vbo->view->display_handler instanceof views_plugin_display_block) {
-      $vbo->view->override_path = $_GET['q'];
+      $vbo->view->override_url = $_GET['q'];
+      // We are changing the override_url too late, the form action was already
+      // set by Views to the previous URL, so it needs to be overriden as well.
+      $query = drupal_get_query_parameters($_GET, array('q'));
+      $form['#action'] = url($_GET['q'], array('query' => $query));
     }
   }
-
-  // Quickfix for VBO & exposed filters using ajax. See http://drupal.org/node/1191928.
-  $query = drupal_get_query_parameters($_GET, array('q'));
-  $form['#action'] = url($vbo->view->get_url(), array('query' => $query));
 
   // Add basic VBO functionality.
   if ($form_state['step'] == 'views_form_views_form') {
     $form = views_bulk_operations_form($form, $form_state, $vbo);
   }
+
+  // Give other modules a chance to alter the form.
+  drupal_alter('views_bulk_operations_form', $form, $form_state, $vbo);
 }
 
 /**
@@ -387,7 +413,7 @@ function views_bulk_operations_form($form, &$form_state, $vbo) {
   $form['#suffix'] = '</div>';
 
   // Force browser to reload the page if Back is hit.
-  if (preg_match('/msie/i', $_SERVER['HTTP_USER_AGENT'])) {
+  if (!empty($_SERVER['HTTP_USER_AGENT']) && preg_match('/msie/i', $_SERVER['HTTP_USER_AGENT'])) {
     drupal_add_http_header('Cache-Control', 'no-cache'); // works for IE6+
   }
   else {
@@ -401,70 +427,54 @@ function views_bulk_operations_form($form, &$form_state, $vbo) {
     '#default_value' => FALSE,
   );
 
-  if (count($vbo->get_selected_operations()) == 1 && $vbo->options['vbo']['merge_single_action']) {
-    $form['single_operation'] = array(
-      '#type' => 'value',
-      '#value' => TRUE,
-    );
-
-    $selected_operations = $vbo->get_selected_operations();
-    $operation = reset($selected_operations);
-    if ($operation->configurable()) {
-      $context = array(
-        'entity_type' => $vbo->get_entity_type(),
-        // Pass the View along. Needed by views_send 7.x-1.x.
-        // Has no performance penalty since objects are passed by reference,
-        // but needing the full views object in a core action is in most cases
-        // a sign of a wrong implementation. Do it only if you have to.
-        'view' => $vbo->view,
-      );
-      $form += $operation->form($form, $form_state, $context);
+  // The submit button added by Views Form API might be used by a non-VBO Views
+  // Form handler. If there's no such handler on the view, hide the button.
+  $has_other_views_form_handlers = FALSE;
+  foreach ($vbo->view->field as $field) {
+    if (property_exists($field, 'views_form_callback') || method_exists($field, 'views_form')) {
+      if (!($field instanceof views_bulk_operations_handler_field_operations)) {
+        $has_other_views_form_handlers = TRUE;
+      }
     }
-    $form_state['operation'] = $operation;
+  }
+  if (!$has_other_views_form_handlers) {
+    $form['actions']['submit']['#access'] = FALSE;
+  }
 
-    $form['actions']['submit'] = array(
+  $form['select'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Operations'),
+    '#collapsible' => TRUE,
+    '#attributes' => array('class' => array('container-inline')),
+  );
+  if ($vbo->get_vbo_option('display_type') == 0) {
+    $options = array(0 => t('- Choose an operation -'));
+    foreach ($vbo->get_selected_operations() as $operation_id => $operation) {
+      $options[$operation_id] = $operation->label();
+    }
+
+    // Create dropdown and submit button.
+    $form['select']['operation'] = array(
+      '#type' => 'select',
+      '#options' => $options,
+    );
+    $form['select']['submit'] = array(
       '#type' => 'submit',
-      '#value' => $operation->label(),
+      '#value' => t('Execute'),
+      '#validate' => array('views_bulk_operations_form_validate'),
+      '#submit' => array('views_bulk_operations_form_submit'),
     );
   }
   else {
-    $form['single_operation'] = array(
-      '#type' => 'value',
-      '#value' => FALSE,
-    );
-
-    unset($form['actions']['submit']);
-    $form['select'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Operations'),
-      '#collapsible' => TRUE,
-      '#attributes' => array('class' => array('container-inline')),
-    );
-    if ($vbo->options['vbo']['display_type'] == 0) {
-      $options = array(0 => t('- Choose an operation -'));
-      foreach ($vbo->get_selected_operations() as $operation_id => $operation) {
-        $options[$operation_id] = $operation->label();
-      }
-
-      // Create dropdown and submit button.
-      $form['select']['operation'] = array(
-        '#type' => 'select',
-        '#options' => $options,
-      );
-      $form['select']['submit'] = array(
+    // Create buttons for operations.
+    foreach ($vbo->get_selected_operations() as $operation_id => $operation) {
+      $form['select'][$operation_id] = array(
         '#type' => 'submit',
-        '#value' => t('Execute'),
+        '#value' => $operation->label(),
+        '#validate' => array('views_bulk_operations_form_validate'),
+        '#submit' => array('views_bulk_operations_form_submit'),
+        '#operation_id' => $operation_id,
       );
-    }
-    else {
-      // Create buttons for operations.
-      foreach ($vbo->get_selected_operations() as $operation_id => $operation) {
-        $form['select'][$operation_id] = array(
-          '#type' => 'submit',
-          '#value' => $operation->label(),
-          '#operation_id' => $operation_id,
-        );
-      }
     }
   }
 
@@ -472,11 +482,11 @@ function views_bulk_operations_form($form, &$form_state, $vbo) {
   // If the view is using a table style plugin, the markup gets moved to
   // a table row below the header.
   // If we are using radio buttons, we don't use select all at all.
-  if (!empty($vbo->view->result) && !$vbo->options['vbo']['force_single']) {
+  if (!empty($vbo->view->result) && !$vbo->get_vbo_option('force_single')) {
     $enable_select_all_pages = FALSE;
     // If the view is paginated, and "select all items on all pages" is
     // enabled, tell that to the theme function.
-    if (count($vbo->view->result) != $vbo->view->total_rows && $vbo->options['vbo']['enable_select_all_pages']) {
+    if (count($vbo->view->result) != $vbo->view->total_rows && $vbo->get_vbo_option('enable_select_all_pages')) {
       $enable_select_all_pages = TRUE;
     }
     $form['select_all_markup'] = array(
@@ -489,6 +499,26 @@ function views_bulk_operations_form($form, &$form_state, $vbo) {
 }
 
 /**
+ * Validation callback for the first step of the VBO form.
+ */
+function views_bulk_operations_form_validate($form, &$form_state) {
+  $vbo = _views_bulk_operations_get_field($form_state['build_info']['args'][0]);
+
+  if (!empty($form_state['triggering_element']['#operation_id'])) {
+    $form_state['values']['operation'] = $form_state['triggering_element']['#operation_id'];
+  }
+  if (!$form_state['values']['operation']) {
+    form_set_error('operation', t('No operation selected. Please select an operation to perform.'));
+  }
+
+  $field_name = $vbo->options['id'];
+  $selection = _views_bulk_operations_get_selection($vbo, $form_state);
+  if (!$selection) {
+    form_set_error($field_name, t('Please select at least one item.'));
+  }
+}
+
+/**
  * Multistep form callback for the "configure" step.
  */
 function views_bulk_operations_config_form($form, &$form_state, $view, $output) {
@@ -498,7 +528,7 @@ function views_bulk_operations_config_form($form, &$form_state, $view, $output) 
 
   $context = array(
     'entity_type' => $vbo->get_entity_type(),
-    // Pass the View along. Needed by views_send 7.x-1.x.
+    // Pass the View along.
     // Has no performance penalty since objects are passed by reference,
     // but needing the full views object in a core action is in most cases
     // a sign of a wrong implementation. Do it only if you have to.
@@ -515,10 +545,21 @@ function views_bulk_operations_config_form($form, &$form_state, $view, $output) 
   $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Next'),
+    '#validate' => array('views_bulk_operations_config_form_validate'),
+    '#submit' => array('views_bulk_operations_form_submit'),
     '#suffix' => l(t('Cancel'), $vbo->view->get_url(), array('query' => $query)),
   );
 
   return $form;
+}
+
+/**
+ * Validation callback for the "configure" step.
+ * Gives the operation a chance to validate its config form.
+ */
+function views_bulk_operations_config_form_validate($form, &$form_state) {
+  $operation = &$form_state['operation'];
+  $operation->formValidate($form, $form_state);
 }
 
 /**
@@ -534,6 +575,8 @@ function views_bulk_operations_confirm_form($form, &$form_state, $view, $output)
     array('path' => $view->get_url(), 'query' => $query),
     theme('views_bulk_operations_confirmation', array('rows' => $rows, 'vbo' => $vbo, 'select_all_pages' => $form_state['select_all_pages']))
   );
+  // Add VBO's submit handler to the Confirm button added by config_form().
+  $form['actions']['submit']['#submit'] = array('views_bulk_operations_form_submit');
 
   return $form;
 }
@@ -558,7 +601,7 @@ function theme_views_bulk_operations_confirmation($variables) {
     $items[] = t('...and <strong>!count</strong> more.', array('!count' => $more_count));
   }
 
-  $count = format_plural(count($entities), 'item', 'items');
+  $count = format_plural(count($entities), 'item', '@count items');
   $output = theme('item_list', array('items' => $items, 'title' => t('You selected the following <strong>!count</strong>:', array('!count' => $count))));
   return $output;
 }
@@ -586,78 +629,6 @@ function _views_bulk_operations_get_selection($vbo, $form_state) {
 }
 
 /**
- * Helper function to adjust the selected set of rows.
- */
-function _views_bulk_operations_adjust_selection(&$selection, $select_all, $vbo) {
-  if ($select_all) {
-    // Adjust selection to select all rows across pages.
-    $view = views_get_view($vbo->view->name);
-    $view->set_exposed_input($vbo->view->get_exposed_input());
-    $view->set_arguments($vbo->view->args);
-    $view->set_display($vbo->view->current_display);
-    $view->display_handler->set_option('pager', array('type' => 'none', 'options' => array()));
-    $view->build();
-    // Unset every field except the VBO one (which holds the entity id).
-    // That way the performance hit becomes much smaller, because there is no
-    // chance of views_handler_field_field::post_execute() firing entity_load().
-    foreach ($view->field as $field_name => $field) {
-      if ($field_name != $vbo->options['id']) {
-        unset($view->field[$field_name]);
-      }
-    }
-
-    $view->execute($vbo->view->current_display);
-    $results = array();
-    foreach ($view->result as $row_index => $result) {
-      $results[$row_index] = $vbo->get_value($result);
-    }
-    $selection = $results;
-  }
-}
-
-/**
- * Validate all steps of the VBO multistep form.
- */
-function views_bulk_operations_form_validate($form, &$form_state) {
-  $vbo = _views_bulk_operations_get_field($form_state['build_info']['args'][0]);
-
-  switch ($form_state['step']) {
-    case 'views_form_views_form':
-      if ($form_state['values']['single_operation']) {
-        $operation = &$form_state['operation'];
-        if ($operation->configurable()) {
-          $operation->formValidate($form, $form_state);
-        }
-      }
-      else {
-        if (!empty($form_state['triggering_element']['#operation_id'])) {
-          $form_state['values']['operation'] = $form_state['triggering_element']['#operation_id'];
-        }
-        if (!$form_state['values']['operation']) {
-          form_set_error('operation', t('No operation selected. Please select an operation to perform.'));
-        }
-      }
-
-      $field_name = $vbo->options['id'];
-      $selection = _views_bulk_operations_get_selection($vbo, $form_state);
-      if (!$selection) {
-        form_set_error($field_name, t('Please select at least one item.'));
-      }
-
-      // if using force single, make sure only one value was submitted.
-      if ($vbo->options['vbo']['force_single'] && count($selection) > 1) {
-        form_set_error($field_name, t('You may only select one item.'));
-      }
-      break;
-
-    case 'views_bulk_operations_config_form':
-      $operation = &$form_state['operation'];
-      $operation->formValidate($form, $form_state);
-      break;
-  }
-}
-
-/**
  * Submit handler for all steps of the VBO multistep form.
  */
 function views_bulk_operations_form_submit($form, &$form_state) {
@@ -669,28 +640,12 @@ function views_bulk_operations_form_submit($form, &$form_state) {
       $form_state['selection'] = _views_bulk_operations_get_selection($vbo, $form_state);
       $form_state['select_all_pages'] = $form_state['values']['select_all'];
 
-      if ($form_state['values']['single_operation']) {
-        $operation = &$form_state['operation'];
-        if ($operation->configurable()) {
-          $operation->formSubmit($form, $form_state);
-        }
-        else {
-          $operation->formOptions = $form_state['values'];
-        }
-
-        if ($operation->getAdminOption('skip_confirmation')) {
-          break; // Go directly to execution
-        }
-        $form_state['step'] = 'views_bulk_operations_confirm_form';
+      $options = $vbo->get_operation_options($form_state['values']['operation']);
+      $form_state['operation'] = $operation = views_bulk_operations_get_operation($form_state['values']['operation'], $entity_type, $options);
+      if (!$operation->configurable() && $operation->getAdminOption('skip_confirmation')) {
+        break; // Go directly to execution
       }
-      else {
-        $options = $vbo->get_operation_options($form_state['values']['operation']);
-        $form_state['operation'] = $operation = views_bulk_operations_get_operation($form_state['values']['operation'], $entity_type, $options);
-        if (!$operation->configurable() && $operation->getAdminOption('skip_confirmation')) {
-          break; // Go directly to execution
-        }
-        $form_state['step'] = $operation->configurable() ? 'views_bulk_operations_config_form' : 'views_bulk_operations_confirm_form';
-      }
+      $form_state['step'] = $operation->configurable() ? 'views_bulk_operations_config_form' : 'views_bulk_operations_confirm_form';
       $form_state['rebuild'] = TRUE;
       return;
 
@@ -709,11 +664,8 @@ function views_bulk_operations_form_submit($form, &$form_state) {
       break;
   }
 
-  // Adjust the selection if needed, for example by fetching all entity ids
-  // when "Select all on all pages" was used by the user.
-  _views_bulk_operations_adjust_selection($form_state['selection'], $form_state['select_all_pages'], $vbo);
   // Execute the operation.
-  _views_bulk_operations_execute($vbo, $form_state['selection'], $form_state['operation']);
+  views_bulk_operations_execute($vbo, $form_state['operation'], $form_state['selection'], $form_state['select_all_pages']);
 
   // Redirect.
   $query = drupal_get_query_parameters($_GET, array('q'));
@@ -722,177 +674,310 @@ function views_bulk_operations_form_submit($form, &$form_state) {
 
 /**
  * Entry point for executing the chosen operation upon selected rows.
- * Routes to the right process function (based on the chosen execution method).
  *
- * There are three different ways of executing the operation:
- * - Directly.
- *     Simple, fast, fragile. Tells PHP to ignore the execution time limit,
- *     loads all selected entities, runs the operation. Of course, it's still
- *     limited by available memory, so it's very easy to try and load too many
- *     entities, which kills the script. This is the only execution type
- *     available for aggregate operations, because they need all selected entities,
- *     and Batch API / Drupal Queue are all about segmenting the entity loading
- *     and operation executing in order to get around memory limits and timeouts.
- * - Using Batch API
- *     The most commonly used method. Spreads the execution across several
- *     background page requests, while showing a progress bar to the user.
- *     Each time _views_bulk_operations_batch_process() runs, it tries to load
- *     and execute a safe number of entities ($entity_load_capacity, defaults
- *     to 10). If the total selected number of entities is less than that, the
- *     code falls back to the direct execution method, since the execution can
- *     fit into a single page request, and there's no gain in using Batch API.
- * - Using the Drupal Queue.
- *     Adds each entity separately to the queue, to be processed by a worker
- *     function, which usually happens on cron.
+ * If the selected operation is an aggregate operation (requiring all selected
+ * items to be passed at the same time), or the execution is being triggered
+ * through Drush, the operation is executed directly.
+ * This means that there is no batching & queueing, the PHP execution
+ * time limit is ignored (if allowed), all selected entities are loaded and
+ * processed.
+ *
+ * Otherwise, the selected entity ids are divided into groups not larger than
+ * $entity_load_capacity, and enqueued for processing.
+ * If all items on all pages should be processed, a batch job runs that
+ * collects and enqueues the items from all pages of the view, page by page.
+ *
+ * Based on the "Enqueue the operation instead of executing it directly"
+ * VBO field setting, the newly filled queue is either processed at cron
+ * time by the VBO worker function, or right away in a new batch job.
  *
  * @param $vbo
  *   The VBO field, containing a reference to the view in $vbo->view.
- * @param $selection
- *   An array in the form of $row_index => $entity_id.
  * @param $operation
  *   The operation object.
- * @param $force_direct
- *   Whether to force the direct method (when ran through drush, for example).
+ * @param $selection
+ *   An array in the form of $row_index => $entity_id.
+ * @param $select_all_pages
+ *   Whether all items on all pages should be selected.
  */
-function _views_bulk_operations_execute($vbo, $selection, $operation, $force_direct = FALSE) {
+function views_bulk_operations_execute($vbo, $operation, $selection, $select_all_pages = FALSE) {
   global $user;
+
+  // This is an aggregate operation, and it requires all rows to be selected.
+  // Try to load them without a batch.
+  if ($operation->aggregate() && $select_all_pages) {
+    views_bulk_operations_direct_adjust($selection, $vbo);
+  }
 
   // Options that affect execution.
   $options = array(
     'revision' => $vbo->revision,
-    'display_result' => $vbo->options['vbo']['display_result'],
-    'entity_load_capacity' => $vbo->options['vbo']['entity_load_capacity'],
+    'entity_load_capacity' => $vbo->get_vbo_option('entity_load_capacity', 10),
   );
-  // An operation that needs aggregated results can only be executed directly.
-  if ($operation->aggregate()) {
-    $force_direct = TRUE;
-  }
-  // Create an array of rows with the data needed by the process functions.
+  // Create an array of rows in the needed format.
   $rows = array();
+  $current = 1;
   foreach ($selection as $row_index => $entity_id) {
     $rows[$row_index] = array(
       'entity_id' => $entity_id,
       'views_row' => array(),
+      // Some operations rely on knowing the position of the current item
+      // in the execution set (because of specific things that need to be done
+      // at the beginning or the end of the set).
+      'position' => array(
+        'current' => $current++,
+        'total' => count($selection),
+      ),
     );
     // Some operations require full selected rows.
-    // @todo Make this work when all rows on all pages are selected?
-    if ($operation->needsRows() && isset($vbo->view->result[$row_index])) {
+    if ($operation->needsRows()) {
       $rows[$row_index]['views_row'] = $vbo->view->result[$row_index];
     }
   }
 
-  if (!$force_direct && $operation->getAdminOption('use_queue')) {
-    $entity_type = $vbo->get_entity_type();
-    $current = 1;
-    foreach ($rows as $row_index => $row) {
-      // Some operations rely on knowing their position in the execution set
-      // (because of specific things that need to be done at the beginning
-      // or the end of the set).
-      $context = array(
-        'progress' => array(
-          'current' => $current,
-          'total' => count($rows),
-        ),
-      );
+  // Aggregate operations can only be executed directly.
+  if ($operation->aggregate()) {
+    views_bulk_operations_direct_process($operation, $rows, $options);
+    return;
+  }
 
-      $job = array(
-        'description' => t('Perform %operation on @type !entity_id.', array(
-          '%operation' => $operation->label(),
-          '@type' => $entity_type,
-          '!entity_id' => $row['entity_id'],
-        )),
-        'arguments' => array($row_index, $row, $operation, $context, $options, $user->uid),
-      );
-      $queue = DrupalQueue::get('views_bulk_operations');
-      $queue->createItem($job);
-      $current++;
-    }
-    if ($options['display_result']) {
+  // Determine the correct queue to use.
+  if ($operation->getAdminOption('postpone_processing')) {
+    // Use the site queue processed on cron.
+    $queue_name = 'views_bulk_operations';
+  }
+  else {
+    // Use the active queue processed immediately by Batch API.
+    $queue_name = 'views_bulk_operations_active_queue_' . db_next_id();
+  }
+
+  $batch = array(
+    'operations' => array(),
+    'finished' => 'views_bulk_operations_execute_finished',
+    'progress_message' => '',
+    'title' => t('Performing %operation on the selected items...', array('%operation' => $operation->label())),
+  );
+
+  // All items on all pages should be selected, add a batch job to gather
+  // and enqueue them.
+  if ($select_all_pages && $vbo->view->query->pager->has_more_records()) {
+    $total_rows = $vbo->view->total_rows;
+
+    // Pass information needed to recreate the view inside a batch,
+    // to avoid having to serialize the current object (which is expensive).
+    $view_info = array(
+      'name' => $vbo->view->name,
+      'display' => $vbo->view->current_display,
+      'arguments' => $vbo->view->args,
+      'exposed_input' => $vbo->view->get_exposed_input(),
+      'entity_load_capacity' => $vbo->get_vbo_option('entity_load_capacity', 10),
+    );
+
+    $batch['operations'][] = array(
+      'views_bulk_operations_adjust_selection', array($view_info, $queue_name, $operation, $options),
+    );
+  }
+  else {
+    $total_rows = count($rows);
+
+    // We have all the items that we need, enqueue them right away.
+    views_bulk_operations_enqueue_rows($queue_name, $rows, $operation, $options);
+
+    // Provide a status message to the user, since this is the last step if
+    // processing is postponed.
+    if ($operation->getAdminOption('postpone_processing')) {
       drupal_set_message(t('Enqueued the selected operation (%operation).', array(
         '%operation' => $operation->label(),
       )));
     }
   }
-  elseif (!$force_direct && $options['entity_load_capacity'] < count($rows)) {
-    $batch = array(
-      'operations' => array(
-        array('_views_bulk_operations_batch_process', array($rows, $operation, $options)),
-      ),
-      'finished' => '_views_bulk_operations_execute_finished',
-      'progress_message' => '',
-      'title' => t('Performing %operation on the selected items...', array('%operation' => $operation->label())),
+
+  // Processing is not postponed, add a batch job to process the queue.
+  if (!$operation->getAdminOption('postpone_processing')) {
+    $batch['operations'][] = array(
+      'views_bulk_operations_active_queue_process', array($queue_name, $operation, $total_rows),
     );
+  }
+
+  // If there are batch jobs to be processed, create the batch set.
+  if (count($batch['operations'])) {
     batch_set($batch);
   }
-  else {
-    @set_time_limit(0);
-
-    $context['results']['rows'] = 0;
-    $context['results']['time'] = microtime(TRUE);
-    $context['results']['log'] = array();
-
-    _views_bulk_operations_direct_process($operation, $rows, $options, $context);
-    _views_bulk_operations_execute_finished(TRUE, $context['results'], array(), 0, $options + array('operation' => $operation));
-  }
 }
 
 /**
- * Process function for the Drupal Queue execution type.
+ * Batch API callback: loads the view page by page and enqueues all items.
+ *
+ * @param $view_info
+ *   An array of information about the view, used to recreate and re-execute it.
+ * @param $queue_name
+ *   The name of the queue to which the items should be added.
+ * @param $operation
+ *   The operation object.
+ * @param $options
+ *   An array of options that affect execution (revision, entity_load_capacity).
+ *   Passed along with each new queue item.
  */
-function _views_bulk_operations_queue_process($data) {
-  list($row_index, $row, $operation, $operation_context, $options, $uid) = $data['arguments'];
-
-  $entity_type = $operation->entityType;
-  $entities = _views_bulk_operations_entity_load($entity_type, array($row['entity_id']), $options['revision']);
-  $entity = reset($entities);
-  // No entity found. It might have been deleted in the meantime. Abort.
-  if (!$entity) {
-    return;
-  }
-
-  $account = user_load($uid);
-  if (!_views_bulk_operations_entity_access($operation, $entity_type, $entity, $account)) {
-    watchdog('views bulk operations', 'Skipped %operation on @type %title due to insufficient permissions.', array(
-      '%operation' => $operation->label(),
-      '@type' => $entity_type,
-      '%title' => _views_bulk_operations_entity_label($entity_type, $entity),
-    ), WATCHDOG_ALERT);
-    return;
-  }
-
-  // Pass the selected row to the operation if needed.
-  if ($operation->needsRows()) {
-    $operation_context['rows'] = array($row_index => $row['views_row']);
-  }
-  _views_bulk_operations_operation_do($operation, $entity, $operation_context, $account);
-
-  // @todo Provide a way to spam less here.
-  if ($options['display_result']) {
-    watchdog('views bulk operations', 'Performed %operation on @type %title.', array(
-      '%operation' => $operation->label(),
-      '@type' => $entity_type,
-      '%title' => _views_bulk_operations_entity_label($entity_type, $entity),
-    ), WATCHDOG_INFO);
-  }
-}
-
-/**
- * Process function for the Batch API execution type.
- */
-function _views_bulk_operations_batch_process($rows, $operation, $options, &$context) {
-  // It is still possible to hit the time limit.
-  set_time_limit(0);
-
+function views_bulk_operations_adjust_selection($view_info, $queue_name, $operation, $options, &$context) {
   if (!isset($context['sandbox']['progress'])) {
     $context['sandbox']['progress'] = 0;
-    $context['sandbox']['max'] = count($rows);
-    $context['results']['time'] = microtime(TRUE);
+    $context['sandbox']['max'] = 0;
   }
 
-  // Process the rows in groups.
-  $remaining = $context['sandbox']['max'] - $context['sandbox']['progress'];
-  $count = min($options['entity_load_capacity'], $remaining);
-  $row_group = array_slice($rows, $context['sandbox']['progress'], $count, TRUE);
+  $view = views_get_view($view_info['name']);
+  $view->set_exposed_input($view_info['exposed_input']);
+  $view->set_arguments($view_info['arguments']);
+  $view->set_display($view_info['display']);
+  $view->set_offset($context['sandbox']['progress']);
+  $view->build();
+  $view->execute($view_info['display']);
+  // Note the total number of rows.
+  if (empty($context['sandbox']['max'])) {
+    $context['sandbox']['max'] = $view->total_rows;
+  }
+
+  $vbo = _views_bulk_operations_get_field($view);
+  $rows = array();
+  foreach ($view->result as $row_index => $result) {
+    $rows[$row_index] = array(
+      'entity_id' => $vbo->get_value($result),
+      'views_row' => array(),
+      'position' => array(
+        'current' => ++$context['sandbox']['progress'],
+        'total' => $view->total_rows,
+      ),
+    );
+    // Some operations require full selected rows.
+    if ($operation->needsRows()) {
+      $rows[$row_index]['views_row'] = $result;
+    }
+  }
+
+  // Enqueue the gathered rows.
+  views_bulk_operations_enqueue_rows($queue_name, $rows, $operation, $options);
+
+  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+    // Provide an estimation of the completion level we've reached.
+    $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+    $context['message'] = t('Prepared @current out of @total', array('@current' => $context['sandbox']['progress'], '@total' => $context['sandbox']['max']));
+  }
+  else {
+    // Provide a status message to the user if this is the last batch job.
+    if ($operation->getAdminOption('postpone_processing')) {
+      $context['results']['log'][] = t('Enqueued the selected operation (%operation).', array(
+        '%operation' => $operation->label(),
+      ));
+    }
+  }
+}
+
+/**
+ * Divides the passed rows into groups and enqueues each group for processing
+ *
+ * @param $queue_name
+ *   The name of the queue.
+ * @param $rows
+ *   The rows to be enqueued.
+ * @param $operation
+ *   The object representing the current operation.
+ *   Passed along with each new queue item.
+ * @param $options
+ *   An array of options that affect execution (revision, entity_load_capacity).
+ *   Passed along with each new queue item.
+ */
+function views_bulk_operations_enqueue_rows($queue_name, $rows, $operation, $options) {
+  global $user;
+
+  $queue = DrupalQueue::get($queue_name, TRUE);
+  $row_groups = array_chunk($rows, $options['entity_load_capacity'], TRUE);
+
+  foreach ($row_groups as $row_group) {
+    $entity_ids = array();
+    foreach ($row_group as $row) {
+      $entity_ids[] = $row['entity_id'];
+    }
+
+    $job = array(
+      'title' => t('Perform %operation on @type !entity_ids.', array(
+        '%operation' => $operation->label(),
+        '@type' => $operation->entityType,
+        '!entity_ids' => implode(',', $entity_ids),
+      )),
+      'uid' => $user->uid,
+      'arguments' => array($row_group, $operation, $options),
+    );
+    $queue->createItem($job);
+  }
+}
+
+/**
+ * Batch API callback: processes the active queue.
+ *
+ * @param $queue_name
+ *   The name of the queue to process.
+ * @param $operation
+ *   The object representing the current operation.
+ * @param $total_rows
+ *   The total number of processable items (across all queue items), used
+ *   to report progress.
+ *
+ * @see views_bulk_operations_queue_item_process()
+ */
+function views_bulk_operations_active_queue_process($queue_name, $operation, $total_rows, &$context) {
+  static $queue;
+
+  // It is still possible to hit the time limit.
+  @set_time_limit(0);
+
+  // Prepare the sandbox.
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['max'] = $total_rows;
+    $context['results']['log'] = array();
+  }
+  // Instantiate the queue.
+  if (!isset($queue)) {
+    $queue = DrupalQueue::get($queue_name, TRUE);
+  }
+
+  // Process the queue as long as it has items for us.
+  $queue_item = $queue->claimItem(3600);
+  if ($queue_item) {
+    // Process the queue item, and update the progress count.
+    views_bulk_operations_queue_item_process($queue_item->data, $context['results']['log']);
+    $queue->deleteItem($queue_item);
+
+    // Provide an estimation of the completion level we've reached.
+    $context['sandbox']['progress'] += count($queue_item->data['arguments'][0]);
+    $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+    $context['message'] = t('Processed @current out of @total', array('@current' => $context['sandbox']['progress'], '@total' => $context['sandbox']['max']));
+  }
+
+  if (!$queue_item || $context['finished'] === 1) {
+    // All done. Provide a status message to the user.
+    $context['results']['log'][] = t('Performed %operation on @items.', array(
+      '%operation' => $operation->label(),
+      '@items' => format_plural($context['sandbox']['progress'], '1 item', '@count items'),
+    ));
+  }
+}
+
+/**
+ * Processes the provided queue item.
+ *
+ * Used as a worker callback defined by views_bulk_operations_cron_queue_info()
+ * to process the site queue, as well as by
+ * views_bulk_operations_active_queue_process() to process the active queue.
+ *
+ * @param $queue_item_arguments
+ *   The arguments of the queue item to process.
+ * @param $log
+ *   An injected array of log messages, to be modified by reference.
+ *   If NULL, the function defaults to using watchdog.
+ */
+function views_bulk_operations_queue_item_process($queue_item_data, &$log = NULL) {
+  list($row_group, $operation, $options) = $queue_item_data['arguments'];
+  $account = user_load($queue_item_data['uid']);
   $entity_type = $operation->entityType;
   $entity_ids = array();
   foreach ($row_group as $row_id => $row) {
@@ -902,161 +987,130 @@ function _views_bulk_operations_batch_process($rows, $operation, $options, &$con
   $entities = _views_bulk_operations_entity_load($entity_type, $entity_ids, $options['revision']);
   foreach ($row_group as $row_id => $row) {
     $entity_id = $row['entity_id'];
-    // A matching entity couldn't be loaded. Adjust the count and move on.
+    // A matching entity couldn't be loaded. Skip this item.
     if (!isset($entities[$entity_id])) {
-      $context['sandbox']['progress']++;
-      unset($row_group[$row_id]);
       continue;
     }
-    $entity = $entities[$entity_id];
 
-    if (!_views_bulk_operations_entity_access($operation, $entity_type, $entity)) {
-      $context['results']['log'][] = t('Skipped %operation on @type %title due to insufficient permissions.', array(
+    $entity = $entities[$entity_id];
+    // If the current entity can't be accessed, skip it and log a notice.
+    if (!_views_bulk_operations_entity_access($operation, $entity_type, $entity, $account)) {
+      $message = 'Skipped %operation on @type %title due to insufficient permissions.';
+      $arguments = array(
         '%operation' => $operation->label(),
         '@type' => $entity_type,
         '%title' => _views_bulk_operations_entity_label($entity_type, $entity),
-      ));
-      $context['sandbox']['progress']++;
+      );
+
+      if ($log) {
+        $log[] = t($message, $arguments);
+      }
+      else {
+        watchdog('views bulk operations', $message, $arguments, WATCHDOG_ALERT);
+      }
+
       continue;
     }
 
-    // Some operations rely on knowing their position in the execution set
-    // (because of specific things that need to be done at the beginning
-    // or the end of the set).
     $operation_context = array(
-      'progress' => array(
-        'current' => $context['sandbox']['progress'] + 1,
-        'total' => $context['sandbox']['max'],
-      ),
+      'progress' => $row['position'],
+      'rows' => $row['views_row'],
     );
-    // Pass the selected row to the operation if needed.
-    if ($operation->needsRows()) {
-      $operation_context['rows'] = array($row_index => $row['views_row']);
-    }
-    _views_bulk_operations_operation_do($operation, $entity, $operation_context);
+    $operation->execute($entity, $operation_context);
 
-    $context['sandbox']['progress']++;
     unset($row_group[$row_id]);
-  }
-
-  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
-    // Provide an estimation of the completion level we've reached.
-    $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
-    $context['message'] = t('Processed @current out of @total', array('@current' => $context['sandbox']['progress'], '@total' => $context['sandbox']['max']));
-  }
-  else {
-    // All done. Save data for the finish callback.
-    $context['results']['rows'] = $context['sandbox']['progress'];
-    $context['results']['options'] = $options;
-
-    $context['results']['log'][] = t('Performed %operation on @items.', array(
-      '%operation' => $operation->label(),
-      '@items' => format_plural($context['results']['rows'], '1 item', '@count items'),
-    ));
   }
 }
 
 /**
- * Process function for the direct execution type.
+ * Adjusts the selection for the direct execution method.
+ *
+ * Just like the direct method itself, this is legacy code, used only for
+ * aggregate actions.
  */
-function _views_bulk_operations_direct_process($operation, $rows, $options, &$context) {
+function views_bulk_operations_direct_adjust(&$selection, $vbo) {
+  // Adjust selection to select all rows across pages.
+  $view = views_get_view($vbo->view->name);
+  $view->set_exposed_input($vbo->view->get_exposed_input());
+  $view->set_arguments($vbo->view->args);
+  $view->set_display($vbo->view->current_display);
+  $view->display_handler->set_option('pager', array('type' => 'none', 'options' => array()));
+  $view->build();
+  // Unset every field except the VBO one (which holds the entity id).
+  // That way the performance hit becomes much smaller, because there is no
+  // chance of views_handler_field_field::post_execute() firing entity_load().
+  foreach ($view->field as $field_name => $field) {
+    if ($field_name != $vbo->options['id']) {
+      unset($view->field[$field_name]);
+    }
+  }
+
+  $view->execute($vbo->view->current_display);
+  $results = array();
+  foreach ($view->result as $row_index => $result) {
+    $results[$row_index] = $vbo->get_value($result);
+  }
+  $selection = $results;
+}
+
+/**
+ * Processes the passed rows directly (without batching and queueing).
+ *
+ * This is a legacy function that is now only used for aggregate operations.
+ */
+function views_bulk_operations_direct_process($operation, $rows, $options) {
+  @set_time_limit(0);
+
+  // Prepare an array of status information. Imitates the Batch API naming
+  // for consistency. Passed to views_bulk_operations_execute_finished().
+  $context = array();
+  $context['results']['progress'] = 0;
+  $context['results']['log'] = array();
+
   $entity_type = $operation->entityType;
   $entity_ids = array();
   foreach ($rows as $row_index => $row) {
-   $entity_ids[] = $row['entity_id'];
+    $entity_ids[] = $row['entity_id'];
   }
   $entities = _views_bulk_operations_entity_load($entity_type, $entity_ids, $options['revision']);
 
   foreach ($entities as $id => $entity) {
     if (!_views_bulk_operations_entity_access($operation, $entity_type, $entity)) {
-      unset($entities[$id]);
       $context['results']['log'][] = t('Skipped %operation on @type %title due to insufficient permissions.', array(
         '%operation' => $operation->label(),
         '@type' => $entity_type,
         '%title' => _views_bulk_operations_entity_label($entity_type, $entity),
       ));
+      unset($entities[$id]);
     }
   }
   if (empty($entities)) {
     return;
   }
 
-  if ($operation->aggregate()) {
-    // Pass the selected rows to the operation if needed.
-    $operation_context = array();
-    if ($operation->needsRows()) {
-      $operation_context['rows'] = array();
-      foreach ($rows as $row_index => $row) {
-        $operation_context['rows'][$row_index] = $row['views_row'];
-      }
-    }
-    _views_bulk_operations_operation_do($operation, $entities, $operation_context);
-
-    $context['results']['log'][] = t('Performed aggregate %operation on @items.', array(
-      '%operation' => $operation->label(),
-      '@items' => format_plural(count($entities), '1 item', '@count items'),
-    ));
-    $context['results']['rows'] += count($entities);
-  }
-  else {
+  // Pass the selected rows to the operation if needed.
+  $operation_context = array();
+  if ($operation->needsRows()) {
+    $operation_context['rows'] = array();
     foreach ($rows as $row_index => $row) {
-      $entity_id = $row['entity_id'];
-      // A matching entity couldn't be loaded.
-      if (!isset($entities[$entity_id])) {
-        continue;
-      }
-
-      $entity = $entities[$entity_id];
-      // Some operations rely on knowing their position in the execution set
-      // (because of specific things that need to be done at the beginning
-      // or the end of the set).
-      $operation_context = array(
-        'progress' => array(
-          'current' => $context['results']['rows'] + 1,
-          'total' => count($rows),
-        ),
-      );
-      // Pass the selected rows to the operation if needed.
-      if ($operation->needsRows()) {
-        $operation_context['rows'] = array($row_index => $row['views_row']);
-      }
-      _views_bulk_operations_operation_do($operation, $entity, $operation_context);
-
-      $context['results']['rows'] += 1;
+      $operation_context['rows'][$row_index] = $row['views_row'];
     }
-
-    $context['results']['log'][] = t('Performed %operation on @items.', array(
-      '%operation' => $operation->label(),
-      '@items' => format_plural(count($entities), '1 item', '@count items'),
-    ));
   }
-}
+  $operation->execute($entities, $operation_context);
 
-/**
- * Executes the operation. Called from the process functions.
- */
-function _views_bulk_operations_operation_do($operation, $entity, $context, $account = NULL) {
-  global $user;
+  $context['results']['log'][] = t('Performed aggregate %operation on @items.', array(
+    '%operation' => $operation->label(),
+    '@items' => format_plural(count($entities), '1 item', '@count items'),
+  ));
+  $context['results']['progress'] += count($entities);
 
-  // If no account was provided, fallback to the current user.
-  if (!$account) {
-    $account = $user;
-  }
-
-  if (!$operation->access($account)) {
-    watchdog('actions permissions', 'An attempt by user %user to run operation %operation was blocked due to insufficient permissions.',
-      array('%operation' => $operation->label(), '%user' => format_username($account)), WATCHDOG_ALERT);
-    drupal_access_denied();
-    drupal_exit();
-  }
-
-  $operation->execute($entity, $context);
+  views_bulk_operations_execute_finished(TRUE, $context['results'], array());
 }
 
 /**
  * Helper function that runs after the execution process is complete.
  */
-function _views_bulk_operations_execute_finished($success, $results, $operations, $elapsed, $options = NULL) {
+function views_bulk_operations_execute_finished($success, $results, $operations) {
   if ($success) {
     if (count($results['log']) > 1) {
       $message = theme('item_list', array('items' => $results['log']));
@@ -1072,14 +1126,8 @@ function _views_bulk_operations_execute_finished($success, $results, $operations
     $message = t('An error occurred while processing @operation with arguments: @arguments',
       array('@operation' => $error_operation[0], '@arguments' => print_r($error_operation[0], TRUE)));
   }
-  if (empty($options)) {
-    // If the execution went through Batch API, the options are in $results.
-    $options = $results['options'];
-  }
 
-  if (!empty($options['display_result'])) {
-    _views_bulk_operations_log($message);
-  }
+  _views_bulk_operations_log($message);
 }
 
 /**
@@ -1147,54 +1195,8 @@ function _views_bulk_operations_entity_label($entity_type, $entity) {
       $label = $entity->{$id_key};
     }
   }
+
   return $label;
-}
-
-/**
- * API function to programmatically invoke a VBO.
- */
-function views_bulk_operations_execute($vid, $operation_id, $operation_arguments = array(), $view_exposed_input = array(), $view_arguments = array()) {
-  $view = views_get_view($vid);
-  if (!is_object($view)) {
-    _views_bulk_operations_report_error('Could not find view %vid.', array('%vid' => $vid));
-    return;
-  }
-
-  // Build the view, so that the VBO field can be found.
-  $view->set_exposed_input($view_exposed_input);
-  $view->set_arguments($view_arguments);
-  $view->build();
-  $view->query->set_limit(NULL); // reset the work done by the pager
-  $view->query->set_offset(NULL);
-
-  // Find the view display that has the VBO style.
-  $vbo = _views_bulk_operations_get_field($view);
-  if (!$vbo) {
-    _views_bulk_operations_report_error('Could not find a VBO field in view %vid.', array('%vid' => $vid));
-    return;
-  }
-
-  $view->execute();
-
-  // Find the selected operation.
-  $operations = $vbo->get_selected_operations();
-  if (!isset($operations[$operation_id])) {
-    _views_bulk_operations_report_error('Could not find operation %operation_id in view %vid.', array('%operation_id' => $operation_id, '%vid' => $vid));
-    return;
-  }
-  $operation = views_bulk_operations_get_operation($operation_id, $vbo->get_entity_type(), $vbo->get_operation_options($operation_id));
-  if ($operation_arguments) {
-    $operation->formOptions = $operation_arguments;
-  }
-
-  // Select all rows.
-  $selection = array();
-  foreach ($view->result as $row_index => $row) {
-    $selection[$row_index] = $vbo->get_value($row);
-  }
-
-  // Execute the operation on the view results.
-  _views_bulk_operations_execute($vbo, $selection, $operation, TRUE);
 }
 
 /**

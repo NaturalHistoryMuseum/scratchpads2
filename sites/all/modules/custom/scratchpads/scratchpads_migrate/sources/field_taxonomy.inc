@@ -77,7 +77,7 @@ class DrupalFieldTaxonomyMigration extends DrupalMigration{
       $row->field_name = 'field_taxonomic_name';
       $row->label = 'Classification';
     }else{
-      $row->field_name = $this->getFieldName($row->name);
+      $row->field_name = $this->getFieldName($row->name, $this->sourceConnection);
       $row->label = $row->name;
     }
     if(!isset($row->entity_type)){
@@ -90,7 +90,7 @@ return false;}
   /**
    * Generate a field name from the vocabulary name
    */
-  static public function getFieldName($name){
+  static public function getFieldName($name, $source_cnx){
     $field_name = 'field_' . preg_replace('/[^a-z0-9]/', '_', strtolower($name));
     // Field name can't be longer than 32 chars
     if(strlen($field_name) > 32){
@@ -101,19 +101,34 @@ return false;}
     if(isset($map[$field_name])){return $map[$field_name];}
     // Ensure we don't clash with an existing field
     $final_name = $field_name;
-    $field = field_read_field($final_name);
     $id = 0;
-    while(!empty($field) && $field['type'] != 'taxonomy_term_reference'){
+    while(DrupalFieldTaxonomyMigration::fieldClash($final_name, $source_cnx)){
       if((strlen($field_name) + strlen($id)) > 32){
         $final_name = substr($field_name, 0, 32 - strlen($id)) . $id;
       }else{
         $final_name = $field_name . $id;
       }
       $id = $id + 1;
-      $field = field_read_field($final_name);
     }
     $map[$field_name] = $final_name;
     variable_set('scratchpads_migrate_taxonomy_name_map', $map);
     return $final_name;
+  }
+
+  static public function fieldClash($name, $source_cnx){
+    $dest = field_read_field($name);
+    if($dest){
+      return $dest['type'] != 'taxonomy_term_reference';
+    }else{
+      $source = Database::getConnection('default', $source_cnx)->query("
+        SELECT COUNT(*)
+        FROM {content_node_field}
+        WHERE field_name = :field_name
+          AND type <> 'taxonomy_term_reference'
+      ", array(
+        ':field_name' => $name
+      ))->fetchField();
+      return $source > 0;
+    }
   }
 }

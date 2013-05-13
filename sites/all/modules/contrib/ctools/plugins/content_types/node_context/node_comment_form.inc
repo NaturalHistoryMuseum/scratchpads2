@@ -27,8 +27,8 @@ function ctools_node_comment_form_content_type_render($subtype, $conf, $panel_ar
   if (empty($node)) {
     $block->content = t('Comment form here.');
   }
-  else {
-    if (user_access('post comments') && $node->comment == COMMENT_NODE_OPEN) {
+  else if ($node->comment == COMMENT_NODE_OPEN) {
+    if (user_access('post comments')) {
       $comment = new stdClass();
       $comment->nid = $node->nid;
       $comment->pid = NULL;

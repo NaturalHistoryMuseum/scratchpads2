@@ -83,6 +83,34 @@ function ctools_fields_get_field_formatter_settings_form($field, $formatter_type
       $form += $settings_form;
     }
   }
+
+  if (isset($field['cardinality']) && $field['cardinality'] != 1) {
+    list($prefix, $suffix) = explode('@count', t('Skip the first @count item(s)'));
+    $form['delta_offset'] = array(
+      '#type' => 'textfield',
+      '#size' => 5,
+      '#field_prefix' => $prefix,
+      '#field_suffix' => $suffix,
+      '#default_value' => isset($conf['delta_offset']) ? $conf['delta_offset'] : 0,
+    );
+
+    list($prefix, $suffix) = explode('@count', t('Then display at most @count item(s)'));
+    $form['delta_limit'] = array(
+      '#type' => 'textfield',
+      '#size' => 5,
+      '#field_prefix' => $prefix,
+      '#field_suffix' => $suffix,
+      '#description' => t('Enter 0 to display all items.'),
+      '#default_value' => isset($conf['delta_limit']) ? $conf['delta_limit'] : 0,
+    );
+
+    $form['delta_reversed'] = array(
+      '#title' => t('Display in reverse order'),
+      '#type' => 'checkbox',
+      '#default_value' => !empty($conf['delta_reversed']),
+      '#description' => t('(start from last values)'),
+    );
+  }
 }
 
 /**
@@ -258,4 +286,57 @@ function ctools_field_invoke_field($field_name, $op, $entity_type, $entity, &$a 
 function ctools_field_invoke_field_default($field_name, $op, $entity_type, $entity, &$a = NULL, &$b = NULL, $options = array()) {
   $options['default'] = TRUE;
   return ctools_field_invoke_field($field_name, $op, $entity_type, $entity, $a, $b, $options);
+}
+
+/**
+ * Returns a list of field definitions of a specified type.
+ *
+ * @param string $field_type
+ *   A field type name; e.g. 'text' or 'date'.
+ *
+ * @return array
+ *   An array of field definitions of the specified type, keyed by field name.
+ */
+function ctools_fields_get_fields_by_type($field_type) {
+  $fields = array();
+  foreach (field_info_fields() as $field_name => $field_info) {
+    if ($field_info['type'] == $field_type) {
+      $fields[$field_name] = $field_info;
+    }
+  }
+  return $fields;
+}
+
+/**
+ * Derive the foreign keys that a field provides.
+ *
+ * @param $field_name
+ *   The name of the field.
+ *
+ * @return
+ *   An array of foreign keys according to Schema API.
+ */
+function ctools_field_foreign_keys($field_name) {
+  $foreign_keys = &drupal_static(__FUNCTION__, array());
+  if (!isset($foreign_keys[$field_name])) {
+    $foreign_keys[$field_name] = array();
+    $field = field_info_field($field_name);
+
+    if (!empty($field['foreign keys'])) {
+      $foreign_keys[$field_name] = $field['foreign keys'];
+    }
+    else {
+      // try to fetch foreign keys from schema, as not everything
+      // stores foreign keys properly in the field info.
+      $module = $field['module'];
+
+      module_load_install($module);
+      $schema = module_invoke($module, 'field_schema', $field);
+      if (!empty($schema['foreign keys'])) {
+        $foreign_keys[$field_name] = $schema['foreign keys'];
+      }
+    }
+  }
+
+  return $foreign_keys[$field_name];
 }

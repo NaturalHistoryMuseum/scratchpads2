@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
 function views_bulk_operations_uninstall() {
   // Remove VBO actions that are now orphaned.

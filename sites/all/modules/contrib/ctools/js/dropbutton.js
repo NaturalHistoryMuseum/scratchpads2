@@ -26,13 +26,12 @@
   Drupal.behaviors.CToolsDropbutton = {
     attach: function() {
       // Process buttons. All dropbuttons are buttons.
-      $('.ctools-button:not(.ctools-button-processed)')
-      .removeClass('ctools-no-js')
-      .addClass('ctools-button-processed');
+      $('.ctools-button')
+        .once('ctools-button')
+        .removeClass('ctools-no-js');
+
       // Process dropbuttons. Not all buttons are dropbuttons.
-      $('.ctools-dropbutton:not(.ctools-dropbutton-processed)')
-      .addClass('ctools-dropbutton-processed')
-      .each(function() {
+      $('.ctools-dropbutton').once('ctools-dropbutton', function() {
         var $dropbutton = $(this);
         var $button = $('.ctools-content', $dropbutton);
         var $secondaryActions = $('li', $button).not(':first');
