@@ -120,6 +120,31 @@ function scratchpads_solr_update_7004(){
 /**
  * Reindex ALL content.
  */
-function scratchpads_solr_update_7005(){
-  // TODO
+function scratchpads_solr_update_7005(&$sandbox){
+  module_load_include('inc', 'apachesolr', 'apachesolr.index');
+  // Get the enviornment.
+  $env_id = apachesolr_default_environment();
+  if(!isset($sandbox['progress'])){
+    // Clear the index.
+    apachesolr_index_delete_index($env_id);
+    // Rebuild the index.
+    apachesolr_index_mark_for_reindex($env_id);
+    // Get the max
+    $status = apachesolr_index_status($env_id);
+    $sandbox['max'] = $status['remaining'];
+    $sandbox['progress'] = 0;
+  }
+  // Do the indexing.
+  // We simply use the apachesolr_cron function to do the indexing.
+  // We will loop until the number of items to index does not
+  // decrease, and then we're done.
+  apachesolr_cron($env_id);
+  $current_status = apachesolr_index_status($env_id);
+  if($current_status['remaining'] == $sandbox['progress']){
+    // We failed to index anything.  Set the progress to 1 and finished to ture.
+    $sandbox['progress'] = $sandbox['finished'] = 1;
+  }else{
+    $sandbox['progress'] = $sandbox['max'] - $current_status['remaining'];
+    $sandbox['#finished'] = $sandbox['progress'] / $sandbox['max'];
+  }
 }
