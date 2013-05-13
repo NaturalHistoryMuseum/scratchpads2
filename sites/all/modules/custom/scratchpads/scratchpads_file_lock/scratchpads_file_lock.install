@@ -7,8 +7,9 @@
  * Add file lock entry to all existing files
  */
 function scratchpads_file_lock_enable(){
-  // variable used by file_lock module
+  // variables used by file_lock module
   variable_set('file_lock_mode', 'all');
+  variable_set('file_lock_hook', 'all');
   // lock existing files
   $or = db_or()->condition('module', 'file_lock')->condition('type', 'eolapi');
   $subquery = db_select('file_usage', 'f')->fields('f', array(
