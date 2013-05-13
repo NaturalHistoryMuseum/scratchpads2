@@ -1,6 +1,11 @@
 <?php
 
- /**
+/**
+ * @file
+ * Definition of views_handler_field_aggregator_title_link.
+ */
+
+/**
  * Field handler that turns an item's title into a clickable link to the original
  * source article.
  *
@@ -15,7 +20,7 @@ class views_handler_field_aggregator_title_link extends views_handler_field {
   function option_definition() {
     $options = parent::option_definition();
 
-    $options['display_as_link'] = array('default' => TRUE);
+    $options['display_as_link'] = array('default' => TRUE, 'bool' => TRUE);
 
     return $options;
   }

@@ -64,6 +64,7 @@ function ctools_plugin_api_info($owner, $api, $minimum_version, $current_version
     foreach (module_implements($hook) as $module) {
       $function = $module . '_' . $hook;
       $info = $function($owner, $api);
+      $version = NULL;
       // This is added to make hook_views_api() compatible with this, since
       // views used a different version key.
       if (isset($info['version'])) {
@@ -107,6 +108,9 @@ function ctools_plugin_api_info($owner, $api, $minimum_version, $current_version
         }
       }
     }
+
+    // Allow other modules to hook in.
+    drupal_alter($hook, $cache[$owner][$api]);
   }
 
   return $cache[$owner][$api];

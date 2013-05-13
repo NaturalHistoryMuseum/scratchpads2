@@ -1,0 +1,4 @@
+core = "7.x"
+name = "Scratchpads data integrity"
+description = "Checks the integrity of data stored on the Scratchpad, and reports any issues to the user, and to us so that we can fix them."
+package = "Scratchpads"

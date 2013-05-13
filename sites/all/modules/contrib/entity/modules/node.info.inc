@@ -52,6 +52,7 @@ function entity_metadata_node_entity_property_info() {
   );
   $properties['language'] = array(
     'label' => t("Language"),
+    'type' => 'token',
     'description' => t("The language the node is written in."),
     'setter callback' => 'entity_property_verbatim_set',
     'options list' => 'entity_metadata_language_list',

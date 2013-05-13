@@ -1,7 +1,11 @@
 CHANGELOG for Plupload integration for Drupal 7
 
-Plupload integration 7.x-1.x-dev
+Plupload integration 7.x-1.1
 =================================
+- #1895328 by larowlan, slashrsm: Fixed Security exploit in plupload external library examples folder.
+- #1230632 by -enzo-, slashrsm: Fixed hard-coded file size limits.
+- by slashrsm: Fix CodeSniffer errors.
+- #1827368 by Kevin Hankens: Fixed Use standard language when validating files.
 - #1565898 by slashrsm: Create docs for Plupload element usage in README.txt.
 - #1111036 by slashrsm: Blacklist script extensions if 'allow_insecure_uploads' isn't set to TRUE.
 - #1426088 by slashrsm: Anonymous User can't upload.
@@ -12,8 +16,8 @@ Plupload integration 7.x-1.0
 
 Plupload integration 7.x-1.0-rc1
 ==================================
-- by slashrsm: Fix 3 Coder review notices. 
-- by slashrsm: Removed unnecessary popup caused by previous commit. 
+- by slashrsm: Fix 3 Coder review notices.
+- by slashrsm: Removed unnecessary popup caused by previous commit.
 - #1414486 by nbucknor, annblack: Allow for Multiple Plupload elements in a form.
 - #1461884 by atlea: File uploads larger than php post_max_size broken
 - #1445172 by Moloc: Use drupal_unlink() instead unlink()

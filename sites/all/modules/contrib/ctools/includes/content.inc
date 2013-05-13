@@ -216,6 +216,8 @@ function ctools_content_prepare_subtype(&$subtype, $plugin) {
       $subtype[$key] = $plugin[$key];
     }
   }
+
+  drupal_alter('ctools_content_subtype', $subtype, $plugin);
 }
 
 /**
@@ -456,9 +458,12 @@ function ctools_content_admin_info($type, $subtype, $conf, $context = NULL) {
   if ($function = ctools_plugin_get_function($plugin, 'admin info')) {
     $output = $function($subtype, $conf, $context);
   }
+
   if (empty($output) || !is_object($output)) {
     $output = new stdClass();
-    $output->title = t('No info');
+    // replace the _ with " " for a better output
+    $subtype = check_plain(str_replace("_", " ", $subtype));
+    $output->title = $subtype;
     $output->content = t('No info available.');
   }
   return $output;

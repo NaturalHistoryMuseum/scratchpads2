@@ -13,6 +13,25 @@ define('DNA_CHARACTERS', 'ATGC');
  * CORE HOOKS
  * 
  ********************************************************************************************/
+/** 
+ * Implements hook_menu(). 
+ */
+function character_editor_menu(){
+  return array(
+    'character_editor/get/data/%' => array(
+      'page callback' => 'character_editor_get_data',
+      'page arguments' => array(
+        3
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'character_editor.getdata.inc'
+    )
+  );
+}
+
 /**
  * Implementation of hook_help().
  */
@@ -643,7 +662,7 @@ function character_editor_project_view($entity){
     $entity->id
   );
   // Load the view and render it.
-  if($view = views_get_view($name)){
+  if(($view = views_get_view($name)) != FALSE){
     $build = array(
       '#type' => 'markup',
       '#markup' => $view->execute_display($display_id, $args),
@@ -657,6 +676,14 @@ function character_editor_project_view($entity){
       )
     );
   }
+  // Override the JS setting set by the slickgrid module.
+  drupal_add_js(array(
+    'slickgrid' => array(
+      'get_data_callback_url' => url('character_editor/get/data/' . $entity->id . '/', array(
+        'absolute' => TRUE
+      ))
+    )
+  ), 'setting');
   // views_get_view overwites the title so need to reset it here 
   drupal_set_title($entity->label());
   return $build;
@@ -1137,11 +1164,11 @@ function character_editor_preprocess_slickgrid_control__add(&$variables){
  */
 function template_preprocess_views_data_export_sdd(&$vars){
   // Compute the root XML node, using the base table, and appending an 's' if needed.
-//  $root_node = $vars['view']->base_table;
-//  if (rtrim($root_node, 's') == $root_node) {
-//    $root_node .= 's';
-//  }
-//  $vars['root_node'] = _views_data_export_xml_tag_clean($root_node);
+  //  $root_node = $vars['view']->base_table;
+  //  if (rtrim($root_node, 's') == $root_node) {
+  //    $root_node .= 's';
+  //  }
+  //  $vars['root_node'] = _views_data_export_xml_tag_clean($root_node);
 }
 
 /*********************************************************************************************

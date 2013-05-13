@@ -30,15 +30,18 @@ function jquery_update_requirements($phase) {
  */
 function jquery_update_uninstall() {
   variable_del('jquery_update_compression_type');
+  variable_del('jquery_update_jquery_version');
 }
 
 /**
- * The packed version of jQuery is no longer distributed. If that is the chosen
- * version update to minified.
+ * Update from Drupal 6.
  */
 function jquery_update_update_7000() {
   if (variable_get('jquery_update_compression_type', 'min') == 'pack') {
     variable_set('jquery_update_compression_type', 'min');
   }
   variable_del('jquery_update_replace');
+
+  // Restore the default version of jQuery.
+  variable_del('jquery_update_jquery_version');
 }

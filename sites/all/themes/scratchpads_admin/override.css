@@ -15,6 +15,10 @@
   padding-right: 300px !important;
 }
 
+.vertical-tabs {
+  margin: 0 0 10px !important;
+}
+
 /* Admin content table */
 table.scratchpads-admin-content  caption {
   text-align: left;

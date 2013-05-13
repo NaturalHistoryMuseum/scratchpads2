@@ -95,6 +95,14 @@ function entity_metadata_user_entity_property_info() {
     'setter permission' => 'administer users',
     'schema field' => 'status',
   );
+  $properties['theme'] = array(
+    'label' => t("Default theme"),
+    'description' => t("The user's default theme."),
+    'getter callback' => 'entity_metadata_user_get_properties',
+    'setter callback' => 'entity_property_verbatim_set',
+    'access callback' => 'entity_metadata_user_properties_access',
+    'schema field' => 'theme',
+  );
   return $info;
 }
 

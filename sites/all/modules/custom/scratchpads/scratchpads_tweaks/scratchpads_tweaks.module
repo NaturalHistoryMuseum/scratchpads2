@@ -24,6 +24,11 @@ function scratchpads_tweaks_init(){
     $expire = $params['lifetime'] ? REQUEST_TIME + $params['lifetime'] : 0;
     setcookie('has_js', 1, $expire, $params['path'], $params['domain'], FALSE, $params['httponly']);
   }
+  // Tweak the URL if we're viewing the media browser.  Note, this is here to
+  // fix what appears to be a bug!]
+  if(arg(0) == 'media' && arg(1) == 'browser'){
+    unset($_GET['schemes']);
+  }
   // Alter the exception handler so that we can ignore certain exceptions.
   //set_exception_handler('scratchpads_tweaks_exception_handler');
 }
@@ -258,6 +263,20 @@ function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
   }
 }
 
+/**
+ * Implements hook_theme_registry_alter()
+ */
+function scratchpads_tweaks_theme_registry_alter(&$reg){
+  $reg['filter_guidelines']['function'] = 'theme_scratchpads_tweaks_filter_guidelines';
+}
+
+/**
+ * Hide the filter guidelines
+ */
+function theme_scratchpads_tweaks_filter_guidelines($vars){
+  return '';
+}
+
 function scratchpads_tweaks_form_system_theme_settings_submit($form, &$form_state){
   variable_set('resize_logo', $form_state['values']['resize_logo']);
 }
@@ -344,6 +363,19 @@ function scratchpads_tweaks_redirect(){
     drupal_goto('admin/appearance/settings');
   }else{
     return system_themes_page();
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_tweaks_module_implements_alter(&$implementations, $hook){
+  if($hook == 'library_alter' && isset($implementations['jquery_update'])){
+    // Move jquery update to the end. This will make sure our hook_library_alter
+    // is always called before the jquery_update.
+    $jquery_update = $implementations['jquery_update'];
+    unset($implementations['jquery_update']);
+    $implementations['jquery_update'] = $jquery_update;
   }
 }
 

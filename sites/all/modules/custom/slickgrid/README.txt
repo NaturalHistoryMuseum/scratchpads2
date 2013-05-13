@@ -41,7 +41,7 @@ The popup node form will work with all fields.
   * Enable resizing columns
   * Enable reordering columns
   * Column visibility - allow users to show & hide columns
-  * A sync editor loading - load the grid on scroll
+  * Asynchronous editor loading - load the grid on scroll
   * Force fit columns - force column widths to fit the grid.
   * Override paging - use slickgrid's in-built pagination instead of views'.
   * Set grid, header & row height.
