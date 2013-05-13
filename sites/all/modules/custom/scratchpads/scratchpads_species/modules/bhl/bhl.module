@@ -1,12 +1,17 @@
 <?php
+// BHL API Key.  Note, all Scratchpads will use this same key.
+define('BHL_API_KEY', 'aeca8ad9-b0ca-4899-9824-4b59d2d162de');
 
 /**
  * Implements hook_menu().
  */
 function bhl_menu(){
   return array(
-    'bhl_viewer' => array(
+    'bhl_viewer/%' => array(
       'page callback' => 'bhl_viewer',
+      'page arguments' => array(
+        1
+      ),
       'access arguments' => array(
         'access content'
       ),
@@ -28,9 +33,23 @@ function bhl_admin_paths(){
 /**
  * Thickbox display breaks bhl view layout - but not if we use an inline iframe
  */
-function bhl_viewer(){
-  $url = substr(request_uri(), 12);
-  return '<iframe hspace="0" frameborder="0" id="TB_iframeContent" style="width: 100%; height: 700px;" align="center" src="' . $url . '">' . $url . '</iframe>';
+function bhl_viewer($page_id){
+  //$url = 'http://whbhl01.ubio.org/adore-djatoka/viewer.jsp?cat=&client=&image=&imageURL=http%3A%2F%2Fwww.biodiversitylibrary.org%2Fpageimage%2F17384483&imageDetailURL=http%3A%2F%2Fwww.biodiversitylibrary.org%2Fpageimage%2F17384483&render=overlay
+  //$url = 'http://whbhl01.ubio.org/adore-djatoka/viewer.jsp/cat=&client=&image=&imageURL=http%3A%2F%2Fwww.biodiversitylibrary.org%2Fpageimage%2F';
+  //$url = 'http://whbhl01.ubio.org/adore-djatoka/viewer.jsp?cat=&client=&image=&imageURL=http%3A%2F%2Fwww.biodiversitylibrary.org%2Fpageimage%2F' . $page_id;
+  //return '<iframe hspace="0" frameborder="0" id="TB_iframeContent" style="width: 100%; height: 700px;" align="center" src="' . $url . '">' . $url . '</iframe>';
+  $url = 'http://www.biodiversitylibrary.org/pageimage/' . $page_id;
+  return array(
+    '#attached' => array(
+      'js' => array(
+        drupal_get_path('module', 'bhl') . '/js/jquery.elevateZoom-2.5.5.min.js',
+        drupal_get_path('module', 'bhl') . '/js/bhl.js',
+      )
+    ),
+    'markup' => array(
+      '#markup' => '<img id="bhl-viewer" src="' . $url . '" data-zoom-image="' . $url . '" width="100%"/>'
+    )
+  );
 }
 
 /**
@@ -66,7 +85,7 @@ function bhl_block_view($delta = ''){
           $publication_title = $title['title'];
           $pages = array();
           foreach($title['items'][0]->Item->Pages->Page as $page){
-            $viewer_url = '/bhl_viewer/' . $page->ImageUrl;
+            $viewer_url = '/bhl_viewer/' . $page->PageID;
             $link_text = trim("{$page->Prefix} $page->Number");
             if(!$link_text){
               $link_text = t('Page');
@@ -140,13 +159,13 @@ function bhl_contextual_links_view_alter(&$element, $items){
 
 function _bhl_get_namebank_titles($term_name, $limit = 20){
   $titles = array();
-  $request = 'http://fencedine.myspecies.info/?url=' . urlencode('http://www.biodiversitylibrary.org/services/name/NameService.ashx?op=NameSearch&name=' . $term_name);
+  $request = 'http://fencedine.myspecies.info/?url=' . urlencode('http://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameSearch&apikey=' . BHL_API_KEY . '&name=' . $term_name);
   $namebank_ids_xml = file_get_contents($request);
   if($namebank_ids_xml){
     $namebank_ids = new SimpleXMLElement($namebank_ids_xml);
     foreach($namebank_ids->Result->Name as $data){
       if(strtolower($data->NameConfirmed) == str_replace("+", " ", strtolower($term_name))){
-        $detail_request = 'http://fencedine.myspecies.info/?url=' . urlencode('http://www.biodiversitylibrary.org/services/name/NameService.ashx?op=NameGetDetail&nameBankID=' . $data->NameBankID . '&format=xml');
+        $detail_request = 'http://fencedine.myspecies.info/?url=' . urlencode('http://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameGetDetail&apikey=' . BHL_API_KEY . '&namebankid=' . $data->NameBankID);
         $namebank_details_xml = file_get_contents($detail_request);
         try{
           $namebank_details = new SimpleXMLElement($namebank_details_xml);
@@ -163,11 +182,11 @@ function _bhl_get_namebank_titles($term_name, $limit = 20){
           //convert the titleID to numeric
           $title_id = intval($title->TitleID);
           // if the publication has already been added, just add the items
-          if($titles[$title_id]){
+          if(!empty($titles[$title_id])){
             $titles[$title_id]['items'][] = $title->Items;
           }else{ //else add some publication details - expand here for more publication data if nec.
             // convert to an array - numerical key causing error
-            $title_array = (array)$title->PublicationTitle;
+            $title_array = (array)$title->ShortTitle;
             $title_url = (array)$title->TitleUrl;
             $titles[$title_id] = array(
               'title' => $title_array[0],

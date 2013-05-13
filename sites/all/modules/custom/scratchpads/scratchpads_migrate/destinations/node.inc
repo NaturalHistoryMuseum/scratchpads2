@@ -100,6 +100,7 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
     // Updating previously-migrated content? Or creating actual content for stub nodes.
     $migration = Migration::currentMigration();
     $node_replace_stub = FALSE;
+    $revision_only = FALSE;
     if(isset($row->migrate_map_destid1)){
       // Make sure is_new is off
       $node->is_new = FALSE;
@@ -132,9 +133,16 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
         $is_stub = preg_match('/^Stub for \d+$/', trim($original->title));
         $is_stub = $is_stub || ($original->title == '[node:field-institution-code] - [node:field-collection-code] - [node:field-catalogue-number]');
         if ($is_stub) {
-          unset($node->is_new);
-          unset($node->revision);
-          $node_replace_stub = TRUE;
+          if ($node->vid != $original->vid) {
+            // We're updating a stub, but this is not the active VID
+            unset($node->is_new);
+            $node->revision = 1;
+            $revision_only = TRUE;
+          } else {
+            unset($node->is_new);
+            unset($node->revision);
+            $node_replace_stub = TRUE;
+          }
         } else {
           unset($node->is_new);
           $node->revision = 1;
@@ -221,7 +229,7 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
       unset($node->revision);
     }
     migrate_instrument_start('node_save');
-    scratchpads_migrate_node_save($node);
+    scratchpads_migrate_node_save($node, $revision_only);
     migrate_instrument_stop('node_save');
     if(isset($node->nid)){
       if($updating){

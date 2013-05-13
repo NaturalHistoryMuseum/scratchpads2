@@ -10,5 +10,6 @@
         $(this).parent().find('ul').toggle();
       }
     });
+    $("#bhl-viewer").elevateZoom({zoomType: "lens", lensShape: "square", lensSize: 200});
   }}
 })(jQuery);
