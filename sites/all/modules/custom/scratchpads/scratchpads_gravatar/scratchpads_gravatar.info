@@ -1,0 +1,5 @@
+name = "Scratchpads Gravatar"
+description = "Allows integration of gravatar with scratchpads"
+package = "Scratchpads"
+core = 7.x
+dependencies[] = "gravatar"
