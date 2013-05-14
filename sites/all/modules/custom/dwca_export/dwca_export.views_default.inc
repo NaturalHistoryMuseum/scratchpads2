@@ -1338,6 +1338,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_map']['field'] = 'field_map';
   $handler->display->display_options['fields']['field_map']['relationship'] = 'field_location_nid';
   $handler->display->display_options['fields']['field_map']['label'] = 'Latitude';
+  $handler->display->display_options['fields']['field_map']['alter']['strip_tags'] = TRUE;
   $handler->display->display_options['fields']['field_map']['hide_alter_empty'] = FALSE;
   $handler->display->display_options['fields']['field_map']['click_sort_column'] = 'latitude';
   $handler->display->display_options['fields']['field_map']['type'] = 'gm3_text_lat';
@@ -1350,6 +1351,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_map_1']['field'] = 'field_map';
   $handler->display->display_options['fields']['field_map_1']['relationship'] = 'field_location_nid';
   $handler->display->display_options['fields']['field_map_1']['label'] = 'Longitude';
+  $handler->display->display_options['fields']['field_map_1']['alter']['strip_tags'] = TRUE;
   $handler->display->display_options['fields']['field_map_1']['click_sort_column'] = 'latitude';
   $handler->display->display_options['fields']['field_map_1']['type'] = 'gm3_text_lon';
   $handler->display->display_options['fields']['field_map_1']['settings'] = array(
@@ -1380,7 +1382,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['style_options']['header'] = 0;
   $handler->display->display_options['style_options']['keep_html'] = 1;
   $handler->display->display_options['path'] = 'dwca_export/specimen/csv';
-  ;
   $views[$view->name] = $view;
   //----------------------------------------------------------------------------
   // COMMENTS
