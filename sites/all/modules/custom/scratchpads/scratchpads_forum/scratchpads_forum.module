@@ -1,6 +1,5 @@
 <?php
-
-include_once('scratchpads_forum.features.inc');
+include_once ('scratchpads_forum.features.inc');
 
 /**
  * Specifies the argument that should be used on forum/% links.
@@ -26,8 +25,8 @@ function scratchpads_forum_form_taxonomy_overview_vocabularies_alter(&$form, &$f
  * We use this to hide the default forum action links
  * 
  */
-function scratchpads_forum_menu_local_tasks_alter(&$data, $router_item, $root_path) {
-  if ($root_path == 'forum' || $root_path == 'forum/%') {
+function scratchpads_forum_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  if($root_path == 'forum' || $root_path == 'forum/%'){
     _scratchpads_forum_action_links($data['actions']['output']);
     $data['actions']['output'] = array();
   }
@@ -41,8 +40,8 @@ function scratchpads_forum_menu_local_tasks_alter(&$data, $router_item, $root_pa
  * hook is called later to get a chance to modify them.
  * 
  */
-function scratchpads_forum_module_implements_alter(&$implementations, $hook) {
-  if ($hook == 'menu_local_tasks_alter') {
+function scratchpads_forum_module_implements_alter(&$implementations, $hook){
+  if($hook == 'menu_local_tasks_alter'){
     $forum = $implementations['scratchpads_forum'];
     unset($implementations['scratchpads_forum']);
     $implementations['scratchpads_forum'] = $forum;
@@ -53,12 +52,11 @@ function scratchpads_forum_module_implements_alter(&$implementations, $hook) {
  * Get/set the current action links
  * 
  */
-function _scratchpads_forum_action_links($v = NULL) {
+function _scratchpads_forum_action_links($v = NULL){
   static $links = NULL;
-  if ($v !== NULL) {
+  if($v !== NULL){
     $links = $v;
   }
-  
   return $links;
 }
 
@@ -69,34 +67,126 @@ function _scratchpads_forum_action_links($v = NULL) {
  * forum action links
  * 
  */
-function scratchpads_forum_block_info() {
+function scratchpads_forum_block_info(){
   $blocks['scratchpadsforum'] = array(
-      'info' => t('Scratchpads forum links'),
-      'status' => 0
+    'info' => t('Scratchpads forum links'),
+    'status' => 0
   );
-  return $blocks;  
+  $blocks['scratchpadsforum_tree'] = array(
+    'info' => t('Scratchpads forum tree'),
+    'status' => 0
+  );
+  return $blocks;
 }
 
 /**
  * Implementation of hook_block_view
  */
-function scratchpads_forum_block_view($delta = '') {
+function scratchpads_forum_block_view($delta = ''){
   $content = array(
-      'subject' => NULL,
-      'content' => '',
+    'subject' => NULL,
+    'content' => ''
   );
-  
-  switch($delta) {
+  switch($delta){
     case 'scratchpadsforum':
       global $user;
       $actions = _scratchpads_forum_action_links();
       $links = array();
-      foreach ($actions as $a) {
-        $links[] = theme('menu_local_action', array('element' => $a));
+      foreach($actions as $a){
+        $links[] = theme('menu_local_action', array(
+          'element' => $a
+        ));
       }
-      $content['content'] = '<ul class="menu action-links">'.implode('', $links).'</ul>';
+      $content['content'] = '<ul class="menu action-links">' . implode('', $links) . '</ul>';
+      break;
+    case 'scratchpadsforum_tree':
+      $content['subject'] = t('Forum tree');
+      $content['content'] = array(
+        '#theme' => 'item_list',
+        '#items' => scratchpads_forum_tree(),
+        '#title' => t(''),
+        '#type' => 'ul'
+      );
+      
       break;
   }
-  
   return $content;
 }
+
+/**
+ * 
+ * Adds a navigation tree to forums
+ */
+function scratchpads_forum_tree(){
+  $items = array();
+  $forum_tree = forum_forum_load();
+  $forums = $forum_tree->forums;
+  foreach($forums as $key => $forum){
+    if($forum->parents[0] != 0){
+      $sub_forum = TRUE;
+      $parent_forum = $forum->parents[0];
+    }else{
+      $sub_forum = FALSE;
+    }
+    if($sub_forum){
+      if(arg(1) == $key){
+        $items[$key] = array(
+          'class' => 'subforum',
+          'data' => $forum->name
+        );
+      }else{
+        $items[$key] = array(
+          'class' => 'subforum',
+          'data' => l($forum->name, 'forum/' . $key)
+        );
+      }
+    }else{
+      if(arg(1) == $key){
+        $items[$key] = array(
+          'data' => $forum->name
+        );
+      }else{
+        $items[$key] = array(
+          'data' => l($forum->name, 'forum/' . $key)
+        );
+      }
+    }
+    $query = db_select('node', 'n');
+    $query->fields('n');
+    $query->join('forum', 'f', 'n.nid = f.nid');
+    $query->condition('f.tid', $key, '=');
+    $query->condition('n.type', 'forum', '=');
+    $query->orderBy('title', 'ASC');
+    $result = $query->execute();
+    $c = 0;
+    while($record = $result->fetchAssoc()){
+      if(($record['nid'] == arg(1)) && (arg(0) == 'node')){
+        $items[$key]['children'][] = array(
+          'data' => $record['title']
+        );
+      }else{
+        $items[$key]['children'][] = array(
+          'data' => l($record['title'], 'node/' . $record['nid'])
+        );
+      }
+      $c++;
+    }
+    $items[$key]['data'] .= " (" . $c++ . ")";
+  }
+  return $items;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
