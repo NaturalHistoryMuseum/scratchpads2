@@ -52,6 +52,12 @@ function scratchpads_media_gallery_is_gallery_node(){
  */
 function scratchpads_media_gallery_ctools_plugin_api(){
   list($module, $api) = func_get_args();
+  if($module == 'facetapi'){return array(
+      'version' => 1
+    );}
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
   if($module == "file_entity" && $api == "file_default_displays"){return array(
       "version" => "1"
     );}
