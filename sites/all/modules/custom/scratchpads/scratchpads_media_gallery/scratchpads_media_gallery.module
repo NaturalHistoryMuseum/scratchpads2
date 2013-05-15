@@ -36,47 +36,6 @@ function scratchpads_media_gallery_file_load($files){
 }
 
 /**
- * Implementation of hook_context_default_contexts().
- */
-function scratchpads_media_gallery_context_default_contexts(){
-  $export = array();
-  $context = new stdClass();
-  $context->disabled = FALSE;
-  $context->api_version = 3;
-  $context->name = 'media_gallery_page_facets';
-  $context->description = t('Media gallery page facets');
-  $context->tag = 'solr';
-  $context->conditions = array(
-    'path' => array(
-      'values' => array(
-        'gallery*' => 'gallery*'
-      )
-    )
-  );
-  $context->reactions = array(
-    'block' => array(
-      'blocks' => array()
-    )
-  );
-  module_load_include('block.inc', 'facetapi');
-  $map = facetapi_get_delta_map();
-  foreach(scratchpads_media_gallery_facetapi_default_facet_settings() as $facet){
-    $delta = array_search($facet->name, $map);
-    if($delta){
-      $context->reactions['block']['blocks'][] = array(
-        'module' => 'facetapi',
-        'delta' => $delta,
-        'region' => 'sidebar',
-        'weight' => -27
-      );
-    }
-  }
-  $context->condition_mode = 0;
-  $export['media_gallery_page_facets'] = $context;
-  return $export;
-}
-
-/**
  * Check to see if we're viewing a single gallery
  */
 function scratchpads_media_gallery_is_gallery_node(){
@@ -96,42 +55,9 @@ function scratchpads_media_gallery_ctools_plugin_api(){
   if($module == "file_entity" && $api == "file_default_displays"){return array(
       "version" => "1"
     );}
-}
-
-/**
- * Implements hook_views_default_views_alter
- */
-function scratchpads_media_gallery_views_default_views_alter(&$views){
-  if(isset($views['media_default'])){
-    foreach(array(
-      'default',
-      'media_browser_1',
-      'media_browser_my_files'
-    ) as $display_id){
-      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['id'] = 'uri';
-      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['table'] = 'file_managed';
-      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['field'] = 'uri';
-      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['operator'] = 'not';
-      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['value'] = '/eolapi/';
-    }
-  }
-}
-
-/**
- * Implementation of hook_block_view_alter()
- */
-function scratchpads_media_gallery_block_view_alter(&$data, $block){
-  if($block->module == 'facetapi'){
-    $map = facetapi_get_delta_map();
-    $facet_info = scratchpads_media_gallery_facetapi_facet_info();
-    foreach(scratchpads_media_gallery_facetapi_default_facet_settings() as $facet){
-      $delta = array_search($facet->name, $map);
-      if($delta == $block->delta && isset($facet_info[$facet->facet])){
-        $data['subject'] = $facet_info[$facet->facet]['label'];
-        break;
-      }
-    }
-  }
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
 }
 
 /**
@@ -205,6 +131,42 @@ function scratchpads_media_gallery_facetapi_default_facet_settings(){
     $facets[$facet_id . '_global'] = $facet;
   }
   return $facets;
+}
+
+/**
+ * Implements hook_views_default_views_alter
+ */
+function scratchpads_media_gallery_views_default_views_alter(&$views){
+  if(isset($views['media_default'])){
+    foreach(array(
+      'default',
+      'media_browser_1',
+      'media_browser_my_files'
+    ) as $display_id){
+      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['id'] = 'uri';
+      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['table'] = 'file_managed';
+      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['field'] = 'uri';
+      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['operator'] = 'not';
+      $views['media_default']->display[$display_id]->handler->display->display_options['filters']['uri']['value'] = '/eolapi/';
+    }
+  }
+}
+
+/**
+ * Implementation of hook_block_view_alter()
+ */
+function scratchpads_media_gallery_block_view_alter(&$data, $block){
+  if($block->module == 'facetapi'){
+    $map = facetapi_get_delta_map();
+    $facet_info = scratchpads_media_gallery_facetapi_facet_info();
+    foreach(scratchpads_media_gallery_facetapi_default_facet_settings() as $facet){
+      $delta = array_search($facet->name, $map);
+      if($delta == $block->delta && isset($facet_info[$facet->facet])){
+        $data['subject'] = $facet_info[$facet->facet]['label'];
+        break;
+      }
+    }
+  }
 }
 
 /**
