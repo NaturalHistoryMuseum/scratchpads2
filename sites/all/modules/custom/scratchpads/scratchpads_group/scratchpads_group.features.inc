@@ -15,6 +15,9 @@ function scratchpads_group_ctools_plugin_api(){
   if($module == "context" && $api == "context"){return array(
       "version" => "3"
     );}
+  if($module == 'facetapi'){return array(
+      'version' => 1
+    );}
 }
 
 /**
