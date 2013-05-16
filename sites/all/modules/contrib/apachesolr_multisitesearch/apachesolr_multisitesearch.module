@@ -180,7 +180,7 @@ function apachesolr_multisitesearch_apachesolr_query_alter(DrupalSolrQueryInterf
  * @param string $query
  *   Defaults to *:*
  */
-function apachesolr_multisitesearch_apachesolr_delete_by_query_alter($query) {
+function apachesolr_multisitesearch_apachesolr_delete_by_query_alter(&$query) {
   // use the site hash so that you only delete this site's content
   if ($query == '*:*') {
     $query = 'hash:' . apachesolr_site_hash();
