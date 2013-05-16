@@ -50,6 +50,32 @@ class DrupalFieldMigration extends DrupalMigration{
   }
 
   /**
+   * Override isComplete so we can account for media fields
+   * being re-named in the source side processing (see #2550)
+   */
+  public function isComplete(){
+    $duplicates = Database::getConnection('default', $this->sourceConnection)->query("
+      SELECT COUNT(*) AS count
+        FROM content_node_field_instance i
+      INNER JOIN content_node_field f ON f.field_name = i.field_name
+      WHERE i.widget_active = 1
+        AND i.type_name NOT IN (:node_types)
+        AND f.type IN ('image', 'filefield')
+        AND i.field_name <> 'field_mediafiles'
+      GROUP BY i.type_name
+    ", array(
+      ':node_types' => DrupalFieldMigration::excludedNodeTypes()
+    ))->fetchCol();
+    $diff = array_sum($duplicates) - count($duplicates);
+    // If the source is uncountable, we have no way of knowing if it's
+    // complete, so stipulate that it is.
+    $total = $this->source->count(TRUE);
+    if($total < 0){return TRUE;}
+    $processed = $this->processedCount();
+    return $total <= ($processed + $diff);
+  }
+
+  /**
    * Query for the basic source query.
    *
    * @return QueryConditionInterface
@@ -106,10 +132,10 @@ class DrupalFieldMigration extends DrupalMigration{
     }
     // We want all image fields to use the media field
     if($row->type == 'image' || $row->type == 'filefield'){
-      if ($row->field_name != 'field_mediafiles') {
+      if($row->field_name != 'field_mediafiles'){
         $row->field_name = 'field_media';
       }
-    } else {
+    }else{
       $row->field_name = DrupalFieldMigration::getCustomMapping($row->field_name, $row->type);
     }
     // Special cases for node references
@@ -217,19 +243,13 @@ class DrupalFieldMigration extends DrupalMigration{
   /**
    * Provide additional custom field name mapping
    */
-  static public function getCustomMapping($field_name, $field_type = NULL) {
+  static public function getCustomMapping($field_name, $field_type = NULL){
     // Ensure that text-based country fields do not get mapped to the field_country field.
-    if ($field_name == 'field_country' && $field_type == 'text') {
-      return 'field_country_text';
-    }
+    if($field_name == 'field_country' && $field_type == 'text'){return 'field_country_text';}
     // Custom field field_keywords that is not a taxonmy term reference need to be renamed
-    if ($field_name == 'field_keywords' && $field_type == 'text') {
-      return 'field_keywords_t';
-    }
+    if($field_name == 'field_keywords' && $field_type == 'text'){return 'field_keywords_t';}
     // Field name field_name is reserved.
-    if ($field_name == 'field_name') {
-      return 'field_name_r';
-    }
+    if($field_name == 'field_name'){return 'field_name_r';}
     return $field_name;
   }
 }
