@@ -31,6 +31,13 @@ div.toolbar-drawer {
   padding-bottom: 6px !important;
 }
 
+.scratchpads_messages .item-list li a {
+  float: none !important;
+  font-size: 100% !important;
+  color: #0062A0 !important;
+  text-decoration:underline !important;
+}
+
 .scratchpads_messages form {
   float: right;
 }
