@@ -1,0 +1,63 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the file_lock module
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function file_lock_uninstall() {
+  variable_del('file_lock_mode');
+  variable_del('file_lock_pattern');
+  variable_del('file_lock_regex');
+  variable_del('file_lock_hook');
+  db_delete('file_usage')
+    ->condition('module', 'file_lock')
+    ->execute();
+}
+
+/**
+ * Remove old variables
+ */
+function file_lock_update_7200() {
+  variable_del('media_lock_mode');
+  variable_del('media_lock_pattern');
+  variable_del('media_lock_regex');
+  variable_del('media_lock_hook');
+}
+
+/**
+ * Unlock all temporary files.
+ */
+function file_lock_update_7201(&$sandbox) {
+  // Initialize the batch progress.
+  if (!isset($sandbox['progress'])) {
+    $sandbox['progress'] = 0;
+    $sandbox['last_fid_processed'] = -1;
+    $sandbox['max'] = db_query('SELECT COUNT(*) FROM {file_managed} WHERE status = 0')->fetchField();
+  }
+
+  // Unlock up to 100 temporary files at a time.
+  $fids = db_select('file_managed', 'f')
+    ->fields('f', array('fid'))
+    ->condition('status', 0)
+    ->condition('fid', $sandbox['last_fid_processed'], '>')
+    ->orderBy('fid', 'ASC')
+    ->range(0, 100)
+    ->execute()
+    ->fetchCol();
+  foreach ($fids as $fid) {
+    $file = file_load($fid);
+    file_lock_remove_lock($file);
+    // Update the progress information for the batch update.
+    $sandbox['progress']++;
+    $sandbox['last_fid_processed'] = $fid;
+  }
+
+  // Indicate the current progress to the batch update system.
+  if ($sandbox['progress'] < $sandbox['max']) {
+    $sandbox['#finished'] = $sandbox['progress'] / $sandbox['max'];
+  }
+}

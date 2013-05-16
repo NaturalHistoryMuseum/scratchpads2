@@ -1,0 +1,5 @@
+name = Scratchpads File Lock
+description = Prevents media files from being deleted when the containter is deleted.
+package = "Scratchpads"
+core = 7.x
+dependencies[] = "file_lock"
