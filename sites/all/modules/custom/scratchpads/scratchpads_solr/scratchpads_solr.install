@@ -133,6 +133,8 @@ function scratchpads_solr_update_7005(&$sandbox){
     $status = apachesolr_index_status($env_id);
     $sandbox['max'] = $status['remaining'];
     $sandbox['progress'] = 0;
+    // Set the "we are in a loop" variable to 0
+    $sandbox['we_are_looping'] = 0;
   }
   // Do the indexing.
   // We simply use the apachesolr_cron function to do the indexing.
@@ -141,9 +143,15 @@ function scratchpads_solr_update_7005(&$sandbox){
   apachesolr_cron($env_id);
   $current_status = apachesolr_index_status($env_id);
   if($current_status['remaining'] == $sandbox['progress']){
-    // We failed to index anything.  Set the progress to 1 and finished to ture.
-    $sandbox['progress'] = $sandbox['finished'] = 1;
+    $sandbox['we_are_looping']++;
+    if($current_status['remaining'] == 0 || $sandbox['we_are_looping'] == 5){
+      // We failed to index anything.  Set the progress to 1 and finished to ture.
+      $sandbox['progress'] = $sandbox['finished'] = 1;
+    }else{
+      drupal_set_message("Potentially in a loop");
+    }
   }else{
+    drupal_set_message($sandbox['progress'] . "/" . $sandbox['max']);
     $sandbox['progress'] = $sandbox['max'] - $current_status['remaining'];
     $sandbox['#finished'] = $sandbox['progress'] / $sandbox['max'];
   }
