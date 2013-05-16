@@ -61,6 +61,16 @@ function _scratchpads_forum_action_links($v = NULL){
 }
 
 /**
+ * Implements hook_meun_alter().
+ */
+function scratchpads_forum_menu_alter(&$items){
+  if(isset($items['forum'])){
+    $items['forum']['menu_name'] = 'main-menu';
+    $items['forum']['weight'] = 1;
+  }
+}
+
+/**
  * Implementation of hook_block_info
  * 
  * Define the scratchpadsforum block which displays
@@ -100,88 +110,146 @@ function scratchpads_forum_block_view($delta = ''){
       $content['content'] = '<ul class="menu action-links">' . implode('', $links) . '</ul>';
       break;
     case 'scratchpadsforum_tree':
-      $content['subject'] = t('Forum tree');
+      $content['subject'] = t('Forums');
       $content['content'] = array(
         '#theme' => 'item_list',
         '#items' => scratchpads_forum_tree(),
         '#title' => t(''),
         '#type' => 'ul'
       );
-      
       break;
   }
   return $content;
 }
 
 /**
- * 
+ * Helper function.
+ * Reorders the tree, adds the data, and adds a count.
+ */
+function _scratchpads_forum_tree_add_data($branch, $forum_tree, $forum_count_array){
+  $output = array();
+  foreach($branch as $key => $twig){
+    if(is_array($twig)){
+      $twig = _scratchpads_forum_tree_add_data($twig, $forum_tree, $forum_count_array);
+      $output = array(
+        $key => $twig
+      ) + $output;
+    }else{
+      $output = array(
+        $key => $twig
+      ) + $output;
+    }
+    if(count($branch) == 1){
+      $f_name = $forum_tree->forums[$key]->name;
+      if((arg(1) == $key) && (arg(0) == 'forum')){
+        $twig2 = array(
+          'data' => $f_name . $forum_count_array[$key]
+        );
+      }else{
+        $twig2 = array(
+          'data' => l($f_name, 'forum/' . $key) . $forum_count_array[$key]
+        );
+      }
+      $output = array(
+        $key => $twig2
+      ) + $output;
+    }
+  }
+  return $output;
+}
+
+/**
+ * Helper function.
+ * Adds links (if any) to the top level of the tree
+ */
+function _scratchpads_forum_level_one($branches, $forum_tree, $forum_count_array){
+  $output = array();
+  foreach($branches as $key => $branch){
+    if(is_array($branch)){
+      $output[$key] = $branch;
+    }else{
+      $f_name = $forum_tree->forums[$key]->name;
+      if((arg(1) == $key) && (arg(0) == 'forum')){
+        $output[$key] = array(
+          'data' => $f_name . $forum_count_array[$key]
+        );
+      }else{
+        $output[$key] = array(
+          'data' => l($f_name, 'forum/' . $key) . $forum_count_array[$key]
+        );
+      }
+    }
+  }
+  return $output;
+}
+
+/**
  * Adds a navigation tree to forums
  */
 function scratchpads_forum_tree(){
   $items = array();
   $forum_tree = forum_forum_load();
+  $forum_count_array = array();
   $forums = $forum_tree->forums;
+  // Query only used for counting
   foreach($forums as $key => $forum){
-    if($forum->parents[0] != 0){
-      $sub_forum = TRUE;
-      $parent_forum = $forum->parents[0];
-    }else{
-      $sub_forum = FALSE;
-    }
-    if($sub_forum){
-      if(arg(1) == $key){
-        $items[$key] = array(
-          'class' => 'subforum',
-          'data' => $forum->name
-        );
-      }else{
-        $items[$key] = array(
-          'class' => 'subforum',
-          'data' => l($forum->name, 'forum/' . $key)
-        );
-      }
-    }else{
-      if(arg(1) == $key){
-        $items[$key] = array(
-          'data' => $forum->name
-        );
-      }else{
-        $items[$key] = array(
-          'data' => l($forum->name, 'forum/' . $key)
-        );
-      }
-    }
     $query = db_select('node', 'n');
-    $query->fields('n');
+    $query->fields('n', array(
+      'nid'
+    ));
     $query->join('forum', 'f', 'n.nid = f.nid');
     $query->condition('f.tid', $key, '=');
     $query->condition('n.type', 'forum', '=');
-    $query->orderBy('title', 'ASC');
-    $result = $query->execute();
-    $c = 0;
-    while($record = $result->fetchAssoc()){
-      if(($record['nid'] == arg(1)) && (arg(0) == 'node')){
-        $items[$key]['children'][] = array(
-          'data' => $record['title']
-        );
-      }else{
-        $items[$key]['children'][] = array(
-          'data' => l($record['title'], 'node/' . $record['nid'])
-        );
-      }
-      $c++;
+    $count_query = $query->countQuery();
+    $result = $count_query->execute();
+    $record = $result->fetchCol();
+    $count = $record[0];
+    if(($forum->is_container == TRUE) || (isset($forum->container))){
+      $forum_count_array[$forum->tid] = '';
+    }else{
+      $forum_count_array[$forum->tid] = $count_string = " (" . $count . ")";
     }
-    $items[$key]['data'] .= " (" . $c++ . ")";
   }
-  return $items;
+  $tree = array();
+  $tids = array_keys($forum_tree->forums);
+  $tids = array_reverse($tids);
+  $tids = drupal_map_assoc($tids);
+  $tree = $tids;
+  foreach($tids as $tid => $value){
+    if($forum_tree->forums[$tid]->parents[0]){
+      if(!is_array($tree[$forum_tree->forums[$tid]->parents[0]])){
+        $tree[$forum_tree->forums[$tid]->parents[0]] = array();
+      }
+      $tree[$forum_tree->forums[$tid]->parents[0]]['children'][$tid] = $tree[$tid];
+      unset($tree[$tid]);
+      $f_id = $forum_tree->forums[$tid]->parents[0];
+      $f_name = $forum_tree->forums[$f_id]->name;
+      if((arg(1) == $f_id) && (arg(0) == 'forum')){
+        $tree[$forum_tree->forums[$tid]->parents[0]]['data'] = $f_name . $forum_count_array[$f_id];
+      }else{
+        $tree[$forum_tree->forums[$tid]->parents[0]]['data'] = l($f_name, 'forum/' . $f_id) . $forum_count_array[$f_id];
+      }
+    }
+  }
+  // reorder array and add data
+  $tree = _scratchpads_forum_tree_add_data($tree, $forum_tree, $forum_count_array);
+  $tree = _scratchpads_forum_level_one($tree, $forum_tree, $forum_count_array);
+ 
+  return $tree;
 }
 
 
-
-
-
-
-
+/*
+function scratchpads_forum_block_list_alter(&$blocks){
+  if(arg(0) == 'forum'){
+    foreach($blocks as $key => $block){
+      if($block->delta == 'scratchpads_pages-1'){
+        unset($blocks[$key]);
+      }
+    }
+  }
+}
+*/
 
 
 
