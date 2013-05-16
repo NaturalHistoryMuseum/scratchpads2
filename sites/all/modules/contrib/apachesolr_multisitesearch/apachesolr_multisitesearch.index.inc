@@ -65,7 +65,7 @@ function apachesolr_multisitesearch_retrieve_metadata() {
   try {
     // Get the $solr object
     $solr = apachesolr_get_solr();
-    $params['qt'] = 'standard';
+    $params['defType'] = 'lucene';
     $params['fl'] = '*';
     $response = $solr->search('entity_type:multisite.meta', $params);
     foreach ($response->response->docs as $doc) {
@@ -136,7 +136,7 @@ function apachesolr_multisitesearch_get_site_hashes() {
   try {
     // Get the $solr object
     $solr = apachesolr_get_solr();
-    $params['qt'] = 'standard';
+    $params['defType'] = 'lucene';
     $params['fl'] = '*';
     $params['facet'] = 'true';
     $params['facet.field'][] = 'hash';
