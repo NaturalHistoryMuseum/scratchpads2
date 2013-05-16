@@ -173,10 +173,16 @@ function scratchpads_solr_facetapi_default_facet_settings(){
 
 /**
  * Implements hook_ctools_plugin_api().
- * 
- * Magic happens just because this function exists (fucked up, I know).
  */
-function scratchpads_solr_ctools_plugin_api(){}
+function scratchpads_solr_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == 'facetapi'){return array(
+      'version' => 1
+    );}
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
 
 /**
  * Implementation of hook_context_default_contexts().
