@@ -133,7 +133,8 @@ function scratchpads_solr_update_7005(&$sandbox){
     $status = apachesolr_index_status($env_id);
     $sandbox['max'] = $status['remaining'];
     $sandbox['progress'] = 0;
-    // Set the "we are in a loop" variable to 0
+    // Set the "we are in a loop" variable to 0.  This ensures that we don't
+    // keep trying to index content that we can not index.
     $sandbox['we_are_looping'] = 0;
   }
   // Do the indexing.
