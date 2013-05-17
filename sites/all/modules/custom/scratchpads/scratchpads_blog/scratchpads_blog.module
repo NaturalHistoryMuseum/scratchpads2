@@ -248,8 +248,7 @@ function scratchpads_blog_remake($account){
       '#weight' => 5
     );
   }else{
-    // maybe better to put a set_message here
-    drupal_set_title(t("There are no blog entires for this selection"));
+    drupal_set_message(t("No blog entries have been created that match your criteria."));
   }
   if($sub_title != ''){
     array_unshift($build, array(
@@ -579,11 +578,11 @@ function scratchpads_blog_date(){
       $output2 .= '- ';
       $path2 = $path . '-' . $month;
       if($date == ($year . '-' . $month)){
-        $path = "blog/" . $uid;
+        $remove_path = "blog/" . $uid;
         if($tid > 0){
-          $path .= "/term/" . $tid;
+          $remove_path .= "/term/" . $tid;
         }
-        $output2 .= l('(-) ', $path, array(
+        $output2 .= l('(-) ', $remove_path, array(
           'attributes' => array(
             'title' => 'View blogs for all dates'
           )
