@@ -1,17 +1,27 @@
 <?php
 
+/*********************************************************************************************
+ *
+* CONTEXTS
+*
+********************************************************************************************/
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function scratchpads_blog_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
 /**
  * Implements hook_block_info().
  */
 function scratchpads_blog_block_info(){
   $blocks['blog_filters'] = array(
     'info' => t('Scratchpads blog filters'),
-    'cache' => DRUPAL_CACHE_PER_PAGE,
-    'status' => 1,
-    'pages' => "blog\nblog/*",
-    'region' => 'sidebar',
-    'weight' => 20,
-    'visibility' => BLOCK_VISIBILITY_LISTED
+    'cache' => DRUPAL_CACHE_PER_PAGE
   );
   return $blocks;
 }
@@ -342,6 +352,11 @@ function scratchpads_blog_taxonomy(){
   }else{
     $date_string = '';
   }
+  if(arg(0) != 'blog'){
+    $uid = '';
+    $date = '';
+    $date_string = '';
+  }
   $query = db_select('node', 'n');
   $query->join('taxonomy_index', 't', 'n.nid = t.nid');
   $query->join('taxonomy_term_data', 'd', 'd.tid = t.tid');
@@ -452,6 +467,11 @@ function scratchpads_blog_date(){
   }else{
     $user_condition_operator = '>';
     $uid = 0;
+  }
+  if(arg(0) != 'blog'){
+    $user_condition_operator = '>';
+    $uid = 0;
+    $tid = 0;
   }
   $query = db_select('node', 'n');
   $query->leftjoin('taxonomy_index', 't', 'n.nid = t.nid');
