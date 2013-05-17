@@ -23,12 +23,48 @@ function scratchpads_blog_block_info(){
 }
 
 /**
+ * Implementation of hook_menu_local_tasks_alter
+ * 
+ * We use this to hide the default forum action links
+ * 
+ */
+function scratchpads_blog_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  if($root_path == 'blog' || $root_path == 'blog/%'){
+    _scratchpads_blog_action_links($data['actions']['output']);
+    $data['actions']['output'] = array();
+  }
+}
+
+/**
+ * Get/set the current action links
+ * 
+ */
+function _scratchpads_blog_action_links($v = NULL){
+  static $links = NULL;
+  if($v !== NULL){
+    $links = $v;
+  }
+  return $links;
+}
+
+/**
  * Implements hook_block_view().
  */
 function scratchpads_blog_block_view($delta = ''){
+  global $user;
+  $actions = _scratchpads_blog_action_links();
+  $links = array();
+  foreach($actions as $a){
+    $links[] = theme('menu_local_action', array(
+      'element' => $a
+    ));
+  }
   return array(
     'subject' => t(''),
     'content' => array(
+      'top_links' => array(
+        '#markup' => '<ul class="menu action-links">' . implode('', $links) . '</ul>'
+      ),
       'scratchpads_blog_authors' => array(
         '#theme' => 'item_list',
         '#items' => scratchpads_blog_authors(),
