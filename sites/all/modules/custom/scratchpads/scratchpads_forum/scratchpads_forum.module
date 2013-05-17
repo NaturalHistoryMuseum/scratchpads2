@@ -61,7 +61,7 @@ function _scratchpads_forum_action_links($v = NULL){
 }
 
 /**
- * Implements hook_meun_alter().
+ * Implements hook_menu_alter().
  */
 function scratchpads_forum_menu_alter(&$items){
   if(isset($items['forum'])){
@@ -238,24 +238,3 @@ function scratchpads_forum_tree(){
   $tree = _scratchpads_forum_level_one($tree, $forum_tree, $forum_count_array);
   return $tree;
 }
-
-
-/*
-function scratchpads_forum_block_list_alter(&$blocks){
-  if(arg(0) == 'forum'){
-    foreach($blocks as $key => $block){
-      if($block->delta == 'scratchpads_pages-1'){
-        unset($blocks[$key]);
-      }
-    }
-  }
-}
-*/
-
-
-
-
-
-
-
-

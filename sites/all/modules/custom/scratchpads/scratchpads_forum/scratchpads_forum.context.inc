@@ -39,8 +39,6 @@ function scratchpads_forum_context_default_contexts(){
     ),
     'menu' => 'forum'
   );
-  
-  
   $context->condition_mode = 0;
   $export[$context->name] = $context;
   // forum_page context
@@ -58,9 +56,6 @@ function scratchpads_forum_context_default_contexts(){
       )
     )
   );
-  
- 
-  
   $context->reactions = array(
     'block' => array(
       'blocks' => array(
@@ -75,24 +70,19 @@ function scratchpads_forum_context_default_contexts(){
           'delta' => 'scratchpadsforum_tree',
           'region' => 'sidebar',
           'weight' => '10'
-        ),
-       
+        )
       )
     )
   );
- 
-  
   $context->condition_mode = 0;
   $export[$context->name] = $context;
-  
- 
   // forum_page context
   $context = new stdClass();
   $context->disabled = FALSE; /* Edit this to true to make a default context disabled initially */
   $context->api_version = 3;
   $context->name = 'forum_tree';
   $context->description = 'Activated on main forum pages';
-  $context->tag = 'forum'; 
+  $context->tag = 'forum';
   $context->conditions = array(
     'node' => array(
       'values' => array(
@@ -102,7 +92,7 @@ function scratchpads_forum_context_default_contexts(){
         'node_form' => '0'
       )
     )
-  ); 
+  );
   $context->reactions = array(
     'block' => array(
       'blocks' => array(
@@ -113,13 +103,9 @@ function scratchpads_forum_context_default_contexts(){
           'weight' => '10'
         )
       )
-    ),
-  ); 
-  
-  
+    )
+  );
   $context->condition_mode = 0;
   $export[$context->name] = $context;
-  
-  
   return $export;
 }
