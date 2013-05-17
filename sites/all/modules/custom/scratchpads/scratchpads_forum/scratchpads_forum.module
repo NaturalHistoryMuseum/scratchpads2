@@ -73,15 +73,11 @@ function scratchpads_forum_menu_alter(&$items){
 /**
  * Implementation of hook_block_info
  * 
- * Define the scratchpadsforum block which displays
+ * Define the scratchpadsforum_tree block which displays
  * forum action links
  * 
  */
 function scratchpads_forum_block_info(){
-  $blocks['scratchpadsforum'] = array(
-    'info' => t('Scratchpads forum links'),
-    'status' => 0
-  );
   $blocks['scratchpadsforum_tree'] = array(
     'info' => t('Scratchpads forum tree'),
     'status' => 0
@@ -98,7 +94,7 @@ function scratchpads_forum_block_view($delta = ''){
     'content' => ''
   );
   switch($delta){
-    case 'scratchpadsforum':
+    case 'scratchpadsforum_tree':
       global $user;
       $actions = _scratchpads_forum_action_links();
       $links = array();
@@ -107,15 +103,16 @@ function scratchpads_forum_block_view($delta = ''){
           'element' => $a
         ));
       }
-      $content['content'] = '<ul class="menu action-links">' . implode('', $links) . '</ul>';
-      break;
-    case 'scratchpadsforum_tree':
       $content['subject'] = t('Forums');
       $content['content'] = array(
-        '#theme' => 'item_list',
-        '#items' => scratchpads_forum_tree(),
-        '#title' => t(''),
-        '#type' => 'ul'
+        'top_links' => array(
+          '#markup' => '<ul class="menu action-links">' . implode('', $links) . '</ul>'
+        ),
+        'tree' => array(
+          '#theme' => 'item_list',
+          '#items' => scratchpads_forum_tree(),
+          '#type' => 'ul'
+        )
       );
       break;
   }
@@ -237,4 +234,17 @@ function scratchpads_forum_tree(){
   // add data if neither parent nor child
   $tree = _scratchpads_forum_level_one($tree, $forum_tree, $forum_count_array);
   return $tree;
+}
+
+/**
+ * Implements hook_block_list_alter().
+ */
+function scratchpads_forum_block_list_alter(&$blocks){
+  if(arg(0) == 'forum'){
+    foreach($blocks as $key => $block){
+      if($block->delta == 'scratchpads_pages-1'){
+        unset($blocks[$key]);
+      }
+    }
+  }
 }

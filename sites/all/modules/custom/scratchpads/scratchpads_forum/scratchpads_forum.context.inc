@@ -59,17 +59,11 @@ function scratchpads_forum_context_default_contexts(){
   $context->reactions = array(
     'block' => array(
       'blocks' => array(
-        'scratchpads_forum-scratchpadsforum' => array(
-          'module' => 'scratchpads_forum',
-          'delta' => 'scratchpadsforum',
-          'region' => 'sidebar',
-          'weight' => '-10'
-        ),
         'scratchpads_forum-scratchpadsforum_tree' => array(
           'module' => 'scratchpads_forum',
           'delta' => 'scratchpadsforum_tree',
           'region' => 'sidebar',
-          'weight' => '10'
+          'weight' => '-10'
         )
       )
     )
