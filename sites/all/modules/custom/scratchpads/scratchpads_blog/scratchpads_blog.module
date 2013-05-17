@@ -1,17 +1,27 @@
 <?php
 
+/*********************************************************************************************
+ *
+* CONTEXTS
+*
+********************************************************************************************/
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function scratchpads_blog_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
 /**
  * Implements hook_block_info().
  */
 function scratchpads_blog_block_info(){
   $blocks['blog_filters'] = array(
     'info' => t('Scratchpads blog filters'),
-    'cache' => DRUPAL_CACHE_PER_PAGE,
-    'status' => 1,
-    'pages' => "blog\nblog/*",
-    'region' => 'sidebar',
-    'weight' => 20,
-    'visibility' => BLOCK_VISIBILITY_LISTED
+    'cache' => DRUPAL_CACHE_PER_PAGE
   );
   return $blocks;
 }
@@ -70,14 +80,16 @@ function scratchpads_blog_menu(){
 /**
  * Implements hook_menu_alter().
  */
-function scratchpads_menu_alter(&$items){
+function scratchpads_blog_menu_alter(&$items){
   $items['blog'] = array(
     'title' => 'Blogs',
     'page callback' => 'scratchpads_blog_page_last',
     'access arguments' => array(
       'access content'
     ),
-    'type' => MENU_SUGGESTED_ITEM
+    'type' => MENU_NORMAL_ITEM,
+    'menu_name' => PRIMARY_MENU_NAME,
+    'weight' => 1
   );
   $items['blog/%user_uid_optional'] = array(
     'title' => 'Blog',
@@ -340,6 +352,11 @@ function scratchpads_blog_taxonomy(){
   }else{
     $date_string = '';
   }
+  if(arg(0) != 'blog'){
+    $uid = '';
+    $date = '';
+    $date_string = '';
+  }
   $query = db_select('node', 'n');
   $query->join('taxonomy_index', 't', 'n.nid = t.nid');
   $query->join('taxonomy_term_data', 'd', 'd.tid = t.tid');
@@ -451,6 +468,11 @@ function scratchpads_blog_date(){
     $user_condition_operator = '>';
     $uid = 0;
   }
+  if(arg(0) != 'blog'){
+    $user_condition_operator = '>';
+    $uid = 0;
+    $tid = 0;
+  }
   $query = db_select('node', 'n');
   $query->leftjoin('taxonomy_index', 't', 'n.nid = t.nid');
   $query->fields('n');
@@ -476,11 +498,10 @@ function scratchpads_blog_date(){
   $new_month_array = array();
   foreach($month_array as $key => $single_year){
     $count_m_array = array_count_values($single_year);
-    arsort($count_m_array);
     $new_month_array[$key] = $count_m_array;
   }
   $count_array = array_count_values($date_array);
-  arsort($count_array);
+  krsort($count_array);
   $items = array();
   $counter = 0;
   foreach($count_array as $year => $year_count){
