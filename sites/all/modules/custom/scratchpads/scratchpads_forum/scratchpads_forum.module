@@ -224,6 +224,7 @@ function scratchpads_forum_tree(){
       unset($tree[$tid]);
       $f_id = $forum_tree->forums[$tid]->parents[0];
       $f_name = $forum_tree->forums[$f_id]->name;
+      // add data for parent items
       if((arg(1) == $f_id) && (arg(0) == 'forum')){
         $tree[$forum_tree->forums[$tid]->parents[0]]['data'] = $f_name . $forum_count_array[$f_id];
       }else{
@@ -231,10 +232,10 @@ function scratchpads_forum_tree(){
       }
     }
   }
-  // reorder array and add data
+  // reorder array and add child data
   $tree = _scratchpads_forum_tree_add_data($tree, $forum_tree, $forum_count_array);
+  // add data if neither parent nor child
   $tree = _scratchpads_forum_level_one($tree, $forum_tree, $forum_count_array);
- 
   return $tree;
 }
 
