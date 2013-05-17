@@ -1,10 +1,5 @@
 <?php
 
-/*********************************************************************************************
- *
-* CONTEXTS
-*
-********************************************************************************************/
 /**
  * Implements hook_ctools_plugin_api().
  */
@@ -19,62 +14,78 @@ function scratchpads_blog_ctools_plugin_api(){
  * Implements hook_block_info().
  */
 function scratchpads_blog_block_info(){
-  $blocks['blog_filters'] = array(
-    'info' => t('Scratchpads blog filters'),
-    'cache' => DRUPAL_CACHE_PER_PAGE
+  return array(
+    'blog_filters' => array(
+      'info' => t('Scratchpads blog filters'),
+      'cache' => DRUPAL_CACHE_PER_PAGE
+    )
   );
-  return $blocks;
 }
 
 /**
  * Implements hook_block_view().
  */
 function scratchpads_blog_block_view($delta = ''){
-  $block = array();
-  switch($delta){
-    case 'blog_filters':
-      $block['subject'] = t('');
-      $block['content'] = array();
-      $block['content']['scratchpads_blog_authors'] = array(
+  return array(
+    'subject' => t(''),
+    'content' => array(
+      'scratchpads_blog_authors' => array(
         '#theme' => 'item_list',
         '#items' => scratchpads_blog_authors(),
         '#title' => t('Filter by Author'),
         '#type' => 'ul'
-      );
-      $block['content']['scratchpads_blog_taxonomy'] = array(
+      ),
+      'scratchpads_blog_taxonomy' => array(
         '#theme' => 'item_list',
         '#items' => scratchpads_blog_taxonomy(),
         '#title' => t('Filter by Taxonomy'),
         '#type' => 'ul'
-      );
-      $block['content']['scratchpads_blog_date'] = array(
+      ),
+      'scratchpads_blog_date' => array(
         '#theme' => 'item_list',
         '#items' => scratchpads_blog_date(),
         '#title' => t('Filter by Date'),
         '#type' => 'ul'
-      );
-      $block['content']['#attached']['css'][] = drupal_get_path('module', 'scratchpads_blog') . '/css/scratchpads_blog.css';
-      break;
+      ),
+      '#attached' => array(
+        'css' => array(
+          drupal_get_path('module', 'scratchpads_blog') . '/css/scratchpads_blog.css'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_block_list_alter().
+ */
+function scratchpads_blog_block_list_alter(&$blocks){
+  if(arg(0) == 'blog'){
+    foreach($blocks as $key => $block){
+      if($block->delta == 'scratchpads_pages-1'){
+        unset($blocks[$key]);
+      }
+    }
   }
-  return $block;
 }
 
 /**
  * Implements hook_menu().
  */
 function scratchpads_blog_menu(){
-  $items['blog/%user_uid_optional/%/%'] = array(
-    'title' => 'Blogs',
-    'page callback' => 'scratchpads_blog_remake',
-    'page arguments' => array(
-      1
-    ),
-    'access arguments' => array(
-      'access content'
-    ),
-    'type' => MENU_CALLBACK
+  return array(
+    'blog/%user_uid_optional/%/%' => array(
+      'title' => 'Blogs',
+      'page callback' => 'scratchpads_blog_remake',
+      'page arguments' => array(
+        1
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK
+    )
   );
-  return $items;
 }
 
 /**
@@ -153,7 +164,7 @@ function scratchpads_blog_remake($account){
     $user_condition_operator = '>';
     $uid = 0;
   }
-  drupal_set_title($title = t("Blog"));
+  drupal_set_title(t("Blog"));
   // set the sub-title
   if(($uid == 0) && ($tid > 0)){
     $sub_title = t("Filtered on Taxonomy term (@term)@date_string", array(
@@ -195,25 +206,18 @@ function scratchpads_blog_remake($account){
   if(!empty($nids)){
     $nodes = node_load_multiple($nids);
     $build += node_view_multiple($nodes);
-    $c = 1;
-    foreach(element_children($build['nodes']) as $key){
-      if($c % 2){
-        $build['nodes'][$key]['#prefix'] = '<div class="search-row-odd">';
-        $build['nodes'][$key]['#suffix'] = '</div>';
-      }
-      $c++;
-    }
+    scratchpads_blog_stripe_nodes($build);
     $build['pager'] = array(
       '#theme' => 'pager',
       '#weight' => 5
     );
   }else{
     // maybe better to put a set_message here
-    drupal_set_title($title = t("There are no blog entires for this selection"));
+    drupal_set_title(t("There are no blog entires for this selection"));
   }
   if($sub_title != ''){
     array_unshift($build, array(
-      '#markup' => "<h2 class='blog_filter_text'>" . $sub_title . "</h2>"
+      '#markup' => "<h2>$sub_title</h2>"
     ));
   }
   return $build;
@@ -569,14 +573,7 @@ function scratchpads_blog_date(){
 function scratchpads_blog_page_last(){
   module_load_include('pages.inc', 'blog');
   $build = blog_page_last();
-  $c = 1;
-  foreach(element_children($build['nodes']) as $key){
-    if($c % 2){
-      $build['nodes'][$key]['#prefix'] = '<div class="search-row-odd">';
-      $build['nodes'][$key]['#suffix'] = '</div>';
-    }
-    $c++;
-  }
+  scratchpads_blog_stripe_nodes($build);
   return $build;
 }
 
@@ -587,23 +584,33 @@ function scratchpads_blog_page_last(){
 function scratchpads_blog_page_user($account){
   module_load_include('pages.inc', 'blog');
   $build = blog_page_user($account);
-  drupal_set_title($title = t("Blog"));
-  $c = 1;
-  foreach(element_children($build['nodes']) as $key){
-    if($c % 2){
-      $build['nodes'][$key]['#prefix'] = '<div class="search-row-odd">';
-      $build['nodes'][$key]['#suffix'] = '</div>';
-    }
-    $c++;
-  }
+  drupal_set_title(t("Blog"));
+  scratchpads_blog_stripe_nodes($build);
   if(count($build['nodes'])){
     $sub_title = t("Filtered on Author (@name)", array(
       '@name' => format_username($account)
     ));
     array_unshift($build, array(
-      '#markup' => "<h2 class='blog_filter_text'>" . $sub_title . "</h2>"
+      '#markup' => "<h2>$sub_title</h2>"
     ));
   }
   return $build;
 }
 
+/**
+ * Simple helper function to stripe the blog nodes.
+ */
+function scratchpads_blog_stripe_nodes(&$build){
+  $odd = TRUE;
+  foreach(element_children($build['nodes']) as $key){
+    if($odd){
+      $build['nodes'][$key]['#prefix'] = '<div class="search-row-odd">';
+      $build['nodes'][$key]['#suffix'] = '</div>';
+      $odd = FALSE;
+    }else{
+      $build['nodes'][$key]['#prefix'] = '<div class="search-row-even">';
+      $build['nodes'][$key]['#suffix'] = '</div>';
+      $odd = TRUE;
+    }
+  }
+}
