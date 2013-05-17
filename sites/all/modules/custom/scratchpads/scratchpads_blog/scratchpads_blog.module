@@ -70,14 +70,16 @@ function scratchpads_blog_menu(){
 /**
  * Implements hook_menu_alter().
  */
-function scratchpads_menu_alter(&$items){
+function scratchpads_blog_menu_alter(&$items){
   $items['blog'] = array(
     'title' => 'Blogs',
     'page callback' => 'scratchpads_blog_page_last',
     'access arguments' => array(
       'access content'
     ),
-    'type' => MENU_SUGGESTED_ITEM
+    'type' => MENU_NORMAL_ITEM,
+    'menu_name' => PRIMARY_MENU_NAME,
+    'weight' => 1
   );
   $items['blog/%user_uid_optional'] = array(
     'title' => 'Blog',
@@ -476,11 +478,10 @@ function scratchpads_blog_date(){
   $new_month_array = array();
   foreach($month_array as $key => $single_year){
     $count_m_array = array_count_values($single_year);
-    arsort($count_m_array);
     $new_month_array[$key] = $count_m_array;
   }
   $count_array = array_count_values($date_array);
-  arsort($count_array);
+  krsort($count_array);
   $items = array();
   $counter = 0;
   foreach($count_array as $year => $year_count){
