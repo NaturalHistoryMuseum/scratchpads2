@@ -3,3 +3,11 @@ description = Support module for apachesolr module testing.
 package = Search Toolkit
 core = 7.x
 hidden = TRUE
+dependencies[] = apachesolr
+
+; Information added by drupal.org packaging script on 2013-04-10
+version = "7.x-1.2"
+core = "7.x"
+project = "apachesolr"
+datestamp = "1365631828"
+

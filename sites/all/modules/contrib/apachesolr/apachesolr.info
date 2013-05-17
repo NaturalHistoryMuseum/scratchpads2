@@ -16,9 +16,17 @@ files[] = plugins/facetapi/adapter.inc
 files[] = plugins/facetapi/query_type_date.inc
 files[] = plugins/facetapi/query_type_term.inc
 files[] = plugins/facetapi/query_type_numeric_range.inc
+files[] = plugins/facetapi/query_type_geo.inc
 files[] = tests/Dummy_Solr.php
 files[] = tests/apachesolr_base.test
 files[] = tests/solr_index_and_search.test
 files[] = tests/solr_base_query.test
 files[] = tests/solr_base_subquery.test
 files[] = tests/solr_document.test
+
+; Information added by drupal.org packaging script on 2013-04-10
+version = "7.x-1.2"
+core = "7.x"
+project = "apachesolr"
+datestamp = "1365631828"
+

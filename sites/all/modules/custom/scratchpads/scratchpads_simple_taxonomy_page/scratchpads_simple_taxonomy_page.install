@@ -13,6 +13,7 @@ function scratchpads_simple_taxonomy_page_install(){
     'page_title' => '%value',
     'settings' => serialize(array(
       'fq' => array(),
+      'apachesolr_search_custom_enable' => 1,
       'apachesolr_search_search_type' => 'tid',
       'apachesolr_search_search_box' => 0,
       'apachesolr_search_per_page' => '10',
@@ -70,4 +71,30 @@ function scratchpads_simple_taxonomy_page_update_7003(){
     }
     variable_set($variable_name, $values);
   }
+}
+
+/**
+ * Set the search page.
+ */
+function scratchpads_simple_taxonomy_page_update_7004(){
+  db_merge('apachesolr_search_page')->fields(array(
+    'page_id' => 'simple_taxonomy',
+    'label' => t('Simple taxonomy page'),
+    'description' => 'Browse the content associated with a taxonomy term.',
+    'search_path' => 'nontaxonomy/term/%',
+    'env_id' => 'solr',
+    'page_title' => '%value',
+    'settings' => serialize(array(
+      'fq' => array(),
+      'apachesolr_search_custom_enable' => 1,
+      'apachesolr_search_search_type' => 'tid',
+      'apachesolr_search_search_box' => 0,
+      'apachesolr_search_per_page' => '10',
+      'apachesolr_search_browse' => 'results',
+      'apachesolr_search_spellcheck' => 0,
+      'apachesolr_search_allow_user_input' => 0
+    ))
+  ))->key(array(
+    'page_id' => 'simple_taxonomy'
+  ))->execute();
 }
