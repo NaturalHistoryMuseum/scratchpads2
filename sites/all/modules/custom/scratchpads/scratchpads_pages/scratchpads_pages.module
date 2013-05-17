@@ -109,7 +109,8 @@ function scratchpads_pages_form_node_type_form_alter(&$form, &$form_state){
 function scratchpads_pages_page_display_locked_types(){
   return array(
     'page',
-    'biblio'
+    'biblio',
+    'blog'
   );
 }
 
@@ -382,6 +383,7 @@ function scratchpads_pages_variable_default($name = NULL){
   if(!isset($defaults)){
     $defaults = array(
       'scratchpads_pages_display' => array(
+        'blog' => 'none',
         'page' => 'page',
         'spm' => 'none',
         'specimen_observation' => 'view',

@@ -89,34 +89,27 @@ function scratchpads_forum_block_info(){
  * Implementation of hook_block_view
  */
 function scratchpads_forum_block_view($delta = ''){
-  $content = array(
-    'subject' => NULL,
-    'content' => ''
-  );
-  switch($delta){
-    case 'scratchpadsforum_tree':
-      global $user;
-      $actions = _scratchpads_forum_action_links();
-      $links = array();
-      foreach($actions as $a){
-        $links[] = theme('menu_local_action', array(
-          'element' => $a
-        ));
-      }
-      $content['subject'] = t('Forums');
-      $content['content'] = array(
-        'top_links' => array(
-          '#markup' => '<ul class="menu action-links">' . implode('', $links) . '</ul>'
-        ),
-        'tree' => array(
-          '#theme' => 'item_list',
-          '#items' => scratchpads_forum_tree(),
-          '#type' => 'ul'
-        )
-      );
-      break;
+  global $user;
+  $actions = _scratchpads_forum_action_links();
+  $links = array();
+  foreach($actions as $a){
+    $links[] = theme('menu_local_action', array(
+      'element' => $a
+    ));
   }
-  return $content;
+  return array(
+    'subject' => t('Forums'),
+    'content' => array(
+      'top_links' => array(
+        '#markup' => '<ul class="menu action-links">' . implode('', $links) . '</ul>'
+      ),
+      'tree' => array(
+        '#theme' => 'item_list',
+        '#items' => scratchpads_forum_tree(),
+        '#type' => 'ul'
+      )
+    )
+  );
 }
 
 /**
