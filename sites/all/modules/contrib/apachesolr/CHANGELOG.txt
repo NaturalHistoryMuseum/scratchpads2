@@ -1,5 +1,209 @@
-Apache Solr integration 7.x-1.x-xxxx, xxxx-xx-xx
+Apache Solr integration 7.x-1.x, xxxx-xx-xx
+-----------------------------
+
+Apache Solr integration 7.x-1.2, 2013-04-10
+-----------------------------
+#1314664 by pwolanin: Fix for Search pages custom pages don't use %value in title.
+#1966044 by pwolanin: Fix for Local params in search box unexpectedly affect Solr query parsing.
+#1950426 by mkalkbrenner: Fixed ERROR: multiple values encountered for non multiValued field.
+#1954302 by mkalkbrenner: Added Isolate some re-usable code from apachesolr_index_entity_to_documents().
+#1953976 by mkalkbrenner | j0rd: Fixed avoid use variable_set() in anything related to indexing content (because of performance).
+#1966488 by Nick_vh, pwolanin: Fix and tests for apachesolr_index_add_tags_to_document not getting the correct body text.
+#1957070 by Nick_vh | Routh: Fixed 'Solr search index will be rebuilt." message appears at the top of every view. (Even when index has been completely rebuilt.).
+#1249616 by agentrickard, pwolanin, Nick_vh | R.Muilwijk: Fixed Apachesolr access makes assumptions that don't apply to modules like Domain Access.
+#1926896 by mkalkbrenner: Fixed missing highlighted snippets.
+#1927032 by mkalkbrenner: Fixed Avoid spaces between words and punctution marks in search result snippets.
+#1915614 by mkalkbrenner, Nick_vh: Added Complete admin settings for non-default environments.
+#1918012 by mkalkbrenner, Nick_vh, pwolanin: Added Solr query needs to be aware of more context such as Search Page ID.
+#1896470 by Nick_vh, mkalkbrenner: Fixed Integrate Apache Solr Common Configurations for Solr 3.x and 4.x (Highlighting broken).
+#1918030 by mkalkbrenner, pwolanin: Allow contrib modules to add custom settings to search pages.
+#1918566 by mkalkbrenner: Added Devel integration: debug index documents on all environments / indexes.
+#1915418 by mkalkbrenner, Nick_vh: Fixed Unable to index a node bundle in a dedicated index / environment.
+#1900036 by remimikalsen, swentel | albert78: Fixed node reference with multiple values.
+#1900006 by Nick_vh | msellers: Fixed Undefined variable causes warning on node type uninstall.
+#1874420 by Nick_vh, j0rd | dirtabulous: Fixed Solr4 Entites Not Being Removed with deleteByQuery.
+#1871866 by Nick_vh, grom358: Fixed Type bias for all entities.
+#1861544 by fizk: Fixed Incorrect use of $field_map() in SolrBaseQuery::getSolrsortUrlQuery.
+#1897556 by Nick_vh: Update documentation for all the functions and make sure it reflects reality.
+#1836262 by ianmthomasuk, Nick_vh: Added Allow indexing of a set number of items using drush.
+#1898166 by Nick_vh: Fixed Make better use of the entity cache.
+#1868870 by cpliakas | Nick_vh: Revert changes to interface cause fatal errors for modules that implement the interface.
+#1803512 by David_Rothstein | amanire: Fixed The OR operator returns no results for facets with colons in the value (such as entity reference facets).
+#1679392 by David_Rothstein, brianV: Move logic from apachesolr_default_node_facet_info() into a separate function so other modules can use it for non-node entities.
+#1814080 by Nick_vh, JordanMagnuson: Fixed Apachesolr sort block fills cache_block() table without stopping.
+#1550964 by Nick_vh, drzraf, rajivk, rjbrown99, j0rd | tinflute: Support Solr 4.0 schema.
+#1840430 by Nick_vh: Fixed add alter callbacks from facetapi to the mappings array.
+#1827320 by drumm: Fixed Upgrading from 6.x-3.x does not need apachesolr_update_7000-15.
+#1828040 by david.gil, Nick_vh: Fixed Cannot access empty property in query_type_numeric_range().inc on line 77.
+#1828014 by DeFr, Nick_vh: Fixed Mass re-indexation can miss (a lot of) content.
+#1823590 by Nick_vh, Josh Waihi: Added Tag Apachesolr index table select queries to allow other modules to alter them.
+#1825840 by firebird: Fixed Typo in menu description.
+
+Apache Solr integration 7.x-1.1, 2012-10-15
+-----------------------------
+#1780200 by pwolanin: document basic auth in README.
+#1226274 by pwolanin: Fixes for schema.xml version numbering and organization.
+
+Apache Solr integration 7.x-1.0, 2012-10-13
+-----------------------------
+#761990 by pwolanin, jhedstrom, Nick_vh, jpmckinney | morningtime: Fixed 400 Bad Status if URL length limit exceeded.
+#1811364 by Nick_vh: Fixed Add newly created content type to the indexed bundles for all environments.
+#1811456 by rupl: Fixed Improve documentation of addFilter in apachesolr.api.php.
+#1773506 by drzraf: Fixed drush solr-search notice when file entity are part of the result.
+#1688150 by HalfChem, cam8001, jhedstrom, Nick_vh: Fixed Search query string gets double encoded when core Search block form is submitted.
+#1794602 by pwolanin, Nick_vh | ppmr: Fixed Undefined index: path in ApacheSolrDocument->__get() (line 304 of ...\apachesolr\Apache_Solr_Document.
+#1773506 by drzraf: Fixed drush solr-search notice when file entity are part of the result.
+#1764334 by cpliakas: Fixed Negative percentage of documents sent to the server for indexing.
+#1806300 by Nick_vh: Separate out the creation of the document from the index process.
+#1807552 by Nick_vh, wimvds: Fixed Site and url wrong when indexing multilingual content (using i18n module).
+#1759190 by mkalkbrenner: Fixed obsolete form code?.
+#1802288 by Nick_vh: Fixed Improve testing of node deletion.
+
+Apache Solr integration 7.x-1.0-rc5, 2012-10-01
+-----------------------------
+#1698050 by duellj: fix for apachesolr_clean_text() should strip extra spaces.
+#1764450 by cpliakas: Improve the docblocks in apachesolr.index.inc.
+#1800324 by pwolanin: Clean up and align node access tests.
+#1799330 by pwolanin: fix for Stats table missing t() calls.
+#1787370 by pwolanin: Don't complain about schema version if it doesn't match expected naming pattern.
+#1790590 by pwolanin: Fix DrupalSolrOnlineWebTestCase  so it works with any multicore setup.
+#1799032 by pwolanin: Remove uneeded object reference in indexing function.
+#1793610 by zengenuity: Fix for regession - spelling suggestions missing.
+
+Apache Solr integration 7.x-1.0-rc4, 2012-09-21
+-----------------------------
+#1790894 by pwolanin: fix for Cloning an environment doesn't clone the bundles to be indexed.
+#1778050 by Nick_vh, pwolanin: fix for stale cache when CTools is already enabled.
+#1778266 by Nick_vh, mkalkbrenner: Refactoring of DrupalSolrOnlineWebTestCase to be used by Others.
+#1778266 by mkalkbrenner: Refactoring of DrupalSolrOnlineWebTestCase to be used by Others.
+#1789526 by pwolanin: Clarify lack of upgrade path from 6.x-1.x.
+#1765938 by cpliakas: Added Move the variable_get() for 'apachesolr_environments()" after the cache_set() so that URLs can be modified dynamically.
+#1782436 by cspitzlay: Fixed Error and obsolete hint in code comment.
+#1732900 by cpliakas: Added Change the wording of the generic 'Apache Solr server unavailable" error message.
+#1781040 by mkalkbrenner: Fixed Switch 'Enable spell check" does not work - spell check is allways on.
+#1786450 by Nick_vh: Fixed apachesolr.interface.inc is not always loaded.
+#1760592 by cpliakas, pwolanin: fix for core_search page does not use the current default search environment.
+#1759004 by mkalkbrenner, pwolanin: fix for apachesolr_search_custom_page_search_form_submit() kills all $_GET parameters.
+#1778150 by cpliakas, pwolanin: fix for SQL error in apachesolr_environment_load_subrecords().
+#1743138 by mundanity: Fixed Invalid argument when running Drush.
+#1751640 by cpliakas: Added drush commands to see the ID of the last item indexes as well as the next item queued for indexing.
+#1708150 by ianmthomasuk, Nick_vh, pwolanin: Added additional typing to function definitions.
+#1759110 by Nick_vh: Fixed process response fails if variable was set but never removed.
+#1741066 by Nick_vh: Added geo query type to make contrib's modules life easier.
+#1730840 by pwolanin: Normalize boolean and other values for parameters like hl.
+#1729836 by pwolanin: fix for "Results per page" option for a search page is broken.
+#1719302 by Nick_vh, msti: Fixed Running an empty facet query so the facet blocks can be displayed.
+#1722966 by greggles: Fixed make apachesolr_index_batch_index_finished() message more translateable.
+#1717628 by Nick_vh, pwolanin: Added 'Save and Edit" functionality for configuration pages - Follow ups.
+
+Apache Solr integration 7.x-1.0-rc3, 2012-08-10
 ------------------------------
+#1682004 by Nick_vh: Add template hints for search results based on search page.
+#1722012 by mkalkbrenner, Nick_vh: fix for Missing argument 4 for apachesolr_multilingual_apachesolr_index_documents_alter().
+#1717490 by pwolanin: fix for Search result template suggestions relies on non-required fields.
+#1708212 by ianmthomasuk, Nick_vh: Fixed Duplicate field error when indexing single value fields.
+#1702788 by mkalkbrenner: Fixed content and teaser are empty if node->language is not default.
+#1708166 by ianmthomasuk: Fixed Thow exception if asked for invalid solr environment.
+#1717628 by Nick_vh | cpliakas: Added 'Save and Edit" functionality for configuration pages.
+#1718172 by Nick_vh, pwolanin: Fixed Move search result alter hook earlier, and make sure needed data is set.
+#1702526 by Nick_vh: Fixed apachesolr_search_page_load() is quirky.
+#1717958 by pwolanin: Fix for text_und fields should be exposed for searching in the admin section.
+#1708538 by Nick_vh: Fixed Move the start param above the query alter.
+#1700472 by pwolanin: Make 'apachesolr_search_process_response_callback' a search environment variable.
+#1439564 by recidive, neochief, Nick_vh, dawehner, jhedstrom: Added Index bundles Export/Import.
+#1652746 by martins.bertins | chrisssi: Fixed Notice: Undefined offset: 3 in _menu_translate().
+#1670198 by alanmackenzie | ruedu: Fixed Unable to export/import settings using features module.
+#1681946 by Josh Waihi: Fixed apachesolr_index_nodeapi_mass_delete() doesn't work.
+#1650096 by Nick_vh | cappadona: Fixed addParam() creates duplicate filters when dealing with fq.
+#1677050 by cpliakas: Fix for Cancel link when creating a new environment.
+#1673086 by pwolanin: Add drush commands to get, set, del environment variables.
+#1682004 by cpliakas: Added template hints for search results based on search page.
+#1672738 by Nick_vh: Added Allow a dynamic apachesolr_process_results() function.
+#1473722 by levialliance: Added Bundle specific overrides.
+#1408844 by Nick_vh, jrbeeman: Added As a site builder I want to override the environment settings in settings.php.
+#1652746 by chrisssi: Fixed Notice: Undefined offset: 3 in _menu_translate() (Zeile 775 von /var/www/includes/menu.inc).
+#1402748 by Nick_vh, killua99: Fixed Check in apachesolr_do_query() if the static of the query with that name already exists, and if so return it.
+
+Apache Solr integration 7.x-1.0-rc2, 2012-06-21
+------------------------------
+Renamed schema.xml and solrconfig.xml to rc2
+
+Apache Solr integration 7.x-1.0-rc1, 2012-06-21
+------------------------------
+#1642140 by Nick_vh: Fixed Make the search query also escape the slash and move away from menu_tail() to just 1 argument.
+#1518108 by grendzy: Added Devel interface for inspecting solr documents.
+#1402748 by Nick_vh: Fixed Check in apachesolr_do_query() if the static of the query with that name already exists, and if so return it.
+#1631702 by Nick_vh | khaled.zaidan: Fixed Report at admin/reports/apachesolr doesn't always display data from the current default solr server.
+#1647668 by paulmckibben: Fixed Error messages when indexing - Notice: Undefined property: stdClass::$nid in DatabaseStatementBase->fetchAllAssoc().
+#1475014 by ceng, Nick_vh: Fixed Drush command solr-delete-index ignores type arguments.
+#1588256 by InternetDevels.Com, Nick_vh | RaulMuroc: Fixed Warning: Invalid argument supplied for foreach() in apachesolr_entity_update() (line 1766 of /apachesolr/apachesolr.module).
+#1612530 by Nick_vh, willmoy: Added Results say '0 comments' when comment.module is disabled.
+#1522174 by pwolanin: Fixed hook_node_type_delete() is wrong.
+#1576710 by skwashd: Added Indexing with drush cron generates a lot of invalid cron notifications.
+#1543754 by iamEAP: Fixed Schema inconsistency introduced by apachesolr_update_7013.
+#1481564 by milesw: Added Allow other modules to react when there are no results.
+#1470794 by pwolanin: Added Show size of index on disk in index report.
+#1586320 by cpliakas, pwolanin: Added support for the ExternalFileField field type.
+#1613328 by cpliakas: Fixed The service_class() is not passed to apachesolr_server_status() when checking each server's status on the settings page.
+#1621142 by pwolanin: Fixed Broken logic in indexing of extra data.
+#1627484 by gnucifer: Fixed 'allowed operator" not transfered from field definitions.
+#1627604 by Nick_vh: Fixed Add query type for taxonomy_term_reference().
+#1609184 by pwolanin: Minor code cleanup in MLT response handling .
+#1611338 by remimikalsen: Added Allowing several bundles to share the same field name within a given entity type after field_mapping_alter().
+#1568126 by fearlsgroove, pwolanin: Fixed Apachesolr causes all simpletests to fail.
+#1609030 by pwolanin: Fix for Missing search page still executes search.
+#1572722 by eporama, cpliakas, wonder95: Added integration with the Entity References module.
+#1567614 by pwolanin: fix for Uninstall is not complete.
+#1559880 by pwolanin: fix for 'retain filters' checkbox does not work.
+#1558626 by pwolanin: fix for broken OR facet when value has spaces (committed in 16ef187).
+#1538244 by by julianmancera: Fix for Solr base query adds an extra slash in getPath() when there is no 'q' param.
+#1532214 by setvik, pwolanin: Fox for mergePolicy syntax has changed and throws error in Apache Solr 3.6, update config versions.
+#1536936 by pwolanin: Fix for Use json.nl=map for Luke and other json data.
+#1536628 by Nick_vh: Added exclude hook that allows to skip content without removing it from the table.
+#1536600 by Nick_vh: Fixed Performance optimizations when doing hundreds of deletes.
+#1515822 by pwolanin, Nick_vh: Added Support notion of parent entity for derived documents.
+#1519900 by pwolanin, Nick_vh, Georgique: Fixed Error in apachesolr_index_get_entities_to_index() function.
+
+Apache Solr integration 7.x-1.0-beta19, 2012-04-05
+------------------------------
+#1515580 by Nick_vh | yannou: Fixed Deleting node is impossible, stdClass problem.
+
+Apache Solr integration 7.x-1.0-beta18, 2012-04-04
+------------------------------
+#1514314 by Nick_vh, Georgique: Fixed Error in apachesolr_entity_update() Follow-up.
+#1514314 by Nick_vh, Georgique: Fixed Error in apachesolr_entity_update().
+
+Apache Solr integration 7.x-1.0-beta17, 2012-04-03
+------------------------------
+#1509790 by Nick_vh: Fixed Status is not checked when a reindex is initiated.
+#1476228 by ygerasimov: Fixed Items to index determined not correct.
+#1477732 by ygerasimov: Fixed apachesolr_index_entities() sets index position that leads to cycle.
+#1508434 by lazysoundsystem, Nick_vh: Fixed whitespace problem.
+#1481326 by Nick_vh | milesw: Fixed Queries run twice after submitting search forms on a custom search page.
+#1502088 by Nick_vh | sanpi: Fixed Missing Search dependency for Apache Solr framework.
+#1498490 by Nick_vh, milesw: Fixed Menu paths for custom search pages are broken when exported as features.
+#1475010 by Nick_vh: Fixed Date filtering to minute returns faulty results.
+#1469484 by Nick_vh, Josh Waihi: Fixed Limit select queries when checking index node table to prevent memory overload.
+#1442358 by johnennew, Nick_vh: Fixed Nodes not queued to be removed from index when unpublished.
+#1456368 by Nick_vh, pwolanin: Fixed Entities not removed when excluded, unnecessary re-indexing.
+#1470042 by klaasvw: Fixed Existing node table error on drupal update.
+#1458696 by Nick_vh | m1r1k: Fixed Apache Solr bug with re-index.
+#1418834 by levialliance | drewmacphee: Beta15+ problems with i18n and entity_translation().
+#1404284 by pwolanin: Fix for possible undefined function apachesolr_default_environment() during update.
+#1441066 by pwolanin: Fix for incorrect hook_schema() definition for {apachesolr_index_entities}.
+#1411066 by Nick_vh | heacu: Fixed Unchecking 'Custom filter" has no effect if custom filter has been entered on Edit Search Page.
+#1424578 by Nick_vh | cpliakas: Fixed Errors thrown on admin/reports/apachesolr when the server is unavailable.
+#1439492 by recidive: Fixed Features importing of search page not working.
+#1446694 by edb: Fixed env_id() length is only 32 characters on apachesolr_search_page() table.
+#1437842 by duellj: Added Facetapi block titles on empty search page should use theme_facetapi_title().
+#1442358 by johnennew, Nick_vh: Fixed Nodes not queued to be removed from index when unpublished.
+#1440394 by grendzy: fix for Field bias setting has no effect.
+#1399584 by halcyonCorsair | Nick_vh: Added As a developer I want to change environment variables with drush.
+#1423130 by pwolanin | rickmanelius: Fixed apachesolr_user_update() Issues.
+#1403810 by Nick_vh | SangersDrupalDude: Fixed some warning in admin area.
+#1419290 by Nick_vh, paulmckibben: Fixed When $conditions is empty, search_data() results in 'The Apache Solr search engine is not available" (but results are returned).
+#1429230 by Nick_vh: Fixed Default values for for mapping per-field is not added correctly.
+#1427288 by Nick_vh: Fixed Change the MergePolicy for all the solrconfigs to use LogByteMergePolicy.
 
 Apache Solr integration 7.x-1.0-beta16, 2012-02-02
 ------------------------------
