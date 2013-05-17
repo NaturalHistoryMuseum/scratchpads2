@@ -1090,3 +1090,14 @@ function scratchpads_tweaks_update_7050(){
 function scratchpads_tweaks_update_7051(){
   variable_set('image_allow_insecure_derivatives', TRUE);
 }
+
+/**
+ * Enable the scratchpads_blog module if blog is enabled.
+ */
+function scratchpads_tweaks_update_7052(){
+  if(module_exists('blog')){
+    module_enable(array(
+      'scratchpads_blog'
+    ));
+  }
+}
