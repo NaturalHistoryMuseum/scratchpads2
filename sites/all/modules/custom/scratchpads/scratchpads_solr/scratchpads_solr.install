@@ -124,7 +124,7 @@ function scratchpads_solr_update_7005(&$sandbox){
   module_load_include('inc', 'apachesolr', 'apachesolr.index');
   // Get the enviornment.
   $env_id = apachesolr_default_environment();
-  if(!isset($sandbox['progress'])){
+  if(!isset($sandbox['max'])){
     // Clear the index.
     apachesolr_index_delete_index($env_id);
     // Rebuild the index.
