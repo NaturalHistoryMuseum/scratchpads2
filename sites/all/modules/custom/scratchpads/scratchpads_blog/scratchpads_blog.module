@@ -139,7 +139,7 @@ function scratchpads_blog_menu_alter(&$items){
     'weight' => 1
   );
   $items['blog/%user_uid_optional'] = array(
-    'title' => 'Blog',
+    'title' => 'Blogs',
     'page callback' => 'scratchpads_blog_page_user',
     'page arguments' => array(
       1
@@ -200,7 +200,7 @@ function scratchpads_blog_remake($account){
     $user_condition_operator = '>';
     $uid = 0;
   }
-  drupal_set_title(t("Blog"));
+  drupal_set_title(t('Blogs'));
   // set the sub-title
   if(($uid == 0) && ($tid > 0)){
     $sub_title = t("Filtered on Taxonomy term (@term)@date_string", array(
@@ -619,7 +619,7 @@ function scratchpads_blog_page_last(){
 function scratchpads_blog_page_user($account){
   module_load_include('pages.inc', 'blog');
   $build = blog_page_user($account);
-  drupal_set_title(t("Blog"));
+  drupal_set_title(t('Blogs'));
   scratchpads_blog_stripe_nodes($build);
   if(count($build['nodes'])){
     $sub_title = t("Filtered on Author (@name)", array(
