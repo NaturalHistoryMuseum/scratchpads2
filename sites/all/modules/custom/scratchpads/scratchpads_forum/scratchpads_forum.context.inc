@@ -36,8 +36,7 @@ function scratchpads_forum_context_default_contexts(){
           'weight' => '-10'
         )
       )
-    ),
-    'menu' => 'forum'
+    )
   );
   $context->condition_mode = 0;
   $export[$context->name] = $context;
