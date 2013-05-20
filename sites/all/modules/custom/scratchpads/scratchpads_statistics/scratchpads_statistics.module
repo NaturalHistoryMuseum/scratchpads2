@@ -204,6 +204,10 @@ function scratchpads_statistics_facet_form($form, $form_state, $type){
                 '!url' => $row->url,
                 '%site_title' => $row->title
               ));
+              break;
+            default:
+              $items[] = $row->{$type};
+              break;
           }
         }
       }
