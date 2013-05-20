@@ -45,7 +45,15 @@ function scratchpads_pages_menu(){
   return $items;
 }
 
-
+/**
+ * Implements hook_meun_alter().
+ */
+function scratchpads_pages_menu_alter(&$items){
+  if(isset($items['forum'])){
+    $items['forum']['menu_name'] = 'main-menu';
+    $items['forum']['weight'] = 1;
+  }
+}
 
 /**
  * Implements hook_taxonomy_term_insert()
@@ -110,7 +118,8 @@ function scratchpads_pages_page_display_locked_types(){
   return array(
     'page',
     'biblio',
-    'blog'
+    'blog',
+    'forum'
   );
 }
 
