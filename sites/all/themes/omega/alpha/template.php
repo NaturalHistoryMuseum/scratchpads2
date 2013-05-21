@@ -147,7 +147,7 @@ function alpha_page_alter(&$vars) {
     $vars['content']['system_main'] = drupal_set_page_content();
   }
   
-  if ($theme->settings['debug']['access'] && ($theme->settings['debug']['grid'] || $theme->settings['debug']['block'])) {
+  if (($theme->settings['debug']['access'] || $GLOBALS['user']->uid == 1) && ($theme->settings['debug']['grid'] || $theme->settings['debug']['block'])) {
     drupal_add_css(drupal_get_path('theme', 'alpha') . '/css/alpha-debug.css', array('group' => CSS_THEME, 'weight' => -5));   
     drupal_add_js(drupal_get_path('theme', 'alpha') . '/js/alpha-debug.js', array('group' => JS_THEME, 'weight' => -5));
     

@@ -1,0 +1,22 @@
+diff --git a/sites/all/modules/contrib/apachesolr_term/apachesolr_term.module b/sites/all/modules/contrib/apachesolr_term/apachesolr_term.module
+index 83eb29f..3a43bab 100644
+--- a/sites/all/modules/contrib/apachesolr_term/apachesolr_term.module
++++ b/sites/all/modules/contrib/apachesolr_term/apachesolr_term.module
+@@ -75,11 +75,12 @@ function apachesolr_term_solr_reindex() {
+     $select->addExpression(REQUEST_TIME, 'changed');
+ 
+     $select->condition('v.machine_name', apachesolr_get_index_bundles($env_id, 'taxonomy_term'), 'IN');
+-
+-    $insert = db_insert($indexer_table)
+-      ->fields(array('entity_id', 'bundle', 'status', 'entity_type', 'changed'))
+-      ->from($select)
+-      ->execute();
++    if(apachesolr_get_index_bundles($env_id, 'taxonomy_term')){
++      $insert = db_insert($indexer_table)
++        ->fields(array('entity_id', 'bundle', 'status', 'entity_type', 'changed'))
++        ->from($select)
++        ->execute();
++    }
+   }
+   catch (Exception $e) {
+     $transaction->rollback();

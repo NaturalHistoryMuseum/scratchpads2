@@ -194,6 +194,26 @@ function scratchpads_statistics_facet_form($form, $form_state, $type){
         )
       );
     default:
+      $items = array();
+      if(!empty($_GET[$type]) && is_array($_GET[$type])){
+        $results = db_select('scratchpads_statistics_' . $type, 's')->fields('s')->condition('id', $_GET[$type])->execute()->fetchAll();
+        foreach($results as $row){
+          switch($type){
+            case 'site':
+              $items[] = t('<a href="!url" target="_blank">%site_title</a>', array(
+                '!url' => $row->url,
+                '%site_title' => $row->title
+              ));
+              break;
+            default:
+              $items[] = $row->{$type};
+              break;
+          }
+        }
+      }
+      $query_without = $_GET;
+      unset($query_without[$type]);
+      unset($query_without['q']);
       return array(
         'scratchpads_stats_facet_type' => array(
           '#type' => 'hidden',
@@ -207,7 +227,17 @@ function scratchpads_statistics_facet_form($form, $form_state, $type){
           ),
           '#default_value' => ''
         ),
-        'submit' => array(
+        'already_selected' => array(
+          '#prefix' => count($items) ? '<h5>Applied filters</h5>' : '',
+          '#suffix' => count($items) ? l(t('Remove @type filters', array(
+            '@type' => $type
+          )), 'stats', array(
+            'query' => $query_without
+          )) : '',
+          '#theme' => 'item_list',
+          '#items' => $items
+        ),
+        submit => array(
           '#prefix' => '<div style="display:none">',
           '#suffix' => '</div>',
           '#value' => t('Filter'),
@@ -266,7 +296,7 @@ function scratchpads_statistics_cron(){
 function scratchpads_statistics_menu(){
   return array(
     'stats' => array(
-      'title' => 'Scratchpad statistics',
+      'title' => 'Scratchpads 2.0 statistics',
       'description' => 'Display statistics related to the content created on this site.',
       'page callback' => 'scratchpads_statistics_stats_page',
       'access arguments' => array(

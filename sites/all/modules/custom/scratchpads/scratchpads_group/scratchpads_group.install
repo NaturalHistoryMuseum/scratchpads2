@@ -4,7 +4,7 @@
  * Implementation of hook_install().
  */
 function scratchpads_group_install(){
-  scratchpads_group_update_7003();
+  scratchpads_group_update_7004();
 }
 
 /**
@@ -64,7 +64,7 @@ function scratchpads_group_update_7002(){
  * Update the /group search page so that it shows no results when the page is
  * first loaded.
  */
-function scratchpads_group_update_7003(){
+function scratchpads_group_update_7004(){
   db_merge('apachesolr_search_page')->key(array(
     'page_id' => 'group_search'
   ))->fields(array(
@@ -78,6 +78,7 @@ function scratchpads_group_update_7003(){
       'fq' => array(
         'entity_type:node'
       ),
+      'apachesolr_search_custom_enable' => 1,
       'apachesolr_search_search_type' => 'custom',
       'apachesolr_search_search_box' => 0,
       'apachesolr_search_per_page' => '50',

@@ -20,6 +20,7 @@ class DrupalSolrFilterSubQueryTests extends DrupalUnitTestCase {
     require_once dirname(dirname(realpath(__FILE__))) . '/apachesolr.interface.inc';
     require_once dirname(dirname(realpath(__FILE__))) . '/Solr_Base_Query.php';
     require_once dirname(dirname(realpath(__FILE__))) . '/Drupal_Apache_Solr_Service.php';
+    require_once dirname(dirname(realpath(__FILE__))) . '/tests/Dummy_Solr.php';
   }
 
   /**
@@ -28,7 +29,10 @@ class DrupalSolrFilterSubQueryTests extends DrupalUnitTestCase {
    * @see apachesolr_drupal_query().
    * @return SolrBaseQuery
    */
-  private function _apachesolr_drupal_query($name, $params = array(), $solrsort = '', $base_path = '', $solr = 'DrupalApacheSolrService') {
+  private function _apachesolr_drupal_query($name, $params = array(), $solrsort = '', $base_path = '', $solr = NULL) {
+    if (empty($solr)) {
+      $solr = new DummySolr(NULL);
+    }
     return new SolrBaseQuery($name, $solr, $params, $solrsort, $base_path);
   }
 

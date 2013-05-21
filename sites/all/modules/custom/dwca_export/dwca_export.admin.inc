@@ -10,7 +10,7 @@ function dwca_export_deliver_archive(){
       'Last-Modified' => gmdate(DATE_RFC1123, filemtime('public://dwca.zip'))
     ));
   }else{
-    drupal_set_message('The Darwincore Arhive for this site has not yet been created');
+    drupal_set_message('The Darwincore Archive for this site has not yet been created');
     drupal_goto('/');
   }
 }
