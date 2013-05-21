@@ -9,3 +9,12 @@
   margin-left: 10px;
   margin-right: 10px;
 }
+
+/* Grid panels inside blocks need their margins negated. */
+.container-12 .block .omega-grid,
+.container-16 .block .omega-grid,
+.container-24 .block .omega-grid {
+  position: relative;
+  margin-left: -10px;
+  margin-right: -10px;
+}

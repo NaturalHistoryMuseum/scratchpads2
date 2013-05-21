@@ -81,11 +81,13 @@ body {
   line-height: 1;
 }
 
+b,
 strong {
   font-weight: bold;
 }
 
-em {
+em,
+i {
   font-style: italic;
 }
 
