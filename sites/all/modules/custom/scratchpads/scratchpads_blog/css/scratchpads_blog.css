@@ -1,0 +1,9 @@
+.blog_date_row_month {
+  margin-left: 0.5em;
+}
+.search-row-even, .search-row-odd{
+  padding:0 8px 8px !important;
+}
+.search-row-even .links, .search-row-odd .links{
+  font-size:95%;
+}

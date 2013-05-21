@@ -1,0 +1,76 @@
+diff --git a/file_lock.install b/file_lock.install
+index c56e488..5f4dcee 100644
+--- a/file_lock.install
++++ b/file_lock.install
+@@ -25,3 +25,37 @@ function file_lock_update_7200() {
+   variable_del('media_lock_regex');
+   variable_del('media_lock_hook');
+ }
++
++/**
++ * Unlock all temporary files.
++ */
++function file_lock_update_7201(&$sandbox) {
++  // Initialize the batch progress.
++  if (!isset($sandbox['progress'])) {
++    $sandbox['progress'] = 0;
++    $sandbox['last_fid_processed'] = -1;
++    $sandbox['max'] = db_query('SELECT COUNT(*) FROM {file_managed} WHERE status = 0')->fetchField();
++  }
++
++  // Unlock up to 100 temporary files at a time.
++  $fids = db_select('file_managed', 'f')
++    ->fields('f', array('fid'))
++    ->condition('status', 0)
++    ->condition('fid', $sandbox['last_fid_processed'], '>')
++    ->orderBy('fid', 'ASC')
++    ->range(0, 100)
++    ->execute()
++    ->fetchCol();
++  foreach ($fids as $fid) {
++    $file = file_load($fid);
++    file_lock_remove_lock($file);
++    // Update the progress information for the batch update.
++    $sandbox['progress']++;
++    $sandbox['last_fid_processed'] = $fid;
++  }
++
++  // Indicate the current progress to the batch update system.
++  if ($sandbox['progress'] < $sandbox['max']) {
++    $sandbox['#finished'] = $sandbox['progress'] / $sandbox['max'];
++  }
++}
+diff --git a/file_lock.module b/file_lock.module
+index 72178be..84fa737 100644
+--- a/file_lock.module
++++ b/file_lock.module
+@@ -87,6 +87,11 @@ function file_lock_file_operations_info() {
+  *   the mode to check the file for
+  */
+ function file_lock_act_on($file, $lock_mode = NULL) {
++  // Do not lock temporary files.
++  if (empty($file->status)) {
++    return;
++  }
++
+   if ($lock_mode == NULL) {
+     $lock_mode = variable_get('file_lock_mode', 'none');
+   }
+@@ -123,10 +128,13 @@ function file_lock_act_on($file, $lock_mode = NULL) {
+  */
+ function file_lock_lock_files($files) {
+   foreach ($files as $fid => $f) {
+-    $file = new stdClass();
+-    $file->fid = $fid;
+-
+-    file_lock_add_lock($file);
++    // Do not lock temporary files.
++    if (($file = file_load($fid)) && !empty($file->status)) {
++      file_lock_add_lock($file);
++    }
++    else {
++      unset($files[$fid]);
++    }
+   }
+   drupal_set_message(t('Locked @count files.', array('@count' => count($files))));
+ }
