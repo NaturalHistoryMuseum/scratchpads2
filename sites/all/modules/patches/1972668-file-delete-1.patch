@@ -1,0 +1,21 @@
+diff --git a/modules/callbacks.inc b/modules/callbacks.inc
+index 304f53f..ea395d3 100644
+--- a/modules/callbacks.inc
++++ b/modules/callbacks.inc
+@@ -804,10 +804,14 @@ function entity_metadata_user_save($account) {
+ 
+ /**
+  * Callback to delete a file.
+- * Watch out to not accidentilly implement hook_file_delete().
++ *
++ * Watch out to not accidentally implement hook_file_delete().
+  */
+ function entity_metadata_delete_file($fid) {
+-  file_delete(file_load($fid), TRUE);
++  if (!$file = file_load($fid)) {
++    return;
++  }
++  file_delete($file, TRUE);
+ }
+ 
+ /**

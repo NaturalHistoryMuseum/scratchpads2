@@ -57,6 +57,10 @@ class ApacheSolrFacetapiNumericRange extends FacetapiQueryType implements Faceta
    */
   public function build() {
     $build = array();
+    if (!isset($this->single_key)) {
+      return $build;
+    }
+
     // Per key we save our statistics result
     $cache = cache_get('stats_' . $this->single_key, 'cache_apachesolr');
     $stats_minmax = array();

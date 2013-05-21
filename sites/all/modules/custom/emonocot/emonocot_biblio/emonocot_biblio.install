@@ -85,17 +85,12 @@ function emonocot_biblio_install(){
   $update = db_update('apachesolr_search_page')->fields(array(
     'settings' => $dbresults
   ))->condition('page_id', 'biblio_search', '=')->execute();
-   $weight = db_select('system', 's')
-              ->fields('s', array('weight'))
-              ->condition('name', 'feeds', '=')
-              ->execute()
-              ->fetchField();
-
-  db_update('system')
-    ->fields(array('weight' => $weight +1))
-    ->condition('name', 'emonocot_bilbio', '=')
-    ->execute();
-  
+  $weight = db_select('system', 's')->fields('s', array(
+    'weight'
+  ))->condition('name', 'feeds', '=')->execute()->fetchField();
+  db_update('system')->fields(array(
+    'weight' => $weight + 1
+  ))->condition('name', 'emonocot_bilbio', '=')->execute();
 }
 
 /**
@@ -127,14 +122,29 @@ function emonocot_biblio_update_7004(){
 }
 
 function emonocot_biblio_update_7005(){
-  $weight = db_select('system', 's')
-              ->fields('s', array('weight'))
-              ->condition('name', 'feeds', '=')
-              ->execute()
-              ->fetchField();
+  $weight = db_select('system', 's')->fields('s', array(
+    'weight'
+  ))->condition('name', 'feeds', '=')->execute()->fetchField();
+  db_update('system')->fields(array(
+    'weight' => $weight + 1
+  ))->condition('name', 'emonocot_bilbio', '=')->execute();
+}
 
-  db_update('system')
-    ->fields(array('weight' => $weight +1))
-    ->condition('name', 'emonocot_bilbio', '=')
-    ->execute();
+/**
+ * Hide the emonocot protologues from the biblio pages.  As this module is 
+ * dependent on the scratchpads_biblio_search module, the update that tweaks
+ * the search page definition should run first.
+ */
+function emonocot_biblio_update_7003(){
+  //Hide Botanical Protologues from default search
+  $sql = "SELECT settings FROM apachesolr_search_page WHERE page_id = 'biblio_search';";
+  $dbresults = unserialize(db_query($sql)->fetch()->settings);
+  $dbresults['fq'][] = '-tus_biblio_type:1000';
+  $dbresults = serialize($dbresults);
+  $update = db_update('apachesolr_search_page')->fields(array(
+    'settings' => $dbresults
+  ))->condition('page_id', 'biblio_search', '=')->execute();
+  $weight = db_select('system', 's')->fields('s', array(
+    'weight'
+  ))->condition('name', 'feeds', '=')->execute()->fetchField();
 }
