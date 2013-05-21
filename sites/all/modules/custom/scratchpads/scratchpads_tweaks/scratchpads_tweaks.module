@@ -450,13 +450,9 @@ function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
       $info['name'] = 'Views';
       $info['description'] = 'Allows you to create custom reports or views of the data held on your Scratchpad';
       break;
-    case 'gravatar':
-        $info['tool'] = TRUE;
-       
-       
-        break;
     case 'rules':
       $info['dependencies'][] = 'trigger';
+    case 'gravatar':
     case 'rules_admin':
     case 'simplenews':
     case 'googleanalytics':

@@ -698,25 +698,16 @@ function node_scratchpads_default_permissions(){
   return $permissions;
 }
 
-
 /**
  * Gravatar module
  *
  * Implements hook_scratchpads_default_permissions().
  */
 function gravatar_scratchpads_default_permissions(){
-  
   return array(
-    'maintainer' => array(
-      'administer gravatar',
-      'use gravatar',
-      'disable own gravatar'
-    ),
     'authenticated user' => array(
       'use gravatar',
       'disable own gravatar'
     )
   );
 }
-
-

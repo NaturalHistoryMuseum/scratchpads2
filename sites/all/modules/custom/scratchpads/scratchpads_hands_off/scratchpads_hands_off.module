@@ -119,7 +119,6 @@ function scratchpads_hands_off_menu_alter(&$items){
     'admin/config/development/logging',
     'admin/config/development/modal_forms',
     'admin/config/development/strongarm',
-    'admin/config/people/gravatar',
     'admin/dashboard/configure',
     'admin/structure/block/list/scratchpads_admin',
     'admin/structure/file-types/manage/%/display/media_link',
