@@ -10,7 +10,7 @@
  http://wiki.apache.org/solr/SchemaXml
 -->
 
-<schema name="drupal-3.0-beta14-solr3" version="1.3">
+<schema name="drupal-3.0-0-solr1.4" version="1.2">
     <!-- attribute "name" is the name of this schema and is only used for display purposes.
          Applications should change this to reflect the nature of the search collection.
          version="1.2" is Solr's version number for the schema syntax and semantics.  It should
@@ -18,7 +18,6 @@
          1.0: multiValued attribute did not exist, all fields are multiValued by nature
          1.1: multiValued attribute introduced, false by default
          1.2: omitTermFreqAndPositions attribute introduced, true by default except for text fields.
-         1.3: removed optional field compress feature
        -->
   <types>
     <!-- field type definitions. The "name" attribute is
@@ -70,10 +69,10 @@
       but with a lexicographic ordering the same as the numeric ordering,
       so that range queries work correctly.
     -->
-    <fieldType name="sint" class="solr.TrieIntField" sortMissingLast="true" omitNorms="true"/>
-    <fieldType name="slong" class="solr.TrieFloatField" sortMissingLast="true" omitNorms="true"/>
-    <fieldType name="sfloat" class="solr.TrieLongField" sortMissingLast="true" omitNorms="true"/>
-    <fieldType name="sdouble" class="solr.TrieDoubleField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="sint" class="solr.SortableIntField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="slong" class="solr.SortableLongField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="sfloat" class="solr.SortableFloatField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="sdouble" class="solr.SortableDoubleField" sortMissingLast="true" omitNorms="true"/>
 
     <!--
      Numeric field types that index each value at various levels of precision
@@ -311,18 +310,6 @@
      -->
     <fieldtype name="ignored" stored="false" indexed="false" class="solr.StrField" />
 
-    <!-- Begin added types to use features in Solr 3.4+ -->
-    <fieldType name="point" class="solr.PointType" dimension="2" subFieldType="tdouble"/>
-
-    <!-- A specialized field for geospatial search. If indexed, this fieldType must not be multivalued. -->
-    <fieldType name="location" class="solr.LatLonType" subFieldType="tdouble"/>
-
-   <!--
-    A Geohash is a compact representation of a latitude longitude pair in a single field.
-    See http://wiki.apache.org/solr/SpatialSearch
-   -->
-    <fieldtype name="geohash" class="solr.GeoHashField"/>
-    <!-- End added Solr 3.4+ types -->
  </types>
 
 
@@ -412,9 +399,6 @@
    <!-- List of floats can be saved in a regular float field -->
    <dynamicField name="fs_*"  type="float"   indexed="true"  stored="true" multiValued="false"/>
    <dynamicField name="fm_*"  type="float"   indexed="true"  stored="true" multiValued="true"/>
-   <!-- List of doubles can be saved in a regular double field -->
-   <dynamicField name="ps_*"  type="double"   indexed="true"  stored="true" multiValued="false"/>
-   <dynamicField name="pm_*"  type="double"   indexed="true"  stored="true" multiValued="true"/>
    <!-- List of booleans can be saved in a regular boolean field -->
    <dynamicField name="bm_*"  type="boolean" indexed="true"  stored="true" multiValued="true"/>
    <dynamicField name="bs_*"  type="boolean" indexed="true"  stored="true" multiValued="false"/>
@@ -473,15 +457,15 @@
    <dynamicField name="zs_*" type="string"   indexed="false"  stored="true" multiValued="false"/>
    <dynamicField name="zm_*" type="string"   indexed="false"  stored="true" multiValued="true"/>
 
-   <!-- Begin added fields to use features in Solr 3.4+
-        http://wiki.apache.org/solr/SpatialSearch#geodist_-_The_distance_function -->
-   <dynamicField name="points_*" type="point" indexed="true"  stored="true" multiValued="false"/>
-   <dynamicField name="pointm_*" type="point" indexed="true"  stored="true" multiValued="true"/>
-   <dynamicField name="locs_*" type="location" indexed="true"  stored="true" multiValued="false"/>
-   <dynamicField name="locm_*" type="location" indexed="true"  stored="true" multiValued="true"/>
-   <dynamicField name="geos_*" type="geohash" indexed="true"  stored="true" multiValued="false"/>
-   <dynamicField name="geom_*" type="geohash" indexed="true"  stored="true" multiValued="true"/>
-   <!-- End added fields for Solr 3.4+ -->
+   <!-- Begin added fields to support modules that use features in Solr 3.4
+   but are actually using solr 1.4 -->
+   <dynamicField name="points_*" type="string" indexed="true"  stored="true" multiValued="false"/>
+   <dynamicField name="pointm_*" type="string" indexed="true"  stored="true" multiValued="true"/>
+   <dynamicField name="locs_*" type="string" indexed="true"  stored="true" multiValued="false"/>
+   <dynamicField name="locm_*" type="string" indexed="true"  stored="true" multiValued="true"/>
+   <dynamicField name="geos_*" type="string" indexed="true"  stored="true" multiValued="false"/>
+   <dynamicField name="geom_*" type="string" indexed="true"  stored="true" multiValued="true"/>
+   <!-- End added fields for the support of modules that should use solr 3.4 -->
 
    <!-- Sortable version of the dynamic string field -->
    <dynamicField name="sort_*" type="sortString" indexed="true" stored="false"/>

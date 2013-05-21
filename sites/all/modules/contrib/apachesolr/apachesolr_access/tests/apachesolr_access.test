@@ -5,6 +5,13 @@
  *   apachesolr_access.
  */
 class DrupalApacheSolrNodeAccess extends DrupalWebTestCase {
+
+  /**
+   * Gets Information about the DrupalApacheSolrNodeAccess test
+   *
+   * @return array
+   *   Information such as name, description and group it belongs to
+   */
   public static function getInfo() {
     return array(
       'name' => 'Node Access',
@@ -13,10 +20,13 @@ class DrupalApacheSolrNodeAccess extends DrupalWebTestCase {
     );
   }
 
+  /**
+   * Defines what is required to start the DrupalApacheSolrNodeAccess test.
+   */
   function setUp() {
     parent::setUp('node_access_test', 'apachesolr', 'apachesolr_search', 'apachesolr_access');
 
-     // Create a basic user, which is subject to moderation.
+    // Create a basic user, which is subject to moderation.
     $permissions = array(
       'access content',
       'create page content',
@@ -36,6 +46,9 @@ class DrupalApacheSolrNodeAccess extends DrupalWebTestCase {
     $this->admin_user = $this->drupalCreateUser($permissions);
   }
 
+  /**
+   * Tests indexing and check if it adds the correct grants for those specific users
+   */
   function testIndexing() {
     $basic_user = $this->basic_user;
     // Login as basic user to perform initial content creation.
@@ -88,19 +101,15 @@ class DrupalApacheSolrNodeAccess extends DrupalWebTestCase {
     $field = 'access_node_' . apachesolr_site_hash() . '_nodeaccess_author';
     $this->assertEqual($document->{$field}[0], $basic_user->uid, 'Solr Document being indexed is restricted by the proper author');
 
-    // Test addition of filters to query.
-    $subquery = apachesolr_access_build_subquery($basic_user);
-
     $expected_criterion = array(
       'access__all' => 0,
       'access_node_' . apachesolr_site_hash() . '_all' => 0,
-      // The node access_test module writes this as of core 7.3.
+      // The node_access_test module writes this as of core 7.3.
       'access_node_' . apachesolr_site_hash() . '_node_access_test_author' => $basic_user->uid,
-      // @todo - we need to check grants provided by node_access_test module.
- //     'access_node_' . apachesolr_site_hash() . '_nodeaccess_rid' => array(2, $assigned_role),
- //     'access_node_' . apachesolr_site_hash() . '_nodeaccess_uid' => $basic_user->uid,
     );
 
+    // Test addition of filters to query.
+    $subquery = apachesolr_access_build_subquery($basic_user);
     $fields = $subquery->getFilters();
 
     foreach ($fields as $field) {
@@ -117,11 +126,11 @@ class DrupalApacheSolrNodeAccess extends DrupalWebTestCase {
 
     $this->assertEqual($expected_criterion, $found_criterion, 'All Criteria was accounted for in fields. If not accounted for, Unaccounted Criteria [' . var_export(array_diff($expected_criterion, $found_criterion), 1) . ']');
     // Run a query through the MLT code to be sure access filters are added.
-    $solr = new DummySolr();
+    $solr = new DummySolr($url = NULL, $env_id);
     $settings = apachesolr_search_mlt_block_defaults();
     // Dummy value
     $id = apachesolr_document_id($author_restricted_node->nid);
-    drupal_save_session(FALSE);
+    drupal_save_session(false);
     $GLOBALS['user'] = $basic_user;
     $response = apachesolr_search_mlt_suggestions($settings, $id, $solr);
     $search = $solr->getLastSearch();
@@ -139,10 +148,12 @@ class DrupalApacheSolrNodeAccess extends DrupalWebTestCase {
     $env_id = apachesolr_default_environment();
     apachesolr_set_last_index_position($env_id, 'node', 1, 1);
     $empty = serialize(array());
-    $value = db_query('SELECT value FROM {variable} WHERE name = :name', array(':name' => 'apachesolr_index_last'))->fetchField();
+    $value = db_query('SELECT value FROM {apachesolr_environment_variable} WHERE env_id = :env_id AND name = :name',
+      array(':env_id' => $env_id, ':name' => 'apachesolr_index_last'))->fetchField();
     $this->assertNotEqual($value, $empty, 'value is not empty array');
     $this->drupalPost('admin/reports/status/rebuild', array(), t('Rebuild permissions'));
-    $value = db_query('SELECT value FROM {variable} WHERE name = :name', array(':name' => 'apachesolr_index_last'))->fetchField();
+    $value = db_query('SELECT value FROM {apachesolr_environment_variable} WHERE env_id = :env_id AND name = :name',
+      array(':env_id' => $env_id, ':name' => 'apachesolr_index_last'))->fetchField();
     $this->assertEqual($value, $empty, 'value is empty array');
   }
 }

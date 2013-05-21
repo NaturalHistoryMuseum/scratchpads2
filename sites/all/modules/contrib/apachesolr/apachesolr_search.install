@@ -78,16 +78,23 @@ function apachesolr_search_schema() {
   $schema['apachesolr_search_page'] = array(
     'description' => 'Apache Solr Search search page settings.',
     'export' => array(
+      // Environment machine name.
       'key' => 'page_id',
+      // Description of key.
+      'key name' => 'search page machine name',
+      // Variable name to use in exported code.
       'identifier' => 'searcher',
+      // Use the same hook as the API name below.
       'default hook' => 'apachesolr_search_default_searchers',
       'status' => 'apachesolr_search_page_status',
+      // CTools API implementation.
       'api' => array(
         'owner' => 'apachesolr_search',
         'api' => 'apachesolr_search_defaults',
         'minimum_version' => 3,
         'current_version' => 3,
       ),
+      // Includes all search page specific configurations.
       'export callback' => 'apachesolr_search_page_settings_export',
     ),
     'fields' => array(
@@ -129,7 +136,7 @@ function apachesolr_search_schema() {
       'env_id' => array(
         'description' => 'The machine name of the search environment.',
         'type' => 'varchar',
-        'length' => 32,
+        'length' => 64,
         'not null' => TRUE,
         'default' => '',
       ),
@@ -164,6 +171,10 @@ function apachesolr_search_uninstall() {
   }
   // Remove variables.
   variable_del('apachesolr_search_spellcheck');
+  variable_del('apachesolr_search_mlt_blocks');
+  variable_del('apachesolr_search_default_search_page');
+  // Remove blocks.
+  db_delete('block')->condition('module', 'apachesolr_search')->execute();
 }
 
 /**
@@ -336,5 +347,41 @@ function apachesolr_search_update_7004() {
   if ($status) {
     $message  = t('If you had the apachesolr_taxonomy module enabled please go to the !link and enable the Taxonomy Term page', array('!link' => l('Apache Solr custom pages', 'admin/config/search/apachesolr/search-pages')));
     drupal_set_message($message, 'warning');
+  }
+}
+
+/**
+ * Make the env_id length on the apachesolr_search_page table 64 characters
+ * to match the length of the env_id on all other tables
+ */
+function apachesolr_search_update_7005(&$sandbox) {
+  db_drop_index('apachesolr_search_page', 'env_id');
+  db_change_field('apachesolr_search_page', 'env_id', 'env_id',
+    array(
+        'description' => 'The machine name of the search environment.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      array(
+        'indexes' => array(
+          'env_id' => array('env_id'),
+        )
+      )
+    );
+}
+
+/**
+ * Remove all apachesolr_search env variables for show_facets if it is zero
+ */
+function apachesolr_search_update_7006() {
+  module_load_include('module', 'apachesolr');
+  $environments = apachesolr_load_all_environments();
+  foreach ($environments as $environment) {
+    $show_facets = apachesolr_environment_variable_get($environment['env_id'], 'apachesolr_search_show_facets', 0);
+    if ($show_facets === 0) {
+      apachesolr_environment_variable_del($environment['env_id'], 'apachesolr_search_show_facets');
+    }
   }
 }

@@ -1,3 +1,14 @@
-.block-scratchpads-statistics .form-text{
-  width:100%;
+.block-scratchpads-statistics .form-text {
+  width: 100%;
+}
+
+.block-scratchpads-statistics {
+  border: solid 1px #ccc;
+  margin: 5px;
+  padding: 5px;
+  box-shadow: 1px 1px 3px #888;
+}
+
+.block-scratchpads-statistics h5 {
+  margin-bottom:3px;
 }
