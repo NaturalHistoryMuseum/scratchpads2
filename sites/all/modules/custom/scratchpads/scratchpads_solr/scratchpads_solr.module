@@ -198,7 +198,6 @@ function scratchpads_solr_context_default_contexts(){
   $context->conditions = array(
     'path' => array(
       'values' => array(
-        'biblio*' => 'biblio*',
         'search*' => 'search*',
         'group*' => 'group*'
       )
