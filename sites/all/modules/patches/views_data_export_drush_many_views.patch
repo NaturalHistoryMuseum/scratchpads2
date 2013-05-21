@@ -1,0 +1,19 @@
+diff --git a/sites/all/modules/contrib/views_data_export/views_data_export.drush.inc b/sites/all/modules/contrib/views_data_export/views_data_export.drush.inc
+index 17254dc..16fb83d 100644
+--- a/sites/all/modules/contrib/views_data_export/views_data_export.drush.inc
++++ b/sites/all/modules/contrib/views_data_export/views_data_export.drush.inc
+@@ -106,11 +106,11 @@ function drush_views_data_export($view_name, $display_id, $output_file) {
+   // Because of a bug in the way that Drush 4 computes the name of functions to
+   // call from a Drush command, we may end up getting called twice, so we just
+   // don't do anything on subsequent invocations.
+-  static $already_run = FALSE;
+-  if ($already_run) {
++  static $already_run = array();
++  if (!empty($already_run[$view_name])) {
+     return;
+   }
+-  $already_run = TRUE;
++  $already_run[$view_name] = TRUE;
+ 
+   // Set the display to the one that we computed earlier.
+   $display_id = drush_get_option('views_data_export_display_id', 'default');
