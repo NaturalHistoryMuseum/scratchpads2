@@ -15,6 +15,7 @@ class alpha_theme_container {
   var $sections;
   var $zones;
   var $regions;
+  var $page;
   
   /**
    * @todo

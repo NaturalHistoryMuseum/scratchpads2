@@ -1,4 +1,4 @@
-<div class="panel-display omega-16-threecol-5-6-5" <?php if (!empty($css_id)) { print "id=\"$css_id\""; } ?>>
+<div class="panel-display omega-grid omega-16-threecol-5-6-5" <?php if (!empty($css_id)) { print "id=\"$css_id\""; } ?>>
   <div class="panel-panel grid-16">
     <div class="inside"><?php print $content['top']; ?></div>
   </div>

@@ -1,14 +1,12 @@
 <div<?php print $attributes; ?>>
   <?php print $user_picture; ?>
-  
+  <?php print render($title_prefix); ?>
   <?php if (!$page && $title): ?>
   <div>
-    <?php print render($title_prefix); ?>
     <h2<?php print $title_attributes; ?>><a href="<?php print $node_url ?>" title="<?php print $title ?>"><?php print $title ?></a></h2>
-    <?php print render($title_suffix); ?>
   </div>
   <?php endif; ?>
-  
+  <?php print render($title_suffix); ?>
   <?php if ($display_submitted): ?>
   <div class="submitted"><?php print $date; ?> -- <?php print $name; ?></div>
   <?php endif; ?>  
