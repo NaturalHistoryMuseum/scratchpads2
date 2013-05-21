@@ -21,7 +21,7 @@ function _dwca_export_cron(){
   $files_to_add = array();
   foreach($views as $view){
     // Filename based on the name of the view.
-    $filename = $rel_path . substr($view->name, 12) . FILE_EXTENSION;
+    $filename = substr($view->name, 12) . FILE_EXTENSION;
     // Get the view and render it.
     $filename = 'sites/monkey.nhm.ac.uk/class.txt';
     drush_views_data_export($view->name, 'views_data_export_1', $filename);
