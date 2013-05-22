@@ -113,7 +113,10 @@ function scratchpads_preprocess_user_picture(&$variables){
       $gravatar_img_size = $data->data;
     }else{
       $gravatar_img_size = getimagesize($filepath);
-      cache_set($file_path_md5, $gravatar_img_size, 'cache_image_sizes', time() + 604800);
+      // We only cache for one week if we don't have an image.  This means a
+      // user can add a gravatar image, and it will get picked up after one
+      // week.
+      cache_set($file_path_md5, $gravatar_img_size, 'cache_image_sizes', $gravatar_img_size ? CACHE_PERMANENT : time() + 604800);
     }
     $default = FALSE;
     // If there is no picture, check to see if there is a default picture
