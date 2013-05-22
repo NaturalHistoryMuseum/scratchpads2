@@ -108,7 +108,6 @@ function scratchpads_preprocess_user_picture(&$variables){
     // We check for the image in cache_image_sizes, if it's not there, we get
     // the image from the server and check its size.
     $file_path_md5 = md5($filepath);
-    drupal_set_message($file_path_md5);
     $data = cache_get($file_path_md5, 'cache_image_sizes');
     if($data){
       $gravatar_img_size = $data->data;
