@@ -91,6 +91,26 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
     }
     $view->display['default']->display_options['filters'][$field] = $filter;
   }
+  // We get the referer so that we can add arguments to the view.
+  $referer = drupal_parse_url($_SERVER['HTTP_REFERER']);
+  if(strpos($referer['path'], '://')){
+    $path = parse_url($referer['path']);
+    $path = substr($path['path'], 1);
+  }else{
+    $path = $referer['path'];
+  }
+  $path = explode('/', $path);
+  $argumnets = array();
+  foreach($view->display['default']->display_options['arguments'] as $argument){
+    // FIXME - This only works with taxonomy pages.
+    switch($argument['default_argument_type']){
+      case 'taxonomy_tid':
+        if($argument['default_argument_options']['term_page']){
+          $arguments[] = $path[2];
+        }
+    }
+  }
+  $view->set_arguments($arguments);
   $view->render();
   drupal_add_http_header('Content-Type', 'application/json; charset=utf-8');
   // Prevent null from being returned when there are no results.
