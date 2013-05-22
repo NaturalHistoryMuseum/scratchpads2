@@ -130,6 +130,7 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
     unset($form['comment_notify_settings']);
     unset($form['contact']);
     unset($form['legal']);
+    unset($form['slickgrid']);
     // Set the correct user name, as we may have removed a number from the end
     $row = db_select('users', 'u')->fields('u', array(
       'name'
@@ -308,7 +309,7 @@ function scratchpads_user_register_form_post_submit_clear_error($form, &$form_st
  */
 function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state){
   // Don't do anything if this is a login user
-  if($form_state['values']['create_user_account']){return;}
+  if($form_state['values']['create_user_account'] || !isset($form_state['values']['name'])){return;}
   // Set the name
   $name = '';
   foreach(array(
