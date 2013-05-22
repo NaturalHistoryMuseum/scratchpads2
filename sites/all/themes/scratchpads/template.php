@@ -105,16 +105,25 @@ function scratchpads_preprocess_user_picture(&$variables){
     // or views displays.
     $account = _gravatar_load_account($variables['account']);
     $filepath = _gravatar_get_account_user_picture($account);
-    // we use getimagesize() to test whether the remote image exists
-    $url = getimagesize($filepath);
+    // We check for the image in cache_image_sizes, if it's not there, we get
+    // the image from the server and check its size.
+    $file_path_md5 = md5($filepath);
+    drupal_set_message($file_path_md5);
+    $data = cache_get($file_path_md5, 'cache_image_sizes');
+    if($data){
+      $gravatar_img_size = $data->data;
+    }else{
+      $gravatar_img_size = getimagesize($filepath);
+      cache_set($file_path_md5, $gravatar_img_size, 'cache_image_sizes', time() + 604800);
+    }
     $default = FALSE;
     // If there is no picture, check to see if there is a default picture
-    if((variable_get('user_picture_default', '')) && (!is_array($url))){
+    if(!is_array($gravatar_img_size) && variable_get('user_picture_default', '')){
       $filepath = variable_get('user_picture_default', '');
       $default = TRUE;
     }
     // no picture and no default
-    if((!is_array($url)) && !$default){
+    if((!is_array($gravatar_img_size)) && !$default){
       $variables['user_picture'] = '';
     }else{
       if(!empty($filepath)){
@@ -138,7 +147,7 @@ function scratchpads_preprocess_user_picture(&$variables){
               )
             ));
           }
-        }elseif((arg(0) != 'user')){
+        }elseif(arg(0) != 'user'){
           $variables['user_picture'] = theme('image', array(
             'path' => $filepath,
             'alt' => $alt,
