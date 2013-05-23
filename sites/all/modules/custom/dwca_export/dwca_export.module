@@ -30,6 +30,22 @@ function dwca_export_menu(){
 }
 
 /**
+ * Implementation of hook_views_pre_build()
+ * 
+ * Try to ensure that we're always using th
+ */
+function dwca_export_views_default_views_alter(&$views){
+  foreach($views as $id => $view){
+    foreach(array_keys($view->display) as $display_name){
+      if($display_name == 'views_data_export_1'){
+        $handler = & $views[$id]->display['views_data_export_1']->handler;
+        $handler->display->display_options['use_batch'] = 'batch';
+      }
+    }
+  }
+}
+
+/**
  * Implementation of hook_views_api()
  *
  * drupal will load dwca_export.views_default.inc when this hook is implemented
