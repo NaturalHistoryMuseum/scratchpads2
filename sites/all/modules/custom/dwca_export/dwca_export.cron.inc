@@ -26,16 +26,19 @@ function _dwca_export_cron(){
     $filename = substr($view->name, 12) . DWCA_EXTENSIONS_FILE_EXTENSION;
     if(!isset($files_to_add[$filename])){
       // Get the view and render it.
+      $output_filename = substr(drupal_realpath('public://dwca'), strlen(DRUPAL_ROOT) + 1) . '/' . $filename;
       drush_backend_fork('vde', array(
         $view->name,
         'views_data_export_1',
-        substr(drupal_realpath('public://dwca'), strlen(DRUPAL_ROOT) + 1) . '/' . $filename
+        $output_filename
       ));
+      drush_log(dt("Forking: drush vde {$view->name} views_data_export_1 $output_filename"), 'success');
       $files_to_add[$filename] = $filename;
       variable_set('dwca_export_files_to_add', $files_to_add);
       $return = FALSE;
     }
   }
+  sleep(1);
   return $return;
 }
 
@@ -43,6 +46,7 @@ function _dwca_export_cron(){
  * Create the zip file
  */
 function _dwca_export_cron_create_zip(){
+  sleep(10);
   // First we combine all of the description files
   // the description.txt file is made up from lots of views.  We do special
   // things for the dwca_export_description* views
