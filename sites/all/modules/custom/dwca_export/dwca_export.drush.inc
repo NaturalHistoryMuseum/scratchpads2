@@ -14,8 +14,8 @@ function dwca_export_drush_rebuild(){
   module_load_include('cron.inc', 'dwca_export');
   if(_dwca_export_cron()){
     _dwca_export_cron_create_zip();
-    drupal_set_message(t('The ZIP file has been created'));
+    drush_log(dt('The ZIP file has been created'), 'success');
   }else{
-    drupal_set_message(t('Please re-run this function to build the ZIP file'));
+    drush_log(dt('Please wait ~15 seconds and re-run this function to build the ZIP file'), 'success');
   }
 }
