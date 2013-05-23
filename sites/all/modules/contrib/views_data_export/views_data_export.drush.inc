@@ -106,11 +106,11 @@ function drush_views_data_export($view_name, $display_id, $output_file) {
   // Because of a bug in the way that Drush 4 computes the name of functions to
   // call from a Drush command, we may end up getting called twice, so we just
   // don't do anything on subsequent invocations.
-  static $already_run = array();
-  if (!empty($already_run[$view_name])) {
+  static $already_run = FALSE;
+  if ($already_run) {
     return;
   }
-  $already_run[$view_name] = TRUE;
+  $already_run = TRUE;
 
   // Set the display to the one that we computed earlier.
   $display_id = drush_get_option('views_data_export_display_id', 'default');
