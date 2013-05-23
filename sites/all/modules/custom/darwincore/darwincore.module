@@ -31,6 +31,22 @@ function darwincore_form_location_node_form_alter(&$form, &$form_state, $form_id
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter().
+ * Remove 'darwincore_link_to_ncbi' option for all fields except 'field_genbank_number'
+ */
+function darwincore_form_field_ui_display_overview_form_alter(&$form, &$form_state, $form_id){
+  foreach($form['fields'] as $name => $details){
+    $match = 0;
+    if(is_array($details)){
+      $match = isset($details['format']['type']['#options']['darwincore_link_to_ncbi']);
+    }
+    if(($name != 'field_genbank_number') && ($match)){
+      unset($form['fields'][$name]['format']['type']['#options']['darwincore_link_to_ncbi']);
+    }
+  }
+}
+
+/**
  * Validate function to ensure that the IDs for this specimen are unique.
  */
 function darwincore_specimen_observation_node_form_validate($form, &$form_state){
@@ -83,3 +99,57 @@ function darwincore_location_node_form_validate($form, &$form_state){
     form_set_error('title', t('The title field for a location must be unique.'));
   }
 }
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function darwincore_field_formatter_info(){
+  return array(
+    'darwincore_link_to_ncbi' => array(
+      'label' => t('Link to NCBI'),
+      'description' => t('Creates links to the NCBI website'),
+      'field types' => array(
+        'text'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function darwincore_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  $element = array();
+  switch($display['type']){
+    case 'darwincore_link_to_ncbi':
+      foreach($items as $delta => $item){
+        $element[$delta] = array(
+          '#type' => 'markup',
+          '#markup' => _darwincore_add_ncbi_links($item['value'])
+        );
+      }
+      break;
+  }
+  return $element;
+}
+
+/**
+ *  Helper function.
+ *  Converts a string of comma separated values into a string of comma separated links.
+ */
+function _darwincore_add_ncbi_links($values){
+  $genbank_id_array = explode(',', $values);
+  $link_array = array();
+  foreach($genbank_id_array as $genbank_id){
+    $genbank_id = trim($genbank_id);
+    $link_array[] = l($genbank_id, "http://www.ncbi.nlm.nih.gov/nuccore/" . $genbank_id);
+  }
+  return implode(', ', $link_array);
+}
+
+
+
+
+
+
+

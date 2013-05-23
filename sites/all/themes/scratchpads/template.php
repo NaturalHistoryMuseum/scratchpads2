@@ -217,12 +217,7 @@ function scratchpads_preprocess_node(&$variables){
   }
 }
 
-function scratchpads_preprocess_field(&$variables, $hook){
-  if(isset($variables['element']['#stripe'])){
-    $variables['classes_array'][] = $variables['element']['#stripe'];
-    $variables['classes_array'][] = 'clearfix';
-  }
-}
+
 
 function scratchpads_biblio_tabular($variables){
   module_load_include('inc', 'biblio', '/includes/biblio.contributors');
