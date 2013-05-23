@@ -1,6 +1,4 @@
 <?php
-// File extension for the CSV files in the DwC-A file.
-define('FILE_EXTENSION', ".txt");
 
 /**
  * Implements hook_menu().
@@ -54,8 +52,14 @@ function dwca_export_dwca_export(){
  * Implements hook_cron().
  */
 function dwca_export_cron(){
-  module_load_include('cron.inc', 'dwca_export');
-  _dwca_export_cron();
+  // Only rebuild the archive if we need to, and if the last time we rebuilt it
+  // was more than three days ago.
+  if(variable_get('dwca_export_rebuild', FALSE) && (variable_get('dwca_export_zip_build_time', 0) + 259200) < time()){
+    module_load_include('cron.inc', 'dwca_export');
+    if(_dwca_export_cron()){
+      _dwca_export_cron_create_zip();
+    }
+  }
 }
 
 /**
@@ -102,8 +106,6 @@ function dwca_export_permission(){
   );
 }
 
-
-
 /**
  * Implements hook_field_formatter_info().
  */
@@ -115,10 +117,9 @@ function dwca_export_field_formatter_info(){
       'field types' => array(
         'list_text'
       )
-    ),
+    )
   );
 }
-
 
 /**
  * Implements hook_field_formatter_view().
@@ -131,7 +132,6 @@ function dwca_export_field_formatter_info(){
 function dwca_export_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
   GLOBAL $base_url;
   $markup = '';
-  
   $reason_map = array(
     'synonym' => 'synonym',
     'homotypic (nomenclatural) synonym' => 'homotypicSynonym',
@@ -146,20 +146,21 @@ function dwca_export_field_formatter_view($entity_type, $entity, $field, $instan
     'horticultural' => '',
     'database artifact' => '',
     'orthographic variant (misspelling)' => '',
-    'other' => '',
+    'other' => ''
   );
-  
   switch($display['type']){
     case 'taxon_status':
       $element = array();
-      if (isset($entity->field_usage['und'][0]['value'])){
-      	if ($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
-      		$markup = 'accepted';
-      	} else {
-      		$markup = $reason_map[$entity->field_unacceptability_reason['und'][0]['value']];
-      	}
+      if(isset($entity->field_usage['und'][0]['value'])){
+        if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
+          $markup = 'accepted';
+        }else{
+          $markup = $reason_map[$entity->field_unacceptability_reason['und'][0]['value']];
+        }
       }
-      $element[] = array('#markup' => $markup);
+      $element[] = array(
+        '#markup' => $markup
+      );
       return $element;
       break;
   }
