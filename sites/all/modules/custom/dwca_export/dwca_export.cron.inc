@@ -26,7 +26,7 @@ function _dwca_export_cron(){
     $filename = substr($view->name, 12) . DWCA_EXTENSIONS_FILE_EXTENSION;
     if(!isset($files_to_add[$filename])){
       // Get the view and render it.
-      $output_filename = substr(drupal_realpath('public://dwca'), strlen(DRUPAL_ROOT) + 1) . '/' . $filename;
+      $output_filename = drupal_realpath('public://dwca') . '/' . $filename;
       drush_backend_fork('vde', array(
         $view->name,
         'views_data_export_1',
