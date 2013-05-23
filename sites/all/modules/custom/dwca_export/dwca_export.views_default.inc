@@ -380,7 +380,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['style_options']['newline_replacement'] = '\\r';
   $handler->display->display_options['style_options']['header'] = 0;
   $handler->display->display_options['path'] = 'dwca_export/classification/csv';
-  $handler->display->display_options['use_batch'] = 'use_batch';
+  $handler->display->display_options['use_batch'] = 'batch';
   $views[$view->name] = $view;
   //----------------------------------------------------------------------------
   // REFERENCE
@@ -920,7 +920,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['style_options']['header'] = 0;
   $handler->display->display_options['path'] = 'dwca-export/reference/csv';
   $handler->display->display_options['sitename_title'] = 0;
-  $handler->display->display_options['use_batch'] = 'use_batch';
+  $handler->display->display_options['use_batch'] = 'batch';
   $views[$view->name] = $view;
   //----------------------------------------------------------------------------
   // IMAGE
@@ -1269,7 +1269,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['style_options']['newline_replacement'] = '\\r';
   $handler->display->display_options['style_options']['header'] = 0;
   $handler->display->display_options['path'] = 'dwca-export/image/page';
-  $handler->display->display_options['use_batch'] = 'use_batch';
+  $handler->display->display_options['use_batch'] = 'batch';
   $views[$view->name] = $view;
   //----------------------------------------------------------------------------
   // SPECIMEN
@@ -1878,7 +1878,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['style_options']['newline_replacement'] = '\\r';
   $handler->display->display_options['style_options']['header'] = 0;
   $handler->display->display_options['path'] = 'dwca_export/eol_agents/csv';
-  $handler->display->display_options['use_batch'] = 'use_batch';
+  $handler->display->display_options['use_batch'] = 'batch';
   ;
   $views[$view->name] = $view;
   //----------------------------------------------------------------------------
@@ -2011,7 +2011,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['style_options']['newline_replacement'] = '\\r';
   $handler->display->display_options['style_options']['header'] = 0;
   $handler->display->display_options['path'] = 'dwca-export/distribution/csv';
-  $handler->display->display_options['use_batch'] = 'use_batch';
+  $handler->display->display_options['use_batch'] = 'batch';
   $views[$view->name] = $view;
   //--------------------------------------------------------------------------------
   // Vernacular Names
@@ -2109,7 +2109,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['style_options']['replace_newlines'] = 0;
   $handler->display->display_options['style_options']['header'] = 0;
   $handler->display->display_options['path'] = 'dwca_export/vernacular_names/csv';
-  $handler->display->display_options['use_batch'] = 'use_batch';
+  $handler->display->display_options['use_batch'] = 'batch';
   $views[$view->name] = $view;
   //----------------------------------------------------------------------------
   // DESCRIPTION VIEWS
@@ -2592,8 +2592,8 @@ function _dwca_export_view_description($desc_type){
   $handler->display->display_options['filters']['field_' . $desc_type . '_value']['operator'] = 'longerthan';
   $handler->display->display_options['filters']['field_' . $desc_type . '_value']['value'] = '2';
   /* Display: Page  */
-  /*$handler = $view->new_display('page', 'Page', 'page');
-	$handler->display->display_options['path'] = t('dwca-export/description-' . $desc_type . '/page');*/
+  $handler = $view->new_display('page', 'Page', 'page');
+	$handler->display->display_options['path'] = t('dwca-export/description-' . $desc_type . '/page');
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'some';
@@ -2609,6 +2609,6 @@ function _dwca_export_view_description($desc_type){
   $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['path'] = t('dwca-export/description-' . $desc_type . '/csv');
-  $handler->display->display_options['use_batch'] = 'use_batch';
+  $handler->display->display_options['use_batch'] = 'batch';
   return $view;
 }
