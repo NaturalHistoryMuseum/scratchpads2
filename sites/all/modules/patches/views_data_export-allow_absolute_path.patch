@@ -1,0 +1,13 @@
+diff --git a/sites/all/modules/contrib/views_data_export/views_data_export.drush.inc b/sites/all/modules/contrib/views_data_export/views_data_export.drush.inc
+index 17254dc..378f754 100644
+--- a/sites/all/modules/contrib/views_data_export/views_data_export.drush.inc
++++ b/sites/all/modules/contrib/views_data_export/views_data_export.drush.inc
+@@ -159,7 +159,7 @@ function drush_views_data_export($view_name, $display_id, $output_file) {
+   // of an alter function to interject later and batch it ourselves
+ 
+   $options = array (
+-    'output_file' => realpath(drush_get_context('DRUSH_OLDCWD', getcwd())) . '/' . $output_file,
++    'output_file' => substr($output_file, 0, 1) == '/' ? $output_file : realpath(drush_get_context('DRUSH_OLDCWD', getcwd())) . '/' . $output_file,
+   );
+   if ($view->display_handler->is_batched()) {
+     // This is a batched export, and needs to be handled as such.
