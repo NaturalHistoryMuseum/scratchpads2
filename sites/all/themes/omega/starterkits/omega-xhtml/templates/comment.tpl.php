@@ -15,7 +15,7 @@
 
   <?php print $picture; ?>
 
-  <div>
+  <div class="comment-submitted">
    <?php
       print t('Submitted by !username on !datetime',
       array('!username' => $author, '!datetime' => '<time datetime="' . $datetime . '">' . $created . '</time>'));

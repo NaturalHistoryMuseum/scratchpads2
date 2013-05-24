@@ -239,7 +239,7 @@ function scratchpads_statistics_stats_page(){
     '#theme' => 'simple_google_chart',
     '#type' => 'LineChart',
     '#data' => $data,
-    '#title' => t('Number of users')
+    '#title' => t('Change in Objects against time')
   );
   // Bar chart of entities ----------------------------------------------------
   // The following query will give us a total for each entity/bundle across all
@@ -312,7 +312,6 @@ function scratchpads_statistics_stats_page(){
     '#data' => $data,
     '#title' => t('Distribution of views and edits'),
     '#options' => array(
-      'isStacked' => TRUE,
       'bar' => array(
         'groupWidth' => '80%'
       ),
@@ -385,6 +384,11 @@ function scratchpads_statistics_stats_page(){
       '#theme' => 'simple_google_chart',
       '#type' => 'BarChart',
       '#title' => t('User activity'),
+      '#options' => array(
+        'hAxis' => array(
+          'logScale' => TRUE
+        )
+      ),
       '#data' => array(
         array(
           'Time period',
@@ -436,6 +440,11 @@ function scratchpads_statistics_stats_page(){
       '#theme' => 'simple_google_chart',
       '#type' => 'BarChart',
       '#title' => t('User activity'),
+      '#options' => array(
+        'hAxis' => array(
+          'logScale' => TRUE
+        )
+      ),
       '#data' => array(
         array(
           'Time period',

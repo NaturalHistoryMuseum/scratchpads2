@@ -176,6 +176,11 @@ function scratchpads_setup_licence_form($form, &$form_state){
   $form['licence_type'] = array(
     '#type' => 'select',
     '#title' => t('Licence type'),
+    '#description' => l(t('Read about creative commons licenses.'), 'http://creativecommons.org/licenses/?lang=en', array(
+      'attributes' => array(
+        'target' => '_blank'
+      )
+    )),
     '#default_value' => variable_get('creative_commons_block_licence_type', CC_BY),
     '#options' => creative_commons_get_licence_types()
   );

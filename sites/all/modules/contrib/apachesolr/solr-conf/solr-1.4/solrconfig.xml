@@ -16,7 +16,7 @@
  limitations under the License.
 -->
 
-<config name="drupal-3.0-beta14">
+<config name="drupal-3.0-0-solr1.4">
   <!-- Set this to 'false' if you want solr to continue working after it has
        encountered an severe configuration error.  In a production environment,
        you may want solr to keep working even if one handler is mis-configured.
@@ -73,7 +73,7 @@
 
      Other implementations of MergePolicy must have a no-argument constructor
      -->
-    <!--<mergePolicy>org.apache.lucene.index.LogByteSizeMergePolicy</mergePolicy>-->
+    <mergePolicy class="org.apache.lucene.index.LogByteSizeMergePolicy" />
 
     <!--
      Expert:

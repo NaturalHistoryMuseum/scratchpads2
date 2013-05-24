@@ -35,7 +35,7 @@ function scratchpads_training_block_view($delta = ''){
         ),
         'feedback' => array(
           '#type' => 'link',
-          '#href' => 'http://scratchpads.eu/feedback-form-training-courses',
+          '#href' => 'http://scratchpads.eu/training-course-feedback',
           '#title' => t("Feedback"),
           '#prefix' => '<p>',
           '#suffix' => '</p>',
