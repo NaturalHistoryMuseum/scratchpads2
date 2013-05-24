@@ -9,7 +9,7 @@ class DrupalFieldProfileMigration extends DrupalMigration{
     return array(
       'profile_real_name' => 'field_user_given_names',
       'profile_interest' => 'field_user_taxonomic_interest',
-      'profile_webinterest' => 'field_user_taxonomic_interest',
+      'profile_taxonomic_interest' => 'field_field_user_taxonomic_interest',
       'profile_homepage' => 'field_homepage',
       'profile_url' => 'field_homepage',
       'profile_website' => 'field_homepage',
