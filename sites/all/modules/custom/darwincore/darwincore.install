@@ -201,7 +201,7 @@ function darwincore_update_7011(){
 /**
  * Update the specimen/observation instance of the field_genbank_number field.
  */
-function darwincore_update_7013(){
+function darwincore_update_7012(){
   $field_instance = field_info_instance('node', 'field_genbank_number', 'specimen_observation');
   $field_instance['label'] = 'GenBank number(s)';
   $field_instance['description'] = t('Enter a comma separated list of numbers. For example: FN554775, FR694013');
