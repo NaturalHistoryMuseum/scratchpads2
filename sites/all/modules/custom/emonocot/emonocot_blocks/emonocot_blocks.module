@@ -114,12 +114,12 @@ function emonocot_blocks_block_view_footer(){
   	  'path' => drupal_get_path('module', 'emonocot_blocks') . '/images/LogoOB.png',
   	  'alt' => 'Hortus Botanicus, Universitatis Posnaniensis logo',
   	  'title' => 'Hortus Botanicus, Universitatis Posnaniensis'
-  	)), 'http://scratchpads.eu', $options);
+  	)), 'http://www.ogrod.edu.pl/info_eng.php', $options);
   	$links[] = l(theme('image', array(
   	  'path' => drupal_get_path('module', 'emonocot_blocks') . '/images/UAM.png',
   	  'alt' => 'Hortus Botanicus, Universitatis Posnaniensis logo',
   	  'title' => 'Hortus Botanicus, Universitatis Posnaniensis'
-  	)), 'http://scratchpads.eu', $options);
+  	)), 'http://amu.edu.pl/', $options);
   }
   
   
