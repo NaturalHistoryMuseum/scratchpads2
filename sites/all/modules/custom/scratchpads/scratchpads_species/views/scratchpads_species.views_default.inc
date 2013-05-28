@@ -316,7 +316,8 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['filters']['field_usage_value']['table'] = 'field_data_field_usage';
   $handler->display->display_options['filters']['field_usage_value']['field'] = 'field_usage_value';
   $handler->display->display_options['filters']['field_usage_value']['value'] = array(
-    'invalid' => 'invalid'
+    'invalid' => 'invalid',
+    'not accepted' => 'not accepted'
   );
   $handler->display->display_options['filters']['field_usage_value']['group'] = 2;
   $handler->display->display_options['displays'] = array(
