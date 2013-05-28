@@ -22,7 +22,7 @@
  * @package    PHPExcel_Shared
  * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version    1.7.7, 2012-05-19
+ * @version    1.7.8, 2012-10-12
  */
 
 
@@ -38,6 +38,11 @@ class PHPExcel_Shared_Font
 	/* Methods for resolving autosize value */
 	const AUTOSIZE_METHOD_APPROX	= 'approx';
 	const AUTOSIZE_METHOD_EXACT		= 'exact';
+
+	private static $_autoSizeMethods = array(
+		self::AUTOSIZE_METHOD_APPROX,
+		self::AUTOSIZE_METHOD_EXACT,
+	);
 
 	/** Character set codes used by BIFF5-8 in Font records */
 	const CHARSET_ANSI_LATIN				= 0x00;
@@ -187,10 +192,17 @@ class PHPExcel_Shared_Font
 	 * Set autoSize method
 	 *
 	 * @param string $pValue
+	 * @return	 boolean					Success or failure
 	 */
-	public static function setAutoSizeMethod($pValue = 'approx')
+	public static function setAutoSizeMethod($pValue = self::AUTOSIZE_METHOD_APPROX)
 	{
+		if (!in_array($pValue,self::$_autoSizeMethods)) {
+			return FALSE;
+		}
+
 		self::$autoSizeMethod = $pValue;
+
+		return TRUE;
 	}
 
 	/**

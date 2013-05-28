@@ -22,7 +22,7 @@
  * @package    PHPExcel_Reader
  * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version    1.7.7, 2012-05-19
+ * @version    1.7.8, 2012-10-12
  */
 
 
@@ -870,7 +870,9 @@ class PHPExcel_Reader_Gnumeric implements PHPExcel_Reader_IReader
 			//	Handle Merged Cells in this worksheet
 			if (isset($sheet->MergedRegions)) {
 				foreach($sheet->MergedRegions->Merge as $mergeCells) {
-					$objPHPExcel->getActiveSheet()->mergeCells($mergeCells);
+					if (strpos($mergeCells,':') !== FALSE) {
+						$objPHPExcel->getActiveSheet()->mergeCells($mergeCells);
+					}
 				}
 			}
 
@@ -901,7 +903,8 @@ class PHPExcel_Reader_Gnumeric implements PHPExcel_Reader_IReader
 	}
 
 
-	private static function _parseBorderAttributes($borderAttributes) {
+	private static function _parseBorderAttributes($borderAttributes)
+	{
 		$styleArray = array();
 
 		if (isset($borderAttributes["Color"])) {
