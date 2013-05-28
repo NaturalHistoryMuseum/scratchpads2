@@ -208,4 +208,3 @@ function darwincore_update_7012(){
   $field_instance['display']['default']['type'] = 'darwincore_link_to_ncbi';
   field_update_instance($field_instance);
 }
-
