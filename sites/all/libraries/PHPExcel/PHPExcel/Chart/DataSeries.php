@@ -22,7 +22,7 @@
  * @package		PHPExcel_Chart
  * @copyright	Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license		http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version	1.7.7, 2012-05-19
+ * @version	1.7.8, 2012-10-12
  */
 
 
@@ -146,6 +146,7 @@ class PHPExcel_Chart_DataSeries
 		if ((count($plotLabel) == 0) || (is_null($plotLabel[$keys[0]]))) {
 			$plotLabel[$keys[0]] = new PHPExcel_Chart_DataSeriesValues();
 		}
+
 		$this->_plotLabel = $plotLabel;
 		if ((count($plotCategory) == 0) || (is_null($plotCategory[$keys[0]]))) {
 			$plotCategory[$keys[0]] = new PHPExcel_Chart_DataSeriesValues();
@@ -337,7 +338,16 @@ class PHPExcel_Chart_DataSeries
 
 	public function refresh(PHPExcel_Worksheet $worksheet) {
 	    foreach($this->_plotValues as $plotValues) {
-			$plotValues->refresh($worksheet);
+			if ($plotValues !== NULL)
+				$plotValues->refresh($worksheet, TRUE);
+		}
+		foreach($this->_plotLabel as $plotValues) {
+			if ($plotValues !== NULL)
+				$plotValues->refresh($worksheet, TRUE);
+		}
+		foreach($this->_plotCategory as $plotValues) {
+			if ($plotValues !== NULL)
+				$plotValues->refresh($worksheet, FALSE);
 		}
 	}
 

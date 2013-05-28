@@ -22,7 +22,7 @@
  * @package    PHPExcel_Shared
  * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version    1.7.7, 2012-05-19
+ * @version    1.7.8, 2012-10-12
  */
 
 
@@ -110,13 +110,13 @@ class PHPExcel_Shared_File
 
 		if ( !function_exists('sys_get_temp_dir')) {
 			if ($temp = getenv('TMP') ) {
-				if (file_exists($temp)) { return realpath($temp); }
+				if ((!empty($temp)) && (file_exists($temp))) { return realpath($temp); }
 			}
 			if ($temp = getenv('TEMP') ) {
-				if (file_exists($temp)) { return realpath($temp); }
+				if ((!empty($temp)) && (file_exists($temp))) { return realpath($temp); }
 			}
 			if ($temp = getenv('TMPDIR') ) {
-				if (file_exists($temp)) { return realpath($temp); }
+				if ((!empty($temp)) && (file_exists($temp))) { return realpath($temp); }
 			}
 
 			// trick for creating a file in system's temporary dir

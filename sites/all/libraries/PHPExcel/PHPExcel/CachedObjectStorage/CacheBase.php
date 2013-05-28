@@ -22,7 +22,7 @@
  * @package    PHPExcel_CachedObjectStorage
  * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version    1.7.7, 2012-05-19
+ * @version    1.7.8, 2012-10-12
  */
 
 
@@ -33,7 +33,7 @@
  * @package    PHPExcel_CachedObjectStorage
  * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  */
-class PHPExcel_CachedObjectStorage_CacheBase {
+abstract class PHPExcel_CachedObjectStorage_CacheBase {
 
 	/**
 	 * Parent worksheet
@@ -181,6 +181,7 @@ class PHPExcel_CachedObjectStorage_CacheBase {
 			$highestRow = max($row);
 			$highestColumn = substr(max($col),1);
 		}
+
 		return array( 'row'	   => $highestRow,
 					  'column' => $highestColumn
 					);

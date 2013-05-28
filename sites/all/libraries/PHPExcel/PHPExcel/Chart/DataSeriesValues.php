@@ -22,7 +22,7 @@
  * @package		PHPExcel_Chart
  * @copyright	Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license		http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version		1.7.7, 2012-05-19
+ * @version	1.7.8, 2012-10-12
  */
 
 
@@ -35,6 +35,14 @@
  */
 class PHPExcel_Chart_DataSeriesValues
 {
+
+	const DATASERIES_TYPE_STRING	= 'String';
+	const DATASERIES_TYPE_NUMBER	= 'Number';
+
+	private static $_dataTypeValues = array(
+		self::DATASERIES_TYPE_STRING,
+		self::DATASERIES_TYPE_NUMBER,
+	);
 
 	/**
 	 * Series Data Type
@@ -81,9 +89,9 @@ class PHPExcel_Chart_DataSeriesValues
 	/**
 	 * Create a new PHPExcel_Chart_DataSeriesValues object
 	 */
-	public function __construct($dataType = null, $dataSource = null, $formatCode = null, $pointCount = 0, $dataValues = array(), $marker = null)
+	public function __construct($dataType = self::DATASERIES_TYPE_NUMBER, $dataSource = null, $formatCode = null, $pointCount = 0, $dataValues = array(), $marker = null)
 	{
-		$this->_dataType = $dataType;
+		$this->setDataType($dataType);
 		$this->_dataSource = $dataSource;
 		$this->_formatCode = $formatCode;
 		$this->_pointCount = $pointCount;
@@ -103,10 +111,18 @@ class PHPExcel_Chart_DataSeriesValues
 	/**
 	 * Set Series Data Type
 	 *
-	 * @param	string	$dataType
+	 * @param	string	$dataType	Datatype of this data series
+	 *								Typical values are:
+	 *									PHPExcel_Chart_DataSeriesValues::DATASERIES_TYPE_STRING
+	 *										Normally used for axis point values
+	 *									PHPExcel_Chart_DataSeriesValues::DATASERIES_TYPE_NUMBER
+	 *										Normally used for chart data values
 	 * @return	PHPExcel_Chart_DataSeriesValues
 	 */
-	public function setDataType($dataType = 'Number') {
+	public function setDataType($dataType = self::DATASERIES_TYPE_NUMBER) {
+		if (!in_array($dataType, self::$_dataTypeValues)) {
+    		throw new PHPExcel_Chart_Exception('Invalid datatype for chart data series values');
+		}
 		$this->_dataType = $dataType;
 
 		return $this;
@@ -246,7 +262,7 @@ class PHPExcel_Chart_DataSeriesValues
 	 *					FALSE - don't change the value of _dataSource
 	 * @return	PHPExcel_Chart_DataSeriesValues
 	 */
-	public function setDataValues($dataValues = array(), $refreshDataSource = true) {
+	public function setDataValues($dataValues = array(), $refreshDataSource = TRUE) {
 		$this->_dataValues = PHPExcel_Calculation_Functions::flattenArray($dataValues);
 		$this->_pointCount = count($dataValues);
 
@@ -257,15 +273,49 @@ class PHPExcel_Chart_DataSeriesValues
 		return $this;
 	}
 
-	public function refresh(PHPExcel_Worksheet $worksheet) {
+	private function _stripNulls($var) {
+		return $var !== NULL;
+	}
+
+	public function refresh(PHPExcel_Worksheet $worksheet, $flatten = TRUE) {
         if ($this->_dataSource !== NULL) {
         	$calcEngine = PHPExcel_Calculation::getInstance();
-			$this->_dataValues = PHPExcel_Calculation::_unwrapResult(
+			$newDataValues = PHPExcel_Calculation::_unwrapResult(
 			    $calcEngine->_calculateFormulaValue(
-			        $this->_dataSource
+			        '='.$this->_dataSource,
+			        NULL,
+			        $worksheet->getCell('A1')
 			    )
 			);
+			if ($flatten) {
+				$this->_dataValues = PHPExcel_Calculation_Functions::flattenArray($newDataValues);
+			} else {
+				$cellRange = explode('!',$this->_dataSource);
+				if (count($cellRange) > 1) {
+					list(,$cellRange) = $cellRange;
+				}
+
+				$dimensions = PHPExcel_Cell::rangeDimension(str_replace('$','',$cellRange));
+				if (($dimensions[0] == 1) || ($dimensions[1] == 1)) {
+					$this->_dataValues = PHPExcel_Calculation_Functions::flattenArray($newDataValues);
+				} else {
+					$newArray = array_values(array_shift($newDataValues));
+					foreach($newArray as $i => $newDataSet) {
+						$newArray[$i] = array($newDataSet);
+					}
+
+					foreach($newDataValues as $newDataSet) {
+						$i = 0;
+						foreach($newDataSet as $newDataVal) {
+							array_unshift($newArray[$i++],$newDataVal);
+						}
+					}
+					$this->_dataValues = $newArray;
+				}
+			}
+			$this->_pointCount = count($this->_dataValues);
 		}
+
 	}
 
 }
