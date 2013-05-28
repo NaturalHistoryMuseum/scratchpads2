@@ -23,7 +23,7 @@
  * @package    PHPExcel
  * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version    1.7.7, 2012-05-19
+ * @version    1.7.8, 2012-10-12
  */
 
 
@@ -132,10 +132,7 @@ class PHPExcel_CachedObjectStorageFactory
 	 **/
 	public static function getCacheStorageMethod()
 	{
-		if (self::$_cacheStorageMethod !== NULL) {
-			return self::$_cacheStorageMethod;
-		}
-		return NULL;
+		return self::$_cacheStorageMethod;
 	}	//	function getCacheStorageMethod()
 
 
@@ -146,10 +143,7 @@ class PHPExcel_CachedObjectStorageFactory
 	 **/
 	public static function getCacheStorageClass()
 	{
-		if (self::$_cacheStorageClass !== NULL) {
-			return self::$_cacheStorageClass;
-		}
-		return NULL;
+		return self::$_cacheStorageClass;
 	}	//	function getCacheStorageClass()
 
 

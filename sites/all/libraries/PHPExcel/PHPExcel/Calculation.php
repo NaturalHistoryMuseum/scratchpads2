@@ -22,7 +22,7 @@
  * @package    PHPExcel_Calculation
  * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license	http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version	1.7.7, 2012-05-19
+ * @version	1.7.8, 2012-10-12
  */
 
 
@@ -2663,7 +2663,7 @@ class PHPExcel_Calculation {
 
 		//	Start with initialisation
 		$index = 0;
-		$stack = new PHPExcel_Token_Stack;
+		$stack = new PHPExcel_Calculation_Token_Stack;
 		$output = array();
 		$expectingOperator = false;					//	We use this test in syntax-checking the expression to determine when a
 													//		- is a negation or + is a positive operator rather than an operation
@@ -3007,7 +3007,7 @@ class PHPExcel_Calculation {
 		//	If we're using cell caching, then $pCell may well be flushed back to the cache (which detaches the parent worksheet),
 		//		so we store the parent worksheet so that we can re-attach it when necessary
 		$pCellParent = ($pCell !== NULL) ? $pCell->getParent() : null;
-		$stack = new PHPExcel_Token_Stack;
+		$stack = new PHPExcel_Calculation_Token_Stack;
 
 		//	Loop through each token in turn
 		foreach ($tokens as $tokenData) {
@@ -3809,52 +3809,3 @@ class PHPExcel_Calculation {
 
 }	//	class PHPExcel_Calculation
 
-
-
-
-// for internal use
-class PHPExcel_Token_Stack {
-
-	private $_stack = array();
-	private $_count = 0;
-
-
-	public function count() {
-		return $this->_count;
-	}	//	function count()
-
-
-	public function push($type,$value,$reference=null) {
-		$this->_stack[$this->_count++] = array('type'		=> $type,
-											   'value'		=> $value,
-											   'reference'	=> $reference
-											  );
-		if ($type == 'Function') {
-			$localeFunction = PHPExcel_Calculation::_localeFunc($value);
-			if ($localeFunction != $value) {
-				$this->_stack[($this->_count - 1)]['localeValue'] = $localeFunction;
-			}
-		}
-	}	//	function push()
-
-
-	public function pop() {
-		if ($this->_count > 0) {
-			return $this->_stack[--$this->_count];
-		}
-		return null;
-	}	//	function pop()
-
-
-	public function last($n=1) {
-		if ($this->_count-$n < 0) {
-			return null;
-		}
-		return $this->_stack[$this->_count-$n];
-	}	//	function last()
-
-
-	function __construct() {
-	}
-
-}	//	class PHPExcel_Token_Stack
