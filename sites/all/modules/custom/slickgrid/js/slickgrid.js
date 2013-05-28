@@ -97,7 +97,7 @@ if(!Array.prototype.indexOf) {
           loadingIndicator.children().css('left', (loadingIndicator.width() / 2) - 24);
           // We set the header row as initially visible so that the height of
           // the grid is set correctly.
-          grid.setHeaderRowVisibility(false);
+          grid.resizeCanvas();
         }
         loadingIndicator.fadeIn();
       });
