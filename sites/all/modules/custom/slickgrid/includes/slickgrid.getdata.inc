@@ -76,7 +76,7 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
             foreach($more_info as $key => $name){
               if($key != 'format'){
                 $filter['operator'] = 'or';
-                $filter['value'] = array_keys(taxonomy_get_term_by_name($value));
+                $filter['value'] = array_keys(taxonomy_get_terms_by_name_match($value));
                 $filter['reduce_duplicates'] = 0;
                 $filter['type'] = 'textfield';
                 $filter['limit'] = 100;
@@ -121,4 +121,26 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
     'data' => $view->data
   ));
   ajax_footer();
+}
+
+/**
+ * Similar function to taxonomy_get_term_by_name, but allows for matching!
+ */
+function taxonomy_get_terms_by_name_match($name, $vocabulary = NULL, $match = 'left'){
+  switch($match){
+    case 'both':
+      $name = '%' . db_like(trim($name)) . '%';
+      break;
+    default:
+      $name = db_like(trim($name)) . '%';
+  }
+  $query = db_select('taxonomy_term_data', 't')->fields('t', array(
+    'tid'
+  ))->condition('name', $name, 'LIKE');
+  if(isset($vocabulary)){
+    $vocabulary = taxonomy_vocabulary_machine_name_load($vocabulary);
+    $query->condition('vid', $vocabulary->vid);
+  }
+  $tids = $query->execute()->fetchCol();
+  return taxonomy_term_load_multiple($tids);
 }
