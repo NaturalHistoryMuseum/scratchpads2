@@ -1101,3 +1101,13 @@ function scratchpads_tweaks_update_7052(){
     ));
   }
 }
+
+/**
+ * Ensure the Simplenews categories have been properly initialised.
+ */
+function scratchpads_tweaks_update_7053(){
+  if(module_exists('simplenews')){
+    module_load_include('install', 'simplenews');
+    _simplenews_init_simplenews_category();
+  }
+}

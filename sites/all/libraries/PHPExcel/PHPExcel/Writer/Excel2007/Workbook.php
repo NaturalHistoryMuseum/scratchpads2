@@ -22,7 +22,7 @@
  * @package    PHPExcel_Writer_Excel2007
  * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version    1.7.7, 2012-05-19
+ * @version    1.7.8, 2012-10-12
  */
 
 
@@ -306,7 +306,7 @@ class PHPExcel_Writer_Excel2007_Workbook extends PHPExcel_Writer_Excel2007_Write
 	}
 
 	/**
-	 * Write Defined Name for autoFilter
+	 * Write Defined Name for named range
 	 *
 	 * @param 	PHPExcel_Shared_XMLWriter	$objWriter 		XML Writer
 	 * @param 	PHPExcel_NamedRange			$pNamedRange
@@ -347,14 +347,15 @@ class PHPExcel_Writer_Excel2007_Workbook extends PHPExcel_Writer_Excel2007_Write
 	private function _writeDefinedNameForAutofilter(PHPExcel_Shared_XMLWriter $objWriter = null, PHPExcel_Worksheet $pSheet = null, $pSheetId = 0)
 	{
 		// definedName for autoFilter
-		if ($pSheet->getAutoFilter() != '') {
+		$autoFilterRange = $pSheet->getAutoFilter()->getRange();
+		if (!empty($autoFilterRange)) {
 			$objWriter->startElement('definedName');
 			$objWriter->writeAttribute('name',			'_xlnm._FilterDatabase');
 			$objWriter->writeAttribute('localSheetId',	$pSheetId);
 			$objWriter->writeAttribute('hidden',		'1');
 
 			// Create absolute coordinate and write as raw text
-			$range = PHPExcel_Cell::splitRange($pSheet->getAutoFilter());
+			$range = PHPExcel_Cell::splitRange($autoFilterRange);
 			$range = $range[0];
 			//	Strip any worksheet ref so we can make the cell ref absolute
 			if (strpos($range[0],'!') !== false) {

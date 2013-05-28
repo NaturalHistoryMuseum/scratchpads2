@@ -22,7 +22,7 @@
  * @package		PHPExcel_Chart
  * @copyright	Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license		http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version		1.7.7, 2012-05-19
+ * @version		1.7.8, 2012-10-12
  */
 
 
@@ -203,12 +203,36 @@ class PHPExcel_Chart
 	}
 
 	/**
+	 * Set Title
+	 *
+	 * @param	PHPExcel_Chart_Title $title
+	 * @return	PHPExcel_Chart
+	 */
+	public function setTitle(PHPExcel_Chart_Title $title) {
+		$this->_title = $title;
+
+		return $this;
+	}
+
+	/**
 	 * Get Legend
 	 *
 	 * @return PHPExcel_Chart_Legend
 	 */
 	public function getLegend() {
 		return $this->_legend;
+	}
+
+	/**
+	 * Set Legend
+	 *
+	 * @param	PHPExcel_Chart_Legend $legend
+	 * @return	PHPExcel_Chart
+	 */
+	public function setLegend(PHPExcel_Chart_Legend $legend) {
+		$this->_legend = $legend;
+
+		return $this;
 	}
 
 	/**
@@ -221,12 +245,36 @@ class PHPExcel_Chart
 	}
 
 	/**
+	 * Set X-Axis Label
+	 *
+	 * @param	PHPExcel_Chart_Title $label
+	 * @return	PHPExcel_Chart
+	 */
+	public function setXAxisLabel(PHPExcel_Chart_Title $label) {
+		$this->_xAxisLabel = $label;
+
+		return $this;
+	}
+
+	/**
 	 * Get Y-Axis Label
 	 *
 	 * @return PHPExcel_Chart_Title
 	 */
 	public function getYAxisLabel() {
 		return $this->_yAxisLabel;
+	}
+
+	/**
+	 * Set Y-Axis Label
+	 *
+	 * @param	PHPExcel_Chart_Title $label
+	 * @return	PHPExcel_Chart
+	 */
+	public function setYAxisLabel(PHPExcel_Chart_Title $label) {
+		$this->_yAxisLabel = $label;
+
+		return $this;
 	}
 
 	/**

@@ -22,7 +22,7 @@
  * @package    PHPExcel
  * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version    1.7.7, 2012-05-19
+ * @version    1.7.8, 2012-10-12
  */
 
 
@@ -198,11 +198,22 @@ class PHPExcel
      * @return PHPExcel_Worksheet
      * @throws Exception
      */
-    public function createSheet($iSheetIndex = null)
+    public function createSheet($iSheetIndex = NULL)
     {
         $newSheet = new PHPExcel_Worksheet($this);
         $this->addSheet($newSheet, $iSheetIndex);
         return $newSheet;
+    }
+
+    /**
+     * Chech if a sheet with a specified name already exists
+     *
+     * @param string $pSheetName  Name of the worksheet to check
+     * @return boolean
+     */
+    public function sheetNameExists($pSheetName)
+    {
+		return ($this->getSheetByName($pSheetName) !== NULL);
     }
 
     /**
@@ -213,9 +224,16 @@ class PHPExcel
      * @return PHPExcel_Worksheet
      * @throws Exception
      */
-    public function addSheet(PHPExcel_Worksheet $pSheet = null, $iSheetIndex = null)
+    public function addSheet(PHPExcel_Worksheet $pSheet, $iSheetIndex = NULL)
     {
+		if ($this->sheetNameExists($pSheet->getTitle())) {
+			throw new Exception("Workbook already contains a worksheet named '{$pSheet->getTitle()}'. Rename this worksheet first.");
+		}
+
         if($iSheetIndex === NULL) {
+            if ($this->_activeSheetIndex < 0) {
+            	$this->_activeSheetIndex = 0;
+            }
             $this->_workSheetCollection[] = $pSheet;
         } else {
             // Insert the sheet at the requested index
@@ -420,7 +438,7 @@ class PHPExcel
 	 * @return PHPExcel_Worksheet
 	 */
 	public function addExternalSheet(PHPExcel_Worksheet $pSheet, $iSheetIndex = null) {
-		if ($this->getSheetByName($pSheet->getTitle()) !== NULL) {
+		if ($this->sheetNameExists($pSheet->getTitle())) {
 			throw new Exception("Workbook already contains a worksheet named '{$pSheet->getTitle()}'. Rename the external sheet first.");
 		}
 
