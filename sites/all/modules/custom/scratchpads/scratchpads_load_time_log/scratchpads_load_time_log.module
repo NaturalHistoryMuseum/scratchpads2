@@ -24,10 +24,26 @@ function scratchpads_load_time_log_shutdown(){
     $time = time();
     if((variable_get('scratchpads_load_time_log_last_clear', 0) + 604800) < $time){
       variable_set('scratchpads_load_time_log_last_clear', $time);
-      @file_put_contents($filename, '"Path","Load time","UID","Timestamp","Method"' . "\n");
+      @file_put_contents($filename, '"' . implode('","', array(
+        'Path',
+        'Load time',
+        'UID',
+        'Timestamp',
+        'Method',
+        'Peak Memory (MB)',
+        'End Memory (MB)'
+      )) . "\"\n");
     }
     global $user;
-    @file_put_contents($filename, '"' . $path . '","' . timer_read('page') . '","' . $user->uid . '","' . $time . '","' . $_SERVER['REQUEST_METHOD'] . "\"\n", FILE_APPEND);
+    @file_put_contents($filename, '"' . implode('","', array(
+      $path,
+      timer_read('page'),
+      $user->uid,
+      $time,
+      $_SERVER['REQUEST_METHOD'],
+      round(memory_get_usage() / 1024 / 1024, 2),
+      round(memory_get_peak_usage(TRUE) / 1024 / 1024, 2)
+    )) . "\"\n", FILE_APPEND);
   }else{
     // This really shouldn't happen, but in case it does, we'll try to run the
     // install again.
