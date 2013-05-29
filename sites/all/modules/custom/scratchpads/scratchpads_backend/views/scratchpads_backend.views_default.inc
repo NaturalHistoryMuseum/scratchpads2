@@ -489,7 +489,6 @@ function scratchpads_backend_views_default_views(){
   $handler = $view->new_display('page', 'Page', 'page');
   $handler->display->display_options['path'] = 'admin/content/%';
   $views[$view->name] = $view;
-  
   $view = new view();
   $view->name = 'admin_vbo_file';
   $view->description = '';
@@ -498,8 +497,7 @@ function scratchpads_backend_views_default_views(){
   $view->human_name = 'Admin VBO file';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-  
+  $view->disabled = FALSE;
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Admin VBO view';
@@ -522,62 +520,62 @@ function scratchpads_backend_views_default_views(){
     'name' => 'name',
     'timestamp' => 'timestamp',
     'fid' => 'fid',
-    'fid_1' => 'fid',
+    'fid_1' => 'fid'
   );
   $handler->display->display_options['style_options']['default'] = 'timestamp';
   $handler->display->display_options['style_options']['info'] = array(
     'views_bulk_operations' => array(
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'rendered_entity' => array(
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'filename' => array(
       'sortable' => 1,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'filesize' => array(
       'sortable' => 1,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'name' => array(
       'sortable' => 1,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'timestamp' => array(
       'sortable' => 1,
       'default_sort_order' => 'desc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'fid' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'fid_1' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
-    ),
+      'empty_column' => 0
+    )
   );
   /* Relationship: File: User who uploaded */
   $handler->display->display_options['relationships']['uid']['id'] = 'uid';
@@ -603,22 +601,22 @@ function scratchpads_backend_views_default_views(){
       'label' => '',
       'settings' => array(
         'scheme' => 'public',
-        'temporary' => 1,
-      ),
+        'temporary' => 1
+      )
     ),
     'action::views_bulk_operations_delete_item' => array(
       'selected' => 1,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
-      'label' => '',
+      'label' => ''
     ),
     'action::views_bulk_operations_script_action' => array(
       'selected' => 0,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
-      'label' => '',
+      'label' => ''
     ),
     'action::views_bulk_operations_modify_action' => array(
       'selected' => 0,
@@ -628,8 +626,8 @@ function scratchpads_backend_views_default_views(){
       'label' => '',
       'settings' => array(
         'show_all_tokens' => 1,
-        'display_values' => array(),
-      ),
+        'display_values' => array()
+      )
     ),
     'action::views_bulk_operations_argument_selector_action' => array(
       'selected' => 0,
@@ -637,16 +635,16 @@ function scratchpads_backend_views_default_views(){
       'override_label' => 0,
       'label' => '',
       'settings' => array(
-        'url' => '',
-      ),
+        'url' => ''
+      )
     ),
     'action::system_send_email_action' => array(
       'selected' => 0,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
-      'label' => '',
-    ),
+      'label' => ''
+    )
   );
   /* Field: File: Name */
   $handler->display->display_options['fields']['filename']['id'] = 'filename';
@@ -713,7 +711,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['arguments']['type']['limit'] = '0';
   $handler->display->display_options['filter_groups']['groups'] = array(
     1 => 'AND',
-    2 => 'OR',
+    2 => 'OR'
   );
   /* Filter criterion: User: Name (raw) */
   $handler->display->display_options['filters']['name']['id'] = 'name';
@@ -769,11 +767,9 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['uri']['field'] = 'uri';
   $handler->display->display_options['filters']['uri']['operator'] = 'not_starts';
   $handler->display->display_options['filters']['uri']['value'] = 'temporary';
-  
   /* Display: Default */
   $handler = $view->new_display('page', 'Default', 'page');
   $handler->display->display_options['path'] = 'admin/file/%';
-  
   /* Display: Images */
   $handler = $view->new_display('page', 'Images', 'page_1');
   $handler->display->display_options['defaults']['title'] = FALSE;
@@ -800,22 +796,22 @@ function scratchpads_backend_views_default_views(){
       'label' => '',
       'settings' => array(
         'scheme' => 'public',
-        'temporary' => 1,
-      ),
+        'temporary' => 1
+      )
     ),
     'action::views_bulk_operations_delete_item' => array(
       'selected' => 1,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
-      'label' => '',
+      'label' => ''
     ),
     'action::views_bulk_operations_script_action' => array(
       'selected' => 0,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
-      'label' => '',
+      'label' => ''
     ),
     'action::views_bulk_operations_modify_action' => array(
       'selected' => 1,
@@ -835,9 +831,9 @@ function scratchpads_backend_views_default_views(){
           'image::field_sticky' => 'image::field_sticky',
           'image::field_creator' => 'image::field_creator',
           'image::field_weight' => 'image::field_weight',
-          'image::field_promote_to_home_page' => 'image::field_promote_to_home_page',
-        ),
-      ),
+          'image::field_promote_to_home_page' => 'image::field_promote_to_home_page'
+        )
+      )
     ),
     'action::views_bulk_operations_argument_selector_action' => array(
       'selected' => 0,
@@ -845,16 +841,16 @@ function scratchpads_backend_views_default_views(){
       'override_label' => 0,
       'label' => '',
       'settings' => array(
-        'url' => '',
-      ),
+        'url' => ''
+      )
     ),
     'action::system_send_email_action' => array(
       'selected' => 0,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
-      'label' => '',
-    ),
+      'label' => ''
+    )
   );
   /* Field: File: Rendered File */
   $handler->display->display_options['fields']['rendered_entity']['id'] = 'rendered_entity';
@@ -924,7 +920,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['defaults']['filter_groups'] = FALSE;
   $handler->display->display_options['filter_groups']['groups'] = array(
     1 => 'AND',
-    2 => 'OR',
+    2 => 'OR'
   );
   $handler->display->display_options['defaults']['filters'] = FALSE;
   /* Filter criterion: User: Name (raw) */
@@ -967,7 +963,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['type']['table'] = 'file_managed';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
-    'image' => 'image',
+    'image' => 'image'
   );
   $handler->display->display_options['filters']['type']['group'] = 1;
   /* Filter criterion: File Usage: Entity type */
@@ -991,7 +987,6 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['fid']['operator'] = '>=';
   $handler->display->display_options['filters']['fid']['value']['value'] = '0';
   $handler->display->display_options['path'] = 'admin/file/image';
-  
   /* Display: Audio */
   $handler = $view->new_display('page', 'Audio', 'page_2');
   $handler->display->display_options['defaults']['title'] = FALSE;
@@ -1018,22 +1013,22 @@ function scratchpads_backend_views_default_views(){
       'label' => '',
       'settings' => array(
         'scheme' => 'public',
-        'temporary' => 1,
-      ),
+        'temporary' => 1
+      )
     ),
     'action::views_bulk_operations_delete_item' => array(
       'selected' => 1,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
-      'label' => '',
+      'label' => ''
     ),
     'action::views_bulk_operations_script_action' => array(
       'selected' => 0,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
-      'label' => '',
+      'label' => ''
     ),
     'action::views_bulk_operations_modify_action' => array(
       'selected' => 1,
@@ -1047,9 +1042,9 @@ function scratchpads_backend_views_default_views(){
           '_all_' => '_all_',
           'audio::field_taxonomic_name' => 'audio::field_taxonomic_name',
           'audio::field_cc_licence' => 'audio::field_cc_licence',
-          'audio::field_description' => 'audio::field_description',
-        ),
-      ),
+          'audio::field_description' => 'audio::field_description'
+        )
+      )
     ),
     'action::views_bulk_operations_argument_selector_action' => array(
       'selected' => 0,
@@ -1057,16 +1052,16 @@ function scratchpads_backend_views_default_views(){
       'override_label' => 0,
       'label' => '',
       'settings' => array(
-        'url' => '',
-      ),
+        'url' => ''
+      )
     ),
     'action::system_send_email_action' => array(
       'selected' => 0,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
-      'label' => '',
-    ),
+      'label' => ''
+    )
   );
   /* Field: File: Rendered File */
   $handler->display->display_options['fields']['rendered_entity']['id'] = 'rendered_entity';
@@ -1136,7 +1131,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['defaults']['filter_groups'] = FALSE;
   $handler->display->display_options['filter_groups']['groups'] = array(
     1 => 'AND',
-    2 => 'OR',
+    2 => 'OR'
   );
   $handler->display->display_options['defaults']['filters'] = FALSE;
   /* Filter criterion: User: Name (raw) */
@@ -1179,7 +1174,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['type']['table'] = 'file_managed';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
-    'audio' => 'audio',
+    'audio' => 'audio'
   );
   $handler->display->display_options['filters']['type']['group'] = 1;
   /* Filter criterion: File Usage: Entity type */
@@ -1203,7 +1198,6 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['fid']['operator'] = '>=';
   $handler->display->display_options['filters']['fid']['value']['value'] = '0';
   $handler->display->display_options['path'] = 'admin/file/audio';
-  
   /* Display: Video */
   $handler = $view->new_display('page', 'Video', 'page_3');
   $handler->display->display_options['defaults']['title'] = FALSE;
@@ -1230,22 +1224,22 @@ function scratchpads_backend_views_default_views(){
       'label' => '',
       'settings' => array(
         'scheme' => 'public',
-        'temporary' => 1,
-      ),
+        'temporary' => 1
+      )
     ),
     'action::views_bulk_operations_delete_item' => array(
       'selected' => 1,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
-      'label' => '',
+      'label' => ''
     ),
     'action::views_bulk_operations_script_action' => array(
       'selected' => 0,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
-      'label' => '',
+      'label' => ''
     ),
     'action::views_bulk_operations_modify_action' => array(
       'selected' => 1,
@@ -1258,9 +1252,9 @@ function scratchpads_backend_views_default_views(){
         'display_values' => array(
           'video::field_taxonomic_name' => 'video::field_taxonomic_name',
           'video::field_cc_licence' => 'video::field_cc_licence',
-          'video::field_description' => 'video::field_description',
-        ),
-      ),
+          'video::field_description' => 'video::field_description'
+        )
+      )
     ),
     'action::views_bulk_operations_argument_selector_action' => array(
       'selected' => 0,
@@ -1268,16 +1262,16 @@ function scratchpads_backend_views_default_views(){
       'override_label' => 0,
       'label' => '',
       'settings' => array(
-        'url' => '',
-      ),
+        'url' => ''
+      )
     ),
     'action::system_send_email_action' => array(
       'selected' => 0,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
-      'label' => '',
-    ),
+      'label' => ''
+    )
   );
   /* Field: File: Rendered File */
   $handler->display->display_options['fields']['rendered_entity']['id'] = 'rendered_entity';
@@ -1347,7 +1341,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['defaults']['filter_groups'] = FALSE;
   $handler->display->display_options['filter_groups']['groups'] = array(
     1 => 'AND',
-    2 => 'OR',
+    2 => 'OR'
   );
   $handler->display->display_options['defaults']['filters'] = FALSE;
   /* Filter criterion: User: Name (raw) */
@@ -1390,7 +1384,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['type']['table'] = 'file_managed';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
-    'video' => 'video',
+    'video' => 'video'
   );
   $handler->display->display_options['filters']['type']['group'] = 1;
   /* Filter criterion: File Usage: Entity type */
@@ -1414,8 +1408,6 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['fid']['operator'] = '>=';
   $handler->display->display_options['filters']['fid']['value']['value'] = '0';
   $handler->display->display_options['path'] = 'admin/file/video';
-  
- 
   $views[$view->name] = $view;
   return $views;
 }
