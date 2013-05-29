@@ -362,7 +362,7 @@ function feeds_xls_redirect_to_populated_file($success, $results, $operations){
   if($success){
     // Increase the memory limit
     ini_set('memory_limit', '1024M');
-    ini_set('max_execution_time', 300);
+    ini_set('max_execution_time', 600);
     // Load the library, and set the cache type
     _feeds_xls_initialise_phpexcel();
     // Open the file.
