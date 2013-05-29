@@ -142,6 +142,10 @@
 		</files>
 		<coreid index="0" />
 		<field index="1" term="http://rs.tdwg.org/dwc/terms/vernacularName" />
+		<field index="2" term="http://purl.org/dc/terms/language" />
+		<field index="3" term="http://rs.tdwg.org/dwc/terms/locality" />
+		<field index="4" term="http://rs.tdwg.org/dwc/terms/taxonRemarks" />
+		
 	</extension>
 
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
