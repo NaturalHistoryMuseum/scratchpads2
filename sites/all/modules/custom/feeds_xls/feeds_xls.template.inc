@@ -41,27 +41,17 @@ function _feeds_xls_initialise_phpexcel(){
   }
   require_once $path;
   // We try the following cache methods:
-  // - sqlite3
-  // - sqlite
-  // - memcache
-  // - apc
+  // - igbinary
   // - memory_gzip
   // Set the cache method.
-  $cache_settings = array();
-  if(($cache_method = PHPExcel_CachedObjectStorageFactoryExtension::cache_to_sqlite3file) != FALSE){
-  }else if(($cache_method = PHPExcel_CachedObjectStorageFactoryExtension::cache_to_sqlite3) != FALSE){
-  }else if(($cache_method = PHPExcel_CachedObjectStorageFactoryExtension::cache_to_sqlite) != FALSE){
-    $cache_settings = array(
-      'memoryCacheSize' => '32MB'
-    );
-  }else if(($cache_method = PHPExcel_CachedObjectStorageFactoryExtension::cache_to_memcache) != FALSE){
-  }else if(($cache_method = PHPExcel_CachedObjectStorageFactoryExtension::cache_to_apc) != FALSE){
-  }else if(($cache_method = PHPExcel_CachedObjectStorageFactoryExtension::cache_in_memory_gzip) != FALSE){
+  $cache_method = PHPExcel_CachedObjectStorageFactory::cache_igbinary;
+  if(!PHPExcel_Settings::setCacheStorageMethod($cache_method)){
+    $cache_method = PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip;
+    PHPExcel_Settings::setCacheStorageMethod($cache_method);
   }
-  watchdog('feeds_xls', 'PHPExcel instantiated using %cache_method', array(
+  watchdog('feeds_xls', 'PHPExcel set to use %cache_method cache', array(
     '%cache_method' => $cache_method
   ), WATCHDOG_INFO);
-  PHPExcel_Settings::setCacheStorageMethod($cache_method, $cache_settings);
 }
 
 /**
@@ -70,7 +60,7 @@ function _feeds_xls_initialise_phpexcel(){
 function feeds_xls_download_populated_template($feeds_importer, $bid = FALSE){
   get_class($feeds_importer->processor);
   if(get_class($feeds_importer->parser) == 'FeedsExcelParser'){
-    if(!$feeds_importer->parser->config['no_headers']){
+    if(empty($feeds_importer->parser->config['no_headers'])){
       // We can go ahead, so here we create the batch and start it.
       $batch = array(
         'title' => t('Creating Populated Excel template'),
@@ -171,7 +161,7 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
     // Add the data.
     $loop = 0;
     $ids_to_load = array();
-    while($loop < 50 && ($id = array_pop($context['sandbox']['entity_ids'])) != FALSE){
+    while($loop < 500 && ($id = array_pop($context['sandbox']['entity_ids'])) != FALSE){
       $ids_to_load[] = $id;
       $loop++;
     }
