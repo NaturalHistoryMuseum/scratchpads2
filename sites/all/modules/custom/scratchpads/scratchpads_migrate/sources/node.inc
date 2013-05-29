@@ -474,9 +474,9 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         }
         $long_text_result = array();
         foreach($long_text_data as $long_text_key => $long_text_html){
+          $long_text_html = ScratchpadsNodeMigration::lowercaseHtml($long_text_html);
           $long_text_html = ScratchpadsNodeMigration::parseImages($long_text_html, $row);
           $long_text_html = ScratchpadsNodeMigration::parseStyles($long_text_html);
-          $long_text_html = ScratchpadsNodeMigration::lowercaseHtml($long_text_html);
           $long_text_html = preg_replace('/\[(\/?)no-glossary\]/', '[$1no-lexicon]', $long_text_html);
           $long_text_result[$long_text_key] = $long_text_html;
         }

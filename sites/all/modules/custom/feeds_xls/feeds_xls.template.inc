@@ -133,6 +133,12 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
       $path = drupal_get_path('module', 'feeds_xls') . '/PHPExcel/PHPExcel/IOFactory.php';
     }
     require_once $path;
+    // Set the cache method.
+    $cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
+    $cacheSettings = array(
+      'memoryCacheSize' => '32MB'
+    );
+    PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
     // Open the file.
     $objPHPExcel = PHPExcel_IOFactory::load($context['sandbox']['xls_path']);
     // Set active sheet index to the first sheet, so Excel opens this as the first sheet
@@ -425,6 +431,12 @@ function feeds_xls_download_template_helper($feeds_importer, $output = 'php://ou
   }
   require_once $path;
   date_default_timezone_set(drupal_get_user_timezone());
+  // Set the cache method.
+  $cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
+  $cacheSettings = array(
+    'memoryCacheSize' => '32MB'
+  );
+  PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
   // Create new PHPExcel object
   $objPHPExcel = new PHPExcel();
   // Set properties

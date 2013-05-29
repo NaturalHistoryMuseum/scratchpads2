@@ -61,6 +61,16 @@ function taxonomy_field_settings_form($field, $instance, $has_data){
 }
 
 /**
+ * Clear all static cache variables for terms.
+ */
+function taxonomy_terms_static_reset(){
+  drupal_static_reset('taxonomy_get_tree_original');
+  drupal_static_reset('taxonomy_get_tree_original:parents');
+  drupal_static_reset('taxonomy_get_tree_original:terms');
+  taxonomy_terms_static_reset_original();
+}
+
+/**
  * Implementations of hook_form_FORM_ID_alter
  */
 function taxonomy_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id){

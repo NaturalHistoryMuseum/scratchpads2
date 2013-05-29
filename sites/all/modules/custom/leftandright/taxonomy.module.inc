@@ -942,7 +942,7 @@ function taxonomy_term_is_page($term) {
 /**
  * Clear all static cache variables for terms.
  */
-function taxonomy_terms_static_reset() {
+function taxonomy_terms_static_reset_original() {
   drupal_static_reset('taxonomy_term_count_nodes');
   drupal_static_reset('taxonomy_get_tree');
   drupal_static_reset('taxonomy_get_tree:parents');

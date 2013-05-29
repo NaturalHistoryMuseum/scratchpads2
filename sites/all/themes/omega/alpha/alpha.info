@@ -1,5 +1,5 @@
 name = Alpha
-description = Alpha is the core basetheme for <a href="http://drupal.org/project/omega">Omega</a> and all its subthemes. It includes the most basic features of the Omega theme framework. This theme should not be used directly, instead choose one of the Omega or Alpha starterkits.
+description = Alpha is the core basetheme for <a href="http://drupal.org/project/omega">Omega</a> and all its subthemes. It includes the most basic features of the Omega theme framework. This theme should not be used directly, instead you should create a subtheme based on one of the Omega or Alpha starterkits. Learn more about <a href="http://drupal.org/node/819170">Creating an Omega Subtheme</a> in the <a href="http://drupal.org/node/819164">Omega Handbook</a>.
 core = 7.x
 engine = phptemplate
 screenshot = screenshot.png
@@ -212,9 +212,9 @@ settings[alpha_region_footer_columns] = '12'
 settings[alpha_region_footer_suffix] = ''
 settings[alpha_region_footer_weight] = ''
 settings[alpha_region_footer_css] = ''
-; Information added by drupal.org packaging script on 2011-08-23
-version = "7.x-3.0"
+; Information added by drupal.org packaging script on 2012-02-19
+version = "7.x-3.1"
 core = "7.x"
 project = "omega"
-datestamp = "1314088930"
+datestamp = "1329681647"
 

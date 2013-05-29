@@ -300,6 +300,11 @@ form div.entityconnect-add input:hover,form div.entityconnect-edit input:hover
   width: 500px;
 }
 
-.diff-links li:not  (.first  ):before {
+.diff-links li:not(.first):before {
   content: " | "
+}
+
+/* Fix for date descriptions #811 */
+.page-content .date-padding .form-item .description {
+  bottom: 150%;
 }
