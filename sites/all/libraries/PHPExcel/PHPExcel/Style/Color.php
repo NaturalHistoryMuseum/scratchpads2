@@ -22,7 +22,7 @@
  * @package	PHPExcel_Style
  * @copyright Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version 1.7.7, 2012-05-19
+ * @version 1.7.8, 2012-10-12
  */
 
 
@@ -59,7 +59,7 @@ class PHPExcel_Style_Color implements PHPExcel_IComparable
 	 *
 	 * @var string
 	 */
-	private $_argb;
+	private $_argb	= NULL;
 
 	/**
 	 * Supervisor?
@@ -88,14 +88,21 @@ class PHPExcel_Style_Color implements PHPExcel_IComparable
 	 *
 	 * @param	string	$pARGB			ARGB value for the colour
 	 * @param	boolean	$isSupervisor	Flag indicating if this is a supervisor or not
+	 *									Leave this value at default unless you understand exactly what
+	 *										its ramifications are
+	 * @param	boolean	$isConditional	Flag indicating if this is a conditional style or not
+	 *									Leave this value at default unless you understand exactly what
+	 *										its ramifications are
 	 */
-	public function __construct($pARGB = PHPExcel_Style_Color::COLOR_BLACK, $isSupervisor = false)
+	public function __construct($pARGB = PHPExcel_Style_Color::COLOR_BLACK, $isSupervisor = false, $isConditional = false)
 	{
 		//	Supervisor?
 		$this->_isSupervisor = $isSupervisor;
 
 		//	Initialise values
-		$this->_argb = $pARGB;
+		if (!$isConditional) {
+			$this->_argb = $pARGB;
+		}
 	}
 
 	/**
@@ -131,17 +138,12 @@ class PHPExcel_Style_Color implements PHPExcel_IComparable
 	public function getSharedComponent()
 	{
 		switch ($this->_parentPropertyName) {
-		case '_endColor':
-			return $this->_parent->getSharedComponent()->getEndColor();
-			break;
-
-		case '_color':
-			return $this->_parent->getSharedComponent()->getColor();
-			break;
-
-		case '_startColor':
-			return $this->_parent->getSharedComponent()->getStartColor();
-			break;
+			case '_endColor':
+				return $this->_parent->getSharedComponent()->getEndColor();		break;
+			case '_color':
+				return $this->_parent->getSharedComponent()->getColor();		break;
+			case '_startColor':
+				return $this->_parent->getSharedComponent()->getStartColor();	break;
 		}
 	}
 
@@ -186,17 +188,15 @@ class PHPExcel_Style_Color implements PHPExcel_IComparable
 	public function getStyleArray($array)
 	{
 		switch ($this->_parentPropertyName) {
-		case '_endColor':
-			$key = 'endcolor';
-			break;
-
-		case '_color':
-			$key = 'color';
-			break;
-
-		case '_startColor':
-			$key = 'startcolor';
-			break;
+			case '_endColor':
+				$key = 'endcolor';
+				break;
+			case '_color':
+				$key = 'color';
+				break;
+			case '_startColor':
+				$key = 'startcolor';
+				break;
 
 		}
 		return $this->_parent->getStyleArray(array($key => $array));
@@ -213,7 +213,7 @@ class PHPExcel_Style_Color implements PHPExcel_IComparable
 	 * @throws	Exception
 	 * @return PHPExcel_Style_Color
 	 */
-	public function applyFromArray($pStyles = null) {
+	public function applyFromArray($pStyles = NULL) {
 		if (is_array($pStyles)) {
 			if ($this->_isSupervisor) {
 				$this->getActiveSheet()->getStyle($this->getSelectedCells())->applyFromArray($this->getStyleArray($pStyles));
@@ -303,8 +303,8 @@ class PHPExcel_Style_Color implements PHPExcel_IComparable
 	 *									decimal value
 	 * @return	string		The extracted colour component
 	 */
-	private static function _getColourComponent($RGB,$offset,$hex=true) {
-		$colour = substr($RGB,$offset,2);
+	private static function _getColourComponent($RGB,$offset,$hex=TRUE) {
+		$colour = substr($RGB, $offset, 2);
 		if (!$hex)
 			$colour = hexdec($colour);
 		return $colour;
@@ -318,11 +318,11 @@ class PHPExcel_Style_Color implements PHPExcel_IComparable
 	 *									decimal value
 	 * @return	string		The red colour component
 	 */
-	public static function getRed($RGB,$hex=true) {
+	public static function getRed($RGB,$hex=TRUE) {
 		if (strlen($RGB) == 8) {
-			return self::_getColourComponent($RGB,2,$hex);
+			return self::_getColourComponent($RGB, 2, $hex);
 		} elseif (strlen($RGB) == 6) {
-			return self::_getColourComponent($RGB,0,$hex);
+			return self::_getColourComponent($RGB, 0, $hex);
 		}
 	}
 
@@ -334,11 +334,11 @@ class PHPExcel_Style_Color implements PHPExcel_IComparable
 	 *									decimal value
 	 * @return	string		The green colour component
 	 */
-	public static function getGreen($RGB,$hex=true) {
+	public static function getGreen($RGB,$hex=TRUE) {
 		if (strlen($RGB) == 8) {
-			return self::_getColourComponent($RGB,4,$hex);
+			return self::_getColourComponent($RGB, 4, $hex);
 		} elseif (strlen($RGB) == 6) {
-			return self::_getColourComponent($RGB,2,$hex);
+			return self::_getColourComponent($RGB, 2, $hex);
 		}
 	}
 
@@ -350,25 +350,27 @@ class PHPExcel_Style_Color implements PHPExcel_IComparable
 	 *									decimal value
 	 * @return	string		The blue colour component
 	 */
-	public static function getBlue($RGB,$hex=true) {
+	public static function getBlue($RGB,$hex=TRUE) {
 		if (strlen($RGB) == 8) {
-			return self::_getColourComponent($RGB,6,$hex);
+			return self::_getColourComponent($RGB, 6, $hex);
 		} elseif (strlen($RGB) == 6) {
-			return self::_getColourComponent($RGB,4,$hex);
+			return self::_getColourComponent($RGB, 4, $hex);
 		}
 	}
 
 	/**
 	 * Adjust the brightness of a color
 	 *
-	 * @param	string		$hex	The colour as an RGB value (e.g. FF00CCCC or CCDDEE
+	 * @param	string		$hex	The colour as an RGBA or RGB value (e.g. FF00CCCC or CCDDEE)
 	 * @param	float		$adjustPercentage	The percentage by which to adjust the colour as a float from -1 to 1
-	 * @return	string		The adjusted colour as an RGB value (e.g. FF00CCCC or CCDDEE
+	 * @return	string		The adjusted colour as an RGBA or RGB value (e.g. FF00CCCC or CCDDEE)
 	 */
 	public static function changeBrightness($hex, $adjustPercentage) {
-		$red	= self::getRed($hex,false);
-		$green	= self::getGreen($hex,false);
-		$blue	= self::getBlue($hex,false);
+		$rgba = (strlen($hex) == 8);
+
+		$red	= self::getRed($hex, FALSE);
+		$green	= self::getGreen($hex, FALSE);
+		$blue	= self::getBlue($hex, FALSE);
 		if ($adjustPercentage > 0) {
 			$red	+= (255 - $red) * $adjustPercentage;
 			$green	+= (255 - $green) * $adjustPercentage;
@@ -386,10 +388,11 @@ class PHPExcel_Style_Color implements PHPExcel_IComparable
 		if ($blue < 0) $blue = 0;
 		elseif ($blue > 255) $blue = 255;
 
-		return strtoupper(	str_pad(dechex($red), 2, '0', 0) .
+		$rgb = strtoupper(	str_pad(dechex($red), 2, '0', 0) .
 							str_pad(dechex($green), 2, '0', 0) .
 							str_pad(dechex($blue), 2, '0', 0)
 						 );
+		return (($rgba) ? 'FF' : '') . $rgb;
 	}
 
 	/**
@@ -400,7 +403,7 @@ class PHPExcel_Style_Color implements PHPExcel_IComparable
 	 *											should be returned if the indexed colour doesn't exist
 	 * @return	PHPExcel_Style_Color
 	 */
-	public static function indexedColor($pIndex, $background=false) {
+	public static function indexedColor($pIndex, $background=FALSE) {
 		// Clean parameter
 		$pIndex = intval($pIndex);
 

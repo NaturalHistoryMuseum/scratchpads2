@@ -20,21 +20,33 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
       'exposed' => FALSE
     );
     $key = $sortcol;
-    if($sortcol != 'title'){
-      // Load the field so that we can see what type of field it is
-      $field = field_info_field($sortcol);
-      if($field){
-        foreach($sort['id'] = $field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
-          foreach($more_info as $key => $name){
-            if($key != 'format'){
-              $sort['id'] = $name;
-              $sort['field'] = $name;
-              $sort['table'] = $table;
-              break;
+    switch($sortcol){
+      case 'title':
+        // Do nothing for title.
+        break;
+      case 'filename':
+        $sort = array(
+          'id' => $sortcol,
+          'table' => 'file_managed',
+          'field' => $sortcol,
+          'order' => strtoupper($sortdir)
+        );
+        break;
+      default:
+        // Load the field so that we can see what type of field it is
+        $field = field_info_field($sortcol);
+        if($field){
+          foreach($sort['id'] = $field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
+            foreach($more_info as $key => $name){
+              if($key != 'format'){
+                $sort['id'] = $name;
+                $sort['field'] = $name;
+                $sort['table'] = $table;
+                break;
+              }
             }
           }
         }
-      }
     }
     $view->display['default']->display_options['sorts'][$key] = $sort;
   }
@@ -76,7 +88,7 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
             foreach($more_info as $key => $name){
               if($key != 'format'){
                 $filter['operator'] = 'or';
-                $filter['value'] = array_keys(taxonomy_get_term_by_name($value));
+                $filter['value'] = array_keys(taxonomy_get_terms_by_name_match($value));
                 $filter['reduce_duplicates'] = 0;
                 $filter['type'] = 'textfield';
                 $filter['limit'] = 100;
@@ -91,6 +103,26 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
     }
     $view->display['default']->display_options['filters'][$field] = $filter;
   }
+  // We get the referer so that we can add arguments to the view.
+  $referer = drupal_parse_url($_SERVER['HTTP_REFERER']);
+  if(strpos($referer['path'], '://')){
+    $path = parse_url($referer['path']);
+    $path = substr($path['path'], 1);
+  }else{
+    $path = $referer['path'];
+  }
+  $path = explode('/', $path);
+  $argumnets = array();
+  foreach($view->display['default']->display_options['arguments'] as $argument){
+    // FIXME - This only works with taxonomy pages.
+    switch($argument['default_argument_type']){
+      case 'taxonomy_tid':
+        if($argument['default_argument_options']['term_page']){
+          $arguments[] = $path[2];
+        }
+    }
+  }
+  $view->set_arguments($arguments);
   $view->render();
   drupal_add_http_header('Content-Type', 'application/json; charset=utf-8');
   // Prevent null from being returned when there are no results.
@@ -101,4 +133,26 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
     'data' => $view->data
   ));
   ajax_footer();
+}
+
+/**
+ * Similar function to taxonomy_get_term_by_name, but allows for matching!
+ */
+function taxonomy_get_terms_by_name_match($name, $vocabulary = NULL, $match = 'left'){
+  switch($match){
+    case 'both':
+      $name = '%' . db_like(trim($name)) . '%';
+      break;
+    default:
+      $name = db_like(trim($name)) . '%';
+  }
+  $query = db_select('taxonomy_term_data', 't')->fields('t', array(
+    'tid'
+  ))->condition('name', $name, 'LIKE');
+  if(isset($vocabulary)){
+    $vocabulary = taxonomy_vocabulary_machine_name_load($vocabulary);
+    $query->condition('vid', $vocabulary->vid);
+  }
+  $tids = $query->execute()->fetchCol();
+  return taxonomy_term_load_multiple($tids);
 }

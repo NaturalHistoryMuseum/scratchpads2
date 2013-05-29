@@ -666,7 +666,7 @@ function scratchpads_audubon_core_field_default_fields() {
       'entity_type' => 'file',
       'field_name' => 'field_copyright_statement',
       'label' => 'Copyright Statement',
-      'required' => 1,
+      'required' => 0,
       'settings' => array(
         'linkit' => array(
           'enable' => 0,

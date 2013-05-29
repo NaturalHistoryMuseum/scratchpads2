@@ -22,7 +22,7 @@
  * @package    PHPExcel_Shared
  * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version    1.7.7, 2012-05-19
+ * @version    1.7.8, 2012-10-12
  */
 
 
@@ -612,7 +612,7 @@ class PHPExcel_Shared_String
 	{
 		if (!isset(self::$_decimalSeparator)) {
 			$localeconv = localeconv();
-			self::$_decimalSeparator = $localeconv['decimal_point'] != ''
+			self::$_decimalSeparator = ($localeconv['decimal_point'] != '')
 				? $localeconv['decimal_point'] : $localeconv['mon_decimal_point'];
 
 			if (self::$_decimalSeparator == '') {
@@ -644,7 +644,7 @@ class PHPExcel_Shared_String
 	{
 		if (!isset(self::$_thousandsSeparator)) {
 			$localeconv = localeconv();
-			self::$_thousandsSeparator = $localeconv['thousands_sep'] != ''
+			self::$_thousandsSeparator = ($localeconv['thousands_sep'] != '')
 				? $localeconv['thousands_sep'] : $localeconv['mon_thousands_sep'];
 		}
 		return self::$_thousandsSeparator;
@@ -671,7 +671,7 @@ class PHPExcel_Shared_String
 	{
 		if (!isset(self::$_currencyCode)) {
 			$localeconv = localeconv();
-			self::$_currencyCode = $localeconv['currency_symbol'] != ''
+			self::$_currencyCode = ($localeconv['currency_symbol'] != '')
 				? $localeconv['currency_symbol'] : $localeconv['int_curr_symbol'];
 
 			if (self::$_currencyCode == '') {

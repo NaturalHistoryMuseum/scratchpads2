@@ -45,7 +45,7 @@ function alpha_theme_settings_general(&$form, &$form_state) {
   $form['alpha_settings']['layout']['responsive_settings']['alpha_viewport'] = array(
     '#type' => 'checkbox',
     '#title' => t('Allow customizing viewport meta properties on iOS and Android devices'),
-    '#description' => t('By default, most mobile browsers choose their own way to handle page rendering by using the viewport meta tag. iOS and Android are "capable" of displaying full size websites by simply scaling down the view. However, when using a truly mobile version of your theme, you will / may want to customize these settings. You can find more information about this in the <a href="http://alpha.developmentgeeks.com">Omega documentation</a>.'),
+    '#description' => t('By default, most mobile browsers choose their own way to handle page rendering by using the viewport meta tag. iOS and Android are "capable" of displaying full size websites by simply scaling down the view. However, when using a truly mobile version of your theme, you will / may want to customize these settings. You can find more information about this in the <a href="http://drupal.org/node/819164">Omega documentation</a>.'),
     '#default_value' => $theme->settings['viewport']['enabled'],
     '#states' => array(
       'visible' => array(

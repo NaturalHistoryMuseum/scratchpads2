@@ -1,7 +1,7 @@
 <?php
 
 /**
- * MISSING COMMENT????
+ * Revert features to new settings
  */
 function scratchpads_audubon_core_update_7001(){
   features_revert(array(
@@ -9,4 +9,11 @@ function scratchpads_audubon_core_update_7001(){
       'field'
     )
   ));
+}
+
+/**
+ * Copyright statement no longer required field (features revert)
+ */
+function scratchpads_audubon_core_update_7002(){
+  scratchpads_audubon_core_update_7001();
 }

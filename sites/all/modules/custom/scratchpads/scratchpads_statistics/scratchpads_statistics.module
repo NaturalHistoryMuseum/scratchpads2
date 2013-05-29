@@ -296,7 +296,7 @@ function scratchpads_statistics_cron(){
 function scratchpads_statistics_menu(){
   return array(
     'stats' => array(
-      'title' => 'Scratchpad statistics',
+      'title' => 'Scratchpads 2.0 statistics',
       'description' => 'Display statistics related to the content created on this site.',
       'page callback' => 'scratchpads_statistics_stats_page',
       'access arguments' => array(

@@ -22,7 +22,7 @@
  * @package    PHPExcel_Style
  * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version    1.7.7, 2012-05-19
+ * @version    1.7.8, 2012-10-12
  */
 
 
@@ -100,7 +100,7 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
     	$this->_operatorType		= PHPExcel_Style_Conditional::OPERATOR_NONE;
     	$this->_text    			= null;
     	$this->_condition			= array();
-    	$this->_style				= new PHPExcel_Style();
+    	$this->_style				= new PHPExcel_Style(FALSE, TRUE);
     }
 
     /**
