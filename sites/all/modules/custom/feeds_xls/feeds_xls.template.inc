@@ -28,6 +28,43 @@ function feeds_xls_get_populated_template(){
 }
 
 /**
+ * Get a PHPExcel cache object.  This gets the most efficient cache object that
+ * this environment is capable of using.
+ */
+function _feeds_xls_initialise_phpexcel(){
+  // Load the library.
+  if(function_exists('libraries_get_path')){
+    $path = libraries_get_path('PHPExcel');
+    $path = "$path/PHPExcel/IOFactory.php";
+  }else{
+    $path = drupal_get_path('module', 'feeds_xls') . '/PHPExcel/PHPExcel/IOFactory.php';
+  }
+  require_once $path;
+  // We try the following cache methods:
+  // - sqlite3
+  // - sqlite
+  // - memcache
+  // - apc
+  // - memory_gzip
+  // Set the cache method.
+  $cache_settings = array();
+  if(($cache_method = PHPExcel_CachedObjectStorageFactoryExtension::cache_to_sqlite3file) != FALSE){
+  }else if(($cache_method = PHPExcel_CachedObjectStorageFactoryExtension::cache_to_sqlite3) != FALSE){
+  }else if(($cache_method = PHPExcel_CachedObjectStorageFactoryExtension::cache_to_sqlite) != FALSE){
+    $cache_settings = array(
+      'memoryCacheSize' => '32MB'
+    );
+  }else if(($cache_method = PHPExcel_CachedObjectStorageFactoryExtension::cache_to_memcache) != FALSE){
+  }else if(($cache_method = PHPExcel_CachedObjectStorageFactoryExtension::cache_to_apc) != FALSE){
+  }else if(($cache_method = PHPExcel_CachedObjectStorageFactoryExtension::cache_in_memory_gzip) != FALSE){
+  }
+  watchdog('feeds_xls', 'PHPExcel instantiated using %cache_method', array(
+    '%cache_method' => $cache_method
+  ), WATCHDOG_INFO);
+  PHPExcel_Settings::setCacheStorageMethod($cache_method, $cache_settings);
+}
+
+/**
  * Callback function to provide the populated template.
  */
 function feeds_xls_download_populated_template($feeds_importer, $bid = FALSE){
@@ -125,20 +162,8 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
       $context['progress'] = 0;
       return;
     }
-    // Load the library.
-    if(function_exists('libraries_get_path')){
-      $path = libraries_get_path('PHPExcel');
-      $path = "$path/PHPExcel/IOFactory.php";
-    }else{
-      $path = drupal_get_path('module', 'feeds_xls') . '/PHPExcel/PHPExcel/IOFactory.php';
-    }
-    require_once $path;
-    // Set the cache method.
-    $cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
-    $cacheSettings = array(
-      'memoryCacheSize' => '32MB'
-    );
-    PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
+    // Load the library, and set the cache type
+    _feeds_xls_initialise_phpexcel();
     // Open the file.
     $objPHPExcel = PHPExcel_IOFactory::load($context['sandbox']['xls_path']);
     // Set active sheet index to the first sheet, so Excel opens this as the first sheet
@@ -146,7 +171,7 @@ function feeds_xls_populate_template_with_data($feeds_importer, &$context){
     // Add the data.
     $loop = 0;
     $ids_to_load = array();
-    while($loop < 500 && ($id = array_pop($context['sandbox']['entity_ids'])) != FALSE){
+    while($loop < 50 && ($id = array_pop($context['sandbox']['entity_ids'])) != FALSE){
       $ids_to_load[] = $id;
       $loop++;
     }
@@ -422,21 +447,7 @@ POLYGON:POLYGON ((-33.0029296875 60.37170546875135,-20.5224609375 60.84616839706
 }
 
 function feeds_xls_download_template_helper($feeds_importer, $output = 'php://output'){
-  // Load the library.
-  if(function_exists('libraries_get_path')){
-    $path = libraries_get_path('PHPExcel');
-    $path = "$path/PHPExcel/IOFactory.php";
-  }else{
-    $path = drupal_get_path('module', 'feeds_xls') . '/PHPExcel/PHPExcel/IOFactory.php';
-  }
-  require_once $path;
-  date_default_timezone_set(drupal_get_user_timezone());
-  // Set the cache method.
-  $cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
-  $cacheSettings = array(
-    'memoryCacheSize' => '32MB'
-  );
-  PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
+  _feeds_xls_initialise_phpexcel();
   // Create new PHPExcel object
   $objPHPExcel = new PHPExcel();
   // Set properties

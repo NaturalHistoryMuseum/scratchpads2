@@ -3,6 +3,8 @@ description = Excel file parser for importing excel data via feeds.module
 package = Feeds
 dependencies[] = feeds
 files[] = FeedsExcelParser.inc
+files[] = PHPExcelCachedObjectStorageSQLite3File.inc
+files[] = CachedObjectStorageFactoryExtension.inc
 core = 7.x
 
 ; Information added by drupal.org packaging script on 2011-09-27
@@ -10,4 +12,3 @@ version = "7.x-0.0"
 core = "7.x"
 project = "feeds_xls"
 datestamp = "1317161804"
-
