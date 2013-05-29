@@ -3,4 +3,3 @@
 db_query("UPDATE {system} SET weight = :weight WHERE name = 'emonocot_itis'", array(
   ':weight' => 1
 ));
-?>
