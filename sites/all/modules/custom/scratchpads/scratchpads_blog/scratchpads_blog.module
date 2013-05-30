@@ -637,8 +637,8 @@ function scratchpads_blog_page_user($account){
  */
 function scratchpads_blog_stripe_nodes(&$build){
   $odd = TRUE;
-  if(is_array($build['nodes'])){
-    foreach($build['nodes'] as $key => $ignore){
+  if(!empty($build['nodes'])){
+    foreach(element_children($build['nodes']) as $key){
       if($odd){
         $build['nodes'][$key]['#prefix'] = '<div class="search-row-odd">';
         $build['nodes'][$key]['#suffix'] = '</div>';
