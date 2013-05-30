@@ -1,5 +1,7 @@
 <?php
 
+require_once('publication_html_format.features.inc');
+
 /**
  * Implement hook_entity_view_alter
  *
@@ -425,4 +427,19 @@ function publication_html_format_form_publication_edit_form_alter(&$form, &$form
     ),
     'type' => 'setting'
   );
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ *
+ * Ensure that the 'filter' component of the feature is included before
+ * the 'ckeditor' component.
+ *
+ */
+function publication_html_format_module_implements_alter(&$implementations, $hook) {
+  if ($hook == 'features_api' && isset($implementations['ckeditor'])) {
+    $setting = $implementations['ckeditor'];
+    unset($implementations['ckeditor']);
+    $implementations['ckeditor'] = $setting;
+  }
 }
