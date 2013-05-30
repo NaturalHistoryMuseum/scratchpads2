@@ -2,7 +2,7 @@
 // File extension for the CSV files in the DwC-A file.
 define('DWCA_EXTENSIONS_FILE_EXTENSION', ".txt");
 
-function _dwca_export_cron(){
+function _dwca_export_cron($break = TRUE){
   // Ensure the directory has been created.
   @drupal_mkdir('public://dwca');
   // This only works from Drush, so return if we're not using Drush.
@@ -39,7 +39,7 @@ function _dwca_export_cron(){
       variable_set('dwca_export_files_to_add', $files_to_add);
       $return = FALSE;
       $i++;
-      if($i >= 5){
+      if($break && $i >= 5){
         break;
       }
     }
