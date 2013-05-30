@@ -637,15 +637,17 @@ function scratchpads_blog_page_user($account){
  */
 function scratchpads_blog_stripe_nodes(&$build){
   $odd = TRUE;
-  foreach(element_children($build['nodes']) as $key){
-    if($odd){
-      $build['nodes'][$key]['#prefix'] = '<div class="search-row-odd">';
-      $build['nodes'][$key]['#suffix'] = '</div>';
-      $odd = FALSE;
-    }else{
-      $build['nodes'][$key]['#prefix'] = '<div class="search-row-even">';
-      $build['nodes'][$key]['#suffix'] = '</div>';
-      $odd = TRUE;
+  if(is_array($build['nodes'])){
+    foreach($build['nodes'] as $key => $ignore){
+      if($odd){
+        $build['nodes'][$key]['#prefix'] = '<div class="search-row-odd">';
+        $build['nodes'][$key]['#suffix'] = '</div>';
+        $odd = FALSE;
+      }else{
+        $build['nodes'][$key]['#prefix'] = '<div class="search-row-even">';
+        $build['nodes'][$key]['#suffix'] = '</div>';
+        $odd = TRUE;
+      }
     }
   }
 }
