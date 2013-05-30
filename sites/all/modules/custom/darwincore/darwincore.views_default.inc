@@ -267,6 +267,7 @@ function darwincore_views_default_views(){
   $handler->display->display_options['fields']['field_genbank_number']['id'] = 'field_genbank_number';
   $handler->display->display_options['fields']['field_genbank_number']['table'] = 'field_data_field_genbank_number';
   $handler->display->display_options['fields']['field_genbank_number']['field'] = 'field_genbank_number';
+  $handler->display->display_options['fields']['field_genbank_number']['type'] = 'darwincore_link_to_ncbi';
   /* Field: Fields: Identification qualifier */
   $handler->display->display_options['fields']['field_identification_qualifier']['id'] = 'field_identification_qualifier';
   $handler->display->display_options['fields']['field_identification_qualifier']['table'] = 'field_data_field_identification_qualifier';
