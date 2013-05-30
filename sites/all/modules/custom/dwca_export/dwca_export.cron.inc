@@ -26,7 +26,7 @@ function _dwca_export_cron(){
   foreach($views as $view){
     // Filename based on the name of the view with "dwca_export_" removed.
     $filename = substr($view->name, 12) . DWCA_EXTENSIONS_FILE_EXTENSION;
-    if(!isset($files_to_add[$filename])){
+    if(!isset($files_to_add[$filename]) || !file_exists('public://dwca/' . $filename)){
       // Get the view and render it.
       $output_filename = drupal_realpath('public://dwca') . '/' . $filename;
       drush_backend_fork('vde', array(
@@ -42,7 +42,6 @@ function _dwca_export_cron(){
       if($i >= 5){
         break;
       }
-    }else if(!file_exists('public://dwca/' . $filename)){
     }
   }
   return $return;
