@@ -32,7 +32,7 @@ function feeds_xls_get_populated_template(){
  * Get a PHPExcel cache object.  This gets the most efficient cache object that
  * this environment is capable of using.
  */
-function _feeds_xls_initialise_phpexcel(){
+function _feeds_xls_initialise_phpexcel($save_memory = FALSE){
   // Load the library.
   if(function_exists('libraries_get_path')){
     $path = libraries_get_path('PHPExcel');
@@ -41,13 +41,15 @@ function _feeds_xls_initialise_phpexcel(){
     $path = drupal_get_path('module', 'feeds_xls') . '/PHPExcel/PHPExcel/IOFactory.php';
   }
   require_once $path;
-  // We try the following cache methods:
-  // - igbinary
-  // - memory_gzip
-  // Set the cache method.
-  $cache_method = PHPExcel_CachedObjectStorageFactory::cache_igbinary;
+  // We use the IGBinary cache method, as it is the quickest.  If we run in to
+  // memory issues, then the SQLite3 function is far more efficient with memory.
+  if($save_memory){
+    $cache_method = PHPExcel_CachedObjectStorageFactory::cache_to_sqlite3;
+  }else{
+    $cache_method = PHPExcel_CachedObjectStorageFactory::cache_igbinary;
+  }
   if(!PHPExcel_Settings::setCacheStorageMethod($cache_method)){
-    $cache_method = PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip;
+    $cache_method = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
     PHPExcel_Settings::setCacheStorageMethod($cache_method);
   }
   watchdog('feeds_xls', 'PHPExcel set to use %cache_method cache', array(
@@ -342,8 +344,15 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
   // Set the progress
   $context['progress'] = $context['sandbox']['row'] / $context['sandbox']['max'];
   $context['finished'] = $context['progress'];
+  $context['message'] = t('Added @current entities out of @total to the file.', array(
+    '@current' => $context['sandbox']['row'],
+    '@total' => $context['sandbox']['max']
+  ));
   if(!count($context['sandbox']['entity_ids'])){
     $context['finished'] = TRUE;
+    // Set a message warning the user that the download will take a little while
+    // to create.
+    $context['message'] = t('Please wait while your file is converted.  This can take a few minutes.');
   }
 }
 
@@ -364,6 +373,8 @@ function feeds_xls_redirect_to_populated_file($success, $results, $operations){
     ini_set('memory_limit', '1024M');
     ini_set('max_execution_time', 600);
     // Load the library, and set the cache type
+    // TODO: We need to check for the size of the CSV file so that we can decide
+    // if we need to save memory or not.
     _feeds_xls_initialise_phpexcel();
     // Open the file.
     $objReader = new PHPExcel_Reader_CSV();
@@ -376,9 +387,6 @@ function feeds_xls_redirect_to_populated_file($success, $results, $operations){
   }
 }
 
-/**
- * 
- */
 /**
  * Callback function to provide the template.
  */
