@@ -138,26 +138,25 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
 			name=TaxClassValue_tab,
 			author=TaxClassAuthors_tab
 		]',
-        'NteText0',
         'collectionEvent=EntLocEventSiteRef.[
-	  ecollectioneventsIRN=irn,
-	  colleventSumm=SummaryData,
-	  colleventNotes=NteText0,
-	  site=ColSiteRef.[
-		site_guid=irn,
-		SecRecordStatus,	  
-		continent=LocContinent_tab,
-		country=LocCountry_tab,
-		province=LocProvinceStateTerritory_tab, 
-		district=LocDistrictCountyShire_tab, 
-		town=LocTownship_tab,
-		decLat=LatLatitudeDecimal_nesttab,
-		decLong=LatLongitudeDecimal_nesttab,
-		lat=LatLatitude_nesttab,
-		lng=LatLongitude_nesttab,
-		waterBodyType=AquWaterBodyType
-		]
-	 ]'
+	        ecollectioneventsIRN=irn,
+	        colleventSumm=SummaryData,
+	        colleventNotes=NteText0,
+    	    site=ColSiteRef.[
+        		site_guid=irn,
+        		SecRecordStatus,	  
+        		continent=LocContinent_tab,
+        		country=LocCountry_tab,
+        		province=LocProvinceStateTerritory_tab, 
+        		district=LocDistrictCountyShire_tab, 
+        		town=LocTownship_tab,
+        		decLat=LatLatitudeDecimal_nesttab,
+        		decLong=LatLongitudeDecimal_nesttab,
+        		lat=LatLatitude_nesttab,
+        		lng=LatLongitude_nesttab,
+        		waterBodyType=AquWaterBodyType
+    	  ]
+	   ]'
       );
     }
     /* Always only search for those items with flag on for internet access */
