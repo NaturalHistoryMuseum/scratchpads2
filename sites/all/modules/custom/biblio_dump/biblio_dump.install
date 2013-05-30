@@ -5,9 +5,7 @@
  */
 function biblio_dump_install(){
   // Generate a randomly named file.
-  $time = time();
-  $filename = 'public://biblio_dump-' . md5($time) . '.bib';
-  variable_set('biblio_dump_filename', $filename);
+  variable_set('biblio_dump_filename', 'public://biblio_dump-' . md5(time()) . '.bib');
 }
 
 /**
