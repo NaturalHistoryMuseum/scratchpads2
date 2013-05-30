@@ -120,24 +120,22 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
         'SCAN_record'
       );
       $kemuColumns = array(
-        'catalogue_guid=irn',
-        'scan_record_status=EntRecRecordStatus_tab',
-        'PreType',
-        'CatKindOfCollection',
         'barcode=CardBarcode',
+        'host=CardHostRef_tab.[
+			host_irn=irn,
+			host_rank=TaxClassRank_tab,
+			host_name=TaxClassValue_tab,
+			host_author=TaxClassAuthors_tab
+		]',
         'parasite_stage=CardParasiteStage_nesttab',
-        'host_scientific_name=CardHostRef_tab.[
-			irn,
-			rank=TaxClassRank_tab,
-			name=TaxClassValue_tab,
-			author=TaxClassAuthors_tab
+        'parasite=CardParasiteRef_tab.[
+			parasite_irn=irn,
+			parasite_rank=TaxClassRank_tab,
+			parasite_name=TaxClassValue_tab,
+			parasite_author=TaxClassAuthors_tab
 		]',
-        'parasite_scientific_name=CardParasiteRef_tab.[
-			irn,
-			rank=TaxClassRank_tab,
-			name=TaxClassValue_tab,
-			author=TaxClassAuthors_tab
-		]',
+        'scan_record_status=EntRecRecordStatus_tab',
+        'collectedStart=PrePreparedDateFrom',
         'collectionEvent=EntLocEventSiteRef.[
 	        ecollectioneventsIRN=irn,
 	        colleventSumm=SummaryData,
@@ -155,8 +153,19 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
         		lat=LatLatitude_nesttab,
         		lng=LatLongitude_nesttab,
         		waterBodyType=AquWaterBodyType
-    	  ]
-	   ]'
+    	    ]
+	     ]',
+        'collector=PrePreparedByRef.[
+			collector_irn=irn,
+			collector_full_name=NamFullName,
+			collector_brief_name=NamBriefName,
+			collector_salutation=NamSalutation,
+			collector_organization=NamOrganisation,
+			collector_dept=NamDepartment			
+		]',
+       'catalogue_guid=irn',
+       'count=CardNotes',
+       'PreType'
       );
     }
     /* Always only search for those items with flag on for internet access */
