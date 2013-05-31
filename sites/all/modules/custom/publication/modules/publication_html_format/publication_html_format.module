@@ -253,7 +253,7 @@ function publication_html_format_theme($existing, $type, $theme, $path){
 /**
  * Implement hook_entity_insert/update
  * - Add the references and figures that were inserted via insert_from_view
- *
+ * - Ensure tables without a title and body are removed (as id is auto-generated)
  */
 function publication_html_format_entity_insert($entity, $type){
   _publication_html_format_entity_upsert($entity, $type);
@@ -323,6 +323,17 @@ function _publication_html_format_entity_upsert($entity, $type){
         $figure_collection_item->save();
         $need_saving = FALSE;
       }
+    }
+  }
+  // Remove tables
+  foreach ($entity->field_publication_tables[LANGUAGE_NONE] as $key => $value) {
+    $table_collection_item = reset(entity_load('field_collection_item', array(
+      $value['value']
+    )));
+    if (empty($table_collection_item->field_publication_table)
+        && empty($table_collection_item->field_publication_table_title)) {
+      $table_collection_item->delete();
+      $need_saving = FALSE;
     }
   }
   if($need_saving){
