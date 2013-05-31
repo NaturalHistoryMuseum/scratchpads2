@@ -17,7 +17,7 @@ function feeds_tamper_dateFormat_form($importer, $element_key, $settings){
     '#type' => 'textfield',
     '#title' => t('Incoming Date Format'),
     '#default_value' => isset($settings['incoming_date_format']) ? $settings['incoming_date_format'] : '',
-    '#description' => t('A user-defined php date format string like d/m/Y". See the <a href="@url">PHP manual</a> for available options.', array(
+    '#description' => t('Enter the php date format of the incoming string. For example "d/m/Y". See the <a href="@url">PHP manual</a> for available options.', array(
       '@url' => 'http://www.php.net/manual/function.date.php'
     ))
   );
@@ -25,7 +25,7 @@ function feeds_tamper_dateFormat_form($importer, $element_key, $settings){
       '#type' => 'textfield',
       '#title' => t('New Date Format'),
       '#default_value' => isset($settings['new_date_format']) ? $settings['new_date_format'] : '',
-      '#description' => t('A user-defined php date format string like "Y/m/d". See the <a href="@url">PHP manual</a> for available options.', array(
+      '#description' => t('Enter the format you want the incoming date converted to. For example "Y/m/d". See the <a href="@url">PHP manual</a> for available options.', array(
           '@url' => 'http://www.php.net/manual/function.date.php'
       ))
   );
@@ -33,8 +33,24 @@ function feeds_tamper_dateFormat_form($importer, $element_key, $settings){
 }
 
 function feeds_tamper_dateFormat_callback($result, $item_key, $element_key, &$field, $settings){
-  $field = date_create_from_format($settings['incoming_date_format'], $field)->format($settings['new_date_format']);
-
+  if(!empty($field)){
+    
+    try{
+      $field = date_create_from_format($settings['incoming_date_format'], $field)->format($settings['new_date_format']);
+    }
+    catch(Exception $e) {
+      echo $e->getMessage();
+      //print_r(date_get_last_errors());
+    }
+  //  if (!$date) {
+   //   $e = date_get_last_errors();
+    //  foreach ($e['errors'] as $error) {
+     //   echo "$error\n";
+     // }
+     // exit(1);
+   // } 
+    
+  }
 }
 
 function feeds_tamper_dateFormat_validate(&$settings){
