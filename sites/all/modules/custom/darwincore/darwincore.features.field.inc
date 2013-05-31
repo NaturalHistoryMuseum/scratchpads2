@@ -1996,7 +1996,7 @@ function darwincore_field_default_fields(){
           'label' => 'above',
           'module' => 'text',
           'settings' => array(),
-          'type' => 'text_default',
+          'type' => 'darwincore_link_to_ncbi',
           'weight' => '7'
         ),
         'linked_node' => array(
@@ -2014,7 +2014,8 @@ function darwincore_field_default_fields(){
       ),
       'entity_type' => 'node',
       'field_name' => 'field_genbank_number',
-      'label' => 'GenBank number',
+      'label' => 'GenBank number(s)',
+      'description' => t('Enter a comma separated list of numbers. For example: FN554775, FR694013'),
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
@@ -2931,7 +2932,7 @@ function darwincore_field_default_fields(){
   t('Date identified');
   t('Field notes');
   t('Field number');
-  t('GenBank number');
+  t('GenBank number(s)');
   t('General comments about the specimen that others may find useful.');
   t('Geodetic datum');
   t('Georeference protocol');

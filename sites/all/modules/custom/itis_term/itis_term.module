@@ -414,6 +414,10 @@ function itis_term_taxonomy_term_presave($term){
   if(isset($info['field_unit_name1']) && $wrapper->field_unit_name1->value()){
     $name = '';
     for($i = 1; $i <= 4; $i++){
+      // Unset the indicator[x] value if the name[x] value is not set
+      if(!$wrapper->{"field_unit_name" . $i}->value()){
+        $wrapper->{"field_unit_indicator" . $i}->set();
+      }
       $space = ' ';
       if($wrapper->{"field_unit_indicator" . $i}->value() == '×' || $wrapper->{"field_unit_indicator" . $i}->value() == 'x'){
         $space = '';
