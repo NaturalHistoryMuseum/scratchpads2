@@ -264,7 +264,6 @@ function scratchpads_blog_remake($account){
 function scratchpads_blog_authors(){
   $term_id = FALSE;
   $date = FALSE;
-  
   if(arg(2) == 'term'){
     $term_id = arg(3);
     $taxonomy_operator = '=';
