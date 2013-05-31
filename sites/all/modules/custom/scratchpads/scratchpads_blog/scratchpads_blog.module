@@ -487,6 +487,7 @@ function scratchpads_blog_taxonomy(){
  *  Returns date filter list for blogs, by year and month
  */
 function scratchpads_blog_date(){
+  $date = '';
   $uid = arg(1);
   $tid = 0;
   if(arg(2) == 'term'){
