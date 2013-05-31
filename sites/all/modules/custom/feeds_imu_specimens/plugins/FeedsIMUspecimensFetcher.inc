@@ -120,21 +120,19 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
         'SCAN_record'
       );
       $kemuColumns = array(
-        'barcode=CardBarcode',
         'host=CardHostRef_tab.[
-			host_irn=irn,
-			host_rank=TaxClassRank_tab,
-			host_name=TaxClassValue_tab,
-			host_author=TaxClassAuthors_tab
+			irn,
+			rank=TaxClassRank_tab,
+			name=TaxClassValue_tab,
+			author=TaxClassAuthors_tab
 		]',
         'parasite_stage=CardParasiteStage_nesttab',
         'parasite=CardParasiteRef_tab.[
-			parasite_irn=irn,
-			parasite_rank=TaxClassRank_tab,
-			parasite_name=TaxClassValue_tab,
-			parasite_author=TaxClassAuthors_tab
+			irn,
+			rank=TaxClassRank_tab,
+			name=TaxClassValue_tab,
+			author=TaxClassAuthors_tab
 		]',
-        'scan_record_status=EntRecRecordStatus_tab',
         'collectedStart=PrePreparedDateFrom',
         'collectionEvent=EntLocEventSiteRef.[
 	        ecollectioneventsIRN=irn,
@@ -158,14 +156,18 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
         'collector=PrePreparedByRef.[
 			collector_irn=irn,
 			collector_full_name=NamFullName,
+            collector_last_name=NamLast,
 			collector_brief_name=NamBriefName,
 			collector_salutation=NamSalutation,
 			collector_organization=NamOrganisation,
 			collector_dept=NamDepartment			
 		]',
-       'catalogue_guid=irn',
-       'count=CardNotes',
-       'PreType'
+        'barcode=CardBarcode',
+        'scan_record_status=EntRecRecordStatus_tab',
+        'catalogue_guid=irn',
+        'count=CardNotes',
+        'PreType',
+        'CatKindOfCollection'
       );
     }
     /* Always only search for those items with flag on for internet access */
