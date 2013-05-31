@@ -1,6 +1,5 @@
 <?php
-
-require_once('publication_html_format.features.inc');
+require_once ('publication_html_format.features.inc');
 
 /**
  * Implement hook_entity_view_alter
@@ -422,11 +421,15 @@ function publication_html_format_form_publication_edit_form_alter(&$form, &$form
         'editor_table_icon' => drupal_get_path('module', 'publication_html_format') . '/images/tables.png',
         'editor_table_width' => '75%',
         'editor_table_height' => '75%',
-        'editor_reference_editor_icon' => drupal_get_path('module', 'publication_html_format') . '/images/references.png'
+        'editor_reference_editor_icon' => drupal_get_path('module', 'publication_html_format') . '/images/references.png',
+        'editor_css' => url(drupal_get_path('module', 'publication_html_format') . '/css/publication_html_format_editor.css'),
+        'editor_table_header' => '<div class="publication_html_format_header">' . '<h1>' . t('Select table citation(s) to insert') . '</h1>' . '<p>' . t('The table citation will be inserted as <strong>"Table [id:<em>id-of-the-table</em>]"</strong>.' . 'Once the publication is saved, the tables will be ordered by order of appeareance, and the citations will ' . 'be renamed accordingly as <strong>"Table <em>table-number</em>"</strong>.') . '</p>' . '</div>'
       )
     ),
     'type' => 'setting'
   );
+  // Add our CSS
+  drupal_add_css(drupal_get_path('module', 'publication_html_format') . '/css/publication_html_format.css');
 }
 
 /**
@@ -436,10 +439,20 @@ function publication_html_format_form_publication_edit_form_alter(&$form, &$form
  * the 'ckeditor' component.
  *
  */
-function publication_html_format_module_implements_alter(&$implementations, $hook) {
-  if ($hook == 'features_api' && isset($implementations['ckeditor'])) {
+function publication_html_format_module_implements_alter(&$implementations, $hook){
+  if($hook == 'features_api' && isset($implementations['ckeditor'])){
     $setting = $implementations['ckeditor'];
     unset($implementations['ckeditor']);
     $implementations['ckeditor'] = $setting;
   }
 }
+
+/**
+ * Implement hook_insert_from_view_view_alter
+ *
+ * Add our CSS
+ */
+function publication_html_format_insert_from_view_view_alter(&$view){
+  drupal_add_css(drupal_get_path('module', 'publication_html_format') . '/css/publication_html_format.css');
+}
+
