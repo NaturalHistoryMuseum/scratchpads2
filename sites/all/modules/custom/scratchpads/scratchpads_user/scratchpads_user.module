@@ -123,8 +123,16 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
   _scratchpads_user_form_alter($form, $form_state);
   if(isset($form['#user']->stub_user)){
     $form['create_user_account']['#default_value'] = 0;
-    // Get rid of the crap that we don't need (biblio, etc).
-    unset($form['biblio_fieldset']);
+    // Get rid of the crap that we don't need.
+    $form['biblio_fieldset']['biblio_show_profile'] = array(
+      '#type' => 'hidden',
+      '#value' => 1
+    );
+    unset($form['biblio_fieldset']['biblio_my_pubs_menu']);
+    unset($form['biblio_fieldset']['biblio_user_style']);
+    unset($form['biblio_fieldset']['openurl']);
+    unset($form['biblio_fieldset']['biblio_id_change_count']);
+    unset($form['biblio_fieldset']['biblio_doi']);
     unset($form['overlay_control']);
     unset($form['timezone']);
     unset($form['comment_notify_settings']);
