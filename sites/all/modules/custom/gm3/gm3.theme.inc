@@ -228,10 +228,21 @@ function theme_gm3_view_gm3($variables){
           }
           if(count($row->{"field_$key"})){
             foreach($row->{"field_$key"} as $item){
+              $point = $item['raw'];
               if(isset($array_points[$point['latitude']][$point['longitude']])){
-                $map['libraries']['point']['points'][$array_points[$point['latitude']][$point['longitude']]]['content'] .= '<hr/>' . $content;
+                if(!is_array($map['libraries']['point']['points'][$array_points[$point['latitude']][$point['longitude']]]['content'])){
+                  $map['libraries']['point']['points'][$array_points[$point['latitude']][$point['longitude']]]['content'] = array(
+                    array(
+                      'title' => '1',
+                      'content' => $map['libraries']['point']['points'][$array_points[$point['latitude']][$point['longitude']]]['content']
+                    )
+                  );
+                }
+                $map['libraries']['point']['points'][$array_points[$point['latitude']][$point['longitude']]]['content'][] = array(
+                  'title' => count($map['libraries']['point']['points'][$array_points[$point['latitude']][$point['longitude']]]['content']) + 1,
+                  'content' => $content
+                );
               }else{
-                $point = $item['raw'];
                 $point['content'] = $content;
                 $array_points[$point['latitude']][$point['longitude']] = count($map['libraries']['point']['points']);
                 $map['libraries']['point']['points'][] = $point;
