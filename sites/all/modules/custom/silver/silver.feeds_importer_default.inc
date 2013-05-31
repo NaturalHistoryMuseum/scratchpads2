@@ -233,7 +233,8 @@ function silver_feeds_importer_default(){
   );
   $field_info = field_info_instances('user', 'user');
   // reorder the array
-  $order = array(
+  $out = array();
+  foreach(array(
     "field_user_title",
     "field_user_given_names",
     "field_user_family_name",
@@ -241,10 +242,10 @@ function silver_feeds_importer_default(){
     "field_homepage",
     "field_user_institution",
     "field_user_taxonomic_interest"
-  );
-  $out = array();
-  foreach($order as $element){
-    $out[$element] = $field_info[$element];
+  ) as $key){
+    if(isset($field_info[$key])){
+      $out[$key] = $field_info[$key];
+    }
   }
   $field_info = $out;
   _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'user:user:');
