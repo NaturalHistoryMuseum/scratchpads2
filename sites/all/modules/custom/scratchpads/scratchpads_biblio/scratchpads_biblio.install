@@ -21,3 +21,12 @@ function scratchpads_biblio_update_7002(){
   $field_instance['settings']['file_extensions'] = 'txt pdf doc png jpg gif';
   field_update_instance($field_instance);
 }
+
+/**
+ * Set the field_file field to allow extra extensions (images).
+ */
+function scratchpads_biblio_update_7003(){
+  module_load_include('features.field.inc', 'scratchpads_biblio');
+  $fields = scratchpads_biblio_field_default_fields();
+  field_update_instance($fields['node-biblio-field_file']['field_instance']);
+}
