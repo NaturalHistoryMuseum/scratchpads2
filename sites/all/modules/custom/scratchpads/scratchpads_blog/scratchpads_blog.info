@@ -3,4 +3,5 @@ description = Enables multi-user blogs.
 package = "Blog"
 core = 7.x
 dependencies[] = blog
+files[] = scratchpads_blog.test
 tool=true
