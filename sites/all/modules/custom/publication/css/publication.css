@@ -137,3 +137,10 @@
 .publication-group .field-collection-view-final {
   border-bottom: 1px dotted #D3D7D9;
 }
+
+reference_citation,
+fig_citation,
+tbls_citation {
+  background: #DDD;
+  border: 1px dashed #AAA;
+}
