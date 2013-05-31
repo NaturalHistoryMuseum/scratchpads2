@@ -210,8 +210,8 @@ function _publication_html_format_filter_process_format($element){
     unset($element['format']['format']['#options']['publication_html']);
   }else{
     list($eid, $vid, $bundle) = entity_extract_ids($element['#entity_type'], $element['#entity']);
-    // Only set a default on new entities
-    if(empty($eid) && isset($element['format']['format']['#options']['publication_html'])){
+    // Only set a default on new entities and empty fields
+    if((empty($eid) || empty($element['value']['#default_value'])) && isset($element['format']['format']['#options']['publication_html'])){
       $element['format']['format']['#default_value'] = 'publication_html';
     }
   }
