@@ -102,7 +102,6 @@ class PublicationHtmlFormatChangeCitations{
   */
   function process(&$build){
     if(isset($build['#markup'])){
-      // XXX we should enforce a stricter type for citations ids.
       $build['#markup'] = preg_replace_callback('/(<tbls_citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/tbls_citation>)/', array(
         $this,
         '_replace_table_citation'
@@ -110,6 +109,10 @@ class PublicationHtmlFormatChangeCitations{
       $build['#markup'] = preg_replace_callback('/(<fig_citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/fig_citation>)/', array(
         $this,
         '_replace_figure_citation'
+      ), $build['#markup']);
+      $build['#markup'] = preg_replace_callback('/(<reference_citation.*?citation_id=["\'](.*?)["\'].*?>)(.*?)(<\/reference_citation>)/', array(
+        $this,
+        '_replace_reference_citation'
       ), $build['#markup']);
       $build['#markup'] = preg_replace_callback('/(\[bib\]\s*(\d+)\s*\[\/bib\])/', array(
         $this,
@@ -134,7 +137,7 @@ class PublicationHtmlFormatChangeCitations{
       $this->table_ids[] = $id;
       $table_number = count($this->table_ids);
     }
-    $out = $matches[1] . t('Table') . ' ' . $table_number . $matches[3];
+    $out = '<tbls_citation citation_id="' . $id . '" contenteditable="false">' . t('Table') . ' ' . $table_number . '</tbls_citation>';
     return $out;
   }
 
@@ -150,7 +153,7 @@ class PublicationHtmlFormatChangeCitations{
       $this->figure_ids[] = $id;
       $figure_number = count($this->figure_ids);
     }
-    $out = $matches[1] . t('Figure') . ' ' . $figure_number . $matches[3];
+    $out = '<fig_citation citation_id="' . $id . '" contenteditable="false">' . t('Figure') . ' ' . $figure_number . '</fig_citation>';
     return $out;
   }
 
@@ -159,18 +162,22 @@ class PublicationHtmlFormatChangeCitations{
    */
   function _replace_reference_citation($matches){
     $nid = $matches[2];
-    $node = node_load($nid);
-    $all_authors = array();
-    foreach($node->biblio_contributors as $contributor){
-      $all_authors[] = $contributor['lastname'];
+    if (preg_match('/^\[bib\]/', $matches[1])) {
+      $node = node_load($nid);
+      $all_authors = array();
+      foreach($node->biblio_contributors as $contributor){
+        $all_authors[] = $contributor['lastname'];
+      }
+      if(count($all_authors) > 2){
+        $authors = $all_authors[0] . ' et al.';
+      }else{
+        $authors = implode(' and ', $all_authors);
+      }
+      $year = $node->biblio_year;
+      return '<reference_citation citation_id="' . $nid . '" contenteditable="false">' . "$authors $year</reference_citation>";
+    } else {
+      return '<reference_citation citation_id="' . $nid . '" contenteditable="false">' . $matches[3] . "</reference_citation>";
     }
-    if(count($all_authors) > 2){
-      $authors = $all_authors[0] . ' et al.';
-    }else{
-      $authors = implode(' and ', $all_authors);
-    }
-    $year = $node->biblio_year;
-    return '<reference_citation citation_id="' . $nid . '" contenteditable="false" style="background: #DDD;">' . "$authors $year</reference_citation>";
   }
 }
 
