@@ -319,10 +319,10 @@ function scratchpads_species_term_page($term, $op = 'overview'){
     ));
     $subtitle = '&nbsp;';
     if(isset($term->field_authors[LANGUAGE_NONE][0]['safe_value'])){
-      $subtitle .= $term->field_authors[LANGUAGE_NONE][0]['safe_value'];
+      $subtitle = $term->field_authors[LANGUAGE_NONE][0]['safe_value'] . ' ';
     }
     if(isset($term->field_usage[LANGUAGE_NONE][0]['value']) && ($term->field_usage[LANGUAGE_NONE][0]['value'] == 'invalid' || $term->field_usage[LANGUAGE_NONE][0]['value'] == 'unaccepted')){
-      $subtitle .= ' [' . ucfirst($term->field_usage[LANGUAGE_NONE][0]['value']) . ']';
+      $subtitle .= '[' . ucfirst($term->field_usage[LANGUAGE_NONE][0]['value']) . ']';
     }
     // Return a blank page contextual links
     $build = array(
