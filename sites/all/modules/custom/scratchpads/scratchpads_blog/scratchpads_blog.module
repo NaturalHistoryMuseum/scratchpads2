@@ -262,7 +262,8 @@ function scratchpads_blog_remake($account){
  * Returns a list of author filter links for blogs.
  */
 function scratchpads_blog_authors(){
-  $term_id = '';
+  $term_id = FALSE;
+  $date = FALSE;
   if(arg(2) == 'term'){
     $term_id = arg(3);
     $taxonomy_operator = '=';
@@ -275,7 +276,7 @@ function scratchpads_blog_authors(){
   }elseif(arg(4) == 'date'){
     $date = arg(5);
   }
-  if($date != ''){
+  if($date){
     $date_year = substr($date, 0, 4);
     $date_month = substr($date, 5, 2);
     $date1 = mktime(0, 0, 0, 0, 0, $date_year);
@@ -295,7 +296,7 @@ function scratchpads_blog_authors(){
   }else{
     $date_string = '';
   }
-  if($term_id != ''){
+  if($term_id){
     $term_condition_operator = '=';
   }else{
     $term_condition_operator = '>';
@@ -316,7 +317,7 @@ function scratchpads_blog_authors(){
   $query->condition('u.status', 1);
   $query->condition('n.status', 1);
   $query->condition('n.type', 'blog', '=');
-  if($date != ''){
+  if($date){
     $query->condition('n.created', $date1, $date_operator1);
     $query->condition('n.created', $date2, $date_operator2);
   }
@@ -485,6 +486,7 @@ function scratchpads_blog_taxonomy(){
  *  Returns date filter list for blogs, by year and month
  */
 function scratchpads_blog_date(){
+  $date = '';
   $uid = arg(1);
   $tid = 0;
   if(arg(2) == 'term'){
