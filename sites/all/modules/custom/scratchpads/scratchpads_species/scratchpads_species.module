@@ -317,7 +317,7 @@ function scratchpads_species_term_page($term, $op = 'overview'){
     $name = theme('scratchpads_species_name', array(
       'term' => $term
     ));
-    $subtitle = '';
+    $subtitle = '&nbsp;';
     if(isset($term->field_authors[LANGUAGE_NONE][0]['safe_value'])){
       $subtitle .= $term->field_authors[LANGUAGE_NONE][0]['safe_value'];
     }
