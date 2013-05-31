@@ -404,12 +404,30 @@ function publication_html_format_form_publication_edit_form_alter(&$form, &$form
   // Handle automatic adding of tables
   $entity = $form['#entity'];
   $tables_map = array();
-  $table_key = 0;
+  $table_key = 1;
+  $table_ids_to_assign = array();
   foreach(element_children($form['field_publication_tables'][LANGUAGE_NONE]) as $elem_key){
-    $form['field_publication_tables'][LANGUAGE_NONE][$elem_key]['#title'] = 'Table. ' . ($elem_key + 1);
-    if($elem_key >= $table_key){
-      $table_key = $elem_key + 1;
+    if ($elem_key === 'add_more') {
+      continue;
     }
+    $collection =& $form['field_publication_tables'][LANGUAGE_NONE][$elem_key];
+    if (!empty($collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#default_value'])) {
+      $table_id_value = $collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#default_value'];
+      if ($table_id_value >= $table_key) {
+        $table_key =  $table_id_value + 1;
+      }
+      $form['field_publication_tables'][LANGUAGE_NONE][$elem_key]['#prefix'] = '<p>Table id: ' . $table_id_value . '</p>';
+      $collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#type'] = 'hidden';
+    } else {
+      $table_ids_to_assign[] = $elem_key;
+    }
+  }
+  foreach ($table_ids_to_assign as $elem_key) {
+    $collection =& $form['field_publication_tables'][LANGUAGE_NONE][$elem_key];
+    $collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#default_value'] = $table_key;
+    $collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#type'] = 'hidden';
+    $form['field_publication_tables'][LANGUAGE_NONE][$elem_key]['#prefix'] = '<p>Table id: ' . $table_key . '</p>';
+    $table_key++;
   }
   // JS settings
   $form['#attached']['js'][] = array(
