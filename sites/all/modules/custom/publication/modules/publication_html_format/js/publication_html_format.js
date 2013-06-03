@@ -1,9 +1,7 @@
 (function($) {
-
   Drupal.behaviors.pensoft = {
 
     attach : function(context) {
-
       /**
        * Callback when some references have been added to a textarea
        */
@@ -30,8 +28,9 @@
               authors_str = authors.join(" " + Drupal.t("and") + " ");
             }
             inserts[i] = '<reference_citation citation_id="' + nid
-                + '" contenteditable="false" style="background: #DDD;">'
-                + authors_str + " " + year + '</reference_citation>';
+                + '" contenteditable="false" title="'
+                + Drupal.t('Reference citation. Right click to edit.')
+                + '">' + authors_str + " " + year + '</reference_citation>';
 
             if (Drupal.settings["pensoft"].references_map[nid] == undefined) {
               Drupal.settings["pensoft"].references_map[nid] = true;
@@ -84,7 +83,9 @@
           if (matches != null && matches.length > 0) {
             var fid = matches[1];
             var filename = matches[2];
-            var tpl = '<fig_citation citation_id="%" contenteditable="false" style="background: #DDD;">Figure [filename:~]</fig_citation>';
+            var tpl = '<fig_citation citation_id="%" contenteditable="false" title="'
+              + Drupal.t('Figure citation. These will be re-numbered when the publication is finalised.')
+              + '">Figure [filename:~]</fig_citation>';
             if (Drupal.settings["pensoft"].figures_map[fid] != undefined) {
               inserts[i] = tpl.replace('%', fid).replace('~', filename);
             } else {

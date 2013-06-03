@@ -151,6 +151,8 @@ function insert_from_view_view_callback($machine_name){
     $view->build($settings[$machine_name]['display']);
     $style = $view->style_plugin;
     $style->options['row_class'] .= ' insert_from_view_row';
+    // Allow other modules to modify the view
+    drupal_alter('insert_from_view_view', $view);
     $html = $view->preview($settings[$machine_name]['display'], $arguments);
     $field = $settings[$machine_name]['field'];
     $insert_array = array();

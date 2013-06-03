@@ -65,3 +65,14 @@ function publication_html_format_update_7004(){
     )
   ));
 }
+
+/**
+ * Revert the Publication HTML CKEditor profile
+ */
+function publication_html_format_update_7005(){
+  features_revert(array(
+    'publication_html_format' => array(
+      'ckeditor_profile'
+    )
+  ));
+}
