@@ -1,6 +1,36 @@
 <?php
 
 /**
+ * Check we don't have orphaned terms in deleted vocabularies.  These do not
+ * need to be reported, and can simply be deleted.
+ */
+function scratchpads_data_integrity_check_for_terms_in_deleted_vocabularies(){
+  $subquery = db_select('taxonomy_vocabulary', 'v')->fields('v', array(
+    'vid'
+  ));
+  $results = db_select('taxonomy_term_data', 't')->fields('t', array(
+    'tid',
+    'name'
+  ))->condition('vid', $subquery, 'NOT IN')->execute();
+  $tids = array();
+  $messages = array();
+  foreach($results as $row){
+    //taxonomy_term_delete($row->tid);
+    // Before we delete, we'll send emails just to guage how many terms we could
+    // be deleting.
+    $messages[] = " - {$row->name} ($row->tid)";
+  }
+  if(count($messages)){
+    $messages = implode("\n", $messages);
+    $messages = array(
+      t('The following term(s) were associated with a deleted vocabulary and have been deleted:'),
+      $messages
+    );
+  }
+  return $messages;
+}
+
+/**
  * Standard data-int to check if any terms have lost their parent.
  */
 function scratchpads_data_integrity_check_all_terms_have_parents(){
