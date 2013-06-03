@@ -43,15 +43,5 @@ function feeds_imu_specimens_feeds_plugins(){
       'path' => drupal_get_path('module', 'feeds_imu_specimens') . '/plugins'
     )
   );
-  $info['FeedsIMUspecimensParser'] = array(
-    'name' => 'IMU specimens parser',
-    'description' => 'Parses data fetched from a KEMU eCatalog module.',
-    'handler' => array(
-      'parent' => 'FeedsParser',
-      'class' => 'FeedsIMUspecimensParser',
-      'file' => 'FeedsIMUspecimensParser.inc',
-      'path' => drupal_get_path('module', 'feeds_imu_specimens') . '/plugins'
-    )
-  );
   return $info;
 }
