@@ -179,7 +179,7 @@
     CKEDITOR.plugins.add("insert_from_view_" + set.machine_name, {
       init : function(editor) {
         editor.ui.addButton("insert_from_view_" + set.machine_name, {
-          label : "insert_from_view_" + set.machine_name,
+          label : set.label,
           icon : Drupal.settings.basePath + set.icon,
           command : "insert_from_view_" + set.machine_name
         });

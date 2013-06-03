@@ -285,7 +285,7 @@ function pensoft_publication_entity_field_group_callback(&$form, &$form_state){
 function pensoft_publication_publication_edit_form_submit($form, &$form_state){
   // Set title automatically
   if(!empty($form_state['values']['field_publication_title'][LANGUAGE_NONE][0]['value'])){
-    $form_state['values']['title'] = strip_tags($form_state['values']['field_publication_title'][LANGUAGE_NONE][0]['value']);
+    $form_state['values']['title'] = html_entity_decode(strip_tags($form_state['values']['field_publication_title'][LANGUAGE_NONE][0]['value']));
   }else{
     $form_state['values']['title'] = t('Publication');
   }
