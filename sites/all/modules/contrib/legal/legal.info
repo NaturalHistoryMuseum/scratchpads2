@@ -1,13 +1,14 @@
 name = Legal
 description = Display Terms and Conditions statement on the registration page.
+configure = admin/config/people/legal
 core = 7.x
 files[] = legal.test
 
 
 
-; Information added by drupal.org packaging script on 2011-11-05
-version = "7.x-1.x-dev"
+; Information added by drupal.org packaging script on 2013-03-31
+version = "7.x-1.4"
 core = "7.x"
 project = "legal"
-datestamp = "1320451887"
+datestamp = "1364769015"
 

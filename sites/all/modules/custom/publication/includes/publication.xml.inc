@@ -198,6 +198,7 @@ class PublicationXSDParser{
     // Base case if either $a or $b is not an array
     if(!is_array($a)){
       if(is_array($b) && $diff){
+        $b += array('#comment' => '');
         $b['#comment'] .= " DIFF:Type mismatch, this value was not an array in the source schema;";
       }
       return $b;
@@ -205,12 +206,13 @@ class PublicationXSDParser{
     if(!is_array($b)){
       $a[] = $b;
       if($diff){
+        $a += array('#comment' => '');
         $a['#comment'] .= " DIFF:Type mismatch, this value was not an array in the provided schema;";
       }
       return $a;
     }
     // Prepare for processing
-    $r = array();
+    $r = array('#comment' => '');
     $b_keys = array_keys($b);
     // Start with $a, and look for equivalents in $b
     foreach(array_keys($a) as $a_key){
@@ -236,6 +238,7 @@ class PublicationXSDParser{
     if($diff){
       foreach($b as $b_key => $b_val){
         if(strpos($b_key, '#') === FALSE){
+          $b += array('#comment' => '');
           $b['#comment'] .= " DIFF:$b_key missing in source schema;";
         }
       }
@@ -267,6 +270,9 @@ class PublicationXMLSchemaExplain{
     $output = array();
     $this->_path = array();
     foreach($this->schema as $tag => $child_schema){
+      if (preg_match('/^#/', $tag)) {
+        continue;
+      }
       $output[] = "<$tag>";
       $output[] = $this->_explain_with_xml_generate($child_schema);
       $output[] = "</$tag>";
@@ -286,7 +292,11 @@ class PublicationXMLSchemaExplain{
     // Add attributes
     if(!empty($schema['#attributes'])){
       foreach($schema['#attributes'] as $attr_name => $attr_value){
-        $output[] = "SET ATTR $attr_name = $attr_value;";
+        if (is_object($attr_value)) {
+          $output[] = "SET ATTR $attr_name = function() {...})();";
+        } else {
+          $output[] = "SET ATTR $attr_name = $attr_value;";
+        }
       }
     }
     // Add values
@@ -310,7 +320,13 @@ class PublicationXMLSchemaExplain{
     $condition = FALSE;
     if(isset($schema['#condition'])){
       if(is_callable($schema['#condition'])){
-        $output[] = "IF " . $schema['#condition'] . " {";
+        if (is_object($schema['#condition'])) {
+          $output[] = "IF (...) {";
+          $condition = '...()';
+        } else {
+          $output[] = "IF " . $schema['#condition'] . " {";
+          $condition = $schema['#condition'] . '()';
+        }
       }else{
         $elem = $this->_field_name($schema['#condition']);
         $condition = "$elem";
