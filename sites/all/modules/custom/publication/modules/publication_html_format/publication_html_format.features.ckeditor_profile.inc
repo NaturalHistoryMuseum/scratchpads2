@@ -56,8 +56,8 @@ function publication_html_format_ckeditor_profile_defaults(){
             'pre_indent' => 0
           )
         ),
-        'css_mode' => 'none',
-        'css_path' => '',
+        'css_mode' => 'self',
+        'css_path' => '%h' . drupal_get_path('module', 'publication_html_format') . '/css/publication_html_format_editor.css',
         'css_style' => 'theme',
         'styles_path' => '',
         'filebrowser' => 'none',
