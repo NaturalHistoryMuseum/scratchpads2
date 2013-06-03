@@ -13,8 +13,8 @@
   /**
    * Global function invoked from callback
    */
-  $.fn.insert_from_view_setup_view = function(key, insert_array) {
-    var instance_id = 'insert-from-view-' + key;
+  $.fn.insert_from_view_setup_view = function(machine_name, insert_array) {
+    var instance_id = 'insert-from-view-' + machine_name;
     var $root = $('#' + instance_id);
 
     // Handle individual fields
@@ -27,17 +27,17 @@
 
           // Give other scripts a chance to react/change the values
           $(editor.container.$).siblings('textarea').trigger(
-              'insertFromView-insert', [ elements, settings.map[key] ]);
+              'insertFromView-insert', [ elements, settings.map[machine_name] ]);
 
           var row_tag = [ '', '' ];
           var wrap_tag = [ '', '' ];
-          if (settings.map[key].row_tag != '') {
-            row_tag = [ ' <' + settings.map[key].row_tag + '> ',
-                ' </' + settings.map[key].row_tag + '> ' ];
+          if (settings.map[machine_name].row_tag != '') {
+            row_tag = [ ' <' + settings.map[machine_name].row_tag + '> ',
+                ' </' + settings.map[machine_name].row_tag + '> ' ];
           }
-          if (settings.map[key].wrap_tag != '') {
-            wrap_tag = [ ' <' + settings.map[key].wrap_tag + '> ',
-                ' </' + settings.map[key].wrap_tag + '> ' ];
+          if (settings.map[machine_name].wrap_tag != '') {
+            wrap_tag = [ ' <' + settings.map[machine_name].wrap_tag + '> ',
+                ' </' + settings.map[machine_name].wrap_tag + '> ' ];
           }
 
           editor.insertElement(CKEDITOR.dom.element.createFromHtml($.trim(wrap_tag[0] + row_tag[0]
@@ -78,17 +78,17 @@
 
                 // Give other scripts a chance to react/change the values
                 $(editor.container.$).siblings('textarea').trigger(
-                    'insertFromView-insert', [ elements, settings.map[key] ]);
+                    'insertFromView-insert', [ elements, settings.map[machine_name] ]);
 
                 var row_tag = [ '', '' ];
                 var wrap_tag = [ '', '' ];
-                if (settings.map[key].row_tag != '') {
-                  row_tag = [ ' <' + settings.map[key].row_tag + '> ',
-                      ' </' + settings.map[key].row_tag + '> ' ];
+                if (settings.map[machine_name].row_tag != '') {
+                  row_tag = [ ' <' + settings.map[machine_name].row_tag + '> ',
+                      ' </' + settings.map[machine_name].row_tag + '> ' ];
                 }
-                if (settings.map[key].wrap_tag != '') {
-                  wrap_tag = [ ' <' + settings.map[key].wrap_tag + '> ',
-                      ' </' + settings.map[key].wrap_tag + '> ' ];
+                if (settings.map[machine_name].wrap_tag != '') {
+                  wrap_tag = [ ' <' + settings.map[machine_name].wrap_tag + '> ',
+                      ' </' + settings.map[machine_name].wrap_tag + '> ' ];
                 }
 
                 editor.insertElement(CKEDITOR.dom.element.createFromHtml($.trim(wrap_tag[0] + row_tag[0]
@@ -164,27 +164,27 @@
    * Sets up one instance of a insert from view button
    */
   function setup_instance(set) {
-    var instance_id = 'insert-from-view-' + set.key;
+    var instance_id = 'insert-from-view-' + set.machine_name;
 
     // Add the element that will contain the frame and the button used for
     // triggering ajax
     $('body').append('<div id="' + instance_id + '"></div>');
     settings.ajax[instance_id] = new Drupal.ajax(instance_id, $('#'
         + instance_id), {
-      url : Drupal.settings.basePath + 'insert-from-view/' + set.key,
+      url : Drupal.settings.basePath + 'insert-from-view/' + set.machine_name,
       event : 'loadView',
     });
 
     // Add the CKEDITOR plugin
-    CKEDITOR.plugins.add("insert_from_view_" + set.key, {
+    CKEDITOR.plugins.add("insert_from_view_" + set.machine_name, {
       init : function(editor) {
-        editor.ui.addButton("insert_from_view_" + set.key, {
-          label : "insert_from_view_" + set.key,
+        editor.ui.addButton("insert_from_view_" + set.machine_name, {
+          label : set.label,
           icon : Drupal.settings.basePath + set.icon,
-          command : "insert_from_view_" + set.key
+          command : "insert_from_view_" + set.machine_name
         });
 
-        editor.addCommand('insert_from_view_' + set.key, {
+        editor.addCommand('insert_from_view_' + set.machine_name, {
           exec : function() {
             $.colorbox({
               inline : true,
@@ -207,10 +207,10 @@
                 arguments[i] = encodeURIComponent(arguments[i]);
               }
               ajax.options.url = Drupal.settings.basePath + 'insert-from-view/'
-                  + set.key + '/' + arguments.join('/');
+                  + set.machine_name + '/' + arguments.join('/');
             } else {
               ajax.options.url = Drupal.settings.basePath + 'insert-from-view/'
-                  + set.key
+                  + set.machine_name
             }
             ajax.eventResponse($('#' + instance_id), 'loadView');
           }
@@ -224,7 +224,7 @@
    */
   function init() {
     for ( var i = 0; i < settings.settings.length; i++) {
-      settings.map[settings.settings[i].key] = settings.settings[i];
+      settings.map[settings.settings[i].machine_name] = settings.settings[i];
       setup_instance(settings.settings[i]);
     }
   }

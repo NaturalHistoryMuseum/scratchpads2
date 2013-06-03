@@ -2,7 +2,7 @@
 // File extension for the CSV files in the DwC-A file.
 define('DWCA_EXTENSIONS_FILE_EXTENSION', ".txt");
 
-function _dwca_export_cron(){
+function _dwca_export_cron($break = TRUE){
   // Ensure the directory has been created.
   @drupal_mkdir('public://dwca');
   // This only works from Drush, so return if we're not using Drush.
@@ -21,10 +21,12 @@ function _dwca_export_cron(){
   $return = TRUE;
   // An array of the files to add to the ZIP at the end.
   $files_to_add = variable_get('dwca_export_files_to_add', array());
+  // We do a maximum of five views at a time, to help reduce load on the server.
+  $i = 0;
   foreach($views as $view){
     // Filename based on the name of the view with "dwca_export_" removed.
     $filename = substr($view->name, 12) . DWCA_EXTENSIONS_FILE_EXTENSION;
-    if(!isset($files_to_add[$filename])){
+    if(!isset($files_to_add[$filename]) || !file_exists('public://dwca/' . $filename)){
       // Get the view and render it.
       $output_filename = drupal_realpath('public://dwca') . '/' . $filename;
       drush_backend_fork('vde', array(
@@ -36,9 +38,12 @@ function _dwca_export_cron(){
       $files_to_add[$filename] = $filename;
       variable_set('dwca_export_files_to_add', $files_to_add);
       $return = FALSE;
+      $i++;
+      if($break && $i >= 5){
+        break;
+      }
     }
   }
-  sleep(1);
   return $return;
 }
 
@@ -46,7 +51,6 @@ function _dwca_export_cron(){
  * Create the zip file
  */
 function _dwca_export_cron_create_zip(){
-  sleep(10);
   // First we combine all of the description files
   // the description.txt file is made up from lots of views.  We do special
   // things for the dwca_export_description* views
@@ -60,14 +64,12 @@ function _dwca_export_cron_create_zip(){
       $filename = 'description' . DWCA_EXTENSIONS_FILE_EXTENSION;
       $filenames[$filename] = $filename;
       // Append if it already exists
-      if(file_exists($filename)){
+      if(file_exists('public://dwca/' . $filename)){
         $data .= file_get_contents('public://dwca/' . $filename);
       }
-      file_unmanaged_save_data($data, 'public://dwca/' . $filename, FILE_EXISTS_REPLACE);
+      $saved = file_put_contents('public://dwca/' . $filename, $data, FILE_EXISTS_REPLACE);
     }
   }
-  // Just in case the zip creation fails, we set the filenames variable
-  variable_set('dwca_export_files_to_add', $filenames);
   // If we have reached here, then we have all the files we require, and can
   // therefore build the zip file and delete the files.
   variable_set('dwca_export_zip_build_time', time());
@@ -79,7 +81,6 @@ function _dwca_export_cron_create_zip(){
   $zip = new ZipArchive();
   if(!$zip->open($tmp_archive_file_name, ZipArchive::CREATE)){throw new Exception(t('Could not create temporary zip_archive for DwC-A'));}
   // add metadata
-  //$zip->addFile(drupal_get_path('module', 'dwca_export') . '/static/meta.xml', 'dwca/meta.xml');
   $meta_string = file_get_contents(drupal_get_path('module', 'dwca_export') . '/static/meta.xml');
   drupal_alter('dwca_export_meta_file', $meta_string);
   $zip->addFromString('dwca/meta.xml', $meta_string);

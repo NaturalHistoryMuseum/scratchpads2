@@ -9,6 +9,11 @@ function theme_scratchpads_biblio_search($variables){
   foreach($variables['results'] as $result){
     $biblio_node = node_load($result['node']->entity_id);
     if($biblio_node){
+      foreach($biblio_node->biblio_contributors as $key => $contributor){
+        if($contributor['auth_category'] > 1){
+          unset($biblio_node->biblio_contributors[$key]);
+        }
+      }
       $rows[] = array(
         biblio_format_authors($biblio_node->biblio_contributors),
         $biblio_node->biblio_year,

@@ -81,3 +81,9 @@ function emonocot_itis_taxonomy_vocabulary_delete($vocabulary){
   field_delete_field("field_type_taxon_{$vocabulary->vid}");
 }
 
+function emonocot_itis_field_display_taxonomy_term_alter(&$display, $context) {
+  if ($context['field']['field_name'] == 'field_reference'){
+  	$display['type'] = 'url_icon';
+  	$display['module'] = 'emonocot_views';
+  }
+}

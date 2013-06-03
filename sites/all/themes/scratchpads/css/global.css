@@ -810,10 +810,6 @@ article.node-event div.field-name-field-event-date {
   padding: 6px 0;
 }
 
-#cboxContent .file {
-  position: static;
-}
-
 #cboxContent .file .content span.file-styles {
   text-align: center;
   display: block;
@@ -858,11 +854,6 @@ div.contextual-links-wrapper {
 
 div.contextual-links-wrapper ul.contextual-links {
   z-index: 2 !important;
-}
-
-#cboxLoadedContent .contextual-links-wrapper {
-  right: 26px;
-  top: 15px;
 }
 
 /****************** CONTACT FORMS *****************/

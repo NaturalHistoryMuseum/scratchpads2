@@ -12,9 +12,9 @@ function scratchpads_pages_views_default_views(){
   $view->human_name = 'Scratchpads specimen observation page';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = TRUE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = TRUE;
   /* Display: Master */
-      $handler = $view->new_display('default', 'Master', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Specimens';
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
@@ -86,6 +86,9 @@ function scratchpads_pages_views_default_views(){
             'tab' => $group->label,
             'filter' => 'textFilter'
           );
+          if($field == 'field_genbank_number'){
+            $handler->display->display_options['fields'][$field]['type'] = 'darwincore_link_to_ncbi';
+          }
         }
       }
     }
@@ -177,9 +180,9 @@ function scratchpads_pages_views_default_views(){
           $view->human_name = 'Scratchpads ' . $node_info->name . ' page';
           $view->core = 7;
           $view->api_version = '3.0';
-          $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-        /* Display: Master */
-                            $handler = $view->new_display('default', 'Master', 'default');
+          $view->disabled = FALSE;
+          /* Display: Master */
+          $handler = $view->new_display('default', 'Master', 'default');
           $handler->display->display_options['title'] = scratchpads_pages_pluralise_node_name($node_info->name);
           $handler->display->display_options['access']['type'] = 'perm';
           $handler->display->display_options['cache']['type'] = 'none';

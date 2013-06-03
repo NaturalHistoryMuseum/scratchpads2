@@ -1,4 +1,5 @@
 <?php
+require_once ('publication_html_format.features.inc');
 
 /**
  * Implement hook_entity_view_alter
@@ -14,9 +15,17 @@ function publication_html_format_entity_view_alter(&$build, $type){
       $function($build);
     }
   }
-  // Change the citations and get the order of the tables & figures
+  // Change the citations and get the order of the tables & figures. Make sure
+  // we do this following the group order.
   $process = new PublicationHtmlFormatChangeCitations();
-  $process->process($build);
+  $ordered_groups = $build['#groups'];
+  usort($ordered_groups, function ($a, $b){
+    if($a->weight == $b->weight){return 0;}
+    return ($a->weight < $b->weight) ? -1 : 1;
+  });
+  foreach($ordered_groups as $group){
+    $process->process($build, $group->children);
+  }
   // Re-order the tables
   $max_table_count = count($process->table_ids) + 1;
   foreach(element_children($build['field_publication_tables']) as $key){
@@ -99,9 +108,8 @@ class PublicationHtmlFormatChangeCitations{
   /**
    * The main process function
   */
-  function process(&$build){
-    if(isset($build['#markup'])){
-      // XXX we should enforce a stricter type for citations ids.
+  function process(&$build, $limit_to_fields = array(), $apply = FALSE){
+    if(isset($build['#markup']) && $apply){
       $build['#markup'] = preg_replace_callback('/(<tbls_citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/tbls_citation>)/', array(
         $this,
         '_replace_table_citation'
@@ -110,6 +118,10 @@ class PublicationHtmlFormatChangeCitations{
         $this,
         '_replace_figure_citation'
       ), $build['#markup']);
+      $build['#markup'] = preg_replace_callback('/(<reference_citation.*?citation_id=["\'](.*?)["\'].*?>)(.*?)(<\/reference_citation>)/', array(
+        $this,
+        '_replace_reference_citation'
+      ), $build['#markup']);
       $build['#markup'] = preg_replace_callback('/(\[bib\]\s*(\d+)\s*\[\/bib\])/', array(
         $this,
         '_replace_reference_citation'
@@ -117,7 +129,8 @@ class PublicationHtmlFormatChangeCitations{
     }
     // Recurse
     foreach(element_children($build, TRUE) as $key){
-      $this->process($build[$key]);
+      $apply_child = $apply || empty($limit_to_fields) || in_array($key, $limit_to_fields, TRUE);
+      $this->process($build[$key], $limit_to_fields, $apply_child);
     }
   }
 
@@ -133,7 +146,7 @@ class PublicationHtmlFormatChangeCitations{
       $this->table_ids[] = $id;
       $table_number = count($this->table_ids);
     }
-    $out = $matches[1] . t('Table') . ' ' . $table_number . $matches[3];
+    $out = '<tbls_citation citation_id="' . $id . '" contenteditable="false">' . t('Table') . ' ' . $table_number . '</tbls_citation>';
     return $out;
   }
 
@@ -149,7 +162,7 @@ class PublicationHtmlFormatChangeCitations{
       $this->figure_ids[] = $id;
       $figure_number = count($this->figure_ids);
     }
-    $out = $matches[1] . t('Figure') . ' ' . $figure_number . $matches[3];
+    $out = '<fig_citation citation_id="' . $id . '" contenteditable="false">' . t('Figure') . ' ' . $figure_number . '</fig_citation>';
     return $out;
   }
 
@@ -158,18 +171,22 @@ class PublicationHtmlFormatChangeCitations{
    */
   function _replace_reference_citation($matches){
     $nid = $matches[2];
-    $node = node_load($nid);
-    $all_authors = array();
-    foreach($node->biblio_contributors as $contributor){
-      $all_authors[] = $contributor['lastname'];
-    }
-    if(count($all_authors) > 2){
-      $authors = $all_authors[0] . ' et al.';
+    if(preg_match('/^\[bib\]/', $matches[1])){
+      $node = node_load($nid);
+      $all_authors = array();
+      foreach($node->biblio_contributors as $contributor){
+        $all_authors[] = $contributor['lastname'];
+      }
+      if(count($all_authors) > 2){
+        $authors = $all_authors[0] . ' et al.';
+      }else{
+        $authors = implode(' and ', $all_authors);
+      }
+      $year = $node->biblio_year;
+      return '<reference_citation citation_id="' . $nid . '" contenteditable="false">' . "$authors $year</reference_citation>";
     }else{
-      $authors = implode(' and ', $all_authors);
+      return '<reference_citation citation_id="' . $nid . '" contenteditable="false">' . $matches[3] . "</reference_citation>";
     }
-    $year = $node->biblio_year;
-    return '<reference_citation citation_id="' . $nid . '" contenteditable="false" style="background: #DDD;">' . "$authors $year</reference_citation>";
   }
 }
 
@@ -209,8 +226,8 @@ function _publication_html_format_filter_process_format($element){
     unset($element['format']['format']['#options']['publication_html']);
   }else{
     list($eid, $vid, $bundle) = entity_extract_ids($element['#entity_type'], $element['#entity']);
-    // Only set a default on new entities
-    if(empty($eid) && isset($element['format']['format']['#options']['publication_html'])){
+    // Only set a default on new entities and empty fields
+    if((empty($eid) || empty($element['value']['#default_value'])) && isset($element['format']['format']['#options']['publication_html'])){
       $element['format']['format']['#default_value'] = 'publication_html';
     }
   }
@@ -252,7 +269,7 @@ function publication_html_format_theme($existing, $type, $theme, $path){
 /**
  * Implement hook_entity_insert/update
  * - Add the references and figures that were inserted via insert_from_view
- *
+ * - Ensure tables without a title and body are removed (as id is auto-generated)
  */
 function publication_html_format_entity_insert($entity, $type){
   _publication_html_format_entity_upsert($entity, $type);
@@ -322,6 +339,16 @@ function _publication_html_format_entity_upsert($entity, $type){
         $figure_collection_item->save();
         $need_saving = FALSE;
       }
+    }
+  }
+  // Remove tables
+  foreach($entity->field_publication_tables[LANGUAGE_NONE] as $key => $value){
+    $table_collection_item = reset(entity_load('field_collection_item', array(
+      $value['value']
+    )));
+    if(empty($table_collection_item->field_publication_table) && empty($table_collection_item->field_publication_table_title)){
+      $table_collection_item->delete();
+      $need_saving = FALSE;
     }
   }
   if($need_saving){
@@ -403,12 +430,30 @@ function publication_html_format_form_publication_edit_form_alter(&$form, &$form
   // Handle automatic adding of tables
   $entity = $form['#entity'];
   $tables_map = array();
-  $table_key = 0;
+  $table_key = 1;
+  $table_ids_to_assign = array();
   foreach(element_children($form['field_publication_tables'][LANGUAGE_NONE]) as $elem_key){
-    $form['field_publication_tables'][LANGUAGE_NONE][$elem_key]['#title'] = 'Table. ' . ($elem_key + 1);
-    if($elem_key >= $table_key){
-      $table_key = $elem_key + 1;
+    if($elem_key === 'add_more'){
+      continue;
     }
+    $collection = & $form['field_publication_tables'][LANGUAGE_NONE][$elem_key];
+    if(!empty($collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#default_value'])){
+      $table_id_value = $collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#default_value'];
+      if($table_id_value >= $table_key){
+        $table_key = $table_id_value + 1;
+      }
+      $form['field_publication_tables'][LANGUAGE_NONE][$elem_key]['#prefix'] = '<p>Table id: ' . $table_id_value . '</p>';
+      $collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#type'] = 'hidden';
+    }else{
+      $table_ids_to_assign[] = $elem_key;
+    }
+  }
+  foreach($table_ids_to_assign as $elem_key){
+    $collection = & $form['field_publication_tables'][LANGUAGE_NONE][$elem_key];
+    $collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#default_value'] = $table_key;
+    $collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#type'] = 'hidden';
+    $form['field_publication_tables'][LANGUAGE_NONE][$elem_key]['#prefix'] = '<p>Table id: ' . $table_key . '</p>';
+    $table_key++;
   }
   // JS settings
   $form['#attached']['js'][] = array(
@@ -420,9 +465,38 @@ function publication_html_format_form_publication_edit_form_alter(&$form, &$form
         'editor_table_icon' => drupal_get_path('module', 'publication_html_format') . '/images/tables.png',
         'editor_table_width' => '75%',
         'editor_table_height' => '75%',
-        'editor_reference_editor_icon' => drupal_get_path('module', 'publication_html_format') . '/images/references.png'
+        'editor_reference_editor_icon' => drupal_get_path('module', 'publication_html_format') . '/images/references.png',
+        'editor_css' => url(drupal_get_path('module', 'publication_html_format') . '/css/publication_html_format_editor.css'),
+        'editor_table_header' => '<div class="publication_html_format_header">' . '<h1>' . t('Select table citation(s) to insert') . '</h1>' . '<p>' . t('The table citation will be inserted as <strong>"Table [id:<em>id-of-the-table</em>]"</strong>.' . 'Once the publication is saved, the tables will be ordered by order of appeareance, and the citations will ' . 'be renamed accordingly as <strong>"Table <em>table-number</em>"</strong>.') . '</p>' . '</div>'
       )
     ),
     'type' => 'setting'
   );
+  // Add our CSS
+  drupal_add_css(drupal_get_path('module', 'publication_html_format') . '/css/publication_html_format.css');
 }
+
+/**
+ * Implements hook_module_implements_alter().
+ *
+ * Ensure that the 'filter' component of the feature is included before
+ * the 'ckeditor' component.
+ *
+ */
+function publication_html_format_module_implements_alter(&$implementations, $hook){
+  if($hook == 'features_api' && isset($implementations['ckeditor'])){
+    $setting = $implementations['ckeditor'];
+    unset($implementations['ckeditor']);
+    $implementations['ckeditor'] = $setting;
+  }
+}
+
+/**
+ * Implement hook_insert_from_view_view_alter
+ *
+ * Add our CSS
+ */
+function publication_html_format_insert_from_view_view_alter(&$view){
+  drupal_add_css(drupal_get_path('module', 'publication_html_format') . '/css/publication_html_format.css');
+}
+

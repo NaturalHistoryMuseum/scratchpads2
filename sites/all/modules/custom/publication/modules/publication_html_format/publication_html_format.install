@@ -7,17 +7,17 @@
 function publication_html_format_install(){
   // Create insert_from_view instances
   insert_from_view_new_instance('Pensoft publication references', 'Add Reference citation', 'publication_citations_references', 'references', array(
-    'key' => 'pensoft_publication_references',
+    'machine_name' => 'pensoft_publication_references',
     'field' => 'nothing',
     'icon' => drupal_get_path('module', 'publication_html_format') . '/images/references.png'
   ));
   insert_from_view_new_instance('Pensoft publication figures', 'Add Figure citation', 'publication_citations_figures', 'figures', array(
-    'key' => 'pensoft_publication_figures',
+    'machine_name' => 'pensoft_publication_figures',
     'field' => 'nothing',
     'icon' => drupal_get_path('module', 'publication_html_format') . '/images/figures.png'
   ));
   insert_from_view_new_instance('Pensoft publication specimens', 'Create specimen table', 'publication_create_specimens', 'default', array(
-    'key' => 'pensoft_publication_specimens',
+    'machine_name' => 'pensoft_publication_specimens',
     'field' => 'nothing',
     'icon' => drupal_get_path('module', 'publication_html_format') . '/images/specimens.png',
     'wrap_tag' => 'table',
@@ -59,6 +59,17 @@ function publication_html_format_update_7002(){
  * Revert the Publication HTML CKEditor profile
  */
 function publication_html_format_update_7004(){
+  features_revert(array(
+    'publication_html_format' => array(
+      'ckeditor_profile'
+    )
+  ));
+}
+
+/**
+ * Revert the Publication HTML CKEditor profile
+ */
+function publication_html_format_update_7005(){
   features_revert(array(
     'publication_html_format' => array(
       'ckeditor_profile'
