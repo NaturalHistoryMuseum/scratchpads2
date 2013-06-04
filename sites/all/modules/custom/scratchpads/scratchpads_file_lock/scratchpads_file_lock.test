@@ -1,21 +1,20 @@
 <?php
 
-
 /**
  * @file
 *
 * Scratchpads File Lock tests.
 * Test components on a "FULL" Scratchpad.
 */
-class ScratchpadsFileLockTestCase extends DrupalWebTestCase{
-
-  protected $test_user;
-  protected $profile = 'testing';
+/**
+ * Tests file field widget.
+ */
+class ScratchpadsFileLockTestCase extends FileFieldTestCase{
 
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads File Lock',
-      'description' => 'Basic testing of scratchpads file lock',
+      'description' => 'Testing of scratchpads file lock',
       'group' => 'Scratchpads'
     );
   }
@@ -24,30 +23,92 @@ class ScratchpadsFileLockTestCase extends DrupalWebTestCase{
    * Enable modules and create users with specific permissions.
    */
   function setUp(){
-    // Set the max execution time to 20 minutes.  This may seem like a long time,
-    // but the scratchpads_tweaks module does take a long time to install.
-    ini_set('max_execution_time', '1200');
-    parent::setUp('file_lock', 'scratchpads_file_lock', 'scratchpads_tweaks');
-    // Run the scratchpads_tweaks_install() function.
-    scratchpads_tweaks_install();
-    // Create users.
-    $this->test_user = $this->drupalCreateUser(array(
-      'access content'
+    // Since this is a base class for many test cases, support the same
+    // flexibility that DrupalWebTestCase::setUp() has for the modules to be
+    // passed in as either an array or a variable number of string arguments.
+    $modules = func_get_args();
+    if(isset($modules[0]) && is_array($modules[0])){
+      $modules = $modules[0];
+    }
+    $modules[] = 'file';
+    $modules[] = 'file_module_test';
+    $modules[] = 'file_lock';
+    $modules[] = 'scratchpads_file_lock';
+    parent::setUp($modules);
+    $this->admin_user = $this->drupalCreateUser(array(
+      'access content',
+      'access administration pages',
+      'administer site configuration',
+      'administer users',
+      'administer permissions',
+      'administer content types',
+      'administer nodes',
+      'bypass node access'
     ));
-    // We set the legal_accepted on the user so that login passes.
-    user_save($this->test_user, array(
-    'legal_accept' => TRUE
-    ));
+    $this->drupalLogin($this->admin_user);
   }
 
   /**
-   * Test that the scratchpads_blog block appears on the correct pages
+   * Tests if a text file still exists after it's parent node is delted
    */
-  function testScratchpadsFileLockBasic(){
-    // Simple test to make sure the home page loads
-    $this->drupalLogin($this->test_user);
-    $this->drupalGet('');
-    $this->assertResponse(200);
-   
+  function testNodeTextFileIsLocked(){
+    $type_name = 'page';
+    $field_name = strtolower($this->randomName());
+    $this->createFileField($field_name, $type_name);
+    $field = field_info_field($field_name);
+    $instance = field_info_instance('node', $field_name, $type_name);
+    $test_file = $this->getTestFile('text');
+    // Create a new node with the uploaded file.
+    $nid = $this->uploadNodeFile($test_file, $field_name, $type_name);
+    $node = node_load($nid, NULL, TRUE);
+    $node_file = (object)$node->{$field_name}[LANGUAGE_NONE][0];
+    // Ensure the file got uploaded successfully.
+    $this->assertFileExists($node_file, t('New text file saved to disk on node creation.'));
+    // Ensure the file can be downloaded.
+    $this->drupalGet(file_create_url($node_file->uri));
+    $this->assertResponse(200, t('Confirmed that the generated URL is correct by downloading the shipped file.'));
+    node_delete($nid);
+    $node = node_load($nid);
+    $this->assertFalse($node, "The parent node has been successfull deleted");
+    // Ensure the file is still there
+    $this->assertFileExists($node_file, t('The text file still exists after the node is deleted.'));
+  }
+
+  /**
+   * Tests if an image file still exists after it's parent node is delted
+   */
+  function testNodeImageFileIsLocked(){
+    $type_name = 'page';
+    $field_name = strtolower($this->randomName());
+    $this->createFileField($field_name, $type_name);
+    $field = field_info_field($field_name);
+    $instance = field_info_instance('node', $field_name, $type_name);
+    $test_file = $this->getTestFile('image');
+    // Disable extension checking.
+    $this->updateFileField($field_name, $type_name, array(
+      'file_extensions' => ''
+    ));
+    // Create a new node with the uploaded file.
+    $nid = $this->uploadNodeFile($test_file, $field_name, $type_name);
+    $node = node_load($nid, NULL, TRUE);
+    $node_file = (object)$node->{$field_name}[LANGUAGE_NONE][0];
+    // Ensure the file got uploaded successfully.
+    $this->assertFileExists($node_file, t('New image file saved to disk on node creation.'));
+    // Ensure the file can be downloaded.
+    $this->drupalGet(file_create_url($node_file->uri));
+    $this->assertResponse(200, t('Confirmed that the generated URL is correct by downloading the shipped file.'));
+    node_delete($nid);
+    $node = node_load($nid);
+    $this->assertFalse($node, "The parent node has been successfull deleted");
+    // Ensure the file is still there
+    $this->assertFileExists($node_file, t('The image file still exists after the node is deleted.'));
   }
 }
+
+
+
+
+
+
+
+
