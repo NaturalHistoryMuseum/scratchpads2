@@ -23,7 +23,7 @@ class ScratchpadsBlogTestCase extends DrupalWebTestCase{
   /**
    * Enable modules and create users with specific permissions.
    */
-  function setUp(){
+  public function setUp(){
     // Set the max execution time to 20 minutes.  This may seem like a long time,
     // but the scratchpads_tweaks module does take a long time to install.
     ini_set('max_execution_time', '1200');
@@ -41,9 +41,26 @@ class ScratchpadsBlogTestCase extends DrupalWebTestCase{
   }
 
   /**
-   * Test that the scratchpads_blog block appears on the correct pages
+   * Tests block_info() for the scratchpads blog module. 
    */
-  function testScratchpadsBlogBasic(){
+  public function testBlockInfo(){
+    $info = module_invoke('scratchpads_blog', 'block_info');
+    $this->assertEqual(1, count($info), t('Module defines a block'));
+    $this->assertTrue(isset($info['blog_filters']), t('Blog Filters exists.'));
+  }
+
+  /**
+   * Tests block_view() for the scratchpads blog module.
+   */
+  public function testBlockView(){
+    $data = module_invoke('scratchpads_blog', 'block_view', 'blog_filters');
+    $this->assertTrue(is_array($data), t('Block returns renderable array.'));
+  }
+
+  /**
+   * Tests that the scratchpads_blog block appears on the correct pages.
+   */
+  public function testScratchpadsBlogBasic(){
     // Test that the block appears on the blog page
     $this->drupalLogin($this->test_user);
     $this->drupalGet('blog');

@@ -1,0 +1,53 @@
+<?php
+
+
+/**
+ * @file
+*
+* Scratchpads File Lock tests.
+* Test components on a "FULL" Scratchpad.
+*/
+class ScratchpadsFileLockTestCase extends DrupalWebTestCase{
+
+  protected $test_user;
+  protected $profile = 'testing';
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads File Lock',
+      'description' => 'Basic testing of scratchpads file lock',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  function setUp(){
+    // Set the max execution time to 20 minutes.  This may seem like a long time,
+    // but the scratchpads_tweaks module does take a long time to install.
+    ini_set('max_execution_time', '1200');
+    parent::setUp('file_lock', 'scratchpads_file_lock', 'scratchpads_tweaks');
+    // Run the scratchpads_tweaks_install() function.
+    scratchpads_tweaks_install();
+    // Create users.
+    $this->test_user = $this->drupalCreateUser(array(
+      'access content'
+    ));
+    // We set the legal_accepted on the user so that login passes.
+    user_save($this->test_user, array(
+    'legal_accept' => TRUE
+    ));
+  }
+
+  /**
+   * Test that the scratchpads_blog block appears on the correct pages
+   */
+  function testScratchpadsFileLockBasic(){
+    // Simple test to make sure the home page loads
+    $this->drupalLogin($this->test_user);
+    $this->drupalGet('');
+    $this->assertResponse(200);
+   
+  }
+}
