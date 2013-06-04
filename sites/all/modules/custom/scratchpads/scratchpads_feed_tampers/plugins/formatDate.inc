@@ -6,6 +6,7 @@ $plugin = array(
   'form' => 'feeds_tamper_dateFormat_form',
   'callback' => 'feeds_tamper_dateFormat_callback',
   'validate' => 'feeds_tamper_dateFormat_validate',
+  'category' => 'Date',
   'name' => 'Date format',
   'multi' => 'loop',
   'category' => 'Text'
