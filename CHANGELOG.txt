@@ -1,4 +1,58 @@
-Scratchpads 2.0.1 (2013-04-24)
+2.1.1 (2013-05-20)
+
+- Ensure Primary menu links on Forum pages are displayed correctly (#2869)
+- Disable changing the display of the Forum content type
+- Change the URL of the training feedback form (#2873)
+- Prevent an error when deleting files using Views Bulk Operations (#2587)
+- Added a Blog sidebar block to allow filtering of blocks (#1303)
+- Added a Forum sidebar block to allow easy navigation of fora (#1140)
+- Upgraded the Apachesolr and Apachesolr Multisite Search modules
+- Ensure that all indexable content is indexed
+- Prevent an error on indexing sites without a biological classification
+- Fixed bugs with Multisite Search the caused the whole index to be deleted
+- Fixed a bug that prevented facets from displaying on the media gallery pages
+- Prevent images associated with a gallery from being deleted if the gallery is deleted (#2694)
+- Ensure that Scratchpads Messages are correctly and consistently formatted
+- Ensure all vocabularies can be referenced in a term_reference field (#2856)
+- Ensure logos are displayed on all new sites
+- Ensure that the media browser displays images correctly
+- BHL Widget now uses BHL APIv2 with a much improved overlay (#2833)
+- Ensure that the Google Scholar and BHL widgets are displayed on the correct pages (#2833)
+- Added a data integrity module to ensure basic data structures are not corrupt
+- Allow users to see which version of Scratchpads they are using by hovering over the Scratchpads logo
+- Performance improvement for the taxon page map blocks
+
+2.1.0 (2013-05-08)
+
+- Convert vernacular names to field_collections if the name is not blank
+- Slickgrid now loads rows dynamically
+
+- Moved the display of the taxonomic name field to the bottom of all content
+- Ensure that there are no spaces after the hybrid indicator '×' (#2268)
+- Removed old code
+- Added the .zip extension to the allowed list (#999)
+- Update the way views are counted by the stats module (#2521)
+- Prevent the media browser from showing EOL API files (#2815)
+- Ensure newly added terms are added to the terms reported by stats
+- Ensure that page views are counted on cached pages
+- Link to the "Scratchpads Policies" page (#2809)
+- Only match lexicon terms on whole words (changed from left-match)
+- No need to downgrade jQuery to 1.7 on views admin pages
+- Updated plupload module to 7.x-1.1
+- Updated Lexicon module to 7.x-1.10
+- Updated Entity module to 7.x-1.1 (#2587)
+- Updated Views module to 7.x-3.7
+- Updated views_bulk_operations to 7.x-3.1
+
+2.0.1.2 (2013-05-01+1)
+
+- An intermediate update to help us upgrade to 2.1.0
+
+2.0.1.1 (2013-05-01)
+
+- Rerun the itis_term_7004 (now 7005) update to enable the languagefield and field_collection modules.
+
+2.0.1 (2013-04-24)
 
 - Upgraded Drupal to 7.22
 - Prepared the sites to use Varnish
