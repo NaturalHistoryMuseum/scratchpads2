@@ -9,16 +9,14 @@
     CKEDITOR.plugins.add("pensoft_publication_insert_table", {
       init : function(editor) {
         editor.ui.addButton("pensoft_publication_insert_table", {
-          label : "pensoft_publication_insert_table",
+          label : Drupal.t("Add table citation. Create tables in the Tables section first."),
           icon : Drupal.settings.basePath + settings['editor_table_icon'],
           command : "pensoft_publication_insert_table",
         });
 
         editor.addCommand('pensoft_publication_insert_table', {
           exec : function() {
-            var title = '<h1>' + Drupal.t('Select table citation(s) to insert') + '</h1>';
-            var description = Drupal.t('<div class="info" style="margin: 10px;">The table citation will be inserted as <strong>Table [id:<em>id-of-the-table</em>]</strong>. Once the publication is saved, the tables will be ordered by order of appeareance, and the citations will be renamed accordingly as <strong>Table <em>table-number</em></strong>.</div>');
-            $tables = $('<div id="pensoft_select_table">' + title + description 
+            $tables = $('<div id="pensoft_select_table">' + settings.editor_table_header
                 + '<table><tr><th>select</th><th>Id</th><th>Title</th><th>Table</th></tr></table></div>').appendTo('body');
 
             // Populate with available tables
@@ -64,9 +62,9 @@
                 // Handle single inserts
                 $row.click(function() {
                   editor.insertElement(CKEDITOR.dom.element.createFromHtml(
-                      '<tbls_citation citation_id="'+ id + '" contenteditable="false" style="background: #DDD;">Table [id:'
-                      + id
-                      + ']</tbls_citation>'));
+                      '<tbls_citation citation_id="'+ id + '" contenteditable="false" title="'
+                      + Drupal.t('Table citation. These will be re-numbered when the publication is finalised.')
+                      +'">Table [id:' + id + ']</tbls_citation>'));
                   editor.updateElement();
                   $.colorbox.close();
                 });
@@ -79,9 +77,9 @@
               var elements = [];
               $tables.find('tr.pensoft_select_table_row input:checked').each(function() {
                 var id = $(this).attr('name');
-                var line = '<tbls_citation citation_id="'+ id + '" contenteditable="false" style="background: #DDD;">Table [id:'
-                + id
-                + ']</tbls_citation>';
+                var line = '<tbls_citation citation_id="'+ id + '" contenteditable="false" title="'
+                + Drupal.t('Table citation. These will be re-numbered when the publication is finalised.')
+                + '">Table [id:' + id + ']</tbls_citation>';
 
                 editor.insertElement(CKEDITOR.dom.element.createFromHtml(line));
               });

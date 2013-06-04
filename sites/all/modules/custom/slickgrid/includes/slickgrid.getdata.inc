@@ -36,15 +36,35 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
         // Load the field so that we can see what type of field it is
         $field = field_info_field($sortcol);
         if($field){
-          foreach($sort['id'] = $field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
-            foreach($more_info as $key => $name){
-              if($key != 'format'){
-                $sort['id'] = $name;
-                $sort['field'] = $name;
-                $sort['table'] = $table;
-                break;
+          switch($field['type']){
+            case 'taxonomy_term_reference':
+              // We add a relationship to this view.
+              foreach($sort['id'] = $field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
+                foreach($more_info as $key => $name){
+                  if($key != 'format'){
+                    $view->display['default']->display_options['relationships'][$name]['id'] = $name;
+                    $view->display['default']->display_options['relationships'][$name]['table'] = $table;
+                    $view->display['default']->display_options['relationships'][$name]['field'] = $name;
+                    $sort['id'] = 'name';
+                    $sort['field'] = 'name';
+                    $sort['table'] = 'taxonomy_term_data';
+                    $sort['relationship'] = $name;
+                    break;
+                  }
+                }
               }
-            }
+              break;
+            default:
+              foreach($sort['id'] = $field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
+                foreach($more_info as $key => $name){
+                  if($key != 'format'){
+                    $sort['id'] = $name;
+                    $sort['field'] = $name;
+                    $sort['table'] = $table;
+                    break;
+                  }
+                }
+              }
           }
         }
     }
