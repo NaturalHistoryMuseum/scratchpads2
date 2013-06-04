@@ -29,11 +29,17 @@ function _dwca_export_cron($break = TRUE){
     if(!isset($files_to_add[$filename]) || !file_exists('public://dwca/' . $filename)){
       // Get the view and render it.
       $output_filename = drupal_realpath('public://dwca') . '/' . $filename;
-      drush_backend_fork('vde', array(
+      // FIXME - Why does drush_backend_fork not work for us?  We need to find
+      // out why and fix it.  This may well be fixed when we upgrade to Drush 5,
+      // so we should look at this then.
+      /*drush_backend_fork('vde', array(
         $view->name,
         'views_data_export_1',
         $output_filename
-      ));
+      ));*/
+      global $base_url;
+      exec("nohup drush @". parse_url($base_url, PHP_URL_HOST)." vde {$view->name} views_data_export_1 {$output_filename}");
+      // FIXME-END
       drush_log(dt("Forking: drush vde {$view->name} views_data_export_1 $output_filename"), 'success');
       $files_to_add[$filename] = $filename;
       variable_set('dwca_export_files_to_add', $files_to_add);
