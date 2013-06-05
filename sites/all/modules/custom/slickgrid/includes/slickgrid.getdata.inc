@@ -89,39 +89,53 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
       'is_grouped' => FALSE,
       'group_info' => array()
     );
-    $real_field = field_info_field($field);
-    if($real_field){
-      foreach($real_field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
-        foreach($more_info as $key => $name){
-          if($key != 'format'){
-            $field = $name;
-            $filter['id'] = $name;
-            $filter['field'] = $name;
-            $filter['table'] = $table;
-            break;
-          }
-        }
-      }
-      switch($real_field['type']){
-        case 'taxonomy_term_reference':
+    switch($field){
+      case 'filename':
+        $filter = array(
+          'id' => $field,
+          'table' => 'file_managed',
+          'field' => $field,
+          'operator' => 'contains',
+          'value' => $value
+        );
+      case 'title':
+        $view->display['default']->display_options['filters'][$field] = $filter;
+        break;
+      default:
+        $real_field = field_info_field($field);
+        if($real_field){
           foreach($real_field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
             foreach($more_info as $key => $name){
               if($key != 'format'){
-                $filter['operator'] = 'or';
-                $filter['value'] = array_keys(taxonomy_get_terms_by_name_match($value));
-                $filter['reduce_duplicates'] = 0;
-                $filter['type'] = 'textfield';
-                $filter['limit'] = 100;
-                $filter['vocabulary'] = 'cod'; // FIXME
-                $filter['hierarchy'] = 0;
+                $field = $name;
+                $filter['id'] = $name;
+                $filter['field'] = $name;
+                $filter['table'] = $table;
                 break;
               }
             }
           }
-          break;
-      }
+          switch($real_field['type']){
+            case 'taxonomy_term_reference':
+              foreach($real_field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
+                foreach($more_info as $key => $name){
+                  if($key != 'format'){
+                    $filter['operator'] = 'or';
+                    $filter['value'] = array_keys(taxonomy_get_terms_by_name_match($value));
+                    $filter['reduce_duplicates'] = 0;
+                    $filter['type'] = 'textfield';
+                    $filter['limit'] = 100;
+                    $filter['vocabulary'] = 'cod'; // FIXME
+                    $filter['hierarchy'] = 0;
+                    break;
+                  }
+                }
+              }
+              break;
+          }
+        }
+        $view->display['default']->display_options['filters'][$field] = $filter;
     }
-    $view->display['default']->display_options['filters'][$field] = $filter;
   }
   // We get the referer so that we can add arguments to the view.
   $referer = drupal_parse_url($_SERVER['HTTP_REFERER']);
