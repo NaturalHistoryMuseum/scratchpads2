@@ -151,7 +151,6 @@ function _scratchpads_statistics_cron($force_update = FALSE){
             // Number of views
             if(isset($result->totalcount)){
               $counts[$result->ss_user_id][$tid]['number_views'] += $result->totalcount;
-              $counts[$result->ss_user_id][0]['number_views'] += $result->totalcount;
             }
           }
           $query = db_insert('scratchpads_statistics_data_temp')->fields(array(
