@@ -1,6 +1,18 @@
 <?php
 
 /**
+ * Implements hook_drupal_goto_alter().
+ */
+function tui_drupal_goto_alter(&$path, &$options, &$http_response_code){
+  if($path == 'batch'){
+    $batch = batch_get();
+    if(strpos($batch['source_url'], 'hierarchy/form_callback/delete-form')){
+      $options['query']['render'] = 'overlay';
+    }
+  }
+}
+
+/**
  * Implementation of hook_menu().
  */
 function tui_menu(){
