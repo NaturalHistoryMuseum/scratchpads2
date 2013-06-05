@@ -45,7 +45,8 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'user' => FALSE,
       'views' => FALSE,
       'webform' => FALSE,
-      'weight' => FALSE
+      'weight' => FALSE,
+      'gravatar' => FALSE
     ));
   }
 }

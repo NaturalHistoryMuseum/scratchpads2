@@ -73,52 +73,61 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
   $potential_filters = $_GET;
   unset($potential_filters['q']);
   foreach($potential_filters as $field => $value){
-    // Start with a basic text filter - this will work with most fields.
-    $filter = array(
-      'id' => $field,
-      'table' => 'node',
-      'field' => $field,
-      'relationship' => 'none',
-      'group_type' => 'group',
-      'ui_name' => '',
-      'operator' => 'contains',
-      'value' => $value,
-      'group' => 1,
-      'exposed' => FALSE,
-      'expose' => array(),
-      'is_grouped' => FALSE,
-      'group_info' => array()
-    );
-    $real_field = field_info_field($field);
-    if($real_field){
-      foreach($real_field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
-        foreach($more_info as $key => $name){
-          if($key != 'format'){
-            $field = $name;
-            $filter['id'] = $name;
-            $filter['field'] = $name;
-            $filter['table'] = $table;
-            break;
-          }
-        }
-      }
-      switch($real_field['type']){
-        case 'taxonomy_term_reference':
-          foreach($real_field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
-            foreach($more_info as $key => $name){
-              if($key != 'format'){
-                $filter['operator'] = 'or';
-                $filter['value'] = array_keys(taxonomy_get_terms_by_name_match($value));
-                $filter['reduce_duplicates'] = 0;
-                $filter['type'] = 'textfield';
-                $filter['limit'] = 100;
-                $filter['vocabulary'] = 'cod'; // FIXME
-                $filter['hierarchy'] = 0;
-                break;
+    $value = trim($value);
+    if($value){
+      // Start with a basic text filter - this will work with most fields.
+      $filter = array(
+        'id' => $field,
+        'table' => 'node',
+        'field' => $field,
+        'relationship' => 'none',
+        'group_type' => 'group',
+        'ui_name' => '',
+        'operator' => 'contains',
+        'value' => $value,
+        'group' => 1,
+        'exposed' => FALSE,
+        'expose' => array(),
+        'is_grouped' => FALSE,
+        'group_info' => array()
+      );
+      switch($field){
+        case 'filename':
+          $filter['table'] = 'file_managed';
+          break;
+        default:
+          $real_field = field_info_field($field);
+          if($real_field){
+            foreach($real_field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
+              foreach($more_info as $key => $name){
+                if($key != 'format'){
+                  $field = $name;
+                  $filter['id'] = $name;
+                  $filter['field'] = $name;
+                  $filter['table'] = $table;
+                  break;
+                }
               }
             }
+            switch($real_field['type']){
+              case 'taxonomy_term_reference':
+                foreach($real_field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
+                  foreach($more_info as $key => $name){
+                    if($key != 'format'){
+                      $filter['operator'] = 'or';
+                      $filter['value'] = array_keys(taxonomy_get_terms_by_name_match($value));
+                      $filter['reduce_duplicates'] = 0;
+                      $filter['type'] = 'textfield';
+                      $filter['limit'] = 100;
+                      $filter['vocabulary'] = 'cod'; // FIXME
+                      $filter['hierarchy'] = 0;
+                      break;
+                    }
+                  }
+                }
+                break;
+            }
           }
-          break;
       }
     }
     $view->display['default']->display_options['filters'][$field] = $filter;
@@ -158,7 +167,7 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
 /**
  * Similar function to taxonomy_get_term_by_name, but allows for matching!
  */
-function taxonomy_get_terms_by_name_match($name, $vocabulary = NULL, $match = 'left'){
+function taxonomy_get_terms_by_name_match($name, $vocabulary = NULL, $match = 'both'){
   switch($match){
     case 'both':
       $name = '%' . db_like(trim($name)) . '%';
@@ -174,5 +183,11 @@ function taxonomy_get_terms_by_name_match($name, $vocabulary = NULL, $match = 'l
     $query->condition('vid', $vocabulary->vid);
   }
   $tids = $query->execute()->fetchCol();
-  return taxonomy_term_load_multiple($tids);
+  if(count($tids)){
+    return taxonomy_term_load_multiple($tids);
+  }else{
+    return array(
+      PHP_INT_MAX => PHP_INT_MAX
+    );
+  }
 }
