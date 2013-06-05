@@ -192,7 +192,7 @@ function tui_sort_callback(){
       taxonomy_term_save($term);
     }else{
       $results[] = ajax_command_html('#tui-tree-form', '<div class="messages error"><h2 class="element-invisible">Error message</h2>' . t('There has been an error.  Please reload this page.') . '</div>');
-      watchdog('femail', 'Attempted to move a nonexistent term');
+      watchdog('tui', 'Attempted to move a nonexistent term');
     }
   }
   if(isset($_POST['sort_change'])){
@@ -208,7 +208,7 @@ function tui_sort_callback(){
         $weight++;
       }else{
         $results[] = ajax_command_html('#tui-tree-form', '<div class="messages error"><h2 class="element-invisible">Error message</h2>' . t('One of the terms being sorted appears to have been deleted.  Please reload the page.') . '</div>');
-        watchdog('femail', 'Attempted to move a nonexistent term');
+        watchdog('tui', 'Attempted to move a nonexistent term');
       }
     }
     // Save the final term if the leftandright module is installed, just for
@@ -227,21 +227,40 @@ function tui_sort_callback(){
 function tui_taxonomy_form_term_delete($form, $form_state, $tids = ''){
   $tids = explode(",", $tids);
   $terms = taxonomy_term_load_multiple($tids);
+  // We need to get the total number of terms that we're deleting so that we
+  // can act accordingly.  If we're trying to delete more than 50 terms, then
+  // we should be batching rather than ajaxing!
+  $tree = array();
+  foreach($terms as $term){
+    // Check that we're not trying to get the branch of a tree that we already
+    // have, or will get next.
+    $parent_terms = taxonomy_get_parents_all($term->tid);
+    array_shift($parent_terms);
+    foreach($parent_terms as $parent_term){
+      if(isset($terms[$parent_term->tid])){
+        continue 2;
+      }
+    }
+    $tree = array_merge($tree, taxonomy_get_tree($term->vid, $term->tid, NULL, FALSE, 10000));
+  }
+  $num_terms_to_delete = count($tree);
+  $do_not_batch = $num_terms_to_delete < 50;
+  $ajax = array(
+    'callback' => 'tui_ajax_blank',
+    'wrapper' => 'tui-tree-form',
+    'effect' => 'slide'
+  );
   $term_names = array();
   $tids = array();
   foreach($terms as $term){
     $term_names[] = $term->name;
     $tids[] = $term->tid;
   }
-  $ajax = array(
-    'callback' => 'tui_ajax_blank',
-    'wrapper' => 'tui-tree-form',
-    'effect' => 'slide'
-  );
-  return array(
-    '#ajax' => $ajax,
+  $form = array(
     'you_sure' => array(
-      '#markup' => t('Are you sure you would like to delete the highlighted terms and their children?') . theme('item_list', array(
+      '#markup' => ($num_terms_to_delete ? t('Are you sure you would like to delete the highlighted terms and their @num_children children?', array(
+        '@num_children' => $num_terms_to_delete
+      )) : t('Are you sure you would like to delete the highlighted terms?')) . theme('item_list', array(
         'items' => $term_names
       ))
     ),
@@ -249,7 +268,11 @@ function tui_taxonomy_form_term_delete($form, $form_state, $tids = ''){
       '#type' => 'value',
       '#value' => $tids
     ),
-    array(
+    'do_not_batch' => array(
+      '#type' => 'hidden',
+      '#value' => $do_not_batch
+    ),
+    'buttons' => array(
       '#prefix' => '<div id="edit-actions" class="form-actions form-wrapper">',
       '#suffix' => '</div>',
       'cancel' => array(
@@ -261,22 +284,107 @@ function tui_taxonomy_form_term_delete($form, $form_state, $tids = ''){
       'submit' => array(
         '#type' => 'submit',
         '#title' => t('Delete'),
-        '#value' => t('Delete'),
-        '#ajax' => $ajax
+        '#value' => t('Delete')
       )
     )
   );
+  if($do_not_batch){
+    $form['#ajax'] = $ajax;
+    $form['buttons']['submit']['#ajax'] = $ajax;
+  }
+  return $form;
 }
 
 /**
  * tui_taxonomy_form_term_delete_submit()
  */
 function tui_taxonomy_form_term_delete_submit(&$form, &$form_state){
-  // We have passed validation, lets delete the terms.
-  foreach($form_state['values']['tids'] as $tid){
+  if($form_state['values']['do_not_batch']){
+    foreach($form_state['values']['tids'] as $tid){
+      taxonomy_term_delete($tid);
+    }
+    $form_state['tui-ajax'] = array(
+      ajax_command_invoke('.tui-highlight', 'hide')
+    );
+  }else{
+    $batch = array(
+      'title' => t('Deleting terms'),
+      'operations' => array(
+        array(
+          'tui_batch_delete_terms',
+          array(
+            $form_state['values']['tids']
+          )
+        )
+      ),
+      'finished' => 'tui_deleted_terms_redirect',
+      'file' => drupal_get_path('module', 'tui') . '/tui.ajax.inc'
+    );
+    batch_set($batch);
+    batch_process();
+  }
+}
+
+/**
+ * Redirect back to the form.
+ */
+function tui_deleted_terms_redirect($success, $results, $operations){
+  if($success){
+    drupal_goto('admin/structure/taxonomy/' . $results['taxonomy_machine_name'], array(
+      'query' => array(
+        'render' => 'overlay'
+      )
+    ));
+  }
+}
+
+/**
+ * Batch function to delete a taxonomy branch.
+ */
+function tui_batch_delete_terms($tids, &$context){
+  if(!isset($context['sandbox']['max'])){
+    $terms = taxonomy_term_load_multiple($tids);
+    $tree = array();
+    foreach($terms as $term){
+      // Check that we're not trying to get the branch of a tree that we already
+      // have, or will get next.
+      $parent_terms = taxonomy_get_parents_all($term->tid);
+      array_shift($parent_terms);
+      foreach($parent_terms as $parent_term){
+        if(isset($terms[$parent_term->tid])){
+          continue 2;
+        }
+      }
+      $tree = array_merge($tree, taxonomy_get_tree($term->vid, $term->tid, NULL, FALSE, 10000), array(
+        $term
+      ));
+    }
+    $context['sandbox']['all_tids'] = array();
+    foreach($tree as $tree_term){
+      $context['sandbox']['all_tids'][$tree_term->tid] = $tree_term->tid;
+    }
+    $context['sandbox']['max'] = count($context['sandbox']['all_tids']);
+    // Set the parents to 0 so that delete is consistent (and we don't flag up
+    // data integrity by deleting them altogether).
+    db_delete('taxonomy_term_hierarchy')->condition('tid', $context['sandbox']['all_tids'])->execute();
+    $query = db_insert('taxonomy_term_hierarchy')->fields(array(
+      'tid',
+      'parent'
+    ));
+    foreach($context['sandbox']['all_tids'] as $tid){
+      $query->values(array(
+        'tid' => $tid,
+        'parent' => 0
+      ));
+    }
+    $query->execute();
+    // Set the machine name for redirection later
+    $vocabulary = taxonomy_vocabulary_load($tree_term->vid);
+    $context['results']['taxonomy_machine_name'] = $vocabulary->machine_name;
+  }
+  $tid = array_pop($context['sandbox']['all_tids']);
+  if(taxonomy_term_load($tid)){
     taxonomy_term_delete($tid);
   }
-  $form_state['tui-ajax'] = array(
-    ajax_command_invoke('.tui-highlight', 'hide')
-  );
+  $context['finished'] = $context['progress'] = ($context['sandbox']['max'] - count($context['sandbox']['all_tids'])) / $context['sandbox']['max'];
 }
