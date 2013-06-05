@@ -164,7 +164,7 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
 /**
  * Similar function to taxonomy_get_term_by_name, but allows for matching!
  */
-function taxonomy_get_terms_by_name_match($name, $vocabulary = NULL, $match = 'left'){
+function taxonomy_get_terms_by_name_match($name, $vocabulary = NULL, $match = 'both'){
   switch($match){
     case 'both':
       $name = '%' . db_like(trim($name)) . '%';
