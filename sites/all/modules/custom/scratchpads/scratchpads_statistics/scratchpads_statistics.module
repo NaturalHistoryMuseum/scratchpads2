@@ -20,13 +20,7 @@ function scratchpads_statistics_block_info(){
     'term' => array(
       'info' => t('Scratchpads statistics facet - Term'),
       'cache' => DRUPAL_CACHE_PER_PAGE
-    ),
-    /*
-    'ss_facet_users' => array(
-      'info' => t('Scratchpads statistics facet - Users'),
-      'cache' => DRUPAL_CACHE_PER_PAGE
     )
-    */
   );
 }
 
@@ -54,6 +48,8 @@ function scratchpads_statistics_ctools_plugin_api(){
  * Implements hook_block_view()
  */
 function scratchpads_statistics_block_view($delta = ''){
+  // We only display the site block if the aggregator module is enabled.
+  if($delta == 'site' && !module_exists('scratchpads_statistics_aggregator')){return;}
   if($delta == 'category'){
     $tagged_sites = db_select('scratchpads_statistics_site_site_type', 's')->fields('s')->countQuery()->execute()->fetchCol();
     $tagged_sites = array_pop($tagged_sites);
@@ -176,7 +172,6 @@ function scratchpads_statistics_get_site_categories($site = 1){
 function scratchpads_statistics_facet_form($form, $form_state, $type){
   switch($type){
     case 'category':
-      //db_select('')
       return array(
         'scratchpads_stats_facet_type' => array(
           '#type' => 'hidden',
@@ -204,6 +199,9 @@ function scratchpads_statistics_facet_form($form, $form_state, $type){
                 '!url' => $row->url,
                 '%site_title' => $row->title
               ));
+              break;
+            case 'user':
+              $items[$row->name] = $row->name;
               break;
             default:
               $items[] = $row->{$type};
@@ -257,7 +255,7 @@ function scratchpads_statistics_facet_form_submit($form, &$form_state){
   $query = $_GET;
   unset($query['q']);
   switch($form_state['values']['scratchpads_stats_facet_type']){
-    case 't':
+    case 'term':
       $results = db_select('scratchpads_statistics_term', 's')->condition('term', $form_state['values']['scratchpads_stats_facet_entry'], 'LIKE')->fields('s', array(
         'id'
       ))->execute();
@@ -273,7 +271,9 @@ function scratchpads_statistics_facet_form_submit($form, &$form_state){
       ));
       break;
   }
-  $query[$form_state['values']['scratchpads_stats_facet_type']] = array();
+  if(!isset($query[$form_state['values']['scratchpads_stats_facet_type']])){
+    $query[$form_state['values']['scratchpads_stats_facet_type']] = array();
+  }
   foreach($results as $row){
     $query[$form_state['values']['scratchpads_stats_facet_type']][] = $row->id;
   }
