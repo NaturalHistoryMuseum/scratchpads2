@@ -42,7 +42,7 @@ class ScratchpadsFileLockTestCase extends FileFieldTestCase{
   }
 
   /**
-   * Tests if a text file still exists after it's parent node is delted
+   * Tests if a text file still exists after it's parent node is deleted
    */
   function testNodeTextFileIsLocked(){
     $type_name = 'page';
@@ -64,11 +64,11 @@ class ScratchpadsFileLockTestCase extends FileFieldTestCase{
     $node = node_load($nid);
     $this->assertFalse($node, "The parent node has been successfull deleted");
     // Ensure the file is still there
-    $this->assertFileExists($node_file, t('The text file still exists after the node is deleted.'));
+    $this->assertFileExists($node_file, t('The text file still exists after the node has been deleted.'));
   }
 
   /**
-   * Tests if an image file still exists after it's parent node is delted
+   * Tests if an image file still exists after it's parent node is deleted
    */
   function testNodeImageFileIsLocked(){
     $type_name = 'page';
@@ -94,12 +94,15 @@ class ScratchpadsFileLockTestCase extends FileFieldTestCase{
     $node = node_load($nid);
     $this->assertFalse($node, "The parent node has been successfull deleted");
     // Ensure the file is still there
-    $this->assertFileExists($node_file, t('The image file still exists after the node is deleted.'));
+    $this->assertFileExists($node_file, t('The image file still exists after the node has been deleted.'));
   }
 }
 
-
-
+/*
+ * To do: Testing with media multiselect
+ */
+  
+  
 
 
 
