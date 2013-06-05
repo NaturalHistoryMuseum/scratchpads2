@@ -90,8 +90,7 @@ function scratchpads_statistics_stats_page(){
   // First we get the entity_id for the user/user entity/bundle combo.
   $id = db_select('scratchpads_statistics_entity_bundle', 'eb')->fields('eb', array(
     'id'
-  ))->condition('entity', 'user')->condition('bundle', 'user')->execute()->fetchCol();
-  $id = array_pop($id);
+  ))->condition('entity', 'user')->condition('bundle', 'user')->execute()->fetchField();
   $query = db_select('scratchpads_statistics_data', 'd')->fields('d', array(
     'captured',
     'site'
@@ -101,12 +100,21 @@ function scratchpads_statistics_stats_page(){
   $query->orderBy('captured', 'ASC');
   $query->addExpression('SUM(d.number_created)', 'sum_created');
   $site = FALSE;
+  // Filter the data by this site.
   if(isset($_GET['site'])){
     $site = db_or();
     foreach($_GET['site'] as $site_id){
       $site->condition('d.site', $site_id);
     }
     $query->condition($site);
+  }
+  // Filter the data by a term.
+  if(isset($_GET['term'])){
+    $term = db_or();
+    foreach($_GET['term'] as $term_id){
+      $term->condition('d.term', $term_id);
+    }
+    $query->condition($term);
   }
   $results = $query->execute();
   $site_month_user_counts = array();
@@ -139,6 +147,9 @@ function scratchpads_statistics_stats_page(){
   if($site){
     $query->condition($site);
   }
+  if($term){
+    $query->condition($term);
+  }
   $results = $query->execute();
   $site_month_user_counts = array();
   foreach($results as $row){
@@ -169,6 +180,9 @@ function scratchpads_statistics_stats_page(){
   if($site){
     $query->condition($site);
   }
+  if($term){
+    $query->condition($term);
+  }
   $results = $query->execute();
   $site_month_user_counts = array();
   foreach($results as $row){
@@ -198,6 +212,9 @@ function scratchpads_statistics_stats_page(){
   $query->addExpression('SUM(d.number_views)', 'sum_created');
   if($site){
     $query->condition($site);
+  }
+  if($term){
+    $query->condition($term);
   }
   $results = $query->execute();
   $site_month_user_counts = array();
@@ -251,6 +268,9 @@ function scratchpads_statistics_stats_page(){
   $query = db_select('scratchpads_statistics_data', 'd');
   if($site){
     $query->condition($site);
+  }
+  if($term){
+    $query->condition($term);
   }
   $query->innerJoin($temp_table_name, 't', 't.site = d.site AND t.captured = d.captured');
   $query->innerJoin('scratchpads_statistics_entity_bundle', 'e', 'e.id = d.entity_bundle');

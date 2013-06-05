@@ -102,13 +102,12 @@ function _scratchpads_statistics_cron($force_update = FALSE){
             break;
         }
         // Get the entity/bundle id.
-        $col = db_select('scratchpads_statistics_entity_bundle', 'e')->fields('e', array(
+        $id = db_select('scratchpads_statistics_entity_bundle', 'e')->fields('e', array(
           'id'
-        ))->condition('entity', $entity)->condition('bundle', $bundle)->execute()->fetchCol();
-        $id = array_pop($col);
+        ))->condition('entity', $entity)->condition('bundle', $bundle)->execute()->fetchField();
         // Check we haven't already done this entity/bundle.
-        $count = db_select('scratchpads_statistics_data_temp', 's')->condition('entity_bundle', $id)->countQuery()->execute()->fetchCol();
-        if($count[0]){
+        $count = db_select('scratchpads_statistics_data_temp', 's')->condition('entity_bundle', $id)->countQuery()->execute()->fetchField();
+        if($count){
           break;
         }
         // Order the query by the entity_id;
@@ -152,6 +151,7 @@ function _scratchpads_statistics_cron($force_update = FALSE){
             // Number of views
             if(isset($result->totalcount)){
               $counts[$result->ss_user_id][$tid]['number_views'] += $result->totalcount;
+              $counts[$result->ss_user_id][0]['number_views'] += $result->totalcount;
             }
           }
           $query = db_insert('scratchpads_statistics_data_temp')->fields(array(

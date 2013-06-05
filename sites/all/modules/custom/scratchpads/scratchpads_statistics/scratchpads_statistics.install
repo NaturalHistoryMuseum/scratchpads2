@@ -553,3 +553,25 @@ function scratchpads_statistics_update_7008(){
   variable_set('statistics_count_content_views', 1);
   variable_set('statistics_count_content_views_ajax', 1);
 }
+
+/**
+ * Update the totals rows which haven't had views added to them.
+ */
+function scratchpads_statistics_update_7009(){
+  // Firstly we truncate the scratchpads_statistics_data_temp table to ensure
+  // we don't have some partial data.
+  db_delete('scratchpads_statistics_data_temp')->execute();
+  // Create a select statement for the temp table.
+  $query = db_select('scratchpads_statistics_data', 'd')->fields('d', array(
+    'user',
+    'site',
+    'entity_bundle',
+    'captured'
+  ))->groupBy('user')->groupBy('site')->groupBy('entity_bundle');
+  $query->addExpression('SUM(number_views)', 'sum_number_views');
+  $temp_table = db_query_temporary($query);
+  // First we do a delete
+  db_delete('scratchpads_statistics_data')->condition('term', 0);
+  // Then an insert
+  db_update('scratchpads_statistics_data');
+}
