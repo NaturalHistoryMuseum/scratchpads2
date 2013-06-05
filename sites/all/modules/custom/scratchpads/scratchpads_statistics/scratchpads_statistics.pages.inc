@@ -100,6 +100,8 @@ function scratchpads_statistics_stats_page(){
   $query->orderBy('captured', 'ASC');
   $query->addExpression('SUM(d.number_created)', 'sum_created');
   $site = FALSE;
+  $term = FALSE;
+  $user = FALSE;
   // Filter the data by this site.
   if(isset($_GET['site'])){
     $site = db_or();
@@ -115,6 +117,14 @@ function scratchpads_statistics_stats_page(){
       $term->condition('d.term', $term_id);
     }
     $query->condition($term);
+  }
+  // Filter the data by a user.
+  if(isset($_GET['user'])){
+    $user = db_or();
+    foreach($_GET['user'] as $user_id){
+      $user->condition('d.user', $user_id);
+    }
+    $query->condition($user);
   }
   $results = $query->execute();
   $site_month_user_counts = array();
@@ -150,6 +160,9 @@ function scratchpads_statistics_stats_page(){
   if($term){
     $query->condition($term);
   }
+  if($user){
+    $query->condition($user);
+  }
   $results = $query->execute();
   $site_month_user_counts = array();
   foreach($results as $row){
@@ -183,6 +196,9 @@ function scratchpads_statistics_stats_page(){
   if($term){
     $query->condition($term);
   }
+  if($user){
+    $query->condition($user);
+  }
   $results = $query->execute();
   $site_month_user_counts = array();
   foreach($results as $row){
@@ -215,6 +231,9 @@ function scratchpads_statistics_stats_page(){
   }
   if($term){
     $query->condition($term);
+  }
+  if($user){
+    $query->condition($user);
   }
   $results = $query->execute();
   $site_month_user_counts = array();
@@ -271,6 +290,9 @@ function scratchpads_statistics_stats_page(){
   }
   if($term){
     $query->condition($term);
+  }
+  if($user){
+    $query->condition($user);
   }
   $query->innerJoin($temp_table_name, 't', 't.site = d.site AND t.captured = d.captured');
   $query->innerJoin('scratchpads_statistics_entity_bundle', 'e', 'e.id = d.entity_bundle');
