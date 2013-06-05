@@ -475,7 +475,14 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
       }
       if(strpos($header['target'], ':')){
         $temp_array = explode(':', $header['target']);
-        $field = field_info_field(array_shift($temp_array));
+        switch($temp_array[1]){
+          case 'guid':
+          case 'tid':
+            $field = FALSE;
+            break;
+          default:
+            $field = field_info_field($temp_array[0]);
+        }
       }else{
         $field = field_info_field($header['target']);
       }
