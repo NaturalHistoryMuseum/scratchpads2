@@ -91,15 +91,7 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
     );
     switch($field){
       case 'filename':
-        $filter = array(
-          'id' => $field,
-          'table' => 'file_managed',
-          'field' => $field,
-          'operator' => 'contains',
-          'value' => $value
-        );
-      case 'title':
-        $view->display['default']->display_options['filters'][$field] = $filter;
+        $filter['table'] = 'file_managed';
         break;
       default:
         $real_field = field_info_field($field);
@@ -134,8 +126,8 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
               break;
           }
         }
-        $view->display['default']->display_options['filters'][$field] = $filter;
     }
+    $view->display['default']->display_options['filters'][$field] = $filter;
   }
   // We get the referer so that we can add arguments to the view.
   $referer = drupal_parse_url($_SERVER['HTTP_REFERER']);
