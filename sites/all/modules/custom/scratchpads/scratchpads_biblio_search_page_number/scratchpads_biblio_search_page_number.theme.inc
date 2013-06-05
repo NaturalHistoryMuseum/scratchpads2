@@ -9,6 +9,11 @@ function theme_scratchpads_biblio_search_page_number($variables){
   foreach($variables['results'] as $result){
     $biblio_node = node_load($result['node']->entity_id);
     if($biblio_node){
+      foreach($biblio_node->biblio_contributors as $key => $contributor){
+        if($contributor['auth_category'] > 1){
+          unset($biblio_node->biblio_contributors[$key]);
+        }
+      }
       $rows[] = array(
         isset($biblio_node->biblio_section) ? $biblio_node->biblio_section : '',
         biblio_format_authors($biblio_node->biblio_contributors),
