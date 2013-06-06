@@ -484,13 +484,10 @@ function scratchpads_biblio_search_map_callback($values, $options){
         }
         return $map;
       case 'biblio_contributor':
-        $result = db_select('biblio_contributor_data', 'b')->fields('b', array(
-          'cid',
-          'name'
-        ))->condition('cid', $values, 'IN')->execute();
+        $results = db_select('biblio_contributor_data', 'b')->fields('b')->execute()->fetchAll();
         $map = array();
-        while($record = $result->fetchAssoc()){
-          $map[$record['cid']] = $record['name'];
+        foreach($results as $row){
+          $map[$row->cid] = $row->literal ? $row->name : ($row->prefix ? $row->prefix . ' ' : '') . $row->lastname . ($row->suffix ? ', ' . $row->suffix : '') . ($row->initials || $row->firstname ? ', ' . substr($row->firstname, 0, 1) . $row->initials : '');
         }
         return $map;
       case 'biblio_secondary_title':
