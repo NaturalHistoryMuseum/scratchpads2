@@ -487,7 +487,7 @@ function scratchpads_biblio_search_map_callback($values, $options){
         $results = db_select('biblio_contributor_data', 'b')->fields('b')->execute()->fetchAll();
         $map = array();
         foreach($results as $row){
-          $map[$row->cid] = $row->literal ? $row->name : ($row->prefix ? $row->prefix . ' ' : '') . $row->lastname . ($row->suffix ? ', ' . $row->suffix : '') . ($row->initials || $row->firstname ? ', ' . substr($row->firstname, 0, 1) . $row->initials : '');
+          $map[$row->cid] = $row->literal ? $row->name : ($row->prefix ? $row->prefix . ' ' : '') . $row->lastname . ($row->suffix ? ', ' . $row->suffix : '') . ($row->initials || $row->firstname ? ', ' . mb_substr($row->firstname, 0, 1) . $row->initials : '');
         }
         return $map;
       case 'biblio_secondary_title':
