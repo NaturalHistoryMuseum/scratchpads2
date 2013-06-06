@@ -1746,15 +1746,6 @@ function _biblio_get_user_profile_form($profile_user = FALSE) {
 
 function _biblio_drupal_author_user_map($profile_user, $allow_edit = TRUE) {
   global $user;
-
-  $db_result = db_query("SELECT cd.lastname, cd.firstname, cd.initials, cd.cid FROM {biblio_contributor_data} cd
-      ORDER by cd.lastname ASC ");
-  $options = array();
-  $options[0] = t('(None)');
-
-  foreach ($db_result as $row) {
-    $options[$row->cid] =  "$row->lastname, $row->firstname $row->initials ";
-  }
   if (isset($profile_user->data['biblio_id_change_count']) && $profile_user->data['biblio_id_change_count'] > 2) {
     $allow_edit = 0;
     $msg = t('This control has been disabled because the author mapping has been changed more than 3 times, please see your system administrator to have it reset.');
@@ -1763,11 +1754,11 @@ function _biblio_drupal_author_user_map($profile_user, $allow_edit = TRUE) {
     $msg = t('This will link your profile to the selected author from the biblio database, then all publications containing this author to be displayed on your "Publications" tab.');
   }
   $form['biblio_contributor_id'] = array(
-      '#type' => 'select',
+      '#type' => 'textfield',    
+      '#autocomplete_path' => 'biblio/autocomplete/contributor',
       '#title' => t('Link My Profile with this Author from the Biblio database:'),
-      '#default_value' => isset($profile_user->data['biblio_contributor_id']) ? $profile_user->data['biblio_contributor_id'] : 0,
-      '#disabled' => ($user->uid == 1 || user_access('administer biblio')) ? FALSE : !$allow_edit,
-      '#options' => $options,
+      '#default_value' => isset($profile_user->data['biblio_contributor_id']) ? $profile_user->data['biblio_contributor_id'] : '',
+      '#disabled' => ($user->uid == 1 || user_access('administer biblio')) ? FALSE : !$allow_edit,    
       '#description' => $msg,
   );
   $form['biblio_id_change_count'] = array(
@@ -1778,7 +1769,6 @@ function _biblio_drupal_author_user_map($profile_user, $allow_edit = TRUE) {
       '#disabled' => ($user->uid == 1 || user_access('administer biblio')) ? FALSE : TRUE,
       '#description' => 'When this value is >= 3, you will no longer be able to change your author id mapping.  Contact your system administrator to reset this value.',
   );
-
   return $form;
 }
 /**
