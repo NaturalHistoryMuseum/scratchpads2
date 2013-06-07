@@ -14,6 +14,4 @@ function scratchpads_audubon_core_update_7001(){
 /**
  * Copyright statement no longer required field (features revert)
  */
-function scratchpads_audubon_core_update_7002(){
-  scratchpads_audubon_core_update_7001();
-}
+function scratchpads_audubon_core_update_7002(){}
