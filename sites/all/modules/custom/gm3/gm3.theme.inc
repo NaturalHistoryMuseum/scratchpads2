@@ -263,6 +263,9 @@ function theme_gm3_view_gm3($variables){
           break;
         case 'gm3_combination':
           foreach($row->_field_data as $id => $values){
+            if(empty($values['entity']->{$key})) {
+              continue;
+            }
             foreach($values['entity']->{$key}[LANGUAGE_NONE] as $item){
               switch($item['gm3_type']){
                 case 'point':
