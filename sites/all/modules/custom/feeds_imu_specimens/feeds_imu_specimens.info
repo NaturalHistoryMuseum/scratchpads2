@@ -1,0 +1,10 @@
+name = Feeds IMU specimens import
+description = Imports specimen/observation data from a Kemu ecatalog using Feeds and the Imu API
+package = Feeds
+core = 7.x
+dependencies[] = feeds
+dependencies[] = ctools
+dependencies[] = libraries
+
+files[] = plugins/FeedsIMUspecimensFetcher.inc
+files[] = plugins/FeedsIMUspecimensParser.inc
