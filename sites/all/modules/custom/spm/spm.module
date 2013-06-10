@@ -12,4 +12,33 @@ function spm_form_spm_node_form_alter(&$form, &$form_state, $form_id){
     )), 'error');
     drupal_goto('admin/content');
   }
+  // Get a array of empty fields
+  foreach($form_state['build_info']['args'][0] as $key => $possible_field){
+    if(is_array($possible_field)){
+      if((substr($key, 0, 5) == 'field') && (count($possible_field) == 0)){
+        $empty_field_array[] = $key;
+      }
+    }
+  }
+  // Add 'empty_text_field' class to all empty textfields
+  foreach($form as $key => $possible_field){
+    if(is_array($possible_field)){
+      if(substr($key, 0, 5) == 'field'){
+        // check to see if it is a text field
+        if($possible_field['und'][0]['#type'] == 'text_format'){
+          if(in_array($key, $empty_field_array)){
+            $form[$key]['#attributes']['class'][] = 'empty_text_field';
+          }
+        }
+      }
+    }
+  }
+  
+  // Remove 'hide unused fields' checkbox from create node form
+  if (arg(0) == 'node' && arg(1) == 'add') {
+    $form['field_hide_unused_fields']['#access'] = 0;
+  }
+  
+   
 }
+
