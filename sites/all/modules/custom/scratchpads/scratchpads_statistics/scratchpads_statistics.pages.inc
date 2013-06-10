@@ -84,6 +84,9 @@ function scratchpads_statistics_stats_page_login_json(){
   return $stats;
 }
 
+/**
+ * FIXME Need to add CACHING.
+ */
 function scratchpads_statistics_stats_page(){
   $content = array();
   // Users --------------------------------------------------------------------
@@ -167,7 +170,6 @@ function scratchpads_statistics_stats_page(){
   foreach($results as $row){
     $site_month_object_counts[$row->site][$row->entity_bundle][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
   }
-  dpm($site_month_object_counts);
   foreach($site_month_object_counts as $site_array){
     foreach($site_array as $data){
       foreach($data as $key => $value){
@@ -255,6 +257,14 @@ function scratchpads_statistics_stats_page(){
         $month_counts[$key]['views'] += $value;
       }
     }
+  }
+  // We pop the last month if it has gone down SIGNIFICANTLY (>5%), as that
+  // means we're probably missing some statistics
+  $last_month_counts = end($month_counts);
+  $previous_month_counts = prev($month_counts);
+  reset($month_counts);
+  if($last_month_counts['objects'] < (0.95 * $previous_month_counts['objects'])){
+    array_pop($month_counts);
   }
   $data = array(
     array(
