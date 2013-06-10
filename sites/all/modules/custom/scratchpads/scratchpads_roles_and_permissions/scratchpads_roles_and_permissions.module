@@ -26,7 +26,6 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'formflow' => FALSE,
       'forum' => FALSE,
       'googleanalytics' => FALSE,
-      'hashcash' => FALSE,
       'legal' => FALSE,
       'menu' => FALSE,
       'node' => FALSE,
