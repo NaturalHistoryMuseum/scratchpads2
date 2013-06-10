@@ -1,0 +1,102 @@
+-- SUMMARY --
+
+Describes relations between entities (comment, node, user etc).
+
+Here's how every relation looks:
+
+  Relation
+       |
+       +----+ entity 1
+       |
+       +----+ entity 2
+       |
+      ...
+       |
+       +----+ entity N
+
+
+Every relation looks like this. N is called the arity of the relation.
+For directional relations, entity 1 is called the source, the rest are called
+targets.
+
+An example of a non-directional, n-ary relation:
+
+  siblings(john, jen, jack, jess)
+
+A binary, directional relation:
+
+  child(bruno, Boglarka)
+
+Relations can be directional, ie:
+  parent(boglarka, bruno, sara)
+
+Where Bruno and Sara are siblings http://www.flickr.com/photos/pnegyesi/6041665852
+and Boglarka are their mother. Once again, the first entity has a special
+role, in this case, it's the parent.
+
+Relations are entities, so they can relate relations to other entities, for
+example:
+  CompanyA -> donation123 -> PartyB
+  donations123 -> transaction456 -> BankC
+  that is, "Company A made a donation to Political Pary B, via Bank C".
+
+The entities in the relation can be thought of as the subject and object(s)
+of the relation.
+
+  Entity relation type    = SUBJECT   + PREDICATE      + OBJECT
+  Node author relation    = node      + creator        + user
+  Taxonomy field relation = blog post + is tagged with + some term
+
+Relation bundles are fieldable, so you can add any relevant fields. For
+example, with the donation example above, you could add a text field denoting
+"amount ($)", or a date field specifying when the donation was made.
+
+Relations CAN NOT BE EDITED. That is, the end points that the relation relates
+can not be changed. If you want to change the relation, you need to delete it
+and start again. (The logic behind this is that if the relation is moving from
+one entity to another, then you're actually describing a different relation).
+Fields on a relation ARE editable.
+
+An entity relation API will let us visualize the content model of a Drupal
+site. With this, we could export an RDF schema of the entire content model of a
+site; we could build a "content explorer" that shows the linkings from any one
+piece of content (a user -> their nodes -> a particular node -> a term -> nodes
+tagged with that term). The first milestone for this module is to provide simple
+blocks that display specific corners of this graph, like a user's nodes, and
+terms a user has used. In the future, we would like to be able to add filters to
+the graph (like "a users nodes" + "only blog posts").
+
+There is a dummy field module that, while still does not allow editing
+relations, it opens the door for formatters.
+
+--- A little more thinking/rephrasing... ---
+
+Some relations are hard-coded properties of an entity; for example,
+nodes have an author, a creation date, and a last updated date. Other
+relations exist because of field values; putting a filefield on a node type
+creates a relation between file entities and node type entities. An
+entity_reference module could explicitly define relations between entities.
+
+Broadly speaking, Relation plans to be able to replace all logical relation
+types currently available in drupal core, and more.
+
+For a full description of the module, visit the project page:
+  http://drupal.org/project/relation
+To submit bug reports and feature suggestions, or to track changes:
+  http://drupal.org/project/issues/relation
+
+--- ROADMAP ---
+See the Live, Self-Organising RoadMap (LSORM™) at:
+http://drupal.org/project/issues/search/relation?status[]=Open&categories[]=task&categories[]=feature
+
+--- Some related discussions/projects: ---
+- http://drupal.org/node/533222 (nodereference/userreference fields in D7)
+- http://drupal.pastebin.com/avnKvCD0 (notes from chx)
+- http://drupal.org/project/graphapi - provides some relation-based graphing capabilities.
+
+-- CONTACT --
+
+Current maintainers:
+* Daniel F. Kudwien (sun) - http://drupal.org/user/54136
+* Ned Haughton (naught101) - http://drupal.org/user/44216
+* Karoly Negesi (chx) - http://drupal.org/user/9446
