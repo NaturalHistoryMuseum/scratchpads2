@@ -3,10 +3,9 @@
 }
 
 .block-scratchpads-statistics {
-  border: solid 1px #ccc;
   margin: 5px;
   padding: 5px;
-  border:solid 1px white;
+  border:dotted 1px #ccc;
 }
 
 .block-scratchpads-statistics h5 {
