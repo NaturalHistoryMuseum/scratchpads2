@@ -98,7 +98,6 @@ dependencies[] = biblio_refbank
 dependencies[] = biblio_dump
 dependencies[] = eol
 dependencies[] = eol_gbif_maps
-dependencies[] = hashcash
 dependencies[] = jsphylosvg
 dependencies[] = noclickety
 dependencies[] = silver
