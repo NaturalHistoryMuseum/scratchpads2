@@ -100,7 +100,6 @@ function scratchpads_statistics_stats_page(){
   $query->orderBy('captured', 'ASC');
   $query->addExpression('SUM(d.number_created)', 'sum_created');
   $site = FALSE;
-  $term = FALSE;
   $user = FALSE;
   // Filter the data by this site.
   if(isset($_GET['site'])){
@@ -111,13 +110,15 @@ function scratchpads_statistics_stats_page(){
     $query->condition($site);
   }
   // Filter the data by a term.
+  $term = db_or();
   if(isset($_GET['term'])){
-    $term = db_or();
     foreach($_GET['term'] as $term_id){
       $term->condition('d.term', $term_id);
     }
-    $query->condition($term);
+  }else{
+    $term->condition('d.term', 0);
   }
+  $query->condition($term);
   // Filter the data by a user.
   if(isset($_GET['user'])){
     $user = db_or();
@@ -148,8 +149,9 @@ function scratchpads_statistics_stats_page(){
   // Objects ------------------------------------------------------------------
   $query = db_select('scratchpads_statistics_data', 'd')->fields('d', array(
     'captured',
-    'entity_bundle'
-  ));
+    'entity_bundle',
+    'site'
+  ))->condition($term);
   $query->groupBy('entity_bundle');
   $query->groupBy('captured');
   $query->orderBy('captured', 'ASC');
@@ -157,71 +159,73 @@ function scratchpads_statistics_stats_page(){
   if($site){
     $query->condition($site);
   }
-  if($term){
-    $query->condition($term);
-  }
   if($user){
     $query->condition($user);
   }
   $results = $query->execute();
-  $site_month_user_counts = array();
+  $site_month_object_counts = array();
   foreach($results as $row){
-    $site_month_object_counts[$row->entity_bundle][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
+    $site_month_object_counts[$row->site][$row->entity_bundle][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
   }
-  foreach($site_month_object_counts as $data){
-    foreach($data as $key => $value){
-      if(!isset($month_counts[$key])){
-        $month_counts[$key] = array(
-          'users' => 0,
-          'objects' => 0,
-          'edits' => 0,
-          'views' => 0
-        );
+  dpm($site_month_object_counts);
+  foreach($site_month_object_counts as $site_array){
+    foreach($site_array as $data){
+      foreach($data as $key => $value){
+        if(!isset($month_counts[$key])){
+          $month_counts[$key] = array(
+            'users' => 0,
+            'objects' => 0,
+            'edits' => 0,
+            'views' => 0
+          );
+        }
+        $month_counts[$key]['objects'] += $value;
       }
-      $month_counts[$key]['objects'] += $value;
     }
   }
   // Edits --------------------------------------------------------------------
   $query = db_select('scratchpads_statistics_data', 'd')->fields('d', array(
     'captured',
-    'entity_bundle'
-  ));
+    'entity_bundle',
+    'site'
+  ))->condition($term);
   $query->groupBy('entity_bundle');
+  $query->groupBy('site');
   $query->groupBy('captured');
   $query->orderBy('captured', 'ASC');
   $query->addExpression('SUM(d.number_edited)', 'sum_created');
   if($site){
     $query->condition($site);
   }
-  if($term){
-    $query->condition($term);
-  }
   if($user){
     $query->condition($user);
   }
   $results = $query->execute();
-  $site_month_user_counts = array();
+  $site_month_object_counts = array();
   foreach($results as $row){
-    $site_month_object_counts[$row->entity_bundle][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
+    $site_month_object_counts[$row->site][$row->entity_bundle][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
   }
-  foreach($site_month_object_counts as $data){
-    foreach($data as $key => $value){
-      if(!isset($month_counts[$key])){
-        $month_counts[$key] = array(
-          'users' => 0,
-          'objects' => 0,
-          'edits' => 0,
-          'views' => 0
-        );
+  foreach($site_month_object_counts as $site_array){
+    foreach($site_array as $data){
+      foreach($data as $key => $value){
+        if(!isset($month_counts[$key])){
+          $month_counts[$key] = array(
+            'users' => 0,
+            'objects' => 0,
+            'edits' => 0,
+            'views' => 0
+          );
+        }
+        $month_counts[$key]['edits'] += $value;
       }
-      $month_counts[$key]['edits'] += $value;
     }
   }
   // Views --------------------------------------------------------------------
   $query = db_select('scratchpads_statistics_data', 'd')->fields('d', array(
     'captured',
-    'entity_bundle'
-  ));
+    'entity_bundle',
+    'site'
+  ))->condition($term);
   $query->groupBy('entity_bundle');
   $query->groupBy('captured');
   $query->orderBy('captured', 'ASC');
@@ -229,28 +233,27 @@ function scratchpads_statistics_stats_page(){
   if($site){
     $query->condition($site);
   }
-  if($term){
-    $query->condition($term);
-  }
   if($user){
     $query->condition($user);
   }
   $results = $query->execute();
-  $site_month_user_counts = array();
+  $site_month_object_counts = array();
   foreach($results as $row){
     $site_month_object_counts[$row->entity_bundle][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
   }
-  foreach($site_month_object_counts as $data){
-    foreach($data as $key => $value){
-      if(!isset($month_counts[$key])){
-        $month_counts[$key] = array(
-          'users' => 0,
-          'objects' => 0,
-          'edits' => 0,
-          'views' => 0
-        );
+  foreach($site_month_object_counts as $site_array){
+    foreach($site_array as $data){
+      foreach($data as $key => $value){
+        if(!isset($month_counts[$key])){
+          $month_counts[$key] = array(
+            'users' => 0,
+            'objects' => 0,
+            'edits' => 0,
+            'views' => 0
+          );
+        }
+        $month_counts[$key]['views'] += $value;
       }
-      $month_counts[$key]['views'] += $value;
     }
   }
   $data = array(
@@ -284,12 +287,9 @@ function scratchpads_statistics_stats_page(){
   // captured value for each.
   $temp_table_name = db_query_temporary('SELECT MAX(captured) AS captured, site FROM {scratchpads_statistics_data} GROUP BY site');
   // Now join to that table.
-  $query = db_select('scratchpads_statistics_data', 'd');
+  $query = db_select('scratchpads_statistics_data', 'd')->condition($term);
   if($site){
     $query->condition($site);
-  }
-  if($term){
-    $query->condition($term);
   }
   if($user){
     $query->condition($user);
@@ -390,12 +390,6 @@ function scratchpads_statistics_stats_page(){
   if($site){
     $query->condition($site);
   }
-  if($term){
-    $query->condition($term);
-  }
-  if($user){
-    $query->condition($user);
-  }
   $query = $query->countQuery();
   $result = $query->execute()->fetchAssoc();
   $total_users = (integer)array_pop($result);
@@ -403,9 +397,6 @@ function scratchpads_statistics_stats_page(){
   $query = db_select('scratchpads_statistics_login', 'd')->condition('access', time() - 31536000, '>');
   if($site){
     $query->condition($site);
-  }
-  if($term){
-    $query->condition($term);
   }
   if($user){
     $query->condition($user);
@@ -418,9 +409,6 @@ function scratchpads_statistics_stats_page(){
   if($site){
     $query->condition($site);
   }
-  if($term){
-    $query->condition($term);
-  }
   if($user){
     $query->condition($user);
   }
@@ -431,9 +419,6 @@ function scratchpads_statistics_stats_page(){
   $query = db_select('scratchpads_statistics_login', 'd')->condition('access', time() - 604800, '>');
   if($site){
     $query->condition($site);
-  }
-  if($term){
-    $query->condition($term);
   }
   if($user){
     $query->condition($user);
