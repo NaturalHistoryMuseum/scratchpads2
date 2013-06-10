@@ -1,0 +1,339 @@
+<?php
+
+/**
+ * @file
+ * Relation endpoints field.
+ */
+
+/**
+ * Implements hook_field_info().
+ */
+function relation_endpoint_field_info() {
+  return array(
+    'relation_endpoint' => array(
+      'label' => t('Relation endpoint'),
+      'description' => t('This field contains the endpoints of the relation'),
+      'default_widget' => 'relation_endpoint',
+      'default_formatter' => 'relation_endpoint',
+      'entity types' => array('relation'),
+      'no_ui' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_validate().
+ */
+function relation_endpoint_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  if (empty($entity_type) && empty($entity)) {
+    return;
+  }
+
+  $relation_type = relation_type_load($entity->relation_type);
+  // Check that relation_type exists.
+  if (!$relation_type) {
+    $errors[$field['field_name']][$langcode][$delta][] = array(
+      'error' => 'relation_nonexistent_type',
+      'message' => t("The !relation_type relation type does not exist.", array('!relation_type' => $entity->relation_type)),
+    );
+  }
+  // Check if the relation type is unique and if so, check if a relation between
+  // those items exist already.
+  if ($relation_type->r_unique) {
+    $rids = relation_relation_exists($items, $entity->relation_type);
+    if ($rids && (!isset($entity->rid) || !isset($rids[$entity->rid]))) {
+      $errors[$field['field_name']][$langcode][0][] = array(
+        'error' => 'relation_already_exists',
+        'message' => t("The !relation_type is unique but the relation already exists.", array('!relation_type' => $entity->relation_type)),
+      );
+    }
+  }
+  // Check that arity is within acceptable bounds.
+  if (count($items) < $relation_type->min_arity && empty($entity->in_progress)) {
+    $errors[$field['field_name']][$langcode][0][] = array(
+      'error' => 'relation_too_few_endpoints',
+      'message' => t("Relation has too few end points (:relation_type min arity :min_arity)", array(':relation_type' => $entity->relation_type, ':min_arity' => $relation_type->min_arity)),
+    );
+  }
+  if ($relation_type->max_arity && count($items) > $relation_type->max_arity) {
+    $errors[$field['field_name']][$langcode][0][] = array(
+      'error' => 'relation_too_many_endpoints',
+      'message' => t("Relation has too many end points (:relation_type max arity :max_arity)", array(':relation_type' => $entity->relation_type, ':max_arity' => $relation_type->max_arity)),
+    );
+  }
+
+  // Load all entities referenced in $items via multiple load.
+  $items_to_load = array();
+  $loaded_items = array();
+  foreach ($items as $delta => $item) {
+    if (!isset($item['entity_bundle'])) {
+      $items_to_load[$item['entity_type']][] = $item['entity_id'];
+    }
+  }
+  foreach ($items_to_load as $entity_type => $ids) {
+    $loaded_items[$entity_type] = entity_load($entity_type, $ids);
+  }
+
+  // Check that each entity is has acceptable bundle type and index.
+  foreach ($items as $delta => $item) {
+    $acceptable = FALSE;
+    $directional = $relation_type->directional;
+    $endpoint = ($directional && ($delta > 0)) ? 'target' : 'source';
+    $end_bundles = $endpoint . '_bundles';
+    foreach ($relation_type->$end_bundles as $relation_bundle) {
+      if (!isset($item['entity_bundle'])) {
+        $endpoint_entity = $loaded_items[$item['entity_type']][$item['entity_id']];
+        list(, , $item['entity_bundle']) = entity_extract_ids($item['entity_type'], $endpoint_entity);
+      }
+      $relation_bundle_array = explode(':', $relation_bundle, 2);
+      if (($relation_bundle == $item['entity_type'] . ':' . $item['entity_bundle']) || (($item['entity_type'] == $relation_bundle_array[0]) && ($relation_bundle_array[1] == '*'))) {
+        $acceptable = TRUE;
+        break;
+      }
+    }
+    if (!$acceptable) {
+      $t_arguments = array('%relation_type' => $entity->relation_type, '@bundle' => $item['entity_bundle']);
+      if ($relation_type->directional) {
+        if ($endpoint == 'target') {
+          $errors[$field['field_name']][$langcode][$delta][] = array(
+            'error' => 'relation_unsupported_target',
+            'message' => t("The %relation_type relation type does not allow @bundle entities as target.", $t_arguments),
+          );
+        }
+        else {
+          $errors[$field['field_name']][$langcode][$delta][] = array(
+            'error' => 'relation_unsupported_source',
+            'message' => t("The %relation_type relation type does not allow @bundle entities as source.", $t_arguments),
+          );
+        }
+      }
+      else {
+        $errors[$field['field_name']][$langcode][$delta][] = array(
+          'error' => 'relation_unsupported_endpoint',
+          'message' => t("The %relation_type relation type does not allow @bundle entities as an endpoint.", $t_arguments),
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_presave().
+ */
+function relation_endpoint_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  // We need r_index here because EntityFieldQuery can't query on deltas.
+  foreach ($items as $delta => &$item) {
+    $item['r_index'] = $delta;
+  }
+}
+
+/**
+ * Implements hook_field_update().
+ */
+function relation_endpoint_field_update($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  // We do not update.
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function relation_endpoint_field_is_empty($item, $field) {
+  // We are never empty.
+  return FALSE;
+}
+
+/**
+ * Helper to create an HTML table representing a relation.
+ */
+function _relation_endpoint_field_create_html_table($endpoints) {
+  $entity_info = entity_get_info();
+  $list_items = array();
+  foreach ($endpoints as $delta => $endpoint) {
+    $entities = entity_load($endpoint['entity_type'], array($endpoint['entity_id']));
+    $entity = reset($entities);
+    $label = entity_label($endpoint['entity_type'], $entity);
+    $uri = entity_uri($endpoint['entity_type'], $entity);
+    if ($uri) {
+      $list_items[$delta] = array(l($label, $uri['path'], $uri['options']), $entity_info[$endpoint['entity_type']]['label']);
+    }
+    else {
+      $list_items[$delta] = array($label, $entity_info[$endpoint['entity_type']]['label']);
+    }
+  }
+  $headers = array(
+    t('Entity'),
+    array('width' => '22%', 'data' => t('Entity type')),
+  );
+  return array(
+    '#theme' => 'table',
+    '#header' => $headers,
+    '#rows' => $list_items,
+  );
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function relation_endpoint_field_widget_info() {
+  return array(
+    'relation_endpoint' => array(
+      'label' => t('Endpoints table'),
+      'field types' => array('relation_endpoint'),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function relation_endpoint_field_formatter_info() {
+  $info = array(
+    'relation_endpoint' => array(
+      'label' => t('Endpoints table'),
+      'field types' => array('relation_endpoint'),
+    ),
+    'relation_endpoint_full' => array(
+      'label' => t('Full entities list'),
+      'field types' => array('relation_endpoint'),
+    ),
+  );
+  foreach (entity_get_info() as $entity_type => $data) {
+    $info['relation_endpoint_full']['settings']['view_modes'][$entity_type] = 'default';
+    $info['relation_endpoint']['settings']['view_modes'][$entity_type] = 'default';
+  }
+  return $info;
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function relation_endpoint_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $view_modes_settings = $instance['display'][$view_mode]['settings']['view_modes'];
+  foreach (_relation_endpoint_get_endpoint_entity_types($instance) as $endpoint_entity_type => $v) {
+    $entity_info = entity_get_info($endpoint_entity_type);
+    $options = array();
+    foreach ($entity_info['view modes'] as $entity_view_mode => $data) {
+      $options[$entity_view_mode] = $data['label'];
+    }
+    $element['#tree'] = TRUE;
+    $element['view_modes'][$endpoint_entity_type] = array(
+      '#title' => t('@endpoint_entity_type view mode', array('@endpoint_entity_type' => $endpoint_entity_type)),
+      '#type' => 'select',
+      '#default_value' => $view_modes_settings[$endpoint_entity_type],
+      '#options' => $options,
+    );
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function relation_endpoint_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $view_modes_settings = $instance['display'][$view_mode]['settings']['view_modes'];
+  foreach (_relation_endpoint_get_endpoint_entity_types($instance) as $endpoint_entity_type => $v) {
+    $items[] = "$endpoint_entity_type: " . $view_modes_settings[$endpoint_entity_type];
+  }
+  return theme('item_list', array('items' => $items));
+}
+
+/**
+ * Helper getting endpoint entity types for the bundle specified in $instance.
+ */
+function _relation_endpoint_get_endpoint_entity_types($instance) {
+  $relation_type = relation_type_load($instance['bundle']);
+  $bundles = $relation_type->source_bundles + $relation_type->target_bundles;
+  foreach ($bundles as $bundle_key) {
+    list($endpoint_entity_type) = explode(':', $bundle_key);
+    $endpoint_entity_types[$endpoint_entity_type] = TRUE;
+  }
+  return $endpoint_entity_types;
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function relation_endpoint_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  switch ($display['type']) {
+    case 'relation_endpoint':
+      $build[] = _relation_endpoint_field_create_html_table($items);
+      break;
+    case 'relation_endpoint_full':
+      $list_items = array();
+      $endpoint_entity_type = '';
+      $multiple = TRUE;
+      foreach ($items as $delta => $endpoint) {
+        if (!$endpoint_entity_type) {
+          $endpoint_entity_type = $endpoint['entity_type'];
+        }
+        if ($endpoint_entity_type == $endpoint['entity_type']) {
+          $entity_ids[] = $endpoint['entity_id'];
+        }
+        else {
+          $multiple = FALSE;
+          break;
+        }
+      }
+      $view_mode = isset($display['settings']['view_modes'][$endpoint_entity_type]) ? $display['settings']['view_modes'][$endpoint_entity_type] : 'full';
+      if ($multiple) {
+        $entities = entity_load($endpoint_entity_type, $entity_ids);
+        if (function_exists('entity_view')) {
+          return array(entity_view($endpoint_entity_type, $entities, $view_mode));
+        }
+        $function = $endpoint_entity_type . '_view_multiple';
+        if (function_exists($function)) {
+          return array($function($entities, $view_mode));
+        }
+      }
+      $build = array();
+      foreach ($items as $delta => $endpoint) {
+        if ($multiple) {
+          $entity = $entities[$endpoint['entity_id']];
+        }
+        else {
+          $entities = entity_load($endpoint['entity_type'], array($endpoint['entity_id']));
+          $entity = reset($entities);
+        }
+        if (function_exists('entity_view')) {
+          $build[$delta] = entity_view($endpoint['entity_type'], array($entity), $view_mode);
+        }
+        else {
+          $function = $endpoint['entity_type'] . '_view';
+          $build[$delta] = $function($entity, $view_mode);
+        }
+      }
+  }
+  return $build;
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function relation_endpoint_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  foreach ($items as $delta => $item) {
+    foreach (array('entity_type', 'entity_id') as $column) {
+      $element[$delta][$column] = array(
+        '#type' => 'value',
+        '#value' => $item[$column],
+      );
+    }
+  }
+  $element['link_list'] = _relation_endpoint_field_create_html_table($items);
+  return $element;
+}
+
+/**
+ * Implements hook_form_field_ui_field_overview_form_alter().
+ */
+function relation_endpoint_form_field_ui_field_overview_form_alter(&$form, $form_state) {
+  // Deleting endpoints would make the module useless.
+  if ($form['#entity_type'] == 'relation') {
+    $form['fields']['endpoints']['delete'] = array(
+      '#type' => 'markup',
+      '#markup' => '&nbsp;',
+    );
+  }
+}
