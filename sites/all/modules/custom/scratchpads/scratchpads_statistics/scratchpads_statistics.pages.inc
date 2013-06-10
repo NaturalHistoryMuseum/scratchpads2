@@ -284,12 +284,14 @@ function scratchpads_statistics_stats_page(){
       $value['views']
     );
   }
-  $content[] = array(
-    '#theme' => 'simple_google_chart',
-    '#type' => 'LineChart',
-    '#data' => $data,
-    '#title' => t('Change')
-  );
+  if(isset($data[2])){
+    $content[] = array(
+      '#theme' => 'simple_google_chart',
+      '#type' => 'LineChart',
+      '#data' => $data,
+      '#title' => t('Change')
+    );
+  }
   // Bar chart of entities ----------------------------------------------------
   // The following query will give us a total for each entity/bundle across all
   // of the sites.
