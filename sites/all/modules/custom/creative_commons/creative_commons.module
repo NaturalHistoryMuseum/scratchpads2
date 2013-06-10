@@ -437,7 +437,7 @@ function theme_creative_commons_block($variables){
  */
 function creative_commons_get_licence_types($type = null){
   $licence_types = array(
-    CC_NONE => t('All Rights Reserved)'),
+    CC_NONE => t('All Rights Reserved'),
     CC_0 => t('CC0'),
     CC_PD => t('Public Domain'),
     CC_BY => t('Attribution CC BY'),
