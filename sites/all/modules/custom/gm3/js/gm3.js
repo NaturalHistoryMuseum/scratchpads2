@@ -64,15 +64,27 @@
   Drupal.GM3.prototype.add_latlng = function(latLng, reset){
     if(reset || !this.max_lat || this.max_lat < latLng.lat()) {
       this.max_lat = latLng.lat();
+      if(this.max_lat >= 84) {
+        this.max_lat = 84;
+      }
     }
     if(reset || !this.max_lng || this.max_lng < latLng.lng()) {
       this.max_lng = latLng.lng();
+      if(this.max_lng >= 180) {
+        this.max_lng = 179.999999;
+      }
     }
     if(reset || !this.min_lat || this.min_lat > latLng.lat()) {
       this.min_lat = latLng.lat();
+      if(this.min_lat <= -84) {
+        this.min_lat = -84;
+      }
     }
     if(reset || !this.min_lng || this.min_lng > latLng.lng()) {
       this.min_lng = latLng.lng();
+      if(this.min_lng <= -180) {
+        this.min_lng = -179.999999;
+      }
     }
   }
   Drupal.GM3.prototype.add_popup = function(object, content, title){
