@@ -1,0 +1,15 @@
+name = Relation Entity Collector block
+description = A block to collect entities loaded on any page(s), and create relations from them.
+core = 7.x
+package = Relation
+dependencies[] = relation
+dependencies[] = block
+files[] = tests/relation_entity_collector.test
+stylesheets[all][] = relation_entity_collector.css
+
+; Information added by drupal.org packaging script on 2013-02-07
+version = "7.x-1.0-rc4"
+core = "7.x"
+project = "relation"
+datestamp = "1360240967"
+

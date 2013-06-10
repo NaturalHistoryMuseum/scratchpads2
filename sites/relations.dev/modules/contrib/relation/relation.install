@@ -1,0 +1,286 @@
+<?php
+
+/**
+ * @file
+ * Installation functions for Relation module.
+ */
+
+/**
+ * Create our field.
+ */
+function relation_install() {
+  $install = &drupal_static('relation_install');
+  $install = TRUE;
+  $field = array(
+    'field_name' => 'endpoints',
+    'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+    'type' => 'relation_endpoint',
+  );
+  field_info_cache_clear();
+  field_create_field($field);
+  $install = FALSE;
+  entity_info_cache_clear();
+}
+
+/**
+ * Implements hook_schema().
+ */
+function relation_schema() {
+  $schema['relation'] = array(
+    'description' => 'Keeps track of relation entities.',
+    'fields' => array(
+      'rid' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Unique relation id (entity id).',
+      ),
+      'relation_type' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Relation type (see relation_type table).',
+      ),
+      'vid' => array(
+        'description' => 'The current {relation_revision}.vid version identifier.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'uid' => array(
+        'description' => 'The {users}.uid that owns this relation; initially, this is the user that created it.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the relation was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp when the relation was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'arity' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The number rows in this relation. Cannot exceed max_arity, or be less than min_arity in relation_type table.',
+      ),
+    ),
+    'primary key' => array('rid'),
+    'indexes' => array(
+      'relation_types' => array('relation_type', 'rid'),
+    ),
+  );
+  $schema['relation_revision'] = array(
+    'description' => 'Keeps track of relation entities.',
+    'fields' => array(
+      'rid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Unique relation id (entity id).',
+      ),
+      'relation_type' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Relation type (see relation_type table).',
+      ),
+      'vid' => array(
+        'description' => 'The current {relation_revision}.vid version identifier.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'The {users}.uid that owns this relation; initially, this is the user that created it.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp when the relation was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'arity' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The number rows in this relation. Cannot exceed max_arity, or be less than min_arity in relation_type table.',
+      ),
+    ),
+    'primary key' => array('vid'),
+    'indexes' => array(
+      'rid_vid' => array('rid', 'vid'),
+    ),
+  );
+  $schema['relation_type'] = array(
+    'description' => 'Relation settings.',
+    // Add exportability when using ctools.
+    'export' => array(
+      'key' => 'relation_type',
+      'identifier' => 'relation_type',
+      'default hook' => 'relation_default_relation_types',  // Function hook name.
+      'api' => array(
+        'owner' => 'relation',
+        'api' => 'relation_type_default',  // Base name for api include files.
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+      // the callback to load the available bundles
+      'subrecords callback' => '_relation_get_types_bundles',
+      'export callback' => 'relation_relation_type_export',
+    ),
+    'fields' => array(
+      'relation_type' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The machine-readable name of this type.',
+      ),
+      'label' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The human-readable name of this type.',
+      ),
+      'reverse_label' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The reverse human-readable name of this type. Only used for directional relations.',
+      ),
+      'directional' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Whether this relation type is directional. If not, all indexes are ignored.',
+      ),
+      'transitive' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Whether this relation type is transitive.',
+      ),
+      'r_unique' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Whether relations of this type are unique.',
+      ),
+      'min_arity' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 2,
+        'description' => 'The minimum number of rows that can make up a relation of this type.',
+      ),
+      'max_arity' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 2,
+        'description' => 'The maximum number of rows that can make up a relation of this type. Similar to field cardinality.',
+      ),
+    ),
+    'primary key' => array('relation_type'),
+  );
+  $schema['relation_bundles'] = array(
+    'description' => 'Relation type available bundles',
+    'fields' => array(
+      'relation_type' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The relation type.',
+      ),
+      'entity_type' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Entity type that is available to this relation.',
+      ),
+      'bundle' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Entity bundle that is available to this relation.',
+      ),
+      'r_index' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Direction index for relations: 0=from, 1=to. The index is ignored if the directional column in the relation_type table is 0.',
+      ),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function relation_uninstall() {
+  // Remove fields attached to relation type bundles.
+  $types = db_query("SELECT relation_type FROM {relation_type}")->fetchCol();
+  foreach ($types as $type) {
+    field_attach_delete_bundle('relation', $type);
+  }
+  field_delete_field('endpoints');
+}
+
+/**
+ * Enable the new endpoint module and ctools.
+ */
+function relation_update_7001() {
+  module_enable(array('relation_endpoint'));
+  db_update('field_config')
+    ->fields(array('module' => 'relation_endpoint'))
+    ->condition('field_name', 'endpoints')
+    ->execute();
+}
+
+/**
+ * Update empty rid in relation_revision table
+ */
+function relation_update_7002() {
+  // Update statements with JOINs are not portable across SQL dialects.
+  // First get revisions needing update;
+  // retrieve all results before updating anything.
+  $query = db_select('relation_revision', 'v');
+  $query->join('relation', 'r', 'v.vid = r.vid');
+  $results = $query->fields('r', array('rid', 'vid'))
+    ->condition('v.rid', 0, '=')
+    ->execute()
+    ->fetchAll();
+  // Update all those revisions with the correct rid.
+  foreach ($results as $result) {
+    db_update('relation_revision')
+      ->fields(array('rid' => $result->rid))
+      ->condition('vid', $result->vid, '=')
+      ->execute();
+  }
+}
