@@ -360,15 +360,20 @@ function scratchpads_statistics_stats_page(){
   }
   if(isset($data[2])){
     $content[] = array(
-      '#theme' => 'simple_google_chart',
-      '#type' => 'ColumnChart',
-      '#data' => $data,
-      '#title' => t('Views/edits'),
-      '#options' => array(
-        'bar' => array(
-          'groupWidth' => '80%'
-        ),
-        'height' => '400'
+      'graph' => array(
+        '#theme' => 'simple_google_chart',
+        '#type' => 'ColumnChart',
+        '#data' => $data,
+        '#title' => t('Views/edits'),
+        '#options' => array(
+          'bar' => array(
+            'groupWidth' => '80%'
+          ),
+          'height' => '400'
+        )
+      ),
+      'note_about_views' => array(
+        '#markup' => '<p class="scratchpads-statistics-note">' . t('Note, view counts are only recorded for "Nodes".') . '</p>'
       )
     );
   }
