@@ -430,13 +430,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['filename']['table'] = 'file_managed';
   $handler->display->display_options['fields']['filename']['field'] = 'filename';
   $handler->display->display_options['fields']['filename']['exclude'] = TRUE;
-  /* Field: Content: Title */
-  $handler->display->display_options['fields']['title']['id'] = 'title';
-  $handler->display->display_options['fields']['title']['table'] = 'node';
-  $handler->display->display_options['fields']['title']['field'] = 'title';
-  $handler->display->display_options['fields']['title']['relationship'] = 'file_to_node';
-  $handler->display->display_options['fields']['title']['alter']['alter_text'] = TRUE;
-  $handler->display->display_options['fields']['title']['empty'] = '[filename]';
   /* Field: File: Mime type */
   $handler->display->display_options['fields']['filemime']['id'] = 'filemime';
   $handler->display->display_options['fields']['filemime']['table'] = 'file_managed';
@@ -446,6 +439,13 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_cc_licence']['table'] = 'field_data_field_cc_licence';
   $handler->display->display_options['fields']['field_cc_licence']['field'] = 'field_cc_licence';
   $handler->display->display_options['fields']['field_cc_licence']['type'] = 'creative_commons_url';
+  /* Field: Content: Title */
+  $handler->display->display_options['fields']['title']['id'] = 'title';
+  $handler->display->display_options['fields']['title']['table'] = 'node';
+  $handler->display->display_options['fields']['title']['field'] = 'title';
+  $handler->display->display_options['fields']['title']['relationship'] = 'file_to_node';
+  $handler->display->display_options['fields']['title']['alter']['alter_text'] = TRUE;
+  $handler->display->display_options['fields']['title']['empty'] = '[filename]';
   /* Field: User: User UUID */
   $handler->display->display_options['fields']['uuid_3']['id'] = 'uuid_3';
   $handler->display->display_options['fields']['uuid_3']['table'] = 'users';
