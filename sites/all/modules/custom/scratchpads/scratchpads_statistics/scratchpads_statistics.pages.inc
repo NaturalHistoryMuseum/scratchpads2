@@ -84,6 +84,9 @@ function scratchpads_statistics_stats_page_login_json(){
   return $stats;
 }
 
+/**
+ * FIXME Need to add CACHING.
+ */
 function scratchpads_statistics_stats_page(){
   $content = array();
   // Users --------------------------------------------------------------------
@@ -167,7 +170,6 @@ function scratchpads_statistics_stats_page(){
   foreach($results as $row){
     $site_month_object_counts[$row->site][$row->entity_bundle][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
   }
-  dpm($site_month_object_counts);
   foreach($site_month_object_counts as $site_array){
     foreach($site_array as $data){
       foreach($data as $key => $value){
@@ -256,6 +258,14 @@ function scratchpads_statistics_stats_page(){
       }
     }
   }
+  // We pop the last month if it has gone down SIGNIFICANTLY (>5%), as that
+  // means we're probably missing some statistics
+  $last_month_counts = end($month_counts);
+  $previous_month_counts = prev($month_counts);
+  reset($month_counts);
+  if($last_month_counts['objects'] < (0.95 * $previous_month_counts['objects'])){
+    array_pop($month_counts);
+  }
   $data = array(
     array(
       t('Year/Month'),
@@ -274,12 +284,14 @@ function scratchpads_statistics_stats_page(){
       $value['views']
     );
   }
-  $content[] = array(
-    '#theme' => 'simple_google_chart',
-    '#type' => 'LineChart',
-    '#data' => $data,
-    '#title' => t('Change')
-  );
+  if(isset($data[2])){
+    $content[] = array(
+      '#theme' => 'simple_google_chart',
+      '#type' => 'LineChart',
+      '#data' => $data,
+      '#title' => t('Change')
+    );
+  }
   // Bar chart of entities ----------------------------------------------------
   // The following query will give us a total for each entity/bundle across all
   // of the sites.
@@ -346,18 +358,25 @@ function scratchpads_statistics_stats_page(){
       );
     }
   }
-  $content[] = array(
-    '#theme' => 'simple_google_chart',
-    '#type' => 'ColumnChart',
-    '#data' => $data,
-    '#title' => t('Views/edits'),
-    '#options' => array(
-      'bar' => array(
-        'groupWidth' => '80%'
+  if(isset($data[2])){
+    $content[] = array(
+      'graph' => array(
+        '#theme' => 'simple_google_chart',
+        '#type' => 'ColumnChart',
+        '#data' => $data,
+        '#title' => t('Views/edits'),
+        '#options' => array(
+          'bar' => array(
+            'groupWidth' => '80%'
+          ),
+          'height' => '400'
+        )
       ),
-      'height' => '400'
-    )
-  );
+      'note_about_views' => array(
+        '#markup' => '<p class="scratchpads-statistics-note">' . t('Note, view counts are only recorded for "Nodes".') . '</p>'
+      )
+    );
+  }
   $data = array(
     array(
       t('Content types'),
@@ -370,16 +389,18 @@ function scratchpads_statistics_stats_page(){
       (integer)$value
     );
   }
-  $content[] = array(
-    '#theme' => 'simple_google_chart',
-    '#type' => 'PieChart',
-    '#data' => $data,
-    '#title' => t('Distribution'),
-    '#options' => array(
-      'is3D' => TRUE,
-      'height' => 400
-    )
-  );
+  if(isset($data[2])){
+    $content[] = array(
+      '#theme' => 'simple_google_chart',
+      '#type' => 'PieChart',
+      '#data' => $data,
+      '#title' => t('Distribution'),
+      '#options' => array(
+        'is3D' => TRUE,
+        'height' => 400
+      )
+    );
+  }
   // Next we look for the number of users that have logged in in the past week,
   // and then the number of users that have logged in in the past month.
   //
@@ -428,15 +449,19 @@ function scratchpads_statistics_stats_page(){
   $last_week = (integer)array_pop($result);
   if(!$user){
     if($site){
+      $options = array();
+      if($total_users > 10){
+        $options = array(
+          'hAxis' => array(
+            'logScale' => TRUE
+          )
+        );
+      }
       $content[] = array(
         '#theme' => 'simple_google_chart',
         '#type' => 'BarChart',
         '#title' => t('Users'),
-        '#options' => array(
-          'hAxis' => array(
-            'logScale' => TRUE
-          )
-        ),
+        '#options' => $options,
         '#data' => array(
           array(
             'Time period',
@@ -484,15 +509,19 @@ function scratchpads_statistics_stats_page(){
       $query->addExpression('COUNT(DISTINCT site)');
       $result = $query->execute()->fetchAssoc();
       $last_week_site = (integer)array_pop($result);
+      $options = array();
+      if($total_users > 10){
+        $options = array(
+          'hAxis' => array(
+            'logScale' => TRUE
+          )
+        );
+      }
       $content[] = array(
         '#theme' => 'simple_google_chart',
         '#type' => 'BarChart',
         '#title' => t('Users/Sites'),
-        '#options' => array(
-          'hAxis' => array(
-            'logScale' => TRUE
-          )
-        ),
+        '#options' => $options,
         '#data' => array(
           array(
             'Time period',

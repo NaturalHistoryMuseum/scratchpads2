@@ -1113,3 +1113,14 @@ function scratchpads_tweaks_update_7053(){
     _simplenews_init_simplenews_category();
   }
 }
+
+/**
+ * Disable the Hashcash module.
+ */
+function scratchpads_tweaks_update_7054(){
+  $uninstall = array(
+    'hashcash'
+  );
+  module_disable($uninstall);
+  drupal_uninstall_modules($uninstall);
+}
