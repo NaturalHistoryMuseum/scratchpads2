@@ -400,6 +400,10 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['relationships']['uid']['id'] = 'uid';
   $handler->display->display_options['relationships']['uid']['table'] = 'file_managed';
   $handler->display->display_options['relationships']['uid']['field'] = 'uid';
+  /* Field: File: File UUID */
+  $handler->display->display_options['fields']['uuid_2']['id'] = 'uuid_2';
+  $handler->display->display_options['fields']['uuid_2']['table'] = 'file_managed';
+  $handler->display->display_options['fields']['uuid_2']['field'] = 'uuid';
   /* Field: Taxonomy term: Taxonomy term UUID */
   $handler->display->display_options['fields']['uuid']['id'] = 'uuid';
   $handler->display->display_options['fields']['uuid']['table'] = 'taxonomy_term_data';
@@ -416,10 +420,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['uuid_1']['alter']['text'] = '[uuid]';
   $handler->display->display_options['fields']['uuid_1']['empty'] = '[uuid]';
   $handler->display->display_options['fields']['uuid_1']['hide_alter_empty'] = FALSE;
-  /* Field: File: File UUID */
-  $handler->display->display_options['fields']['uuid_2']['id'] = 'uuid_2';
-  $handler->display->display_options['fields']['uuid_2']['table'] = 'file_managed';
-  $handler->display->display_options['fields']['uuid_2']['field'] = 'uuid';
   /* Field: File: Path */
   $handler->display->display_options['fields']['uri']['id'] = 'uri';
   $handler->display->display_options['fields']['uri']['table'] = 'file_managed';
