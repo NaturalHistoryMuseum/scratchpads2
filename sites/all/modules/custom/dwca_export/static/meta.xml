@@ -14,9 +14,8 @@
 		<field index="5" term="http://rs.tdwg.org/dwc/terms/namePublishedIn" />
 		<field index="6" term="http://rs.tdwg.org/dwc/terms/namePublishedInID" />
 		<field index="7" term="http://rs.tdwg.org/dwc/terms/parentNameUsageID" />
-		<field index="8" term="http://rs.tdwg.org/dwc/terms/taxonomicStatus" />
-		<field index="9" term="http://rs.tdwg.org/dwc/terms/nomenclaturalStatus" />
-		<field index="10" term="http://rs.tdwg.org/dwc/terms/acceptedNameUsageID" />
+		<field index="8" term="http://rs.tdwg.org/dwc/terms/nomenclaturalStatus" />
+		<field index="9" term="http://rs.tdwg.org/dwc/terms/acceptedNameUsageID" />
 	</core>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
@@ -46,16 +45,15 @@
 		<field index="7" term="http://purl.org/dc/terms/title" />
 		<field index="8" term="http://purl.org/dc/terms/creator" />
 		<field index="9" term="http://purl.org/dc/terms/identifier" />
-		<field index="10" term="http://purl.org/dc/terms/description" />
-		<field index="11" term="http://purl.org/dc/terms/subject" />
-		<field index="12" term="http://purl.org/dc/terms/language" />
-		<field index="13" term="http://purl.org/dc/terms/type" />
-		<field index="14" term="http://purl.org/dc/terms/date" />
-		<field index="15" term="http://purl.org/dc/terms/created" />
-		<field index="16" term="http://purl.org/dc/terms/modified" />
+		<field index="10" term="http://purl.org/dc/terms/subject" />
+		<field index="11" term="http://purl.org/dc/terms/language" />
+		<field index="12" term="http://purl.org/dc/terms/type" />
+		<field index="13" term="http://purl.org/dc/terms/date" />
+		<field index="14" term="http://purl.org/dc/terms/created" />
+		<field index="15" term="http://purl.org/dc/terms/modified" />
 		
-		<field index="18" term="http://purl.org/dc/terms/relation" />
-		<field index="19" term="http://purl.org/dc/terms/source" />
+		<field index="17" term="http://purl.org/dc/terms/relation" />
+		<field index="18" term="http://purl.org/dc/terms/source" />
 	</extension>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
