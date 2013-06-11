@@ -24,8 +24,8 @@ function spm_form_spm_node_form_alter(&$form, &$form_state, $form_id){
   foreach($form as $key => $possible_field){
     if(is_array($possible_field)){
       if(substr($key, 0, 5) == 'field'){
-        // check to see if it is a text field
-        if($possible_field['und'][0]['#type'] == 'text_format'){
+        // Don't hide required fields
+        if($possible_field['und'][0]['#required'] == FALSE){
           if(in_array($key, $empty_field_array)){
             $form[$key]['#attributes']['class'][] = 'empty_text_field';
           }
@@ -33,12 +33,11 @@ function spm_form_spm_node_form_alter(&$form, &$form_state, $form_id){
       }
     }
   }
-  
   // Remove 'hide unused fields' checkbox from create node form
-  if (arg(0) == 'node' && arg(1) == 'add') {
+  if(arg(0) == 'node' && arg(1) == 'add'){
     $form['field_hide_unused_fields']['#access'] = 0;
   }
   
-   
+  
 }
 
