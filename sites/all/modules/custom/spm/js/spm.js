@@ -4,6 +4,8 @@ jQuery(document).ready(function($){
   // This will be used to store the number of non-empty associated fields
   var obj = {}; 
   var matches = 0;
+  
+  // need to expand this...
   $("textarea").each(function(){
     matches++;      
     var textarea_id = $(this).attr("id"); 
@@ -11,7 +13,12 @@ jQuery(document).ready(function($){
     obj[field_set_id] = 0;   
   });
   
+  
+  
+  
+  //need to expand this...
   // Add a count of non-empty fields to the object
+  /*
   $("textarea").each(function(){
     a = $(this).val();
     the_id = $(this).attr("id");
@@ -24,6 +31,36 @@ jQuery(document).ready(function($){
       } 
     }
   });
+  */
+  $(".form-wrapper").each(function(){
+    
+    
+    
+    var input_field = $(this).find('input');
+    var a = input_field.val();
+    var overview = $(this).hasClass('group-overview');   
+    
+     
+    if (overview == false){  
+      var wrapper_id = $(this).attr("id");
+      
+      
+      
+      var type_check = wrapper_id.substring(0, 10);
+      if(($(this).is(':visible')) && (type_check == 'edit-field')) {
+        
+        
+        if (typeof a != 'undefined'){   
+          if(a != '') {   
+            var this_fieldset_id = $(this).closest("fieldset").attr("id");
+            obj[this_fieldset_id] = obj[this_fieldset_id] +1;           
+          } 
+        }
+      }
+    }
+  });
+  
+  
   var m = checkmap();
   check_tabs();
   show_and_hide();
@@ -38,8 +75,13 @@ jQuery(document).ready(function($){
     }   
     // check which fields are empty
     check_ckeditor_fields();
-    check_textarea_fields();   
+    
+    check_input_fields()
+    //check_textarea_fields();   
     // check which tabs are empty
+    
+    var m = checkmap();
+    
     check_tabs();     
     // show and hide fields tabs
     show_and_hide();
@@ -101,6 +143,42 @@ jQuery(document).ready(function($){
         }
       }
     });
+    
+  }
+  
+//for all fields except ckeditor fields
+  function check_input_fields(){
+    
+    $(".form-wrapper").each(function(){
+      
+      var overview = $(this).hasClass('group-overview');
+      var id = $(this).attr("id");
+      if (overview == false){
+        var type_check = id.substring(0, 10);
+        if(($(this).is(':visible')) && (type_check == 'edit-field')) {
+         
+          var found = $(this).find('input');
+          var this_val = found.val();
+          // we have a matching input field
+          if (typeof this_val != 'undefined'){    
+                       
+            if (this_val == ''){
+              $(this).addClass('empty_text_field'); 
+              
+              var this_fieldset_id = $(this).closest("fieldset").attr("id");
+              obj[this_fieldset_id] = obj[this_fieldset_id] +1;              
+            }
+            else{
+             
+              $(this).removeClass('empty_text_field'); 
+            }
+            
+          }
+        }
+      }
+      
+    });
+    
     
   }
     
