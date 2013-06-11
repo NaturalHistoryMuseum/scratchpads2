@@ -510,13 +510,6 @@ function scratchpads_taxonomic_name_field_facet_autocomplete($type, $search){
 }
 
 /**
- * Implements hook_hashcash_form_ids_alter().
- */
-function scratchpads_taxonomic_name_field_hashcash_form_ids_alter(&$form_ids){
-  $form_ids[] = 'scratchpads_taxonomic_name_field_facet_im_field_taxonomic_name_form';
-}
-
-/**
  * Implements hook_ctools_plugin_api().
  *
  * Magic happens just because this function exists (fucked up, I know).

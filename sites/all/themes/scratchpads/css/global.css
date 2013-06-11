@@ -563,6 +563,23 @@ h1.site-name,h2.site-name {
   float: none !important;
 }
 
+/* Embeded images */
+#zone-content div.content div.field-type-text-with-summary img,
+#zone-content div.content div.field-type-text img {
+  margin: 0px;
+}
+
+#zone-content div.content div.field-type-text-with-summary img[align^=left],
+#zone-content div.content div.field-type-text img[align^=left] {
+  margin: 0 20px 5px 5px;
+}
+
+#zone-content div.content div.field-type-text-with-summary img[align^=right],
+#zone-content div.content div.field-type-text img[align^=right] {
+  margin: 0 5px 5px 5px;
+}
+
+
 /************************ BLOCKS *********************/
 
 /* Content */
