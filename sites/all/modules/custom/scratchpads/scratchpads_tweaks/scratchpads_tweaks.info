@@ -17,6 +17,7 @@ dependencies[] = dashboard
 dependencies[] = dblog
 dependencies[] = field_ui
 dependencies[] = file
+dependencies[] = filter
 dependencies[] = image
 dependencies[] = list
 dependencies[] = menu
