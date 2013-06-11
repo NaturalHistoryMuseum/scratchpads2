@@ -3,12 +3,16 @@
 }
 
 .block-scratchpads-statistics {
-  border: solid 1px #ccc;
   margin: 5px;
   padding: 5px;
-  box-shadow: 1px 1px 3px #888;
+  border: dotted 1px #ccc;
 }
 
 .block-scratchpads-statistics h5 {
-  margin-bottom:3px;
+  margin-bottom: 3px;
+}
+
+.scratchpads-statistics-note {
+  text-align: right;
+  color: #ccc;
 }

@@ -8,6 +8,15 @@ function scratchpads_width_and_height_theme_registry_alter(&$theme_registry){
 }
 
 /**
+ * Implementation of hook_flush_caches().
+ */
+function scratchpads_width_and_height_flush_caches(){
+  return array(
+    'cache_image_sizes'
+  );
+}
+
+/**
  * Returns HTML for an image.
  *
  * @param $variables

@@ -102,13 +102,12 @@ function _scratchpads_statistics_cron($force_update = FALSE){
             break;
         }
         // Get the entity/bundle id.
-        $col = db_select('scratchpads_statistics_entity_bundle', 'e')->fields('e', array(
+        $id = db_select('scratchpads_statistics_entity_bundle', 'e')->fields('e', array(
           'id'
-        ))->condition('entity', $entity)->condition('bundle', $bundle)->execute()->fetchCol();
-        $id = array_pop($col);
+        ))->condition('entity', $entity)->condition('bundle', $bundle)->execute()->fetchField();
         // Check we haven't already done this entity/bundle.
-        $count = db_select('scratchpads_statistics_data_temp', 's')->condition('entity_bundle', $id)->countQuery()->execute()->fetchCol();
-        if($count[0]){
+        $count = db_select('scratchpads_statistics_data_temp', 's')->condition('entity_bundle', $id)->countQuery()->execute()->fetchField();
+        if($count){
           break;
         }
         // Order the query by the entity_id;
@@ -120,22 +119,7 @@ function _scratchpads_statistics_cron($force_update = FALSE){
           foreach($query->ordered_results as $result){
             $tid = isset($result->ss_term_id) ? $result->ss_term_id : 0;
             // Number created
-            if(!isset($counts[$result->ss_user_id])){
-              $counts[$result->ss_user_id] = array(
-                0 => array(
-                  'number_created' => 0,
-                  'number_edited' => 0,
-                  'number_views' => 0
-                )
-              );
-            }
-            if(!isset($counts[$result->ss_user_id][$tid])){
-              $counts[$result->ss_user_id][$tid] = array(
-                'number_created' => 0,
-                'number_edited' => 0,
-                'number_views' => 0
-              );
-            }
+            _scratchpads_statistics_cron_initialise_array($counts[$result->ss_user_id], $tid);
             if($tid){
               $counts[$result->ss_user_id][$tid]['number_created']++;
               $counts[$result->ss_user_id][$tid]['number_edited']++;
@@ -147,6 +131,7 @@ function _scratchpads_statistics_cron($force_update = FALSE){
             }
             // Number edited (most likely the same as created).
             if(isset($result->ss_revision_user_id) && $result->ss_revision_user_id != $result->ss_user_id){
+              _scratchpads_statistics_cron_initialise_array($counts[$result->ss_revision_user_id], $tid);
               $counts[$result->ss_revision_user_id][$tid]['number_edited']++;
             }
             // Number of views
@@ -194,4 +179,27 @@ function _scratchpads_statistics_cron($force_update = FALSE){
   // Finally, move the temp data to the permanent data table.
   db_query('INSERT INTO {scratchpads_statistics_data} SELECT * FROM {scratchpads_statistics_data_temp}');
   db_delete('scratchpads_statistics_data_temp')->execute();
+}
+
+/**
+ * Simple function to initialise an array with number_created, number_edited
+ * and number_views all set to 0.
+ */
+function _scratchpads_statistics_cron_initialise_array(&$counts, $tid = 0){
+  if(!isset($counts[0])){
+    $counts = array(
+      0 => array(
+        'number_created' => 0,
+        'number_edited' => 0,
+        'number_views' => 0
+      )
+    );
+  }
+  if(!isset($counts[$tid])){
+    $counts[$tid] = array(
+      'number_created' => 0,
+      'number_edited' => 0,
+      'number_views' => 0
+    );
+  }
 }

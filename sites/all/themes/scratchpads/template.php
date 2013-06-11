@@ -99,55 +99,92 @@ function scratchpads_preprocess_breadcrumb(&$variables){
 }
 
 function scratchpads_preprocess_user_picture(&$variables){
-  $variables['user_picture'] = '';
+  if(!module_exists('gravatar')){return;}
   if(variable_get('user_pictures', 0)){
-    $account = $variables['account'];
-    if(!empty($account->picture)){
-      if(is_numeric($account->picture)){
-        $account->picture = file_load($account->picture);
-      }
-      if(!empty($account->picture->uri)){
-        $filepath = $account->picture->uri;
-      }
-    }elseif(variable_get('user_picture_default', '')){
-      $filepath = variable_get('user_picture_default', '');
+    // Load the full user object since it is not provided with nodes, comments,
+    // or views displays.
+    $account = _gravatar_load_account($variables['account']);
+    $filepath = _gravatar_get_account_user_picture($account);
+    // We check for the image in cache_image_sizes, if it's not there, we get
+    // the image from the server and check its size.
+    $file_path_md5 = md5($filepath);
+    $data = cache_get($file_path_md5, 'cache_image_sizes');
+    if($data){
+      $gravatar_img_size = $data->data;
+    }else{
+      $gravatar_img_size = getimagesize($filepath);
+      // We only cache for one week if we don't have an image.  This means a
+      // user can add a gravatar image, and it will get picked up after one
+      // week.
+      cache_set($file_path_md5, $gravatar_img_size, 'cache_image_sizes', $gravatar_img_size ? CACHE_PERMANENT : time() + 604800);
     }
-    if(isset($filepath)){
-      $alt = t("@user's picture", array(
-        '@user' => format_username($account)
-      ));
-      // If the image does not have a valid Drupal scheme (for eg. HTTP),
-      // don't load image styles.
-      if(module_exists('image') && file_valid_uri($filepath) && $style = variable_get('user_picture_style', '')){
-        $image_style_args = array(
-          'style_name' => $style,
-          'path' => $filepath,
-          'alt' => $alt,
-          'title' => $alt
-        );
-        // We don't reduce the image size on a user's page.
-        if(arg(0) != 'user'){
-          $image_style_args['attributes'] = array(
-            'width' => '20px',
-            'height' => '20px'
-          );
-        }
-        $variables['user_picture'] = theme('image_style', $image_style_args);
-      }else{
-        $variables['user_picture'] = theme('image', array(
-          'path' => $filepath,
-          'alt' => $alt,
-          'title' => $alt
+    $default = FALSE;
+    // If there is no picture, check to see if there is a default picture
+    if(!is_array($gravatar_img_size) && variable_get('user_picture_default', '')){
+      $filepath = variable_get('user_picture_default', '');
+      $default = TRUE;
+    }
+    // no picture and no default
+    if((!is_array($gravatar_img_size)) && !$default){
+      $variables['user_picture'] = '';
+    }else{
+      if(!empty($filepath)){
+        $alt = t($filepath, array(
+          '@user' => format_username($account)
         ));
-      }
-      if(!empty($account->uid) && user_access('access user profiles')){
-        $attributes = array(
-          'attributes' => array(
+        if(module_exists('image') && file_valid_uri($filepath) && $style = variable_get('user_picture_style', '')){
+          $image_style_args = array(
+            'style_name' => $style,
+            'path' => $filepath,
+            'alt' => $alt,
+            'title' => $alt
+          );
+          if(arg(0) != 'user'){
+            $variables['user_picture'] = theme('image', array(
+              'path' => $filepath,
+              'alt' => $alt,
+              'attributes' => array(
+                'width' => '20px',
+                'height' => '20px'
+              )
+            ));
+          }
+        }elseif(arg(0) != 'user'){
+          $variables['user_picture'] = theme('image', array(
+            'path' => $filepath,
+            'alt' => $alt,
+            'attributes' => array(
+              'width' => '20px',
+              'height' => '20px'
+            )
+          ));
+        }else{
+          $variables['user_picture'] = theme('image', array(
+            'path' => $filepath,
+            'alt' => $alt,
+            'title' => $alt
+          ));
+        }
+        if($account->uid && user_access('access user profiles')){
+          // Create link to the user's profile.
+          $attributes = array(
             'title' => t('View user profile.')
-          ),
-          'html' => TRUE
-        );
-        $variables['user_picture'] = l($variables['user_picture'], "user/$account->uid", $attributes);
+          );
+          $variables['user_picture'] = l($variables['user_picture'], 'user/' . $account->uid, array(
+            'attributes' => $attributes,
+            'html' => TRUE
+          ));
+        }elseif(!empty($account->homepage)){
+          // If user is anonymous, create link to the commenter's homepage.
+          $attributes = array(
+            'title' => t('View user website.'),
+            'rel' => 'external nofollow'
+          );
+          $variables['user_picture'] = l($variables['user_picture'], $account->homepage, array(
+            'attributes' => $attributes,
+            'html' => TRUE
+          ));
+        }
       }
     }
   }
