@@ -54,7 +54,7 @@ function dwca_export_views_default_views(){
   $view->human_name = 'DwC-A Export Classification';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Classification Export View';
@@ -351,9 +351,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['filters']['field_unit_name1_value']['table'] = 'field_data_field_unit_name1';
   $handler->display->display_options['filters']['field_unit_name1_value']['field'] = 'field_unit_name1_value';
   $handler->display->display_options['filters']['field_unit_name1_value']['operator'] = 'not empty';
-  /* Display: Page */
-  $handler = $view->new_display('page', 'Page', 'page');
-  $handler->display->display_options['path'] = 'dwca_export/classification/page';
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'none';
@@ -381,7 +378,7 @@ function dwca_export_views_default_views(){
   $view->human_name = 'DwC-A Export Reference';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Reference Export';
@@ -889,9 +886,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['filters']['type']['value'] = array(
     'biblio' => 'biblio'
   );
-  /* Display: Page */
-  $handler = $view->new_display('page', 'Page', 'page');
-  $handler->display->display_options['path'] = 'dwc-biblio-new';
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'some';
@@ -921,7 +915,7 @@ function dwca_export_views_default_views(){
   $view->human_name = 'DwC-A Export Image';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Images2';
@@ -1270,7 +1264,7 @@ function dwca_export_views_default_views(){
   $view->human_name = 'DwC-A Export Specimen';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'test_specimen';
@@ -1353,9 +1347,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['filters']['type']['value'] = array(
     'specimen_observation' => 'specimen_observation'
   );
-  /* Display: Page */
-  $handler = $view->new_display('page', 'Page', 'page');
-  $handler->display->display_options['path'] = 'dwca_export/specimen/page';
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'none';
@@ -1382,7 +1373,7 @@ function dwca_export_views_default_views(){
   $view->human_name = 'DwC-A Export Comments';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['access']['type'] = 'perm';
@@ -1658,9 +1649,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['sorts']['created']['table'] = 'comment';
   $handler->display->display_options['sorts']['created']['field'] = 'created';
   $handler->display->display_options['sorts']['created']['order'] = 'DESC';
-  /* Display: Page */
-  $handler = $view->new_display('page', 'Page', 'page');
-  $handler->display->display_options['path'] = 'dwca_export/specimen/page';
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'none';
@@ -1687,7 +1675,7 @@ function dwca_export_views_default_views(){
   $view->human_name = 'DwC-A Export EoL Agents';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['access']['type'] = 'perm';
@@ -1982,9 +1970,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['filters']['tid']['field'] = 'tid';
   $handler->display->display_options['filters']['tid']['relationship'] = 'term_node_tid';
   $handler->display->display_options['filters']['tid']['operator'] = 'not empty';
-  /* Display: Page */
-  $handler = $view->new_display('page', 'Page', 'page');
-  $handler->display->display_options['path'] = 'dwca-export/distribution/page';
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'none';
@@ -2012,7 +1997,7 @@ function dwca_export_views_default_views(){
   $view->human_name = 'dwca_export_vernacular_names';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['access']['type'] = 'perm';
@@ -2581,9 +2566,6 @@ function _dwca_export_view_description($desc_type){
   $handler->display->display_options['filters']['field_' . $desc_type . '_value']['field'] = 'field_' . $desc_type . '_value';
   $handler->display->display_options['filters']['field_' . $desc_type . '_value']['operator'] = 'longerthan';
   $handler->display->display_options['filters']['field_' . $desc_type . '_value']['value'] = '2';
-  /* Display: Page  */
-  $handler = $view->new_display('page', 'Page', 'page');
-  $handler->display->display_options['path'] = t('dwca-export/description-' . $desc_type . '/page');
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'some';
