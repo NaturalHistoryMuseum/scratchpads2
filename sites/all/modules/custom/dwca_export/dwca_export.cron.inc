@@ -38,7 +38,7 @@ function _dwca_export_cron($break = TRUE){
         $output_filename
       ));*/
       global $base_url;
-      exec("nohup drush @". parse_url($base_url, PHP_URL_HOST)." vde {$view->name} views_data_export_1 {$output_filename} > /dev/null 2>&1 & echo $!");
+      exec("nohup drush @" . parse_url($base_url, PHP_URL_HOST) . " vde {$view->name} views_data_export_1 {$output_filename} > /dev/null 2>&1 & echo $!");
       // FIXME-END
       drush_log(dt("Forking: drush vde {$view->name} views_data_export_1 $output_filename"), 'success');
       $files_to_add[$filename] = $filename;
@@ -97,7 +97,10 @@ function _dwca_export_cron_create_zip(){
   foreach($filenames as $filename){
     if($filename){
       $result = $zip->open($tmp_archive_file_name);
-      $zip->addFile(drupal_realpath('public://dwca/' . $filename), 'dwca/' . $filename);
+      // Sort the file and ensure we have unique lines
+      $real_path = drupal_realpath('public://dwca/' . $filename);
+      exec("sort -u $real_path > {$real_path}.sorted && mv {$real_path}.sorted $real_path");
+      $zip->addFile($real_path, 'dwca/' . $filename);
       $zip->close();
       drupal_unlink('public://dwca/' . $filename);
     }
