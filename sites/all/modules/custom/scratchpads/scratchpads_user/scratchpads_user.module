@@ -171,6 +171,13 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
       $form[$key]['#collapsed'] = TRUE;
     }
   }
+  // Change the select dropdown to an autocomplete field
+  $form['biblio_fieldset']['biblio_contributor_id']['#type'] = 'textfield';
+  $form['biblio_fieldset']['biblio_contributor_id']['#autocomplete_path'] = 'biblio/autocomplete/contributor';
+  if($form['biblio_fieldset']['biblio_contributor_id']['#default_value'] == '0'){
+    $form['biblio_fieldset']['biblio_contributor_id']['#default_value'] = '';
+  }
+  unset($form['biblio_fieldset']['biblio_contributor_id']['#options']);
 }
 
 /**

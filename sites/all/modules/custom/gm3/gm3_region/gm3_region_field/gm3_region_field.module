@@ -79,20 +79,24 @@ function gm3_region_items_validate($items, $field_name, &$errors){
 function gm3_region_field_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items){
   switch($field['type']){
     case 'gm3_region':
+      $new_items = array();
       if(is_string($items[0])){
         $items = preg_split('/[\r\n|]+/', str_replace('REGION:', '', strtoupper($items[0])));
         foreach($items as $key => $item){
-          $items[$key] = _gm3_region_convert_short_code_to_full_code($item);
+          $new_items[$key] = array(
+            'region_id' => _gm3_region_convert_short_code_to_full_code($item)
+          );
         }
-      }else{
-        $items = array_keys($items[0]['map']);
+      }else if (isset($items[0]['map'])){
+        foreach (array_keys($items[0]['map']) as $region_id) {
+          $new_items[] = array(
+            'region_id' => $region_id
+          );
+        }
+      } else {
+        $new_items = $items;
       }
-      $num_items = count($items);
-      for($i = 0; $i < $num_items; $i++){
-        $items[$i] = array(
-          'region_id' => $items[$i]
-        );
-      }
+      $items = $new_items;
       break;
   }
 }

@@ -241,21 +241,6 @@ function formflow_scratchpads_default_permissions(){
 }
 
 /**
- * Hashcash module
- *
- * Implements hook_scratchpads_default_permissions().
- */
-function hashcash_scratchpads_default_permissions(){
-  // Missing:
-  // administer hashcash
-  return array(
-    'authenticated user' => array(
-      'submit form without hashcash'
-    )
-  );
-}
-
-/**
  * Femail module
  *
  * Implements hook_scratchpads_default_permissions().
@@ -696,4 +681,18 @@ function node_scratchpads_default_permissions(){
     $permissions['editor'][] = "delete any $type content";
   }
   return $permissions;
+}
+
+/**
+ * Gravatar module
+ *
+ * Implements hook_scratchpads_default_permissions().
+ */
+function gravatar_scratchpads_default_permissions(){
+  return array(
+    'authenticated user' => array(
+      'use gravatar',
+      'disable own gravatar'
+    )
+  );
 }
