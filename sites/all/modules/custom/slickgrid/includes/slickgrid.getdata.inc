@@ -73,8 +73,7 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
   $potential_filters = $_GET;
   unset($potential_filters['q']);
   foreach($potential_filters as $field => $value){
-    $value = trim($value);
-    if($value){
+    if(($value = trim($value)) != FALSE){
       // Start with a basic text filter - this will work with most fields.
       $filter = array(
         'id' => $field,
@@ -129,8 +128,8 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
             }
           }
       }
+      $view->display['default']->display_options['filters'][$field] = $filter;
     }
-    $view->display['default']->display_options['filters'][$field] = $filter;
   }
   // We get the referer so that we can add arguments to the view.
   $referer = drupal_parse_url($_SERVER['HTTP_REFERER']);
