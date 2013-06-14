@@ -1,5 +1,4 @@
 <?php
-define(SCRATCHPADS_ZIP_ARCHIVE_ROOT, 'public://extracted');
 
 /**
  * class ScratchpadsZipArchive
@@ -26,14 +25,30 @@ define(SCRATCHPADS_ZIP_ARCHIVE_ROOT, 'public://extracted');
  *   // ...
  * }
  *
+ * Note that this does not support extracting to a non-local folder.
+ *
  */
 class ScratchpadsZipArchive{
+  /* For safety (in particular when deleting files), this setting
+   * limits the allowed wrappers.
+  */
+  static $allowedWrappers = array(
+    'public',
+    'private',
+    'temporary'
+  );
+  /* Defaults */
+  const DEFAULT_ROOT = 'public://extracted';
+
+  const DEFAULT_MODE = 0775;
   /* The file object representing the archive */
-  public $archive;
+  private $archive;
   /* The extraction folder */
-  public $root;
+  private $root;
   /* The list of extracted files */
   private $extractedFiles;
+  /* The mode we use when extracting */
+  private $mode;
 
   /**
    * function __construct
@@ -45,10 +60,13 @@ class ScratchpadsZipArchive{
    * defining a 'fid' element. The mimetype of the file 
    * must be 'application/zip'.
    *
+   * $root is the extraction base, and if ScratchpadsZipArchive::$allowedWrappers
+   * is not empty, then $root must be within one of the defined wrappers.
+   *
    * An exception is thrown on error.
    *
    */
-  function __construct($archive, $root = SCRATCHPADS_ZIP_ARCHIVE_ROOT){
+  public function __construct($archive, $root = ScratchpadsZipArchive::DEFAULT_ROOT, $mode = ScratchpadsZipArchive::DEFAULT_MODE){
     if(!is_object($archive)){
       if(is_array($archive) && isset($archive['fid'])){
         $fid = (int)($archive['fid']);
@@ -59,9 +77,39 @@ class ScratchpadsZipArchive{
     }
     if(!$archive){throw new Exception("No file could be found to extract from");}
     if($archive->filemime != 'application/zip'){throw new Exception("File $archive->fid is not a ZIP archive");}
+    if(!empty(ScratchpadsZipArchive::$allowedWrappers) && !in_array(file_uri_scheme($root), ScratchpadsZipArchive::$allowedWrappers)){throw new Exception("Disalowed wrapper");}
     $this->archive = $archive;
     $this->root = $root . '/' . drupal_basename($archive->uri) . '.' . $archive->fid;
+    $this->mode = $mode;
     $this->extractedFiles = NULL;
+  }
+
+  /**
+   * function needsUpdate
+   *
+   * Returns TRUE if the archive needs creating/updating
+   */
+  public function needsUpdate(){
+    if(!$this->folderExists()){return TRUE;}
+    return filemtime($this->root) <= filemtime($archive->uri);
+  }
+
+  /**
+   * function archiveFid
+   *
+   * Returns the fid of the archive file object
+   */
+  public function archiveFid(){
+    return $this->archive->fid;
+  }
+
+  /**
+   * function folderExists
+   *
+   * Returns TRUE if the extraction folder exists
+   */
+  public function folderExists(){
+    return file_exists($this->root) && is_dir($this->root);
   }
 
   /**
@@ -82,12 +130,12 @@ class ScratchpadsZipArchive{
    * Returns the list of extracted files as an array
    * of file uris.
    */
-  function extract($extensions = array(), $force = FALSE){
+  public function extract($extensions = array(), $force = FALSE){
     if(file_exists($this->root)){
       if(!$force && !$this->needsUpdate()){return $this->extractedFiles();}
       $this->deleteExtractedFiles();
     }
-    drupal_mkdir($this->root, NULL, TRUE);
+    $this->createFolder();
     $zip = new ZipArchive();
     $this->extractedFiles = array();
     if($zip->open(drupal_realpath($this->archive->uri)) !== TRUE){throw new Exception("File $archive->filename is not a ZIP file");}
@@ -103,27 +151,9 @@ class ScratchpadsZipArchive{
       $zip->extractTo(drupal_realpath($this->root), array(
         $file_name
       ));
+      drupal_chmod($this->root . '/' . $file_name, $this->mode);
     }
     return $this->extractedFiles;
-  }
-
-  /**
-   * function folderExists
-   * 
-   * Returns TRUE if the extraction folder exists
-   */
-  function folderExists(){
-    return file_exists($this->root) && is_dir($this->root);
-  }
-
-  /**
-   * function needsUpdate
-   * 
-   * Returns TRUE if the archive needs creating/updating
-   */
-  function needsUpdate(){
-    if(!$this->folderExists()){return TRUE;}
-    return filemtime($this->root) <= filemtime($archive->uri);
   }
 
   /**
@@ -136,7 +166,7 @@ class ScratchpadsZipArchive{
    * this is returned. Otherwise the directory itself
    * is scanned.
    */
-  function extractedFiles(){
+  public function extractedFiles(){
     if($this->extractedFiles !== NULL){return $this->extractedFiles;}
     $this->extractedFiles = array();
     $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->root));
@@ -157,9 +187,30 @@ class ScratchpadsZipArchive{
    * 'public://' or 'private://' folders.
    * 
    */
-  function deleteExtractedFiles(){
+  public function deleteExtractedFiles(){
     if($this->folderExists() && preg_match('/^(public|private):\/\//', $this->root)){
       file_unmanaged_delete_recursive($this->root);
+    }
+  }
+
+  /**
+   * function createFolder
+   *
+   * Create the root folder
+   */
+  private function createFolder(){
+    // No point using recursive directory creation, as we don't have recursive
+    // chmod. chmod is needed because umask messes up our permissions.
+    $create = $this->root;
+    $stack = array();
+    while(!file_exists($create)){
+      $stack[] = drupal_basename($create);
+      $create = drupal_dirname($create);
+    }
+    foreach(array_reverse($stack) as $folder){
+      $create = $create . '/' . $folder;
+      drupal_mkdir($create);
+      drupal_chmod($create, $this->mode);
     }
   }
 }
