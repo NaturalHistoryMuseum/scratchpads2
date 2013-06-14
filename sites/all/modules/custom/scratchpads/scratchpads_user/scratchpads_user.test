@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * @file
+*
+* Scratchpads User tests.
+* Tests components on a "FULL" Scratchpad.
+*/
+class ScratchpadsUserTestCase extends ScratchpadsTweaksTestCase{
+
+  protected $test_user2;
+
+  protected $test_user3;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads User',
+      'description' => 'Testing for scratchpads user module',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    parent::setUp();
+    //  Create users.
+    $this->test_user2 = $this->drupalCreateUser(array(
+      'access content'
+    ));
+    //  Create users.
+    $this->test_user3 = $this->drupalCreateUser(array(
+      'access content'
+    ));
+    // We set the legal_accepted on the user so that login passes.
+    parent::scratchpads_tweaks_legal_save($this->test_user2->uid);
+    parent::scratchpads_tweaks_legal_save($this->test_user3->uid);
+  }
+
+  public function testScratchpadsUserBasic2(){
+    $this->drupalLogin($this->test_user2);
+    $this->drupalGet('');
+    $this->assertResponse(200);
+  }
+
+  /**
+   * Test that site home page can be accessed
+   */
+  public function testScratchpadsUserBasic(){
+    $this->drupalLogin($this->test_user);
+    $this->drupalGet('');
+    $this->assertResponse(200);
+  }
+  // Test for no login users 
+  // Work in progress... 
+  public function testNoLoginUsers(){
+    $this->drupalLogin($this->test_user3);
+    //   $entities = array(
+    //    $this->test_user
+    //   );
+    // scratchpads_user_user_load($entities);
+    //  $is_stub = $this->test_user->stub_user;// = true;
+    //  $status = $this->test_user->status;// = 1;
+  }
+}

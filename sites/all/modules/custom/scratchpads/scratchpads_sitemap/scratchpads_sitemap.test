@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * @file
+*
+* Scratchpads Site map tests.
+*/
+class ScratchpadsSiteMapTestCase extends DrupalWebTestCase{
+
+  protected $test_user;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Sitemap',
+      'description' => 'Testing for scratchpads site map module',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    ini_set('max_execution_time', '1200');
+    parent::setUp('site_map', 'scratchpads_sitemap');
+    // Create users.
+    $this->test_user = $this->drupalCreateUser(array(
+      'access content',
+      'access site map'
+    ));
+    // We set the legal_accepted on the user so that login passes.
+    user_save($this->test_user, array(
+      'legal_accept' => TRUE
+    ));
+  }
+
+  /**
+   * Tests that site map page is present
+   */
+  public function testScratchpadsSiteMapBasic(){
+    $this->drupalLogin($this->test_user);
+    $this->drupalGet('sitemap');
+    $this->assertText('Site map', 'Site map present on /sitemap page');
+  }
+}
