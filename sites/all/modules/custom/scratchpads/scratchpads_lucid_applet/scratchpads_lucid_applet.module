@@ -1,9 +1,9 @@
 <?php
-define(SCRATCHPADS_LUCID_APPLET_300_JAR, '300/Lucid3PlayerApplet.jar');
-define(SCRATCHPADS_LUCID_APPLET_300_CODE, 'com.cbit.lucid.player.application.LucidPlayerAppletV3_00');
-define(SCRATCHPADS_LUCID_APPLET_350_JAR, '350/Lucid3PlayerApplet.jar');
-define(SCRATCHPADS_LUCID_APPLET_350_CODE, 'com.cbit.lucid.player.application.LucidPlayerApplet');
-define(SCRATCHPADS_LUCID_APPLET_EXTENSIONS, 'lkc3,lkc4,dep,fil,sco,data,xml,htm,html,css,doc,jpg,png,gif,db,tif');
+define('SCRATCHPADS_LUCID_APPLET_300_JAR', '300/Lucid3PlayerApplet.jar');
+define('SCRATCHPADS_LUCID_APPLET_300_CODE', 'com.cbit.lucid.player.application.LucidPlayerAppletV3_00');
+define('SCRATCHPADS_LUCID_APPLET_350_JAR', '350/Lucid3PlayerApplet.jar');
+define('SCRATCHPADS_LUCID_APPLET_350_CODE', 'com.cbit.lucid.player.application.LucidPlayerApplet');
+define('SCRATCHPADS_LUCID_APPLET_EXTENSIONS', 'lkc3,lkc4,dep,fil,sco,data,xml,htm,html,css,doc,jpg,png,gif,db,tif');
 
 /**
  * Implement hook_field_formatter_info
@@ -46,8 +46,8 @@ function scratchpads_lucid_applet_field_formatter_view($entity_type, $entity, $f
         drupal_set_message($e->getMessage(), 'error');
         continue;
       }
-      if(!isset($lucid_archives[$archive->archive->fid])){
-        $lucid_archives[$archive->archive->fid] = $archive->archive->fid;
+      if(!isset($lucid_archives[$archive->archiveFid()])){
+        $lucid_archives[$archive->archiveFid()] = $archive->archiveFid();
         variable_set('scratchpads_lucid_archives', $lucid_archives);
       }
       // Locate the key file
