@@ -109,6 +109,12 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
               }
             }
             switch($real_field['type']){
+              case 'node_reference':
+                $filter['value'] = drupal_map_assoc(db_select('node', 'n')->condition('title', db_like($value) . '%', 'LIKE')->fields('n', array(
+                  'nid'
+                ))->execute()->fetchCol());
+                unset($filter['operator']);
+                break;
               case 'taxonomy_term_reference':
                 foreach($real_field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
                   foreach($more_info as $key => $name){
