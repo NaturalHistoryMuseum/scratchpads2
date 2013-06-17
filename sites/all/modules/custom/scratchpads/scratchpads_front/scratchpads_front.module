@@ -69,8 +69,7 @@ function scratchpads_front_block_view_alter(&$data, $block){
   }
   if(isset($block->context) && (!user_access('administer front page'))){
     if($block->context == 'scratchpads_front_page'){
-      $count = substr_count($data['content']['#markup'], 'class="view-empty"');
-      if($count > 1){
+      if(substr_count($data['content']['#markup'], 'class="view-empty"') > 1){
         unset($data['content']);
         unset($data['subject']);
       }
