@@ -1,9 +1,8 @@
-name = "Scratchpads thumbnail style alter"
+name = "Full thumbnails"
 description = "Use proportional thumbnails rather than cropped square thumbnails"
-package = "Scratchpad tools"
+package = "Images"
 core = "7.x"
 tool=true
-files[] = scratchpads_thumbnail_style_alter.module
 stylesheets[all][] = "css/scratchpads_thumbnail_style_alter.css"
 dependencies[] = "image"
 dependencies[] = "convert_image_format"
