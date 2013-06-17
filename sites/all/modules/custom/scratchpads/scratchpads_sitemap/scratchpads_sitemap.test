@@ -27,7 +27,8 @@ class ScratchpadsSiteMapTestCase extends ScratchpadsTweaksTestCase{
     parent::setUp($modules);
     //  Create users.
     $this->test_user = $this->drupalCreateUser(array(
-      'access content'
+      'access content',
+      'access site map'
     ));
     
     // We set the legal_accepted on the user so that login passes.
@@ -36,7 +37,7 @@ class ScratchpadsSiteMapTestCase extends ScratchpadsTweaksTestCase{
   }
 
   /**
-   * Tests that site map page is present
+   * Tests that site map page is present and viewable
    */
   public function testScratchpadsSiteMapBasic(){
     $this->drupalLogin($this->test_user);
