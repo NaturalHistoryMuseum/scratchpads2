@@ -73,8 +73,7 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
   $potential_filters = $_GET;
   unset($potential_filters['q']);
   foreach($potential_filters as $field => $value){
-    $value = trim($value);
-    if($value){
+    if(($value = trim($value)) != FALSE){
       // Start with a basic text filter - this will work with most fields.
       $filter = array(
         'id' => $field,
@@ -110,6 +109,12 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
               }
             }
             switch($real_field['type']){
+              case 'node_reference':
+                $filter['value'] = drupal_map_assoc(db_select('node', 'n')->condition('title', db_like($value) . '%', 'LIKE')->fields('n', array(
+                  'nid'
+                ))->execute()->fetchCol());
+                unset($filter['operator']);
+                break;
               case 'taxonomy_term_reference':
                 foreach($real_field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
                   foreach($more_info as $key => $name){
@@ -129,8 +134,8 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
             }
           }
       }
+      $view->display['default']->display_options['filters'][$field] = $filter;
     }
-    $view->display['default']->display_options['filters'][$field] = $filter;
   }
   // We get the referer so that we can add arguments to the view.
   $referer = drupal_parse_url($_SERVER['HTTP_REFERER']);
