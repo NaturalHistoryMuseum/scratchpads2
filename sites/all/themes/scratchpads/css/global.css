@@ -186,6 +186,10 @@ sub {
   top: .5ex;
 }
 
+.no-borders, .no-borders *{
+  border:none !important;
+}
+
 /************************ Layout *********************/
 
 /* Sitemap */
