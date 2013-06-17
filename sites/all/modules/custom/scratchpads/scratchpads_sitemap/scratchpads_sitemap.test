@@ -5,7 +5,7 @@
 *
 * Scratchpads Site map tests.
 */
-class ScratchpadsSiteMapTestCase extends DrupalWebTestCase{
+class ScratchpadsSiteMapTestCase extends ScratchpadsTweaksTestCase{
 
   protected $test_user;
 
@@ -20,18 +20,19 @@ class ScratchpadsSiteMapTestCase extends DrupalWebTestCase{
   /**
    * Enable modules and create users with specific permissions.
    */
-  public function setUp(){
-    ini_set('max_execution_time', '1200');
-    parent::setUp('site_map', 'scratchpads_sitemap');
-    // Create users.
+ public function setUp(){
+   
+    $modules[] = 'site_map';
+    $modules[] = 'scratchpads_sitemap';
+    parent::setUp($modules);
+    //  Create users.
     $this->test_user = $this->drupalCreateUser(array(
-      'access content',
-      'access site map'
+      'access content'
     ));
+    
     // We set the legal_accepted on the user so that login passes.
-    user_save($this->test_user, array(
-      'legal_accept' => TRUE
-    ));
+    parent::scratchpads_tweaks_legal_save($this->test_user->uid);
+   
   }
 
   /**

@@ -30,7 +30,13 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
    * Enable modules and create users with specific permissions.
    */
   function setUp(){
-    $this->scratchpads_tweaks_test_parent_setup();
+    
+    $modules = func_get_args();
+    if (isset($modules[0]) && is_array($modules[0])) {
+      $modules = $modules[0];
+    }
+    
+    $this->scratchpads_tweaks_test_parent_setup($modules);
     // Create users.
     $this->test_user = $this->drupalCreateUser(array(
       'access content'
