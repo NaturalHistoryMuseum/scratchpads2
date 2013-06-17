@@ -276,12 +276,19 @@ function silver_feeds_importer_default(){
 /**
  * Helper function which creates the correct mapping for certain field types.
  */
-function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $additional = ''){
+function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $additional = '', $map_field_collection = FALSE){
   foreach($field_info as $key => $field){
     $field_info = field_info_field($field['field_name']);
     switch($field_info['type']){
       case 'file':
         // Do nothing.  We can't import files in an Excel template.
+        break;
+      case 'field_collection':
+        // We get the info about the field collection, and add a mapping for
+        // each of the fields in it.
+        if(!$map_field_collection){
+          _silver_feeds_importer_default_helper(field_info_instances('field_collection_item', $field_info['field_name']), $feeds_importer, $field_info['field_name'] . ':field_collection_item:' . $field_info['field_name'] . ':', $field_info['field_name'] . ':');
+        }
         break;
       case 'country':
         // We use iso3 country codes
@@ -296,12 +303,12 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
         // We add two columns for the user reference field.
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field['label'] . ' (' . t('Start') . ')',
-          'target' => $key . ':start',
+          'target' => $map_field_collection ? $map_field_collection . $key . ':start' : $key . ':start',
           'unique' => 0
         );
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field['label'] . ' (' . t('End') . ')',
-          'target' => $key . ':end',
+          'target' => $map_field_collection ? $map_field_collection . $key . ':end' : $key . ':end',
           'unique' => 0
         );
         break;
@@ -310,7 +317,7 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
         // We add two columns for the user reference field.
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field['label'] . ' (' . t('URL') . ')',
-          'target' => $key . ':url',
+          'target' => $map_field_collection ? $map_field_collection . $key . ':url' : $key . ':url',
           'unique' => 0
         );
         break;
@@ -318,12 +325,12 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
         // We add two columns for the user reference field.
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field['label'] . ' (UID)',
-          'target' => $key . ':uid:duplicates',
+          'target' => $map_field_collection ? $map_field_collection . $key . ':uid:duplicates' : $key . ':uid:duplicates',
           'unique' => 0
         );
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field['label'] . ' (' . t('Name on site') . ')',
-          'target' => $key . ':name:duplicates',
+          'target' => $map_field_collection ? $map_field_collection . $key . ':name:duplicates' : $key . ':name:duplicates',
           'unique' => 0
         );
         break;
@@ -331,12 +338,12 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
         // We add two columns for the node reference field.
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field['label'] . ' (NID)',
-          'target' => $key . ':nid:duplicates',
+          'target' => $map_field_collection ? $map_field_collection . $key . ':nid:duplicates' : $key . ':nid:duplicates',
           'unique' => 0
         );
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field['label'] . ' (' . t('Title') . ')',
-          'target' => $key . ':title:duplicates',
+          'target' => $map_field_collection ? $map_field_collection . $key . ':title:duplicates' : $key . ':title:duplicates',
           'unique' => 0
         );
         break;
@@ -344,24 +351,24 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
         // We add three columns for the term reference field.
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field['label'] . ' (' . t('Name') . ')',
-          'target' => $key,
+          'target' => $map_field_collection ? $map_field_collection . $key : $key,
           'unique' => 0
         );
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field['label'] . ' (TID)',
-          'target' => $key . ':tid',
+          'target' => $map_field_collection ? $map_field_collection . $key . ':tid' : $key . ':tid',
           'unique' => 0
         );
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field['label'] . ' (GUID)',
-          'target' => $key . ':guid',
+          'target' => $map_field_collection ? $map_field_collection . $key . ':guid' : $key . ':guid',
           'unique' => 0
         );
         break;
       default:
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => trim($field['label']),
-          'target' => $key,
+          'target' => $map_field_collection ? $map_field_collection . $key : $key,
           'unique' => 0
         );
     }
