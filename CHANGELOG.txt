@@ -1,3 +1,8 @@
+2.1.2.2 (2013-06-07)
+
+- Restored the code to scratchpads_audubon_core_update_7002()
+- Removed the optional end dates from audubon core fields that are preventing the update from running.
+
 2.1.2.1 (2013-06-07)
 
 - Removed the code from scratchpads_audubon_core_update_7002()
