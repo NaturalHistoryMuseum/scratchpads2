@@ -205,6 +205,26 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
                 case 'end':
                   $cell_values[] = $value['value2'];
                   break;
+                default:
+                  // We most likely have a field collection field.  Lets try to
+                  // load the field and check the type.
+                  $field = field_info_field($target[0]);
+                  if($field['type'] == 'field_collection'){
+                    // We restart the loop just so that we can get the IDs to
+                    // all load at once
+                    $ids = array();
+                    foreach($entity->{$target[0]}[$language] as $value){
+                      $ids[] = $value['value'];
+                    }
+                    foreach(entity_load('field_collection_item', $ids) as $fc_entity){
+                      foreach(array_keys($fc_entity->{$target[1]}) as $language){
+                        foreach(array_keys($fc_entity->{$target[1]}[$language]) as $delta){
+                          $cell_values[] = $fc_entity->{$target[1]}[$language][$delta]['value'];
+                        }
+                      }
+                    }
+                    break 3;
+                  }
               }
             }
           }
