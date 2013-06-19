@@ -106,9 +106,12 @@ function emonocot_dwca_views_default_views_alter(&$views){
         $view->display['default']->display_options['fields']['nothing']['exclude'] = TRUE;
         $view->display['default']->display_options['fields']['nothing_1']['exclude'] = TRUE;
         $view->display['default']->display_options['fields']['path']['exclude'] = TRUE;
-        $view->display['default']->display_options['fields']['nothing_7']['exclude'] = TRUE;
+        $view->display['default']->display_options['fields']['nothing_7']['alter']['text'] = '[licence]';
+        $view->display['default']->display_options['fields']['nothing_7']['empty'] = 'All Rights Reserved';
         emonocot_dwca_add_description_fields($view, $field_matching[$view->name]);
       }
+      //Set license text for descriptions
+      $view->display['default']->display_options['fields']['nothing_7']['alter']['text'] = 'All Rights Reserved';
     //Preserve the relationship
     /*
         $relationship = NULL;
@@ -276,7 +279,7 @@ function emonocot_dwca_add_description_fields(&$view, $ref_field){
   $new_field['field_api_classes'] = 0;
   $insert = array();
   $insert['licence'] = $new_field;
-  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'nothing_7');
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'uuid_4');
   $new_relationship = array();
   $new_relationship['id'] = $ref_field . '_nid';
   $new_relationship['table'] = 'field_data_' . $ref_field;
