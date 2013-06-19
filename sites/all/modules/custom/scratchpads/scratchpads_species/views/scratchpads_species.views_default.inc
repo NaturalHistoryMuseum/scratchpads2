@@ -619,6 +619,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
+  $handler->display->display_options['query']['options']['distinct'] = TRUE;
   $handler->display->display_options['query']['options']['query_comment'] = FALSE;
   $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['pager']['type'] = 'none';
@@ -1559,7 +1560,7 @@ function scratchpads_species_views_default_views(){
     'fromto' => 'both',
     'multiple_number' => '',
     'multiple_from' => '',
-    'multiple_to' => '',
+    'multiple_to' => ''
   );
   /* Sort criterion: Content: Sticky */
   $handler->display->display_options['sorts']['sticky']['id'] = 'sticky';
@@ -1645,44 +1646,96 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['style_options']['autoEdit'] = 0;
   $handler->display->display_options['style_options']['columns'] = array();
   $handler->display->display_options['style_options']['tabs'] = '';
+  /* Relationship: Content: Location (field_location) */
+  $handler->display->display_options['relationships']['field_location_nid']['id'] = 'field_location_nid';
+  $handler->display->display_options['relationships']['field_location_nid']['table'] = 'field_data_field_location';
+  $handler->display->display_options['relationships']['field_location_nid']['field'] = 'field_location_nid';
+  $handler->display->display_options['relationships']['field_location_nid']['delta'] = '0';
   $fields = field_info_instances('node', 'specimen_observation');
+  $location_fields = field_info_instances('node', 'location');
   $groups = field_group_info_groups('node', 'specimen_observation', 'form', true);
   usort($groups, 'scratchpads_species_usort_comparison');
   foreach($groups as $group){
-    if(count(array_intersect($group->children, array_keys($fields)))){
+    if(isset($group->label) && $group->identifier == 'group_location|node|specimen_observation|form'){
       $handler->display->display_options['style_options']['tabs'] .= $group->label . PHP_EOL;
-      foreach($group->children as $field){
-        if(array_key_exists($field, $fields)){
-          $handler->display->display_options['fields'][$field]['id'] = $field;
-          $handler->display->display_options['fields'][$field]['table'] = 'field_data_' . $field;
-          $handler->display->display_options['fields'][$field]['field'] = $field;
-          $handler->display->display_options['fields'][$field]['label'] = $fields[$field]['label'];
-          $handler->display->display_options['fields'][$field]['alter']['alter_text'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['make_link'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['absolute'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['external'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['replace_spaces'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['trim_whitespace'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['nl2br'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['word_boundary'] = 1;
-          $handler->display->display_options['fields'][$field]['alter']['ellipsis'] = 1;
-          $handler->display->display_options['fields'][$field]['alter']['strip_tags'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['trim'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['html'] = 0;
-          $handler->display->display_options['fields'][$field]['element_type'] = '0';
-          $handler->display->display_options['fields'][$field]['element_label_type'] = 'strong';
-          $handler->display->display_options['fields'][$field]['element_label_colon'] = 1;
-          $handler->display->display_options['fields'][$field]['element_default_classes'] = 0;
-          $handler->display->display_options['fields'][$field]['hide_empty'] = 0;
-          $handler->display->display_options['fields'][$field]['empty_zero'] = 0;
-          $handler->display->display_options['fields'][$field]['hide_alter_empty'] = 1;
-          $handler->display->display_options['fields'][$field]['field_api_classes'] = 0;
-          $handler->display->display_options['style_options']['columns'][$field] = array(
-            'width' => 120,
-            'sortable' => 1,
-            'tab' => $group->label,
-            'filter' => 'textFilter'
-          );
+      foreach($location_fields as $location_field){
+        switch($location_field['field_name']){
+          case 'field_map':
+            $handler->display->display_options['fields']['field_map_latitude']['type'] = 'gm3_text_lat';
+            $handler->display->display_options['fields']['field_map_latitude']['id'] = 'field_map_latitude';
+            $handler->display->display_options['fields']['field_map_latitude']['table'] = 'field_data_' . $location_field['field_name'];
+            $handler->display->display_options['fields']['field_map_latitude']['field'] = $location_field['field_name'];
+            $handler->display->display_options['fields']['field_map_latitude']['relationship'] = 'field_location_nid';
+            $handler->display->display_options['fields']['field_map_latitude']['label'] = t('Latitude');
+            $handler->display->display_options['style_options']['columns']['field_map_latitude'] = array(
+              'width' => 120,
+              'sortable' => 1,
+              'tab' => $group->label,
+              'filter' => 'textFilter'
+            );
+            $handler->display->display_options['fields']['field_map_longitude']['type'] = 'gm3_text_lon';
+            $handler->display->display_options['fields']['field_map_longitude']['id'] = 'field_map_longitude';
+            $handler->display->display_options['fields']['field_map_longitude']['table'] = 'field_data_' . $location_field['field_name'];
+            $handler->display->display_options['fields']['field_map_longitude']['field'] = $location_field['field_name'];
+            $handler->display->display_options['fields']['field_map_longitude']['relationship'] = 'field_location_nid';
+            $handler->display->display_options['fields']['field_map_longitude']['label'] = t('Longitude');
+            $handler->display->display_options['style_options']['columns']['field_map_longitude'] = array(
+              'width' => 120,
+              'sortable' => 1,
+              'tab' => $group->label,
+              'filter' => 'textFilter'
+            );
+            break;
+          default:
+            $handler->display->display_options['fields'][$location_field['field_name']]['id'] = $location_field['field_name'];
+            $handler->display->display_options['fields'][$location_field['field_name']]['table'] = 'field_data_' . $location_field['field_name'];
+            $handler->display->display_options['fields'][$location_field['field_name']]['field'] = $location_field['field_name'];
+            $handler->display->display_options['fields'][$location_field['field_name']]['relationship'] = 'field_location_nid';
+            $handler->display->display_options['fields'][$location_field['field_name']]['label'] = $location_field['label'];
+            $handler->display->display_options['style_options']['columns'][$location_field['field_name']] = array(
+              'width' => 120,
+              'sortable' => 1,
+              'tab' => $group->label,
+              'filter' => 'textFilter'
+            );
+        }
+      }
+    }else{
+      if(count(array_intersect($group->children, array_keys($fields)))){
+        $handler->display->display_options['style_options']['tabs'] .= $group->label . PHP_EOL;
+        foreach($group->children as $field){
+          if(array_key_exists($field, $fields)){
+            $handler->display->display_options['fields'][$field]['id'] = $field;
+            $handler->display->display_options['fields'][$field]['table'] = 'field_data_' . $field;
+            $handler->display->display_options['fields'][$field]['field'] = $field;
+            $handler->display->display_options['fields'][$field]['label'] = $fields[$field]['label'];
+            $handler->display->display_options['fields'][$field]['alter']['alter_text'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['make_link'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['absolute'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['external'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['replace_spaces'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['trim_whitespace'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['nl2br'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['word_boundary'] = 1;
+            $handler->display->display_options['fields'][$field]['alter']['ellipsis'] = 1;
+            $handler->display->display_options['fields'][$field]['alter']['strip_tags'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['trim'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['html'] = 0;
+            $handler->display->display_options['fields'][$field]['element_type'] = '0';
+            $handler->display->display_options['fields'][$field]['element_label_type'] = 'strong';
+            $handler->display->display_options['fields'][$field]['element_label_colon'] = 1;
+            $handler->display->display_options['fields'][$field]['element_default_classes'] = 0;
+            $handler->display->display_options['fields'][$field]['hide_empty'] = 0;
+            $handler->display->display_options['fields'][$field]['empty_zero'] = 0;
+            $handler->display->display_options['fields'][$field]['hide_alter_empty'] = 1;
+            $handler->display->display_options['fields'][$field]['field_api_classes'] = 0;
+            $handler->display->display_options['style_options']['columns'][$field] = array(
+              'width' => 120,
+              'sortable' => 1,
+              'tab' => $group->label,
+              'filter' => 'textFilter'
+            );
+          }
         }
       }
     }

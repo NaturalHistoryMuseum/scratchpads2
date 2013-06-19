@@ -279,3 +279,19 @@ function scratchpads_backend_usort_comparison($a, $b){
   }
 }
 
+/**
+ * Implement hook_ckeditor_plugin
+ *
+ * - Register our own plugin which ensures that image width/height/align are set as attributes, not as styles
+ *   when using the image editor.
+ *
+ */
+function scratchpads_backend_ckeditor_plugin(){
+  return array(
+    'scratchpads_backend_tweaks' => array(
+      'name' => 'scratchpads_backend_tweaks',
+      'desc' => t('Ensure that image width/height/align are set as attributes, not as styles when using the image editor'),
+      'path' => drupal_get_path('module', 'scratchpads_backend') . '/ckeditor/'
+    )
+  );
+}

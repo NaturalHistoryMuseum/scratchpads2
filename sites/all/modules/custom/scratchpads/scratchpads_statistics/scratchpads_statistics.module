@@ -25,16 +25,6 @@ function scratchpads_statistics_block_info(){
 }
 
 /**
- * Implements hook_hashcash_form_ids_alter().
- */
-function scratchpads_statistics_hashcash_form_ids_alter(&$form_ids){
-  $form_ids[] = 'scratchpads_statistics_facet_form_user';
-  $form_ids[] = 'scratchpads_statistics_facet_form_site';
-  $form_ids[] = 'scratchpads_statistics_facet_form_category';
-  $form_ids[] = 'scratchpads_statistics_facet_form_term';
-}
-
-/**
  * Implements hook_ctools_plugin_api().
  */
 function scratchpads_statistics_ctools_plugin_api(){
