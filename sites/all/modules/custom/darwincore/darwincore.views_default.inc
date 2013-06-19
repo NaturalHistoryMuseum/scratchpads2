@@ -849,16 +849,13 @@ function darwincore_views_default_views(){
   $handler->display->display_options['fields']['title']['label'] = 'occurrenceID';
   $handler->display->display_options['fields']['title']['alter']['alter_text'] = TRUE;
   $handler->display->display_options['fields']['title']['alter']['text'] = '[field_institution_code]-[field_collection_code]-[field_catalogue_number]';
-  /* Field: Content: Map */
-  $handler->display->display_options['fields']['field_map']['id'] = 'field_map';
-  $handler->display->display_options['fields']['field_map']['table'] = 'field_data_field_map';
-  $handler->display->display_options['fields']['field_map']['field'] = 'field_map';
-  $handler->display->display_options['fields']['field_map']['label'] = 'decimalLongitude';
-  $handler->display->display_options['fields']['field_map']['click_sort_column'] = 'latitude';
-  $handler->display->display_options['fields']['field_map']['type'] = 'gm3_text_lon';
-  $handler->display->display_options['fields']['field_map']['settings'] = array(
-    'display_convex_hull' => FALSE
-  );
+  /* Field: Field: Taxonomic name */
+  $handler->display->display_options['fields']['field_taxonomic_name']['id'] = 'field_taxonomic_name';
+  $handler->display->display_options['fields']['field_taxonomic_name']['table'] = 'field_data_field_taxonomic_name';
+  $handler->display->display_options['fields']['field_taxonomic_name']['field'] = 'field_taxonomic_name';
+  $handler->display->display_options['fields']['field_taxonomic_name']['label'] = 'nameComplete';
+  $handler->display->display_options['fields']['field_taxonomic_name']['type'] = 'taxonomy_term_reference_plain';
+  $handler->display->display_options['fields']['field_taxonomic_name']['delta_offset'] = '0';
   /* Field: Content: Map */
   $handler->display->display_options['fields']['field_map_1']['id'] = 'field_map_1';
   $handler->display->display_options['fields']['field_map_1']['table'] = 'field_data_field_map';
@@ -869,13 +866,16 @@ function darwincore_views_default_views(){
   $handler->display->display_options['fields']['field_map_1']['settings'] = array(
     'display_convex_hull' => FALSE
   );
-  /* Field: Field: Taxonomic name */
-  $handler->display->display_options['fields']['field_taxonomic_name']['id'] = 'field_taxonomic_name';
-  $handler->display->display_options['fields']['field_taxonomic_name']['table'] = 'field_data_field_taxonomic_name';
-  $handler->display->display_options['fields']['field_taxonomic_name']['field'] = 'field_taxonomic_name';
-  $handler->display->display_options['fields']['field_taxonomic_name']['label'] = 'nameComplete';
-  $handler->display->display_options['fields']['field_taxonomic_name']['type'] = 'taxonomy_term_reference_plain';
-  $handler->display->display_options['fields']['field_taxonomic_name']['delta_offset'] = '0';
+  /* Field: Content: Map */
+  $handler->display->display_options['fields']['field_map']['id'] = 'field_map';
+  $handler->display->display_options['fields']['field_map']['table'] = 'field_data_field_map';
+  $handler->display->display_options['fields']['field_map']['field'] = 'field_map';
+  $handler->display->display_options['fields']['field_map']['label'] = 'decimalLongitude';
+  $handler->display->display_options['fields']['field_map']['click_sort_column'] = 'latitude';
+  $handler->display->display_options['fields']['field_map']['type'] = 'gm3_text_lon';
+  $handler->display->display_options['fields']['field_map']['settings'] = array(
+    'display_convex_hull' => FALSE
+  );
   /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
@@ -910,6 +910,7 @@ function darwincore_views_default_views(){
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['style_plugin'] = 'views_data_export_csv';
   $handler->display->display_options['path'] = 'taxonomy/term/%/enm.csv';
+  $handler->display->display_options['use_batch'] = 'batch';
   $views[$view->name] = $view;
   return $views;
 }
