@@ -125,6 +125,14 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['uuid_1']['field'] = 'uuid';
   $handler->display->display_options['fields']['uuid_1']['relationship'] = 'parent';
   /* Field: Taxonomy term: Unacceptability Reason */
+  $handler->display->display_options['fields']['field_unacceptability_reason_5']['id'] = 'field_unacceptability_reason_5';
+  $handler->display->display_options['fields']['field_unacceptability_reason_5']['table'] = 'field_data_field_unacceptability_reason';
+  $handler->display->display_options['fields']['field_unacceptability_reason_5']['field'] = 'field_unacceptability_reason';
+  $handler->display->display_options['fields']['field_unacceptability_reason_5']['label'] = 'Parent';
+  $handler->display->display_options['fields']['field_unacceptability_reason_5']['alter']['alter_text'] = TRUE;
+  $handler->display->display_options['fields']['field_unacceptability_reason_5']['empty'] = '[uuid_1]';
+  $handler->display->display_options['fields']['field_unacceptability_reason_5']['type'] = 'taxon_status';
+  /* Field: Taxonomy term: Unacceptability Reason */
   $handler->display->display_options['fields']['field_unacceptability_reason_2']['id'] = 'field_unacceptability_reason_2';
   $handler->display->display_options['fields']['field_unacceptability_reason_2']['table'] = 'field_data_field_unacceptability_reason';
   $handler->display->display_options['fields']['field_unacceptability_reason_2']['field'] = 'field_unacceptability_reason';
@@ -138,7 +146,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['alter_text'] = TRUE;
   $handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['text'] = '[uuid_1]';
   $handler->display->display_options['fields']['field_unacceptability_reason_3']['hide_alter_empty'] = FALSE;
-  /* Sort criterion: Taxonomy term: Term ID */
   $handler->display->display_options['sorts']['tid']['id'] = 'tid';
   $handler->display->display_options['sorts']['tid']['table'] = 'taxonomy_term_data';
   $handler->display->display_options['sorts']['tid']['field'] = 'tid';
