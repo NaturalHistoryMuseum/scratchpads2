@@ -58,6 +58,28 @@ class ScratchpadsFileLockTestCase extends FileFieldTestCase{
     legal_save_accept(1, 1, 'en', $uid);
   }
   /**
+   * Overrides DrupalWebTestCase drupallogin().
+   * @see DrupalWebTestCase::drupalLogin()
+   */
+  protected function drupalLogin(stdClass $account) {
+    if ($this->loggedInUser) {
+      $this->drupalLogout();
+    }
+  
+    $edit = array(
+      'name' => $account->name,
+      'pass' => $account->pass_raw
+    );
+    $this->drupalPost('user', $edit, t('Log in'));
+  
+    // override is here
+    $pass = $this->assertText('Member for', 'User successfully logged in');
+  
+    if ($pass) {
+      $this->loggedInUser = $account;
+    }
+  }
+  /**
    * Tests that front page is viewable
    */
   public function testBasic(){

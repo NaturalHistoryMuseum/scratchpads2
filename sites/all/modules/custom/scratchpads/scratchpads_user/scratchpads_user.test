@@ -9,8 +9,7 @@
 class ScratchpadsUserTestCase extends ScratchpadsTweaksTestCase{
 
   protected $test_user2;
-
-  protected $test_user3;
+  protected $admin_user;
 
   public static function getInfo(){
     return array(
@@ -24,43 +23,67 @@ class ScratchpadsUserTestCase extends ScratchpadsTweaksTestCase{
    * Enable modules and create users with specific permissions.
    */
   public function setUp(){
-    parent::setUp();
+    $modules[] = 'scratchpads_user';
+    parent::setUp($modules);
     //  Create users.
     $this->test_user2 = $this->drupalCreateUser(array(
       'access content'
     ));
     //  Create users.
-    $this->test_user3 = $this->drupalCreateUser(array(
-      'access content'
+    $this->admin_user = $this->drupalCreateUser(array(
+      'access content',
+      'administer users'
     ));
     // We set the legal_accepted on the user so that login passes.
     parent::scratchpads_tweaks_legal_save($this->test_user2->uid);
-    parent::scratchpads_tweaks_legal_save($this->test_user3->uid);
+    parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
   }
-
-  public function testScratchpadsUserBasic2(){
-    $this->drupalLogin($this->test_user2);
-    $this->drupalGet('');
-    $this->assertResponse(200);
-  }
-
-  /**
-   * Test that site home page can be accessed
-   */
-  public function testScratchpadsUserBasic(){
-    $this->drupalLogin($this->test_user);
-    $this->drupalGet('');
-    $this->assertResponse(200);
-  }
-  // Test for no login users 
-  // Work in progress... 
+  
+  /** 
+   * Test for no-login users
+   * 
+   * - Create an administrative user.
+   * - Create a non-login user via the create user form. 
+   * - Test that a user is created.
+   * - Test that the non-login user shows up on the people page.
+   * - Test that the username is set.
+   * - Test that the user can be edited
+   */ 
   public function testNoLoginUsers(){
-    $this->drupalLogin($this->test_user3);
-    //   $entities = array(
-    //    $this->test_user
-    //   );
-    // scratchpads_user_user_load($entities);
-    //  $is_stub = $this->test_user->stub_user;// = true;
-    //  $status = $this->test_user->status;// = 1;
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet('admin/people/create');
+    $this->assertText('Allow user login?', 'Create user page accessible by admin user');
+    $edit = array();
+    $given_name = $this->randomName();
+    $family_name = $this->randomName();
+    $edit['field_user_given_names[und][0][value]'] = $given_name;
+    $edit['field_user_family_name[und][0][value]'] = $family_name;
+    $edit['create_user_account'] = FALSE;
+    $this->drupalPost(NULL, $edit, t('Create new account'));    
+    $this->assertRaw('Created a new profile', 'Success page shown.');
+    $this->assertText('No user account was created so this person will not be able to log into the website!', 'No login message shown');  
+    // Test that this user shows up on the people page
+    $this->drupalGet('admin/people');
+    $this->assertText($given_name, 'Given name shown on people page');
+    $this->assertText($family_name, 'Family name shown on people page');   
+    // Test that the username has been set to given_name + family_name
+    $no_login_user = user_load_by_name($given_name. ' ' . $family_name);  
+    $this->assertTrue($no_login_user, 'Username successfully set');
+    
+    // Test that the user can be edited
+    $this->drupalGet('user/'. $no_login_user->uid . '/edit');
+    $this->assertRaw('user-profile-form', 'User edit form for non login user accessible to admin user');
+    $edit2['field_user_given_names[und][0][value]'] = $given_name . 'changed';
+    $edit2['field_user_family_name[und][0][value]'] = $family_name . 'changed';
+    
+    $this->drupalPost(NULL, $edit2, t('Save'));   
+    $this->assertRaw('The changes have been saved.', 'Edit success page shown');
+    $this->assertText($given_name . 'changed' . ' ' . $family_name . 'changed', 'No login user successfully edited by admin user');   
   }
+  
+  
+  
+  
+  
+  
 }

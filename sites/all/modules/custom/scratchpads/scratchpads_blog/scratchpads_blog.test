@@ -24,7 +24,7 @@ class ScratchpadsBlogTestCase extends ScratchpadsTweaksTestCase{
   public function setUp(){
     $modules[] = 'blog';
     $modules[] = 'scratchpads_blog';
-    $modules[] = 'scratchpads_tweaks';
+    
     parent::setUp($modules);
     // Create users.
     $this->test_user = $this->drupalCreateUser(array(
@@ -56,7 +56,7 @@ class ScratchpadsBlogTestCase extends ScratchpadsTweaksTestCase{
    */
   public function testScratchpadsBlogBasic(){
     // Test that the block appears on the blog page
-    
+    $this->drupalLogin($this->test_user);
     $this->drupalGet('blog');
     $this->assertRaw('block-scratchpads-blog-blog-filters', 'Blog filter block present on blog page');
     $this->assertText(t('Filter by Author'), 'Blog filter block successfully displayed on blog page.');
@@ -64,17 +64,19 @@ class ScratchpadsBlogTestCase extends ScratchpadsTweaksTestCase{
     $this->drupalGet('');
     $this->assertnoRaw('block-scratchpads-blog-blog-filters', 'Blog filter block not present on home page');
     // test that the block appears on a blog entry page
-    $this->drupalCreateNode(array(
+    $blog_node = $this->drupalCreateNode(array(
       'type' => 'blog'
     ));
-    $this->drupalGet('node/1');
+    $path = 'node/' . $blog_node->nid;
+    $this->drupalGet($path);
     $this->assertRaw('block-scratchpads-blog-blog-filters', 'Blog filter block present on blog entry page');
     $this->assertText(t('Filter by Author'), 'Blog filter block successfully displayed on blog entry page.');
     // Test that the block doesn't appears on a node page with similar name
-    $this->drupalCreateNode(array(
+    $blog_node2= $this->drupalCreateNode(array(
       'title' => 'bloggs'
     ));
-    $this->drupalGet('node/2');
+    $path2 = 'node/' . $blog_node2->nid;
+    $this->drupalGet($path2);
     $this->assertnoRaw('block-scratchpads-blog-blog-filters', 'Blog filters not displayed on bloggs page');
   }
 }

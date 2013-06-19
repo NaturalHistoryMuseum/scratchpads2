@@ -89,6 +89,12 @@
     ));
     drupal_set_time_limit($this->timeLimit);
     $this->setup = TRUE;
+    
+    // needed for feeds errors
+    drupal_flush_all_caches();
+    
+    // The following install function is needed
+    scratchpads_tweaks_install();
     /**
     * END OF PARENT SETUP!
     */

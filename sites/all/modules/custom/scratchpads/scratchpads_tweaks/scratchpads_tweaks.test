@@ -27,6 +27,7 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
   }
 
   /**
+   * Overrides DrupalWebTestCase setup()
    * Enable modules and create users with specific permissions.
    */
   function setUp(){
@@ -43,6 +44,35 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
     $this->scratchpads_tweaks_legal_save($this->test_user->uid);
   }
 
+  /**
+   * Overrides DrupalWebTestCase drupallogin().
+   * @see DrupalWebTestCase::drupalLogin()
+   */
+  protected function drupalLogin(stdClass $account) {
+    if ($this->loggedInUser) {
+      $this->drupalLogout();
+    }
+  
+    $edit = array(
+      'name' => $account->name,
+      'pass' => $account->pass_raw
+    );
+    $this->drupalPost('user', $edit, t('Log in'));
+  
+    // override is here
+    $pass = $this->assertText('Member for', 'User successfully logged in');
+  
+    if ($pass) {
+      $this->loggedInUser = $account;
+    }
+  }
+  
+  public function machine_name($human_name){
+    $machine_readable = strtolower($human_name);
+    $machine_readable = preg_replace('@[^a-z0-9_]+@','_',$machine_readable);
+    return $machine_readable;
+  }
+  
   /**
    * We set the legal_accepted on the user so that login passes.
    */

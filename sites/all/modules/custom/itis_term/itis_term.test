@@ -1,6 +1,6 @@
 <?php
 
-class ItisTermTestCase extends DrupalWebTestCase{
+class ItisTermTestCase extends ScratchpadsTweaksTestCase{
 
   protected $itis_term_user;
 
@@ -21,6 +21,8 @@ class ItisTermTestCase extends DrupalWebTestCase{
     $this->itis_term_user = $this->drupalCreateUser(array(
       'administer taxonomy'
     ));
+    // We set the legal_accepted on the user so that login passes.
+    parent::scratchpads_tweaks_legal_save($this->itis_term_user->uid);
   }
 
   /**
@@ -34,26 +36,33 @@ class ItisTermTestCase extends DrupalWebTestCase{
   }
 
   /**
-   * Login users, create taxonomy, and test functionality through the admin and
-   * user interfaces.
-  function testItisTerm() {
-    // Login the admin user.
-    $this->drupalLogin($this->itis_term_user);
-    // Do basic tests for each user.
-    $this->doBasicTests($this->any_user, TRUE);
-    $this->doBasicTests($this->own_user, FALSE);
-
-    // Create another blog node for the any blog user.
-    $node = $this->drupalCreateNode(array('type' => 'blog', 'uid' => $this->any_user->uid));
-    // Verify the own blog user only has access to the blog view node.
-    $this->verifyBlogs($this->any_user, $node, FALSE, 403);
-
-    // Create another blog node for the own blog user.
-    $node = $this->drupalCreateNode(array('type' => 'blog', 'uid' => $this->own_user->uid));
-    // Login the any blog user.
-    $this->drupalLogin($this->any_user);
-    // Verify the any blog user has access to all the blog nodes.
-    $this->verifyBlogs($this->own_user, $node, TRUE);
-  }
+   * Basic tests for Itis Term
+   *  
    */
+  function testItisTermBasic(){
+    //Login the admin user.
+    $this->drupalLogin($this->itis_term_user);
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $this->assertText('biological classification', 'Biological classification shown', 'Biological Classifications');
+    $this->assertRaw('Animal', 'Animal classification shown', 'Biological Classifications');
+    $this->assertRaw('Algae/Fungi/Plants', 'Algae/Fungi/Plants classification shown', 'Biological Classifications');
+    $this->assertRaw('Moneran', 'Moneran classification shown', 'Biological Classifications');
+    // Choose one and create a vocabulary
+    $edit = array();
+    $human_name = $this->randomName();
+    $edit['name'] = $human_name;
+    $machine_readable = $this->machine_name($human_name);
+    $edit['machine_name'] = $machine_readable;
+    $edit['biological_classification'] = 1;
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertText('Created new vocabulary', 'Biological classification successfully created');
+    $vocab = taxonomy_vocabulary_machine_name_load($machine_readable);
+    $this->assertTrue($vocab, 'Vocabulary confirmed  by query');
+    // Test that extra fields have been added. We are checking one from each group
+    $this->drupalGet('admin/structure/taxonomy/' . $machine_readable . '/fields');
+    $this->assertText('field_rank', 'field_rank added to vocabulary');
+    $this->assertText('field_usage', 'field_usage added to vocabulary');
+    $this->assertText('field_authors', 'field_authors added to vocabulary');
+    $this->assertText('field_vernacular_name_collection', 'field_vernacular_name_collection added to vocabulary');
+  }
 }
