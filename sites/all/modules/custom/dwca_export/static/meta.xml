@@ -14,6 +14,7 @@
     <field index="7" term="http://rs.tdwg.org/dwc/terms/parentNameUsageID" />
     <field index="8" term="http://rs.tdwg.org/dwc/terms/nomenclaturalStatus" />
     <field index="9" term="http://rs.tdwg.org/dwc/terms/acceptedNameUsageID" />
+    <field index="10" term="http://rs.tdwg.org/dwc/terms/taxonomicStatus" />
   </core>
   <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://rs.gbif.org/terms/1.0/TypesAndSpecimen">
     <files>
