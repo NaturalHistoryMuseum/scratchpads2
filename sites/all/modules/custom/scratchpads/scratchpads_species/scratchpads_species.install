@@ -7,3 +7,15 @@ function scratchpads_species_install(){
 	// Ensure my views are top
   db_query("UPDATE {system} SET weight = -1 WHERE name = 'scratchpads_species'");
 }
+
+/**
+ * Fix #2380 for users who have overriden their species_overview_map view (add DISTINCT to query)
+ * 
+ */
+function scratchpads_species_update_7001(){
+  $view = views_get_view('species_overview_map');
+  if ($view->export_type & EXPORT_IN_DATABASE) {
+    $view->display['default']->display_options['query']['options']['distinct'] = TRUE;
+    $view->save();
+  }
+}
