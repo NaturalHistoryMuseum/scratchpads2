@@ -26,7 +26,7 @@
       if(this.countries[region_ids[i]] == undefined) {
         this.countries[region_ids[i]] = new Array();
         region_ids_to_add[region_ids_to_add.length] = region_ids[i];
-      } else {
+      } else if ($.inArray(region_ids[i], region_ids_to_add) == -1){
         this.remove_polygons_by_id(region_ids[i]);
       }
     }
