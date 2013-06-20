@@ -76,13 +76,3 @@ function scratchpad_relations_preprocess_relation_select_field(&$variables, $hoo
   }
   $variables['theme_hook_suggestions'][] = 'relation_select_field__' . $variables['field_name'];
 }
-
-function scratchpad_relations_preprocess_views_view_field(&$vars){
-  /* if($vars['view']->name == 'species_relationships' && $vars['field']->field = 'field_ecological_relationship'){
-     dpm($vars['field']);
-     $vars['output'] = str_replace('<li>', '', $vars['output']);
-     $vars['output'] = str_replace('</li>', '', $vars['output']);
-    $vars['output'] = str_replace('<ul>', '', $vars['output']);
-    $vars['output'] = str_replace('</ul>', '<br/>', $vars['output']);
-  }*/
-}
