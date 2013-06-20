@@ -70,10 +70,16 @@ function scratchpad_relations_preprocess_scratchpad_relation_field(&$variables, 
   foreach($relation['endpoints'][LANGUAGE_NONE] as $endpoint){
     if($endpoint['entity_type'] == $variables['entity_type'] && $endpoint['entity_id'] == $id){
       if($endpoint['r_index'] == 0){
-        $label = $relation_type->label;
+        if($variables['custom_title']){
+          $label = $variables['custom_title'];
+        }else{
+          $label = $relation_type->label;
+        }
       }
     }
   }
+  $label = preg_replace('/(?<!^)[A-Z]/e', 'strtolower(" $0")', $label);
+  $label .= ": ";
   $variables['items'] = array();
   foreach($variables['related_entities'] as $related_entity){
     $link = entity_uri($related_entity->entity_type, $related_entity);
