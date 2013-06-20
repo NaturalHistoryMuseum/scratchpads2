@@ -47,6 +47,7 @@ function scratchpad_relations_theme($existing, $type, $theme, $path){
         'items' => NULL,
         'related_entities' => NULL,
         'bundle' => NULL,
+        'custom_title' => NULL,
         'field_name' => NULL,
         'list_type' => NULL
       ),
@@ -60,9 +61,13 @@ function scratchpad_relations_theme($existing, $type, $theme, $path){
 function scratchpad_relations_preprocess_relation_select_field(&$variables, $hook){
   $id = $variables['entity']->tid;
   $relation = $variables['relation'];
-  $relation_type = relation_type_load($relation->relation_type);
-  $label = $relation_type->directional ? $relation_type->reverse_label : $relation_type->label;
-  foreach($relation->endpoints[LANGUAGE_NONE] as $endpoint){
+  $relation_type = relation_type_load($relation['relation_type']);
+  if($variables['custom_title']){
+    $label = $variables['custom_title'];
+  }else{
+    $label = $relation_type->directional ? $relation_type->reverse_label : $relation_type->label;
+  }
+  foreach($relation['endpoints'][LANGUAGE_NONE] as $endpoint){
     if($endpoint['entity_type'] == $variables['entity_type'] && $endpoint['entity_id'] == $id){
       if($endpoint['r_index'] == 0){
         $label = $relation_type->label;
@@ -75,4 +80,80 @@ function scratchpad_relations_preprocess_relation_select_field(&$variables, $hoo
     $variables['items'][] = $label . ' ' . l(entity_label($related_entity->entity_type, $related_entity), $link['path']);
   }
   $variables['theme_hook_suggestions'][] = 'relation_select_field__' . $variables['field_name'];
+}
+
+/**
+ * Relation_add module was not formatting the endpoint lables correctly so override here
+ * Implements hook_field_formatter_info().
+ */
+function scratchpad_relations_field_formatter_info(){
+  return array(
+    'relation_add_endpoints_and_fields' => array(
+      'label' => t('Endpoints and fields'),
+      'field types' => array(
+        'relation_add'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function scratchpad_relations_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  $element = array();
+  list($entity_id) = entity_extract_ids($entity_type, $entity);
+  switch($display['type']){
+    case 'relation_add_endpoints_and_fields':
+      foreach($items as $delta => $item){
+        $links = array();
+        $relation = (object)$item;
+        $related_entities = array();
+        if(count($relation->endpoints[LANGUAGE_NONE]) > 1){
+          foreach(array_filter($relation->endpoints[LANGUAGE_NONE]) as $endpoint){
+            if($endpoint['entity_type'] == $entity_type && $endpoint['entity_id'] == $entity_id){
+              continue;
+            }
+            // No link to the parent entity
+            $related_entity = @reset(entity_load($endpoint['entity_type'], array(
+              $endpoint['entity_id']
+            )));
+            $related_entity->entity_type = $endpoint['entity_type'];
+            $related_entities[] = $related_entity;
+            if(!($endpoint['entity_type'] == $entity_type && $endpoint['entity_id'] == $entity_id)){
+              $link = entity_uri($endpoint['entity_type'], $related_entity);
+              $link['href'] = $link['path'];
+              $link['title'] = entity_label($endpoint['entity_type'], $related_entity);
+              $links[] = $link;
+            }
+          }
+          switch($instance['widget']['settings']['relation_endpoint_label']){
+            case 'custom':
+              $endpoint_title = t($instance['widget']['settings']['relation_endpoint_custom_label']);
+              break;
+          }
+          $element[$delta]['relation'] = array(
+            '#theme' => 'relation_select_field',
+            '#related_entities' => $related_entities,
+            '#entity_type' => $entity_type,
+            '#bundle' => $instance['bundle'],
+            '#entity' => $entity,
+            '#custom_title' => $endpoint_title,
+            '#field_name' => $instance['field_name'],
+            '#relation' => $item
+          );
+        }
+        $relation_view = relation_view($relation);
+        $relation_instances = field_info_instances('relation', $relation->relation_type);
+        foreach(array_keys($relation_instances) as $relation_field_name){
+          if($relation_field_name !== 'endpoints'){
+            if(isset($relation_view[$relation_field_name])){
+              $element[$delta]['relation']['fields'][] = $relation_view[$relation_field_name];
+            }
+          }
+        }
+      }
+      break;
+  }
+  return $element;
 }
