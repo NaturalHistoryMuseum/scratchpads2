@@ -44,12 +44,10 @@ function scratchpad_relations_theme($existing, $type, $theme, $path){
         'entity' => NULL,
         'relation' => NULL,
         'entity_type' => NULL,
-        'items' => NULL,
         'related_entities' => NULL,
         'bundle' => NULL,
         'custom_title' => NULL,
-        'field_name' => NULL,
-        'list_type' => NULL
+        'field_name' => NULL
       ),
       'template' => 'scratchpad-relation-field',
       'path' => $path . '/theme'
@@ -126,12 +124,6 @@ function scratchpad_relations_field_formatter_view($entity_type, $entity, $field
             )));
             $related_entity->entity_type = $endpoint['entity_type'];
             $related_entities[] = $related_entity;
-            if(!($endpoint['entity_type'] == $entity_type && $endpoint['entity_id'] == $entity_id)){
-              $link = entity_uri($endpoint['entity_type'], $related_entity);
-              $link['href'] = $link['path'];
-              $link['title'] = entity_label($endpoint['entity_type'], $related_entity);
-              $links[] = $link;
-            }
           }
           switch($instance['widget']['settings']['relation_endpoint_label']){
             case 'custom':
@@ -140,13 +132,13 @@ function scratchpad_relations_field_formatter_view($entity_type, $entity, $field
           }
           $element[$delta]['relation'] = array(
             '#theme' => 'scratchpad_relation_field',
-            '#related_entities' => $related_entities,
-            '#entity_type' => $entity_type,
-            '#bundle' => $instance['bundle'],
             '#entity' => $entity,
+            '#relation' => $item,
+            '#entity_type' => $entity_type,
+            '#related_entities' => $related_entities,
+            '#bundle' => $instance['bundle'],
             '#custom_title' => $endpoint_title,
-            '#field_name' => $instance['field_name'],
-            '#relation' => $item
+            '#field_name' => $instance['field_name']
           );
         }
         $relation_view = relation_view($relation);
