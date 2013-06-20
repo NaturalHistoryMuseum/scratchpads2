@@ -39,7 +39,7 @@ function scratchpad_relations_theme($existing, $type, $theme, $path){
       ),
       'file' => 'scratchpad_relations.admin.inc'
     ),
-    'relation_select_field' => array(
+    'scratchpad_relation_field' => array(
       'variables' => array(
         'entity' => NULL,
         'relation' => NULL,
@@ -51,14 +51,14 @@ function scratchpad_relations_theme($existing, $type, $theme, $path){
         'field_name' => NULL,
         'list_type' => NULL
       ),
-      'template' => 'relation-select-field',
+      'template' => 'scratchpad-relation-field',
       'path' => $path . '/theme'
     )
   );
   return $theme;
 }
 
-function scratchpad_relations_preprocess_relation_select_field(&$variables, $hook){
+function scratchpad_relations_preprocess_scratchpad_relation_field(&$variables, $hook){
   $id = $variables['entity']->tid;
   $relation = $variables['relation'];
   $relation_type = relation_type_load($relation['relation_type']);
@@ -79,7 +79,7 @@ function scratchpad_relations_preprocess_relation_select_field(&$variables, $hoo
     $link = entity_uri($related_entity->entity_type, $related_entity);
     $variables['items'][] = $label . ' ' . l(entity_label($related_entity->entity_type, $related_entity), $link['path']);
   }
-  $variables['theme_hook_suggestions'][] = 'relation_select_field__' . $variables['field_name'];
+  $variables['theme_hook_suggestions'][] = 'scratchpad_relation_field__' . $variables['field_name'];
 }
 
 /**
@@ -133,7 +133,7 @@ function scratchpad_relations_field_formatter_view($entity_type, $entity, $field
               break;
           }
           $element[$delta]['relation'] = array(
-            '#theme' => 'relation_select_field',
+            '#theme' => 'scratchpad_relation_field',
             '#related_entities' => $related_entities,
             '#entity_type' => $entity_type,
             '#bundle' => $instance['bundle'],
