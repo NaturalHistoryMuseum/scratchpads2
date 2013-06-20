@@ -1,0 +1,519 @@
+<?php
+  
+  
+  /**
+   *  Implements hook_widget_info
+   */
+  function inline_relation_form_field_widget_info() {
+    
+    $widgets  = array();
+    
+    $widgets['inline_relation_form'] = array(
+      'label'           => t('Inline relation form'),
+      'field types'     => array('relation'),
+      'settings'        => array(
+        'fields'          => array(),
+        'type_settings'   => array(),
+      ),
+      'behaviors'       => array(
+        'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+        'default value'   => FIELD_BEHAVIOR_NONE,
+      ),
+    );
+    
+    return $widgets;
+    
+  }
+  
+  
+  /**
+   *  Return all field instances for the given field type
+   *  
+   *  @param $widget_type The name of the widget get the fields for
+   *  @return All field instance infos that belong to the given widget
+   */
+  function _inline_relation_form_get_fields_for_widget( $widget_type ) {
+    $entity_types = field_info_instances();
+    $result       = array();
+    
+    foreach( $entity_types as $entity=>$bundles ) {
+      foreach( $bundles as $bundle=>$fields ) {
+        foreach( $fields as $field=>$info ) {
+          if( $info['widget']['type']==$widget_type )
+            $result[] = $info;
+        }
+      }
+    }
+    
+    return $result;
+  }
+  
+  /**
+   *  Return the bundle of the given entity
+   *  
+   *  @param $entity The entity to get the bundle for
+   *  @param $entity_type The entity's type
+   */
+  function _inline_relation_form_get_entity_bundle( $entity, $entity_type ) {
+    $info = entity_get_info( $entity_type );
+    
+    if( empty($info['entity keys']['bundle']) ) {
+      return $entity_type;
+    }
+    else {
+      return $entity->{$info['entity keys']['bundle']};
+    }
+    
+  }
+  
+  /**
+   *  Get the correct value of the given field
+   *  
+   *  @param $entity_info The entity info, as given by $relation->endpoints[LANGUAGE_NONE][$delta]
+   *  @param $field The field info
+   *  @param $load (bool) Whether or not to fully load the relation
+   *  @param $remove_relation A relation to be removed
+   */
+  function _inline_relation_form_get_field_value( $entity_info, $field, $load=FALSE, $remove_relation=NULL ) {
+    $cache  = &drupal_static( '_inline_relation_form_get_field_value', array() );
+    if( !isset($cache[ $entity_info['entity_type'] ]) )
+      $cache[ $entity_info['entity_type'] ] = array();
+    
+    if( isset($cache[ $entity_info['entity_type'] ][ $entity_info['entity_id'] ]) )
+      return $cache[ $entity_info['entity_type'] ][ $entity_info['entity_id'] ];
+    
+    $values = array();
+    
+    $source = relation_query( $entity_info['entity_type'], $entity_info['entity_id'], 0 );
+    foreach( $source->execute() as $relation ) {
+      if( $relation->rid!=$remove_relation )
+        $values[] = array( 'relation'=>$load ? relation_load( $relation->rid, $relation->vid ) : $relation );
+    }
+    
+    $target = relation_query( $entity_info['entity_type'], $entity_info['entity_id'], 1 );
+    foreach( $target->execute() as $relation ) {
+      if( $relation->rid!=$remove_relation )
+        $values[] = array( 'relation'=>$load ? relation_load( $relation->rid, $relation->vid ) : $relation );
+    }
+    
+    $result = array();
+    
+    $languages  = field_is_translatable( $entity_info['entity_type'], field_info_field( $field['field_name'] ) ) ? field_content_languages() : array( LANGUAGE_NONE );
+    foreach( $languages as $language )
+      $result[$language]  = $values;
+    
+    return $cache[ $entity_info['entity_type'] ][ $entity_info['entity_id'] ]=$result;
+  }
+  
+  /**
+   *  Update the number of relation-values saved to the given field
+   *  
+   *  @param $entity The loaded entity
+   *  @param $entity_info The entity info, as given by $relation->endpoints[LANGUAGE_NONE][$delta]
+   *  @param $field The field info
+   *  @param $dont_save Set to TRUE before and FALSE after a mass-update to stop saving the entity a hundred times
+   *  @param $remove_relation An optional relation to be skipped
+   */
+  function _inline_relation_form_update_field_values( $entity, $entity_info, $field, $dont_save=NULL, $remove_relation=NULL ) {
+    
+    static $paused  = FALSE;
+    
+    if( $dont_save===TRUE ) {
+      $paused = TRUE;
+    }
+    elseif( $dont_save===FALSE ) {
+      $paused = FALSE;
+    }
+    
+    if( $paused )
+      return;
+    
+    $entity->{$field['field_name']} = _inline_relation_form_get_field_value( $entity_info, $field, FALSE, $remove_relation );
+    
+    list($id, $vid, $bundle)  = entity_extract_ids($entity_info['entity_type'], $entity);
+    if( $id )
+      entity_save( $entity_info['entity_type'], $entity );
+    
+  }
+  
+  /**
+   *  Update all fields of all entities that are related to the given relation
+   *  
+   *  @param $relation The relation to update all related entite fields for
+   *  @param $remove (bool) Whether or not the given relation shall be removed
+   */
+  function _inline_relation_form_update_related_entity_fields( $relation, $remove=FALSE ) {
+    $entity_types = field_info_instances();
+    
+    foreach( $relation->endpoints[LANGUAGE_NONE] as $info ) {
+      $reltype    = $info['entity_type'];
+      $result     = array_values( entity_load( $reltype, array( $info['entity_id'] ) ) );
+      $related    = $result[0];
+      
+      $relbundle  = _inline_relation_form_get_entity_bundle( $related, $reltype );
+      
+      $fields     = $entity_types[ $reltype ][ $relbundle ];
+      foreach( $fields as $name=>$field_info ) {
+        if( $field_info['widget']['type']=='inline_relation_form' && isset($field_info['settings']['relation_type'][$relation->relation_type]) ) {
+          _inline_relation_form_update_field_values( $related, $info, $field_info, NULL, $remove?$relation->rid:NULL );
+        }
+      }
+      
+    }
+  }
+  
+  /**
+   *  Implements hook_entity_insert
+   */
+  function inline_relation_form_entity_insert( $entity, $type ) {
+    if( $type=='relation' ) {
+      _inline_relation_form_update_related_entity_fields( $entity );
+    }
+  }
+  
+  
+  /**
+   *  Implements hook_entity_delete
+   */
+  function inline_relation_form_entity_delete( $entity, $type ) {
+    if( $type=='relation' ) {
+      _inline_relation_form_update_related_entity_fields( $entity, TRUE );
+    }
+  }
+  
+  
+  /**
+   * Implements hook_field_widget_form().
+   */
+  function inline_relation_form_field_widget_form( &$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element ) {
+    
+    $entity_type  = $instance['entity_type'];
+    $entity       = $form_state[ $entity_type ];
+    if( !$entity )
+      return $element;
+    
+    list($id, $vid, $bundle)  = entity_extract_ids($entity_type, $entity);
+    if( $id )
+      $items       = _inline_relation_form_get_field_value( array('entity_type'=>$entity_type,'entity_id'=>$id), $instance, TRUE );
+    
+    // Build a parents array for this element's values in the form.
+    $parents    = array_merge($element['#field_parents'], array($element['#field_name'], $element['#language']));
+    
+    // Get the langcode of the parent entity.
+    $parent_langcode = entity_language($element['#entity_type'], $element['#entity']);
+    
+    // Assign a unique identifier to each IEF widget.
+    $ief_id = $instance['id'];
+    
+    // Determine the wrapper ID for the entire element.
+    $wrapper = 'inline-relation-form-' . $ief_id . '-' . $delta;
+    $element = array(
+      '#type' => 'fieldset',
+      '#tree' => TRUE,
+      '#description' => NULL,
+      '#prefix' => '<div id="' . $wrapper . '">',
+      '#suffix' => '</div>',
+      '#attached' => array(
+        'css' => array(),
+        'js' => array(
+          // Give the JS file a weight so that it runs after file.js.
+          drupal_get_path('module', 'inline_entity_form') . '/inline_entity_form.js' => array('weight' => 10),
+        ),
+      ),
+      '#ief_id' => $ief_id,
+      '#ief_root' => TRUE,
+      '#attributes' => array(
+        'class'       => array( 'irf-container' ),
+      ),
+      //'#parents'  => $parents + array( $delta ),
+    ) + $element;
+    
+    // Get a list of allowed relation types
+    $types          = $instance['settings']['relation_type'];
+    list($type)     = array_keys( $types );
+    $values         = isset($form_state['values']) ? $form_state['values'] : array();
+    
+    // Get the current relation value, if any
+    foreach( $parents as $parent )
+      if( !isset($values[$parent]) ) {
+        $values = NULL;
+        break;
+      }
+      else
+        $values = $values[$parent];
+    
+    // Path to field (to replace after type selection)
+    // The AJAX handler won't be assigned if we only replace the current widget, so we replace the whole field
+    $path = array_merge($element['#field_parents'], array($element['#field_name']));
+    
+    // So, editing?
+    if( $values && isset($values[ $delta ]) ) {
+      $type = $values[ $delta ][ 'targets' ][ 'type' ];
+      $form_state['_inline_relation_current_element'] = $path;
+    }
+    
+    $type_array     = explode( ':', $type );
+    $type           = $type_array[0];
+    
+    $relation_type  = relation_type_load( $type );
+    
+    // This should never happen...
+    /*if( !$relation_type )
+      die( $type );*/
+    
+    $relation = isset($items[$langcode][$delta]['relation']) ? $items[$langcode][$delta]['relation'] : (object)relation_create($type, array());
+    
+    // Check for reverse types
+    $reverse        = isset($relation->rid) ? $relation->endpoints[LANGUAGE_NONE][0]['entity_id']!=$id : FALSE;
+    
+    $element['relation_options'] = array(
+      '#prefix' => '<div id="relation-add-options">',
+      '#suffix' => '</div>',
+      '#parents'  => array_merge( $parents, array( $delta.'' ) ),
+    );
+    
+    $element['relation_options']['targets'] = array(
+      '#type'   => 'container',
+      '#tree'   => TRUE,
+      '#attributes' => array(
+        'class'       => array( 'irf-targets' ),
+      ),
+    );
+    
+    // Save for later usage
+    $element['#relation_type']    = $type;
+    $element['#relation_reverse'] = $reverse;
+    $element['#relation_rid']     = isset($relation->rid) ? $relation->rid : 0;
+    
+    $entity = $instance['entity_type'] . ($instance['bundle'] ? ':' . $instance['bundle'] : '');
+    
+    // Create one autocomplete for each endpoint beyond the first
+    $direction  = $reverse ? '/source' : '/target';
+    
+    // Some types can also be set reverse, so we add 'em here
+    $options    = $types;
+    foreach( $types as $option ) {
+      $descriptor = relation_type_load( $option );
+      if( in_array( $entity, $descriptor->source_bundles ) && in_array( $entity, $descriptor->target_bundles ) )
+        $options[ $option.':reverse' ]  = $descriptor->reverse_label;
+    }
+    
+    
+      $element['relation_options']['targets']['type']  = array(
+        '#type'           => 'select',
+        '#options'        => $options,
+        '#default_value'  => $reverse ? $relation->relation_type.':reverse' : $relation->relation_type,
+        '#ajax'           => array(
+          'callback'        => 'relation_inline_form_type_ajax',
+          'wrapper'         => 'edit-'.str_replace( '_', '-', $element['#field_name'] ),//$wrapper,
+          'method'          => 'replace',
+          'effect'          => 'fade',
+        ),
+      );
+    
+    // Add an autocomplete field for each allowed endpoint (though i don't see their usage yet)
+    for ($i = 2; $i <= $relation_type->max_arity; $i++ ) {
+      $default      = isset($relation->rid) ? $relation->endpoints[LANGUAGE_NONE][$i-($reverse?2:1)] : NULL;
+      $related      = $default ? array_values( entity_load( $default['entity_type'], array( $default[ 'entity_id' ] ) ) ) : NULL;
+      $related      = $related[0];
+      $entity_label = $default ? entity_label( $default['entity_type'], $related ) : NULL;
+      
+      $element['relation_options']['targets']['target_' . $i] = array(
+        '#type'               => 'textfield',
+        '#title'              => $relation_type->max_arity==2 ? '' : t('Endpoint @num', array('@num' => $i)),
+        '#autocomplete_path'  => 'relation_add/autocomplete/' . $type . $direction,
+        '#default_value'      => $default ? $entity_label . ' [' . $default['entity_type'] . ':' . $default['entity_id'] . ']' : '',
+      );
+    }
+    
+    // Allow fields for each relation
+    field_attach_form( 'relation', $relation, $element['relation_options'], $form_state );
+    unset($element['relation_options']['endpoints']);
+    
+    $submit = &$form['actions']['submit'];
+    
+    if( !isset($submit['#submit']) || !in_array( '_inline_relation_form_submit', $submit['#submit'] ) )
+      $submit['#submit'][]  = '_inline_relation_form_submit';
+    
+    return $element;
+    
+  }
+  
+  /**
+   *  AJAX call - Replace the selected form element
+   */
+  function relation_inline_form_type_ajax( $form, $form_state ) {
+    $result = $form;
+    foreach( $form_state['_inline_relation_current_element'] as $element )
+      $result = $result[ $element ];
+    
+    return $result;
+  }
+  
+  /**
+   *  Add, edit or recreate a relation
+   *  
+   *  @param $form The form array
+   *  @param $value The raw submitted values of the given relation
+   *  @param $type The relation type as string
+   *  @param $reverse Whether or not the relation is to be reversed (endpoints will simply be swapped)
+   *  @param $relation_add The entity for which to create the relation
+   *  @param $update The relation (ID) that shall be updated. Pass 0 to create a new one. If given but endpoints changed, the relation will be deleted in order to create a new one.
+   *  @return The ID of the newly created or edited relation
+   */
+  function _inline_relation_form_set( $form, $value, $type, $reverse, $relation_add, $update ) {
+    
+    $values = $value;
+    $values['relation_type']  = $type;
+    
+    // Gather all the endpoint entities into one array
+    $entity_strings = array();
+    for ($i = 2; $i; $i++) {
+      if (isset($value['targets']['target_' . $i])) {
+        $entity_strings[] = $value['targets']['target_' . $i];
+      }
+      else {
+        $i = FALSE; // break loop.
+      }
+    }
+    
+    // Add the current entity to the endpoints array.
+    if( $reverse ) {
+      // For reverse relations, add the "current entity" to the end of the array, else to the start.
+      array_push( $entity_strings, $relation_add );
+    }
+    else {
+      array_unshift( $entity_strings, $relation_add );
+    }
+    
+    // Convert all entity_strings to proper entity_keys.
+    $entity_keys = array();
+    foreach ($entity_strings as $r_index => $entity_string) {
+      $matches = array();
+      preg_match('/([\w\s]*)\[([\w\d]+):(\d+)\]/', $entity_string, $matches);
+      if ($matches) {
+        $entity_keys[] = array(
+          'entity_label' => $matches[1],
+          'entity_type' => $matches[2],
+          'entity_id'   => $matches[3],
+          'r_index'     => $r_index,
+        );
+      }
+    }
+    
+    // Update given relation
+    if( $update ) {
+      $relation  = relation_load( $update );
+      
+      // New endpoint / endpoint removed? Skip comparison then
+      if( count($entity_keys)==count($relation->endpoints[LANGUAGE_NONE]) ) {
+        foreach( $relation->endpoints[LANGUAGE_NONE] as $i=>$entity ) {
+          if( $entity['entity_type']!=$entity_keys[$i]['entity_type'] || $entity['entity_id']!=$entity_keys[$i]['entity_id'] ) {
+            $i  = 0;
+            break;
+          }
+        }
+        
+        // No endpoint changed -> we can simply edit the existing relation
+        if( $i==count($entity_keys)-1 ) {
+          $current  = new StdClass();
+          foreach( (array)$relation as $name=>$value )
+            $current->$name = $value;
+          
+          $relation->original = $current;
+          
+          foreach( $values as $name=>$value )
+            $relation->$name  = $value;
+          
+          @relation_update( $relation );
+          
+          return $update;
+        }
+      }
+      
+      relation_delete( $update );
+    }
+    
+    $form_state = array(
+      'values'    => $values,
+    );
+    
+    // Fields won't get saved when assuming to find their values deeper in the $form_state['values'] array
+    $form['#parents'] = array();
+    
+    // @TODO: IF count(entity_keys) != count (entity_strings), FAIL.
+    $relation = relation_create($type, $entity_keys);
+    entity_form_submit_build_entity('relation', $relation, $form, $form_state);
+    $rid      = relation_save($relation);
+    
+    return $rid;
+    
+  }
+  
+  function _inline_relation_form_submit( $form, &$form_state ) {
+    
+    // Iterathe through all fields attached to the form in order to find and handle submission of all inline_relation_form widgets correctly
+    foreach( $form_state['field'] as $name=>$_field ) {
+      foreach( $_field as $language=>$def ) {
+        if( !isset($def['instance']) )
+          continue;
+        
+        $instance = $def['instance'];
+        if( $instance['widget']['type']=='inline_relation_form' && isset($form_state['values'][$name][$language]) ) {
+          $field  = &$form_state['field'][$name][$language];
+          
+          // Mass update, so we don't want to save the current entity for every widget submission
+          _inline_relation_form_update_field_values( NULL, NULL, NULL, TRUE );
+          
+          // Basic entity data
+          $entity_type              = $instance['entity_type'];
+          $entity                   = $form_state[ $entity_type ];
+          $entity_label             = entity_label($entity_type, $entity);
+          list($id, $vid, $bundle)  = entity_extract_ids($entity_type, $entity);
+          $relation_name            = $entity_label . ' [' . $entity_type . ':' . $id . ']';
+          
+          $entity_type_name         = $instance['entity_type'] . ($instance['bundle'] ? ':' . $instance['bundle'] : '');
+          
+          // Now add/update/remove relations for all given values
+          $values = $form_state['values'][$name][$language];
+          foreach( $values as $index=>$value ) {
+            $element        = $form[$name][$language][$index];
+            
+            if( !isset($value['targets']['target_2']) || empty($value['targets']['target_2']) ) {
+              // Delete relations without endpoints
+              if( isset($element['#relation_rid']) && $element['#relation_rid'] )
+                relation_delete( $element['#relation_rid'] );
+              
+              continue;
+            }
+            
+            // Type data
+            $type           = $value['targets']['type'];
+            
+            $type     = explode( ':', $type );
+            $reverse  = count($type)>1;
+            $type     = $type[0];
+            
+            // Actually add/edit relation
+            _inline_relation_form_set( $element['relation_options'], $value, $type, $reverse, $relation_name, $element['#relation_rid'] );
+          }
+          
+          // We have to both call the update-fields-function AND set the form-state values in order to have the correct number of relations being kept in the edit form
+          _inline_relation_form_update_field_values( $entity, array( 'entity_type'=>$entity_type, 'entity_id'=>$id ), $instance, FALSE );
+          $form_state['values'][$name]  = _inline_relation_form_get_field_value( array( 'entity_type'=>$entity_type, 'entity_id'=>$id ), $instance );
+          
+        }
+      }
+    }
+    
+  }
+  
+  
+  /**
+   *  Implements hook_field_attach_submit
+   */
+  function inline_relation_form_field_attach_submit( $entity_type, $entity, $form, &$form_state ) {
+  }
+  
+  
+  
