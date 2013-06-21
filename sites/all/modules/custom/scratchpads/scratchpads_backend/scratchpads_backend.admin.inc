@@ -133,7 +133,7 @@ function scratchpads_backend_admin_content(){
           $view_url = 'admin/content/scratchpad_relations/' . $bundle;
           $operations = array(
             l(t('View'), $view_url),
-            l(t('Add (not yet)'), $view_url . '/add')
+           // l(t('Add (not yet)'), $view_url . '/add')
           );
           // If there's a grid editor for this, add a link
           if(views_get_view('slickgrid_admin_' . $bundle)){
