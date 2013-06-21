@@ -60,18 +60,15 @@ function scratchpad_relations_preprocess_scratchpad_relation_field(&$variables, 
   $id = $variables['entity']->tid;
   $relation = $variables['relation'];
   $relation_type = relation_type_load($relation['relation_type']);
-  if($variables['custom_title']){
-    $label = $variables['custom_title'];
-  }else{
-    $label = $relation_type->directional ? $relation_type->reverse_label : $relation_type->label;
-  }
   foreach($relation['endpoints'][LANGUAGE_NONE] as $endpoint){
     if($endpoint['entity_type'] == $variables['entity_type'] && $endpoint['entity_id'] == $id){
-      if($endpoint['r_index'] == 0){
-        if($variables['custom_title']){
-          $label = $variables['custom_title'];
-        }else{
+      if($variables['custom_title']){
+        $label = $variables['custom_title'];
+      }else{
+        if($endpoint['r_index'] == 0){
           $label = $relation_type->label;
+        }else{
+          $label = $relation_type->directional ? $relation_type->reverse_label : $relation_type->label;
         }
       }
     }
@@ -109,8 +106,13 @@ function scratchpad_relations_field_formatter_view($entity_type, $entity, $field
   list($entity_id) = entity_extract_ids($entity_type, $entity);
   switch($display['type']){
     case 'relation_add_endpoints_and_fields':
+      // order items by relation_type
+      foreach($items as $key => $row){
+        $type[$key] = $row['relation_type'];
+      }
+      array_multisort($type, SORT_ASC, $items);
+      
       foreach($items as $delta => $item){
-        $links = array();
         $relation = (object)$item;
         $related_entities = array();
         if(count($relation->endpoints[LANGUAGE_NONE]) > 1){
@@ -125,6 +127,14 @@ function scratchpad_relations_field_formatter_view($entity_type, $entity, $field
             $related_entity->entity_type = $endpoint['entity_type'];
             $related_entities[] = $related_entity;
           }
+                    
+       //  print_r($related_entities);
+          
+        //  usort($related_entities, 'psort');
+          
+        //  print_r($related_entities);
+          
+          
           switch($instance['widget']['settings']['relation_endpoint_label']){
             case 'custom':
               $endpoint_title = t($instance['widget']['settings']['relation_endpoint_custom_label']);
@@ -154,4 +164,8 @@ function scratchpad_relations_field_formatter_view($entity_type, $entity, $field
       break;
   }
   return $element;
+}
+
+function psort($a,$b){
+ return strcmp ($a->name, $b->name);
 }
