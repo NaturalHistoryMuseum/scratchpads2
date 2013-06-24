@@ -141,7 +141,7 @@ function emonocot_views_field_formatter_view($entity_type, $entity, $field, $ins
             );
           }
         }
-        if(isset($node->field_file)){
+        if(isset($node->field_file['und'])){
           foreach($node->field_file['und'] as $file){
             $links[] = array(
               'type' => 'file',
