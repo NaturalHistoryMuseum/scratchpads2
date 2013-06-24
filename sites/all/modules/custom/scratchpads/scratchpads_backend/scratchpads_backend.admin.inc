@@ -133,7 +133,7 @@ function scratchpads_backend_admin_content(){
           $view_url = 'admin/content/scratchpad_relations/' . $bundle;
           $operations = array(
             l(t('View'), $view_url),
-            l(t('Add (not yet)'), $view_url . '/add')
+           // l(t('Add (not yet)'), $view_url . '/add')
           );
           // If there's a grid editor for this, add a link
           if(views_get_view('slickgrid_admin_' . $bundle)){
@@ -147,9 +147,10 @@ function scratchpads_backend_admin_content(){
           }else{
             $description = 'Relationship' . $entity_info['bundles'][$bundle]['source_bundles'][0] . ':' . $entity_info['bundles'][$bundle]['target_bundles'][0];
           }
+          $label = $entity_info['bundles'][$bundle]['label'] . '-' . $entity_info['bundles'][$bundle]['reverse_label'];
           $rows[] = array(
             'data' => array(
-              l($entity_info['bundles'][$bundle]['label'], $view_url) . (!empty($bundle) ? '<p class="description">' . $description . '</p>' : ''),
+              l($label, $view_url) . (!empty($bundle) ? '<p class="description">' . $description . '</p>' : ''),
               (isset($statistics[$bundle]['number']) ? $statistics[$bundle]['number'] : 0),
               (''),
               $operations

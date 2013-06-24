@@ -523,10 +523,10 @@ function _relation_select_field_widget_form(&$form, &$form_state, $field, $insta
   //
   // $items[$delta] starts as array on Edit page (Why?)
   // $items[$delta] becomes object on Preview page (Why?)
-  if (isset($items[$delta]) && is_object($items[$delta])) {
+  if (isset($items[$delta]->rid)) {
     $relation_id = $items[$delta]->rid;
   }
-  elseif (isset($items[$delta]) && is_array($items[$delta])) {
+  elseif (isset($items[$delta]['relation_id'])) {
     $relation_id = $items[$delta]['relation_id'];
   }
   else {
@@ -685,9 +685,6 @@ function relation_select_field_insert($entity_type, $entity, $field, $instance, 
           if (isset($item['relation_fields'])) {
             // Add relation fields.
             foreach ($item['relation_fields'] as $relation_field_name => $relation_field) {
-              foreach ($relation_field as $field_langcode => $field_val) {
-                unset($relation_field[$field_langcode]['add_more']);
-              }
               $relation->{$relation_field_name} = $relation_field;
             }
           }
@@ -722,15 +719,11 @@ function relation_select_field_insert($entity_type, $entity, $field, $instance, 
                 $langcode = array_shift(array_keys($relation_field));
                 $relation_field_items = array_shift($relation_field);
                 $relation_field = field_info_field($relation_field_name);
-                unset($relation_field_items['add_more']);
                 field_default_submit('relation', $relation, $relation_field, $relation_fields[$relation_field_name], $langcode, $relation_field_items, $item, $form_state);
                 $relation->{$relation_field_name}[$langcode] = $relation_field_items;
               }
               else {
                 // Create a new relation field instance.
-                foreach ($relation_field as $field_langcode => $field_val) {
-                  unset($relation_field[$field_langcode]['add_more']);
-                }
                 $relation->{$relation_field_name} = $relation_field;
               }
             }
@@ -968,6 +961,7 @@ function relation_select_views_exposed_form($form, &$form_state, $view, $element
   $form['#after_build'] = array('relation_select_exposed_form_after_build');
   $form['submit'] = array(
     '#type' => 'submit',
+    '#id' => 'edit-submit-' . $element['#id'],
     '#value' => t('Search'),
     '#ajax' => array(
       'path' => 'relation-select/ajax'
