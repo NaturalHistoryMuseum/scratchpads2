@@ -2,3 +2,4 @@ core = "7.x"
 name = "Scratchpads help"
 description = "Scratchpads help system"
 package = "Administration"
+files[] = scratchpads_help.test

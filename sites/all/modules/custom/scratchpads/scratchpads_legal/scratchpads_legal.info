@@ -3,3 +3,4 @@ description = "Provides the default Scratchpads terms and conditions."
 package = "Scratchpads"
 core = 7.x
 dependencies[] = "legal"
+files[] = scratchpads_legal.test

@@ -1,0 +1,83 @@
+<?php
+
+/**
+ * @file
+*
+* Scratchpads Help tests.
+*/
+class ScratchpadsHelpTestCase extends ScratchpadsTweaksTestCase{
+
+  protected $test_user;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Help',
+      'description' => 'Testing for scratchpads help module',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    $modules[] = 'scratchpads_help';
+    parent::setUp($modules);
+    //  Create users.
+    $this->test_user = $this->drupalCreateUser(array(
+      'access content',
+      'access administration pages',
+      'administer site configuration',
+      'administer users',
+      'administer permissions',
+      'administer content types',
+      'administer nodes',
+      'bypass node access',
+      'access overlay',
+      'access content overview',
+      'view the administration theme',
+      'access all views'
+    ));
+    // We set the legal_accepted on the user so that login passes.
+    parent::scratchpads_tweaks_legal_save($this->test_user->uid);
+  }
+
+  /**
+   * Tests block_info() for the scratchpads help module.
+   */
+  public function testBlockInfo(){
+    $info = module_invoke('scratchpads_help', 'block_info');
+    $this->assertEqual(1, count($info), t('Module defines a block'));
+    $this->assertTrue(isset($info['scratchpads_help']), t('Scratchpads help block exists.'));
+  }
+
+  /**
+   * Tests block_view() for the scratchpads help module.
+   */
+  public function testBlockView(){
+    $data = module_invoke('scratchpads_help', 'block_view', 'scratchpads_help');
+    $this->assertTrue(is_array($data), t('Block returns renderable array.'));
+  }
+
+  /**
+   * Tests that the help block shows up where it should
+   */
+  public function testScratchpadsHelpShowsUp(){
+    $this->drupalLogin($this->test_user);
+    $this->drupalGet('admin/content/page');
+    $this->assertRaw('Additional help can be found on the following <a href="http://help.scratchpads.eu/">Help</a>', 'Help block found on admin/content/page');
+    $this->drupalGet('');
+    $this->assertNoRaw('Additional help can be found on the following <a href="http://help.scratchpads.eu/">Help</a>', 'Help block not displayed on home page');
+  }
+  /*
+   * Tests that the 'scratchpads_help_last_update' variable is set on cron run
+   */
+  public function testScratchpadsHelpTimeVariable(){
+    $time1 = 100;
+    variable_set('scratchpads_help_last_update', $time1);
+    // This is very slow
+    $this->cronRun();
+    $time2 = variable_get('scratchpads_help_last_update', 0);
+    $this->assertTrue($time2 > $time1, 'Cron run successfully updates scratchpads_help_last_update variable');
+  }
+}

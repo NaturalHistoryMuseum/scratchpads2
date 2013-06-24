@@ -26,43 +26,83 @@ class ItisTermTestCase extends ScratchpadsTweaksTestCase{
   }
 
   /**
-   * Confirm that the "admin/structure/taxonomy/add" page is accessible when
-   * this module is installed.
+   * Basic tests for Itis Term  
    */
-  function testAccessTaxonomyAddPage(){
+  function testItisTermBasic(){
     $this->drupalLogin($this->itis_term_user);
-    $this->drupalGet('admin/structure/taxonomy/add');
-    $this->assertResponse(200);
+    $this->verifyBiologicalClassifications();
+    $this->verifyCreateEditDelete();
+    $this->verifyItisTermMalCode();
   }
 
   /**
-   * Basic tests for Itis Term
-   *  
+   * Test that the Itis terms appear on the form
    */
-  function testItisTermBasic(){
-    //Login the admin user.
-    $this->drupalLogin($this->itis_term_user);
+  protected function verifyBiologicalClassifications(){
     $this->drupalGet('admin/structure/taxonomy/add');
-    $this->assertText('biological classification', 'Biological classification shown', 'Biological Classifications');
-    $this->assertRaw('Animal', 'Animal classification shown', 'Biological Classifications');
-    $this->assertRaw('Algae/Fungi/Plants', 'Algae/Fungi/Plants classification shown', 'Biological Classifications');
-    $this->assertRaw('Moneran', 'Moneran classification shown', 'Biological Classifications');
-    // Choose one and create a vocabulary
+    $this->assertText(t('biological classification'), 'Biological classification shown', 'Biological Classifications');
+    $this->assertRaw(t('Animal'), 'Animal classification shown', 'Biological Classifications');
+    $this->assertRaw(t('Algae/Fungi/Plants'), 'Algae/Fungi/Plants classification shown', 'Biological Classifications');
+    $this->assertRaw(t('Moneran'), 'Moneran classification shown', 'Biological Classifications');
+  }
+
+  /**
+   * Create a vocabulary, check that extra fields have been added, edit the vocabulary, add a term, and delete the vocabulary
+   */
+  protected function verifyCreateEditDelete(){
+    // Create a vocabulary
     $edit = array();
     $human_name = $this->randomName();
     $edit['name'] = $human_name;
     $machine_readable = $this->machine_name($human_name);
     $edit['machine_name'] = $machine_readable;
     $edit['biological_classification'] = 1;
-    $this->drupalPost(NULL, $edit, t('Save'));
-    $this->assertText('Created new vocabulary', 'Biological classification successfully created');
-    $vocab = taxonomy_vocabulary_machine_name_load($machine_readable);
-    $this->assertTrue($vocab, 'Vocabulary confirmed  by query');
+    $this->drupalPost('admin/structure/taxonomy/add', $edit, t('Save'));
+    $this->assertText(t('Created new vocabulary'), 'Biological classification successfully created');
     // Test that extra fields have been added. We are checking one from each group
     $this->drupalGet('admin/structure/taxonomy/' . $machine_readable . '/fields');
     $this->assertText('field_rank', 'field_rank added to vocabulary');
     $this->assertText('field_usage', 'field_usage added to vocabulary');
     $this->assertText('field_authors', 'field_authors added to vocabulary');
     $this->assertText('field_vernacular_name_collection', 'field_vernacular_name_collection added to vocabulary');
+    // Edit the vocabulary.
+    $this->drupalGet('admin/structure/taxonomy/' . $machine_readable . '/edit');
+    $edit2 = array();
+    $edit2['name'] = $this->randomName();
+    $this->drupalPost(NULL, $edit2, t('Save'));
+    $this->drupalGet('admin/structure/taxonomy');
+    $this->assertText($edit2['name'], 'Vocabulary found in the vocabulary overview listing.');
+    // Add term to vocabulary
+    $this->drupalGet('admin/structure/taxonomy/' . $machine_readable . '/add');
+    $edit3 = array();
+    $name2 = $this->randomName();
+    $name3 = $this->randomName();
+    $edit3['name'] = $name2;
+    $edit3['field_unit_name1[und][0][value]'] = $name3;
+    $this->drupalPost(NULL, $edit3, t('Save'));
+    $this->assertText(t('Created new term'), 'New term successfully created');
+    // View the vocab and check that the newly added term is present
+    $this->drupalGet('admin/structure/taxonomy/' . $machine_readable);
+    $this->assertText($name3, 'Term found on vocabulary page');
+    // Delete the vocabulary
+    $this->drupalPost('admin/structure/taxonomy/' . $machine_readable . '/edit', array(), t('Delete'));
+    $this->assertText(t('Deleting a vocabulary will delete all the terms in it. This action cannot be undone.'), 'Delete warning shown');
+    $this->drupalPost(NULL, array(), t('Delete'));
+    $this->assertText(t('Deleted vocabulary'), 'Delete Confirmed');
+  }
+
+  /**
+   * Ensure that vocabulary titles are escaped properly.
+   */
+  protected function verifyItisTermMalCode(){
+    $this->drupalLogin($this->itis_term_user);
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $edit = array();
+    $edit['name'] = 'Don\'t Panic';
+    $edit['description'] = $this->randomName();
+    $edit['machine_name'] = 'don_t_panic';
+    $edit['biological_classification'] = 2;
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertText(t('Created new vocabulary'), 'Vocabulary Created');
   }
 }

@@ -45,11 +45,6 @@ class ScratchpadsSiteMapTestCase extends ScratchpadsTweaksTestCase{
     $this->drupalGet('sitemap');
     $this->assertText('Site map', "Site map present on /sitemap page and viewable by a user with 'access site map' permission");
     
-    // Why does this test fail?
-    // simpletests doesn't pick up module permissions?    
- //   $this->drupalLogout();
- //   $this->drupalGet('sitemap');
- //   $this->assertText('Site map', 'Site map present on /sitemap page and viewable by anonymous users');
   }
   
 }
