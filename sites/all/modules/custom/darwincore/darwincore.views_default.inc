@@ -804,7 +804,7 @@ function darwincore_views_default_views(){
   $view = new view();
   $view->name = 'ecological_niche_modelling';
   $view->description = '';
-  $view->tag = 'default';
+  $view->tag = 'no-batch';
   $view->base_table = 'node';
   $view->human_name = 'Ecological Niche Modelling';
   $view->core = 7;
