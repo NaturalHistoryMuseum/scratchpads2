@@ -910,7 +910,6 @@ function darwincore_views_default_views(){
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['style_plugin'] = 'views_data_export_csv';
   $handler->display->display_options['path'] = 'taxonomy/term/%/enm.csv';
-  $handler->display->display_options['use_batch'] = 'batch';
   $views[$view->name] = $view;
   return $views;
 }
