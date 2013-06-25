@@ -31,6 +31,31 @@ function scratchpads_data_integrity_check_for_terms_in_deleted_vocabularies(){
 }
 
 /**
+ * Check for files that have been deleted from the filesystem, but not deleted
+ * from the file_managed database table.
+ */
+function scratchpads_data_integrity_check_for_deleted_files(){
+  $results = db_select('file_managed', 'f')->fields('f', array(
+    'uri',
+    'fid'
+  ))->execute();
+  $messages = array();
+  foreach($results as $row){
+    if(!file_exists($row->uri)){
+      $messages[] = " - {$row->fid}:{$row->uri}";
+    }
+  }
+  if(count($messages)){
+    $messages = implode("\n", $messages);
+    $messages = array(
+      t('The following file(s) no longer exist and can be deleted from the file_managed table:'),
+      $messages
+    );
+  }
+  return $messages;
+}
+
+/**
  * Standard data-int to check if any terms have lost their parent.
  */
 function scratchpads_data_integrity_check_all_terms_have_parents(){
