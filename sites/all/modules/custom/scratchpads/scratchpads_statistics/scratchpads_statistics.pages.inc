@@ -363,8 +363,8 @@ function scratchpads_statistics_stats_page(){
   $data = array(
     array(
       t('Content types'),
-      t('Created'),
-      t('Edited'),
+      t('Objects'),
+      //t('Edited'),
       t('Views')
     )
   );
@@ -393,7 +393,7 @@ function scratchpads_statistics_stats_page(){
       $data[] = array(
         $row->name,
         (integer)$row->sum_number_created,
-        (integer)$row->sum_number_edited,
+        //(integer)$row->sum_number_edited,
         (integer)$row->sum_number_views
       );
     }
@@ -404,7 +404,7 @@ function scratchpads_statistics_stats_page(){
         '#theme' => 'simple_google_chart',
         '#type' => 'ColumnChart',
         '#data' => $data,
-        '#title' => t('Views/edits'),
+        '#title' => t('Objects - Views'),
         '#options' => array(
           'bar' => array(
             'groupWidth' => '80%'
