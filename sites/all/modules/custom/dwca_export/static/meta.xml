@@ -13,7 +13,7 @@
     <field index="6" term="http://rs.tdwg.org/dwc/terms/namePublishedInID" />
     <field index="7" term="http://rs.tdwg.org/dwc/terms/parentNameUsageID" />
     <field index="8" term="http://rs.tdwg.org/dwc/terms/nomenclaturalStatus" />
-    <field index="9" term="http://rs.tdwg.org/dwc/terms/acceptedNameUsageID" />
+    <field index="9" term="http://rs.tdwg.org/dwc/terms/acceptedNameUsageID" /> 
   </core>
   <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://rs.gbif.org/terms/1.0/TypesAndSpecimen">
     <files>
@@ -70,24 +70,24 @@
     <files>
       <location>image.txt</location>
     </files>
-    <coreid index="0" />
-    <field index="2" term="http://purl.org/dc/terms/identifier" />
-    <field index="3" term="http://purl.org/dc/terms/title" />
-    <field index="4" term="http://purl.org/dc/terms/format" />
-    <field index="5" term="http://purl.org/dc/terms/license" />
-    <field index="8" term="http://purl.org/dc/terms/source" />
+    <coreid index="1" />
+   <field index="2" term="http://purl.org/dc/terms/identifier"/>
+   <field index="3" term="http://purl.org/dc/terms/format"/>
+   <field index="4" term="http://purl.org/dc/terms/license"/>
+   <field index="5" term="http://purl.org/dc/terms/title"/>
+   <field index="8" term="http://purl.org/dc/terms/source"/>
   </extension>
   <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://eol.org/schema/media/Document">
     <files>
       <location>image.txt</location>
     </files>
     <coreid index="0" />
-    <field index="0" term="http://rs.tdwg.org/dwc/terms/taxonID" />
-    <field index="2" term="http://rs.tdwg.org/ac/terms/accessURI" />
-    <field index="1" term="http://purl.org/dc/terms/identifier" />
-    <field index="3" term="http://purl.org/dc/terms/title" />
-    <field index="4" term="http://purl.org/dc/terms/format" />
-    <field index="5" term="http://ns.adobe.com/xap/1.0/rights/UsageTerms" />
+    <field index="1" term="http://rs.tdwg.org/dwc/terms/taxonID" />
+    <field index="3" term="http://rs.tdwg.org/ac/terms/accessURI" />
+    <field index="0" term="http://purl.org/dc/terms/identifier" />
+    <field index="5" term="http://purl.org/dc/terms/title" />
+    <field index="3" term="http://purl.org/dc/terms/format" />
+    <field index="4" term="http://ns.adobe.com/xap/1.0/rights/UsageTerms" />
     <field index="6" term="http://eol.org/schema/agent/agentID" />
     <field index="7" term="http://purl.org/dc/terms/type" />
     <field index="8" term="http://rs.tdwg.org/ac/terms/furtherInformationURL" />

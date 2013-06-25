@@ -186,6 +186,10 @@ sub {
   top: .5ex;
 }
 
+.no-borders, .no-borders *{
+  border:none !important;
+}
+
 /************************ Layout *********************/
 
 /* Sitemap */
@@ -1090,7 +1094,16 @@ table,tbody,tfoot,thead,tr,th,td {
   margin-bottom: 10px;
 }
 
-/* field items */ 
+/* field items */
 .field-label-inline .field-item {
   margin-right: 3px;
+}
+
+.node-type-specimen-observation .field-name-field-media .field-item {
+  margin: 4px;
+  display: inline-block;
+  vertical-align: top;
+  /* For IE 7 */
+  zoom: 1;
+  *display: inline;
 }
