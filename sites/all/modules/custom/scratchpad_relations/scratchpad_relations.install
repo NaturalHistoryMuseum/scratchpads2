@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * Implements hook_enable().
+ */
+function scratchpad_relations_enable(){}
+
+/**
+ * Implements hook_disable().
+ */
+function scratchpad_relations_disable(){}
+
+/**
      * @file
      * Install, update and uninstall functions for the redhen relations module.
      */
@@ -64,6 +74,86 @@ function scratchpad_relations_install(){
       'target_bundles' => array(
         'taxonomy_term:*'
       )
+    ),
+    array(
+      'relation_type' => 'dispersedSeedOf_seedsDispersedBy',
+      'label' => t('DispersedSeedOf'),
+      'reverse_label' => t('SeedsDispersedBy'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        'taxonomy_term:*'
+      )
+    ),
+    array(
+      'relation_type' => 'resinExtractedBy_extractsResinFrom',
+      'label' => t('ResinExtractedBy'),
+      'reverse_label' => t('ExtractsResinFrom'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        'taxonomy_term:*'
+      )
+    ),
+    array(
+      'relation_type' => 'flowerVisitedBy_visitedFlowerOf',
+      'label' => t('FlowerVisitedBy'),
+      'reverse_label' => t('VisitedFlowerOf'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        'taxonomy_term:*'
+      )
+    ),
+    array(
+      'relation_type' => 'nestedIn_usedAsNestBy',
+      'label' => t('NestedIn'),
+      'reverse_label' => t('UsedAsNestBy'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        'taxonomy_term:*'
+      )
+    ),
+    array(
+      'relation_type' => 'pathogenOf_infectedBy',
+      'label' => t('PathogenOf'),
+      'reverse_label' => t('InfectedBy'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        'taxonomy_term:*'
+      )
     )
   );
   foreach($relation_types_info as $relation_type_info){
@@ -78,9 +168,12 @@ function scratchpad_relations_install(){
 function scratchpad_relations_uninstall(){
   // get all the relationship_types (bundles), find all fields
   // delete them
+  $db_or = db_or();
+  $db_or->condition('rb.entity_type', 'node', '=');
+  $db_or->condition('rb.entity_type', 'taxonomy_term', '=');
   $query = db_select('relation_bundles', 'rb')->fields('rb', array(
     'relation_type'
-  ))->condition('rb.entity_type', 'node')->distinct()->execute();
+  ))->condition($db_or)->distinct()->execute();
   while($record = $query->fetchAssoc()){
     $relationship_type[] = $record['relation_type'];
   }
