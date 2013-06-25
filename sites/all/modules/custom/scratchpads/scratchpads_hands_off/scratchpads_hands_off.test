@@ -88,7 +88,8 @@ class Scratchpadshands_offTestCase extends ScratchpadsTweaksTestCase{
     );
     foreach($hidden_urls as $hands_off_page){
       $this->drupalGet($hands_off_page);
-      $this->assertText('access denied', "Access denied for hands-off page " . $hands_off_page);
+      $this->assertText(t('Access denied'), "Access denied for hands-off page " . $hands_off_page);
+      $this->assertResponse(403);
     }
   }
 }
