@@ -53,7 +53,7 @@ function scratchpads_data_integrity_check_for_deleted_files(){
         $delete_file = TRUE;
       }
     }
-    if(!$row->filesize && !$row->uid){
+    if((!$row->filesize && !$row->uid) || substr($row->uri, 0, 12) == 'temporary://'){
       // We also delete empty files owned by anon.
       $delete_file = TRUE;
     }
