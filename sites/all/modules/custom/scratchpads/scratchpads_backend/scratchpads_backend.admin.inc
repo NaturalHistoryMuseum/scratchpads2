@@ -132,10 +132,11 @@ function scratchpads_backend_admin_content(){
           $statistics = scratchpads_backend_statistics($entity_info);
           foreach(array_keys($entity_info['bundles']) as $bundle){
             $view_url = 'admin/content/scratchpad_relations/' . $bundle;
-            $operations = array(
-              l(t('View'), $view_url)
-            // l(t('Add (not yet)'), $view_url . '/add')
-            ;
+            $operations = theme('item_list', array(
+              'items' => array(
+                l(t('View'), $view_url)
+              )
+            ));
             // If there's a grid editor for this, add a link
             if(views_get_view('slickgrid_admin_' . $bundle)){
               $operations[] = l(t('Grid'), 'admin/content/slickgrid/' . $bundle);
