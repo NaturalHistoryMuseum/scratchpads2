@@ -58,7 +58,7 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
     );
     $this->drupalPost('user', $edit, t('Log in'));
     // override is here
-    $pass = $this->assertText('Member for', 'User successfully logged in');
+    $pass = $this->assertNoText('Sorry, unrecognized username or password', 'User successfully logged in');
     if($pass){
       $this->loggedInUser = $account;
     }
