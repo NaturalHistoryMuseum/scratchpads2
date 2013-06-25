@@ -60,7 +60,6 @@ function scratchpads_data_integrity_check_for_deleted_files(){
     if($delete_file){
       // Simply delete the file if it is owned by anon.
       file_delete(file_load($row->fid), TRUE);
-      $messages[] = " - " . t('DELETED') . ": {$row->fid}:{$row->uri}";
     }
   }
   if(count($messages)){
