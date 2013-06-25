@@ -37,18 +37,26 @@ function scratchpads_data_integrity_check_for_terms_in_deleted_vocabularies(){
 function scratchpads_data_integrity_check_for_deleted_files(){
   $results = db_select('file_managed', 'f')->fields('f', array(
     'uri',
-    'fid'
+    'fid',
+    'uid'
   ))->execute();
   $messages = array();
   foreach($results as $row){
     if(!file_exists($row->uri)){
-      $messages[] = " - {$row->fid}:{$row->uri}";
+      if($row->uid){
+        // Alert if a user uploaded the file
+        $messages[] = " - " . t('MISSING') . ": {$row->fid}:{$row->uri}";
+      }else{
+        // Simply delete the file if it is owned by anon.
+        file_delete(file_load($row->fid), TRUE);
+        $messages[] = " - " . t('DELETED') . ": {$row->fid}:{$row->uri}";
+      }
     }
   }
   if(count($messages)){
     $messages = implode("\n", $messages);
     $messages = array(
-      t('The following file(s) no longer exist and can be deleted from the file_managed table:'),
+      t('The following file(s) were found to be missing:'),
       $messages
     );
   }
