@@ -123,8 +123,8 @@ function scratchpads_hands_off_menu_alter(&$items){
  */
 function scratchpads_hands_off_init(){
   if(!user_access('scratchpad team') && in_array($_GET['q'], _scratchpads_hands_off_hidden_urls())){
-    drupal_set_message(t('Access denied'), 'error');
-    drupal_goto();
+    drupal_access_denied();
+    exit;
   }
 }
 
