@@ -38,19 +38,29 @@ function scratchpads_data_integrity_check_for_deleted_files(){
   $results = db_select('file_managed', 'f')->fields('f', array(
     'uri',
     'fid',
-    'uid'
+    'uid',
+    'filesize'
   ))->execute();
   $messages = array();
   foreach($results as $row){
+    $delete_file = FALSE;
     if(!file_exists($row->uri)){
       if($row->uid){
         // Alert if a user uploaded the file
         $messages[] = " - " . t('MISSING') . ": {$row->fid}:{$row->uri}";
       }else{
         // Simply delete the file if it is owned by anon.
-        file_delete(file_load($row->fid), TRUE);
-        $messages[] = " - " . t('DELETED') . ": {$row->fid}:{$row->uri}";
+        $delete_file = TRUE;
       }
+    }
+    if(!$row->filesize && !$row->uid){
+      // We also delete empty files owned by anon.
+      $delete_file = TRUE;
+    }
+    if($delete_file){
+      // Simply delete the file if it is owned by anon.
+      file_delete(file_load($row->fid), TRUE);
+      $messages[] = " - " . t('DELETED') . ": {$row->fid}:{$row->uri}";
     }
   }
   if(count($messages)){
