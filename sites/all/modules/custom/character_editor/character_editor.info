@@ -75,4 +75,4 @@ dependencies[] = "field_group"
 
 package = Scratchpad tools
 
-tool = true
+;tool = true
