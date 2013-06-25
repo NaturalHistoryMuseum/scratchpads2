@@ -553,20 +553,21 @@ function scratchpads_statistics_stats_page(){
       if($total_users > 10){
         $options = array(
           'hAxis' => array(
-            'logScale' => TRUE
+            'logScale' => TRUE,
+            'title' => t('Log')
           )
         );
       }
       $content[] = array(
         '#theme' => 'simple_google_chart',
         '#type' => 'BarChart',
-        '#title' => t('Users/Sites'),
+        '#title' => t('Active Users/Sites'),
         '#options' => $options,
         '#data' => array(
           array(
             'Time period',
-            'Active users',
-            'Active sites'
+            'Users',
+            'Sites'
           ),
           array(
             'Last week',
