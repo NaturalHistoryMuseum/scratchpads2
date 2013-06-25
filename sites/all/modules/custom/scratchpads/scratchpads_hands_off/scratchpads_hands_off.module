@@ -122,7 +122,7 @@ function scratchpads_hands_off_menu_alter(&$items){
  * Implements hook_init().
  */
 function scratchpads_hands_off_init(){
-  if(in_array($_GET['q'], _scratchpads_hands_off_hidden_urls())){
+  if(!user_access('scratchpad team') && in_array($_GET['q'], _scratchpads_hands_off_hidden_urls())){
     drupal_set_message(t('Access denied'), 'error');
     drupal_goto();
   }
