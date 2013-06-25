@@ -13,19 +13,19 @@ function scratchpads_statistics_autocomplete($type, $string){
   ))){
     switch($type){
       case 'site':
-        $condition = db_or()->condition('title', db_like($string) . '%', 'LIKE')->condition('url', db_like($string) . '%', 'LIKE');
+        $condition = db_or()->condition('title', '%' . db_like($string) . '%', 'LIKE')->condition('url', '%' . db_like($string) . '%', 'LIKE');
         $table = 'scratchpads_statistics_site';
         $field_expression = "CONCAT(title, ' (', url, ')')";
         $order = 'title';
         break;
       case 'user':
-        $condition = db_or()->condition('name', db_like($string) . '%', 'LIKE')->condition('email', db_like($string) . '%', 'LIKE');
+        $condition = db_or()->condition('name', '%' . db_like($string) . '%', 'LIKE')->condition('email', db_like($string) . '%', 'LIKE');
         $table = 'scratchpads_statistics_user';
         $field_expression = 'name';
         $order = 'name';
         break;
       case 'term':
-        $condition = db_and()->condition('term', db_like($string) . '%', 'LIKE');
+        $condition = db_and()->condition('term', '%' . db_like($string) . '%', 'LIKE');
         $table = 'scratchpads_statistics_term';
         $field_expression = 'term';
         $order = 'term';
