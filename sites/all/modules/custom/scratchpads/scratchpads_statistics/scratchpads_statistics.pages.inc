@@ -420,7 +420,23 @@ function scratchpads_statistics_stats_page(){
           'bar' => array(
             'groupWidth' => '80%'
           ),
-          'height' => '400'
+          'height' => '400',
+          'vAxes' => array(
+            array(
+              'title' => 'Objects'
+            ),
+            array(
+              'title' => 'Views'
+            )
+          ),
+          'series' => array(
+            0 => array(
+              'targetAxisIndex' => 0
+            ),
+            1 => array(
+              'targetAxisIndex' => 1
+            )
+          )
         )
       ),
       'note_about_views' => array(
