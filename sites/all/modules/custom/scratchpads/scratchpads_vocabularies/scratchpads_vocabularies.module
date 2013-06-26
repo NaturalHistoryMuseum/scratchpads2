@@ -116,24 +116,6 @@ function scratchpads_vocabularies_scratchpads_vocabulary_info(){
   module_load_include('receiver.inc', 'scratchpads_vocabularies', 'includes/selectfield');
   module_load_include('vocabulary.inc', 'scratchpads_vocabularies', 'includes/gbifxml');
   $elements = array();
-  // XXX Leave this in for now for testing.
-  if(field_info_field('field_basis_of_record')){
-    $elements['basis of record'] = array(
-      'title' => 'Gbif Basis of Record',
-      'vocabulary' => array(
-        'description' => 'Gathers the basis of record vocabulary from http://rs.gbif.org/vocabulary/dwc/basis_of_record.xml',
-        'create callback' => function (){
-          return new ScratchpadsVocabularies\GbifXmlVocabulary('Gbif Basis of Record', 'http://rs.gbif.org/vocabulary/dwc/basis_of_record.xml');
-        }
-      ),
-      'receiver' => array(
-        'description' => 'Stores data into the basis of record field, as defined by the Specimen/Observation module',
-        'create callback' => function (){
-          return new ScratchpadsVocabularies\SelectFieldReceiver('field_basis_of_record');
-        }
-      )
-    );
-  }
   $our_vocs = variable_get('scratchpads_vocabularies_ui_vocabularies', array());
   foreach($our_vocs as $voc_id => $our_voc){
     $field = $our_voc['field'];
