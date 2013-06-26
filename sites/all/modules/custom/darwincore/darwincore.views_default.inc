@@ -804,7 +804,7 @@ function darwincore_views_default_views(){
   $view = new view();
   $view->name = 'ecological_niche_modelling';
   $view->description = '';
-  $view->tag = 'default';
+  $view->tag = 'no-batch';
   $view->base_table = 'node';
   $view->human_name = 'Ecological Niche Modelling';
   $view->core = 7;
@@ -860,6 +860,7 @@ function darwincore_views_default_views(){
   $handler->display->display_options['fields']['field_map_1']['id'] = 'field_map_1';
   $handler->display->display_options['fields']['field_map_1']['table'] = 'field_data_field_map';
   $handler->display->display_options['fields']['field_map_1']['field'] = 'field_map';
+  $handler->display->display_options['fields']['field_map_1']['relationship'] = 'field_location_nid';
   $handler->display->display_options['fields']['field_map_1']['label'] = 'decimalLatitude';
   $handler->display->display_options['fields']['field_map_1']['click_sort_column'] = 'latitude';
   $handler->display->display_options['fields']['field_map_1']['type'] = 'gm3_text_lat';
@@ -870,6 +871,7 @@ function darwincore_views_default_views(){
   $handler->display->display_options['fields']['field_map']['id'] = 'field_map';
   $handler->display->display_options['fields']['field_map']['table'] = 'field_data_field_map';
   $handler->display->display_options['fields']['field_map']['field'] = 'field_map';
+  $handler->display->display_options['fields']['field_map']['relationship'] = 'field_location_nid';
   $handler->display->display_options['fields']['field_map']['label'] = 'decimalLongitude';
   $handler->display->display_options['fields']['field_map']['click_sort_column'] = 'latitude';
   $handler->display->display_options['fields']['field_map']['type'] = 'gm3_text_lon';
@@ -910,7 +912,6 @@ function darwincore_views_default_views(){
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['style_plugin'] = 'views_data_export_csv';
   $handler->display->display_options['path'] = 'taxonomy/term/%/enm.csv';
-  $handler->display->display_options['use_batch'] = 'batch';
   $views[$view->name] = $view;
   return $views;
 }

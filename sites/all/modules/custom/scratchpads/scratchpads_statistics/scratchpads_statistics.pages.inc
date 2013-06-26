@@ -1,4 +1,5 @@
 <?php
+define('SCRATCHPADS_STATISTICS_POINT_SIZE', 5);
 
 /**
  * Autocomplete callback
@@ -13,19 +14,19 @@ function scratchpads_statistics_autocomplete($type, $string){
   ))){
     switch($type){
       case 'site':
-        $condition = db_or()->condition('title', db_like($string) . '%', 'LIKE')->condition('url', db_like($string) . '%', 'LIKE');
+        $condition = db_or()->condition('title', '%' . db_like($string) . '%', 'LIKE')->condition('url', '%' . db_like($string) . '%', 'LIKE');
         $table = 'scratchpads_statistics_site';
         $field_expression = "CONCAT(title, ' (', url, ')')";
         $order = 'title';
         break;
       case 'user':
-        $condition = db_or()->condition('name', db_like($string) . '%', 'LIKE')->condition('email', db_like($string) . '%', 'LIKE');
+        $condition = db_or()->condition('name', '%' . db_like($string) . '%', 'LIKE')->condition('email', db_like($string) . '%', 'LIKE');
         $table = 'scratchpads_statistics_user';
         $field_expression = 'name';
         $order = 'name';
         break;
       case 'term':
-        $condition = db_and()->condition('term', db_like($string) . '%', 'LIKE');
+        $condition = db_and()->condition('term', '%' . db_like($string) . '%', 'LIKE');
         $table = 'scratchpads_statistics_term';
         $field_expression = 'term';
         $order = 'term';
@@ -266,30 +267,69 @@ function scratchpads_statistics_stats_page(){
   if($last_month_counts['objects'] < (0.95 * $previous_month_counts['objects'])){
     array_pop($month_counts);
   }
-  $data = array(
+  $data_objects = array(
     array(
       t('Year/Month'),
-      t('Objects'),
-      t('Edits'),
-      t('Users'),
+      t('Objects')
+    )
+  );
+  $data_users = array(
+    array(
+      t('Year/Month'),
+      t('Users')
+    )
+  );
+  $data_views = array(
+    array(
+      t('Year/Month'),
       t('Views')
     )
   );
   foreach($month_counts as $key => $value){
-    $data[] = array(
+    $data_objects[] = array(
       $key,
-      $value['objects'],
-      $value['edits'],
-      $value['users'],
+      $value['objects']
+    );
+    $data_users[] = array(
+      $key,
+      $value['users']
+    );
+    $data_views[] = array(
+      $key,
       $value['views']
     );
   }
-  if(isset($data[2])){
+  if(isset($data_objects[2])){
     $content[] = array(
       '#theme' => 'simple_google_chart',
       '#type' => 'LineChart',
-      '#data' => $data,
-      '#title' => t('Change')
+      '#data' => $data_objects,
+      '#title' => t('Objects over time'),
+      '#options' => array(
+        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE
+      )
+    );
+  }
+  if(isset($data_users[2])){
+    $content[] = array(
+      '#theme' => 'simple_google_chart',
+      '#type' => 'LineChart',
+      '#data' => $data_users,
+      '#title' => t('Users over time'),
+      '#options' => array(
+        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE
+      )
+    );
+  }
+  if(isset($data_views[2]) && $value['views']){
+    $content[] = array(
+      '#theme' => 'simple_google_chart',
+      '#type' => 'LineChart',
+      '#data' => $data_views,
+      '#title' => t('Views over time'),
+      '#options' => array(
+        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE
+      )
     );
   }
   // Bar chart of entities ----------------------------------------------------
@@ -323,8 +363,8 @@ function scratchpads_statistics_stats_page(){
   $data = array(
     array(
       t('Content types'),
-      t('Created'),
-      t('Edited'),
+      t('Objects'),
+      //t('Edited'),
       t('Views')
     )
   );
@@ -353,7 +393,7 @@ function scratchpads_statistics_stats_page(){
       $data[] = array(
         $row->name,
         (integer)$row->sum_number_created,
-        (integer)$row->sum_number_edited,
+        //(integer)$row->sum_number_edited,
         (integer)$row->sum_number_views
       );
     }
@@ -364,7 +404,7 @@ function scratchpads_statistics_stats_page(){
         '#theme' => 'simple_google_chart',
         '#type' => 'ColumnChart',
         '#data' => $data,
-        '#title' => t('Views/edits'),
+        '#title' => t('Objects - Views'),
         '#options' => array(
           'bar' => array(
             'groupWidth' => '80%'
@@ -513,20 +553,21 @@ function scratchpads_statistics_stats_page(){
       if($total_users > 10){
         $options = array(
           'hAxis' => array(
-            'logScale' => TRUE
+            'logScale' => TRUE,
+            'title' => t('Log')
           )
         );
       }
       $content[] = array(
         '#theme' => 'simple_google_chart',
         '#type' => 'BarChart',
-        '#title' => t('Users/Sites'),
+        '#title' => t('Active Users/Sites'),
         '#options' => $options,
         '#data' => array(
           array(
             'Time period',
-            'Active users',
-            'Active sites'
+            'Users',
+            'Sites'
           ),
           array(
             'Last week',
