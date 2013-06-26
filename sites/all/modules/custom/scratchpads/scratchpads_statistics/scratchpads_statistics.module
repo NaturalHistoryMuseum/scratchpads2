@@ -231,6 +231,16 @@ function scratchpads_statistics_facet_form($form, $form_state, $type){
           '#value' => t('Filter'),
           '#type' => 'submit'
         ),
+        '#attributes' => array(
+          'class' => array(
+            'autocomplete-submit'
+          )
+        ),
+        '#attached' => array(
+          'js' => array(
+            drupal_get_path('module', 'scratchpads_statistics') . '/js/scratchpads_statistics.js'
+          )
+        ),
         '#submit' => array(
           'scratchpads_statistics_facet_form_submit'
         )
