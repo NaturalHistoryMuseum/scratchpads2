@@ -310,7 +310,7 @@ function scratchpads_statistics_stats_page(){
       )
     );
   }
-  if(isset($data_users[2])){
+  if(isset($data_users[2]) && !$user){
     $content[] = array(
       '#theme' => 'simple_google_chart',
       '#type' => 'LineChart',
@@ -337,7 +337,18 @@ function scratchpads_statistics_stats_page(){
   // of the sites.
   // Create a temporary table first which contains the sites and the max 
   // captured value for each.
-  $temp_table_name = db_query_temporary('SELECT MAX(captured) AS captured, site FROM {scratchpads_statistics_data} GROUP BY site');
+  $temp_query = db_select('scratchpads_statistics_data', 'd');
+  $temp_query->addExpression('MAX(captured)', 'captured');
+  $temp_query->fields('d', array(
+    'site'
+  ))->groupBy('site');
+  if($site){
+    $temp_query->condition($site);
+  }
+  if($user){
+    $temp_query->condition($user);
+  }
+  $temp_table_name = db_query_temporary((string)$temp_query, $temp_query->getArguments());
   // Now join to that table.
   $query = db_select('scratchpads_statistics_data', 'd')->condition($term);
   if($site){
