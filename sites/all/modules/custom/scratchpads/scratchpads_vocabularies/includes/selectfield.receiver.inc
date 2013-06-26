@@ -207,14 +207,14 @@ class SelectFieldReceiver extends VocabularyReceiver{
   protected function applyModification($limit_entities, $update, $map){
     // First remove all the values we don't want from allowed values
     $items = $update->items();
+    $new_allowed_values = $this->field['settings']['allowed_values'];
     foreach($items as $id => $label){
       // Remove the option from the field definition
-      unset($this->field['settings']['allowed_values'][$id]);
+      unset($new_allowed_values[$id]);
     }
-    $this->cheapUpdateField();
     // Find the global default value for this field
-    if(count($this->field['settings']['allowed_values'])){
-      $allowed_keys = array_keys($this->field['settings']['allowed_values']);
+    if(count($new_allowed_values)){
+      $allowed_keys = array_keys($new_allowed_values);
       $default = reset($allowed_keys);
     }else{
       $default = '';
@@ -222,8 +222,8 @@ class SelectFieldReceiver extends VocabularyReceiver{
     foreach($items as $id => $label){
       $result = $this->contentModifiedBy($update, $id);
       foreach($result as $type => $values){
-        if (!empty($limit_entities)) {
-          if (empty($limit_entities[$type])) {
+        if(!empty($limit_entities)){
+          if(empty($limit_entities[$type])){
             continue;
           }
           $values = array_intersect($values, $limit_entities[$type]);
@@ -251,6 +251,10 @@ class SelectFieldReceiver extends VocabularyReceiver{
       }
     }
     if(!$this->updateModifiesContent($update)){
+      // If there is no more modifications, then we can remove the item from the allowed values,
+      // and mark the update as completed.
+      $this->field['settings']['allowed_values'] = $new_allowed_values;
+      $this->cheapUpdateField();
       $update->setStatus(VocabularyUpdate::S_UPDATE_APPLIED);
     }
   }

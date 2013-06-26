@@ -406,75 +406,92 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
     // Get a vocabulary and a receiver
     $voc = new ScratchpadsVocabularies\TestVocabulary();
     $field = new ScratchpadsVocabularies\SelectFieldReceiver('field_test_selectfield');
-    // Perform the initial update, so we start in sync with the test vocabulary, and create some nodes
-    $field->upgradeStructure($voc);
-    $field->applyPendingUpdates();
-    $field->applyModifications();
+    // Create some nodes
+    $this->test_nodes[0] = array(
+      'initial value' => array(),
+      'node' => $this->drupalCreateNode(array(
+        'type' => $this->content_type->type
+      ))
+    );
+    $this->test_nodes[1] = array(
+      'initial value' => array(
+        0 => array(
+          'value' => 'initial:1'
+        )
+      ),
+      'node' => $this->drupalCreateNode(array(
+        'type' => $this->content_type->type
+      ))
+    );
+    $this->test_nodes[2] = array(
+      'initial value' => array(
+        0 => array(
+          'value' => 'initial:1'
+        ),
+        1 => array(
+          'value' => 'initial:2'
+        ),
+        2 => array(
+          'value' => 'initial:1'
+        )
+      ),
+      'node' => $this->drupalCreateNode(array(
+        'type' => $this->content_type->type
+      ))
+    );
+    $this->test_nodes[3] = array(
+      'initial value' => array(
+        0 => array(
+          'value' => 'initial:2'
+        )
+      ),
+      'node' => $this->drupalCreateNode(array(
+        'type' => $this->content_type->type
+      ))
+    );
+    $this->test_nodes[4] = array(
+      'initial value' => array(
+        0 => array(
+          'value' => 'initial:3'
+        )
+      ),
+      'node' => $this->drupalCreateNode(array(
+        'type' => $this->content_type->type
+      ))
+    );
+    // Do the initial setup, and check that the field updates as expected.
+    $this->vocDataReset($voc, $field);
     $this->basicFieldTests('Initial field update', $field, $voc, array(
-      'initial:1' => 'Initial value 1',
-      'initial:2' => 'Initial value 2',
-      'initial:3' => 'Initial value 2 > Initial value 3',
-      'initial:4' => 'Initial value 4'
-    ));
-    $this->test_nodes[''] = $this->drupalCreateNode(array(
-      'type' => $this->content_type->type,
-      'field_test_selectfield' => array(
-        LANGUAGE_NONE => array()
+      'allowed values' => array(
+        'initial:1' => 'Initial value 1',
+        'initial:2' => 'Initial value 2',
+        'initial:3' => 'Initial value 2 > Initial value 3',
+        'initial:4' => 'Initial value 4'
       )
     ));
-    $this->test_nodes['initial:1,initial:2,initial:1'] = $this->drupalCreateNode(array(
-      'type' => $this->content_type->type,
-      'field_test_selectfield' => array(
-        LANGUAGE_NONE => array(
-          0 => array(
-            'value' => 'initial:1'
-          ),
-          1 => array(
-            'value' => 'initial:2'
-          ),
-          2 => array(
-            'value' => 'initial:1'
-          )
-        )
-      )
-    ));
-    $this->test_nodes['initial:2'] = $this->drupalCreateNode(array(
-      'type' => $this->content_type->type,
-      'field_test_selectfield' => array(
-        LANGUAGE_NONE => array(
-          0 => array(
-            'value' => 'initial:2'
-          )
-        )
-      )
-    ));
-    $this->test_nodes['initial:3'] = $this->drupalCreateNode(array(
-      'type' => $this->content_type->type,
-      'field_test_selectfield' => array(
-        LANGUAGE_NONE => array(
-          0 => array(
-            'value' => 'initial:3'
-          )
-        )
-      )
-    ));
-    $this->subTestAdd($voc, $field);
-    $this->vocDataReset($voc, $field);
-    $this->subTestRename($voc, $field);
-    $this->vocDataReset($voc, $field);
-    $this->subTestReparent($voc, $field);
-    $this->vocDataReset($voc, $field);
-    $this->subTestRemove1($voc, $field);
-    $this->vocDataReset($voc, $field);
-    $this->subTestRemove2($voc, $field);
-    $this->vocDataReset($voc, $field);
-    // Re-run relevant tests with a required field
+    // Now perform all subtests
+    $subtests = array(
+      'subTestAdd',
+      'subTestRename',
+      'subTestReparent',
+      'subTestRemove1',
+      'subTestRemove2'
+    );
+    foreach($subtests as $subtest){
+      $this->{$subtest}($voc, $field);
+      $this->vocDataReset($voc, $field);
+    }
+    // Change the field to be a required field, and test again for the relevant tests
     $field_instance['required'] = TRUE;
     field_update_instance($field_instance);
-    $this->subTestRemove1($voc, $field, TRUE);
-    $this->vocDataReset($voc, $field);
-    $this->subTestRemove2($voc, $field, TRUE);
-    $this->vocDataReset($voc, $field);
+    $required_field_subtests = array(
+      'subTestRemove1',
+      'subTestRemove2'
+    );
+    foreach($required_field_subtests as $subtest){
+      $this->{$subtest}($voc, $field, TRUE);
+      $this->vocDataReset($voc, $field);
+    }
   }
 
   /**
@@ -490,12 +507,14 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
     $field->applyPendingUpdates();
     $field->applyModifications();
     $this->basicFieldTests('Adding items to the structure', $field, $voc, array(
-      'initial:1' => 'Initial value 1',
-      'initial:2' => 'Initial value 2',
-      'initial:3' => 'Initial value 2 > Initial value 3',
-      'add:1' => 'Add test 1 (root)',
-      'add:2' => 'Initial value 2 > Add test 2 (under initial value 2)',
-      'initial:4' => 'Initial value 4'
+      'allowed values' => array(
+        'initial:1' => 'Initial value 1',
+        'initial:2' => 'Initial value 2',
+        'initial:3' => 'Initial value 2 > Initial value 3',
+        'add:1' => 'Add test 1 (root)',
+        'add:2' => 'Initial value 2 > Add test 2 (under initial value 2)',
+        'initial:4' => 'Initial value 4'
+      )
     ));
   }
 
@@ -511,10 +530,12 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
     $field->applyPendingUpdates();
     $field->applyModifications();
     $this->basicFieldTests('Renaming items in the structure', $field, $voc, array(
-      'initial:1' => 'Initial value 1, renamed',
-      'initial:2' => 'Initial value 2',
-      'initial:3' => 'Initial value 2 > Initial value 3, renamed',
-      'initial:4' => 'Initial value 4'
+      'allowed values' => array(
+        'initial:1' => 'Initial value 1, renamed',
+        'initial:2' => 'Initial value 2',
+        'initial:3' => 'Initial value 2 > Initial value 3, renamed',
+        'initial:4' => 'Initial value 4'
+      )
     ));
   }
 
@@ -530,10 +551,12 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
     $field->applyPendingUpdates();
     $field->applyModifications();
     $this->basicFieldTests('Reparenting items in the structure', $field, $voc, array(
-      'initial:2' => 'Initial value 2',
-      'initial:3' => 'Initial value 2 > Initial value 3',
-      'initial:1' => 'Initial value 2 > Initial value 1',
-      'initial:4' => 'Initial value 4'
+      'allowed values' => array(
+        'initial:2' => 'Initial value 2',
+        'initial:3' => 'Initial value 2 > Initial value 3',
+        'initial:1' => 'Initial value 2 > Initial value 1',
+        'initial:4' => 'Initial value 4'
+      )
     ));
   }
 
@@ -550,33 +573,39 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
     // Test structure update only
     $field->applyPendingUpdates();
     $this->basicFieldTests('Deleting items in the structure, structural update, required is ' . ($required ? 'true' : 'false'), $field, $voc, array(
-      'initial:1' => 'Initial value 1 [DELETED]',
-      'initial:2' => 'Initial value 2',
-      'initial:3' => 'Initial value 2 > Initial value 3',
-      'initial:4' => 'Initial value 4'
+      'allowed values' => array(
+        'initial:1' => 'Initial value 1 [DELETED]',
+        'initial:2' => 'Initial value 2',
+        'initial:3' => 'Initial value 2 > Initial value 3',
+        'initial:4' => 'Initial value 4'
+      ),
+      'number of updates' => 1
     ), 1);
-    $pending_update = $field->pendingUpdates()[0]
-    
-    
-    ;
+    $pending_updates = $field->pendingUpdates();
+    $pending_update = reset($pending_updates);
     $modification = $pending_update->modification();
     $this->assertEqual(get_class($modification), 'ScratchpadsVocabularies\RemapModification', 'Check removing an item with existing content provies a RemapModification');
     // Test content update
     $field->applyModifications();
     $this->basicFieldTests('Deleting items in the structure, complete update, required is ' . ($required ? 'true' : 'false'), $field, $voc, array(
-      'initial:2' => 'Initial value 2',
-      'initial:3' => 'Initial value 2 > Initial value 3',
-      'initial:4' => 'Initial value 4'
-    ), 0, array(
-      'initial:1' => $required ? 'initial:4' : ''
+      'allowed values' => array(
+        'initial:2' => 'Initial value 2',
+        'initial:3' => 'Initial value 2 > Initial value 3',
+        'initial:4' => 'Initial value 4'
+      ),
+      'value changes' => array(
+        'initial:1' => $required ? 'initial:4' : ''
+      )
     ));
   }
 
   /**
-   * subTestRemove1
+   * subTestRemove2
    *
    * This tests removing items, while providing a mapping.
    * The mapping should rename 'initial:1' to 'initial:2'
+   * (but only for the node in $this->test_nodes[2], not
+   * for the node in $this->test_nodes[1])
    * and set 'initial:3' to the default value (initial:4)
    * if the field is required, or remove it if not.
    */
@@ -586,29 +615,44 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
     // Test structure update only
     $field->applyPendingUpdates();
     $this->basicFieldTests('Deleting items in the structure 2nd pass, structural update required is ' . ($required ? 'true' : 'false'), $field, $voc, array(
-      'initial:1' => 'Initial value 1 [DELETED]',
-      'initial:2' => 'Initial value 2',
-      'initial:3' => 'Initial value 2 > Initial value 3 [DELETED]',
-      'initial:4' => 'Initial value 4'
-    ), 1);
-    $pending_update = $field->pendingUpdates()[0]
-    
-    
-    ;
+      'allowed values' => array(
+        'initial:1' => 'Initial value 1 [DELETED]',
+        'initial:2' => 'Initial value 2',
+        'initial:3' => 'Initial value 2 > Initial value 3 [DELETED]',
+        'initial:4' => 'Initial value 4'
+      ),
+      'number of updates' => 1
+    ));
+    $pending_updates = $field->pendingUpdates();
+    $pending_update = reset($pending_updates);
     $modification = $pending_update->modification();
     $this->assertEqual(get_class($modification), 'ScratchpadsVocabularies\RemapModification', 'Check removing an item with existing content provies a RemapModification');
     // Test content update
-    $field->applyModifications(array(), array(), array(
+    $entity_limit = array(
+      'node' => array(
+        $this->test_nodes[0]['node']->nid,
+        $this->test_nodes[2]['node']->nid,
+        $this->test_nodes[3]['node']->nid,
+        $this->test_nodes[4]['node']->nid
+      )
+    );
+    $field->applyModifications($entity_limit, array(), array(
       'initial:1' => array(
         'value' => 'initial:2'
       )
     ));
     $this->basicFieldTests('Deleting items in the structure 2nd pass, complete update, required is ' . ($required ? 'true' : 'false'), $field, $voc, array(
-      'initial:2' => 'Initial value 2',
-      'initial:4' => 'Initial value 4'
-    ), 0, array(
-      'initial:1' => 'initial:2',
-      'initial:3' => $required ? 'initial:4' : ''
+      'allowed values' => array(
+        'initial:1' => 'Initial value 1 [DELETED]',
+        'initial:2' => 'Initial value 2',
+        'initial:4' => 'Initial value 4'
+      ),
+      'value changes' => array(
+        'initial:1' => 'initial:2',
+        'initial:3' => $required ? 'initial:4' : ''
+      ),
+      'number of updates' => 1,
+      'entity limit' => $entity_limit
     ));
   }
 
@@ -621,43 +665,17 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
    * $vocabulary reset does not reset the version.
    */
   private function vocDataReset($voc, $field){
+    $field->applyPendingUpdates();
+    $field->applyModifications();
     $voc->reset();
     $field->upgradeStructure($voc);
     $field->applyPendingUpdates();
     $field->applyModifications();
-    $node = $this->test_nodes['initial:1,initial:2,initial:1'];
-    $node->field_test_selectfield = array(
-      LANGUAGE_NONE => array(
-        0 => array(
-          'value' => 'initial:1'
-        ),
-        1 => array(
-          'value' => 'initial:2'
-        ),
-        2 => array(
-          'value' => 'initial:1'
-        )
-      )
-    );
-    node_save($node);
-    $node = $this->test_nodes['initial:2'];
-    $node->field_test_selectfield = array(
-      LANGUAGE_NONE => array(
-        0 => array(
-          'value' => 'initial:2'
-        )
-      )
-    );
-    node_save($node);
-    $node = $this->test_nodes['initial:3'];
-    $node->field_test_selectfield = array(
-      LANGUAGE_NONE => array(
-        0 => array(
-          'value' => 'initial:3'
-        )
-      )
-    );
-    node_save($node);
+    foreach($this->test_nodes as $node_info){
+      $node = $node_info['node'];
+      $node->field_test_selectfield[LANGUAGE_NONE] = $node_info['initial value'];
+      node_save($node);
+    }
   }
 
   /**
@@ -665,17 +683,23 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
    * 
    * Helper methods that performs a series of tests we want to run in different contexts.
    */
-  private function basicFieldTests($msg, $field, $voc, $allowed_values, $upcount = 0, $node_overrides = array()){
+  private function basicFieldTests($msg, $field, $voc, $settings){
+    $settings += array(
+      'allowed values' => array(),
+      'number of updates' => 0,
+      'value changes' => array(),
+      'entity limit' => array()
+    );
     // Ensure we start anew
     cache_clear_all();
     drupal_static_reset();
     // Tests on the field
     $this->assertEqual($field->version(), $voc->version(), "Ensure SelectFieldReceiver::version returns the right version after update (Testing $msg)");
     $this->assertEqual($field->structure()->structure(), $voc->structure()->structure(), "Ensure SelectFieldReceiver::structure returns the right structure after update (Testing $msg)");
-    $this->assertTrue(count($field->pendingUpdates()) == $upcount, "Ensure SelectfieldReceiver has $upcount pending updates after update (Testing $msg)");
+    $this->assertTrue(count($field->pendingUpdates()) == $settings['number of updates'], "Ensure SelectfieldReceiver has " . $settings['number of updates'] . " pending updates after update (Testing $msg)");
     $updated_field = field_info_field('field_test_selectfield');
-    $diff = array_diff_assoc($allowed_values, $updated_field['settings']['allowed_values']);
-    $this->assertTrue(empty($diff), "Ensure the field associated with the SelectFieldReceiver has the expected allowed values after update (Testing $msg)");
+    $diff = array_diff_assoc($settings['allowed values'], $updated_field['settings']['allowed_values']);
+    $this->assertTrue(empty($diff), "Ensure the field associated with the SelectFieldReceiver has the expected allowed values after update (Testing $msg)" . implode(',', array_keys($updated_field['settings']['allowed_values'])) . '//' . implode(',', $updated_field['settings']['allowed_values']));
     // Test on the nodes.
     if(!empty($this->test_nodes)){
       $count = db_query("
@@ -686,28 +710,37 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
         ':type' => $this->content_type->type
       ))->fetchField();
       $this->assertEqual($count, count($this->test_nodes), "Ensure no nodes have been deleted by SelectFieldReceiver update (Testing $msg)");
-      foreach($this->test_nodes as $expected => $n){
-        $original = $expected;
-        $expected = explode(',', $expected);
-        $node = node_load($n->nid, NULL, TRUE);
-        foreach($expected as $valid => $val){
-          if(isset($node_overrides[$val])){
-            $expected[$valid] = $node_overrides[$val];
-          }
-          if(empty($expected[$valid])){
-            unset($expected[$valid]);
+      foreach($this->test_nodes as $node_info){
+        $initial = $node_info['initial value'];
+        $expected = array();
+        $original = array();
+        // Apply maps to the initial value to get the expected value
+        // (unless the entity limit is defined and the node isn't in it)
+        foreach($initial as $delta => $value){
+          $value = $value['value'];
+          $original[] = $value;
+          if((empty($settings['entity limit']['node']) || in_array($node_info['node']->nid, $settings['entity limit']['node'])) && isset($settings['value changes'][$value])){
+            if(!empty($settings['value changes'][$value])){
+              $expected[] = $settings['value changes'][$value];
+            }
+          }else if($value){
+            $expected[] = $value;
           }
         }
+        $original = implode(',', $original);
+        // Now get the value we actual have
+        $node = node_load($node_info['node']->nid, NULL, TRUE);
+        $obtained = array();
         if(isset($node->field_test_selectfield[LANGUAGE_NONE])){
-          $initial = $node->field_test_selectfield[LANGUAGE_NONE];
-        }else{
-          $initial = array();
+          foreach($node->field_test_selectfield[LANGUAGE_NONE] as $delta => $value){
+            if($value['value']){
+              $obtained[] = $value['value'];
+            }
+          }
         }
-        foreach($initial as $inid => $val){
-          $initial[$inid] = $val['value'];
-        }
-        $diff = array_diff_assoc(array_values($expected), array_values($initial));
-        $this->assertTrue(is_array($diff) && empty($diff), "Ensure that, after a SelectFieldReceiver update, the node with initial value '$original' has value '" . implode(',', $expected) . "' (Testing $msg)");
+        // Check they are the same
+        $diff = array_diff_assoc(array_values($expected), array_values($obtained));
+        $this->assertTrue(is_array($diff) && empty($diff), "Ensure that, after a SelectFieldReceiver update, the node with initial value '$original' has value '" . implode(',', $expected) . "' got '" . implode(',', $obtained) . "' (Testing $msg)");
       }
     }
   }
