@@ -14,13 +14,9 @@ function darwincore_views_default_views(){
   $view->human_name = 'Specimens table';
   $view->core = 7;
   $view->api_version = '3.0-alpha1';
-  $view->disabled = FALSE; /*
-                            * Edit this to true to make a default view disabled
-                            * initially
-                            */
-
+  $view->disabled = FALSE;
   /* Display: Defaults */
-    $handler = $view->new_display('default', 'Defaults', 'default');
+  $handler = $view->new_display('default', 'Defaults', 'default');
   $handler->display->display_options['access']['type'] = 'none';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
@@ -677,13 +673,9 @@ function darwincore_views_default_views(){
   $view->human_name = 'Users references';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /*
-                            * Edit this to true to make a default view disabled
-                            * initially
-                            */
-  
+  $view->disabled = FALSE;
   /* Display: Master */
-    $handler = $view->new_display('default', 'Master', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['access']['type'] = 'none';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
@@ -808,6 +800,118 @@ function darwincore_views_default_views(){
   $handler->display->display_options['row_options']['hide_empty'] = 0;
   $handler->display->display_options['row_options']['default_field_elements'] = 1;
   $handler->display->display_options['defaults']['row_options'] = FALSE;
+  $views[$view->name] = $view;
+  $view = new view();
+  $view->name = 'ecological_niche_modelling';
+  $view->description = '';
+  $view->tag = 'no-batch';
+  $view->base_table = 'node';
+  $view->human_name = 'Ecological Niche Modelling';
+  $view->core = 7;
+  $view->api_version = '3.0';
+  $view->disabled = FALSE;
+  /* Display: Master */
+  $handler = $view->new_display('default', 'Master', 'default');
+  $handler->display->display_options['use_more_always'] = FALSE;
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['cache']['type'] = 'none';
+  $handler->display->display_options['query']['type'] = 'views_query';
+  $handler->display->display_options['exposed_form']['type'] = 'basic';
+  $handler->display->display_options['pager']['type'] = 'none';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['style_plugin'] = 'default';
+  $handler->display->display_options['row_plugin'] = 'fields';
+  /* Relationship: Content: Location (field_location) */
+  $handler->display->display_options['relationships']['field_location_nid']['id'] = 'field_location_nid';
+  $handler->display->display_options['relationships']['field_location_nid']['table'] = 'field_data_field_location';
+  $handler->display->display_options['relationships']['field_location_nid']['field'] = 'field_location_nid';
+  $handler->display->display_options['relationships']['field_location_nid']['required'] = TRUE;
+  $handler->display->display_options['relationships']['field_location_nid']['delta'] = '0';
+  /* Field: Content: Collection code */
+  $handler->display->display_options['fields']['field_collection_code']['id'] = 'field_collection_code';
+  $handler->display->display_options['fields']['field_collection_code']['table'] = 'field_data_field_collection_code';
+  $handler->display->display_options['fields']['field_collection_code']['field'] = 'field_collection_code';
+  $handler->display->display_options['fields']['field_collection_code']['exclude'] = TRUE;
+  /* Field: Content: Institution code */
+  $handler->display->display_options['fields']['field_institution_code']['id'] = 'field_institution_code';
+  $handler->display->display_options['fields']['field_institution_code']['table'] = 'field_data_field_institution_code';
+  $handler->display->display_options['fields']['field_institution_code']['field'] = 'field_institution_code';
+  $handler->display->display_options['fields']['field_institution_code']['exclude'] = TRUE;
+  /* Field: Content: Catalogue number */
+  $handler->display->display_options['fields']['field_catalogue_number']['id'] = 'field_catalogue_number';
+  $handler->display->display_options['fields']['field_catalogue_number']['table'] = 'field_data_field_catalogue_number';
+  $handler->display->display_options['fields']['field_catalogue_number']['field'] = 'field_catalogue_number';
+  $handler->display->display_options['fields']['field_catalogue_number']['exclude'] = TRUE;
+  /* Field: Content: Title */
+  $handler->display->display_options['fields']['title']['id'] = 'title';
+  $handler->display->display_options['fields']['title']['table'] = 'node';
+  $handler->display->display_options['fields']['title']['field'] = 'title';
+  $handler->display->display_options['fields']['title']['label'] = 'occurrenceID';
+  $handler->display->display_options['fields']['title']['alter']['alter_text'] = TRUE;
+  $handler->display->display_options['fields']['title']['alter']['text'] = '[field_institution_code]-[field_collection_code]-[field_catalogue_number]';
+  /* Field: Field: Taxonomic name */
+  $handler->display->display_options['fields']['field_taxonomic_name']['id'] = 'field_taxonomic_name';
+  $handler->display->display_options['fields']['field_taxonomic_name']['table'] = 'field_data_field_taxonomic_name';
+  $handler->display->display_options['fields']['field_taxonomic_name']['field'] = 'field_taxonomic_name';
+  $handler->display->display_options['fields']['field_taxonomic_name']['label'] = 'nameComplete';
+  $handler->display->display_options['fields']['field_taxonomic_name']['type'] = 'taxonomy_term_reference_plain';
+  $handler->display->display_options['fields']['field_taxonomic_name']['delta_offset'] = '0';
+  /* Field: Content: Map */
+  $handler->display->display_options['fields']['field_map_1']['id'] = 'field_map_1';
+  $handler->display->display_options['fields']['field_map_1']['table'] = 'field_data_field_map';
+  $handler->display->display_options['fields']['field_map_1']['field'] = 'field_map';
+  $handler->display->display_options['fields']['field_map_1']['relationship'] = 'field_location_nid';
+  $handler->display->display_options['fields']['field_map_1']['label'] = 'decimalLatitude';
+  $handler->display->display_options['fields']['field_map_1']['click_sort_column'] = 'latitude';
+  $handler->display->display_options['fields']['field_map_1']['type'] = 'gm3_text_lat';
+  $handler->display->display_options['fields']['field_map_1']['settings'] = array(
+    'display_convex_hull' => FALSE
+  );
+  /* Field: Content: Map */
+  $handler->display->display_options['fields']['field_map']['id'] = 'field_map';
+  $handler->display->display_options['fields']['field_map']['table'] = 'field_data_field_map';
+  $handler->display->display_options['fields']['field_map']['field'] = 'field_map';
+  $handler->display->display_options['fields']['field_map']['relationship'] = 'field_location_nid';
+  $handler->display->display_options['fields']['field_map']['label'] = 'decimalLongitude';
+  $handler->display->display_options['fields']['field_map']['click_sort_column'] = 'latitude';
+  $handler->display->display_options['fields']['field_map']['type'] = 'gm3_text_lon';
+  $handler->display->display_options['fields']['field_map']['settings'] = array(
+    'display_convex_hull' => FALSE
+  );
+  /* Sort criterion: Content: Post date */
+  $handler->display->display_options['sorts']['created']['id'] = 'created';
+  $handler->display->display_options['sorts']['created']['table'] = 'node';
+  $handler->display->display_options['sorts']['created']['field'] = 'created';
+  $handler->display->display_options['sorts']['created']['order'] = 'DESC';
+  /* Contextual filter: Content: Has taxonomy term ID */
+  $handler->display->display_options['arguments']['tid']['id'] = 'tid';
+  $handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_index';
+  $handler->display->display_options['arguments']['tid']['field'] = 'tid';
+  $handler->display->display_options['arguments']['tid']['default_action'] = 'access denied';
+  $handler->display->display_options['arguments']['tid']['default_argument_type'] = 'fixed';
+  $handler->display->display_options['arguments']['tid']['summary']['number_of_records'] = '0';
+  $handler->display->display_options['arguments']['tid']['summary']['format'] = 'default_summary';
+  $handler->display->display_options['arguments']['tid']['summary_options']['items_per_page'] = '25';
+  /* Filter criterion: Content: Published */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'node';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = 1;
+  $handler->display->display_options['filters']['status']['group'] = 1;
+  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+  /* Filter criterion: Content: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'specimen_observation' => 'specimen_observation'
+  );
+  /* Display: Data export */
+  $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
+  $handler->display->display_options['pager']['type'] = 'none';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['style_plugin'] = 'views_data_export_csv';
+  $handler->display->display_options['path'] = 'taxonomy/term/%/enm.csv';
   $views[$view->name] = $view;
   return $views;
 }

@@ -38,6 +38,8 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
                 $form['regions'][$key]['#disabled'] = TRUE;
                 $form['regions'][$key]['#description'] = '<span class="error">' . t('This option is locked because this block is displayed automatically on certain pages.') . '</span>';
               }
+              // We also disable the tabify stuff, as users will mess things up
+              unset($form['blockexpose']);
             }
           }
         }
@@ -98,7 +100,39 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
  * Implements hook_menu_alter().
  */
 function scratchpads_hands_off_menu_alter(&$items){
-  $hidden_urls = array(
+  $hidden_urls = _scratchpads_hands_off_hidden_urls();
+  drupal_alter('scratchpads_hands_off_urls', $hidden_urls);
+  foreach($hidden_urls as $hidden_url){
+    $length = strlen($hidden_url);
+    foreach($items as $key => $item){
+      if(substr($key, 0, $length) == $hidden_url){
+        $items[$key]['access callback'] = 'user_access';
+        $items[$key]['access arguments'] = array(
+          'scratchpad team'
+        );
+      }
+    }
+  }
+  // Change the callback for admin/structure/file-types so that we can remove
+  // links to paths the user does not have access to.
+  $items['admin/structure/file-types']['page callback'] = 'scratchpads_hands_off_file_entity_list_types_page';
+}
+
+/**
+ * Implements hook_init().
+ */
+function scratchpads_hands_off_init(){
+  if(!user_access('scratchpad team') && in_array($_GET['q'], _scratchpads_hands_off_hidden_urls())){
+    drupal_access_denied();
+    exit;
+  }
+}
+
+/**
+ * Get an array of hidden URLs
+ */
+function _scratchpads_hands_off_hidden_urls(){
+  return array(
     'admin/appearance/settings/scratchpads',
     'admin/appearance/settings/scratchpads_admin',
     'admin/config/content/clone',
@@ -139,21 +173,6 @@ function scratchpads_hands_off_menu_alter(&$items){
     'admin/structure/file-types/manage/%/file-display',
     'user/1/edit'
   );
-  drupal_alter('scratchpads_hands_off_urls', $hidden_urls);
-  foreach($hidden_urls as $hidden_url){
-    $length = strlen($hidden_url);
-    foreach($items as $key => $item){
-      if(substr($key, 0, $length) == $hidden_url){
-        $items[$key]['access callback'] = 'user_access';
-        $items[$key]['access arguments'] = array(
-          'scratchpad team'
-        );
-      }
-    }
-  }
-  // Change the callback for admin/structure/file-types so that we can remove
-  // links to paths the user does not have access to.
-  $items['admin/structure/file-types']['page callback'] = 'scratchpads_hands_off_file_entity_list_types_page';
 }
 
 /**

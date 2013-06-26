@@ -36,10 +36,12 @@ function dwca_export_menu(){
  */
 function dwca_export_views_default_views_alter(&$views){
   foreach($views as $id => $view){
-    foreach(array_keys($view->display) as $display_name){
-      if($display_name == 'views_data_export_1'){
-        $handler = & $views[$id]->display['views_data_export_1']->handler;
-        $handler->display->display_options['use_batch'] = 'batch';
+    if($view->tag != 'no-batch'){
+      foreach(array_keys($view->display) as $display_name){
+        if($display_name == 'views_data_export_1'){
+          $handler = & $views[$id]->display['views_data_export_1']->handler;
+          $handler->display->display_options['use_batch'] = 'batch';
+        }
       }
     }
   }
@@ -133,6 +135,13 @@ function dwca_export_field_formatter_info(){
       'field types' => array(
         'list_text'
       )
+    ),
+    'name_status' => array(
+      'label' => t('Name Status'),
+      'description' => t('GBIF compliant name status for DwC-A.'),
+      'field types' => array(
+        'list_text'
+      )
     )
   );
 }
@@ -146,34 +155,102 @@ function dwca_export_field_formatter_info(){
  * For all node types returns link to attached files as an image 
  */
 function dwca_export_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  GLOBAL $base_url;
+  $markup = '';
+  $reason_map_taxonomic = array(
+    'synonym' => 'synonym',
+    'homotypic (nomenclatural) synonym' => 'homotypicSynonym',
+    'heterotypic (taxonomic) synonym' => 'heterotypicSynonym',
+    'homonym (illegitimate)' => '',
+    'superfluous renaming (illegitimate)' => '',
+    'rejected name' => '',
+    'invalidly published, nomen nudum' => '',
+    'invalidly published, other' => '',
+    'misapplied' => 'misapplied',
+    'pro parte' => 'proParteSynonym',
+    'horticultural' => '',
+    'database artifact' => '',
+    'orthographic variant (misspelling)' => '',
+    'other' => '',
+    'junior synonym' => 'heterotypicSynonym',
+    'objective synonym' => 'homotypicSynonym',
+    'subjective synonym' => 'heterotypicSynonym',
+    'original name/combination' => '',
+    'subsequent name/combination' => '',
+    'junior homonym' => '',
+    'homonym & junior synonym' => 'heterotypicSynonym',
+    'unavailable, database artifact' => '',
+    'unavailable, literature misspelling' => '',
+    'unavailable, incorrect original spelling' => '',
+    'unavailable, suppressed by ruling' => '',
+    'unavailable, nomen nudum' => '',
+    'unavailable, other' => '',
+    'unjustified emendation' => '',
+    'unnecessary replacement' => '',
+    'nomen oblitum' => '',
+    'misapplied' => '',
+    'pro parte' => 'proParteSynonym',
+    'other' => '',
+    'nomen dubium' => ''
+  );
+  $reason_map_nomenclature = array(
+    'synonym' => '',
+    'homotypic (nomenclatural) synonym' => '',
+    'heterotypic (taxonomic) synonym' => '',
+    'homonym (illegitimate)' => 'illegitimum',
+    'superfluous renaming (illegitimate)' => 'superfluum',
+    'rejected name' => 'rejiciendum',
+    'invalidly published, nomen nudum' => 'nudum',
+    'invalidly published, other' => 'invalidum',
+    'misapplied' => '',
+    'pro parte' => '',
+    'horticultural' => '',
+    'database artifact' => '',
+    'orthographic variant (misspelling)' => 'orthographia',
+    'other' => '',
+    'junior synonym' => '',
+    'objective synonym' => '',
+    'subjective synonym' => '',
+    'original name/combination' => '',
+    'subsequent name/combination' => '',
+    'junior homonym' => 'illegitimum',
+    'homonym & junior synonym' => 'illegitimum',
+    'unavailable, database artifact' => '',
+    'unavailable, literature misspelling' => 'orthographia',
+    'unavailable, incorrect original spelling' => '',
+    'unavailable, suppressed by ruling' => '',
+    'unavailable, nomen nudum' => 'nudum',
+    'unavailable, other' => '',
+    'unjustified emendation' => '',
+    'unnecessary replacement' => 'superfluum',
+    'nomen oblitum' => '',
+    'misapplied' => '',
+    'pro parte' => '',
+    'other' => '',
+    'nomen dubium' => 'dubium'
+  );
   switch($display['type']){
     case 'taxon_status':
       $element = array();
+      $markup = '';
       if(isset($entity->field_usage['und'][0]['value'])){
         if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
           $markup = 'accepted';
         }else{
-          switch($entity->field_unacceptability_reason['und'][0]['value']){
-            default:
-              $markup = 'synonym';
-              break;
-            case 'homotypic (nomenclatural) synonym':
-            case 'heterotypic (taxonomic) synonym':
-              $markup = 'homotypicSynonym';
-              break;
-            case 'misapplied':
-              $markup = 'misapplied';
-              break;
-            case 'pro parte':
-              $markup = 'proParteSynonym';
-              break;
-          }
+          $markup = 'not accepted';
         }
       }
-      return array(
-        array(
-          '#markup' => $markup
-        )
+      $element[] = array(
+        '#markup' => $markup
       );
+      return $element;
+      break;
+    case 'name_status':
+      $markup = $reason_map_nomenclature[$entity->field_unacceptability_reason['und'][0]['value']];
+      $element[] = array(
+        '#markup' => $markup
+      );
+      return $element;
+      break;
   }
 }

@@ -67,7 +67,12 @@ function scratchpads_data_integrity_scratchpads_data_integrity(){
       'file' => 'scratchpads_data_integrity.inc'
     ),
     'scratchpads_data_integrity_check_for_terms_in_deleted_vocabularies' => array(
-      'file' => 'scratchpads_data_integrity.inc'
+      'file' => 'scratchpads_data_integrity.inc',
+      'frequency' => 604800
+    ),
+    'scratchpads_data_integrity_check_for_deleted_files' => array(
+      'file' => 'scratchpads_data_integrity.inc',
+      'frequency' => 604800
     )
   );
 }
