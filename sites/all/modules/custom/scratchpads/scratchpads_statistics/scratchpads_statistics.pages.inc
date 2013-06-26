@@ -380,6 +380,7 @@ function scratchpads_statistics_stats_page(){
     )
   );
   $max_value = FALSE;
+  $all_views_zero = TRUE;
   foreach($results as $row){
     // PieChart stuff
     if($i >= 8 && $row->sum_number_created < $eight_count){
@@ -401,6 +402,9 @@ function scratchpads_statistics_stats_page(){
       $max_value = (integer)$row->sum_number_created + (integer)$row->sum_number_edited;
     }
     if(((integer)$row->sum_number_created + (integer)$row->sum_number_edited) / $max_value > 0.03){
+      if((integer)$row->sum_number_views){
+        $all_views_zero = FALSE;
+      }
       $data[] = array(
         $row->name,
         (integer)$row->sum_number_created,
@@ -410,39 +414,68 @@ function scratchpads_statistics_stats_page(){
     }
   }
   if(isset($data[2])){
-    $content[] = array(
-      'graph' => array(
-        '#theme' => 'simple_google_chart',
-        '#type' => 'ColumnChart',
-        '#data' => $data,
-        '#title' => t('Objects - Views'),
-        '#options' => array(
-          'bar' => array(
-            'groupWidth' => '80%'
-          ),
-          'height' => '400',
-          'vAxes' => array(
-            array(
-              'title' => 'Objects'
+    if($all_views_zero){
+      foreach(array_keys($data) as $key){
+        // Unset the Views column
+        unset($data[$key][2]);
+      }
+      $content[] = array(
+        'graph' => array(
+          '#theme' => 'simple_google_chart',
+          '#type' => 'ColumnChart',
+          '#data' => $data,
+          '#title' => t('Objects'),
+          '#options' => array(
+            'bar' => array(
+              'groupWidth' => '80%'
             ),
-            array(
-              'title' => 'Views'
-            )
-          ),
-          'series' => array(
-            0 => array(
-              'targetAxisIndex' => 0
-            ),
-            1 => array(
-              'targetAxisIndex' => 1
+            'height' => '400',
+            'vAxes' => array(
+              array(
+                'title' => 'Objects',
+                'baseline' => 0
+              )
             )
           )
         )
-      ),
-      'note_about_views' => array(
-        '#markup' => '<p class="scratchpads-statistics-note">' . t('Note, view counts are only recorded for "Nodes".') . '</p>'
-      )
-    );
+      );
+    }else{
+      $content[] = array(
+        'graph' => array(
+          '#theme' => 'simple_google_chart',
+          '#type' => 'ColumnChart',
+          '#data' => $data,
+          '#title' => t('Objects - Views'),
+          '#options' => array(
+            'bar' => array(
+              'groupWidth' => '80%'
+            ),
+            'height' => '400',
+            'vAxes' => array(
+              array(
+                'title' => 'Objects',
+                'baseline' => 0
+              ),
+              array(
+                'title' => 'Views',
+                'baseline' => 0
+              )
+            ),
+            'series' => array(
+              0 => array(
+                'targetAxisIndex' => 0
+              ),
+              1 => array(
+                'targetAxisIndex' => 1
+              )
+            )
+          )
+        ),
+        'note_about_views' => array(
+          '#markup' => '<p class="scratchpads-statistics-note">' . t('Note, view counts are only recorded for "Nodes".') . '</p>'
+        )
+      );
+    }
   }
   $data = array(
     array(
