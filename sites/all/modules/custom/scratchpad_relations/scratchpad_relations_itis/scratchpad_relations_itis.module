@@ -58,23 +58,4 @@ function scratchpad_relations_itis_create_vocabulary($vocabulary){
       }
     }
   }
-  //Create a nomenclature view
-  // module_load_include('views_default.inc', 'scratchpad_relations_views');
-  // $nomenclature_view = scratchpad_relations_views_nomenclature($vocabulary->vid);
-  // views_save_view($nomenclature_view);
-}
-
-/**
- * Implementation of hook_taxonomy_vocabulary_delete().
- */
-function scratchpad_relations_itis_taxonomy_vocabulary_delete($vocabulary){
-  field_delete_field("field_hp_{$vocabulary->vid}");
-  field_delete_field("field_type_taxon_{$vocabulary->vid}");
-}
-
-function scratchpad_relations_itis_field_display_taxonomy_term_alter(&$display, $context){
-  if($context['field']['field_name'] == 'field_reference'){
-    $display['type'] = 'url_icon';
-    $display['module'] = 'scratchpad_relations_views';
-  }
 }
