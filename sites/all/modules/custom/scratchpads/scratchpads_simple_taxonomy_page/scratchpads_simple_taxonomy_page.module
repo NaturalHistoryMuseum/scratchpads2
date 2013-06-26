@@ -165,7 +165,7 @@ function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_update($vocabulary
 function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_insert($vocabulary){
   $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
   // Which form field we read depends on what type of vocabulary this is
-  if($vocabulary->biological_classification){
+  if(!empty($vocabulary->biological_classification)){
     $simple_vids[$vocabulary->vid] = isset($vocabulary->use_scratchpads_species_pages) && $vocabulary->use_scratchpads_species_pages ? 1 : 0;
   }else{
     $simple_vids[$vocabulary->vid] = isset($vocabulary->display_facets) && $vocabulary->display_facets ? 1 : 0;
@@ -173,7 +173,7 @@ function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_insert($vocabulary
   variable_set('scratchpads_simple_taxonomy_page_vids', $simple_vids);
   // Set whether or not this is a none_biological_vid
   $none_biological_vids = variable_get('none_biological_vids', array());
-  $none_biological_vids[$vocabulary->vid] = !$vocabulary->biological_classification ? $vocabulary->display_tab : 0;
+  $none_biological_vids[$vocabulary->vid] = empty($vocabulary->biological_classification) && !empty($vocabulary->display_tab) ? 1 : 0;
   variable_set('none_biological_vids', $none_biological_vids);
   if(isset($vocabulary->default_term_link)){
     // Set the default term link
