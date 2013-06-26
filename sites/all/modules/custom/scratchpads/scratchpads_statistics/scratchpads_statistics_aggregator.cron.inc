@@ -10,7 +10,7 @@ define('SCRATCHPAD_ORGANIZATION', '315b3c03-4a0a-424e-83a5-d25aa748e666');
  * FIXME - Not sure what the "tag" is going to be for a "scratchpad", although
  * it is likely to be "scratchpad". This needs checking.
  */
-function _scratchpads_statistics_aggregator_cron(){
+function _scratchpads_statistics_aggregator_cron($execution_time = 60){
   $gbif_registry = GBIFRegistry::singleton();
   // foreach($gbif_registry->getTechnicalInstallations('scratchpad') as
   // $technical_installation){
@@ -37,7 +37,7 @@ function _scratchpads_statistics_aggregator_cron(){
   shuffle($urls);
   foreach($urls as $url){
     // Whoa, we're taking too long, we should stop!
-    if($timer < time() - 60){return;}
+    if($timer < time() - $execution_time){return;}
     // We get the login data first and add that.
     $data = _scratchpads_statistics_aggregator_get_data($url . 'login.json');
     if($data && is_array($data) && count($data)){
