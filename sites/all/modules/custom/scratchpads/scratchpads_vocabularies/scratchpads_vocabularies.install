@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * scrathcpads_vocabularies_schema
+ * 
+ * Implementation of hook_schema()
+ */
+function scratchpads_vocabularies_schema(){
+  $schema['scratchpads_vocabularies'] = array(
+    'description' => 'Table where fields from objects in the scratchpads_vocabularies module are serialized',
+    'fields' => array(
+      'pid' => array(
+        'description' => 'The unique ID for persistent data',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE
+      ),
+      'data' => array(
+        'description' => 'Serialized data',
+        'type' => 'blob',
+        'size' => 'big',
+        'not null' => TRUE
+      )
+    ),
+    'primary key' => array(
+      'pid'
+    )
+  );
+  return $schema;
+}

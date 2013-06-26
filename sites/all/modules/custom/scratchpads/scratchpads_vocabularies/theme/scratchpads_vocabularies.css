@@ -1,0 +1,16 @@
+#scratchpads-vocabularies-mapping-form div.scratchpads_vocabularies_info {
+  margin-bottom: 1em;
+}
+
+#scratchpads-vocabularies-mapping-form fieldset div.fieldset-content input.form-submit,
+#scratchpads-vocabularies-mapping-form fieldset div.fieldset-content .vocabularies_status {
+  margin-right: 1em;
+}
+
+#scratchpads-vocabularies-mapping-form #edit-all-updates {
+  margin-bottom: 1em;
+}
+
+#scratchpads-vocabularies-pending-update-form table table {
+  margin-bottom: 1em;
+}

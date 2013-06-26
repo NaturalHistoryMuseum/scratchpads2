@@ -1,0 +1,322 @@
+<?php
+namespace ScratchpadsVocabularies;
+use Exception;
+use EntityFieldQuery;
+require_once str_replace('selectfield.receiver.inc', 'receiver.inc', __FILE__);
+require_once str_replace('selectfield.receiver.inc', 'remap.modification.inc', __FILE__);
+
+/**
+ * SelectFieldReceiver
+ * 
+ * Implements a VocabularyReceiver which stores the vocabulary
+ * as the allowed values of a select field.
+ * 
+ * The current implementation does *not* use API for updating
+ * fields and content, as those are very expensive operations.
+ * 
+ * We know this to be safe in the context this was written -
+ * but might need updating in the future. In the mean time
+ * it's important that caches are cleared when the update
+ * operations are finished.
+ * 
+ */
+class SelectFieldReceiver extends VocabularyReceiver{
+
+  private $field;
+
+  /**
+   * __construct
+   * 
+   * Create a new instance from a field name or array structure
+   */
+  public function __construct($field){
+    // Load the field data and perform safety check
+    if(is_array($field)){
+      $this->field = $field;
+    }else{
+      $this->field = field_info_field($field);
+      if(!$this->field){throw new Exception(t("Unknown field %name", array(
+          '%name' => $field
+        )));}
+    }
+    if(!is_array($this->field) || empty($this->field['type']) || $this->field['type'] != 'list_text' || !isset($this->field['settings']['allowed_values']) || !is_array($this->field['settings']['allowed_values'])){throw new Exception(t("Could not parse field information"));}
+    // Prepare the object and load the persistent data
+    parent::__construct($this->field['field_name']);
+  }
+
+  /**
+   * __wakeup
+   *
+   * Re-populate $field
+   */
+  public function __wakeup(){
+    parent::__wakeup();
+    $this->field = field_info_field($this->id());
+  }
+
+  /**
+   * structureInUse
+   * 
+   * Return the structure as it is currently used
+   */
+  protected function structureInUse(){
+    return new VocabularyStructure($this->field['settings']['allowed_values']);
+  }
+
+  /**
+   * mergeUpdate
+   *
+   * Merge the given update into this receiver's update list.
+   * In some cases, if an update has been structurally applied,
+   * then some modification of the field will be required.
+   *
+   */
+  protected function mergeUpdate($update, $new_structure){
+    // Maps standard action, for existing update type to new update type.
+    // Define what to do with existing update and with new update.
+    $actions = array(
+      VocabularyUpdate::T_ADD => array(
+        VocabularyUpdate::T_REMOVE => 'remove',
+        VocabularyUpdate::T_RENAME => 'update',
+        VocabularyUpdate::T_REPARENT => 'update'
+      ),
+      VocabularyUpdate::T_RENAME => array(
+        VocabularyUpdate::T_REMOVE => array(
+          'remove',
+          'keep'
+        ),
+        VocabularyUpdate::T_RENAME => 'update',
+        VocabularyUpdate::T_REPARENT => 'update'
+      ),
+      VocabularyUpdate::T_REPARENT => array(
+        VocabularyUpdate::T_REMOVE => array(
+          'remove',
+          'keep'
+        ),
+        VocabularyUpdate::T_RENAME => 'update',
+        VocabularyUpdate::T_REPARENT => 'update'
+      )
+    );
+    // Loop over update items
+    $new_items = $update->items();
+    $new_updates = array();
+    foreach($this->pendingUpdates as $existing_update){
+      foreach($existing_update->items() as $id => $label){
+        if(!isset($new_items[$id])){
+          continue;
+        }
+        if(isset($actions[$existing_update->type()][$update->type()])){
+          $a = $actions[$existing_update->type()][$update->type()];
+          if(!is_array($a)){
+            $a = array(
+              $a
+            );
+          }
+          if($a[0] == 'remove'){
+            $existing_update->removeItem($id);
+          }else if($a[0] == 'update'){
+            $existing_update->updateItem($id, $new_items[$id]);
+          }
+          if(isset($a[1]) && $a[1] == 'keep'){
+            $new_updates[$update->type()][$id] = $new_items[$id];
+          }
+        }else if($existing_update->type() == VocabularyUpdate::T_REMOVE && $update->type() == VocabularyUpdate::T_ADD){
+          $existing_update->removeItem($id);
+          if($existing_update->status() == VocabularyUpdate::S_STRUCTURE_APPLIED){
+            // Remove the 'DELETED' from the field definition.      
+            $this->field['settings']['allowed_values'][$id] = preg_replace('/ ?\[DELETED\]/', '', $this->field['settings']['allowed_values'][$id]);
+            $this->cheapUpdateField();
+          }
+          // Check if we should have a rename/reparent update
+          $existing_parents = array_keys($this->structure()->itemParents($id));
+          $new_parents = array_keys($new_structure->itemParents($id));
+          if($existing_parents != $new_parents){
+            $new_updates[VocabularyUpdate::T_REPARENT][$id] = $new_items[$id];
+          }else if($label != $new_items[$id]){
+            $new_updates[VocabularyUpdate::T_RENAME][$id] = $new_items[$id];
+          }
+        }else{
+          throw new Exception("Update cannot be merge, inconsistent update");
+        }
+      }
+    }
+    // Add the new updates
+    foreach($new_updates as $type => $items){
+      $this->pendingUpdates[] = new VocabularyUpdate($type, $items);
+    }
+  }
+
+  /**
+   * applyUpdate
+   *
+   * Apply the structural part of the given update.
+   * 
+   * XXX Problem with current approach is that things are not
+   * kept in order. If something is added between v1 and v2,
+   * the approach of incremental updates as applied here
+   * inserts it last, not between v1 and v2.
+   * 
+   * I should just re-generate it all.
+   *
+   */
+  protected function applyUpdate($update){
+    if($update->type() == VocabularyUpdate::T_DATA){
+      $update->setStatus(VocabularyUpdate::S_UPDATE_APPLIED);
+      return;
+    }
+    $items = $update->items();
+    $current = $this->field['settings']['allowed_values'];
+    foreach($items as $id => $label){
+      if($update->type() == VocabularyUpdate::T_REMOVE){
+        // See if this value is actually used anywhere. If not, we can just delete it
+        // without worry.
+        if($this->contentModifiedBy($update, $id)){
+          $this->field['settings']['allowed_values'][$id] .= ' [DELETED]';
+        }else{
+          unset($this->field['settings']['allowed_values'][$id]);
+          $update->removeItem($id);
+        }
+      }else{
+        $parents = $this->structure()->itemParents($id);
+        if($parents){
+          $label = implode('>', $parents) . ' > ' . $label;
+        }
+        $this->field['settings']['allowed_values'][$id] = $label;
+      }
+    }
+    $this->cheapUpdateField();
+    $left_items = $update->items();
+    if($update->type() == VocabularyUpdate::T_REMOVE && !empty($left_items)){
+      $update->setStatus(VocabularyUpdate::S_STRUCTURE_APPLIED);
+      $update->setModification(new RemapModification($this, $update, t("Some terms could not be deleted because they are in use. Please re-map the deleted terms to a new value.")));
+    }else{
+      // add/rename/reparent don't need a content update, as the key is stored
+      // in the field data, not the label.
+      $update->setStatus(VocabularyUpdate::S_UPDATE_APPLIED);
+    }
+  }
+
+  /**
+   * applyModification
+   * 
+   * Apply the content modification part of a single update.
+   * This onyl gets called for REMOVE updates, as other updates
+   * are marked as completed at the structural stage.
+   * 
+   */
+  protected function applyModification($limit_entities, $update, $map){
+    // First remove all the values we don't want from allowed values
+    $items = $update->items();
+    foreach($items as $id => $label){
+      // Remove the option from the field definition
+      unset($this->field['settings']['allowed_values'][$id]);
+    }
+    $this->cheapUpdateField();
+    // Find the global default value for this field
+    if(count($this->field['settings']['allowed_values'])){
+      $allowed_keys = array_keys($this->field['settings']['allowed_values']);
+      $default = reset($allowed_keys);
+    }else{
+      $default = '';
+    }
+    foreach($items as $id => $label){
+      $result = $this->contentModifiedBy($update, $id);
+      foreach($result as $type => $values){
+        if (!empty($limit_entities)) {
+          if (empty($limit_entities[$type])) {
+            continue;
+          }
+          $values = array_intersect($values, $limit_entities[$type]);
+        }
+        $entities = entity_load($type, $values);
+        foreach($entities as $entity){
+          $instance = field_info_instance($type, $this->field['field_name'], $entity->type);
+          foreach($entity->{$this->field['field_name']} as $langcode => $values){
+            foreach($values as $value_id => $value){
+              if($value['value'] == $id){
+                if(!$instance['required'] && (empty($map) || !empty($map[$id]['only_if_required']))){
+                  unset($entity->{$this->field['field_name']}[$langcode][$value_id]);
+                }else if(isset($map[$id]['value'])){
+                  $entity->{$this->field['field_name']}[$langcode][$value_id]['value'] = $map[$id]['value'];
+                }else if($instance['default_value'] !== NULL){
+                  $entity->{$this->field['field_name']}[$langcode][$value_id]['value'] = $instance['default_value'];
+                }else{
+                  $entity->{$this->field['field_name']}[$langcode][$value_id]['value'] = $default;
+                }
+              }
+            }
+          }
+          entity_save($type, $entity);
+        }
+      }
+    }
+    if(!$this->updateModifiesContent($update)){
+      $update->setStatus(VocabularyUpdate::S_UPDATE_APPLIED);
+    }
+  }
+
+  /**
+   * updateModifiesContent
+   * 
+   * Return TRUE if the given update needs to modify content to
+   * be fully applied, and FALSE otherwise
+   * 
+   */
+  public function updateModifiesContent($update){
+    if($update->type() !== VocabularyUpdate::T_REMOVE){return FALSE;}
+    foreach($update->items() as $id => $label){
+      $efq = new EntityFieldQuery();
+      $result = $efq->entityCondition('bundle', $this->field['bundles'])->fieldCondition($this->field['field_name'], 'value', $id)->execute();
+      if(!empty($result)){return TRUE;}
+    }
+    return FALSE;
+  }
+
+  /**
+   * contentModifiedBy
+   * 
+   * Return the content modified by applying the given update. If
+   * $id is not NULL, then only return the content that is modified
+   * when applying the given update for that particular item.
+   * 
+   * The returned array should be entity ids indexed by entity type.
+   */
+  public function contentModifiedBy($update, $id = NULL){
+    if($update->type() !== VocabularyUpdate::T_REMOVE){return array();}
+    if($id !== NULL){
+      $item_ids = array(
+        $id
+      );
+    }else{
+      $item_ids = array_keys($update->items());
+    }
+    $result = array();
+    foreach($item_ids as $item_id){
+      $efq = new EntityFieldQuery();
+      $r = $efq->entityCondition('bundle', $this->field['bundles'])->fieldCondition($this->field['field_name'], 'value', $item_id)->execute();
+      $result = array_merge_recursive($result, $r);
+    }
+    foreach($result as $type => $result_items){
+      $result[$type] = array_unique(array_keys($result_items));
+    }
+    return $result;
+  }
+
+  /**
+   * cheapUpdateField
+   * 
+   * Calling field_update_field is very expensive. In our specific context,
+   * we know it's safe to change the field without calling the callbacks.
+   * 
+   */
+  private function cheapUpdateField(){
+    $data = $this->field;
+    unset($data['columns'], $data['field_name'], $data['type'], $data['locked'], $data['module'], $data['cardinality'], $data['active'], $data['deleted']);
+    unset($data['bundles']);
+    $this->field['data'] = $data;
+    $primary_key = array(
+      'id'
+    );
+    drupal_write_record('field_config', $this->field, $primary_key);
+  }
+}

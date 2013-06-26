@@ -1,0 +1,5 @@
+name = Scratchpads Vocabularies
+description = Integrate external vocabularies into Scratchpads
+core = 7.x
+
+files[] = tests/scratchpads_vocabularies.test

@@ -1,0 +1,304 @@
+<?php
+
+/**
+ * scratchpads_vocabularies_menu
+ * 
+ * Implement hook_menu
+ */
+function scratchpads_vocabularies_menu(){
+  return array(
+    'admin/structure/vocabularies' => array(
+      'title' => 'Vocabularies',
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_vocabularies_mapping_form'
+      ),
+      'file' => 'scratchpads_vocabularies.admin.inc',
+      'access arguments' => array(
+        'manage vocabularies'
+      )
+    ),
+    'admin/structure/vocabularies/mapping' => array(
+      'title' => 'Vocabularies',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_vocabularies_mapping_form'
+      ),
+      'file' => 'scratchpads_vocabularies.admin.inc',
+      'access arguments' => array(
+        'manage vocabularies'
+      ),
+      'weight' => 0
+    ),
+    'admin/structure/vocabularies/updates' => array(
+      'title' => 'Pending updates',
+      'type' => MENU_LOCAL_TASK,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_vocabularies_pending_update_form'
+      ),
+      'file' => 'scratchpads_vocabularies.admin.inc',
+      'access arguments' => array(
+        'manage vocabularies'
+      ),
+      'weight' => 1
+    )
+  );
+}
+
+/**
+ * scratchpads_vocabularies_permission
+ * 
+ * Implement hook_permission
+ */
+function scratchpads_vocabularies_permission(){
+  return array(
+    'manage vocabularies' => array(
+      'title' => t('Manage Vocabularies'),
+      'description' => t('View and apply pending updates to vocabularies')
+    )
+  );
+}
+
+/**
+ * scratchpads_vocabularies_theme
+ * 
+ * Implement hook_theme
+ */
+function scratchpads_vocabularies_theme($existing, $type, $theme, $path){
+  return array(
+    'scratchpads_vocabularies_info' => array(
+      'variables' => array(
+        'title' => NULL,
+        'receiver' => NULL,
+        'vocabulary' => NULL,
+        'info' => NULL
+      ),
+      'path' => $path . '/theme',
+      'template' => 'scratchpads_vocabularies_info'
+    )
+  );
+}
+
+/**
+ * scratchpads_vocabularies_preprocess_field
+ * 
+ * Implement hook_preprocess_field
+ * 
+ * We ensure that [DELETED] is removed from the fields
+ * we manage.
+ */
+function scratchpads_vocabularies_preprocess_field(&$variables){
+  static $fields = NULL;
+  if($fields === NULL){
+    $fields = array();
+    $our_vocs = variable_get('scratchpads_vocabularies_ui_vocabularies', array());
+    foreach($our_vocs as $info_id => $our_voc){
+      $fields[] = $our_voc['field'];
+    }
+  }
+  if(in_array($variables['element']['#field_name'], $fields)){
+    foreach($variables['items'] as $id => $item){
+      $variables['items'][$id]['#markup'] = preg_replace('/\s*\[DELETED\]\s*/', '', $item['#markup']);
+    }
+  }
+}
+
+/**
+ * scratchpads_vocabularies_scratchpads_vocabulary_info
+ * 
+ * Implements hook_scratchpads_vocabulary_info
+ *
+ */
+function scratchpads_vocabularies_scratchpads_vocabulary_info(){
+  module_load_include('receiver.inc', 'scratchpads_vocabularies', 'includes/selectfield');
+  module_load_include('vocabulary.inc', 'scratchpads_vocabularies', 'includes/gbifxml');
+  $elements = array();
+  // XXX Leave this in for now for testing.
+  if(field_info_field('field_basis_of_record')){
+    $elements['basis of record'] = array(
+      'title' => 'Gbif Basis of Record',
+      'vocabulary' => array(
+        'description' => 'Gathers the basis of record vocabulary from http://rs.gbif.org/vocabulary/dwc/basis_of_record.xml',
+        'create callback' => function (){
+          return new ScratchpadsVocabularies\GbifXmlVocabulary('Gbif Basis of Record', 'http://rs.gbif.org/vocabulary/dwc/basis_of_record.xml');
+        }
+      ),
+      'receiver' => array(
+        'description' => 'Stores data into the basis of record field, as defined by the Specimen/Observation module',
+        'create callback' => function (){
+          return new ScratchpadsVocabularies\SelectFieldReceiver('field_basis_of_record');
+        }
+      )
+    );
+  }
+  $our_vocs = variable_get('scratchpads_vocabularies_ui_vocabularies', array());
+  foreach($our_vocs as $voc_id => $our_voc){
+    $field = $our_voc['field'];
+    $url = $our_voc['url'];
+    $title = $our_voc['title'];
+    $elements[$voc_id] = array(
+      'title' => $title,
+      'vocabulary' => array(
+        'description' => t("Gathers the Gbif XML vocabulary located at %url", array(
+          '%url' => $url
+        )),
+        'create callback' => function () use($field, $url, $title){
+          return new ScratchpadsVocabularies\GbifXmlVocabulary($title, $url);
+        }
+      ),
+      'receiver' => array(
+        'description' => 'Stores data into the field ' . $field,
+        'create callback' => function () use($field){
+          return new ScratchpadsVocabularies\SelectFieldReceiver($field);
+        }
+      )
+    );
+  }
+  return $elements;
+}
+
+/**
+ * _scratchpads_vocabularies_info_build
+ * 
+ * Returns the VocabularyInterface and ReceiverInterface objects that
+ * are defined by the given parameter, as:
+ * 
+ * array(
+ *   'title' => <string>,
+ *   'vocabulary' => array(
+ *     'description' => <string>,
+ *     'create callback' => <callable>
+ *   ),
+ *   'receiver' => array(
+ *     'description' => <string>
+ *     'create callback' => <callable>
+ *   )
+ * )
+ * 
+ * This is the same structre expected by hook_scratchpads_vocabulary_info.
+ * 
+ * If it is not possible to create the objects, then a drupal_message
+ * error is logged, and FALSE is returned.
+ */
+function _scratchpads_vocabularies_info_build($info){
+  $vocabulary = FALSE;
+  $receiver = FALSE;
+  try{
+    $vocabulary = call_user_func($info['vocabulary']['create callback']);
+    $receiver = call_user_func($info['receiver']['create callback']);
+  }
+  catch(Exception $e){
+    drupal_set_message(t('It was not possible to gather information about the vocabulary mapping %v. Error message: %e', array(
+      '%v' => $info['title'],
+      '%e' => $e->getMessage()
+    )), 'error');
+  }
+  return array(
+    $vocabulary,
+    $receiver
+  );
+}
+
+/**
+ * scratchpads_vocabularies_process_updates
+ * 
+ * This function gathers the information from hook_scratchpads_vocabulary_info,
+ * looks for and applies updates.
+ * 
+ */
+function scratchpads_vocabularies_process_updates(){
+  module_load_include('inc', 'scratchpads_vocabularies', 'includes/classes');
+  $all_info = module_invoke_all('scratchpads_vocabulary_info');
+  foreach($all_info as $info){
+    list($vocabulary, $receiver) = _scratchpads_vocabularies_info_build($info);
+    if(!$vocabulary || !$receiver){
+      continue;
+    }
+    _scratchpads_vocabularies_update_vocabulary($vocabulary, $receiver);
+  }
+  cache_clear_all();
+}
+
+/**
+ * _scratchpads_vocabularies_update_vocabulary
+ * 
+ * Update a vocabulary
+ */
+function _scratchpads_vocabularies_update_vocabulary($vocabulary, $receiver, $status = TRUE){
+  if($vocabulary->version() != $receiver->version()){
+    $receiver->upgradeStructure($vocabulary);
+    $receiver->applyPendingUpdates();
+    if(count($receiver->pendingUpdates())){
+      if(!$status){
+        drupal_set_message(t("Vocabulary '%name' (applied to receiver '%receiver') has some pending updates that require your attention.", array(
+          '%name' => $vocabulary->name(),
+          '%receiver' => $receiver->name()
+        )), 'warning');
+      }else{
+      }
+    }else if(!$status){
+      drupal_set_message(t("Vocabulary '%name' (applied to receiver '%receiver') was updated succefully.", array(
+        '%name' => $vocabulary->name(),
+        '%receiver' => $receiver->name()
+      )), 'warning');
+    }
+  }
+}
+
+/**
+ * _scratchpads_vocabularies_form_table
+ *
+ * Generate a table that is a FORM API render array
+ */
+function _scratchpads_vocabularies_form_table($header, $rows){
+  $table = array(
+    '#prefix' => '<table>',
+    '#suffix' => '</table>',
+    'header' => array(
+      '#prefix' => '<thead><tr>',
+      '#suffix' => '</tr></thead>'
+    ),
+    'body' => array(
+      '#prefix' => '<tbody>',
+      '#suffix' => '</tbody>'
+    )
+  );
+  foreach($header as $h){
+    if(is_string($h)){
+      $h = array(
+        '#markup' => $h
+      );
+    }
+    $table['header'][] = array(
+      '#prefix' => '<th>',
+      '#suffix' => '</th>',
+      'header' => $h
+    );
+  }
+  $odd = TRUE;
+  foreach($rows as $row){
+    $row_array = array();
+    foreach($row as $row_value){
+      if(is_string($row_value)){
+        $row_value = array(
+          '#markup' => $row_value
+        );
+      }
+      $row_array[] = array(
+        '#prefix' => '<td>',
+        '#suffix' => '</td>',
+        'value' => $row_value
+      );
+    }
+    $table['body'][] = array(
+      '#prefix' => '<tr class="' . ($odd ? 'odd' : 'even') . '">',
+      '#suffix' => '</tr>',
+      'row' => $row_array
+    );
+    $odd = !$odd;
+  }
+  return $table;
+}
