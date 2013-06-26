@@ -130,6 +130,8 @@ function scratchpad_ecorelation_types_enable(){
 
 /**
  * Implements hook_disable().
+ * As this is disabled via tools it is as if it is uninstalled
+ * so delete the types and associated data
  */
 function scratchpad_ecorelation_types_disable(){
   _scratchpad_ecorelation_delete_default_types();
