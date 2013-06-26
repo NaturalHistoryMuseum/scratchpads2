@@ -1,6 +1,5 @@
-name = "Scratchpad relations"
-description = "Scratchpad relations"
+name = "Scratchpad relations interface"
+description = "Add to content page to display ecological relationships"
 core = "7.x"
 package = "Relation"
-dependencies[] = "relation"
-stylesheets[all][] = "css/scratchpad_relations.css"
+dependencies[] = scratchpad_ecorelation_types

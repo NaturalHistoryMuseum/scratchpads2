@@ -1,0 +1,170 @@
+<?php
+
+/**
+ * Implements hook_enable().
+ * This is used when the module is turned on via the tools selection method
+ */
+function scratchpad_ecorelation_types_enable(){
+
+  // Add default relationships
+  $relation_types_info = array(
+    array(
+      'relation_type' => 'host_parasite',
+      'label' => t('HostOf'),
+      'reverse_label' => t('ParasiteOf'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        'taxonomy_term:*'
+      )
+    ),
+    array(
+      'relation_type' => 'preysUpon_preyedUponBy',
+      'label' => t('PreysUpon'),
+      'reverse_label' => t('PreyedUponBy'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        'taxonomy_term:*'
+      )
+    ),
+    array(
+      'relation_type' => 'dispersedSeedOf_seedsDispersedBy',
+      'label' => t('DispersedSeedOf'),
+      'reverse_label' => t('SeedsDispersedBy'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        'taxonomy_term:*'
+      )
+    ),
+    array(
+      'relation_type' => 'resinExtractedBy_extractsResinFrom',
+      'label' => t('ResinExtractedBy'),
+      'reverse_label' => t('ExtractsResinFrom'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        'taxonomy_term:*'
+      )
+    ),
+    array(
+      'relation_type' => 'flowerVisitedBy_visitedFlowerOf',
+      'label' => t('FlowerVisitedBy'),
+      'reverse_label' => t('VisitedFlowerOf'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        'taxonomy_term:*'
+      )
+    ),
+    array(
+      'relation_type' => 'nestedIn_usedAsNestBy',
+      'label' => t('NestedIn'),
+      'reverse_label' => t('UsedAsNestBy'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        'taxonomy_term:*'
+      )
+    ),
+    array(
+      'relation_type' => 'pathogenOf_infectedBy',
+      'label' => t('PathogenOf'),
+      'reverse_label' => t('InfectedBy'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        'taxonomy_term:*'
+      )
+    )
+  );
+  foreach($relation_types_info as $relation_type_info){
+    $relation_type = relation_type_create($relation_type_info);
+    relation_type_save($relation_type_info);
+  }
+
+  }
+
+/**
+ * Implements hook_disable().
+ */
+function scratchpad_ecorelation_types_disable(){
+  _scratchpad_ecorelation_delete_default_types();
+}
+
+/**
+   * Implements hook_uninstall()
+   */
+function scratchpad_ecorelation_types_uninstall(){
+  _scratchpad_ecorelation_delete_default_types();
+}
+
+function _scratchpad_ecorelation_delete_default_types(){
+  // get all the relationship_types (bundles), find all fields
+  // delete them
+  $db_or = db_or();
+  $db_or->condition('rb.entity_type', 'node', '=');
+  $db_or->condition('rb.entity_type', 'taxonomy_term', '=');
+  $query = db_select('relation_bundles', 'rb')->fields('rb', array(
+    'relation_type'
+  ))->condition($db_or)->distinct()->execute();
+  while($record = $query->fetchAssoc()){
+    $relationship_type[] = $record['relation_type'];
+  }
+  foreach($relationship_type as $type){
+    // look into the database for each type
+    $relationship_query = db_select('relation', 'r')->fields('r', array(
+      'rid'
+    ))->condition('r.relation_type', $type)->execute();
+    while($result = $relationship_query->fetchAssoc()){
+      // delete all the relationships of that type
+      relation_delete($result['rid']);
+    }
+    // finally delete the relationshp_type
+    relation_type_delete($type);
+  }
+  entity_info_cache_clear();
+}

@@ -128,49 +128,52 @@ function scratchpads_backend_admin_content(){
         );
         break;
       case 'relation':
-        $statistics = scratchpads_backend_statistics($entity_info);
-        foreach(array_keys($entity_info['bundles']) as $bundle){
-          $view_url = 'admin/content/scratchpad_relations/' . $bundle;
-          $operations = array(
-            l(t('View'), $view_url),
-           // l(t('Add (not yet)'), $view_url . '/add')
-          );
-          // If there's a grid editor for this, add a link
-          if(views_get_view('slickgrid_admin_' . $bundle)){
-            $operations[] = l(t('Grid'), 'admin/content/slickgrid/' . $bundle);
+        if(module_exists('scratchpad_relations')){
+          $statistics = scratchpads_backend_statistics($entity_info);
+          foreach(array_keys($entity_info['bundles']) as $bundle){
+            $view_url = 'admin/content/scratchpad_relations/' . $bundle;
+            $operations = theme('item_list', array(
+              'items' => array(
+                l(t('View'), $view_url)
+              )
+            ));
+            // If there's a grid editor for this, add a link
+            if(views_get_view('slickgrid_admin_' . $bundle)){
+              $operations[] = l(t('Grid'), 'admin/content/slickgrid/' . $bundle);
+            }
+            $operations = theme('item_list', array(
+              'items' => $operations
+            ));
+            if($entity_info['bundles'][$bundle]['directional']){
+              $description = 'Relationship between ' . $entity_info['bundles'][$bundle]['source_bundles'][0] . '<-->' . $entity_info['bundles'][$bundle]['target_bundles'][0];
+            }else{
+              $description = 'Relationship' . $entity_info['bundles'][$bundle]['source_bundles'][0] . ':' . $entity_info['bundles'][$bundle]['target_bundles'][0];
+            }
+            $label = $entity_info['bundles'][$bundle]['label'] . '-' . $entity_info['bundles'][$bundle]['reverse_label'];
+            $rows[] = array(
+              'data' => array(
+                l($label, $view_url) . (!empty($bundle) ? '<p class="description">' . $description . '</p>' : ''),
+                (isset($statistics[$bundle]['number']) ? $statistics[$bundle]['number'] : 0),
+                (''),
+                $operations
+              ),
+              'class' => array(
+                'relations-' . $bundle
+              )
+            );
           }
-          $operations = theme('item_list', array(
-            'items' => $operations
-          ));
-          if($entity_info['bundles'][$bundle]['directional']){
-            $description = 'Relationship between ' . $entity_info['bundles'][$bundle]['source_bundles'][0] . '<-->' . $entity_info['bundles'][$bundle]['target_bundles'][0];
-          }else{
-            $description = 'Relationship' . $entity_info['bundles'][$bundle]['source_bundles'][0] . ':' . $entity_info['bundles'][$bundle]['target_bundles'][0];
-          }
-          $label = $entity_info['bundles'][$bundle]['label'] . '-' . $entity_info['bundles'][$bundle]['reverse_label'];
-          $rows[] = array(
-            'data' => array(
-              l($label, $view_url) . (!empty($bundle) ? '<p class="description">' . $description . '</p>' : ''),
-              (isset($statistics[$bundle]['number']) ? $statistics[$bundle]['number'] : 0),
-              (''),
-              $operations
-            ),
-            'class' => array(
-              'relations-' . $bundle
-            )
+          $relation_header = $header;
+          $relation_header[1]['data'] = t('Count');
+          $relation_header[2]['data'] = t('');
+          $build[$entity_type] = array(
+            '#theme' => 'table',
+            '#caption' => t("Scratchpad relations"),
+            '#header' => $relation_header,
+            '#weight' => 3,
+            '#rows' => $rows,
+            '#attributes' => $attributes
           );
         }
-        $relation_header = $header;
-        $relation_header[1]['data'] = t('Count');
-        $relation_header[2]['data'] = t('');
-        $build[$entity_type] = array(
-          '#theme' => 'table',
-          '#caption' => t("Scratchpad relations"),
-          '#header' => $relation_header,
-          '#weight' => 3,
-          '#rows' => $rows,
-          '#attributes' => $attributes
-        );
         break;
       case 'file':
         $statistics = scratchpads_backend_statistics($entity_info);

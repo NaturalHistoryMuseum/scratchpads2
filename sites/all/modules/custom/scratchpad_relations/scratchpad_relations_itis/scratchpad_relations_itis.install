@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * Implements hook_enable().
+ * This is used when the module is turned on via the tools selection method
+ */
+function scratchpad_relations_itis_enable(){
+  //Do stuff after itis_term has done its stuff
+  db_query("UPDATE {system} SET weight = :weight WHERE name = 'scratchpad_relations_itis'", array(
+    ':weight' => 1
+  ));
+}
