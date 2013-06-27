@@ -5,20 +5,20 @@
  */
 function scratchpads_statistics_block_info(){
   return array(
-    'user' => array(
-      'info' => t('Scratchpads statistics facet - User'),
-      'cache' => DRUPAL_CACHE_PER_PAGE
-    ),
     'site' => array(
       'info' => t('Scratchpads statistics facet - Site'),
       'cache' => DRUPAL_CACHE_PER_PAGE
     ),
-    'category' => array(
-      'info' => t('Scratchpads statistics facet - Site Category'),
+    'user' => array(
+      'info' => t('Scratchpads statistics facet - User'),
       'cache' => DRUPAL_CACHE_PER_PAGE
     ),
     'term' => array(
       'info' => t('Scratchpads statistics facet - Term'),
+      'cache' => DRUPAL_CACHE_PER_PAGE
+    ),
+    'category' => array(
+      'info' => t('Scratchpads statistics facet - Site Category'),
       'cache' => DRUPAL_CACHE_PER_PAGE
     )
   );
@@ -230,6 +230,16 @@ function scratchpads_statistics_facet_form($form, $form_state, $type){
           '#suffix' => '</div>',
           '#value' => t('Filter'),
           '#type' => 'submit'
+        ),
+        '#attributes' => array(
+          'class' => array(
+            'autocomplete-submit'
+          )
+        ),
+        '#attached' => array(
+          'js' => array(
+            drupal_get_path('module', 'scratchpads_statistics') . '/js/scratchpads_statistics.js'
+          )
         ),
         '#submit' => array(
           'scratchpads_statistics_facet_form_submit'
