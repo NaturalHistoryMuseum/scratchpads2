@@ -355,7 +355,8 @@ function scratchpads_vocabularies_pending_update_form_submit($form, &$form_state
     'update_id' => $update_id
   ), $form, $form_state);
   batch_set(array(
-    'title' => t('Applying updates...'),
+    'title' => t('Applying updates. Please do not close this window until the process is complete.'),
+    'progress_message' => t('Completed @percentage% of updates, estimated time left @estimate'),
     'operations' => $operations,
     'finished' => '_scratchpads_vocabularies_finish_update',
     'file' => drupal_get_path('module', 'scratchpads_vocabularies') . '/scratchpads_vocabularies.admin.inc'

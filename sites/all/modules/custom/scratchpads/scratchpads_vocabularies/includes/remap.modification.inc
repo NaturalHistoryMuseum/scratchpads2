@@ -10,7 +10,7 @@ require_once str_replace('remap.modification.inc', 'classes.inc', __FILE__);
  */
 class RemapModification implements ModificationInterface{
 
-  const BATCH_SIZE = 5;
+  const BATCH_SIZE = 20;
 
   private $explanation;
 
@@ -57,7 +57,9 @@ class RemapModification implements ModificationInterface{
     $new_items = $this->receiver->structure()->selectStructure();
     $action_table = array();
     $even = FALSE;
+    $elem_id = 0;
     foreach($this->update->items() as $item_id => $item_label){
+      $elem_id++;
       $affected_list = $this->receiver->contentModifiedBy($this->update, $item_id);
       $affected = array();
       foreach($affected_list as $type => $affected_items){
@@ -66,14 +68,21 @@ class RemapModification implements ModificationInterface{
       $action_table[] = array(
         check_plain("$item_label"),
         array(
-          "update_" . implode('_', $id) . "_remap_" . $item_id => array(
+          "map_" . $elem_id => array(
             '#type' => 'select',
             '#multiple' => FALSE,
-            '#options' => $new_items
+            '#options' => $new_items,
+            '#default_value' => reset(array_keys($new_items)),
+            '#vocabulary_id' => $id['vocabulary_id'],
+            '#update_id' => $id['update_id'],
+            '#elem_id' => $item_id
           ),
-          "update_" . implode('_', $id) . "_remove_" . $item_id => array(
+          "remove_" . $elem_id => array(
             '#type' => 'checkbox',
-            '#title' => t('Remove value when field is not required')
+            '#title' => t('Remove value when field is not required'),
+            '#vocabulary_id' => $id['vocabulary_id'],
+            '#update_id' => $id['update_id'],
+            '#elem_id' => $item_id
           )
         ),
         implode('<br/>', $affected)
@@ -109,14 +118,7 @@ class RemapModification implements ModificationInterface{
    * 
   */
   public function submit($id, $form, &$form_state){
-    // Create the map of values to replace
-    $map = array();
-    foreach($this->update->items() as $item_id => $value){
-      $map[$item_id] = array(
-        'value' => $form_state['values']["update_" . implode('_', $id) . "_remap_" . $item_id],
-        'only_if_required' => !empty($form_state['values']['update_' . implode('_', $id) . '_remove_' . $item_id])
-      );
-    }
+    $map = $this->mapFromForm($form, $form_state, $id['vocabulary_id'], $id['update_id']);
     // Create a batch operation for every n entities
     $operations = array();
     $entities = $this->receiver->contentModifiedBy($this->update);
@@ -136,5 +138,36 @@ class RemapModification implements ModificationInterface{
       }
     }
     return $operations;
+  }
+
+  /**
+   * mapFromForm
+   *
+   * This is a helper method to retrive our map of values from the submitted form.
+   * We can't use our item ids for the element names, as Drupal will replace spaces
+   * by underscores which may generate collisions (we cannot make any assumptions
+   * since those values are provided externally).
+   *
+   * We can't directly look into the form for corresponding items, because we are
+   * embeded in a larger form that we do not know.
+   *
+   * So we need to scan the form to gather our elements back.
+   */
+  public function mapFromForm($form, $form_state, $vocabulary_id, $update_id){
+    $map = array();
+    foreach($form as $key => $value){
+      if(is_array($value) && isset($value['#vocabulary_id'])){
+        if($value['#vocabulary_id'] == $vocabulary_id && $value['#update_id'] == $update_id){
+          if(preg_match('/^map_/', $key)){
+            $map[$value['#elem_id']]['value'] = $form_state['values'][$key];
+          }else if(preg_match('/^remove_/', $key)){
+            $map[$value['#elem_id']]['only_if_required'] = !empty($form_state['values'][$key]);
+          }
+        }
+      }else if(is_array($value)){
+        $map = array_merge($map, $this->mapFromForm($value, $form_state, $vocabulary_id, $update_id));
+      }
+    }
+    return $map;
   }
 }
