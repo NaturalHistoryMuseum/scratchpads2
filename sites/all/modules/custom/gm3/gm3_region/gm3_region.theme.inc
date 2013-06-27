@@ -17,8 +17,8 @@ function theme_gm3_region_button($variables){
 function theme_gm3_region_region_text($variables){
   $parts = explode(':', $variables['data']['region_id']);
   return array(
-    '#markup' => t('TDWG:%region_id', array(
-      '%region_id' => end($parts)
+    '#markup' => t('TDWG:@region_id', array(
+      '@region_id' => end($parts)
     ))
   );
 }
