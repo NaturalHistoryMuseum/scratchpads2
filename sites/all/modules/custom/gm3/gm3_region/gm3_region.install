@@ -196,6 +196,12 @@ function gm3_region_update_7009(){
       db_query(file_get_contents($path . $file));
     }
   }
+  db_update('cache_gm3_polygon')->expression('data', "REPLACE(data, 'LBRACE', ':lbrace')", array(
+    ':lbrace' => '{'
+  ))->execute();
+  db_update('cache_gm3_polygon')->expression('data', "REPLACE(data, 'RBRACE', ':rbrace')", array(
+    ':rbrace' => '}'
+  ))->execute();
   // Finally, we set the shape data.  This query is MySQL specific.
   db_query('UPDATE {gm3_region_data} SET mysql_polygons = POLYGONFROMTEXT(polygons)');
 }
