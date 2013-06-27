@@ -187,7 +187,7 @@ function gm3_region_update_7008(){
 }
 
 /**
- * Loard the data.
+ * Load the data.
  */
 function gm3_region_update_7009(){
   $path = drupal_get_path('module', 'gm3_region') . '/region_data/sql_files/';
