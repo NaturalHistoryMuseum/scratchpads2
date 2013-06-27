@@ -5,7 +5,6 @@
  * This is used when the module is turned on via the tools selection method
  */
 function scratchpad_ecorelation_types_enable(){
-
   // Add default relationships
   $relation_types_info = array(
     array(
@@ -122,11 +121,9 @@ function scratchpad_ecorelation_types_enable(){
     )
   );
   foreach($relation_types_info as $relation_type_info){
-    $relation_type = relation_type_create($relation_type_info);
     relation_type_save($relation_type_info);
   }
-
-  }
+}
 
 /**
  * Implements hook_disable().
