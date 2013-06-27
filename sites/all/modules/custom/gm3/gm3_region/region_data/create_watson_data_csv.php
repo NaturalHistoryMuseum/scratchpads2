@@ -1,0 +1,38 @@
+<?php
+/**
+ * Use the ogrinfo command to extract the data from the shapefile into a text
+ * file.  This can then be parsed with the function below to create a much more
+ * usable CSV file.
+ * 
+ * $ ogrinfo file.shp layer_name > watson_vice_counties
+ * 
+ * Note, this function is never called, it's here to help update the data.
+ */
+include "../phpcoord/phpcoord-2.3.php";
+$f = fopen('watson_vice_counties', 'r');
+$w = fopen('watson_vice_counties.csv', 'w');
+while(($line = fgets($f)) != FALSE){
+  switch(strtolower(substr($line, 0, 9))){
+    case '  vcname ':
+      $line = explode('=', $line);
+      $fields['name'] = trim(array_pop($line));
+      break;
+    case '  vcnumbe':
+      $line = explode('=', $line);
+      $fields['level_5_code'] = trim(array_pop($line));
+      break;
+    case '  multipo':
+    case '  polygon':
+      preg_match_all('/[0-9\.]+\s[0-9\.]+/', $line, $matches);
+      foreach($matches[0] as $match){
+        $parts = explode(" ", $match);
+        $os = new OSRef($parts[0], $parts[1]);
+        $latlng = $os->toLatLng();
+        $latlng->OSGB36ToWGS84();
+        $line = str_replace($match, round($latlng->lat, 5) . ' ' . round($latlng->lng, 5), $line);
+      }
+      $fields['polygons'] = trim($line);
+      fputcsv($w, $fields);
+  }
+}
+fclose($w);

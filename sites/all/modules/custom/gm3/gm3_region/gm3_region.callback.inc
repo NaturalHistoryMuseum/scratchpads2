@@ -167,6 +167,9 @@ function gm3_region_get_points($region_ids){
       gm3_load_geophp();
       $wkt_reader = new WKT();
       switch(count($region_id_parts)){
+        case 5:
+          $row = db_select('gm3_region_data', 'g')->condition('level_5_code', $region_id_parts[4])->fields('g')->execute()->fetch();
+          break;
         case 4:
           $region_id_4_parts = explode("-", $region_id_parts[3]);
           $row = db_select('gm3_region_data', 'g')->condition('level_4_code', $region_id_4_parts[1])->condition('level_3_code', $region_id_4_parts[0])->fields('g')->execute()->fetch();
