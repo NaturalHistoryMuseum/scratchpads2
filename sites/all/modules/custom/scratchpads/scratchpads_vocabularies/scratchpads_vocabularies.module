@@ -63,6 +63,19 @@ function scratchpads_vocabularies_permission(){
 }
 
 /**
+ * scratchpads_vocabularies_scratchpads_default_permissions
+ *
+ * Implement hook_scratchpads_default_permissions
+ */
+function scratchpads_vocabularies_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'manage vocabularies'
+    )
+  );
+}
+
+/**
  * scratchpads_vocabularies_theme
  * 
  * Implement hook_theme
