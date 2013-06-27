@@ -7,13 +7,11 @@
 * 
 * ScratchpadsFileLockTestCase::getInfo();
 * 
-* $a = new ScratchpadsFileLockTestCase();
-* $a->setUp();
 */
 class ScratchpadsFileLockTestCase extends FileFieldTestCase{
-  
+
   protected $profile = 'scratchpad_2';
-  
+
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads File Lock',
@@ -26,16 +24,13 @@ class ScratchpadsFileLockTestCase extends FileFieldTestCase{
    * Enable modules and create users with specific permissions.
    */
   function setUp(){
-       
     $modules = array();
     $modules[] = 'file';
     $modules[] = 'file_module_test';
     $modules[] = 'file_lock';
     $modules[] = 'scratchpads_file_lock';
-    
     // include the code for tweaks setup
     include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_tweaks') . "/scratchpads_tweaks.inc";
-     
     $this->admin_user = $this->drupalCreateUser(array(
       'access content',
       'access administration pages',
@@ -46,47 +41,37 @@ class ScratchpadsFileLockTestCase extends FileFieldTestCase{
       'administer nodes',
       'bypass node access'
     ));
-        
-    $this->scratchpads_file_lock_legal_save($this->admin_user->uid);    
+    $this->scratchpads_file_lock_legal_save($this->admin_user->uid);
     $this->drupalLogin($this->admin_user);
   }
-  
+
   /**
    * We set the legal_accepted on the user so that login passes.
    */
   function scratchpads_file_lock_legal_save($uid){
     legal_save_accept(1, 1, 'en', $uid);
   }
+
   /**
    * Overrides DrupalWebTestCase drupallogin().
    * @see DrupalWebTestCase::drupalLogin()
    */
-  protected function drupalLogin(stdClass $account) {
-    if ($this->loggedInUser) {
+  protected function drupalLogin(stdClass $account){
+    if($this->loggedInUser){
       $this->drupalLogout();
     }
-  
     $edit = array(
       'name' => $account->name,
       'pass' => $account->pass_raw
     );
     $this->drupalPost('user', $edit, t('Log in'));
-  
     // override is here
     $pass = $this->assertText('Member for', 'User successfully logged in');
-  
-    if ($pass) {
+    if($pass){
       $this->loggedInUser = $account;
     }
   }
-  /**
-   * Tests that front page is viewable
-   */
-  public function testBasic(){
-    
-    $this->drupalGet('');
-    $this->assertResponse(200);
-  }
+
 
   /**
    * Tests if a text file still exists after it's parent node is deleted
@@ -143,7 +128,6 @@ class ScratchpadsFileLockTestCase extends FileFieldTestCase{
     // Ensure the file is still there
     $this->assertFileExists($node_file, t('The image file still exists after the node has been deleted.'));
   }
-  
 }
 
 
