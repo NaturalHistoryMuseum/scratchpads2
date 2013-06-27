@@ -10,3 +10,9 @@ function scratchpad_relations_itis_enable(){
     ':weight' => 1
   ));
 }
+
+function scratchpad_relations_itis_uninstallOLD(){
+  field_attach_delete_bundle('spproduct', 'spproduct');
+  field_delete_field('field_spproduct_image');
+  field_purge_batch(10);
+}
