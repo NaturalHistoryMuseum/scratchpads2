@@ -7,6 +7,12 @@
  * $ ogrinfo file.shp layer_name > watson_vice_counties
  * 
  * Note, this function is never called, it's here to help update the data.
+ * 
+ * CREATE TABLE IF NOT EXISTS temp_load (code INT(11), name VARCHAR(255), polygon LONGTEXT);
+ * TRUNCATE temp_load;
+ * LOAD DATA INFILE 'watson_vice_counties.csv' INTO TABLE temp_load FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"';
+ * DELETE FROM cache_gm3_polygon WHERE cid = '1:10:GRB:GRB-OO:52';
+ * UPDATE gm3_region_data SET polygons = (SELECT polygon FROM temp_load WHERE code = level_5_code);
  */
 include "../phpcoord/phpcoord-2.3.php";
 $f = fopen('watson_vice_counties', 'r');
@@ -29,7 +35,7 @@ while(($line = fgets($f)) != FALSE){
         $os = new OSRef($parts[0], $parts[1]);
         $latlng = $os->toLatLng();
         $latlng->OSGB36ToWGS84();
-        $line = str_replace($match, round($latlng->lat, 5) . ' ' . round($latlng->lng, 5), $line);
+        $line = str_replace($match, round($latlng->lng, 5) . ' ' . round($latlng->lat, 5), $line);
       }
       $fields['polygons'] = trim($line);
       fputcsv($w, $fields);
