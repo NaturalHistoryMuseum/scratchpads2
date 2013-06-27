@@ -11,8 +11,15 @@
  * CREATE TABLE IF NOT EXISTS temp_load (code INT(11), name VARCHAR(255), polygon LONGTEXT);
  * TRUNCATE temp_load;
  * LOAD DATA INFILE 'watson_vice_counties.csv' INTO TABLE temp_load FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"';
- * DELETE FROM cache_gm3_polygon WHERE cid = '1:10:GRB:GRB-OO:52';
- * UPDATE gm3_region_data SET polygons = (SELECT polygon FROM temp_load WHERE code = level_5_code);
+ * DELETE FROM cache_gm3_polygon WHERE cid LIKE '1:10:GRB:GRB-OO:%';
+ * UPDATE gm3_region_data SET polygons = (SELECT polygon FROM temp_load WHERE code = level_5_code) WHERE level_5_code IN (SELECT code FROM temp_load);
+ *
+ * Then you will need to rebuild the cache by requesting each polygon
+ *
+ * for i in $(seq 1 112)
+ * do
+ *   wget http://example.com/gm3_region/callback/1:10:GBR:GBR-00:$i -O /dev/null
+ * done
  */
 include "../phpcoord/phpcoord-2.3.php";
 $f = fopen('watson_vice_counties', 'r');
