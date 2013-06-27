@@ -110,6 +110,32 @@ class TestVocabulary implements VocabularyInterface{
   }
 
   /**
+   * Set a different structure we will use for merge tests, and increase the version
+   */
+  function testMergePrepare(){
+    $this->version++;
+    $this->structure = array(
+      'merge:remove:1' => 'Merge: remove + add, no rename',
+      'merge:remove:2' => 'Merge: remove + add, with rename',
+      'merge:remove:3' => 'Merge: remove + add, with reparent',
+      'merge:rename:1' => 'Merge: rename + remove',
+      'merge:rename:2' => 'Merge: rename + rename',
+      'merge:rename:3' => 'Merge: rename + reparent',
+      'merge:reparent:root' => array(
+        'label' => 'Merge: reparent root',
+        'children' => array()
+      ),
+      'merge:reparent:root:1' => array(
+        'label' => 'Merge: reparent root (1)',
+        'children' => array()
+      ),
+      'merge:reparent:1' => 'Merge: reparent + remove',
+      'merge:reparent:2' => 'Merge: reparent + rename',
+      'merge:reparent:3' => 'Merge: reparent + reparent'
+    );
+  }
+
+  /**
    * Prepare some updates that will cause update merges, and increase the version.
    * 
    */
@@ -120,9 +146,9 @@ class TestVocabulary implements VocabularyInterface{
     $this->structure['merge:add:2'] = 'Merge: add + rename';
     $this->structure['merge:add:3'] = 'Merge: add + reparent';
     // Remove
-    unset($this->structure['merge:remove:1']); // Remove + add test
-    unset($this->structure['merge:remove:2']); // Remove + add test
-    unset($this->structure['merge:remove:3']); // Remove + add test
+    unset($this->structure['merge:remove:1']);
+    unset($this->structure['merge:remove:2']);
+    unset($this->structure['merge:remove:3']);
     // Rename
     $this->structure['merge:rename:1'] = 'Merge: rename + remove, renamed';
     $this->structure['merge:rename:2'] = 'Merge: rename + rename, renamed';
@@ -149,7 +175,7 @@ class TestVocabulary implements VocabularyInterface{
     unset($this->structure['merge:add:3']);
     // Remove
     $this->structure['merge:remove:1'] = 'Merge: remove + add, no rename';
-    $this->structure['merge:remove:2'] = 'Merge: remove + add, with rename, RENAMED';
+    $this->structure['merge:remove:2'] = 'Merge: remove + add, with rename, renamed';
     $this->structure['merge:reparent:root']['children']['merge:remove:3'] = 'Merge: remove + add, with reparent';
     // Rename
     unset($this->structure['merge:rename:1']);
@@ -158,7 +184,7 @@ class TestVocabulary implements VocabularyInterface{
     unset($this->structure['merge:rename:3']);
     // Reparent
     unset($this->structure['merge:reparent:root']['children']['merge:reparent:1']);
-    $this->structure['merge:reparent:root']['children']['merge:reparent:2'] = 'Merge: reparent + rename, RENAMED';
+    $this->structure['merge:reparent:root']['children']['merge:reparent:2'] = 'Merge: reparent + rename, renamed';
     $this->structure['merge:reparent:root:1']['children']['merge:reparent:3'] = $this->structure['merge:reparent:root']['children']['merge:reparent:3'];
     unset($this->structure['merge:reparent:root']['children']['merge:reparent:3']);
   }

@@ -475,7 +475,8 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
       'subTestRename',
       'subTestReparent',
       'subTestRemove1',
-      'subTestRemove2'
+      'subTestRemove2',
+      'subTestMerge'
     );
     foreach($subtests as $subtest){
       $this->{$subtest}($voc, $field);
@@ -654,6 +655,60 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
       'number of updates' => 1,
       'entity limit' => $entity_limit
     ));
+  }
+
+  /**
+   * subTestMerge
+   *
+   * Test merging of updates
+   */
+  protected function subTestMerge($voc, $field){
+    // Reset the vocabulary for this test
+    $voc->testMergePrepare();
+    $field->upgradeStructure($voc);
+    $field->applyPendingUpdates();
+    $field->applyModifications();
+    // Now do two upgrades without applying anything
+    $voc->testMergeStart();
+    $field->upgradeStructure($voc);
+    $voc->testMergeEnd();
+    $field->upgradeStructure($voc);
+    // And test we have something sensible at the end.
+    $updates = $field->pendingUpdates();
+    $expected_updates = array(
+      ScratchpadsVocabularies\VocabularyUpdate::T_ADD => array(
+        'merge:add:2' => 'Merge: add + rename, renamed',
+        'merge:add:3' => 'Merge: add + reparent'
+      ),
+      ScratchpadsVocabularies\VocabularyUpdate::T_REMOVE => array(
+        'merge:rename:1' => 'Merge: rename + remove, renamed',
+        'merge:reparent:1' => 'Merge: reparent + remove'
+      ),
+      ScratchpadsVocabularies\VocabularyUpdate::T_RENAME => array(
+        'merge:remove:2' => 'Merge: remove + add, with rename, renamed',
+        'merge:rename:2' => 'Merge: rename + rename, renamed twice'
+      ),
+      ScratchpadsVocabularies\VocabularyUpdate::T_REPARENT => array(
+        'merge:remove:3' => 'Merge: remove + add, with reparent',
+        'merge:rename:3' => 'Merge: rename + reparent, renamed',
+        'merge:reparent:2' => 'Merge: reparent + rename, renamed',
+        'merge:reparent:3' => 'Merge: reparent + reparent' // XXX was in rename
+      )
+    );
+    $missing_other = 0;
+    foreach($updates as $update){
+      foreach($update->items() as $item_id => $label){
+        if(isset($expected_updates[$update->type()][$item_id]) && $expected_updates[$update->type()][$item_id] == $label){
+          unset($expected_updates[$update->type()][$item_id]);
+          if(empty($expected_updates[$update->type()])){
+            unset($expected_updates[$update->type()]);
+          }
+        }else{
+          $missing_other++;
+        }
+      }
+    }
+    $this->assertTrue(($missing_other == 0) && empty($expected_updates), "Merge test: ensure that updates are merged as expected");
   }
 
   /**

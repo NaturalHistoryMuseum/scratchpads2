@@ -81,18 +81,12 @@ class SelectFieldReceiver extends VocabularyReceiver{
         VocabularyUpdate::T_REPARENT => 'update'
       ),
       VocabularyUpdate::T_RENAME => array(
-        VocabularyUpdate::T_REMOVE => array(
-          'remove',
-          'keep'
-        ),
+        VocabularyUpdate::T_REMOVE => 'replace-old',
         VocabularyUpdate::T_RENAME => 'update',
-        VocabularyUpdate::T_REPARENT => 'update'
+        VocabularyUpdate::T_REPARENT => 'replace'
       ),
       VocabularyUpdate::T_REPARENT => array(
-        VocabularyUpdate::T_REMOVE => array(
-          'remove',
-          'keep'
-        ),
+        VocabularyUpdate::T_REMOVE => 'replace-old',
         VocabularyUpdate::T_RENAME => 'update',
         VocabularyUpdate::T_REPARENT => 'update'
       )
@@ -100,27 +94,32 @@ class SelectFieldReceiver extends VocabularyReceiver{
     // Loop over update items
     $new_items = $update->items();
     $new_updates = array();
+    $old_structure = $this->structure()->flatStructure();
     foreach($this->pendingUpdates as $existing_update){
       foreach($existing_update->items() as $id => $label){
         if(!isset($new_items[$id])){
           continue;
         }
         if(isset($actions[$existing_update->type()][$update->type()])){
-          $a = $actions[$existing_update->type()][$update->type()];
-          if(!is_array($a)){
-            $a = array(
-              $a
-            );
-          }
-          if($a[0] == 'remove'){
-            $existing_update->removeItem($id);
-          }else if($a[0] == 'update'){
-            $existing_update->updateItem($id, $new_items[$id]);
-          }
-          if(isset($a[1]) && $a[1] == 'keep'){
-            $new_updates[$update->type()][$id] = $new_items[$id];
+          // Generic action
+          switch($actions[$existing_update->type()][$update->type()]){
+            case 'remove':
+              $existing_update->removeItem($id);
+              break;
+            case 'update':
+              $existing_update->updateItem($id, $new_items[$id]);
+              break;
+            case 'replace':
+              $existing_update->removeItem($id);
+              $new_updates[$update->type()][$id] = $new_items[$id];
+              break;
+            case 'replace-old':
+              $existing_update->removeItem($id);
+              $new_updates[$update->type()][$id] = $old_structure[$id];
+              break;
           }
         }else if($existing_update->type() == VocabularyUpdate::T_REMOVE && $update->type() == VocabularyUpdate::T_ADD){
+          // Special case
           $existing_update->removeItem($id);
           if($existing_update->status() == VocabularyUpdate::S_STRUCTURE_APPLIED){
             // Remove the 'DELETED' from the field definition.      
