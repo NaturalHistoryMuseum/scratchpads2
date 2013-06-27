@@ -12,7 +12,7 @@ function silver_update_7001(){
 /**
  * Install the feeds_term_reference module.
  */
-function silver_update_7002(){
+function silver_update_7003(){
   module_enable(array(
     'feeds_term_reference'
   ));
