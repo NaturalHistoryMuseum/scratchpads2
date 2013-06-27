@@ -119,6 +119,9 @@ function gm3_region_update_7002(){
 /**
  * Update all gm3_region tables to update entries like ':::ITA-IT' to
  * '1:13:ITA:ITA-IT'
+ * 
+ * NOTE, this update really should have been in the gm3_region_field table, but
+ * given this module is a requirement of that one, it doesn't really matter.
  */
 function gm3_region_update_7004(){
   $results = db_select('gm3_region_data', 'g')->fields('g', array(
