@@ -73,6 +73,10 @@ function scratchpads_data_integrity_scratchpads_data_integrity(){
     'scratchpads_data_integrity_check_for_deleted_files' => array(
       'file' => 'scratchpads_data_integrity.inc',
       'frequency' => 604800
+    ),
+    'scratchpads_data_integrity_check_for_orphan_field_values' => array(
+      'file' => 'scratchpads_data_integrity.inc',
+      'frequency' => 604800
     )
   );
 }
