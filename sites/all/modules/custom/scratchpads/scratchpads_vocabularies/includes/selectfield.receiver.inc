@@ -297,10 +297,12 @@ class SelectFieldReceiver extends VocabularyReceiver{
     foreach($item_ids as $item_id){
       $efq = new EntityFieldQuery();
       $r = $efq->entityCondition('bundle', $this->field['bundles'])->fieldCondition($this->field['field_name'], 'value', $item_id, 'COLLATE utf8_bin =')->execute();
-      $result = array_merge_recursive($result, $r);
-    }
-    foreach($result as $type => $result_items){
-      $result[$type] = array_unique(array_keys($result_items));
+      foreach($r as $type => $entity_ids){
+        if(!isset($result[$type])){
+          $result[$type] = array();
+        }
+        $result[$type] = array_unique(array_merge($result[$type], array_keys($entity_ids)));
+      }
     }
     return $result;
   }
