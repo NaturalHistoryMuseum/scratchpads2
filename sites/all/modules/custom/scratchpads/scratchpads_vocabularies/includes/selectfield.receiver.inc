@@ -269,7 +269,7 @@ class SelectFieldReceiver extends VocabularyReceiver{
     if($update->type() !== VocabularyUpdate::T_REMOVE){return FALSE;}
     foreach($update->items() as $id => $label){
       $efq = new EntityFieldQuery();
-      $result = $efq->entityCondition('bundle', $this->field['bundles'])->fieldCondition($this->field['field_name'], 'value', $id)->execute();
+      $result = $efq->entityCondition('bundle', $this->field['bundles'])->fieldCondition($this->field['field_name'], 'value', $id, '=c')->addTag('scratchpads_case')->execute();
       if(!empty($result)){return TRUE;}
     }
     return FALSE;
@@ -296,7 +296,7 @@ class SelectFieldReceiver extends VocabularyReceiver{
     $result = array();
     foreach($item_ids as $item_id){
       $efq = new EntityFieldQuery();
-      $r = $efq->entityCondition('bundle', $this->field['bundles'])->fieldCondition($this->field['field_name'], 'value', $item_id)->execute();
+      $r = $efq->entityCondition('bundle', $this->field['bundles'])->fieldCondition($this->field['field_name'], 'value', $item_id, '=c')->addTag('scratchpads_case')->execute();
       $result = array_merge_recursive($result, $r);
     }
     foreach($result as $type => $result_items){
