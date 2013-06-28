@@ -288,6 +288,7 @@ function scratchpads_vocabularies_pending_update_form($form, &$form_state){
   $output = array();
   module_load_include('inc', 'scratchpads_vocabularies', 'includes/classes');
   $all_info = module_invoke_all('scratchpads_vocabulary_info');
+  $has_pending_updates = FALSE;
   foreach($all_info as $info_id => $info){
     list($vocabulary, $receiver) = _scratchpads_vocabularies_info_build($info);
     if(!$vocabulary || !$receiver || !count($receiver->pendingUpdates())){
@@ -295,6 +296,7 @@ function scratchpads_vocabularies_pending_update_form($form, &$form_state){
     }
     $update_table = array();
     foreach($receiver->pendingUpdates() as $update_id => $update){
+      $has_pending_updates = TRUE;
       // Work out why it's pending
       $modification = $update->modification();
       if(!$modification){
@@ -332,6 +334,10 @@ function scratchpads_vocabularies_pending_update_form($form, &$form_state){
         t('Action')
       ), $update_table)
     );
+  }
+  if (!$has_pending_updates) {
+    drupal_set_message(t('There are no pending updates at this time.'), 'info');
+    drupal_goto('admin/structure/vocabularies');
   }
   return $output;
 }

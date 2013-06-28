@@ -10,7 +10,7 @@ require_once str_replace('remap.modification.inc', 'classes.inc', __FILE__);
  */
 class RemapModification implements ModificationInterface{
 
-  const BATCH_SIZE = 20;
+  const BATCH_SIZE = 10;
 
   private $explanation;
 
