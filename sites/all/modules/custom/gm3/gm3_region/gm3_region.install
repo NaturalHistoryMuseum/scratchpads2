@@ -92,6 +92,26 @@ function gm3_region_schema(){
         'level_3_code',
         'level_2_code',
         'level_1_code'
+      ),
+      'indexes' => array(
+        'iso_code' => array(
+          'iso_code'
+        ),
+        'level_1_code' => array(
+          'level_1_code'
+        ),
+        'level_2_code' => array(
+          'level_2_code'
+        ),
+        'level_3_code' => array(
+          'level_3_code'
+        ),
+        'level_4_code' => array(
+          'level_4_code'
+        ),
+        'level_5_code' => array(
+          'level_5_code'
+        )
       )
     )
   );
@@ -207,4 +227,20 @@ function gm3_region_update_7009(){
   ))->execute();
   // Finally, we set the shape data.  This query is MySQL specific.
   db_query('UPDATE {gm3_region_data} SET mysql_polygons = POLYGONFROMTEXT(polygons)');
+}
+
+/**
+ * Add indexes to the tables
+ */
+function gm3_region_update_7010(){
+  $schema = gm3_region_schema();
+  foreach($schema['gm3_region_data']['indexes'] as $name => $fields){
+    try{
+      db_add_index('gm3_region_data', $name, $fields);
+    }
+    catch(Exception $e){
+      // Do nothing, the index probably already exists.
+      ;
+    }
+  }
 }
