@@ -145,26 +145,6 @@ function scratchpads_vocabularies_form_alter(&$form, &$form_state, $form_id){
 }
 
 /**
- * hook_query_TAG_alter
- *
- * Alter queries so that we can have case insensitive comparaisons with
- * EntityFieldQuery.
- */
-function scratchpads_vocabularies_query_scratchpads_case_alter($query){
-  $conditions = & $query->conditions();
-  foreach($conditions as $index => $condition){
-    if(is_array($condition) && $condition['operator'] == '=c'){
-      $placeholder = ':db_condition_placeholder_' . $query->nextPlaceHolder();
-      $conditions[$index]['field'] = 'CAST(' . $conditions[$index]['field'] . ' AS BINARY) = ' . $placeholder;
-      $conditions[$index]['value'] = array(
-        $placeholder => $conditions[$index]['value']
-      );
-      $conditions[$index]['operator'] = NULL;
-    }
-  }
-}
-
-/**
  * scratchpads_vocabularies_scratchpads_vocabulary_info
  * 
  * Implements hook_scratchpads_vocabulary_info
