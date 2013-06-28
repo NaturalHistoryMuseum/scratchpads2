@@ -25,6 +25,7 @@ features[variable][] = "comment_subject_field_group"
 features[variable][] = "node_options_group"
 features[variable][] = "og_group_content_type_group"
 features[variable][] = "og_group_type_page"
+files[] = scratchpads_groups.test
 name = Groups
 package = Groups
 description = Enable users to create and manage their own 'groups'.<br/><span class="error">Enabling this feature will have an adverse effect on the performance of your site, only enable if you are certain you need this functionality.</span>

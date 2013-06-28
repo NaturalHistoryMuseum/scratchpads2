@@ -5,3 +5,4 @@ core = 7.x
 package = GBIF Registry
 dependencies[] = gbif_registry
 php = 5.3
+files[] = scratchpads_gbif_registry_client.test
