@@ -79,11 +79,13 @@
         }
         // Hide empty content
         $has_content = FALSE;
-        foreach (element_children($content[$term_field]) as $key) {
-          $elem = $content[$term_field][$key];
-          if (!isset($elem['#markup']) || !empty($elem['#markup'])) {
-            $has_content = TRUE;
-            break;
+        if(isset($content[$term_field]) && is_array($content[$term_field])){
+          foreach (element_children($content[$term_field]) as $key) {
+            $elem = $content[$term_field][$key];
+            if (!isset($elem['#markup']) || !empty($elem['#markup'])) {
+              $has_content = TRUE;
+              break;
+            }
           }
         }
         if (!$has_content) {
