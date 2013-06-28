@@ -3,11 +3,11 @@
  * Use the ogrinfo command to extract the data from the shapefile into a text
  * file.  This can then be parsed with the function below to create a much more
  * usable CSV file.
- * 
+ *
  * $ ogrinfo file.shp layer_name > watson_vice_counties
- * 
+ *
  * Note, this function is never called, it's here to help update the data.
- * 
+ *
  * CREATE TABLE IF NOT EXISTS temp_load (code INT(11), name VARCHAR(255), polygon LONGTEXT);
  * TRUNCATE temp_load;
  * LOAD DATA INFILE 'watson_vice_counties.csv' INTO TABLE temp_load FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"';
@@ -16,10 +16,16 @@
  *
  * Then you will need to rebuild the cache by requesting each polygon
  *
- * for i in $(seq 1 112)
- * do
- *   wget http://example.com/gm3_region/callback/1:10:GBR:GBR-00:$i -O /dev/null
- * done
+ * $ for i in $(seq 1 112)
+ * $ do
+ * $   wget http://example.com/gm3_region/callback/1:10:GRB:GRB-00:$i -O /dev/null
+ * $ done
+ *
+ * To update the SQL files, simply dump the database tables.
+ * UPDATE gm3_region_data SET mysql_polygons = '';
+ * $ mysqldump databasename gm3_region_data cache_gm3_polygon | grep ^INSERT | sed "s/{/LBRACE/g;s/}/RBRACE/g;s/LBRACE/{/;s/RBRACE/}/" > regions.sql
+ * $ split -l1 -d -a3 regions.sql sql_files/regions.sql.
+ * UPADTE gm3_region_data SET mysql_polygons = POLYGONFROMTEXT(polygons);
  */
 include "../phpcoord/phpcoord-2.3.php";
 $f = fopen('watson_vice_counties', 'r');
