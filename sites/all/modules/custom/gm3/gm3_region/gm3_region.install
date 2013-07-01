@@ -216,7 +216,9 @@ function gm3_region_update_7009(){
   $path = drupal_get_path('module', 'gm3_region') . '/region_data/sql_files/';
   foreach(scandir($path) as $file){
     if(is_file($path . $file)){
-      db_query(file_get_contents($path . $file));
+      $gz = gzopen($path . $file, 'r');
+      db_query(gzread($gz, 7000000));
+      gzclose($gz);
     }
   }
   db_update('cache_gm3_polygon')->expression('data', "REPLACE(data, 'LBRACE', :lbrace)", array(
