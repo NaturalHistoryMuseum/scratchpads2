@@ -31,27 +31,8 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
   $point_wkt = "POINT({$latlng[1]} {$latlng[0]})";
   $results = db_query("SELECT CONCAT(level_1_code, ':', level_2_code, ':', level_3_code, ':', level_3_code, '-', level_4_code,':', level_5_code) as code 
                        FROM {gm3_region_data} WHERE WITHIN(POINTFROMTEXT('$point_wkt'), mysql_polygons) AND level_5_code != ''", array(
-    ':iso_code' => $iso_codes,
     ':point_wkt' => $point_wkt
   ));
-  if($results->rowCount() != 1){
-    $level = 4;
-    $results = db_query("SELECT CONCAT(level_1_code, ':', level_2_code, ':', level_3_code, ':', level_3_code, '-', level_4_code) as code 
-                       FROM {gm3_region_data} WHERE WITHIN(POINTFROMTEXT('$point_wkt'), mysql_polygons) AND level_4_code != ''", array(
-      ':iso_code' => $iso_codes,
-      ':point_wkt' => $point_wkt
-    ));
-  }
-  // FIXME - The following code caused issues when trying to select Sardinia
-  // (which is actually marked as Corsica in the TDWG data set).  Until the bug
-  // with the dataset, or with MySQL is fixed, this code can not be used.
-  /*if($results->rowCount() > 1){
-    $results = db_query("SELECT CONCAT(level_1_code, ':', level_2_code, ':', level_3_code, ':', level_3_code, '-', level_4_code) as code
-        FROM {gm3_region_data} WHERE WITHIN(POINTFROMTEXT(:point_wkt), mysql_polygons) AND level_4_code != '' AND iso_code IN (:iso_code)", array(
-      ':iso_code' => $iso_codes,
-      ':point_wkt' => $point_wkt
-    ));
-  }*/
   if($results->rowCount() == 1){
     // We've had success with our trimmed down method. WOOT!
     $results = $results->fetch();
@@ -67,7 +48,7 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
     ajax_footer();
     exit();
   }else if($results->rowCount() > 1){
-    $results = db_query("SELECT * FROM {gm3_region_data} WHERE WITHIN(POINTFROMTEXT(:point_wkt), mysql_polygons) AND level_4_code != '' AND iso_code IN (:iso_code)", array(
+    $results = db_query("SELECT * FROM {gm3_region_data} WHERE WITHIN(POINTFROMTEXT(:point_wkt), mysql_polygons) AND level_5_code != '' AND iso_code IN (:iso_code) ORDER BY level_5_code DESC", array(
       ':iso_code' => $iso_codes,
       ':point_wkt' => $point_wkt
     ));
@@ -110,32 +91,16 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
   $point = geoPHP::load($point_wkt, 'wkt');
   foreach($iso_codes as $iso_code){
     // Loop through each Level 4 region.
-    // If the iso_code is UK, then we should look for the vice counties
-    if($iso_code == 'UK'){
-      $region_id = '';
-      $level4s = db_select('gm3_region_data', 'g')->fields('g')->condition('level_5_code', '', '!=')->execute();
-      $level_2_codes = array();
-      foreach($level4s as $level4){
-        $level_2_codes[$level4->level_2_code] = $level4->level_2_code;
-        $polygon = $wkt_reader->read($level4->polygons, TRUE);
-        if($point->within($polygon)){
-          $region_id = "{$level4->level_1_code}:{$level4->level_2_code}:{$level4->level_3_code}:{$level4->level_3_code}-{$level4->level_4_code}";
-          // Stop on the first match.
-          break;
-        }
-      }
-    }else{
-      $region_id = '';
-      $level4s = db_select('gm3_region_data', 'g')->fields('g')->condition('level_4_code', '', '!=')->condition('iso_code', $iso_code, 'LIKE')->execute();
-      $level_2_codes = array();
-      foreach($level4s as $level4){
-        $level_2_codes[$level4->level_2_code] = $level4->level_2_code;
-        $polygon = $wkt_reader->read($level4->polygons, TRUE);
-        if($point->within($polygon)){
-          $region_id = "{$level4->level_1_code}:{$level4->level_2_code}:{$level4->level_3_code}:{$level4->level_3_code}-{$level4->level_4_code}";
-          // Stop on the first match.
-          break;
-        }
+    $region_id = '';
+    $level5s = db_select('gm3_region_data', 'g')->fields('g')->condition('level_5_code', '', '!=')->execute();
+    $level_2_codes = array();
+    foreach($level5s as $level5){
+      $level_2_codes[$level5->level_2_code] = $level5->level_2_code;
+      $polygon = $wkt_reader->read($level5->polygons, TRUE);
+      if($point->within($polygon)){
+        $region_id = "{$level5->level_1_code}:{$level5->level_2_code}:{$level5->level_3_code}:{$level5->level_3_code}-{$level5->level_4_code}";
+        // Stop on the first match.
+        break;
       }
     }
     if(!$region_id){
@@ -143,11 +108,11 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
       // iso_code
       // being null, so instead we search by the level_2_code.
       foreach($level_2_codes as $level_2_code){
-        $level4s = db_select('gm3_region_data', 'g')->fields('g')->condition('level_4_code', '', '!=')->condition('level_2_code', $level_2_code)->execute();
-        foreach($level4s as $level4){
-          $polygon = $wkt_reader->read($level4->polygons, TRUE);
+        $level5s = db_select('gm3_region_data', 'g')->fields('g')->condition('level_5_code', '', '!=')->condition('level_2_code', $level_2_code)->execute();
+        foreach($level5s as $level5){
+          $polygon = $wkt_reader->read($level5->polygons, TRUE);
           if($point->within($polygon)){
-            $region_id = "{$level4->level_1_code}:{$level4->level_2_code}:{$level4->level_3_code}:{$level4->level_3_code}-{$level4->level_4_code}";
+            $region_id = "{$level5->level_1_code}:{$level5->level_2_code}:{$level5->level_3_code}:{$level5->level_3_code}-{$level5->level_4_code}";
             // stop on the first match
             break 2;
           }

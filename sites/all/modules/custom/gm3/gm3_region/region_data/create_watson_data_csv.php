@@ -26,6 +26,10 @@
  * $ mysqldump databasename cache_gm3_polygon gm3_region_data | grep ^INSERT | sed "s/{/LBRACE/g;s/}/RBRACE/g;s/\`gm3_region_data\`/{gm3_region_data}/;s/\`cache_gm3_polygon\`/{cache_gm3_polygon}/" > regions.sql
  * $ split -l1 -d -a3 regions.sql sql_files/regions.sql.
  * UPDATE gm3_region_data SET mysql_polygons = POLYGONFROMTEXT(polygons);
+ * 
+ * Note.  Depending on the order of the columns in the gm3_region_data table, you may need to add something like
+ *
+ * $ sed "s/VALUES/(name, continent, iso_code, level_4_code, level_3_code, level_2_code, level_1_code, polygons, mysql_polygons, level_5_code) VALUES/" regions.sql -i
  */
 include "../phpcoord/phpcoord-2.3.php";
 $f = fopen('watson_vice_counties', 'r');

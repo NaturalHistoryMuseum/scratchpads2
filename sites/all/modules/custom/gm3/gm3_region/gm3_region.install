@@ -10,7 +10,14 @@ function gm3_region_install(){
   // Ensure that Memcache isn't used for the cache_gm3_polygon bin
   gm3_region_update_7007();
   // Load the data into the tables.
-  gm3_region_update_7009();
+  $sandbox = array(
+    '#finished' => FALSE
+  );
+  while(!$sandbox['#finished']){
+    gm3_region_update_7009($sandbox);
+  }
+  // Tweak the data a little
+  gm3_region_update_7011();
 }
 
 /**
@@ -213,6 +220,9 @@ function gm3_region_update_7008(){
  * Load the data.
  */
 function gm3_region_update_7009(&$sandbox){
+  // If this is being run on Quartz, then it is highly likely that the data has
+  // been loaded already.  We get a count of the cache table to check.
+  db_query('SELECT COUNT(*) FROM {cache_gm3_polygon}')
   $path = drupal_get_path('module', 'gm3_region') . '/region_data/sql_files/';
   if(empty($sandbox['files_to_load'])){
     // Empty the two tables first.
@@ -264,4 +274,18 @@ function gm3_region_update_7010(){
       ;
     }
   }
+}
+
+/**
+ * Set the Level-4 "OO" regions to be level 5 regions, which will make the
+ * querying much easier.
+ * Add the iso_code to VC regions.
+ */
+function gm3_region_update_7011(){
+  db_update('gm3_region_data')->fields(array(
+    'level_5_code' => '00'
+  ))->condition('level_5_code', '')->condition('level_4_code', 'OO')->execute();
+  db_update('gm3_region_data')->fields(array(
+    'iso_code' => 'UK'
+  ))->condition('level_5_code', '00', '!=')->condition('level_5_code', '', '!=')->execute();
 }
