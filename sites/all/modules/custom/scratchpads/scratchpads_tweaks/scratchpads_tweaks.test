@@ -64,6 +64,25 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
     }
   }
 
+  public function getAdminPermissions(){
+    return array(
+      'access content',
+      'access administration pages',
+      'administer site configuration',
+      'administer users',
+      'administer permissions',
+      'administer content types',
+      'administer nodes',
+      'bypass node access',
+      'access overlay',
+      'access content overview',
+      'view the administration theme',
+      'access all views',
+      'administer comments',
+      'administer front page'
+    );
+  }
+
   public function machine_name($human_name){
     $machine_readable = strtolower($human_name);
     $machine_readable = preg_replace('@[^a-z0-9_]+@', '_', $machine_readable);
@@ -74,52 +93,50 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
    *  Modified version of drupalPost.
    *  Allows you to assert that a post will fail
    */
-  protected function drupalAssertPostFail($path, $edit, $submit, array $options = array(), array $headers = array(), $form_html_id = NULL, $extra_post = NULL) {
+  protected function drupalAssertPostFail($path, $edit, $submit, array $options = array(), array $headers = array(), $form_html_id = NULL, $extra_post = NULL){
     $submit_matches = FALSE;
     $ajax = is_array($submit);
-    if (isset($path)) {
+    if(isset($path)){
       $this->drupalGet($path, $options);
     }
-    if ($this->parse()) {
+    if($this->parse()){
       $edit_save = $edit;
       // Let's iterate over all the forms.
       $xpath = "//form";
-      if (!empty($form_html_id)) {
+      if(!empty($form_html_id)){
         $xpath .= "[@id='" . $form_html_id . "']";
       }
       $forms = $this->xpath($xpath);
-      foreach ($forms as $form) {
+      foreach($forms as $form){
         // We try to set the fields of this form as specified in $edit.
         $edit = $edit_save;
         $post = array();
         $upload = array();
         $submit_matches = $this->handleForm($post, $edit, $upload, $ajax ? NULL : $submit, $form);
-        $action = isset($form['action']) ? $this->getAbsoluteUrl((string) $form['action']) : $this->getUrl();
-        if ($ajax) {
+        $action = isset($form['action']) ? $this->getAbsoluteUrl((string)$form['action']) : $this->getUrl();
+        if($ajax){
           $action = $this->getAbsoluteUrl(!empty($submit['path']) ? $submit['path'] : 'system/ajax');
           // Ajax callbacks verify the triggering element if necessary, so while
           // we may eventually want extra code that verifies it in the
           // handleForm() function, it's not currently a requirement.
           $submit_matches = TRUE;
         }
-  
         // We post only if we managed to handle every field in edit and the
         // submit button matches.
-        if (!$edit && ($submit_matches || !isset($submit))) {
+        if(!$edit && ($submit_matches || !isset($submit))){
           $post_array = $post;
-          if ($upload) {
+          if($upload){
             // TODO: cURL handles file uploads for us, but the implementation
             // is broken. This is a less than elegant workaround. Alternatives
             // are being explored at #253506.
-            foreach ($upload as $key => $file) {
+            foreach($upload as $key => $file){
               $file = drupal_realpath($file);
-              if ($file && is_file($file)) {
+              if($file && is_file($file)){
                 $post[$key] = '@' . $file;
               }
             }
-          }
-          else {
-            foreach ($post as $key => $value) {
+          }else{
+            foreach($post as $key => $value){
               // Encode according to application/x-www-form-urlencoded
               // Both names and values needs to be urlencoded, according to
               // http://www.w3.org/TR/html4/interact/forms.html#h-17.13.4.1
@@ -127,32 +144,39 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
             }
             $post = implode('&', $post) . $extra_post;
           }
-          $out = $this->curlExec(array(CURLOPT_URL => $action, CURLOPT_POST => TRUE, CURLOPT_POSTFIELDS => $post, CURLOPT_HTTPHEADER => $headers));
+          $out = $this->curlExec(array(
+            CURLOPT_URL => $action,
+            CURLOPT_POST => TRUE,
+            CURLOPT_POSTFIELDS => $post,
+            CURLOPT_HTTPHEADER => $headers
+          ));
           // Ensure that any changes to variables in the other thread are picked up.
           $this->refreshVariables();
-  
           // Replace original page output with new output from redirected page(s).
-          if ($new = $this->checkForMetaRefresh()) {
+          if($new = $this->checkForMetaRefresh()){
             $out = $new;
           }
           $this->verbose('POST request to: ' . $path . '<hr />Ending URL: ' . $this->getUrl() . '<hr />Fields: ' . highlight_string('<?php ' . var_export($post_array, TRUE), TRUE) . '<hr />' . $out);
-          
           $this->fail('Post request successful when fail asserted');
-          
           return $out;
         }
       }
       // We have not found a form which contained all fields of $edit.
-      foreach ($edit as $name => $value) {
-        $this->pass(t('Fail asserted - failed to set field @name to @value', array('@name' => $name, '@value' => $value)));
+      foreach($edit as $name => $value){
+        $this->pass(t('Fail asserted - failed to set field @name to @value', array(
+          '@name' => $name,
+          '@value' => $value
+        )));
       }
-      if (!$ajax && isset($submit)) {
-        $this->assertTrue($submit_matches, t('Found the @submit button', array('@submit' => $submit)));
+      if(!$ajax && isset($submit)){
+        $this->assertTrue($submit_matches, t('Found the @submit button', array(
+          '@submit' => $submit
+        )));
       }
       //$this->pass(t('Found the requested form fields at @path', array('@path' => $path)));
     }
   }
-  
+
   /**
    * We set the legal_accepted on the user so that login passes.
    */

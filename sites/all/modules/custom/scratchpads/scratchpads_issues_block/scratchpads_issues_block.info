@@ -6,3 +6,4 @@ dependencies[] = uwho_client
 dependencies[] = aggregator
 dependencies[] = blockexpose
 dependencies[] = remote_issue_tab
+files[] = scratchpads_issues_block.test

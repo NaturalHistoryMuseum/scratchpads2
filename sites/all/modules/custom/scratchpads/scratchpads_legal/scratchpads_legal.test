@@ -11,7 +11,7 @@ class scratchpads_legalTestCase extends ScratchpadsTweaksTestCase{
 
   public static function getInfo(){
     return array(
-      'name' => 'scratchpadsn Legal',
+      'name' => 'Scratchpads Legal',
       'description' => 'Tests that the legal text appears on the legal page',
       'group' => 'Scratchpads'
     );
