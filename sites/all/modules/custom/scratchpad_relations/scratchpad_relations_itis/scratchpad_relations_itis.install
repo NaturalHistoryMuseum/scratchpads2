@@ -12,5 +12,32 @@ function scratchpad_relations_itis_enable(){
 }
 
 function scratchpad_relations_itis_disable(){
- 
+  module_load_include('fields.inc', 'scratchpad_relations_itis');
+  /*
+   *   watchdog('debug', '<pre> entities ' . print_r($entities, TRUE) . '</pre>');
+  */
+  $biological_vids = variable_get('biological_vids', array());
+  $vocabularies = entity_load('taxonomy_vocabulary', array_keys($biological_vids));
+  foreach($vocabularies as $vid => $vocabulary){
+    foreach(scratchpad_relations_itis_fields($vocabulary->vid) as $field){
+      // delete the field if it hasn't already been deleted.
+      //  if(field_info_field($field['field_config']['field_name'])){
+      //    field_delete_field($field['field_config']['field_name']);
+      //  }
+      watchdog('debug', '<pre> field_name ' . print_r($field['field_config']['field_name'], TRUE) . '</pre>');
+      if(field_info_instance('tanonomy_term', $field['field_config']['field_name'], $vocabulary->machine_name)){
+        $field['field_instance']['bundle'] = $vocabulary->machine_name;
+        field_delete_instance($field['field_instance']);
+      }
+      watchdog('debug', '<pre> field_instance ' . print_r($field['field_instance'], TRUE) . '</pre>');
+    }
+    foreach(scratchpad_relations_itis_groups($vocabulary->vid) as $group){
+      $group['bundle'] = $vocabulary->machine_name;
+      $group['identifier'] = "{$group['group_name']}|{$group['bundle']}";
+      $group = (object)$group;
+      ctools_include('export');
+      watchdog('debug', '<pre> group ' . print_r($group, TRUE) . '</pre>');
+      field_group_group_export_delete($group, FALSE);
+    }
+  }
 }
