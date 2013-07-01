@@ -23,7 +23,14 @@ function scratchpad_relations_itis_disable(){
       // Deleting instance.
       $field['field_instance']['bundle'] = $vocabulary->machine_name;
       field_delete_instance($field['field_instance']);
+      if(field_info_field($field['field_config']['field_name'])){
+        field_delete_field($field['field_config']['field_name']);
+        watchdog('debug', '<pre> Deleted ' . print_r($field['field_config']['field_name'], TRUE) . '</pre>');
+        
+      }
     }
+    // -- Definitive delete
+    field_purge_batch(1000);
     foreach(scratchpad_relations_itis_groups($vocabulary->vid) as $group){
       $group['bundle'] = $vocabulary->machine_name;
       $group['identifier'] = "{$group['group_name']}|{$group['bundle']}";
@@ -32,5 +39,4 @@ function scratchpad_relations_itis_disable(){
       field_group_group_export_delete($group, FALSE);
     }
   }
-  field_purge_batch(10);
 }
