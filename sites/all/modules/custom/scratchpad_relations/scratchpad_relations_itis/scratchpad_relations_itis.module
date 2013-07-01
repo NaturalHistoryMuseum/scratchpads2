@@ -27,11 +27,6 @@ function scratchpad_relations_itis_create_vocabulary($vocabulary){
   }
   foreach(scratchpad_relations_itis_groups($vocabulary->vid) as $group){
     $group['bundle'] = $vocabulary->machine_name;
-    foreach($group['children'] as $key => $child){
-      if(in_array($child, $field_names_in_groups_to_change)){
-        $group['children'][$key] .= "_" . $vocabulary->machine_name;
-      }
-    }
     $group['identifier'] = "{$group['group_name']}|{$group['bundle']}";
     $group = (object)$group;
     field_group_group_save($group);
@@ -39,10 +34,10 @@ function scratchpad_relations_itis_create_vocabulary($vocabulary){
   //Now add the new group to the groups in itis_term
   module_load_include('fields.inc', 'itis_term');
   foreach(itis_term_groups($vocabulary->machine_name) as $itis_group){
-    foreach(scratchpad_relations_itis_groups($vocabulary->vid) as $em_group){
-      if($em_group['parent_name'] == $itis_group['group_name']){
+    foreach(scratchpad_relations_itis_groups($vocabulary->vid) as $rel_group){
+      if($rel_group['parent_name'] == $itis_group['group_name']){
         $group = field_group_load_field_group($itis_group['group_name'], 'taxonomy_term', $vocabulary->machine_name, 'form');
-        $group->children[] = $em_group['group_name'];
+        $group->children[] = $rel_group['group_name'];
         field_group_group_save($group);
       }
     }
