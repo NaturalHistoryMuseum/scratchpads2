@@ -29,13 +29,6 @@ function scratchpad_relations_itis_groups($vid){
 }
 
 /**
- * Additional fields that are unique per vocabulary
- */
-function scratchpad_relations_itis_fields_per_vocabulary(){
-  return array();
-}
-
-/**
  * Simply returns an array of fields
  */
 function scratchpad_relations_itis_fields(){

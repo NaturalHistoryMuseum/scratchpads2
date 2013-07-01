@@ -11,48 +11,6 @@ function scratchpad_relations_itis_enable(){
   ));
 }
 
-function scratchpad_relations_itis_uninstallOLD(){
-  field_attach_delete_bundle('spproduct', 'spproduct');
-  field_delete_field('field_spproduct_image');
-  field_purge_batch(10);
-}
-
 function scratchpad_relations_itis_disable(){
-  $biological_vids = variable_get('biological_vids', array());
-  $entities = entity_load('taxonomy_vocabulary', array_keys($biological_vids));
-  $entity_type = 'taxonomy_term';
-  $field = 'field_ecological_relationship';
-  $group = 'group_ecological_relationship';
-  /*
-   *   watchdog('debug', '<pre> entities ' . print_r($entities, TRUE) . '</pre>');
-   */
-  foreach($entities as $vid => $entity){
-    $bundle = $entity->machine_name;
-    if($group = field_group_load_field_group($group, $entity_type, $bundle, 'form')){
-      ctools_include('export');
-      field_group_group_export_delete($group, FALSE);
-      $instance = field_info_instance($entity_type, $field, $bundle);
-      $count_instances = count($instance);
-      if(!empty($instance)){
-        field_delete_instance($instance);
-        watchdog('Taxonomy', 'Deleted field_ecological_relationship field %count from %taxonomy: ', array(
-          '%count' => $count_instances,
-          '%taxonomy' => $bundle
-        ));
-      }
-    } else {
-      watchdog('Taxonomy', 'NO field_ecological_relationship field from %taxonomy: ', array(
-      '%taxonomy' => $bundle
-      ));
-    }
-    // Fields are purged on cron. However field module prevents disabling modules
-    // when field types they provided are used in a field until it is fully
-    // purged. In the case that a field has minimal or no content, a single call
-    // to field_purge_batch() will remove it from the system. Call this with a
-    // low batch limit to avoid administrators having to wait for cron runs when
-    // removing instances that meet this criteria.
-    field_purge_batch(10);
-    
-     
-  }
+ 
 }
