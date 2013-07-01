@@ -29,7 +29,7 @@ function scratchpad_relations_itis_create_vocabulary($vocabulary){
     $group['bundle'] = $vocabulary->machine_name;
     $group['identifier'] = "{$group['group_name']}|{$group['bundle']}";
     $group = (object)$group;
-    field_group_group_save($group);
+    field_group_group_save($group);    
   }
   //Now add the new group to the groups in itis_term
   module_load_include('fields.inc', 'itis_term');

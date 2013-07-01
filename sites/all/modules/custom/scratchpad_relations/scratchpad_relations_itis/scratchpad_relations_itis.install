@@ -20,12 +20,9 @@ function scratchpad_relations_itis_disable(){
   $vocabularies = entity_load('taxonomy_vocabulary', array_keys($biological_vids));
   foreach($vocabularies as $vid => $vocabulary){
     foreach(scratchpad_relations_itis_fields($vocabulary->vid) as $field){
-      // delete the field if it hasn't already been deleted.
-      //  field_delete_instance deletes field and instances
-      if(field_info_instance('tanonomy_term', $field['field_config']['field_name'], $vocabulary->machine_name)){
-        $field['field_instance']['bundle'] = $vocabulary->machine_name;
-        field_delete_instance($field['field_instance']);
-      }
+      // Deleting instance.
+      $field['field_instance']['bundle'] = $vocabulary->machine_name;
+      field_delete_instance($field['field_instance']);
     }
     foreach(scratchpad_relations_itis_groups($vocabulary->vid) as $group){
       $group['bundle'] = $vocabulary->machine_name;
