@@ -21,9 +21,7 @@ function scratchpad_relations_itis_disable(){
   foreach($vocabularies as $vid => $vocabulary){
     foreach(scratchpad_relations_itis_fields($vocabulary->vid) as $field){
       // delete the field if it hasn't already been deleted.
-      //  if(field_info_field($field['field_config']['field_name'])){
-      //    field_delete_field($field['field_config']['field_name']);
-      //  }
+      //  field_delete_instance deletes field and instances
       watchdog('debug', '<pre> field_name ' . print_r($field['field_config']['field_name'], TRUE) . '</pre>');
       if(field_info_instance('tanonomy_term', $field['field_config']['field_name'], $vocabulary->machine_name)){
         $field['field_instance']['bundle'] = $vocabulary->machine_name;
@@ -40,4 +38,7 @@ function scratchpad_relations_itis_disable(){
       field_group_group_export_delete($group, FALSE);
     }
   }
+  
+  field_purge_batch(10);
+  
 }
