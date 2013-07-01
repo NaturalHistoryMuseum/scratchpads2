@@ -11,9 +11,9 @@ function gm3_region_install(){
   gm3_region_update_7007();
   // Load the data into the tables.
   $sandbox = array(
-    '#finished' => FALSE
+    '#finished' => 0
   );
-  while(!$sandbox['#finished']){
+  while($sandbox['#finished'] < 1){
     gm3_region_update_7009($sandbox);
   }
   // Tweak the data a little
