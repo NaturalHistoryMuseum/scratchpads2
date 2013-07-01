@@ -142,28 +142,53 @@ function scratchpad_ecorelation_types_uninstall(){
 }
 
 function _scratchpad_ecorelation_delete_default_types(){
-  // get all the relationship_types (bundles), find all fields
-  // delete them
-  $db_or = db_or();
-  $db_or->condition('rb.entity_type', 'node', '=');
-  $db_or->condition('rb.entity_type', 'taxonomy_term', '=');
-  $query = db_select('relation_bundles', 'rb')->fields('rb', array(
-    'relation_type'
-  ))->condition($db_or)->distinct()->execute();
-  while($record = $query->fetchAssoc()){
-    $relationship_type[] = $record['relation_type'];
+  /* delete relationships and relation types */
+  $query = new EntityFieldQuery();
+  $results = $query->entityCondition('entity_type', 'relation')->execute();
+  if($results){
+    $rids = array_keys($results['relation']);
+    relation_delete_multiple($rids);
   }
-  foreach($relationship_type as $type){
-    // look into the database for each type
-    $relationship_query = db_select('relation', 'r')->fields('r', array(
-      'rid'
-    ))->condition('r.relation_type', $type)->execute();
-    while($result = $relationship_query->fetchAssoc()){
-      // delete all the relationships of that type
-      relation_delete($result['rid']);
+  $relation_types = relation_get_types();
+  /* 
+   * watchdog('debug', '<pre> instance '. print_r($relation_types, TRUE) .'</pre>');
+   * returns stdClass Object
+   (
+       [relation_type] => preysUpon_preyedUponBy
+       [label] => PreysUpon
+       [reverse_label] => PreyedUponBy
+       [directional] => 1
+       [transitive] => 0
+       [r_unique] => 0
+       [min_arity] => 2
+       [max_arity] => 2
+       [table] => relation_type
+       [type] => Normal
+       [export_type] => 1
+       [source_bundles] => Array
+       (
+           [0] => taxonomy_term:*
+       )
+
+       [target_bundles] => Array
+       (
+           [0] => taxonomy_term:*
+       )
+
+       [bundles_loaded] => 1
+   )
+  */
+  foreach($relation_types as $relation_type){
+    /* https://drupal.org/files/relation-cleanup-instances-1932164-1.patch */
+    if(field_read_instance('relation', 'endpoints', $relation_type->relation_type)){
+      $instance = array(
+        'field_name' => 'endpoints',
+        'entity_type' => 'relation',
+        'bundle' => $relation_type->relation_type
+      );
+      field_delete_instance($instance, FALSE);
     }
-    // finally delete the relationshp_type
-    relation_type_delete($type);
+    relation_type_delete($relation_type->relation_type);
   }
   entity_info_cache_clear();
 }
