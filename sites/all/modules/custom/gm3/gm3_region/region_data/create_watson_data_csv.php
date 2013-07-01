@@ -23,9 +23,9 @@
  *
  * To update the SQL files, simply dump the database tables.
  * UPDATE gm3_region_data SET mysql_polygons = '';
- * $ mysqldump databasename gm3_region_data cache_gm3_polygon | grep ^INSERT | sed "s/{/LBRACE/g;s/}/RBRACE/g;s/LBRACE/{/;s/RBRACE/}/" > regions.sql
+ * $ mysqldump databasename cache_gm3_polygon gm3_region_data | grep ^INSERT | sed "s/{/LBRACE/g;s/}/RBRACE/g;s/\`gm3_region_data\`/{gm3_region_data}/;s/\`cache_gm3_polygon\`/{cache_gm3_polygon}/" > regions.sql
  * $ split -l1 -d -a3 regions.sql sql_files/regions.sql.
- * UPADTE gm3_region_data SET mysql_polygons = POLYGONFROMTEXT(polygons);
+ * UPDATE gm3_region_data SET mysql_polygons = POLYGONFROMTEXT(polygons);
  */
 include "../phpcoord/phpcoord-2.3.php";
 $f = fopen('watson_vice_counties', 'r');
