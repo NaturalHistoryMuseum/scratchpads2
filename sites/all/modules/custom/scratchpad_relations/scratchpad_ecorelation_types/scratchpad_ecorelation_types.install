@@ -150,34 +150,6 @@ function _scratchpad_ecorelation_delete_default_types(){
     relation_delete_multiple($rids);
   }
   $relation_types = relation_get_types();
-  /* 
-   * watchdog('debug', '<pre> instance '. print_r($relation_types, TRUE) .'</pre>');
-   * returns stdClass Object
-   (
-       [relation_type] => preysUpon_preyedUponBy
-       [label] => PreysUpon
-       [reverse_label] => PreyedUponBy
-       [directional] => 1
-       [transitive] => 0
-       [r_unique] => 0
-       [min_arity] => 2
-       [max_arity] => 2
-       [table] => relation_type
-       [type] => Normal
-       [export_type] => 1
-       [source_bundles] => Array
-       (
-           [0] => taxonomy_term:*
-       )
-
-       [target_bundles] => Array
-       (
-           [0] => taxonomy_term:*
-       )
-
-       [bundles_loaded] => 1
-   )
-  */
   foreach($relation_types as $relation_type){
     /* https://drupal.org/files/relation-cleanup-instances-1932164-1.patch */
     if(field_read_instance('relation', 'endpoints', $relation_type->relation_type)){
