@@ -4,6 +4,7 @@ core = 7.x
 package="eMonocot"
 
 dependencies[] = scratchpads_tweaks
+dependencies[] = exif_custom
 
 dependencies[] = emonocot_biblio
 dependencies[] = emonocot_blocks
