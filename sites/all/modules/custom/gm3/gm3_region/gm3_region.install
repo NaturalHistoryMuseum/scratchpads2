@@ -212,23 +212,42 @@ function gm3_region_update_7008(){
 /**
  * Load the data.
  */
-function gm3_region_update_7009(){
+function gm3_region_update_7009(&$sandbox){
   $path = drupal_get_path('module', 'gm3_region') . '/region_data/sql_files/';
-  foreach(scandir($path) as $file){
+  if(empty($sandbox['files_to_load'])){
+    // Empty the two tables first.
+    db_delete('cache_gm3_polygon')->execute();
+    db_delete('gm3_region_data')->execute();
+    $sandbox['files_to_load'] = scandir($path);
+    $sandbox['total_files'] = count($sandbox['files_to_load']);
+  }
+  $i = 0;
+  while($i < 10 && count($sandbox['files_to_load'])){
+    $file = array_pop($sandbox['files_to_load']);
     if(is_file($path . $file)){
       $gz = gzopen($path . $file, 'r');
       db_query(gzread($gz, 7000000));
       gzclose($gz);
     }
+    $i++;
   }
-  db_update('cache_gm3_polygon')->expression('data', "REPLACE(data, 'LBRACE', :lbrace)", array(
-    ':lbrace' => '{'
-  ))->execute();
-  db_update('cache_gm3_polygon')->expression('data', "REPLACE(data, 'RBRACE', :rbrace)", array(
-    ':rbrace' => '}'
-  ))->execute();
-  // Finally, we set the shape data.  This query is MySQL specific.
-  db_query('UPDATE {gm3_region_data} SET mysql_polygons = POLYGONFROMTEXT(polygons)');
+  if(!count($sandbox['files_to_load'])){
+    db_update('cache_gm3_polygon')->expression('data', "REPLACE(data, 'LBRACE', :lbrace)", array(
+      ':lbrace' => '{'
+    ))->execute();
+    db_update('cache_gm3_polygon')->expression('data', "REPLACE(data, 'RBRACE', :rbrace)", array(
+      ':rbrace' => '}'
+    ))->execute();
+    // Finally, we set the shape data.  This query is MySQL specific.
+    db_query('UPDATE {gm3_region_data} SET mysql_polygons = POLYGONFROMTEXT(polygons)');
+    $sandbox['#finished'] = 1;
+  }else{
+    drupal_set_message(t('!remaining of !total files loaded into the GM3 Region tables', array(
+      '!remaining' => count($sandbox['files_to_load']),
+      '!total' => $sandbox['total_files']
+    )));
+    $sandbox['#finished'] = $sandbox['progress'] = count($sandbox['files_to_load']) / $sandbox['total_files'];
+  }
 }
 
 /**
