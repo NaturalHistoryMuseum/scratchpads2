@@ -3,4 +3,5 @@ description = Allows for querying and registration with a GBIF registry.
 core = 7.x
 files[] = GBIFRegistry.class.inc
 files[] = DrupalRegistryCache.class.inc
+files[] = gbif_registry.test
 package = GBIF Registry
