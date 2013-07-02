@@ -134,13 +134,6 @@ function scratchpad_ecorelation_types_disable(){
   _scratchpad_ecorelation_delete_default_types();
 }
 
-/**
-   * Implements hook_uninstall()
-   */
-function scratchpad_ecorelation_types_uninstall(){
-  _scratchpad_ecorelation_delete_default_types();
-}
-
 function _scratchpad_ecorelation_delete_default_types(){
   /* delete relationships and relation types */
   $query = new EntityFieldQuery();
@@ -162,5 +155,6 @@ function _scratchpad_ecorelation_delete_default_types(){
     }
     relation_type_delete($relation_type->relation_type);
   }
+  field_purge_batch(1000);
   entity_info_cache_clear();
 }
