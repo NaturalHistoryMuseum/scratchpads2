@@ -103,26 +103,22 @@ function emonocot_blocks_block_view_footer(){
     l(theme('image', array(
       'path' => drupal_get_path('module', 'scratchpads_blocks') . '/images/scratchpads.png',
       'alt' => 'Scratchpads logo',
-      'title' => 'Scratchpads'
+      'title' => 'Scratchpads TAG'
     )), 'http://scratchpads.eu/', $options)
   );
-  
-  
   //Nolinoideae site has extra logos
-  if (strstr($base_url, 'nolinoideae.e-monocot.org') != FALSE) {
-  	$links[] = l(theme('image', array(
-  	  'path' => drupal_get_path('module', 'emonocot_blocks') . '/images/LogoOB.png',
-  	  'alt' => 'Hortus Botanicus, Universitatis Posnaniensis logo',
-  	  'title' => 'Hortus Botanicus, Universitatis Posnaniensis'
-  	)), 'http://www.ogrod.edu.pl/info_eng.php', $options);
-  	$links[] = l(theme('image', array(
-  	  'path' => drupal_get_path('module', 'emonocot_blocks') . '/images/UAM.png',
-  	  'alt' => 'Hortus Botanicus, Universitatis Posnaniensis logo',
-  	  'title' => 'Hortus Botanicus, Universitatis Posnaniensis'
-  	)), 'http://amu.edu.pl/', $options);
+  if(strstr($base_url, 'nolinoideae.e-monocot.org') != FALSE){
+    $links[] = l(theme('image', array(
+      'path' => drupal_get_path('module', 'emonocot_blocks') . '/images/LogoOB.png',
+      'alt' => 'Hortus Botanicus, Universitatis Posnaniensis logo',
+      'title' => 'Hortus Botanicus, Universitatis Posnaniensis'
+    )), 'http://www.ogrod.edu.pl/info_eng.php', $options);
+    $links[] = l(theme('image', array(
+      'path' => drupal_get_path('module', 'emonocot_blocks') . '/images/UAM.png',
+      'alt' => 'Hortus Botanicus, Universitatis Posnaniensis logo',
+      'title' => 'Hortus Botanicus, Universitatis Posnaniensis'
+    )), 'http://amu.edu.pl/', $options);
   }
-  
-  
   drupal_alter('footer_logos', $links);
   $block['content'] = array(
     '#theme' => 'item_list',
