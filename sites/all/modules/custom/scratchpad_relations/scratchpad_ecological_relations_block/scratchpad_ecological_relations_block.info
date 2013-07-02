@@ -1,7 +1,7 @@
 name = "Scratchpad ecological relations block"
 description = "Block of species ecological relations to display on the species taxonomy page"
 core = "7.x"
-package = "AAA Relation"
+package = "Relation"
 dependencies[] = "context"
 dependencies[] = "ctools"
 dependencies[] = "views"
