@@ -1,12 +1,8 @@
 <?php
 
-/**
- * Implements hook_enable().
- * This is used when the module is turned on via the tools selection method
- */
-function scratchpad_ecorelation_types_enable(){
-  // Add default relationships
-  $relation_types_info = array(
+function scratchpad_ecorelation_default_types(){
+  // Add default relationship types
+  $default_relation_types = array(
     array(
       'relation_type' => 'host_parasite',
       'label' => t('HostOf'),
@@ -120,8 +116,19 @@ function scratchpad_ecorelation_types_enable(){
       )
     )
   );
-  foreach($relation_types_info as $relation_type_info){
-    relation_type_save($relation_type_info);
+  return $default_relation_types;
+}
+
+/**
+ * Implements hook_enable().
+ * This is used when the module is turned on via the tools selection method
+ */
+function scratchpad_ecorelation_types_enable(){
+  $default_relation_types = scratchpad_ecorelation_default_types();
+  foreach($default_relation_types as $default_relation_type){
+    if(!relation_get_types($default_relation_type)){
+      relation_type_save($default_relation_type);
+    }
   }
 }
 
@@ -135,25 +142,27 @@ function scratchpad_ecorelation_types_disable(){
 }
 
 function _scratchpad_ecorelation_delete_default_types(){
+  $default_relation_types = scratchpad_ecorelation_default_types();
   /* delete relationships and relation types */
   $query = new EntityFieldQuery();
-  $results = $query->entityCondition('entity_type', 'relation')->execute();
+  $results = $query->entityCondition('entity_type', 'relation')->propertyCondition('relation_type', $default_relation_types, 'IN')->execute();
   if($results){
     $rids = array_keys($results['relation']);
     relation_delete_multiple($rids);
   }
   $relation_types = relation_get_types();
-  foreach($relation_types as $relation_type){
-    /* https://drupal.org/files/relation-cleanup-instances-1932164-1.patch */
-    if(field_read_instance('relation', 'endpoints', $relation_type->relation_type)){
-      $instance = array(
-        'field_name' => 'endpoints',
-        'entity_type' => 'relation',
-        'bundle' => $relation_type->relation_type
-      );
-      field_delete_instance($instance, FALSE);
+  foreach($default_relation_types as $default_relation_type){
+    if(array_key_exists($default_relation_type['relation_type'], $relation_types)){
+      if(field_read_instance('relation', 'endpoints', $default_relation_type['relation_type'])){
+        $default_instance = array(
+          'field_name' => 'endpoints',
+          'entity_type' => 'relation',
+          'bundle' => $default_relation_type['relation_type']
+        );
+        field_delete_instance($default_instance, FALSE);
+      }
+      relation_type_delete($default_relation_type['relation_type']);
     }
-    relation_type_delete($relation_type->relation_type);
   }
   field_purge_batch(1000);
   entity_info_cache_clear();
