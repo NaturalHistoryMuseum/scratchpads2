@@ -15,9 +15,9 @@ files[] = views/redirect_handler_field_redirect_link_edit.inc
 files[] = views/redirect_handler_field_redirect_link_delete.inc
 configure = admin/config/search/redirect/settings
 
-; Information added by drupal.org packaging script on 2011-03-17
-version = "7.x-1.x-dev"
+; Information added by drupal.org packaging script on 2013-05-25
+version = "7.x-1.0-rc1+4-dev"
 core = "7.x"
 project = "redirect"
-datestamp = "1300321203"
+datestamp = "1369451639"
 
