@@ -1,0 +1,134 @@
+<?php
+
+/**
+ * @file
+*
+* Scratchpads darwincore tests.
+*/
+class DarwincoreTestCase extends ScratchpadsTweaksTestCase{
+
+  protected $admin_user;
+
+  protected $test_user;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Darwincore',
+      'description' => "Tests the Specimen/Observation and Location content types",
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    $modules[] = 'darwincore';
+    parent::setUp($modules);
+    //  Create users.
+    $this->admin_user = $this->drupalCreateUser(array(
+      'access content',
+      'access administration pages',
+      'administer site configuration',
+      'administer users',
+      'administer permissions',
+      'administer content types',
+      'administer nodes',
+      'bypass node access',
+      'access overlay',
+      'access content overview',
+      'view the administration theme',
+      'access all views',
+      'administer comments'
+    ));
+    $this->test_user = $this->drupalCreateUser(array(
+      'access content'
+    ));
+    // We set the legal_accepted on the user so that login passes.
+    parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
+    parent::scratchpads_tweaks_legal_save($this->test_user->uid);
+  }
+
+  /**
+   * Wrapper for other tests to speed up test run
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->admin_user);
+    $this->validateSpecimenObservation();
+    $this->validateLocation();
+    $this->validateGenBankNumbers();
+  }
+
+  /**
+   *  Test the creation of a specimen-observation and test for uniqueness
+   */
+  function validateSpecimenObservation(){
+    $this->drupalGet('node/add/specimen-observation');
+    $edit = array();
+    $edit['field_basis_of_record[und]'] = 'Fossil Specimen';
+    $institution_code = $this->machine_name($this->randomName());
+    $collection_code = $this->machine_name($this->randomName());
+    $catalogue_number = $this->machine_name($this->randomName());
+    $edit['field_institution_code[und][0][value]'] = $institution_code;
+    $edit['field_collection_code[und][0][value]'] = $collection_code;
+    $edit['field_catalogue_number[und][0][value]'] = $catalogue_number;
+    $this->drupalPost(NULL, $edit, 'Save');
+    $this->assertText('Specimen/Observation ' . $institution_code . ' - ' . $collection_code . ' - ' . $catalogue_number . ' has been created.', 'Specimen/Observation successfully created');
+    // attempt to create another identical record - should give an error messsage
+    $this->drupalPost('node/add/specimen-observation', $edit, t('Save'));
+    $this->assertText(t('The "Institution code/Collection code/Catalogue number" combination is not unique.'), 'Error message displayed on duplicate entry');
+  }
+
+  /**
+   *  Test the creation of a location and test for uniqueness (title)
+   */
+  function validateLocation(){
+    $this->drupalGet('node/add/location');
+    $edit = array();
+    $title = $this->machine_name($this->randomName());
+    $edit['title'] = $title;
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertText('Location ' . $title . ' has been created.', 'Location successfully created');
+    // attempt to create another record with the same title - should give an error message
+    $this->drupalPost('node/add/location', $edit, t('Save'));
+    $this->assertText(t('The title field for a location must be unique.'), 'Error message displayed on duplciated title');
+  }
+
+  /*
+   * Tests that entering csv numbers creates genbank links
+   */
+  function validateGenBankNumbers(){
+    // create a specimen and enter genbank numbers
+    $this->drupalGet('node/add/specimen-observation');
+    $edit = array();
+    $edit['field_basis_of_record[und]'] = 'Fossil Specimen';
+    $institution_code = $this->machine_name($this->randomName());
+    $collection_code = $this->machine_name($this->randomName());
+    $catalogue_number = $this->machine_name($this->randomName());
+    $edit['field_institution_code[und][0][value]'] = $institution_code;
+    $edit['field_collection_code[und][0][value]'] = $collection_code;
+    $edit['field_catalogue_number[und][0][value]'] = $catalogue_number;
+    // genbank numbers
+    $g1 = $this->machine_name($this->randomName(8));
+    $g2 = $this->machine_name($this->randomName(8));
+    $genbank_numbers = $g1 . ', ' . $g2;
+    $edit['field_genbank_number[und][0][value]'] = $genbank_numbers;
+    $this->drupalPost(NULL, $edit, 'Save');
+    $this->assertText('Specimen/Observation ' . $institution_code . ' - ' . $collection_code . ' - ' . $catalogue_number . ' has been created.', 'Specimen/Observation successfully created');
+    // validate links...
+    $this->assertLink($g1);
+    $this->assertLink($g2);
+    $href1 = "http://www.ncbi.nlm.nih.gov/nuccore/" . $g1;
+    $href2 = "http://www.ncbi.nlm.nih.gov/nuccore/" . $g2;
+    $this->assertLinkByHref($href1);
+    $this->assertLinkByHref($href2);
+  }
+}
+  
+
+
+
+
+
+
+
