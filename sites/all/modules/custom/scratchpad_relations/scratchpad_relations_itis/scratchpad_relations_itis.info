@@ -5,3 +5,4 @@ core = "7.x"
 dependencies[] = "itis_term"
 dependencies[] = "scratchpad_ecorelation_types"
 dependencies[] = "inline_relation_form"
+stylesheets[all][] = css/scratchpad_relations_itis.css

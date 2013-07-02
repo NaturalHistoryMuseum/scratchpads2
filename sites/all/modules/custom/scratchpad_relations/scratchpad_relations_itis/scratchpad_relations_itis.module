@@ -1,5 +1,4 @@
 <?php
-
 function scratchpad_relations_itis_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id){
   $form['#submit'][] = 'scratchpad_relations_itis_taxonomy_form_vocabulary_submit';
 }
