@@ -8,4 +8,3 @@ version = "7.x-1.5"
 core = "7.x"
 project = "exif_custom"
 datestamp = "1353506263"
-
