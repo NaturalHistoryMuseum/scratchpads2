@@ -804,11 +804,10 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
 /**
  * ScratchpadsVocabulariesGbifXmlTestCase
  * 
- * This is a unit test used to test the GbifXmlVocabulary implementation.
- * This class can be tested in isolation.
+ * This is a web test used to test the GbifXmlVocabulary implementation.
  * 
  */
-class ScratchpadsVocabulariesGbifXmlTestCase extends DrupalUnitTestCase{
+class ScratchpadsVocabulariesGbifXmlTestCase extends DrupalWebTestCase{
 
   /**
    * getInfo()
@@ -818,9 +817,21 @@ class ScratchpadsVocabulariesGbifXmlTestCase extends DrupalUnitTestCase{
   public static function getInfo(){
     return array(
       'name' => t('Scratchpads Vocabularies GbifXmlVocabulary'),
-      'description' => t('This is a unit test used to test the GbifXmlVocabulary implementation. Note that this tests against a local copy of some sample data - so the test won\'t fail if the remote format changes.'),
+      'description' => t('This is a web test used to test the GbifXmlVocabulary implementation. Note that this tests against a local copy of some sample data - so the test won\'t fail if the remote format changes.'),
       'group' => 'Scratchpads'
     );
+  }
+
+  /**
+   * setUp()
+   *
+   * Implement setUp. Ensure that required modules are enabled, and include
+   * the classes we want to test.
+   */
+  public function setUp(){
+    // Include files
+    parent::setUp('scratchpads_vocabularies', 'list', 'entity');
+    module_load_include('vocabulary.inc', 'scratchpads_vocabularies', 'includes/gbifxml');
   }
 
   /**
@@ -830,9 +841,6 @@ class ScratchpadsVocabulariesGbifXmlTestCase extends DrupalUnitTestCase{
    *
    */
   public function testAll(){
-    // We can't rely on Drupal as this is a unit test.
-    $root = str_replace('scratchpads_vocabularies.test', '', __FILE__);
-    require_once $root . '../includes/gbifxml.vocabulary.inc';
     $expected_struct = array(
       "PreservedSpecimen" => "Preserved Specimen",
       "FossilSpecimen" => "Fossil Specimen",
@@ -861,16 +869,19 @@ class ScratchpadsVocabulariesGbifXmlTestCase extends DrupalUnitTestCase{
       "label" => "Preserved Specimen"
     );
     // Test it when it works
-    $voc = new ScratchpadsVocabularies\GbifXmlVocabulary('Gbif Basis of Record', $root . 'basis_of_record.xml');
-    $this->assertEqual($voc->name(), 'Gbif Basis of Record', 'Test GbifXmlVocabulary name()');
-    $this->assertEqual($voc->id(), $root . 'basis_of_record.xml', 'Test GbifXmlVocabulary id()');
+    $file = drupal_realpath(drupal_get_path('module', 'scratchpads_vocabularies') . '/tests/basis_of_record.xml');
+    $voc = new ScratchpadsVocabularies\GbifXmlVocabulary($file);
+    $this->assertEqual($voc->name(), 'Darwin Core Type Vocabulary', 'Test GbifXmlVocabulary name()');
+    $this->assertEqual($voc->id(), $file, 'Test GbifXmlVocabulary id()');
     $this->assertEqual($voc->version(), '1163da6ac1c9b1a711171be5a1f86da3', 'Test GbifXmlVocabulary version()');
     $this->assertEqual($voc->structure()->structure(), $expected_struct, 'Test GbifXmlVocabulary generated structure');
-    $this->assertEqual($voc->structure()->itemData('PreservedSpecimen'), $one_expected_item, 'Test GbifXmlVocabulary generated structure/data items');
+    $item_data = $voc->structure()->itemData('PreservedSpecimen');
+    unset($item_data['render']); // Don't test this
+    $this->assertEqual($item_data, $one_expected_item, 'Test GbifXmlVocabulary generated structure/data items');
     // Test it when it's broken
     $raise = FALSE;
     try{
-      $voc = new ScratchpadsVocabularies\GbifXmlVocabulary('Gbif Basis of Record', $root . 'basis_of_record.broken.xml');
+      $voc = new ScratchpadsVocabularies\GbifXmlVocabulary(drupal_realpath(drupal_get_path('module', 'scratchpads_vocabularies') . '/tests/basis_of_record.broken.xml'));
     }
     catch(Exception $e){
       $raise = TRUE;

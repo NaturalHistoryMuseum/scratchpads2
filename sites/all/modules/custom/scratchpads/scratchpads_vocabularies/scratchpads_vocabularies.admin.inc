@@ -17,6 +17,9 @@ function scratchpads_vocabularies_mapping_form($form, &$form_state){
   // The main form
   drupal_add_css(drupal_get_path('module', 'scratchpads_vocabularies') . '/theme/scratchpads_vocabularies.css', 'file');
   $output = array();
+  $output['scratchpads-vocabularies-tabs'] = array(
+    '#type' => 'vertical_tabs'
+  );
   module_load_include('inc', 'scratchpads_vocabularies', 'includes/classes');
   $all_info = module_invoke_all('scratchpads_vocabulary_info');
   $updates_available = FALSE;
@@ -33,10 +36,22 @@ function scratchpads_vocabularies_mapping_form($form, &$form_state){
     if(!$vocabulary || !$receiver){
       continue;
     }
+    $vocabulary->refresh(); // Ensure we re-fetch any data
     $output[$info_id] = array(
       '#type' => 'fieldset',
       '#collapsible' => FALSE,
-      '#title' => $info['title']
+      '#title' => $info['title'],
+      '#group' => 'scratchpads-vocabularies-tabs',
+      '#attributes' => array(
+        'class' => array(
+          'scratchpads-vocabularies-fieldset'
+        )
+      ),
+      '#attached' => array(
+        'js' => array(
+          drupal_get_path('module', 'scratchpads_vocabularies') . '/js/scratchpads_vocabularies.js'
+        )
+      )
     );
     $output[$info_id]['info'] = array(
       '#type' => 'markup',
@@ -46,6 +61,11 @@ function scratchpads_vocabularies_mapping_form($form, &$form_state){
         'vocabulary' => $vocabulary,
         'info' => $info
       ))
+    );
+    // This is used for the Javascript to generate the vertical tab summary.
+    $output[$info_id]['summary'] = array(
+      '#prefix' => '<div class="scratchpads-vocabularies-summary" style="display:none;">',
+      '#suffix' => '</div>'
     );
     if($vocabulary->version() != $receiver->version()){
       $updates_available = TRUE;
@@ -57,6 +77,9 @@ function scratchpads_vocabularies_mapping_form($form, &$form_state){
         '#value' => t('Upgrade now'),
         '#update_voc_id' => $info_id
       );
+      $output[$info_id]['summary'][] = array(
+        '#markup' => '- ' . t('New version available') . '</br>'
+      );
     }
     $count = count($receiver->pendingUpdates());
     if($count){
@@ -65,6 +88,9 @@ function scratchpads_vocabularies_mapping_form($form, &$form_state){
         '#value' => t('View pending updates'),
         '#view_pending_updates' => TRUE
       );
+      $output[$info_id]['summary'][] = array(
+        '#markup' => '- ' . t('Pending updates') . '</br>'
+      );
     }
     if(isset($our_vocs[$info_id])){
       $output[$info_id]['delete'] = array(
@@ -72,6 +98,40 @@ function scratchpads_vocabularies_mapping_form($form, &$form_state){
         '#value' => t('Delete this mapping'),
         '#delete_mapping' => $info_id,
         '#delete_name' => $all_info[$info_id]['title']
+      );
+    }
+    // Add the items
+    if($receiver->version() == $vocabulary->version()){
+      $output[$info_id]['items'] = array(
+        '#type' => 'fieldset',
+        '#collapsible' => FALSE,
+        '#title' => t('Items'),
+        '#prefix' => '<div class="scratchpads-vocabularies-items">',
+        '#suffix' => '</div>',
+        1 => array(
+          '#markup' => $receiver->structure()->render()
+        )
+      );
+    }else{
+      $output[$info_id]['items_receiver'] = array(
+        '#type' => 'fieldset',
+        '#collapsible' => FALSE,
+        '#title' => t('Items currently in use'),
+        '#prefix' => '<div class="scratchpads-vocabularies-items">',
+        '#suffix' => '</div>',
+        1 => array(
+          '#markup' => $receiver->structure()->render()
+        )
+      );
+      $output[$info_id]['items_source'] = array(
+        '#type' => 'fieldset',
+        '#collapsible' => FALSE,
+        '#title' => t('Items available'),
+        '#prefix' => '<div class="scratchpads-vocabularies-items">',
+        '#suffix' => '</div>',
+        1 => array(
+          '#markup' => $vocabulary->structure()->render()
+        )
       );
     }
   }
@@ -86,9 +146,9 @@ function scratchpads_vocabularies_mapping_form($form, &$form_state){
   // Option for a new entry
   $output['new_vocabulary_'] = array(
     '#type' => 'fieldset',
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#title' => t('Add new')
+    '#collapsible' => FALSE,
+    '#title' => t('Add new'),
+    '#group' => 'scratchpads-vocabularies-tabs'
   );
   $output['new_vocabulary_']['info'] = array(
     '#markup' => '',
@@ -172,7 +232,7 @@ function scratchpads_vocabularies_mapping_form_validate($form, &$form_state){
       $url = 'http://' . preg_replace('/^(http:)?\/+/', '', $values['new_vocabulary_url']);
       $voc_failed = FALSE;
       try{
-        $xml = new ScratchpadsVocabularies\GbifXmlVocabulary('test', $url);
+        $xml = new ScratchpadsVocabularies\GbifXmlVocabulary($url);
       }
       catch(Exception $e){
         form_set_error('new_vocabulary_url', "This does not seem to be a valid GBif XML file. Error message: " . $e->getMessage());
@@ -335,7 +395,7 @@ function scratchpads_vocabularies_pending_update_form($form, &$form_state){
       ), $update_table)
     );
   }
-  if (!$has_pending_updates) {
+  if(!$has_pending_updates){
     drupal_set_message(t('There are no pending updates at this time.'), 'info');
     drupal_goto('admin/structure/vocabularies');
   }

@@ -55,6 +55,15 @@ class SelectFieldReceiver extends VocabularyReceiver{
   }
 
   /**
+   * description
+   */
+  public function description(){
+    return t("Saves the vocabulary to be used by field %field", array(
+      '%field' => $this->field['field_name']
+    ));
+  }
+
+  /**
    * structureInUse
    * 
    * Return the structure as it is currently used

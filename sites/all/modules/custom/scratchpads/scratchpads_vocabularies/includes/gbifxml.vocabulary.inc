@@ -10,15 +10,15 @@ require_once str_replace('gbifxml.vocabulary.inc', 'classes.inc', __FILE__);
  * described using an XML file.
  *
  */
-class GbifXmlVocabulary implements VocabularyInterface{
+class GbifXmlVocabulary extends Persistent implements VocabularyInterface{
 
-  private $url;
+  protected $url;
 
-  private $name;
+  protected $version;
 
-  private $version;
+  protected $structure;
 
-  private $structure;
+  protected $information;
 
   /**
    * __construct
@@ -26,24 +26,20 @@ class GbifXmlVocabulary implements VocabularyInterface{
    * Create a new GbifXmlVocabulary from a URL to an
    * XML file (presumably on rs.gbif.org)
    */
-  public function __construct($name, $url){
-    $this->name = $name;
+  public function __construct($url){
+    // Load the information
     $this->url = $url;
-    $this->dom = simplexml_load_file($url);
-    if($this->dom === false){throw new Exception("Could not load/parse GbifXmlVocabulary at " . $url);}
-    $this->version = NULL;
-    if(isset($http_response_header)){
-      foreach($http_response_header as $header){
-        if(preg_match('/^Last-Modified:(.+)$/', $header, $matches)){
-          $this->version = $matches[1];
-          break;
-        }
-      }
+    $this->persistentKey($url);
+    $this->persistentProperties(array(
+      'url',
+      'version',
+      'structure',
+      'information'
+    ));
+    $this->loadPersistentProperties();
+    if($this->structure == NULL){
+      $this->refresh();
     }
-    if($this->version === NULL){
-      $this->version = md5($this->dom->asXML());
-    }
-    $this->parseXml();
   }
 
   /**
@@ -52,7 +48,7 @@ class GbifXmlVocabulary implements VocabularyInterface{
    * Return the human readable name of this vocabulary
    */
   public function name(){
-    return $this->name;
+    return $this->information['title'];
   }
 
   /**
@@ -84,11 +80,52 @@ class GbifXmlVocabulary implements VocabularyInterface{
   }
 
   /**
+   * description()
+   *
+   * Return advanced information about this vocabulary
+   */
+  public function description(){
+    return check_plain($this->information['description']) . '<br/>' . l($this->information['uri'], $this->information['uri']);
+  }
+
+  /**
+   * refresh
+   *
+   * Re-fetch and parse the source XML
+   */
+  public function refresh(){
+    // See if there is a new version
+    $this->dom = simplexml_load_file($this->url);
+    if($this->dom === false){throw new Exception("Could not load/parse GbifXmlVocabulary at " . $this->url);}
+    $this->version = NULL;
+    if(isset($http_response_header)){
+      foreach($http_response_header as $header){
+        if(preg_match('/^Last-Modified:(.+)$/', $header, $matches)){
+          $this->version = $matches[1];
+          break;
+        }
+      }
+    }
+    if($this->version === NULL){
+      $this->version = md5($this->dom->asXML());
+    }
+    $this->parseXml();
+    $this->savePersistentProperties();
+  }
+
+  /**
    * parseXml
    * 
    * Parse the loaded XML data in a structure
    */
   protected function parseXml(){
+    // Parse the general information
+    $this->information = array(
+      'uri' => (string)$this->dom->attributes('dc', TRUE)->URI,
+      'title' => (string)$this->dom->attributes('dc', TRUE)->title,
+      'description' => (string)$this->dom->attributes('dc', TRUE)->description
+    );
+    // Parse the concepts
     $attr_map = array(
       array(
         'name' => 'identifier',
@@ -137,7 +174,6 @@ class GbifXmlVocabulary implements VocabularyInterface{
         }
       }
       // Parse the label
-      //$terms = $element->xpath('preferred term');
       foreach($element->preferred->term as $term){
         $term_title = $term->attributes('dc', TRUE)->title;
         $term_lang = $term->attributes('xml', TRUE)->lang;
@@ -154,6 +190,7 @@ class GbifXmlVocabulary implements VocabularyInterface{
         $info['label'] = $info['terms']['en']['title'];
         t($info['label']); // Pity we can't easily provide the translations, as we have them at hand!
       }
+      $info['render'] = theme('scratchpads_vocabularies_gbif_term', $info);
       $items[$info['id']] = $info['label'];
       $item_data[$info['id']] = $info;
     }

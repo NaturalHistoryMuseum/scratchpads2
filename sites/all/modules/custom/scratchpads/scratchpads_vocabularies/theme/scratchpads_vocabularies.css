@@ -2,6 +2,10 @@
   margin-bottom: 1em;
 }
 
+#scratchpads-vocabularies-mapping-form div.scratchpads_vocabularies_info fieldset {
+  margin-top: 1em;
+}
+
 #scratchpads-vocabularies-mapping-form fieldset div.fieldset-content input.form-submit,
 #scratchpads-vocabularies-mapping-form fieldset div.fieldset-content .vocabularies_status {
   margin-right: 1em;
@@ -13,4 +17,25 @@
 
 #scratchpads-vocabularies-pending-update-form table table {
   margin-bottom: 1em;
+}
+
+div.scratchpads-vocabularies-items {
+  margin-top: 1em;
+}
+
+.vertical-tabs .vertical-tabs-panes .vertical-tabs-pane div.scratchpads-vocabularies-items fieldset legend {
+  display: block;
+}
+
+div.scratchpads-vocabularies-items div.scratchpads-vocabularies-term {
+  margin-bottom: 1em;
+}
+
+div.scratchpads-vocabularies-items div.scratchpads-vocabularies-term-label {
+  font-weight: bold;
+}
+
+div.scratchpads-vocabularies-items div.scratchpads-vocabularies-term-other {
+  font-size: small;
+  margin-left: 1em;
 }

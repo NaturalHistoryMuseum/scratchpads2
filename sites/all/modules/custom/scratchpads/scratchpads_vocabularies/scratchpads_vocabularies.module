@@ -91,6 +91,16 @@ function scratchpads_vocabularies_theme($existing, $type, $theme, $path){
       ),
       'path' => $path . '/theme',
       'template' => 'scratchpads_vocabularies_info'
+    ),
+    'scratchpads_vocabularies_gbif_term' => array(
+      'variables' => array(
+        'label' => NULL,
+        'description' => NULL,
+        'relation' => NULL,
+        'uri' => NULL
+      ),
+      'path' => $path . '/theme',
+      'template' => 'scratchpads_vocabularies_gbif_term'
     )
   );
 }
@@ -134,10 +144,14 @@ function scratchpads_vocabularies_form_alter(&$form, &$form_state, $form_id){
     }else if($form_id == 'field_ui_field_settings_form'){
       $field_name = $form['field']['field_name']['#value'];
     }
+    $all_info = module_invoke_all('scratchpads_vocabulary_info');
     foreach($our_vocs as $info_id => $our_voc){
       if($our_voc['field'] == $field_name){
+        // Always disable the form
         $form['field']['settings']['allowed_values']['#disabled'] = TRUE;
         $form['field']['settings']['allowed_values']['#description'] = t('This field is a managed vocabulary and the allowed values cannot be changed manualy.');
+        // If we have some more information, display it
+        //list($vocabulary, $receiver) = _scratchpads_vocabularies_info_build($all_info[$info_id]);
         break;
       }
     }
@@ -162,15 +176,11 @@ function scratchpads_vocabularies_scratchpads_vocabulary_info(){
     $elements[$voc_id] = array(
       'title' => $title,
       'vocabulary' => array(
-        'description' => t("Gathers the Gbif XML vocabulary located at %url", array(
-          '%url' => $url
-        )),
-        'create callback' => function () use($field, $url, $title){
-          return new ScratchpadsVocabularies\GbifXmlVocabulary($title, $url);
+        'create callback' => function () use($url){
+          return new ScratchpadsVocabularies\GbifXmlVocabulary($url);
         }
       ),
       'receiver' => array(
-        'description' => 'Stores data into the field ' . $field,
         'create callback' => function () use($field){
           return new ScratchpadsVocabularies\SelectFieldReceiver($field);
         }
@@ -189,11 +199,9 @@ function scratchpads_vocabularies_scratchpads_vocabulary_info(){
  * array(
  *   'title' => <string>,
  *   'vocabulary' => array(
- *     'description' => <string>,
  *     'create callback' => <callable>
  *   ),
  *   'receiver' => array(
- *     'description' => <string>
  *     'create callback' => <callable>
  *   )
  * )

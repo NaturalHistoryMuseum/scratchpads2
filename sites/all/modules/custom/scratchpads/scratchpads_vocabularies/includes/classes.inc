@@ -49,8 +49,17 @@ namespace ScratchpadsVocabularies;
  * type of vocabulary - for instance ScratchpadsVocabularies\GbifXmlVocabulary
  * would extend this class for use with Gbif XML vocabularies.
  * 
+ * Implementers may cache data, as long as they ensure fresh data is fetched when
+ * refresh is called.
  */
 interface VocabularyInterface{
+
+  /**
+   * id()
+   *
+   * Return the id of this vocabulary
+   */
+  public function id();
 
   /**
    * name()
@@ -60,11 +69,11 @@ interface VocabularyInterface{
   public function name();
 
   /**
-   * id()
+   * description()
    *
-   * Return the id of this vocabulary
-  */
-  public function id();
+   * Return a description of this vocabulary
+   */
+  public function description();
 
   /**
    * version()
@@ -80,6 +89,13 @@ interface VocabularyInterface{
    * Return a ScratchpadsVocabularies\VocabularyStructure object
    */
   public function structure();
+
+  /**
+   * refresh()
+   *
+   * Ensure we fetch the latest available data
+   */
+  public function refresh();
 }
 
 /**
@@ -123,6 +139,14 @@ interface ReceiverInterface{
    *  has never been synced.
    */
   public function version();
+
+  /**
+   * description()
+   *
+   * Returns an HTML description of this
+   * receiver
+   */
+  public function description();
 
   /**
    * structure()
@@ -592,6 +616,49 @@ class VocabularyStructure{
     }else{
       return NULL;
     }
+  }
+
+  /**
+   * render
+   *
+   * Returns an HTML representation of the structure.
+   *
+   * If a given item's data is an array and has a 'render' key,
+   * then that is used instead of the item's label when generating
+   * the HTML.
+   */
+  public function render($root = NULL){
+    $out = array();
+    foreach($this->structure as $key => $data){
+      $item_data = $this->itemData($key);
+      if(is_array($item_data) && isset($item_data['render'])){
+        $out[] = array(
+          '#prefix' => '<div class="scratchpads-vocabularies-item">',
+          '#suffix' => '</div>',
+          '#markup' => $item_data['render']
+        );
+      }else if(is_array($data)){
+        $out[] = array(
+          '#prefix' => '<div class="scratchpads-vocabularies-item">',
+          '#suffix' => '</div>',
+          '#markup' => check_plain($data['label'])
+        );
+      }else{
+        $out[] = array(
+          '#prefix' => '<div class="scratchpads-vocabularies-item">',
+          '#suffix' => '</div>',
+          '#markup' => check_plain($data)
+        );
+      }
+      if(is_array($data)){
+        $out[] = array(
+          '#prefix' => '<div class="scratchpads-vocabularies-indent">',
+          '#suffix' => '</div>',
+          'children' => $this->render($data['children'])
+        );
+      }
+    }
+    return drupal_render($out);
   }
 
   /**
