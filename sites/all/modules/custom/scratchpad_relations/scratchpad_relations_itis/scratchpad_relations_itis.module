@@ -29,7 +29,7 @@ function scratchpad_relations_itis_create_vocabulary($vocabulary){
     $group['bundle'] = $vocabulary->machine_name;
     $group['identifier'] = "{$group['group_name']}|{$group['bundle']}";
     $group = (object)$group;
-    field_group_group_save($group);    
+    field_group_group_save($group);
   }
   //Now add the new group to the groups in itis_term
   module_load_include('fields.inc', 'itis_term');
@@ -40,6 +40,15 @@ function scratchpad_relations_itis_create_vocabulary($vocabulary){
         $group->children[] = $rel_group['group_name'];
         field_group_group_save($group);
       }
+    }
+  }
+}
+
+function scratchpad_relations_itis_field_widget_relation_add_form_alter(&$element, &$form_state, $context){
+  if($context['field']['type'] == 'relation_add' && $element['#entity_type'] == 'taxonomy_term'){
+    if(array_key_exists('targets', $element['relation_options'])){
+      $relation_option_targets_target_2_title = $element['relation_options']['targets']['target_2']['#title'];
+      $element['relation_options']['targets']['target_2']['#title'] = 'Taxon';
     }
   }
 }
