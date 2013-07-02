@@ -1,6 +1,6 @@
 name = "Scratchpad ecological relation types"
 description = "Add default ecological relationships based on Darwin Core Taxon Occurrence interactions http://rs.gbif.org/sandbox/vocabulary/tdwg/interaction.xml"
 core = "7.x"
-package = "AAA Relation"
+package = "Relation"
 dependencies[] = relation
 tool = true
