@@ -36,9 +36,9 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
   if($results->rowCount() == 1){
     // We've had success with our trimmed down method. WOOT!
     $results = $results->fetch();
-    if($level < 4){
+    if($level < 5){
       $code_parts = explode(':', $results->code);
-      for($i = $level; $i < 4; $i++){
+      for($i = $level; $i < 5; $i++){
         array_pop($code_parts);
       }
       $results->code = implode(":", $code_parts);
@@ -123,9 +123,9 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
       break;
     }
   }
-  if($region_id && $level < 4){
+  if($region_id && $level < 5){
     $region_id = explode(":", $region_id);
-    for($i = 4; $i > $level; $i--){
+    for($i = 5; $i > $level; $i--){
       array_pop($region_id);
     }
     $region_id = implode(":", $region_id);
@@ -160,8 +160,12 @@ function gm3_region_get_points($region_ids){
       $wkt_reader = new WKT();
       switch(count($region_id_parts)){
         case 5:
-          $row = db_select('gm3_region_data', 'g')->condition('level_5_code', $region_id_parts[4])->fields('g')->execute()->fetch();
-          break;
+          if($region_id_parts[4] != '00'){
+            $row = db_select('gm3_region_data', 'g')->condition('level_5_code', $region_id_parts[4])->fields('g')->execute()->fetch();
+            break;
+          }
+          array_pop($region_id_parts);
+          $cid = implode(':', $region_id_parts);
         case 4:
           $region_id_4_parts = explode("-", $region_id_parts[3]);
           $row = db_select('gm3_region_data', 'g')->condition('level_4_code', $region_id_4_parts[1])->condition('level_3_code', $region_id_4_parts[0])->fields('g')->execute()->fetch();

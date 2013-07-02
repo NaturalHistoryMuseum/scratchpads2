@@ -288,7 +288,7 @@ function gm3_region_update_7010(){
 function gm3_region_update_7011(){
   db_update('gm3_region_data')->fields(array(
     'level_5_code' => '00'
-  ))->condition('level_5_code', '')->condition('level_4_code', 'OO')->execute();
+  ))->condition('level_5_code', '')->condition('level_4_code', '', '!=')->condition('level_3_code', 'GRB', '!=')->execute();
   db_update('gm3_region_data')->fields(array(
     'iso_code' => 'UK'
   ))->condition('level_5_code', '00', '!=')->condition('level_5_code', '', '!=')->execute();
