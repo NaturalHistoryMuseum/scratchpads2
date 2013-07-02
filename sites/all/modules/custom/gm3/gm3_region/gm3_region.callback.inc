@@ -29,7 +29,7 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
   $latlng = preg_replace("/[)(]/", "", $latlng);
   $latlng = explode(", ", $latlng);
   $point_wkt = "POINT({$latlng[1]} {$latlng[0]})";
-  $results = db_query("SELECT CONCAT(level_1_code, ':', level_2_code, ':', level_3_code, ':', level_3_code, '-', level_4_code,':', level_5_code) as code 
+  $results = db_query("SELECT CONCAT(level_1_code, ':', level_2_code, ':', level_3_code, ':', level_3_code, '-', level_4_code,':', level_5_code) as code, level_5_code 
                        FROM {gm3_region_data} WHERE WITHIN(POINTFROMTEXT('$point_wkt'), mysql_polygons) AND level_5_code != ''", array(
     ':point_wkt' => $point_wkt
   ));
@@ -42,6 +42,8 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
         array_pop($code_parts);
       }
       $results->code = implode(":", $code_parts);
+    }else if($results->level_5_code == '00'){
+      $results->code = substr($results->code, 0, 15);
     }
     print json_encode($results->code);
     // Perform end-of-request tasks.
@@ -62,7 +64,7 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
       if($point->within($polygon)){
         switch($level){
           case 5:
-            $region_id = "{$result->level_1_code}:{$result->level_2_code}:{$result->level_3_code}:{$result->level_3_code}-{$result->level_4_code}:{$result->level_5_code}";
+            $region_id = "{$result->level_1_code}:{$result->level_2_code}:{$result->level_3_code}:{$result->level_3_code}-{$result->level_4_code}" . ($result->level_5_code != '00' ? ":{$result->level_5_code}" : '');
             break;
           case 4:
             $region_id = "{$result->level_1_code}:{$result->level_2_code}:{$result->level_3_code}:{$result->level_3_code}-{$result->level_4_code}";
@@ -98,7 +100,7 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
       $level_2_codes[$level5->level_2_code] = $level5->level_2_code;
       $polygon = $wkt_reader->read($level5->polygons, TRUE);
       if($point->within($polygon)){
-        $region_id = "{$level5->level_1_code}:{$level5->level_2_code}:{$level5->level_3_code}:{$level5->level_3_code}-{$level5->level_4_code}";
+        $region_id = "{$level5->level_1_code}:{$level5->level_2_code}:{$level5->level_3_code}:{$level5->level_3_code}-{$level5->level_4_code}:{$level5->level_5_code}";
         // Stop on the first match.
         break;
       }
@@ -112,7 +114,7 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
         foreach($level5s as $level5){
           $polygon = $wkt_reader->read($level5->polygons, TRUE);
           if($point->within($polygon)){
-            $region_id = "{$level5->level_1_code}:{$level5->level_2_code}:{$level5->level_3_code}:{$level5->level_3_code}-{$level5->level_4_code}";
+            $region_id = "{$level5->level_1_code}:{$level5->level_2_code}:{$level5->level_3_code}:{$level5->level_3_code}-{$level5->level_4_code}:{$level5->level_5_code}";
             // stop on the first match
             break 2;
           }
@@ -129,6 +131,8 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
       array_pop($region_id);
     }
     $region_id = implode(":", $region_id);
+  }else if($level == 5 && substr($region_id, -3) == ':00'){
+    $results->code = substr($results->code, 0, 15);
   }
   print json_encode($region_id);
   // Perform end-of-request tasks.
@@ -150,8 +154,7 @@ function gm3_region_get_points($region_ids){
     }else{
       print ",";
     }
-    $cid = $region_id;
-    $polygons = cache_get($cid, 'cache_gm3_polygon');
+    $polygons = cache_get($region_id, 'cache_gm3_polygon');
     if($polygons === false){
       module_load_include('functions.inc', 'gm3');
       $region_id_parts = explode(":", $region_id);
@@ -165,7 +168,7 @@ function gm3_region_get_points($region_ids){
             break;
           }
           array_pop($region_id_parts);
-          $cid = implode(':', $region_id_parts);
+          $region_id = implode(':', $region_id_parts);
         case 4:
           $region_id_4_parts = explode("-", $region_id_parts[3]);
           $row = db_select('gm3_region_data', 'g')->condition('level_4_code', $region_id_4_parts[1])->condition('level_3_code', $region_id_4_parts[0])->fields('g')->execute()->fetch();
@@ -202,7 +205,7 @@ function gm3_region_get_points($region_ids){
         $polygons = $polygons->out('json');
         $polygons = '{"' . $region_id . '":{"name":"' . $row->name . '","shape":' . $polygons . '}}';
       }
-      cache_set($cid, $polygons, 'cache_gm3_polygon', CACHE_PERMANENT);
+      cache_set($region_id, $polygons, 'cache_gm3_polygon', CACHE_PERMANENT);
     }else{
       $polygons = $polygons->data;
     }
