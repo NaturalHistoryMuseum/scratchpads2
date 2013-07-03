@@ -13,10 +13,12 @@ function scratchpad_ecorelation_default_types(){
       'min_arity' => 2,
       'max_arity' => 2,
       'source_bundles' => array(
-        'taxonomy_term:*'
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
       ),
       'target_bundles' => array(
-        'taxonomy_term:*'
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
       )
     ),
     array(
@@ -29,10 +31,12 @@ function scratchpad_ecorelation_default_types(){
       'min_arity' => 2,
       'max_arity' => 2,
       'source_bundles' => array(
-        'taxonomy_term:*'
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
       ),
       'target_bundles' => array(
-        'taxonomy_term:*'
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
       )
     ),
     array(
@@ -45,10 +49,12 @@ function scratchpad_ecorelation_default_types(){
       'min_arity' => 2,
       'max_arity' => 2,
       'source_bundles' => array(
-        'taxonomy_term:*'
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
       ),
       'target_bundles' => array(
-        'taxonomy_term:*'
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
       )
     ),
     array(
@@ -61,10 +67,12 @@ function scratchpad_ecorelation_default_types(){
       'min_arity' => 2,
       'max_arity' => 2,
       'source_bundles' => array(
-        'taxonomy_term:*'
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
       ),
       'target_bundles' => array(
-        'taxonomy_term:*'
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
       )
     ),
     array(
@@ -77,10 +85,12 @@ function scratchpad_ecorelation_default_types(){
       'min_arity' => 2,
       'max_arity' => 2,
       'source_bundles' => array(
-        'taxonomy_term:*'
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
       ),
       'target_bundles' => array(
-        'taxonomy_term:*'
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
       )
     ),
     array(
@@ -93,10 +103,12 @@ function scratchpad_ecorelation_default_types(){
       'min_arity' => 2,
       'max_arity' => 2,
       'source_bundles' => array(
-        'taxonomy_term:*'
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
       ),
       'target_bundles' => array(
-        'taxonomy_term:*'
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
       )
     ),
     array(
@@ -109,10 +121,12 @@ function scratchpad_ecorelation_default_types(){
       'min_arity' => 2,
       'max_arity' => 2,
       'source_bundles' => array(
-        'taxonomy_term:*'
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
       ),
       'target_bundles' => array(
-        'taxonomy_term:*'
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
       )
     )
   );
