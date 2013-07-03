@@ -4,7 +4,39 @@
  * Implementation of hook_install().
  */
 function scratchpads_group_install(){
-  scratchpads_group_update_7004();
+  _scratchpads_group_install_search_page();
+}
+
+/**
+ * _scratchpads_group_install_search_page()
+ *
+ * Define the search page parameters. This is called
+ * from the install hook. When it changes, create an
+ * update that calls it too.
+ */
+function _scratchpads_group_install_search_page(){
+  db_merge('apachesolr_search_page')->key(array(
+    'page_id' => 'group_search'
+  ))->fields(array(
+    'page_id' => 'group_search',
+    'label' => t('Group content'),
+    'description' => 'Display the content associated with a group.',
+    'search_path' => 'group',
+    'env_id' => 'solr',
+    'page_title' => t('Group content'),
+    'settings' => serialize(array(
+      'fq' => array(
+        'entity_type:(node OR file)'
+      ),
+      'apachesolr_search_custom_enable' => 1,
+      'apachesolr_search_search_type' => 'custom',
+      'apachesolr_search_search_box' => 0,
+      'apachesolr_search_per_page' => '50',
+      'apachesolr_search_browse' => 'blocks',
+      'apachesolr_search_spellcheck' => 0,
+      'apachesolr_search_allow_user_input' => 0
+    ))
+  ))->execute();
 }
 
 /**
@@ -87,4 +119,27 @@ function scratchpads_group_update_7004(){
       'apachesolr_search_allow_user_input' => 0
     ))
   ))->execute();
+}
+
+/**
+ * Ensure file entities have OG support
+ */
+function scratchpads_group_update_7005(){
+  // Add OG Fields to file entities
+  module_load_include('features.field.inc', 'scratchpads_group');
+  $fields = scratchpads_group_field_default_fields();
+  foreach($fields as $field_name => $field){
+    if($field['field_instance']['entity_type'] == 'file'){
+      $field_exists = field_info_field($field['field_config']['field_name']);
+      if(!$field_exists){
+        field_create_field($field['field_config']);
+      }
+      $instance_exists = field_info_instance($field['field_instance']['entity_type'], $field['field_config']['field_name'], $field['field_instance']['bundle']);
+      if(!$instance_exists){
+        field_create_instance($field['field_instance']);
+      }
+    }
+  }
+  // Ensure the search page displays files as well as nodes
+  _scratchpads_group_install_search_page();
 }
