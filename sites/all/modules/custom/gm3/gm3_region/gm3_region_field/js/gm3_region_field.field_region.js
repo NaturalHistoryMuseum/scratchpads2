@@ -149,7 +149,7 @@
       case 3:
         return Drupal.t("Selecting by country/subcountry (Level 3)");
       case 5:
-        return Drupal.t("Selecting by vice county (Level 5)");
+        return Drupal.t("Selecting by vice county (Level 5) - UK Only");
       case 4:
       default:
         return Drupal.t("Selecting by country/subcountry (Level 4)");
