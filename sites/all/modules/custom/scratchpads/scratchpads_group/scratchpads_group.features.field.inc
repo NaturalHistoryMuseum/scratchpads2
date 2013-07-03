@@ -161,168 +161,176 @@ function scratchpads_group_field_default_fields($additional_content_type = FALSE
       )
     )
   );
-  $types = node_type_get_types();
+  // Find all the content types we want to add OG capability to
+  $node_types = node_type_get_types();
+  $file_type = entity_get_info('file');
+  $types = array(
+    'node' => array_keys($node_types),
+    'file' => array_keys($file_type['bundles'])
+  );
   if($additional_content_type){
-    $types[$additional_content_type] = $additional_content_type;
+    $types[$additional_content_type['entity_type']][] = $additional_content_type['bundle'];
   }
-  foreach($types as $key => $type){
-    if($key == 'group'){
-      continue;
-    }
-    // Exported field: 'node-xxx-group_audience'
-    $fields['node-' . $key . '-group_audience'] = array(
-      'field_config' => array(
-        'active' => '1',
-        'cardinality' => '-1',
-        'deleted' => '0',
-        'entity_types' => array(),
-        'field_name' => 'group_audience',
-        'foreign keys' => array(
-          'og' => array(
-            'columns' => array(
-              'gid' => 'gid'
-            ),
-            'table' => 'og'
-          )
-        ),
-        'indexes' => array(
-          'gid' => array(
-            0 => 'gid'
-          )
-        ),
-        'module' => 'og',
-        'no_ui' => TRUE,
-        'settings' => array(),
-        'translatable' => '0',
-        'type' => 'group'
-      ),
-      'field_instance' => array(
-        'bundle' => $key,
-        'default_value' => NULL,
-        'default_value_function' => 'og_field_audience_default_value',
-        'deleted' => '0',
-        'description' => '',
-        'display' => array(
-          'default' => array(
-            'label' => 'above',
-            'module' => 'og',
-            'settings' => array(),
-            'type' => 'og_list_default',
-            'weight' => '1'
+  foreach($types as $entity_type => $bundles){
+    foreach($bundles as $bundle){
+      if($entity_type == 'node' && $bundle == 'group'){
+        continue;
+      }
+      // Exported field: 'node-xxx-group_audience'
+      $fields[$entity_type . '-' . $bundle . '-group_audience'] = array(
+        'field_config' => array(
+          'active' => '1',
+          'cardinality' => '-1',
+          'deleted' => '0',
+          'entity_types' => array(),
+          'field_name' => 'group_audience',
+          'foreign keys' => array(
+            'og' => array(
+              'columns' => array(
+                'gid' => 'gid'
+              ),
+              'table' => 'og'
+            )
           ),
-          'teaser' => array(
-            'label' => 'hidden',
-            'settings' => array(),
-            'type' => 'hidden',
-            'weight' => '0'
-          )
-        ),
-        'entity_type' => 'node',
-        'field_name' => 'group_audience',
-        'label' => 'Groups audience',
-        'required' => FALSE,
-        'settings' => array(
-          'user_register_form' => FALSE
-        ),
-        'view modes' => array(
-          'full' => array(
-            'custom settings' => FALSE,
-            'label' => 'Full',
-            'type' => 'og_list_default'
+          'indexes' => array(
+            'gid' => array(
+              0 => 'gid'
+            )
           ),
-          'teaser' => array(
-            'custom settings' => FALSE,
-            'label' => 'Teaser',
-            'type' => 'og_list_default'
-          )
-        ),
-        'widget' => array(
           'module' => 'og',
-          'settings' => array(
-            'opt_group' => 'auto'
-          ),
-          'type' => 'group_audience',
-          'weight' => -3
-        ),
-        'widget_type' => 'group_audience'
-      )
-    );
-    // Exported field: 'node-xxx-group_content_access'
-    $fields['node-' . $key . '-group_content_access'] = array(
-      'field_config' => array(
-        'active' => '1',
-        'cardinality' => '1',
-        'deleted' => '0',
-        'entity_types' => array(),
-        'field_name' => 'group_content_access',
-        'foreign keys' => array(),
-        'indexes' => array(
-          'value' => array(
-            0 => 'value'
-          )
-        ),
-        'module' => 'list',
-        'no_ui' => TRUE,
-        'settings' => array(
-          'allowed_values' => array(
-            0 => 'Use group defaults',
-            1 => 'Public - accessible to all site users',
-            2 => 'Private - accessible only to group members'
-          ),
-          'allowed_values_function' => ''
-        ),
-        'translatable' => '0',
-        'type' => 'list_integer'
-      ),
-      'field_instance' => array(
-        'bundle' => $key,
-        'default_value' => array(
-          0 => array(
-            'value' => 0
-          )
-        ),
-        'deleted' => '0',
-        'description' => '',
-        'display' => array(
-          'default' => array(
-            'label' => 'above',
-            'settings' => array(),
-            'type' => 'hidden',
-            'weight' => '2'
-          ),
-          'teaser' => array(
-            'label' => 'hidden',
-            'settings' => array(),
-            'type' => 'hidden',
-            'weight' => '0'
-          )
-        ),
-        'entity_type' => 'node',
-        'field_name' => 'group_content_access',
-        'label' => 'Group content visibility',
-        'required' => TRUE,
-        'settings' => array(
-          'user_register_form' => FALSE
-        ),
-        'view modes' => array(
-          'full' => array(
-            'label' => 'above',
-            'type' => 'list_default'
-          ),
-          'teaser' => array(
-            'label' => 'above',
-            'type' => 'list_default'
-          )
-        ),
-        'widget' => array(
-          'module' => 'options',
+          'no_ui' => TRUE,
           'settings' => array(),
-          'type' => 'options_select',
-          'weight' => -2
+          'translatable' => '0',
+          'type' => 'group'
         ),
-        'widget_type' => 'options_select'
-      )
-    );
+        'field_instance' => array(
+          'bundle' => $bundle,
+          'default_value' => NULL,
+          'default_value_function' => 'og_field_audience_default_value',
+          'deleted' => '0',
+          'description' => '',
+          'display' => array(
+            'default' => array(
+              'label' => 'above',
+              'module' => 'og',
+              'settings' => array(),
+              'type' => 'og_list_default',
+              'weight' => '1'
+            ),
+            'teaser' => array(
+              'label' => 'hidden',
+              'settings' => array(),
+              'type' => 'hidden',
+              'weight' => '0'
+            )
+          ),
+          'entity_type' => $entity_type,
+          'field_name' => 'group_audience',
+          'label' => 'Groups audience',
+          'required' => FALSE,
+          'settings' => array(
+            'user_register_form' => FALSE
+          ),
+          'view modes' => array(
+            'full' => array(
+              'custom settings' => FALSE,
+              'label' => 'Full',
+              'type' => 'og_list_default'
+            ),
+            'teaser' => array(
+              'custom settings' => FALSE,
+              'label' => 'Teaser',
+              'type' => 'og_list_default'
+            )
+          ),
+          'widget' => array(
+            'module' => 'og',
+            'settings' => array(
+              'opt_group' => 'auto'
+            ),
+            'type' => 'group_audience',
+            'weight' => -3
+          ),
+          'widget_type' => 'group_audience'
+        )
+      );
+      // Exported field: 'node-xxx-group_content_access'
+      $fields[$entity_type . '-' . $bundle . '-group_content_access'] = array(
+        'field_config' => array(
+          'active' => '1',
+          'cardinality' => '1',
+          'deleted' => '0',
+          'entity_types' => array(),
+          'field_name' => 'group_content_access',
+          'foreign keys' => array(),
+          'indexes' => array(
+            'value' => array(
+              0 => 'value'
+            )
+          ),
+          'module' => 'list',
+          'no_ui' => TRUE,
+          'settings' => array(
+            'allowed_values' => array(
+              0 => 'Use group defaults',
+              1 => 'Public - accessible to all site users',
+              2 => 'Private - accessible only to group members'
+            ),
+            'allowed_values_function' => ''
+          ),
+          'translatable' => '0',
+          'type' => 'list_integer'
+        ),
+        'field_instance' => array(
+          'bundle' => $bundle,
+          'default_value' => array(
+            0 => array(
+              'value' => 0
+            )
+          ),
+          'deleted' => '0',
+          'description' => '',
+          'display' => array(
+            'default' => array(
+              'label' => 'above',
+              'settings' => array(),
+              'type' => 'hidden',
+              'weight' => '2'
+            ),
+            'teaser' => array(
+              'label' => 'hidden',
+              'settings' => array(),
+              'type' => 'hidden',
+              'weight' => '0'
+            )
+          ),
+          'entity_type' => $entity_type,
+          'field_name' => 'group_content_access',
+          'label' => 'Group content visibility',
+          'required' => TRUE,
+          'settings' => array(
+            'user_register_form' => FALSE
+          ),
+          'view modes' => array(
+            'full' => array(
+              'label' => 'above',
+              'type' => 'list_default'
+            ),
+            'teaser' => array(
+              'label' => 'above',
+              'type' => 'list_default'
+            )
+          ),
+          'widget' => array(
+            'module' => 'options',
+            'settings' => array(),
+            'type' => 'options_select',
+            'weight' => -2
+          ),
+          'widget_type' => 'options_select'
+        )
+      );
+    }
   }
   // Exported field: 'og_membership-og_membership_type_default-og_membership_request'
   $fields['og_membership-og_membership_type_default-og_membership_request'] = array(
