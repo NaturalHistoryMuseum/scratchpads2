@@ -18,7 +18,7 @@ function scratchpad_ecological_relations_block_context_default_contexts(){
   $context->conditions = array(
     'species' => array(
       'values' => array(
-        'overview' => 'overview'
+        'overview' => 'descriptions'
       )
     )
   );
