@@ -12,6 +12,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'node-media_gallery-body'
   $fields['node-media_gallery-body'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -66,6 +67,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'node-media_gallery-field_media'
   $fields['node-media_gallery-field_media'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',
@@ -138,6 +140,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'node-media_gallery-field_media'
   $fields['node-page-field_media'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',
@@ -232,6 +235,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'file-audio-field_smg_galleries'
   $fields['file-audio-field_smg_galleries'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',
@@ -300,6 +304,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'file-image-field_smg_galleries'
   $fields['file-image-field_smg_galleries'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',
@@ -370,6 +375,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'file-video-field_smg_galleries'
   $fields['file-video-field_smg_galleries'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',
@@ -623,6 +629,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'file-image-field_cc_licence'
   $fields['file-image-field_cc_licence'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -702,6 +709,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'file-audio-field_cc_licence'
   $fields['file-audio-field_cc_licence'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -781,6 +789,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'file-video-field_cc_licence'
   $fields['file-video-field_cc_licence'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -860,6 +869,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'file-image-field_imaging_technique'
   $fields['file-image-field_imaging_technique'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -952,6 +962,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'file-image-field_keywords'
   $fields['file-image-field_keywords'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',
@@ -1014,7 +1025,7 @@ function scratchpads_media_gallery_field_default_fields(){
             'append_vocabulary' => 1,
             'separator_option' => ', ',
             'wrapper_class' => '',
-            'wrapper_option' => '- None -',
+            'wrapper_option' => '- None -'
           ),
           'type' => 'taxonomy_term_reference_csv',
           'weight' => '5'
@@ -1029,7 +1040,7 @@ function scratchpads_media_gallery_field_default_fields(){
             'append_vocabulary' => 1,
             'separator_option' => ', ',
             'wrapper_class' => '',
-            'wrapper_option' => '- None -',
+            'wrapper_option' => '- None -'
           ),
           'type' => 'taxonomy_term_reference_csv',
           'weight' => '5'
@@ -1063,6 +1074,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'file-image-field_preparation_technique'
   $fields['file-image-field_preparation_technique'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1158,6 +1170,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'file-audio-field_description'
   $fields['file-audio-field_description'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1320,6 +1333,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'file-image-field_description'
   $fields['file-image-field_description'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1482,6 +1496,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'file-video-field_description'
   $fields['file-video-field_description'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1644,6 +1659,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'file-image-field_sticky'
   $fields['file-image-field_sticky'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1806,6 +1822,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'file-image-field_creator'
   $fields['file-image-field_creator'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1970,6 +1987,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'file-image-field_weight'
   $fields['file-image-field_weight'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
