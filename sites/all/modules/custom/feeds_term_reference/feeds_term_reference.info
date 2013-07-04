@@ -3,5 +3,3 @@ name = "Feeds Terms GUID/TID reference"
 description = "Reference taxonomy terms by GUID or TID in Feeds"
 package = "Feeds"
 dependencies[] = feeds
-
-files[] = feeds_term_reference.module
