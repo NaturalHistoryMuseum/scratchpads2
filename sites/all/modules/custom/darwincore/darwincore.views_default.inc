@@ -916,7 +916,7 @@ function darwincore_views_default_views(){
   $view = new view();
   $view->name = 'geocat_csv';
   $view->description = '';
-  $view->tag = 'default';
+  $view->tag = 'no-batch';
   $view->base_table = 'node';
   $view->human_name = 'GeoCAT CSV';
   $view->core = 7;
