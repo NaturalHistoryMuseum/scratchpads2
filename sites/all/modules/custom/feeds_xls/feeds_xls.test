@@ -1,0 +1,89 @@
+<?php
+
+/**
+ * @file
+*
+* FeedsXls tests.
+*/
+class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
+
+  protected $admin_user;
+
+  protected $test_user;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'FeedsXls',
+      'description' => "Tests templates and imports for xls files",
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    $modules[] = 'feeds_xls';
+    parent::setUp($modules);
+    //  Create users.
+    $this->admin_user = $this->drupalCreateUser(array(
+      'access content',
+      'access administration pages',
+      'administer site configuration',
+      'administer users',
+      'administer permissions',
+      'administer content types',
+      'administer nodes',
+      'bypass node access',
+      'access overlay',
+      'access content overview',
+      'view the administration theme',
+      'access all views',
+      'administer comments',
+      'administer taxonomy',
+      'administer feeds',
+      'feeds xls allow download'
+    ));
+    $this->test_user = $this->drupalCreateUser(array(
+      'access content'
+    ));
+    // We set the legal_accepted on the user so that login passes.
+    parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
+    parent::scratchpads_tweaks_legal_save($this->test_user->uid);
+  }
+
+  /**
+   * Wrapper for other tests to speed up test run
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet('import/node_importer_page');
+    // first try empty template
+ //   $path = 'http://turtle.nhm.ac.uk/import/node_importer_page/template';
+    
+    
+    
+ //   $data = $this->curlExec(array(
+   //   CURLOPT_RETURNTRANSFER => 1,
+   //   CURLOPT_URL => $path,
+  //  ));
+  //  $populated = !empty($data);
+    
+   // $this->assertText($populated, 'Returned non empty template');
+   
+   // Custom function defined in tweaks
+   // This contains html headers and other stuff...
+  // $data_pop = $this->clickLinkToVariable('Excel template file',1);   
+   
+   
+   
+  }
+}
+  
+
+
+
+
+
+
+
