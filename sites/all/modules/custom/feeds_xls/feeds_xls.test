@@ -14,7 +14,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
   public static function getInfo(){
     return array(
       'name' => 'FeedsXls',
-      'description' => "Tests templates and imports for xls files",
+      'description' => "Test access to the import pages and template files",
       'group' => 'Scratchpads'
     );
   }
@@ -53,30 +53,24 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
   }
 
   /**
-   * Wrapper for other tests to speed up test run
+   * Test access to the import pages and template files
    */
-  function testWrapper(){
+  function testImporterAccess(){
     $this->drupalLogin($this->admin_user);
+    $this->drupalGet('admin/import');
+    $this->assertResponse(200);
     $this->drupalGet('import/node_importer_page');
-    // first try empty template
- //   $path = 'http://turtle.nhm.ac.uk/import/node_importer_page/template';
-    
-    
-    
- //   $data = $this->curlExec(array(
-   //   CURLOPT_RETURNTRANSFER => 1,
-   //   CURLOPT_URL => $path,
-  //  ));
-  //  $populated = !empty($data);
-    
-   // $this->assertText($populated, 'Returned non empty template');
-   
-   // Custom function defined in tweaks
-   // This contains html headers and other stuff...
-  // $data_pop = $this->clickLinkToVariable('Excel template file',1);   
-   
-   
-   
+    $this->clickLink('Excel template file', 0);
+    $this->assertResponse(200);
+    // the populated template
+    $this->drupalGet('import/node_importer_page');
+    $this->clickLink('Excel template file', 1);
+    $this->assertResponse(200);
+    $this->drupalLogin($this->test_user);
+    $this->drupalGet('import/node_importer_page');
+    $this->assertResponse(403, 'Non admin user denied access to import/node_importer_page');
+    $this->drupalGet('admin/import');
+    $this->assertResponse(403, 'Non admin user denied access to admin/import');
   }
 }
   

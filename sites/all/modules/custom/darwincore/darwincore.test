@@ -91,7 +91,7 @@ class DarwincoreTestCase extends ScratchpadsTweaksTestCase{
     $this->assertText('Location ' . $title . ' has been created.', 'Location successfully created');
     // attempt to create another record with the same title - should give an error message
     $this->drupalPost('node/add/location', $edit, t('Save'));
-    $this->assertText(t('The title field for a location must be unique.'), 'Error message displayed on duplciated title');
+    $this->assertText(t('The title field for a location must be unique.'), 'Error message displayed on duplicate title');
   }
 
   /*

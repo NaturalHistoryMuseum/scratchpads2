@@ -2,3 +2,4 @@ name = "Scratchpads Image theme tweak"
 description = "Add Width and Height to all images, along with a blank alt text."
 package = "Scratchpads"
 core = 7.x
+files[] = scratchpads_width_and_height.test
