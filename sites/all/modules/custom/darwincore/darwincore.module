@@ -32,7 +32,7 @@ function darwincore_block_view($delta = 'geocat'){
         'subject' => '',
         'content' => array(
           'link' => array(
-            '#markup' => '<p style="text-align:right;color:grey">' . l('Import all specimen data for this taxon into GeoCAT', 'http://geocat.kew.org/editor?geocat_url=' . url('', array(
+            '#markup' => '<p style="text-align:right;color:grey">' . l('Import all georeferenced specimen data for this taxon into GeoCAT', 'http://geocat.kew.org/editor?geocat_url=' . url('', array(
               'absolute' => TRUE
             )) . 'taxonomy/term/' . arg(2) . '/geocat.csv', array(
               'attributes' => array(
