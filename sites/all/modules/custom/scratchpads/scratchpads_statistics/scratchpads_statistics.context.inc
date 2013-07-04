@@ -25,29 +25,29 @@ function scratchpads_statistics_context_default_contexts(){
   $context->reactions = array(
     'block' => array(
       'blocks' => array(
-        'scratchpads_statistics-user' => array(
-          'module' => 'scratchpads_statistics',
-          'delta' => 'user',
-          'region' => 'sidebar',
-          'weight' => '-10'
-        ),
         'scratchpads_statistics-site' => array(
           'module' => 'scratchpads_statistics',
           'delta' => 'site',
           'region' => 'sidebar',
           'weight' => '-10'
         ),
-        'scratchpads_statistics-category' => array(
+        'scratchpads_statistics-user' => array(
           'module' => 'scratchpads_statistics',
-          'delta' => 'category',
+          'delta' => 'user',
           'region' => 'sidebar',
-          'weight' => '-10'
+          'weight' => '-9'
         ),
         'scratchpads_statistics-term' => array(
           'module' => 'scratchpads_statistics',
           'delta' => 'term',
           'region' => 'sidebar',
-          'weight' => '-10'
+          'weight' => '-8'
+        ),
+        'scratchpads_statistics-category' => array(
+          'module' => 'scratchpads_statistics',
+          'delta' => 'category',
+          'region' => 'sidebar',
+          'weight' => '-7'
         )
       )
     )

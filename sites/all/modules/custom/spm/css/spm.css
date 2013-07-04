@@ -1,0 +1,10 @@
+@CHARSET "UTF-8";
+
+.unused_text_field,
+#spm-node-form .field-group-tabs-wrapper .vertical-tab-button{	
+	display:none;
+}
+
+#spm-node-form .field-group-tabs-wrapper .non_empty_tab{
+	display:block;
+}

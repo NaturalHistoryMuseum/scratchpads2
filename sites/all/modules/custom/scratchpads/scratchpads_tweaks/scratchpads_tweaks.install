@@ -1124,3 +1124,15 @@ function scratchpads_tweaks_update_7054(){
   module_disable($uninstall);
   drupal_uninstall_modules($uninstall);
 }
+
+/**
+ * Disable pathauto and redirect if the Pretty URLs tool has been disabled.
+ */
+function scratchpads_tweaks_update_7055(){
+  if(!module_exists('scratchpads_pretty_urls')){
+    module_disable(array(
+      'redirect',
+      'pathauto'
+    ));
+  }
+}

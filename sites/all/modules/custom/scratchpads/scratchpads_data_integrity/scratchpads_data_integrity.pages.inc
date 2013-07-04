@@ -4,11 +4,10 @@
  * Callback to display a list of issues with this site.
  */
 function scratchpads_data_integrity_overview(){
-  $messages = scratchpads_data_integrity_get_messages(TRUE);
   return array(
     'messages' => array(
       '#theme' => 'item_list',
-      '#items' => $messages,
+      '#items' => scratchpads_data_integrity_get_messages(TRUE),
       '#title' => t('All data issues')
     )
   );
