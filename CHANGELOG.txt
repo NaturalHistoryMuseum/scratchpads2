@@ -1,3 +1,7 @@
+2.1.4.1 (2013-07-04)
+
+- Ensure one time logins work before a user has accepted the T&Cs
+
 2.1.4 (2013-07-03)
 
 - Updates redirect module to the latest "dev" version (Fixes a duplicate hashes issue)
