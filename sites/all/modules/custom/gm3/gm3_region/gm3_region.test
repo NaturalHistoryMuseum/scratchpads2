@@ -1,0 +1,28 @@
+<?php
+class Gm3RegionTestCase extends DrupalUnitTestCase {
+
+  
+  public static function getInfo() {
+    
+    return array(
+      'name' => 'Gm3 Region unit tests',
+      'description' => 'Tests Gm3 Regions.',
+      'group' => 'Scratchpads Unit Tests',
+    );
+  
+  }  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+}
