@@ -240,14 +240,14 @@ function scratchpads_media_gallery_node_insert($node){
   if(isset($node->field_media) && $node->type == 'media_gallery'){
     // We edit the file entities to add this node id to their respective field.
     $new_fids = array();
-    $lang = field_language($node->entity_type, $node, 'field_media');
+    $lang = field_language('node', $node, 'field_media');
     foreach($node->field_media[$lang] as $delta => $values){
       $new_fids[$values['fid']] = $values['fid'];
     }
     $files = entity_load('file', $new_fids);
     foreach($files as $file){
       // Adding
-      $lang = field_language($file->entity_type, $file, 'field_media');
+      $lang = field_language('file', $file, 'field_media');
       if(!isset($file->field_smg_galleries[$lang])){
         $file->field_smg_galleries[$lang] = array();
       }
@@ -275,7 +275,7 @@ function scratchpads_media_gallery_node_update($node){
       $current_fids[$row->entity_id] = $row->entity_id;
     }
     $new_fids = array();
-    $lang = field_language($node->entity_type, $node, 'field_media');
+    $lang = field_language('node', $node, 'field_media');
     foreach($node->field_media[$lang] as $delta => $values){
       $new_fids[$values['fid']] = $values['fid'];
     }
@@ -284,7 +284,7 @@ function scratchpads_media_gallery_node_update($node){
     $files = entity_load('file', $fids_to_add);
     foreach($files as $file){
       // Adding
-      $lang = field_language($file->entity_type, $file, 'field_smg_galleries');
+      $lang = field_language('file', $file, 'field_smg_galleries');
       if(!isset($file->field_smg_galleries[$lang])){
         $file->field_smg_galleries[$lang] = array();
       }
@@ -296,7 +296,7 @@ function scratchpads_media_gallery_node_update($node){
     $files = entity_load('file', $fids_to_remove);
     foreach($files as $file){
       // Removing
-      $lang = field_language($file->entity_type, $file, 'field_smg_galleries');
+      $lang = field_language('file', $file, 'field_smg_galleries');
       foreach($file->field_smg_galleries[$lang] as $delta => $value){
         if($value['nid'] == $node->nid){
           unset($file->field_smg_galleries[$lang][$delta]);

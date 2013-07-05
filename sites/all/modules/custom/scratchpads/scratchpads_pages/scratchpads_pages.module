@@ -294,7 +294,7 @@ function scratchpads_pages_block_view($delta = ''){
           )), $node->type)
         );
         // If this node has a location, provide a link back to all filtered by location title
-        $lang = field_language($node->entity_type, $node, 'field_location');
+        $lang = field_language('node', $node, 'field_location');
         if(isset($node->field_location) && array_key_exists($lang, $node->field_location)){
           $location = array_shift($node->field_location[$lang]);
           $items[] = l(t('!location !type', array(

@@ -361,12 +361,12 @@ function scratchpads_statistics_user_login(&$edit, $account){
   $country = NULL;
   $latitude = NULL;
   $longitude = NULL;
-  $lang_given_names = field_language($account->entity_type, $account, 'field_user_given_names');
-  $lang = field_language($account->entity_type, $account, 'field_user_family_name');
+  $lang_given_names = field_language('user', $account, 'field_user_given_names');
+  $lang = field_language('user', $account, 'field_user_family_name');
   if(@isset($account->field_user_family_name[$lang][0]['value']) && isset($account->field_user_given_names[$lang_given_names][0]['value'])){
     $name = trim($account->field_user_given_names[$lang_given_names][0]['value'] . ' ' . $account->field_user_family_name[$lang][0]['value']);
   }
-  $lang = field_language($account->entity_type, $account, 'field_user_country');
+  $lang = field_language('user', $account, 'field_user_country');
   if(@isset($account->field_user_country[$lang][0]['iso2'])){
     $country = $account->field_user_country[$lang][0]['iso2'];
   }

@@ -151,7 +151,7 @@ function scratchpads_setup_about_form_submit($form, &$form_state){
   $node = new stdClass();
   $node->type = 'page';
   node_object_prepare($node);
-  $lang = field_language($node->entity_type, $node, 'body');
+  $lang = field_language('node', $node, 'body');
   $node->title = t('About us');
   $node->language = $lang;
   $body_text = $form_state['values']['about_us']['value'];

@@ -166,7 +166,7 @@ function itis_term_update_7006(){
     foreach($results as $row){
       $term = taxonomy_term_load($row->entity_id);
       if($term && is_array($term->field_vernacular_names)){
-        $lang = field_language($term->entity_type, $term, 'field_vernacular_names');
+        $lang = field_language('taxonomy_term', $term, 'field_vernacular_names');
         foreach($term->field_vernacular_names[$lang] as $vern){
           if(($value = trim($vern['value'])) != FALSE){
             $entity = entity_create('field_collection_item', array(

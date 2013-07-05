@@ -5,7 +5,7 @@
  */
 function theme_eolapi_stillimage_full($variables){
   $data = unserialize($variables['entity']->data);
-  $lang = field_language($variables['entity']->entity_type, $variables['entity'], 'eolapi_image');
+  $lang = field_language('eolapi', $variables['entity'], 'eolapi_image');
   return theme('image_style', array(
     'style_name' => 'large',
     'path' => substr($variables['entity']->eolapi_image[$lang][0]['uri'], 9),
@@ -22,8 +22,8 @@ function theme_eolapi_stillimage_full($variables){
  */
 function theme_eolapi_stillimage_teaser($variables){
   $data = unserialize($variables['entity']->data);
-  drupal_add_js(drupal_get_path('module', 'eolapi').'/js/eolapi.js');
-  $lang = field_language($eolapi->entity_type, $eolapi, 'eolapi_image');
+  drupal_add_js(drupal_get_path('module', 'eolapi') . '/js/eolapi.js');
+  $lang = field_language('eolapi', $variables['entity'], 'eolapi_image');
   return l(theme('image_style', array(
     'style_name' => 'square_thumbnail',
     'path' => substr($variables['entity']->eolapi_image[$lang][0]['uri'], 9),

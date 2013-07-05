@@ -672,6 +672,16 @@ function scratchpads_taxonomic_name_field_term_check_term($name, $vid, $create_t
  * Callback for processing a feeds item.
  */
 function scratchpads_taxonomic_name_field_feeds_set_target($source, $entity, $target, $terms){
+  $entity_type = strtolower(get_class($source->importer->processor));
+  if(($processor_location = strpos($entity_type, 'processor')) > 0){
+    $entity_type = substr($entity_type, 0, $processor_location);
+  }
+  if(substr($entity_type, 0, 5) == 'feeds'){
+    $entity_type = substr($entity_type, 5);
+  }
+  if(!entity_get_info($entity_type)){
+    $entity_type = 'node';
+  }
   if(empty($terms)){return;}
   // Handle non-multiple values.
   if(!is_array($terms)){
@@ -700,7 +710,7 @@ function scratchpads_taxonomic_name_field_feeds_set_target($source, $entity, $ta
         }
       }
       if($tid){
-        $lang = field_language($entity->entity_type, $entity, $target);
+        $lang = field_language($entity_type, $entity, $target);
         $entity->{$target}[$lang][$i]['tid'] = $tid;
       }
       if($info['cardinality'] == 1){

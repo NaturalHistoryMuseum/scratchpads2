@@ -16,8 +16,8 @@ function scratchpads_statistics_install(){
   ));
   foreach($results as $row){
     $user = user_load($row->uid);
-    $lang = field_language($user->entity_type, $user, 'field_user_family_name');
-    $lang_given_names = field_language($user->entity_type, $user, 'field_user_given_names');
+    $lang = field_language('user', $user, 'field_user_family_name');
+    $lang_given_names = field_language('user', $user, 'field_user_given_names');
     $query->values(array(
       'name' => @isset($user->field_user_family_name[$lang][0]['value']) ? trim($user->field_user_given_names[$lang_given_names][0]['value'] . ' ' . $user->field_user_family_name[$lang][0]['value']) : $user->name,
       'email' => $user->mail

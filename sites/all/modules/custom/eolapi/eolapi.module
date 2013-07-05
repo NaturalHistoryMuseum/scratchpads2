@@ -196,7 +196,7 @@ function eolapi_load($entity_id){
 function eolapi_page_view($eolapi){
   $rows = array();
   if(count($eolapi->eolapi_image)){
-    $lang = field_language($eolapi->entity_type, $eolapi, 'eolapi_image');
+    $lang = field_language('eolapi', $eolapi, 'eolapi_image');
     if(@isset($eolapi->eolapi_image[$lang][0]['fid'])){
       $file = file_load($eolapi->eolapi_image[$lang][0]['fid']);
       $file_view = entity_view('file', array(

@@ -314,7 +314,7 @@ function femail_node_insert($node){
     // We've added/updated a forum post, lets mail it out
     // First, we'll get the forum that this has been posted to.
     //drupal_set_message('<pre>'.print_r($node, 1).'</pre>');
-    $lang = field_language($node->entity_type, $node, 'taxonomy_forums');
+    $lang = field_language('node', $node, 'taxonomy_forums');
     $forum_tid = $node->taxonomy_forums[$lang][0]['tid'];
     if($forum_tid){
       module_load_include('mail.inc', 'femail');
@@ -363,13 +363,13 @@ function femail_comment_publish($comment){
     // Include file
     module_load_include('mail.inc', 'femail');
     $files = array();
-    $lang = field_language($comment->entity_type, $comment, 'femail_files');
+    $lang = field_language('comment', $comment, 'femail_files');
     if(isset($comment->femail_files[$lang])){
       foreach($comment->femail_files[$lang] as $file){
         $files[] = file_load($file['fid']);
       }
     }
-    $lang = field_language($comment->entity_type, $comment, 'comment_body');
+    $lang = field_language('comment' $comment, 'comment_body');
     _femail_send_message($node->forum_tid, $comment->subject, $comment->comment_body[$lang][0]['value'], $node->nid, $files, $comment->cid, $msgid);
   }
 }

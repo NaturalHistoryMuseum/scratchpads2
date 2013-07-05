@@ -73,7 +73,7 @@ function eolapi_data_objects($id, $tid, $age = 604800){
     $eolapi->rating = $id->dataRating;
     $eolapi->label = $id->identifier;
     $eolapi->data = serialize($id);
-    $lang = field_language($eolapi->entity_type, $eolapi, 'eolapi_taxonomy');
+    $lang = field_language('eolapi', $eolapi, 'eolapi_taxonomy');
     $eolapi->eolapi_taxonomy = array(
       $lang => array(
         array(
@@ -112,7 +112,7 @@ function eolapi_data_objects($id, $tid, $age = 604800){
     $file->height = $details['height'];
     $file->filename = $eolapi->eid . '-' . $eolapi->erid . '.' . $details['extension'];
     file_save($file);
-    $lang = field_language($eolapi->entity_type, $eolapi, 'eolapi_image');
+    $lang = field_language('eolapi', $eolapi, 'eolapi_image');
     $eolapi->eolapi_image = array(
       $lang => array(
         (array)$file
@@ -166,7 +166,7 @@ function eolapi_get($type, $id, $tid, $additional_query = '', $age = 604800){
           if(substr($eolapi->type, 0, 4) == 'http'){
             $eolapi->type = array_pop(explode("/", $eolapi->type));
           }
-          $lang = field_language($eolapi->entity_type, $eolapi, 'eolapi_taxonomy');
+          $lang = field_language('eolapi', $eolapi, 'eolapi_taxonomy');
           $eolapi->eolapi_taxonomy = array(
             $lang => array(
               array(
