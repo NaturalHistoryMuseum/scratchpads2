@@ -385,7 +385,7 @@ function theme_silver_import_form($variables){
   $children = element_children($variables['form'], TRUE);
   $output = '';
   foreach($children as $child){
-    $output = drupal_render($child);
+    $output = $output . drupal_render($variables['form'][$child]);
   }
   return $output;
 }
