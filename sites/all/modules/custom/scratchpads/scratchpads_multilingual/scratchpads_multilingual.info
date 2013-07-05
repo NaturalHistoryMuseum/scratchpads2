@@ -1,10 +1,8 @@
-name = "Interface Language"
-description = "Provides and allows for the translation of the user interface"
+name = "Interface Translate"
+description = "Enables the translation of the Scratchpads interface into multiple languages."
 configure = admin/config/regional
-
+package = "Language"
 core = "7.x"
 dependencies[] = "locale"
-
-package = Other
 tool = true
 php = "5.2.4"
