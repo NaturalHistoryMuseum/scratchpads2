@@ -1,7 +1,2 @@
 <?php
-/**
- * @file
- * Code for the scratchpads_translate feature.
- */
-
-include_once('scratchpads_translate.features.inc');
+include_once ('scratchpads_translate.features.inc');
