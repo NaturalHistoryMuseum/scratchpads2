@@ -95,7 +95,8 @@ function feeds_term_reference_feeds_set_target(FeedsSource $source, $entity, $ta
         break;
     }
     if($id){
-      $entity->{$target}['und'][$i]['tid'] = $id;
+      $lang = field_language($entity->entity_type, $entity, $target);
+      $entity->{$target}[$lang][$i]['tid'] = $id;
     }else{
       drupal_set_message(t('%missing_value does not match any existing %match_key.', array(
         '%missing_value' => $missing_value,

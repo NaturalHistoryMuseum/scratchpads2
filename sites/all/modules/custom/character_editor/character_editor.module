@@ -191,6 +191,7 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
     }
     // The project ID will always be passed in as the first argument
     $project = character_editor_entity_load_single('character_editor_project', reset($args), true);
+    $lang = field_language('character_editor_project', $project, 'field_characters');
     if(isset($project->field_characters[LANGUAGE_NONE])){
       $character_groups = array_filter($project->field_characters[LANGUAGE_NONE]);
       if(count($character_groups)){

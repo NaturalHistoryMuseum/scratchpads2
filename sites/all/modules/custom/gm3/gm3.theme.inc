@@ -266,7 +266,8 @@ function theme_gm3_view_gm3($variables){
             if(empty($values['entity']->{$key})) {
               continue;
             }
-            foreach($values['entity']->{$key}[LANGUAGE_NONE] as $item){
+            $lang = field_language($values['entity']->entity_type, $values['entity'], $values['entity']->{$key});
+            foreach($values['entity']->{$key}[$lang] as $item){
               switch($item['gm3_type']){
                 case 'point':
                   if(!isset($map['libraries']['point'])){

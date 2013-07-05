@@ -5,7 +5,7 @@
  * name to the end of the term string "term (vocabulary)" when multiple
  * vocabularies are present.
  *
- * @param unknown_type $items        
+ * @param unknown_type $items
  */
 function scratchpads_taxonomic_name_field_menu_alter(&$items){
   $items['taxonomy/autocomplete'] = array(
@@ -70,7 +70,7 @@ function scratchpads_taxonomic_name_field_field_widget_form(&$form, &$form_state
 
 /**
  * Implodes a list of tags of a certain vocabulary into a string.
- * 
+ *
  * This function includes "[VID]".
  */
 function scratchpads_taxonomic_name_field_implode_tags($tags, $vid = NULL){
@@ -150,14 +150,14 @@ function scratchpads_taxonomic_name_field_autocomplete_validate($element, &$form
 }
 
 /**
- * Almost identical to the original function, but with added brackets,  
+ * Almost identical to the original function, but with added brackets,
  * vocabulary name and tweak to return exact matches first.
- * 
+ *
  * FIXME - This does not currently allow for homonyms in different vocabularies
  * AAARGH!
  *
- * @param unknown_type $field_name        
- * @param unknown_type $tags_typed        
+ * @param unknown_type $field_name
+ * @param unknown_type $tags_typed
  */
 function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed = ''){
   // If the request has a '/' in the search text, then the menu system will have
@@ -651,7 +651,7 @@ function scratchpads_taxonomic_name_field_feeds_processor_targets_alter(&$target
  * term name.
  * @param $vid A
  * vocabulary id.
- * 
+ *
  * @return A term id.
  */
 function scratchpads_taxonomic_name_field_term_check_term($name, $vid, $create_term = FALSE){
@@ -700,7 +700,8 @@ function scratchpads_taxonomic_name_field_feeds_set_target($source, $entity, $ta
         }
       }
       if($tid){
-        $entity->{$target}['und'][$i]['tid'] = $tid;
+        $lang = field_language($entity->entity_type, $entity, $target);
+        $entity->{$target}[$lang][$i]['tid'] = $tid;
       }
       if($info['cardinality'] == 1){
         break;

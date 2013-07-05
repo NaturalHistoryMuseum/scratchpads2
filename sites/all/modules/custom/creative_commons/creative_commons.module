@@ -277,7 +277,8 @@ function creative_commons_feeds_processor_targets_alter(&$targets, $entity_type,
 function _creative_commons_feeds_set_target_value($source, $entity, $target, $value){
   $field = isset($entity->$target) ? $entity->$target : array();
   $value = array_search($value, creative_commons_get_licence_types());
-  $field['und'][] = array(
+  $lang = field_language($entity->entity_type, $entity, $field);
+  $field[$lang][] = array(
     'licence' => $value
   );
   $entity->{$target} = $field;
