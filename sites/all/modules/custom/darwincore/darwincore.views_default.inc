@@ -913,5 +913,209 @@ function darwincore_views_default_views(){
   $handler->display->display_options['style_plugin'] = 'views_data_export_csv';
   $handler->display->display_options['path'] = 'taxonomy/term/%/enm.csv';
   $views[$view->name] = $view;
+  $view = new view();
+  $view->name = 'geocat_csv';
+  $view->description = '';
+  $view->tag = 'no-batch';
+  $view->base_table = 'node';
+  $view->human_name = 'GeoCAT CSV';
+  $view->core = 7;
+  $view->api_version = '3.0';
+  $view->disabled = FALSE;
+  /* Display: Master */
+  $handler = $view->new_display('default', 'Master', 'default');
+  $handler->display->display_options['use_more_always'] = FALSE;
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['cache']['type'] = 'none';
+  $handler->display->display_options['query']['type'] = 'views_query';
+  $handler->display->display_options['exposed_form']['type'] = 'basic';
+  $handler->display->display_options['pager']['type'] = 'none';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['style_plugin'] = 'default';
+  $handler->display->display_options['row_plugin'] = 'fields';
+  /* Relationship: Content: Location (field_location) */
+  $handler->display->display_options['relationships']['field_location_nid']['id'] = 'field_location_nid';
+  $handler->display->display_options['relationships']['field_location_nid']['table'] = 'field_data_field_location';
+  $handler->display->display_options['relationships']['field_location_nid']['field'] = 'field_location_nid';
+  $handler->display->display_options['relationships']['field_location_nid']['required'] = TRUE;
+  $handler->display->display_options['relationships']['field_location_nid']['delta'] = '0';
+  /* Field: Content: Basis of record */
+  $handler->display->display_options['fields']['field_basis_of_record']['id'] = 'field_basis_of_record';
+  $handler->display->display_options['fields']['field_basis_of_record']['table'] = 'field_data_field_basis_of_record';
+  $handler->display->display_options['fields']['field_basis_of_record']['field'] = 'field_basis_of_record';
+  $handler->display->display_options['fields']['field_basis_of_record']['label'] = 'basisOfRecord ';
+  /* Field: Content: Catalogue number */
+  $handler->display->display_options['fields']['field_catalogue_number']['id'] = 'field_catalogue_number';
+  $handler->display->display_options['fields']['field_catalogue_number']['table'] = 'field_data_field_catalogue_number';
+  $handler->display->display_options['fields']['field_catalogue_number']['field'] = 'field_catalogue_number';
+  $handler->display->display_options['fields']['field_catalogue_number']['label'] = 'catalogNumber';
+  /* Field: Content revision: Updated date */
+  $handler->display->display_options['fields']['timestamp']['id'] = 'timestamp';
+  $handler->display->display_options['fields']['timestamp']['table'] = 'node_revision';
+  $handler->display->display_options['fields']['timestamp']['field'] = 'timestamp';
+  $handler->display->display_options['fields']['timestamp']['label'] = 'changed';
+  $handler->display->display_options['fields']['timestamp']['date_format'] = 'long';
+  /* Field: Content: Collection code */
+  $handler->display->display_options['fields']['field_collection_code']['id'] = 'field_collection_code';
+  $handler->display->display_options['fields']['field_collection_code']['table'] = 'field_data_field_collection_code';
+  $handler->display->display_options['fields']['field_collection_code']['field'] = 'field_collection_code';
+  $handler->display->display_options['fields']['field_collection_code']['label'] = 'collectionCode';
+  /* Field: Content: Collector */
+  $handler->display->display_options['fields']['field_collector']['id'] = 'field_collector';
+  $handler->display->display_options['fields']['field_collector']['table'] = 'field_data_field_collector';
+  $handler->display->display_options['fields']['field_collector']['field'] = 'field_collector';
+  $handler->display->display_options['fields']['field_collector']['label'] = 'collector';
+  $handler->display->display_options['fields']['field_collector']['type'] = 'scratchpads_user_full_name';
+  $handler->display->display_options['fields']['field_collector']['settings'] = array(
+    'show_name_as_link' => 0,
+    'separator_option' => '',
+    'element_option' => '- None -',
+    'element_class' => ''
+  );
+  $handler->display->display_options['fields']['field_collector']['delta_offset'] = '0';
+  /* Field: Content: Coordinate uncertainty in meters */
+  $handler->display->display_options['fields']['field_coordinate_uncertainty']['id'] = 'field_coordinate_uncertainty';
+  $handler->display->display_options['fields']['field_coordinate_uncertainty']['table'] = 'field_data_field_coordinate_uncertainty';
+  $handler->display->display_options['fields']['field_coordinate_uncertainty']['field'] = 'field_coordinate_uncertainty';
+  $handler->display->display_options['fields']['field_coordinate_uncertainty']['relationship'] = 'field_location_nid';
+  $handler->display->display_options['fields']['field_coordinate_uncertainty']['label'] = 'coordinateuncertaintyinmeters';
+  $handler->display->display_options['fields']['field_coordinate_uncertainty']['settings'] = array(
+    'thousand_separator' => ' ',
+    'prefix_suffix' => 1
+  );
+  /* Field: Content: Country */
+  $handler->display->display_options['fields']['field_country']['id'] = 'field_country';
+  $handler->display->display_options['fields']['field_country']['table'] = 'field_data_field_country';
+  $handler->display->display_options['fields']['field_country']['field'] = 'field_country';
+  $handler->display->display_options['fields']['field_country']['relationship'] = 'field_location_nid';
+  $handler->display->display_options['fields']['field_country']['label'] = 'country';
+  $handler->display->display_options['fields']['field_country']['type'] = 'country_alpha_3';
+  /* Field: Content: County */
+  $handler->display->display_options['fields']['field_county']['id'] = 'field_county';
+  $handler->display->display_options['fields']['field_county']['table'] = 'field_data_field_county';
+  $handler->display->display_options['fields']['field_county']['field'] = 'field_county';
+  $handler->display->display_options['fields']['field_county']['relationship'] = 'field_location_nid';
+  $handler->display->display_options['fields']['field_county']['label'] = 'county';
+  /* Field: Content: Identified by */
+  $handler->display->display_options['fields']['field_identified_by']['id'] = 'field_identified_by';
+  $handler->display->display_options['fields']['field_identified_by']['table'] = 'field_data_field_identified_by';
+  $handler->display->display_options['fields']['field_identified_by']['field'] = 'field_identified_by';
+  $handler->display->display_options['fields']['field_identified_by']['label'] = 'identifiedBy';
+  $handler->display->display_options['fields']['field_identified_by']['type'] = 'scratchpads_user_full_name';
+  $handler->display->display_options['fields']['field_identified_by']['settings'] = array(
+    'show_name_as_link' => 1,
+    'separator_option' => '',
+    'element_option' => '- None -',
+    'element_class' => ''
+  );
+  /* Field: Content: Institution code */
+  $handler->display->display_options['fields']['field_institution_code']['id'] = 'field_institution_code';
+  $handler->display->display_options['fields']['field_institution_code']['table'] = 'field_data_field_institution_code';
+  $handler->display->display_options['fields']['field_institution_code']['field'] = 'field_institution_code';
+  $handler->display->display_options['fields']['field_institution_code']['relationship'] = 'field_location_nid';
+  $handler->display->display_options['fields']['field_institution_code']['label'] = 'institutionCode';
+  /* Field: Content: Map */
+  $handler->display->display_options['fields']['field_map']['id'] = 'field_map';
+  $handler->display->display_options['fields']['field_map']['table'] = 'field_data_field_map';
+  $handler->display->display_options['fields']['field_map']['field'] = 'field_map';
+  $handler->display->display_options['fields']['field_map']['relationship'] = 'field_location_nid';
+  $handler->display->display_options['fields']['field_map']['label'] = 'latitude';
+  $handler->display->display_options['fields']['field_map']['click_sort_column'] = 'latitude';
+  $handler->display->display_options['fields']['field_map']['type'] = 'gm3_text_lat';
+  $handler->display->display_options['fields']['field_map']['settings'] = array(
+    'display_convex_hull' => FALSE
+  );
+  /* Field: Content: Map */
+  $handler->display->display_options['fields']['field_map_1']['id'] = 'field_map_1';
+  $handler->display->display_options['fields']['field_map_1']['table'] = 'field_data_field_map';
+  $handler->display->display_options['fields']['field_map_1']['field'] = 'field_map';
+  $handler->display->display_options['fields']['field_map_1']['relationship'] = 'field_location_nid';
+  $handler->display->display_options['fields']['field_map_1']['label'] = 'longitude';
+  $handler->display->display_options['fields']['field_map_1']['click_sort_column'] = 'latitude';
+  $handler->display->display_options['fields']['field_map_1']['type'] = 'gm3_text_lon';
+  $handler->display->display_options['fields']['field_map_1']['settings'] = array(
+    'display_convex_hull' => FALSE
+  );
+  /* Field: Content: Locality */
+  $handler->display->display_options['fields']['field_locality']['id'] = 'field_locality';
+  $handler->display->display_options['fields']['field_locality']['table'] = 'field_data_field_locality';
+  $handler->display->display_options['fields']['field_locality']['field'] = 'field_locality';
+  $handler->display->display_options['fields']['field_locality']['relationship'] = 'field_location_nid';
+  $handler->display->display_options['fields']['field_locality']['label'] = 'locality';
+  /* Field: Content: Georeference remarks */
+  $handler->display->display_options['fields']['field_georeference_remarks']['id'] = 'field_georeference_remarks';
+  $handler->display->display_options['fields']['field_georeference_remarks']['table'] = 'field_data_field_georeference_remarks';
+  $handler->display->display_options['fields']['field_georeference_remarks']['field'] = 'field_georeference_remarks';
+  $handler->display->display_options['fields']['field_georeference_remarks']['relationship'] = 'field_location_nid';
+  $handler->display->display_options['fields']['field_georeference_remarks']['label'] = 'occurrenceRemarks';
+  /* Field: Field: Taxonomic name */
+  $handler->display->display_options['fields']['field_taxonomic_name']['id'] = 'field_taxonomic_name';
+  $handler->display->display_options['fields']['field_taxonomic_name']['table'] = 'field_data_field_taxonomic_name';
+  $handler->display->display_options['fields']['field_taxonomic_name']['field'] = 'field_taxonomic_name';
+  $handler->display->display_options['fields']['field_taxonomic_name']['label'] = 'scientificname ';
+  $handler->display->display_options['fields']['field_taxonomic_name']['type'] = 'taxonomy_term_reference_plain';
+  $handler->display->display_options['fields']['field_taxonomic_name']['delta_offset'] = '0';
+  /* Field: Content: State/Province */
+  $handler->display->display_options['fields']['field_state_province']['id'] = 'field_state_province';
+  $handler->display->display_options['fields']['field_state_province']['table'] = 'field_data_field_state_province';
+  $handler->display->display_options['fields']['field_state_province']['field'] = 'field_state_province';
+  $handler->display->display_options['fields']['field_state_province']['relationship'] = 'field_location_nid';
+  $handler->display->display_options['fields']['field_state_province']['label'] = 'stateProvince';
+  /* Field: Content: Maximum elevation */
+  $handler->display->display_options['fields']['field_max_elevation']['id'] = 'field_max_elevation';
+  $handler->display->display_options['fields']['field_max_elevation']['table'] = 'field_data_field_max_elevation';
+  $handler->display->display_options['fields']['field_max_elevation']['field'] = 'field_max_elevation';
+  $handler->display->display_options['fields']['field_max_elevation']['relationship'] = 'field_location_nid';
+  $handler->display->display_options['fields']['field_max_elevation']['label'] = 'maximumElevation';
+  $handler->display->display_options['fields']['field_max_elevation']['settings'] = array(
+    'thousand_separator' => '',
+    'prefix_suffix' => 1
+  );
+  /* Field: Content: Minimum elevation */
+  $handler->display->display_options['fields']['field_min_elevation']['id'] = 'field_min_elevation';
+  $handler->display->display_options['fields']['field_min_elevation']['table'] = 'field_data_field_min_elevation';
+  $handler->display->display_options['fields']['field_min_elevation']['field'] = 'field_min_elevation';
+  $handler->display->display_options['fields']['field_min_elevation']['relationship'] = 'field_location_nid';
+  $handler->display->display_options['fields']['field_min_elevation']['label'] = 'minimumElevation';
+  $handler->display->display_options['fields']['field_min_elevation']['settings'] = array(
+    'thousand_separator' => ' ',
+    'prefix_suffix' => 1
+  );
+  /* Sort criterion: Content: Post date */
+  $handler->display->display_options['sorts']['created']['id'] = 'created';
+  $handler->display->display_options['sorts']['created']['table'] = 'node';
+  $handler->display->display_options['sorts']['created']['field'] = 'created';
+  $handler->display->display_options['sorts']['created']['order'] = 'DESC';
+  /* Contextual filter: Content: Has taxonomy term ID */
+  $handler->display->display_options['arguments']['tid']['id'] = 'tid';
+  $handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_index';
+  $handler->display->display_options['arguments']['tid']['field'] = 'tid';
+  $handler->display->display_options['arguments']['tid']['default_action'] = 'access denied';
+  $handler->display->display_options['arguments']['tid']['default_argument_type'] = 'fixed';
+  $handler->display->display_options['arguments']['tid']['default_argument_skip_url'] = TRUE;
+  $handler->display->display_options['arguments']['tid']['summary']['number_of_records'] = '0';
+  $handler->display->display_options['arguments']['tid']['summary']['format'] = 'default_summary';
+  $handler->display->display_options['arguments']['tid']['summary_options']['items_per_page'] = '25';
+  /* Filter criterion: Content: Published */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'node';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = 1;
+  $handler->display->display_options['filters']['status']['group'] = 1;
+  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+  /* Filter criterion: Content: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'specimen_observation' => 'specimen_observation'
+  );
+  /* Display: Data export */
+  $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
+  $handler->display->display_options['pager']['type'] = 'none';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['style_plugin'] = 'views_data_export_csv';
+  $handler->display->display_options['path'] = 'taxonomy/term/%/geocat.csv';
+  $views[$view->name] = $view;
   return $views;
 }
