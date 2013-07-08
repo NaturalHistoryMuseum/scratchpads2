@@ -457,6 +457,50 @@ function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
     case 'googleanalytics':
       $info['tool'] = TRUE;
       break;
+    // The following updates allow us to download the translations for latest
+    // stable release of a module when we're actually using a "dev" release.
+    case 'beautytips':
+      $info['version'] = '7.x-2.0-beta2';
+      break;
+    case 'biblio':
+      $info['version'] = '7.x-1.0-rc5';
+      break;
+    case 'boost':
+      $info['version'] = '7.x-1.0-beta2';
+      break;
+    case 'entitycache':
+      $info['version'] = '7.x-1.1';
+      break;
+    case 'entity_translation':
+      $info['version'] = '7.x-1.0-beta2';
+      break;
+    case 'feeds':
+      $info['version'] = '7.x-2.0-alpha8';
+      break;
+    case 'field_collection':
+      $info['version'] = '7.x-1.0-beta5';
+      break;
+    case 'field_group':
+      $info['version'] = '7.x-1.1';
+      break;
+    case 'file_entity':
+      $info['version'] = '7.x-2.0-unstable7';
+      break;
+    case 'l10n_update':
+      $info['version'] = '7.x-1.0-beta3';
+      break;
+    case 'media':
+      $info['version'] = '7.x-2.0-unstable7';
+      break;
+    case 'role_delegation':
+      $info['version'] = '7.x-1.0';
+      break;
+    case 'styles':
+      $info['version'] = '7.x-2.0-alpha8';
+      break;
+    case 'views_data_export':
+      $info['version'] = '7.x-3.0-beta6';
+      break;
   }
   if(substr($file->uri, 0, 24) == 'sites/all/modules/custom'){
     if(empty($info['version']) || $info['version'] != VERSION){
