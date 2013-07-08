@@ -245,6 +245,7 @@ function libraries_test_libraries_info() {
             'info callback' => 'not applied',
             'pre-detect callback' => 'not applied',
             'post-detect callback' => 'not applied',
+            'pre-dependencies-load callback' => 'not applied',
             'pre-load callback' => 'not applied',
             'post-load callback' => 'not applied',
           ),
@@ -253,6 +254,7 @@ function libraries_test_libraries_info() {
         'info callback' => 'not applied',
         'pre-detect callback' => 'not applied',
         'post-detect callback' => 'not applied',
+        'pre-dependencies-load callback' => 'not applied',
         'pre-load callback' => 'not applied',
         'post-load callback' => 'not applied',
       ),
@@ -263,6 +265,7 @@ function libraries_test_libraries_info() {
         'info callback' => 'not applied',
         'pre-detect callback' => 'not applied',
         'post-detect callback' => 'not applied',
+        'pre-dependencies-load callback' => 'not applied',
         'pre-load callback' => 'not applied',
         'post-load callback' => 'not applied',
       ),
@@ -271,6 +274,7 @@ function libraries_test_libraries_info() {
       'info' => array('_libraries_test_info_callback'),
       'pre-detect' => array('_libraries_test_pre_detect_callback'),
       'post-detect' => array('_libraries_test_post_detect_callback'),
+      'pre-dependencies-load' => array('_libraries_test_pre_dependencies_load_callback'),
       'pre-load' => array('_libraries_test_pre_load_callback'),
       'post-load' => array('_libraries_test_post_load_callback'),
     ),
@@ -278,6 +282,7 @@ function libraries_test_libraries_info() {
     'info callback' => 'not applied',
     'pre-detect callback' => 'not applied',
     'post-detect callback' => 'not applied',
+    'pre-dependencies-load callback' => 'not applied',
     'pre-load callback' => 'not applied',
     'post-load callback' => 'not applied',
   );
@@ -394,6 +399,18 @@ function _libraries_test_pre_detect_callback(&$library, $version, $variant) {
  */
 function _libraries_test_post_detect_callback(&$library, $version, $variant) {
   _libraries_test_callback($library, $version, $variant, 'post-detect');
+}
+
+/**
+ * Sets the 'pre-dependencies-load callback' key.
+ *
+ * This function is used as a test callback for the 'pre-dependencies-load'
+ * callback group.
+ *
+ * @see _libraries_test_callback()
+ */
+function _libraries_test_pre_dependencies_load_callback(&$library, $version, $variant) {
+  _libraries_test_callback($library, $version, $variant, 'pre-dependencies-load');
 }
 
 /**
@@ -542,7 +559,7 @@ function _libraries_test_load($library, $variant = NULL) {
   $files = get_included_files();
   foreach ($files as $file) {
     if (strpos($file, 'libraries/test') && !strpos($file, 'libraries_test.module')) {
-      $output .= '<li>' . strstr($file, 'libraries/test') . '</li>';
+      $output .= '<li>' . str_replace(DRUPAL_ROOT . '/', '', $file) . '</li>';
     }
   }
   $output .= '</ul>';
