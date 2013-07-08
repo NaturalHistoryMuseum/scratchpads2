@@ -6,3 +6,5 @@ core = "7.x"
 dependencies[] = "locale"
 tool = true
 php = "5.2.4"
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml

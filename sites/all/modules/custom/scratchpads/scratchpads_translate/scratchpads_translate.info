@@ -18,3 +18,5 @@ features[variable][] = "entity_translation_shared_labels"
 features[variable][] = "entity_translation_workflow_enabled"
 features[variable][] = "translation_language_type"
 tool = true
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml

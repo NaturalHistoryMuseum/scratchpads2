@@ -6,3 +6,5 @@ files[] = hashcash.install
 files[] = hashcash.admin.inc
 scripts[] = js/hashcash.js
 package = Scratchpads
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml

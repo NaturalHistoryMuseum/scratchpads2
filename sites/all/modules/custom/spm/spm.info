@@ -3,7 +3,6 @@ description = "Taxon descriptions content type"
 core = "7.x"
 package = "Taxonomy"
 php = "5.2.4"
-version = "7.x-1.0"
 project = "spm"
 dependencies[] = "features"
 dependencies[] = "field_group"
@@ -84,3 +83,6 @@ project status url = "http://modules.scratchpads.eu/"
 scripts[] = js/spm_config.js
 stylesheets[all][] = css/spm.css
 
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
