@@ -174,7 +174,13 @@ function customerror_page() {
     case 403:
       $internal_path = substr(request_uri(), strlen(base_path()));
       if ($internal_path) {
-        $_GET['destination'] = $internal_path;
+        $dest = drupal_parse_url($internal_path);
+        if (isset($dest['query']['destination'])) {
+          $_GET['destination'] = ($dest['query']['destination']);
+        }
+        else {
+          $_GET['destination'] = $internal_path;
+        }
       }
       else {
         $_GET['destination'] = variable_get('site_frontpage', 'node');
@@ -255,13 +261,17 @@ function customerror_user_login(&$edit, $account) {
   // Check if we have a destination saved in the session
   if (!empty($_SESSION['destination'])) {
     // If there is one, then set the REQUEST destination to it
-    $_GET['destination'] = $_SESSION['destination'];
-    // Bug fix temp
-    if(strpos($_GET['destination'], 'destination=')){
-      $dest_parts = explode('destination=', $_GET['destination']);
-      $_GET['destination'] = array_pop($dest_parts);
+    $dest = drupal_parse_url($_SESSION['destination']);
+    if (isset($dest['query']['destination'])) {
+      $dnode = $dest['query']['destination'];
     }
-    drupal_set_message($_GET['destination']);
+    elseif (isset($dest['path'])) {
+      $dnode = $dest['path'];
+    }
+    else {
+      $dnode = variable_get('site_frontpage', 'node');
+    }
+    $_GET['destination'] = $dnode;
     // And clear the one in the session
     unset($_SESSION['destination']);
     // user.module then does a drupal_goto() for us after we return from here
@@ -269,10 +279,10 @@ function customerror_user_login(&$edit, $account) {
 }
 
 function customerror_check_redirect() {
-  $destination = $_GET['destination'];
-  if (empty($destination)) {
+  if (empty($_GET['destination'])) {
     return;
   }
+  $destination = $_GET['destination'];
 
   $redirect_list = variable_get('customerror_redirect', '');
   if (empty($redirect_list)) {
