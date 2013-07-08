@@ -1,0 +1,39 @@
+/* Overview navigation tables for projects and languages */
+.l10n-community-overview td.rowhead, .l10n-community-overview thead th.rowhead {
+  text-align: right;
+}
+.l10n-community-progress-translated,
+.l10n-community-progress-untranslated {
+  float: right;
+}
+
+/* String search filtering form */
+.l10n-server-filter {
+  padding: 0.6em 0.6em 1.5em 150px;
+}
+.l10n-server-filter .filter-widget {
+  float: right;
+  padding: 0 0 0 1em;
+}
+.l10n-server-filter .filter-submit .form-submit {
+  right: auto;
+  left: 0;
+}
+.l10n-server-filter .filter-submit .reset-link {
+  right: auto;
+  left: 0;
+}
+.l10n-server-filter .reveal-link {
+  left: auto;
+  right: 0;
+  margin: 0 1em 0.5em 0;
+}
+
+#autocomplete {
+  text-align: right;
+}
+
+#edit-release {
+  text-align: right;
+  text-indent: -0.5em;
+}
