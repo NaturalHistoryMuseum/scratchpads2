@@ -32,6 +32,17 @@ function scratchpads_multilingual_scratchpads_default_permissions(){
 }
 
 /**
+ * Implements hook_scratchpads_hands_off_urls_alter().
+ */
+function scratchpads_multilingual_scratchpads_hands_off_urls_alter(&$urls){
+  $urls = array_merge($urls, array(
+    'admin/config/regional/language/update',
+    'admin/config/regional/language/configure',
+    'admin/config/regional/translate'
+  ));
+}
+
+/**
  * Implements hook_block_info
  */
 function scratchpads_multilingual_block_info(){

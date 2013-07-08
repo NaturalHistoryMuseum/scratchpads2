@@ -1,3 +1,11 @@
 <?php
 
-// Deliberately empty
+/**
+ * Implements hook_scratchpads_hands_off_urls_alter().
+ */
+function scratchpads_translate_scratchpads_hands_off_urls_alter(&$urls){
+  $urls = array_merge($urls, array(
+    'admin/config/regional/i18n',
+    'admin/config/regional/i18n_translation'
+  ));
+}
