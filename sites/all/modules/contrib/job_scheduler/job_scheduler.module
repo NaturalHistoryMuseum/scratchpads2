@@ -1,5 +1,4 @@
 <?php
-// $Id: job_scheduler.module,v 1.6.2.1 2011/01/10 22:12:27 alexb Exp $
 
 /**
  * @file
@@ -9,7 +8,7 @@
 /**
  * Collects and returns scheduler info.
  *
- * @see hook_cron_job_scheduler_info().
+ * @see hook_cron_job_scheduler_info()
  *
  * @param $name
  *   Name of the schedule
@@ -31,7 +30,7 @@ function job_scheduler_info($name = NULL) {
 }
 
 /**
- * Implementation of hook_cron().
+ * Implements hook_cron().
  */
 function job_scheduler_cron() {
   // Reschedule all jobs if requested.
@@ -85,14 +84,14 @@ function job_scheduler_cron() {
 }
 
 /**
- * Implementation of hook_modules_enabled().
+ * Implements hook_modules_enabled().
  */
 function job_scheduler_modules_enabled($modules) {
   job_scheduler_rebuild_all();
 }
 
 /**
- * Implementation of hook_modules_disabled().
+ * Implements hook_modules_disabled().
  */
 function job_scheduler_modules_disabled($modules) {
   job_scheduler_rebuild_all();
@@ -123,7 +122,7 @@ function job_scheduler_rebuild_scheduler($name, $info = NULL) {
 }
 
 /**
- * Implementation of hook_cron_queue_info().
+ * Implements hook_cron_queue_info().
  *
  * Provide queue worker information for jobs declared in
  * hook_cron_job_scheduler_info().

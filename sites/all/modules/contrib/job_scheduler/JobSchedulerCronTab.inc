@@ -1,5 +1,4 @@
 <?php
-// $Id: JobSchedulerCronTab.inc,v 1.1.2.1 2011/01/10 22:13:21 alexb Exp $
 
 /**
  * @file
@@ -59,7 +58,7 @@ class JobSchedulerCronTab {
     if (count($array) == 5) {
       $values = array_combine(array('minutes', 'hours', 'mday', 'mon', 'wday'), array_map('trim', $array));
       $elements = array();
-      foreach($values as $type => $string) {
+      foreach ($values as $type => $string) {
         $elements[$type] = self::parseElement($type, $string, TRUE);
       }
       // Return only if we have the right number of elements
@@ -149,15 +148,21 @@ class JobSchedulerCronTab {
     $cron = $this->cron;
     while ($cron['hours']) {
       $hour = array_shift($cron['hours']);
-      if ($date['hours'] <= $hour) {
-        while ($cron['minutes']) {
-          $minute = array_shift($cron['minutes']);
+      // Current hour; next minute.
+      if ($date['hours'] == $hour) {
+        foreach ($cron['minutes'] as $minute) {
           if ($date['minutes'] < $minute) {
             $date['hours'] = $hour;
             $date['minutes'] = $minute;
             return $date;
           }
         }
+      }
+      // Next hour; first avaiable minute.
+      elseif ($date['hours'] < $hour) {
+        $date['hours'] = $hour;
+        $date['minutes'] = reset($cron['minutes']);
+        return $date;
       }
     }
     return FALSE;
