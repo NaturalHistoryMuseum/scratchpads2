@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * Implements hook_install()
+ */
+function scratchpads_translate_install(){
+  variable_set('entity_translation_comment_filter_page', 0);
+  variable_set('entity_translation_entity_types', array(
+    'node' => 'node',
+    'taxonomy_term' => 'taxonomy_term',
+    'comment' => 0,
+    'publication' => 0,
+    'file' => 0,
+    'user' => 'user'
+  ));
+  variable_set('entity_translation_hide_translation_links_page', 1);
+  variable_set('entity_translation_node_metadata_page', '0');
+  variable_set('entity_translation_settings_node__page', array(
+    'default_language' => 'en',
+    'hide_language_selector' => 0,
+    'exclude_language_none' => 0,
+    'lock_language' => 0,
+    'shared_fields_original_only' => 1
+  ));
+  variable_set('entity_translation_shared_labels', 1);
+  variable_set('entity_translation_workflow_enabled', 0);
+  variable_set('translation_language_type', 'language_content');
+}
