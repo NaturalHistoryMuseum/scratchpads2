@@ -193,8 +193,6 @@ class FeedsTamperUIWebTestCase extends FeedsTamperWebTestHelper {
     $this->assertText('This is a great body.');
     $this->assertText('World does not respond');
     $this->assertText('This is a sad body.');
-    $this->toggleTamperPlugin($importer, 'a Title', $id);
-    $this->toggleTamperPlugin($importer, 'a Body', $id2);
   }
 
   function addTamperPlugin($importer_id, $source, $plugin_id, $settings = array(), $description = NULL, $id = NULL) {
