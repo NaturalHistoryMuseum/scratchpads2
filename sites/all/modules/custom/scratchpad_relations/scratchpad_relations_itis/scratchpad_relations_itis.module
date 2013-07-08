@@ -129,7 +129,7 @@ function _scratchpad_relations_itis_taxonomy_autocomplete($type = '', $direction
     }
     $results = $query->execute();
     if($results){
-      //   watchdog('debug', '<pre> results ' . print_r($results, TRUE) . '</pre>');
+        watchdog('debug', '<pre> results ' . print_r($results, TRUE) . '</pre>');
       foreach(array_keys($results[$entity_type]) as $id){
         if($entity_type == 'taxonomy_term'){
           $field = field_info_field($field_name);
