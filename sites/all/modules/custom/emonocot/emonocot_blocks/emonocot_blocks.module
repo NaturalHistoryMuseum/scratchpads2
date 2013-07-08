@@ -103,7 +103,7 @@ function emonocot_blocks_block_view_footer(){
     l(theme('image', array(
       'path' => drupal_get_path('module', 'scratchpads_blocks') . '/images/scratchpads.png',
       'alt' => 'Scratchpads logo',
-      'title' => 'Scratchpads TAG'
+      'title' => 'Scratchpads ' . SCRATCHPADS_VERSION
     )), 'http://scratchpads.eu/', $options)
   );
   //Nolinoideae site has extra logos
