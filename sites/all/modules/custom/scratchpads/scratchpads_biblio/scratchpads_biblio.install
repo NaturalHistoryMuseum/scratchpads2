@@ -36,7 +36,7 @@ function scratchpads_biblio_update_7003(){
  */
 function scratchpads_biblio_update_7004(){
   $fields_to_lock = array();
-  module_load_include('features.field.inc', 'spm');
+  module_load_include('features.field.inc', 'scratchpads_biblio');
   foreach(scratchpads_biblio_field_default_fields() as $field){
     $fields_to_lock[] = $field['field_config']['field_name'];
     if(!field_info_field($field['field_config']['field_name'])){
