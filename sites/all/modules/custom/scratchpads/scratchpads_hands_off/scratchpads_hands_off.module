@@ -105,7 +105,7 @@ function scratchpads_hands_off_menu_alter(&$items){
   foreach($hidden_urls as $hidden_url){
     $length = strlen($hidden_url);
     foreach($items as $key => $item){
-      if(substr($key, 0, $length) == $hidden_url){
+      if($key == $hidden_url || substr($key, 0, $length + 1) == "$hidden_url/"){
         $items[$key]['access callback'] = 'user_access';
         $items[$key]['access arguments'] = array(
           'scratchpad team'
