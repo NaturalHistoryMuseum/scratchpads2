@@ -9,7 +9,8 @@ function scratchpads_multilingual_disable(){
   // a shutdown function with arguments.
   drupal_register_shutdown_function('module_disable', array(
     'locale',
-    'l10n_update'
+    'l10n_update',
+    'language_cookie'
   ));
 }
 
@@ -18,7 +19,8 @@ function scratchpads_multilingual_disable(){
  */
 function scratchpads_multilingual_update_7001(){
   module_enable(array(
-    'l10n_update'
+    'l10n_update',
+    'language_cookie'
   ));
   variable_set('l10n_update_check_frequency', 7);
   variable_set('l10n_update_import_mode', 2);
@@ -32,7 +34,7 @@ function scratchpads_multilingual_update_7002(){
     include_once DRUPAL_ROOT . '/includes/language.inc';
     $negotiation_all = language_negotiation_info();
     $negotiation = array(
-      'locale-session' => $negotiation_all['locale-session'],
+      'language_cookie' => $negotiation_all['language_cookie'],
       'locale-user' => $negotiation_all['locale-user'],
       'locale-browser' => $negotiation_all['locale-browser'],
       'language-default' => $negotiation_all['language-default']

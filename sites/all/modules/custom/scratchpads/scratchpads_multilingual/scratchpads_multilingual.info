@@ -5,6 +5,7 @@ package = "Language"
 core = "7.x"
 dependencies[] = locale
 dependencies[] = l10n_update
+dependencies[] = language_cookie
 tool = true
 php = "5.2.4"
 l10n server = localize.scratchpads.eu
