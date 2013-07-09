@@ -37,6 +37,10 @@ function scratchpads_translate_menu(){
  */
 function scratchpads_translate_scratchpads_default_permissions(){
   return array(
+    'contributor' => array(
+      'translate content',
+      'translate any entity'
+    ),
     'maintainer' => array(
       'translate user-defined strings'
     )

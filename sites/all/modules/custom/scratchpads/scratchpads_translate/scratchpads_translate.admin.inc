@@ -69,9 +69,7 @@ function scratchpads_translate_setup_translation_form(){
       if(!field_is_translatable('node', $field)){
         // Load the full proper field.
         $field = field_info_field($field['field_name']);
-        $links[] = l(t('Edit !field field', array(
-          '!field' => $field['field_name']
-        )), 'admin/structure/types/manage/' . array_pop($field['bundles']['node']) . '/fields/' . $field['field_name'], array(
+        $links[] = '<strong>' . $field['field_name'] . '</strong> - ' . l(t('edit'), 'admin/structure/types/manage/' . array_pop($field['bundles']['node']) . '/fields/' . $field['field_name'], array(
           'attributes' => array(
             'target' => '_blank'
           )
@@ -81,9 +79,7 @@ function scratchpads_translate_setup_translation_form(){
       if(!field_is_translatable('taxonomy_term', $field)){
         // Load the full proper field.
         $field = field_info_field($field['field_name']);
-        $links[] = l(t('Edit !field field', array(
-          '!field' => $field['field_name']
-        )), 'admin/structure/taxonomy/' . array_pop($field['bundles']['taxonomy_term']) . '/fields/' . $field['field_name'], array(
+        $links[] = l(t('edit'), 'admin/structure/taxonomy/' . array_pop($field['bundles']['taxonomy_term']) . '/fields/' . $field['field_name'], array(
           'attributes' => array(
             'target' => '_blank'
           )
@@ -107,7 +103,7 @@ function scratchpads_translate_setup_translation_form(){
   }
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Fix fields and bundles')
+    '#value' => t('Enable translation of checked node types and taxonomy vocabularies')
   );
   return $form;
 }
@@ -118,7 +114,7 @@ function scratchpads_translate_setup_translation_form(){
 function scratchpads_translate_setup_translation_form_submit(&$form, &$form_state){
   $fields_to_translate = array();
   foreach($form_state['values'] as $entity_type => $values){
-    if(isset($values['bundles']) && isset($values['fields']['fields'])){
+    if(isset($values['bundles'])){
       foreach($values['bundles'] as $bundle_name => $set){
         switch($entity_type){
           case 'node':
