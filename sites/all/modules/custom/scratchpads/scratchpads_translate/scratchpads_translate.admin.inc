@@ -15,29 +15,25 @@ function scratchpads_translate_setup_translation_form(){
     'user'
   ) as $entity_type){
     $entity_info = entity_get_info($entity_type);
-    $values = $default_value = $fields_for_bundles = $fields_options = $fields_default_value = array();
+    $values = $default_value = $fields_options = $fields_default_value = array();
     foreach($entity_info['bundles'] as $bundle_name => $bundle_details){
-      // Get all the fields for this entity/bundle, and let the user know which
-      // ones may be translated, and which ones may not.
-      $fields = field_info_instances($entity_type, $bundle_name);
-      foreach($fields as $field){
-        if(!isset($fields_options[$field['field_name']])){
-          $full_field = field_info_field($field['field_name']);
-          if($full_field['translatable']){
-            $fields_options[$field['field_name']] = $field['label'];
-            $fields_default_value[$field['field_name']] = field_is_translatable($entity_type, $full_field) ? $field['field_name'] : 0;
-          }
-        }
-      }
       switch($entity_type){
         case 'node':
           $values[$bundle_name] = $bundle_details['label'];
-          $default_value[$bundle_name] = locale_multilingual_node_type($bundle_name) ? $bundle_name : 0;
+          if(locale_multilingual_node_type($bundle_name)){
+            $default_value[] = $bundle_name;
+          }
           break;
         case 'taxonomy_term':
-          $values[$bundle_name] = $bundle_details['label'];
+          $biological_vids = variable_get('biological_vids', array());
           $vocabulary = taxonomy_vocabulary_machine_name_load($bundle_name);
-          $default_value[$bundle_name] = i18n_taxonomy_vocabulary_mode($vocabulary) ? $bundle_name : 0;
+          if(!empty($biological_vids[$vocabulary->vid])){
+            continue 2;
+          }
+          $values[$bundle_name] = $bundle_details['label'];
+          if(i18n_taxonomy_vocabulary_mode($vocabulary)){
+            $default_value[] = $bundle_name;
+          }
           break;
       }
     }
@@ -50,24 +46,14 @@ function scratchpads_translate_setup_translation_form(){
           '#title' => $entity_info['label'],
           '#collapsible' => TRUE,
           '#collapsed' => FALSE,
+          '#tree' => TRUE,
           'bundles' => array(
             '#type' => 'checkboxes',
             '#title' => t('Bundles'),
             '#options' => $values,
+            '#tree' => TRUE,
             '#default_value' => $default_value,
             '#description' => t('The checked types may be translated.')
-          ),
-          'fields' => array(
-            '#type' => 'fieldset',
-            '#title' => t('Fields'),
-            '#collapsible' => TRUE,
-            '#collapsed' => TRUE,
-            'fields' => array(
-              '#type' => 'checkboxes',
-              '#title' => '',
-              '#options' => $fields_options,
-              '#default_value' => $fields_default_value
-            )
           )
         );
         break;
@@ -75,10 +61,37 @@ function scratchpads_translate_setup_translation_form(){
         break;
     }
   }
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Fix fields and bundles')
+  );
   return $form;
 }
 
 /**
  * Submit function for the above form.
  */
-function scratchpads_translate_setup_translation_form_submit(&$form, &$form_state){}
+function scratchpads_translate_setup_translation_form_submit(&$form, &$form_state){
+  $fields_to_translate = array();
+  foreach($form_state['values'] as $entity_type => $values){
+    if(isset($values['bundles']) && isset($values['fields']['fields'])){
+      foreach($values['bundles'] as $bundle_name => $set){
+        switch($entity_type){
+          case 'node':
+            // Only set it if we need to, as we don't want to override
+            // customisation.
+            if(!$set || !locale_multilingual_node_type($bundle_name)){
+              variable_set('language_content_type_' . $bundle_name, $set ? 4 : 0);
+              variable_set('entity_translation_hide_translation_links_' . $bundle_name, 1);
+            }
+            break;
+          case 'taxonomy_term':
+            db_update('taxonomy_vocabulary')->fields(array(
+              'i18n_mode' => $set ? 1 : 0
+            ))->condition('machine_name', $bundle_name)->execute();
+            break;
+        }
+      }
+    }
+  }
+}
