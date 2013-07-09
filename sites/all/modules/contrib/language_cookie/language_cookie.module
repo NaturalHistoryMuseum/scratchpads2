@@ -1,0 +1,210 @@
+<?php
+/**
+ * @file
+ * Language Cookie module.
+ */
+
+/**
+ * Constant for language negotiation type.
+ */
+define('LANGUAGE_COOKIE_NEGOTIATION', 'language_cookie');
+
+/**
+ * Implements hook_menu().
+ */
+function language_cookie_menu() {
+  $items = array();
+
+  $items['admin/config/regional/language/configure/cookie'] = array(
+    'title' => 'Cookie language detection configuration',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('language_cookie_admin_form'),
+    'access arguments' => array('administer languages'),
+    'file' => 'language_cookie.admin.inc',
+    'type' => MENU_VISIBLE_IN_BREADCRUMB,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_language_negotiation_info().
+ */
+function language_cookie_language_negotiation_info() {
+  return array(
+    'language_cookie' => array(
+      'callbacks' => array(
+        'language' => 'language_cookie_language',
+        'switcher' => 'language_cookie_language_switcher',
+        'url_rewrite' => 'language_cookie_language_rewrite',
+      ),
+      'file' => drupal_get_path('module', 'language_cookie') . '/language_cookie.module',
+      'weight' => -5,
+      'name' => t('Cookie'),
+      'description' => t('Determine the language from a cookie'),
+      'config' => 'admin/config/regional/language/configure/cookie',
+      'cache' => 0,
+    ),
+  );
+}
+
+/**
+ * Set cookie for current language.
+ * If no parameter is passed the current language is used.
+ *
+ * @param string $lang
+ */
+function language_cookie_set($lang = NULL) {
+  if (!$lang) {
+    global $language;
+    $lang = $language->language;
+  }
+
+  $cookie = new stdClass;
+  $cookie->name = variable_get('language_cookie_param', 'language');
+  $cookie->value = $lang;
+  $cookie->expire =  variable_get('language_cookie_time', 31536000);
+  $cookie->path = variable_get('language_cookie_path', '/');
+  $cookie->domain = variable_get('language_cookie_domain', '');
+  $cookie->secure = FALSE;
+  $cookie->httponly = FALSE;
+
+  // Allow other modules to alter the cookie.
+  drupal_alter('language_cookie', $cookie);
+
+  setrawcookie(
+    $cookie->name,
+    rawurlencode($cookie->value),
+    REQUEST_TIME + $cookie->expire,
+    $cookie->path,
+    $cookie->domain,
+    $cookie->secure,
+    $cookie->httponly
+  );
+}
+
+/**
+ * Identify language from a cookie parameter.
+ *
+ * @param $languages
+ *   An array of valid language objects.
+ *
+ * @return
+ *   A valid language code on success, FALSE otherwise.
+ */
+function language_cookie_language($languages) {
+  $param = variable_get('language_cookie_param', 'language');
+  return (isset($_COOKIE[$param]) && in_array($_COOKIE[$param], array_keys($languages)))
+      ? $_COOKIE[$param] : NULL;
+}
+
+/**
+ * Return the cookie language switcher block.
+ */
+function language_cookie_language_switcher($type, $path) {
+  drupal_add_css(drupal_get_path('module', 'locale') . '/locale.css');
+
+  $param = variable_get('language_cookie_param', 'language');
+  $language_query = isset($_COOKIE[$param]) ? $_COOKIE[$param] : $GLOBALS[$type]->language;
+
+  $languages = language_list('enabled');
+  $links = array();
+
+  $query = $_GET;
+  unset($query['q']);
+
+  foreach ($languages[1] as $language) {
+    $langcode = $language->language;
+    $links[$langcode] = array(
+      'href' => $path,
+      'title' => $language->native,
+      'attributes' => array('class' => array('language-link')),
+      'query' => $query,
+    );
+    if ($language_query != $langcode) {
+      $links[$langcode]['query'][$param] = $langcode;
+    }
+    else {
+      $links[$langcode]['attributes']['class'][] = ' session-active';
+      $links[$langcode]['attributes']['class'][] = ' cookie-active';
+    }
+  }
+
+  return $links;
+}
+
+/**
+ * Rewrite URLs for the Cookie language provider.
+ */
+function language_cookie_language_rewrite(&$path, &$options) {
+  static $query_rewrite, $query_param, $query_value;
+
+  // The following values are not supposed to change during a single page
+  // request processing.
+  if (!isset($query_rewrite)) {
+    global $user;
+    if (!$user->uid) {
+      $languages = language_list('enabled');
+      $languages = $languages[1];
+      $query_param = check_plain(variable_get('language_cookie_param', 'language'));
+      $query_value = isset($_GET[$query_param]) ? check_plain($_GET[$query_param]) : NULL;
+      $query_rewrite = isset($languages[$query_value]) && language_negotiation_get_any(LANGUAGE_COOKIE_NEGOTIATION);
+    }
+    else {
+      $query_rewrite = FALSE;
+    }
+  }
+
+  // If the user is anonymous, the user language provider is enabled, and the
+  // corresponding option has been set, we must preserve any explicit user
+  // language preference even with cookies disabled.
+  if ($query_rewrite) {
+    if (is_string($options['query'])) {
+      $options['query'] = drupal_get_query_array($options['query']);
+    }
+    if (!isset($options['query'][$query_param])) {
+      $options['query'][$query_param] = $query_value;
+    }
+  }
+}
+
+/**
+ * Implements hook_boot().
+ */
+function language_cookie_boot() {
+  $method = variable_get('locale_language_negotiation_url_part');
+  $languages = language_list('enabled');
+  $languages = $languages[1];
+  require_once DRUPAL_ROOT . '/includes/locale.inc';
+
+  switch ($method) {
+    case LOCALE_LANGUAGE_NEGOTIATION_URL_PREFIX:
+      $prefix = arg(0);
+      // Search prefix within enabled languages.
+      foreach ($languages as $language) {
+        if (!empty($language->prefix) && $language->prefix == $prefix) {
+          $lang = $language;
+        }
+      }
+      break;
+    case LOCALE_LANGUAGE_NEGOTIATION_URL_DOMAIN:
+      foreach ($languages as $language) {
+        $parts = parse_url($language->domain);
+        if (!empty($parts['host']) && ($_SERVER['HTTP_HOST'] == $parts['host'])) {
+          $lang = $language;
+        }
+      }
+      break;
+    default:
+      $lang = language_default();
+  }
+
+  if (isset($lang)) {
+    $lang = $lang->language;
+    $param = variable_get('language_cookie_param', 'language');
+    require_once DRUPAL_ROOT . '/includes/language.inc';
+    if ((!isset($_COOKIE[$param]) || (isset($_COOKIE[$param]) && $_COOKIE[$param] != $lang)) && language_negotiation_get_any(LANGUAGE_COOKIE_NEGOTIATION)) {
+      language_cookie_set($lang);
+    }
+  }
+}
