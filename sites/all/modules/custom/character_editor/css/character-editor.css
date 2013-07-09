@@ -1,5 +1,9 @@
 @CHARSET "UTF-8";
 
+#content div.view-character-editor #slickgrid div.slick-headerrow {
+  display: none;
+}
+
 #slickgrid .slick-cell.l0,
 #slickgrid .slick-header-column{
    text-align: left;
