@@ -9,3 +9,56 @@ function scratchpads_translate_scratchpads_hands_off_urls_alter(&$urls){
     'admin/config/regional/i18n_translation'
   ));
 }
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_translate_menu(){
+  return array(
+    'admin/config/regional/translate-setup' => array(
+      'title' => 'Translate',
+      'description' => 'Configure the content types and fields that you would like to enable translations for.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_translate_setup_translation_form'
+      ),
+      'access callback' => TRUE,
+      'access arguments' => array(
+        'administer languages'
+      ),
+      'file' => 'scratchpads_translate.admin.inc',
+      'weight' => 10
+    )
+  );
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function scratchpads_translate_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'translate user-defined strings'
+    )
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function scratchpads_translate_form_taxonomy_form_vocabulary_alter(&$form, &$form_state){
+  // FIXME - This needs properly investigatin, is this correct?
+  unset($form['i18n_translation']['i18n_mode']['#options'][2]);
+  unset($form['i18n_translation']['i18n_mode']['#options'][4]);
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_translate_module_implements_alter(&$imps, $hook){
+  if($hook == 'form_taxonomy_form_vocabulary_alter' || $hook == 'form_alter' && isset($imps['scratchpads_translate'])){
+    $move = $imps['scratchpads_translate'];
+    unset($imps['scratchpads_translate']);
+    $imps['scratchpads_translate'] = $move;
+  }
+}
