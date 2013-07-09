@@ -11,6 +11,54 @@ function darwincore_views_api(){
 }
 
 /**
+ * Implements hook_block_info()
+ */
+function darwincore_block_info(){
+  return array(
+    'geocat' => array(
+      'info' => t('GeoCAT'),
+      'cache' => DRUPAL_CACHE_PER_PAGE
+    )
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function darwincore_block_view($delta = 'geocat'){
+  switch($delta){
+    case 'geocat':
+      return array(
+        'subject' => '',
+        'content' => array(
+          'link' => array(
+            '#markup' => '<p style="text-align:right">' . l('Import all georeferenced specimen data for this taxon into GeoCAT', 'http://geocat.kew.org/editor?geocat_url=' . url('', array(
+              'absolute' => TRUE
+            )) . 'taxonomy/term/' . arg(2) . '/geocat.csv', array(
+              'attributes' => array(
+                'target' => '_blank'
+              )
+            )) . '</p>'
+          )
+        )
+      );
+      break;
+  }
+}
+
+/**
+ * Implements hook_context_default_contexts_alter()
+ */
+function darwincore_context_default_contexts_alter(&$contexts){
+  $contexts['species_specimens']->reactions['block']['blocks']['darwincore-geocat'] = array(
+    'module' => 'darwincore',
+    'delta' => 'geocat',
+    'region' => 'content',
+    'weight' => 1
+  );
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  */
 function darwincore_form_specimen_observation_node_form_alter(&$form, &$form_state, $form_id){
