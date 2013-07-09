@@ -389,7 +389,7 @@ function scratchpads_media_gallery_update_7012(){
  */
 function scratchpads_media_gallery_update_7013(){
   $fields_to_lock = array();
-  module_load_include('features.field.inc', 'spm');
+  module_load_include('features.field.inc', 'scratchpads_media_gallery');
   foreach(scratchpads_media_gallery_field_default_fields() as $field){
     $fields_to_lock[] = $field['field_config']['field_name'];
     if(!field_info_field($field['field_config']['field_name'])){
