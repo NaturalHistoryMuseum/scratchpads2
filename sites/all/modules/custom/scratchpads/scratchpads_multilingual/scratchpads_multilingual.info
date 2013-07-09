@@ -1,6 +1,6 @@
 name = "Interface Translate"
 description = "Enables the translation of the Scratchpads interface into multiple languages."
-configure = admin/config/regional
+configure = admin/config/regional/language
 package = "Language"
 core = "7.x"
 dependencies[] = locale

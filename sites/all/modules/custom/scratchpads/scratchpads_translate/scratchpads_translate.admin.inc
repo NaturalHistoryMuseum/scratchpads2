@@ -61,6 +61,50 @@ function scratchpads_translate_setup_translation_form(){
         break;
     }
   }
+  module_load_include('crud.inc', 'field');
+  $fields = field_read_fields();
+  $links = array();
+  foreach($fields as $field){
+    if(in_array('node', $field['entity_types'])){
+      if(!field_is_translatable('node', $field)){
+        // Load the full proper field.
+        $field = field_info_field($field['field_name']);
+        $links[] = l(t('Edit !field field', array(
+          '!field' => $field['field_name']
+        )), 'admin/structure/types/manage/' . array_pop($field['bundles']['node']) . '/fields/' . $field['field_name'], array(
+          'attributes' => array(
+            'target' => '_blank'
+          )
+        ));
+      }
+    }else if(in_array('taxonomy_term', $field['entity_types'])){
+      if(!field_is_translatable('taxonomy_term', $field)){
+        // Load the full proper field.
+        $field = field_info_field($field['field_name']);
+        $links[] = l(t('Edit !field field', array(
+          '!field' => $field['field_name']
+        )), 'admin/structure/taxonomy/' . array_pop($field['bundles']['taxonomy_term']) . '/fields/' . $field['field_name'], array(
+          'attributes' => array(
+            'target' => '_blank'
+          )
+        ));
+      }
+    }else if(in_array('user', $field['entity_types'])){
+    }
+  }
+  if(count($links)){
+    $form['links'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Fields not set as translatable'),
+      '#collapsed' => FALSE,
+      '#collapsible' => TRUE,
+      'links' => array(
+        '#markup' => theme('item_list', array(
+          'items' => $links
+        ))
+      )
+    );
+  }
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Fix fields and bundles')
