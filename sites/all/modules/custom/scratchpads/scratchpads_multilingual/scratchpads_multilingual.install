@@ -20,6 +20,8 @@ function scratchpads_multilingual_update_7001(){
   module_enable(array(
     'l10n_update'
   ));
+  variable_set('l10n_update_check_frequency', 7);
+  variable_set('l10n_update_import_mode', 2);
 }
 
 /**
