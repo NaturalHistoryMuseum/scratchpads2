@@ -57,7 +57,7 @@ function scratchpad_relations_itis_field_widget_relation_add_form_alter(&$elemen
  * Implementation of hook_menu_alter()
  */
 function scratchpad_relations_itis_menu_alter(&$items){
-  $items['relation_add/autocomplete/%']['page callback'] = '_scratchpad_relations_itis_taxonomy_autocomplete';
+  $items['relation_add/autocomplete/%']['page callback'] = 'scratchpad_relations_itis_relation_add_autocomplete';
   $items['relation_add/autocomplete/%']['page arguments'] = array(
     2,
     3,
@@ -75,7 +75,7 @@ function scratchpad_relations_itis_menu_alter(&$items){
  *  @param $string The label/name/title to search for
  *  @see relation_add.module
  */
-function _scratchpad_relations_itis_taxonomy_autocomplete($type = '', $direction = 'target', $field = 'none', $string = ''){
+function scratchpad_relations_itis_relation_add_autocomplete($type = '', $direction = 'target', $field = 'none', $string = ''){
   if(empty($type) || empty($direction) || empty($string)){
     exit();
   }
@@ -159,8 +159,7 @@ function _scratchpad_relations_itis_taxonomy_autocomplete($type = '', $direction
       }
     }
   }
-  print drupal_json_encode($suggestions);
-  exit();
+  drupal_json_output($suggestions);
 }
 
 /**
