@@ -34,6 +34,8 @@ function itis_term_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $fo
           )
         )
       );
+      # Add an additional submit for removing the i18n_mode value.
+      array_unshift($form['#submit'], 'itis_term_taxonomy_form_vocabulary_submit_remove_i18n');
     }
     // Add the an additional submit function so that we can tweak the
     // vocabulary.
@@ -66,6 +68,17 @@ function itis_term_feeds_after_parse(FeedsSource $source, FeedsParserResult $res
         $value .= (isset($item['Unit indicator ' . $i]) ? $item['Unit indicator ' . $i] . ' ' : '') . (isset($item['Unit name ' . $i]) ? $item['Unit name ' . $i] . ' ' : '');
       }
       $result->items[$key]['Term name'] = trim($value);
+    }
+  }
+}
+
+/**
+ * Submit function for removing i18n_mode
+ */
+function itis_term_taxonomy_form_vocabulary_submit_remove_i18n($form, &$form_state){
+  if(!isset($form_state['confirm_delete'])){
+    if($form_state['values']['biological_classification']){
+      $form_state['values']['i18n_mode'] = 0;
     }
   }
 }
