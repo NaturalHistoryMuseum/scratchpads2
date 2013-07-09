@@ -19,11 +19,36 @@ function itis_term_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $fo
       ),
       '#empty_option' => t('Not a biological classification'),
       '#default_value' => (isset($form['vid']) && isset($vids[$form['vid']['#value']])) ? $vids[$form['vid']['#value']] : 0,
-      '#disabled' => isset($form['vid']) ? TRUE : FALSE
+      '#disabled' => isset($form['vid']) ? TRUE : FALSE,
+      '#weight' => 1
     );
+    // If the multilingual module is enabled, we hide parts of the form if we
+    // have selected a taxonomy (we have vernacular names, so translations should
+    // not be required).
+    if(isset($form['i18n_translation'])){
+      $form['i18n_translation']['#weight'] = 3;
+      $form['i18n_translation']['#states'] = array(
+        'visible' => array(
+          ':input[name="biological_classification"]' => array(
+            'value' => ''
+          )
+        )
+      );
+    }
     // Add the an additional submit function so that we can tweak the
     // vocabulary.
     $form['#submit'][] = 'itis_term_taxonomy_form_vocabulary_submit';
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function itis_term_module_implements_alter(&$imps, $hook){
+  if($hook == 'form_taxonomy_form_vocabulary_alter' || $hook == 'form_alter' && isset($imps['itis_term'])){
+    $move = $imps['itis_term'];
+    unset($imps['itis_term']);
+    $imps['itis_term'] = $move;
   }
 }
 
