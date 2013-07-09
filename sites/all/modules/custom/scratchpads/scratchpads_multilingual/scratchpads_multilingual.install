@@ -12,3 +12,29 @@ function scratchpads_multilingual_disable(){
     'l10n_update'
   ));
 }
+
+/**
+ * Enable the l10n_update module which is now required.
+ */
+function scratchpads_multilingual_update_7001(){
+  module_enable(array(
+    'l10n_update'
+  ));
+}
+
+/**
+ * Add the user's browser language to the negotiation types.
+ */
+function scratchpads_multilingual_update_7002(){
+  if(variable_get('scratchpads_multilingual_init', FALSE)){
+    include_once DRUPAL_ROOT . '/includes/language.inc';
+    $negotiation_all = language_negotiation_info();
+    $negotiation = array(
+      'locale-session' => $negotiation_all['locale-session'],
+      'locale-user' => $negotiation_all['locale-user'],
+      'locale-browser' => $negotiation_all['locale-browser'],
+      'language-default' => $negotiation_all['language-default']
+    );
+    language_negotiation_set('language', $negotiation);
+  }
+}
