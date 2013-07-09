@@ -79,6 +79,7 @@ function _scratchpad_relations_itis_taxonomy_autocomplete($type = '', $direction
   if(empty($type) || empty($direction) || empty($string)){
     exit();
   }
+  watchdog('debug', '<pre> type ' . print_r($type, TRUE) . '</pre>');
   // Removing the :reverse suffix if exists.
   $type_array = explode(':', $type);
   $type = $type_array[0];
@@ -129,7 +130,6 @@ function _scratchpad_relations_itis_taxonomy_autocomplete($type = '', $direction
     }
     $results = $query->execute();
     if($results){
-        watchdog('debug', '<pre> results ' . print_r($results, TRUE) . '</pre>');
       foreach(array_keys($results[$entity_type]) as $id){
         if($entity_type == 'taxonomy_term'){
           $field = field_info_field($field_name);
