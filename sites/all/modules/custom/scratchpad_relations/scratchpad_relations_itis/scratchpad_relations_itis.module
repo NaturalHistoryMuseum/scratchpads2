@@ -79,7 +79,6 @@ function scratchpad_relations_itis_relation_add_autocomplete($type = '', $direct
   if(empty($type) || empty($direction) || empty($string)){
     exit();
   }
-  watchdog('debug', '<pre> type ' . print_r($type, TRUE) . '</pre>');
   // Removing the :reverse suffix if exists.
   $type_array = explode(':', $type);
   $type = $type_array[0];
@@ -160,16 +159,4 @@ function scratchpad_relations_itis_relation_add_autocomplete($type = '', $direct
     }
   }
   drupal_json_output($suggestions);
-}
-
-/**
- * Implements hook_form_alter()
- */
-function scratchpad_relations_itis_form_taxonomy_form_term_alterOLD(&$form, &$form_state){
-  watchdog('debug', '<pre> form ' . print_r($form['field_ecological_relationship'][LANGUAGE_NONE][0]['relation_options']['targets']['target_2'], TRUE) . '</pre>');
-  $default_value = $form['field_ecological_relationship'][LANGUAGE_NONE][0]['relation_options']['targets']['target_2']['#default_value'];
-  $default_value = str_replace('taxonomy_term:', '', $default_value);
-  $form['field_ecological_relationship'][LANGUAGE_NONE][0]['relation_options']['targets']['target_2']['#default_value'] = array(
-    $default_value
-  );
 }
