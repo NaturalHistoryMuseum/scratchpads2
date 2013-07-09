@@ -131,7 +131,7 @@
                 var element_settings = {
                     event: 'modal',
                     // Drupal.ajax needs an event to fire it - use modal as it should be harmless
-                    url: slickgrid.getCallbackPath() + '/update',
+                    url: Drupal.settings.slickgrid.slickgrid_callback_url + 'update',
                     submit: {
                         // Data to be passed to the backend
                         js: true,
