@@ -48,10 +48,11 @@ function slickgrid_callback_update(){
 function slickgrid_callback_add($entity_type, $bundle_type){
   global $user;
   $entity_info = entity_get_info($entity_type);
-  $args = array_slice(func_get_args(), 4);
+  $args = array_slice(func_get_args(), 2);
   ctools_include('modal');
   ctools_include('ajax');
   $form_callback_func = $entity_info['form callback'];
+  $entity = NULL;
   if(function_exists($entity_info['creation callback'])){
     $entity = call_user_func($entity_info['creation callback'], array(
       'type' => $bundle_type,
@@ -70,6 +71,7 @@ function slickgrid_callback_add($entity_type, $bundle_type){
     $output = array();
     $output[] = ctools_modal_command_dismiss();
     $result = array();
+    $result = module_invoke_all('slickgrid_add_entity', $entity_type, $bundle_type, $args, $entity);
     slickgrid_callback_add_messages($result);
     $output[] = array(
       'command' => 'slickgrid',
