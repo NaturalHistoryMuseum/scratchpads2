@@ -1,6 +1,6 @@
 @CHARSET "UTF-8";
 
-#content div.view-character-editor #slickgrid div.slick-headerrow {
+#slickgrid div.slick-headerrow {
   display: none;
 }
 

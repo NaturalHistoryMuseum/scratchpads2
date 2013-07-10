@@ -701,15 +701,15 @@ function character_editor_character_form_submit(&$form, &$form_state){
       switch($character_entity->type){
         case 'group':
           $parent_entity = entity_load_single('character_editor_project', $form_state['character_project_id']);
-          drupal_set_message(t("Created new character group @label"), array(
+          drupal_set_message(t("Created new character group @label", array(
             '@label' => $character_entity->label()
-          ));
+          )));
           break;
         default:
           $parent_entity = entity_load_single('character_editor_character', $form_state['values']['group']);
-          drupal_set_message(t("Created new character @label"), array(
+          drupal_set_message(t("Created new character @label", array(
             '@label' => $character_entity->label()
-          ));
+          )));
           break;
       }
       character_editor_create_relation($parent_entity, $character_entity);
@@ -856,6 +856,28 @@ function character_editor_ctools_plugin_directory($module, $plugin){
  * SLICKGRID PROCESSOR & CALLBACK FUNCTIONS
  * 
  ********************************************************************************************/
+/**
+ * Implement hook_slickgrid_entity_add
+ *
+ * Ensure we reset the columns when characters are modified
+ */
+function character_editor_slickgrid_add_entity($entity_type, $bundle, $arguments, $entity){
+  // If we are adding a new character (and we know the project id), then
+  // provide the rebuild-columns too.
+  $result = array();
+  if($entity_type == 'character_editor_character' && count($arguments)){
+    $project_entity_id = reset($arguments);
+    $view = views_get_view(character_editor_get_default_view());
+    if($view){
+      $view->execute_display('defaut', array(
+        $project_entity_id
+      ));
+      $result['columns'] = slickgrid_encode_columns($view->columns);
+    }
+  }
+  return $result;
+}
+
 /**
  * Slickgrid process function
  * Retrieve form / process a modal character form (text & DNA)
@@ -1150,7 +1172,9 @@ function character_editor_preprocess_slickgrid_control__add(&$variables){
     'character_editor_character/controlled',
     'character_editor_character/group'
   ) as $character){
-    $variables['add_links'][] = $add_links[$character];
+    if(isset($add_links[$character])){
+      $variables['add_links'][] = $add_links[$character];
+    }
   }
 }
 
