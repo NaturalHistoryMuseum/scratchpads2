@@ -340,7 +340,7 @@ function character_editor_field_widget_form(&$form, &$form_state, $field, $insta
       $element['character'] = array(
         '#type' => 'item',
         '#title' => $character_entity[$entity_id]->label(),
-        '#suffix' => l('Edit', 'character/' . $entity_id . '/edit', array(
+        '#suffix' => l('Edit', 'character-editor-character/' . $entity_id . '/edit', array(
           'attributes' => array(
             'class' => 'character-editor-edit-link'
           ),
