@@ -45,7 +45,7 @@ function character_editor_help($path, $arg){
 function character_editor_permission(){
   return array(
     'create character editor' => array(
-      'title' => t('Create character edit'),
+      'title' => t('Create character editor'),
       'description' => t('Create character editor projects.')
     ),
     'view character editor' => array(
@@ -420,7 +420,7 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
           // And settings
           if(arg(2) == 'settings'){
             // Hide the characters on the settings form
-            $form['field_characters']['#access'] = false;
+            $form['field_characters']['#attributes']['class'][] = 'element-hidden';
             $form['title']['#title'] = t('Title');
           }else{
             // Hide all other fields on the edit characters form
@@ -429,7 +429,8 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
               'field_char_proj_description',
               'field_taxonomic_name'
             ) as $key){
-              $form[$key]['#access'] = false;
+              $form[$key]['#prefix'] = '<div class="element-hidden">';
+              $form[$key]['#suffix'] = '</div>';
             }
           }
           break;
@@ -584,6 +585,7 @@ function character_editor_entity_access($op){
     case 'access':
       $op = 'view';
       break;
+    case 'update':
     case 'settings':
     case 'characters':
       $op = 'edit';
