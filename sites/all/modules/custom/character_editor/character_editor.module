@@ -45,7 +45,7 @@ function character_editor_help($path, $arg){
 function character_editor_permission(){
   return array(
     'create character editor' => array(
-      'title' => t('Create character edit'),
+      'title' => t('Create character editor'),
       'description' => t('Create character editor projects.')
     ),
     'view character editor' => array(
@@ -584,6 +584,7 @@ function character_editor_entity_access($op){
     case 'access':
       $op = 'view';
       break;
+    case 'update':
     case 'settings':
     case 'characters':
       $op = 'edit';
