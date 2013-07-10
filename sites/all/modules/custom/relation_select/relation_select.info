@@ -13,8 +13,8 @@ files[] = includes/relation_select_plugin_style.inc
 files[] = theme/theme.inc
 
 core = "7.x"
-project = "relation_select"
 datestamp = "1354455784"
 
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = relation_select

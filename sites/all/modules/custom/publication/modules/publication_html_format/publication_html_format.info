@@ -21,3 +21,4 @@ features[ckeditor_profile][] = "Publication"
 
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = publication_html_format

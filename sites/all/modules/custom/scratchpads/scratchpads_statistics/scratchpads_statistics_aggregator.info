@@ -6,3 +6,4 @@ dependencies[] = scratchpads_statistics
 dependencies[] = gbif_registry
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_statistics_aggregator

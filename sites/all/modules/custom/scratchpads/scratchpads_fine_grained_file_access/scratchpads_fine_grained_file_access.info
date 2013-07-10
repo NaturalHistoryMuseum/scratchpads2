@@ -3,3 +3,4 @@ description = "Fine grained file access control.  Allows user to edit their own 
 core = "7.x"
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_fine_grained_file_access

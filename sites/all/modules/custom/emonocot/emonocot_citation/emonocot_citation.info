@@ -10,3 +10,4 @@ features[field][] = "node-biblio-field_emonocot_acknowledgement"
 
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = emonocot_citation

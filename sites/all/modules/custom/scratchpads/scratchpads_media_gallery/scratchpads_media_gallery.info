@@ -59,3 +59,4 @@ features[context][] = "media_gallery_page_facets"
 features[ctools][] = "context:context:3"
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_media_gallery

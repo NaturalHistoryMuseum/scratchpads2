@@ -5,3 +5,4 @@ package = "Feeds"
 dependencies[] = feeds
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = feeds_term_reference
