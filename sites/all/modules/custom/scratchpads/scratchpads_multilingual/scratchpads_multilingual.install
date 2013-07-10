@@ -34,9 +34,8 @@ function scratchpads_multilingual_update_7002(){
     include_once DRUPAL_ROOT . '/includes/language.inc';
     $negotiation_all = language_negotiation_info();
     $negotiation = array(
-      'language_cookie' => $negotiation_all['language_cookie'],
+      'locale-url' => $negotiation_all['locale-url'],
       'locale-user' => $negotiation_all['locale-user'],
-      'locale-browser' => $negotiation_all['locale-browser'],
       'language-default' => $negotiation_all['language-default']
     );
     language_negotiation_set('language', $negotiation);
