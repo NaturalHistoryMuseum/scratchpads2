@@ -5,6 +5,7 @@ package = "Language"
 dependencies[] = entity_translation
 dependencies[] = i18n_field
 dependencies[] = i18n_taxonomy
+dependencies[] = i18n_menu
 dependencies[] = translation
 dependencies[] = scratchpads_multilingual
 configure = admin/config/regional/translate-setup
