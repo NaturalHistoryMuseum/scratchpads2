@@ -25,6 +25,14 @@ function scratchpads_translate_install(){
   variable_set('entity_translation_shared_labels', 1);
   variable_set('entity_translation_workflow_enabled', 0);
   variable_set('translation_language_type', 'language_content');
+  // Set the language negotation for content.
+  include_once DRUPAL_ROOT . '/includes/language.inc';
+  $negotiation_all = language_negotiation_info();
+  $negotiation = array(
+    'locale-interface' => $negotiation_all['locale-interface'],
+    'language-default' => $negotiation_all['language-default']
+  );
+  language_negotiation_set('language_content', $negotiation);
 }
 
 /**
