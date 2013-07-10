@@ -25,7 +25,7 @@ function scratchpads_multilingual_update_7001(){
 }
 
 /**
- * Add the user's browser language to the negotiation types.
+ * Ensure the negotiation is set as we want it.
  */
 function scratchpads_multilingual_update_7002(){
   if(variable_get('scratchpads_multilingual_init', FALSE)){
