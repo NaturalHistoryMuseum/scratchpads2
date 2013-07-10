@@ -25,6 +25,10 @@ function scratchpads_translate_install(){
   variable_set('entity_translation_shared_labels', 1);
   variable_set('entity_translation_workflow_enabled', 0);
   variable_set('translation_language_type', 'language_content');
+  // Enable translation of all menus.
+  db_update('menu_custom')->fields(array(
+    'i18n_mode' => 5
+  ))->execute();
   // Set the language negotation for content.
   include_once DRUPAL_ROOT . '/includes/language.inc';
   $negotiation_all = language_negotiation_info();

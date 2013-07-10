@@ -6,7 +6,8 @@
 function scratchpads_translate_scratchpads_hands_off_urls_alter(&$urls){
   $urls = array_merge($urls, array(
     'admin/config/regional/i18n',
-    'admin/config/regional/i18n_translation'
+    'admin/config/regional/i18n_translation',
+    'admin/structure/menu/manage/translation'
   ));
 }
 
@@ -57,10 +58,25 @@ function scratchpads_translate_form_taxonomy_form_vocabulary_alter(&$form, &$for
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function scratchpads_translate_form_menu_edit_menu_alter(&$form, &$form_state){
+  unset($form['i18n_translation']);
+  $form['i18n_mode'] = array(
+    '#type' => 'hidden',
+    '#value' => 5
+  );
+}
+
+/**
  * Implements hook_module_implements_alter().
  */
 function scratchpads_translate_module_implements_alter(&$imps, $hook){
-  if($hook == 'form_taxonomy_form_vocabulary_alter' || $hook == 'form_alter' && isset($imps['scratchpads_translate'])){
+  if(in_array($hook, array(
+    'form_taxonomy_form_vocabulary_alter',
+    'form_menu_edit_menu_alter',
+    'form_alter'
+  )) && isset($imps['scratchpads_translate'])){
     $move = $imps['scratchpads_translate'];
     unset($imps['scratchpads_translate']);
     $imps['scratchpads_translate'] = $move;
