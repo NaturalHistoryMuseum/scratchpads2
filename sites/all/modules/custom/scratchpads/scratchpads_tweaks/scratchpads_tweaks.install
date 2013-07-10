@@ -315,7 +315,7 @@ function scratchpads_tweaks_install(){
   // Set the jQuery settings
   scratchpads_tweaks_update_7049();
   // Prevent optimize from running on Solr.
-  variable_set('apachesolr_last_optimize', 10000000000);
+  variable_set('apachesolr_optimize_interval', PHP_INT_MAX);
   // Allow insecure derivatives
   variable_set('image_allow_insecure_derivatives', TRUE);
 }
@@ -1065,13 +1065,6 @@ function scratchpads_tweaks_update_7047(){
 }
 
 /**
- * Prevent optimize from running on Solr.
- */
-function scratchpads_tweaks_update_7048(){
-  variable_set('apachesolr_last_optimize', 10000000000);
-}
-
-/**
  * Set the jQuery update settings.
  */
 function scratchpads_tweaks_update_7049(){
@@ -1135,4 +1128,12 @@ function scratchpads_tweaks_update_7055(){
       'pathauto'
     ));
   }
+}
+
+/**
+ * Prevent optimize from running on Solr (fix of update 7048 which has been
+ * removed).
+ */
+function scratchpads_tweaks_update_7056(){
+  variable_set('apachesolr_optimize_interval', PHP_INT_MAX);
 }
