@@ -70,8 +70,8 @@ function scratchpads_translate_setup_translation_form(){
         // Load the full proper field.
         $field = field_info_field($field['field_name']);
         $links[] = '<strong>' . $field['field_name'] . '</strong> - ' . l(t('edit'), 'admin/structure/types/manage/' . array_pop($field['bundles']['node']) . '/fields/' . $field['field_name'], array(
-          'attributes' => array(
-            'target' => '_blank'
+          'query' => array(
+            'destination' => 'admin/config/regional/translate-setup'
           )
         ));
       }
@@ -80,8 +80,8 @@ function scratchpads_translate_setup_translation_form(){
         // Load the full proper field.
         $field = field_info_field($field['field_name']);
         $links[] = l(t('edit'), 'admin/structure/taxonomy/' . array_pop($field['bundles']['taxonomy_term']) . '/fields/' . $field['field_name'], array(
-          'attributes' => array(
-            'target' => '_blank'
+          'query' => array(
+            'destination' => 'admin/config/regional/translate-setup'
           )
         ));
       }
