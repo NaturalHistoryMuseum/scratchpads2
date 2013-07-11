@@ -20,6 +20,35 @@ function scratchpads_multilingual_contribute_install(){
       user_save($account);
     }
   }
+  // Only show the block to contributors/editors/maintainers.
+  try{
+    db_insert('block_role')->fields(array(
+      'module',
+      'delta',
+      'rid'
+    ))->values(array(
+      'module' => 'scratchpads_multilingual_contribute',
+      'delta' => 'l10n',
+      'rid' => 3
+    ), array(
+      'module' => 'scratchpads_multilingual_contribute',
+      'delta' => 'l10n',
+      'rid' => 4
+    ), array(
+      'module' => 'scratchpads_multilingual_contribute',
+      'delta' => 'l10n',
+      'rid' => 5
+    ))->execute();
+  }
+  catch(Exception $e){
+    ;
+  }
+  // Use blockexpose
+  variable_set('blockexpose_settings_scratchpads_multilingual_contribute_l10n', array(
+    'side' => 'left',
+    'event' => 'click',
+    'show' => 1
+  ));
 }
 
 /**
