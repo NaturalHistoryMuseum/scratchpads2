@@ -101,3 +101,57 @@ function scratchpads_multilingual_preprocess_html(&$variables){
     $variables['classes_array'][] = "multilingual";
   }
 }
+
+/**
+ * Implements hook_system_info_alter()
+ */
+/**
+ * Implements hook_system_info_alter().
+ */
+function scratchpads_multilingual_system_info_alter(&$info, $file, $type){
+  switch($file->name){
+    // The following updates allow us to download the translations for latest
+    // stable release of a module when we're actually using a "dev" release.
+    case 'entitycache':
+    case 'field_group':
+      $info['version'] = '7.x-1.1';
+      break;
+    case 'role_delegation':
+      $info['version'] = '7.x-1.0';
+      break;
+    case 'biblio':
+      $info['version'] = '7.x-1.0-rc5';
+      break;
+    case 'views_data_export':
+      $info['version'] = '7.x-3.0-beta6';
+      break;
+    case 'field_collection':
+      $info['version'] = '7.x-1.0-beta5';
+      break;
+    case 'l10n_update':
+      $info['version'] = '7.x-1.0-beta3';
+      break;
+    case 'beautytips':
+      $info['version'] = '7.x-2.0-beta2';
+      break;
+    case 'boost':
+    case 'entity_translation':
+      $info['version'] = '7.x-1.0-beta2';
+      break;
+    case 'feeds':
+    case 'styles':
+      $info['version'] = '7.x-2.0-alpha8';
+      break;
+    case 'file_entity':
+    case 'media':
+      $info['version'] = '7.x-2.0-unstable7';
+      break;
+  }
+  if(substr($file->uri, 0, 24) == 'sites/all/modules/custom'){
+    if(empty($info['version']) || $info['version'] != VERSION){
+      // Note, this should be updated when the projects on localize.scratchpads.eu
+      // are updated.  Preferable automatically.
+      $info['version'] = '7.x-2.1.4';
+    }
+  }
+}
