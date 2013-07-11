@@ -69,7 +69,8 @@ function slickgrid_schema(){
     ),
     'primary key' => array(
       'uid',
-      'view_name'
+      'view_name',
+      'display_id'
     ),
     'foreign keys' => array(
       'id' => array(
@@ -94,4 +95,16 @@ function slickgrid_schema(){
  */
 function slickgrid_update_7200(){
   variable_set('jquery_update_jquery_version', '1.8');
+}
+
+/**
+ * Add display_id as a primary key to the schema to allow different settings per views display
+ */
+function slickgrid_update_7201(){
+  db_drop_primary_key('slickgrid');
+  db_add_primary_key('slickgrid', array(
+    'uid',
+    'view_name',
+    'display_id'
+  ));
 }
