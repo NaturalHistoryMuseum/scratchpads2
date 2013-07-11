@@ -437,12 +437,3 @@ function scratchpads_theme(){
     )
   );
 }
-
-/**
- * Preprocess function for theme_menu_link()
- */
-function scratchpads_preprocess_menu_link(&$vars) {
-  if ($vars['element']['#original_link']['menu_name'] == 'main-menu' && !empty($vars['element']['#title'])) {
-    $vars['element']['#title'] = t($vars['element']['#title'], array(), array('context' => 'menu'));
-  }
-}
