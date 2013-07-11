@@ -23,14 +23,3 @@ function scratchpads_multilingual_contribute_scratchpads_default_permissions(){
     )
   );
 }
-
-/**
- * Implements hook_form_FORM_ID_alter()
- */
-function scratchpads_multilingual_contribute_form_user_profile_form_alter(&$form, &$form_state){
-  // Hide the API Key, it's reentered by the hook_user_presave function above.
-  $form['l10n_client']['items']['l10n_client_key'] = array(
-    '#type' => 'hidden',
-    '#value' => ''
-  );
-}
