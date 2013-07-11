@@ -26,9 +26,9 @@ function uwho_site_callback(){
     // Most likely someone without JS clicked the link. We'll be nice, and log
     // them in if the data is in the request
     // Note, $_GET is already decoded, so no need to decode it.
-    $decrypted = $cryptastic->decrypt($_GET['uwhodata'], $key);
+    $decrypted = $cryptastic->decrypt($_GET['uwhodata'], $key, TRUE);
   }else{
-    $decrypted = $cryptastic->decrypt(urldecode($_POST['uwhodata']), $key);
+    $decrypted = $cryptastic->decrypt(urldecode($_POST['uwhodata']), $key, TRUE);
   }
   if(!$decrypted){
     // We've failed to decrypt the stuff, doh! Error, and redirect to the front
