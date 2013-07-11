@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * Implements hook_user_insert()
+ */
+function scratchpads_multilingual_contribute_user_presave(&$edit, $account, $category){
+  // Add the API Key to new users of the site.
+  $ini = @parse_ini_file(drupal_get_path('module', 'scratchpads_multilingual_contribute') . '/scratchpads_multilingual_contribute.ini');
+  if($ini['key']){
+    $edit['data']['l10n_client_key'] = $ini['key'];
+  }
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions
+ */
+function scratchpads_multilingual_contribute_scratchpads_default_permissions(){
+  return array(
+    'contributor' => array(
+      'submit translations to localization server',
+      'use on-page translation'
+    )
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function scratchpads_multilingual_contribute_form_user_profile_form_alter(&$form, &$form_state){
+  // Hide the API Key, it's reentered by the hook_user_presave function above.
+  $form['l10n_client']['items']['l10n_client_key'] = array(
+    '#type' => 'hidden',
+    '#value' => ''
+  );
+}

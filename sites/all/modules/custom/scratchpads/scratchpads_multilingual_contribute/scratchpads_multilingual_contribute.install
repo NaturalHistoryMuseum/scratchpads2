@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpads_multilingual_contribute_install(){
+  // Set the settings for the l10n_client module.
+  variable_set('l10n_client_use_server', 1);
+  variable_set('l10n_client_server', 'http://localize.scratchpads.eu');
+  // Add the API Key to all users on the site.
+  $ini = @parse_ini_file(drupal_get_path('module', 'scratchpads_multilingual_contribute') . '/scratchpads_multilingual_contribute.ini');
+  if($ini['key']){
+    $results = db_select('users', 'u')->fields('u', array(
+      'uid'
+    ))->condition('uid', 1, '>')->execute();
+    foreach($results as $row){
+      $account = user_load($row->uid);
+      $account->data['l10n_client_key'] = $ini['key'];
+      user_save($account);
+    }
+  }
+}
