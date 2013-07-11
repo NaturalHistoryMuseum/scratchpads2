@@ -13,6 +13,15 @@ function scratchpads_multilingual_contribute_user_presave(&$edit, $account, $cat
 }
 
 /**
+ * Implements hook_scratchpads_hands_off_urls_alter().
+ */
+function scratchpads_multilingual_contribute_scratchpads_hands_off_urls_alter(&$urls){
+  $urls = array_merge($urls, array(
+    'admin/config/regional/language/share'
+  ));
+}
+
+/**
  * Implements hook_scratchpads_default_permissions
  */
 function scratchpads_multilingual_contribute_scratchpads_default_permissions(){
