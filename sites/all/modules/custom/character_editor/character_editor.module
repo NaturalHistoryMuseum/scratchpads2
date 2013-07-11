@@ -185,6 +185,8 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
       $editable = false;
     }elseif(user_access('edit character editor')){
       $editable = true;
+      $style_options['editable'] = TRUE;
+      $style_options['enableCellNavigation'] = TRUE;
     }else{
       drupal_access_denied();
       drupal_exit();
