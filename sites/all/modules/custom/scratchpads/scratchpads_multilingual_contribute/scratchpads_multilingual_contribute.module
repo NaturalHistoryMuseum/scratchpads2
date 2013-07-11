@@ -7,7 +7,8 @@ function scratchpads_multilingual_contribute_user_presave(&$edit, $account, $cat
   // Add the API Key to new users of the site.
   $ini = @parse_ini_file(drupal_get_path('module', 'scratchpads_multilingual_contribute') . '/scratchpads_multilingual_contribute.ini');
   if($ini['key']){
-    $edit['data']['l10n_client_key'] = $ini['key'];
+    // Scratchpads User on the localize.scratchpads.eu site is UID:4.
+    $account->data['l10n_client_key'] = '4:' . md5('l10n_community4' . $ini['key'] . l10n_client_user_token($account));
   }
 }
 
