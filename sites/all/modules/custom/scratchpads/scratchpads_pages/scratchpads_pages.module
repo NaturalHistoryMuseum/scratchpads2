@@ -438,6 +438,47 @@ function scratchpads_pages_pluralise_node_name($name){
 }
 
 /**
+ * Implements hook_module_implements_alter()
+ * 
+ * Move the scratchpads_pages_node_update function to the front of the list.
+ */
+function scratchpads_pages_module_implements_alter(&$implementations, $hook){
+  if($hook == 'node_update' && isset($implementations['scratchpads_pages'])){
+    $new_implementations = array();
+    $new_implementations['scratchpads_pages'] = $implementations['scratchpads_pages'];
+    unset($implementations['scratchpads_biblio']);
+    foreach($implementations as $key => $value){
+      $new_implementations[$key] = $value;
+    }
+    $implementations = $new_implementations;
+  }
+}
+
+/**
+ * Implements hook_node_update()
+ * 
+ * This function allows us to easily add translations for a page's menu item.
+ */
+function scratchpads_pages_node_update($node){
+  // We need to save the menu translation, and then load the original string
+  // so that the "English" string doesn't get overwritten by the translation
+  // string.
+  global $language;
+  // Check to see if we're submitting a translation, if so, we continue.
+  if(module_exists('i18n_string')){
+    if(!empty($language->language) && !empty($node->language) && $node->language != $language->language && !empty($node->menu['mlid'])){
+      i18n_string_textgroup('menu')->update_translation(array(
+        'item',
+        $node->menu['mlid'],
+        'title'
+      ), $language->language, $node->menu['link_title']);
+      $original_menu = menu_link_load($node->menu['mlid']);
+      $node->menu['link_title'] = $original_menu['link_title'];
+    }
+  }
+}
+
+/**
  * Get a list of all node types
  */
 function scratchpads_pages_get_node_types(){
