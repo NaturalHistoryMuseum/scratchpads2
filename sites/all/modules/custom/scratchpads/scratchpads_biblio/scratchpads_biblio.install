@@ -50,5 +50,5 @@ function scratchpads_biblio_update_7004(){
   }
   db_update('field_config')->fields(array(
     'locked' => 1
-  ))->condition('field_name', $fields_to_lock);
+  ))->condition('field_name', $fields_to_lock)->execute();
 }

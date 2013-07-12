@@ -259,5 +259,5 @@ function scratchpads_taxonomic_name_field_update_7013(){
 function scratchpads_taxonomic_name_field_update_7014(){
   db_update('field_config')->fields(array(
     'locked' => 1
-  ))->condition('field_name', 'field_taxonomic_name');
+  ))->condition('field_name', 'field_taxonomic_name')->execute();
 }
