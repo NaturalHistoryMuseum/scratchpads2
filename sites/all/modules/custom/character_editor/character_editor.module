@@ -200,10 +200,12 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
           $delta = 1;
           list($character_group_entity_type, $character_group_entity_id) = explode(':', reset($character_group['endpoints']));
           $character_group_entity = character_editor_entity_load_single($character_group_entity_type, $character_group_entity_id, true);
+          $character_group_has_column = FALSE;
           if(isset($character_group_entity->field_characters[LANGUAGE_NONE])){
             foreach($character_group_entity->field_characters[LANGUAGE_NONE] as $character){
               list($character_entity_type, $character_entity_id) = explode(':', reset($character['endpoints']));
               if($character_entity_type == 'character_editor_character'){
+                $character_group_has_column = TRUE;
                 $character = character_editor_entity_load_single($character_entity_type, $character_entity_id);
                 $id = 'character_' . $character_entity_id;
                 $field = array(
@@ -260,7 +262,7 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
                         $value_to_delta[$value['value']] = $state_delta;
                       }
                     }else{
-                      $style_options['columns'][$id]['data']['bt'] .= t('There are no states for this chaarcter');
+                      $style_options['columns'][$id]['data']['bt'] .= t('There are no states for this character');
                     }
                     break;
                 }
@@ -289,6 +291,24 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
                 $delta++;
               }
             }
+          }
+          if(!$character_group_has_column && (arg(2) == 'edit' || (arg(0) == 'slickgrid' && arg(1) == 'callback'))){
+            $id = 'character_group_' . $character_group_entity_id;
+            $field = array(
+              'id' => $id,
+              'relationship' => 'none',
+              'group_type' => 'group',
+              'label' => '',
+              'hide_empty' => 0
+            );
+            $view->add_item('page', 'field', 'views', 'nothing', $field, $id);
+            $style_options['columns'][$id] = array(
+              'tab' => $character_group_entity->label(),
+              'headerCssClass' => 'character ' . $id,
+            );
+            $style_options['columns'][$id]['data'] = array(
+              'char' => t('This group is empty. You need to add characters to the group.')
+            );
           }
         }
       }
