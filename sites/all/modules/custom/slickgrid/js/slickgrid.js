@@ -199,6 +199,7 @@ if(!Array.prototype.indexOf) {
           $('#slickgrid').animate().height($('#slickgrid').height() + increase_by);
         }
       }
+      $(container).trigger('onSlickgridInit');
     }
     function handleValidationError(eventData, error){
       alert(Drupal.t('There has been an error, please reload the page.'))
