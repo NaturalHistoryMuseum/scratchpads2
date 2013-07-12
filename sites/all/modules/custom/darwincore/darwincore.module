@@ -28,22 +28,34 @@ function darwincore_block_info(){
 function darwincore_block_view($delta = 'geocat'){
   switch($delta){
     case 'geocat':
-      return array(
-        'subject' => '',
-        'content' => array(
-          'link' => array(
-            '#markup' => '<p style="text-align:right">' . l('Import all georeferenced specimen data for this taxon into GeoCAT', 'http://geocat.kew.org/editor?geocat_url=' . url('', array(
-              'absolute' => TRUE
-            )) . 'taxonomy/term/' . arg(2) . '/geocat.csv', array(
-              'attributes' => array(
-                'target' => '_blank'
-              )
-            )) . '</p>'
+      // Check we have results first.
+      $query = db_select('field_data_field_taxonomic_name', 'f');
+      $query->innerJoin('node', 'sn', 'f.revision_id = sn.vid');
+      $query->innerJoin('field_data_field_location', 'l', 'sn.vid = l.revision_id');
+      $query->innerJoin('node', 'ln', 'ln.nid = l.field_location_nid');
+      $query->innerJoin('field_data_field_map', 'm', 'ln.vid = m.revision_id');
+      $query->condition('sn.type', 'specimen_observation');
+      $query->condition('ln.type', 'location');
+      $query->condition('field_map_latitude', '', '!=');
+      $query->condition('field_taxonomic_name_tid', arg(2));
+      $query = $query->countQuery();
+      if($query->execute()->fetchField()){return array(
+          'subject' => '',
+          'content' => array(
+            'link' => array(
+              '#markup' => '<p style="text-align:right">' . l(t('Import into GeoCAT'), 'http://geocat.kew.org/editor?geocat_url=' . url('', array(
+                'absolute' => TRUE
+              )) . 'taxonomy/term/' . arg(2) . '/geocat.csv', array(
+                'attributes' => array(
+                  'target' => '_blank',
+                  'title' => t('Import all georeferenced specimen data for this taxon into GeoCAT')
+                )
+              )) . '</p>'
+            )
           )
-        )
-      );
-      break;
+        );}
   }
+  return array();
 }
 
 /**
