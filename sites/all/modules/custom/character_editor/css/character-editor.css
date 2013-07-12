@@ -84,6 +84,11 @@
   width: auto;
 }
 
+.field-collection-view .entity-field-collection-item,
+.field-collection-container div.character-editor-state-image{
+  display: block;
+}
+
 .character-editor div.l0{
   background: #F6F6F6;
 }
