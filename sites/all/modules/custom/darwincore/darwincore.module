@@ -47,10 +47,7 @@ function darwincore_block_view($delta = 'geocat'){
                 'absolute' => TRUE
               )) . 'taxonomy/term/' . arg(2) . '/geocat.csv', array(
                 'attributes' => array(
-                  'target' => '_blank'
-                )
-              ), array(
-                'attributes' => array(
+                  'target' => '_blank',
                   'title' => t('Import all georeferenced specimen data for this taxon into GeoCAT')
                 )
               )) . '</p>'
