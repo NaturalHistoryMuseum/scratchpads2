@@ -305,7 +305,7 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
             $view->add_item('page', 'field', 'views', 'nothing', $field, $id);
             $style_options['columns'][$id] = array(
               'tab' => $character_group_entity->label(),
-              'headerCssClass' => 'character ' . $id,
+              'headerCssClass' => 'character ' . $id
             );
             $style_options['columns'][$id]['data'] = array(
               'char' => t('This group is empty. You need to add characters to the group.')
@@ -1177,6 +1177,8 @@ function theme_field__field_char_states(&$variables){
     $classes = 'field-item';
     if(isset($item['#markup'])){
       $output .= $item['#markup'];
+    }else if($item['#theme'] == 'image_formatter'){
+      $output .= '<div class="character-editor-state-image">' . drupal_render($item) . '</div>';
     }else{
       $output .= '<div class="field-label"' . $variables['title_attributes'] . '>' . $delta . ':&nbsp;</div>';
       $output .= drupal_render($item);

@@ -521,6 +521,18 @@ function scratchpads_tweaks_add_body_field($type, $label = 'Body', $weight = 0){
 }
 
 /**
+ * Implements hook_apachesolr_search_page_alter().
+ */
+function scratchpads_tweaks_apachesolr_search_page_alter(&$build, $search_page){
+  if($search_page['page_id'] == 'core_search'){
+    $entity_info = entity_get_info();
+    foreach(array_keys($build['search_results']['#results']) as $key){
+      //$build['search_results']['#results'][$key]['title'] = "<strong>{$build['search_results']['#results'][$key]['type']}</strong> {$build['search_results']['#results'][$key]['title']}";
+    }
+  }
+}
+
+/**
  * Implements hook_field_widget_info_alter()
  */
 function scratchpads_tweaks_field_widget_info_alter(&$info){
