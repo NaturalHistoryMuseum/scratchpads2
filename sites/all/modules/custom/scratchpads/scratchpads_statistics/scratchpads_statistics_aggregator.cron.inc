@@ -42,9 +42,16 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
     // Whoa, we're taking too long, we should stop!
     if(timer_read('scratchpads_statistics_aggregator') > $execution_time){return;}
     // We get the login data first and add that.
+    watchdog('scratchpads_statistics', 'Getting login data from the Scratchpads site at !url', array(
+      '!url' => $url
+    ));
     $data = _scratchpads_statistics_aggregator_get_data($url . 'login.json');
     if($data && is_array($data) && count($data)){
       _scratchpads_statistics_aggregator_insert_login_data($data, $url);
+    }else{
+      watchdog('scratchpads_statistics', 'Failed to get login data from the Scratchpads site at !url', array(
+        '!url' => $url
+      ));
     }
     // Get the greater captured value for this Scratchpad
     $query = db_select('scratchpads_statistics_data', 'd');
