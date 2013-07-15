@@ -15,7 +15,7 @@ class ScratchpadsBlockTestCase extends ScratchpadsTweaksTestCase{
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Blocks',
-      'description' => 'Testing the blocks defined in scratchpads blocks module',
+      'description' => 'Tests the blocks defined in scratchpads blocks module',
       'group' => 'Scratchpads'
     );
   }

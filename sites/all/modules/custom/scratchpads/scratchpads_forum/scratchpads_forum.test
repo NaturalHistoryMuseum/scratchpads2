@@ -13,7 +13,7 @@ class ScratchpadsForumTestCase extends ScratchpadsTweaksTestCase{
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Forum',
-      'description' => 'Testing for scratchpads forum module',
+      'description' => 'Tests for scratchpads forum module',
       'group' => 'Scratchpads'
     );
   }

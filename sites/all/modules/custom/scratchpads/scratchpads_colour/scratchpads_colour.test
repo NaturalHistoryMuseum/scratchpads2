@@ -12,7 +12,7 @@ class ScratchpadsColourTestCase extends ScratchpadsTweaksTestCase{
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Colour',
-      'description' => 'Testing for scratchpads colour module',
+      'description' => 'Tests the scratchpads colour module',
       'group' => 'Scratchpads'
     );
   }

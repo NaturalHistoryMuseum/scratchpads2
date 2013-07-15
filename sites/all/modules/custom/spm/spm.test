@@ -12,7 +12,7 @@ class SpmTestCase extends ScratchpadsTweaksTestCase{
   public static function getInfo(){
     return array(
       'name' => 'Spm',
-      'description' => 'Testing for spm module',
+      'description' => 'Tests the creation of an spm node',
       'group' => 'Scratchpads'
     );
   }
@@ -52,7 +52,7 @@ class SpmTestCase extends ScratchpadsTweaksTestCase{
    *  Create spm node.
    *  We first create a biological classification and a taxonomy term
    */
-  public function testSpmBasic(){
+  public function testCreateSpm(){
     // create taxonomy
     $this->drupalLogin($this->test_user);
     $this->drupalGet('admin/structure/taxonomy/add');

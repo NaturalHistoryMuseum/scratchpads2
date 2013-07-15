@@ -12,7 +12,7 @@ class ScratchpadsSiteMapTestCase extends ScratchpadsTweaksTestCase{
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Sitemap',
-      'description' => 'Testing for scratchpads site map module',
+      'description' => 'Basic access tests for scratchpads site map module',
       'group' => 'Scratchpads'
     );
   }

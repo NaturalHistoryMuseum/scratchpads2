@@ -18,8 +18,8 @@ class ScratchpadsFileLockTestCase extends FileFieldTestCase{
 
   public static function getInfo(){
     return array(
-      'name' => 'Scratchpads fine grained file access',
-      'description' => 'Testing of scratchpads fine grained file access',
+      'name' => 'Scratchpads Fine Grained File Access',
+      'description' => 'Tests view/edit/delete file access with various permissions',
       'group' => 'Scratchpads'
     );
   }
@@ -32,7 +32,7 @@ class ScratchpadsFileLockTestCase extends FileFieldTestCase{
     $modules[] = 'file';
     $modules[] = 'file_module_test';
     $modules[] = 'scratchpads_fine_grained_file_access';
-    // include the code for tweaks setup
+    // include the code for tweaks setup as we are not extenting tweaks class
     include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_tweaks') . "/scratchpads_tweaks.inc";
     // has permissions only to edit/delete own files
     $this->admin_user = $this->drupalCreateUser(array(

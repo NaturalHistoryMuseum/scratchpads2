@@ -13,7 +13,7 @@ class ScratchpadsGbifRegistryTestCase extends ScratchpadsTweaksTestCase{
   public static function getInfo(){
     return array(
       'name' => 'Gbif Registry',
-      'description' => "Basic tests for gbif registry configuration page",
+      'description' => "Tests the gbif registry configuration page",
       'group' => 'Scratchpads'
     );
   }

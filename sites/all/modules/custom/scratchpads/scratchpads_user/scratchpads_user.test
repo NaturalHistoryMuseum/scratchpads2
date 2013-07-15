@@ -14,7 +14,7 @@ class ScratchpadsUserTestCase extends ScratchpadsTweaksTestCase{
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads User',
-      'description' => 'Testing for scratchpads user module',
+      'description' => 'Tests for scratchpads user module',
       'group' => 'Scratchpads'
     );
   }

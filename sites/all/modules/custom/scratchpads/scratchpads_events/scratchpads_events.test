@@ -13,7 +13,7 @@ class ScratchpadsEventsTestCase extends ScratchpadsTweaksTestCase{
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Events',
-      'description' => "Tests for scratchpads events",
+      'description' => "Tests the creation and viewing of events",
       'group' => 'Scratchpads'
     );
   }
