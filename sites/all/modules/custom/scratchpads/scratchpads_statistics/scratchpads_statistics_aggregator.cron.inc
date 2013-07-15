@@ -32,6 +32,9 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
       }
     }
   }
+  watchdog('scratchpads_statistics', 'Looking at the following URLs: !urls', array(
+    '!urls' => implode(', ', $urls)
+  ));
   // Random order the URLs so that we stand a chance of getting all of the sites
   // over a six day period.
   shuffle($urls);
