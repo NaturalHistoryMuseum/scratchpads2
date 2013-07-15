@@ -41,18 +41,6 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
   foreach($urls as $url){
     // Whoa, we're taking too long, we should stop!
     if(timer_read('scratchpads_statistics_aggregator') > $execution_time * 1000){return;}
-    // We get the login data first and add that.
-    watchdog('scratchpads_statistics', 'Getting login data from the Scratchpads site at !url', array(
-      '!url' => $url
-    ));
-    $data = _scratchpads_statistics_aggregator_get_data($url . 'login.json');
-    if($data && is_array($data) && count($data)){
-      _scratchpads_statistics_aggregator_insert_login_data($data, $url);
-    }else{
-      watchdog('scratchpads_statistics', 'Failed to get login data from the Scratchpads site at !url', array(
-        '!url' => $url
-      ));
-    }
     // Get the greater captured value for this Scratchpad
     $query = db_select('scratchpads_statistics_data', 'd');
     $query->innerJoin('scratchpads_statistics_site', 's', 'd.site = s.id');
@@ -70,10 +58,23 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
         continue;
       }
     }
+    // Retrieve the login data for this site, and enter that in to the tables.
+    watchdog('scratchpads_statistics', 'Getting login data from the Scratchpads site at !url', array(
+      '!url' => $url
+    ));
+    $data = _scratchpads_statistics_aggregator_get_data($url . 'login.json');
+    if($data && is_array($data) && count($data)){
+      _scratchpads_statistics_aggregator_insert_login_data($data, $url);
+    }else{
+      watchdog('scratchpads_statistics', 'Failed to get login data from the Scratchpads site at !url', array(
+        '!url' => $url
+      ), WATCHDOG_WARNING);
+    }
+    // Get the full statistics for this site, and tner that in to the tables.
     watchdog('scratchpads_statistics', 'Getting statistics data from the Scratchpads site at !url', array(
       '!url' => $url
     ));
-    // FIXME - Need to add the hash if we need to use it.
+    // FIXME - Need to add the hash/security if we need to use it.
     $data = _scratchpads_statistics_aggregator_get_data($url . 'stats.json?since=' . $last_capture);
     if($data){
       if(is_array($data) && count($data)){
