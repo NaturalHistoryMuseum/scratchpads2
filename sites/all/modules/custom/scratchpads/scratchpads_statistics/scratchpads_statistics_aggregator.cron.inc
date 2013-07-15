@@ -83,7 +83,7 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
   }
   watchdog('scratchpads_statistics', 'Aggregated: !urls', array(
     '!urls' => implode(', ', $worked_on_urls)
-  ));
+  ), WATCHDOG_INFO);
 }
 
 /**
