@@ -280,8 +280,8 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
                       // If this is a controlled character, we want to use the delta, not the value
                       $safe_value = $relation->field_character_state_data[LANGUAGE_NONE][0]['safe_value'];
                       if($character->type == 'controlled' && is_array($value_to_delta)){
-                        foreach($value_to_delta as $value => $delta){
-                          $safe_value = str_replace($value, $delta, $safe_value);
+                        foreach($value_to_delta as $value => $value_delta){
+                          $safe_value = str_replace($value, $value_delta, $safe_value);
                         }
                       }
                       $view->characters[$tid][$id] = $safe_value;
@@ -401,14 +401,32 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
           if($form_state['entity']->type != 'group'){
             $groups = character_editor_get_groups($form_state['character_project_id']);
             if(count($groups)){
+              $default_group = NULL;
+              if(empty($form_state['entity']->is_new)){
+                $group_entity = character_editor_get_group($form_state['entity']->id);
+                if($group_entity){
+                  $default_group = $group_entity->id;
+                }
+              }
+              if(empty($default_group)){
+                $default_group = reset(array_keys($groups));
+              }
+              // Get the actual title weight - the one in the form gets over-written later
+              $extra_fields = field_info_extra_fields('character_editor_character', $form_state['entity']->type, 'form');
+              if(isset($extra_fields['title']['weight'])){
+                $title_weight = $extra_fields['title']['weight'];
+              }else{
+                $title_weight = $form['title']['#weight'];
+              }
               $form['group'] = array(
                 '#type' => 'select',
                 '#title' => t('Group'),
                 '#options' => $groups,
                 '#description' => t('Which group would you like to add this character to?'),
                 '#required' => true,
-                '#default_value' => reset($groups),
-                '#nane' => 'group'
+                '#default_value' => $default_group,
+                '#nane' => 'group',
+                '#weight' => $title_weight + 0.5
               );
             }else{
               form_set_error('group', t("Sorry, you need to create a group before adding any other character"));
@@ -431,6 +449,8 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
                 'character_editor_character_delete_submit'
               )
             );
+            $form['actions']['submit']['#submit'][] = 'character_editor_character_form_submit';
+            $form['actions']['submit']['#update'] = TRUE;
           }
           $form['#after_build'][] = 'character_editor_character_form_after_build';
           break;
@@ -718,36 +738,58 @@ function character_editor_project_view($entity){
  * FORM FUNCTIONS
  * 
  ********************************************************************************************/
+/**
+ * Additional form submit handler for new characters. This is called after entity_admin_entity_form_submit
+ */
 function character_editor_character_form_submit(&$form, &$form_state){
-  try{
-    if(isset($form_state['entity'])){
-      $character_entity = $form_state['entity'];
-      switch($character_entity->type){
-        case 'group':
-          $parent_entity = entity_load_single('character_editor_project', $form_state['character_project_id']);
-          drupal_set_message(t("Created new character group @label", array(
-            '@label' => $character_entity->label()
-          )));
-          break;
-        default:
-          $parent_entity = entity_load_single('character_editor_character', $form_state['values']['group']);
-          drupal_set_message(t("Created new character @label", array(
-            '@label' => $character_entity->label()
-          )));
-          break;
+  if(empty($form_state['triggering_element']['#update'])){
+    try{
+      if(isset($form_state['entity'])){
+        $character_entity = $form_state['entity'];
+        switch($character_entity->type){
+          case 'group':
+            $parent_entity = entity_load_single('character_editor_project', $form_state['character_project_id']);
+            drupal_set_message(t("Created new character group @label", array(
+              '@label' => $character_entity->label()
+            )));
+            break;
+          default:
+            $parent_entity = entity_load_single('character_editor_character', $form_state['values']['group']);
+            drupal_set_message(t("Created new character @label", array(
+              '@label' => $character_entity->label()
+            )));
+            break;
+        }
+        character_editor_create_relation($parent_entity, $character_entity);
+      }else{
+        throw new Exception('The character could not be created.');
       }
-      character_editor_create_relation($parent_entity, $character_entity);
-    }else{
-      throw new Exception('The character could not be created.');
+    }
+    catch(Exception $e){
+      form_set_error('error', t('Sorry, the character could not be created - please close this form & try again. If the problem happens again, please contact the scratchpads team.'));
+    }
+    drupal_set_message(t("%type character added", array(
+      "%type" => ucfirst($character_entity->type)
+    )));
+    unset($form_state['redirect']);
+  }else if(isset($form_state['entity'])){
+    $character_entity = $form_state['entity'];
+    if($character_entity->type != 'group'){
+      $existing_group = character_editor_get_group($character_entity->id);
+      $new_group = entity_load_single('character_editor_character', $form_state['values']['group']);
+      if($existing_group->id != $new_group->id){
+        // Delete the existing group relation
+        $query = relation_query('character_editor_character', $character_entity->id)->entityCondition('bundle', PROJECT_CHARACTER_RELATION_TYPE)->related('character_editor_character', $existing_group->id);
+        $result = $query->execute();
+        if(count($result)){
+          $r = reset($result);
+          relation_delete($r->rid);
+        }
+        // And create a new one
+        character_editor_create_relation($new_group, $character_entity);
+      }
     }
   }
-  catch(Exception $e){
-    form_set_error('error', t('Sorry, the character could not be created - please close this form & try again. If the problem happens again, please contact the scratchpads team.'));
-  }
-  drupal_set_message(t("%type character added", array(
-    "%type" => ucfirst($character_entity->type)
-  )));
-  unset($form_state['redirect']);
 }
 
 /**
@@ -848,6 +890,28 @@ function character_editor_get_groups($character_project_id){
     $groups[$group_entity_id] = $group_entity->label();
   }
   return $groups;
+}
+
+/**
+ * Get the character group of a given character
+ */
+function character_editor_get_group($character_id){
+  $query = relation_query('character_editor_character', $character_id);
+  $query->entityCondition('bundle', PROJECT_CHARACTER_RELATION_TYPE);
+  $results = $query->execute();
+  foreach($results as $result){
+    $relation = relation_load($result->rid);
+    foreach($relation->endpoints[LANGUAGE_NONE] as $endpoint){
+      if($endpoint['entity_type'] != 'character_editor_character'){
+        continue;
+      }
+      $entity = reset(entity_load('character_editor_character', array(
+        $endpoint['entity_id']
+      )));
+      if($entity->type == 'group'){return $entity;}
+    }
+  }
+  return NULL;
 }
 
 /*********************************************************************************************
