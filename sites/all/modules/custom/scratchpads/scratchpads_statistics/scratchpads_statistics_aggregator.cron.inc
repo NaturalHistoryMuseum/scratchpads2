@@ -15,7 +15,7 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
   // foreach($gbif_registry->getTechnicalInstallations('scratchpad') as
   // $technical_installation){
   // Start a timer so that we don't go over 60 seconds.
-  $timer = time();
+  timer_start('scratchpads_statistics_aggregator');
   $urls = array();
   foreach($gbif_registry->getTechnicalInstallations() as $ti){
     // Get this site from the list of sites.
@@ -40,7 +40,7 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
   shuffle($urls);
   foreach($urls as $url){
     // Whoa, we're taking too long, we should stop!
-    if($timer < time() - $execution_time){return;}
+    if(timer_read('scratchpads_statistics_aggregator') > $execution_time){return;}
     // We get the login data first and add that.
     $data = _scratchpads_statistics_aggregator_get_data($url . 'login.json');
     if($data && is_array($data) && count($data)){
@@ -59,7 +59,7 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
       $last_capture = $row->captured;
       // If the last_captured value is less than six days old, then we don't
       // need to go any further.
-      if($last_capture > $timer - 518400){
+      if($last_capture > time() - 518400){
         continue;
       }
     }
