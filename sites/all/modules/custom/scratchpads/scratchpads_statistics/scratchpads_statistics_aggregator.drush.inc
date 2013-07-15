@@ -12,6 +12,6 @@ function scratchpads_statistics_aggregator_drush_command(){
 function scratchpads_statistics_aggregator_drush_stats(){
   if(module_exists('scratchpads_statistics_aggregator')){
     module_load_include('cron.inc', 'scratchpads_statistics_aggregator');
-    _scratchpads_statistics_aggregator_cron(120);
+    _scratchpads_statistics_aggregator_cron(300);
   }
 }
