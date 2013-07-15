@@ -40,7 +40,7 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
   shuffle($urls);
   foreach($urls as $url){
     // Whoa, we're taking too long, we should stop!
-    if(timer_read('scratchpads_statistics_aggregator') > $execution_time){return;}
+    if(timer_read('scratchpads_statistics_aggregator') > $execution_time * 1000){return;}
     // We get the login data first and add that.
     watchdog('scratchpads_statistics', 'Getting login data from the Scratchpads site at !url', array(
       '!url' => $url
