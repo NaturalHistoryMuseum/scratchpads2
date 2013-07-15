@@ -436,6 +436,12 @@ function itis_term_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id)
   if($form_id == 'taxonomy_form_term'){
     $vids = variable_get('biological_vids', array());
     if(isset($form['vid']) && isset($vids[$form['vid']['#value']])){
+      // Rename the description field - our users have been adding descriptions
+      // into it, when really it's just for comments.
+      $form['description']['#title'] = t('Comments');
+      $form['description']['#description'] = t('Do not use this field for taxon term descriptions, the <a href="!url">Taxon Description</a> content type should be used instead.', array(
+        '!url' => url('node/add/spm')
+      ));
       // WHAT A FUCKING CLUDGE!
       $form['field_rank'][$form['field_rank']['#language']]['#options'] = array_merge(array(
         '_none' => $form['field_rank'][$form['field_rank']['#language']]['#options']['_none']

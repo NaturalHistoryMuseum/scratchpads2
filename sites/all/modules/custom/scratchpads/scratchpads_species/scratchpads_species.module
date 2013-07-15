@@ -95,20 +95,22 @@ function scratchpads_species_form_taxonomy_form_vocabulary_alter(&$form, &$form_
   // A little clunky here, as this module does not depend on the 
   // scratchpads_simple_taxonomy_page module that is providing the fieldset that
   // we are adding to.
-  $form['simple_taxonomy_display']['show_synonym_data'] = array(
-    '#title' => t('Display data from synonyms.'),
-    '#description' => t('Check this box to include data from synonyms on valid taxon name pages.'),
-    '#type' => 'checkbox',
-    '#weight' => 1,
-    '#default_value' => empty($form['#vocabulary']->show_synonym_data) ? 0 : 1,
-    '#states' => array(
-      'invisible' => array(
-        ':input[name="biological_classification"]' => array(
-          'value' => ''
+  if(!isset($form_state['confirm_delete'])){
+    $form['simple_taxonomy_display']['show_synonym_data'] = array(
+      '#title' => t('Display data from synonyms.'),
+      '#description' => t('Check this box to include data from synonyms on valid taxon name pages.'),
+      '#type' => 'checkbox',
+      '#weight' => 1,
+      '#default_value' => empty($form['#vocabulary']->show_synonym_data) ? 0 : 1,
+      '#states' => array(
+        'invisible' => array(
+          ':input[name="biological_classification"]' => array(
+            'value' => ''
+          )
         )
       )
-    )
-  );
+    );
+  }
 }
 
 /**

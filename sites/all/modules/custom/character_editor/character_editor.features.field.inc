@@ -131,13 +131,21 @@ function character_editor_field_default_fields(){
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'image',
+        'module' => 'media',
         'settings' => array(
+          'allowed_schemes' => array(
+            0 => 'public',
+            1 => 'private'
+          ),
+          'allowed_types' => array(
+            0 => 'image'
+          ),
+          'browser_plugins' => array(),
           'preview_image_style' => 'thumbnail',
           'progress_indicator' => 'throbber'
         ),
-        'type' => 'image_image',
-        'weight' => '4'
+        'type' => 'media_generic',
+        'weight' => '1'
       )
     )
   );
@@ -275,7 +283,7 @@ function character_editor_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
@@ -340,7 +348,7 @@ function character_editor_field_default_fields(){
           'module' => 'image',
           'settings' => array(
             'image_link' => '',
-            'image_style' => ''
+            'image_style' => 'thumbnail'
           ),
           'type' => 'image',
           'weight' => '1'
@@ -362,13 +370,21 @@ function character_editor_field_default_fields(){
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'image',
+        'module' => 'media',
         'settings' => array(
+          'allowed_schemes' => array(
+            0 => 'public',
+            1 => 'private'
+          ),
+          'allowed_types' => array(
+            0 => 'image'
+          ),
+          'browser_plugins' => array(),
           'preview_image_style' => 'thumbnail',
           'progress_indicator' => 'throbber'
         ),
-        'type' => 'image_image',
-        'weight' => '4'
+        'type' => 'media_generic',
+        'weight' => '3'
       )
     )
   );
@@ -543,26 +559,18 @@ function character_editor_field_default_fields(){
         'module' => 'media',
         'settings' => array(
           'allowed_schemes' => array(
-            'flickr' => 0,
-            'public' => 'public',
-            'youtube' => 0
+            0 => 'public',
+            1 => 'private'
           ),
           'allowed_types' => array(
-            'audio' => 0,
-            'default' => 0,
-            'image' => 'image',
-            'video' => 0
+            0 => 'image'
           ),
-          'browser_plugins' => array(
-            'library' => 'library',
-            'media_default--media_browser_1' => 0,
-            'media_internet' => 0,
-            'upload' => 'upload'
-          ),
+          'browser_plugins' => array(),
+          'preview_image_style' => 'thumbnail',
           'progress_indicator' => 'throbber'
         ),
         'type' => 'media_generic',
-        'weight' => '0'
+        'weight' => '3'
       )
     )
   );
@@ -712,7 +720,7 @@ function character_editor_field_default_fields(){
           'module' => 'image',
           'settings' => array(
             'image_link' => '',
-            'image_style' => ''
+            'image_style' => 'thumbnail'
           ),
           'type' => 'image',
           'weight' => '1'
@@ -734,13 +742,21 @@ function character_editor_field_default_fields(){
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'image',
+        'module' => 'media',
         'settings' => array(
+          'allowed_schemes' => array(
+            0 => 'public',
+            1 => 'private'
+          ),
+          'allowed_types' => array(
+            0 => 'image'
+          ),
+          'browser_plugins' => array(),
           'preview_image_style' => 'thumbnail',
           'progress_indicator' => 'throbber'
         ),
-        'type' => 'image_image',
-        'weight' => '4'
+        'type' => 'media_generic',
+        'weight' => '3'
       )
     )
   );
@@ -963,7 +979,7 @@ other|Other',
           'module' => 'image',
           'settings' => array(
             'image_link' => '',
-            'image_style' => ''
+            'image_style' => 'thumbnail'
           ),
           'type' => 'image',
           'weight' => '1'
@@ -1128,11 +1144,11 @@ other|Other',
             'links_option' => 1,
             'separator_option' => ', ',
             'wrapper_class' => '',
-            'wrapper_option' => '- None -',
+            'wrapper_option' => '- None -'
           ),
           'type' => 'taxonomy_term_reference_csv',
-          'weight' => '1000',
-        ),
+          'weight' => '1000'
+        )
       ),
       'entity_type' => 'character_editor_project',
       'field_name' => 'field_taxonomic_name',
@@ -1248,7 +1264,7 @@ other|Other',
           'module' => 'image',
           'settings' => array(
             'image_link' => '',
-            'image_style' => ''
+            'image_style' => 'thumbnail'
           ),
           'type' => 'image',
           'weight' => 1
@@ -1273,26 +1289,18 @@ other|Other',
         'module' => 'media',
         'settings' => array(
           'allowed_schemes' => array(
-            'flickr' => 0,
-            'public' => 'public',
-            'youtube' => 0
+            0 => 'public',
+            1 => 'private'
           ),
           'allowed_types' => array(
-            'audio' => 0,
-            'default' => 0,
-            'image' => 'image',
-            'video' => 0
+            0 => 'image'
           ),
-          'browser_plugins' => array(
-            'library' => 'library',
-            'media_default--media_browser_1' => 0,
-            'media_internet' => 0,
-            'upload' => 'upload'
-          ),
+          'browser_plugins' => array(),
+          'preview_image_style' => 'thumbnail',
           'progress_indicator' => 'throbber'
         ),
         'type' => 'media_generic',
-        'weight' => '2'
+        'weight' => '3'
       )
     )
   );

@@ -39,6 +39,8 @@ function redirect_entity_info() {
       'bundle' => 'type',
     ),
     'fieldable' => FALSE,
+    'uuid' => FALSE,
+    'redirect' => FALSE,
   );
 
   return $info;
@@ -79,11 +81,7 @@ function redirect_hook_info() {
     'redirect_alter',
   );
 
-  $hooks = array_combine($hooks, $hooks);
-  foreach ($hooks as $hook => $info) {
-    $hooks[$hook] = array('group' => 'redirect');
-  }
-  return $hooks;
+  return array_fill_keys($hooks, array('group' => 'redirect'));
 }
 
 /**
@@ -184,13 +182,68 @@ function redirect_menu() {
     );
   }
 
+  // Devel generate integration.
+  if (module_exists('devel_generate')) {
+    $items['admin/config/development/generate/redirects'] = array(
+      'title' => 'Generate redirects',
+      'description' => 'Generate a given number of redirects. Optionally delete current redirects.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('redirect_generate_form'),
+      'access arguments' => array('administer redirects'),
+      'file' => 'redirect.generate.inc',
+    );
+    $items['admin/config/search/redirect/generate'] = $items['admin/config/development/generate/redirects'];
+    $items['admin/config/search/redirect/generate']['type'] = MENU_LOCAL_ACTION;
+  }
+
   return $items;
+}
+
+function redirect_set_current_redirect($redirect) {
+  $static = &drupal_static(__FUNCTION__);
+  $static = $redirect;
+}
+
+function redirect_get_current_redirect() {
+  $redirect = drupal_static('redirect_set_current_redirect', NULL);
+
+  // If a redirect has not been set with redirect_set_current_redirect(), then
+  // attempt to find a redirect matching the current path, query string, and
+  // language code.
+  if (!isset($redirect)) {
+    $redirect = redirect_load_by_source(current_path(), $GLOBALS['language']->language, drupal_get_query_parameters());
+  }
+
+  // @todo Add an alter hook here?
+  return $redirect;
 }
 
 /**
  * Implements hook_url_inbound_alter().
  */
 function redirect_url_inbound_alter(&$path, $original_path, $path_language) {
+  // If the current path global does not exist, then drupal_get_path_alias()
+  // will fail. This condition only happens when $path is the front page.
+  // @todo Remove when http://drupal.org/node/1329914 is fixed in core.
+  if (empty($_GET['q'])) {
+    $_GET['q'] = variable_get('site_frontpage', 'node');
+    return;
+  }
+
+  // If the inbound path has been changed, then attempt to find a redirect
+  // matching the original path and save it for processing later in
+  // redirect_init(). For example, if the Sub-pathauto module changes the path
+  // 'foo/redirect' to 'node/1/redirect', and there is a redirect enabled for
+  // the path 'foo/redirect', then redirect_init() would normally fail since it
+  // would not find a match.
+  if ($path != $original_path && $original_path == current_path()) {
+    $current_langcode = !empty($path_language) ? $path_language : $GLOBALS['language']->language;
+    $current_query = drupal_get_query_parameters();
+    if ($redirect = redirect_load_by_source($original_path, $current_langcode, $current_query)) {
+      redirect_set_current_redirect($redirect);
+    }
+  }
+
   // Redirect to canonical URLs.
   if ($path && variable_get('redirect_canonical', 1)) {
     $alias = drupal_get_path_alias($path, $path_language);
@@ -199,12 +252,13 @@ function redirect_url_inbound_alter(&$path, $original_path, $path_language) {
     }
 
     // Redirect from default entity paths to the proper entity path.
-    if ($path_entity = redirect_load_entity_from_path($path)) {
-      $uri = entity_uri($path_entity['entity_type'], $path_entity['entity']);
-      if ($path != $uri['path']) {
-        //return redirect_redirect(array('redirect' => $uri['path'], 'redirect_options' => $uri['options'], 'type' => 'global'));
-      }
-    }
+    //if ($path_entity = redirect_load_entity_from_path($path)) {
+    //  if ($uri = entity_uri($path_entity['entity_type'], $path_entity['entity'])) {
+    //    if ($path != $uri['path']) {
+    //      return redirect_redirect(array('redirect' => $uri['path'], 'redirect_options' => $uri['options'], 'type' => 'global'));
+    //    }
+    //  }
+    //}
   }
 }
 
@@ -212,17 +266,51 @@ function redirect_url_inbound_alter(&$path, $original_path, $path_language) {
  * Implements hook_entity_info_alter().
  */
 function redirect_entity_info_alter(&$info) {
-  // @todo Convert these to a tokenized default path?
   $default_paths = array(
-    'node' => 'node/[id]',
-    'taxonomy_term' => 'taxonomy/term/[id]',
-    'user' => 'user/[id]',
+    'node' => 'node/%node',
+    'user' => 'user/%user',
+    'taxonomy_term' => 'taxonomy/term/%taxonomy_term',
   );
+
   foreach ($default_paths as $entity_type => $default_path) {
     if (isset($info[$entity_type]) && !isset($info[$entity_type]['default path'])) {
       $info[$entity_type]['default path'] = $default_path;
     }
   }
+
+  // Disable support for some entity types that cause problems.
+  $unsupported_entity_types = array(
+    'comment',
+    'media',
+  );
+  foreach ($unsupported_entity_types as $unsupported_entity_type) {
+    if (isset($info[$unsupported_entity_type])) {
+      $info[$unsupported_entity_type]['redirect'] = FALSE;
+    }
+  }
+}
+
+/**
+ * Check if an entity type supports redirects.
+ *
+ * @param $entity_type
+ *   An entity type.
+ *
+ * @return
+ *   TRUE if the entity type has an uri callback and supports redirects, or
+ *   FALSE otherwise.
+ */
+function redirect_entity_type_supports_redirects($entity_type) {
+  $types = &drupal_static(__FUNCTION__);
+
+  if (!isset($types)) {
+    $types = array();
+    foreach (entity_get_info() as $type => $entity_info) {
+      $types[$type] = !empty($entity_info['uri callback']) && (!isset($entity_info['redirect']) || !empty($entity_info['redirect']));
+    }
+  }
+
+  return isset($types[$entity_type]) ? $types[$entity_type] : FALSE;
 }
 
 /**
@@ -233,10 +321,8 @@ function redirect_init() {
     return;
   }
 
-  $current_path = current_path();
-  $current_langcode = $GLOBALS['language']->language;
-  $current_query = drupal_get_query_parameters();
-  if ($redirect = redirect_load_by_source($current_path, $current_langcode, $current_query)) {
+  // Fetch the current redirect.
+  if ($redirect = redirect_get_current_redirect()) {
     redirect_redirect($redirect);
   }
 
@@ -291,10 +377,9 @@ function redirect_exit($destination = NULL) {
  * Implements hook_entity_delete().
  */
 function redirect_entity_delete($entity, $entity_type) {
-  if ($entity_type == 'redirect') {
-    return;
+  if (redirect_entity_type_supports_redirects($entity_type)) {
+    redirect_delete_by_entity_path($entity_type, $entity);
   }
-  redirect_delete_by_entity_path($entity_type, $entity);
 }
 
 /**
@@ -314,7 +399,11 @@ function redirect_path_update(array $path) {
     $redirect->source = $path['original']['alias'];
     $redirect->redirect = $path['source'];
     $redirect->language = $path['original']['language'];
-    redirect_save($redirect);
+    // Check if the redirect exists before saving.
+    $hash = redirect_hash($redirect);
+    if (!redirect_load_by_hash($hash)) {
+      redirect_save($redirect);
+    }
   }
 }
 
@@ -370,10 +459,15 @@ function redirect_page_build(&$page) {
         '#weight' => -100,
       );
     }
+    // We cannot simply use current_path() because if a 404 path is set, then
+    // that value overrides whatever is in $_GET['q']. The
+    // drupal_deliver_html_page() function thankfully puts the original current
+    // path into $_GET['destination'].
+    $destination = drupal_get_destination();
     $page['content']['system_main']['actions']['#links']['add_redirect'] = array(
       'title' => t('Add URL redirect from this page to another location'),
       'href' => 'admin/config/search/redirect/add',
-      'query' => array('source' => current_path()) + drupal_get_destination(),
+      'query' => array('source' => $destination['destination']) + drupal_get_destination(),
     );
   }
 }
@@ -674,6 +768,7 @@ function redirect_save($redirect) {
 
     // Allow other modules to alter the redirect before saving.
     module_invoke_all('redirect_presave', $redirect);
+    module_invoke_all('entity_presave', $redirect, 'redirect');
 
     // Save the redirect to the database and invoke the post-save hooks.
     if ($redirect->is_new) {
@@ -785,16 +880,18 @@ function redirect_delete_by_path($path) {
  */
 function redirect_delete_by_entity_path($entity_type, $entity) {
   $uri = entity_uri($entity_type, $entity);
-  redirect_delete_by_path($uri['path']);
-
-  $info = entity_get_info($entity_type);
-  if (isset($info['default path'])) {
-    list($id) = entity_extract_ids($entity_type, $entity);
-    $default_path = str_replace('[id]', $id, $info['default path']);
-    if ($uri['path'] !== $default_path) {
-      redirect_delete_by_path($default_path);
-    }
+  if (!empty($uri['path'])) {
+    redirect_delete_by_path($uri['path']);
   }
+
+  //$info = entity_get_info($entity_type);
+  //if (isset($info['default path'])) {
+  //  list($id) = entity_extract_ids($entity_type, $entity);
+  //  $default_path = str_replace('[id]', $id, $info['default path']);
+  //  if ($uri['path'] !== $default_path) {
+  //    redirect_delete_by_path($default_path);
+  //  }
+  //}
 }
 
 /**
@@ -847,11 +944,11 @@ function redirect_delete_multiple(array $rids) {
  *   An array of redirect IDs that were deleted or FALSE if none were.
  */
 function redirect_purge_inactive_redirects(array $types = array('redirect'), $interval = NULL) {
-  if (isset($interval)) {
+  if (!isset($interval)) {
     $interval = variable_get('redirect_purge_inactive', 0);
   }
 
-  if (!$interval || (variable_get('redirect_page_cache', 0) && !variable_get('page_cache_invoke_hooks', TRUE))) {
+  if (!$interval || !variable_get('redirect_page_cache', 0) || !variable_get('page_cache_invoke_hooks', TRUE)) {
     // If serving redirects from the page cache is enabled and hooks are not
     // executed during page caching, then we cannot track when a redirect is
     // used. Therefore, we cannot remove unused redirects.
@@ -889,8 +986,7 @@ function redirect_redirect($redirect = NULL) {
     flood_register_event('redirection', 60, $session_id ? $session_id : NULL);
   }
   else {
-    watchdog('redirect', 'Infinite loop stopped.');
-    drupal_set_message('Oops, looks like this request tried to create an infinite loop. We do not allow such things here. We are a professional website!');
+    trigger_error(t('Infinite redirect loop prevented.'), E_USER_WARNING);
     return FALSE;
   }
 
@@ -942,7 +1038,7 @@ function redirect_goto($redirect) {
     drupal_add_http_header('X-Redirect-ID', $redirect->rid);
   }
 
-  if (!variable_get('redirect_page_cache', 0) || !variable_get('cache', 0) || !drupal_page_is_cacheable() || empty($redirect['cache'])) {
+  if (!variable_get('redirect_page_cache', 0) || !variable_get('cache', 0) || !drupal_page_is_cacheable() || empty($redirect->cache)) {
     drupal_exit($url);
   }
 
@@ -955,7 +1051,12 @@ function redirect_goto($redirect) {
     if (variable_get('cache', 0)) {
       // We must output something to allow the request to be cached.
       echo ' ';
-      drupal_page_set_cache();
+      if ($cache = drupal_page_set_cache()) {
+        // When caching this redirect for the first time we still need to ensure
+        // that the correct cache headers are sent.
+        // @see drupal_page_footer()
+        drupal_serve_page_from_cache($cache);
+      }
     }
   }
 
@@ -970,6 +1071,7 @@ function redirect_hash($redirect) {
   if (!empty($redirect->source_options['query'])) {
     $hash['source_query'] = $redirect->source_options['query'];
   }
+  drupal_alter('redirect_hash', $hash, $redirect);
   redirect_sort_recursive($hash, 'ksort');
   $redirect->hash = drupal_hash_base64(serialize($hash));
   return $redirect->hash;
@@ -1011,7 +1113,7 @@ function redirect_load_entity_from_path($path) {
       if (isset($entity_info['default path'])) {
         $default_path = $entity_info['default path'];
         $default_path = preg_quote($default_path, '/');
-        $default_path = str_replace('\[id\]', '(\d+)', $default_path);
+        $default_path = str_replace(preg_quote('%' . $entity_type, '/'), '(\d+)', $default_path);
         $entity_paths[$entity_type] = $default_path;
       }
     }
@@ -1060,7 +1162,7 @@ function redirect_can_redirect() {
       // If this is a command line request (Drush, etc), skip processing.
       $can_redirect = FALSE;
     }
-    elseif (variable_get('site_offline', 0) || defined('MAINTENANCE_MODE')) {
+    elseif (variable_get('maintenance_mode', 0) || defined('MAINTENANCE_MODE')) {
       // Do not redirect in offline or maintenance mode.
       $can_redirect = FALSE;
     }
@@ -1160,15 +1262,32 @@ function redirect_url($path, array $options = array(), $clean_url = NULL) {
     $path = '<front>';
   }
 
-  $url = $path;
+  if (!isset($options['alter']) || !empty($options['alter'])) {
+    drupal_alter('redirect_url', $path, $options);
+  }
 
-  if (!empty($options['absolute']) && !url_is_external($url)) {
-    if (!empty($options['https']) && variable_get('https', FALSE)) {
-      $url = $GLOBALS['base_secure_url'] . base_path() . $url;
+  // The base_url might be rewritten from the language rewrite in domain mode.
+  if (!isset($options['base_url'])) {
+    if (isset($options['https']) && variable_get('https', FALSE)) {
+      if ($options['https'] === TRUE) {
+        $options['base_url'] = $GLOBALS['base_secure_url'];
+        $options['absolute'] = TRUE;
+      }
+      elseif ($options['https'] === FALSE) {
+        $options['base_url'] = $GLOBALS['base_insecure_url'];
+        $options['absolute'] = TRUE;
+      }
     }
     else {
-      $url = $GLOBALS['base_insecure_url'] . base_path() . $url;
+      $options['base_url'] = $GLOBALS['base_url'];
     }
+  }
+
+  if (empty($options['absolute']) || url_is_external($path)) {
+    $url = $path;
+  }
+  else {
+    $url = $options['base_url'] . base_path() . $path;
   }
 
   if (isset($options['query'])) {
@@ -1215,6 +1334,7 @@ function redirect_variables() {
 //}
 
 function redirect_parse_url($url) {
+  $original_url = $url;
   $url = trim($url, " \t\n\r\0\x0B\/");
   $parsed = parse_url($url);
 
@@ -1250,6 +1370,10 @@ function redirect_parse_url($url) {
 
   //$parsed['url'] = http_build_query($url, HTTP_URL_STRIP_QUERY | HTTP_URL_STRIP_FRAGMENT);
   $parsed['url'] = $url;
+
+  // Allow modules to alter the parsed URL.
+  drupal_alter('redirect_parse_url', $parsed, $original_url);
+
   return $parsed;
 }
 
@@ -1313,4 +1437,131 @@ function locale_form_redirect_edit_form_alter(&$form, &$form_state) {
     '#default_value' => $form['language']['#value'],
     '#description' => t('A redirect set for a specific language will always be used when requesting this page in that language, and takes precedence over redirects set for <em>All languages</em>.'),
   );
+}
+
+/**
+ * Implements hook_field_attach_form().
+ *
+ * @todo Investigate using hook_entity_load() to load all entity redirects.
+ * @todo Figure out how to support entity URIs that contain query strings.
+ */
+function redirect_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode) {
+  list($id) = entity_extract_ids($entity_type, $entity);
+  if (!empty($form['redirect']) || empty($id)) {
+    return;
+  }
+
+  // Check if this entity type supports redirects.
+  if (!redirect_entity_type_supports_redirects($entity_type)) {
+    return;
+  }
+
+  $uri = entity_uri($entity_type, $entity);
+  if (empty($uri['path'])) {
+    // If the entity has no source path, then we cannot lookup the existing
+    // redirects.
+    return;
+  }
+
+  $info = entity_get_info($entity_type);
+  $form['redirect'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('URL redirects'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#access' => user_access('administer redirects'),
+    '#weight' => 30,
+    '#attributes' => array('class' => array('redirect-list')),
+  );
+
+  // Only support vertical tabs if there is a vertical tab element.
+  foreach (element_children($form) as $key) {
+    if (isset($form[$key]['#type']) && $form[$key]['#type'] == 'vertical_tabs') {
+      $form['redirect']['#group'] = $key;
+      $form['redirect']['#attached']['js']['vertical-tabs'] = drupal_get_path('module', 'redirect') . '/redirect.js';
+    }
+  }
+
+  $redirect = array(
+    'redirect' => $uri['path'],
+    'redirect_options' => array_diff_key($uri['options'], array('entity_type' => '', 'entity' => '')),
+    'language' => $langcode,
+  );
+
+  $form['redirect']['actions'] = array(
+    '#theme' => 'links',
+    '#links' => array(),
+    '#attributes' => array('class' => array('action-links')),
+  );
+  if (redirect_access('create', 'redirect')) {
+    $form['redirect']['actions']['#links']['add'] = array(
+      'title' => t('Add URL redirect to this @entitytype', array('@entitytype' => drupal_strtolower($info['label']))),
+      'href' => 'admin/config/search/redirect/add',
+      'query' => array_filter($redirect) + drupal_get_destination(),
+    );
+  }
+
+  // We don't have to put our include in $form_state['build_info']['files']
+  // since the build array will already be cached.
+  module_load_include('inc', 'redirect', 'redirect.admin');
+  $redirects = redirect_load_multiple(FALSE, array('redirect' => $uri['path']));
+  $header = array('source', 'status_code', 'language', 'count', 'access', 'operations');
+  $form['redirect'] += redirect_list_table($redirects, $header);
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function redirect_field_extra_fields() {
+  $entity_info = entity_get_info();
+  foreach (array_keys($entity_info) as $entity_type) {
+    if ($entity_type == 'comment') {
+      // The comment entity type supports URIs, but they're not real.
+      continue;
+    }
+    foreach (array_keys($entity_info[$entity_type]['bundles']) as $bundle) {
+      if (!isset($entity_info[$entity_type]['bundles'][$bundle]['uri callback']) && !isset($entity_info[$entity_type]['uri callback'])) {
+        // The bundle or base entity must have an URI callback defined otherwise
+        // we cannot use the entity_uri() function to lookup the entity's source
+        // path.
+        continue;
+      }
+      $info[$entity_type][$bundle]['form']['redirect'] = array(
+        'label' => t('URL redirects'),
+        'description' => t('Redirect module form elements'),
+        'weight' => 30,
+      );
+    }
+  }
+  return $info;
+}
+
+/**
+ * Fetch an array of redirect bulk operations.
+ *
+ * @see hook_redirect_operations()
+ * @see hook_redirect_operations_alter()
+ */
+function redirect_get_redirect_operations() {
+  $operations = &drupal_static(__FUNCTION__);
+
+  if (!isset($operations)) {
+    $operations = module_invoke_all('redirect_operations');
+    drupal_alter('redirect_operations', $operations);
+  }
+
+  return $operations;
+}
+
+/**
+ * Implements hook_redirect_operations().
+ */
+function redirect_redirect_operations() {
+  $operations['delete'] = array(
+    'action' => t('Delete'),
+    'action_past' => t('Deleted'),
+    'callback' => 'redirect_delete_multiple',
+    'confirm' => TRUE,
+  );
+  return $operations;
 }

@@ -45,7 +45,7 @@ function character_editor_help($path, $arg){
 function character_editor_permission(){
   return array(
     'create character editor' => array(
-      'title' => t('Create character edit'),
+      'title' => t('Create character editor'),
       'description' => t('Create character editor projects.')
     ),
     'view character editor' => array(
@@ -185,6 +185,8 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
       $editable = false;
     }elseif(user_access('edit character editor')){
       $editable = true;
+      $style_options['editable'] = TRUE;
+      $style_options['enableCellNavigation'] = TRUE;
     }else{
       drupal_access_denied();
       drupal_exit();
@@ -198,10 +200,12 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
           $delta = 1;
           list($character_group_entity_type, $character_group_entity_id) = explode(':', reset($character_group['endpoints']));
           $character_group_entity = character_editor_entity_load_single($character_group_entity_type, $character_group_entity_id, true);
+          $character_group_has_column = FALSE;
           if(isset($character_group_entity->field_characters[LANGUAGE_NONE])){
             foreach($character_group_entity->field_characters[LANGUAGE_NONE] as $character){
               list($character_entity_type, $character_entity_id) = explode(':', reset($character['endpoints']));
               if($character_entity_type == 'character_editor_character'){
+                $character_group_has_column = TRUE;
                 $character = character_editor_entity_load_single($character_entity_type, $character_entity_id);
                 $id = 'character_' . $character_entity_id;
                 $field = array(
@@ -258,7 +262,7 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
                         $value_to_delta[$value['value']] = $state_delta;
                       }
                     }else{
-                      $style_options['columns'][$id]['data']['bt'] .= t('There are no states for this chaarcter');
+                      $style_options['columns'][$id]['data']['bt'] .= t('There are no states for this character');
                     }
                     break;
                 }
@@ -287,6 +291,24 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
                 $delta++;
               }
             }
+          }
+          if(!$character_group_has_column && (arg(2) == 'edit' || (arg(0) == 'slickgrid' && arg(1) == 'callback'))){
+            $id = 'character_group_' . $character_group_entity_id;
+            $field = array(
+              'id' => $id,
+              'relationship' => 'none',
+              'group_type' => 'group',
+              'label' => '',
+              'hide_empty' => 0
+            );
+            $view->add_item('page', 'field', 'views', 'nothing', $field, $id);
+            $style_options['columns'][$id] = array(
+              'tab' => $character_group_entity->label(),
+              'headerCssClass' => 'character ' . $id
+            );
+            $style_options['columns'][$id]['data'] = array(
+              'char' => t('This group is empty. You need to add characters to the group.')
+            );
           }
         }
       }
@@ -339,7 +361,7 @@ function character_editor_field_widget_form(&$form, &$form_state, $field, $insta
       $element['character'] = array(
         '#type' => 'item',
         '#title' => $character_entity[$entity_id]->label(),
-        '#suffix' => l('Edit', 'character/' . $entity_id . '/edit', array(
+        '#suffix' => l('Edit', 'character-editor-character/' . $entity_id . '/edit', array(
           'attributes' => array(
             'class' => 'character-editor-edit-link'
           ),
@@ -371,7 +393,7 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
           // Is this an add link from slickgrid
           if(!isset($form_state['character_project_id'])){
             if($form_state['entity']->is_new){
-              $form_state['character_project_id'] = arg(7);
+              $form_state['character_project_id'] = arg(5);
             }else{
               $form_state['character_project_id'] = $_GET['project'];
             }
@@ -419,7 +441,7 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
           // And settings
           if(arg(2) == 'settings'){
             // Hide the characters on the settings form
-            $form['field_characters']['#access'] = false;
+            $form['field_characters']['#attributes']['class'][] = 'element-hidden';
             $form['title']['#title'] = t('Title');
           }else{
             // Hide all other fields on the edit characters form
@@ -428,7 +450,8 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
               'field_char_proj_description',
               'field_taxonomic_name'
             ) as $key){
-              $form[$key]['#access'] = false;
+              $form[$key]['#prefix'] = '<div class="element-hidden">';
+              $form[$key]['#suffix'] = '</div>';
             }
           }
           break;
@@ -583,6 +606,7 @@ function character_editor_entity_access($op){
     case 'access':
       $op = 'view';
       break;
+    case 'update':
     case 'settings':
     case 'characters':
       $op = 'edit';
@@ -701,15 +725,15 @@ function character_editor_character_form_submit(&$form, &$form_state){
       switch($character_entity->type){
         case 'group':
           $parent_entity = entity_load_single('character_editor_project', $form_state['character_project_id']);
-          drupal_set_message(t("Created new character group @label"), array(
+          drupal_set_message(t("Created new character group @label", array(
             '@label' => $character_entity->label()
-          ));
+          )));
           break;
         default:
           $parent_entity = entity_load_single('character_editor_character', $form_state['values']['group']);
-          drupal_set_message(t("Created new character @label"), array(
+          drupal_set_message(t("Created new character @label", array(
             '@label' => $character_entity->label()
-          ));
+          )));
           break;
       }
       character_editor_create_relation($parent_entity, $character_entity);
@@ -857,6 +881,28 @@ function character_editor_ctools_plugin_directory($module, $plugin){
  * 
  ********************************************************************************************/
 /**
+ * Implement hook_slickgrid_entity_add
+ *
+ * Ensure we reset the columns when characters are modified
+ */
+function character_editor_slickgrid_add_entity($entity_type, $bundle, $arguments, $entity){
+  // If we are adding a new character (and we know the project id), then
+  // provide the rebuild-columns too.
+  $result = array();
+  if($entity_type == 'character_editor_character' && count($arguments)){
+    $project_entity_id = reset($arguments);
+    $view = views_get_view(character_editor_get_default_view());
+    if($view){
+      $view->execute_display('defaut', array(
+        $project_entity_id
+      ));
+      $result['columns'] = slickgrid_encode_columns($view->columns);
+    }
+  }
+  return $result;
+}
+
+/**
  * Slickgrid process function
  * Retrieve form / process a modal character form (text & DNA)
  * @param object $editor
@@ -881,7 +927,7 @@ function character_editor_state_form_process($editor){
   if(!empty($form_state['executed'])){ // Form has succesfully completed  	
     // We're going to exit the process, so get editor result manually
     $result = $form_state['editor']->get_result();
-    slickgrid_callback_get_messages($result);
+    slickgrid_callback_add_messages($result);
     // Build a ctools ajax output array
     $output = array(
       array(
@@ -1130,6 +1176,8 @@ function theme_field__field_char_states(&$variables){
     $classes = 'field-item';
     if(isset($item['#markup'])){
       $output .= $item['#markup'];
+    }else if($item['#theme'] == 'image_formatter'){
+      $output .= '<div class="character-editor-state-image">' . drupal_render($item) . '</div>';
     }else{
       $output .= '<div class="field-label"' . $variables['title_attributes'] . '>' . $delta . ':&nbsp;</div>';
       $output .= drupal_render($item);
@@ -1150,7 +1198,9 @@ function character_editor_preprocess_slickgrid_control__add(&$variables){
     'character_editor_character/controlled',
     'character_editor_character/group'
   ) as $character){
-    $variables['add_links'][] = $add_links[$character];
+    if(isset($add_links[$character])){
+      $variables['add_links'][] = $add_links[$character];
+    }
   }
 }
 

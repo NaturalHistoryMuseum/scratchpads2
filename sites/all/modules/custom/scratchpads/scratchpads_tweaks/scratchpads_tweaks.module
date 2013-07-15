@@ -1,4 +1,8 @@
 <?php
+// This line is updated by the "create-aegir-platform" script to reflect the
+// name of the tag or branch that has been checked out.  This constant should be
+// used anywhere that we want to display the branch/tag.
+define('SCRATCHPADS_VERSION', 'TAG');
 
 /**
  * Implements hook_init()
@@ -514,6 +518,18 @@ function scratchpads_tweaks_add_body_field($type, $label = 'Body', $weight = 0){
     $instance = field_create_instance($instance);
   }
   return $instance;
+}
+
+/**
+ * Implements hook_apachesolr_search_page_alter().
+ */
+function scratchpads_tweaks_apachesolr_search_page_alter(&$build, $search_page){
+  if($search_page['page_id'] == 'core_search'){
+    $entity_info = entity_get_info();
+    foreach(array_keys($build['search_results']['#results']) as $key){
+      //$build['search_results']['#results'][$key]['title'] = "<strong>{$build['search_results']['#results'][$key]['type']}</strong> {$build['search_results']['#results'][$key]['title']}";
+    }
+  }
 }
 
 /**
