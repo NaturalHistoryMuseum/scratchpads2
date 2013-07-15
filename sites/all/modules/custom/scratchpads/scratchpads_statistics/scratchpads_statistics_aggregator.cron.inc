@@ -63,20 +63,20 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
     $data = _scratchpads_statistics_aggregator_get_data($url . 'login.json');
     if($data && is_array($data) && count($data)){
       _scratchpads_statistics_aggregator_insert_login_data($data, $url);
-    }else{
-      watchdog('scratchpads_statistics', 'Failed to get login data from the Scratchpads site at !url', array(
-        '!url' => $url
-      ), WATCHDOG_WARNING);
-    }
-    // Get the full statistics for this site, and tner that in to the tables.
-    // FIXME - Need to add the hash/security if we need to use it.
-    $data = _scratchpads_statistics_aggregator_get_data($url . 'stats.json?since=' . $last_capture);
-    if($data){
-      if(is_array($data) && count($data)){
-        _scratchpads_statistics_aggregator_insert_data($data, $url);
+      // Get the full statistics for this site, and tner that in to the tables.
+      // FIXME - Need to add the hash/security if we need to use it.
+      $data = _scratchpads_statistics_aggregator_get_data($url . 'stats.json?since=' . $last_capture);
+      if($data){
+        if(is_array($data) && count($data)){
+          _scratchpads_statistics_aggregator_insert_data($data, $url);
+        }
+      }else{
+        watchdog('scratchpads_statistics', 'Failed to get statistics data from the Scratchpads site at !url', array(
+          '!url' => $url
+        ), WATCHDOG_WARNING);
       }
     }else{
-      watchdog('scratchpads_statistics', 'Failed to get statistics data from the Scratchpads site at !url', array(
+      watchdog('scratchpads_statistics', 'Failed to get login data from the Scratchpads site at !url', array(
         '!url' => $url
       ), WATCHDOG_WARNING);
     }
