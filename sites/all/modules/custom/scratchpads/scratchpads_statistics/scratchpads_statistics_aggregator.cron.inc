@@ -27,8 +27,8 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
       // be an issue when hosting of sites external to the NHM becomes more
       // prevalent).
       $url = $ti->getHomePage();
-      if(!strpos($url, '/s2.') && !strpos($url, 'taxon.name') && !strpos($url, 'training') && !strpos($url, 'sandbox')){
-        $urls[] = $url;
+      if(!strpos($url, '/s2.') && !strpos($url, 'taxon.name') && !strpos($url, 'training') && !strpos($url, 'sandbox') && (strpos($url, 'dev.') !== FALSE) && (strpos($url, 'dev-') !== FALSE)){
+        $urls[$url] = $url;
       }
     }
   }
@@ -60,10 +60,19 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
         continue;
       }
     }
+    watchdog('scratchpads_statistics', 'Getting statistics data from the Scratchpads site at !url', array(
+      '!url' => $url
+    ));
     // FIXME - Need to add the hash if we need to use it.
     $data = _scratchpads_statistics_aggregator_get_data($url . 'stats.json?since=' . $last_capture);
-    if($data && is_array($data) && count($data)){
-      _scratchpads_statistics_aggregator_insert_data($data, $url);
+    if($data){
+      if(is_array($data) && count($data)){
+        _scratchpads_statistics_aggregator_insert_data($data, $url);
+      }
+    }else{
+      watchdog('scratchpads_statistics', 'Failed to get statistics data from the Scratchpads site at !url', array(
+        '!url' => $url
+      ), WATCHDOG_WARNING);
     }
   }
 }
