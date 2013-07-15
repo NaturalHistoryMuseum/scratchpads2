@@ -27,8 +27,8 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
       // be an issue when hosting of sites external to the NHM becomes more
       // prevalent).
       $url = $ti->getHomePage();
-      if(!strpos($url, '/s2.') && !strpos($url, 'taxon.name') && !strpos($url, 'training') && !strpos($url, 'sandbox')){
-        $urls[] = $url;
+      if(!strpos($url, '/s2.') && !strpos($url, 'taxon.name') && !strpos($url, 'training') && !strpos($url, 'sandbox') && (strpos($url, 'dev.') !== FALSE) && (strpos($url, 'dev-') !== FALSE)){
+        $urls[$url] = $url;
       }
     }
   }
