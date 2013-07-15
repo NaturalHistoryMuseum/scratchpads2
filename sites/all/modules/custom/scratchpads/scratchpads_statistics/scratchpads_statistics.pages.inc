@@ -242,7 +242,7 @@ function scratchpads_statistics_stats_page(){
   $results = $query->execute();
   $site_month_object_counts = array();
   foreach($results as $row){
-    $site_month_object_counts[$row->entity_bundle][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
+    $site_month_object_counts[$row->site][$row->entity_bundle][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
   }
   foreach($site_month_object_counts as $site_array){
     foreach($site_array as $data){
