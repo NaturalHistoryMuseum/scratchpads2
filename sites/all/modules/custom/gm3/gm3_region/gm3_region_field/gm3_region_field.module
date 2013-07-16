@@ -37,16 +37,16 @@ function gm3_region_items_validate($items, $field_name, &$errors){
           ));
           break;
         case '2':
-          $result = db_query('SELECT COUNT(*) AS item_count FROM {gm3_region_data} WHERE level_2_code = :l2c', array(
+          $result = db_query('SELECT COUNT(*) AS item_count FROM {gm3_region_data} WHERE level_2_code = :l2c OR level_5_code = :l3c', array(
             ':l2c' => $item
           ));
-          // We have a sub-continent code
+          // We have a sub-continent code or a VC code
           break;
         case '3':
-          $result = db_query('SELECT COUNT(*) AS item_count FROM {gm3_region_data} WHERE level_3_code = :l3c', array(
+          $result = db_query('SELECT COUNT(*) AS item_count FROM {gm3_region_data} WHERE level_3_code = :l3c OR level_5_code = :l3c', array(
             ':l3c' => $item
           ));
-          // We have a level-3 code
+          // We have a level-3 code or a VC code
           break;
         case '6':
           $item_part = explode('-', $item);
@@ -87,13 +87,13 @@ function gm3_region_field_field_insert($entity_type, $entity, $field, $instance,
             'region_id' => _gm3_region_convert_short_code_to_full_code($item)
           );
         }
-      }else if (isset($items[0]['map'])){
-        foreach (array_keys($items[0]['map']) as $region_id) {
+      }else if(isset($items[0]['map'])){
+        foreach(array_keys($items[0]['map']) as $region_id){
           $new_items[] = array(
             'region_id' => $region_id
           );
         }
-      } else {
+      }else{
         $new_items = $items;
       }
       $items = $new_items;
@@ -117,22 +117,27 @@ function _gm3_region_convert_short_code_to_full_code($val){
       $val = "$level_1_code:$val";
     }
   }else{
-    if(strlen($val) == 3){
-      // Region 3
-      $row = db_select('gm3_region_data', 'g')->fields('g', array(
-        'level_1_code',
-        'level_2_code'
-      ))->condition('level_3_code', $val)->execute()->fetch();
-      $val = "{$row->level_1_code}:{$row->level_2_code}:$val";
-    }else{
-      // Region 4
-      $val = explode("-", $val);
-      $row = db_select('gm3_region_data', 'g')->fields('g', array(
-        'level_1_code',
-        'level_2_code',
-        'level_3_code'
-      ))->condition('level_4_code', $val[1])->condition('level_3_code', $val[0])->execute()->fetch();
-      $val = "{$row->level_1_code}:{$row->level_2_code}:{$row->level_3_code}:{$val[0]}-{$val[1]}";
+    if(!strpos($val, ':')){
+      if(strtolower(substr($val, 0, 2)) == 'vc'){
+        // VC
+        $val = '1:10:GRB:GRB-OO:' . substr($val, 2);
+      }else if(strlen($val) == 3){
+        // Region 3
+        $row = db_select('gm3_region_data', 'g')->fields('g', array(
+          'level_1_code',
+          'level_2_code'
+        ))->condition('level_3_code', $val)->execute()->fetch();
+        $val = "{$row->level_1_code}:{$row->level_2_code}:$val";
+      }else{
+        // Region 4
+        $val = explode("-", $val);
+        $row = db_select('gm3_region_data', 'g')->fields('g', array(
+          'level_1_code',
+          'level_2_code',
+          'level_3_code'
+        ))->condition('level_4_code', $val[1])->condition('level_3_code', $val[0])->execute()->fetch();
+        $val = "{$row->level_1_code}:{$row->level_2_code}:{$row->level_3_code}:{$val[0]}-{$val[1]}";
+      }
     }
   }
   return $val;
@@ -304,6 +309,7 @@ function _gm3_region_field_get_options(){
     'name',
     'continent',
     'iso_code',
+    'level_5_code',
     'level_4_code',
     'level_3_code',
     'level_2_code',
@@ -317,8 +323,10 @@ function _gm3_region_field_get_options(){
       $options["{$region->level_1_code}:{$region->level_2_code}"] = "- {$region->name}";
     }else if($region->level_4_code == ''){
       $options["{$region->level_1_code}:{$region->level_2_code}:{$region->level_3_code}"] = "- - {$region->name}";
-    }else{
+    }else if($region->level_5_code == '00'){
       $options["{$region->level_1_code}:{$region->level_2_code}:{$region->level_3_code}:{$region->level_3_code}-{$region->level_4_code}"] = "- - - {$region->name}";
+    }else{
+      $options["{$region->level_1_code}:{$region->level_2_code}:{$region->level_3_code}:{$region->level_3_code}-{$region->level_4_code}:{$region->level_5_code}"] = "- - - - {$region->name}";
     }
   }
   uksort($options, '_gm3_region_field_array_sort');
@@ -344,6 +352,11 @@ function _gm3_region_field_array_sort($a, $b){
   }
   if(isset($a[3]) && isset($b[3])){
     if($a[3] != $b[3]){return $a[3] > $b[3];}
+  }else{
+    return count($a) > count($b);
+  }
+  if(isset($a[4]) && isset($b[4])){
+    if($a[4] != $b[4]){return $a[4] > $b[4];}
   }else{
     return count($a) > count($b);
   }
