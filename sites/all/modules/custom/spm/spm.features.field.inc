@@ -68,6 +68,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_spm_map'
   $fields['node-spm-field_spm_map'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',
@@ -150,6 +151,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_media'
   $fields['node-spm-field_media'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',
@@ -244,6 +246,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_associations'
   $fields['node-spm-field_associations'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -315,6 +318,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_behavious'
   $fields['node-spm-field_behavious'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -386,6 +390,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_biology'
   $fields['node-spm-field_biology'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -457,6 +462,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_conservation_status'
   $fields['node-spm-field_conservation_status'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -528,6 +534,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_cyclicity'
   $fields['node-spm-field_cyclicity'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -599,6 +606,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_cytology'
   $fields['node-spm-field_cytology'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -670,6 +678,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_diagnostic_description'
   $fields['node-spm-field_diagnostic_description'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -741,6 +750,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_diseases'
   $fields['node-spm-field_diseases'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -812,6 +822,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_dispersal'
   $fields['node-spm-field_dispersal'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -883,6 +894,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_distribution'
   $fields['node-spm-field_distribution'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -954,6 +966,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_ecology'
   $fields['node-spm-field_ecology'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1025,6 +1038,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_evolution'
   $fields['node-spm-field_evolution'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1096,6 +1110,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_general_description'
   $fields['node-spm-field_general_description'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1167,6 +1182,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_genetics'
   $fields['node-spm-field_genetics'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1238,6 +1254,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_growth'
   $fields['node-spm-field_growth'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1309,6 +1326,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_habitat'
   $fields['node-spm-field_habitat'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1380,6 +1398,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_legislation'
   $fields['node-spm-field_legislation'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1451,6 +1470,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_life_cycle'
   $fields['node-spm-field_life_cycle'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1522,6 +1542,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_life_expectancy'
   $fields['node-spm-field_life_expectancy'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1593,6 +1614,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_look_alikes'
   $fields['node-spm-field_look_alikes'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1664,6 +1686,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_management'
   $fields['node-spm-field_management'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1735,6 +1758,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_migration'
   $fields['node-spm-field_migration'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1806,6 +1830,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_molecular_biology'
   $fields['node-spm-field_molecular_biology'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1877,6 +1902,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_morphology'
   $fields['node-spm-field_morphology'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -1948,6 +1974,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_phylogeny'
   $fields['node-spm-field_phylogeny'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -2019,6 +2046,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_physiology'
   $fields['node-spm-field_physiology'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -2090,6 +2118,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_population_biology'
   $fields['node-spm-field_population_biology'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -2161,6 +2190,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_procedures'
   $fields['node-spm-field_procedures'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -2232,6 +2262,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_reproduction'
   $fields['node-spm-field_reproduction'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -2303,6 +2334,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_risk_statement'
   $fields['node-spm-field_risk_statement'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -2374,6 +2406,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_size'
   $fields['node-spm-field_size'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -2445,6 +2478,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_taxon_biology'
   $fields['node-spm-field_taxon_biology'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -2516,6 +2550,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_threats'
   $fields['node-spm-field_threats'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -2587,6 +2622,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_trends'
   $fields['node-spm-field_trends'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -2658,6 +2694,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_trophic_strategy'
   $fields['node-spm-field_trophic_strategy'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -2729,6 +2766,7 @@ function spm_field_default_fields(){
   // Exported field: 'node-spm-field_uses'
   $fields['node-spm-field_uses'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',

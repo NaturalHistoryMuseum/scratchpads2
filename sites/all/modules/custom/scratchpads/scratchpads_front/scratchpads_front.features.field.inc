@@ -8,6 +8,7 @@ function scratchpads_front_field_default_fields(){
   // Exported field: 'file-image-field_promote_to_home_page'
   $fields['file-image-field_promote_to_home_page'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',

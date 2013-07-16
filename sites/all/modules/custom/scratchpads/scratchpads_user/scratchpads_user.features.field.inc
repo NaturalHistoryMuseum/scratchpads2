@@ -12,6 +12,7 @@ function scratchpads_user_field_default_fields(){
   // Exported field: 'user-user-field_user_country'
   $fields['user-user-field_user_country'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -65,6 +66,7 @@ function scratchpads_user_field_default_fields(){
   // Exported field: 'user-user-field_homepage'
   $fields['user-user-field_homepage'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -150,6 +152,7 @@ function scratchpads_user_field_default_fields(){
   // Exported field: 'user-user-field_user_family_name'
   $fields['user-user-field_user_family_name'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -212,6 +215,7 @@ function scratchpads_user_field_default_fields(){
   // Exported field: 'user-user-field_user_given_names'
   $fields['user-user-field_user_given_names'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -274,6 +278,7 @@ function scratchpads_user_field_default_fields(){
   // Exported field: 'user-user-field_user_institution'
   $fields['user-user-field_user_institution'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -336,6 +341,7 @@ function scratchpads_user_field_default_fields(){
   // Exported field: 'user-user-field_user_taxonomic_interest'
   $fields['user-user-field_user_taxonomic_interest'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -398,6 +404,7 @@ function scratchpads_user_field_default_fields(){
   // Exported field: 'user-user-field_user_title'
   $fields['user-user-field_user_title'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',

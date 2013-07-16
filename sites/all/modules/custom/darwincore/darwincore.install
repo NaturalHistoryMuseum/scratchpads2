@@ -210,3 +210,25 @@ function darwincore_update_7012(){
     field_update_instance($field_instance);
   }
 }
+
+/**
+ * Ensure all fields exist, and lock them!
+ */
+function darwincore_update_7013(){
+  $fields_to_lock = array();
+  module_load_include('features.field.inc', 'darwincore');
+  foreach(darwincore_field_default_fields() as $field){
+    $fields_to_lock[] = $field['field_config']['field_name'];
+    if(!field_info_field($field['field_config']['field_name'])){
+      field_create_field($field['field_config']);
+    }
+    try{
+      field_create_instance($field['field_instance']);
+    }
+    catch(Exception $e){
+    }
+  }
+  db_update('field_config')->fields(array(
+    'locked' => 1
+  ))->condition('field_name', $fields_to_lock)->execute();
+}

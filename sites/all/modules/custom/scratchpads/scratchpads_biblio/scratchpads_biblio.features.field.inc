@@ -12,6 +12,7 @@ function scratchpads_biblio_field_default_fields(){
   // Exported field: 'node-biblio-field_file'
   $fields['node-biblio-field_file'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',
