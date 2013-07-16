@@ -273,6 +273,8 @@ function gm3_region_update_7009(&$sandbox){
       )));
       $sandbox['#finished'] = $sandbox['progress'] = count($sandbox['files_to_load']) / $sandbox['total_files'];
     }
+  }else{
+    $sandbox['#finished'] = 1;
   }
 }
 
