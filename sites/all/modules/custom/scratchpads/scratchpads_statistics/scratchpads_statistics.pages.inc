@@ -329,6 +329,9 @@ function scratchpads_statistics_stats_page(){
       '#title' => t('Views over time'),
       '#options' => array(
         'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE
+      ),
+      'note_about_views' => array(
+        '#markup' => '<p class="scratchpads-statistics-note">' . t('Note, views are only recorded for "Nodes" commencing March 2013') . '</p>'
       )
     );
   }
