@@ -199,68 +199,72 @@ function gm3_region_update_7007(){
  * Add the level_5_code column
  */
 function gm3_region_update_7008(){
-  db_add_field('gm3_region_data', 'level_5_code', array(
-    'description' => 'Unofficial Level 5 code.  Can be used for Watson vice counties or similar.',
-    'type' => 'varchar',
-    'length' => 5,
-    'not null' => TRUE,
-    'default' => ''
-  ));
-  db_drop_primary_key('gm3_region_data');
-  db_add_primary_key('gm3_region_data', array(
-    'level_5_code',
-    'level_4_code',
-    'level_3_code',
-    'level_2_code',
-    'level_1_code'
-  ));
+  if(!db_field_exists('gm3_region_data', 'level_5_code')){
+    db_add_field('gm3_region_data', 'level_5_code', array(
+      'description' => 'Unofficial Level 5 code.  Can be used for Watson vice counties or similar.',
+      'type' => 'varchar',
+      'length' => 5,
+      'not null' => TRUE,
+      'default' => ''
+    ));
+    db_drop_primary_key('gm3_region_data');
+    db_add_primary_key('gm3_region_data', array(
+      'level_5_code',
+      'level_4_code',
+      'level_3_code',
+      'level_2_code',
+      'level_1_code'
+    ));
+  }
 }
 
 /**
  * Load the data.
  */
 function gm3_region_update_7009(&$sandbox){
-  // If this is being run on Quartz, then it is highly likely that the data has
-  // been loaded already.  We get a count of the cache table to check.
-  $path = drupal_get_path('module', 'gm3_region') . '/region_data/sql_files/';
-  if(empty($sandbox['files_to_load'])){
-    // Check if we should continue or not
-    if(db_query('SELECT COUNT(*) FROM {cache_gm3_polygon}')->fetchField() == 1151){
-      $sandbox['#finished'] = TRUE;
-      return;
+  if(db_select('gm3_region_data', 'g')->countQuery()->execute()->fetchField() < 1151){
+    // If this is being run on Quartz, then it is highly likely that the data has
+    // been loaded already.  We get a count of the cache table to check.
+    $path = drupal_get_path('module', 'gm3_region') . '/region_data/sql_files/';
+    if(empty($sandbox['files_to_load'])){
+      // Check if we should continue or not
+      if(db_query('SELECT COUNT(*) FROM {cache_gm3_polygon}')->fetchField() == 1151){
+        $sandbox['#finished'] = TRUE;
+        return;
+      }
+      // Empty the two tables first.
+      db_delete('cache_gm3_polygon')->execute();
+      db_delete('gm3_region_data')->execute();
+      $sandbox['files_to_load'] = scandir($path);
+      $sandbox['total_files'] = count($sandbox['files_to_load']);
     }
-    // Empty the two tables first.
-    db_delete('cache_gm3_polygon')->execute();
-    db_delete('gm3_region_data')->execute();
-    $sandbox['files_to_load'] = scandir($path);
-    $sandbox['total_files'] = count($sandbox['files_to_load']);
-  }
-  $i = 0;
-  while($i < 10 && count($sandbox['files_to_load'])){
-    $file = array_pop($sandbox['files_to_load']);
-    if(is_file($path . $file)){
-      $gz = gzopen($path . $file, 'r');
-      db_query(gzread($gz, 7000000));
-      gzclose($gz);
+    $i = 0;
+    while($i < 10 && count($sandbox['files_to_load'])){
+      $file = array_pop($sandbox['files_to_load']);
+      if(is_file($path . $file)){
+        $gz = gzopen($path . $file, 'r');
+        db_query(gzread($gz, 7000000));
+        gzclose($gz);
+      }
+      $i++;
     }
-    $i++;
-  }
-  if(!count($sandbox['files_to_load'])){
-    db_update('cache_gm3_polygon')->expression('data', "REPLACE(data, 'LBRACE', :lbrace)", array(
-      ':lbrace' => '{'
-    ))->execute();
-    db_update('cache_gm3_polygon')->expression('data', "REPLACE(data, 'RBRACE', :rbrace)", array(
-      ':rbrace' => '}'
-    ))->execute();
-    // Finally, we set the shape data.  This query is MySQL specific.
-    db_query('UPDATE {gm3_region_data} SET mysql_polygons = POLYGONFROMTEXT(polygons)');
-    $sandbox['#finished'] = 1;
-  }else{
-    drupal_set_message(t('!remaining of !total files loaded into the GM3 Region tables', array(
-      '!remaining' => count($sandbox['files_to_load']),
-      '!total' => $sandbox['total_files']
-    )));
-    $sandbox['#finished'] = $sandbox['progress'] = count($sandbox['files_to_load']) / $sandbox['total_files'];
+    if(!count($sandbox['files_to_load'])){
+      db_update('cache_gm3_polygon')->expression('data', "REPLACE(data, 'LBRACE', :lbrace)", array(
+        ':lbrace' => '{'
+      ))->execute();
+      db_update('cache_gm3_polygon')->expression('data', "REPLACE(data, 'RBRACE', :rbrace)", array(
+        ':rbrace' => '}'
+      ))->execute();
+      // Finally, we set the shape data.  This query is MySQL specific.
+      db_query('UPDATE {gm3_region_data} SET mysql_polygons = POLYGONFROMTEXT(polygons)');
+      $sandbox['#finished'] = 1;
+    }else{
+      drupal_set_message(t('!remaining of !total files loaded into the GM3 Region tables', array(
+        '!remaining' => count($sandbox['files_to_load']),
+        '!total' => $sandbox['total_files']
+      )));
+      $sandbox['#finished'] = $sandbox['progress'] = count($sandbox['files_to_load']) / $sandbox['total_files'];
+    }
   }
 }
 
