@@ -448,7 +448,7 @@ function scratchpads_statistics_stats_page(){
           '#theme' => 'simple_google_chart',
           '#type' => 'ColumnChart',
           '#data' => $data,
-          '#title' => t('Objects - Views'),
+          '#title' => t('Objects and Views'),
           '#options' => array(
             'bar' => array(
               'groupWidth' => '80%'
@@ -624,7 +624,7 @@ function scratchpads_statistics_stats_page(){
       $content[] = array(
         '#theme' => 'simple_google_chart',
         '#type' => 'BarChart',
-        '#title' => t('Active Users/Sites'),
+        '#title' => t('Number of Active Users/Sites'),
         '#options' => $options,
         '#data' => array(
           array(
