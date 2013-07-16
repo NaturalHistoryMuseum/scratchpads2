@@ -242,7 +242,7 @@ function scratchpads_statistics_stats_page(){
   $results = $query->execute();
   $site_month_object_counts = array();
   foreach($results as $row){
-    $site_month_object_counts[$row->entity_bundle][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
+    $site_month_object_counts[$row->site][$row->entity_bundle][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
   }
   foreach($site_month_object_counts as $site_array){
     foreach($site_array as $data){
@@ -329,6 +329,9 @@ function scratchpads_statistics_stats_page(){
       '#title' => t('Views over time'),
       '#options' => array(
         'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE
+      ),
+      'note_about_views' => array(
+        '#markup' => '<p class="scratchpads-statistics-note">' . t('Note, views are only recorded for "Nodes" commencing March 2013') . '</p>'
       )
     );
   }
@@ -445,7 +448,7 @@ function scratchpads_statistics_stats_page(){
           '#theme' => 'simple_google_chart',
           '#type' => 'ColumnChart',
           '#data' => $data,
-          '#title' => t('Objects - Views'),
+          '#title' => t('Objects and Views'),
           '#options' => array(
             'bar' => array(
               'groupWidth' => '80%'
@@ -621,7 +624,7 @@ function scratchpads_statistics_stats_page(){
       $content[] = array(
         '#theme' => 'simple_google_chart',
         '#type' => 'BarChart',
-        '#title' => t('Active Users/Sites'),
+        '#title' => t('Number of Active Users/Sites'),
         '#options' => $options,
         '#data' => array(
           array(

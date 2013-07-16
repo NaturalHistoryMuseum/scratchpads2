@@ -200,9 +200,36 @@ function itis_term_update_7007(){
 }
 
 /**
+ * Remove empty field collections
+ */
+function itis_term_update_7008(&$sandbox){
+  if(!isset($sandbox['entity_ids'])){
+    $sandbox['entity_ids'] = db_select('field_data_field_vernacular_name', 'f')->condition('field_vernacular_name_value', '')->fields('f', array(
+      'entity_id'
+    ))->execute()->fetchCol();
+    $sandbox['total'] = count($sandbox['entity_ids']);
+    if(!$sandbox['total']){
+      // Return if we have nothing to update
+      $sandbox['#finished'] = TRUE;
+      return;
+    }
+    $sandbox['deleted'] = 0;
+  }
+  $this_iteration = 0;
+  while($sandbox['deleted'] < $sandbox['total'] && $this_iteration < 25){
+    $entity_id = array_pop($sandbox['entity_ids']);
+    entity_delete('field_collection_item', $entity_id);
+    $sandbox['deleted']++;
+    $this_iteration++;
+  }
+  drupal_set_message($sandbox['deleted'] . "/" . $sandbox['total']);
+  $sandbox['#finished'] = $sandbox['deleted'] / $sandbox['total'];
+}
+
+/**
  * Lock the fields, and ensure that they all exist for each vocabulary.
  */
-function itis_term_update_7008(){
+function itis_term_update_7009(){
   $fields_to_lock = array(
     'field_authors',
     'field_language',
