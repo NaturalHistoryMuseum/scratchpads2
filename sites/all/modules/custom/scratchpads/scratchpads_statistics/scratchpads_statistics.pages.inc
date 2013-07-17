@@ -319,7 +319,10 @@ function scratchpads_statistics_stats_page(){
       '#data' => $data_objects,
       '#title' => t('Content over time'),
       '#options' => array(
-        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE
+        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE,
+        'legend' => array(
+          'position' => 'none'
+        )
       )
     );
   }
@@ -330,7 +333,10 @@ function scratchpads_statistics_stats_page(){
       '#data' => $data_users,
       '#title' => t('Users over time'),
       '#options' => array(
-        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE
+        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE,
+        'legend' => array(
+          'position' => 'none'
+        )
       )
     );
   }
@@ -341,7 +347,10 @@ function scratchpads_statistics_stats_page(){
       '#data' => $data_views,
       '#title' => t('Views over time'),
       '#options' => array(
-        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE
+        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE,
+        'legend' => array(
+          'position' => 'none'
+        )
       ),
       'note_about_views' => array(
         '#markup' => '<p class="scratchpads-statistics-note">' . t('Note, views are only recorded for "Nodes" commencing March 2013') . '</p>'
@@ -367,7 +376,10 @@ function scratchpads_statistics_stats_page(){
       '#data' => $site_counts_table,
       '#title' => t('Sites over time'),
       '#options' => array(
-        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE
+        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE,
+        'legend' => array(
+          'position' => 'none'
+        )
       )
     );
   }
