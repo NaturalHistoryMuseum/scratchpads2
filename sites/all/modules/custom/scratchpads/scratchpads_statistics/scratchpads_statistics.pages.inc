@@ -662,36 +662,41 @@ function scratchpads_statistics_stats_page(){
         );
       }
       $content[] = array(
-        '#theme' => 'simple_google_chart',
-        '#type' => 'BarChart',
-        '#title' => t('Number of Active Users/Sites'),
-        '#options' => $options,
-        '#data' => array(
-          array(
-            'Time period',
-            'Users',
-            'Sites'
-          ),
-          array(
-            'Last week',
-            $last_week,
-            $last_week_site
-          ),
-          array(
-            'Last month',
-            $last_month,
-            $last_month_site
-          ),
-          array(
-            'Last year',
-            $last_year,
-            $last_year_site
-          ),
-          array(
-            'Ever',
-            $total_users,
-            $total_users_site
+        'graph' => array(
+          '#theme' => 'simple_google_chart',
+          '#type' => 'BarChart',
+          '#title' => t('Number of Active Users/Sites'),
+          '#options' => $options,
+          '#data' => array(
+            array(
+              'Time period',
+              'Users',
+              'Sites'
+            ),
+            array(
+              'Last week',
+              $last_week,
+              $last_week_site
+            ),
+            array(
+              'Last month',
+              $last_month,
+              $last_month_site
+            ),
+            array(
+              'Last year',
+              $last_year,
+              $last_year_site
+            ),
+            array(
+              'Ever',
+              $total_users,
+              $total_users_site
+            )
           )
+        ),
+        'note_about_views' => array(
+          '#markup' => '<p class="scratchpads-statistics-note">' . t('A site is understood to be active if a registered user signs in to modify the site’s content. The action of signing in defines a user as active. Visitors browsing the site, i.e. without logging in, are not counted in these figures. These figures show that the dominant pattern of activity is for registered users to update their sites periodically.') . '</p>'
         )
       );
     }
