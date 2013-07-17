@@ -142,8 +142,6 @@ $handler->display->display_options['fields']['field_unacceptability_reason_3']['
 $handler->display->display_options['fields']['field_unacceptability_reason_3']['table'] = 'field_data_field_unacceptability_reason';
 $handler->display->display_options['fields']['field_unacceptability_reason_3']['field'] = 'field_unacceptability_reason';
 $handler->display->display_options['fields']['field_unacceptability_reason_3']['label'] = 'AssociatedAcceptedName';
-$handler->display->display_options['fields']['field_unacceptability_reason_3']['alter']['text'] = '[wcm_id_1]';
-$handler->display->display_options['fields']['field_unacceptability_reason_3']['hide_alter_empty'] = FALSE;
   $handler->display->display_options['fields']['field_unacceptability_reason_3']['type'] = 'aan_formatter';
   $handler->display->display_options['sorts']['tid']['id'] = 'tid';
   $handler->display->display_options['sorts']['tid']['table'] = 'taxonomy_term_data';
