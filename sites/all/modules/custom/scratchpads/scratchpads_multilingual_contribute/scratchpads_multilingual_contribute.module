@@ -56,7 +56,7 @@ function scratchpads_multilingual_contribute_block_view($delta = ''){
       $ini = @parse_ini_file(drupal_get_path('module', 'scratchpads_multilingual_contribute') . '/scratchpads_multilingual_contribute.ini');
       if($ini['uwho']){
         return array(
-          'subject' => t('Localize...'),
+          'subject' => t('Translate') . '...',
           'content' => '<h3>' . uwho_client_block_content($ini['uwho'], 'http://localize.scratchpads.eu/uwho', '', t('Login to the Scratchpads Localize site')) . '</h3>'
         );
         break;
