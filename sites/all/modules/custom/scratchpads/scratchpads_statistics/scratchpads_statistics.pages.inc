@@ -259,6 +259,19 @@ function scratchpads_statistics_stats_page(){
       }
     }
   }
+  // Sites --------------------------------------------------------------------
+  $createds = db_select('scratchpads_statistics_site', 's')->fields('s', array(
+    'created'
+  ))->orderBy('created')->execute()->fetchCol();
+  $site_counts = array();
+  foreach($createds as $created){
+    if($created){
+      if(!isset($site_counts[date('Y', $created) . "/" . date('n', $created)])){
+        $site_counts[date('Y', $created) . "/" . date('n', $created)] = end($site_counts);
+      }
+      $site_counts[date('Y', $created) . "/" . date('n', $created)] += 1;
+    }
+  }
   // We pop the last month if it has gone down SIGNIFICANTLY (>5%), as that
   // means we're probably missing some statistics
   $last_month_counts = end($month_counts);
@@ -304,7 +317,7 @@ function scratchpads_statistics_stats_page(){
       '#theme' => 'simple_google_chart',
       '#type' => 'LineChart',
       '#data' => $data_objects,
-      '#title' => t('Objects over time'),
+      '#title' => t('Content over time'),
       '#options' => array(
         'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE
       )
@@ -332,6 +345,29 @@ function scratchpads_statistics_stats_page(){
       ),
       'note_about_views' => array(
         '#markup' => '<p class="scratchpads-statistics-note">' . t('Note, views are only recorded for "Nodes" commencing March 2013') . '</p>'
+      )
+    );
+  }
+  if(end($site_counts) > 1){
+    $site_counts_table = array(
+      array(
+        t('Year/Month'),
+        t('Sites')
+      )
+    );
+    foreach($site_counts as $month => $count){
+      $site_counts_table[] = array(
+        $month,
+        $count
+      );
+    }
+    $content[] = array(
+      '#theme' => 'simple_google_chart',
+      '#type' => 'LineChart',
+      '#data' => $site_counts_table,
+      '#title' => t('Sites over time'),
+      '#options' => array(
+        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE
       )
     );
   }
