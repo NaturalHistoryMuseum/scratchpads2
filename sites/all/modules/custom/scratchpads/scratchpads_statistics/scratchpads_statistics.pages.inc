@@ -331,7 +331,7 @@ function scratchpads_statistics_stats_page(){
         )
       ),
       'note_about_views' => array(
-        '#markup' => '<p class="scratchpads-statistics-note">' . t('Note, views are only recorded for "Nodes" commencing March 2013') . '</p>'
+        '#markup' => '<p class="scratchpads-statistics-note">' . t('The number of times content has been viewed. Views records are available from April 2013 onward.') . '</p>'
       )
     );
   }
