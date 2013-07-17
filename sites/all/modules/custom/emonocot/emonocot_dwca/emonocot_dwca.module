@@ -36,6 +36,7 @@ function emonocot_dwca_views_default_views_alter(&$views){
         $view->display['default']->display_options['fields']['wcm_id_1']['exclude'] = TRUE;
         $view->display['default']->display_options['fields']['field_unacceptability_reason_1']['empty'] = '[wcm_id_1]';
         $view->display['default']->display_options['fields']['citation']['exclude'] = TRUE;
+        $view->display['default']->display_options['fields']['field_unacceptability_reason_3']['alter']['text'] = '[wcm_id_1]';
         
         $insert = array();
         $insert['protologue']  = emonocot_dwca_protologue_field();

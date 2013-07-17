@@ -219,7 +219,8 @@ function itis_term_update_7008(&$sandbox){
   $this_iteration = 0;
   while($sandbox['deleted'] < $sandbox['total'] && $this_iteration < 25){
     $entity_id = array_pop($sandbox['entity_ids']);
-    entity_delete('field_collection_item', $entity_id);
+    $field_collection_item = field_collection_item_load($entity_id);
+    $field_collection_item->deleteRevision();
     $sandbox['deleted']++;
     $this_iteration++;
   }
