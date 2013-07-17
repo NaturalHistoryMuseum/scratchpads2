@@ -199,7 +199,15 @@ function gm3_region_update_7007(){
  * Add the level_5_code column
  */
 function gm3_region_update_7008(){
-  if(!db_field_exists('gm3_region_data', 'level_5_code')){
+  try{
+    // Because we use a cheeky view for the gm3_region_data table, it is not
+    // possible to use db_field_exists(), so instead we try to select the column
+    // and catch the error, which will mean the column doesn't exist.
+    db_select('gm3_region_data', 'g')->fields('g', array(
+      'level_5_code'
+    ))->range(0, 1)->execute();
+  }
+  catch(Exception $e){
     db_add_field('gm3_region_data', 'level_5_code', array(
       'description' => 'Unofficial Level 5 code.  Can be used for Watson vice counties or similar.',
       'type' => 'varchar',
@@ -265,6 +273,8 @@ function gm3_region_update_7009(&$sandbox){
       )));
       $sandbox['#finished'] = $sandbox['progress'] = count($sandbox['files_to_load']) / $sandbox['total_files'];
     }
+  }else{
+    $sandbox['#finished'] = 1;
   }
 }
 
