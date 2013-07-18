@@ -369,7 +369,7 @@ function relation_select_element_validate(&$element, &$form_state) {
 function relation_select_field_info() {
   return array(
     'relation_select' => array(
-      'label' => t('Relation select'),
+      'label' => t('Relation Select'),
       'description' => t("Create and edit relations."),
       'settings' => array(),
       'default_widget' => 'relation_select',
@@ -387,7 +387,7 @@ function relation_select_field_info() {
 function relation_select_field_widget_info() {
   return array(
     'relation_select' => array(
-      'label' => t('Relation select'),
+      'label' => t('Relation Select'),
       'field types' => array(
         'relation_select'
       ),

@@ -704,8 +704,8 @@ function gm3_field_field_formatter_settings_form($field, $instance, $view_mode, 
           '#required' => TRUE,
           '#default_value' => isset($instance['display'][$view_mode]['settings']['display_convex_hull']) ? $instance['display'][$view_mode]['settings']['display_convex_hull'] : 0,
           '#options' => array(
-            t('NO'),
-            t('YES')
+            t('No'),
+            t('Yes')
           )
         )
       );

@@ -8,7 +8,9 @@ function hashcash_admin_settings(){
     'hashcash_log' => array(
       '#type' => 'checkbox',
       '#title' => t('Log failed hashcash'),
-      '#description' => t('Report information about failed attempts to the !watchdoglog.', array('!watchdoglog' => l(t('log'), 'admin/reports/dblog'))),
+      '#description' => t('Report information about failed attempts to the <a href="!url">log</a>.', array(
+        '!url' => url('admin/reports/dblog')
+      )),
       '#default_value' => variable_get('hashcash_log', 0)
     ),
     'hashcash_addorignore' => array(

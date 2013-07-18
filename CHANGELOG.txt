@@ -1,3 +1,7 @@
+2.1.5.1 (2013-07-18)
+
+- Ensure ITIS Term and Scratchpads Group updates run as expected
+
 2.1.5 (2013-07-17)
 
 - Various DwC-A bug fixes
