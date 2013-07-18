@@ -2,29 +2,27 @@ jQuery(document).ready(function($){
 
   var submitted = 0;  
   var reset = 0;  
-  var remove_html = '<a href="#" class="remove_button">Remove Filter</a>';
-  var add_reset_html = '<a href="#" class="add_button">Add Filter</a><a href="#" class="reset_button">Reset Form</a>';
+  var html_remove_filter = '<a href="#" class="remove_button">Remove Filter</a>';
+  var html_add_reset = '<a href="#" class="add_button">Add Filter</a><a href="#" class="reset_button">Reset Form</a>';
   
   setUpHtml();
   setUpEventListers();
 
-  // 
   function setUpHtml(){    
      // Add links to the select menu
-     $('#edit-selected-wrapper select').after(add_reset_html);
-
+     $('#edit-selected-wrapper select').after(html_add_reset);
      // Hide filters and add links
      $("div.views-exposed-widgets input").each(function(){
        if($(this).val() == '') {
          $(this).closest(".views-exposed-widget").hide();
-         $(this).closest(".views-widget").append(remove_html);
+         $(this).closest(".views-widget").append(html_remove_filter);
        }
      });
      //Hide select filters and add links
      $("div.views-exposed-widgets select").each(function(){
        if($(this).val() == 'All') {
          $(this).closest(".views-exposed-widget").hide();
-         $(this).closest(".views-widget").append(remove_html);
+         $(this).closest(".views-widget").append(html_remove_filter);
        }
      });     
    }
@@ -37,26 +35,19 @@ jQuery(document).ready(function($){
          var str = $(this).val();
          if(str != '0') {
            $('.' + str).show();
-           $('.' + str).find('.remove_button').show();
-           
+           $('.' + str).find('.remove_button').show();        
            $('.reset_button').show();
          }
        });
      });
-
-     // We use 'live' to stay active after Ajax call
      $(".reset_button").live("click", function(){
        $(".views-exposed-widget").hide();
        $('#edit-selected-wrapper').show();
        resetForm();
-     });
-     
+     });     
      $('.views-exposed-widget .form-submit').click(function() {
        submitted = 1; 
-     });
-     
-     
-     
+     });        
      // Reset and hide filter
      $('.remove_button').live("click", function(){
        $(this).prev().find('input').val('');
@@ -79,18 +70,17 @@ jQuery(document).ready(function($){
   // We need to reset the form after Ajax call
   $(document).ajaxComplete(function(){
     if (submitted ==1){   
-      $('#edit-selected-wrapper select').after(add_reset_html);
+      $('#edit-selected-wrapper select').after(html_add_reset);
       $('.views-submit-button').show();
       $('.reset_button').show();
       $("div.views-exposed-widgets input").each(function(){
-        $(this).not(".autocomplete").closest(".views-widget").append(remove_html);
+        $(this).not(".autocomplete").closest(".views-widget").append(html_remove_filter);
         if($(this).val() == '') {
           $(this).closest(".views-exposed-widget").hide();
         }
       });
-
       $("div.views-exposed-widgets select").each(function(){
-        $(this).closest(".views-widget").append(remove_html);
+        $(this).closest(".views-widget").append(html_remove_filter);
         if($(this).val() == 'All') {
           $(this).closest(".views-exposed-widget").hide();
         }

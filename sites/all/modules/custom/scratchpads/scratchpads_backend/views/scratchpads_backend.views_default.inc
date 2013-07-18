@@ -10,7 +10,7 @@ function scratchpads_backend_views_default_views(){
       $view = scratchpads_backend_views_get_view('node', 'node', $node_type->orig_type, $node_type->name, 'admin/content/slickgrid', 'node/' . $node_type->orig_type);
       $views[$view->name] = $view;
     }
-    // VBO Admin Node views here
+    // VBO Admin Node views
     $view = scratchpads_backend_views_get_admin_vbo_view('node', 'node', $node_type->orig_type, $node_type->name, 'admin/content', 'node/' . $node_type->orig_type);
     $views[$view->name] = $view;
   }
@@ -1074,14 +1074,13 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
   $view->name = 'admin_vbo_node_' . $bundle;
   $view->description = '';
   $view->tag = 'admin-content-vbo';
-  //// need to insert view here ....
   $view->base_table = $base_table;
   $view->human_name = "Admin VBO node - " . $bundle;
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
-/* Display: Master */
+  /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = $label;
   $handler->display->display_options['use_ajax'] = TRUE;
