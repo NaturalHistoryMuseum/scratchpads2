@@ -89,7 +89,10 @@ function scratchpads_statistics_stats_page_login_json(){
  * FIXME Need to add CACHING.
  */
 function scratchpads_statistics_stats_page(){
-  $content = array();
+  $content = array(
+    '#prefix' => '<div class="scratchpads-statistics-wrapper">',
+    '#suffix' => '</div>'
+  );
   $site = FALSE;
   $user = FALSE;
   // Filter the data by this site.
