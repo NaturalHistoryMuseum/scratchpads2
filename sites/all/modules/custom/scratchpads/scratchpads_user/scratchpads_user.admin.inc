@@ -150,7 +150,7 @@ function scratchpads_user_admin_account(){
       'operations' => array(
         'data' => array(
           '#type' => 'link',
-          '#title' => t('edit'),
+          '#title' => t('Edit'),
           '#href' => "user/$account->uid/edit",
           '#options' => array(
             'query' => $destination

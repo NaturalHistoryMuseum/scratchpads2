@@ -174,7 +174,7 @@ function publication_admin_overview_form(){
       $operations = array();
       if(publication_access('update', $publication)){
         $operations['edit'] = array(
-          'title' => t('edit'),
+          'title' => t('Edit'),
           'href' => 'publication/' . $publication->pid . '/edit',
           'query' => $destination
         );
