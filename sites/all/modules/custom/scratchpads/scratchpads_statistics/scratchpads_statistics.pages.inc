@@ -266,7 +266,8 @@ function scratchpads_statistics_stats_page(){
       '#theme' => 'simple_google_chart',
       '#type' => 'LineChart',
       '#data' => $data_objects,
-      '#title' => t('Content over time'),
+      '#title' => t('Content'),
+      '#subtitle' => t('The number of different objects in Scratchpads (incl. taxon descriptions, bibliographic entries, localities, specimens and images)'),
       '#options' => array(
         'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE,
         'legend' => array(
@@ -309,7 +310,8 @@ function scratchpads_statistics_stats_page(){
       '#theme' => 'simple_google_chart',
       '#type' => 'LineChart',
       '#data' => $user_counts_table,
-      '#title' => t('Active users over time'),
+      '#title' => t('Active users'),
+      '#subtitle' => t('Registered users logged-in at least once to their Scratchpad sites'),
       '#options' => array(
         'pointSize' => 2,
         'legend' => array(
@@ -323,7 +325,8 @@ function scratchpads_statistics_stats_page(){
       '#theme' => 'simple_google_chart',
       '#type' => 'LineChart',
       '#data' => $data_views,
-      '#title' => t('Views over time'),
+      '#title' => t('Views'),
+      '#subtitle' => t('The number of times Scratchpads objects have been viewed'),
       '#options' => array(
         'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE,
         'legend' => array(
@@ -366,7 +369,8 @@ function scratchpads_statistics_stats_page(){
       '#theme' => 'simple_google_chart',
       '#type' => 'LineChart',
       '#data' => $site_counts_table,
-      '#title' => t('Sites over time'),
+      '#title' => t('Sites'),
+      '#subtitle' => t('The number of Scratchpad sites'),
       '#options' => array(
         'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE,
         'legend' => array(
