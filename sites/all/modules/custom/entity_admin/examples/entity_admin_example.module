@@ -5,7 +5,7 @@
  */
 function entity_admin_example_entity_info(){
   $return['entity_admin_example'] = array(
-    'label' => t('Entity admin example'), 
+    'label' => t('Entity Admin Example'), 
     'controller class' => 'EntityAPIController', 
     'entity class' => 'Entity', 
     'base table' => 'entity_admin_example', 
