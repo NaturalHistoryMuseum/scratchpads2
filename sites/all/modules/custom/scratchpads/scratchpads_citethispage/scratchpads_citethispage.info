@@ -1,0 +1,5 @@
+name = Scratchpads Cite this page
+description = "Provides Scratchpads-specific parsers for citable information"
+core = 7.x
+
+dependencies[] = citethispage

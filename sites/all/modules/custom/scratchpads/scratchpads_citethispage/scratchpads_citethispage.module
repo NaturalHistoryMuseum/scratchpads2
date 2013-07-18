@@ -1,0 +1,83 @@
+<?php
+
+/**
+ * hook_citethispage_info
+ */
+function scratchpads_citethispage_citethispage_info(){
+  return array(
+    'scratchpads_citethispage' => array(
+      'parse' => array(
+        'taxonomy/term/%' => array(
+          'title' => t('Taxonomy term (main)'),
+          'description' => t('Gather information from the main taxonomy term page'),
+          'callback' => 'scratchpads_citethispage_parse_taxonomy_term'
+        ),
+        'taxonomy/term/%/%' => array(
+          'title' => t('Taxonomy term (tabs)'),
+          'description' => t('Gather information from the taxonomy term tabs'),
+          'callback' => 'scratchpads_citethispage_parse_taxonomy_term'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * scratchpads_citethispage_parse_taxonomy_term
+ */
+function scratchpads_citethispage_parse_taxonomy_term($path){
+  $matches = array();
+  if(!preg_match('/^taxonomy\/term\/(\d+)(\/(\w+))?$/', $path, $matches)){return FALSE;}
+  $tid = $matches[1];
+  $sub = $matches[3];
+  $term = taxonomy_term_load($tid);
+  if(!$term){return FALSE;}
+  $biological_vids = variable_get('biological_vids', array());
+  if(empty($biological_vids[$term->vid])){return FALSE;}
+  if(!$sub){
+    $result = array();
+    // Get the taxon description author, if any
+    $q = new EntityFieldQuery();
+    $q->entityCondition('entity_type', 'node');
+    $q->entityCondition('bundle', 'spm');
+    $q->fieldCondition('field_taxonomic_name', 'tid', $tid);
+    $q->propertyOrderBy('sticky', 'DESC');
+    $q->propertyOrderBy('created', 'DESC');
+    $q->range(0, 1);
+    $r = $q->execute();
+    if(count($r['node'])){
+      $node = node_load(reset(array_keys($r['node'])));
+      $user = user_load($node->uid);
+      $result['authors'][$user->uid] = $user->name;
+    }
+    // Get the media authors, if any
+    $q = new EntityFieldQuery();
+    $q->entityCondition('entity_type', 'file');
+    $q->entityCondition('bundle', 'image');
+    $q->propertyCondition('status', 1);
+    $q->fieldCondition('field_taxonomic_name', 'tid', $tid);
+    $q->fieldOrderBy('field_sticky', 'value', 'DESC');
+    $q->fieldOrderBy('field_weight', 'value', 'ASC');
+    $q->range(0, 3);
+    $r = $q->execute();
+    if(count($r['file'])){
+      foreach(array_keys($r['file']) as $fid){
+        $file = file_load($fid);
+        if(!isset($result['authors'][$fid->uid])){
+          $user = user_load($file->uid);
+          $result['authors'][$user->uid] = $user->name;
+        }
+      }
+    }
+    // It would be hard to set a date, so just say today
+    $result['date'] = array(
+      time() => format_date(time())
+    );
+    $result['title'] = array(
+      $term->tid => $term->name
+    );
+    return $result;
+  }else{
+    return FALSE;
+  }
+}
