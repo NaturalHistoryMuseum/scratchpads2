@@ -1,0 +1,12 @@
+.vertical-tabs .vertical-tabs-panes fieldset#edit-parsers fieldset legend {
+  display: block;
+}
+
+#citethispage_select_info {
+  font-size: 0.85em;
+  margin-bottom: 0.85em;
+}
+
+#citethispage_select_info span.citethispage_select_info_title {
+  font-weight: bold;
+}

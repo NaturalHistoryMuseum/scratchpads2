@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function citethispage_nodes_menu(){
+  $items = array();
+  $items['admin/config/services/citethispage/nodes'] = array(
+    'title' => 'Node settings',
+    'description' => 'Cite this page node parsing settings page',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'citethispage_nodes_settings_form'
+    ),
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'citethispage_admin'
+    ),
+    'file' => 'citethispage_nodes.admin.inc',
+    'type' => MENU_LOCAL_TASK
+  );
+  return $items;
+}
+
+/**
+ * Implement hook_citethispage_info
+ */
+function citethispage_nodes_citethispage_info(){
+  return array(
+    'citethispage_nodes' => array(
+      'parse' => array(
+        'node/%' => array(
+          'title' => t('Node page information parser'),
+          'description' => t('Parses author, date and title information from node pages. It can be enabled or disabled per content-type.'),
+          'default' => variable_get('citethispage_nodes_default', 0),
+          'callback' => 'citethispage_nodes_parse_callback'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * citethispage_nodes_parse_callback
+ */
+function citethispage_nodes_parse_callback($path){
+  $result = FALSE;
+  if(preg_match('/^node\/(\d+)$/', $path, $matches)){
+    $nid = $matches[1];
+    $node = node_load($nid);
+    $result = array();
+    $result['title'] = array(
+      $node->title
+    );
+    if(variable_get('citethispage_nodes_types_' . $node->type, 1)){
+      $author = user_load($node->uid);
+      $result['authors'] = array(
+        $author->uid => $author->name
+      );
+    }
+    $result['date'] = array(
+      $node->changed => format_date($node->changed)
+    );
+  }
+  return $result;
+}
