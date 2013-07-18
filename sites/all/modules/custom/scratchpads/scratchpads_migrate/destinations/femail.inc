@@ -74,7 +74,7 @@ class MigrateDestinationFemailEmail extends MigrateDestination{
 
   public function fields(){
     return array(
-      'uid' => t('User id'),
+      'uid' => t('User ID'),
       'email' => t('Email'),
       'status' => t('Status')
     );
@@ -118,8 +118,8 @@ class MigrateDestinationFemailSubscription extends MigrateDestination{
 
   public function fields(){
     return array(
-      'uid' => t('User id'),
-      'tid' => t('Term id')
+      'uid' => t('User ID'),
+      'tid' => t('Term ID')
     );
   }
 
