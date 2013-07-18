@@ -54,11 +54,24 @@ function scratchpads_multilingual_contribute_block_view($delta = ''){
   switch($delta){
     case 'l10n':
       $ini = @parse_ini_file(drupal_get_path('module', 'scratchpads_multilingual_contribute') . '/scratchpads_multilingual_contribute.ini');
-      print_r($ini);exit;
       if($ini['uwho']){
+        module_load_include('admin.inc', 'locale');
         return array(
           'subject' => t('Translate') . '...',
-          'content' => '<h3>' . uwho_client_block_content($ini['uwho'], 'http://localize.scratchpads.eu/uwho', '', t('Login to the Scratchpads Localize site')) . '</h3>'
+          'content' => array(
+            '#attached' => array(
+              'css' => array(
+                drupal_get_path('module', 'scratchpads_multilingual_contribute') . '/css/scratchpads_multilingual_contribute.css'
+              )
+            ),
+            '#prefix' => '<div id="scratchpads-multilingual-contribute">',
+            '#suffix' => '</div>',
+            'content' => array(
+              '#markup' => '<div class="login-link">
+    <h2>' . uwho_client_block_content($ini['uwho'], 'http://localize.scratchpads.eu/uwho', '', t('Login to the Scratchpads Localize site')) . '</h2>
+  </div><h2>Translation status</h2>' . str_replace('sticky-enabled', '', locale_translate_overview_screen())
+            )
+          )
         );
         break;
       }

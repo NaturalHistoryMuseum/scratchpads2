@@ -1,0 +1,15 @@
+#scratchpads-multilingual-contribute {
+  min-height: 250px;
+}
+
+#scratchpads-multilingual-contribute .login-link a {
+  color: white !important;
+}
+
+#scratchpads-multilingual-contribute h2 {
+  margin-bottom: 0 !important;
+}
+
+#scratchpads-multilingual-contribute .login-link h2 {
+  margin-bottom: 5px !important;
+}
