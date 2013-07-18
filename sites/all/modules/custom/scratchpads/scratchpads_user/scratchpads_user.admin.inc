@@ -115,7 +115,7 @@ function scratchpads_user_admin_account(){
   $destination = drupal_get_destination();
   $status = array(
     t('no login'),
-    t('active')
+    t('Active')
   );
   $roles = array_map('check_plain', user_roles(TRUE));
   $accounts = array();
