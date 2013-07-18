@@ -181,7 +181,7 @@ function publication_admin_overview_form(){
       }
       if(publication_access('delete', $publication)){
         $operations['delete'] = array(
-          'title' => t('delete'),
+          'title' => t('Delete'),
           'href' => 'publication/' . $publication->pid . '/delete',
           'query' => $destination
         );

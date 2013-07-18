@@ -83,7 +83,7 @@ function entity_ui_content_form($form, &$form_state, $entity_type, $controller){
       }
       if(publication_access('delete', $publication)){
         $operations['delete'] = array(
-          'title' => t('delete'),
+          'title' => t('Delete'),
           'href' => 'publication/' . $publication->pid . '/delete',
           'query' => $destination
         );
