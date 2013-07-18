@@ -1,0 +1,50 @@
+<?php
+
+/**
+ * Implement hook_form_alter
+ */
+function scratchpads_views_filter_form_alter(&$form, &$form_state, $form_id){
+ //admin_vbo_biblio
+ 
+  if (strpos($form_state['view']->name,'admin_vbo_node') !== false) {
+    $admin_vbo_view = true;
+  }
+  else{
+    $admin_vbo_view = false;
+  }
+  
+  if(($form_id == 'views_exposed_form') && $admin_vbo_view){
+    $optionsarray = array();
+    $optionsarray[0] = 'No Filters';
+    
+    foreach($form['#info'] as $key => $element){
+      $key2 = 'views-widget-' . $key;
+      $optionsarray[$key2] = $element['label'];
+    }
+    $newform = array();
+    $newform['selected'] = array(
+      '#type' => 'select',
+      '#options' => $optionsarray,
+      '#weight' => -15
+    );
+    foreach($form as $key => $element){
+      $newform[$key] = $element;
+    }
+    $form = $newform;
+    $newforminfo = array();
+    $newforminfo['selected'] = array(
+      'operator' => 'selected',
+      'value' => 'selected',
+      'label' => 'Filter By Fields'
+    );
+    foreach($form['#info'] as $key => $element){
+      $newforminfo[$key] = $element;
+    }
+    $form['#info'] = $newforminfo;
+  
+  
+    
+  
+  }
+  
+}
