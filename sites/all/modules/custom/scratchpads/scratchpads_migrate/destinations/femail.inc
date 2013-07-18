@@ -32,9 +32,9 @@ class MigrateDestinationFemail extends MigrateDestination{
 
   public function fields(){
     return array(
-      'nid' => t('Node id'),
-      'cid' => t('Comment id'),
-      'msgid' => t('Message id')
+      'nid' => t('Node ID'),
+      'cid' => t('Comment ID'),
+      'msgid' => t('Message ID')
     );
   }
 
