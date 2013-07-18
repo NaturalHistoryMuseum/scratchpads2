@@ -146,7 +146,7 @@ function scratchpads_user_admin_account(){
       'member_for' => format_interval(REQUEST_TIME - $account->created),
       'access' => $account->access ? t('@time ago', array(
         '@time' => format_interval(REQUEST_TIME - $account->access)
-      )) : t('never'),
+      )) : t('Never'),
       'operations' => array(
         'data' => array(
           '#type' => 'link',
