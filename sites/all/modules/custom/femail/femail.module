@@ -369,7 +369,7 @@ function femail_comment_publish($comment){
         $files[] = file_load($file['fid']);
       }
     }
-    $lang = field_language('comment' $comment, 'comment_body');
+    $lang = field_language('comment', $comment, 'comment_body');
     _femail_send_message($node->forum_tid, $comment->subject, $comment->comment_body[$lang][0]['value'], $node->nid, $files, $comment->cid, $msgid);
   }
 }
