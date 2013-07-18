@@ -54,6 +54,7 @@ function scratchpads_multilingual_contribute_block_view($delta = ''){
   switch($delta){
     case 'l10n':
       $ini = @parse_ini_file(drupal_get_path('module', 'scratchpads_multilingual_contribute') . '/scratchpads_multilingual_contribute.ini');
+      print_r($ini);exit;
       if($ini['uwho']){
         return array(
           'subject' => t('Translate') . '...',

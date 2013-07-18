@@ -22,6 +22,7 @@ function scratchpads_multilingual_contribute_install(){
   }
   // Only show the block to contributors/editors/maintainers.
   try{
+    db_delete('block_role')->condition('module', 'scratchpads_multilingual_contribute')->condition('delta', 'l10n')->execute();
     db_insert('block_role')->fields(array(
       'module',
       'delta',
@@ -30,11 +31,11 @@ function scratchpads_multilingual_contribute_install(){
       'module' => 'scratchpads_multilingual_contribute',
       'delta' => 'l10n',
       'rid' => 3
-    ), array(
+    ))->values(array(
       'module' => 'scratchpads_multilingual_contribute',
       'delta' => 'l10n',
       'rid' => 4
-    ), array(
+    ))->values(array(
       'module' => 'scratchpads_multilingual_contribute',
       'delta' => 'l10n',
       'rid' => 5
