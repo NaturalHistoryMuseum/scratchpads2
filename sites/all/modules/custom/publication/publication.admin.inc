@@ -387,7 +387,7 @@ function publication_delete_form_submit($form, &$form_state){
   drupal_set_message(t('The publication %title has been deleted.', array(
     '%title' => $publication->title
   )));
-  watchdog('publication', 'Deleted publication %title.', array(
+  watchdog('Publication', 'Deleted publication %title.', array(
     '%title' => $publication->title
   ));
   $form_state['redirect'] = 'admin/content/publications';
