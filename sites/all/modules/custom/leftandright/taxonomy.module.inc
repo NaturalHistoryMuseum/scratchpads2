@@ -513,7 +513,7 @@ function taxonomy_vocabulary_delete($vid) {
   }
   catch (Exception $e) {
     $transaction->rollback();
-    watchdog_exception('taxonomy', $e);
+    watchdog_exception('Taxonomy', $e);
     throw $e;
   }
 }
@@ -737,7 +737,7 @@ function taxonomy_term_delete($tid) {
   }
   catch (Exception $e) {
     $transaction->rollback();
-    watchdog_exception('taxonomy', $e);
+    watchdog_exception('Taxonomy', $e);
     throw $e;
   }
 }

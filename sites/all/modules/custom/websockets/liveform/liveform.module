@@ -23,7 +23,7 @@ function liveform_form_alter(&$form, &$form_state, $form_id){
     $no_user_msg = t('There are no other users online');
     $form['liveform'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Liveform'),
+      '#title' => t('LiveForm'),
       '#collapsed' => FALSE,
       '#collapsible' => TRUE,
       '#weight' => -1000,

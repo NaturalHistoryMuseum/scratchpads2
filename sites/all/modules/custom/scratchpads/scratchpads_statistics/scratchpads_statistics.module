@@ -324,7 +324,7 @@ function scratchpads_statistics_menu(){
       'type' => MENU_SUGGESTED_ITEM
     ),
     'admin/config/search/scratchpads-statistics' => array(
-      'title' => 'Scratchpads statistics',
+      'title' => 'Scratchpads Statistics',
       'description' => 'Set the password hash required to access data',
       'page callback' => 'drupal_get_form',
       'page arguments' => array(

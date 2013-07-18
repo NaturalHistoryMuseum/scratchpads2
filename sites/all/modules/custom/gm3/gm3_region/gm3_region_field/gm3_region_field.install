@@ -42,6 +42,9 @@ function gm3_region_field_update_7001(){
       ) as $table){
         $table = "field_{$table}_{$id}";
         $field = "{$id}_region_id";
+        db_update($table)->fields(array(
+          $field => ''
+        ))->isNull($field)->execute();
         db_drop_unique_key($table, $field);
         db_change_field($table, $field, $field, $spec['columns']['region_id'], array(
           'indexes' => array(
