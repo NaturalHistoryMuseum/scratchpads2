@@ -17,7 +17,7 @@ function dictionary_export_menu(){
     'access arguments' => array(
       'access content'
     ),
-    'description' => t('Download a Microsoft Office compatible dictionary file of a vocabulary.'),
+    'description' => 'Download a Microsoft Office compatible dictionary file of a vocabulary.',
     'access callback' => 'user_access',
     'type' => MENU_LOCAL_TASK
   );

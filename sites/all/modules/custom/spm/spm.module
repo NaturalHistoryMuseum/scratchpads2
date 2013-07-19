@@ -30,7 +30,7 @@ function spm_form_spm_node_form_alter(&$form, &$form_state, $form_id){
 function spm_menu(){
   $items['admin/config/user-interface/taxon-description-settings'] = array(
     'title' => 'Taxon description editor settings',
-    'description' => t('Choose which fields are visible on the taxon descriptions editing page.'),
+    'description' => 'Choose which fields are visible on the taxon descriptions editing page.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array(
       '_spm_form_builder'
