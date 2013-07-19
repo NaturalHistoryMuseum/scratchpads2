@@ -106,7 +106,8 @@ function citethispage_backend_selection_form($form, &$form_state){
   foreach($handlers as $module => $module_info){
     $backends[$module] = $module_info['title'];
   }
-  $default = isset($form_state['values']['backend']) ? $form_state['values']['backend'] : reset(array_keys($backends));
+  $backend_modules = array_keys($backends);
+  $default = isset($form_state['values']['backend']) ? $form_state['values']['backend'] : reset($backend_modules);
   $form['backend'] = array(
     '#type' => 'select',
     '#title' => t('Service to create citation'),
@@ -130,7 +131,7 @@ function citethispage_backend_selection_form($form, &$form_state){
   );
   $form['path'] = array(
     '#type' => 'value',
-    '#value' => current_path()
+    '#value' => isset($form_state['values']['path']) ? $form_state['values']['path'] : current_path()
   );
   $form['#attached']['css'] = array(
     drupal_get_path('module', 'citethispage') . '/theme/citethispage.css'

@@ -1,0 +1,216 @@
+<?php
+DEFINE('CITETHISPAGE_WGET_DEFAULT_TOOL', '/usr/bin/wget -p -k -E -P [citethispage_wget:destination] [citethispage_wget:url]');
+DEFINE('CITETHISPAGE_WGET_DEFAULT_DESTINATION', 'public://cite/[citethispage_wget:year]-[citethispage_wget:month]-[citethispage_wget:day]');
+DEFINE('CITETHISPAGE_WGET_DEFAULT_INJECT', "
+  <script>alert('This page is a snapshot of [citethispage_wget:url] as it was on [citethispage_wget:year]-[citethispage_wget:month]-[citethispage_wget:day]');
+  </script>
+");
+
+/**
+ * Implements hook_menu
+ */
+function citethispage_wget_menu(){
+  $items = array();
+  // Settings page
+  $items['admin/config/services/citethispage/wget'] = array(
+    'title' => 'Wget',
+    'description' => 'Archiving backend using wget',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'citethispage_wget_settings_form'
+    ),
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'citethispage_wget_admin'
+    ),
+    'file' => 'citethispage_wget.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission
+ */
+function citethispage_wget_permission(){
+  return array(
+    'citethispage_wget_admin' => array(
+      'title' => t('Administer Cite this Page Wget')
+    )
+  );
+}
+
+/**
+ * Implements hook_citethispage_info
+ */
+function citethispage_wget_citethispage_info(){
+  global $base_url;
+  return array(
+    'citethispage_wget' => array(
+      'archive' => array(
+        'title' => t('Snapshot on server'),
+        'description' => t('Generate a snapshot using wget and store in on !host', array(
+          '!host' => l($base_url, $base_url)
+        )),
+        'callback' => 'citethispage_wget_archive'
+      )
+    )
+  );
+}
+
+/**
+ * Implement hook_token_info
+ */
+function citethispage_wget_token_info(){
+  $data = array();
+  $data['types']['citethispage_wget'] = array(
+    'name' => t('Cite this page wget'),
+    'description' => t('Tokens that are relevant when generating an archive using Cite this page wget module')
+  );
+  $data['tokens']['citethispage_wget'] = array(
+    'url' => array(
+      'name' => t('URL'),
+      'description' => t("The URL we want to archive, as a text string, including protocol")
+    ),
+    'year' => array(
+      'name' => t('Year'),
+      'description' => t("The year from the current date or (if know) last modification of the page we want to archive")
+    ),
+    'month' => array(
+      'name' => t('Month'),
+      'description' => t("The month from the current date or (if know) last modification of the page we want to archive")
+    ),
+    'day' => array(
+      'name' => t('Day'),
+      'description' => t("The day from the current date or (if know) last modification of the page we want to archive")
+    ),
+    'title' => array(
+      'name' => t('Title'),
+      'description' => t("An alpha-numeric string representation of the path or (if known) the title of the page we want to archive")
+    ),
+    'destination' => array(
+      'name' => t('Destination'),
+      'description' => t("The destination file or folder where the result will be stored")
+    )
+  );
+  return $data;
+}
+
+/**
+ * Implement hook_tokens
+ */
+function citethispage_wget_tokens($type, $tokens, $data = array(), $options = array()){
+  if($type != 'citethispage_wget'){return NULL;}
+  $citethispage = isset($data['citethispage_wget']) ? ((array)$data['citethispage_wget']) : array();
+  global $base_url;
+  $replacements = array_merge(array(
+    'url' => '',
+    'destination' => '',
+    'title' => '',
+    'year' => '',
+    'month' => '',
+    'day' => ''
+  ), $citethispage);
+  $result = array();
+  foreach($tokens as $name => $original){
+    $result[$original] = $replacements[$name];
+  }
+  return $result;
+}
+
+/**
+ * citethispage_wget_archive
+ * 
+ * The archiving callback
+ */
+function citethispage_wget_archive($path, $result){
+  // Build the replace tokens
+  global $base_url;
+  $data = new StdClass();
+  $tokens = array(
+    'citethispage_wget' => $data
+  );
+  $data->url = $base_url . '/' . $path;
+  if(isset($result['date'])){
+    $date = reset(array_keys($result['date']));
+  }else{
+    $date = time();
+  }
+  $data->year = date('Y', $date);
+  $data->month = date('m', $date);
+  $data->day = date('d', $date);
+  if(isset($result['title'])){
+    $data->title = implode(',', $result['title']);
+  }else{
+    $data->title = drupal_get_path_alias($path);
+  }
+  $data->title = str_replace(' ', '', ucwords(preg_replace('/[^-_a-zA-Z0-9]+/', ' ', $data->title)));
+  // Get a unique destination path
+  $destination = variable_get('citethispage_wget_destination', CITETHISPAGE_WGET_DEFAULT_DESTINATION);
+  $destination = token_replace($destination, $tokens);
+  $final_destination = $destination;
+  $unique = 1;
+  while(file_exists($final_destination)){
+    $final_destination = preg_replace('/^(.+?)(\.[^\.\/]+|\/)?$/', '$1-' . $unique . '$2', $destination);
+    $unique++;
+  }
+  // Attempt to create the directory
+  if(!is_dir($final_destination)){
+    if(!drupal_mkdir($final_destination, NULL, TRUE)){
+      drupal_set_message(t('An error occured while generating the snapshot'), 'error');
+      watchdog('citethispage_wget', "Could not create directory %directory", array(
+        '%directory' => $final_destination
+      ), WATCHDOG_ERROR);
+      return;
+    }
+  }
+  $data->destination = $final_destination;
+  // Generate the archive !
+  $command = variable_get('citethispage_wget_tool', CITETHISPAGE_BACKEND_DEFAULT_TOOL);
+  $command = token_replace($command, $tokens, array(
+    'callback' => '_citethispage_wget_shell_escape'
+  ));
+  $output = array();
+  $return = 0;
+  exec($command, $output, $return);
+  if($return != 0){
+    drupal_set_message(t('An error occured while generating the snapshot'), 'error');
+    watchdog('citethispage_wget', "An error occured while running %command : %output", array(
+      '%command' => $command,
+      '%output' => implode("; ", $output)
+    ), WATCHDOG_ERROR);
+    return;
+  }
+  // Inject text into it if required
+  $file_path = $final_destination . '/' . preg_replace('/^.*?:\/\//', '', $data->url);
+  if(!file_exists($file_path)){
+    if(!file_exists($file_path . '.html')){
+      drupal_set_message(t('An error occured while generating the snapshot', 'error'));
+      watchdog('citethispage_wget', "Could not locate the generated file at %path or %path.html", array(
+        '%path' => $file_path
+      ), WATCHDOG_ERROR);
+      return;
+    }
+    $file_path .= '.html';
+  }
+  if(variable_get('citethispage_wget_inject', CITETHISPAGE_WGET_DEFAULT_INJECT)){
+    $inject = variable_get('citethispage_wget_inject', CITETHISPAGE_WGET_DEFAULT_INJECT);
+    $inject = token_replace($inject, $tokens);
+  }
+  drupal_set_message(t('Your snapshot has been generated and is available at !path', array(
+    '!path' => l(file_create_url($file_path), file_create_url($file_path))
+  )));
+}
+
+/**
+ * citethispage_wget_shell_escape
+ */
+function _citethispage_wget_shell_escape(&$replacements, $data, $options){
+  foreach($replacements as $key => $value){
+    if(preg_match('/citethispage_wget:destination/', $key)){
+      $value = drupal_realpath($value);
+    }
+    $replacements[$key] = escapeshellarg($value);
+  }
+}

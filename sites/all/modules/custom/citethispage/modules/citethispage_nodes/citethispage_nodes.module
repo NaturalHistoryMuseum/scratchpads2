@@ -17,7 +17,8 @@ function citethispage_nodes_menu(){
       'citethispage_admin'
     ),
     'file' => 'citethispage_nodes.admin.inc',
-    'type' => MENU_LOCAL_TASK
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 5
   );
   return $items;
 }
