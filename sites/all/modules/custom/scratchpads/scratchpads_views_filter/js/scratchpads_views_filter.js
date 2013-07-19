@@ -7,7 +7,15 @@ jQuery(document).ready(function($){
   
   setUpHtml();
   setUpEventListers();
-
+  reverseDivs();
+  reverseLabel();
+  
+  removeOptions();
+  
+  
+ 
+  
+  $('.form-submit').show();
   function setUpHtml(){    
      // Add links to the select menu
      $('#edit-selected-wrapper select').after(html_add_reset);
@@ -15,14 +23,14 @@ jQuery(document).ready(function($){
      $("div.views-exposed-widgets input").each(function(){
        if($(this).val() == '') {
          $(this).closest(".views-exposed-widget").hide();
-         $(this).closest(".views-widget").append(html_remove_filter);
+         $(this).closest(".views-widget").after(html_remove_filter);
        }
      });
-     //Hide select filters and add links
+     // Hide select filters and add links
      $("div.views-exposed-widgets select").each(function(){
        if($(this).val() == 'All') {
          $(this).closest(".views-exposed-widget").hide();
-         $(this).closest(".views-widget").append(html_remove_filter);
+         $(this).closest(".views-widget").after(html_remove_filter);
        }
      });     
    }
@@ -30,7 +38,7 @@ jQuery(document).ready(function($){
    function setUpEventListers(){
      // We use 'live' to stay active after Ajax call
      $(".add_button").live("click", function(){
-       $('.views-exposed-widget .form-submit').show();
+       $('.views-exposed-widget.views-submit-button').show();
        $("#edit-selected-wrapper select option:selected").each(function(){
          var str = $(this).val();
          if(str != '0') {
@@ -50,7 +58,7 @@ jQuery(document).ready(function($){
      });        
      // Reset and hide filter
      $('.remove_button').live("click", function(){
-       $(this).prev().find('input').val('');
+       $(this).prev().prev().find('input:text').val('');
        $(this).prev().find('select').prop('selectedIndex', 0);
        $(this).closest(".views-exposed-widget").hide();
        $(this).hide();
@@ -67,6 +75,26 @@ jQuery(document).ready(function($){
     $('.views-exposed-widget .form-submit').hide();
   }
   
+  //reverse the order of the divs within the exposed filter
+  function reverseDivs(){   
+    $('.views-exposed-widget.dependent-options > div').each(function(){  
+      $(this).prependTo(this.parentNode);
+    });
+   
+  }
+  
+  function reverseLabel(){    
+    $('.views-exposed-widget.dependent-options > label').each(function(){  
+      $(this).prependTo(this.parentNode);
+    });
+  }
+  
+  //Remove unwanted options from the drop down list
+  function removeOptions(){
+    $(".views-exposed-widget.dependent-options .views-operator .form-type-select option[value='shorterthan']").remove();
+    $(".views-exposed-widget.dependent-options .views-operator .form-type-select option[value='longerthan']").remove();
+  }
+  
   // We need to reset the form after Ajax call
   $(document).ajaxComplete(function(){
     if (submitted ==1){   
@@ -74,13 +102,13 @@ jQuery(document).ready(function($){
       $('.views-submit-button').show();
       $('.reset_button').show();
       $("div.views-exposed-widgets input").each(function(){
-        $(this).not(".autocomplete").closest(".views-widget").append(html_remove_filter);
+        $(this).not(".autocomplete").closest(".views-widget").after(html_remove_filter);
         if($(this).val() == '') {
           $(this).closest(".views-exposed-widget").hide();
         }
       });
       $("div.views-exposed-widgets select").each(function(){
-        $(this).closest(".views-widget").append(html_remove_filter);
+        $(this).closest(".views-widget").after(html_remove_filter);
         if($(this).val() == 'All') {
           $(this).closest(".views-exposed-widget").hide();
         }
@@ -91,8 +119,11 @@ jQuery(document).ready(function($){
       submitted = 1;   
     });
     // Hide submit button if the form was reset
+    reverseDivs();
+    reverseLabel();
+    removeOptions();
     if (reset==1){
-      $('.views-exposed-widget .form-submit').hide();
+      $('.views-exposed-widget.views-submit-button').hide();
       reset=0;
     }
   });

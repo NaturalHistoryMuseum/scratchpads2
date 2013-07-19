@@ -40,3 +40,32 @@
 	margin-right: 1.6em;
 	display: none;
 }
+
+.views-exposed-form .views-exposed-widget .form-submit {
+    position:relative;
+	top:-8px;
+	margin-bottom:4px;
+}
+
+.views-operator,
+.views-widget {
+	display: inline-block;
+}
+
+.views-exposed-widgets label{
+	display:block;
+}
+
+.views-exposed-form .views-exposed-widget {
+    
+    padding-left:0em !important;
+}
+
+.views-exposed-form .dependent-options {
+	margin-left: 0;
+	
+}
+
+.views-exposed-widget.dependent-options .views-operator{
+	margin-left:1em;
+}
