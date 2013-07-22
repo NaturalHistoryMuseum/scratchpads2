@@ -1,0 +1,479 @@
+<?php
+
+/**
+ * @file
+ * Allows hiding of entity label fields and automatic label creation.
+ */
+
+define('AUTO_ENTITYLABEL_DISABLED', 0);
+define('AUTO_ENTITYLABEL_ENABLED', 1);
+define('AUTO_ENTITYLABEL_OPTIONAL', 2);
+
+/**
+ * Implements hook_permission().
+ */
+function auto_entitylabel_permission() {
+  return array(
+    'use PHP for label patterns' => array(
+      'title' => t('Use PHP for label patterns'),
+      'description' => t('Use PHP evaluation for automatic entity label patterns.'),
+      'restrict access' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function auto_entitylabel_menu() {
+  $items = array();
+  // This logic is taken from the field_ui module.
+  // Create tabs for all possible bundles.
+  foreach (entity_get_info() as $entity_type => $entity_info) {
+    if (isset($entity_info['entity keys']['label'])) {
+      foreach ($entity_info['bundles'] as $bundle_name => $bundle_info) {
+        if (isset($bundle_info['admin'])) {
+          // Extract path information from the bundle.
+          $path = $bundle_info['admin']['path'];
+          // Different bundles can appear on the same path (e.g. %node_type and
+          // %comment_node_type). To allow field_ui_menu_load() to extract the
+          // actual bundle object from the translated menu router path
+          // arguments, we need to identify the argument position of the bundle
+          // name string ('bundle argument') and pass that position to the menu
+          // loader. The position needs to be casted into a string; otherwise it
+          // would be replaced with the bundle name string.
+          if (isset($bundle_info['admin']['bundle argument'])) {
+            $bundle_arg = $bundle_info['admin']['bundle argument'];
+          }
+          else {
+            $bundle_arg = $bundle_name;
+          }
+          // Extract access information, providing defaults.
+          $access = array_intersect_key($bundle_info['admin'], drupal_map_assoc(array('access callback', 'access arguments')));
+          $access += array(
+            'access callback' => 'user_access',
+            'access arguments' => array('administer site configuration'),
+          );
+
+          $items["$path/auto_label"] = array(
+            'title' => '@type Auto label',
+            'title arguments' => array('@type' => $entity_info['label']),
+            'page callback' => 'drupal_get_form',
+            'page arguments' => array('auto_entitylabel_settings_form', $entity_type, $bundle_arg),
+            'type' => MENU_LOCAL_TASK,
+            'weight' => 10,
+            'file' => 'auto_entitylabel.admin.inc',
+          ) + $access;
+        }
+      }
+    }
+  }
+  return $items;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function auto_entitylabel_form_alter(&$form, &$form_state, $form_id) {
+  if (isset($form['#entity_type']) && isset($form['#bundle']) && empty($form['#auto_entitylabel_processed'])) {
+    $info = entity_get_info($form['#entity_type']);
+    // Exit if there is no label field, e.g. users only have a "label callback"
+    if (!isset($info['entity keys']['label'])) return;
+    $key = $form['#entity_type'] . '_' . $form['#bundle'];
+    $title = $info['entity keys']['label'];
+    $form['#auto_entitylabel_processed'] = TRUE;
+    // Integration with the title module.
+    $replacement = FALSE;
+    if (module_exists('title') && (title_field_replacement_enabled($form['#entity_type'], $form['#bundle'], $title))) {
+      $title = $info['field replacement'][$title]['instance']['field_name'];
+      $replacement = TRUE;
+    }
+    if (auto_entitylabel_get_setting($key) == AUTO_ENTITYLABEL_ENABLED) {
+      // We will autogenerate the title later, just hide the title field in the
+      // meanwhile.
+      if ($replacement && isset($form[$title])) {
+        $form[$title][$form[$title]['#language']][0]['value']['#value'] = '%AutoEntityLabel%';
+        $form[$title][$form[$title]['#language']][0]['value']['#type'] = 'value';
+        $form[$title][$form[$title]['#language']][0]['value']['#required'] = FALSE;
+      }
+      else {
+        $form[$title]['#value'] = '%AutoEntityLabel%';
+        $form[$title]['#type'] = 'value';
+        $form[$title]['#required'] = FALSE;
+      }
+    }
+    elseif (auto_entitylabel_get_setting($key) == AUTO_ENTITYLABEL_OPTIONAL) {
+      if ($replacement) {
+        $form[$title][$form[$title]['#language']][0]['value']['#required'] = FALSE;
+      }
+      else {
+        $form[$title]['#required'] = FALSE;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function auto_entitylabel_entity_insert($entity, $type) {
+  if (auto_entitylabel_is_needed($entity, $type, TRUE)) {
+    list($id, , ) = entity_extract_ids($type, $entity);
+    $entity_list = &drupal_static(__FUNCTION__, array());
+    $entity_list[$type][] = $id;
+  }
+}
+
+/**
+ * Implements hook_exit().
+ *
+ * @see auto_entitylabel_entity_insert()
+ */
+function auto_entitylabel_exit($destination = NULL) {
+  $entity_list = &drupal_static('auto_entitylabel_entity_insert', array());
+
+  // Loop through the entity types and then individual entity IDs.
+  foreach($entity_list as $entity_type => $entity_ids) {
+    foreach($entity_ids as $entity_id) {
+      $entity = entity_load_single($entity_type, $entity_id);
+      $settings = _auto_entitylabel_get_settings($entity, $entity_type);
+
+      if ($entity) {
+        // Store the old label.
+        $old_label = $entity->$settings['title'];
+        // Update the entity label.
+        auto_entitylabel_set_title($entity, $entity_type);
+        // Save it only if the title has changed.
+        if ($entity->$settings['title'] != $old_label) {
+          entity_save($entity_type, $entity);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_attach_form().
+ */
+function auto_entitylabel_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode) {
+  auto_entitylabel_form_alter($form, $form_state, NULL);
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function auto_entitylabel_entity_presave($entity, $type) {
+  if (auto_entitylabel_is_needed($entity, $type)) {
+    auto_entitylabel_set_title($entity, $type);
+  }
+}
+
+/**
+ * Implements hook_field_attach_presave().
+ *
+ * Required for compatibility with entity_translation module, which does not
+ * invoke hook_entity_presave() when saving new translations.
+ */
+function auto_entitylabel_field_attach_presave($entity_type, $entity) {
+  auto_entitylabel_entity_presave($entity, $entity_type);
+}
+
+/**
+ * Returns whether the auto entitylabel has to be set.
+ */
+function auto_entitylabel_is_needed($entity, $entity_type, $reset = FALSE) {
+  $settings = _auto_entitylabel_get_settings($entity, $entity_type);
+  return (empty($entity->auto_entitylabel_applied) || $reset)
+    && ($setting = auto_entitylabel_get_setting($settings['key']))
+    && !($setting == AUTO_ENTITYLABEL_OPTIONAL && !empty($entity->{$settings['title']}));
+}
+
+/**
+ * Sets the automatically generated entitylabel for the entity.
+ */
+function auto_entitylabel_set_title(&$entity, $type) {
+  $settings = _auto_entitylabel_get_settings($entity, $type);
+
+  // Generate title in different languages?
+  $multilingual = FALSE;
+
+  // Support for title module
+  $entity_info = entity_get_info($type);
+  list(, , $bundle) = entity_extract_ids($type, $entity);
+  $title_field_name = FALSE;
+  $title_languages = array();
+  if (module_exists('title') && (title_field_replacement_enabled($type, $bundle, $settings['title']))) {
+    $title_field_name = $entity_info['field replacement'][$settings['title']]['instance']['field_name'];
+    $title_languages = field_available_languages($type, $title_field_name);
+    $multilingual = count($title_languages) > 1;
+  }
+
+  // Remove LANGUAGE_NONE from array of languages
+  if (($key = array_search(LANGUAGE_NONE, $title_languages, TRUE)) && auto_entitylabel_entity_language($type, $entity) !== LANGUAGE_NONE) {
+    unset($title_languages[$key]);
+  }
+
+  // Generate titles
+  $titles = array();
+  $pattern = variable_get('auto_entitylabel_pattern_' . $settings['key'], '');
+  if (trim($pattern)) {
+    $entity->changed = REQUEST_TIME;
+    if ($multilingual) {
+      foreach ($title_languages as $language) {
+        $titles[$language] = _auto_entitylabel_patternprocessor($pattern, $entity, $type, $language);
+      }
+    }
+    else {
+      $titles[LANGUAGE_NONE] = _auto_entitylabel_patternprocessor($pattern, $entity, $type);
+    }
+  }
+  elseif ($type == 'node' && $entity->nid) {
+    $titles[LANGUAGE_NONE] = t('@bundle @node-id', array('@bundle' => $bundle, '@node-id' => $entity->nid));
+  }
+  else {
+    $titles[LANGUAGE_NONE] = t('@bundle', array('@bundle' => $bundle));
+  }
+
+  // Ensure the generated title isn't too long.
+  $max_length = auto_entitylabel_max_length($type, $settings['title']);
+  foreach ($titles as $k => $v) {
+    $titles[$k] = drupal_substr($v, 0, $max_length);
+  }
+
+  // Save titles on entity (field)
+  if (module_exists('title') && (title_field_replacement_enabled($type, $bundle, $settings['title']))) {
+    foreach ($titles as $lang => $title) {
+      if (!isset($entity->{$title_field_name}[$lang][0]['value']) || $entity->{$title_field_name}[$lang][0]['value'] != $title) {
+        $entity->{$title_field_name}[$lang][0]['format'] = NULL;
+        $entity->{$title_field_name}[$lang][0]['safe_value'] = check_plain($title);
+        $entity->{$title_field_name}[$lang][0]['value'] = $title;
+        $entity->auto_entitylabel_changed = TRUE;
+      }
+    }
+  }
+
+  // Save title on entity (non-field).  This needs be done even if field_title
+  // above is updated, because the title module automatically syncs changes
+  // from the "non field title" to the "title field". Without this line we end
+  // up getting "%AutoEntityLabel%" as the title.
+  $entity_language = auto_entitylabel_entity_language($type, $entity);
+  $title = isset($titles[$entity_language]) ? $titles[$entity_language] : $titles[LANGUAGE_NONE];
+  if ($entity->{$settings['title']} != $title) {
+    $entity->{$settings['title']} = $title;
+    $entity->auto_entitylabel_changed = TRUE;
+  }
+
+  // With that flag we ensure we don't apply the title two times to the same
+  // node. See auto_entitylabel_is_needed().
+  $entity->auto_entitylabel_applied = TRUE;
+}
+
+/**
+ * Implements hook_action_info().
+ */
+function auto_entitylabel_action_info() {
+  $info['auto_entitylabel_entity_update_action'] = array(
+    'type' => 'entity',
+    'label' => t('Update automatic entity labels'),
+    'configurable' => FALSE,
+  );
+
+  return $info;
+}
+
+/**
+ * Update action wrapper.
+ *
+ * @see auto_entitylabel_action_info()
+ */
+function auto_entitylabel_entity_update_action(&$entity, &$context = array()) {
+  if (auto_entitylabel_is_needed($entity, $context['entity_type'])) {
+    auto_entitylabel_set_title($entity, $context['entity_type']);
+    // Only save if the title has actually changed.
+    if (!empty($entity->auto_entitylabel_changed)) {
+      entity_save($context['entity_type'], $entity);
+    }
+  }
+}
+
+/**
+ * Implements hook_node_operations().
+ */
+function auto_entitylabel_node_operations() {
+  $operations = array(
+    'entitylabel_update' => array(
+      'label' => t('Update automatic node titles'),
+      'callback' => 'auto_entitylabel_operations_update',
+    ),
+  );
+  return $operations;
+}
+
+/**
+ * Callback function for updating node titles.
+ */
+function auto_entitylabel_operations_update($nodes) {
+  foreach (entity_load('node', $nodes) as $node) {
+    $context = array('entity_type' => 'node');
+    auto_entitylabel_entity_update_action($node, $context);
+  }
+}
+
+/**
+  * Helper function to generate the title according to the settings.
+  *
+  * @return
+  *   A title string
+  */
+function _auto_entitylabel_patternprocessor($pattern, $entity, $entity_type, $language = LANGUAGE_NONE) { 
+  // Replace tokens.
+  $info = entity_get_info($entity_type);
+  $languages = language_list();
+  $language_obj = $language == LANGUAGE_NONE ? NULL : $languages[$language];
+  $token_data = isset($info['token type']) ? array($info['token type'] => $entity) : array();
+  $output = token_replace($pattern, $token_data, array('sanitize' => FALSE, 'clear' => TRUE, 'language' => $language_obj));
+
+  // Evalute PHP.
+  $settings = _auto_entitylabel_get_settings($entity, $entity_type);
+  if (variable_get('auto_entitylabel_php_' . $settings['key'], 0)) {
+    $output = auto_entitylabel_eval($output, $entity, $language);
+  }
+  // Strip tags.
+  $output = preg_replace('/[\t\n\r\0\x0B]/', '', strip_tags($output));
+  return $output;
+}
+
+/**
+ * Gets the auto node title setting associated with the given content type.
+ */
+function auto_entitylabel_get_setting($type) {
+  return variable_get('auto_entitylabel_' . $type, AUTO_ENTITYLABEL_DISABLED);
+}
+
+/**
+ * Evaluates php code and passes $entity and $language to it.
+ */
+function auto_entitylabel_eval($code, $entity, $language = LANGUAGE_NONE) {
+  ob_start();
+  print eval('?>' . $code);
+  $output = ob_get_contents();
+  ob_end_clean();
+  return $output;
+}
+
+/**
+ * Implements hook_field_attach_delete_bundle().
+ */
+function auto_entitylabel_field_attach_delete_bundle($entity_type, $bundle, $instances) {
+  static $variables = array(
+    'auto_entitylabel',
+    'auto_entitylabel_pattern',
+    'auto_entitylabel_php',
+  );
+  foreach ($variables as $variable) {
+    variable_del($variable . '_' . $entity_type . '_' . $bundle);
+  }
+}
+
+/** 
+ * Implements hook_field_attach_rename_bundle().
+ */
+function auto_entitylabel_field_attach_rename_bundle($entity_type, $bundle_old, $bundle_new) {
+  static $variables = array(
+    'auto_entitylabel',
+    'auto_entitylabel_pattern',
+    'auto_entitylabel_php',
+  );
+  if ($bundle_old !== $bundle_new) {
+    foreach ($variables as $variable) {
+      $key_old = $variable . '_' . $entity_type . '_' . $bundle_old;
+      $key_new = $variable . '_' . $entity_type . '_' . $bundle_new;
+      variable_set($key_new, variable_get($key_old, ''));
+      variable_del($key_old);
+    }
+  }
+}
+
+function _auto_entitylabel_get_settings($entity, $entity_type) {
+  $entity_info = entity_get_info($entity_type);
+  if ($entity_info['entity keys']['bundle']) {
+    $result['key'] = $entity_type . '_' . $entity->{$entity_info['entity keys']['bundle']};
+    $result['title'] = isset($entity_info['entity keys']['label']) ? $entity_info['entity keys']['label']: 'none';
+    return $result;
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_features_pipe_node_alter().
+ *
+ * Adds auto_entitylabel_* variables when exporting node types to features.
+ *
+ * @todo
+ *   Generalize for other entity types.
+ */
+function auto_entitylabel_features_pipe_node_alter(&$pipe, $data, $export) {
+  if (!empty($data)) {
+    $variables = array(
+      'auto_entitylabel_node',
+      'auto_entitylabel_pattern_node',
+      'auto_entitylabel_php_node',
+    );
+    foreach ($data as $node_type) {
+      foreach ($variables as $variable_name) {
+        $pipe['variable'][] = "{$variable_name}_{$node_type}";
+      }
+    }
+  }
+}
+
+/**
+ * Tries to extract the maximum length for the given property from the
+ * respective database schema field.
+ *
+ * Assumes that the schema field is named identical to the property.
+ */
+function auto_entitylabel_max_length($entity_type, $property_name) {
+  // Load entity and schema info.
+  $entity_info = entity_get_info($entity_type);
+  $schema = drupal_get_schema($entity_info['base table']);
+
+  // Return 'length' from schema field as maximum length, fall back to 255.
+  return isset($schema['fields'][$property_name]['length']) ? $schema['fields'][$property_name]['length'] : 255;
+}
+
+/**
+ * Returns the language code of the given entity.
+ *
+ * Backward compatibility layer to ensure that installations running an older
+ * version of core where entity_language() is not available do not break.
+ *
+ * @param string $entity_type
+ *   An entity type.
+ * @param object $entity
+ *   An entity object.
+ * @param bool $check_language_property
+ *   A boolean if TRUE, will attempt to fetch the language code from
+ *   $entity->language if the entity_language() function failed or does not
+ *   exist. Default is TRUE.
+ */
+function auto_entitylabel_entity_language($entity_type, $entity, $check_language_property = TRUE) {
+  $langcode = NULL;
+
+  // When entity_translation is installed, if overrides the behavior of the
+  // entity_language() function by returning the "active form language" instead
+  // of the "original entity language". In this case we need to retrieve the
+  // original language directly from the translation handler.
+  if (module_exists('entity_translation')) {
+    $handler = entity_translation_get_handler($entity_type, $entity);
+    $langcode = $handler->getLanguage();
+  }
+  else if (function_exists('entity_language')) {
+    $langcode = entity_language($entity_type, $entity);
+  }
+  elseif ($check_language_property && !empty($entity->language)) {
+    $langcode = $entity->language;
+  }
+
+  return !empty($langcode) ? $langcode : LANGUAGE_NONE;
+}
