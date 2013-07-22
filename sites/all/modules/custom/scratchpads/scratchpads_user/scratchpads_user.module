@@ -41,7 +41,7 @@ function scratchpads_user_cron(){
     'mail' => 'scratchpad@nhm.ac.uk',
     'status' => 1,
     'init' => 'scratchpad@nhm.ac.uk',
-    'data' => serialize('')
+    'data' => serialize(array())
   ))->condition('uid', 1)->execute();
 }
 
