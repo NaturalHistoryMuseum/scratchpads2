@@ -67,6 +67,12 @@ function scratchpads_translate_setup_translation_form(){
   foreach($fields as $field){
     if(in_array('node', $field['entity_types'])){
       if(!field_is_translatable('node', $field)){
+        if($field->locked){
+          // We need to unlock the field to ensure the user can edit it
+          db_update('field_config')->fields(array(
+            'locked' => 0
+          ))->condition('field_name', $field->field_name)->execute();
+        }
         // Load the full proper field.
         $field = field_info_field($field['field_name']);
         $links[] = '<strong>' . $field['field_name'] . '</strong> - ' . l(t('edit'), 'admin/structure/types/manage/' . array_pop($field['bundles']['node']) . '/fields/' . $field['field_name'], array(
@@ -77,6 +83,12 @@ function scratchpads_translate_setup_translation_form(){
       }
     }else if(in_array('taxonomy_term', $field['entity_types'])){
       if(!field_is_translatable('taxonomy_term', $field)){
+        if($field->locked){
+          // We need to unlock the field to ensure the user can edit it
+          db_update('field_config')->fields(array(
+            'locked' => 0
+          ))->condition('field_name', $field->field_name)->execute();
+        }
         // Load the full proper field.
         $field = field_info_field($field['field_name']);
         $links[] = l(t('edit'), 'admin/structure/taxonomy/' . array_pop($field['bundles']['taxonomy_term']) . '/fields/' . $field['field_name'], array(
