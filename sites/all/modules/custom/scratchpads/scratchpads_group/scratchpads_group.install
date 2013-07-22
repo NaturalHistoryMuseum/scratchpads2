@@ -42,7 +42,7 @@ function scratchpads_group_disable(){
   $fields = scratchpads_group_field_default_fields();
   // If the module has been disabled, we delete the fields.
   foreach($fields as $field){
-    field_delete_field($field['field_config']['field_name']);
+    field_delete_instance($field['field_instance']['field_name']);
   }
   // We need to disable the modules once everything else has done. So we register
   // a shutdown function with arguments.
@@ -126,7 +126,7 @@ function scratchpads_group_update_7005(){
   if(!module_exists('scratchpads_group')){
     // If the module has been disabled, we delete the fields.
     foreach($fields as $field){
-      field_delete_field($field['field_config']['field_name']);
+      field_delete_instance($field['field_config']['field_instance']);
     }
   }else{
     // Add OG Fields to file entities
