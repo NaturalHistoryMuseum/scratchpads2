@@ -1081,7 +1081,7 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
-      $handler = $view->new_display('default', 'Master', 'default');
+                    $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = $label;
   $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['use_more_always'] = FALSE;
@@ -1170,6 +1170,16 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
   $handler->display->display_options['relationships']['field_identified_by_uid']['table'] = 'field_data_field_identified_by';
   $handler->display->display_options['relationships']['field_identified_by_uid']['field'] = 'field_identified_by_uid';
   $handler->display->display_options['relationships']['field_identified_by_uid']['delta'] = '-1';
+  /* Relationship: Content: Country (field_country) */
+  $handler->display->display_options['relationships']['field_country_iso2']['id'] = 'field_country_iso2';
+  $handler->display->display_options['relationships']['field_country_iso2']['table'] = 'field_data_field_country';
+  $handler->display->display_options['relationships']['field_country_iso2']['field'] = 'field_country_iso2';
+  /* Relationship: Content: Country (field_country) */
+  $handler->display->display_options['relationships']['field_country_iso2_1']['id'] = 'field_country_iso2_1';
+  $handler->display->display_options['relationships']['field_country_iso2_1']['table'] = 'field_data_field_country';
+  $handler->display->display_options['relationships']['field_country_iso2_1']['field'] = 'field_country_iso2';
+  $handler->display->display_options['relationships']['field_country_iso2_1']['relationship'] = 'field_location_nid';
+  $handler->display->display_options['relationships']['field_country_iso2_1']['label'] = 'Country from Location';
   /* Field: Bulk operations: Content */
   $handler->display->display_options['fields']['views_bulk_operations']['id'] = 'views_bulk_operations';
   $handler->display->display_options['fields']['views_bulk_operations']['table'] = 'node';
@@ -1353,21 +1363,6 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
   $handler->display->display_options['sorts']['created']['table'] = 'node';
   $handler->display->display_options['sorts']['created']['field'] = 'created';
   $handler->display->display_options['sorts']['created']['order'] = 'DESC';
-  
-  
-  /* Filter criterion: Field: Taxonomic name (field_taxonomic_name) */
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['value'] = '';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator_id'] = 'field_taxonomic_name_tid_op';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxa';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['use_operator'] = TRUE;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'birds';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = FALSE;
   // Get  the available fields for this content type 
   $fields_array = field_info_instances($entity_type, $bundle);
   foreach($fields_array as $key => $field_details){
@@ -1392,50 +1387,73 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
         4 => 0,
         5 => 0
       );
-    }    
-    // in this special case we add all location fields as exposed filters (with relationship) to the view
+    }    // in this special case we add all location fields as exposed filters (with relationship) to the view
     // To do: Automatically add fields/relationships for node references
     elseif($field_details['field_name'] == 'field_location'){
       // loop though all location fields and add the handlers
       $location_fields_array = field_info_instances('node', 'location');
       foreach($location_fields_array as $key => $location_field){
-        $value2 = $location_field['field_name'] . '_value';      
+        $value2 = $location_field['field_name'] . '_value';
         // Add text fields
         if($location_field['widget']['module'] == 'text'){
           /* Filter criterion: */
           $handler->display->display_options['filters'][$value2]['id'] = $value2;
           $handler->display->display_options['filters'][$value2]['table'] = 'field_data_' . $location_field['field_name'];
           $handler->display->display_options['filters'][$value2]['field'] = $value2;
-          $handler->display->display_options['filters'][$value2]['relationship'] = 'contains';
           $handler->display->display_options['filters'][$value2]['operator'] = 'contains';
           $handler->display->display_options['filters'][$value2]['exposed'] = TRUE;
           $handler->display->display_options['filters'][$value2]['expose']['operator_id'] = $value2 . '_op';
           $handler->display->display_options['filters'][$value2]['expose']['use_operator'] = TRUE;
-          $handler->display->display_options['filters'][$value2]['expose']['label'] = 'Location: '. $location_field['label'];
+          $handler->display->display_options['filters'][$value2]['expose']['label'] = 'Location: ' . $location_field['label'];
           $handler->display->display_options['filters'][$value2]['expose']['operator'] = $value2 . '_op';
           $handler->display->display_options['filters'][$value2]['expose']['identifier'] = $value2;
-        // Add option fields
+          $handler->display->display_options['filters'][$value2]['relationship'] = 'field_location_nid';
+          // Add option fields
         }elseif($location_field['widget']['module'] == 'options'){
-          /* Filter criterion: */
-          $handler->display->display_options['filters'][$value2]['id'] = $value2;
-          $handler->display->display_options['filters'][$value2]['table'] = 'field_data_' . $location_field['field_name'];
-          $handler->display->display_options['filters'][$value2]['field'] = $value2;
-          $handler->display->display_options['filters'][$value2]['exposed'] = TRUE;
-          $handler->display->display_options['filters'][$value2]['expose']['operator_id'] = $value2 . '_op';
-          $handler->display->display_options['filters'][$value2]['expose']['label'] = 'Location: '. $location_field['label'];
-          $handler->display->display_options['filters'][$value2]['expose']['operator'] = $value2 . '_op';
-          $handler->display->display_options['filters'][$value2]['expose']['identifier'] = $value2;
-        }
-        elseif($location_field['widget']['module'] == 'number'){
-          
-          kpr($location_field['field_name']);
+          // We treat countries as a separate case, as it is a unique field type
+          if($location_field['field_name'] == 'field_country'){
+            /* Filter criterion: Countries: Name - list */
+            $handler->display->display_options['filters'][$value2]['id'] = 'name_list';
+            $handler->display->display_options['filters'][$value2]['table'] = 'countries_country';
+            $handler->display->display_options['filters'][$value2]['field'] = 'name_list';
+            $handler->display->display_options['filters'][$value2]['relationship'] = 'field_country_iso2_1';
+            $handler->display->display_options['filters'][$value2]['exposed'] = TRUE;
+            $handler->display->display_options['filters'][$value2]['expose']['operator_id'] = 'name_list_op';
+            $handler->display->display_options['filters'][$value2]['expose']['label'] = 'Location: ' . $location_field['label'];
+            $handler->display->display_options['filters'][$value2]['expose']['operator'] = 'name_list_op';
+            $handler->display->display_options['filters'][$value2]['expose']['identifier'] = 'name_list';
+            $handler->display->display_options['filters'][$value2]['expose']['remember_roles'] = array(
+              2 => '2',
+              1 => 0,
+              3 => 0,
+              4 => 0,
+              5 => 0
+            );
+            $handler->display->display_options['filters'][$value2]['configuration'] = '1';
+            $handler->display->display_options['filters'][$value2]['filter'] = array(
+              'enabled' => '1',
+              'continents' => array()
+            );
+          }else{
+            /* Filter criterion: */
+            $handler->display->display_options['filters'][$value2]['id'] = $value2;
+            $handler->display->display_options['filters'][$value2]['table'] = 'field_data_' . $location_field['field_name'];
+            $handler->display->display_options['filters'][$value2]['field'] = $value2;
+            $handler->display->display_options['filters'][$value2]['exposed'] = TRUE;
+            $handler->display->display_options['filters'][$value2]['expose']['operator_id'] = $value2 . '_op';
+            $handler->display->display_options['filters'][$value2]['expose']['label'] = 'Location: ' . $location_field['label'];
+            $handler->display->display_options['filters'][$value2]['expose']['operator'] = $value2 . '_op';
+            $handler->display->display_options['filters'][$value2]['expose']['identifier'] = $value2;
+            $handler->display->display_options['filters'][$value2]['relationship'] = 'field_location_nid';
+          }
+        }elseif($location_field['widget']['module'] == 'number'){
           $handler->display->display_options['filters'][$value2]['id'] = $value2;
           $handler->display->display_options['filters'][$value2]['table'] = 'field_data_' . $location_field['field_name'];
           $handler->display->display_options['filters'][$value2]['field'] = $value2;
           $handler->display->display_options['filters'][$value2]['relationship'] = 'field_location_nid';
           $handler->display->display_options['filters'][$value2]['exposed'] = TRUE;
           $handler->display->display_options['filters'][$value2]['expose']['operator_id'] = $value2 . '_op';
-          $handler->display->display_options['filters'][$value2]['expose']['label'] = 'Location: '. $location_field['label'];
+          $handler->display->display_options['filters'][$value2]['expose']['label'] = 'Location: ' . $location_field['label'];
           $handler->display->display_options['filters'][$value2]['expose']['use_operator'] = TRUE;
           $handler->display->display_options['filters'][$value2]['expose']['operator'] = $value2 . '_op';
           $handler->display->display_options['filters'][$value2]['expose']['identifier'] = $value2;
@@ -1444,23 +1462,9 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
             1 => 0,
             3 => 0,
             4 => 0,
-            5 => 0,
+            5 => 0
           );
-          /*
-          $handler->display->display_options['filters']['field_min_depth_value']['id'] = 'field_min_depth_value';
-$handler->display->display_options['filters']['field_min_depth_value']['table'] = 'field_data_field_min_depth';
-$handler->display->display_options['filters']['field_min_depth_value']['field'] = 'field_min_depth_value';
-$handler->display->display_options['filters']['field_min_depth_value']['relationship'] = 'field_location_nid';
-$handler->display->display_options['filters']['field_min_depth_value']['exposed'] = TRUE;
-$handler->display->display_options['filters']['field_min_depth_value']['expose']['operator_id'] = 'field_min_depth_value_op';
-$handler->display->display_options['filters']['field_min_depth_value']['expose']['label'] = 'Minimum depth';
-$handler->display->display_options['filters']['field_min_depth_value']['expose']['use_operator'] = TRUE;
-$handler->display->display_options['filters']['field_min_depth_value']['expose']['operator'] = 'field_min_depth_value_op';
-$handler->display->display_options['filters']['field_min_depth_value']['expose']['identifier'] = 'field_min_depth_value';
-$handler->display->display_options['filters']['field_min_depth_value']['expose']['remember_roles'] = array(
-          */
         }
-       
       }
     }elseif($field_details['widget']['module'] == 'text'){
       /* Filter criterion: */
@@ -1475,15 +1479,88 @@ $handler->display->display_options['filters']['field_min_depth_value']['expose']
       $handler->display->display_options['filters'][$value]['expose']['operator'] = $value . '_op';
       $handler->display->display_options['filters'][$value]['expose']['identifier'] = $value;
     }elseif($field_details['widget']['module'] == 'options'){
-      /* Filter criterion: */
+      // We treat countries as a separate case, as it is a unique field type
+      if($field_details['field_name'] == 'field_country'){
+        /* Filter criterion: Countries: Name - list */
+        $handler->display->display_options['filters']['name_list']['id'] = 'name_list';
+        $handler->display->display_options['filters']['name_list']['table'] = 'countries_country';
+        $handler->display->display_options['filters']['name_list']['field'] = 'name_list';
+        $handler->display->display_options['filters']['name_list']['relationship'] = 'field_country_iso2';
+        $handler->display->display_options['filters']['name_list']['exposed'] = TRUE;
+        $handler->display->display_options['filters']['name_list']['expose']['operator_id'] = 'name_list_op';
+        $handler->display->display_options['filters']['name_list']['expose']['label'] = 'Country';
+        $handler->display->display_options['filters']['name_list']['expose']['operator'] = 'name_list_op';
+        $handler->display->display_options['filters']['name_list']['expose']['identifier'] = 'name_list';
+        $handler->display->display_options['filters']['name_list']['expose']['remember_roles'] = array(
+          2 => '2',
+          1 => 0,
+          3 => 0,
+          4 => 0,
+          5 => 0
+        );
+        $handler->display->display_options['filters']['name_list']['configuration'] = '1';
+        $handler->display->display_options['filters']['name_list']['filter'] = array(
+          'enabled' => '1',
+          'continents' => array()
+        );
+      }else{
+        /* Filter criterion: */
+        $handler->display->display_options['filters'][$value]['id'] = $value;
+        $handler->display->display_options['filters'][$value]['table'] = 'field_data_' . $field_details['field_name'];
+        $handler->display->display_options['filters'][$value]['field'] = $value;
+        $handler->display->display_options['filters'][$value]['exposed'] = TRUE;
+        $handler->display->display_options['filters'][$value]['expose']['operator_id'] = $value . '_op';
+        $handler->display->display_options['filters'][$value]['expose']['label'] = $field_details['label'];
+        $handler->display->display_options['filters'][$value]['expose']['operator'] = $value . '_op';
+        $handler->display->display_options['filters'][$value]['expose']['identifier'] = $value;
+      }
+    }elseif($field_details['widget']['module'] == 'number'){
       $handler->display->display_options['filters'][$value]['id'] = $value;
       $handler->display->display_options['filters'][$value]['table'] = 'field_data_' . $field_details['field_name'];
       $handler->display->display_options['filters'][$value]['field'] = $value;
       $handler->display->display_options['filters'][$value]['exposed'] = TRUE;
       $handler->display->display_options['filters'][$value]['expose']['operator_id'] = $value . '_op';
-      $handler->display->display_options['filters'][$value]['expose']['label'] = $field_details['label'];
+      $handler->display->display_options['filters'][$value]['expose']['label'] = 'Location: ' . $field_details['label'];
+      $handler->display->display_options['filters'][$value]['expose']['use_operator'] = TRUE;
       $handler->display->display_options['filters'][$value]['expose']['operator'] = $value . '_op';
       $handler->display->display_options['filters'][$value]['expose']['identifier'] = $value;
+      $handler->display->display_options['filters'][$value]['expose']['remember_roles'] = array(
+        2 => '2',
+        1 => 0,
+        3 => 0,
+        4 => 0,
+        5 => 0
+      );
+    }elseif($field_details['widget']['module'] == 'scratchpads_taxonomic_name_field'){
+      // Create a filter for each vocabulary
+      $vocab_objects = taxonomy_vocabulary_get_names();
+      $count = 0;
+      $tid = 'tid';
+      foreach($vocab_objects as $key => $vocab){
+        if($count > 0){
+          $tid = 'tid_' . $count;
+        }
+        /* Filter criterion: Content: Has taxonomy term */
+        $handler->display->display_options['filters'][$tid]['id'] = $tid;
+        $handler->display->display_options['filters'][$tid]['table'] = 'taxonomy_index';
+        $handler->display->display_options['filters'][$tid]['field'] = 'tid';
+        $handler->display->display_options['filters'][$tid]['value'] = '';
+        $handler->display->display_options['filters'][$tid]['exposed'] = TRUE;
+        $handler->display->display_options['filters'][$tid]['expose']['operator_id'] = $tid . '_op';
+        $handler->display->display_options['filters'][$tid]['expose']['label'] = 'Taxa - ' . $vocab->name;
+        $handler->display->display_options['filters'][$tid]['expose']['operator'] = $tid . '_op';
+        $handler->display->display_options['filters'][$tid]['expose']['use_operator'] = TRUE;
+        $handler->display->display_options['filters'][$tid]['expose']['identifier'] = $tid;
+        $handler->display->display_options['filters'][$tid]['expose']['remember_roles'] = array(
+          2 => '2',
+          1 => 0,
+          3 => 0,
+          4 => 0,
+          5 => 0
+        );
+        $handler->display->display_options['filters'][$tid]['vocabulary'] = $vocab->machine_name;
+        $count++;
+      }
     }
   }
   /* Filter criterion: User: Name */
@@ -1509,7 +1586,6 @@ $handler->display->display_options['filters']['field_min_depth_value']['expose']
   $handler->display->display_options['filters']['status']['expose']['label'] = 'Published';
   $handler->display->display_options['filters']['status']['expose']['operator'] = 'status_op';
   $handler->display->display_options['filters']['status']['expose']['identifier'] = 'status';
- 
   /* Filter criterion: Content: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = $base_table;
