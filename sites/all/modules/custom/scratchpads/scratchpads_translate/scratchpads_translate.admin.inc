@@ -64,14 +64,16 @@ function scratchpads_translate_setup_translation_form(){
   module_load_include('crud.inc', 'field');
   $fields = field_read_fields();
   $links = array();
+  unset($_SESSION['scratchpads_translate']);
   foreach($fields as $field){
     if(in_array('node', $field['entity_types'])){
       if(!field_is_translatable('node', $field)){
-        if($field->locked){
+        if($field['locked']){
           // We need to unlock the field to ensure the user can edit it
-          db_update('field_config')->fields(array(
-            'locked' => 0
-          ))->condition('field_name', $field->field_name)->execute();
+          if(!isset($_SESSION['scratchpads_translate'])){
+            $_SESSION['scratchpads_translate'] = array();
+          }
+          $_SESSION['scratchpads_translate'][] = $field['field_name'];
         }
         // Load the full proper field.
         $field = field_info_field($field['field_name']);
@@ -85,9 +87,10 @@ function scratchpads_translate_setup_translation_form(){
       if(!field_is_translatable('taxonomy_term', $field)){
         if($field->locked){
           // We need to unlock the field to ensure the user can edit it
-          db_update('field_config')->fields(array(
-            'locked' => 0
-          ))->condition('field_name', $field->field_name)->execute();
+          if(!isset($_SESSION['scratchpads_translate'])){
+            $_SESSION['scratchpads_translate'] = array();
+          }
+          $_SESSION['scratchpads_translate'][] = $field['field_name'];
         }
         // Load the full proper field.
         $field = field_info_field($field['field_name']);
