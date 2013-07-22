@@ -509,49 +509,49 @@ function itis_term_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id)
       // Set fields to hide/appear depending on values in other fields.
       $form['field_unit_name2']['#states'] = array(
         'visible' => array(
-          ':input[name="field_unit_name1[und][0][value]"]' => array(
+          ':input[name*="field_unit_name1"]' => array(
             'filled' => TRUE
           )
         )
       );
       $form['field_unit_name3']['#states'] = array(
         'visible' => array(
-          ':input[name="field_unit_name2[und][0][value]"]' => array(
+          ':input[name*="field_unit_name2"]' => array(
             'filled' => TRUE
           )
         )
       );
       $form['field_unit_name4']['#states'] = array(
         'visible' => array(
-          ':input[name="field_unit_name3[und][0][value]"]' => array(
+          ':input[name*="field_unit_name3"]' => array(
             'filled' => TRUE
           )
         )
       );
       $form['field_unit_indicator1']['#states'] = array(
         'visible' => array(
-          ':input[name="field_unit_name1[und][0][value]"]' => array(
+          ':input[name*="field_unit_name1"]' => array(
             'filled' => TRUE
           )
         )
       );
       $form['field_unit_indicator2']['#states'] = array(
         'visible' => array(
-          ':input[name="field_unit_name2[und][0][value]"]' => array(
+          ':input[name*="field_unit_name2"]' => array(
             'filled' => TRUE
           )
         )
       );
       $form['field_unit_indicator3']['#states'] = array(
         'visible' => array(
-          ':input[name="field_unit_name3[und][0][value]"]' => array(
+          ':input[name*="field_unit_name3"]' => array(
             'filled' => TRUE
           )
         )
       );
       $form['field_unit_indicator4']['#states'] = array(
         'visible' => array(
-          ':input[name="field_unit_name4[und][0][value]"]' => array(
+          ':input[name*="field_unit_name4"]' => array(
             'filled' => TRUE
           )
         )
