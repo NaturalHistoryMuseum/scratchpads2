@@ -144,6 +144,7 @@ function _scratchpads_hands_off_hidden_urls(){
     'admin/config/content/diff',
     'admin/config/regional/date-time',
     'admin/config/search/sitemap',
+    'admin/config/search/clean-urls',
     'admin/config/system/boost',
     'admin/config/system/customerror',
     'admin/config/system/globalredirect',

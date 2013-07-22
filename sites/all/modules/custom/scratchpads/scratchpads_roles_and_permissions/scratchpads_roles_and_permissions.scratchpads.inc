@@ -344,6 +344,22 @@ function taxonomy_scratchpads_default_permissions(){
 }
 
 /**
+ * Path module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function path_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer url aliases'
+    ),
+    'contributor' => array(
+      'create url aliases'
+    )
+  );
+}
+
+/**
  * System module
  *
  * Implements hook_scratchpads_default_permissions().
