@@ -5,7 +5,7 @@
 }
 
 .views-exposed-widget {
-	display: block;
+	display: none;
 	clear: both;
 }
 
@@ -14,7 +14,7 @@
 }
 
 .views-submit-button {
-	display: none;
+	display: block;
 }
 
 .add_filter_div {
@@ -66,4 +66,16 @@
 
 .views-exposed-widget.dependent-options .views-operator {
 	margin-left: 1em;
+}
+
+.filter_message {	
+	color:red;
+	display: none;
+    position:relative;
+    top: -6px;
+    left:2em;	
+}
+
+.views-operator .form-type-select.form-item{
+	top:-2px;
 }

@@ -1,16 +1,18 @@
 jQuery(document).ready(function($){
 
   var submitted = 0;
+  var has_been_submitted = 0;
   var reset = 0;
   var html_remove_filter = '<a href="#" class="remove_button">Remove Filter</a>';
   var html_add_reset = '<a href="#" class="add_button">Add Filter</a><a href="#" class="reset_button">Reset Form</a>';
-
+  var filter_message = "<div class='filter_message'>Click 'Apply' to view changes.</div>"
+  
   setUpHtml();
   setUpEventListers();
   reverseDivs();
-  reverseLabel();
   removeOptions();
-  $('.form-submit').show();
+  
+  $('.views-submit-button').show();
 
   function setUpHtml(){
     // Add links to the select menu
@@ -22,7 +24,6 @@ jQuery(document).ready(function($){
 
         if($(this).closest(".views-exposed-widget").find('.remove_button').length) {
           // do nothing
-
         } else {
           $(this).closest(".views-widget").after(html_remove_filter);
         }
@@ -30,11 +31,13 @@ jQuery(document).ready(function($){
     });
     // Hide select filters and add links
     $("div.views-exposed-widgets select").each(function(){
-      if($(this).val() == 'All') {
+     
+      if(($(this).val() == 'All') || ($(this).val() == null)){
         $(this).closest(".views-exposed-widget").hide();
         $(this).closest(".views-widget").after(html_remove_filter);
       }
     });
+    $('.views-submit-button').append(filter_message);
   }
 
   function setUpEventListers(){
@@ -56,17 +59,27 @@ jQuery(document).ready(function($){
       resetForm();
     });
     $('.views-exposed-widget .form-submit').click(function(){
+      $('.filter_message').css('display', 'none');
       submitted = 1;
     });
     // Reset and hide filter
     $('.remove_button').live("click", function(){
+      
+      $(this).prev().find('input:text').val('');
       $(this).prev().prev().find('input:text').val('');
+      $(this).prev().prev().find('option').removeAttr("selected");
       $(this).prev().find('select').prop('selectedIndex', 0);
       $(this).closest(".views-exposed-widget").hide();
       $(this).hide();
+      
+      // No need to show this message before the form has been submitted
+      if (has_been_submitted == 1){       
+        $('.filter_message').css('display', 'inline-block');
+      }
+      
     });
 
-    $('#txt').live("keydown",function(e){
+    $(':input').live("keydown",function(e){
       if(e.keyCode == 13) {
         submitted = 1;
       }
@@ -79,25 +92,22 @@ jQuery(document).ready(function($){
     $('.form-autocomplete').val('');
     $(':input').val('');
     $('select').val('');
+    $(".views-widget option:selected").removeAttr("selected");
     $('.views-exposed-widget .form-submit').trigger('click');
     $('.views-exposed-widget .form-submit').hide();
+    has_been_submitted = 0;
   }
 
   // reverse the order of the divs within the exposed filter
-  function reverseDivs(){
-    // $('.views-exposed-widget.dependent-options > div').each(function(){
+  function reverseDivs(){ 
     $('.views-exposed-widget .views-widget').each(function(){
       $(this).prependTo(this.parentNode);
     });
-
-  }
-
-  function reverseLabel(){
-    // $('.views-exposed-widget.dependent-options > label').each(function(){
     $('.views-exposed-widget > label').each(function(){
       $(this).prependTo(this.parentNode);
     });
   }
+
 
   // Remove unwanted options from the drop down list
   function removeOptions(){
@@ -110,8 +120,15 @@ jQuery(document).ready(function($){
   // We need to reset the form after Ajax call
   $(document).ajaxComplete(function(){
     if(submitted == 1) {
+      has_been_submitted = 1;
+      $('.filter_message').css('display', 'none');
+      
 
-      $('#edit-selected-wrapper select').after(html_add_reset);
+      if($('#edit-selected-wrapper').find('.add_button').length == 0) {  
+        $('#edit-selected-wrapper select').after(html_add_reset);
+      }
+      
+      $('.views-submit-button').append(filter_message);
       $('.views-submit-button').show();
       $('.reset_button').show();
 
@@ -127,15 +144,13 @@ jQuery(document).ready(function($){
         // -1 if no match
         var is_ajax = $(this).val().indexOf("http://");
 
-        // 
-
         if(($(this).val() != '') && (is_ajax == '-1')) {
           $(this).closest(".views-exposed-widget").show();
         }
       });
       $("div.views-exposed-widgets .views-widget select").each(function(){
         $(this).closest(".views-widget").after(html_remove_filter);
-        if($(this).val() != 'All') {
+        if(($(this).val() != 'All') && ($(this).val() != null)) {
           $(this).closest(".views-exposed-widget").show();
         }
       });
@@ -145,20 +160,23 @@ jQuery(document).ready(function($){
         }
       });
       reverseDivs();
-      reverseLabel();
       removeOptions();
+      
+      $('.views-exposed-widget .form-submit').click(function(){
+        $('.filter_message').css('display', 'none');
+        submitted = 1;
+      });
     }
 
     submitted = 0;
-    $('.views-exposed-widget .form-submit').click(function(){
-      submitted = 1;
-    });
+   
     // Hide submit button if the form was reset
 
     if(reset == 1) {
       reverseDivs();
       reverseLabel();
       removeOptions();
+      has_been_submitted = 0;
       $('.views-exposed-widget.views-submit-button').hide();
       reset = 0;
     }
