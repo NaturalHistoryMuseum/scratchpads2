@@ -32,5 +32,7 @@ function scratchpads_views_filter_form_alter(&$form, &$form_state, $form_id){
       $newforminfo[$key] = $element;
     }
     $form['#info'] = $newforminfo;
+    $form['#attached']['js'][] = drupal_get_path('module', 'scratchpads_views_filter').'/js/scratchpads_views_filter.js';
+    $form['#attached']['css'][] = drupal_get_path('module', 'scratchpads_views_filter').'/css/scratchpads_views_filter.css';
   }
 }
