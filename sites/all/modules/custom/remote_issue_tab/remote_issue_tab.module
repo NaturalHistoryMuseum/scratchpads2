@@ -58,7 +58,7 @@ function remote_issue_tab_block_configure($delta = ''){
       '#required' => TRUE
     ),
     'remote_issue_tab_redirect_path' => array(
-      '#title' => t('UWho Redirect PATH'),
+      '#title' => t('UWho Redirect Path'),
       '#description' => t('Enter the path of the page on the remote site that you\'d like users to be redirected to (leave blank to use the default)'),
       '#type' => 'textfield',
       '#default_value' => variable_get('remote_issue_tab_redirect_path', '')

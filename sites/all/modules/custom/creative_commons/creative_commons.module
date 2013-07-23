@@ -34,7 +34,7 @@ function creative_commons_field_info(){
   return array(
     // We name our field as the associative name of the array.
     'creative_commons' => array(
-      'label' => t('Creative commons'),
+      'label' => t('Creative Commons'),
       'description' => t('Creative commons licence field.'),
       'default_widget' => 'creative_commons',
       'default_formatter' => 'creative_commons_small_image'
@@ -331,7 +331,7 @@ function creative_commons_indexing_callback($entity, $field_name, $index_key, $f
  */
 function creative_commons_block_info(){
   $blocks['creative_commons'] = array(
-    'info' => t('Creative commons'),
+    'info' => t('Creative Commons'),
     'region' => 'footer',
     'status' => 0
   );
