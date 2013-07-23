@@ -108,22 +108,34 @@ function citethispage_backend_selection_form($form, &$form_state){
   }
   $backend_modules = array_keys($backends);
   $default = isset($form_state['values']['backend']) ? $form_state['values']['backend'] : reset($backend_modules);
-  $form['backend'] = array(
-    '#type' => 'select',
-    '#title' => t('Service to create citation'),
-    '#description' => t('Select which service to use to create a permanent snapshot of the page that can be used for citations.'),
-    '#options' => $backends,
-    '#required' => TRUE,
-    '#default_value' => $default,
-    '#ajax' => array(
-      'callback' => 'citethispage_backend_selection_form_ajax',
-      'wrapper' => 'citethispage_select_info',
-      'method' => 'replace',
-      'effect' => 'fade'
-    )
-  );
+  if(count($backend_modules) == 0){
+    return;
+  }else if(count($backend_modules) == 1){
+    $form['backend'] = array(
+      '#type' => 'value',
+      '#value' => $default
+    );
+  }else{
+    $form['backend'] = array(
+      '#type' => 'select',
+      '#title' => t('Service to create citation'),
+      '#description' => t('Select which service to use to create a permanent snapshot of the page that can be used for citations.'),
+      '#options' => $backends,
+      '#required' => TRUE,
+      '#default_value' => $default,
+      '#ajax' => array(
+        'callback' => 'citethispage_backend_selection_form_ajax',
+        'wrapper' => 'citethispage_subform',
+        'method' => 'replace',
+        'effect' => 'fade'
+      )
+    );
+  }
+  $form_state['citethispage_backend_handler'] = $default;
   $form['info'] = array(
-    '#markup' => '<div id="citethispage_select_info"><span class="citethispage_select_info_title">' . $handlers[$default]['title'] . '</span>: ' . $handlers[$default]['description'] . '</div>'
+    '#prefix' => '<div id="citethispage_subform">',
+    '#suffix' => '</div>',
+    '#markup' => '<span class="citethispage_select_info_title">' . $handlers[$default]['title'] . '</span>: ' . $handlers[$default]['description']
   );
   $form['cite'] = array(
     '#type' => 'submit',
@@ -164,6 +176,7 @@ function citethispage_backend_selection_form_validate($form, &$form_state){
 function citethispage_backend_selection_form_submit($form, &$form_state){
   $path = $form_state['values']['path'];
   $results = _citethispage_parse_path($path);
+  $results['form_state'] = $form_state;
   $function = $form_state['citethispage_info']['callback'];
   $function($path, $results);
 }

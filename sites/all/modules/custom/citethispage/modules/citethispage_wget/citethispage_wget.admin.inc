@@ -8,7 +8,7 @@ function citethispage_wget_settings_form($form, &$form_state){
     '#type' => 'textfield',
     '#required' => TRUE,
     '#title' => t('Command line'),
-    '#description' => t('The command line to execute. This is expected to archive [citethispage_wget:url] into the folder [citethispage_wget:destination]. The destination file should then be obtained by concatenating the original url (including the host name) to the destination.'),
+    '#description' => t('The command line to execute. The module relies on the command having a certain behaviour - only change this if you know what you are doing. This is expected to archive [citethispage_wget:url] into the folder [citethispage_wget:destination]. The destination file should then be obtained by concatenating the original url (including the host name) to the destination.'),
     '#default_value' => variable_get('citethispage_wget_tool', CITETHISPAGE_WGET_DEFAULT_TOOL)
   );
   $form['citethispage_wget_destination'] = array(
@@ -21,7 +21,7 @@ function citethispage_wget_settings_form($form, &$form_state){
   $form['citethispage_wget_inject'] = array(
     '#type' => 'textarea',
     '#required' => FALSE,
-    '#title' => t('Inject'),
+    '#title' => t('snapshot message'),
     '#description' => "The following text will be injected at the top of the page's body",
     '#default_value' => variable_get('citethispage_wget_inject', CITETHISPAGE_WGET_DEFAULT_INJECT)
   );

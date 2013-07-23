@@ -1,10 +1,20 @@
 <?php
-DEFINE('CITETHISPAGE_WGET_DEFAULT_TOOL', '/usr/bin/wget -p -k -E -P [citethispage_wget:destination] [citethispage_wget:url]');
+DEFINE('CITETHISPAGE_WGET_DEFAULT_TOOL', '/usr/bin/wget -p -k -E --post-data \'[citethispage_wget:post]\' -P [citethispage_wget:destination] [citethispage_wget:url]');
 DEFINE('CITETHISPAGE_WGET_DEFAULT_DESTINATION', 'public://cite/[citethispage_wget:year]-[citethispage_wget:month]-[citethispage_wget:day]');
-DEFINE('CITETHISPAGE_WGET_DEFAULT_INJECT', "
-  <script>alert('This page is a snapshot of [citethispage_wget:url] as it was on [citethispage_wget:year]-[citethispage_wget:month]-[citethispage_wget:day]');
-  </script>
-");
+DEFINE('CITETHISPAGE_WGET_DEFAULT_INJECT', "This is a <strong>snapshop</strong> of the page at [citethispage_wget:url], as it was on <strong>[citethispage_wget:year]-[citethispage_wget:month]-[citethispage_wget:day]</strong>. The snapshot was created was citatition purposes. Note that following any of the links on the page will take you back to the live version of the site.");
+
+/**
+ * Implements hook_init
+ */
+function citethispage_wget_init(){
+  if(!empty($_POST['citethispage_wget_msg_token'])){
+    $token = $_POST['citethispage_wget_msg_token'];
+    $messages = variable_get('citethispage_wget_messages', array());
+    if(isset($messages[$token])){
+      drupal_set_message($messages[$token]);
+    }
+  }
+}
 
 /**
  * Implements hook_menu
@@ -60,6 +70,26 @@ function citethispage_wget_citethispage_info(){
 }
 
 /**
+ * Implement hook_form_citethispage_backend_selection_form_alter
+ */
+function citethispage_wget_form_citethispage_backend_selection_form_alter(&$form, &$form_state){
+  if($form_state['citethispage_backend_handler'] == 'citethispage_wget'){
+    $form['info'] = array(
+      '#prefix' => $form['info']['#prefix'],
+      '#suffix' => $form['info']['#suffix'],
+      'summary' => array(
+        '#markup' => $form['info']['#markup']
+      ),
+      'citethispage_wget_msg' => array(
+        '#type' => 'checkbox',
+        '#title' => t('Include a message on the archived page'),
+        '#default_value' => isset($form_state['values']['citethispage_wget_msg']) ? $form_state['values']['citethispage_wget_msg'] : 1
+      )
+    );
+  }
+}
+
+/**
  * Implement hook_token_info
  */
 function citethispage_wget_token_info(){
@@ -92,6 +122,10 @@ function citethispage_wget_token_info(){
     'destination' => array(
       'name' => t('Destination'),
       'description' => t("The destination file or folder where the result will be stored")
+    ),
+    'post' => array(
+      'name' => t('Post data'),
+      'description' => t("The post data wget should send. This is required to display messages on the archived page")
     )
   );
   return $data;
@@ -110,7 +144,8 @@ function citethispage_wget_tokens($type, $tokens, $data = array(), $options = ar
     'title' => '',
     'year' => '',
     'month' => '',
-    'day' => ''
+    'day' => '',
+    'post' => ''
   ), $citethispage);
   $result = array();
   foreach($tokens as $name => $original){
@@ -166,6 +201,16 @@ function citethispage_wget_archive($path, $result){
     }
   }
   $data->destination = $final_destination;
+  // Check if we should inject a message
+  $msg_token = substr(md5(rand()), 0, 7);
+  $data->post = 'citethispage_wget_msg_token=' . urlencode($msg_token);
+  $messages = variable_get('citethispage_wget_messages', array());
+  if(!empty($result['form_state']['values']['citethispage_wget_msg']) && variable_get('citethispage_wget_inject', CITETHISPAGE_WGET_DEFAULT_INJECT)){
+    $inject = variable_get('citethispage_wget_inject', CITETHISPAGE_WGET_DEFAULT_INJECT);
+    $inject = token_replace($inject, $tokens);
+    $messages[$msg_token] = $inject;
+    variable_set('citethispage_wget_messages', $messages);
+  }
   // Generate the archive !
   $command = variable_get('citethispage_wget_tool', CITETHISPAGE_BACKEND_DEFAULT_TOOL);
   $command = token_replace($command, $tokens, array(
@@ -174,6 +219,8 @@ function citethispage_wget_archive($path, $result){
   $output = array();
   $return = 0;
   exec($command, $output, $return);
+  unset($messages[$msg_token]);
+  variable_set('citethispage_wget_messages', $messages);
   if($return != 0){
     drupal_set_message(t('An error occured while generating the snapshot'), 'error');
     watchdog('citethispage_wget', "An error occured while running %command : %output", array(
@@ -182,7 +229,7 @@ function citethispage_wget_archive($path, $result){
     ), WATCHDOG_ERROR);
     return;
   }
-  // Inject text into it if required
+  // Get the final path
   $file_path = $final_destination . '/' . preg_replace('/^.*?:\/\//', '', $data->url);
   if(!file_exists($file_path)){
     if(!file_exists($file_path . '.html')){
@@ -193,10 +240,6 @@ function citethispage_wget_archive($path, $result){
       return;
     }
     $file_path .= '.html';
-  }
-  if(variable_get('citethispage_wget_inject', CITETHISPAGE_WGET_DEFAULT_INJECT)){
-    $inject = variable_get('citethispage_wget_inject', CITETHISPAGE_WGET_DEFAULT_INJECT);
-    $inject = token_replace($inject, $tokens);
   }
   drupal_set_message(t('Your snapshot has been generated and is available at !path', array(
     '!path' => l(file_create_url($file_path), file_create_url($file_path))
