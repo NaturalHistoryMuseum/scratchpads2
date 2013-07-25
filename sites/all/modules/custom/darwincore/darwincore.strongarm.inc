@@ -13,7 +13,7 @@ function darwincore_strongarm(){
   $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'auto_entitylabel_pattern_node_specimen_observation';
-  $strongarm->value = '[node:field-institution-code] - [node:field-collection-code] - [node:field-catalogue-number]';
+  $strongarm->value = '[node:field_institution_code] - [node:field_collection_code] - [node:field_catalogue_number]';
   $export[$strongarm->name] = $strongarm;
   $strongarm = new stdClass();
   $strongarm->disabled = FALSE;
