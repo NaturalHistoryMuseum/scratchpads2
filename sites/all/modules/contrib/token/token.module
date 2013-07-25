@@ -209,9 +209,11 @@ function token_library() {
     'version' => '1.0',
     'js' => array(
       drupal_get_path('module', 'token') . '/token.js' => array(),
+      
     ),
     'dependencies' => array(
       array('system', 'ui.dialog'),
+      array('token', 'treeTable'),
     ),
   );
 
