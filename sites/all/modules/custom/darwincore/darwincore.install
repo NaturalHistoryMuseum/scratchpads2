@@ -240,4 +240,10 @@ function darwincore_update_7014(){
   module_enable(array(
     'auto_entitylabel'
   ));
+  module_disable(array(
+    'auto_nodetitle'
+  ), FALSE);
+  drupal_uninstall_modules(array(
+    'auto_nodetitle'
+  ), FALSE);
 }
