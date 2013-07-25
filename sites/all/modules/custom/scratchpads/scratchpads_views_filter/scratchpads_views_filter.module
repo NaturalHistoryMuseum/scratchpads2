@@ -1,11 +1,12 @@
 <?php
 
 /**
- * Implement hook_form_alter
+ * Implements hook_form_FORM_ID_alter
+ * 
  * We add a drop down list of fields in the exposed form
  */
-function scratchpads_views_filter_form_alter(&$form, &$form_state, $form_id){
-  if(($form_id == 'views_exposed_form') && (strpos($form_state['view']->name, 'admin_vbo_node') !== false)){
+function scratchpads_views_filter_form_views_exposed_form_alter(&$form, &$form_state, $form_id){
+  if(strpos($form_state['view']->name, 'admin_vbo_node') !== false){
     $optionsarray = array();
     $optionsarray[0] = 'No Filters';
     foreach($form['#info'] as $key => $element){
@@ -32,7 +33,7 @@ function scratchpads_views_filter_form_alter(&$form, &$form_state, $form_id){
       $newforminfo[$key] = $element;
     }
     $form['#info'] = $newforminfo;
-    $form['#attached']['js'][] = drupal_get_path('module', 'scratchpads_views_filter').'/js/scratchpads_views_filter.js';
-    $form['#attached']['css'][] = drupal_get_path('module', 'scratchpads_views_filter').'/css/scratchpads_views_filter.css';
+    $form['#attached']['js'][] = drupal_get_path('module', 'scratchpads_views_filter') . '/js/scratchpads_views_filter.js';
+    $form['#attached']['css'][] = drupal_get_path('module', 'scratchpads_views_filter') . '/css/scratchpads_views_filter.css';
   }
 }
