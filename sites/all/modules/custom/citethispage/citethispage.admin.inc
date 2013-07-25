@@ -15,8 +15,19 @@ function citethispage_settings_form($form, &$form_state){
   );
   $form['general']['citethispage_showall'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Show Cite This Page button on all pages (even if no module provides us with information about the page)'),
+    '#title' => t('Show Cite This Page button on all pages'),
+    '#description' => t('If this is not selected, then the Cite This Page button will only show on pages that are supported by one of the page information parsers.'),
     '#default_value' => variable_get('citethispage_showall', 0)
+  );
+  $warn_default = variable_get('citethispage_warn_logged', array(
+    'value' => CITETHISPAGE_DEFAULT_WARN_LOGGED,
+    'format' => 'filtered_html'
+  ));
+  $form['general']['citethispage_warn_logged'] = array(
+    '#type' => 'text_format',
+    '#title' => 'Message for logged in users',
+    '#default_value' => $warn_default['value'],
+    '#format' => $warn_default['format']
   );
   // Backend settings
   $form['backend'] = array(
@@ -140,6 +151,7 @@ function citethispage_settings_form($form, &$form_state){
 function citethispage_settings_form_submit($form, &$form_state){
   // Save general settings
   variable_set('citethispage_showall', $form_state['values']['citethispage_showall']);
+  variable_set('citethispage_warn_logged', $form_state['values']['citethispage_warn_logged']);
   // Save backend settings
   $handlers = _citethispage_get_archive_handlers(TRUE);
   $status = array();

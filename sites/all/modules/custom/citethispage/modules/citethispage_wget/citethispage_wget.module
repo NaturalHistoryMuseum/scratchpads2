@@ -1,10 +1,13 @@
 <?php
 DEFINE('CITETHISPAGE_WGET_DEFAULT_TOOL', '/usr/bin/wget -p -k -E --post-data \'[citethispage_wget:post]\' -P [citethispage_wget:destination] [citethispage_wget:url]');
 DEFINE('CITETHISPAGE_WGET_DEFAULT_DESTINATION', 'public://cite/[citethispage_wget:year]-[citethispage_wget:month]-[citethispage_wget:day]');
-DEFINE('CITETHISPAGE_WGET_DEFAULT_INJECT', "This is a <strong>snapshop</strong> of the page at [citethispage_wget:url], as it was on <strong>[citethispage_wget:year]-[citethispage_wget:month]-[citethispage_wget:day]</strong>. The snapshot was created was citatition purposes. Note that following any of the links on the page will take you back to the live version of the site.");
+DEFINE('CITETHISPAGE_WGET_DEFAULT_INJECT', "<p>This is a <strong>snapshop</strong> of the page at [citethispage_wget:url], as it was on <strong>[citethispage_wget:year]-[citethispage_wget:month]-[citethispage_wget:day]</strong>. The snapshot was created for citation purposes. Note that following any of the links on the page will take you back to the live version of the site.</p>");
+define('CITETHISPAGE_WGET_DEFAULT_PREVIEW_PATH', 'public://citethispage_wget_preview');
 
 /**
  * Implements hook_init
+ * 
+ * This is used to adda message on snapshts
  */
 function citethispage_wget_init(){
   if(!empty($_POST['citethispage_wget_msg_token'])){
@@ -86,7 +89,57 @@ function citethispage_wget_form_citethispage_backend_selection_form_alter(&$form
         '#default_value' => isset($form_state['values']['citethispage_wget_msg']) ? $form_state['values']['citethispage_wget_msg'] : 1
       )
     );
+    $preview_mode = variable_get('citethispage_wget_preview', 2);
+    if($preview_mode == 2 || ($user->uid > 0 && $preview_mode == 1)){
+      drupal_add_library('system', 'ui.dialog');
+      drupal_add_js(drupal_get_path('module', 'citethispage_wget') . '/js/citethispage_wget.js');
+      $warn = NULL;
+      if(isset($form['warn'])){
+        $warn = $form['warn'];
+        unset($form['warn']);
+      }
+      $form['preview'] = array(
+        '#type' => 'button',
+        '#value' => t('Preview'),
+        '#ajax' => array(
+          'callback' => 'citethispage_wget_preview_ajax'
+        )
+      );
+      if($warn){
+        $form['warn'] = $warn;
+      }
+    }
   }
+}
+
+/**
+ * citethispage_wget_preview_ajax
+ */
+function citethispage_wget_preview_ajax($form, &$form_state){
+  // Generate a preview
+  $path = $form_state['values']['path'];
+  $results = _citethispage_parse_path($path);
+  $results['form_state'] = $form_state;
+  $preview_path = citethispage_wget_archive($path, $results, TRUE);
+  $form_state['citethispage_wget_preview'] = $preview_path;
+  return array(
+    '#type' => 'ajax',
+    '#commands' => array(
+      array(
+        'command' => 'citethispageWgetPreview',
+        'path' => $form_state['citethispage_wget_preview']
+      )
+    )
+  );
+}
+
+/**
+ * Implement hook_cron
+ * 
+ * Delete all the page previews
+ */
+function citethispage_wget_cron(){
+  file_unmanaged_delete_recursive(CITETHISPAGE_WGET_DEFAULT_PREVIEW_PATH);
 }
 
 /**
@@ -159,7 +212,7 @@ function citethispage_wget_tokens($type, $tokens, $data = array(), $options = ar
  * 
  * The archiving callback
  */
-function citethispage_wget_archive($path, $result){
+function citethispage_wget_archive($path, $result, $preview = FALSE){
   // Build the replace tokens
   global $base_url;
   $data = new StdClass();
@@ -182,8 +235,12 @@ function citethispage_wget_archive($path, $result){
   }
   $data->title = str_replace(' ', '', ucwords(preg_replace('/[^-_a-zA-Z0-9]+/', ' ', $data->title)));
   // Get a unique destination path
-  $destination = variable_get('citethispage_wget_destination', CITETHISPAGE_WGET_DEFAULT_DESTINATION);
-  $destination = token_replace($destination, $tokens);
+  if($preview){
+    $destination = CITETHISPAGE_WGET_DEFAULT_PREVIEW_PATH . '/' . substr(md5(rand()), 0, 8);
+  }else{
+    $destination = variable_get('citethispage_wget_destination', CITETHISPAGE_WGET_DEFAULT_DESTINATION);
+    $destination = token_replace($destination, $tokens);
+  }
   $final_destination = $destination;
   $unique = 1;
   while(file_exists($final_destination)){
@@ -205,8 +262,12 @@ function citethispage_wget_archive($path, $result){
   $msg_token = substr(md5(rand()), 0, 7);
   $data->post = 'citethispage_wget_msg_token=' . urlencode($msg_token);
   $messages = variable_get('citethispage_wget_messages', array());
-  if(!empty($result['form_state']['values']['citethispage_wget_msg']) && variable_get('citethispage_wget_inject', CITETHISPAGE_WGET_DEFAULT_INJECT)){
-    $inject = variable_get('citethispage_wget_inject', CITETHISPAGE_WGET_DEFAULT_INJECT);
+  $inject_message = variable_get('citethispage_wget_inject', array(
+    'value' => CITETHISPAGE_WGET_DEFAULT_INJECT,
+    'format' => 'filtered_html'
+  ));
+  if(!empty($result['form_state']['values']['citethispage_wget_msg']) && $inject_message['value']){
+    $inject = check_markup($inject_message['value'], $inject_message['format']);
     $inject = token_replace($inject, $tokens);
     $messages[$msg_token] = $inject;
     variable_set('citethispage_wget_messages', $messages);
@@ -241,9 +302,12 @@ function citethispage_wget_archive($path, $result){
     }
     $file_path .= '.html';
   }
-  drupal_set_message(t('Your snapshot has been generated and is available at !path', array(
-    '!path' => l(file_create_url($file_path), file_create_url($file_path))
-  )));
+  if(!$preview){
+    drupal_set_message(t('Your snapshot has been generated and is available at !path', array(
+      '!path' => l(file_create_url($file_path), file_create_url($file_path))
+    )));
+  }
+  return file_create_url($file_path);
 }
 
 /**

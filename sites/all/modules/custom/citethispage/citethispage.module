@@ -1,4 +1,5 @@
 <?php
+define('CITETHISPAGE_DEFAULT_WARN_LOGGED', 'Please note that you are currently logged in. The snapshot will use the <em>anonymous</em> version of the page.');
 
 /**
  * Implements hook_menu().
@@ -141,9 +142,24 @@ function citethispage_backend_selection_form($form, &$form_state){
     '#type' => 'submit',
     '#value' => t('Create Citation')
   );
+  global $user;
+  $warn_default = variable_get('citethispage_warn_logged', array(
+    'value' => CITETHISPAGE_DEFAULT_WARN_LOGGED,
+    'format' => 'filtered_html'
+  ));
+  if($user->uid > 0 && $warn_default['value']){
+    $form['warn'] = array(
+      '#type' => 'markup',
+      '#markup' => '<div>' . check_markup($warn_default['value'], $warn_default['format']) . '</div>'
+    );
+  }
   $form['path'] = array(
     '#type' => 'value',
     '#value' => isset($form_state['values']['path']) ? $form_state['values']['path'] : current_path()
+  );
+  $form['requested_path'] = array(
+    '#type' => 'value',
+    '#value' => isset($form_state['values']['requested_path']) ? $form_state['values']['requested_path'] : $_SERVER['REQUEST_URI']
   );
   $form['#attached']['css'] = array(
     drupal_get_path('module', 'citethispage') . '/theme/citethispage.css'
