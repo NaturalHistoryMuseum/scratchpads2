@@ -150,3 +150,18 @@ function spm_update_7009(){
     'locked' => 1
   ))->condition('field_name', $fields_to_lock)->execute();
 }
+
+/**
+ * Enable the auto_entitylabel module
+ */
+function spm_update_7010(){
+  module_enable(array(
+    'auto_entitylabel'
+  ));
+  module_disable(array(
+    'auto_nodetitle'
+  ), FALSE);
+  drupal_uninstall_modules(array(
+    'auto_nodetitle'
+  ), FALSE);
+}
