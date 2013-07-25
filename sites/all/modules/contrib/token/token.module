@@ -209,7 +209,9 @@ function token_library() {
     'version' => '1.0',
     'js' => array(
       drupal_get_path('module', 'token') . '/token.js' => array(),
-      
+    ),
+    'css' => array(
+      drupal_get_path('module', 'token') . '/token.css' => array(),
     ),
     'dependencies' => array(
       array('system', 'ui.dialog'),
