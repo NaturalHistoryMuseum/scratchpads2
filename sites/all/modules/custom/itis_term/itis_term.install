@@ -198,3 +198,110 @@ function itis_term_update_7006(){
 function itis_term_update_7007(){
   db_update('taxonomy_term_data')->expression('name', "REPLACE(name, '× ', '×')")->execute();
 }
+
+/**
+ * Remove empty field collections
+ */
+function itis_term_update_7008(&$sandbox){
+  if(!isset($sandbox['entity_ids'])){
+    if(!db_table_exists('field_data_field_vernacular_name')){
+      // We haven't created a biological classification yet.
+      $sandbox['#finished'] = TRUE;
+      return;
+    }
+    $sandbox['entity_ids'] = db_select('field_data_field_vernacular_name', 'f')->condition('field_vernacular_name_value', '')->fields('f', array(
+      'entity_id'
+    ))->execute()->fetchCol();
+    $sandbox['total'] = count($sandbox['entity_ids']);
+    if(!$sandbox['total']){
+      // Return if we have nothing to update
+      $sandbox['#finished'] = TRUE;
+      return;
+    }
+    $sandbox['deleted'] = 0;
+  }
+  $this_iteration = 0;
+  while($sandbox['deleted'] < $sandbox['total'] && $this_iteration < 25){
+    $entity_id = array_pop($sandbox['entity_ids']);
+    $field_collection_item = field_collection_item_load($entity_id);
+    $field_collection_item->deleteRevision();
+    $sandbox['deleted']++;
+    $this_iteration++;
+  }
+  drupal_set_message($sandbox['deleted'] . "/" . $sandbox['total']);
+  $sandbox['#finished'] = $sandbox['deleted'] / $sandbox['total'];
+}
+
+/**
+ * Lock the fields, and ensure that they all exist for each vocabulary.
+ */
+function itis_term_update_7009(){
+  $fields_to_lock = array(
+    'field_authors',
+    'field_language',
+    'field_page_number',
+    'field_rank',
+    'field_reference',
+    'field_unacceptability_reason',
+    'field_unit_indicator1',
+    'field_unit_indicator2',
+    'field_unit_indicator3',
+    'field_unit_indicator4',
+    'field_unit_name1',
+    'field_unit_name2',
+    'field_unit_name3',
+    'field_unit_name4',
+    'field_usage',
+    'field_vernacular_locality',
+    'field_vernacular_name',
+    'field_vernacular_name_collection',
+    'field_vernacular_name_remarks'
+  );
+  module_load_include('fields.inc', 'itis_term');
+  $additional_fields = itis_term_fields_per_vocabulary();
+  foreach(variable_get('biological_vids', array()) as $vid => $status){
+    $fields_to_lock[] = 'field_aan_' . $vid;
+    $vocabulary = taxonomy_vocabulary_load($vid);
+    // Add all the required fields to this vocabulary.
+    foreach($additional_fields as $field){
+      $field['field_config']['field_name'] .= "_" . $vocabulary->vid;
+      $field['field_config']['settings']['allowed_values'][0]['vocabulary'] = $vocabulary->machine_name;
+      $field['field_instance']['bundle'] = $vocabulary->machine_name;
+      $field['field_instance']['field_name'] .= "_" . $vocabulary->vid;
+      if(!field_info_field($field['field_config']['field_name'])){
+        field_create_field($field['field_config']);
+        field_create_instance($field['field_instance']);
+      }
+    }
+    foreach(itis_term_collections($vocabulary->machine_name) as $itis_collection){
+      if(!field_info_field($itis_collection['field_config']['field_name'])){
+        field_create_field($itis_collection['field_config']);
+      }
+      try{
+        field_create_instance($itis_collection['field_instance']);
+      }
+      catch(Exception $e){
+      }
+    }
+    foreach(itis_term_collection_fields() as $field){
+      if(!field_info_field($field['field_config']['field_name'])){
+        field_create_field($field['field_config']);
+        field_create_instance($field['field_instance']);
+      }
+    }
+    foreach(itis_term_fields() as $field){
+      if(!field_info_field($field['field_config']['field_name'])){
+        field_create_field($field['field_config']);
+      }
+      $field['field_instance']['bundle'] = $vocabulary->machine_name;
+      try{
+        field_create_instance($field['field_instance']);
+      }
+      catch(Exception $e){
+      }
+    }
+  }
+  db_update('field_config')->fields(array(
+    'locked' => 1
+  ))->condition('field_name', $fields_to_lock)->execute();
+}

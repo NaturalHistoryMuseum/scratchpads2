@@ -316,7 +316,7 @@ class MigrateDestinationField extends MigrateDestination{
     return array(
       // field_config
       'field_name' => t('Field name'),
-      'bundle' => t('bundle'),
+      'bundle' => t('Bundle'),
       'entity_type' => t('Entity type'),
       'label' => t('Label'),
       'description' => t('Description'),

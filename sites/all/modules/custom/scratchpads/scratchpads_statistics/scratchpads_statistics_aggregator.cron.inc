@@ -15,7 +15,7 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
   // foreach($gbif_registry->getTechnicalInstallations('scratchpad') as
   // $technical_installation){
   // Start a timer so that we don't go over 60 seconds.
-  $timer = time();
+  timer_start('scratchpads_statistics_aggregator');
   $urls = array();
   foreach($gbif_registry->getTechnicalInstallations() as $ti){
     // Get this site from the list of sites.
@@ -27,21 +27,20 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
       // be an issue when hosting of sites external to the NHM becomes more
       // prevalent).
       $url = $ti->getHomePage();
-      if(!strpos($url, '/s2.') && !strpos($url, 'taxon.name') && !strpos($url, 'training') && !strpos($url, 'sandbox')){
-        $urls[] = $url;
+      if(!strpos($url, '/s2.') && !strpos($url, 'taxon.name') && !strpos($url, 'training') && !strpos($url, 'sandbox') && !strpos($url, '/dev.') && !strpos($url, '/dev-')){
+        $urls[$url] = $url;
       }
     }
   }
   // Random order the URLs so that we stand a chance of getting all of the sites
   // over a six day period.
   shuffle($urls);
+  $worked_on_urls = array();
   foreach($urls as $url){
+    $worked_on_urls[] = $url;
     // Whoa, we're taking too long, we should stop!
-    if($timer < time() - $execution_time){return;}
-    // We get the login data first and add that.
-    $data = _scratchpads_statistics_aggregator_get_data($url . 'login.json');
-    if($data && is_array($data) && count($data)){
-      _scratchpads_statistics_aggregator_insert_login_data($data, $url);
+    if(timer_read('scratchpads_statistics_aggregator') > $execution_time * 1000){
+      break;
     }
     // Get the greater captured value for this Scratchpad
     $query = db_select('scratchpads_statistics_data', 'd');
@@ -56,16 +55,35 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
       $last_capture = $row->captured;
       // If the last_captured value is less than six days old, then we don't
       // need to go any further.
-      if($last_capture > $timer - 518400){
+      if($last_capture > time() - 518400){
         continue;
       }
     }
-    // FIXME - Need to add the hash if we need to use it.
-    $data = _scratchpads_statistics_aggregator_get_data($url . 'stats.json?since=' . $last_capture);
+    // Retrieve the login data for this site, and enter that in to the tables.
+    $data = _scratchpads_statistics_aggregator_get_data($url . 'login.json');
     if($data && is_array($data) && count($data)){
-      _scratchpads_statistics_aggregator_insert_data($data, $url);
+      _scratchpads_statistics_aggregator_insert_login_data($data, $url);
+      // Get the full statistics for this site, and tner that in to the tables.
+      // FIXME - Need to add the hash/security if we need to use it.
+      $data = _scratchpads_statistics_aggregator_get_data($url . 'stats.json?since=' . $last_capture);
+      if($data){
+        if(is_array($data) && count($data)){
+          _scratchpads_statistics_aggregator_insert_data($data, $url);
+        }
+      }else{
+        watchdog('scratchpads_statistics', 'Failed to get statistics data from the Scratchpads site at !url', array(
+          '!url' => $url
+        ), WATCHDOG_WARNING);
+      }
+    }else{
+      watchdog('scratchpads_statistics', 'Failed to get login data from the Scratchpads site at !url', array(
+        '!url' => $url
+      ), WATCHDOG_WARNING);
     }
   }
+  watchdog('scratchpads_statistics', 'Aggregated: !urls', array(
+    '!urls' => implode(', ', $worked_on_urls)
+  ), WATCHDOG_INFO);
 }
 
 /**

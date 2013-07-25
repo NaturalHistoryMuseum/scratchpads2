@@ -1,5 +1,9 @@
 @CHARSET "UTF-8";
 
+#slickgrid div.slick-headerrow {
+  display: none;
+}
+
 #slickgrid .slick-cell.l0,
 #slickgrid .slick-header-column{
    text-align: left;
@@ -78,6 +82,11 @@
 .field-collection-container div{
   display: inline;
   width: auto;
+}
+
+.field-collection-view .entity-field-collection-item,
+.field-collection-container div.character-editor-state-image{
+  display: block;
 }
 
 .character-editor div.l0{

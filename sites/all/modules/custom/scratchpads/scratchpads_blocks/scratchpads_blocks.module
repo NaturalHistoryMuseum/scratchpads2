@@ -41,7 +41,7 @@ function scratchpads_blocks_menu(){
 function scratchpads_blocks_permission(){
   return array(
     'toggle placeholder blocks' => array(
-      'title' => t('toggle placeholder blocks'),
+      'title' => t('Toggle placeholder blocks'),
       'description' => t('Allows user to turn on & off placeholder blocks.')
     )
   );
@@ -183,7 +183,7 @@ function scratchpads_blocks_block_view($delta = ''){
         l(theme('image', array(
           'path' => $path . '/images/scratchpads.png',
           'alt' => 'Scratchpads logo',
-          'title' => 'Scratchpads TAG'
+          'title' => 'Scratchpads ' . SCRATCHPADS_VERSION
         )), 'http://scratchpads.eu/', $options)
       );
       $block['content'] = array(

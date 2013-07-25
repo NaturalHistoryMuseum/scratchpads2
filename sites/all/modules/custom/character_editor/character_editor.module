@@ -45,7 +45,7 @@ function character_editor_help($path, $arg){
 function character_editor_permission(){
   return array(
     'create character editor' => array(
-      'title' => t('Create character edit'),
+      'title' => t('Create character editor'),
       'description' => t('Create character editor projects.')
     ),
     'view character editor' => array(
@@ -165,134 +165,142 @@ function character_editor_views_api(){
  * This does the bulk of the work preparing the character project for vieing in a grid
  */
 function character_editor_views_pre_view(&$view, $display_id, &$args){
-  // Is this a slickgrid?
-  if($view->display_handler->get_option('style_plugin') == 'character_editor'){
-    // If there isn't an argument, don't do anything with it
-    if(!count($args)){return;}
-    $view->characters = array();
-    $style_options = $view->display_handler->get_option('style_options');
-    // Always turn on tabs
-    $style_options['tabs'] = true;
-    // Editing entity type will always be relation
-    $style_options['entity_type'] = 'relation';
-    if(arg(2) != 'edit' && (arg(0) != 'slickgrid' && arg(1) != 'callback')){
-      // Turn off all the edit controls
-      $style_options['enableColumnResize'] = false;
-      $style_options['enableColumnReorder'] = false;
-      $style_options['autoEdit'] = false;
-      $style_options['select_columns'] = false;
-      $style_options['add'] = array();
-      $editable = false;
-    }elseif(user_access('edit character editor')){
-      $editable = true;
-    }else{
-      drupal_access_denied();
-      drupal_exit();
-    }
-    // The project ID will always be passed in as the first argument
-    $project = character_editor_entity_load_single('character_editor_project', reset($args), true);
-    if(isset($project->field_characters[LANGUAGE_NONE])){
-      $character_groups = array_filter($project->field_characters[LANGUAGE_NONE]);
-      if(count($character_groups)){
-        foreach($character_groups as $character_group){
-          $delta = 1;
-          list($character_group_entity_type, $character_group_entity_id) = explode(':', reset($character_group['endpoints']));
-          $character_group_entity = character_editor_entity_load_single($character_group_entity_type, $character_group_entity_id, true);
-          if(isset($character_group_entity->field_characters[LANGUAGE_NONE])){
-            foreach($character_group_entity->field_characters[LANGUAGE_NONE] as $character){
-              list($character_entity_type, $character_entity_id) = explode(':', reset($character['endpoints']));
-              if($character_entity_type == 'character_editor_character'){
-                $character = character_editor_entity_load_single($character_entity_type, $character_entity_id);
-                $id = 'character_' . $character_entity_id;
-                $field = array(
-                  'id' => $id,
-                  'relationship' => 'none',
-                  'group_type' => 'group',
-                  'label' => $delta,
-                  'hide_empty' => 0
-                );
-                $view->add_item('page', 'field', 'views', 'character_field', $field, $id);
-                $style_options['columns'][$id] = array(
-                  'tab' => $character_group_entity->label(),
-                  'width' => 35,
-                  'filter' => '',
-                  'headerCssClass' => 'character character-type-' . $character->type . ' ' . $id
-                );
-                $entity_info = $character->entityInfo();
-                $style_options['columns'][$id]['data']['bt'] = t('<h2>!label</h2><span class="character-type">!type</span>', array(
-                  '!type' => $entity_info['bundles'][$character->type]['label'],
-                  '!label' => $character->label()
-                ));
-                // Render the character node - this is used for the header tooltips
-                $controller = entity_get_controller($character_entity_type);
-                $content = $controller->view(array(
-                  $character_entity_id => clone $character
-                ));
-                $style_options['columns'][$id]['data']['char'] = drupal_render($content);
-                switch($character->type){
-                  case 'text':
-                  case 'dna':
-                    $editor = 'ModalCharacter';
-                    break;
-                  case 'numeric':
-                    $editor = 'InlineCharacter';
-                    if(isset($character->field_char_unit[LANGUAGE_NONE][0]['value'])){
-                      $style_options['columns'][$id]['data']['bt'] .= t('<span>!unit</span>', array(
-                        '!unit' => $character->field_char_unit[LANGUAGE_NONE][0]['value']
-                      ));
-                    }
-                    break;
-                  case 'controlled':
-                    $editor = 'InlineCharacter';
-                    $value_to_delta = array();
-                    if(isset($character->field_char_states[LANGUAGE_NONE])){
-                      $conj = '';
-                      foreach($character->field_char_states[LANGUAGE_NONE] as $state_delta => $value){
-                        // Load the field collection entity
-                        $state = entity_load_single('field_collection_item', $value['value']);
-                        $style_options['columns'][$id]['data']['bt'] .= $conj . t('<span class="state-delta">@delta</span>@state', array(
-                          '@delta' => $state_delta,
-                          '@state' => $state->field_char_state_label[LANGUAGE_NONE][0]['safe_value']
-                        ));
-                        $conj = '<br/>';
-                        $value_to_delta[$value['value']] = $state_delta;
-                      }
-                    }else{
-                      $style_options['columns'][$id]['data']['bt'] .= t('There are no states for this chaarcter');
-                    }
-                    break;
-                }
-                $style_options['columns'][$id]['data']['charType'] = $character->type;
-                // Only add the editor if it's editable
-                if($editable){
-                  $style_options['columns'][$id]['editor'] = $editor;
-                }
-                // Fill in the data for this character
-                if(isset($character->field_characters[LANGUAGE_NONE])){
-                  foreach($character->field_characters[LANGUAGE_NONE] as $character_state){
-                    list(, $tid) = explode(':', $character_state['endpoints'][0]);
-                    $relation = relation_load($character_state['relation_id']);
-                    if(isset($relation->field_character_state_data[LANGUAGE_NONE][0]['safe_value'])){
-                      // If this is a controlled character, we want to use the delta, not the value
-                      $safe_value = $relation->field_character_state_data[LANGUAGE_NONE][0]['safe_value'];
-                      if($character->type == 'controlled' && is_array($value_to_delta)){
-                        foreach($value_to_delta as $value => $delta){
-                          $safe_value = str_replace($value, $delta, $safe_value);
-                        }
-                      }
-                      $view->characters[$tid][$id] = $safe_value;
-                    }
-                  }
-                }
-                $delta++;
-              }
+  // Is this a slickgrid? Is there an argument ?
+  if($view->display_handler->get_option('style_plugin') != 'character_editor'){return;}
+  if(!count($args)){return;}
+  $view->characters = array();
+  $style_options = $view->display_handler->get_option('style_options');
+  // Always turn on tabs
+  $style_options['tabs'] = true;
+  // Editing entity type will always be relation
+  $style_options['entity_type'] = 'relation';
+  if(arg(2) != 'edit' && (arg(0) != 'slickgrid' && arg(1) != 'callback')){
+    // Turn off all the edit controls
+    $style_options['enableColumnResize'] = false;
+    $style_options['enableColumnReorder'] = false;
+    $style_options['autoEdit'] = false;
+    $style_options['select_columns'] = false;
+    $style_options['add'] = array();
+    $editable = false;
+  }elseif(user_access('edit character editor')){
+    $editable = true;
+    $style_options['editable'] = TRUE;
+    $style_options['enableCellNavigation'] = TRUE;
+  }else{
+    drupal_access_denied();
+    drupal_exit();
+  }
+  // The project ID will always be passed in as the first argument
+  $project = character_editor_entity_load_single('character_editor_project', reset($args), true);
+  $project_w = entity_metadata_wrapper('character_editor_project', $project);
+  foreach($project_w->relation_character_character_editor_character as $group_w){
+    $column_number = 1;
+    $character_group_has_column = FALSE;
+    foreach($group_w->relation_character_character_editor_character as $character_w){
+      if($character_w->getBundle() == 'group'){
+        continue;
+      }
+      $character_group_has_column = TRUE;
+      $column_id = 'character_' . $character_w->getIdentifier();
+      $field = array(
+        'id' => $column_id,
+        'relationship' => 'none',
+        'group_type' => 'group',
+        'label' => $column_number,
+        'hide_empty' => 0
+      );
+      $view->add_item('page', 'field', 'views', 'character_field', $field, $column_id);
+      $style_options['columns'][$column_id] = array(
+        'tab' => $group_w->label(),
+        'width' => 35,
+        'filter' => '',
+        'headerCssClass' => 'character character-type-' . $character_w->getBundle() . ' ' . $column_id
+      );
+      $entity_info = $character_w->entityInfo();
+      $style_options['columns'][$column_id]['data']['bt'] = t('<h2>!label</h2><span class="character-type">!type</span>', array(
+        '!type' => $entity_info['bundles'][$character_w->getBundle()]['label'],
+        '!label' => $character_w->label()
+      ));
+      // Render the character node - this is used for the header tooltips
+      $controller = entity_get_controller($character_w->type());
+      $content = $controller->view(array(
+        $character_w->getIdentifier() => clone $character_w->value()
+      ));
+      $style_options['columns'][$column_id]['data']['char'] = drupal_render($content);
+      switch($character_w->getBundle()){
+        case 'text':
+        case 'dna':
+          $editor = 'ModalCharacter';
+          break;
+        case 'numeric':
+          $editor = 'InlineCharacter';
+          if($character_w->field_char_unit->value()){
+            $style_options['columns'][$column_id]['data']['bt'] .= t('<span>!unit</span>', array(
+              '!unit' => $character_w->field_char_unit->value()
+            ));
+          }
+          break;
+        case 'controlled':
+          $editor = 'InlineCharacter';
+          $value_to_delta = array();
+          if($character_w->field_char_states->count() > 0){
+            $conj = '';
+            foreach($character_w->field_char_states as $state_delta => $state_w){
+              $style_options['columns'][$column_id]['data']['bt'] .= $conj . t('<span class="state-delta">@delta</span>@state', array(
+                '@delta' => $state_delta,
+                '@state' => $state_w->field_char_state_label->value()
+              ));
+              $conj = '<br/>';
+              $value_to_delta[$state_w->getIdentifier()] = $state_delta;
+            }
+          }else{
+            $style_options['columns'][$column_id]['data']['bt'] .= t('There are no states for this character');
+          }
+          break;
+      }
+      $style_options['columns'][$column_id]['data']['charType'] = $character_w->getBundle();
+      // Only add the editor if it's editable
+      if($editable){
+        $style_options['columns'][$column_id]['editor'] = $editor;
+      }
+      // Fill in the data for this character
+      $relation_items = field_get_items($character_w->type(), $character_w->value(), 'field_characters');
+      foreach($character_w->relation_character_state_taxonomy_term as $term_delta => $term_w){
+        $relation = relation_load($relation_items[$term_delta]['relation_id']);
+        $language = field_language('relation', $relation, 'field_character_state_data');
+        if(isset($relation->field_character_state_data[$language][0]['safe_value'])){
+          // If this is a controlled character, we want to use the delta, not the value
+          $safe_value = $relation->field_character_state_data[$language][0]['safe_value'];
+          if($character_w->getBundle() == 'controlled' && is_array($value_to_delta)){
+            foreach($value_to_delta as $value => $value_delta){
+              $safe_value = str_replace($value, $value_delta, $safe_value);
             }
           }
+          $view->characters[$term_w->getIdentifier()][$column_id] = $safe_value;
         }
       }
+      $column_number++;
     }
-    $view->display_handler->set_option('style_options', $style_options);
+    if(!$character_group_has_column && (arg(2) == 'edit' || (arg(0) == 'slickgrid' && arg(1) == 'callback'))){
+      $column_id = 'character_group_' . $group_w->getIdentifier();
+      $field = array(
+        'id' => $column_id,
+        'relationship' => 'none',
+        'group_type' => 'group',
+        'label' => '',
+        'hide_empty' => 0
+      );
+      $view->add_item('page', 'field', 'views', 'nothing', $field, $column_id);
+      $style_options['columns'][$column_id] = array(
+        'tab' => $group_w->label(),
+        'headerCssClass' => 'character ' . $column_id
+      );
+      $style_options['columns'][$column_id]['data'] = array(
+        'char' => t('This group is empty. You need to add characters to the group.')
+      );
+    }
   }
+  $view->display_handler->set_option('style_options', $style_options);
 }
 
 /*********************************************************************************************
@@ -339,7 +347,7 @@ function character_editor_field_widget_form(&$form, &$form_state, $field, $insta
       $element['character'] = array(
         '#type' => 'item',
         '#title' => $character_entity[$entity_id]->label(),
-        '#suffix' => l('Edit', 'character/' . $entity_id . '/edit', array(
+        '#suffix' => l('Edit', 'character-editor-character/' . $entity_id . '/edit', array(
           'attributes' => array(
             'class' => 'character-editor-edit-link'
           ),
@@ -356,7 +364,9 @@ function character_editor_field_widget_form(&$form, &$form_state, $field, $insta
 }
 
 function character_editor_field_widget_form_after_build($form){
-  unset($form['field_characters']['und']['add_more']);
+  foreach(element_children($form['field_characters']) as $language){
+    unset($form['field_characters'][$language]['add_more']);
+  }
   return $form;
 }
 
@@ -371,7 +381,7 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
           // Is this an add link from slickgrid
           if(!isset($form_state['character_project_id'])){
             if($form_state['entity']->is_new){
-              $form_state['character_project_id'] = arg(7);
+              $form_state['character_project_id'] = arg(5);
             }else{
               $form_state['character_project_id'] = $_GET['project'];
             }
@@ -379,14 +389,32 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
           if($form_state['entity']->type != 'group'){
             $groups = character_editor_get_groups($form_state['character_project_id']);
             if(count($groups)){
+              $default_group = NULL;
+              if(empty($form_state['entity']->is_new)){
+                $group_entity = character_editor_get_group($form_state['entity']->id);
+                if($group_entity){
+                  $default_group = $group_entity->id;
+                }
+              }
+              if(empty($default_group)){
+                $default_group = reset(array_keys($groups));
+              }
+              // Get the actual title weight - the one in the form gets over-written later
+              $extra_fields = field_info_extra_fields('character_editor_character', $form_state['entity']->type, 'form');
+              if(isset($extra_fields['title']['weight'])){
+                $title_weight = $extra_fields['title']['weight'];
+              }else{
+                $title_weight = $form['title']['#weight'];
+              }
               $form['group'] = array(
                 '#type' => 'select',
                 '#title' => t('Group'),
                 '#options' => $groups,
                 '#description' => t('Which group would you like to add this character to?'),
                 '#required' => true,
-                '#default_value' => reset($groups),
-                '#nane' => 'group'
+                '#default_value' => $default_group,
+                '#nane' => 'group',
+                '#weight' => $title_weight + 0.5
               );
             }else{
               form_set_error('group', t("Sorry, you need to create a group before adding any other character"));
@@ -409,6 +437,8 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
                 'character_editor_character_delete_submit'
               )
             );
+            $form['actions']['submit']['#submit'][] = 'character_editor_character_form_submit';
+            $form['actions']['submit']['#update'] = TRUE;
           }
           $form['#after_build'][] = 'character_editor_character_form_after_build';
           break;
@@ -419,7 +449,7 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
           // And settings
           if(arg(2) == 'settings'){
             // Hide the characters on the settings form
-            $form['field_characters']['#access'] = false;
+            $form['field_characters']['#attributes']['class'][] = 'element-hidden';
             $form['title']['#title'] = t('Title');
           }else{
             // Hide all other fields on the edit characters form
@@ -428,7 +458,8 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
               'field_char_proj_description',
               'field_taxonomic_name'
             ) as $key){
-              $form[$key]['#access'] = false;
+              $form[$key]['#prefix'] = '<div class="element-hidden">';
+              $form[$key]['#suffix'] = '</div>';
             }
           }
           break;
@@ -583,6 +614,7 @@ function character_editor_entity_access($op){
     case 'access':
       $op = 'view';
       break;
+    case 'update':
     case 'settings':
     case 'characters':
       $op = 'edit';
@@ -610,15 +642,20 @@ function character_editor_entity_delete($entity, $type){
   switch($type){
     case 'character_editor_project':
     case 'character_editor_character':
-      if(isset($entity->field_characters[LANGUAGE_NONE])){
-        $characters = array();
-        foreach($entity->field_characters[LANGUAGE_NONE] as $field_character){
-          foreach($field_character['endpoints'] as $endpoint){
-            list($entity_type, $entity_id) = explode(':', $endpoint);
-            $characters[] = $entity_id;
+      if(!empty($entity->field_characaters)){
+        foreach($entity->field_characters as $language => $values){
+          if(empty($values)){
+            continue;
           }
+          $characters = array();
+          foreach($values as $field_character){
+            foreach($field_character['endpoints'] as $endpoint){
+              list($entity_type, $entity_id) = explode(':', $endpoint);
+              $characters[] = $entity_id;
+            }
+          }
+          entity_delete_multiple('character_editor_character', $characters);
         }
-        entity_delete_multiple('character_editor_character', $characters);
       }
       break;
   }
@@ -694,36 +731,58 @@ function character_editor_project_view($entity){
  * FORM FUNCTIONS
  * 
  ********************************************************************************************/
+/**
+ * Additional form submit handler for new characters. This is called after entity_admin_entity_form_submit
+ */
 function character_editor_character_form_submit(&$form, &$form_state){
-  try{
-    if(isset($form_state['entity'])){
-      $character_entity = $form_state['entity'];
-      switch($character_entity->type){
-        case 'group':
-          $parent_entity = entity_load_single('character_editor_project', $form_state['character_project_id']);
-          drupal_set_message(t("Created new character group @label"), array(
-            '@label' => $character_entity->label()
-          ));
-          break;
-        default:
-          $parent_entity = entity_load_single('character_editor_character', $form_state['values']['group']);
-          drupal_set_message(t("Created new character @label"), array(
-            '@label' => $character_entity->label()
-          ));
-          break;
+  if(empty($form_state['triggering_element']['#update'])){
+    try{
+      if(isset($form_state['entity'])){
+        $character_entity = $form_state['entity'];
+        switch($character_entity->type){
+          case 'group':
+            $parent_entity = entity_load_single('character_editor_project', $form_state['character_project_id']);
+            drupal_set_message(t("Created new character group @label", array(
+              '@label' => $character_entity->label()
+            )));
+            break;
+          default:
+            $parent_entity = entity_load_single('character_editor_character', $form_state['values']['group']);
+            drupal_set_message(t("Created new character @label", array(
+              '@label' => $character_entity->label()
+            )));
+            break;
+        }
+        character_editor_create_relation($parent_entity, $character_entity);
+      }else{
+        throw new Exception('The character could not be created.');
       }
-      character_editor_create_relation($parent_entity, $character_entity);
-    }else{
-      throw new Exception('The character could not be created.');
+    }
+    catch(Exception $e){
+      form_set_error('error', t('Sorry, the character could not be created - please close this form & try again. If the problem happens again, please contact the scratchpads team.'));
+    }
+    drupal_set_message(t("%type character added", array(
+      "%type" => ucfirst($character_entity->type)
+    )));
+    unset($form_state['redirect']);
+  }else if(isset($form_state['entity'])){
+    $character_entity = $form_state['entity'];
+    if($character_entity->type != 'group'){
+      $existing_group = character_editor_get_group($character_entity->id);
+      $new_group = entity_load_single('character_editor_character', $form_state['values']['group']);
+      if($existing_group->id != $new_group->id){
+        // Delete the existing group relation
+        $query = relation_query('character_editor_character', $character_entity->id)->entityCondition('bundle', PROJECT_CHARACTER_RELATION_TYPE)->related('character_editor_character', $existing_group->id);
+        $result = $query->execute();
+        if(count($result)){
+          $r = reset($result);
+          relation_delete($r->rid);
+        }
+        // And create a new one
+        character_editor_create_relation($new_group, $character_entity);
+      }
     }
   }
-  catch(Exception $e){
-    form_set_error('error', t('Sorry, the character could not be created - please close this form & try again. If the problem happens again, please contact the scratchpads team.'));
-  }
-  drupal_set_message(t("%type character added", array(
-    "%type" => ucfirst($character_entity->type)
-  )));
-  unset($form_state['redirect']);
 }
 
 /**
@@ -813,7 +872,8 @@ function character_editor_get_groups($character_project_id){
   $group_ids = array();
   foreach($results as $result){
     $relation = relation_load($result->rid);
-    foreach($relation->endpoints[LANGUAGE_NONE] as $endpoint){
+    $language = field_language('relation', $relation, 'endpoints');
+    foreach($relation->endpoints[$language] as $endpoint){
       if($endpoint['entity_type'] == 'character_editor_character'){
         $group_ids[] = $endpoint['entity_id'];
       }
@@ -824,6 +884,29 @@ function character_editor_get_groups($character_project_id){
     $groups[$group_entity_id] = $group_entity->label();
   }
   return $groups;
+}
+
+/**
+ * Get the character group of a given character
+ */
+function character_editor_get_group($character_id){
+  $query = relation_query('character_editor_character', $character_id);
+  $query->entityCondition('bundle', PROJECT_CHARACTER_RELATION_TYPE);
+  $results = $query->execute();
+  foreach($results as $result){
+    $relation = relation_load($result->rid);
+    $language = field_language('relation', $relation, 'endpoints');
+    foreach($relation->endpoints[$language] as $endpoint){
+      if($endpoint['entity_type'] != 'character_editor_character'){
+        continue;
+      }
+      $entity = reset(entity_load('character_editor_character', array(
+        $endpoint['entity_id']
+      )));
+      if($entity->type == 'group'){return $entity;}
+    }
+  }
+  return NULL;
 }
 
 /*********************************************************************************************
@@ -857,6 +940,28 @@ function character_editor_ctools_plugin_directory($module, $plugin){
  * 
  ********************************************************************************************/
 /**
+ * Implement hook_slickgrid_entity_add
+ *
+ * Ensure we reset the columns when characters are modified
+ */
+function character_editor_slickgrid_add_entity($entity_type, $bundle, $arguments, $entity){
+  // If we are adding a new character (and we know the project id), then
+  // provide the rebuild-columns too.
+  $result = array();
+  if($entity_type == 'character_editor_character' && count($arguments)){
+    $project_entity_id = reset($arguments);
+    $view = views_get_view(character_editor_get_default_view());
+    if($view){
+      $view->execute_display('defaut', array(
+        $project_entity_id
+      ));
+      $result['columns'] = slickgrid_encode_columns($view->columns);
+    }
+  }
+  return $result;
+}
+
+/**
  * Slickgrid process function
  * Retrieve form / process a modal character form (text & DNA)
  * @param object $editor
@@ -881,7 +986,7 @@ function character_editor_state_form_process($editor){
   if(!empty($form_state['executed'])){ // Form has succesfully completed  	
     // We're going to exit the process, so get editor result manually
     $result = $form_state['editor']->get_result();
-    slickgrid_callback_get_messages($result);
+    slickgrid_callback_add_messages($result);
     // Build a ctools ajax output array
     $output = array(
       array(
@@ -904,7 +1009,13 @@ function character_editor_state_form_process($editor){
 function character_editor_inline_cell_process($editor){
   $_POST['op'] = t('Save');
   $entity = current($editor->entities);
-  $_POST['field_character_state_data'][LANGUAGE_NONE] = array(
+  // The language in use in the slickgrid is the language that would be chosen by
+  // field_language(...). This is not strictly equivalent, though in our case
+  // will work as expected.
+  $field = field_info_field('field_characater_state_data');
+  $available_languages = field_available_languages('relation', $field);
+  $language = reset(_field_language_suggestion($available_languages, field_valid_language(), 'field_character_states'));
+  $_POST['field_character_state_data'][$language] = array(
     array(
       'value' => $_POST['value']
     )
@@ -932,7 +1043,9 @@ function character_editor_state_form($form, &$form_state){
   $form_state['tid'] = reset($form_state['values']['entity_ids']);
   $form_state['relation'] = character_editor_get_state_relation($form_state['tid'], $form_state['character_id']);
   field_attach_form('relation', $form_state['relation'], $form, $form_state);
-  unset($form['field_character_state_data'][LANGUAGE_NONE][0]['value']['#title']);
+  foreach(element_children($form['field_character_state_data']) as $language){
+    unset($form['field_character_state_data'][$language][0]['value']['#title']);
+  }
   unset($form['endpoints']);
   // Ensure values passed in from the slickgrid are persistent across the form rebuild
   foreach(array(
@@ -982,48 +1095,50 @@ function character_editor_state_form($form, &$form_state){
 function character_editor_state_form_validate($form, &$form_state){
   $editor = &$form_state['editor'];
   $id = $form_state['values']['id'];
-  switch($form_state['values']['character_type']){
-    case 'controlled':
-      // Is the state field not empty - then validate it 
-      if(is_string($form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value']) && $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'] != '?' && $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'] != '-'){
-        $character = entity_load_single('character_editor_character', $form_state['character_id']);
-        if(!count($character->field_char_states[LANGUAGE_NONE])){
-          $err = t("There are no states for this character");
-          break;
-        }
-        if(strpos($form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'], '+')){
-          $states = explode('+', $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value']);
-        }else if(strpos($form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'], '/')){
-          $states = explode('/', $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value']);
-        }else{
-          $states = array(
-            $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value']
-          );
-        }
-        if(array_diff($states, array_keys($character->field_char_states[LANGUAGE_NONE]))){
-          $err = t('Illegal state selected');
-        }else{
-          // Change the values from the delta to the field ID prior to saving
-          foreach($states as $state){
-            $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'] = & str_replace($state, $character->field_char_states[LANGUAGE_NONE][$state]['value'], $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value']);
+  foreach(element_children($from_state['value']['field_character_state_data']) as $language){
+    switch($form_state['values']['character_type']){
+      case 'controlled':
+        // Is the state field not empty - then validate it
+        if(is_string($form_state['values']['field_character_state_data'][$language][0]['value']) && $form_state['values']['field_character_state_data'][$language][0]['value'] != '?' && $form_state['values']['field_character_state_data'][$language][0]['value'] != '-'){
+          $character = entity_load_single('character_editor_character', $form_state['character_id']);
+          if(!count($character->field_char_states[$language])){
+            $err = t("There are no states for this character");
+            break;
+          }
+          if(strpos($form_state['values']['field_character_state_data'][$language][0]['value'], '+')){
+            $states = explode('+', $form_state['values']['field_character_state_data'][$language][0]['value']);
+          }else if(strpos($form_state['values']['field_character_state_data'][$language][0]['value'], '/')){
+            $states = explode('/', $form_state['values']['field_character_state_data'][$language][0]['value']);
+          }else{
+            $states = array(
+              $form_state['values']['field_character_state_data'][$language][0]['value']
+            );
+          }
+          if(array_diff($states, array_keys($character->field_char_states[$language]))){
+            $err = t('Illegal state selected');
+          }else{
+            // Change the values from the delta to the field ID prior to saving
+            foreach($states as $state){
+              $form_state['values']['field_character_state_data'][$language][0]['value'] = & str_replace($state, $character->field_char_states[$language][$state]['value'], $form_state['values']['field_character_state_data'][$language][0]['value']);
+            }
           }
         }
-      }
-      break;
-    case 'numeric':
-      if(!empty($form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value']) && !is_numeric($form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'])){
-        $err = t('Character state needs to be a numeric value.');
-      }
-      break;
-    case 'dna':
-      $dna = $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'];
-      preg_match('/[' . DNA_CHARACTERS . ']*/i', $dna, $matches);
-      if($matches[0] != $dna){
-        $err = t("Only the DNA characters %dna_chars are allowed", array(
-          '%dna_chars' => DNA_CHARACTERS
-        ));
-      }
-      break;
+        break;
+      case 'numeric':
+        if(!empty($form_state['values']['field_character_state_data'][$language][0]['value']) && !is_numeric($form_state['values']['field_character_state_data'][$language][0]['value'])){
+          $err = t('Character state needs to be a numeric value.');
+        }
+        break;
+      case 'dna':
+        $dna = $form_state['values']['field_character_state_data'][$language][0]['value'];
+        preg_match('/[' . DNA_CHARACTERS . ']*/i', $dna, $matches);
+        if($matches[0] != $dna){
+          $err = t("Only the DNA characters %dna_chars are allowed", array(
+            '%dna_chars' => DNA_CHARACTERS
+          ));
+        }
+        break;
+    }
   }
   if(isset($err)){
     $editor->errors[$id] = $err;
@@ -1074,8 +1189,9 @@ function character_editor_state_form_submit($form, &$form_state){
     }
     entity_form_submit_build_entity('relation', $relation, $form, $form_state);
     relation_save($relation);
-    // Return input value, not values value as this may have been changed
-    $editor->updated[$form_state['values']['id']]['value'] = $form_state['input']['field_character_state_data'][LANGUAGE_NONE][0]['value'];
+    // Return input value, not values value as this may have been changed.
+    $language = field_language('relation', $relation, 'field_character_state_data');
+    $editor->updated[$form_state['values']['id']]['value'] = $form_state['input']['field_character_state_data'][$language][0]['value'];
   }
   // ERROR: Entity save callback has thrown an exception
   catch(Exception $e){
@@ -1130,6 +1246,8 @@ function theme_field__field_char_states(&$variables){
     $classes = 'field-item';
     if(isset($item['#markup'])){
       $output .= $item['#markup'];
+    }else if($item['#theme'] == 'image_formatter'){
+      $output .= '<div class="character-editor-state-image">' . drupal_render($item) . '</div>';
     }else{
       $output .= '<div class="field-label"' . $variables['title_attributes'] . '>' . $delta . ':&nbsp;</div>';
       $output .= drupal_render($item);
@@ -1150,7 +1268,9 @@ function character_editor_preprocess_slickgrid_control__add(&$variables){
     'character_editor_character/controlled',
     'character_editor_character/group'
   ) as $character){
-    $variables['add_links'][] = $add_links[$character];
+    if(isset($add_links[$character])){
+      $variables['add_links'][] = $add_links[$character];
+    }
   }
 }
 

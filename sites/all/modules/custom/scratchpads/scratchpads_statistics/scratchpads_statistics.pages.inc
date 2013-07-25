@@ -89,20 +89,10 @@ function scratchpads_statistics_stats_page_login_json(){
  * FIXME Need to add CACHING.
  */
 function scratchpads_statistics_stats_page(){
-  $content = array();
-  // Users --------------------------------------------------------------------
-  // First we get the entity_id for the user/user entity/bundle combo.
-  $id = db_select('scratchpads_statistics_entity_bundle', 'eb')->fields('eb', array(
-    'id'
-  ))->condition('entity', 'user')->condition('bundle', 'user')->execute()->fetchField();
-  $query = db_select('scratchpads_statistics_data', 'd')->fields('d', array(
-    'captured',
-    'site'
-  ))->condition('entity_bundle', $id);
-  $query->groupBy('site');
-  $query->groupBy('captured');
-  $query->orderBy('captured', 'ASC');
-  $query->addExpression('SUM(d.number_created)', 'sum_created');
+  $content = array(
+    '#prefix' => '<div class="scratchpads-statistics-wrapper">',
+    '#suffix' => '</div>'
+  );
   $site = FALSE;
   $user = FALSE;
   // Filter the data by this site.
@@ -111,7 +101,6 @@ function scratchpads_statistics_stats_page(){
     foreach($_GET['site'] as $site_id){
       $site->condition('d.site', $site_id);
     }
-    $query->condition($site);
   }
   // Filter the data by a term.
   $term = db_or();
@@ -122,32 +111,11 @@ function scratchpads_statistics_stats_page(){
   }else{
     $term->condition('d.term', 0);
   }
-  $query->condition($term);
   // Filter the data by a user.
   if(isset($_GET['user'])){
     $user = db_or();
     foreach($_GET['user'] as $user_id){
       $user->condition('d.user', $user_id);
-    }
-    $query->condition($user);
-  }
-  $results = $query->execute();
-  $site_month_user_counts = array();
-  foreach($results as $row){
-    $site_month_user_counts[$row->site][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
-  }
-  $month_counts = array();
-  foreach($site_month_user_counts as $data){
-    foreach($data as $key => $value){
-      if(!isset($month_counts[$key])){
-        $month_counts[$key] = array(
-          'users' => 0,
-          'objects' => 0,
-          'edits' => 0,
-          'views' => 0
-        );
-      }
-      $month_counts[$key]['users'] += $value;
     }
   }
   // Objects ------------------------------------------------------------------
@@ -176,7 +144,6 @@ function scratchpads_statistics_stats_page(){
       foreach($data as $key => $value){
         if(!isset($month_counts[$key])){
           $month_counts[$key] = array(
-            'users' => 0,
             'objects' => 0,
             'edits' => 0,
             'views' => 0
@@ -213,7 +180,6 @@ function scratchpads_statistics_stats_page(){
       foreach($data as $key => $value){
         if(!isset($month_counts[$key])){
           $month_counts[$key] = array(
-            'users' => 0,
             'objects' => 0,
             'edits' => 0,
             'views' => 0
@@ -242,14 +208,13 @@ function scratchpads_statistics_stats_page(){
   $results = $query->execute();
   $site_month_object_counts = array();
   foreach($results as $row){
-    $site_month_object_counts[$row->entity_bundle][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
+    $site_month_object_counts[$row->site][$row->entity_bundle][date('Y', $row->captured) . "/" . date('n', $row->captured)] = $row->sum_created;
   }
   foreach($site_month_object_counts as $site_array){
     foreach($site_array as $data){
       foreach($data as $key => $value){
         if(!isset($month_counts[$key])){
           $month_counts[$key] = array(
-            'users' => 0,
             'objects' => 0,
             'edits' => 0,
             'views' => 0
@@ -304,20 +269,57 @@ function scratchpads_statistics_stats_page(){
       '#theme' => 'simple_google_chart',
       '#type' => 'LineChart',
       '#data' => $data_objects,
-      '#title' => t('Objects over time'),
+      '#title' => t('Content'),
+      '#subtitle' => t('The number of different objects in Scratchpads (incl. taxon descriptions, bibliographic entries, localities, specimens and images)'),
       '#options' => array(
-        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE
+        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE,
+        'legend' => array(
+          'position' => 'none'
+        )
       )
     );
   }
-  if(isset($data_users[2]) && !$user){
+  if(!$user){
+    // Users -------------------------------------------------------------------
+    $query = db_select('scratchpads_statistics_login', 'd')->condition('access', 0, '>')->fields('d', array(
+      'created'
+    ))->orderBy('created');
+    if($site){
+      $query->condition($site);
+    }
+    $createds = $query->execute()->fetchCol();
+    $user_counts = array();
+    foreach($createds as $created){
+      if($created){
+        if(!isset($user_counts[date('Y', $created) . "/" . date('n', $created)])){
+          $user_counts[date('Y', $created) . "/" . date('n', $created)] = end($user_counts);
+        }
+        $user_counts[date('Y', $created) . "/" . date('n', $created)] += 1;
+      }
+    }
+    $site_counts_table = array(
+      array(
+        t('Year/Month'),
+        t('Users')
+      )
+    );
+    foreach($user_counts as $month => $count){
+      $user_counts_table[] = array(
+        $month,
+        $count
+      );
+    }
     $content[] = array(
       '#theme' => 'simple_google_chart',
       '#type' => 'LineChart',
-      '#data' => $data_users,
-      '#title' => t('Users over time'),
+      '#data' => $user_counts_table,
+      '#title' => t('Active users'),
+      '#subtitle' => t('Registered users logged-in at least once to their Scratchpad sites'),
       '#options' => array(
-        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE
+        'pointSize' => 2,
+        'legend' => array(
+          'position' => 'none'
+        )
       )
     );
   }
@@ -326,9 +328,57 @@ function scratchpads_statistics_stats_page(){
       '#theme' => 'simple_google_chart',
       '#type' => 'LineChart',
       '#data' => $data_views,
-      '#title' => t('Views over time'),
+      '#title' => t('Views'),
+      '#subtitle' => t('The number of times Scratchpads objects have been viewed'),
       '#options' => array(
-        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE
+        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE,
+        'legend' => array(
+          'position' => 'none'
+        )
+      ),
+      'note_about_views' => array(
+        '#markup' => '<p class="scratchpads-statistics-note">' . t('The number of times content has been viewed. Views records are available from April 2013 onward.') . '</p>'
+      )
+    );
+  }
+  if(!$site && !$user){
+    // Sites --------------------------------------------------------------------
+    $query = db_select('scratchpads_statistics_site', 's')->fields('s', array(
+      'created'
+    ))->orderBy('created');
+    $createds = $query->execute()->fetchCol();
+    $site_counts = array();
+    foreach($createds as $created){
+      if($created){
+        if(!isset($site_counts[date('Y', $created) . "/" . date('n', $created)])){
+          $site_counts[date('Y', $created) . "/" . date('n', $created)] = end($site_counts);
+        }
+        $site_counts[date('Y', $created) . "/" . date('n', $created)] += 1;
+      }
+    }
+    $site_counts_table = array(
+      array(
+        t('Year/Month'),
+        t('Sites')
+      )
+    );
+    foreach($site_counts as $month => $count){
+      $site_counts_table[] = array(
+        $month,
+        $count
+      );
+    }
+    $content[] = array(
+      '#theme' => 'simple_google_chart',
+      '#type' => 'LineChart',
+      '#data' => $site_counts_table,
+      '#title' => t('Sites'),
+      '#subtitle' => t('The number of Scratchpad sites'),
+      '#options' => array(
+        'pointSize' => SCRATCHPADS_STATISTICS_POINT_SIZE,
+        'legend' => array(
+          'position' => 'none'
+        )
       )
     );
   }
@@ -445,7 +495,7 @@ function scratchpads_statistics_stats_page(){
           '#theme' => 'simple_google_chart',
           '#type' => 'ColumnChart',
           '#data' => $data,
-          '#title' => t('Objects - Views'),
+          '#title' => t('Objects and Views'),
           '#options' => array(
             'bar' => array(
               'groupWidth' => '80%'
@@ -507,7 +557,7 @@ function scratchpads_statistics_stats_page(){
   // Users
   //
   // Total
-  $query = db_select('scratchpads_statistics_login', 'd');
+  $query = db_select('scratchpads_statistics_login', 'd')->condition('access', 0, '>');
   if($site){
     $query->condition($site);
   }
@@ -590,7 +640,7 @@ function scratchpads_statistics_stats_page(){
       // Sites
       //
       // Total
-      $query = db_select('scratchpads_statistics_login', 'l');
+      $query = db_select('scratchpads_statistics_login', 'l')->condition('access', 0, '>');
       $query->addExpression('COUNT(DISTINCT site)');
       $result = $query->execute()->fetchAssoc();
       $total_users_site = (integer)array_pop($result);
@@ -619,36 +669,41 @@ function scratchpads_statistics_stats_page(){
         );
       }
       $content[] = array(
-        '#theme' => 'simple_google_chart',
-        '#type' => 'BarChart',
-        '#title' => t('Active Users/Sites'),
-        '#options' => $options,
-        '#data' => array(
-          array(
-            'Time period',
-            'Users',
-            'Sites'
-          ),
-          array(
-            'Last week',
-            $last_week,
-            $last_week_site
-          ),
-          array(
-            'Last month',
-            $last_month,
-            $last_month_site
-          ),
-          array(
-            'Last year',
-            $last_year,
-            $last_year_site
-          ),
-          array(
-            'Ever',
-            $total_users,
-            $total_users_site
+        'graph' => array(
+          '#theme' => 'simple_google_chart',
+          '#type' => 'BarChart',
+          '#title' => t('Number of Active Users/Sites'),
+          '#options' => $options,
+          '#data' => array(
+            array(
+              'Time period',
+              'Users',
+              'Sites'
+            ),
+            array(
+              'Last week',
+              $last_week,
+              $last_week_site
+            ),
+            array(
+              'Last month',
+              $last_month,
+              $last_month_site
+            ),
+            array(
+              'Last year',
+              $last_year,
+              $last_year_site
+            ),
+            array(
+              'Ever',
+              $total_users,
+              $total_users_site
+            )
           )
+        ),
+        'note_about_views' => array(
+          '#markup' => '<p class="scratchpads-statistics-note">' . t('A site is understood to be active if a registered user signs in to modify the site’s content. The action of signing in defines a user as active. Visitors browsing the site, i.e. without logging in, are not counted in these figures. These figures show that the dominant pattern of activity is for registered users to update their sites periodically.') . '</p>'
         )
       );
     }

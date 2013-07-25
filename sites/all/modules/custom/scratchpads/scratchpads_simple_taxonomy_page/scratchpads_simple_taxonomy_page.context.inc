@@ -77,6 +77,6 @@ function scratchpads_simple_taxonomy_page_context_default_contexts(){
   $export[$context->name] = $context;
   // Translatables
   // Included for use with string extractors like potx.
-  t('taxonomy');
+  t('Taxonomy');
   return $export;
 }

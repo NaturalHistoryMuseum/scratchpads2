@@ -6,7 +6,7 @@
     var activeTab;
     var defaultTabIndex = 0;
     function init(){
-      constructUI();
+      constructUI(defaultTab);
       grid.onHeaderContextMenu.subscribe(onHeaderContextMenu);
     }
     function onHeaderContextMenu(e, ui){
@@ -38,7 +38,7 @@
         $(slickgrid.getContainer()).trigger('onSlickgridTabChanged');
       }
     }
-    function constructUI(){
+    function constructUI(defaultTab){
       var tabs = [];
       $container.empty();
       $(columns).each(function(i, col){
@@ -56,7 +56,8 @@
       showTab(tabs[defaultTabIndex]);
     }
     function rebuild(){
-      constructUI();
+      var tab = typeof activeTab === 'undefined' ? defaultTab : activeTab;
+      constructUI(tab);
     }
     $.extend(this, {
     // Methods

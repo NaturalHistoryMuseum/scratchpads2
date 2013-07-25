@@ -50,7 +50,7 @@ function scratchpads_data_integrity_check_for_deleted_files(){
         $delete_file = TRUE;
       }else{
         // Alert if a user uploaded the file
-        $messages[] = " - " . t('MISSING') . ": {$row->fid}:{$row->uri}";
+        $messages[] = " - " . t('Missing') . ": {$row->fid}:{$row->uri}";
       }
     }
     if(!$row->filesize && !$row->uid){

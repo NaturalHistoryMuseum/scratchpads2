@@ -55,7 +55,7 @@ function oboe_admin_jobs(){
     $operations = array();
     if(oboe_access('delete', $oboe)){
       $operations['delete'] = array(
-        'title' => t('delete'),
+        'title' => t('Delete'),
         'href' => 'oboe/' . $oboe->oid . '/delete',
         'query' => $destination
       );
