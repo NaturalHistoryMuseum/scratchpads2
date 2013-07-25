@@ -232,3 +232,12 @@ function darwincore_update_7013(){
     'locked' => 1
   ))->condition('field_name', $fields_to_lock)->execute();
 }
+
+/**
+ * Enable the auto_entitylabel module
+ */
+function darwincore_update_7014(){
+  module_enable(array(
+    'auto_entitylabel'
+  ));
+}
