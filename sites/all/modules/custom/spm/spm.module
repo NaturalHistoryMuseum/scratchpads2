@@ -22,6 +22,8 @@ function spm_form_spm_node_form_alter(&$form, &$form_state, $form_id){
       $form[$key]['#attributes']['class'][] = 'unused_text_field';
     }
   }
+  $form['#attached']['css'][] = drupal_get_path('module', 'spm') . '/css/spm.css';
+  $form['#attached']['js'][] = drupal_get_path('module', 'spm') . '/js/spm_config.js';
 }
 
 /**
@@ -30,7 +32,7 @@ function spm_form_spm_node_form_alter(&$form, &$form_state, $form_id){
 function spm_menu(){
   $items['admin/config/user-interface/taxon-description-settings'] = array(
     'title' => 'Taxon description editor settings',
-    'description' => t('Choose which fields are visible on the taxon descriptions editing page.'),
+    'description' => 'Choose which fields are visible on the taxon descriptions editing page.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array(
       '_spm_form_builder'

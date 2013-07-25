@@ -9,9 +9,9 @@
       $('#' + this.GM3.id).append('<div class="gm3_information" style="cursor:pointer"><p>' + this.get_message_from_level(this.selecting_level) + '</p></div>');
       var self = this;
       $('#' + this.GM3.id + ' .gm3_information').click(function(){
-        // We reduce the level by one, unless we're on one, then we set it as 4
+        // We reduce the level by one, unless we're on one, then we set it as 5
         if(self.selecting_level < 2) {
-          self.selecting_level = 4;
+          self.selecting_level = 5;
         } else {
           self.selecting_level--;
         }
@@ -71,7 +71,7 @@
                   for(i in result) {
                     if(result[i].types[0] && result[i].types[0] == 'country' && result[i].types[1] && result[i].types[1] == 'political') {
                       var region_code = result[i].address_components[0]['short_name'];
-                      $.getJSON(Drupal.settings.gm3_region.callback2 + "/" + event.latLng.toString() + "/" + region_code + "/4", function(data){
+                      $.getJSON(Drupal.settings.gm3_region.callback2 + "/" + event.latLng.toString() + "/" + region_code + "/5", function(data){
                         self.remove_region_from_click(data);
                       });
                     }
@@ -82,7 +82,7 @@
                   // Could be one of the following:
                   // Kosovo, Kashmir, St Vincent and the Grenadines, Anguilla
                   // or the Sea.
-                  $.getJSON(Drupal.settings.gm3_region.callback2 + "/" + event.latLng.toString() + "/UNKNOWN/4", function(data){
+                  $.getJSON(Drupal.settings.gm3_region.callback2 + "/" + event.latLng.toString() + "/UNKNOWN/5", function(data){
                     self.remove_region_from_click(data);
                   });
                 } else {
@@ -126,6 +126,7 @@
       data[1] = data[0] + ':' + data[1];
       data[2] = data[1] + ':' + data[2];
       data[3] = data[2] + ':' + data[3];
+      data[4] = data[3] + ':' + data[4];
       var found_region = false;
       for( var i in data) {
         if(this.countries[data[i]] != undefined) {
@@ -147,6 +148,8 @@
         return Drupal.t("Selecting by sub-continent (Level 2)");
       case 3:
         return Drupal.t("Selecting by country/subcountry (Level 3)");
+      case 5:
+        return Drupal.t("Selecting by vice county (Level 5) - UK Only");
       case 4:
       default:
         return Drupal.t("Selecting by country/subcountry (Level 4)");
@@ -159,8 +162,10 @@
       return 2;
     } else if(zoom < 6) {
       return 3;
+    } else if(zoom < 7){
+      return 4;
     }
-    return 4;
+    return 5;
   }
   Drupal.GM3.region.prototype.update_field = function(){
     // Loop through each country.

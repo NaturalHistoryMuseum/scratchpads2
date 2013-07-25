@@ -12,7 +12,7 @@ function gm3_region_field_field_schema($field){
             'description' => "Region ID",
             'type' => 'varchar',
             'not null' => TRUE,
-            'length' => 16
+            'length' => 22
           )
         ),
         'indexes' => array(
@@ -23,4 +23,39 @@ function gm3_region_field_field_schema($field){
       );
       break;
   }
+}
+
+/**
+ * Update all field_data_* and field_revision_* tables associated with GM3
+ * fields.  The region_id column needs to be longer (22 v 16).
+ */
+function gm3_region_field_update_7001(){
+  $spec = gm3_region_field_field_schema(array(
+    'type' => 'gm3_region'
+  ));
+  foreach(field_info_fields() as $id => $field){
+    if($field['type'] == 'gm3_region' || ($field['type'] == 'gm3_combination' && isset($field['columns']['region_id']))){
+      // Update both field_data_N and field_revision_N
+      foreach(array(
+        'data',
+        'revision'
+      ) as $table){
+        $table = "field_{$table}_{$id}";
+        $field = "{$id}_region_id";
+        db_update($table)->fields(array(
+          $field => ''
+        ))->isNull($field)->execute();
+        db_drop_unique_key($table, $field);
+        db_change_field($table, $field, $field, $spec['columns']['region_id'], array(
+          'indexes' => array(
+            $field => array(
+              $field
+            )
+          )
+        ));
+      }
+    }
+  }
+  // Finally
+  cache_clear_all();
 }

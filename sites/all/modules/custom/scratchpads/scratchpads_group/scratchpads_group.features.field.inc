@@ -12,6 +12,7 @@ function scratchpads_group_field_default_fields($additional_content_type = FALSE
   // Exported field: 'node-group-body'
   $fields['node-group-body'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -83,6 +84,7 @@ function scratchpads_group_field_default_fields($additional_content_type = FALSE
   // Exported field: 'node-group-group_group'
   $fields['node-group-group_group'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -179,6 +181,7 @@ function scratchpads_group_field_default_fields($additional_content_type = FALSE
       // Exported field: 'node-xxx-group_audience'
       $fields[$entity_type . '-' . $bundle . '-group_audience'] = array(
         'field_config' => array(
+          'locked' => '1',
           'active' => '1',
           'cardinality' => '-1',
           'deleted' => '0',
@@ -257,6 +260,7 @@ function scratchpads_group_field_default_fields($additional_content_type = FALSE
       // Exported field: 'node-xxx-group_content_access'
       $fields[$entity_type . '-' . $bundle . '-group_content_access'] = array(
         'field_config' => array(
+          'locked' => '1',
           'active' => '1',
           'cardinality' => '1',
           'deleted' => '0',
@@ -335,6 +339,7 @@ function scratchpads_group_field_default_fields($additional_content_type = FALSE
   // Exported field: 'og_membership-og_membership_type_default-og_membership_request'
   $fields['og_membership-og_membership_type_default-og_membership_request'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
@@ -395,6 +400,7 @@ function scratchpads_group_field_default_fields($additional_content_type = FALSE
   // Exported field: 'user-user-group_audience'
   $fields['user-user-group_audience'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',

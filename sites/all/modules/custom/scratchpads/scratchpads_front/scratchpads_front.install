@@ -33,3 +33,25 @@ function scratchpads_front_update_7001(){
     variable_set('filter_allowed_protocols', $allowed_protocols);
   }
 }
+
+/**
+ * Ensure users haven't deleted any fields.
+ */
+function scratchpads_front_update_7002(){
+  $fields_to_lock = array();
+  module_load_include('features.field.inc', 'scratchpads_front');
+  foreach(scratchpads_front_field_default_fields() as $field){
+    $fields_to_lock[] = $field['field_config']['field_name'];
+    if(!field_info_field($field['field_config']['field_name'])){
+      field_create_field($field['field_config']);
+    }
+    try{
+      field_create_instance($field['field_instance']);
+    }
+    catch(Exception $e){
+    }
+  }
+  db_update('field_config')->fields(array(
+    'locked' => 1
+  ))->condition('field_name', $fields_to_lock)->execute();
+}
