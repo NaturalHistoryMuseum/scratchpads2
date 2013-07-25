@@ -8,7 +8,7 @@
 function scratchpads_views_filter_form_views_exposed_form_alter(&$form, &$form_state, $form_id){
   if(strpos($form_state['view']->name, 'admin_vbo_node') !== false){
     $optionsarray = array();
-    $optionsarray[0] = '- Select a Field -';
+    $optionsarray[0] = '- ' . t('Select a field') . ' -';
     $has_taxa = false;
     foreach($form['#info'] as $key => $element){
       if(substr($element['label'], 0, 6) == 'Taxa |'){
