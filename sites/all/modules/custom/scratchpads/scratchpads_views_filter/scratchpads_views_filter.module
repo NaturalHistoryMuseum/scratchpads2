@@ -8,10 +8,25 @@
 function scratchpads_views_filter_form_views_exposed_form_alter(&$form, &$form_state, $form_id){
   if(strpos($form_state['view']->name, 'admin_vbo_node') !== false){
     $optionsarray = array();
-    $optionsarray[0] = 'No Filters';
+    $optionsarray[0] = '- Select a Field -';
+    $has_taxa = false;
+    foreach($form['#info'] as $key => $element){
+      if(substr($element['label'], 0, 6) == 'Taxa |'){
+        $has_taxa = true;
+      }
+    }
     foreach($form['#info'] as $key => $element){
       $key2 = 'views-widget-' . $key;
-      $optionsarray[$key2] = $element['label'];
+      // Add Option Groups for Location and Taxa
+      if(substr($element['label'], 0, 10) == 'Location |'){
+        $optionsarray['Location Fields'][$key2] = substr($element['label'], 11);
+      }elseif(substr($element['label'], 0, 6) == 'Taxa |'){
+        $optionsarray['Taxa'][$key2] = substr($element['label'], 7);
+      }elseif($has_taxa){
+        $optionsarray['Other Fields'][$key2] = $element['label'];
+      }else{
+        $optionsarray['Fields'][$key2] = $element['label'];
+      }
     }
     $newform = array();
     $newform['selected'] = array(
@@ -25,9 +40,10 @@ function scratchpads_views_filter_form_views_exposed_form_alter(&$form, &$form_s
     $form = $newform;
     $newforminfo = array();
     $newforminfo['selected'] = array(
-      'operator' => 'selected',
+      'operator' => '',
       'value' => 'selected',
-      'label' => 'Filter By Fields'
+      'label' => 'Filter By Fields',
+      'description' => ''
     );
     foreach($form['#info'] as $key => $element){
       $newforminfo[$key] = $element;

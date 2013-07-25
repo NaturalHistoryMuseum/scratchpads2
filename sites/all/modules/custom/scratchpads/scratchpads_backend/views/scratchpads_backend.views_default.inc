@@ -1081,7 +1081,7 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
-                          $handler = $view->new_display('default', 'Master', 'default');
+                            $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = $label;
   $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['use_more_always'] = FALSE;
@@ -1363,108 +1363,62 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
   $handler->display->display_options['sorts']['created']['table'] = 'node';
   $handler->display->display_options['sorts']['created']['field'] = 'created';
   $handler->display->display_options['sorts']['created']['order'] = 'DESC';
-  
-  
-  /* Filter criterion: Content: Title */
-  $handler->display->display_options['filters']['title']['id'] = 'title';
-  $handler->display->display_options['filters']['title']['table'] = 'node';
-  $handler->display->display_options['filters']['title']['field'] = 'title';
-  $handler->display->display_options['filters']['title']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['title']['expose']['operator_id'] = 'title_op';
-  $handler->display->display_options['filters']['title']['expose']['label'] = 'Title';
-  $handler->display->display_options['filters']['title']['expose']['use_operator'] = TRUE;
-  $handler->display->display_options['filters']['title']['expose']['operator'] = 'title_op';
-  $handler->display->display_options['filters']['title']['expose']['identifier'] = 'title';
-  $handler->display->display_options['filters']['title']['expose']['remember_roles'] = array(
-    2 => '2',
-    1 => 0,
-    3 => 0,
-    4 => 0,
-    5 => 0
-  );
-  
-  if($bundle == 'biblio'){
-    /* Filter criterion: Biblio: Type of Publication */
-    $handler->display->display_options['filters']['tid_5']['id'] = 'tid_5';
-    $handler->display->display_options['filters']['tid_5']['table'] = 'biblio_types';
-    $handler->display->display_options['filters']['tid_5']['field'] = 'tid';
-    $handler->display->display_options['filters']['tid_5']['group'] = 1;
-    $handler->display->display_options['filters']['tid_5']['exposed'] = TRUE;
-    $handler->display->display_options['filters']['tid_5']['expose']['operator_id'] = 'tid_5_op';
-    $handler->display->display_options['filters']['tid_5']['expose']['label'] = 'Type of Publication';
-    $handler->display->display_options['filters']['tid_5']['expose']['use_operator'] = TRUE;
-    $handler->display->display_options['filters']['tid_5']['expose']['operator'] = 'tid_5_op';
-    $handler->display->display_options['filters']['tid_5']['expose']['identifier'] = 'tid_5';
-    $handler->display->display_options['filters']['tid_5']['expose']['multiple'] = TRUE;
-    $handler->display->display_options['filters']['tid_5']['expose']['remember_roles'] = array(
-      2 => '2',
-      1 => 0,
-      3 => 0,
-      4 => 0,
-      5 => 0
-    );
-    /* Filter criterion: Biblio: Year of Publication */
-    $handler->display->display_options['filters']['biblio_year']['id'] = 'biblio_year';
-    $handler->display->display_options['filters']['biblio_year']['table'] = 'biblio';
-    $handler->display->display_options['filters']['biblio_year']['field'] = 'biblio_year';
-    $handler->display->display_options['filters']['biblio_year']['group'] = 1;
-    $handler->display->display_options['filters']['biblio_year']['exposed'] = TRUE;
-    $handler->display->display_options['filters']['biblio_year']['expose']['operator_id'] = 'biblio_year_op';
-    $handler->display->display_options['filters']['biblio_year']['expose']['label'] = 'Year of Publication';
-    $handler->display->display_options['filters']['biblio_year']['expose']['use_operator'] = TRUE;
-    $handler->display->display_options['filters']['biblio_year']['expose']['operator'] = 'biblio_year_op';
-    $handler->display->display_options['filters']['biblio_year']['expose']['identifier'] = 'biblio_year';
-    $handler->display->display_options['filters']['biblio_year']['expose']['remember_roles'] = array(
-      2 => '2',
-      1 => 0,
-      3 => 0,
-      4 => 0,
-      5 => 0
-    );
-    /* Filter criterion: Biblio: Author last name */
-    $handler->display->display_options['filters']['lastname']['id'] = 'lastname';
-    $handler->display->display_options['filters']['lastname']['table'] = 'biblio_contributor_data';
-    $handler->display->display_options['filters']['lastname']['field'] = 'lastname';
-    $handler->display->display_options['filters']['lastname']['group'] = 1;
-    $handler->display->display_options['filters']['lastname']['exposed'] = TRUE;
-    $handler->display->display_options['filters']['lastname']['expose']['operator_id'] = 'lastname_op';
-    $handler->display->display_options['filters']['lastname']['expose']['label'] = 'Author';
-    $handler->display->display_options['filters']['lastname']['expose']['use_operator'] = TRUE;
-    $handler->display->display_options['filters']['lastname']['expose']['operator'] = 'lastname_op';
-    $handler->display->display_options['filters']['lastname']['expose']['identifier'] = 'lastname';
-    $handler->display->display_options['filters']['lastname']['expose']['multiple'] = TRUE;
-    $handler->display->display_options['filters']['lastname']['expose']['remember_roles'] = array(
-      2 => '2',
-      1 => 0,
-      3 => 0,
-      4 => 0,
-      5 => 0
-    );
-    /* Filter criterion: Biblio: Secondary Title */
-    $handler->display->display_options['filters']['biblio_secondary_title']['id'] = 'biblio_secondary_title';
-    $handler->display->display_options['filters']['biblio_secondary_title']['table'] = 'biblio';
-    $handler->display->display_options['filters']['biblio_secondary_title']['field'] = 'biblio_secondary_title';
-    $handler->display->display_options['filters']['biblio_secondary_title']['group'] = 1;
-    $handler->display->display_options['filters']['biblio_secondary_title']['exposed'] = TRUE;
-    $handler->display->display_options['filters']['biblio_secondary_title']['expose']['operator_id'] = 'biblio_secondary_title_op';
-    $handler->display->display_options['filters']['biblio_secondary_title']['expose']['label'] = 'Journal';
-    $handler->display->display_options['filters']['biblio_secondary_title']['expose']['use_operator'] = TRUE;
-    $handler->display->display_options['filters']['biblio_secondary_title']['expose']['operator'] = 'biblio_secondary_title_op';
-    $handler->display->display_options['filters']['biblio_secondary_title']['expose']['identifier'] = 'biblio_secondary_title';
-    $handler->display->display_options['filters']['biblio_secondary_title']['expose']['remember_roles'] = array(
-      2 => '2',
-      1 => 0,
-      3 => 0,
-      4 => 0,
-      5 => 0
-    );
-  }
   // Get  the available fields for this content type 
   $fields_array = field_info_instances($entity_type, $bundle);
+  // sort the array to bring taxa to the top  
+  $new_array = array();
+  foreach($fields_array as $key => $field_details){
+    if($field_details['widget']['module'] == 'scratchpads_taxonomic_name_field'){
+      $new_array[$key] = $field_details;
+    }
+  }
+  foreach($fields_array as $key => $field_details){
+    if($field_details['widget']['module'] != 'scratchpads_taxonomic_name_field'){
+      $new_array[$key] = $field_details;
+    }
+  }
+  $fields_array = $new_array;
   foreach($fields_array as $key => $field_details){
     $value = $field_details['field_name'] . '_value';
-    // For now, reference (node and user) will be handled 'manually'
-    if($field_details['field_name'] == 'field_identified_by'){
+    if($field_details['widget']['module'] == 'scratchpads_taxonomic_name_field'){
+      // Create a filter for each vocabulary
+      $vocab_objects = taxonomy_vocabulary_get_names();
+      $count = 0;
+      $tid = 'tid';
+      foreach($vocab_objects as $key => $vocab){
+        // Check to see whether they have any terms
+        $result = db_select('taxonomy_term_data', 'ttd')->fields('ttd')->condition('vid', $vocab->vid, '=')->execute();
+        $num_of_results = $result->rowCount();
+        if($num_of_results > 0){
+          if($count > 0){
+            $tid = 'tid_' . $count;
+          }
+          /* Filter criterion: Content: Has taxonomy term */
+          $handler->display->display_options['filters'][$tid]['id'] = $tid;
+          $handler->display->display_options['filters'][$tid]['table'] = 'taxonomy_index';
+          $handler->display->display_options['filters'][$tid]['field'] = 'tid';
+          $handler->display->display_options['filters'][$tid]['value'] = '';
+          $handler->display->display_options['filters'][$tid]['exposed'] = TRUE;
+          $handler->display->display_options['filters'][$tid]['expose']['operator_id'] = $tid . '_op';
+          $handler->display->display_options['filters'][$tid]['expose']['label'] = 'Taxa | ' . $vocab->name;
+          $handler->display->display_options['filters'][$tid]['expose']['operator'] = $tid . '_op';
+          $handler->display->display_options['filters'][$tid]['expose']['use_operator'] = TRUE;
+          $handler->display->display_options['filters'][$tid]['expose']['identifier'] = $tid;
+          $handler->display->display_options['filters'][$tid]['group'] = '1';
+          $handler->display->display_options['filters'][$tid]['expose']['remember_roles'] = array(
+            2 => '2',
+            1 => 0,
+            3 => 0,
+            4 => 0,
+            5 => 0
+          );
+          $handler->display->display_options['filters'][$tid]['vocabulary'] = $vocab->machine_name;
+          $handler->display->display_options['filters'][$tid]['error_message'] = FALSE;
+          $count++;
+        }
+      }
+    }    // For now, reference (node and user) will be handled 'manually'
+    elseif($field_details['field_name'] == 'field_identified_by'){
       /* Filter criterion: User: Name */
       $handler->display->display_options['filters']['uid_1']['id'] = 'uid_1';
       $handler->display->display_options['filters']['uid_1']['table'] = 'users';
@@ -1574,6 +1528,7 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
       $handler->display->display_options['filters'][$value]['expose']['use_operator'] = TRUE;
       $handler->display->display_options['filters'][$value]['expose']['operator'] = $value . '_op';
       $handler->display->display_options['filters'][$value]['expose']['identifier'] = $value;
+      $handler->display->display_options['filters'][$value]['group'] = '1';
     }elseif($field_details['widget']['module'] == 'options'){
       // We treat countries as a separate case, as it is a unique field type
       if($field_details['field_name'] == 'field_country'){
@@ -1609,6 +1564,7 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
         $handler->display->display_options['filters'][$value]['expose']['label'] = $field_details['label'];
         $handler->display->display_options['filters'][$value]['expose']['operator'] = $value . '_op';
         $handler->display->display_options['filters'][$value]['expose']['identifier'] = $value;
+        $handler->display->display_options['filters'][$value]['group'] = '1';
       }
     }elseif($field_details['widget']['module'] == 'number'){
       $handler->display->display_options['filters'][$value]['id'] = $value;
@@ -1620,6 +1576,7 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
       $handler->display->display_options['filters'][$value]['expose']['use_operator'] = TRUE;
       $handler->display->display_options['filters'][$value]['expose']['operator'] = $value . '_op';
       $handler->display->display_options['filters'][$value]['expose']['identifier'] = $value;
+      $handler->display->display_options['filters'][$value]['group'] = '1';
       $handler->display->display_options['filters'][$value]['expose']['remember_roles'] = array(
         2 => '2',
         1 => 0,
@@ -1627,43 +1584,97 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
         4 => 0,
         5 => 0
       );
-    }elseif($field_details['widget']['module'] == 'scratchpads_taxonomic_name_field'){
-      // Create a filter for each vocabulary
-      $vocab_objects = taxonomy_vocabulary_get_names();
-      $count = 0;
-      $tid = 'tid';
-      foreach($vocab_objects as $key => $vocab){
-        // Check to see whether they have any terms
-        $result = db_select('taxonomy_term_data', 'ttd')->fields('ttd')->condition('vid', $vocab->vid, '=')->execute();
-        $num_of_results = $result->rowCount();
-        if($num_of_results > 0){
-          if($count > 0){
-            $tid = 'tid_' . $count;
-          }
-          /* Filter criterion: Content: Has taxonomy term */
-          $handler->display->display_options['filters'][$tid]['id'] = $tid;
-          $handler->display->display_options['filters'][$tid]['table'] = 'taxonomy_index';
-          $handler->display->display_options['filters'][$tid]['field'] = 'tid';
-          $handler->display->display_options['filters'][$tid]['value'] = '';
-          $handler->display->display_options['filters'][$tid]['exposed'] = TRUE;
-          $handler->display->display_options['filters'][$tid]['expose']['operator_id'] = $tid . '_op';
-          $handler->display->display_options['filters'][$tid]['expose']['label'] = 'Taxa | ' . $vocab->name;
-          $handler->display->display_options['filters'][$tid]['expose']['operator'] = $tid . '_op';
-          $handler->display->display_options['filters'][$tid]['expose']['use_operator'] = TRUE;
-          $handler->display->display_options['filters'][$tid]['expose']['identifier'] = $tid;
-          $handler->display->display_options['filters'][$tid]['expose']['remember_roles'] = array(
-            2 => '2',
-            1 => 0,
-            3 => 0,
-            4 => 0,
-            5 => 0
-          );
-          $handler->display->display_options['filters'][$tid]['vocabulary'] = $vocab->machine_name;
-          $handler->display->display_options['filters'][$tid]['error_message'] = FALSE;
-          $count++;
-        }
-      }
     }
+  }
+  ///here ///
+  /* Filter criterion: Content: Title */
+  $handler->display->display_options['filters']['title']['id'] = 'title';
+  $handler->display->display_options['filters']['title']['table'] = 'node';
+  $handler->display->display_options['filters']['title']['field'] = 'title';
+  $handler->display->display_options['filters']['title']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['title']['expose']['operator_id'] = 'title_op';
+  $handler->display->display_options['filters']['title']['expose']['label'] = 'Title';
+  $handler->display->display_options['filters']['title']['expose']['use_operator'] = TRUE;
+  $handler->display->display_options['filters']['title']['expose']['operator'] = 'title_op';
+  $handler->display->display_options['filters']['title']['expose']['identifier'] = 'title';
+  $handler->display->display_options['filters']['title']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0
+  );
+  if($bundle == 'biblio'){
+    /* Filter criterion: Biblio: Type of Publication */
+    $handler->display->display_options['filters']['tid_5']['id'] = 'tid_5';
+    $handler->display->display_options['filters']['tid_5']['table'] = 'biblio_types';
+    $handler->display->display_options['filters']['tid_5']['field'] = 'tid';
+    $handler->display->display_options['filters']['tid_5']['exposed'] = TRUE;
+    $handler->display->display_options['filters']['tid_5']['expose']['operator_id'] = 'tid_5_op';
+    $handler->display->display_options['filters']['tid_5']['expose']['label'] = 'Type of Publication';
+    $handler->display->display_options['filters']['tid_5']['expose']['use_operator'] = TRUE;
+    $handler->display->display_options['filters']['tid_5']['expose']['operator'] = 'tid_5_op';
+    $handler->display->display_options['filters']['tid_5']['expose']['identifier'] = 'tid_5';
+    $handler->display->display_options['filters']['tid_5']['expose']['multiple'] = TRUE;
+    $handler->display->display_options['filters']['tid_5']['expose']['remember_roles'] = array(
+      2 => '2',
+      1 => 0,
+      3 => 0,
+      4 => 0,
+      5 => 0
+    );
+    /* Filter criterion: Biblio: Year of Publication */
+    $handler->display->display_options['filters']['biblio_year']['id'] = 'biblio_year';
+    $handler->display->display_options['filters']['biblio_year']['table'] = 'biblio';
+    $handler->display->display_options['filters']['biblio_year']['field'] = 'biblio_year';
+    $handler->display->display_options['filters']['biblio_year']['exposed'] = TRUE;
+    $handler->display->display_options['filters']['biblio_year']['expose']['operator_id'] = 'biblio_year_op';
+    $handler->display->display_options['filters']['biblio_year']['expose']['label'] = 'Year of Publication';
+    $handler->display->display_options['filters']['biblio_year']['expose']['use_operator'] = TRUE;
+    $handler->display->display_options['filters']['biblio_year']['expose']['operator'] = 'biblio_year_op';
+    $handler->display->display_options['filters']['biblio_year']['expose']['identifier'] = 'biblio_year';
+    $handler->display->display_options['filters']['biblio_year']['expose']['remember_roles'] = array(
+      2 => '2',
+      1 => 0,
+      3 => 0,
+      4 => 0,
+      5 => 0
+    );
+    /* Filter criterion: Biblio: Author last name */
+    $handler->display->display_options['filters']['lastname']['id'] = 'lastname';
+    $handler->display->display_options['filters']['lastname']['table'] = 'biblio_contributor_data';
+    $handler->display->display_options['filters']['lastname']['field'] = 'lastname';
+    $handler->display->display_options['filters']['lastname']['exposed'] = TRUE;
+    $handler->display->display_options['filters']['lastname']['expose']['operator_id'] = 'lastname_op';
+    $handler->display->display_options['filters']['lastname']['expose']['label'] = 'Author';
+    $handler->display->display_options['filters']['lastname']['expose']['use_operator'] = TRUE;
+    $handler->display->display_options['filters']['lastname']['expose']['operator'] = 'lastname_op';
+    $handler->display->display_options['filters']['lastname']['expose']['identifier'] = 'lastname';
+    $handler->display->display_options['filters']['lastname']['expose']['multiple'] = TRUE;
+    $handler->display->display_options['filters']['lastname']['expose']['remember_roles'] = array(
+      2 => '2',
+      1 => 0,
+      3 => 0,
+      4 => 0,
+      5 => 0
+    );
+    /* Filter criterion: Biblio: Secondary Title */
+    $handler->display->display_options['filters']['biblio_secondary_title']['id'] = 'biblio_secondary_title';
+    $handler->display->display_options['filters']['biblio_secondary_title']['table'] = 'biblio';
+    $handler->display->display_options['filters']['biblio_secondary_title']['field'] = 'biblio_secondary_title';
+    $handler->display->display_options['filters']['biblio_secondary_title']['exposed'] = TRUE;
+    $handler->display->display_options['filters']['biblio_secondary_title']['expose']['operator_id'] = 'biblio_secondary_title_op';
+    $handler->display->display_options['filters']['biblio_secondary_title']['expose']['label'] = 'Journal';
+    $handler->display->display_options['filters']['biblio_secondary_title']['expose']['use_operator'] = TRUE;
+    $handler->display->display_options['filters']['biblio_secondary_title']['expose']['operator'] = 'biblio_secondary_title_op';
+    $handler->display->display_options['filters']['biblio_secondary_title']['expose']['identifier'] = 'biblio_secondary_title';
+    $handler->display->display_options['filters']['biblio_secondary_title']['expose']['remember_roles'] = array(
+      2 => '2',
+      1 => 0,
+      3 => 0,
+      4 => 0,
+      5 => 0
+    );
   }
   /* Filter criterion: User: Name */
   $handler->display->display_options['filters']['uid']['id'] = 'uid';
@@ -1671,7 +1682,7 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
   $handler->display->display_options['filters']['uid']['field'] = 'uid';
   $handler->display->display_options['filters']['uid']['relationship'] = 'uid';
   $handler->display->display_options['filters']['uid']['value'] = '';
-  $handler->display->display_options['filters']['uid']['group'] = '0';
+  $handler->display->display_options['filters']['uid']['group'] = '1';
   $handler->display->display_options['filters']['uid']['exposed'] = TRUE;
   $handler->display->display_options['filters']['uid']['expose']['use_operator'] = TRUE;
   $handler->display->display_options['filters']['uid']['expose']['operator_id'] = 'uid_op';
@@ -1683,7 +1694,7 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
   $handler->display->display_options['filters']['status']['table'] = 'node';
   $handler->display->display_options['filters']['status']['field'] = 'status';
   $handler->display->display_options['filters']['status']['value'] = 'All';
-  $handler->display->display_options['filters']['status']['group'] = '0';
+  $handler->display->display_options['filters']['status']['group'] = '1';
   $handler->display->display_options['filters']['status']['exposed'] = TRUE;
   $handler->display->display_options['filters']['status']['expose']['operator_id'] = '';
   $handler->display->display_options['filters']['status']['expose']['label'] = 'Published';
