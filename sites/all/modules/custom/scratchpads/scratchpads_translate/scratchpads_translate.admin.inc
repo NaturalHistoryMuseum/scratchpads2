@@ -103,6 +103,15 @@ function scratchpads_translate_setup_translation_form(){
     }else if(in_array('user', $field['entity_types'])){
     }
   }
+  foreach(node_type_get_types() as $bundle => $info){
+    if(!title_field_replacement_enabled('node', $bundle, 'title')){
+      $links[] = '<strong>' . check_plain($info->name) . ' - title</strong> - ' . l(t('edit'), 'admin/structure/types/manage/' . $bundle . '/fields/replace/title', array(
+        'query' => array(
+          'destination' => 'admin/config/regional/translate-setup'
+        )
+      ));
+    }
+  }
   if(count($links)){
     $form['links'] = array(
       '#type' => 'fieldset',
