@@ -431,7 +431,7 @@ function bigimage_create_tile($fid, $zoom, $x, $y){
   $file = file_load($fid);
   if(!$file){
     // WTF! Error dude!
-    watchdog('bigimage', 'We tried to load a file and failed');
+    watchdog('Bigimage', 'We tried to load a file and failed');
     return FALSE;
   }
   $image_info = image_get_info($file->uri);
@@ -458,7 +458,7 @@ function bigimage_create_tile($fid, $zoom, $x, $y){
     $directory = "public://bigimage/$fid";
     $dir_prepared = file_prepare_directory($directory, FILE_CREATE_DIRECTORY || FILE_MODIFY_PERMISSIONS);
     if(!$dir_prepared){
-      watchdog('bigimage', 'Unable to create the path "%directory"', array(
+      watchdog('Bigimage', 'Unable to create the path "%directory"', array(
         '%directory' => $directory
       ));
     }
@@ -468,7 +468,7 @@ function bigimage_create_tile($fid, $zoom, $x, $y){
     $directory = "public://bigimage/$fid/$zoom";
     $dir_prepared = file_prepare_directory($directory, FILE_CREATE_DIRECTORY || FILE_MODIFY_PERMISSIONS);
     if(!$dir_prepared){
-      watchdog('bigimage', 'Unable to create the path "%directory"', array(
+      watchdog('Bigimage', 'Unable to create the path "%directory"', array(
         '%directory' => $directory
       ));
     }

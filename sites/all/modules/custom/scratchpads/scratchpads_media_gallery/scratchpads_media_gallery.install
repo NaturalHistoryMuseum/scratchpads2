@@ -383,3 +383,25 @@ function scratchpads_media_gallery_update_7012(){
     'page_id' => 'media_gallery'
   ))->execute();
 }
+
+/**
+ * Ensure users haven't deleted any fields.
+ */
+function scratchpads_media_gallery_update_7013(){
+  $fields_to_lock = array();
+  module_load_include('features.field.inc', 'scratchpads_media_gallery');
+  foreach(scratchpads_media_gallery_field_default_fields() as $field){
+    $fields_to_lock[] = $field['field_config']['field_name'];
+    if(!field_info_field($field['field_config']['field_name'])){
+      field_create_field($field['field_config']);
+    }
+    try{
+      field_create_instance($field['field_instance']);
+    }
+    catch(Exception $e){
+    }
+  }
+  db_update('field_config')->fields(array(
+    'locked' => 1
+  ))->condition('field_name', $fields_to_lock)->execute();
+}
