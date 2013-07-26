@@ -66,3 +66,19 @@ function scratchpads_translate_update_7001(){
     'title'
   ));
 }
+
+/**
+ * Update the body field so that it can be translated.
+ */
+function scratchpads_translate_update_7002(){
+  $body_field_config_data = unserialize(db_select('field_config', 'f')->fields('f', array(
+    'data'
+  ))->condition('field_name', 'body')->condition('deleted', 0)->execute()->fetchField());
+  if($body_field_config_data){
+    $body_field_config_data['translatable'] = 1;
+    db_update('field_config')->fields(array(
+      'translatable' => 1,
+      'data' => serialize($body_field_config_data)
+    ))->condition('field_name', 'body')->execute();
+  }
+}
