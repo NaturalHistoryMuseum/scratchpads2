@@ -65,7 +65,7 @@ function theme_eolapi_text_teaser($variables){
   $rows = array(
     array(
       t('License'),
-      isset($data->license) ? l($data->license, $data->license) : t('All rights reserved')
+      isset($data->license) ? l($data->license, $data->license) : t('All Rights Reserved')
     ),
     array(
       t('Rights holder/Author'),

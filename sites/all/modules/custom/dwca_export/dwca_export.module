@@ -142,7 +142,21 @@ function dwca_export_field_formatter_info(){
       'field types' => array(
         'list_text'
       )
-    )
+    ),
+    'aan_formatter' => array(
+      'label' => t('aan'),
+      'description' => t('Returns empty for not accepted names.'),
+      'field types' => array(
+        'list_text'
+      )
+    ),
+    'parent_formatter' => array(
+      'label' => t('pn'),
+      'description' => t('Returns empty for not accepted names.'),
+      'field types' => array(
+        'list_text'
+      )
+    ),
   );
 }
 
@@ -247,6 +261,49 @@ function dwca_export_field_formatter_view($entity_type, $entity, $field, $instan
       break;
     case 'name_status':
       $markup = $reason_map_nomenclature[$entity->field_unacceptability_reason['und'][0]['value']];
+      $element[] = array(
+        '#markup' => $markup
+      );
+      return $element;
+      break;
+    case 'aan_formatter':
+      $element = array();
+      $markup = '';
+      if(isset($entity->field_usage['und'][0]['value'])){
+        if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
+          $markup = '';
+        }else{
+          $parent = '';
+          $parents = taxonomy_get_parents($entity->tid);
+          if (is_array($parents)){
+          	$parent = array_pop($parents);
+          	$parent = $parent->uuid;
+          }
+          $markup = $parent;
+        }
+      }
+      $element[] = array(
+        '#markup' => $markup
+      );
+      return $element;
+      break;
+    case 'parent_formatter':
+      $element = array();
+      $markup = '';
+      if(isset($entity->field_usage['und'][0]['value'])){
+        if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
+          $parent = '';
+          $parents = taxonomy_get_parents($entity->tid);
+          if (is_array($parents)){
+          	$parent = array_pop($parents);
+          	$parent = $parent->uuid;
+          }
+          $markup = $parent;
+
+        }else{
+                	$markup = '';  
+        }
+      }
       $element[] = array(
         '#markup' => $markup
       );

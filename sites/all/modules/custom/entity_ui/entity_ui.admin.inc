@@ -76,14 +76,14 @@ function entity_ui_content_form($form, &$form_state, $entity_type, $controller){
       $operations = array();
       if(publication_access('update', $publication)){
         $operations['edit'] = array(
-          'title' => t('edit'),
+          'title' => t('Edit'),
           'href' => 'publication/' . $publication->pid . '/edit',
           'query' => $destination
         );
       }
       if(publication_access('delete', $publication)){
         $operations['delete'] = array(
-          'title' => t('delete'),
+          'title' => t('Delete'),
           'href' => 'publication/' . $publication->pid . '/delete',
           'query' => $destination
         );

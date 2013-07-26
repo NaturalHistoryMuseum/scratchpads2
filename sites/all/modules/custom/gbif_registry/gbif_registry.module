@@ -78,7 +78,7 @@ function gbif_registry_menu(){
       'file' => 'gbif_registry.admin.inc'
     ),
     'admin/config/services/gbif_registry/browse/technicalInstallations' => array(
-      'title' => 'Technical Installations',
+      'title' => 'Technical installations',
       'description' => t('Lists all "technical installations" held in the registry.'),
       'page callback' => 'gbif_registry_browse_page',
       'access arguments' => array(

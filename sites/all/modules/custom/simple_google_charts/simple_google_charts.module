@@ -29,7 +29,8 @@ function simple_google_charts_theme($existing, $type, $theme, $path){
         'data' => array(),
         'type' => 'BarChart',
         'options' => array(),
-        'title' => ''
+        'title' => '',
+        'subtitle' => ''
       ),
       'file' => 'simple_google_charts.theme.inc'
     )
