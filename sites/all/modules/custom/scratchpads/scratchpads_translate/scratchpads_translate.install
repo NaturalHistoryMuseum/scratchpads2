@@ -68,3 +68,23 @@ function scratchpads_translate_disable(){
     'translation'
   ));
 }
+
+/**
+ * Install the title module.
+ */
+function scratchpads_translate_update_7001(){
+  // Convert ALL node title fields into proper "field" fields.
+  foreach(array_keys(node_type_get_types()) as $node_type){
+    if(title_field_replacement_toggle('node', $node_type, 'title')){
+      $context = array(
+        'finished' => 0
+      );
+      while($context['finished'] < 1){
+        if($context['finished'] === 0){
+          $context['finished'] = 1;
+        }
+        title_field_replacement_batch('node', $node_type, 'title', $context);
+      }
+    }
+  }
+}
