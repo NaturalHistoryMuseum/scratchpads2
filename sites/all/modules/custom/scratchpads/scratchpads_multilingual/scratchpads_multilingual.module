@@ -117,10 +117,15 @@ function scratchpads_multilingual_system_info_alter(&$info, $file, $type){
       $info['version'] = '7.x-1.1';
       break;
     case 'role_delegation':
+    case 'gravatar':
+    case 'site_map':
       $info['version'] = '7.x-1.0';
       break;
     case 'biblio':
       $info['version'] = '7.x-1.0-rc5';
+      break;
+    case 'redirect':
+      $info['version'] = '7.x-1.0-rc1';
       break;
     case 'views_data_export':
       $info['version'] = '7.x-3.0-beta6';
@@ -137,6 +142,9 @@ function scratchpads_multilingual_system_info_alter(&$info, $file, $type){
     case 'boost':
     case 'entity_translation':
       $info['version'] = '7.x-1.0-beta2';
+      break;
+    case 'efq_views':
+      $info['version'] = '7.x-1.0-alpha3';
       break;
     case 'feeds':
     case 'styles':
