@@ -80,23 +80,29 @@ function scratchpads_translate_update_7001(&$sandbox){
     $sandbox['content_types'] = array_keys(node_type_get_types());
     $sandbox['num_content_types'] = count($sandbox['content_types']);
     $sandbox['current_content_type'] = array_pop($sandbox['content_types']);
+    $sandbox['other_context'] = array(
+      'finished' => 1
+    );
     // Toggle the field
     title_field_replacement_toggle('node', $sandbox['current_content_type'], 'title');
   }
-  title_field_replacement_batch('node', $sandbox['current_content_type'], 'title', $context);
+  title_field_replacement_batch('node', $sandbox['current_content_type'], 'title', $sandbox['other_context']);
   // We set the progress based on the number of content types and the current
   // progress.  If we've just finished this content type, then we get the next
   // one.
-  if($context['finished'] >= 1){
+  if($sandbox['other_context']['finished'] >= 1){
     $sandbox['current_content_type'] = array_pop($sandbox['content_types']);
     if(!$sandbox['current_content_type']){
       $sandbox['finished'] = 1;
     }else{
+      $sandbox['other_context'] = array(
+        'finished' => 1
+      );
       title_field_replacement_toggle('node', $sandbox['current_content_type'], 'title');
       $sandbox['finished'] = ($sandbox['num_content_types'] - count($sandbox['content_types'])) / $sandbox['num_content_types'];
     }
   }else{
-    $sandbox['finished'] = ($sandbox['num_content_types'] - (count($sandbox['content_types']) + 1)) + $context['finished'] / $sandbox['num_content_types'];
+    $sandbox['finished'] = ($sandbox['num_content_types'] - (count($sandbox['content_types']) + 1)) + $sandbox['other_context']['finished'] / $sandbox['num_content_types'];
   }
   drupal_set_message($sandbox['current_content_type'] . ' - ' . round($sandbox['finished'] * 100));
 }
