@@ -72,25 +72,31 @@ function scratchpads_translate_disable(){
 /**
  * Install the title module.
  */
-function scratchpads_translate_update_7001(){
-  module_enable(array(
-    'title'
-  ));
-  // Convert ALL node title fields into proper "field" fields.
-  foreach(array_keys(node_type_get_types()) as $node_type){
-    if(title_field_replacement_toggle('node', $node_type, 'title')){
-      drupal_set_message(t('Updating the title field for %node_type', array(
-        '%node_type' => $node_type
-      )));
-      $context = array(
-        'finished' => 0
-      );
-      while($context['finished'] < 1){
-        if($context['finished'] === 0){
-          $context['finished'] = 1;
-        }
-        title_field_replacement_batch('node', $node_type, 'title', $context);
-      }
-    }
+function scratchpads_translate_update_7001(&$sandbox){
+  if(empty($sandbox['content_types'])){
+    module_enable(array(
+      'title'
+    ));
+    $sandbox['content_types'] = array_keys(node_type_get_types());
+    $sandbox['num_content_types'] = count($sandbox['content_types']);
+    $sandbox['current_content_type'] = array_pop($sandbox['content_types']);
+    // Toggle the field
+    title_field_replacement_toggle('node', $sandbox['current_content_type'], 'title');
   }
+  title_field_replacement_batch('node', $sandbox['current_content_type'], 'title', $context);
+  // We set the progress based on the number of content types and the current
+  // progress.  If we've just finished this content type, then we get the next
+  // one.
+  if($context['finished'] >= 1){
+    $sandbox['current_content_type'] = array_pop($sandbox['content_types']);
+    if(!$sandbox['current_content_type']){
+      $sandbox['finished'] = 1;
+    }else{
+      title_field_replacement_toggle('node', $sandbox['current_content_type'], 'title');
+      $sandbox['finished'] = ($sandbox['num_content_types'] - count($sandbox['content_types'])) / $sandbox['num_content_types'];
+    }
+  }else{
+    $sandbox['finished'] = ($sandbox['num_content_types'] - (count($sandbox['content_types']) + 1)) + $context['finished'] / $sandbox['num_content_types'];
+  }
+  drupal_set_message($sandbox['current_content_type'] . ' - ' . round($sandbox['finished'] * 100));
 }
