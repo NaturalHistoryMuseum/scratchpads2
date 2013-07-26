@@ -189,8 +189,8 @@ function tui_form_taxonomy_overview_vocabularies_alter(&$form, &$form_state){
   $children = element_children($form);
   foreach($children as $child){
     if(is_numeric($child) && isset($form[$child]['edit']) && isset($form[$child]['list'])){
-      $form[$child]['edit']['#title'] = t('settings');
-      $form[$child]['list']['#title'] = t('edit terms');
+      $form[$child]['edit']['#title'] = t('Settings');
+      $form[$child]['list']['#title'] = t('Edit terms');
     }
   }
 }

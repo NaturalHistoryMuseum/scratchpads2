@@ -228,7 +228,7 @@ function hashcash_validate($form, $form_state){
       // failed;
       form_set_error('hashcash', t('Your hashcash value failed.  Please ensure you have JavaScript enabled in your browser.'));
       if(variable_get('hashcash_log', FALSE)){
-        watchdog('hashcash', 'Invalid hashcash (SHA1 fails) "@hashcash"', array(
+        watchdog('Hashcash', 'Invalid hashcash (SHA1 fails) "@hashcash"', array(
           '@hashcash' => $hashcash
         ));
       }
@@ -248,7 +248,7 @@ function hashcash_validate($form, $form_state){
         }
         form_set_error('hashcash', '<p>' . t('Your hashcash string is not valid.') . '</p><p>' . t('Please try "Hard-refreshing" this page (Most users should press Ctrl-F5)'));
         if(variable_get('hashcash_log', FALSE)){
-          watchdog('hashcash', 'Invalid hashcash (Additional checks fail) "@hashcash" @parts1 == @date , @parts2 == @formid , @parts3 == @ipaddress , @parts4 == @cookiedomain , @parts5 == "is not empty"', array(
+          watchdog('Hashcash', 'Invalid hashcash (Additional checks fail) "@hashcash" @parts1 == @date , @parts2 == @formid , @parts3 == @ipaddress , @parts4 == @cookiedomain , @parts5 == "is not empty"', array(
             '@hashcash' => $hashcash,
             '@parts1' => $hashcash_parts[1],
             '@date' => date('ymd'),
@@ -278,7 +278,7 @@ function hashcash_validate($form, $form_state){
         }else{
           // There must be a row, eep, SPAM
           form_set_error('hashcash', t('Your hashcash has already been submitted before.  Have you attempted to submit this form twice?'));
-          watchdog('hashcash', 'Invalid hashcash (Already submitted) "@hashcash"', array(
+          watchdog('Hashcash', 'Invalid hashcash (Already submitted) "@hashcash"', array(
             '@hashcash' => $hashcash
           ));
         }

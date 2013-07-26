@@ -58,7 +58,7 @@ function taxonomy_batch_vocabulary_delete_vocabulary_batch($vid, &$context){
   drupal_set_message(t('Deleted vocabulary %name.', array(
     '%name' => $vocabulary->name
   )));
-  watchdog('taxonomy', 'Deleted vocabulary %name.', array(
+  watchdog('Taxonomy', 'Deleted vocabulary %name.', array(
     '%name' => 'Unknown'
   ), WATCHDOG_NOTICE);
   $context['finished'] = 1;
