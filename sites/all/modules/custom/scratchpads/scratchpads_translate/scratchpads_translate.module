@@ -38,7 +38,7 @@ function scratchpads_translate_menu(){
  */
 function scratchpads_translate_boot(){
   if(isset($_SESSION['scratchpads_translate'])){
-    if($_GET['destination'] == 'admin/config/regional/translate-setup' && arg(0) == 'admin' && arg(1) == 'structure' && ((arg(2) == 'types' && arg(3) == 'manage' && arg(5) == 'fields' && in_array(arg(6), $_SESSION['scratchpads_translate'])) || (arg(2) == 'taxonomy' && arg(4) == 'fields' && in_array(arg(5), $_SESSION['scratchpads_translate'])))){
+    if(isset($_GET['destination']) && $_GET['destination'] == 'admin/config/regional/translate-setup' && arg(0) == 'admin' && arg(1) == 'structure' && ((arg(2) == 'types' && arg(3) == 'manage' && arg(5) == 'fields' && in_array(arg(6), $_SESSION['scratchpads_translate'])) || (arg(2) == 'taxonomy' && arg(4) == 'fields' && in_array(arg(5), $_SESSION['scratchpads_translate'])))){
       // We need to unlock the field to ensure the user can edit it
       db_update('field_config')->fields(array(
         'locked' => 0
