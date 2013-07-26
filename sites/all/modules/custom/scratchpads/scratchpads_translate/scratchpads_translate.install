@@ -84,7 +84,9 @@ function scratchpads_translate_update_7001(&$sandbox){
       'finished' => 1
     );
     // Toggle the field
-    title_field_replacement_toggle('node', $sandbox['current_content_type'], 'title');
+    if(!title_field_replacement_enabled('node', $sandbox['current_content_type'], 'title')){
+      title_field_replacement_toggle('node', $sandbox['current_content_type'], 'title');
+    }
   }
   title_field_replacement_batch('node', $sandbox['current_content_type'], 'title', $sandbox['other_context']);
   // We set the progress based on the number of content types and the current
@@ -98,7 +100,9 @@ function scratchpads_translate_update_7001(&$sandbox){
       $sandbox['other_context'] = array(
         'finished' => 1
       );
-      title_field_replacement_toggle('node', $sandbox['current_content_type'], 'title');
+      if(!title_field_replacement_enabled('node', $sandbox['current_content_type'], 'title')){
+        title_field_replacement_toggle('node', $sandbox['current_content_type'], 'title');
+      }
       $sandbox['#finished'] = ($sandbox['num_content_types'] - count($sandbox['content_types'])) / $sandbox['num_content_types'];
     }
   }else{
