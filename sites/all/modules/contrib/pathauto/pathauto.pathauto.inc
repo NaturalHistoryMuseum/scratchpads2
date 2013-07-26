@@ -167,6 +167,7 @@ function taxonomy_pathauto_bulk_update_batch_process(&$context) {
   $query->leftJoin('url_alias', 'ua', "CONCAT('taxonomy/term/', td.tid) = ua.source");
   $query->addField('td', 'tid');
   $query->isNull('ua.source');
+  $query->condition('td.tid', $context['sandbox']['current'], '>');
   // Exclude the forums terms.
   if ($forum_vid = variable_get('forum_nav_vocabulary', '')) {
     $query->condition('td.vid', $forum_vid, '<>');
@@ -232,7 +233,8 @@ function forum_pathauto_bulk_update_batch_process(&$context) {
   $query->leftJoin('url_alias', 'ua', "CONCAT('forum/', td.tid) = ua.source");
   $query->addField('td', 'tid');
   $query->isNull('ua.source');
-  $query->condition('vid', variable_get('forum_nav_vocabulary', ''));
+  $query->condition('td.tid', $context['sandbox']['current'], '>');
+  $query->condition('td.vid', variable_get('forum_nav_vocabulary', ''));
   $query->orderBy('td.tid');
   $query->addTag('pathauto_bulk_update');
   $query->addMetaData('entity', 'taxonomy_term');
