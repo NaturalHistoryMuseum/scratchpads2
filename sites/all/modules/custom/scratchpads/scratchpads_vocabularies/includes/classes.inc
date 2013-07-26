@@ -252,33 +252,29 @@ interface ModificationInterface{
   public function explanation();
 
   /**
-   * form
+   * getForm
    * 
    * Returns a form array that is used by the user
    * to perform any required actions before the update
-   * can be applied. $id should be used to distinguish
-   * this form's values from other modifications.
+   * can be applied.
    * 
    */
-  public function form($id, $form, &$form_state);
+  public function getForm($form, &$form_state);
 
   /**
-   * validate
-   * 
-   * Validate the submited form. This should use
-   * form_set_error as expexted.
-   * 
+   * validateForm
+   *
+   * Validate the form
+   *
    */
-  public function validate($id, $form, &$form_state);
+  public function validateForm($form, &$form_state);
 
   /**
-   * submit
-   * 
-   * submit the form. This should return an array
-   * of operations that can be used with batch_set.
-   * 
+   * submitForm
+   *
+   * Submit the form
    */
-  public function submit($id, $form, &$form_state);
+  public function submitForm($form, &$form_state);
 }
 
 /**
@@ -347,6 +343,17 @@ class VocabularyUpdate{
     $this->status = VocabularyUpdate::S_INITIAL;
     $this->progress = 0;
     $this->modification = NULL;
+  }
+
+  /**
+   * function __toString
+   *
+   * Generate a string that can be used to compare
+   * two update objects
+   *
+   */
+  public function __toString(){
+    return $this->type . ':' . $this->status . ':' . serialize($this->data);
   }
 
   /**

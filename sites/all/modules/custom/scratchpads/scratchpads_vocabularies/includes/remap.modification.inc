@@ -1,6 +1,7 @@
 <?php
 namespace ScratchpadsVocabularies;
 require_once str_replace('remap.modification.inc', 'classes.inc', __FILE__);
+require_once str_replace('remap.modification.inc', 'selectfield.receiver.inc', __FILE__);
 
 /**
  * RemapModification
@@ -44,22 +45,14 @@ class RemapModification implements ModificationInterface{
   }
 
   /**
-   * form
-   *
-   * Returns a form array that is used by the user
-   * to perform any required actions before the update
-   * can be applied.
-   * 
-   * Expects $id to be an array defining 'vocabulary_id' and
-   * 'update_id'.
-  */
-  public function form($id, $form, &$form_state){
+   * getForm
+   */
+  public function getForm($form, &$form_state){
     $new_items = $this->receiver->structure()->selectStructure();
     $action_table = array();
     $even = FALSE;
-    $elem_id = 0;
+    $array_id = 0;
     foreach($this->update->items() as $item_id => $item_label){
-      $elem_id++;
       $affected_list = $this->receiver->contentModifiedBy($this->update, $item_id);
       $affected = array();
       foreach($affected_list as $type => $affected_items){
@@ -68,57 +61,60 @@ class RemapModification implements ModificationInterface{
       $action_table[] = array(
         check_plain("$item_label"),
         array(
-          "map_" . $elem_id => array(
+          "remap_item_" . $array_id => array(
+            '#type' => 'value',
+            '#value' => $item_id
+          ),
+          "map_" . $array_id => array(
             '#type' => 'select',
             '#multiple' => FALSE,
             '#options' => $new_items,
-            '#default_value' => reset(array_keys($new_items)),
-            '#vocabulary_id' => $id['vocabulary_id'],
-            '#update_id' => $id['update_id'],
-            '#elem_id' => $item_id
+            '#default_value' => reset(array_keys($new_items))
           ),
-          "remove_" . $elem_id => array(
+          "remove_" . $array_id => array(
             '#type' => 'checkbox',
-            '#title' => t('Remove value when field is not required'),
-            '#vocabulary_id' => $id['vocabulary_id'],
-            '#update_id' => $id['update_id'],
-            '#elem_id' => $item_id
+            '#title' => t('Remove value when field is not required')
           )
         ),
         implode('<br/>', $affected)
       );
+      $array_id++; // $item_id may have spaces so use this to generate unique array ids.
     }
-    return _scratchpads_vocabularies_form_table(array(
-      t('Old value'),
-      t('New value'),
-      t('Number of affected entries')
-    ), $action_table);
+    $form = array(
+      'table' => _scratchpads_vocabularies_form_table(array(
+        t('Old value'),
+        t('New value'),
+        t('Number of affected entries')
+      ), $action_table),
+      'submit' => array(
+        '#type' => 'submit',
+        '#value' => t('Apply')
+      )
+    );
+    return $form;
   }
 
   /**
-   * validate
-   *
-   * Validate the submited form
-   * 
-   * Expects $id to be an array defining 'vocabulary_id' and
-   * 'update_id'.
-  */
-  public function validate($id, $form, &$form_state){
-    return TRUE;
-  }
+   * validateForm
+   */
+  public function validateForm($form, &$form_state){}
 
   /**
-   * submit
+   * submitForm
    *
-   * submit the form, and return a list of operations that can be
-   * used for batches.
+   * submit the form
    * 
-   * Expects $id to be an array defining 'vocabulary_id' and
-   * 'update_id'.
-   * 
-  */
-  public function submit($id, $form, &$form_state){
-    $map = $this->mapFromForm($form, $form_state, $id['vocabulary_id'], $id['update_id']);
+   */
+  public function submitForm($form, &$form_state){
+    $map = array();
+    foreach($form_state['values'] as $key => $value){
+      if(preg_match('/^remap_item_(\d+)$/', $key, $matches)){
+        $array_id = $matches[1];
+        $item_id = $value;
+        $map[$item_id]['value'] = $form_state['values']['map_' . $array_id];
+        $map[$item_id]['only_if_required'] = $form_state['values']['remove_' . $array_id];
+      }
+    }
     // Create a batch operation for every n entities
     $operations = array();
     $entities = $this->receiver->contentModifiedBy($this->update);
@@ -126,10 +122,10 @@ class RemapModification implements ModificationInterface{
       $type_chunks = array_chunk($entity_ids, RemapModification::BATCH_SIZE);
       foreach($type_chunks as $type_chunk){
         $operations[] = array(
-          '_scratchpads_vocabularies_remap',
+          'ScratchpadsVocabularies\_scratchpads_vocabularies_remap_batch',
           array(
-            $id['vocabulary_id'],
-            $id['update_id'],
+            $this->receiver,
+            $this->update,
             $type,
             $type_chunk,
             $map
@@ -137,37 +133,33 @@ class RemapModification implements ModificationInterface{
         );
       }
     }
-    return $operations;
+    batch_set(array(
+      'title' => t('Applying updates. Please do not close this window until the process is complete.'),
+      'progress_message' => t('Completed @percentage% of updates, estimated time left @estimate'),
+      'operations' => $operations,
+      'finished' => 'ScratchpadsVocabularies\_scratchpads_vocabularies_remap_batch_finish',
+      'file' => drupal_get_path('module', 'scratchpads_vocabularies') . '/includes/remap.modification.inc'
+    ));
   }
+}
 
-  /**
-   * mapFromForm
-   *
-   * This is a helper method to retrive our map of values from the submitted form.
-   * We can't use our item ids for the element names, as Drupal will replace spaces
-   * by underscores which may generate collisions (we cannot make any assumptions
-   * since those values are provided externally).
-   *
-   * We can't directly look into the form for corresponding items, because we are
-   * embeded in a larger form that we do not know.
-   *
-   * So we need to scan the form to gather our elements back.
-   */
-  public function mapFromForm($form, $form_state, $vocabulary_id, $update_id){
-    $map = array();
-    foreach($form as $key => $value){
-      if(is_array($value) && isset($value['#vocabulary_id'])){
-        if($value['#vocabulary_id'] == $vocabulary_id && $value['#update_id'] == $update_id){
-          if(preg_match('/^map_/', $key)){
-            $map[$value['#elem_id']]['value'] = $form_state['values'][$key];
-          }else if(preg_match('/^remove_/', $key)){
-            $map[$value['#elem_id']]['only_if_required'] = !empty($form_state['values'][$key]);
-          }
-        }
-      }else if(is_array($value)){
-        $map = array_merge($map, $this->mapFromForm($value, $form_state, $vocabulary_id, $update_id));
-      }
-    }
-    return $map;
-  }
+/**
+ * _scratchpads_vocabularies_remap_batch
+ *
+ * Batch callback for remaping values on entities
+ */
+function _scratchpads_vocabularies_remap_batch($receiver, $update, $type, $entities, $map){
+  $receiver->applyModifications(array(
+    $type => $entities
+  ), array(
+    $update
+  ), $map);
+}
+
+/**
+ * _scratchpads_vocabularies_remap_batch_finish
+ */
+function _scratchpads_vocabularies_remap_batch_finish(){
+  // Changes may impact menus and so on, so do a full cache clear.
+  drupal_flush_all_caches();
 }

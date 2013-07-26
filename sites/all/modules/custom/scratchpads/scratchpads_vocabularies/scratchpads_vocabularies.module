@@ -7,46 +7,119 @@
  */
 function scratchpads_vocabularies_menu(){
   return array(
-    'admin/structure/vocabularies' => array(
+    'admin/config/services/vocabularies' => array(
       'title' => 'Vocabularies',
       'type' => MENU_NORMAL_ITEM,
       'page callback' => 'drupal_get_form',
       'page arguments' => array(
-        'scratchpads_vocabularies_mapping_form'
+        'scratchpads_vocabularies_admin_list'
       ),
       'file' => 'scratchpads_vocabularies.admin.inc',
       'access arguments' => array(
         'manage vocabularies'
       )
     ),
-    'admin/structure/vocabularies/mapping' => array(
-      'title' => 'Vocabularies',
+    'admin/config/services/vocabularies/%' => array(
+      'title' => t('Manage'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_vocabularies_admin_form',
+        4
+      ),
+      'file' => 'scratchpads_vocabularies.admin.inc',
+      'access arguments' => array(
+        'manage vocabularies'
+      )
+    ),
+    'admin/config/services/vocabularies/%/manage' => array(
+      'title' => t('General'),
       'type' => MENU_DEFAULT_LOCAL_TASK,
       'page callback' => 'drupal_get_form',
       'page arguments' => array(
-        'scratchpads_vocabularies_mapping_form'
+        'scratchpads_vocabularies_admin_form',
+        4
       ),
       'file' => 'scratchpads_vocabularies.admin.inc',
       'access arguments' => array(
         'manage vocabularies'
-      ),
-      'weight' => 0
+      )
     ),
-    'admin/structure/vocabularies/updates' => array(
-      'title' => 'Pending updates',
+    'admin/config/services/vocabularies/%/updates' => array(
+      'title' => t('Updates'),
       'type' => MENU_LOCAL_TASK,
+      'page callback' => 'scratchpads_vocabularies_update_page',
+      'page arguments' => array(
+        4
+      ),
+      'file' => 'scratchpads_vocabularies.admin.inc',
+      'access arguments' => array(
+        'manage vocabularies'
+      )
+    ),
+    'admin/config/services/vocabularies/%/delete' => array(
+      'title' => 'Delete Vocabulary',
+      'type' => MENU_CALLBACK,
       'page callback' => 'drupal_get_form',
       'page arguments' => array(
-        'scratchpads_vocabularies_pending_update_form'
+        'scratchpads_vocabularies_delete_form',
+        4
       ),
       'file' => 'scratchpads_vocabularies.admin.inc',
       'access arguments' => array(
         'manage vocabularies'
-      ),
-      'weight' => 1
+      )
     )
   );
 }
+
+/**
+ * scratchpads_vocabularies_form
+ * 
+ * Implement hook_forms
+ */
+function scratchpads_vocabularies_forms($form_id, $args){
+  $forms = array();
+  if(preg_match('/^scratchpads_vocabularies_modification_form_(\d+)$/', $form_id)){
+    $forms[$form_id] = array(
+      'callback' => 'scratchpads_vocabularies_modification_form'
+    );
+  }
+  return $forms;
+}
+
+/**
+ * scratchpads_vocabularies_modification_form
+ */
+function scratchpads_vocabularies_modification_form($form, &$form_state) {
+  $modification = $form_state['build_info']['args'][0];
+  if (method_exists($modification, 'getForm')) {
+    return $modification->getForm($form, $form_state);
+  } else {
+    return array();
+  }
+}
+
+/**
+ * scratchpads_vocabularies_modification_form_validate
+ */
+function scratchpads_vocabularies_modification_form_validate($form, &$form_state) {
+  $modification = $form_state['build_info']['args'][0];
+  if (method_exists($modification, 'validateForm')) {
+    $modification->validateForm($form, $form_state);
+  }
+}
+
+/**
+ * scratchpads_vocabularies_modification_form_submit
+ */
+function scratchpads_vocabularies_modification_form_submit($form, &$form_state) {
+  $modification = $form_state['build_info']['args'][0];
+  if (method_exists($modification, 'submitForm')) {
+    $modification->submitForm($form, $form_state);
+  }
+}
+
 
 /**
  * scratchpads_vocabularies_permission
@@ -150,8 +223,6 @@ function scratchpads_vocabularies_form_alter(&$form, &$form_state, $form_id){
         // Always disable the form
         $form['field']['settings']['allowed_values']['#disabled'] = TRUE;
         $form['field']['settings']['allowed_values']['#description'] = t('This field is a managed vocabulary and the allowed values cannot be changed manualy.');
-        // If we have some more information, display it
-        //list($vocabulary, $receiver) = _scratchpads_vocabularies_info_build($all_info[$info_id]);
         break;
       }
     }

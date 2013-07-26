@@ -262,7 +262,7 @@ abstract class VocabularyReceiver extends Persistent implements ReceiverInterfac
       if($update->status() !== VocabularyUpdate::S_STRUCTURE_APPLIED){
         continue;
       }
-      if(!empty($updates) && !in_array($update, $updates)){
+      if(!empty($updates) && !in_array((string)$update, $updates)){
         continue;
       }
       $this->applyModification($entities, $update, $map);
