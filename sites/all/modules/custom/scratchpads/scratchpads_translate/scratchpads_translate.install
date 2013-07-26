@@ -99,10 +99,10 @@ function scratchpads_translate_update_7001(&$sandbox){
         'finished' => 1
       );
       title_field_replacement_toggle('node', $sandbox['current_content_type'], 'title');
-      $sandbox['finished'] = ($sandbox['num_content_types'] - count($sandbox['content_types'])) / $sandbox['num_content_types'];
+      $sandbox['#finished'] = ($sandbox['num_content_types'] - count($sandbox['content_types'])) / $sandbox['num_content_types'];
     }
   }else{
-    $sandbox['finished'] = ($sandbox['num_content_types'] - (count($sandbox['content_types']) + 1)) + $sandbox['other_context']['finished'] / $sandbox['num_content_types'];
+    $sandbox['#finished'] = ($sandbox['num_content_types'] - (count($sandbox['content_types']) + 1)) + $sandbox['other_context']['finished'] / $sandbox['num_content_types'];
   }
   drupal_set_message($sandbox['current_content_type'] . ' - ' . round($sandbox['finished'] * 100));
 }
