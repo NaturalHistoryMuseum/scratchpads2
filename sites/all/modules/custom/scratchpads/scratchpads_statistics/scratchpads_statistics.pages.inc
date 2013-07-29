@@ -79,7 +79,9 @@ function scratchpads_statistics_stats_page_login_json(){
     'longitude'
   ));
   $results = $query->execute();
+  $categories = scratchpads_statistics_get_site_categories();
   foreach($results as $row){
+    $row->categories = $categories;
     $stats[] = $row;
   }
   return $stats;
@@ -755,7 +757,9 @@ function _scratchpads_statistics_build_from_time($time){
   $query->addField('e', 'name', 'bundle_label');
   $query->condition('s.id', 1)->condition('captured', $time, '>');
   $results = $query->execute();
+  $categories = scratchpads_statistics_get_site_categories();
   foreach($results as $row){
+    $row->categories = $categories;
     $stats[] = $row;
   }
   return $stats;
