@@ -541,6 +541,26 @@ function theme_scratchpads_species_name($vars){
           '!unit1' => $unit1,
           '!unit2' => $unit2
         ));
+      }elseif($unit1){
+        $name = t('<em>!unit1</em>', array(
+          '!unit1' => $unit1
+        ));
+      }
+      break;
+    case 'section':
+      if($unit1){
+        $name = t('!ind1<em>!unit1</em>', array(
+          '!unit1' => $unit1,
+          '!ind1' => $unit_ind1
+        ));
+      }
+      break;
+    case 'subsection':
+      if($unit1){
+        $name = t('!ind1<em>!unit1</em>', array(
+          '!unit1' => $unit1,
+          '!ind1' => $unit_ind1
+        ));
       }
       break;
     case 'species':
