@@ -2,16 +2,6 @@
   width: 100%;
 }
 
-.block-scratchpads-statistics {
-  margin: 5px;
-  padding: 5px;
-  border: dotted 1px #ccc;
-}
-
-.block-scratchpads-statistics h5 {
-  margin-bottom: 3px;
-}
-
 .scratchpads-statistics-note {
   text-align: right;
   color: #ccc;

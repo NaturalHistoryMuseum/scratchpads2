@@ -51,7 +51,7 @@ function scratchpads_help_get_help(){
       if($path_part == '%'){
         $path_parts[$index] = arg($index);
       }
-      $index ++;
+      $index++;
     }
     $path = implode('/', $path_parts);
   }
@@ -73,9 +73,9 @@ function scratchpads_help_get_help(){
     }
     if(count($links)){
       $help[] = array(
-        '#markup' => t('Additional help can be found on the following <a href="http://help.scratchpads.eu/">Help</a> !pages: ', array(
-          '!pages' => format_plural(count($links), t('page'), t('pages'))
-        )) . implode(", ", $links)
+        '#markup' => format_plural(count($links), 'Additional help can be found on the following <a href="http://help.scratchpads.eu/">Help</a> page: !links', 'Additional help can be found on the following <a href="http://help.scratchpads.eu/">Help</a> pages: !links', array(
+          '!links' => implode(", ", $links)
+        ))
       );
     }
   }

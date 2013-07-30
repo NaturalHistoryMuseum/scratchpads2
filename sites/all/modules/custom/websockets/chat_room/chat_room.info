@@ -1,4 +1,4 @@
-name = Chat Room
+name = Chat room
 description = Creates a simple chat room for a site.
 core = 7.x
 package = WebSockets

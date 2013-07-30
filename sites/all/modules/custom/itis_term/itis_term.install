@@ -204,6 +204,11 @@ function itis_term_update_7007(){
  */
 function itis_term_update_7008(&$sandbox){
   if(!isset($sandbox['entity_ids'])){
+    if(!db_table_exists('field_data_field_vernacular_name')){
+      // We haven't created a biological classification yet.
+      $sandbox['#finished'] = TRUE;
+      return;
+    }
     $sandbox['entity_ids'] = db_select('field_data_field_vernacular_name', 'f')->condition('field_vernacular_name_value', '')->fields('f', array(
       'entity_id'
     ))->execute()->fetchCol();
