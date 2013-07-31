@@ -25,7 +25,10 @@ function ncbi_block_view($delta = ''){
     default:
       // We load the term from the menu
       $term = menu_get_object('taxonomy_term', 2);
-      if($term){
+      if($term && !(isset($term->usage) && in_array($term->usage['und'][0]['value'], array(
+        'not accepted',
+        'invalid'
+      )))){
         $items = _ncbi_get_data($term);
         foreach($items as $key => $item){
           $items[$key] = array(
