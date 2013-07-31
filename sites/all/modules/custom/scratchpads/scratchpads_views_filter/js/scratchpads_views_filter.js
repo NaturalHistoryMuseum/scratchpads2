@@ -6,6 +6,7 @@ jQuery(document).ready(function($){
   var html_remove_filter = '<a href="#" class="remove_button">' + Drupal.t('Remove Filter') + '</a>';
   var html_add_reset = '<a href="#" class="add_button">' + Drupal.t('Add Filter') + '</a><a href="#" class="reset_button">' + Drupal.t('Reset Form') + '</a>';
   var filter_message = "<div class='filter_message'>" + Drupal.t("Click 'Apply' to view changes.") + "</div>"
+  var filter_description = "<span class='filter_description'>(contains any word)</span>";
 
   setUpHtml();
   setUpEventListers();
@@ -35,7 +36,8 @@ jQuery(document).ready(function($){
         $(this).closest(".views-widget").after(html_remove_filter);
       }
     });
-    $('.views-submit-button').append(filter_message);
+    $('.views-submit-button').append(filter_message);   
+    $('#edit-word-wrapper label').append(filter_description);
   }
 
   function setUpEventListers(){
@@ -65,7 +67,6 @@ jQuery(document).ready(function($){
     });
     // Reset and hide filter
     $('.remove_button').live("click", function(){
-
       $(this).prev().find('input:text').val('');
       $(this).prev().prev().find('input:text').val('');
       $(this).prev().prev().find('option').removeAttr("selected");
@@ -75,7 +76,6 @@ jQuery(document).ready(function($){
       $('#edit-selected option[value="' + thisClass + '"]').show();
       $(this).closest(".views-exposed-widget").hide();
       $(this).hide();
-
       // No need to show this message before the form has been submitted
       if(has_been_submitted == 1) {
         $('.filter_message').css('display', 'inline-block');
@@ -130,6 +130,7 @@ jQuery(document).ready(function($){
         $('#edit-selected-wrapper select').after(html_add_reset);
       }
       $('.views-submit-button').append(filter_message);
+      $('#edit-word-wrapper label').append(filter_description);
       $('.views-submit-button').show();
       $('.reset_button').show();
       $(".views-exposed-widget").hide();

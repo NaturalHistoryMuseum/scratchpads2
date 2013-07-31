@@ -11,7 +11,7 @@ function scratchpads_views_filter_form_views_exposed_form_alter(&$form, &$form_s
     $optionsarray[0] = '- Select a Field -';
     $has_taxa = false;
     foreach($form['#info'] as $key => $element){
-      if(substr($element['label'], 0, 6) == 'Taxa |'){
+      if(substr($element['label'], 0, 10) == 'Taxonomy |'){
         $has_taxa = true;
       }
     }
@@ -20,8 +20,8 @@ function scratchpads_views_filter_form_views_exposed_form_alter(&$form, &$form_s
       // Add Option Groups for Location and Taxa
       if(substr($element['label'], 0, 10) == 'Location |'){
         $optionsarray['Location Fields'][$key2] = substr($element['label'], 11);
-      }elseif(substr($element['label'], 0, 6) == 'Taxa |'){
-        $optionsarray['Taxa'][$key2] = substr($element['label'], 7);
+      }elseif(substr($element['label'], 0, 10) == 'Taxonomy |'){
+        $optionsarray['Taxonomy'][$key2] = substr($element['label'], 11);
       }elseif($has_taxa){
         $optionsarray['Other Fields'][$key2] = $element['label'];
       }else{
