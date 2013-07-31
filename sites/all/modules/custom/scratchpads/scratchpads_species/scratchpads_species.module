@@ -422,6 +422,36 @@ function scratchpads_species_views_pre_view(&$view, &$display_id, &$args){
   }
 }
 
+/**
+ * Implements hook_slickgrid_view_arguments_alter().
+ */
+function scratchpads_species_slickgrid_view_arguments_alter(&$arguments, $view){
+  if(isset($arguments[0])){
+    // We get the vocabulary for this term.
+    $term = taxonomy_term_load($arguments[0]);
+    if($term){
+      $vocabulary = taxonomy_vocabulary_load($term->vid);
+      if($vocabulary->show_synonym_data){
+        $children = taxonomy_get_children($term->tid);
+        $tids = array(
+          $arguments[0]
+        );
+        foreach($children as $child){
+          // Check if it's invalid/notaccepted
+          $wrapper = entity_metadata_wrapper('taxonomy_term', $child);
+          if(in_array($wrapper->field_usage->value(), array(
+            'invalid',
+            'not accepted'
+          ))){
+            $tids[] = $child->tid;
+          }
+        }
+        $arguments[0] = implode('+', $tids);
+      }
+    }
+  }
+}
+
 /*********************************************************************************************
  *
  * THEME & PREPROCESS FUNCTIONS
