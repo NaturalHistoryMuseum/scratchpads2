@@ -6,7 +6,7 @@ jQuery(document).ready(function($){
   var html_remove_filter = '<a href="#" class="remove_button">' + Drupal.t('Remove Filter') + '</a>';
   var html_add_reset = '<a href="#" class="add_button">' + Drupal.t('Add Filter') + '</a><a href="#" class="reset_button">' + Drupal.t('Reset Form') + '</a>';
   var filter_message = "<div class='filter_message'>" + Drupal.t("Click 'Apply' to view changes.") + "</div>"
-  var filter_description = "<span class='filter_description'>(contains any word)</span>";
+  var filter_description = "<span class='filter_description'>(" + Drupal.t("contains any word") + ")</span>";
 
   setUpHtml();
   setUpEventListers();

@@ -30,8 +30,11 @@ function scratchpads_backend_views_default_views(){
   $view->api_version = '3.0';
   $view->disabled = FALSE;
   /* Display: Master */
+  // START //
+  /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Admin VBO view';
+  $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['access']['perm'] = 'access content overview';
@@ -263,8 +266,16 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['timestamp']['exposed'] = TRUE;
   $handler->display->display_options['filters']['timestamp']['expose']['operator_id'] = 'timestamp_op';
   $handler->display->display_options['filters']['timestamp']['expose']['label'] = 'Upload date';
+  $handler->display->display_options['filters']['timestamp']['expose']['use_operator'] = TRUE;
   $handler->display->display_options['filters']['timestamp']['expose']['operator'] = 'timestamp_op';
   $handler->display->display_options['filters']['timestamp']['expose']['identifier'] = 'timestamp';
+  $handler->display->display_options['filters']['timestamp']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0
+  );
   /* Filter criterion: Field: Taxonomic name (field_taxonomic_name) */
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
@@ -273,11 +284,18 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['group'] = 1;
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['exposed'] = TRUE;
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator_id'] = 'field_taxonomic_name_tid_op';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxa';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxonomy';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['use_operator'] = TRUE;
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'birds';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0
+  );
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'my_vocab';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = FALSE;
   /* Filter criterion: File Usage: Entity type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
@@ -306,7 +324,6 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['defaults']['title'] = FALSE;
   $handler->display->display_options['title'] = 'Image files';
   $handler->display->display_options['defaults']['group_by'] = FALSE;
-  $handler->display->display_options['group_by'] = TRUE;
   $handler->display->display_options['defaults']['fields'] = FALSE;
   /* Field: Bulk operations: File */
   $handler->display->display_options['fields']['views_bulk_operations']['id'] = 'views_bulk_operations';
@@ -454,17 +471,6 @@ function scratchpads_backend_views_default_views(){
     2 => 'OR'
   );
   $handler->display->display_options['defaults']['filters'] = FALSE;
-  /* Filter criterion: User: Name (raw) */
-  $handler->display->display_options['filters']['name']['id'] = 'name';
-  $handler->display->display_options['filters']['name']['table'] = 'users';
-  $handler->display->display_options['filters']['name']['field'] = 'name';
-  $handler->display->display_options['filters']['name']['relationship'] = 'uid';
-  $handler->display->display_options['filters']['name']['group'] = 1;
-  $handler->display->display_options['filters']['name']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['name']['expose']['operator_id'] = 'name_op';
-  $handler->display->display_options['filters']['name']['expose']['label'] = 'Contributor';
-  $handler->display->display_options['filters']['name']['expose']['operator'] = 'name_op';
-  $handler->display->display_options['filters']['name']['expose']['identifier'] = 'name';
   /* Filter criterion: File: Upload date */
   $handler->display->display_options['filters']['timestamp']['id'] = 'timestamp';
   $handler->display->display_options['filters']['timestamp']['table'] = 'file_managed';
@@ -473,8 +479,16 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['timestamp']['exposed'] = TRUE;
   $handler->display->display_options['filters']['timestamp']['expose']['operator_id'] = 'timestamp_op';
   $handler->display->display_options['filters']['timestamp']['expose']['label'] = 'Upload date';
+  $handler->display->display_options['filters']['timestamp']['expose']['use_operator'] = TRUE;
   $handler->display->display_options['filters']['timestamp']['expose']['operator'] = 'timestamp_op';
   $handler->display->display_options['filters']['timestamp']['expose']['identifier'] = 'timestamp';
+  $handler->display->display_options['filters']['timestamp']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0
+  );
   /* Filter criterion: Field: Taxonomic name (field_taxonomic_name) */
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
@@ -483,12 +497,88 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['group'] = 1;
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['exposed'] = TRUE;
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator_id'] = 'field_taxonomic_name_tid_op';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxa';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxonomy';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['use_operator'] = TRUE;
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'birds';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0
+  );
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'my_vocab';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = FALSE;
+ 
+  $file_fields_array = field_info_instances('file', 'image');
+ 
+  foreach($file_fields_array as $key => $file_field){
+    $field_value = $key . '_value';
+    if($file_field['widget']['module'] == 'text'){
+      /* Filter criterion: */
+      $handler->display->display_options['filters'][$field_value]['id'] = $field_value;
+      $handler->display->display_options['filters'][$field_value]['table'] = 'field_data_' . $key;
+      $handler->display->display_options['filters'][$field_value]['field'] = $field_value;
+      $handler->display->display_options['filters'][$field_value]['operator'] = 'contains';
+      $handler->display->display_options['filters'][$field_value]['exposed'] = TRUE;
+      $handler->display->display_options['filters'][$field_value]['expose']['operator_id'] = $field_value . '_op';
+      $handler->display->display_options['filters'][$field_value]['expose']['use_operator'] = TRUE;
+      $handler->display->display_options['filters'][$field_value]['expose']['label'] = $file_field['label'];
+      $handler->display->display_options['filters'][$field_value]['expose']['operator'] = $field_value . '_op';
+      $handler->display->display_options['filters'][$field_value]['expose']['identifier'] = $field_value;
+    }elseif($file_field['widget']['module'] == 'options'){
+      // We remove certain filters that do not need to be displayed
+      if(($key != 'field_sticky') && ($key != 'field_weight') && ($key != 'field_promote_to_home_page')){
+        /* Filter criterion: */
+        $handler->display->display_options['filters'][$field_value]['id'] = $field_value;
+        $handler->display->display_options['filters'][$field_value]['table'] = 'field_data_' . $key;
+        $handler->display->display_options['filters'][$field_value]['field'] = $field_value;
+        $handler->display->display_options['filters'][$field_value]['exposed'] = TRUE;
+        $handler->display->display_options['filters'][$field_value]['expose']['operator_id'] = $field_value . '_op';
+        $handler->display->display_options['filters'][$field_value]['expose']['label'] = $file_field['label'];
+        $handler->display->display_options['filters'][$field_value]['expose']['operator'] = $field_value . '_op';
+        $handler->display->display_options['filters'][$field_value]['expose']['identifier'] = $field_value;
+      }
+    }elseif($file_field['widget']['module'] == 'creative_commons'){
+      $license_array = creative_commons_get_licence_types();
+      $group_array = array();
+      $c = 1;
+      foreach($license_array as $key => $license){
+        $group_array[$c] = array(
+          'title' => $license,
+          'operator' => '=',
+          'value' => array(
+            'value' => $key,
+            'min' => '',
+            'max' => ''
+          )
+        );
+        $c++;
+      }
+      /* Filter criterion: File: Licence (field_cc_licence) */
+      $handler->display->display_options['filters']['field_cc_licence_licence']['id'] = 'field_cc_licence_licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['table'] = 'field_data_field_cc_licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['field'] = 'field_cc_licence_licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['exposed'] = TRUE;
+      $handler->display->display_options['filters']['field_cc_licence_licence']['expose']['operator_id'] = 'field_cc_licence_licence_op';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['expose']['label'] = 'Licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['expose']['operator'] = 'field_cc_licence_licence_op';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['expose']['identifier'] = 'field_cc_licence_licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['expose']['remember_roles'] = array(
+        2 => '2',
+        1 => 0,
+        3 => 0,
+        4 => 0,
+        5 => 0
+      );
+      $handler->display->display_options['filters']['field_cc_licence_licence']['is_grouped'] = TRUE;
+      $handler->display->display_options['filters']['field_cc_licence_licence']['group_info']['label'] = 'Licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['group_info']['identifier'] = 'field_cc_licence_licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['group_info']['group_items'] = $group_array;
+    }
+  }
+ 
   /* Filter criterion: File: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'file_managed';
@@ -517,13 +607,30 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['fid']['group_type'] = 'count_distinct';
   $handler->display->display_options['filters']['fid']['operator'] = '>=';
   $handler->display->display_options['filters']['fid']['value']['value'] = '0';
+  /* Filter criterion: User: Name */
+  $handler->display->display_options['filters']['uid']['id'] = 'uid';
+  $handler->display->display_options['filters']['uid']['table'] = 'users';
+  $handler->display->display_options['filters']['uid']['field'] = 'uid';
+  $handler->display->display_options['filters']['uid']['relationship'] = 'uid';
+  $handler->display->display_options['filters']['uid']['value'] = '';
+  $handler->display->display_options['filters']['uid']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['uid']['expose']['operator_id'] = 'uid_op';
+  $handler->display->display_options['filters']['uid']['expose']['label'] = 'Contributor';
+  $handler->display->display_options['filters']['uid']['expose']['operator'] = 'uid_op';
+  $handler->display->display_options['filters']['uid']['expose']['identifier'] = 'uid';
+  $handler->display->display_options['filters']['uid']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0
+  );
   $handler->display->display_options['path'] = 'admin/file/image';
   /* Display: Audio */
   $handler = $view->new_display('page', 'Audio', 'page_2');
   $handler->display->display_options['defaults']['title'] = FALSE;
   $handler->display->display_options['title'] = 'Audio files';
   $handler->display->display_options['defaults']['group_by'] = FALSE;
-  $handler->display->display_options['group_by'] = TRUE;
   $handler->display->display_options['defaults']['fields'] = FALSE;
   /* Field: Bulk operations: File */
   $handler->display->display_options['fields']['views_bulk_operations']['id'] = 'views_bulk_operations';
@@ -683,6 +790,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['timestamp']['group'] = 1;
   $handler->display->display_options['filters']['timestamp']['exposed'] = TRUE;
   $handler->display->display_options['filters']['timestamp']['expose']['operator_id'] = 'timestamp_op';
+  $handler->display->display_options['filters']['timestamp']['expose']['use_operator'] = TRUE;
   $handler->display->display_options['filters']['timestamp']['expose']['label'] = 'Upload date';
   $handler->display->display_options['filters']['timestamp']['expose']['operator'] = 'timestamp_op';
   $handler->display->display_options['filters']['timestamp']['expose']['identifier'] = 'timestamp';
@@ -694,12 +802,81 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['group'] = 1;
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['exposed'] = TRUE;
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator_id'] = 'field_taxonomic_name_tid_op';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxa';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxaonomy';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['use_operator'] = TRUE;
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'birds';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'my_vocab';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = FALSE;
+  
+  $file_fields_array = field_info_instances('file', 'audio');
+ 
+  foreach($file_fields_array as $key => $file_field){
+    $field_value = $key . '_value';
+    if($file_field['widget']['module'] == 'text'){
+      /* Filter criterion: */
+      $handler->display->display_options['filters'][$field_value]['id'] = $field_value;
+      $handler->display->display_options['filters'][$field_value]['table'] = 'field_data_' . $key;
+      $handler->display->display_options['filters'][$field_value]['field'] = $field_value;
+      $handler->display->display_options['filters'][$field_value]['operator'] = 'contains';
+      $handler->display->display_options['filters'][$field_value]['exposed'] = TRUE;
+      $handler->display->display_options['filters'][$field_value]['expose']['operator_id'] = $field_value . '_op';
+      $handler->display->display_options['filters'][$field_value]['expose']['use_operator'] = TRUE;
+      $handler->display->display_options['filters'][$field_value]['expose']['label'] = $file_field['label'];
+      $handler->display->display_options['filters'][$field_value]['expose']['operator'] = $field_value . '_op';
+      $handler->display->display_options['filters'][$field_value]['expose']['identifier'] = $field_value;
+    }elseif($file_field['widget']['module'] == 'options'){
+      // We remove certain filters that do not need to be displayed
+      if(($key != 'field_sticky') && ($key != 'field_weight') && ($key != 'field_promote_to_home_page')){
+        /* Filter criterion: */
+        $handler->display->display_options['filters'][$field_value]['id'] = $field_value;
+        $handler->display->display_options['filters'][$field_value]['table'] = 'field_data_' . $key;
+        $handler->display->display_options['filters'][$field_value]['field'] = $field_value;
+        $handler->display->display_options['filters'][$field_value]['exposed'] = TRUE;
+        $handler->display->display_options['filters'][$field_value]['expose']['operator_id'] = $field_value . '_op';
+        $handler->display->display_options['filters'][$field_value]['expose']['label'] = $file_field['label'];
+        $handler->display->display_options['filters'][$field_value]['expose']['operator'] = $field_value . '_op';
+        $handler->display->display_options['filters'][$field_value]['expose']['identifier'] = $field_value;
+      }
+    }elseif($file_field['widget']['module'] == 'creative_commons'){
+      $license_array = creative_commons_get_licence_types();
+      $group_array = array();
+      $c = 1;
+      foreach($license_array as $key => $license){
+        $group_array[$c] = array(
+          'title' => $license,
+          'operator' => '=',
+          'value' => array(
+            'value' => $key,
+            'min' => '',
+            'max' => ''
+          )
+        );
+        $c++;
+      }
+      /* Filter criterion: File: Licence (field_cc_licence) */
+      $handler->display->display_options['filters']['field_cc_licence_licence']['id'] = 'field_cc_licence_licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['table'] = 'field_data_field_cc_licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['field'] = 'field_cc_licence_licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['exposed'] = TRUE;
+      $handler->display->display_options['filters']['field_cc_licence_licence']['expose']['operator_id'] = 'field_cc_licence_licence_op';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['expose']['label'] = 'Licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['expose']['operator'] = 'field_cc_licence_licence_op';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['expose']['identifier'] = 'field_cc_licence_licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['expose']['remember_roles'] = array(
+        2 => '2',
+        1 => 0,
+        3 => 0,
+        4 => 0,
+        5 => 0
+      );
+      $handler->display->display_options['filters']['field_cc_licence_licence']['is_grouped'] = TRUE;
+      $handler->display->display_options['filters']['field_cc_licence_licence']['group_info']['label'] = 'Licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['group_info']['identifier'] = 'field_cc_licence_licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['group_info']['group_items'] = $group_array;
+    }
+  }
+ 
   /* Filter criterion: File: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'file_managed';
@@ -734,7 +911,6 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['defaults']['title'] = FALSE;
   $handler->display->display_options['title'] = 'Video files';
   $handler->display->display_options['defaults']['group_by'] = FALSE;
-  $handler->display->display_options['group_by'] = TRUE;
   $handler->display->display_options['defaults']['fields'] = FALSE;
   /* Field: Bulk operations: File */
   $handler->display->display_options['fields']['views_bulk_operations']['id'] = 'views_bulk_operations';
@@ -875,17 +1051,6 @@ function scratchpads_backend_views_default_views(){
     2 => 'OR'
   );
   $handler->display->display_options['defaults']['filters'] = FALSE;
-  /* Filter criterion: User: Name (raw) */
-  $handler->display->display_options['filters']['name']['id'] = 'name';
-  $handler->display->display_options['filters']['name']['table'] = 'users';
-  $handler->display->display_options['filters']['name']['field'] = 'name';
-  $handler->display->display_options['filters']['name']['relationship'] = 'uid';
-  $handler->display->display_options['filters']['name']['group'] = 1;
-  $handler->display->display_options['filters']['name']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['name']['expose']['operator_id'] = 'name_op';
-  $handler->display->display_options['filters']['name']['expose']['label'] = 'Contributor';
-  $handler->display->display_options['filters']['name']['expose']['operator'] = 'name_op';
-  $handler->display->display_options['filters']['name']['expose']['identifier'] = 'name';
   /* Filter criterion: File: Upload date */
   $handler->display->display_options['filters']['timestamp']['id'] = 'timestamp';
   $handler->display->display_options['filters']['timestamp']['table'] = 'file_managed';
@@ -893,6 +1058,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['timestamp']['group'] = 1;
   $handler->display->display_options['filters']['timestamp']['exposed'] = TRUE;
   $handler->display->display_options['filters']['timestamp']['expose']['operator_id'] = 'timestamp_op';
+  $handler->display->display_options['filters']['timestamp']['expose']['use_operator'] = TRUE;
   $handler->display->display_options['filters']['timestamp']['expose']['label'] = 'Upload date';
   $handler->display->display_options['filters']['timestamp']['expose']['operator'] = 'timestamp_op';
   $handler->display->display_options['filters']['timestamp']['expose']['identifier'] = 'timestamp';
@@ -904,12 +1070,80 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['group'] = 1;
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['exposed'] = TRUE;
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator_id'] = 'field_taxonomic_name_tid_op';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxa';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxonomy';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['use_operator'] = TRUE;
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'birds';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'my_vocab';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = FALSE;
+  
+  $file_fields_array = field_info_instances('file', 'video');
+  foreach($file_fields_array as $key => $file_field){
+    $field_value = $key . '_value';
+    if($file_field['widget']['module'] == 'text'){
+      /* Filter criterion: */
+      $handler->display->display_options['filters'][$field_value]['id'] = $field_value;
+      $handler->display->display_options['filters'][$field_value]['table'] = 'field_data_' . $key;
+      $handler->display->display_options['filters'][$field_value]['field'] = $field_value;
+      $handler->display->display_options['filters'][$field_value]['operator'] = 'contains';
+      $handler->display->display_options['filters'][$field_value]['exposed'] = TRUE;
+      $handler->display->display_options['filters'][$field_value]['expose']['operator_id'] = $field_value . '_op';
+      $handler->display->display_options['filters'][$field_value]['expose']['use_operator'] = TRUE;
+      $handler->display->display_options['filters'][$field_value]['expose']['label'] = $file_field['label'];
+      $handler->display->display_options['filters'][$field_value]['expose']['operator'] = $field_value . '_op';
+      $handler->display->display_options['filters'][$field_value]['expose']['identifier'] = $field_value;
+    }elseif($file_field['widget']['module'] == 'options'){
+      // We remove certain filters that do not need to be displayed
+      if(($key != 'field_sticky') && ($key != 'field_weight') && ($key != 'field_promote_to_home_page')){
+        /* Filter criterion: */
+        $handler->display->display_options['filters'][$field_value]['id'] = $field_value;
+        $handler->display->display_options['filters'][$field_value]['table'] = 'field_data_' . $key;
+        $handler->display->display_options['filters'][$field_value]['field'] = $field_value;
+        $handler->display->display_options['filters'][$field_value]['exposed'] = TRUE;
+        $handler->display->display_options['filters'][$field_value]['expose']['operator_id'] = $field_value . '_op';
+        $handler->display->display_options['filters'][$field_value]['expose']['label'] = $file_field['label'];
+        $handler->display->display_options['filters'][$field_value]['expose']['operator'] = $field_value . '_op';
+        $handler->display->display_options['filters'][$field_value]['expose']['identifier'] = $field_value;
+      }
+    }elseif($file_field['widget']['module'] == 'creative_commons'){
+      $license_array = creative_commons_get_licence_types();
+      $group_array = array();
+      $c = 1;
+      foreach($license_array as $key => $license){
+        $group_array[$c] = array(
+          'title' => $license,
+          'operator' => '=',
+          'value' => array(
+            'value' => $key,
+            'min' => '',
+            'max' => ''
+          )
+        );
+        $c++;
+      }
+      /* Filter criterion: File: Licence (field_cc_licence) */
+      $handler->display->display_options['filters']['field_cc_licence_licence']['id'] = 'field_cc_licence_licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['table'] = 'field_data_field_cc_licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['field'] = 'field_cc_licence_licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['exposed'] = TRUE;
+      $handler->display->display_options['filters']['field_cc_licence_licence']['expose']['operator_id'] = 'field_cc_licence_licence_op';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['expose']['label'] = 'Licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['expose']['operator'] = 'field_cc_licence_licence_op';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['expose']['identifier'] = 'field_cc_licence_licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['expose']['remember_roles'] = array(
+        2 => '2',
+        1 => 0,
+        3 => 0,
+        4 => 0,
+        5 => 0
+      );
+      $handler->display->display_options['filters']['field_cc_licence_licence']['is_grouped'] = TRUE;
+      $handler->display->display_options['filters']['field_cc_licence_licence']['group_info']['label'] = 'Licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['group_info']['identifier'] = 'field_cc_licence_licence';
+      $handler->display->display_options['filters']['field_cc_licence_licence']['group_info']['group_items'] = $group_array;
+    }
+  }
+ 
   /* Filter criterion: File: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'file_managed';
@@ -938,7 +1172,26 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['fid']['group_type'] = 'count_distinct';
   $handler->display->display_options['filters']['fid']['operator'] = '>=';
   $handler->display->display_options['filters']['fid']['value']['value'] = '0';
+  /* Filter criterion: User: Name */
+  $handler->display->display_options['filters']['uid']['id'] = 'uid';
+  $handler->display->display_options['filters']['uid']['table'] = 'users';
+  $handler->display->display_options['filters']['uid']['field'] = 'uid';
+  $handler->display->display_options['filters']['uid']['relationship'] = 'uid';
+  $handler->display->display_options['filters']['uid']['value'] = '';
+  $handler->display->display_options['filters']['uid']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['uid']['expose']['operator_id'] = 'uid_op';
+  $handler->display->display_options['filters']['uid']['expose']['label'] = 'Contributor';
+  $handler->display->display_options['filters']['uid']['expose']['operator'] = 'uid_op';
+  $handler->display->display_options['filters']['uid']['expose']['identifier'] = 'uid';
+  $handler->display->display_options['filters']['uid']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0
+  );
   $handler->display->display_options['path'] = 'admin/file/video';
+  /// END  ///
   $views[$view->name] = $view;
   return $views;
 }
@@ -1081,7 +1334,7 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
-                                  $handler = $view->new_display('default', 'Master', 'default');
+                                        $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = $label;
   $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['use_more_always'] = FALSE;

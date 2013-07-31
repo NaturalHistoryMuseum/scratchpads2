@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Implements hook_form_FORM_ID_alter
+ * Implements hook_form_FORM_ID_alter().
  * 
- * We add a drop down list of fields in the exposed form
+ * Adds a drop down list of fields to the exposed form
  */
 function scratchpads_views_filter_form_views_exposed_form_alter(&$form, &$form_state, $form_id){
-  if(strpos($form_state['view']->name, 'admin_vbo_node') !== false){
+  if((strpos($form_state['view']->name, 'admin_vbo_node') !== false) || ($form_state['view']->name == 'admin_vbo_file')){
     $optionsarray = array();
     $optionsarray[0] = '- ' . t('Select a field') . ' -';
     $has_taxa = false;
@@ -52,4 +52,23 @@ function scratchpads_views_filter_form_views_exposed_form_alter(&$form, &$form_s
     $form['#attached']['js'][] = drupal_get_path('module', 'scratchpads_views_filter') . '/js/scratchpads_views_filter.js';
     $form['#attached']['css'][] = drupal_get_path('module', 'scratchpads_views_filter') . '/css/scratchpads_views_filter.css';
   }
+}
+
+/**
+ * Implements hook_views_pre_render().
+ * 
+ *  Remove duplicate entries from the admin_vbo_file views. The apparent duplicate is caused by the file lock module.
+ *  The previous method (views aggregation - group by) interferes with exposed filters.
+ */
+function scratchpads_views_filter_views_pre_render(&$view) {  
+  $used_fids = array();
+  if ($view->name == 'admin_vbo_file') {
+      foreach ($view->result as $row) {
+        if (!in_array($row->fid, $used_fids)) {
+          $new_view_result[] = $row;
+          $used_fids[] = $row->fid;
+        }
+      }
+      $view->result = $new_view_result;
+    }
 }

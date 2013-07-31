@@ -64,6 +64,12 @@
 	margin-left: 1em;
 }
 
+.views-exposed-form .views-widget .form-item-timestamp-value {
+	margin-left: 0em;
+}
+
+
+
 .views-exposed-widget .views-operator {
 	margin-left: 1em;
 }
@@ -89,3 +95,4 @@
 .filter_description{
 	font-weight:normal;
 }
+
