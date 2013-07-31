@@ -156,6 +156,10 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
         }
     }
   }
+  // This should use the standard views hooks, but there isn't a particularly
+  // nice way of doing so.  For now, this function will remain to allow us to
+  // tweak the arguments.
+  drupal_alter('slickgrid_view_arguments', $arguments, $view);
   $view->set_arguments($arguments);
   $view->render();
   drupal_add_http_header('Content-Type', 'application/json; charset=utf-8');
