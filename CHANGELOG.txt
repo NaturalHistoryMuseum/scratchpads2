@@ -1,3 +1,14 @@
+2.1.6 (2013-07-31)
+
+- Italicise subgeneric ranked taxa (#3138)
+- Enabled the editing of a site's URL aliases
+- Minor DwC-A additions for image metadata.
+- Enable harvesting of site categories for the stats pages (#110)
+
+2.1.5.2 (2013-07-21)
+
+- Prevent body field from being deleted.
+
 2.1.5.1 (2013-07-18)
 
 - Ensure ITIS Term and Scratchpads Group updates run as expected
