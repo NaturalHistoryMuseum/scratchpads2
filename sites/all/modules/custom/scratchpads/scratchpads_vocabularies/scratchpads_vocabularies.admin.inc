@@ -299,6 +299,22 @@ function scratchpads_vocabularies_admin_form($form, &$form_state){
 }
 
 /**
+ * scratchpads_vocabularies_admin_form_submit
+ */
+function scratchpads_vocabularies_admin_form_submit($form, &$form_state){
+  $info_id = $form_state['triggering_element']['#update_voc_id'];
+  $all_info = module_invoke_all('scratchpads_vocabulary_info');
+  if(!isset($all_info[$info_id])){return;}
+  $info = $all_info[$info_id];
+  list($vocabulary, $receiver) = _scratchpads_vocabularies_info_build($info);
+  if(!$vocabulary || !$receiver){
+    drupal_set_message(t('There was an error upgrading the mapping.'), 'error');
+    return;
+  }
+  _scratchpads_vocabularies_update_vocabulary($vocabulary, $receiver);
+}
+
+/**
  * scratchpads_vocabularies_delete_form
  */
 function scratchpads_vocabularies_delete_form($form, &$form_state){
