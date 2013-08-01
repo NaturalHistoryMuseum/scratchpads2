@@ -258,6 +258,23 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['name']['expose']['label'] = 'Contributor';
   $handler->display->display_options['filters']['name']['expose']['operator'] = 'name_op';
   $handler->display->display_options['filters']['name']['expose']['identifier'] = 'name';
+  /* Filter criterion: File: Name */
+  $handler->display->display_options['filters']['filename']['id'] = 'filename';
+  $handler->display->display_options['filters']['filename']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['filename']['field'] = 'filename';
+  $handler->display->display_options['filters']['filename']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['filename']['expose']['operator_id'] = 'filename_op';
+  $handler->display->display_options['filters']['filename']['expose']['label'] = 'Title';
+  $handler->display->display_options['filters']['filename']['expose']['use_operator'] = TRUE;
+  $handler->display->display_options['filters']['filename']['expose']['operator'] = 'filename_op';
+  $handler->display->display_options['filters']['filename']['expose']['identifier'] = 'filename';
+  $handler->display->display_options['filters']['filename']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0
+  );
   /* Filter criterion: File: Upload date */
   $handler->display->display_options['filters']['timestamp']['id'] = 'timestamp';
   $handler->display->display_options['filters']['timestamp']['table'] = 'file_managed';
@@ -276,27 +293,6 @@ function scratchpads_backend_views_default_views(){
     4 => 0,
     5 => 0
   );
-  /* Filter criterion: Field: Taxonomic name (field_taxonomic_name) */
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['value'] = '';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['group'] = 1;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator_id'] = 'field_taxonomic_name_tid_op';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxonomy';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['use_operator'] = TRUE;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['remember_roles'] = array(
-    2 => '2',
-    1 => 0,
-    3 => 0,
-    4 => 0,
-    5 => 0
-  );
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'my_vocab';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = FALSE;
   /* Filter criterion: File Usage: Entity type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'file_usage';
@@ -471,48 +467,25 @@ function scratchpads_backend_views_default_views(){
     2 => 'OR'
   );
   $handler->display->display_options['defaults']['filters'] = FALSE;
-  /* Filter criterion: File: Upload date */
-  $handler->display->display_options['filters']['timestamp']['id'] = 'timestamp';
-  $handler->display->display_options['filters']['timestamp']['table'] = 'file_managed';
-  $handler->display->display_options['filters']['timestamp']['field'] = 'timestamp';
-  $handler->display->display_options['filters']['timestamp']['group'] = 1;
-  $handler->display->display_options['filters']['timestamp']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['timestamp']['expose']['operator_id'] = 'timestamp_op';
-  $handler->display->display_options['filters']['timestamp']['expose']['label'] = 'Upload date';
-  $handler->display->display_options['filters']['timestamp']['expose']['use_operator'] = TRUE;
-  $handler->display->display_options['filters']['timestamp']['expose']['operator'] = 'timestamp_op';
-  $handler->display->display_options['filters']['timestamp']['expose']['identifier'] = 'timestamp';
-  $handler->display->display_options['filters']['timestamp']['expose']['remember_roles'] = array(
+  /* Filter criterion: User: Name */
+  $handler->display->display_options['filters']['uid']['id'] = 'uid';
+  $handler->display->display_options['filters']['uid']['table'] = 'users';
+  $handler->display->display_options['filters']['uid']['field'] = 'uid';
+  $handler->display->display_options['filters']['uid']['relationship'] = 'uid';
+  $handler->display->display_options['filters']['uid']['value'] = '';
+  $handler->display->display_options['filters']['uid']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['uid']['expose']['operator_id'] = 'uid_op';
+  $handler->display->display_options['filters']['uid']['expose']['label'] = 'Contributor';
+  $handler->display->display_options['filters']['uid']['expose']['operator'] = 'uid_op';
+  $handler->display->display_options['filters']['uid']['expose']['identifier'] = 'uid';
+  $handler->display->display_options['filters']['uid']['expose']['remember_roles'] = array(
     2 => '2',
     1 => 0,
     3 => 0,
     4 => 0,
     5 => 0
   );
-  /* Filter criterion: Field: Taxonomic name (field_taxonomic_name) */
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['value'] = '';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['group'] = 1;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator_id'] = 'field_taxonomic_name_tid_op';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxonomy';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['use_operator'] = TRUE;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['remember_roles'] = array(
-    2 => '2',
-    1 => 0,
-    3 => 0,
-    4 => 0,
-    5 => 0
-  );
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'my_vocab';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = FALSE;
- 
   $file_fields_array = field_info_instances('file', 'image');
- 
   foreach($file_fields_array as $key => $file_field){
     $field_value = $key . '_value';
     if($file_field['widget']['module'] == 'text'){
@@ -527,7 +500,7 @@ function scratchpads_backend_views_default_views(){
       $handler->display->display_options['filters'][$field_value]['expose']['label'] = $file_field['label'];
       $handler->display->display_options['filters'][$field_value]['expose']['operator'] = $field_value . '_op';
       $handler->display->display_options['filters'][$field_value]['expose']['identifier'] = $field_value;
-    }elseif($file_field['widget']['module'] == 'options'){
+    }elseif(($file_field['widget']['module'] == 'options') && ($file_field['display']['default']['module'] != 'taxonomy')){
       // We remove certain filters that do not need to be displayed
       if(($key != 'field_sticky') && ($key != 'field_weight') && ($key != 'field_promote_to_home_page')){
         /* Filter criterion: */
@@ -578,7 +551,97 @@ function scratchpads_backend_views_default_views(){
       $handler->display->display_options['filters']['field_cc_licence_licence']['group_info']['group_items'] = $group_array;
     }
   }
- 
+  /* Filter criterion: File: Imaging technique (field_imaging_technique) */
+  $handler->display->display_options['filters']['field_imaging_technique_tid']['id'] = 'field_imaging_technique_tid';
+  $handler->display->display_options['filters']['field_imaging_technique_tid']['table'] = 'field_data_field_imaging_technique';
+  $handler->display->display_options['filters']['field_imaging_technique_tid']['field'] = 'field_imaging_technique_tid';
+  $handler->display->display_options['filters']['field_imaging_technique_tid']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['field_imaging_technique_tid']['expose']['operator_id'] = 'field_imaging_technique_tid_op';
+  $handler->display->display_options['filters']['field_imaging_technique_tid']['expose']['label'] = 'Imaging technique';
+  $handler->display->display_options['filters']['field_imaging_technique_tid']['expose']['operator'] = 'field_imaging_technique_tid_op';
+  $handler->display->display_options['filters']['field_imaging_technique_tid']['expose']['identifier'] = 'field_imaging_technique_tid';
+  $handler->display->display_options['filters']['field_imaging_technique_tid']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0
+  );
+  $handler->display->display_options['filters']['field_imaging_technique_tid']['type'] = 'select';
+  $handler->display->display_options['filters']['field_imaging_technique_tid']['vocabulary'] = 'imaging_technique';
+  /* Filter criterion: File: Keywords (field_keywords) */
+  $handler->display->display_options['filters']['field_keywords_tid']['id'] = 'field_keywords_tid';
+  $handler->display->display_options['filters']['field_keywords_tid']['table'] = 'field_data_field_keywords';
+  $handler->display->display_options['filters']['field_keywords_tid']['field'] = 'field_keywords_tid';
+  $handler->display->display_options['filters']['field_keywords_tid']['value'] = '';
+  $handler->display->display_options['filters']['field_keywords_tid']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['field_keywords_tid']['expose']['operator_id'] = 'field_keywords_tid_op';
+  $handler->display->display_options['filters']['field_keywords_tid']['expose']['label'] = 'Keywords';
+  $handler->display->display_options['filters']['field_keywords_tid']['expose']['use_operator'] = TRUE;
+  $handler->display->display_options['filters']['field_keywords_tid']['expose']['operator'] = 'field_keywords_tid_op';
+  $handler->display->display_options['filters']['field_keywords_tid']['expose']['identifier'] = 'field_keywords_tid';
+  $handler->display->display_options['filters']['field_keywords_tid']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0
+  );
+  $handler->display->display_options['filters']['field_keywords_tid']['vocabulary'] = 'image_keywords';
+  /* Filter criterion: File: Preparation technique (field_preparation_technique) */
+  $handler->display->display_options['filters']['field_preparation_technique_tid']['id'] = 'field_preparation_technique_tid';
+  $handler->display->display_options['filters']['field_preparation_technique_tid']['table'] = 'field_data_field_preparation_technique';
+  $handler->display->display_options['filters']['field_preparation_technique_tid']['field'] = 'field_preparation_technique_tid';
+  $handler->display->display_options['filters']['field_preparation_technique_tid']['value'] = '';
+  $handler->display->display_options['filters']['field_preparation_technique_tid']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['field_preparation_technique_tid']['expose']['operator_id'] = 'field_preparation_technique_tid_op';
+  $handler->display->display_options['filters']['field_preparation_technique_tid']['expose']['label'] = 'Preparation technique';
+  $handler->display->display_options['filters']['field_preparation_technique_tid']['expose']['use_operator'] = TRUE;
+  $handler->display->display_options['filters']['field_preparation_technique_tid']['expose']['operator'] = 'field_preparation_technique_tid_op';
+  $handler->display->display_options['filters']['field_preparation_technique_tid']['expose']['identifier'] = 'field_preparation_technique_tid';
+  $handler->display->display_options['filters']['field_preparation_technique_tid']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0
+  );
+  $handler->display->display_options['filters']['field_preparation_technique_tid']['vocabulary'] = 'preparation_technique';
+  /* Filter criterion: File: Name */
+  $handler->display->display_options['filters']['filename']['id'] = 'filename';
+  $handler->display->display_options['filters']['filename']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['filename']['field'] = 'filename';
+  $handler->display->display_options['filters']['filename']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['filename']['expose']['operator_id'] = 'filename_op';
+  $handler->display->display_options['filters']['filename']['expose']['label'] = 'Title';
+  $handler->display->display_options['filters']['filename']['expose']['use_operator'] = TRUE;
+  $handler->display->display_options['filters']['filename']['expose']['operator'] = 'filename_op';
+  $handler->display->display_options['filters']['filename']['expose']['identifier'] = 'filename';
+  $handler->display->display_options['filters']['filename']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0
+  );
+  /* Filter criterion: File: Upload date */
+  $handler->display->display_options['filters']['timestamp']['id'] = 'timestamp';
+  $handler->display->display_options['filters']['timestamp']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['timestamp']['field'] = 'timestamp';
+  $handler->display->display_options['filters']['timestamp']['group'] = 1;
+  $handler->display->display_options['filters']['timestamp']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['timestamp']['expose']['operator_id'] = 'timestamp_op';
+  $handler->display->display_options['filters']['timestamp']['expose']['label'] = 'Upload date';
+  $handler->display->display_options['filters']['timestamp']['expose']['use_operator'] = TRUE;
+  $handler->display->display_options['filters']['timestamp']['expose']['operator'] = 'timestamp_op';
+  $handler->display->display_options['filters']['timestamp']['expose']['identifier'] = 'timestamp';
+  $handler->display->display_options['filters']['timestamp']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0
+  );
   /* Filter criterion: File: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'file_managed';
@@ -607,24 +670,8 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['fid']['group_type'] = 'count_distinct';
   $handler->display->display_options['filters']['fid']['operator'] = '>=';
   $handler->display->display_options['filters']['fid']['value']['value'] = '0';
-  /* Filter criterion: User: Name */
-  $handler->display->display_options['filters']['uid']['id'] = 'uid';
-  $handler->display->display_options['filters']['uid']['table'] = 'users';
-  $handler->display->display_options['filters']['uid']['field'] = 'uid';
-  $handler->display->display_options['filters']['uid']['relationship'] = 'uid';
-  $handler->display->display_options['filters']['uid']['value'] = '';
-  $handler->display->display_options['filters']['uid']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['uid']['expose']['operator_id'] = 'uid_op';
-  $handler->display->display_options['filters']['uid']['expose']['label'] = 'Contributor';
-  $handler->display->display_options['filters']['uid']['expose']['operator'] = 'uid_op';
-  $handler->display->display_options['filters']['uid']['expose']['identifier'] = 'uid';
-  $handler->display->display_options['filters']['uid']['expose']['remember_roles'] = array(
-    2 => '2',
-    1 => 0,
-    3 => 0,
-    4 => 0,
-    5 => 0
-  );
+  // Sorts handers by exposed filter label, if one exists
+  $handler->display->display_options['filters'] = _scratchpads_backend_views_sort_by_label($handler->display->display_options['filters']);
   $handler->display->display_options['path'] = 'admin/file/image';
   /* Display: Audio */
   $handler = $view->new_display('page', 'Audio', 'page_2');
@@ -783,34 +830,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['name']['expose']['label'] = 'Contributor';
   $handler->display->display_options['filters']['name']['expose']['operator'] = 'name_op';
   $handler->display->display_options['filters']['name']['expose']['identifier'] = 'name';
-  /* Filter criterion: File: Upload date */
-  $handler->display->display_options['filters']['timestamp']['id'] = 'timestamp';
-  $handler->display->display_options['filters']['timestamp']['table'] = 'file_managed';
-  $handler->display->display_options['filters']['timestamp']['field'] = 'timestamp';
-  $handler->display->display_options['filters']['timestamp']['group'] = 1;
-  $handler->display->display_options['filters']['timestamp']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['timestamp']['expose']['operator_id'] = 'timestamp_op';
-  $handler->display->display_options['filters']['timestamp']['expose']['use_operator'] = TRUE;
-  $handler->display->display_options['filters']['timestamp']['expose']['label'] = 'Upload date';
-  $handler->display->display_options['filters']['timestamp']['expose']['operator'] = 'timestamp_op';
-  $handler->display->display_options['filters']['timestamp']['expose']['identifier'] = 'timestamp';
-  /* Filter criterion: Field: Taxonomic name (field_taxonomic_name) */
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['value'] = '';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['group'] = 1;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator_id'] = 'field_taxonomic_name_tid_op';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxaonomy';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['use_operator'] = TRUE;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'my_vocab';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = FALSE;
-  
   $file_fields_array = field_info_instances('file', 'audio');
- 
   foreach($file_fields_array as $key => $file_field){
     $field_value = $key . '_value';
     if($file_field['widget']['module'] == 'text'){
@@ -876,7 +896,34 @@ function scratchpads_backend_views_default_views(){
       $handler->display->display_options['filters']['field_cc_licence_licence']['group_info']['group_items'] = $group_array;
     }
   }
- 
+  /* Filter criterion: File: Name */
+  $handler->display->display_options['filters']['filename']['id'] = 'filename';
+  $handler->display->display_options['filters']['filename']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['filename']['field'] = 'filename';
+  $handler->display->display_options['filters']['filename']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['filename']['expose']['operator_id'] = 'filename_op';
+  $handler->display->display_options['filters']['filename']['expose']['label'] = 'Title';
+  $handler->display->display_options['filters']['filename']['expose']['use_operator'] = TRUE;
+  $handler->display->display_options['filters']['filename']['expose']['operator'] = 'filename_op';
+  $handler->display->display_options['filters']['filename']['expose']['identifier'] = 'filename';
+  $handler->display->display_options['filters']['filename']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0
+  );
+  /* Filter criterion: File: Upload date */
+  $handler->display->display_options['filters']['timestamp']['id'] = 'timestamp';
+  $handler->display->display_options['filters']['timestamp']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['timestamp']['field'] = 'timestamp';
+  $handler->display->display_options['filters']['timestamp']['group'] = 1;
+  $handler->display->display_options['filters']['timestamp']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['timestamp']['expose']['operator_id'] = 'timestamp_op';
+  $handler->display->display_options['filters']['timestamp']['expose']['use_operator'] = TRUE;
+  $handler->display->display_options['filters']['timestamp']['expose']['label'] = 'Upload date';
+  $handler->display->display_options['filters']['timestamp']['expose']['operator'] = 'timestamp_op';
+  $handler->display->display_options['filters']['timestamp']['expose']['identifier'] = 'timestamp';
   /* Filter criterion: File: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'file_managed';
@@ -905,6 +952,8 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['fid']['group_type'] = 'count_distinct';
   $handler->display->display_options['filters']['fid']['operator'] = '>=';
   $handler->display->display_options['filters']['fid']['value']['value'] = '0';
+  // Sorts handers by exposed filter label, if one exists
+  $handler->display->display_options['filters'] = _scratchpads_backend_views_sort_by_label($handler->display->display_options['filters']);
   $handler->display->display_options['path'] = 'admin/file/audio';
   /* Display: Video */
   $handler = $view->new_display('page', 'Video', 'page_3');
@@ -1051,32 +1100,6 @@ function scratchpads_backend_views_default_views(){
     2 => 'OR'
   );
   $handler->display->display_options['defaults']['filters'] = FALSE;
-  /* Filter criterion: File: Upload date */
-  $handler->display->display_options['filters']['timestamp']['id'] = 'timestamp';
-  $handler->display->display_options['filters']['timestamp']['table'] = 'file_managed';
-  $handler->display->display_options['filters']['timestamp']['field'] = 'timestamp';
-  $handler->display->display_options['filters']['timestamp']['group'] = 1;
-  $handler->display->display_options['filters']['timestamp']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['timestamp']['expose']['operator_id'] = 'timestamp_op';
-  $handler->display->display_options['filters']['timestamp']['expose']['use_operator'] = TRUE;
-  $handler->display->display_options['filters']['timestamp']['expose']['label'] = 'Upload date';
-  $handler->display->display_options['filters']['timestamp']['expose']['operator'] = 'timestamp_op';
-  $handler->display->display_options['filters']['timestamp']['expose']['identifier'] = 'timestamp';
-  /* Filter criterion: Field: Taxonomic name (field_taxonomic_name) */
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['value'] = '';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['group'] = 1;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator_id'] = 'field_taxonomic_name_tid_op';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxonomy';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['use_operator'] = TRUE;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'my_vocab';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = FALSE;
-  
   $file_fields_array = field_info_instances('file', 'video');
   foreach($file_fields_array as $key => $file_field){
     $field_value = $key . '_value';
@@ -1143,7 +1166,34 @@ function scratchpads_backend_views_default_views(){
       $handler->display->display_options['filters']['field_cc_licence_licence']['group_info']['group_items'] = $group_array;
     }
   }
- 
+  /* Filter criterion: File: Name */
+  $handler->display->display_options['filters']['filename']['id'] = 'filename';
+  $handler->display->display_options['filters']['filename']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['filename']['field'] = 'filename';
+  $handler->display->display_options['filters']['filename']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['filename']['expose']['operator_id'] = 'filename_op';
+  $handler->display->display_options['filters']['filename']['expose']['label'] = 'Title';
+  $handler->display->display_options['filters']['filename']['expose']['use_operator'] = TRUE;
+  $handler->display->display_options['filters']['filename']['expose']['operator'] = 'filename_op';
+  $handler->display->display_options['filters']['filename']['expose']['identifier'] = 'filename';
+  $handler->display->display_options['filters']['filename']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0
+  );
+  /* Filter criterion: File: Upload date */
+  $handler->display->display_options['filters']['timestamp']['id'] = 'timestamp';
+  $handler->display->display_options['filters']['timestamp']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['timestamp']['field'] = 'timestamp';
+  $handler->display->display_options['filters']['timestamp']['group'] = 1;
+  $handler->display->display_options['filters']['timestamp']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['timestamp']['expose']['operator_id'] = 'timestamp_op';
+  $handler->display->display_options['filters']['timestamp']['expose']['use_operator'] = TRUE;
+  $handler->display->display_options['filters']['timestamp']['expose']['label'] = 'Upload date';
+  $handler->display->display_options['filters']['timestamp']['expose']['operator'] = 'timestamp_op';
+  $handler->display->display_options['filters']['timestamp']['expose']['identifier'] = 'timestamp';
   /* Filter criterion: File: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'file_managed';
@@ -1190,6 +1240,8 @@ function scratchpads_backend_views_default_views(){
     4 => 0,
     5 => 0
   );
+  // Sorts handers by exposed filter label, if one exists
+  $handler->display->display_options['filters'] = _scratchpads_backend_views_sort_by_label($handler->display->display_options['filters']);
   $handler->display->display_options['path'] = 'admin/file/video';
   /// END  ///
   $views[$view->name] = $view;
@@ -1334,7 +1386,7 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
-                                        $handler = $view->new_display('default', 'Master', 'default');
+        $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = $label;
   $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['use_more_always'] = FALSE;
@@ -1640,40 +1692,42 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
       $vocab_objects = taxonomy_vocabulary_get_names();
       $count = 0;
       $tid = 'tid';
+      $bio_vids = variable_get('biological_vids', array());
       foreach($vocab_objects as $key => $vocab){
-        // Check to see whether they have any terms
-        $result = db_select('taxonomy_term_data', 'ttd')->fields('ttd')->condition('vid', $vocab->vid, '=')->execute();
-        $num_of_results = $result->rowCount();
-        if($num_of_results > 0){
-          if($count > 0){
-            $tid = 'tid_' . $count;
+        if(array_key_exists($vocab->vid, $bio_vids)){
+          // Check to see whether they have any terms
+          $query = db_select('taxonomy_term_data', 'ttd')->fields('ttd')->condition('vid', $vocab->vid, '=');
+          $num_of_results = $query->countQuery()->execute()->fetchField();
+          if($num_of_results > 0){
+            if($count > 0){
+              $tid = 'tid_' . $count;
+            }
+            /* Filter criterion: Content: Has taxonomy term */
+            $handler->display->display_options['filters'][$tid]['id'] = $tid;
+            $handler->display->display_options['filters'][$tid]['table'] = 'taxonomy_index';
+            $handler->display->display_options['filters'][$tid]['field'] = 'tid';
+            $handler->display->display_options['filters'][$tid]['value'] = '';
+            $handler->display->display_options['filters'][$tid]['exposed'] = TRUE;
+            $handler->display->display_options['filters'][$tid]['expose']['operator_id'] = $tid . '_op';
+            $handler->display->display_options['filters'][$tid]['expose']['label'] = 'Taxonomy | ' . $vocab->name;
+            $handler->display->display_options['filters'][$tid]['expose']['operator'] = $tid . '_op';
+            $handler->display->display_options['filters'][$tid]['expose']['use_operator'] = TRUE;
+            $handler->display->display_options['filters'][$tid]['expose']['identifier'] = $tid;
+            $handler->display->display_options['filters'][$tid]['group'] = '1';
+            $handler->display->display_options['filters'][$tid]['expose']['remember_roles'] = array(
+              2 => '2',
+              1 => 0,
+              3 => 0,
+              4 => 0,
+              5 => 0
+            );
+            $handler->display->display_options['filters'][$tid]['vocabulary'] = $vocab->machine_name;
+            $handler->display->display_options['filters'][$tid]['error_message'] = FALSE;
+            $count++;
           }
-          /* Filter criterion: Content: Has taxonomy term */
-          $handler->display->display_options['filters'][$tid]['id'] = $tid;
-          $handler->display->display_options['filters'][$tid]['table'] = 'taxonomy_index';
-          $handler->display->display_options['filters'][$tid]['field'] = 'tid';
-          $handler->display->display_options['filters'][$tid]['value'] = '';
-          $handler->display->display_options['filters'][$tid]['exposed'] = TRUE;
-          $handler->display->display_options['filters'][$tid]['expose']['operator_id'] = $tid . '_op';
-          $handler->display->display_options['filters'][$tid]['expose']['label'] = 'Taxonomy | ' . $vocab->name;
-          $handler->display->display_options['filters'][$tid]['expose']['operator'] = $tid . '_op';
-          $handler->display->display_options['filters'][$tid]['expose']['use_operator'] = TRUE;
-          $handler->display->display_options['filters'][$tid]['expose']['identifier'] = $tid;
-          $handler->display->display_options['filters'][$tid]['group'] = '1';
-          $handler->display->display_options['filters'][$tid]['expose']['remember_roles'] = array(
-            2 => '2',
-            1 => 0,
-            3 => 0,
-            4 => 0,
-            5 => 0
-          );
-          $handler->display->display_options['filters'][$tid]['vocabulary'] = $vocab->machine_name;
-          $handler->display->display_options['filters'][$tid]['error_message'] = FALSE;
-          $count++;
         }
       }
-    }    // For now, reference (node and user) will be handled 'manually'
-elseif($field_details['field_name'] == 'field_identified_by'){
+    }elseif($field_details['field_name'] == 'field_identified_by'){
       /* Filter criterion: User: Name */
       $handler->display->display_options['filters']['uid_1']['id'] = 'uid_1';
       $handler->display->display_options['filters']['uid_1']['table'] = 'users';
@@ -2057,3 +2111,27 @@ function scratchpads_backend_views_add_field(&$handler, $module, $table, $field_
     $handler->display->display_options['style_options']['columns'][$field_id]['tab'] = $tab;
   }
 }
+/*
+ * Helper function to sort handers by label
+ */
+function _scratchpads_backend_views_sort_by_label($array_to_sort){
+  $label_keyed = array();
+  $other = array();
+  foreach($array_to_sort as $key => $filter){
+    if(isset($filter['expose'])){
+      $label_keyed[$filter['expose']['label']] = array(
+        $key => $filter
+      );
+    }else{
+      $other[$key] = $filter;
+    }
+  }
+  ksort($label_keyed);
+  $final = array();
+  foreach($label_keyed as $key => $element){
+    $final[key($element)] = array_shift(array_values($element));
+  }
+  return array_merge($final, $other);
+}
+
+

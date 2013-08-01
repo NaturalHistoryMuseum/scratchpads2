@@ -10,9 +10,13 @@ function scratchpads_views_filter_form_views_exposed_form_alter(&$form, &$form_s
     $optionsarray = array();
     $optionsarray[0] = '- ' . t('Select a field') . ' -';
     $has_taxa = false;
+    $has_location = false;
     foreach($form['#info'] as $key => $element){
       if(substr($element['label'], 0, 10) == 'Taxonomy |'){
         $has_taxa = true;
+      }
+      if(substr($element['label'], 0, 10) == 'Location |'){
+        $has_location = true;
       }
     }
     foreach($form['#info'] as $key => $element){
@@ -24,8 +28,10 @@ function scratchpads_views_filter_form_views_exposed_form_alter(&$form, &$form_s
         $optionsarray['Taxonomy'][$key2] = substr($element['label'], 11);
       }elseif($has_taxa){
         $optionsarray['Other Fields'][$key2] = $element['label'];
-      }else{
+      }elseif($has_location){
         $optionsarray['Fields'][$key2] = $element['label'];
+      }else{
+        $optionsarray[$key2] = $element['label'];
       }
     }
     $newform = array();
@@ -60,15 +66,15 @@ function scratchpads_views_filter_form_views_exposed_form_alter(&$form, &$form_s
  *  Remove duplicate entries from the admin_vbo_file views. The apparent duplicate is caused by the file lock module.
  *  The previous method (views aggregation - group by) interferes with exposed filters.
  */
-function scratchpads_views_filter_views_pre_render(&$view) {  
+function scratchpads_views_filter_views_pre_render(&$view){
   $used_fids = array();
-  if ($view->name == 'admin_vbo_file') {
-      foreach ($view->result as $row) {
-        if (!in_array($row->fid, $used_fids)) {
-          $new_view_result[] = $row;
-          $used_fids[] = $row->fid;
-        }
+  if($view->name == 'admin_vbo_file'){
+    foreach($view->result as $row){
+      if(!in_array($row->fid, $used_fids)){
+        $new_view_result[] = $row;
+        $used_fids[] = $row->fid;
       }
-      $view->result = $new_view_result;
     }
+    $view->result = $new_view_result;
+  }
 }
