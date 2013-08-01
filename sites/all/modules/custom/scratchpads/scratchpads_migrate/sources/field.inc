@@ -238,9 +238,6 @@ class DrupalFieldMigration extends DrupalMigration{
    * Provide additional custom field name mapping
    */
   static public function getCustomMapping($field_name, $field_type = NULL, $cnx = NULL){
-    if(!$cnx){
-      sfesfesdf();
-    }
     if(($field_type == 'image' || $field_type == 'filefield') && $field_name != 'field_mediafiles'){
       $query = Database::getConnection('default', $cnx)->select('content_node_field_instance', 'i');
       $query->innerJoin('content_node_field', 'f', 'f.field_name = i.field_name');
