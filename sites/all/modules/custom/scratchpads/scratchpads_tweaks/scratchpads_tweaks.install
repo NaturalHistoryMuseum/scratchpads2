@@ -1137,3 +1137,19 @@ function scratchpads_tweaks_update_7055(){
 function scratchpads_tweaks_update_7056(){
   variable_set('apachesolr_optimize_interval', PHP_INT_MAX);
 }
+
+/**
+ * Disable/uninstall the scratchpads_mollom module and install the
+ * scratchpads_security module.
+ */
+function scratchpads_tweaks_update_7057(){
+  module_disable(array(
+    'scratchpads_mollom'
+  ));
+  drupal_uninstall_modules(array(
+    'scratchpads_mollom'
+  ));
+  module_enable(array(
+    'scratchpads_security'
+  ));
+}
