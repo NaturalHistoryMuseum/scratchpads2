@@ -21,7 +21,7 @@ function scratchpads_views_filter_form_views_exposed_form_alter(&$form, &$form_s
     }
     foreach($form['#info'] as $key => $element){
       $key2 = 'views-widget-' . $key;
-      // Add Option Groups for Location and Taxa
+      // Add Option Groups for Location and Taxonomy
       if(substr($element['label'], 0, 10) == 'Location |'){
         $optionsarray['Location Fields'][$key2] = substr($element['label'], 11);
       }elseif(substr($element['label'], 0, 10) == 'Taxonomy |'){
@@ -61,20 +61,16 @@ function scratchpads_views_filter_form_views_exposed_form_alter(&$form, &$form_s
 }
 
 /**
- * Implements hook_views_pre_render().
+ * Implements hook_query_alter().
  * 
- *  Remove duplicate entries from the admin_vbo_file views. The apparent duplicate is caused by the file lock module.
- *  The previous method (views aggregation - group by) interferes with exposed filters.
+ * Remove duplicate entries from the admin_vbo_file views. The apparent duplicate is caused by the file lock module.
  */
-function scratchpads_views_filter_views_pre_render(&$view){
-  $used_fids = array();
-  if($view->name == 'admin_vbo_file'){
-    foreach($view->result as $row){
-      if(!in_array($row->fid, $used_fids)){
-        $new_view_result[] = $row;
-        $used_fids[] = $row->fid;
+function scratchpads_views_filter_query_alter($query){
+  if(isset($query->alterMetaData)){
+    if(isset($query->alterMetaData['view'])){
+      if($query->alterMetaData['view']->name == "admin_vbo_file"){
+        $query->groupBy("fid");
       }
     }
-    $view->result = $new_view_result;
   }
 }
