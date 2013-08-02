@@ -633,37 +633,65 @@ class VocabularyStructure{
    * If a given item's data is an array and has a 'render' key,
    * then that is used instead of the item's label when generating
    * the HTML.
+   *
+   * $root is used internally for recursion.
+   *
    */
   public function render($root = NULL){
     $out = array();
-    foreach($this->structure as $key => $data){
-      $item_data = $this->itemData($key);
-      if(is_array($item_data) && isset($item_data['render'])){
-        $out[] = array(
-          '#prefix' => '<div class="scratchpads-vocabularies-item">',
-          '#suffix' => '</div>',
-          '#markup' => $item_data['render']
-        );
-      }else if(is_array($data)){
-        $out[] = array(
-          '#prefix' => '<div class="scratchpads-vocabularies-item">',
-          '#suffix' => '</div>',
-          '#markup' => check_plain($data['label'])
-        );
-      }else{
-        $out[] = array(
-          '#prefix' => '<div class="scratchpads-vocabularies-item">',
-          '#suffix' => '</div>',
-          '#markup' => check_plain($data)
-        );
-      }
-      if(is_array($data)){
-        $out[] = array(
-          '#prefix' => '<div class="scratchpads-vocabularies-indent">',
-          '#suffix' => '</div>',
-          'children' => $this->render($data['children'])
-        );
-      }
+    if($root === NULL){
+      $root = $this->structure;
+    }
+    foreach($root as $key => $data){
+      $out[] = array(
+        '#type' => 'markup',
+        '#markup' => $this->renderItem($key, TRUE)
+      );
+    }
+    return drupal_render($out);
+  }
+
+  /**
+   * renderItem
+   *
+   * Returns the HTML representation of a single item
+   * defined by it's key $key. If $children is not FALSE,
+   * then the rendering will include the item's children,
+   * if any.
+   *
+   * If a given item's data is an array and has a 'render' key,
+   * then that is used instead of the item's label when generating
+   * the HTML.
+   */
+  public function renderItem($key, $children = FALSE){
+    $out = array();
+    $data = $this->structure[$key];
+    $item_data = $this->itemData($key);
+    if(is_array($item_data) && isset($item_data['render'])){
+      $out[] = array(
+        '#prefix' => '<div class="scratchpads-vocabularies-item">',
+        '#suffix' => '</div>',
+        '#markup' => $item_data['render']
+      );
+    }else if(is_array($data)){
+      $out[] = array(
+        '#prefix' => '<div class="scratchpads-vocabularies-item">',
+        '#suffix' => '</div>',
+        '#markup' => check_plain($data['label'])
+      );
+    }else{
+      $out[] = array(
+        '#prefix' => '<div class="scratchpads-vocabularies-item">',
+        '#suffix' => '</div>',
+        '#markup' => check_plain($data)
+      );
+    }
+    if($children && is_array($data)){
+      $out[] = array(
+        '#prefix' => '<div class="scratchpads-vocabularies-indent">',
+        '#suffix' => '</div>',
+        'children' => $this->render($data['children'])
+      );
     }
     return drupal_render($out);
   }

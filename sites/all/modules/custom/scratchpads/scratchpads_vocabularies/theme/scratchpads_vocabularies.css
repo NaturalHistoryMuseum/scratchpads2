@@ -35,3 +35,37 @@ div.scratchpads-vocabularies-items div.scratchpads-vocabularies-term-other {
   font-size: small;
   margin-left: 1em;
 }
+
+div.scratchpads-vocabularies-field-container:after {
+  content: ".";
+  visibility: hidden;
+  display: block;
+  height: 0;
+  clear: both;
+}
+
+div.scratchpads-vocabularies-field-container div.form-item {
+  float: left;
+}
+
+div.scratchpads-vocabularies-field-container div.form-item select {
+  width: 200px;
+}
+
+div.scratchpads-vocabularies-field-info {
+  margin-left: 210px;
+}
+
+div.scratchpads-vocabularies-field-info div.scratchpads-vocabularies-term-label {
+  display: none;
+}
+
+div.scratchpads-vocabularies-field-info div.scratchpads-vocabularies-term-other {
+  color: #999999;
+  border-left: 1px solid #EEEEEE;
+  font-size: 1em;
+  padding-top: 1.2em;
+  padding-bottom: 1.2em;
+  margin-left: 0;
+  padding-left: 10px;
+}

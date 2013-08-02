@@ -91,11 +91,11 @@ function scratchpads_vocabularies_forms($form_id, $args){
 /**
  * scratchpads_vocabularies_modification_form
  */
-function scratchpads_vocabularies_modification_form($form, &$form_state) {
+function scratchpads_vocabularies_modification_form($form, &$form_state){
   $modification = $form_state['build_info']['args'][0];
-  if (method_exists($modification, 'getForm')) {
+  if(method_exists($modification, 'getForm')){
     return $modification->getForm($form, $form_state);
-  } else {
+  }else{
     return array();
   }
 }
@@ -103,9 +103,9 @@ function scratchpads_vocabularies_modification_form($form, &$form_state) {
 /**
  * scratchpads_vocabularies_modification_form_validate
  */
-function scratchpads_vocabularies_modification_form_validate($form, &$form_state) {
+function scratchpads_vocabularies_modification_form_validate($form, &$form_state){
   $modification = $form_state['build_info']['args'][0];
-  if (method_exists($modification, 'validateForm')) {
+  if(method_exists($modification, 'validateForm')){
     $modification->validateForm($form, $form_state);
   }
 }
@@ -113,13 +113,12 @@ function scratchpads_vocabularies_modification_form_validate($form, &$form_state
 /**
  * scratchpads_vocabularies_modification_form_submit
  */
-function scratchpads_vocabularies_modification_form_submit($form, &$form_state) {
+function scratchpads_vocabularies_modification_form_submit($form, &$form_state){
   $modification = $form_state['build_info']['args'][0];
-  if (method_exists($modification, 'submitForm')) {
+  if(method_exists($modification, 'submitForm')){
     $modification->submitForm($form, $form_state);
   }
 }
-
 
 /**
  * scratchpads_vocabularies_permission
@@ -200,6 +199,148 @@ function scratchpads_vocabularies_preprocess_field(&$variables){
       $variables['items'][$id]['#markup'] = preg_replace('/\s*\[DELETED\]\s*/', '', $item['#markup']);
     }
   }
+}
+
+/**
+ * Implement hook_block_info
+ *
+ * Create an update block to display in the dashboard
+ */
+function scratchpads_vocabularies_block_info(){
+  return array(
+    'updates' => array(
+      'info' => t('Vocabulaires updates'),
+      'cache' => DRUPAL_NO_CACHE,
+      'properties' => array(
+        'administrative' => TRUE
+      ),
+      'status' => 1,
+      'region' => 'dashboard_main'
+    )
+  );
+}
+
+/**
+ * scratchpads_vocabularies_block_view
+ *
+ * The dashboard block
+ */
+function scratchpads_vocabularies_block_view($delta = ''){
+  if($delta != 'updates'){return;}
+  $all_info = module_invoke_all('scratchpads_vocabulary_info');
+  $pending = array();
+  foreach($all_info as $name => $info){
+    list($vocabulary, $receiver) = _scratchpads_vocabularies_info_build($info);
+    if(!$receiver || count($receiver->pendingUpdates()) == 0){
+      continue;
+    }
+    $update_table = array();
+    foreach($receiver->pendingUpdates() as $update_id => $update){
+      // Work out why it's pending
+      $modification = $update->modification();
+      if(!$modification){
+        $reason = t('Unknown. Please report an issue on the Scratchpads issue queue about this problem');
+        $action_table = array(
+          '#markup' => t('No available actions')
+        );
+      }else{
+        $reason = $modification->explanation();
+        $action_table = drupal_get_form('scratchpads_vocabularies_modification_form_' . $update_id, $modification);
+      }
+      $update_table[] = array(
+        check_plain($update->type()),
+        $reason,
+        $action_table
+      );
+    }
+    $pending['pending_' . $name] = array(
+      'info_' . $name => array(
+        '#type' => 'markup',
+        '#markup' => t('Vocabulary @voc has some pending updates', array(
+          '@voc' => $info['title']
+        ))
+      )
+    );
+    $pending['update_' . $name] = _scratchpads_vocabularies_form_table(array(
+      t('Update type'),
+      t('Reason this is pending'),
+      t('Action')
+    ), $update_table);
+  }
+  if(empty($pending)){return array(
+      'subject' => t('Vocabularies updates'),
+      'content' => array(
+        '#markup' => t('All vocabularies are up to date')
+      )
+    );}
+  return array(
+    'subject' => t('Vocabularies updates'),
+    'content' => $pending
+  );
+}
+
+/**
+ * Implement hook_field_widget_form_alter
+ *
+ * Add external definition to field widgets
+ */
+function scratchpads_vocabularies_field_widget_form_alter(&$element, &$form_state, $context){
+  if(!isset($element['#type']) || $element['#type'] != 'select'){return;}
+  $field_name = $element['#field_name'];
+  $all_vocs = module_invoke_all('scratchpads_vocabulary_info');
+  $our_vocs = variable_get('scratchpads_vocabularies_ui_vocabularies', array());
+  foreach($our_vocs as $voc_id => $our_voc){
+    if($field_name != $our_voc['field']){
+      continue;
+    }
+    list($vocabulary, $receiver) = _scratchpads_vocabularies_info_build($all_vocs[$voc_id]);
+    if(!$vocabulary || !$receiver){return;}
+    // Copy the form away
+    $subform = array_combine(array_keys($element), array_values($element));
+    $subform['#tree'] = FALSE;
+    $subform['#parents'] = array(
+      $field_name,
+      $element['#language']
+    );
+    $subform['#description'] = check_plain($vocabulary->name()) . ' (' . l(t('more information'), 'admin/config/services/vocabularies/' . $voc_id) . ')'; //$vocabulary->description();
+    // Generate the vocabulary info
+    if(isset($form_state['values'][$field_name])){
+      $selected = $form_state['values'][$field_name][$element['#language']][0]['value'];
+    }else{
+      $selected = reset($subform['#default_value']);
+    }
+    if($selected){
+      $content = $receiver->structure()->renderItem($selected);
+    }
+    $ajax_id = 'scratchpads_vocabularies_ajax_' . $field_name;
+    // Add the ajax
+    $subform['#ajax'] = array(
+      'callback' => '_scratchpads_vocabularies_select_field_ajax_change',
+      'wrapper' => $ajax_id,
+      'effect' => 'fade',
+      'speed' => 1200
+    );
+    $info = array(
+      '#type' => 'markup',
+      '#markup' => '<div id="' . $ajax_id . '" class="scratchpads-vocabularies-field-info scratchpads-vocabularies-items">' . $content . '</div>'
+    );
+    $element = array(
+      '#prefix' => '<div class="scratchpads-vocabularies-field-container">',
+      '#suffix' => '</div>',
+      'widget' => $subform,
+      'info' => $info
+    );
+    $form_state['scratchpads_vocabularies_ajax'][$field_name] = $info;
+    drupal_add_css(drupal_get_path('module', 'scratchpads_vocabularies') . '/theme/scratchpads_vocabularies.css');
+    return;
+  }
+}
+
+/**
+ * _scratchpads_vocabularies_select_field_ajax_change
+ */
+function _scratchpads_vocabularies_select_field_ajax_change($form, &$form_state){
+  return $form_state['scratchpads_vocabularies_ajax'][$form_state['triggering_element']['#field_name']];
 }
 
 /**
