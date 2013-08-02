@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function selenium_form_simpletest_settings_form_alter(&$form, &$form_state) {
+  $form['general']['selenium_server_host'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Selenium server host and port'),
+    '#description' => t('Format is HOST:PORT (example: localhost:4444).'),
+    '#default_value' => variable_get('selenium_server_host', 'localhost:4444'),
+  );
+}

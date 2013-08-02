@@ -32,7 +32,6 @@ class ItisTermTestCase extends ScratchpadsTweaksTestCase{
     $this->drupalLogin($this->itis_term_user);
     $this->verifyBiologicalClassifications();
     $this->verifyCreateEditDelete();
-    $this->verifyItisTermMalCode();
   }
 
   /**
@@ -91,18 +90,5 @@ class ItisTermTestCase extends ScratchpadsTweaksTestCase{
     $this->assertText(t('Deleted vocabulary'), 'Delete Confirmed');
   }
 
-  /**
-   * Ensure that vocabulary titles are escaped properly.
-   */
-  protected function verifyItisTermMalCode(){
-    $this->drupalLogin($this->itis_term_user);
-    $this->drupalGet('admin/structure/taxonomy/add');
-    $edit = array();
-    $edit['name'] = 'Don\'t Panic';
-    $edit['description'] = $this->randomName();
-    $edit['machine_name'] = 'don_t_panic';
-    $edit['biological_classification'] = 2;
-    $this->drupalPost(NULL, $edit, t('Save'));
-    $this->assertText(t('Created new vocabulary'), 'Vocabulary Created');
-  }
+  
 }

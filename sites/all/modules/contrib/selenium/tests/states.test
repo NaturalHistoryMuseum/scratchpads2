@@ -1,0 +1,54 @@
+<?php
+
+/**
+ * @file
+ *
+ * Test case for Drupal core misc/states.js javascript.
+ */
+
+if (!class_exists('DrupalSeleniumWebTestCase')) {
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class StatesTestCase extends DrupalSeleniumWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'States',
+      'description' => 'Tests for states javascript.',
+      'group' => 'Selenium',
+      'browsers' => array('firefox', 'chrome'),
+    );
+  }
+
+  /**
+   * Test states javascript functionality on article node form.
+   */
+  function testCreateArticle() {
+    // Login user.
+    $user = $this->drupalCreateUser(array('administer nodes', 'bypass node access', 'administer menu'));
+    $this->drupalLogin($user);
+
+    $this->drupalGet('node/add/article');
+
+    $this->verboseScreenshot();
+
+    // Checkbox "Provide menu link".
+    $provide_menu_link_element = $this->driver->getElement('id=edit-menu-enabled');
+
+    // Assert that by default menu item form is hidden.
+    $menu_wrapper_element = $this->driver->getElement('id=edit-menu--2');
+    $this->assertFalse($menu_wrapper_element->isVisible(), t('Detailed menu form is hidden.'));
+
+    // Check "Provide menu link" checkbox and assert that menu form is visible.
+    $provide_menu_link_element->click();
+    $this->assertTrue($menu_wrapper_element->isVisible(), t('Detailed menu form is visible.'));
+    $this->verboseScreenshot();
+
+    // Uncheck "Provide menu link" checkbox and assert that menu form is hidden.
+    $provide_menu_link_element->click();
+    $this->assertFalse($menu_wrapper_element->isVisible(), t('Detailed menu form is hidden.'));
+    $this->verboseScreenshot();
+  }
+}

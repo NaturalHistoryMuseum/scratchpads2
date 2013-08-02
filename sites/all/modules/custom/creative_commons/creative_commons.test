@@ -53,7 +53,7 @@ class ScratchpadsCreativeCommonsTestCase extends ScratchpadsTweaksTestCase{
    * Wrapper for other tests to speed up test run
    */
   function testWrapper(){
-    $this->drupalLogin($this->admin_user);    
+    $this->drupalLogin($this->admin_user);
     // Add a creative commons field and then edit that field in the node we create
     $field_name = $this->validateAddCreativeCommonsField();
     $nid = $this->createPageNode();
@@ -69,16 +69,15 @@ class ScratchpadsCreativeCommonsTestCase extends ScratchpadsTweaksTestCase{
   }
 
   /**
-   * Tests block_info() for the creative commons module. 
+   * Tests block_info() for the creative commons block
    */
   function validateTestBlockInfo(){
     $info = module_invoke('creative_commons', 'block_info');
-    $this->assertEqual(1, count($info), t('Module defines 1 block'));
     $this->assertTrue(isset($info['creative_commons']), t('creative_commons block exists.'));
   }
 
   /**
-   * Tests block_view() for the creative commons module.
+   * Tests block_view() for the creative commons block view
    */
   function validateTestBlockView(){
     $data = module_invoke('creative_commons', 'block_view', 'creative_commons');
@@ -135,7 +134,6 @@ class ScratchpadsCreativeCommonsTestCase extends ScratchpadsTweaksTestCase{
     return $field_name;
   }
 
-  
   /**
    *  Edit a page node and choose a create commons license
    */
@@ -151,17 +149,14 @@ class ScratchpadsCreativeCommonsTestCase extends ScratchpadsTweaksTestCase{
     $this->drupalGet($node_path);
     $this->assertRaw('http://creativecommons.org/about/pdm', 'Link to license shown');
   }
-  
-  
+
   /**
    * Test that there is a link to creative commons
    */
   function validateLink(){
-    
     $this->drupalGet('');
     // This may be a partial link
     $this->assertLinkByHref('http://creativecommons.org/licences');
-   
   }
 }
   

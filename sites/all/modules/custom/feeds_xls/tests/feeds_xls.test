@@ -53,27 +53,48 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
   }
 
   /**
-   * Test access to the import pages and template files
+   * Test the import of page nodes from xls file.
    */
-  function testImporterAccess(){
+  function testXlsImport(){
     $this->drupalLogin($this->admin_user);
-    $this->drupalGet('admin/import');
-    $this->assertResponse(200);
-    $this->drupalGet('import/node_importer_page');
-    $this->clickLink('Excel template file', 0);
-    $this->assertResponse(200);
-    // the populated template
-    $this->drupalGet('import/node_importer_page');
-    $this->clickLink('Excel template file', 1);
-    $this->assertResponse(200);
-    $this->drupalLogin($this->test_user);
-    $this->drupalGet('import/node_importer_page');
-    $this->assertResponse(403, 'Non admin user denied access to import/node_importer_page');
-    $this->drupalGet('admin/import');
-    $this->assertResponse(403, 'Non admin user denied access to admin/import');
+    $this->drupalGet('import/node_importer_page');  
+    $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/page.xls');
+    $this->drupalPost('import/node_importer_page', array('files[feeds]' => $rpath), t('Import'));   
+    // Test that the pages have appeared
+    $this->drupalGet('admin/content/page');
+    $this->assertText('Test page title one', 'First imported page node present on admin/content/page');
+    $this->assertText('Test page title two', 'Second imported page node present on admin/content/page');   
+    $this->clickLink('Test page title one');
+    $this->assertText('Test page body text one', 'Imported body field present of node page');   
   }
 }
   
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

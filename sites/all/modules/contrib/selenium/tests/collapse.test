@@ -1,0 +1,63 @@
+<?php
+
+
+/**
+ * @file
+ *
+ * Test case for Drupal core misc/collapse.js javascript.
+ */
+
+if (!class_exists('DrupalSeleniumWebTestCase')) {
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class CollapseTestCase extends DrupalSeleniumWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Collapse',
+      'description' => 'Tests for collapse javascript.',
+      'group' => 'Selenium',
+      'browsers' => array('firefox', 'chrome'),
+    );
+  }
+
+  /**
+   * Test collapsible fieldsets on modules list page.
+   */
+  function testModulesList() {
+    // Login user.
+    $user = $this->drupalCreateUser(array('administer modules'));
+    $this->drupalLogin($user);
+
+    $this->drupalGet('admin/modules');
+
+    // Assert that fieldset open by default.
+    $core_fieldset_wrapper = $this->driver->getElement('css=#edit-modules-core .fieldset-wrapper');
+    $this->assertTrue($core_fieldset_wrapper->isVisible(), t('Core modules fieldset visible by default.'));
+
+    // Click on fieldset legend.
+    $fieldset_link = $this->driver->getElement('css=#edit-modules-core a.fieldset-title');
+    $fieldset_link->click();
+
+    $hidden = FALSE;
+    // Wait till fieldset hides.
+    for ($i = 0; $i < 5; $i++) {
+      $fieldset_element = $this->driver->getElement('css=#edit-modules-core .fieldset-wrapper');
+      if (empty($fieldset_element) || (!empty($fieldset_element) && !$fieldset_element->isVisible())) {
+        $hidden = TRUE;
+        break;
+      }
+      sleep(1);
+    }
+
+    $this->assertTrue($hidden, t('Fieldset hidden.'));
+
+    // Click on fieldset label once again and ensure fieldset expanded.
+    $fieldset_link->click();
+    $this->driver->waitForVisibleElements('css=#edit-modules-core .fieldset-wrapper');
+
+    $this->assertTrue($fieldset_element->isVisible(), t('Fieldset displayed again.'));
+  }
+}
