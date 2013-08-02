@@ -96,3 +96,7 @@
 	font-weight:normal;
 }
 
+.page-admin-content table tr td.views-field-edit-node a, .view-admin-vbo-file table tr td.views-field-fid a {
+    margin: 0 5px;
+}
+
