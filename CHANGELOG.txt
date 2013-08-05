@@ -1,3 +1,7 @@
+2.1.6.1 (2013-08-05)
+
+- Ensure editing of a site's URL aliases is enabled
+
 2.1.6 (2013-07-31)
 
 - Italicise subgeneric ranked taxa (#3138)
