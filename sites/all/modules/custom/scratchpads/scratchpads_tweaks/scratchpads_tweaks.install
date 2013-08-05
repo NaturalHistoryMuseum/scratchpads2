@@ -1142,14 +1142,34 @@ function scratchpads_tweaks_update_7056(){
  * Disable/uninstall the scratchpads_mollom module and install the
  * scratchpads_security module.
  */
-function scratchpads_tweaks_update_7057(){
-  module_disable(array(
-    'scratchpads_mollom'
-  ));
-  drupal_uninstall_modules(array(
-    'scratchpads_mollom'
-  ));
-  module_enable(array(
-    'scratchpads_security'
-  ));
+function scratchpads_tweaks_update_7057(&$sandbox){
+  if(!isset($sandbox['cids'])){
+    module_disable(array(
+      'scratchpads_mollom'
+    ));
+    drupal_uninstall_modules(array(
+      'scratchpads_mollom'
+    ));
+    module_enable(array(
+      'scratchpads_security'
+    ));
+    // Get a list of all the comments that have been authored by anonymous, and 
+    // that have not been approved.
+    $query = db_select('comment', 'c')->fields('c', array(
+      'cid'
+    ))->condition('uid', 0)->condition('status', 0);
+    $query->innerJoin('field_data_comment_body', 'b', 'c.cid = b.entity_id');
+    $query->condition('comment_body_value', '%http%', 'LIKE');
+    $sandbox['cids'] = $query->execute()->fetchCol();
+    $sandbox['max'] = count($sandbox['cids']);
+    if(!$sandbox['max']){
+      $sandbox['#finished'] = 1;
+      return;
+    }
+  }
+  $i = 0;
+  while($i < 10 && count($sandbox['cids'])){
+    $cid = array_pop($sandbox['cids']);
+  }
+  $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['cids'])) / $sandbox['max'];
 }
