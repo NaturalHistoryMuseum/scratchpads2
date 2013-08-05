@@ -13,7 +13,7 @@ function scratchpads_solr_install(){
   // Set the Solr server
   db_update('apachesolr_environment')->fields(array(
     'name' => 'Scratchpad solr server',
-    'url' => 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads2'
+    'url' => 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads2-2'
   ))->condition('env_id', 'solr')->execute();
   // Ensure we're indexing the requried content types.
   $entity_info = entity_get_info('node');
@@ -91,4 +91,69 @@ function scratchpads_solr_update_7003(){
     'tos_name' => '3.0',
     'ts_comments' => '0.5'
   ));
+}
+
+/**
+ * Change to the new solr instance.
+ */
+function scratchpads_solr_update_7004(){
+  // Set the Solr server
+  db_update('apachesolr_environment')->fields(array(
+    'name' => 'Scratchpad solr server',
+    'url' => 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads2-2'
+  ))->condition('env_id', 'solr')->execute();
+  // Update the content type pages to add the apachesolr_search_custom_enable
+  // setting.
+  $results = db_select('apachesolr_search_page', 'a')->fields('a', array(
+    'page_id',
+    'settings'
+  ))->condition('page_id', 'content_type_%', 'LIKE')->execute();
+  foreach($results as $row){
+    $settings = unserialize($row->settings);
+    $settings['apachesolr_search_custom_enable'] = 1;
+    db_update('apachesolr_search_page')->fields(array(
+      'settings' => serialize($settings)
+    ))->condition('page_id', $row->page_id)->execute();
+  }
+}
+
+/**
+ * Reindex ALL content.
+ */
+function scratchpads_solr_update_7005(&$sandbox){
+  module_load_include('inc', 'apachesolr', 'apachesolr.index');
+  // Get the enviornment.
+  $env_id = apachesolr_default_environment();
+  if(!isset($sandbox['max'])){
+    // Clear the index.
+    apachesolr_index_delete_index($env_id);
+    // Rebuild the index.
+    apachesolr_index_mark_for_reindex($env_id);
+    // Get the max
+    $status = apachesolr_index_status($env_id);
+    $sandbox['max'] = $status['remaining'];
+    $sandbox['progress'] = 0;
+    // Set the "we are in a loop" variable to 0.  This ensures that we don't
+    // keep trying to index content that we can not index.
+    $sandbox['we_are_looping'] = 0;
+  }
+  // Do the indexing.
+  // We simply use the apachesolr_cron function to do the indexing.
+  // We will loop until the number of items to index does not
+  // decrease, and then we're done.
+  apachesolr_cron($env_id);
+  $current_status = apachesolr_index_status($env_id);
+  if($current_status['remaining'] == $sandbox['progress']){
+    $sandbox['we_are_looping']++;
+    if($current_status['remaining'] == 0 || $sandbox['we_are_looping'] == 5){
+      // We failed to index anything.  Set the progress to 1 and finished to ture.
+      $sandbox['progress'] = $sandbox['#finished'] = 1;
+    }else{
+      drupal_set_message("Potentially in a loop");
+    }
+  }else{
+    drupal_set_message($sandbox['progress'] . "/" . $sandbox['max']);
+    $sandbox['progress'] = $sandbox['max'] - $current_status['remaining'];
+    $sandbox['#finished'] = $sandbox['progress'] / $sandbox['max'];
+  }
 }

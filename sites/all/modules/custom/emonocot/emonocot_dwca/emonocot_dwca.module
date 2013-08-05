@@ -36,6 +36,8 @@ function emonocot_dwca_views_default_views_alter(&$views){
         $view->display['default']->display_options['fields']['wcm_id_1']['exclude'] = TRUE;
         $view->display['default']->display_options['fields']['field_unacceptability_reason_1']['empty'] = '[wcm_id_1]';
         $view->display['default']->display_options['fields']['citation']['exclude'] = TRUE;
+        $view->display['default']->display_options['fields']['field_unacceptability_reason_5']['type'] = 'parent_formatter_em';
+        $view->display['default']->display_options['fields']['field_unacceptability_reason_3']['type'] = 'aan_formatter_em';
         
         $insert = array();
         $insert['protologue']  = emonocot_dwca_protologue_field();
@@ -106,9 +108,12 @@ function emonocot_dwca_views_default_views_alter(&$views){
         $view->display['default']->display_options['fields']['nothing']['exclude'] = TRUE;
         $view->display['default']->display_options['fields']['nothing_1']['exclude'] = TRUE;
         $view->display['default']->display_options['fields']['path']['exclude'] = TRUE;
-        $view->display['default']->display_options['fields']['nothing_7']['exclude'] = TRUE;
+        $view->display['default']->display_options['fields']['nothing_7']['alter']['text'] = '[licence]';
+        $view->display['default']->display_options['fields']['nothing_7']['empty'] = 'All Rights Reserved';
         emonocot_dwca_add_description_fields($view, $field_matching[$view->name]);
       }
+      //Set license text for descriptions
+      $view->display['default']->display_options['fields']['nothing_7']['alter']['text'] = 'All Rights Reserved';
     //Preserve the relationship
     /*
         $relationship = NULL;
@@ -276,7 +281,7 @@ function emonocot_dwca_add_description_fields(&$view, $ref_field){
   $new_field['field_api_classes'] = 0;
   $insert = array();
   $insert['licence'] = $new_field;
-  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'nothing_7');
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'uuid_4');
   $new_relationship = array();
   $new_relationship['id'] = $ref_field . '_nid';
   $new_relationship['table'] = 'field_data_' . $ref_field;
@@ -466,4 +471,95 @@ function _emonocot_dwca_insert_after_in_array($array, $insert, $parent_key){
   $keys = array_keys($array);
   $position = (int)array_search($parent_key, $keys) + 1;
   return array_merge(array_slice($array, 0, $position), $insert, array_slice($array, $position));
+}
+
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function emonocot_dwca_field_formatter_info(){
+  return array(
+    'aan_formatter_em' => array(
+      'label' => t('aan em'),
+      'description' => t('Returns empty for not accepted names.'),
+      'field types' => array(
+        'list_text'
+      )
+    ),
+    'parent_formatter_em' => array(
+      'label' => t('pn em'),
+      'description' => t('Returns empty for not accepted names.'),
+      'field types' => array(
+        'list_text'
+      )
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ * 
+ * For a node_reference that links to a Biblio node returns a link to the URL field as either a predefined image
+ * or the favicon of the site that is linked to.
+ * 
+ * For all node types returns link to attached files as an image 
+ */
+function emonocot_dwca_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  GLOBAL $base_url;
+  $markup = '';
+  switch($display['type']){
+    case 'aan_formatter_em':
+      $element = array();
+      $markup = '';
+      if(isset($entity->field_usage['und'][0]['value'])){
+        if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
+          $markup = '';
+        }else{
+          $parent = '';
+          $parents = taxonomy_get_parents($entity->tid);
+          if (is_array($parents)){
+          	$parent = array_pop($parents);
+          	if (isset($parent->field_id['und'][0]['value'])){ 
+          	  $parent = $parent->field_id['und'][0]['value'];
+          	}
+          	else {
+          		$parent = $parent->uuid;
+          	}
+          }
+          $markup = $parent;
+        }
+      }
+      $element[] = array(
+        '#markup' => $markup
+      );
+      return $element;
+      break;
+    case 'parent_formatter_em':
+      $element = array();
+      $markup = '';
+      if(isset($entity->field_usage['und'][0]['value'])){
+        if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
+          $parent = '';
+          $parents = taxonomy_get_parents($entity->tid);
+        if (is_array($parents)){
+          	$parent = array_pop($parents);
+          	if (isset($parent->field_id['und'][0]['value'])){ 
+          	  $parent = $parent->field_id['und'][0]['value'];
+          	}
+          	else {
+          		$parent = $parent->uuid;
+          	}
+          }
+          $markup = $parent;
+
+        }else{
+                	$markup = '';  
+        }
+      }
+      $element[] = array(
+        '#markup' => $markup
+      );
+      return $element;
+      break;
+  }
 }

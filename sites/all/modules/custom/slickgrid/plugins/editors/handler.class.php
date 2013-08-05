@@ -40,7 +40,7 @@ class slickgrid_editors{
     $this->view = $_POST['view'];
     $this->display_id = $_POST['display_id'];
     // Register the error handler if one exists
-    if(function_exists($this->plugin['error'])){
+    if(isset($this->plugin['error']) && function_exists($this->plugin['error'])){
       $this->error_callback = $this->plugin['error'];
     }
   }

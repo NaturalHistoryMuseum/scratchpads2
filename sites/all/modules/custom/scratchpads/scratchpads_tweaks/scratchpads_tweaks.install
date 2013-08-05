@@ -20,9 +20,11 @@ function scratchpads_tweaks_install(){
   // the minimal_install() function does not barf.
   $backtrace = debug_backtrace();
   if(count($backtrace) > 4){
-    $backtrace = explode('/', $backtrace[4]['file']);
-    file_put_contents('/tmp/drupal_debug.txt', print_r($backtrace, 1) . "\n", FILE_APPEND);
-    if(array_pop($backtrace) == 'scratchpads_tweaks.test'){return;}
+    if(isset($backtrace[4]['file'])){
+      $backtrace = explode('/', $backtrace[4]['file']);
+      file_put_contents('/tmp/drupal_debug.txt', print_r($backtrace, 1) . "\n", FILE_APPEND);
+      if(array_pop($backtrace) == 'scratchpads_tweaks.test'){return;}
+    }
   }
   // Install the filters.
   scratchpads_tweaks_install_help_install_filters();
@@ -313,7 +315,9 @@ function scratchpads_tweaks_install(){
   // Set the jQuery settings
   scratchpads_tweaks_update_7049();
   // Prevent optimize from running on Solr.
-  variable_set('apachesolr_last_optimize', 10000000000);
+  variable_set('apachesolr_optimize_interval', PHP_INT_MAX);
+  // Allow insecure derivatives
+  variable_set('image_allow_insecure_derivatives', TRUE);
 }
 
 /**
@@ -1041,13 +1045,6 @@ function scratchpads_tweaks_update_7043(){
 }
 
 /**
- * Allow insecure derivatives
- */
-function scratchpads_tweaks_update_7045(){
-  variable_set('image_allow_insecure_derivatives', TRUE);
-}
-
-/**
  * Drop the primary key from the file_display table.
  * 
  * Renamed from from scratchpads_tweaks_update_7044.
@@ -1068,13 +1065,6 @@ function scratchpads_tweaks_update_7047(){
 }
 
 /**
- * Prevent optimize from running on Solr.
- */
-function scratchpads_tweaks_update_7048(){
-  variable_set('apachesolr_last_optimize', 10000000000);
-}
-
-/**
  * Set the jQuery update settings.
  */
 function scratchpads_tweaks_update_7049(){
@@ -1087,4 +1077,63 @@ function scratchpads_tweaks_update_7049(){
  */
 function scratchpads_tweaks_update_7050(){
   variable_del('scratchpad_last_reported');
+}
+
+/**
+ * Allow insecure derivatives
+ */
+function scratchpads_tweaks_update_7051(){
+  variable_set('image_allow_insecure_derivatives', TRUE);
+}
+
+/**
+ * Enable the scratchpads_blog module if blog is enabled.
+ */
+function scratchpads_tweaks_update_7052(){
+  if(module_exists('blog')){
+    module_enable(array(
+      'scratchpads_blog'
+    ));
+  }
+}
+
+/**
+ * Ensure the Simplenews categories have been properly initialised.
+ */
+function scratchpads_tweaks_update_7053(){
+  if(module_exists('simplenews')){
+    module_load_include('install', 'simplenews');
+    _simplenews_init_simplenews_category();
+  }
+}
+
+/**
+ * Disable the Hashcash module.
+ */
+function scratchpads_tweaks_update_7054(){
+  $uninstall = array(
+    'hashcash'
+  );
+  module_disable($uninstall);
+  drupal_uninstall_modules($uninstall);
+}
+
+/**
+ * Disable pathauto and redirect if the Pretty URLs tool has been disabled.
+ */
+function scratchpads_tweaks_update_7055(){
+  if(!module_exists('scratchpads_pretty_urls')){
+    module_disable(array(
+      'redirect',
+      'pathauto'
+    ));
+  }
+}
+
+/**
+ * Prevent optimize from running on Solr (fix of update 7048 which has been
+ * removed).
+ */
+function scratchpads_tweaks_update_7056(){
+  variable_set('apachesolr_optimize_interval', PHP_INT_MAX);
 }

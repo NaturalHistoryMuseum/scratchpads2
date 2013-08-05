@@ -115,7 +115,7 @@ function scratchpads_user_admin_account(){
   $destination = drupal_get_destination();
   $status = array(
     t('no login'),
-    t('active')
+    t('Active')
   );
   $roles = array_map('check_plain', user_roles(TRUE));
   $accounts = array();
@@ -146,11 +146,11 @@ function scratchpads_user_admin_account(){
       'member_for' => format_interval(REQUEST_TIME - $account->created),
       'access' => $account->access ? t('@time ago', array(
         '@time' => format_interval(REQUEST_TIME - $account->access)
-      )) : t('never'),
+      )) : t('Never'),
       'operations' => array(
         'data' => array(
           '#type' => 'link',
-          '#title' => t('edit'),
+          '#title' => t('Edit'),
           '#href' => "user/$account->uid/edit",
           '#options' => array(
             'query' => $destination

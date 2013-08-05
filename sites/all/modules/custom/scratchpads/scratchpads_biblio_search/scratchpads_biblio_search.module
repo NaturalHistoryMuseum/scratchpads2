@@ -204,6 +204,20 @@ function scratchpads_biblio_search_context_default_contexts(){
       );
     }
   }
+  foreach(scratchpads_solr_facetapi_default_facet_settings() as $facet){
+    if($facet->facet == 'bundle'){
+      continue;
+    }
+    $delta = array_search($facet->name, $map);
+    if($delta){
+      $context->reactions['block']['blocks'][] = array(
+        'module' => 'facetapi',
+        'delta' => $delta,
+        'region' => 'sidebar',
+        'weight' => -27
+      );
+    }
+  }
   $context->condition_mode = 0;
   $export['biblio_search_page'] = $context;
   return $export;
@@ -326,16 +340,6 @@ function scratchpads_biblio_search_facet_form($form, &$form_state, $form_id, $pl
       'scratchpads_biblio_search_facet_form_submit'
     )
   );
-}
-
-/**
- * Implements hook_hashcash_form_ids_alter().
- */
-function scratchpads_biblio_search_hashcash_form_ids_alter(&$form_ids){
-  $form_ids[] = 'scratchpads_biblio_search_facet_im_biblio_contributor_form';
-  $form_ids[] = 'scratchpads_biblio_search_facet_tus_biblio_year_form';
-  $form_ids[] = 'scratchpads_biblio_search_facet_im_biblio_secondary_title_form';
-  $form_ids[] = 'scratchpads_biblio_search_facet_im_biblio_keyword_form';
 }
 
 /**
@@ -470,13 +474,10 @@ function scratchpads_biblio_search_map_callback($values, $options){
         }
         return $map;
       case 'biblio_contributor':
-        $result = db_select('biblio_contributor_data', 'b')->fields('b', array(
-          'cid',
-          'name'
-        ))->condition('cid', $values, 'IN')->execute();
+        $results = db_select('biblio_contributor_data', 'b')->fields('b')->execute()->fetchAll();
         $map = array();
-        while($record = $result->fetchAssoc()){
-          $map[$record['cid']] = $record['name'];
+        foreach($results as $row){
+          $map[$row->cid] = $row->literal || !$row->lastname ? $row->name : ($row->prefix ? $row->prefix . ' ' : '') . $row->lastname . ($row->suffix ? ', ' . $row->suffix : '') . ($row->initials || $row->firstname ? ', ' . mb_substr($row->firstname, 0, 1) . $row->initials : '');
         }
         return $map;
       case 'biblio_secondary_title':

@@ -1,0 +1,4 @@
+name = "eMonocot Feedback"
+description = "Allows the eMonocot Portal to send feedback to a Scratchpad."
+core = "7.x"
+package = "eMonocot"

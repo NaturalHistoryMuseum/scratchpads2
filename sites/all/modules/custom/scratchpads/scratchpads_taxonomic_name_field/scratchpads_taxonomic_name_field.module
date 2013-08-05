@@ -20,6 +20,17 @@ function scratchpads_taxonomic_name_field_menu_alter(&$items){
 }
 
 /**
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_taxonomic_name_field_module_implements_alter(&$imps, $hook){
+  if($hook == 'feeds_processor_targets_alter'){
+    $this_modules_hook = $imps['scratchpads_taxonomic_name_field'];
+    unset($imps['scratchpads_taxonomic_name_field']);
+    $imps['scratchpads_taxonomic_name_field'] = $this_modules_hook;
+  }
+}
+
+/**
  * Implements hook_field_widget_info_alter().
  */
 function scratchpads_taxonomic_name_field_field_widget_info_alter(&$info){
@@ -496,13 +507,6 @@ function scratchpads_taxonomic_name_field_facet_autocomplete($type, $search){
       break;
   }
   drupal_json_output($matches);
-}
-
-/**
- * Implements hook_hashcash_form_ids_alter().
- */
-function scratchpads_taxonomic_name_field_hashcash_form_ids_alter(&$form_ids){
-  $form_ids[] = 'scratchpads_taxonomic_name_field_facet_im_field_taxonomic_name_form';
 }
 
 /**

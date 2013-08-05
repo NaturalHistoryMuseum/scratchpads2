@@ -97,7 +97,7 @@ if(!Array.prototype.indexOf) {
           loadingIndicator.children().css('left', (loadingIndicator.width() / 2) - 24);
           // We set the header row as initially visible so that the height of
           // the grid is set correctly.
-          grid.setHeaderRowVisibility(false);
+          grid.resizeCanvas();
         }
         loadingIndicator.fadeIn();
       });
@@ -199,6 +199,7 @@ if(!Array.prototype.indexOf) {
           $('#slickgrid').animate().height($('#slickgrid').height() + increase_by);
         }
       }
+      $(container).trigger('onSlickgridInit');
     }
     function handleValidationError(eventData, error){
       alert(Drupal.t('There has been an error, please reload the page.'))

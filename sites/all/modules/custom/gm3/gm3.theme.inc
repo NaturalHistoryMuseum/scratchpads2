@@ -196,6 +196,9 @@ function theme_gm3_view_gm3($variables){
   $map = array(
     'libraries' => array()
   );
+  // Because it's not possible to click on two points with the exact same
+  // location, we group content that have the exact same location.
+  $array_points = array();
   foreach($variables['view']->result as $index => $row){
     $content = $variables['rows'][$index];
     foreach($geo_fields as $key => $type){
@@ -226,8 +229,24 @@ function theme_gm3_view_gm3($variables){
           if(count($row->{"field_$key"})){
             foreach($row->{"field_$key"} as $item){
               $point = $item['raw'];
-              $point['content'] = $content;
-              $map['libraries']['point']['points'][] = $point;
+              if(isset($array_points[$point['latitude']][$point['longitude']])){
+                if(!is_array($map['libraries']['point']['points'][$array_points[$point['latitude']][$point['longitude']]]['content'])){
+                  $map['libraries']['point']['points'][$array_points[$point['latitude']][$point['longitude']]]['content'] = array(
+                    array(
+                      'title' => '1',
+                      'content' => $map['libraries']['point']['points'][$array_points[$point['latitude']][$point['longitude']]]['content']
+                    )
+                  );
+                }
+                $map['libraries']['point']['points'][$array_points[$point['latitude']][$point['longitude']]]['content'][] = array(
+                  'title' => count($map['libraries']['point']['points'][$array_points[$point['latitude']][$point['longitude']]]['content']) + 1,
+                  'content' => $content
+                );
+              }else{
+                $point['content'] = $content;
+                $array_points[$point['latitude']][$point['longitude']] = count($map['libraries']['point']['points']);
+                $map['libraries']['point']['points'][] = $point;
+              }
             }
           }else{
             if(isset($row->{"field_data_{$key}_{$key}_latitude"})){
@@ -244,6 +263,9 @@ function theme_gm3_view_gm3($variables){
           break;
         case 'gm3_combination':
           foreach($row->_field_data as $id => $values){
+            if(empty($values['entity']->{$key})) {
+              continue;
+            }
             foreach($values['entity']->{$key}[LANGUAGE_NONE] as $item){
               switch($item['gm3_type']){
                 case 'point':

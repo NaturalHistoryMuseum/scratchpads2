@@ -10,12 +10,12 @@ define('SCRATCHPAD_ORGANIZATION', '315b3c03-4a0a-424e-83a5-d25aa748e666');
  * FIXME - Not sure what the "tag" is going to be for a "scratchpad", although
  * it is likely to be "scratchpad". This needs checking.
  */
-function _scratchpads_statistics_aggregator_cron(){
+function _scratchpads_statistics_aggregator_cron($execution_time = 60){
   $gbif_registry = GBIFRegistry::singleton();
   // foreach($gbif_registry->getTechnicalInstallations('scratchpad') as
   // $technical_installation){
   // Start a timer so that we don't go over 60 seconds.
-  $timer = time();
+  timer_start('scratchpads_statistics_aggregator');
   $urls = array();
   foreach($gbif_registry->getTechnicalInstallations() as $ti){
     // Get this site from the list of sites.
@@ -27,21 +27,20 @@ function _scratchpads_statistics_aggregator_cron(){
       // be an issue when hosting of sites external to the NHM becomes more
       // prevalent).
       $url = $ti->getHomePage();
-      if(!strpos($url, '/s2.') && !strpos($url, 'taxon.name') && !strpos($url, 'training') && !strpos($url, 'sandbox')){
-        $urls[] = $url;
+      if(!strpos($url, '/s2.') && !strpos($url, 'taxon.name') && !strpos($url, 'training') && !strpos($url, 'sandbox') && !strpos($url, '/dev.') && !strpos($url, '/dev-')){
+        $urls[$url] = $url;
       }
     }
   }
   // Random order the URLs so that we stand a chance of getting all of the sites
   // over a six day period.
   shuffle($urls);
+  $worked_on_urls = array();
   foreach($urls as $url){
+    $worked_on_urls[] = $url;
     // Whoa, we're taking too long, we should stop!
-    if($timer < time() - 60){return;}
-    // We get the login data first and add that.
-    $data = _scratchpads_statistics_aggregator_get_data($url . 'login.json');
-    if($data && is_array($data) && count($data)){
-      _scratchpads_statistics_aggregator_insert_login_data($data, $url);
+    if(timer_read('scratchpads_statistics_aggregator') > $execution_time * 1000){
+      break;
     }
     // Get the greater captured value for this Scratchpad
     $query = db_select('scratchpads_statistics_data', 'd');
@@ -56,16 +55,35 @@ function _scratchpads_statistics_aggregator_cron(){
       $last_capture = $row->captured;
       // If the last_captured value is less than six days old, then we don't
       // need to go any further.
-      if($last_capture > $timer - 518400){
+      if($last_capture > time() - 518400){
         continue;
       }
     }
-    // FIXME - Need to add the hash if we need to use it.
-    $data = _scratchpads_statistics_aggregator_get_data($url . 'stats.json?since=' . $last_capture);
+    // Retrieve the login data for this site, and enter that in to the tables.
+    $data = _scratchpads_statistics_aggregator_get_data($url . 'login.json');
     if($data && is_array($data) && count($data)){
-      _scratchpads_statistics_aggregator_insert_data($data, $url);
+      _scratchpads_statistics_aggregator_insert_login_data($data, $url);
+      // Get the full statistics for this site, and tner that in to the tables.
+      // FIXME - Need to add the hash/security if we need to use it.
+      $data = _scratchpads_statistics_aggregator_get_data($url . 'stats.json?since=' . $last_capture);
+      if($data){
+        if(is_array($data) && count($data)){
+          _scratchpads_statistics_aggregator_insert_data($data, $url);
+        }
+      }else{
+        watchdog('scratchpads_statistics', 'Failed to get statistics data from the Scratchpads site at !url', array(
+          '!url' => $url
+        ), WATCHDOG_WARNING);
+      }
+    }else{
+      watchdog('scratchpads_statistics', 'Failed to get login data from the Scratchpads site at !url', array(
+        '!url' => $url
+      ), WATCHDOG_WARNING);
     }
   }
+  watchdog('scratchpads_statistics', 'Aggregated: !urls', array(
+    '!urls' => implode(', ', $worked_on_urls)
+  ), WATCHDOG_INFO);
 }
 
 /**
@@ -105,21 +123,38 @@ function _scratchpads_statistics_aggregator_insert_login_data($data, $url){
     if(!$site){
       // For one set of data, we always have the same site, so we can avoid
       // checking it for every record.
-      $user = _scratchpads_statistics_insert_item(array(
+      $user = scratchpads_statistics_insert_item(array(
         'name' => $record['owner_name'],
         'email' => $record['owner_email'],
         'country' => $record['owner_country'],
         'latitude' => $record['owner_latitude'],
         'longitude' => $record['owner_longitude']
       ), 'scratchpads_statistics_user', 'email');
-      $site = _scratchpads_statistics_insert_item(array(
+      $site = scratchpads_statistics_insert_item(array(
         'title' => $record['title'],
         'owner' => $user,
         'url' => $record['url'],
         'created' => $record['site_created']
       ), 'scratchpads_statistics_site', 'url');
+      if(count($record['categories'])){
+        $sites_types_map = array();
+        db_delete('scratchpads_statistics_site_site_type')->condition('site', $site)->execute();
+        $query = db_insert('scratchpads_statistics_site_site_type')->fields(array(
+          'site',
+          'site_type'
+        ));
+        foreach($record['categories'] as $category){
+          $query->values(array(
+            'site_type' => scratchpads_statistics_insert_item(array(
+              'type' => $category
+            ), 'scratchpads_statistics_site_type', 'type'),
+            'site' => $site
+          ));
+        }
+        $query->execute();
+      }
     }
-    $user = _scratchpads_statistics_insert_item(array(
+    $user = scratchpads_statistics_insert_item(array(
       'name' => $record['name'],
       'email' => $record['email'],
       'country' => $record['country'],
@@ -162,21 +197,38 @@ function _scratchpads_statistics_aggregator_insert_data($data, $url){
     if(!$site){
       // For one set of data, we always have the same site, so we can avoid
       // checking it for every record.
-      $user = _scratchpads_statistics_insert_item(array(
+      $user = scratchpads_statistics_insert_item(array(
         'name' => $record['owner_name'],
         'email' => $record['owner_email'],
         'country' => $record['owner_country'],
         'latitude' => $record['owner_latitude'],
         'longitude' => $record['owner_longitude']
       ), 'scratchpads_statistics_user', 'email');
-      $site = _scratchpads_statistics_insert_item(array(
+      $site = scratchpads_statistics_insert_item(array(
         'title' => $record['title'],
         'owner' => $user,
         'url' => $record['url'],
         'created' => $record['created']
       ), 'scratchpads_statistics_site', 'url');
+      if(count($record['categories'])){
+        $sites_types_map = array();
+        db_delete('scratchpads_statistics_site_site_type')->condition('site', $site)->execute();
+        $query = db_insert('scratchpads_statistics_site_site_type')->fields(array(
+          'site',
+          'site_type'
+        ));
+        foreach($record['categories'] as $category){
+          $query->values(array(
+            'site_type' => scratchpads_statistics_insert_item(array(
+              'type' => $category
+            ), 'scratchpads_statistics_site_type', 'type'),
+            'site' => $site
+          ));
+        }
+        $query->execute();
+      }
     }
-    $user = _scratchpads_statistics_insert_item(array(
+    $user = scratchpads_statistics_insert_item(array(
       'name' => $record['name'],
       'email' => $record['email'],
       'country' => $record['country'],
@@ -185,11 +237,11 @@ function _scratchpads_statistics_aggregator_insert_data($data, $url){
     ), 'scratchpads_statistics_user', 'email');
     $term = 0;
     if($record['term']){
-      $term = _scratchpads_statistics_insert_item(array(
+      $term = scratchpads_statistics_insert_item(array(
         'term' => $record['term']
       ), 'scratchpads_statistics_term', 'term');
     }
-    $entity_bundle = _scratchpads_statistics_insert_item(array(
+    $entity_bundle = scratchpads_statistics_insert_item(array(
       'entity' => $record['entity'],
       'bundle' => $record['bundle'],
       'name' => $record['bundle_label']
@@ -209,44 +261,4 @@ function _scratchpads_statistics_aggregator_insert_data($data, $url){
     ));
   }
   $query->execute();
-}
-
-/**
- * Create/Retrieve a user
- */
-function _scratchpads_statistics_insert_item($item, $table, $key){
-  // Keep a static cache of the users.
-  $items = drupal_static(__FUNCTION__, array());
-  if(is_array($key)){
-    $itemkey = '';
-    foreach($key as $k){
-      $itemkey .= '---' . $item[$k];
-    }
-  }else{
-    $itemkey = $item[$key];
-    $key = array(
-      $key
-    );
-  }
-  if(@isset($items[$table][$itemkey])){return $items[$table][$itemkey];}
-  $query = db_merge($table);
-  foreach($key as $k){
-    $query->key(array(
-      $k => $item[$k]
-    ));
-  }
-  $output = $query->fields($item)->execute();
-  $query = db_select($table, 's')->fields('s', array(
-    'id'
-  ));
-  foreach($key as $key_item){
-    $query->condition($key_item, $item[$key_item]);
-  }
-  $col = $query->execute()->fetchCol();
-  $id = array_pop($col);
-  if(!isset($items[$table])){
-    $items[$table] = array();
-  }
-  $items[$table][$itemkey] = $id;
-  return $id;
 }

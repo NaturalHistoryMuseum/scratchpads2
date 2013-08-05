@@ -184,6 +184,8 @@ function scratchpads_messages_get_messages(){
   if(!empty($user->scratchpads_messages_hide_tips)){
     $query->condition('type', SCRATCHPADS_MESSAGES_TIP, '!=');
   }
+  // Get only distinct results
+  $query->distinct(TRUE);
   $results = $query->execute();
   $msgs = array();
   foreach($results as $result){
@@ -243,7 +245,7 @@ function scratchpads_messages_seen_msg($form, $form_state, $msg, $user){
       '#type' => 'image_button',
       '#src' => drupal_get_path('module', 'scratchpads_messages') . '/css/close.png',
       '#attributes' => array(
-        'alt' => t('Hide permanently'),
+        'alt' => '',
         'title' => t('Hide permanently')
       ),
       '#ajax' => array(
@@ -330,7 +332,7 @@ function scratchpads_messages_page_alter(&$page){
       }
     }
   }
-  if(!empty($messages[SCRATCHPADS_MESSAGES_TIP]) && $_SESSION['scratchpads_messages_tips']){
+  if(!empty($messages[SCRATCHPADS_MESSAGES_TIP]) && !empty($_SESSION['scratchpads_messages_tips'])){
     // We select a random message from the tips.
     $key = rand(0, count($messages[SCRATCHPADS_MESSAGES_TIP]) - 1);
     $page['page_top']['tips'] = array(

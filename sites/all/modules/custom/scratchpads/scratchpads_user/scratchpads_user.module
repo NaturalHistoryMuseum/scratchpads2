@@ -27,6 +27,27 @@ function scratchpads_user_admin_paths(){
 }
 
 /**
+ * Ensure that the Scratchpads Team (UID:1) user has not been tweaked.
+ */
+function scratchpads_user_cron(){
+  if(variable_get('standard_scratchpad', TRUE)){
+    db_update('users')->fields(array(
+      'name' => 'Scratchpad Team',
+      'pass' => '',
+      'theme' => '',
+      'signature' => '',
+      'timezone' => 'UTC',
+      'language' => 'en',
+      'picture' => 0,
+      'mail' => 'scratchpad@nhm.ac.uk',
+      'status' => 1,
+      'init' => 'scratchpad@nhm.ac.uk',
+      'data' => serialize(array())
+    ))->condition('uid', 1)->execute();
+  }
+}
+
+/**
  * Implements hook_menu_alter().
  * 
  * Override the admin/people page to add columns and display stub users
@@ -123,13 +144,22 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
   _scratchpads_user_form_alter($form, $form_state);
   if(isset($form['#user']->stub_user)){
     $form['create_user_account']['#default_value'] = 0;
-    // Get rid of the crap that we don't need (biblio, etc).
-    unset($form['biblio_fieldset']);
+    // Get rid of the crap that we don't need.
+    $form['biblio_fieldset']['biblio_show_profile'] = array(
+      '#type' => 'hidden',
+      '#value' => 1
+    );
+    unset($form['biblio_fieldset']['biblio_my_pubs_menu']);
+    unset($form['biblio_fieldset']['biblio_user_style']);
+    unset($form['biblio_fieldset']['openurl']);
+    unset($form['biblio_fieldset']['biblio_id_change_count']);
+    unset($form['biblio_fieldset']['biblio_doi']);
     unset($form['overlay_control']);
     unset($form['timezone']);
     unset($form['comment_notify_settings']);
     unset($form['contact']);
     unset($form['legal']);
+    unset($form['slickgrid']);
     // Set the correct user name, as we may have removed a number from the end
     $row = db_select('users', 'u')->fields('u', array(
       'name'
@@ -162,6 +192,13 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
       $form[$key]['#collapsed'] = TRUE;
     }
   }
+  // Change the select dropdown to an autocomplete field
+  $form['biblio_fieldset']['biblio_contributor_id']['#type'] = 'textfield';
+  $form['biblio_fieldset']['biblio_contributor_id']['#autocomplete_path'] = 'biblio/autocomplete/contributor';
+  if($form['biblio_fieldset']['biblio_contributor_id']['#default_value'] == '0'){
+    $form['biblio_fieldset']['biblio_contributor_id']['#default_value'] = '';
+  }
+  unset($form['biblio_fieldset']['biblio_contributor_id']['#options']);
 }
 
 /**
@@ -308,7 +345,7 @@ function scratchpads_user_register_form_post_submit_clear_error($form, &$form_st
  */
 function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state){
   // Don't do anything if this is a login user
-  if($form_state['values']['create_user_account']){return;}
+  if($form_state['values']['create_user_account'] || !empty($form_state['values']['picture_upload'])){return;}
   // Set the name
   $name = '';
   foreach(array(

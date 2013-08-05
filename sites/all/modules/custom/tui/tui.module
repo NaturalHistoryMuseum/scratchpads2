@@ -1,6 +1,18 @@
 <?php
 
 /**
+ * Implements hook_drupal_goto_alter().
+ */
+function tui_drupal_goto_alter(&$path, &$options, &$http_response_code){
+  if($path == 'batch'){
+    $batch = batch_get();
+    if(strpos($batch['source_url'], 'hierarchy/form_callback/delete-form')){
+      $options['query']['render'] = 'overlay';
+    }
+  }
+}
+
+/**
  * Implementation of hook_menu().
  */
 function tui_menu(){
@@ -177,8 +189,8 @@ function tui_form_taxonomy_overview_vocabularies_alter(&$form, &$form_state){
   $children = element_children($form);
   foreach($children as $child){
     if(is_numeric($child) && isset($form[$child]['edit']) && isset($form[$child]['list'])){
-      $form[$child]['edit']['#title'] = t('settings');
-      $form[$child]['list']['#title'] = t('edit terms');
+      $form[$child]['edit']['#title'] = t('Settings');
+      $form[$child]['list']['#title'] = t('Edit terms');
     }
   }
 }

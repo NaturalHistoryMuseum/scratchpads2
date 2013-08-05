@@ -62,10 +62,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         }
         // Manual mapping without using a class
         $type = $this->getFieldType($field_name);
-        $final = DrupalFieldMigration::getCustomMapping($field_name, $type);
-        if ($final != $field_name) {
-          return $final;
-        }
+        $final = DrupalFieldMigration::getCustomMapping($field_name, $type, $this->sourceConnection);
+        if($final != $field_name){return $final;}
         return false;
       }
     }else{
@@ -121,7 +119,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
             if(in_array($delta, $vids)){
               $field_name = 'field_taxonomic_name';
             }else{
-              $field_name = DrupalFieldTaxonomyMigration::getFieldName($vocabulary->name);
+              $field_name = DrupalFieldTaxonomyMigration::getFieldName($vocabulary->name, $this->sourceConnection);
             }
           }else{
             $field_name = 'taxonomy_forums';
@@ -194,11 +192,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
               // D6 doesn't seperate type of file fields, so chceck the
               // widget here
               $widget_type = $this->getFieldWidgetType($delta);
-              if ($delta == 'field_mediafiles') {
-                $file_destination_field = 'field_mediafiles';
-              } else {
-                $file_destination_field = 'field_media';
-              }
+              $file_destination_field = DrupalFieldMigration::getCustomMapping($delta, $type, $this->sourceConnection);
               if($widget_type == 'nodereference_select'){
                 $file_destination_field = $delta;
                 $this->extraImageFields[] = $delta;
@@ -355,12 +349,14 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     // NOTE: OG works with NID, not VID
     $query->leftJoin('og_ancestry', 'oga', 'oga.nid = n.nid');
     $query->addField('oga', 'group_nid', 'group_nid');
-    if (Database::getConnection('default', $this->sourceConnection)->schema()->tableExists('og_access_post')) {
+    if(Database::getConnection('default', $this->sourceConnection)->schema()->tableExists('og_access_post')){
       $query->leftJoin('og_access_post', 'ogap', 'ogap.nid = n.nid');
       $query->addField('ogap', 'og_public', 'og_public');
-    } else {
+    }else{
       // Simulate an empty left join.
-      $query->addExpression(':null', 'og_public', array(':null' => NULL));
+      $query->addExpression(':null', 'og_public', array(
+        ':null' => NULL
+      ));
     }
     $query->condition('n.title', 'Taskguide', '!=');
     $query->orderBy('nr.vid');
@@ -465,10 +461,26 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     // Extract any files
     foreach($this->getLongTextFields() as $longTextField){
       if(isset($row->{$longTextField})){
-        $row->{$longTextField} = ScratchpadsNodeMigration::parseImages($row->{$longTextField}, $row);
-        $row->{$longTextField} = ScratchpadsNodeMigration::parseStyles($row->{$longTextField});
-        $row->{$longTextField} = ScratchpadsNodeMigration::lowercaseHtml($row->{$longTextField});
-        $row->{$longTextField} = preg_replace('/\[(\/?)no-glossary\]/', '[$1no-lexicon]', $row->{$longTextField});
+        if(!is_array($row->{$longTextField})){
+          $long_text_data = array(
+            $row->{$longTextField}
+          );
+        }else{
+          $long_text_data = $row->{$longTextField};
+        }
+        $long_text_result = array();
+        foreach($long_text_data as $long_text_key => $long_text_html){
+          $long_text_html = ScratchpadsNodeMigration::lowercaseHtml($long_text_html);
+          $long_text_html = ScratchpadsNodeMigration::parseImages($long_text_html, $row);
+          $long_text_html = ScratchpadsNodeMigration::parseStyles($long_text_html);
+          $long_text_html = preg_replace('/\[(\/?)no-glossary\]/', '[$1no-lexicon]', $long_text_html);
+          $long_text_result[$long_text_key] = $long_text_html;
+        }
+        if(!is_array($row->{$longTextField})){
+          $row->{$longTextField} = reset($long_text_result);
+        }else{
+          $row->{$longTextField} = $long_text_result;
+        }
       }
     }
     // Is there a menu item for this node?
@@ -513,10 +525,11 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   public static function parseImages($html, $row){
     if(strpos($html, '<img') !== false){
       try{
+        $old_html = $html;
         $html = mb_convert_encoding($html, 'html-entities', 'utf-8');
         $dom = new DOMDocument();
         $dom->strictErrorChecking = false;
-        $dom->loadHTML($html);
+        @$dom->loadHTML($html);
         $dom->normalizeDocument();
         $items = $dom->getElementsByTagName('img');
         for($i = 0; $i < $items->length; $i++){
@@ -674,8 +687,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       $node->vid = $vid;
       $node->is_new = true;
       // OG requires the original uid
-      if (!isset($node->original)) {
-        $node->original = new StdClass;
+      if(!isset($node->original)){
+        $node->original = new StdClass();
       }
       $node->original->uid = $node->uid;
       return $node;

@@ -50,6 +50,32 @@ class DrupalFieldMigration extends DrupalMigration{
   }
 
   /**
+   * Override isComplete so we can account for media fields
+   * being re-named in the source side processing (see #2550)
+   */
+  public function isComplete(){
+    $fields = $this->sourceQuery()->execute();
+    $total = 0;
+    $duplicates = 0;
+    $dups = array();
+    foreach($fields as $field_row){
+      $total++;
+      $name = DrupalFieldMigration::getCustomMapping($field_row->field_name, $field_row->type, $this->sourceConnection);
+      if(in_array($name, $dups)){
+        $duplicates++;
+      }else{
+        $dups[] = $name;
+      }
+    }
+    // If the source is uncountable, we have no way of knowing if it's
+    // complete, so stipulate that it is.
+    $total = $this->source->count(TRUE);
+    if($total < 0){return TRUE;}
+    $processed = $this->processedCount();
+    return $total <= ($processed + $duplicates);
+  }
+
+  /**
    * Query for the basic source query.
    *
    * @return QueryConditionInterface
@@ -104,14 +130,8 @@ class DrupalFieldMigration extends DrupalMigration{
       ), WATCHDOG_ERROR);
       return false;
     }
-    // We want all image fields to use the media field
-    if($row->type == 'image' || $row->type == 'filefield'){
-      if ($row->field_name != 'field_mediafiles') {
-        $row->field_name = 'field_media';
-      }
-    } else {
-      $row->field_name = DrupalFieldMigration::getCustomMapping($row->field_name, $row->type);
-    }
+    // Get the new field name
+    $row->field_name = DrupalFieldMigration::getCustomMapping($row->field_name, $row->type, $this->sourceConnection);
     // Special cases for node references
     if($row->type == 'nodereference'){
       if(!isset($row->global_settings['referenceable_types']) || !is_array($row->global_settings['referenceable_types'])){
@@ -217,15 +237,30 @@ class DrupalFieldMigration extends DrupalMigration{
   /**
    * Provide additional custom field name mapping
    */
-  static public function getCustomMapping($field_name, $field_type = NULL) {
+  static public function getCustomMapping($field_name, $field_type = NULL, $cnx = NULL){
+    if(($field_type == 'image' || $field_type == 'filefield') && $field_name != 'field_mediafiles'){
+      $query = Database::getConnection('default', $cnx)->select('content_node_field_instance', 'i');
+      $query->innerJoin('content_node_field', 'f', 'f.field_name = i.field_name');
+      $query->innerJoin('content_node_field_instance', 'i2', 'i2.type_name = i.type_name');
+      $query->condition('i2.field_name', $field_name);
+      $query->condition('f.type', array(
+        'image',
+        'filefield'
+      ), 'IN');
+      $query->condition('i.field_name', 'field_mediafiles', '<>');
+      $query->condition('i.widget_type', 'nodereference_select');
+      $query->addExpression('COUNT(*)', 'count');
+      $count = $query->execute()->fetchField();
+      if($count == 1){        // If this field is the only image field on all the content types it's used on,
+        // then we use field_media instead.
+        return 'field_media';}
+    }
     // Ensure that text-based country fields do not get mapped to the field_country field.
-    if ($field_name == 'field_country' && $field_type == 'text') {
-      return 'field_country_text';
-    }
+    if($field_name == 'field_country' && $field_type == 'text'){return 'field_country_text';}
+    // Custom field field_keywords that is not a taxonmy term reference need to be renamed
+    if($field_name == 'field_keywords' && $field_type == 'text'){return 'field_keywords_t';}
     // Field name field_name is reserved.
-    if ($field_name == 'field_name') {
-      return 'field_name_r';
-    }
+    if($field_name == 'field_name'){return 'field_name_r';}
     return $field_name;
   }
 }

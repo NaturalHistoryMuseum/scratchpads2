@@ -12,6 +12,7 @@ function scratchpads_biblio_field_default_fields(){
   // Exported field: 'node-biblio-field_file'
   $fields['node-biblio-field_file'] = array(
     'field_config' => array(
+      'locked' => '1',
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',
@@ -71,17 +72,32 @@ function scratchpads_biblio_field_default_fields(){
       'settings' => array(
         'description_field' => 0,
         'file_directory' => '',
-        'file_extensions' => 'txt pdf doc',
+        'file_extensions' => FIELD_MEDIA_FILE_EXTENSIONS,
         'max_filesize' => '',
         'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'file',
+        'module' => 'media_multiselect',
         'settings' => array(
+          'allowed_schemes' => array(
+            'module' => 0,
+            'public' => 'public'
+          ),
+          'allowed_types' => array(
+            'audio' => 'audio',
+            'default' => 'default',
+            'image' => 'image',
+            'video' => 'video'
+          ),
+          'browser_plugins' => array(
+            'media_default--media_browser_1' => 0,
+            'media_default--media_browser_my_files' => 0,
+            'upload' => 0
+          ),
           'progress_indicator' => 'throbber'
         ),
-        'type' => 'file_generic',
+        'type' => 'media_multiselect',
         'weight' => '19'
       )
     )

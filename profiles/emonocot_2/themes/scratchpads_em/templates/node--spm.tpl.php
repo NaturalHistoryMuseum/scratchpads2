@@ -22,7 +22,7 @@ $unique_nids = sizeof(array_unique($referenced_nids));
 if ($unique_nids == 1){
   //Remove existing links
   foreach ($content as $tab => $values){
-  	if ((substr($key, 0, 6) == 'group_')){
+  	if ((substr($tab, 0, 6) == 'group_')){
 	  foreach ($values as $field => $fvalues) {
 		if (substr($field, -3) == 'ref') {
 			unset($content[$tab][$field]);
@@ -32,7 +32,8 @@ if ($unique_nids == 1){
   }
   //Add overall
   $referenced_field['ref_field']['#title'] = 'Reference for all descriptions on this page';
-  $content['group_vertical_tabs'][] = $referenced_field;
+  $referenced_field['ref_field']['#weight'] = -200;
+  $content['group_overview'][] = $referenced_field;
 }
 ?>
 

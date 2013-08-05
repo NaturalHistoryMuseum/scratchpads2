@@ -35,6 +35,7 @@ function scratchpads_solr_node_type_form_submit($form, $form_state){
           'fq' => array(
             'bundle:' . $form_state['values']['type']
           ),
+          'apachesolr_search_custom_enable' => 1,
           'apachesolr_search_search_type' => 'custom',
           'apachesolr_search_search_box' => 1,
           'apachesolr_search_per_page' => '50',
@@ -172,10 +173,16 @@ function scratchpads_solr_facetapi_default_facet_settings(){
 
 /**
  * Implements hook_ctools_plugin_api().
- * 
- * Magic happens just because this function exists (fucked up, I know).
  */
-function scratchpads_solr_ctools_plugin_api(){}
+function scratchpads_solr_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == 'facetapi'){return array(
+      'version' => 1
+    );}
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
 
 /**
  * Implementation of hook_context_default_contexts().
@@ -191,7 +198,6 @@ function scratchpads_solr_context_default_contexts(){
   $context->conditions = array(
     'path' => array(
       'values' => array(
-        'biblio*' => 'biblio*',
         'search*' => 'search*',
         'group*' => 'group*'
       )
@@ -318,6 +324,19 @@ function scratchpads_solr_menu_alter(&$items){
   }
   // No, really, don't fucking touch the bias page.
   $items['admin/config/search/apachesolr/settings/%apachesolr_environment/bias']['access callback'] = FALSE;
+}
+
+/**
+ * Implements hook_update_dependencies().
+ */
+function scratchpads_solr_update_dependencies(){
+  return array(
+    'scratchpads_solr' => array(
+      '7005' => array(
+        'apachesolr' => 7017
+      )
+    )
+  );
 }
 
 /**

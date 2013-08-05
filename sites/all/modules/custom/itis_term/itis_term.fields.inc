@@ -152,6 +152,7 @@ function itis_term_fields_per_vocabulary(){
   return array(
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -224,6 +225,7 @@ function itis_term_fields(){
   return array(
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -282,6 +284,7 @@ function itis_term_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -340,6 +343,7 @@ function itis_term_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -390,6 +394,7 @@ function itis_term_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -453,6 +458,7 @@ function itis_term_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -503,6 +509,7 @@ function itis_term_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -553,6 +560,7 @@ function itis_term_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -603,6 +611,7 @@ function itis_term_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -653,6 +662,7 @@ function itis_term_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -703,6 +713,7 @@ function itis_term_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -761,6 +772,7 @@ function itis_term_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -819,6 +831,7 @@ function itis_term_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -877,6 +890,7 @@ function itis_term_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -935,6 +949,7 @@ function itis_term_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -1008,6 +1023,7 @@ function itis_term_collections($vocabulary_name){
   return array(
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '-1',
         'deleted' => '0',
@@ -1068,6 +1084,7 @@ function itis_term_collection_fields(){
   return array(
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -1138,6 +1155,7 @@ function itis_term_collection_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -1206,6 +1224,7 @@ function itis_term_collection_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -1286,6 +1305,7 @@ function itis_term_collection_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -1354,6 +1374,7 @@ function itis_term_collection_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -1422,6 +1443,7 @@ function itis_term_collection_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -1490,6 +1512,7 @@ function itis_term_collection_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -1570,6 +1593,7 @@ function itis_term_collection_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
@@ -1638,6 +1662,7 @@ function itis_term_collection_fields(){
     ),
     array(
       'field_config' => array(
+        'locked' => '1',
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',

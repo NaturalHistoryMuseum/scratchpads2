@@ -666,7 +666,7 @@ function scratchpads_audubon_core_field_default_fields() {
       'entity_type' => 'file',
       'field_name' => 'field_copyright_statement',
       'label' => 'Copyright Statement',
-      'required' => 1,
+      'required' => 0,
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
@@ -856,6 +856,8 @@ function scratchpads_audubon_core_field_default_fields() {
       'indexes' => array(),
       'module' => 'date',
       'settings' => array(
+        'cache_count' => '4',
+        'cache_enabled' => 0,
         'granularity' => array(
           'day' => 'day',
           'hour' => 'hour',
@@ -1013,9 +1015,8 @@ function scratchpads_audubon_core_field_default_fields() {
           'input_format' => 'Y-m-d H:i:s',
           'input_format_custom' => '',
           'label_position' => 'above',
-          'repeat_collapsed' => 0,
           'text_parts' => array(),
-          'year_range' => '-3:+3',
+          'year_range' => '0000:+0',
         ),
         'type' => 'date_select',
         'weight' => '23',
@@ -1035,6 +1036,8 @@ function scratchpads_audubon_core_field_default_fields() {
       'indexes' => array(),
       'module' => 'date',
       'settings' => array(
+        'cache_count' => '4',
+        'cache_enabled' => 0,
         'granularity' => array(
           'day' => 'day',
           'hour' => 'hour',
@@ -1192,7 +1195,6 @@ function scratchpads_audubon_core_field_default_fields() {
           'input_format' => 'Y-m-d H:i:s',
           'input_format_custom' => '',
           'label_position' => 'above',
-          'repeat_collapsed' => 0,
           'text_parts' => array(),
           'year_range' => '-3:+3',
         ),
@@ -2377,6 +2379,8 @@ function scratchpads_audubon_core_field_default_fields() {
       'indexes' => array(),
       'module' => 'date',
       'settings' => array(
+        'cache_count' => '4',
+        'cache_enabled' => 0,
         'granularity' => array(
           'day' => 'day',
           'hour' => 'hour',
@@ -2534,9 +2538,8 @@ function scratchpads_audubon_core_field_default_fields() {
           'input_format' => 'Y-m-d H:i:s',
           'input_format_custom' => '',
           'label_position' => 'above',
-          'repeat_collapsed' => 0,
           'text_parts' => array(),
-          'year_range' => '-3:+3',
+          'year_range' => '0000:+0',
         ),
         'type' => 'date_select',
         'weight' => '21',

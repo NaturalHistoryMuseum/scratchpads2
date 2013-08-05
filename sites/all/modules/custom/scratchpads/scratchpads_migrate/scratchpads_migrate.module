@@ -502,7 +502,7 @@ function scratchpads_migrate_register_migrations(){
     $mappings[$unmapped_node_type->type] = MIGRATE_ALL;
   }
   $source_node_types = scratchpads_migrate_source_node_types();
-  $femail_dependencies = array();
+  $all_node_dependencies = array();
   foreach($mappings as $type => $mapping){
     // Skip if we don't want to migrate this content type
     if($mapping == MIGRATE_NONE || $mapping == MIGRATE_FIELD){
@@ -540,7 +540,7 @@ function scratchpads_migrate_register_migrations(){
       'destination_type' => $destination_type
     );
     $path_dependencies[] = $arguments['machine_name'];
-    $femail_dependencies[] = $arguments['machine_name'];
+    $all_node_dependencies[] = $arguments['machine_name'];
     $arguments = array_merge_recursive($arguments, $common_node_arguments);
     if($type == 'darwincore'){
       $arguments['dependencies'][] = 'Darwincorelocation';
@@ -570,18 +570,30 @@ function scratchpads_migrate_register_migrations(){
       'group' => MigrateGroup::getInstance('content')
     );
     Migration::registerMigration('ScratchpadsCommentMigration', $arguments['machine_name'], $arguments);
-    $femail_dependencies[] = $arguments['machine_name'];
+    $all_node_dependencies[] = $arguments['machine_name'];
   }
+  /*********************************************************************************************
+   * Field Collections
+   ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migrate fields that become field collections'),
+    'machine_name' => 'FieldCollections',
+    'group' => MigrateGroup::getInstance('content'),
+    'dependencies' => $all_node_dependencies
+  );
+  Migration::registerMigration('FieldCollectionMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
    * PathRedirect
    ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of URL redirects from Drupal 6'),
-    'machine_name' => 'PathRedirect',
-    'dependencies' => $path_dependencies,
-    'group' => MigrateGroup::getInstance('final')
-  );
-  Migration::registerMigration('PathRedirectMigration', $arguments['machine_name'], $arguments);
+  if(scratchpads_migrate_source_table_exists('path_redirect')){
+    $arguments = $common_arguments + array(
+      'description' => t('Migration of URL redirects from Drupal 6'),
+      'machine_name' => 'PathRedirect',
+      'dependencies' => $path_dependencies,
+      'group' => MigrateGroup::getInstance('final')
+    );
+    Migration::registerMigration('PathRedirectMigration', $arguments['machine_name'], $arguments);
+  }
   /*********************************************************************************************
    * Femail
    ********************************************************************************************/
@@ -590,21 +602,21 @@ function scratchpads_migrate_register_migrations(){
     $arguments = $common_arguments + array(
       'description' => t('Migration of Femail mappings'),
       'machine_name' => 'Femail',
-      'dependencies' => $femail_dependencies,
+      'dependencies' => $all_node_dependencies,
       'group' => MigrateGroup::getInstance('final')
     );
     Migration::registerMigration('FemailMigration', $arguments['machine_name'], $arguments);
     $arguments = $common_arguments + array(
       'description' => t('Migration of Femail user emails'),
       'machine_name' => 'FemailEmail',
-      'dependencies' => $femail_dependencies,
+      'dependencies' => $all_node_dependencies,
       'group' => MigrateGroup::getInstance('final')
     );
     Migration::registerMigration('FemailEmailMigration', $arguments['machine_name'], $arguments);
     $arguments = $common_arguments + array(
       'description' => t('Migration of Femail user subscriptions'),
       'machine_name' => 'FemailSubscription',
-      'dependencies' => $femail_dependencies,
+      'dependencies' => $all_node_dependencies,
       'group' => MigrateGroup::getInstance('final')
     );
     Migration::registerMigration('FemailSubscriptionMigration', $arguments['machine_name'], $arguments);
@@ -700,14 +712,11 @@ function scratchpads_migrate_source_table_exists($table){
 }
 
 function scratchpads_migrate_source_table_not_empty($table){
-  if (!scratchpads_migrate_source_table_exists($table)) {
-    return FALSE;
-  }
+  if(!scratchpads_migrate_source_table_exists($table)){return FALSE;}
   $query = Database::getConnection('default', 'scratchpad_1')->select($table, 't');
   $query->addExpression('COUNT(*)');
   return $query->execute()->fetchField() > 0;
 }
-
 
 function scratchpads_migrate_source_node_exists($nid){
   $query = Database::getConnection('default', 'scratchpad_1')->select('node', 'n');
@@ -1027,7 +1036,7 @@ function scratchpads_migrate_mail($key, &$message, $params){
  *   The $node object to be saved. If $node->nid is
  *   omitted (or $node->is_new is TRUE), a new node will be added.
  */
-function scratchpads_migrate_node_save($node){
+function scratchpads_migrate_node_save($node, $revision_only = FALSE){
   $transaction = db_transaction();
   try{
     // Load the stored entity, if any.
@@ -1082,13 +1091,21 @@ function scratchpads_migrate_node_save($node){
     if($node->is_new){
       // For new nodes, save new records for both the node itself and the node
       // revision.
-      drupal_write_record('node', $node);
+      if (!$revision_only) {
+        drupal_write_record('node', $node);
+      } else {
+        $update_node = FALSE;
+      }
       _node_save_revision($node, $user->uid);
       $op = 'insert';
     }else{
       // For existing nodes, update the node record which matches the value of
       // $node->nid.
-      drupal_write_record('node', $node, 'nid');
+      if (!$revision_only) {
+        drupal_write_record('node', $node, 'nid');
+      } else {
+        $update_node = FALSE;
+      }
       // Then, if a new node revision was requested, save a new record for
       // that; otherwise, update the node revision record which matches the
       // value of $node->vid.
@@ -1101,6 +1118,7 @@ function scratchpads_migrate_node_save($node){
       $op = 'update';
     }
     if($update_node){
+      // Ensures the new VID is applied
       db_update('node')->fields(array(
         'vid' => $node->vid
       ))->condition('nid', $node->nid)->execute();

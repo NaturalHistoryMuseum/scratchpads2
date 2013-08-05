@@ -67,6 +67,14 @@ function scratchpads_front_block_view_alter(&$data, $block){
   if(isset($block->context) && substr($block->bid, 0, -1) == 'views-front_page_blocks-block_' && substr($data['subject'], -3) == 'rys'){
     $data['subject'] = substr($data['subject'], 0, -2) . 'ies';
   }
+  if(isset($block->context) && (!user_access('administer front page'))){
+    if($block->context == 'scratchpads_front_page'){
+      if(substr_count($data['content']['#markup'], 'class="view-empty"') > 1){
+        unset($data['content']);
+        unset($data['subject']);
+      }
+    }
+  }
 }
 
 function scratchpads_front_menu_contextual_links_alter(&$links, $router_item, $root_path){
@@ -134,9 +142,10 @@ function scratchpads_front_views_pre_view(&$view, &$display_id, &$args){
     case 'front_page_blocks':
       $var = 'front_page_' . $display_id . '_node_type';
       $view->args[] = scratchpads_front_variable_get($var);
-    // Note, there is no break here as we want to execute the following code
-    // to remove the "empty" text for non-admin users.
+      break;
     case 'front_page_slideshow':
+      $var = 'front_page_' . $display_id . '_node_type';
+      $view->args[] = scratchpads_front_variable_get($var);
       if(!user_access('administer front page')){
         $view->display_handler->default_display->options['empty'] = FALSE;
         $view->display_handler->options['empty'] = FALSE;

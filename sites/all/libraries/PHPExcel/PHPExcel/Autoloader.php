@@ -22,10 +22,12 @@
  * @package    PHPExcel
  * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
- * @version    1.7.7, 2012-05-19
+ * @version    1.7.8, 2012-10-12
  */
 
 PHPExcel_Autoloader::Register();
+//	As we always try to run the autoloader before anything else, we can use it to do a few
+//		simple checks and initialisations
 PHPExcel_Shared_ZipStreamWrapper::register();
 // check mbstring.func_overload
 if (ini_get('mbstring.func_overload') & 2) {
@@ -63,21 +65,21 @@ class PHPExcel_Autoloader
 	 * @param	string	$pClassName		Name of the object to load
 	 */
 	public static function Load($pClassName){
-		if ((class_exists($pClassName)) || (strpos($pClassName, 'PHPExcel') !== 0)) {
+		if ((class_exists($pClassName,FALSE)) || (strpos($pClassName, 'PHPExcel') !== 0)) {
 			//	Either already loaded, or not a PHPExcel class request
 			return FALSE;
 		}
 
-		$pObjectFilePath = PHPEXCEL_ROOT .
-						   str_replace('_',DIRECTORY_SEPARATOR,$pClassName) .
-						   '.php';
+		$pClassFilePath = PHPEXCEL_ROOT .
+						  str_replace('_',DIRECTORY_SEPARATOR,$pClassName) .
+						  '.php';
 
-		if ((file_exists($pObjectFilePath) === false) || (is_readable($pObjectFilePath) === false)) {
+		if ((file_exists($pClassFilePath) === false) || (is_readable($pClassFilePath) === false)) {
 			//	Can't load
 			return FALSE;
 		}
 
-		require($pObjectFilePath);
+		require($pClassFilePath);
 	}	//	function Load()
 
 }

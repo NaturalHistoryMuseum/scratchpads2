@@ -186,6 +186,10 @@ sub {
   top: .5ex;
 }
 
+.no-borders, .no-borders *{
+  border:none !important;
+}
+
 /************************ Layout *********************/
 
 /* Sitemap */
@@ -563,6 +567,23 @@ h1.site-name,h2.site-name {
   float: none !important;
 }
 
+/* Embeded images */
+#zone-content div.content div.field-type-text-with-summary img,
+#zone-content div.content div.field-type-text img {
+  margin: 0px;
+}
+
+#zone-content div.content div.field-type-text-with-summary img[align^=left],
+#zone-content div.content div.field-type-text img[align^=left] {
+  margin: 0 20px 5px 5px;
+}
+
+#zone-content div.content div.field-type-text-with-summary img[align^=right],
+#zone-content div.content div.field-type-text img[align^=right] {
+  margin: 0 5px 5px 5px;
+}
+
+
 /************************ BLOCKS *********************/
 
 /* Content */
@@ -810,10 +831,6 @@ article.node-event div.field-name-field-event-date {
   padding: 6px 0;
 }
 
-#cboxContent .file {
-  position: static;
-}
-
 #cboxContent .file .content span.file-styles {
   text-align: center;
   display: block;
@@ -858,11 +875,6 @@ div.contextual-links-wrapper {
 
 div.contextual-links-wrapper ul.contextual-links {
   z-index: 2 !important;
-}
-
-#cboxLoadedContent .contextual-links-wrapper {
-  right: 26px;
-  top: 15px;
 }
 
 /****************** CONTACT FORMS *****************/
@@ -1082,7 +1094,16 @@ table,tbody,tfoot,thead,tr,th,td {
   margin-bottom: 10px;
 }
 
-/* field items */ 
+/* field items */
 .field-label-inline .field-item {
   margin-right: 3px;
+}
+
+.node-type-specimen-observation .field-name-field-media .field-item {
+  margin: 4px;
+  display: inline-block;
+  vertical-align: top;
+  /* For IE 7 */
+  zoom: 1;
+  *display: inline;
 }

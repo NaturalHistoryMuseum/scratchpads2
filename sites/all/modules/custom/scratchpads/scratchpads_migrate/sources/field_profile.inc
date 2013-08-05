@@ -9,11 +9,15 @@ class DrupalFieldProfileMigration extends DrupalMigration{
     return array(
       'profile_real_name' => 'field_user_given_names',
       'profile_interest' => 'field_user_taxonomic_interest',
-      'profile_webinterest' => 'field_user_taxonomic_interest',
+      'profile_taxonomic_interest' => 'field_field_user_taxonomic_interest',
       'profile_homepage' => 'field_homepage',
+      'profile_url' => 'field_homepage',
+      'profile_website' => 'field_homepage',
       'profile_affil' => 'field_user_institution',
       'profile_forename' => 'field_user_given_names',
-      'profile_surname' => 'field_user_family_name'
+      'profile_surname' => 'field_user_family_name',
+      'profile_givennames' => 'field_user_given_names',
+      'profile_institution' => 'field_user_institution'
     );
   }
 
@@ -70,7 +74,8 @@ class DrupalFieldProfileMigration extends DrupalMigration{
       'explanation',
       'weight',
       'type',
-      'name'
+      'name',
+      'options'
     ));
     $query->condition('pf.name', array_keys($this->getFieldNameMappings()), 'NOT IN');
     return $query;
@@ -88,6 +93,7 @@ class DrupalFieldProfileMigration extends DrupalMigration{
         $row->module = $row->widget_module = 'text';
         break;
       case 'textarea':
+      case 'list':
         $row->type = 'text';
         $row->widget_type = 'text_textarea';
         $row->module = $row->widget_module = 'text';
@@ -102,11 +108,11 @@ class DrupalFieldProfileMigration extends DrupalMigration{
         break;
       case 'selection':
         $allowed_values = array();
-        if (!empty($row->options)) {
+        if(!empty($row->options)){
           $options = explode("\n", preg_replace('/(\r|\n)+/', "\n", $row->options));
-          foreach ($options as $o) {
+          foreach($options as $o){
             $o = trim($o);
-            if (!empty($o)) {
+            if(!empty($o)){
               $allowed_values[$o] = $o;
             }
           }
@@ -130,8 +136,19 @@ class DrupalFieldProfileMigration extends DrupalMigration{
         break;
     }
     $row->global_settings['text_processing'] = null;
-    $row->name = substr('field_' . $row->name, 0, 32);
-    if(field_read_instance('user', $row->name, 'user')){// Instance already exists, so skip it
-      return false;}
+    $row->multiple = 0;
+    $row->name = DrupalFieldProfileMigration::destinationFieldName($row->name);
+    if(field_read_instance('user', $row->name, 'user')){      // Instance already exists, so skip it
+return false;}
+  }
+
+  /**
+   * Generate destination field name from source field name
+   */
+  public static function destinationFieldName($field_name){
+    $map = DrupalFieldProfileMigration::getFieldNameMappings();
+    $field_name = strtolower($field_name);
+    if(isset($map[$field_name])){return $map[$field_name];}
+    return substr('field_' . $field_name, 0, 32);
   }
 }

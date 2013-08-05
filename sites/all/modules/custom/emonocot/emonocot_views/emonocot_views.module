@@ -93,15 +93,6 @@ function emonocot_views_url_icon(){
   return $new_field;
 }
 
-function emonocot_views_views_default_views_alter(&$views){
-  foreach($views as $view){
-    if($view->name == 'species_nomenclature'){
-      $view->display['default']->display_options['fields']['wcm_ref'] = emonocot_views_wcm_ref();
-      $view->display['default']->display_options['fields']['url_icon'] = emonocot_views_url_icon();
-    }
-  }
-}
-
 /**
  * Implements hook_field_formatter_view().
  * 
@@ -150,7 +141,7 @@ function emonocot_views_field_formatter_view($entity_type, $entity, $field, $ins
             );
           }
         }
-        if(isset($node->field_file)){
+        if(isset($node->field_file['und'])){
           foreach($node->field_file['und'] as $file){
             $links[] = array(
               'type' => 'file',
@@ -195,7 +186,7 @@ function emonocot_views_field_formatter_view($entity_type, $entity, $field, $ins
                 $info['host'] = $parse['host'];
               }
               $element[] = array(
-                '#markup' => '<a title="' . $info['title'] . ' (' . $info['host'] . ')' . '" href="' . $link['url'] . '"><img height="16px" width="16px" src="' . $info['icon'] . '"/></a>'
+                '#markup' => '<a href="node/'.$node->nid.'">' . $node->title . '</a>&nbsp;<a title="' . $info['title'] . ' (' . $info['host'] . ')' . '" href="' . $link['url'] . '"><img height="16px" width="16px" src="' . $info['icon'] . '"/></a>'
               );
               break;
             }

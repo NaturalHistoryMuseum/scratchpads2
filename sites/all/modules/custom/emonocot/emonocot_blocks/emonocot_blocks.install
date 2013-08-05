@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * Remove the old emonocot logo from the image sizes cache.
+ */
+function emonocot_blocks_update_7001(){
+  cache_clear_all(md5(drupal_get_path('module', 'emonocot_blocks') . '/images/emonocot_nobyline.png'), 'cache_image_sizes');
+}

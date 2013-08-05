@@ -5,39 +5,23 @@
  */
 function scratchpads_statistics_block_info(){
   return array(
-    'user' => array(
-      'info' => t('Scratchpads statistics facet - User'),
-      'cache' => DRUPAL_CACHE_PER_PAGE
-    ),
     'site' => array(
       'info' => t('Scratchpads statistics facet - Site'),
       'cache' => DRUPAL_CACHE_PER_PAGE
     ),
-    'category' => array(
-      'info' => t('Scratchpads statistics facet - Site Category'),
+    'user' => array(
+      'info' => t('Scratchpads statistics facet - User'),
       'cache' => DRUPAL_CACHE_PER_PAGE
     ),
     'term' => array(
       'info' => t('Scratchpads statistics facet - Term'),
       'cache' => DRUPAL_CACHE_PER_PAGE
     ),
-    /*
-    'ss_facet_users' => array(
-      'info' => t('Scratchpads statistics facet - Users'),
+    'category' => array(
+      'info' => t('Scratchpads statistics facet - Site Category'),
       'cache' => DRUPAL_CACHE_PER_PAGE
     )
-    */
   );
-}
-
-/**
- * Implements hook_hashcash_form_ids_alter().
- */
-function scratchpads_statistics_hashcash_form_ids_alter(&$form_ids){
-  $form_ids[] = 'scratchpads_statistics_facet_form_user';
-  $form_ids[] = 'scratchpads_statistics_facet_form_site';
-  $form_ids[] = 'scratchpads_statistics_facet_form_category';
-  $form_ids[] = 'scratchpads_statistics_facet_form_term';
 }
 
 /**
@@ -54,6 +38,8 @@ function scratchpads_statistics_ctools_plugin_api(){
  * Implements hook_block_view()
  */
 function scratchpads_statistics_block_view($delta = ''){
+  // We only display the site block if the aggregator module is enabled.
+  if($delta == 'site' && !module_exists('scratchpads_statistics_aggregator')){return;}
   if($delta == 'category'){
     $tagged_sites = db_select('scratchpads_statistics_site_site_type', 's')->fields('s')->countQuery()->execute()->fetchCol();
     $tagged_sites = array_pop($tagged_sites);
@@ -91,12 +77,95 @@ function scratchpads_statistics_forms($form_id, $args){
 }
 
 /**
+ * Allow other modules (namely the scratchpads_setup module) to set the
+ * category for this and other sites.
+ */
+function scratchpads_statistics_set_site_categories($categories, $site = 1){
+  $query = db_insert('scratchpads_statistics_site_site_type')->fields(array(
+    'site',
+    'site_type'
+  ));
+  $do_insert = FALSE;
+  foreach($categories as $category){
+    $site_type_id = scratchpads_statistics_insert_item(array(
+      'type' => $category
+    ), 'scratchpads_statistics_site_type', 'type');
+    if($site_type_id){
+      $do_insert = TRUE;
+      $query->values(array(
+        'site' => $site,
+        'site_type' => $site_type_id
+      ));
+    }
+  }
+  if($do_insert){
+    db_delete('scratchpads_statistics_site_site_type')->condition('site', $site)->execute();
+    $query->execute();
+  }
+}
+
+/**
+ * Create/Retrieve a user
+ */
+function scratchpads_statistics_insert_item($item, $table, $key){
+  // Keep a static cache of the users.
+  $items = drupal_static(__FUNCTION__, array());
+  if(is_array($key)){
+    $itemkey = '';
+    foreach($key as $k){
+      $itemkey .= '---' . $item[$k];
+    }
+  }else{
+    $itemkey = $item[$key];
+    $key = array(
+      $key
+    );
+  }
+  if(@isset($items[$table][$itemkey])){return $items[$table][$itemkey];}
+  $query = db_merge($table);
+  foreach($key as $k){
+    $query->key(array(
+      $k => $item[$k]
+    ));
+  }
+  $output = $query->fields($item)->execute();
+  $query = db_select($table, 's')->fields('s', array(
+    'id'
+  ));
+  foreach($key as $key_item){
+    $query->condition($key_item, $item[$key_item]);
+  }
+  $col = $query->execute()->fetchCol();
+  $id = array_pop($col);
+  if(!isset($items[$table])){
+    $items[$table] = array();
+  }
+  $items[$table][$itemkey] = $id;
+  return $id;
+}
+
+/**
+ * Allow other modules (namely the scratchpads_setup module) to set the
+ * category for this and other sites.
+ */
+function scratchpads_statistics_get_site_categories($site = 1){
+  $query = db_select('scratchpads_statistics_site_type', 'st');
+  $query->innerJoin('scratchpads_statistics_site_site_type', 'sst', 'sst.site_type = st.id');
+  $categories = $query->condition('site', $site)->fields('st', array(
+    'type'
+  ))->execute()->fetchAll(PDO::FETCH_COLUMN);
+  require_once DRUPAL_ROOT . '/includes/install.inc';
+  $profile = install_profile_info(drupal_get_profile());
+  $categories[] = $profile['name'];
+  return $categories;
+}
+
+/**
  * Scratchpads statistics facet form.
  */
 function scratchpads_statistics_facet_form($form, $form_state, $type){
   switch($type){
     case 'category':
-      //db_select('')
       return array(
         'scratchpads_stats_facet_type' => array(
           '#type' => 'hidden',
@@ -114,6 +183,29 @@ function scratchpads_statistics_facet_form($form, $form_state, $type){
         )
       );
     default:
+      $items = array();
+      if(!empty($_GET[$type]) && is_array($_GET[$type])){
+        $results = db_select('scratchpads_statistics_' . $type, 's')->fields('s')->condition('id', $_GET[$type])->execute()->fetchAll();
+        foreach($results as $row){
+          switch($type){
+            case 'site':
+              $items[] = t('<a href="!url" target="_blank">%site_title</a>', array(
+                '!url' => $row->url,
+                '%site_title' => $row->title
+              ));
+              break;
+            case 'user':
+              $items[$row->name] = $row->name;
+              break;
+            default:
+              $items[] = $row->{$type};
+              break;
+          }
+        }
+      }
+      $query_without = $_GET;
+      unset($query_without[$type]);
+      unset($query_without['q']);
       return array(
         'scratchpads_stats_facet_type' => array(
           '#type' => 'hidden',
@@ -127,11 +219,31 @@ function scratchpads_statistics_facet_form($form, $form_state, $type){
           ),
           '#default_value' => ''
         ),
-        'submit' => array(
+        'already_selected' => array(
+          '#prefix' => count($items) ? '<h5>Applied filters</h5>' : '',
+          '#suffix' => count($items) ? l(t('Remove @type filters', array(
+            '@type' => $type
+          )), 'stats', array(
+            'query' => $query_without
+          )) : '',
+          '#theme' => 'item_list',
+          '#items' => $items
+        ),
+        submit => array(
           '#prefix' => '<div style="display:none">',
           '#suffix' => '</div>',
           '#value' => t('Filter'),
           '#type' => 'submit'
+        ),
+        '#attributes' => array(
+          'class' => array(
+            'autocomplete-submit'
+          )
+        ),
+        '#attached' => array(
+          'js' => array(
+            drupal_get_path('module', 'scratchpads_statistics') . '/js/scratchpads_statistics.js'
+          )
         ),
         '#submit' => array(
           'scratchpads_statistics_facet_form_submit'
@@ -147,7 +259,7 @@ function scratchpads_statistics_facet_form_submit($form, &$form_state){
   $query = $_GET;
   unset($query['q']);
   switch($form_state['values']['scratchpads_stats_facet_type']){
-    case 't':
+    case 'term':
       $results = db_select('scratchpads_statistics_term', 's')->condition('term', $form_state['values']['scratchpads_stats_facet_entry'], 'LIKE')->fields('s', array(
         'id'
       ))->execute();
@@ -163,7 +275,9 @@ function scratchpads_statistics_facet_form_submit($form, &$form_state){
       ));
       break;
   }
-  $query[$form_state['values']['scratchpads_stats_facet_type']] = array();
+  if(!isset($query[$form_state['values']['scratchpads_stats_facet_type']])){
+    $query[$form_state['values']['scratchpads_stats_facet_type']] = array();
+  }
   foreach($results as $row){
     $query[$form_state['values']['scratchpads_stats_facet_type']][] = $row->id;
   }
@@ -186,7 +300,7 @@ function scratchpads_statistics_cron(){
 function scratchpads_statistics_menu(){
   return array(
     'stats' => array(
-      'title' => 'Scratchpad statistics',
+      'title' => 'Scratchpads 2.0 statistics',
       'description' => 'Display statistics related to the content created on this site.',
       'page callback' => 'scratchpads_statistics_stats_page',
       'access arguments' => array(
@@ -214,7 +328,7 @@ function scratchpads_statistics_menu(){
       'type' => MENU_SUGGESTED_ITEM
     ),
     'admin/config/search/scratchpads-statistics' => array(
-      'title' => 'Scratchpads statistics',
+      'title' => 'Scratchpads Statistics',
       'description' => 'Set the password hash required to access data',
       'page callback' => 'drupal_get_form',
       'page arguments' => array(

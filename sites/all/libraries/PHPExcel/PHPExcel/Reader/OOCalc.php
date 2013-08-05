@@ -22,7 +22,7 @@
  * @package    PHPExcel_Reader
  * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version    1.7.7, 2012-05-19
+ * @version    1.7.8, 2012-10-12
  */
 
 
@@ -190,7 +190,7 @@ class PHPExcel_Reader_OOCalc implements PHPExcel_Reader_IReader
 		}
 
 		// Check if zip class exists
-		if (!class_exists('ZipArchive')) {
+		if (!class_exists('ZipArchive',FALSE)) {
 			throw new Exception("ZipArchive library is not enabled");
 		}
 
@@ -198,14 +198,20 @@ class PHPExcel_Reader_OOCalc implements PHPExcel_Reader_IReader
 		$zip = new ZipArchive;
 		if ($zip->open($pFilename) === true) {
 			// check if it is an OOXML archive
-			$mimeType = $zip->getFromName("mimetype");
+			$stat = $zip->statName('mimetype');
+			if ($stat && ($stat['size'] <= 255)) {
+				$mimeType = $zip->getFromName($stat['name']);
+			} else {
+				$zip->close();
+				return FALSE;
+			}
 
 			$zip->close();
 
 			return ($mimeType === 'application/vnd.oasis.opendocument.spreadsheet');
 		}
 
-		return false;
+		return FALSE;
 	}
 
 
@@ -303,7 +309,7 @@ class PHPExcel_Reader_OOCalc implements PHPExcel_Reader_IReader
 					$worksheetDataAttributes = $worksheetDataSet->attributes($namespacesContent['table']);
 
 					$tmpInfo = array();
-					$tmpInfo['worksheetName'] = $worksheetDataAttributes['name'];
+					$tmpInfo['worksheetName'] = (string) $worksheetDataAttributes['name'];
 					$tmpInfo['lastColumnLetter'] = 'A';
 					$tmpInfo['lastColumnIndex'] = 0;
 					$tmpInfo['totalRows'] = 0;
@@ -311,43 +317,25 @@ class PHPExcel_Reader_OOCalc implements PHPExcel_Reader_IReader
 
 					$rowIndex = 0;
 					foreach ($worksheetData as $key => $rowData) {
-						$rowHasData = false;
-
 						switch ($key) {
 							case 'table-row' :
+								$rowDataTableAttributes = $rowData->attributes($namespacesContent['table']);
+								$rowRepeats = (isset($rowDataTableAttributes['number-rows-repeated'])) ?
+										$rowDataTableAttributes['number-rows-repeated'] : 1;
 								$columnIndex = 0;
 
 								foreach ($rowData as $key => $cellData) {
-									$cellHasData = false;
-
-									$cellDataText = $cellData->children($namespacesContent['text']);
+									$cellDataTableAttributes = $cellData->attributes($namespacesContent['table']);
+									$colRepeats = (isset($cellDataTableAttributes['number-columns-repeated'])) ?
+										$cellDataTableAttributes['number-columns-repeated'] : 1;
 									$cellDataOfficeAttributes = $cellData->attributes($namespacesContent['office']);
-									if (isset($cellDataText->p)) {
-										switch ($cellDataOfficeAttributes['value-type']) {
-											case 'string' :
-											case 'boolean' :
-											case 'float' :
-											case 'date' :
-											case 'time' :
-												$cellHasData = true;
-												break;
-										}
+									if (isset($cellDataOfficeAttributes['value-type'])) {
+										$tmpInfo['lastColumnIndex'] = max($tmpInfo['lastColumnIndex'], $columnIndex + $colRepeats - 1);
+										$tmpInfo['totalRows'] = max($tmpInfo['totalRows'], $rowIndex + $rowRepeats);
 									}
-
-									$cellDataText = null;
-									$cellDataOfficeAttributes = null;
-
-									if ($cellHasData) {
-										$tmpInfo['lastColumnIndex'] = max($tmpInfo['lastColumnIndex'], $columnIndex);
-										$rowHasData = true;
-									}
-									++$columnIndex;
+									$columnIndex += $colRepeats;
 								}
-								++$rowIndex;
-
-								if ($rowHasData) {
-									$tmpInfo['totalRows'] = max($tmpInfo['totalRows'], $rowIndex);
-								}
+								$rowIndex += $rowRepeats;
 								break;
 						}
 					}
@@ -513,6 +501,9 @@ class PHPExcel_Reader_OOCalc implements PHPExcel_Reader_IReader
 									break;
 								}
 							case 'table-row' :
+								$rowDataTableAttributes = $rowData->attributes($namespacesContent['table']);
+								$rowRepeats = (isset($rowDataTableAttributes['number-rows-repeated'])) ?
+										$rowDataTableAttributes['number-rows-repeated'] : 1;
 								$columnID = 'A';
 								foreach($rowData as $key => $cellData) {
 									if ($this->getReadFilter() !== NULL) {
@@ -522,7 +513,9 @@ class PHPExcel_Reader_OOCalc implements PHPExcel_Reader_IReader
 									}
 
 //									echo '<b>'.$columnID.$rowID.'</b><br />';
-									$cellDataText = $cellData->children($namespacesContent['text']);
+									$cellDataText = (isset($namespacesContent['text'])) ?
+										$cellData->children($namespacesContent['text']) :
+										'';
 									$cellDataOffice = $cellData->children($namespacesContent['office']);
 									$cellDataOfficeAttributes = $cellData->attributes($namespacesContent['office']);
 									$cellDataTableAttributes = $cellData->attributes($namespacesContent['table']);
@@ -560,11 +553,31 @@ class PHPExcel_Reader_OOCalc implements PHPExcel_Reader_IReader
 									}
 
 									if (isset($cellDataText->p)) {
+										// Consolidate if there are multiple p records (maybe with spans as well)
+										$dataArray = array();
+										// Text can have multiple text:p and within those, multiple text:span.
+										// text:p newlines, but text:span does not.
+										// Also, here we assume there is no text data is span fields are specified, since
+										// we have no way of knowing proper positioning anyway.
+										foreach ($cellDataText->p as $pData) {
+											if (isset($pData->span)) {
+												// span sections do not newline, so we just create one large string here
+												$spanSection = "";
+												foreach ($pData->span as $spanData) {
+													$spanSection .= $spanData;
+												}
+												array_push($dataArray, $spanSection);
+											} else {
+												array_push($dataArray, $pData);
+											}
+										}
+										$allCellDataText = implode($dataArray, "\n");
+
 //										echo 'Value Type is '.$cellDataOfficeAttributes['value-type'].'<br />';
 										switch ($cellDataOfficeAttributes['value-type']) {
-											case 'string' :
+ 											case 'string' :
 													$type = PHPExcel_Cell_DataType::TYPE_STRING;
-													$dataValue = $cellDataText->p;
+													$dataValue = $allCellDataText;
 													if (isset($dataValue->a)) {
 														$dataValue = $dataValue->a;
 														$cellXLinkAttributes = $dataValue->attributes($namespacesContent['xlink']);
@@ -573,13 +586,32 @@ class PHPExcel_Reader_OOCalc implements PHPExcel_Reader_IReader
 													break;
 											case 'boolean' :
 													$type = PHPExcel_Cell_DataType::TYPE_BOOL;
-													$dataValue = ($cellDataText->p == 'TRUE') ? True : False;
+													$dataValue = ($allCellDataText == 'TRUE') ? True : False;
+													break;
+											case 'percentage' :
+													$type = PHPExcel_Cell_DataType::TYPE_NUMERIC;
+													$dataValue = (float) $cellDataOfficeAttributes['value'];
+													if (floor($dataValue) == $dataValue) {
+														$dataValue = (integer) $dataValue;
+													}
+													$formatting = PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE_00;
+													break;
+											case 'currency' :
+													$type = PHPExcel_Cell_DataType::TYPE_NUMERIC;
+													$dataValue = (float) $cellDataOfficeAttributes['value'];
+													if (floor($dataValue) == $dataValue) {
+														$dataValue = (integer) $dataValue;
+													}
+													$formatting = PHPExcel_Style_NumberFormat::FORMAT_CURRENCY_USD_SIMPLE;
 													break;
 											case 'float' :
 													$type = PHPExcel_Cell_DataType::TYPE_NUMERIC;
 													$dataValue = (float) $cellDataOfficeAttributes['value'];
 													if (floor($dataValue) == $dataValue) {
-														$dataValue = (integer) $dataValue;
+														if ($dataValue = (integer) $dataValue)
+															$dataValue = (integer) $dataValue;
+														else
+															$dataValue = (float) $dataValue;
 													}
 													break;
 											case 'date' :
@@ -604,6 +636,9 @@ class PHPExcel_Reader_OOCalc implements PHPExcel_Reader_IReader
 //										if ($hyperlink !== NULL) {
 //											echo 'Hyperlink is '.$hyperlink.'<br />';
 //										}
+									} else {
+										$type = PHPExcel_Cell_DataType::TYPE_NULL;
+										$dataValue = NULL;
 									}
 
 									if ($hasCalculatedValue) {
@@ -626,45 +661,53 @@ class PHPExcel_Reader_OOCalc implements PHPExcel_Reader_IReader
 //										echo 'Adjusted Formula: '.$cellDataFormula.'<br />';
 									}
 
-									$repeats = (isset($cellDataTableAttributes['number-columns-repeated'])) ?
+									$colRepeats = (isset($cellDataTableAttributes['number-columns-repeated'])) ?
 										$cellDataTableAttributes['number-columns-repeated'] : 1;
 									if ($type !== NULL) {
-										for ($i = 0; $i < $repeats; ++$i) {
+										for ($i = 0; $i < $colRepeats; ++$i) {
 											if ($i > 0) {
 												++$columnID;
 											}
-											$objPHPExcel->getActiveSheet()->getCell($columnID.$rowID)->setValueExplicit((($hasCalculatedValue) ? $cellDataFormula : $dataValue),$type);
-											if ($hasCalculatedValue) {
-//												echo 'Forumla result is '.$dataValue.'<br />';
-												$objPHPExcel->getActiveSheet()->getCell($columnID.$rowID)->setCalculatedValue($dataValue);
-											}
-											if (($cellDataOfficeAttributes['value-type'] == 'date') ||
-												($cellDataOfficeAttributes['value-type'] == 'time')) {
-												$objPHPExcel->getActiveSheet()->getStyle($columnID.$rowID)->getNumberFormat()->setFormatCode($formatting);
-											}
-											if ($hyperlink !== NULL) {
-												$objPHPExcel->getActiveSheet()->getCell($columnID.$rowID)->getHyperlink()->setUrl($hyperlink);
+											if ($type !== PHPExcel_Cell_DataType::TYPE_NULL) {
+												for ($rowAdjust = 0; $rowAdjust < $rowRepeats; ++$rowAdjust) {
+													$rID = $rowID + $rowAdjust;
+													$objPHPExcel->getActiveSheet()->getCell($columnID.$rID)->setValueExplicit((($hasCalculatedValue) ? $cellDataFormula : $dataValue),$type);
+													if ($hasCalculatedValue) {
+//														echo 'Forumla result is '.$dataValue.'<br />';
+														$objPHPExcel->getActiveSheet()->getCell($columnID.$rID)->setCalculatedValue($dataValue);
+													}
+													if ($formatting !== NULL) {
+														$objPHPExcel->getActiveSheet()->getStyle($columnID.$rID)->getNumberFormat()->setFormatCode($formatting);
+													} else {
+														$objPHPExcel->getActiveSheet()->getStyle($columnID.$rID)->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_GENERAL);
+													}
+													if ($hyperlink !== NULL) {
+														$objPHPExcel->getActiveSheet()->getCell($columnID.$rID)->getHyperlink()->setUrl($hyperlink);
+													}
+												}
 											}
 										}
 									}
 
 									//	Merged cells
 									if ((isset($cellDataTableAttributes['number-columns-spanned'])) || (isset($cellDataTableAttributes['number-rows-spanned']))) {
-										$columnTo = $columnID;
-										if (isset($cellDataTableAttributes['number-columns-spanned'])) {
-											$columnTo = PHPExcel_Cell::stringFromColumnIndex(PHPExcel_Cell::columnIndexFromString($columnID) + $cellDataTableAttributes['number-columns-spanned'] -2);
+										if (($type !== PHPExcel_Cell_DataType::TYPE_NULL) || (!$this->_readDataOnly)) {
+											$columnTo = $columnID;
+											if (isset($cellDataTableAttributes['number-columns-spanned'])) {
+												$columnTo = PHPExcel_Cell::stringFromColumnIndex(PHPExcel_Cell::columnIndexFromString($columnID) + $cellDataTableAttributes['number-columns-spanned'] -2);
+											}
+											$rowTo = $rowID;
+											if (isset($cellDataTableAttributes['number-rows-spanned'])) {
+												$rowTo = $rowTo + $cellDataTableAttributes['number-rows-spanned'] - 1;
+											}
+											$cellRange = $columnID.$rowID.':'.$columnTo.$rowTo;
+											$objPHPExcel->getActiveSheet()->mergeCells($cellRange);
 										}
-										$rowTo = $rowID;
-										if (isset($cellDataTableAttributes['number-rows-spanned'])) {
-											$rowTo = $rowTo + $cellDataTableAttributes['number-rows-spanned'] - 1;
-										}
-										$cellRange = $columnID.$rowID.':'.$columnTo.$rowTo;
-										$objPHPExcel->getActiveSheet()->mergeCells($cellRange);
 									}
 
 									++$columnID;
 								}
-								++$rowID;
+								$rowID += $rowRepeats;
 								break;
 						}
 					}

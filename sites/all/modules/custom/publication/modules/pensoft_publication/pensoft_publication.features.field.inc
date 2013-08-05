@@ -2510,6 +2510,6 @@ Tables are numbered once the publication is saved.',
 Tables are numbered once the publication is saved.');
   t('Title');
   t('Type of treatment');
-  t('endpoints');
+  t('Endpoints');
   return $fields;
 }

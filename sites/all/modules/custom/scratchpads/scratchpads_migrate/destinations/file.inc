@@ -8,6 +8,31 @@ class ScratchpadsMigrateDestinationFile extends MigrateDestinationFile{
   public function import(stdClass $file, stdClass $row){
     scratchpads_migrate_unset_empty_fields($file);
     $status = parent::import($file, $row);
+    if (!$status) {
+      return;
+    }
+    $fid = reset($status);
+    $sfile = file_load($fid);
+    // Overwrite the gallery mapping. As we are now using VIDs as the main key in the tables,
+    // this will have mapped to the VID. We want the NID instead.
+    if ($sfile && property_exists($sfile, 'field_smg_galleries') && !empty($sfile->field_smg_galleries['und'])) {
+      $save_me = FALSE;
+      foreach ($sfile->field_smg_galleries['und'] as $k => $v) {
+        $g_nid = db_query("
+          SELECT nid
+            FROM {node}
+          WHERE vid = :vid
+            AND nid <> vid
+        ", array(':vid' => $v['nid']))->fetchField();
+        if ($g_nid) {
+          $sfile->field_smg_galleries['und'][$k]['nid'] = $g_nid;
+          $save_me = TRUE;
+        }
+      }
+      if ($save_me) {
+        file_save($sfile);
+      }
+    }
     // Add a path redirect
     if($status && isset($row->path) && !empty($row->path)){
       // Ensure the redirect module is enabled

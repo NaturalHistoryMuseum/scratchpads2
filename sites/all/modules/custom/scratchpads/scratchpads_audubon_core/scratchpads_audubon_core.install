@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * Revert features to new settings
+ */
+function scratchpads_audubon_core_update_7001(){
+  features_revert(array(
+    'scratchpads_audubon_core' => array(
+      'field'
+    )
+  ));
+}
+
+/**
+ * Copyright statement no longer required field (features revert)
+ */
+function scratchpads_audubon_core_update_7002(){}

@@ -129,29 +129,29 @@ function _pensoft_publication_xml_load_biblio($value) {
   }
   // Biblio re-uses fields depending on the type, Pensoft doesn't -
   // so match fields depending on the type
-  if ($node->biblio_type == 100) {
+  if ($node->biblio_type == 100) { // Book
     $node->pensoft_number_of_pages = $node->biblio_pages;
     $node->pensoft_book_title = $node->title;
     $node->pensoft_city = $node->biblio_place_published;
-  } else if ($node->biblio_type == 101) {
+  } else if ($node->biblio_type == 101) { // Book chapter
     $node->pensoft_chapter_title = $node->title;
-    $node->pensoft_book_title = $node->secondary_title;
+    $node->pensoft_book_title = $node->biblio_secondary_title;
     $node->pensoft_city = $node->biblio_place_published;
-    $pages = explode(' ', trim(preg_replace('/[^0-9]+/', ' ', $node->pages)));
+    $pages = explode(' ', trim(preg_replace('/[^0-9]+/', ' ', $node->biblio_pages)));
     if (count($pages) > 0) {
       $node->pensoft_first_page = $pages[0];
     }
     if (count($pages) > 1) {
       $node->pensoft_last_page = $pages[1];
     }
-  } else if ($node->biblio_type == 102) {
+  } else if ($node->biblio_type == 102) { // Journal Article
     $node->pensoft_article_title = $node->title;
     $node->pensoft_journal_name = $node->biblio_secondary_title;
     $node->pensoft_journal_volume = $node->biblio_volume;
-  } else if ($node->biblio_type == 103) {
+  } else if ($node->biblio_type == 103) {  // Conference paper
     $node->pensoft_conference_name = $node->biblio_secondary_title;
     $node->conference_location = $node->biblio_place_published;
-  } else if ($node->biblio_type == 104) {
+  } else if ($node->biblio_type == 104) {  // Conference proceedings
     $node->pensoft_conference_name = $node->biblio_secondary_title;
     $node->conference_location = $node->biblio_place_published;
   }
@@ -1597,12 +1597,7 @@ function _pensoft_publication_xml_references_schema() {
             '#field' => 'pensoft_number_of_pages',
           )
         ),
-        'publication_language' => array(
-          '#condition' => 'biblio_lang',
-          'value' => array(
-            '#field' => 'biblio_lang',
-          )
-        ),
+        // publication_language
         'url' => array(
           '#condition' => 'biblio_url',
           'value' => array(

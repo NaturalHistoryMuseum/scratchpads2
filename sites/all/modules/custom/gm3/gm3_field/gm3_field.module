@@ -176,7 +176,11 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
         $items[0] = str_replace('point:', '', strtolower($items[0]));
         _gm3_field_get_array_from_points_string($items[0], $new_items);
       }else if(count($items)){
-        _gm3_field_get_array_from_points_string($items[0]['map'], $new_items);
+        if(isset($items[0]['map'])){
+          _gm3_field_get_array_from_points_string($items[0]['map'], $new_items);
+        }else{
+          $new_items = $items;
+        }
       }
       $items = $new_items;
       break;
@@ -189,7 +193,15 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
         _gm3_field_get_array_from_poly_string($items[0], $new_items, substr($field['type'], 4));
       }
       if(count($items)){
-        _gm3_field_get_array_from_poly_string($items[0]['map'], $new_items, substr($field['type'], 4));
+        if(isset($items[0]['map'])){
+          _gm3_field_get_array_from_poly_string($items[0]['map'], $new_items, substr($field['type'], 4));
+        }else{
+          $new_items = $items;
+          $poly_type = substr($field['type'], 4);
+          foreach(array_keys($new_items) as $new_item_k){
+            $new_items[$new_item_k]['gm3_type'] = $poly_type;
+          }
+        }
       }
       $items = $new_items;
       break;
@@ -219,27 +231,31 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
             }
           }
         }
-        foreach($items[0]['map']['children'] as $type => $value){
-          switch($type){
-            case 'gm3_point':
-              _gm3_field_get_array_from_points_string($value, $new_items, 'point');
-              break;
-            case 'gm3_rectangle':
-            case 'gm3_polygon':
-            case 'gm3_polyline':
-              _gm3_field_get_array_from_poly_string($value, $new_items, substr($type, 4), TRUE);
-              break;
-            default:
-              // Here we have a field that was not defined by this module, we use the 
-              // name of the module, plus the name of the type plus view to get the name
-              // of the function to call
-              // "{$field['module']}_{$field['type']}_view()"
-              if(function_exists("{$type}_gm3_combination_insert")){
-                $function_name = "{$type}_gm3_combination_insert";
-                $function_name($new_items, $value);
-              }
-              break;
+        if(isset($items[0]['map']['children'])){
+          foreach($items[0]['map']['children'] as $type => $value){
+            switch($type){
+              case 'gm3_point':
+                _gm3_field_get_array_from_points_string($value, $new_items, 'point');
+                break;
+              case 'gm3_rectangle':
+              case 'gm3_polygon':
+              case 'gm3_polyline':
+                _gm3_field_get_array_from_poly_string($value, $new_items, substr($type, 4), TRUE);
+                break;
+              default:
+                // Here we have a field that was not defined by this module, we use the 
+                // name of the module, plus the name of the type plus view to get the name
+                // of the function to call
+                // "{$field['module']}_{$field['type']}_view()"
+                if(function_exists("{$type}_gm3_combination_insert")){
+                  $function_name = "{$type}_gm3_combination_insert";
+                  $function_name($new_items, $value);
+                }
+                break;
+            }
           }
+        }else{
+          $new_items = $items;
         }
       }
       $items = $new_items;
@@ -579,18 +595,28 @@ function gm3_point_items_validate($items, $field_name, &$errors){}
 function gm3_field_field_is_empty($item, $field){
   switch($field['type']){
     case 'gm3_point':
+      return !(strlen(trim($item['map'])) || isset($item['latitude']));
     case 'gm3_polygon':
+      return !(strlen(trim($item['map'])) || isset($item['polygon']));
     case 'gm3_polyline':
+      return !(strlen(trim($item['map'])) || isset($item['polyline']));
     case 'gm3_rectangle':
-      return !strlen(trim($item['map']));
+      return !(strlen(trim($item['map'])) || isset($item['rectangle']));
     case 'gm3_combination':
       if(is_array($item)){
-        foreach($item['map']['children'] as $type => $value){
-          if(is_array($value)){
-            if(count($value)){return FALSE;}
-          }else if(is_string($value)){
-            if(strlen(trim($value))){return FALSE;}
+        if(isset($item['map']['children'])){
+          foreach($item['map']['children'] as $type => $value){
+            if(is_array($value)){
+              if(count($value)){return FALSE;}
+            }else if(is_string($value)){
+              if(strlen(trim($value))){return FALSE;}
+            }
           }
+        }else{
+          $non_empty = array_filter($item, function ($i){
+            return $i !== NULL;
+          });
+          return !count($non_empty);
         }
         return TRUE;
       }else{
@@ -678,8 +704,8 @@ function gm3_field_field_formatter_settings_form($field, $instance, $view_mode, 
           '#required' => TRUE,
           '#default_value' => isset($instance['display'][$view_mode]['settings']['display_convex_hull']) ? $instance['display'][$view_mode]['settings']['display_convex_hull'] : 0,
           '#options' => array(
-            t('NO'),
-            t('YES')
+            t('No'),
+            t('Yes')
           )
         )
       );
@@ -726,7 +752,7 @@ function theme_gm3_point_text_lat($variables){
 function theme_gm3_point_text_lon($variables){
   return array(
     '#markup' => t('%longitude', array(
-      '%longitude' => $variables['data']['longitude'],
+      '%longitude' => $variables['data']['longitude']
     ))
   );
 }
@@ -794,7 +820,6 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
       // Setting the ID here is easy, as we can simply use the field ID.
       $id = $instance['field_name'];
       break;
-      
     case 'gm3_text_lat':
       $elements = array();
       switch($field['type']){
@@ -831,8 +856,8 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
               'data' => $item
             ));
           }
-          break;   
-        }
+          break;
+      }
       return $elements;
       break;
     case 'gm3_text':

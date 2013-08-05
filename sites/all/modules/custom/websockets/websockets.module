@@ -23,7 +23,7 @@ function websockets_init($return = FALSE){
     }else{
       // Process is no longer running.  Lets add a warning that we probably
       // crashed.
-      watchdog('websockets', 'WebSockets server (%pid) has crashed. Restarting.', array(
+      watchdog('WebSockets', 'WebSockets server (%pid) has crashed. Restarting.', array(
         '%pid' => trim($pid)
       ), WATCHDOG_ERROR);
     }
@@ -37,13 +37,13 @@ function websockets_init($return = FALSE){
         if(!@file_put_contents("/tmp/websockets.pid", $pid)){
           // Failed to write the PID.  This will result in us attempting to create
           // a new server on every page request - NOT GOOD.
-          watchdog('websockets', 'Unable to record the PID of the WebSockets server', array(), WATCHDOG_ERROR);
+          watchdog('WebSockets', 'Unable to record the PID of the WebSockets server', array(), WATCHDOG_ERROR);
         }
       }
     }
   }else{
     // Failed to start the server.
-    watchdog('websockets', 'Default WebSockets server failed to start', array(), WATCHDOG_ERROR);
+    watchdog('WebSockets', 'Default WebSockets server failed to start', array(), WATCHDOG_ERROR);
   }
   if($return){
     return $pid;
@@ -82,7 +82,7 @@ function websockets_add(){
       // We don't have a file, we need to create one.
       $file_path = drupal_tempnam(file_directory_temp(), 'websockets-' . $host . '-');
       if(!$file_path){
-        watchdog('websockets', 'Unable to create database settings file in "%tempfolder"', array(
+        watchdog('WebSockets', 'Unable to create database settings file in "%tempfolder"', array(
           '%tempfolder' => file_directory_temp()
         ));
         $added = 1;

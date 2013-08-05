@@ -271,7 +271,7 @@ class MigrateDestinationField extends MigrateDestination{
       }
     }else{
       // Need to ensure this entity type is allowed in the field settings
-      if(!in_array($object->entity_type, $field['entity_types'])){
+      if(!empty($field['entity_types']) && !in_array($object->entity_type, $field['entity_types'])){
         $field['entity_types'][] = $object->entity_type;
         scratchpads_migrate_update_field_entity_type($field);
       }
@@ -316,7 +316,7 @@ class MigrateDestinationField extends MigrateDestination{
     return array(
       // field_config
       'field_name' => t('Field name'),
-      'bundle' => t('bundle'),
+      'bundle' => t('Bundle'),
       'entity_type' => t('Entity type'),
       'label' => t('Label'),
       'description' => t('Description'),

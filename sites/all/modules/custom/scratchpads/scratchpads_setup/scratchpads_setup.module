@@ -18,27 +18,31 @@ function scratchpads_setup_default_flows($name = null){
       'show_trail' => 1,
       'show_back' => 1,
       'show_cancel' => 1,
-      'finish_path' => 'setup-complete',
+      'finish_path' => '',
       'steps' => array(
         array(
           'form_id' => 'scratchpads_welcome_form',
-          'title' => 'Welcome'
+          'title' => t('Welcome')
         ),
         array(
           'form_id' => 'scratchpads_setup_front_form',
-          'title' => 'Front page'
+          'title' => t('Front page')
         ),
         array(
           'form_id' => 'scratchpads_setup_about_form',
-          'title' => 'About'
+          'title' => t('About')
         ),
         array(
           'form_id' => 'scratchpads_setup_licence_form',
-          'title' => 'Licence'
+          'title' => t('Licence')
+        ),
+        array(
+          'form_id' => 'scratchpads_setup_category_form',
+          'title' => t('Category')
         ),
         array(
           'form_id' => 'tools_admin_form',
-          'title' => 'Tools',
+          'title' => t('Tools'),
           'path' => 'admin/structure/tools'
         )
       )
@@ -172,6 +176,11 @@ function scratchpads_setup_licence_form($form, &$form_state){
   $form['licence_type'] = array(
     '#type' => 'select',
     '#title' => t('Licence type'),
+    '#description' => l(t('Read about creative commons licenses.'), 'http://creativecommons.org/licenses/?lang=en', array(
+      'attributes' => array(
+        'target' => '_blank'
+      )
+    )),
     '#default_value' => variable_get('creative_commons_block_licence_type', CC_BY),
     '#options' => creative_commons_get_licence_types()
   );
@@ -189,6 +198,108 @@ function scratchpads_setup_licence_form_submit($form, &$form_state){
       field_update_instance($instance);
     }
   }
+}
+
+function scratchpads_setup_category_form($form, &$form_state){
+  $default_values = scratchpads_statistics_get_site_categories();
+  return array_merge($form, array(
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'scratchpads_setup') . '/css/scratchpads-setup.css'
+      )
+    ),
+    'left_column' => array(
+      '#prefix' => '<div class="scratchpads-setup-column left">',
+      '#suffix' => '</div>',
+      'scope_focus' => array(
+        '#type' => 'checkboxes',
+        '#title' => t('Scope'),
+        '#options' => array(
+          'Citizen Science' => t('Citizen science project'),
+          'Journal' => t('Journal'),
+          'Research proejct' => t('Research project'),
+          'Society/Organisation' => t('Society/Organisation'),
+          'Scope - Other' => t('Other')
+        ),
+        '#default_value' => $default_values,
+        '#description' => t('Select all that apply'),
+        '#required' => TRUE
+      ),
+      'ecoregion' => array(
+        '#type' => 'checkboxes',
+        '#title' => t('Ecoregion'),
+        '#options' => array(
+          'Marine' => t('Marine'),
+          'Freshwater' => t('Freshwater'),
+          'Terrestrial' => t('Terrestrial'),
+          'No ecoregional restriction' => t('No ecoregional restriction'),
+          'Ecoregion - None' => t('Not applicable')
+        ),
+        '#default_value' => $default_values,
+        '#description' => t('Select all that apply'),
+        '#required' => TRUE
+      ),
+      'geography' => array(
+        '#type' => 'checkboxes',
+        '#title' => t('Geographical extent'),
+        '#options' => array(
+          'Global/No geographic restriction' => t('Global/No geographical restriction'),
+          'Continental/subcontinental' => t('Continental/subcontinental'),
+          'Regional' => t('Regional (More than one country in a region, e.g. Baltic countries'),
+          'Local' => t('Local (Country/sub-country level)'),
+          'Geography - None' => t('Not applicable')
+        ),
+        '#default_value' => $default_values,
+        '#description' => t('Select all that apply'),
+        '#required' => TRUE
+      )
+    ),
+    'right_column' => array(
+      '#prefix' => '<div class="scratchpads-setup-column right">',
+      '#suffix' => '</div><div class="clearfix"></div>',
+      'research_domain' => array(
+        '#type' => 'checkboxes',
+        '#title' => t('Research domain'),
+        '#options' => array(
+          'Biogeography' => t('Biogeography'),
+          'Conservation' => t('Conservation'),
+          'Mineralogy' => t('Mineralogy'),
+          'Paleontology/Fossils' => t('Paleontology/Fossils'),
+          'Taxonomy/Systematics' => t('Taxonomy/Systematics'),
+          'Research - Other' => t('Other')
+        ),
+        '#default_value' => $default_values,
+        '#attributes' => array(
+          'class' => array(
+            'clearfix'
+          )
+        ),
+        '#description' => t('Select all that apply'),
+        '#required' => TRUE
+      ),
+      'taxonomic_area' => array(
+        '#type' => 'checkboxes',
+        '#title' => t('Taxonomic area'),
+        '#options' => array(
+          'Algae/Fungi' => t('Algae/Fungi'),
+          'Animals' => t('Animals'),
+          'Plants' => t('Plants'),
+          'Taxonomic - Other' => t('Other'),
+          'All taxa' => t('No taxonomic restriction'),
+          'Taxonomic - None' => t('Not applicable')
+        ),
+        '#default_value' => $default_values,
+        '#description' => t('Select all that apply'),
+        '#required' => TRUE
+      )
+    )
+  ));
+}
+
+function scratchpads_setup_category_form_submit($form, &$form_state){
+  $categories = array_merge($form_state['values']['scope_focus'], $form_state['values']['ecoregion'], $form_state['values']['geography'], $form_state['values']['research_domain'], $form_state['values']['taxonomic_area']);
+  $categories = array_filter($categories);
+  scratchpads_statistics_set_site_categories($categories);
 }
 
 function scratchpads_setup_form_alter(&$form, &$form_state, $form_id){
@@ -239,7 +350,6 @@ function scratchpads_setup_form_submit(&$form, &$form_state){
  * 
  ********************************************************************************************/
 function scratchpads_setup_complete_page(){
-  //  variable_set('scratchpads_setup_complete', true);
   return array(
     '#show_messages' => TRUE,
     '#theme' => 'page',
@@ -300,7 +410,7 @@ function scratchpads_setup_block_view($delta = ''){
       $setup_flow = scratchpads_setup_default_flows('site_setup');
       $current_step = variable_get('scratchpads_setup', false);
       if(is_numeric($current_step)){
-        $percentage_complete = ($current_step / count($setup_flow['steps'])) * 100;
+        $percentage_complete = round(($current_step / count($setup_flow['steps'])) * 100);
       }else{
         $percentage_complete = 100;
       }

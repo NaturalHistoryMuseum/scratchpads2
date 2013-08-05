@@ -1,0 +1,150 @@
+<?php
+
+/**
+ * Check we don't have orphaned terms in deleted vocabularies.  These do not
+ * need to be reported, and can simply be deleted.
+ */
+function scratchpads_data_integrity_check_for_terms_in_deleted_vocabularies(){
+  $subquery = db_select('taxonomy_vocabulary', 'v')->fields('v', array(
+    'vid'
+  ));
+  $results = db_select('taxonomy_term_data', 't')->fields('t', array(
+    'tid',
+    'name'
+  ))->condition('vid', $subquery, 'NOT IN')->execute();
+  $tids = array();
+  $messages = array();
+  foreach($results as $row){
+    //taxonomy_term_delete($row->tid);
+    // Before we delete, we'll send emails just to guage how many terms we could
+    // be deleting.
+    $messages[] = " - {$row->name} ($row->tid)";
+  }
+  if(count($messages)){
+    $messages = implode("\n", $messages);
+    $messages = array(
+      t('The following term(s) were associated with a deleted vocabulary and have been deleted:'),
+      $messages
+    );
+  }
+  return $messages;
+}
+
+/**
+ * Check for files that have been deleted from the filesystem, but not deleted
+ * from the file_managed database table.
+ */
+function scratchpads_data_integrity_check_for_deleted_files(){
+  $results = db_select('file_managed', 'f')->fields('f', array(
+    'uri',
+    'fid',
+    'uid',
+    'filesize'
+  ))->execute();
+  $messages = array();
+  foreach($results as $row){
+    $delete_file = FALSE;
+    if(!file_exists($row->uri)){
+      if(!$row->uid || substr($row->uri, 0, 12) == 'temporary://'){
+        // Simply delete the file if it is owned by anon or is a temporary file.
+        $delete_file = TRUE;
+      }else{
+        // Alert if a user uploaded the file
+        $messages[] = " - " . t('Missing') . ": {$row->fid}:{$row->uri}";
+      }
+    }
+    if(!$row->filesize && !$row->uid){
+      // We also delete empty files owned by anon.
+      $delete_file = TRUE;
+    }
+    if($delete_file){
+      // Simply delete the file if it is owned by anon.
+      file_delete(file_load($row->fid), TRUE);
+    }
+  }
+  if(count($messages)){
+    $messages = implode("\n", $messages);
+    $messages = array(
+      t('The following file(s) were found to be missing:'),
+      $messages
+    );
+  }
+  return $messages;
+}
+
+/**
+ * Standard data-int to check if any terms have lost their parent.
+ */
+function scratchpads_data_integrity_check_all_terms_have_parents(){
+  $not_in = db_select('taxonomy_term_hierarchy', 'th')->fields('th', array(
+    'tid'
+  ));
+  $results = db_select('taxonomy_term_data', 't')->condition('tid', $not_in, 'NOT IN')->fields('t', array(
+    'tid',
+    'name'
+  ))->execute();
+  $messages = array();
+  foreach($results as $row){
+    $messages[] = " - {$row->name} ({$row->tid})";
+  }
+  if(count($messages)){
+    $messages = implode("\n", $messages);
+    $messages = array(
+      t('The following term(s) are missing a parent:'),
+      $messages
+    );
+  }
+  return $messages;
+}
+
+/**
+ * Standard data-int to check if any vocabularies have a loop in them
+ * 
+ * Thanks to Alice for this code.
+ */
+function scratchpads_data_integrity_check_taxonomy_for_loops(){
+  $result = db_select('taxonomy_term_hierarchy', 't')->fields('t')->execute()->fetchAllKeyed();
+  $loops = array();
+  $messages = array();
+  $tid_in_loop = array();
+  foreach($result as $tid => $parent){
+    if(in_array($tid, $tid_in_loop)){
+      continue;
+    }
+    $loop = scratchpads_data_integrity_check_taxonomy_for_loops_find_loop($tid, $result);
+    if($loop){
+      $tid_in_loop += $loop['tids'];
+      $loop_str = implode(' => ', $loop['loop']);
+      if(!in_array($loop_str, $loops)){
+        $loops[] = $loop_str;
+      }
+    }
+  }
+  if(count($loops)){
+    $messages = array(
+      t('The following loop(s) in the taxonomy were found:'),
+      implode("\n", $loops)
+    );
+  }
+  return $messages;
+}
+
+function scratchpads_data_integrity_check_taxonomy_for_loops_find_loop($tid, $result, $stack = array()){
+  $pos = array_search($tid, $stack);
+  if($pos !== FALSE){
+    $loop = scratchpads_data_integrity_check_taxonomy_for_loops_rotate_array(array_slice($stack, $pos));
+    return array(
+      'tids' => $stack,
+      'loop' => $loop
+    );
+  }
+  if(!isset($result[$tid])){return FALSE;}
+  $stack[] = $tid;
+  return scratchpads_data_integrity_check_taxonomy_for_loops_find_loop($result[$tid], $result, $stack);
+}
+
+function scratchpads_data_integrity_check_taxonomy_for_loops_rotate_array($a){
+  $pos = array_search(min($a), $a);
+  if($pos == 0){return $a;}
+  return array_merge(array_slice($a, $pos), array_slice($a, 0, $pos));
+}

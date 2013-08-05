@@ -26,11 +26,11 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'formflow' => FALSE,
       'forum' => FALSE,
       'googleanalytics' => FALSE,
-      'hashcash' => FALSE,
       'legal' => FALSE,
       'menu' => FALSE,
       'node' => FALSE,
       'overlay' => FALSE,
+      'path' => FALSE,
       'pathauto' => FALSE,
       'redirect' => FALSE,
       'role_delegation' => FALSE,
@@ -45,7 +45,8 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'user' => FALSE,
       'views' => FALSE,
       'webform' => FALSE,
-      'weight' => FALSE
+      'weight' => FALSE,
+      'gravatar' => FALSE
     ));
   }
 }

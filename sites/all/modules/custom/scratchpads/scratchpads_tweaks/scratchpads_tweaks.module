@@ -1,4 +1,8 @@
 <?php
+// This line is updated by the "create-aegir-platform" script to reflect the
+// name of the tag or branch that has been checked out.  This constant should be
+// used anywhere that we want to display the branch/tag.
+define('SCRATCHPADS_VERSION', 'TAG');
 
 /**
  * Implements hook_init()
@@ -23,6 +27,11 @@ function scratchpads_tweaks_init(){
     $params = session_get_cookie_params();
     $expire = $params['lifetime'] ? REQUEST_TIME + $params['lifetime'] : 0;
     setcookie('has_js', 1, $expire, $params['path'], $params['domain'], FALSE, $params['httponly']);
+  }
+  // Tweak the URL if we're viewing the media browser.  Note, this is here to
+  // fix what appears to be a bug!]
+  if(arg(0) == 'media' && arg(1) == 'browser'){
+    unset($_GET['schemes']);
   }
   // Alter the exception handler so that we can ignore certain exceptions.
   //set_exception_handler('scratchpads_tweaks_exception_handler');
@@ -448,7 +457,6 @@ function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
     case 'rules':
       $info['dependencies'][] = 'trigger';
     case 'rules_admin':
-    case 'blog':
     case 'simplenews':
     case 'googleanalytics':
       $info['tool'] = TRUE;
@@ -513,8 +521,35 @@ function scratchpads_tweaks_add_body_field($type, $label = 'Body', $weight = 0){
 }
 
 /**
+ * Implements hook_apachesolr_search_page_alter().
+ */
+function scratchpads_tweaks_apachesolr_search_page_alter(&$build, $search_page){
+  if($search_page['page_id'] == 'core_search'){
+    $entity_info = entity_get_info();
+    foreach(array_keys($build['search_results']['#results']) as $key){
+      //$build['search_results']['#results'][$key]['title'] = "<strong>{$build['search_results']['#results'][$key]['type']}</strong> {$build['search_results']['#results'][$key]['title']}";
+    }
+  }
+}
+
+/**
  * Implements hook_field_widget_info_alter()
  */
 function scratchpads_tweaks_field_widget_info_alter(&$info){
   unset($info['image_image']);
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ * Adds individual descriptions to publishing options checkboxes
+ * and removes generic description
+ */
+function scratchpads_tweaks_form_node_type_form_alter(&$form, &$form_state){
+  // replace the element with its expanded items
+  $form['workflow']['node_options'] = form_process_checkboxes($form['workflow']['node_options']);
+  $form['workflow']['node_options']['revision']['#description'] = t("Revisions let you track differences between multiple versions of a node. When enabled, all previous versions of a node will be visible under a new 'Revisions' tab in. Users will be able to view older versions of this node and editors will be able to revert the node to an older version.");
+  $form['workflow']['node_options']['status']['#description'] = t('Select to make content visible to all users. If not selected content will only be visible through the administration menu.');
+  $form['workflow']['node_options']['promote']['#description'] = t('Select to have content appearing on the front page of the site.');
+  $form['workflow']['node_options']['sticky']['#description'] = t('Select to always have the content ordered on top of all lists that it appears in.');
+  $form['workflow']['node_options']['#description'] = '';
 }

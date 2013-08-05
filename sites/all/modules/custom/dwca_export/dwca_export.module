@@ -1,6 +1,4 @@
 <?php
-// File extension for the CSV files in the DwC-A file.
-define('FILE_EXTENSION', ".txt");
 
 /**
  * Implements hook_menu().
@@ -32,6 +30,24 @@ function dwca_export_menu(){
 }
 
 /**
+ * Implementation of hook_views_pre_build()
+ * 
+ * Try to ensure that we're always using th
+ */
+function dwca_export_views_default_views_alter(&$views){
+  foreach($views as $id => $view){
+    if($view->tag != 'no-batch'){
+      foreach(array_keys($view->display) as $display_name){
+        if($display_name == 'views_data_export_1'){
+          $handler = & $views[$id]->display['views_data_export_1']->handler;
+          $handler->display->display_options['use_batch'] = 'batch';
+        }
+      }
+    }
+  }
+}
+
+/**
  * Implementation of hook_views_api()
  *
  * drupal will load dwca_export.views_default.inc when this hook is implemented
@@ -54,8 +70,14 @@ function dwca_export_dwca_export(){
  * Implements hook_cron().
  */
 function dwca_export_cron(){
-  module_load_include('cron.inc', 'dwca_export');
-  _dwca_export_cron();
+  // Only rebuild the archive if we need to, and if the last time we rebuilt it
+  // was more than three days ago.
+  if(variable_get('dwca_export_rebuild', FALSE) && (variable_get('dwca_export_zip_build_time', 0) + 259200) < time()){
+    module_load_include('cron.inc', 'dwca_export');
+    if(_dwca_export_cron()){
+      _dwca_export_cron_create_zip();
+    }
+  }
 }
 
 /**
@@ -102,8 +124,6 @@ function dwca_export_permission(){
   );
 }
 
-
-
 /**
  * Implements hook_field_formatter_info().
  */
@@ -116,9 +136,29 @@ function dwca_export_field_formatter_info(){
         'list_text'
       )
     ),
+    'name_status' => array(
+      'label' => t('Name Status'),
+      'description' => t('GBIF compliant name status for DwC-A.'),
+      'field types' => array(
+        'list_text'
+      )
+    ),
+    'aan_formatter' => array(
+      'label' => t('aan'),
+      'description' => t('Returns empty for not accepted names.'),
+      'field types' => array(
+        'list_text'
+      )
+    ),
+    'parent_formatter' => array(
+      'label' => t('pn'),
+      'description' => t('Returns empty for not accepted names.'),
+      'field types' => array(
+        'list_text'
+      )
+    ),
   );
 }
-
 
 /**
  * Implements hook_field_formatter_view().
@@ -131,8 +171,7 @@ function dwca_export_field_formatter_info(){
 function dwca_export_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
   GLOBAL $base_url;
   $markup = '';
-  
-  $reason_map = array(
+  $reason_map_taxonomic = array(
     'synonym' => 'synonym',
     'homotypic (nomenclatural) synonym' => 'homotypicSynonym',
     'heterotypic (taxonomic) synonym' => 'heterotypicSynonym',
@@ -147,19 +186,127 @@ function dwca_export_field_formatter_view($entity_type, $entity, $field, $instan
     'database artifact' => '',
     'orthographic variant (misspelling)' => '',
     'other' => '',
+    'junior synonym' => 'heterotypicSynonym',
+    'objective synonym' => 'homotypicSynonym',
+    'subjective synonym' => 'heterotypicSynonym',
+    'original name/combination' => '',
+    'subsequent name/combination' => '',
+    'junior homonym' => '',
+    'homonym & junior synonym' => 'heterotypicSynonym',
+    'unavailable, database artifact' => '',
+    'unavailable, literature misspelling' => '',
+    'unavailable, incorrect original spelling' => '',
+    'unavailable, suppressed by ruling' => '',
+    'unavailable, nomen nudum' => '',
+    'unavailable, other' => '',
+    'unjustified emendation' => '',
+    'unnecessary replacement' => '',
+    'nomen oblitum' => '',
+    'misapplied' => '',
+    'pro parte' => 'proParteSynonym',
+    'other' => '',
+    'nomen dubium' => ''
   );
-  
+  $reason_map_nomenclature = array(
+    'synonym' => '',
+    'homotypic (nomenclatural) synonym' => '',
+    'heterotypic (taxonomic) synonym' => '',
+    'homonym (illegitimate)' => 'illegitimum',
+    'superfluous renaming (illegitimate)' => 'superfluum',
+    'rejected name' => 'rejiciendum',
+    'invalidly published, nomen nudum' => 'nudum',
+    'invalidly published, other' => 'invalidum',
+    'misapplied' => '',
+    'pro parte' => '',
+    'horticultural' => '',
+    'database artifact' => '',
+    'orthographic variant (misspelling)' => 'orthographia',
+    'other' => '',
+    'junior synonym' => '',
+    'objective synonym' => '',
+    'subjective synonym' => '',
+    'original name/combination' => '',
+    'subsequent name/combination' => '',
+    'junior homonym' => 'illegitimum',
+    'homonym & junior synonym' => 'illegitimum',
+    'unavailable, database artifact' => '',
+    'unavailable, literature misspelling' => 'orthographia',
+    'unavailable, incorrect original spelling' => '',
+    'unavailable, suppressed by ruling' => '',
+    'unavailable, nomen nudum' => 'nudum',
+    'unavailable, other' => '',
+    'unjustified emendation' => '',
+    'unnecessary replacement' => 'superfluum',
+    'nomen oblitum' => '',
+    'misapplied' => '',
+    'pro parte' => '',
+    'other' => '',
+    'nomen dubium' => 'dubium'
+  );
   switch($display['type']){
     case 'taxon_status':
       $element = array();
-      if (isset($entity->field_usage['und'][0]['value'])){
-      	if ($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
-      		$markup = 'accepted';
-      	} else {
-      		$markup = $reason_map[$entity->field_unacceptability_reason['und'][0]['value']];
-      	}
+      $markup = '';
+      if(isset($entity->field_usage['und'][0]['value'])){
+        if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
+          $markup = 'accepted';
+        }else{
+          $markup = 'not accepted';
+        }
       }
-      $element[] = array('#markup' => $markup);
+      $element[] = array(
+        '#markup' => $markup
+      );
+      return $element;
+      break;
+    case 'name_status':
+      $markup = $reason_map_nomenclature[$entity->field_unacceptability_reason['und'][0]['value']];
+      $element[] = array(
+        '#markup' => $markup
+      );
+      return $element;
+      break;
+    case 'aan_formatter':
+      $element = array();
+      $markup = '';
+      if(isset($entity->field_usage['und'][0]['value'])){
+        if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
+          $markup = '';
+        }else{
+          $parent = '';
+          $parents = taxonomy_get_parents($entity->tid);
+          if (is_array($parents)){
+          	$parent = array_pop($parents);
+          	$parent = $parent->uuid;
+          }
+          $markup = $parent;
+        }
+      }
+      $element[] = array(
+        '#markup' => $markup
+      );
+      return $element;
+      break;
+    case 'parent_formatter':
+      $element = array();
+      $markup = '';
+      if(isset($entity->field_usage['und'][0]['value'])){
+        if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
+          $parent = '';
+          $parents = taxonomy_get_parents($entity->tid);
+          if (is_array($parents)){
+          	$parent = array_pop($parents);
+          	$parent = $parent->uuid;
+          }
+          $markup = $parent;
+
+        }else{
+                	$markup = '';  
+        }
+      }
+      $element[] = array(
+        '#markup' => $markup
+      );
       return $element;
       break;
   }
