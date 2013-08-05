@@ -134,7 +134,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
 			author=TaxClassAuthors_tab
 		]',
         'collectedStart=PrePreparedDateFrom',
-        'collectionEvent=EntLocEventSiteRef.[
+    /*    'collectionEvent=EntLocEventSiteRef.[
 	        ecollectioneventsIRN=irn,
 	        colleventSumm=SummaryData,
 	        colleventNotes=NteText0,
@@ -152,7 +152,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
         		lng=LatLongitude_nesttab,
         		waterBodyType=AquWaterBodyType
     	    ]
-	     ]',
+	     ]',*/
         'collector=PrePreparedByRef.[
 			collector_irn=irn,
 			collector_full_name=NamFullName,
