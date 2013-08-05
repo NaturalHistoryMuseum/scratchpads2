@@ -30,19 +30,21 @@ function scratchpads_user_admin_paths(){
  * Ensure that the Scratchpads Team (UID:1) user has not been tweaked.
  */
 function scratchpads_user_cron(){
-  db_update('users')->fields(array(
-    'name' => 'Scratchpad Team',
-    'pass' => '',
-    'theme' => '',
-    'signature' => '',
-    'timezone' => 'UTC',
-    'language' => 'en',
-    'picture' => 0,
-    'mail' => 'scratchpad@nhm.ac.uk',
-    'status' => 1,
-    'init' => 'scratchpad@nhm.ac.uk',
-    'data' => serialize(array())
-  ))->condition('uid', 1)->execute();
+  if(variable_get('standard_scratchpad', TRUE)){
+    db_update('users')->fields(array(
+      'name' => 'Scratchpad Team',
+      'pass' => '',
+      'theme' => '',
+      'signature' => '',
+      'timezone' => 'UTC',
+      'language' => 'en',
+      'picture' => 0,
+      'mail' => 'scratchpad@nhm.ac.uk',
+      'status' => 1,
+      'init' => 'scratchpad@nhm.ac.uk',
+      'data' => serialize(array())
+    ))->condition('uid', 1)->execute();
+  }
 }
 
 /**
