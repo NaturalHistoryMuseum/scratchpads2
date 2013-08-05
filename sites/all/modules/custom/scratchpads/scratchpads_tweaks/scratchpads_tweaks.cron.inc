@@ -79,27 +79,29 @@ function _scratchpads_tweaks_cron(){
   }
   // Note, we need to parse the scratchpads_tweaks info file ourselves as it
   // has its dependencies removed to allow required modules to be removed.
-  $tweaks_info = drupal_parse_info_file(drupal_get_path('module', 'scratchpads_tweaks') . '/scratchpads_tweaks.info');
-  $system_data = system_rebuild_module_data();
-  $modules_to_enable = array();
-  foreach($tweaks_info['dependencies'] as $module_name){
-    if(!module_exists($module_name)){
-      $row = db_select('system', 's')->condition('name', $module_name)->fields('s')->execute()->fetch();
-      if(!$row || $row->schema_version == -1){
-        // This module has never been installed, we install it.
-        $modules_to_enable[] = $module_name;
-      }else{
-        // The module has been installed before, we need to check the module's
-        // info file to check if it is a tool and could be disabled.
-        if(!isset($system_data[$module_name]->info['tool'])){
+  if(variable_get('standard_scratchpad', TRUE)){
+    $tweaks_info = drupal_parse_info_file(drupal_get_path('module', 'scratchpads_tweaks') . '/scratchpads_tweaks.info');
+    $system_data = system_rebuild_module_data();
+    $modules_to_enable = array();
+    foreach($tweaks_info['dependencies'] as $module_name){
+      if(!module_exists($module_name)){
+        $row = db_select('system', 's')->condition('name', $module_name)->fields('s')->execute()->fetch();
+        if(!$row || $row->schema_version == -1){
+          // This module has never been installed, we install it.
           $modules_to_enable[] = $module_name;
+        }else{
+          // The module has been installed before, we need to check the module's
+          // info file to check if it is a tool and could be disabled.
+          if(!isset($system_data[$module_name]->info['tool'])){
+            $modules_to_enable[] = $module_name;
+          }
         }
       }
     }
-  }
-  if(count($modules_to_enable)){
-    module_enable($modules_to_enable);
-    menu_rebuild();
+    if(count($modules_to_enable)){
+      module_enable($modules_to_enable);
+      menu_rebuild();
+    }
   }
   // If we are using memcache, we truncate the cache tables to save space and to
   // also reduce database backup times.
