@@ -364,7 +364,9 @@ function character_editor_field_widget_form(&$form, &$form_state, $field, $insta
 }
 
 function character_editor_field_widget_form_after_build($form){
-  unset($form['field_characters']['und']['add_more']);
+  foreach(element_children($form['field_characters']) as $language){
+    unset($form['field_characters'][$language]['add_more']);
+  }
   return $form;
 }
 
@@ -640,15 +642,20 @@ function character_editor_entity_delete($entity, $type){
   switch($type){
     case 'character_editor_project':
     case 'character_editor_character':
-      if(isset($entity->field_characters[LANGUAGE_NONE])){
-        $characters = array();
-        foreach($entity->field_characters[LANGUAGE_NONE] as $field_character){
-          foreach($field_character['endpoints'] as $endpoint){
-            list($entity_type, $entity_id) = explode(':', $endpoint);
-            $characters[] = $entity_id;
+      if(!empty($entity->field_characaters)){
+        foreach($entity->field_characters as $language => $values){
+          if(empty($values)){
+            continue;
           }
+          $characters = array();
+          foreach($values as $field_character){
+            foreach($field_character['endpoints'] as $endpoint){
+              list($entity_type, $entity_id) = explode(':', $endpoint);
+              $characters[] = $entity_id;
+            }
+          }
+          entity_delete_multiple('character_editor_character', $characters);
         }
-        entity_delete_multiple('character_editor_character', $characters);
       }
       break;
   }
@@ -865,7 +872,8 @@ function character_editor_get_groups($character_project_id){
   $group_ids = array();
   foreach($results as $result){
     $relation = relation_load($result->rid);
-    foreach($relation->endpoints[LANGUAGE_NONE] as $endpoint){
+    $language = field_language('relation', $relation, 'endpoints');
+    foreach($relation->endpoints[$language] as $endpoint){
       if($endpoint['entity_type'] == 'character_editor_character'){
         $group_ids[] = $endpoint['entity_id'];
       }
@@ -887,7 +895,8 @@ function character_editor_get_group($character_id){
   $results = $query->execute();
   foreach($results as $result){
     $relation = relation_load($result->rid);
-    foreach($relation->endpoints[LANGUAGE_NONE] as $endpoint){
+    $language = field_language('relation', $relation, 'endpoints');
+    foreach($relation->endpoints[$language] as $endpoint){
       if($endpoint['entity_type'] != 'character_editor_character'){
         continue;
       }
@@ -1000,7 +1009,14 @@ function character_editor_state_form_process($editor){
 function character_editor_inline_cell_process($editor){
   $_POST['op'] = t('Save');
   $entity = current($editor->entities);
-  $_POST['field_character_state_data'][LANGUAGE_NONE] = array(
+  // The language in use in the slickgrid is the language that would be chosen by
+  // field_language(...). This is not strictly equivalent, though in our case
+  // will work as expected.
+  $field = field_info_field('field_characater_state_data');
+  $available_languages = field_available_languages('relation', $field);
+  $suggestions = _field_language_suggestion($available_languages, field_valid_language(NULL, FALSE), 'field_character_states');
+  $language = reset($suggestions);
+  $_POST['field_character_state_data'][$language] = array(
     array(
       'value' => $_POST['value']
     )
@@ -1028,7 +1044,9 @@ function character_editor_state_form($form, &$form_state){
   $form_state['tid'] = reset($form_state['values']['entity_ids']);
   $form_state['relation'] = character_editor_get_state_relation($form_state['tid'], $form_state['character_id']);
   field_attach_form('relation', $form_state['relation'], $form, $form_state);
-  unset($form['field_character_state_data'][LANGUAGE_NONE][0]['value']['#title']);
+  foreach(element_children($form['field_character_state_data']) as $language){
+    unset($form['field_character_state_data'][$language][0]['value']['#title']);
+  }
   unset($form['endpoints']);
   // Ensure values passed in from the slickgrid are persistent across the form rebuild
   foreach(array(
@@ -1078,48 +1096,50 @@ function character_editor_state_form($form, &$form_state){
 function character_editor_state_form_validate($form, &$form_state){
   $editor = &$form_state['editor'];
   $id = $form_state['values']['id'];
-  switch($form_state['values']['character_type']){
-    case 'controlled':
-      // Is the state field not empty - then validate it 
-      if(is_string($form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value']) && $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'] != '?' && $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'] != '-'){
-        $character = entity_load_single('character_editor_character', $form_state['character_id']);
-        if(!count($character->field_char_states[LANGUAGE_NONE])){
-          $err = t("There are no states for this character");
-          break;
-        }
-        if(strpos($form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'], '+')){
-          $states = explode('+', $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value']);
-        }else if(strpos($form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'], '/')){
-          $states = explode('/', $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value']);
-        }else{
-          $states = array(
-            $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value']
-          );
-        }
-        if(array_diff($states, array_keys($character->field_char_states[LANGUAGE_NONE]))){
-          $err = t('Illegal state selected');
-        }else{
-          // Change the values from the delta to the field ID prior to saving
-          foreach($states as $state){
-            $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'] = & str_replace($state, $character->field_char_states[LANGUAGE_NONE][$state]['value'], $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value']);
+  foreach(element_children($form_state['values']['field_character_state_data']) as $language){
+    switch($form_state['values']['character_type']){
+      case 'controlled':
+        // Is the state field not empty - then validate it
+        if(is_string($form_state['values']['field_character_state_data'][$language][0]['value']) && $form_state['values']['field_character_state_data'][$language][0]['value'] != '?' && $form_state['values']['field_character_state_data'][$language][0]['value'] != '-'){
+          $character = entity_load_single('character_editor_character', $form_state['character_id']);
+          if(!count($character->field_char_states[$language])){
+            $err = t("There are no states for this character");
+            break;
+          }
+          if(strpos($form_state['values']['field_character_state_data'][$language][0]['value'], '+')){
+            $states = explode('+', $form_state['values']['field_character_state_data'][$language][0]['value']);
+          }else if(strpos($form_state['values']['field_character_state_data'][$language][0]['value'], '/')){
+            $states = explode('/', $form_state['values']['field_character_state_data'][$language][0]['value']);
+          }else{
+            $states = array(
+              $form_state['values']['field_character_state_data'][$language][0]['value']
+            );
+          }
+          if(array_diff($states, array_keys($character->field_char_states[$language]))){
+            $err = t('Illegal state selected');
+          }else{
+            // Change the values from the delta to the field ID prior to saving
+            foreach($states as $state){
+              $form_state['values']['field_character_state_data'][$language][0]['value'] = & str_replace($state, $character->field_char_states[$language][$state]['value'], $form_state['values']['field_character_state_data'][$language][0]['value']);
+            }
           }
         }
-      }
-      break;
-    case 'numeric':
-      if(!empty($form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value']) && !is_numeric($form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'])){
-        $err = t('Character state needs to be a numeric value.');
-      }
-      break;
-    case 'dna':
-      $dna = $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'];
-      preg_match('/[' . DNA_CHARACTERS . ']*/i', $dna, $matches);
-      if($matches[0] != $dna){
-        $err = t("Only the DNA characters %dna_chars are allowed", array(
-          '%dna_chars' => DNA_CHARACTERS
-        ));
-      }
-      break;
+        break;
+      case 'numeric':
+        if(!empty($form_state['values']['field_character_state_data'][$language][0]['value']) && !is_numeric($form_state['values']['field_character_state_data'][$language][0]['value'])){
+          $err = t('Character state needs to be a numeric value.');
+        }
+        break;
+      case 'dna':
+        $dna = $form_state['values']['field_character_state_data'][$language][0]['value'];
+        preg_match('/[' . DNA_CHARACTERS . ']*/i', $dna, $matches);
+        if($matches[0] != $dna){
+          $err = t("Only the DNA characters %dna_chars are allowed", array(
+            '%dna_chars' => DNA_CHARACTERS
+          ));
+        }
+        break;
+    }
   }
   if(isset($err)){
     $editor->errors[$id] = $err;
@@ -1170,8 +1190,9 @@ function character_editor_state_form_submit($form, &$form_state){
     }
     entity_form_submit_build_entity('relation', $relation, $form, $form_state);
     relation_save($relation);
-    // Return input value, not values value as this may have been changed
-    $editor->updated[$form_state['values']['id']]['value'] = $form_state['input']['field_character_state_data'][LANGUAGE_NONE][0]['value'];
+    // Return input value, not values value as this may have been changed.
+    $language = field_language('relation', $relation, 'field_character_state_data');
+    $editor->updated[$form_state['values']['id']]['value'] = $form_state['input']['field_character_state_data'][$language][0]['value'];
   }
   // ERROR: Entity save callback has thrown an exception
   catch(Exception $e){
@@ -1226,7 +1247,7 @@ function theme_field__field_char_states(&$variables){
     $classes = 'field-item';
     if(isset($item['#markup'])){
       $output .= $item['#markup'];
-    }else if($item['#theme'] == 'image_formatter'){
+    }else if(isset($item['#theme']) && $item['#theme'] == 'image_formatter'){
       $output .= '<div class="character-editor-state-image">' . drupal_render($item) . '</div>';
     }else{
       $output .= '<div class="field-label"' . $variables['title_attributes'] . '>' . $delta . ':&nbsp;</div>';
