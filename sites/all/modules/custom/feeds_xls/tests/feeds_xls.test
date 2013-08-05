@@ -24,6 +24,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
    */
   public function setUp(){
     $modules[] = 'feeds_xls';
+    $modules[] = 'darwincore';
     parent::setUp($modules);
     //  Create users.
     $this->admin_user = $this->drupalCreateUser(array(
@@ -51,21 +52,74 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
     parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
     parent::scratchpads_tweaks_legal_save($this->test_user->uid);
   }
+  // Specific location data as specified in the location.xls file
+  // We will compare the imported data to the data in the xls file
+  protected $location_data = array(
+    'map' => '52.38006916634651, -1.1279278993606567',
+    'Continent/Ocean' => 'Africa',
+    'Country' => 'United Kingdom',
+    'Island' => 'Test Island 1',
+    'Island group' => 'Test Island Group 1',
+    'State/Province' => 'Test state 1',
+    'County' => 'Test County 1',
+    'Locality' => 'Test Locality 1',
+    'Coordinate uncertainty in meters' => '21 m',
+    'Geodetic datum' => 'Test Geo dat 1',
+    'Verbatim Coordinate System' => 'Test Verbatim 1',
+    'Georeference protocol' => 'Test Georef pro 1',
+    'Georeference remarks' => 'Test Georef remarks 1',
+    'Maximum elevation' => '200',
+    'Minimum elevation' => '20',
+    'Minimum depth' => '10',
+    'Maximum depth' => '100'
+  );
+
+  /**
+   * A wrapper containing all import tests
+   */
+  function testImports(){
+    $this->drupalLogin($this->admin_user);
+    //  $this->validateXlsPageImport();
+    $this->validateXlsLocationImport();
+  }
 
   /**
    * Test the import of page nodes from xls file.
    */
-  function testXlsImport(){
-    $this->drupalLogin($this->admin_user);
-    $this->drupalGet('import/node_importer_page');  
+  function validateXlsPageImport(){
+    $this->drupalGet('import/node_importer_page');
     $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/page.xls');
-    $this->drupalPost('import/node_importer_page', array('files[feeds]' => $rpath), t('Import'));   
+    $this->drupalPost('import/node_importer_page', array(
+      'files[feeds]' => $rpath
+    ), t('Import'));
     // Test that the pages have appeared
     $this->drupalGet('admin/content/page');
     $this->assertText('Test page title one', 'First imported page node present on admin/content/page');
-    $this->assertText('Test page title two', 'Second imported page node present on admin/content/page');   
+    $this->assertText('Test page title two', 'Second imported page node present on admin/content/page');
     $this->clickLink('Test page title one');
-    $this->assertText('Test page body text one', 'Imported body field present of node page');   
+    $this->assertText('Test page body text one', 'Imported body field present of node page');
+  }
+
+  /**
+   * Test the import of location nodes from xls file.
+   */
+  function validateXlsLocationImport(){
+    $this->drupalGet('import/node_importer_location');
+    $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/location.xls');
+    $this->drupalPost('import/node_importer_location', array(
+      'files[feeds]' => $rpath
+    ), t('Import'));
+    $this->drupalGet('admin/content/location');
+    $this->assertText('Location Test Title One', 'First imported location node present on admin/content/location');
+    $this->assertText('Location Test Title Two', 'Second imported location node present on admin/content/location');
+    $this->clickLink('Location Test Title One');
+    foreach($this->location_data as $key => $location_field_data){
+      // map co-ordinates connot be tested with simple-test as this uses javascript
+      if($key != 'map'){
+        // can we check that it has imported into the right place?
+        $this->assertText($location_field_data, $key . ' field data present on location page');
+      }
+    }
   }
 }
   
