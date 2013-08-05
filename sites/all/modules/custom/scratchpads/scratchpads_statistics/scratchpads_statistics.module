@@ -151,9 +151,13 @@ function scratchpads_statistics_insert_item($item, $table, $key){
 function scratchpads_statistics_get_site_categories($site = 1){
   $query = db_select('scratchpads_statistics_site_type', 'st');
   $query->innerJoin('scratchpads_statistics_site_site_type', 'sst', 'sst.site_type = st.id');
-  return $query->condition('site', $site)->fields('st', array(
+  $categories = $query->condition('site', $site)->fields('st', array(
     'type'
   ))->execute()->fetchAll(PDO::FETCH_COLUMN);
+  require_once DRUPAL_ROOT . '/includes/install.inc';
+  $profile = install_profile_info(drupal_get_profile());
+  $categories[] = $profile['name'];
+  return $categories;
 }
 
 /**

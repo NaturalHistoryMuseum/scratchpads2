@@ -62,7 +62,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         }
         // Manual mapping without using a class
         $type = $this->getFieldType($field_name);
-        $final = DrupalFieldMigration::getCustomMapping($field_name, $type);
+        $final = DrupalFieldMigration::getCustomMapping($field_name, $type, $this->sourceConnection);
         if($final != $field_name){return $final;}
         return false;
       }
@@ -192,11 +192,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
               // D6 doesn't seperate type of file fields, so chceck the
               // widget here
               $widget_type = $this->getFieldWidgetType($delta);
-              if($delta == 'field_mediafiles'){
-                $file_destination_field = 'field_mediafiles';
-              }else{
-                $file_destination_field = 'field_media';
-              }
+              $file_destination_field = DrupalFieldMigration::getCustomMapping($delta, $type, $this->sourceConnection);
               if($widget_type == 'nodereference_select'){
                 $file_destination_field = $delta;
                 $this->extraImageFields[] = $delta;

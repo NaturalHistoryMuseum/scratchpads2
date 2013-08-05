@@ -136,6 +136,23 @@ function _scratchpads_statistics_aggregator_insert_login_data($data, $url){
         'url' => $record['url'],
         'created' => $record['site_created']
       ), 'scratchpads_statistics_site', 'url');
+      if(count($record['categories'])){
+        $sites_types_map = array();
+        db_delete('scratchpads_statistics_site_site_type')->condition('site', $site)->execute();
+        $query = db_insert('scratchpads_statistics_site_site_type')->fields(array(
+          'site',
+          'site_type'
+        ));
+        foreach($record['categories'] as $category){
+          $query->values(array(
+            'site_type' => scratchpads_statistics_insert_item(array(
+              'type' => $category
+            ), 'scratchpads_statistics_site_type', 'type'),
+            'site' => $site
+          ));
+        }
+        $query->execute();
+      }
     }
     $user = scratchpads_statistics_insert_item(array(
       'name' => $record['name'],
@@ -193,6 +210,23 @@ function _scratchpads_statistics_aggregator_insert_data($data, $url){
         'url' => $record['url'],
         'created' => $record['created']
       ), 'scratchpads_statistics_site', 'url');
+      if(count($record['categories'])){
+        $sites_types_map = array();
+        db_delete('scratchpads_statistics_site_site_type')->condition('site', $site)->execute();
+        $query = db_insert('scratchpads_statistics_site_site_type')->fields(array(
+          'site',
+          'site_type'
+        ));
+        foreach($record['categories'] as $category){
+          $query->values(array(
+            'site_type' => scratchpads_statistics_insert_item(array(
+              'type' => $category
+            ), 'scratchpads_statistics_site_type', 'type'),
+            'site' => $site
+          ));
+        }
+        $query->execute();
+      }
     }
     $user = scratchpads_statistics_insert_item(array(
       'name' => $record['name'],
