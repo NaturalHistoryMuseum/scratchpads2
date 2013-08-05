@@ -390,7 +390,7 @@ function _feeds_xls_get_value($value){
 function feeds_xls_redirect_to_populated_file($success, $results, $operations){
   if($success){
     // Increase the memory limit
-    ini_set('memory_limit', '1024M');
+    ini_set('memory_limit', '1500M');
     ini_set('max_execution_time', 600);
     // Load the library, and set the cache type
     // TODO: We need to check for the size of the CSV file so that we can decide
@@ -412,7 +412,7 @@ function feeds_xls_redirect_to_populated_file($success, $results, $operations){
  */
 function feeds_xls_download_template($feeds_importer){
   // Increase the memory limit
-  ini_set('memory_limit', '1024M');
+  ini_set('memory_limit', '1500M');
   ini_set('max_execution_time', 240);
   if(get_class($feeds_importer->parser) == 'FeedsExcelParser'){
     if(!$feeds_importer->parser->config['no_headers']){
