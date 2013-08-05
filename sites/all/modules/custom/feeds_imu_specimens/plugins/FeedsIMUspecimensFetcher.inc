@@ -134,7 +134,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
 			author=TaxClassAuthors_tab
 		]',
         'collectedStart=PrePreparedDateFrom',
-    /*    'collectionEvent=EntLocEventSiteRef.[
+        'collectionEvent=EntLocEventSiteRef.[
 	        ecollectioneventsIRN=irn,
 	        colleventSumm=SummaryData,
 	        colleventNotes=NteText0,
@@ -152,7 +152,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
         		lng=LatLongitude_nesttab,
         		waterBodyType=AquWaterBodyType
     	    ]
-	     ]',*/
+	     ]',
         'collector=PrePreparedByRef.[
 			collector_irn=irn,
 			collector_full_name=NamFullName,
@@ -197,7 +197,8 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
       /*
        * Get information from matching records flag, offset, count, columns
        */
-      $results = $imumodule->fetch('start', 0, -1, $kemuColumns);
+  //    $results = $imumodule->fetch('start', 0, -1, $kemuColumns);
+      $results = $imumodule->fetch('start', 0, 100, $kemuColumns);
       /* if there are any rows returned */
       if($results->hits){
         /* if export as xml checkbox ticked */
