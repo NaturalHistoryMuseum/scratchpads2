@@ -34,6 +34,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
     $kemuHost = trim($source_config['kemuHost']);
     $kemuPort = trim($source_config['kemuPort']);
     $asXML = trim($source_config['asXML']);
+    $returnNumRows = trim($source_config['returnNumRows']);
     if($importTo == 'specimen_observation'){
       $moduleName = 'ecatalogue';
       $termArray = array(
@@ -198,7 +199,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
        * Get information from matching records flag, offset, count, columns
        */
   //    $results = $imumodule->fetch('start', 0, -1, $kemuColumns);
-      $results = $imumodule->fetch('start', 0, 1000, $kemuColumns);
+      $results = $imumodule->fetch('start', 0, $returnNumRows, $kemuColumns);
       /* if there are any rows returned */
       if($results->hits){
         /* if export as xml checkbox ticked */
@@ -242,6 +243,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
       /* vetted, non-sensitive data from outward facing server for delivery to the website */
       'kemuHost' => 'host.name.ac.uk',
       'kemuPort' => '00000',
+	  'returnNumRows'=>'500',
       'asXML' => TRUE
     );
   }
@@ -292,6 +294,13 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
       '#default_value' => isset($this->config['importTo']) ? $this->config['importTo'] : $importOptions['specimen_observation'],
       '#required' => TRUE
     );
+    $form['returnNumRows'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Return number of rows'),
+      '#description' => t('Enter the number of rows to return.'),
+      '#default_value' => isset($this->config['returnNumRows']) ? $this->config['returnNumRows'] : '500',
+      '#required' => TRUE
+    );
     $form['imuVersion'] = array(
       '#type' => 'item',
       '#title' => t('IMU version'),
@@ -309,6 +318,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
       'importTo' => 'specimen_observation',
       'kemuHost' => 'host.name.ac.uk',
       'kemuPort' => '00000',
+	  'returnNumRows'=> '500',
       'asXML' => TRUE
     );
   }
@@ -360,6 +370,13 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
       '#default_value' => isset($source_config['importTo']) ? $source_config['importTo'] : $importOptions['specimen_observation'],
       '#required' => TRUE
     );
+	$form['returnNumRows'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Return number of rows'),
+      '#description' => t('Enter the number of rows to return.'),
+      '#default_value' => isset($source_config['returnNumRows']) ? $source_config['returnNumRows'] : '500',
+      '#required' => TRUE
+    );
     $form['imuVersion'] = array(
       '#type' => 'item',
       '#title' => t('IMU version'),
@@ -376,6 +393,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
     $kemuHost = $values['kemuHost'];
     $kemuPort = $values['kemuPort'];
     $importTo = $values['importTo'];
+    $returnNumRows = $values['returnNumRows'];
     if(empty($importTo)){
       form_set_error('feeds][importTo', t('You must enter a place to import to.'));
     }
@@ -387,6 +405,9 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
     }
     if(empty($kemuPort) || $kemuPort == '00000'){
       form_set_error('feeds][kemuPort', t('You must enter a valid KEMU server port number'));
+    }
+	if(empty($returnNumRows)){
+      form_set_error('feeds][returnNumRows', t('You must enter the number of rows to return'));
     }
   }
 }
