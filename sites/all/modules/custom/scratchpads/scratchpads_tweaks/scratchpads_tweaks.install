@@ -1137,3 +1137,56 @@ function scratchpads_tweaks_update_7055(){
 function scratchpads_tweaks_update_7056(){
   variable_set('apachesolr_optimize_interval', PHP_INT_MAX);
 }
+
+/**
+ * We disable the mollom module first, to ensure that the update runs as
+ * expected.
+ */
+function scratchpads_tweaks_update_7057(){
+  module_disable(array(
+    'scratchpads_mollom',
+    'mollom'
+  ));
+  module_enable(array(
+    'scratchpads_security'
+  ));
+}
+
+/**
+ * Disable/uninstall the scratchpads_mollom module and install the
+ * scratchpads_security module.
+ */
+function scratchpads_tweaks_update_7058(&$sandbox){
+  if(!isset($sandbox['cids'])){
+    // Get a list of all the comments that have been authored by anonymous, and 
+    // that have not been approved.
+    $query = db_select('comment', 'c')->fields('c', array(
+      'cid'
+    ))->condition('uid', 0)->condition('status', 0);
+    $query->innerJoin('field_data_comment_body', 'b', 'c.cid = b.entity_id');
+    $query->condition('comment_body_value', '%http%', 'LIKE');
+    $sandbox['cids'] = $query->execute()->fetchCol();
+    $sandbox['max'] = count($sandbox['cids']);
+    if(!$sandbox['max']){
+      $sandbox['#finished'] = 1;
+      return;
+    }
+  }
+  $i = 0;
+  while($i < 10 && count($sandbox['cids'])){
+    comment_delete(array_pop($sandbox['cids']));
+  }
+  $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['cids'])) / $sandbox['max'];
+}
+
+/**
+ * Uninstall mollom and scratchpads_mollom
+ * 
+ * FIXME - Please uncomment this function following the 2.1.7 release.
+function scratchpads_tweaks_update_7059(){
+  drupal_uninstall_modules(array(
+    'scratchpads_mollom',
+    'mollom'
+  ));
+}
+ */
