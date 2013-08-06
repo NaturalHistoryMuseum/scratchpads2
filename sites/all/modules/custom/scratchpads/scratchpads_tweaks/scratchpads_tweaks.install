@@ -1144,14 +1144,17 @@ function scratchpads_tweaks_update_7056(){
  */
 function scratchpads_tweaks_update_7057(&$sandbox){
   if(!isset($sandbox['cids'])){
-    drupal_register_shutdown_function('module_disable', array(
+    module_disable(array(
       'scratchpads_mollom',
       'mollom'
     ));
-    drupal_register_shutdown_function('drupal_uninstall_modules', array(
+    drupal_uninstall_modules(array(
       'scratchpads_mollom',
       'mollom'
     ));
+    db_delete('system')->condition('name', 'mollom')->execute();
+    cache_clear_all();
+    system_rebuild_module_data();
     module_enable(array(
       'scratchpads_security'
     ));
