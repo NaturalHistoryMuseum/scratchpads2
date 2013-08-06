@@ -4,3 +4,4 @@ description = "Scratchpads admin tweaks"
 package = "Administration"
 dependencies[] = views_bulk_operations
 dependencies[] = ctools
+dependencies[] = scratchpads_views_filter
