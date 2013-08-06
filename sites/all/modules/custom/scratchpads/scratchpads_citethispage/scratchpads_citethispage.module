@@ -1,7 +1,97 @@
 <?php
 
 /**
- * hook_citethispage_info
+ * Implement hook_block_info_alter
+ *
+ * Place the block in the slide top region
+ */
+function scratchpads_citethispage_block_info_alter(&$blocks, $theme, $code_blocks){
+  if($theme == SCRATCHPADS_THEME_NAME){
+    $blocks['citethispage']['citethispage_block']['status'] = 1;
+    $blocks['citethispage']['citethispage_block']['region'] = 'slide_top';
+    $blocks['citethispage']['citethispage_block']['weight'] = 2;
+  }
+}
+
+/**
+ * Implement hook_block_citethispage_citethispage_block_alter
+ *
+ * Re-organise the block to add sliding functionality
+ */
+function scratchpads_citethispage_block_view_citethispage_citethispage_block_alter(&$data, $block){
+  if(!$data){return;}
+  $data['content'] = array(
+    '#prefix' => '<div class="scratchpads-slide-toggle-container">',
+    '#suffix' => '</div>',
+    'link' => array(
+      '#markup' => l(t('Cite me'), '#', array(
+        'attributes' => array(
+          'class' => array(
+            'scratchpads-slide-toggle'
+          )
+        )
+      ))
+    ),
+    'body' => array(
+      '#prefix' => '<div class="scratchpads-slide-toggle-body">',
+      '#suffix' => '</div>',
+      'sub' => $data['content']
+    ),
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'scratchpads_citethispage') . '/scratchpads_citethispage.css'
+      )
+    )
+  );
+}
+
+/**
+ * Implement hook_view_post_execute
+ */
+function scratchpads_citethispage_views_post_execute(&$view){
+  if(!preg_match('%^taxonomy/term/(\d+)%', current_path())){return;}
+  if($view->base_table == 'node' || $view->base_table == 'file_managed'){
+    if($view->name == 'species_media' && $view->is_attachment){      // These get called but are not used in this context
+return;}
+    foreach($view->result as $delta => $row){
+      if(!empty($row->{$view->base_field})){
+        // Actually loading the node now would discard all the benefits from using views with fields,
+        // so we'll fetch the author name from the database
+        $author = db_query("
+          SELECT u.uid, u.name
+            FROM {users} u
+           INNER JOIN {" . $view->base_table . "} v ON v.uid = u.uid
+          WHERE v." . $view->base_field . " = :base_field
+        ", array(
+          ':base_field' => $row->{$view->base_field}
+        ))->fetchAssoc();
+        if($author){
+          _scratchpads_citethispage_authors($author['uid'], $author['name']);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * _scratchpads_citethispage_authors
+ *
+ * Store the authors of the current page in a static
+ * variable
+ */
+function _scratchpads_citethispage_authors($uid = NULL, $name = NULL){
+  $authors = &drupal_static(__FUNCTION__);
+  if(!isset($authors)){
+    $authors = array();
+  }
+  if($uid && $name){
+    $authors[$uid] = $name;
+  }
+  return $authors;
+}
+
+/**
+ * Implement hook_citethispage_info
  */
 function scratchpads_citethispage_citethispage_info(){
   return array(
@@ -29,55 +119,33 @@ function scratchpads_citethispage_parse_taxonomy_term($path){
   $matches = array();
   if(!preg_match('/^taxonomy\/term\/(\d+)(\/(\w+))?$/', $path, $matches)){return FALSE;}
   $tid = $matches[1];
-  $sub = $matches[3];
+  $sub = isset($matches[3]) ? $matches[3] : 'overview';
+  if($sub == 'specimens'){return FALSE;}
   $term = taxonomy_term_load($tid);
-  if(!$term){return FALSE;}
-  $biological_vids = variable_get('biological_vids', array());
-  if(empty($biological_vids[$term->vid])){return FALSE;}
-  if(!$sub){
-    $result = array();
-    // Get the taxon description author, if any
-    $q = new EntityFieldQuery();
-    $q->entityCondition('entity_type', 'node');
-    $q->entityCondition('bundle', 'spm');
-    $q->fieldCondition('field_taxonomic_name', 'tid', $tid);
-    $q->propertyOrderBy('sticky', 'DESC');
-    $q->propertyOrderBy('created', 'DESC');
-    $q->range(0, 1);
-    $r = $q->execute();
-    if(count($r['node'])){
-      $node = node_load(reset(array_keys($r['node'])));
-      $user = user_load($node->uid);
-      $result['authors'][$user->uid] = $user->name;
-    }
-    // Get the media authors, if any
-    $q = new EntityFieldQuery();
-    $q->entityCondition('entity_type', 'file');
-    $q->entityCondition('bundle', 'image');
-    $q->propertyCondition('status', 1);
-    $q->fieldCondition('field_taxonomic_name', 'tid', $tid);
-    $q->fieldOrderBy('field_sticky', 'value', 'DESC');
-    $q->fieldOrderBy('field_weight', 'value', 'ASC');
-    $q->range(0, 3);
-    $r = $q->execute();
-    if(count($r['file'])){
-      foreach(array_keys($r['file']) as $fid){
-        $file = file_load($fid);
-        if(!isset($result['authors'][$fid->uid])){
-          $user = user_load($file->uid);
-          $result['authors'][$user->uid] = $user->name;
-        }
-      }
-    }
-    // It would be hard to set a date, so just say today
-    $result['date'] = array(
+  $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
+  if(!$term || (isset($simple_vids[$term->vid]) && !$simple_vids[$term->vid])){return FALSE;}
+  if(!scratchpads_species_term_is_biological_classification($term)){return FALSE;}
+  return array(
+    'authors' => _scratchpads_citethispage_authors(),
+    'date' => array(
       time() => format_date(time())
-    );
-    $result['title'] = array(
+    ),
+    'title' => array(
       $term->tid => $term->name
-    );
-    return $result;
-  }else{
-    return FALSE;
-  }
+    )
+  );
+}
+
+/**
+ * Implement hook_scratchpads_default_permissions
+ */
+function scratchpads_citethispage_scratchpads_default_permissions(){
+  return array(
+    'anonymous user' => array(
+      'citethispage_cite'
+    ),
+    'maintainer' => array(
+      'citethispage_admin'
+    )
+  );
 }
