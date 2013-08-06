@@ -1144,10 +1144,10 @@ function scratchpads_tweaks_update_7056(){
  */
 function scratchpads_tweaks_update_7057(&$sandbox){
   if(!isset($sandbox['cids'])){
-    module_disable(array(
+    drupal_register_shutdown_function('module_disable', array(
       'scratchpads_mollom'
     ));
-    drupal_uninstall_modules(array(
+    drupal_register_shutdown_function('drupal_uninstall_modules', array(
       'scratchpads_mollom'
     ));
     module_enable(array(
