@@ -1147,10 +1147,6 @@ function scratchpads_tweaks_update_7057(){
     'scratchpads_mollom',
     'mollom'
   ));
-  drupal_uninstall_modules(array(
-    'scratchpads_mollom',
-    'mollom'
-  ));
   module_enable(array(
     'scratchpads_security'
   ));
@@ -1182,3 +1178,15 @@ function scratchpads_tweaks_update_7058(&$sandbox){
   }
   $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['cids'])) / $sandbox['max'];
 }
+
+/**
+ * Uninstall mollom and scratchpads_mollom
+ * 
+ * FIXME - Please uncomment this function following the 2.1.7 release.
+function scratchpads_tweaks_update_7059(){
+  drupal_uninstall_modules(array(
+    'scratchpads_mollom',
+    'mollom'
+  ));
+}
+ */
