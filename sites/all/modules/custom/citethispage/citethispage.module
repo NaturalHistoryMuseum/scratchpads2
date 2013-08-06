@@ -76,24 +76,77 @@ function citethispage_block_info(){
 
 /**
  * Implements hook_block_view
+ *
+ * This only adds a stub - the actual rendering
+ * is done in hook_page_alter because parsers
+ * may need to wait for other blocks to be rendered
+ * in order to gather data (eg. gathering authors
+ * from views using hook_views_post_execute)
+ * and we can't control block rendering order.
  */
 function citethispage_block_view($delta = ''){
   // Permission check
   if(!user_access('citethispage_cite')){return;}
-  // Parse the page
-  $results = _citethispage_parse_path(current_path());
-  if($results === FALSE && !variable_get('citethispage_showall', 0)){return;}
-  // Generate the block
   return array(
     'subject' => t('Cite this page'),
     'content' => array(
-      'info' => array(
-        '#theme' => 'citethispage_info',
-        '#results' => $results
+      'citethispage_info' => array(
+        '#markup' => 'Stub. If altered, ensure key citethispage_info remains so it can be replaced'
       ),
       'form' => drupal_get_form('citethispage_backend_selection_form')
     )
   );
+}
+
+/**
+ * Implement hook_page_alter
+ *
+ * We do the final block rendering here so that we are sure to run after all other
+ * elements have been rendered
+ */
+function citethispage_page_alter(&$page){
+  foreach(element_children($page) as $region){
+    if(isset($page[$region]['citethispage_citethispage_block'])){
+      $results = _citethispage_parse_path(current_path());
+      if($results === FALSE && !variable_get('citethispage_showall', 0)){
+        unset($page[$region]['citethispage_citethispage_block']);
+      }else{
+        $content = array(
+          '#theme' => 'citethispage_info',
+          '#results' => $results
+        );
+        // We allow other modules to alter the block's structure, just as long as
+        // we can replace the stub it's fine.
+        $parents = _citethispage_find_nested_parents('citethispage_info', $page[$region]['citethispage_citethispage_block']);
+        if(is_array($parents)){
+          $parents[] = 'citethispage_info';
+          drupal_array_set_nested_value($page[$region]['citethispage_citethispage_block'], $parents, $content);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * _citethispage_find_nested_parents
+ *
+ * Helper function to find nested parents in an array
+ */
+function _citethispage_find_nested_parents($key, $array){
+  if(isset($array[$key])){
+    return array();
+  }else{
+    foreach($array as $k => $v){
+      if(is_array($v)){
+        $f = _citethispage_find_nested_parents($key, $v);
+        if(is_array($f)){
+          array_unshift($f, $k);
+          return $f;
+        }
+      }
+    }
+    return FALSE;
+  }
 }
 
 /**
@@ -131,13 +184,13 @@ function citethispage_backend_selection_form($form, &$form_state){
         'effect' => 'fade'
       )
     );
+    $form['info'] = array(
+      '#prefix' => '<div id="citethispage_subform">',
+      '#suffix' => '</div>',
+      '#markup' => '<span class="citethispage_select_info_title">' . $handlers[$default]['title'] . '</span>: ' . $handlers[$default]['description']
+    );
   }
   $form_state['citethispage_backend_handler'] = $default;
-  $form['info'] = array(
-    '#prefix' => '<div id="citethispage_subform">',
-    '#suffix' => '</div>',
-    '#markup' => '<span class="citethispage_select_info_title">' . $handlers[$default]['title'] . '</span>: ' . $handlers[$default]['description']
-  );
   $form['cite'] = array(
     '#type' => 'submit',
     '#value' => t('Create Citation')
@@ -210,7 +263,7 @@ function _citethispage_find_parsers($path){
   $default_parsers = array();
   $handlers = _citethispage_get_parse_handlers();
   foreach($handlers as $path_pattern => $modules){
-    $re = preg_replace('/%\w*/', '[^\/\?]+', preg_quote($path_pattern, '/'));
+    $re = '^' . preg_replace('/%\w*/', '[^\/\?]+', preg_quote($path_pattern, '/')) . '$';
     if(preg_match("/$re/", $path)){
       foreach($modules as $module => $module_info){
         if($module_info['default']){

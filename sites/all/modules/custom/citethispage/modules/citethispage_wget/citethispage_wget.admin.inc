@@ -33,7 +33,8 @@ function citethispage_wget_settings_form($form, &$form_state){
     '#required' => TRUE,
     '#title' => t('Command line'),
     '#description' => t('The command line to execute. The module relies on the command having a certain behaviour - only change this if you know what you are doing. This is expected to archive [citethispage_wget:url] into the folder [citethispage_wget:destination]. The destination file should then be obtained by concatenating the original url (including the host name) to the destination.'),
-    '#default_value' => variable_get('citethispage_wget_tool', CITETHISPAGE_WGET_DEFAULT_TOOL)
+    '#default_value' => variable_get('citethispage_wget_tool', CITETHISPAGE_WGET_DEFAULT_TOOL),
+    '#maxlength' => 2048
   );
   $form['citethispage_wget_destination'] = array(
     '#type' => 'textfield',
