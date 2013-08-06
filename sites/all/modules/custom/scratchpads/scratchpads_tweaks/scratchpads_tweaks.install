@@ -1139,25 +1139,29 @@ function scratchpads_tweaks_update_7056(){
 }
 
 /**
+ * We disable the mollom module first, to ensure that the update runs as
+ * expected.
+ */
+function scratchpads_tweaks_update_7057(){
+  module_disable(array(
+    'scratchpads_mollom',
+    'mollom'
+  ));
+  drupal_uninstall_modules(array(
+    'scratchpads_mollom',
+    'mollom'
+  ));
+  module_enable(array(
+    'scratchpads_security'
+  ));
+}
+
+/**
  * Disable/uninstall the scratchpads_mollom module and install the
  * scratchpads_security module.
  */
-function scratchpads_tweaks_update_7057(&$sandbox){
+function scratchpads_tweaks_update_7058(&$sandbox){
   if(!isset($sandbox['cids'])){
-    module_disable(array(
-      'scratchpads_mollom',
-      'mollom'
-    ));
-    drupal_uninstall_modules(array(
-      'scratchpads_mollom',
-      'mollom'
-    ));
-    db_delete('system')->condition('name', 'mollom')->execute();
-    cache_clear_all();
-    system_rebuild_module_data();
-    module_enable(array(
-      'scratchpads_security'
-    ));
     // Get a list of all the comments that have been authored by anonymous, and 
     // that have not been approved.
     $query = db_select('comment', 'c')->fields('c', array(
