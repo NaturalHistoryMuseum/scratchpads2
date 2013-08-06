@@ -1174,7 +1174,7 @@ function scratchpads_tweaks_update_7058(&$sandbox){
   }
   $i = 0;
   while($i < 10 && count($sandbox['cids'])){
-    $cid = array_pop($sandbox['cids']);
+    comment_delete(array_pop($sandbox['cids']));
   }
   $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['cids'])) / $sandbox['max'];
 }
