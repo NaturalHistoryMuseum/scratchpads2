@@ -14,7 +14,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
   public static function getInfo(){
     return array(
       'name' => 'FeedsXls',
-      'description' => "Test access to the import pages and template files",
+      'description' => "Test the import of xls files.",
       'group' => 'Scratchpads'
     );
   }
@@ -52,26 +52,63 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
     parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
     parent::scratchpads_tweaks_legal_save($this->test_user->uid);
   }
+  // Specific page node data as specified in the page.xls file
+  protected $page_data = array(
+    'title' => 'Test page title one',
+    'body' => 'Test page body text one'
+  );
+  // Specific page node and term data as specified in the page_with_term.xls file
+  protected $page_data_with_term = array(
+    'title' => 'Test page title one',
+    'body' => 'Test page body text one',
+    'field_taxonomic_name' => 'myterm'
+  );
   // Specific location data as specified in the location.xls file
-  // We will compare the imported data to the data in the xls file
   protected $location_data = array(
-    'map' => '52.38006916634651, -1.1279278993606567',
-    'Continent/Ocean' => 'Africa',
-    'Country' => 'United Kingdom',
-    'Island' => 'Test Island 1',
-    'Island group' => 'Test Island Group 1',
-    'State/Province' => 'Test state 1',
-    'County' => 'Test County 1',
-    'Locality' => 'Test Locality 1',
-    'Coordinate uncertainty in meters' => '21 m',
-    'Geodetic datum' => 'Test Geo dat 1',
-    'Verbatim Coordinate System' => 'Test Verbatim 1',
-    'Georeference protocol' => 'Test Georef pro 1',
-    'Georeference remarks' => 'Test Georef remarks 1',
-    'Maximum elevation' => '200',
-    'Minimum elevation' => '20',
-    'Minimum depth' => '10',
-    'Maximum depth' => '100'
+    'field_map' => '(52.38006916634651, -1.1279278993606567)',
+    'field_continent_or_ocean' => 'Africa',
+    'field_country' => 'GB', // The value for the select field
+    'field_island' => 'Test Island 1',
+    'field_island_group' => 'Test Island Group 1',
+    'field_state_province' => 'Test state 1',
+    'field_county' => 'Test County 1',
+    'field_locality' => 'Test Locality 1',
+    'field_coordinate_uncertainty' => '21',
+    'field_geodetic_datum' => 'Test Geo dat 1',
+    'field_coordinate_system' => 'Test Verbatim 1',
+    'field_georeference_protocol' => 'Test Georef pro 1',
+    'field_georeference_remarks' => 'Test Georef remarks 1',
+    'field_max_elevation' => '200',
+    'field_min_elevation' => '20',
+    'field_min_depth' => '10',
+    'field_max_depth' => '100'
+  );
+
+  protected $specimen_observation_data = array(
+    
+    'field_basis_of_record' => 'Fossil Specimen',
+    'field_institution_code' => 'NHM23',
+    'field_collection_code' => '333',
+    'field_catalogue_number' => '222',
+    //'field_taxonomic_name' => 
+    'field_type_status' => 'Holotype',
+    'field_identification_qualifier' => '32',
+  //  'field_identified_by' => 
+    'field_date_identified' => '2001/03/04',
+    'field_date_identified2'=>'2001/05/06',
+    'field_collector_number' => '13',
+    'field_number' => '22',
+    //'field_collector' => 
+    'field_date_collected' => '2000/01/02',
+    'field_date_collected2' => '2000/02/03',
+    'field_notes' => 'Test field notes',
+    'field_sex' => 'Female',
+    'field_lifestage' => 'Stage 1',
+    'field_count' => '66',
+    'field_genbank_number' => '22',
+    'field_other_catalogue_numbers' => '16',
+    'field_remarks' => 'Test Remarks'
+  //'field_location' => 
   );
 
   /**
@@ -79,14 +116,19 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
    */
   function testImports(){
     $this->drupalLogin($this->admin_user);
-    //  $this->validateXlsPageImport();
-    $this->validateXlsLocationImport();
+    // $this->validateXlsPageImport();
+    // $this->validateXlsLocationImport();
+    // create a term for a biological vocabulary so that we can reference it in imports
+    // $tid = $this->createTerm('myterm');
+    // $this->validateXlsPageImportWithTerm($tid);
+    $this->validateXlsSpecimenObservationImport();
   }
 
   /**
    * Test the import of page nodes from xls file.
    */
   function validateXlsPageImport(){
+    $langcode = 'und';
     $this->drupalGet('import/node_importer_page');
     $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/page.xls');
     $this->drupalPost('import/node_importer_page', array(
@@ -96,14 +138,66 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
     $this->drupalGet('admin/content/page');
     $this->assertText('Test page title one', 'First imported page node present on admin/content/page');
     $this->assertText('Test page title two', 'Second imported page node present on admin/content/page');
+    // may want to add more detailed test of fields here
     $this->clickLink('Test page title one');
     $this->assertText('Test page body text one', 'Imported body field present of node page');
+    $this->clickLink('Edit');
+    // need to also check taxonomy import. 
+    foreach($this->page_data as $key => $page_field_data){
+      // check each field
+      if($key == 'title'){
+        // Title
+        $this->assertFieldByName($key, $page_field_data, $key . ' field found and correctly set');
+      }elseif($key == 'body'){
+        // Body field
+        $this->assertFieldByName($key . '[' . $langcode . '][0][value]', $page_field_data, $key . ' field found and correctly set');
+      }
+    }
+  }
+
+  /**
+   * Test the import of page nodes with taxonomy term from xls file.
+   */
+  function validateXlsPageImportWithTerm($tid){
+    $langcode = 'und';
+    $this->drupalGet('import/node_importer_page');
+    $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/page_with_term.xls');
+    $this->drupalPost('import/node_importer_page', array(
+      'files[feeds]' => $rpath
+    ), t('Import'));
+    // Test that the pages have appeared
+    $this->drupalGet('admin/content/page');
+    $this->assertText('Test page title one', 'First imported page node present on admin/content/page');
+    $this->assertText('Test page title two', 'Second imported page node present on admin/content/page');
+    // may want to add more detailed test of fields here
+    $this->clickLink('Test page title one');
+    $this->assertText('Test page body text one', 'Imported body field present of node page');
+    $this->clickLink('Edit');
+    foreach($this->page_data_with_term as $key => $page_field_data){
+      // check each field
+      if($key == 'title'){
+        // Title
+        $this->assertFieldByName($key, $page_field_data, $key . ' field found and correctly set');
+      }elseif($key == 'body'){
+        // Body field
+        $this->assertFieldByName($key . '[' . $langcode . '][0][value]', $page_field_data, $key . ' field found and correctly set');
+      }elseif($key == 'field_taxonomic_name'){
+        //field_taxonomic_name[und]
+        $this->assertFieldByName($key . '[' . $langcode . ']', $page_field_data . ' [' . $tid . ']', $key . ' field found and correctly set');
+      }
+    }
   }
 
   /**
    * Test the import of location nodes from xls file.
    */
   function validateXlsLocationImport(){
+    $langcode = 'und';
+    // This causes the test to crash - why?
+    //  $entity_type = 'node';
+    //   $bundle = 'location';
+    //   $info = field_info_instances($entity_type, $bundle);
+    //   dpm($info);
     $this->drupalGet('import/node_importer_location');
     $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/location.xls');
     $this->drupalPost('import/node_importer_location', array(
@@ -113,13 +207,86 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
     $this->assertText('Location Test Title One', 'First imported location node present on admin/content/location');
     $this->assertText('Location Test Title Two', 'Second imported location node present on admin/content/location');
     $this->clickLink('Location Test Title One');
+    $this->clickLink('Edit');
     foreach($this->location_data as $key => $location_field_data){
-      // map co-ordinates connot be tested with simple-test as this uses javascript
-      if($key != 'map'){
-        // can we check that it has imported into the right place?
-        $this->assertText($location_field_data, $key . ' field data present on location page');
+      if($key == 'field_map'){
+        // Map field
+        $this->assertFieldByName($key . '[' . $langcode . '][map][map]', $location_field_data, $key . ' field found and correctly set');
+      }elseif(($key == 'field_continent_or_ocean') || ($key == 'field_country')){
+        // Select list
+        $this->assertFieldByName($key . '[' . $langcode . ']', $location_field_data, $key . ' field found and correctly set');
+      }else{
+        // Text fields      
+        $this->assertFieldByName($key . '[' . $langcode . '][0][value]', $location_field_data, $key . ' field found and correctly set');
       }
     }
+  }
+
+  /**
+   * Tests the import of basic specimen-observation fields, without user or term ids.
+   */
+  function validateXlsSpecimenObservationImport(){
+  	   
+    $langcode = 'und';
+    $this->drupalGet('import/node_importer_specimen_observation');
+    $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/specimenobservation.xls');
+    $this->drupalPost('import/node_importer_specimen_observation', array(
+      'files[feeds]' => $rpath
+    ), t('Import'));
+    
+    $title = $this->specimen_observation_data['field_institution_code'] . ' - ' . $this->specimen_observation_data['field_collection_code']. ' - ' .$this->specimen_observation_data['field_catalogue_number'];
+     
+    $this->drupalGet('admin/content/specimen_observation');  
+    $this->assertText($title, 'First imported specimen_observation node present on admin/content/specimen_observation');
+   
+    $this->clickLink($title);
+    $this->clickLink('Edit');
+    foreach($this->specimen_observation_data as $key => $field_data){
+     
+      if(($key == 'field_date_collected') || ($key == 'field_date_identified')){
+        $this->assertFieldByName($key . '[' . $langcode . '][0][value][date]', $field_data, $key . ' date field found and correctly set');
+      }elseif($key == 'field_date_collected2'){
+        $this->assertFieldByName('field_date_collected' . '[' . $langcode . '][0][value2][date]', $field_data, $key . ' date field found and correctly set');
+      }elseif($key == 'field_date_identified2'){
+        $this->assertFieldByName('field_date_identified' . '[' . $langcode . '][0][value2][date]', $field_data, $key . ' date field found and correctly set');
+      }
+      elseif(($key == 'field_basis_of_record') || ($key == 'field_type_status') || ($key == 'field_sex')){
+        // Select list
+        $this->assertFieldByName($key . '[' . $langcode . ']', $field_data, $key . ' select field found and correctly set');
+      }else{
+        // Text fields
+        $this->assertFieldByName($key . '[' . $langcode . '][0][value]', $field_data, $key . ' field found and correctly set');
+      }
+    }
+  }
+
+  /**
+   *  Create taxonmy term and return the term id
+   */
+  public function createTerm($term_name){
+    // create taxonomy
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $edit = array();
+    $human_name = $this->randomName();
+    $edit['name'] = $human_name;
+    $machine_readable = $this->machine_name($human_name);
+    $edit['machine_name'] = $machine_readable;
+    $edit['biological_classification'] = 1;
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertText('Created new vocabulary', 'biological classification successfully created');
+    // create a term for the newly created taxonomy
+    $this->drupalGet('admin/structure/taxonomy/' . $machine_readable . '/add');
+    $edit2 = array();
+    $name2 = $this->randomName();
+    $edit2['name'] = $name2; // do we need this?
+    $edit2['field_unit_name1[und][0][value]'] = $term_name;
+    $this->drupalPost(NULL, $edit2, t('Save'));
+    $this->assertText('Created new term', 'New term successfully created');
+    $taxon_array = taxonomy_get_term_by_name($term_name);
+    // The term id is the first key of the array
+    reset($taxon_array);
+    $tid = key($taxon_array);
+    return $tid;
   }
 }
   
