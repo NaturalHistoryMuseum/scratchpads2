@@ -5,3 +5,12 @@
  */
 
 include_once('scratchpads_biography.features.inc');
+
+/**
+ * Implements hook_form_formid_alter()
+ * 
+ * Change 'none' to 'unknown' in the drop down list for gender
+ */
+function scratchpads_biography_form_user_register_form_alter(&$form, &$form_state, $form_id) {  
+    $form['field_gender'][LANGUAGE_NONE]['#options']['_none'] = t('Unknown');
+}
