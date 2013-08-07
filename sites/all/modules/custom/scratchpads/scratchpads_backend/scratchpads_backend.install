@@ -16,3 +16,12 @@ function scratchpads_backend_update_7001(){
     'settings' => serialize($p->settings)
   ))->execute();
 }
+
+/**
+ * Add the scratchpads_views_filter module.
+ */
+function scratchpads_backend_update_7002(){
+  module_enable(array(
+    'scratchpads_views_filter'
+  ));
+}
