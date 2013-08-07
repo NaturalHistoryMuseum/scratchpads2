@@ -2,7 +2,7 @@
 DEFINE('CITETHISPAGE_WGET_DEFAULT_TOOL', '/usr/bin/wget -p -k -H -E -e robots=off --post-data \'[citethispage_wget:post]\' -P [citethispage_wget:destination] [citethispage_wget:url]');
 DEFINE('CITETHISPAGE_WGET_DEFAULT_DESTINATION', 'public://cite/[citethispage_wget:year]-[citethispage_wget:month]-[citethispage_wget:day]');
 DEFINE('CITETHISPAGE_WGET_DEFAULT_INJECT', "<p>This is a <strong>snapshop</strong> of the page at [citethispage_wget:url], as it was on <strong>[citethispage_wget:year]-[citethispage_wget:month]-[citethispage_wget:day]</strong>. The snapshot was created for citation purposes. Note that following any of the links on the page will take you back to the live version of the site.</p>");
-DEFINE('CITETHISPAGE_WGET_DEFAULT_PREVIEW_PATH', 'public://citethispage_wget_preview');
+DEFINE('CITETHISPAGE_WGET_DEFAULT_PREVIEW_PATH', 'public://cite/preview');
 
 /**
  * Implements hook_init
@@ -262,7 +262,8 @@ function citethispage_wget_archive($path, $result, $preview = FALSE){
   $data->post = 'citethispage_wget_msg_token=' . urlencode($rand_token_id);
   $wget_tokens = variable_get('citethispage_wget_tokens', array());
   $token = array(
-    'timestamp' => time()
+    'timestamp' => time(),
+    'preview' => $preview
   );
   $inject_message = variable_get('citethispage_wget_inject', array(
     'value' => CITETHISPAGE_WGET_DEFAULT_INJECT,
