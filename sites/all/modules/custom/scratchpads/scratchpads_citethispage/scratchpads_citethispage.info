@@ -1,7 +1,11 @@
 name = Scratchpads Cite this page
-description = "Provides Scratchpads-specific parsers for citable information"
+description = "Enables users to generate and store snapshots of pages for citations"
 core = 7.x
 
 dependencies[] = citethispage
 dependencies[] = citethispage_phantomjs
 dependencies[] = citethispage_nodes
+
+package = Sharing
+tool = true
+php = "5.2.4"
