@@ -106,7 +106,7 @@ function citethispage_block_view($delta = ''){
  */
 function citethispage_page_alter(&$page){
   foreach(element_children($page) as $region){
-    if(isset($page[$region]['citethispage_citethispage_block'])){
+    if(is_array($page[$region]) && isset($page[$region]['citethispage_citethispage_block'])){
       $results = _citethispage_parse_path(current_path());
       if($results === FALSE && !variable_get('citethispage_showall', 0)){
         unset($page[$region]['citethispage_citethispage_block']);
@@ -120,7 +120,9 @@ function citethispage_page_alter(&$page){
         $parents = _citethispage_find_nested_parents('citethispage_info', $page[$region]['citethispage_citethispage_block']);
         if(is_array($parents)){
           $parents[] = 'citethispage_info';
-          drupal_array_set_nested_value($page[$region]['citethispage_citethispage_block'], $parents, $content);
+          array_unshift($parents, 'citethispage_citethispage_block');
+          array_unshift($parents, $region);
+          drupal_array_set_nested_value($page, $parents, $content);
         }
       }
     }

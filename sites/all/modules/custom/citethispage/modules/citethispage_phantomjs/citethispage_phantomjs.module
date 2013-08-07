@@ -19,7 +19,7 @@ function _citethispage_phantomjs_var_get($key){
       );
       break;
     case 'citethispage_phantomjs_tool':
-      $default = '/usr/local/bin/phantomjs ' . drupal_realpath(drupal_get_path('module', 'citethispage_phantomjs') . '/js/snapshot.js') . ' [citethispage_phantomjs:url] [citethispage_phantomjs:destination] [citethispage_phantomjs:post]';
+      $default = '/usr/local/bin/phantomjs [citethispage_phantomjs:pathtomodule]/js/snapshot.js [citethispage_phantomjs:url] [citethispage_phantomjs:destination] [citethispage_phantomjs:post]';
       break;
   }
   return variable_get($key, $default);
@@ -179,6 +179,10 @@ function citethispage_phantomjs_token_info(){
       'name' => t('Flat path'),
       'description' => t("The path to the archived page, with characters replaced such that the path can safely be used as a file name")
     ),
+    'pathtomodule' => array(
+      'name' => t('Path to module'),
+      'description' => t("The path to the citethispage_phantomjs module")
+    ),
     'year' => array(
       'name' => t('Year'),
       'description' => t("The year from the current date or (if know) last modification of the page we want to archive")
@@ -217,6 +221,7 @@ function citethispage_phantomjs_tokens($type, $tokens, $data = array(), $options
   $replacements = array_merge(array(
     'url' => '',
     'flatpath' => '',
+    'pathtomodule' => drupal_realpath(drupal_get_path('module', 'citethispage_phantomjs')),
     'destination' => '',
     'title' => '',
     'year' => '',
