@@ -3,5 +3,5 @@ description = "Provides Scratchpads-specific parsers for citable information"
 core = 7.x
 
 dependencies[] = citethispage
-dependencies[] = citethispage_wget
+dependencies[] = citethispage_phantomjs
 dependencies[] = citethispage_nodes

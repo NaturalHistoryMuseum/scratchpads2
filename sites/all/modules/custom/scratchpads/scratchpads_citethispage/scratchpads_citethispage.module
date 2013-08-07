@@ -120,7 +120,6 @@ function scratchpads_citethispage_parse_taxonomy_term($path){
   if(!preg_match('/^taxonomy\/term\/(\d+)(\/(\w+))?$/', $path, $matches)){return FALSE;}
   $tid = $matches[1];
   $sub = isset($matches[3]) ? $matches[3] : 'overview';
-  if($sub == 'specimens'){return FALSE;}
   $term = taxonomy_term_load($tid);
   $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
   if(!$term || (isset($simple_vids[$term->vid]) && !$simple_vids[$term->vid])){return FALSE;}
