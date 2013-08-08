@@ -129,20 +129,26 @@ function _scratchpads_forum_tree_add_data($branch, $forum_tree, $forum_count_arr
         $key => $twig
       ) + $output;
     }
-    if(count($branch) == 1){
-      $f_name = $forum_tree->forums[$key]->name;
-      if((arg(1) == $key) && (arg(0) == 'forum')){
-        $twig2 = array(
-          'data' => $f_name . $forum_count_array[$key]
-        );
-      }else{
-        $twig2 = array(
-          'data' => l($f_name, 'forum/' . $key) . $forum_count_array[$key]
-        );
+    if(count($branch) >= 1){
+      if(($forum_tree->forums[$key]->is_container == FALSE) && (!isset($forum_tree->forums[$key]->container))){
+        $f_name = $forum_tree->forums[$key]->name;
+        if($f_name != ''){
+          foreach($branch as $inner_branch){
+            if((arg(1) == $key) && (arg(0) == 'forum')){
+              $twig2 = array(
+                'data' => $f_name . $forum_count_array[$key]
+              );
+            }else{
+              $twig2 = array(
+                'data' => l($f_name, 'forum/' . $key) . $forum_count_array[$key]
+              );
+            }
+            $output = array(
+              $key => $twig2
+            ) + $output;
+          }
+        }
       }
-      $output = array(
-        $key => $twig2
-      ) + $output;
     }
   }
   return $output;
@@ -214,7 +220,8 @@ function scratchpads_forum_tree(){
       unset($tree[$tid]);
       $f_id = $forum_tree->forums[$tid]->parents[0];
       $f_name = $forum_tree->forums[$f_id]->name;
-      // add data for parent items
+      $f_name = str_replace('&amp;', '&', $f_name);
+      // add data for parent items     
       if((arg(1) == $f_id) && (arg(0) == 'forum')){
         $tree[$forum_tree->forums[$tid]->parents[0]]['data'] = $f_name . $forum_count_array[$f_id];
       }else{
