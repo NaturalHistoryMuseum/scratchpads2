@@ -3,13 +3,16 @@
  */
 
 .page-admin-people #field-birth-date-add-more-wrapper .fieldset-title,#field-death-date-add-more-wrapper .fieldset-title,
-.page-admin-people #user_user_form_group_biography .vertical-tabs-pane .fieldset-title
+.page-admin-people #user_user_form_group_biography .vertical-tabs-pane .fieldset-title,
+.page-user #field-birth-date-add-more-wrapper .fieldset-title,#field-death-date-add-more-wrapper .fieldset-title,
+.page-user #user_user_form_group_biography .vertical-tabs-pane .fieldset-title
 	{
 	background: none repeat scroll 0 0 #F6F6F6;
 	padding: 4px 9px 5px;
 }
 
-.page-admin-people #field-alternative-name-values{
+.page-admin-people #field-alternative-name-values,
+.page-user #field-alternative-name-values{
     float:left;
     margin-top:8px;
 }
@@ -67,7 +70,7 @@
 	padding:2px;
 }
 
-.page-user .user-picture {
+.page-user .profile .user-picture {
 	position:absolute;
     right:20px;
     top:100px;
