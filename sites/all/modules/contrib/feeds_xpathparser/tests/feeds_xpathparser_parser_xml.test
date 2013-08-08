@@ -33,25 +33,22 @@ class FeedsXPathParserXMLTestCase extends FeedsXPathParserWebTestCase {
     $this->drupalGet($importer_url);
     $this->assertText('No XPath mappings are defined.');
 
-    $this->addMappings('xpath_xml',
-      array(
-        array(
-          'source' => 'xpathparser:0',
-          'target' => 'title',
-          'unique' => FALSE,
-        ),
-        array(
-          'source' => 'xpathparser:1',
-          'target' => 'guid',
-          'unique' => TRUE,
-        ),
-        array(
-          'source' => 'xpathparser:2',
-          'target' => 'body',
-          'unique' => FALSE,
-        ),
-      )
-    );
+    $this->addMappings('xpath_xml', array(
+      0 => array(
+        'source' => 'xpathparser:0',
+        'target' => 'title',
+        'unique' => FALSE,
+      ),
+      1 => array(
+        'source' => 'xpathparser:1',
+        'target' => 'guid',
+        'unique' => TRUE,
+      ),
+      2 => array(
+        'source' => 'xpathparser:2',
+        'target' => 'body',
+      ),
+    ));
     // Set importer default settings.
     $edit = array(
       'xpath[context]' => '//entry',
@@ -201,25 +198,22 @@ class FeedsXPathParserXMLTestCase extends FeedsXPathParserWebTestCase {
 
     $this->setPlugin('syndication', 'FeedsXPathParserXML');
     $importer_url = $this->feeds_base . '/syndication/settings/FeedsXPathParserXML';
-    $this->addMappings('syndication',
-      array(
-        array(
-          'source' => 'xpathparser:0',
-          'target' => 'title',
-          'unique' => FALSE,
-        ),
-        array(
-          'source' => 'xpathparser:1',
-          'target' => 'guid',
-          'unique' => TRUE,
-        ),
-        array(
-          'source' => 'xpathparser:2',
-          'target' => 'body',
-          'unique' => FALSE,
-        ),
-      )
-    );
+    $this->addMappings('syndication', array(
+      0 => array(
+        'source' => 'xpathparser:0',
+        'target' => 'title',
+        'unique' => FALSE,
+      ),
+      1 => array(
+        'source' => 'xpathparser:1',
+        'target' => 'guid',
+        'unique' => TRUE,
+      ),
+      2 => array(
+        'source' => 'xpathparser:2',
+        'target' => 'body',
+      ),
+    ));
     // Set importer default settings.
     $edit = array(
       'xpath[context]' => '//entry',

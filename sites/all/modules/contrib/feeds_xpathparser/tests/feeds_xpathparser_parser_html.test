@@ -28,20 +28,18 @@ class FeedsXPathParseHTMLTestCase extends FeedsXPathParserWebTestCase {
     $this->createImporterConfiguration('XPath', 'xpath');
 
     $this->setPlugin('xpath', 'FeedsXPathParserHTML');
-    $this->addMappings('xpath',
-      array(
-        array(
-          'source' => 'xpathparser:0',
-          'target' => 'title',
-          'unique' => FALSE,
-        ),
-        array(
-          'source' => 'xpathparser:1',
-          'target' => 'url',
-          'unique' => TRUE,
-        ),
-      )
-    );
+    $this->addMappings('xpath', array(
+      0 => array(
+        'source' => 'xpathparser:0',
+        'target' => 'title',
+        'unique' => FALSE,
+      ),
+      1 => array(
+        'source' => 'xpathparser:1',
+        'target' => 'url',
+        'unique' => TRUE,
+      ),
+    ));
     // Set importer default settings.
     $importer_url = $this->feeds_base . '/xpath/settings/FeedsXPathParserHTML';
     $edit = array(
@@ -52,6 +50,8 @@ class FeedsXPathParseHTMLTestCase extends FeedsXPathParserWebTestCase {
     $this->postAndCheck($importer_url, $edit, t('Save'), t('Your changes have been saved.'));
 
     // Test import.
+    // Set batch limit to 5 to force batching.
+    variable_set('feeds_process_limit', 5);
     $path = $GLOBALS['base_url'] . '/' . drupal_get_path('module', 'feeds_xpathparser') . '/tests/feeds_xpathparser/';
     $nid = $this->createFeedNode('xpath', $path . 'issues_drupal.org.htm', 'Testing XPath HTML Parser');
     $feed_node_edit_url = 'node/' . $nid . '/edit';
@@ -195,19 +195,27 @@ class FeedsXPathParseHTMLTestCase extends FeedsXPathParserWebTestCase {
 
 
   public function _testGetRaw($importer_url) {
+    $this->addMappings('xpath', array(
+      2 => array(
+        'source' => 'xpathparser:2',
+        'target' => 'body',
+      ),
+    ));
     // Change importer defaults.
     $edit = array(
       'xpath[context]' => '/html',
       'xpath[sources][xpathparser:0]' => 'head/title',
-      'xpath[sources][xpathparser:1]' => '*',
-      'xpath[rawXML][xpathparser:1]' => TRUE,
+      'xpath[sources][xpathparser:2]' => 'body',
+      'xpath[rawXML][xpathparser:2]' => TRUE,
     );
     $this->postAndCheck($importer_url, $edit, t('Save'), t('Your changes have been saved.'));
     $path = $GLOBALS['base_url'] . '/' . drupal_get_path('module', 'feeds_xpathparser') . '/tests/feeds_xpathparser/';
     $nid = $this->createFeedNode('xpath', $path . 'simple.html', 'Testing GetRaw');
     $feed_node_edit_url = "node/$nid/edit";
     $this->assertText(t('Created 1 node'));
-    $url = 'node/' . $nid + 1 . '/edit';
+    $url = 'node/' . ++$nid . '/edit';
     $this->drupalGet($url);
+    $this->assertFieldByName('body[und][0][value]', '<body><div>bla bla</div></body>');
   }
+
 }
