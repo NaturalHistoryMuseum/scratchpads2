@@ -45,21 +45,14 @@ function scratchpads_data_integrity_check_for_deleted_files(){
   foreach($results as $row){
     $delete_file = FALSE;
     if(!file_exists($row->uri)){
-      if(!$row->uid || substr($row->uri, 0, 12) == 'temporary://'){
-        // Simply delete the file if it is owned by anon or is a temporary file.
-        $delete_file = TRUE;
+      if(!$row->filesize || !$row->uid || !trim($row->uri) || substr($row->uri, 0, 12) == 'temporary://'){
+        // Simply delete the file if it is owned by anon or is a temporary file,
+        // or is a file with no filename, or has zero filesize.
+        file_delete(file_load($row->fid), TRUE);
       }else{
         // Alert if a user uploaded the file
         $messages[] = " - " . t('Missing') . ": {$row->fid}:{$row->uri}";
       }
-    }
-    if(!$row->filesize && !$row->uid){
-      // We also delete empty files owned by anon.
-      $delete_file = TRUE;
-    }
-    if($delete_file){
-      // Simply delete the file if it is owned by anon.
-      file_delete(file_load($row->fid), TRUE);
     }
   }
   if(count($messages)){
