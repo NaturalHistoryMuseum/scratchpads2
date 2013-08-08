@@ -49,4 +49,5 @@ features[field_group][] = "group_tabs|user|user|form"
 features[field_group][] = "group_work|user|user|default"
 features[taxonomy][] = "user_keywords"
 features[views_view][] = "biography"
+stylesheets[all][] = css/scratchpads_biography.css
 tool = "true"
