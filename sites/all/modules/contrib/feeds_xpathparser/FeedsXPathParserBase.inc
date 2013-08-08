@@ -41,7 +41,7 @@ abstract class FeedsXPathParserBase extends FeedsParser {
   /**
    * Implements FeedsParser::parse().
    */
-  public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result) {
+  public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result) {    
     $source_config = $source->getConfigFor($this);
     $state = $source->state(FEEDS_PARSE);
 
@@ -58,7 +58,7 @@ abstract class FeedsXPathParserBase extends FeedsParser {
     // Set link.
     $fetcher_config = $source->getConfigFor($source->importer->fetcher);
     $parser_result->link = $fetcher_config['source'];
-
+    
     $this->xpath = new FeedsXPathParserDOMXPath($this->doc);
     $config = array();
     $config['debug'] = array_keys(array_filter($source_config['exp']['debug']));
