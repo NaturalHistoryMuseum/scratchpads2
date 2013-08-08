@@ -188,6 +188,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
        * and port
        */
       $imusession = new IMuSession($kemuHost, $kemuPort);
+	  $imusession->timeout= 300;
       /* access a KEmu module/table */
       $imumodule = new IMuModule($moduleName, $imusession);
       /*
@@ -198,7 +199,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
       /*
        * Get information from matching records flag, offset, count, columns
        */
-  //    $results = $imumodule->fetch('start', 0, -1, $kemuColumns);
+      //    $results = $imumodule->fetch('start', 0, -1, $kemuColumns);
       $results = $imumodule->fetch('start', 0, $returnNumRows, $kemuColumns);
       /* if there are any rows returned */
       if($results->hits){
@@ -243,7 +244,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
       /* vetted, non-sensitive data from outward facing server for delivery to the website */
       'kemuHost' => 'host.name.ac.uk',
       'kemuPort' => '00000',
-	  'returnNumRows'=>'500',
+      'returnNumRows' => '500',
       'asXML' => TRUE
     );
   }
@@ -318,7 +319,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
       'importTo' => 'specimen_observation',
       'kemuHost' => 'host.name.ac.uk',
       'kemuPort' => '00000',
-	  'returnNumRows'=> '500',
+      'returnNumRows' => '500',
       'asXML' => TRUE
     );
   }
@@ -370,7 +371,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
       '#default_value' => isset($source_config['importTo']) ? $source_config['importTo'] : $importOptions['specimen_observation'],
       '#required' => TRUE
     );
-	$form['returnNumRows'] = array(
+    $form['returnNumRows'] = array(
       '#type' => 'textfield',
       '#title' => t('Return number of rows'),
       '#description' => t('Enter the number of rows to return.'),
@@ -406,7 +407,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
     if(empty($kemuPort) || $kemuPort == '00000'){
       form_set_error('feeds][kemuPort', t('You must enter a valid KEMU server port number'));
     }
-	if(empty($returnNumRows)){
+    if(empty($returnNumRows)){
       form_set_error('feeds][returnNumRows', t('You must enter the number of rows to return'));
     }
   }
