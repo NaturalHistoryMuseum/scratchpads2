@@ -188,7 +188,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
        * and port
        */
       $imusession = new IMuSession($kemuHost, $kemuPort);
-	  /* access a KEmu module/table */
+      /* access a KEmu module/table */
       $imumodule = new IMuModule($moduleName, $imusession);
       /*
        * search the module/table findTerms is the most flexible way to search
@@ -199,7 +199,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
        * Get information from matching records flag, offset, count, columns
        */
       //    $results = $imumodule->fetch('start', 0, -1, $kemuColumns);
-      $results = $imumodule->fetch('start', 0, $returnNumRows, $kemuColumns);
+      $results = $imumodule->fetch('start', 0, (int)$returnNumRows, $kemuColumns);
       /* if there are any rows returned */
       if($results->hits){
         /* if export as xml checkbox ticked */
@@ -297,9 +297,8 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
     $form['returnNumRows'] = array(
       '#type' => 'textfield',
       '#title' => t('Return number of rows'),
-      '#description' => t('Enter the number of rows to return.'),
-      '#default_value' => isset($this->config['returnNumRows']) ? $this->config['returnNumRows'] : '500',
-      '#required' => TRUE
+      '#description' => t('Enter the number of rows to return. Leave blank to import all returned rows.'),
+      '#default_value' => isset($this->config['returnNumRows']) ? $this->config['returnNumRows'] : '500'
     );
     $form['imuVersion'] = array(
       '#type' => 'item',
@@ -373,14 +372,19 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
     $form['returnNumRows'] = array(
       '#type' => 'textfield',
       '#title' => t('Return number of rows'),
-      '#description' => t('Enter the number of rows to return.'),
-      '#default_value' => isset($source_config['returnNumRows']) ? $source_config['returnNumRows'] : '500',
-      '#required' => TRUE
+      '#description' => t('Enter the number of rows to return. Leave blank to import all returned rows.'),
+      '#default_value' => isset($source_config['returnNumRows']) ? $source_config['returnNumRows'] : '500'
     );
     $form['imuVersion'] = array(
       '#type' => 'item',
       '#title' => t('IMU version'),
       '#markup' => t('Using IMu API version ' . IMu::VERSION)
+    );
+    // needed for xml import
+    $form['source'] = array(
+      '#type' => 'hidden',
+      '#default_value' => "IMU v. " . IMu::VERSION,
+      '#required' => TRUE
     );
     return $form;
   }
@@ -393,7 +397,6 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
     $kemuHost = $values['kemuHost'];
     $kemuPort = $values['kemuPort'];
     $importTo = $values['importTo'];
-    $returnNumRows = $values['returnNumRows'];
     if(empty($importTo)){
       form_set_error('feeds][importTo', t('You must enter a place to import to.'));
     }
@@ -405,9 +408,6 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
     }
     if(empty($kemuPort) || $kemuPort == '00000'){
       form_set_error('feeds][kemuPort', t('You must enter a valid KEMU server port number'));
-    }
-    if(empty($returnNumRows)){
-      form_set_error('feeds][returnNumRows', t('You must enter the number of rows to return'));
     }
   }
 }
