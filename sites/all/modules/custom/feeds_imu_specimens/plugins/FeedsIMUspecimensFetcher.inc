@@ -35,6 +35,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
     $kemuPort = trim($source_config['kemuPort']);
     $asXML = trim($source_config['asXML']);
     $returnNumRows = trim($source_config['returnNumRows']);
+    $returnNumRows = $returnNumRows ? $returnNumRows : -1;
     if($importTo == 'specimen_observation'){
       $moduleName = 'ecatalogue';
       $termArray = array(
