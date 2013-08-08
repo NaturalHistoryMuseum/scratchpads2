@@ -1,0 +1,42 @@
+<?php
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function feeds_xpathparser_xtd_ctools_plugin_api($owner, $api){
+  if($owner == 'feeds' && $api == 'plugins'){return array(
+      'version' => 1
+    );}
+}
+
+/**
+ * Implements hook_ctools_plugin_type().
+ */
+function feeds_xpathparser_xtd_ctools_plugin_type(){
+  return array(
+    'plugins' => array(
+      'cache' => TRUE,
+      'use hooks' => TRUE,
+      'classes' => array(
+        'handler'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_feeds_plugins().
+ */
+function feeds_xpathparser_xtd_feeds_plugins(){
+  return array(
+    'FeedsXPathParserMemory' => array(
+      'name' => t('XPath XML extended parser'),
+      'description' => t('Parse XML using XPath.'),
+      'handler' => array(
+        'parent' => 'FeedsParser',
+        'class' => 'FeedsXPathParserMemory',
+        'file' => 'FeedsXPathParserMemory.inc'
+      )
+    )
+  );
+}
