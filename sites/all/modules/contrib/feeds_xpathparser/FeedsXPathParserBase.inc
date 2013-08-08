@@ -452,10 +452,14 @@ abstract class FeedsXPathParserBase extends FeedsParser {
     $mappings = $this->filterMappings(feeds_importer($this->id)->processor->config['mappings']);
     $next = 0;
     if (!empty($mappings)) {
-      $keys = array_keys($mappings);
-      $last_mapping = end($keys);
-      $next = explode(':', $last_mapping);
-      $next = $next[1] + 1;
+      // Mappings can be re-ordered, so find the max.
+      foreach (array_keys($mappings) as $key) {
+        list(, $index) = explode(':', $key);
+        if ($index > $next) {
+          $next = $index;
+        }
+      }
+      $next++;
     }
     return array(
       'xpathparser:' . $next => array(
