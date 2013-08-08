@@ -188,8 +188,7 @@ class FeedsIMUspecimensFetcher extends FeedsFetcher{
        * and port
        */
       $imusession = new IMuSession($kemuHost, $kemuPort);
-	  $imusession->timeout= 300;
-      /* access a KEmu module/table */
+	  /* access a KEmu module/table */
       $imumodule = new IMuModule($moduleName, $imusession);
       /*
        * search the module/table findTerms is the most flexible way to search
