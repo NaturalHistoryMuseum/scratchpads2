@@ -3,14 +3,82 @@
  * @file
  * Code for the Biography feature.
  */
-
-include_once('scratchpads_biography.features.inc');
+include_once ('scratchpads_biography.features.inc');
 
 /**
- * Implements hook_form_formid_alter()
+ * Implements hook_form_FORM_ID_alter()
  * 
  * Change 'none' to 'unknown' in the drop down list for gender
  */
-function scratchpads_biography_form_user_register_form_alter(&$form, &$form_state, $form_id) {  
-    $form['field_gender'][LANGUAGE_NONE]['#options']['_none'] = t('Unknown');
+function scratchpads_biography_form_user_register_form_alter(&$form, &$form_state, $form_id){
+  $form['field_gender'][LANGUAGE_NONE]['#options']['_none'] = t('Unknown');
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ * 
+ * Add a header to the biography views exposed filter form
+ */
+function scratchpads_biography_form_views_exposed_form_alter(&$form, &$form_state, $form_id){
+  if($form['#id'] == 'views-exposed-form-biography-page'){
+    $form['#prefix'] = '<h3>Filter Results</h3>';
+  }
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function scratchpads_biography_field_formatter_info(){
+  return array(
+    'scratchpads_biography_link_to_orcid' => array(
+      'label' => t('Link to Orcid'),
+      'description' => t('Creates a link to the Orcid website'),
+      'field types' => array(
+        'text'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function scratchpads_biography_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  $element = array();
+  switch($display['type']){
+    case 'scratchpads_biography_link_to_orcid':
+      foreach($items as $delta => $item){
+        $element[$delta] = array(
+          '#type' => 'markup',
+          '#markup' => _scratchpads_biography_add_orcid_link($item['value'])
+        );
+      }
+      break;
+  }
+  return $element;
+}
+
+/**
+ *  Helper function.
+ *  Adds link to Orcid page
+ */
+function _scratchpads_biography_add_orcid_link($value){
+  $link = "<a href='http://orcid.org/" . trim($value) . "'>" . $value . "</a>";
+  return $link;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ * Remove 'link_to_orcid' option for all fields except 'field_orcid'
+ */
+function scratchpads_biography_form_field_ui_display_overview_form_alter(&$form, &$form_state, $form_id){
+  foreach($form['fields'] as $name => $details){
+    $match = 0;
+    if(is_array($details)){
+      $match = isset($details['format']['type']['#options']['scratchpads_biography_link_to_orcid']);
+    }
+    if(($name != 'field_orcid') && ($match)){
+      unset($form['fields'][$name]['format']['type']['#options']['scratchpads_biography_link_to_orcid']);
+    }
+  }
 }

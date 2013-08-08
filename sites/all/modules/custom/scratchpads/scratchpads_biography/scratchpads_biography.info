@@ -39,3 +39,5 @@ features[field_group][] = "group_born_place|user|user|form"
 features[field_group][] = "group_died_place|user|user|form"
 features[views_view][] = "biography"
 tool=true
+
+stylesheets[all][] = css/scratchpads_biography.css

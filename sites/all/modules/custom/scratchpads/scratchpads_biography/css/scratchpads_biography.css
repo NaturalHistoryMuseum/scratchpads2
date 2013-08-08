@@ -1,0 +1,88 @@
+/*
+ * User form - Biography section
+ */
+
+.page-admin-people #field-birth-date-add-more-wrapper .fieldset-title,#field-death-date-add-more-wrapper .fieldset-title,
+.page-admin-people #user_user_form_group_biography .vertical-tabs-pane .fieldset-title
+	{
+	background: none repeat scroll 0 0 #F6F6F6;
+	padding: 4px 9px 5px;
+}
+
+.page-admin-people #field-alternative-name-values{
+    float:left;
+    margin-top:8px;
+}
+
+/*
+ * Biography View
+ */
+
+.view-biography .view-filters {
+	background: #F6F6F6;
+    padding:1%;   
+}
+
+.view-biography ul li.views-row-odd{
+	background-color: #EDEDED;
+}
+
+.view-biography ul li.views-row div{
+	padding:2px;
+	padding-left:10px;
+    padding-right:10px;
+}
+
+.view-biography .views-field-picture {
+	float:right;
+    vertical-align: none;
+    padding:20px;
+}
+
+.view-biography .view-filters {	
+	float:left;  
+     width:28%;   
+}
+
+.view-biography .view-content {
+	float:right;   
+     width:70%;
+}
+
+.view-biography .form-text {
+    width: 240px;
+}
+
+.view-biography .views-exposed-form .views-submit-button{	
+	padding-left:1em;
+}
+
+
+/*
+ * Individual User page
+ */
+
+.page-user div.field-label {
+	width:250px;
+	padding:2px;
+}
+
+.page-user .user-picture {
+	position:absolute;
+    right:20px;
+    top:100px;
+}
+
+.page-user .user-profile-item{
+	font-size:1.1em;
+    display:inline-block;
+}
+
+.page-user .field-name-field-biography{
+	margin-top:1em;
+}
+
+.page-user .view-filters h3 {
+    margin: 2px 0 5px;
+}
+
