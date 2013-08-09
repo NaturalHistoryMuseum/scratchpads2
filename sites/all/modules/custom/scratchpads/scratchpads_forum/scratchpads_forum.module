@@ -117,6 +117,7 @@ function scratchpads_forum_block_view($delta = ''){
  * Reorders the tree, adds the data, and adds a count.
  */
 function _scratchpads_forum_tree_add_data($branch, $forum_tree, $forum_count_array){
+  // dpm($branch);;
   $output = array();
   foreach($branch as $key => $twig){
     if(is_array($twig)){
@@ -129,24 +130,22 @@ function _scratchpads_forum_tree_add_data($branch, $forum_tree, $forum_count_arr
         $key => $twig
       ) + $output;
     }
-    if(count($branch) >= 1){
+    if(count($twig) == 1){
       if(($forum_tree->forums[$key]->is_container == FALSE) && (!isset($forum_tree->forums[$key]->container))){
         $f_name = $forum_tree->forums[$key]->name;
         if($f_name != ''){
-          foreach($branch as $inner_branch){
-            if((arg(1) == $key) && (arg(0) == 'forum')){
-              $twig2 = array(
-                'data' => $f_name . $forum_count_array[$key]
-              );
-            }else{
-              $twig2 = array(
-                'data' => l($f_name, 'forum/' . $key) . $forum_count_array[$key]
-              );
-            }
-            $output = array(
-              $key => $twig2
-            ) + $output;
+          if((arg(1) == $key) && (arg(0) == 'forum')){
+            $twig2 = array(
+              'data' => $f_name . $forum_count_array[$key]
+            );
+          }else{
+            $twig2 = array(
+              'data' => l($f_name, 'forum/' . $key) . $forum_count_array[$key]
+            );
           }
+          $output = array(
+            $key => $twig2
+          ) + $output;
         }
       }
     }
