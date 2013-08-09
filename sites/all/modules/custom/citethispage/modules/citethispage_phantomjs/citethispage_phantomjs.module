@@ -60,24 +60,13 @@ function citethispage_phantomjs_menu(){
     ),
     'access callback' => 'user_access',
     'access arguments' => array(
-      'citethispage_phantomjs_admin'
+      'citethispage_admin'
     ),
     'file' => 'citethispage_phantomjs.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 10
   );
   return $items;
-}
-
-/**
- * Implements hook_permission
- */
-function citethispage_phantomjs_permission(){
-  return array(
-    'citethispage_phantomjs_admin' => array(
-      'title' => t('Administer Cite this Page PhantomJS')
-    )
-  );
 }
 
 /**
@@ -109,6 +98,7 @@ function citethispage_phantomjs_form_citethispage_backend_selection_form_alter(&
       '#default_value' => isset($form_state['values']['citethispage_phantomjs_msg']) ? $form_state['values']['citethispage_phantomjs_msg'] : 1
     );
     $preview_mode = variable_get('citethispage_phantomjs_preview', 2);
+    global $user;
     if($preview_mode == 2 || ($user->uid > 0 && $preview_mode == 1)){
       drupal_add_library('system', 'ui.dialog');
       drupal_add_js(drupal_get_path('module', 'citethispage_phantomjs') . '/js/citethispage_phantomjs.js');

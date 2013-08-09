@@ -39,24 +39,13 @@ function citethispage_wget_menu(){
     ),
     'access callback' => 'user_access',
     'access arguments' => array(
-      'citethispage_wget_admin'
+      'citethispage_admin'
     ),
     'file' => 'citethispage_wget.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 10
   );
   return $items;
-}
-
-/**
- * Implements hook_permission
- */
-function citethispage_wget_permission(){
-  return array(
-    'citethispage_wget_admin' => array(
-      'title' => t('Administer Cite this Page Wget')
-    )
-  );
 }
 
 /**
@@ -88,6 +77,7 @@ function citethispage_wget_form_citethispage_backend_selection_form_alter(&$form
       '#default_value' => isset($form_state['values']['citethispage_wget_msg']) ? $form_state['values']['citethispage_wget_msg'] : 1
     );
     $preview_mode = variable_get('citethispage_wget_preview', 2);
+    global $user;
     if($preview_mode == 2 || ($user->uid > 0 && $preview_mode == 1)){
       drupal_add_library('system', 'ui.dialog');
       drupal_add_js(drupal_get_path('module', 'citethispage_wget') . '/js/citethispage_wget.js');
