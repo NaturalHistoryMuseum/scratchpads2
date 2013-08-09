@@ -251,6 +251,18 @@ function citethispage_backend_selection_form_submit($form, &$form_state){
   $results['form_state'] = $form_state;
   $function = $form_state['citethispage_info']['callback'];
   $function($path, $results);
+  global $user;
+  if($user->uid == 0){
+    // Add a query string to ensure the result page is not cached.
+    $form_state['redirect'] = array(
+      $_GET['q'],
+      array(
+        'query' => array(
+          'citethispage' => substr(md5(rand()), 0, 5)
+        )
+      )
+    );
+  }
 }
 
 /**
