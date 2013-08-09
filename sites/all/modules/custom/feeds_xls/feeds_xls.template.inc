@@ -169,6 +169,9 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
   foreach($entities as $entity_id => $entity){
     // Create a row array for each entity.
     $row_values = array();
+    if($entity->name == 'Goeldinia'){
+      $break = 'here';
+    }
     foreach($feeds_importer->processor->config['mappings'] as $key => $mapping){
       $row_values[$key] = '';
       if(strpos($mapping['target'], ':')){
@@ -248,12 +251,14 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
             $row = db_select('taxonomy_term_hierarchy', 't')->fields('t')->condition('tid', $entity_id)->execute()->fetch();
             if($row && $row->parent){
               $parent_term = taxonomy_term_load($row->parent);
-              $guid = FALSE;
-              if(isset($parent_term->uuid)){
-                $guid = $parent_term->uuid;
+              if($parent_term){
+                $guid = FALSE;
+                if(isset($parent_term->uuid)){
+                  $guid = $parent_term->uuid;
+                }
+                $feeds_item = feeds_xls_get_or_generate_feeds_item_entry($context['sandbox']['entity'], $parent_term->tid, $feeds_importer->id, $guid);
+                $row_values[$key] = _feeds_xls_get_value($feeds_item['guid']);
               }
-              $feeds_item = feeds_xls_get_or_generate_feeds_item_entry($context['sandbox']['entity'], $parent_term->tid, $feeds_importer->id, $guid);
-              $row_values[$key] = _feeds_xls_get_value($feeds_item['guid']);
             }
             break;
           case 'parent':
