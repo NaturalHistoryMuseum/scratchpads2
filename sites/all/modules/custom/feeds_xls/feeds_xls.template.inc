@@ -169,9 +169,6 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
   foreach($entities as $entity_id => $entity){
     // Create a row array for each entity.
     $row_values = array();
-    if($entity->name == 'Goeldinia'){
-      $break = 'here';
-    }
     foreach($feeds_importer->processor->config['mappings'] as $key => $mapping){
       $row_values[$key] = '';
       if(strpos($mapping['target'], ':')){
