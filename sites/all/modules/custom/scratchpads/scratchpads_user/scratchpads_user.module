@@ -122,6 +122,7 @@ function scratchpads_user_module_implements_alter(&$imps, $hook){
  * loginless changes.
  */
 function scratchpads_user_form_user_register_form_alter(&$form, &$form_state){
+  
   _scratchpads_user_form_alter($form, $form_state);
   if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
     $handlers = array(
@@ -293,22 +294,47 @@ function scratchpads_user_allow_picture_validate($form, &$form_state){
  * not allowing login!
  */
 function scratchpads_user_user_register_validate($form, &$form_state){
+  
+  // Moving this here allows us to add values
+  $no_error_array= array(
+    'mail',
+    'field_user_country',
+    'field_user_given_names'
+  );
+  
+  // Do the same as in the form alter function
+  _scratchpads_user_form_alter($form, $form_state);
+  if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
+    $handlers = array(
+      'scratchpads_user_register_form_pre_submit',
+      'user_register_submit',
+      'scratchpads_user_register_form_post_submit'
+    );
+    _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
+    
+    scratchpads_user_register_form_pre_submit($form, $form_state);
+    
+    // Clear old errors and prevent new errors on username and password
+    // as both are automatically generated
+    scratchpads_user_register_form_post_submit_clear_error($form, $form_state);
+    $no_error_array[] = 'name';
+    $no_error_array[] = 'pass';
+  }
+ 
+  
   if(!$form_state['values']['create_user_account']){
     $errors = form_get_errors();
     $set_errors = FALSE;
     foreach($errors as $key => $error){
       $key_parts = explode(']', $key);
-      if(in_array($key_parts[0], array(
-        'mail',
-        'field_user_country',
-        'field_user_given_names'
-      ))){
+      if(in_array($key_parts[0], $no_error_array)){
         $set_errors = TRUE;
         unset($errors[$key]);
       }
     }
     if($set_errors){
       form_clear_error();
+      
       foreach($errors as $key => $msg){
         form_set_error($key, $msg);
       }

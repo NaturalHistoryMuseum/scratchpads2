@@ -5,6 +5,7 @@
  * 
  * Add the user keywords vocabulary
  */
+/*
 function scratchpads_biography_enable(){
   $vocabularies = array(
     'user_keywords' => array(
@@ -36,6 +37,8 @@ function scratchpads_biography_enable(){
     taxonomy_vocabulary_save($vocabulary);
   }
 }
+*/
+
 /*
  * Implements hook_disable
  */

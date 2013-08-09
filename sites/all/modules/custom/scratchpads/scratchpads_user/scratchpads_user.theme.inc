@@ -18,8 +18,8 @@ function theme_scratchpads_user_register_form($variables){
     $output .= drupal_render($variables['form'][$field_name]);
   }
   // Add biography, if it exists
-  if(isset($variables['form']['group_biography'])){
-    $output .= drupal_render($variables['form']['group_biography']);
+  if(isset($variables['form']['group_tabs'])){
+    $output .= drupal_render($variables['form']['group_tabs']);
   }
   $output .= '
     </div>

@@ -17,6 +17,18 @@
     margin-top:8px;
 }
 
+#edit-field-user-title {
+	border:0px;
+}
+
+
+.page-user .fieldset.titled .fieldset-content,
+.page-admin-people .fieldset.titled .fieldset-content{
+    display: block;
+    padding-top: 30px;
+    padding-bottom:30px;
+}
+
 /*
  * Biography View
  */
@@ -88,4 +100,6 @@
 .page-user .view-filters h3 {
     margin: 2px 0 5px;
 }
+
+
 
