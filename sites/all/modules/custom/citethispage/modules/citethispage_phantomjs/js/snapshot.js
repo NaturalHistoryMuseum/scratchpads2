@@ -27,6 +27,12 @@ var callback = function (status) {
     phantom.exit(1);
   } else {
     window.setTimeout(function () {
+      if (output.substr(-4) === '.pdf') {
+        var height = page.evaluate(function() {
+          return document.height
+        });
+        page.paperSize = {width: '21cm', height: Math.ceil(2+21*height/1024).toString() + "cm", margin: '1cm'}
+      }
       page.render(output);
       phantom.exit(0);
    }, 500);

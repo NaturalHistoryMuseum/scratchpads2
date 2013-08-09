@@ -69,7 +69,8 @@ function citethispage_theme($existing, $type, $theme, $path){
 function citethispage_block_info(){
   $items = array();
   $items['citethispage_block'] = array(
-    'info' => t('Cite this page block')
+    'info' => t('Cite this page block'),
+    'cache' => DRUPAL_NO_CACHE
   );
   return $items;
 }
