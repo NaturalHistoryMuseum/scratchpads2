@@ -1,11 +1,19 @@
 <?php
 
 /**
+ * Implement hook_install
+ */
+function scratchpads_citethispage_install(){
+  variable_set('citethispage_phantomjs_tool', '/usr/local/bin/phantomjs [citethispage_phantomjs:pathtospadmodule]/js/scratchpads_citethispage_snapshot.js [citethispage_phantomjs:url] http://cite.scratchpads.eu /var/www/cite.scratchpads.eu [citethispage_phantomjs:post] [citethispage_phantomjs:destination]');
+  variable_set('citethispage_phantomjs_destination', '');
+}
+
+/**
  * Implement hook_enable
  * 
  * Ensure blocks are rebuild
  */
-function scratchpads_citethispage_enable() {
+function scratchpads_citethispage_enable(){
   block_flush_caches();
 }
 
@@ -18,5 +26,15 @@ function scratchpads_citethispage_enable() {
 function scratchpads_citethispage_disable(){
   // We need to disable the modules once everything else has done. So we register
   // a shutdown function with arguments.
-  drupal_register_shutdown_function('module_disable', array('citethispage'));
+  drupal_register_shutdown_function('module_disable', array(
+    'citethispage'
+  ));
+}
+
+/**
+ * Change the phantomjs script
+ */
+function scratchpads_citethispage_update_7001(){
+  variable_set('citethispage_phantomjs_tool', '/usr/local/bin/phantomjs [citethispage_phantomjs:pathtospadmodule]/js/scratchpads_citethispage_snapshot.js [citethispage_phantomjs:url] http://cite.scratchpads.eu /var/www/cite.scratchpads.eu [citethispage_phantomjs:post] [citethispage_phantomjs:destination]');
+  variable_set('citethispage_phantomjs_destination', '');
 }

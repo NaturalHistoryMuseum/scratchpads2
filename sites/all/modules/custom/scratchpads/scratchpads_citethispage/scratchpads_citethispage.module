@@ -148,3 +148,34 @@ function scratchpads_citethispage_scratchpads_default_permissions(){
     )
   );
 }
+
+/**
+ * Implement hook_token_info
+ */
+function scratchpads_citethispage_token_info(){
+  $data = array();
+  $data['tokens']['citethispage_phantomjs'] = array(
+    'pathtospadmodule' => array(
+      'name' => t('Path to scratchpads module'),
+      'description' => t("The path to the scratchpads_citethispage module")
+    )
+  );
+  return $data;
+}
+
+/**
+ * Implement hook_tokens
+ */
+function scratchpads_citethispage_tokens($type, $tokens, $data = array(), $options = array()){
+  if($type != 'citethispage_phantomjs'){return NULL;}
+  $replacements = array(
+    'pathtospadmodule' => drupal_realpath(drupal_get_path('module', 'scratchpads_citethispage'))
+  );
+  $result = array();
+  foreach($tokens as $name => $original){
+    if(isset($replacements[$name])){
+      $result[$original] = $replacements[$name];
+    }
+  }
+  return $result;
+}
