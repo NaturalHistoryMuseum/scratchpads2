@@ -38,7 +38,7 @@ function citethispage_wget_settings_form($form, &$form_state){
   );
   $form['citethispage_wget_destination'] = array(
     '#type' => 'textfield',
-    '#required' => TRUE,
+    '#required' => FALSE,
     '#title' => t('Destination'),
     '#description' => t('The destination folder for the archive.'),
     '#default_value' => variable_get('citethispage_wget_destination', CITETHISPAGE_WGET_DEFAULT_DESTINATION)

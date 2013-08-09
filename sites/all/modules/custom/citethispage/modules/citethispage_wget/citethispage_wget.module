@@ -230,23 +230,28 @@ function citethispage_wget_archive($path, $result, $preview = FALSE){
     $destination = variable_get('citethispage_wget_destination', CITETHISPAGE_WGET_DEFAULT_DESTINATION);
     $destination = token_replace($destination, $tokens);
   }
-  $final_destination = $destination;
-  $unique = 1;
-  while(file_exists($final_destination)){
-    $final_destination = preg_replace('/^(.+?)(\.[^\.\/]+|\/)?$/', '$1-' . $unique . '$2', $destination);
-    $unique++;
-  }
-  // Attempt to create the directory
-  if(!is_dir($final_destination)){
-    if(!drupal_mkdir($final_destination, NULL, TRUE)){
-      drupal_set_message(t('An error occured while generating the snapshot'), 'error');
-      watchdog('citethispage_wget', "Could not create directory %directory", array(
-        '%directory' => $final_destination
-      ), WATCHDOG_ERROR);
-      return;
+  if(!empty($destination)){
+    $final_destination = $destination;
+    $unique = 1;
+    while(file_exists($final_destination)){
+      $final_destination = preg_replace('/^(.+?)(\.[^\.\/]+|\/)?$/', '$1-' . $unique . '$2', $destination);
+      $unique++;
     }
+    // Attempt to create the directory
+    if(!is_dir($final_destination)){
+      if(!drupal_mkdir($final_destination, NULL, TRUE)){
+        drupal_set_message(t('An error occured while generating the snapshot'), 'error');
+        watchdog('citethispage_wget', "Could not create directory %directory", array(
+          '%directory' => $final_destination
+        ), WATCHDOG_ERROR);
+        return;
+      }
+    }
+    $data->destination = $final_destination;
+  }else{
+    $data->destination = '';
+    $final_destination = '';
   }
-  $data->destination = $final_destination;
   // Check if we should inject a message
   $rand_token_id = substr(md5(rand()), 0, 7);
   $data->post = 'citethispage_wget_msg_token=' . urlencode($rand_token_id);
@@ -286,23 +291,28 @@ function citethispage_wget_archive($path, $result, $preview = FALSE){
     return;
   }
   // Get the final path
-  $file_path = $final_destination . '/' . preg_replace('/^.*?:\/\//', '', $data->url);
-  if(!file_exists($file_path)){
-    if(!file_exists($file_path . '.html')){
-      drupal_set_message(t('An error occured while generating the snapshot', 'error'));
-      watchdog('citethispage_wget', "Could not locate the generated file at %path or %path.html", array(
-        '%path' => $file_path
-      ), WATCHDOG_ERROR);
-      return;
+  if($final_destination){
+    $file_path = $final_destination . '/' . preg_replace('/^.*?:\/\//', '', $data->url);
+    if(!file_exists($file_path)){
+      if(!file_exists($file_path . '.html')){
+        drupal_set_message(t('An error occured while generating the snapshot', 'error'));
+        watchdog('citethispage_wget', "Could not locate the generated file at %path or %path.html", array(
+          '%path' => $file_path
+        ), WATCHDOG_ERROR);
+        return;
+      }
+      $file_path .= '.html';
     }
-    $file_path .= '.html';
+    $file_path = file_create_url($file_path);
+  }else{
+    $file_path = trim(implode('', $output));
   }
   if(!$preview){
     drupal_set_message(t('Your snapshot has been generated and is available at !path', array(
-      '!path' => l(file_create_url($file_path), file_create_url($file_path))
+      '!path' => l($file_path, $file_path)
     )));
   }
-  return file_create_url($file_path);
+  return $file_path;
 }
 
 /**

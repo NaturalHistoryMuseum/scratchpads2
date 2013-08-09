@@ -221,7 +221,9 @@ function citethispage_phantomjs_tokens($type, $tokens, $data = array(), $options
   ), $citethispage);
   $result = array();
   foreach($tokens as $name => $original){
-    $result[$original] = $replacements[$name];
+    if(isset($replacements[$name])){
+      $result[$original] = $replacements[$name];
+    }
   }
   return $result;
 }
@@ -262,23 +264,28 @@ function citethispage_phantomjs_archive($path, $result, $preview = FALSE){
     $destination = _citethispage_phantomjs_var_get('citethispage_phantomjs_destination');
     $destination = token_replace($destination, $tokens);
   }
-  $final_destination = $destination;
-  $unique = 1;
-  while(file_exists($final_destination)){
-    $final_destination = preg_replace('%^(.+?)(\.[^\./]+|/)?$%', '$1-' . $unique . '$2', $destination);
-    $unique++;
-  }
-  // Attempt to create the directory
-  if(!is_dir(dirname($final_destination))){
-    if(!drupal_mkdir(dirname($final_destination), NULL, TRUE)){
-      drupal_set_message(t('An error occured while generating the snapshot'), 'error');
-      watchdog('citethispage_phantomjs', "Could not create directory %directory", array(
-        '%directory' => dirname($final_destination)
-      ), WATCHDOG_ERROR);
-      return;
+  if(!empty($destination)){
+    $final_destination = $destination;
+    $unique = 1;
+    while(file_exists($final_destination)){
+      $final_destination = preg_replace('%^(.+?)(\.[^\./]+|/)?$%', '$1-' . $unique . '$2', $destination);
+      $unique++;
     }
+    // Attempt to create the directory
+    if(!is_dir(dirname($final_destination))){
+      if(!drupal_mkdir(dirname($final_destination), NULL, TRUE)){
+        drupal_set_message(t('An error occured while generating the snapshot'), 'error');
+        watchdog('citethispage_phantomjs', "Could not create directory %directory", array(
+          '%directory' => dirname($final_destination)
+        ), WATCHDOG_ERROR);
+        return;
+      }
+    }
+    $data->destination = $final_destination;
+  }else{
+    $data->destination = '';
+    $final_destination = '';
   }
-  $data->destination = $final_destination;
   // Check if we should inject a message
   $rand_token_id = substr(md5(rand()), 0, 7);
   $data->post = 'citethispage_phantomjs_msg_token=' . urlencode($rand_token_id);
@@ -313,24 +320,29 @@ function citethispage_phantomjs_archive($path, $result, $preview = FALSE){
     ), WATCHDOG_ERROR);
     return;
   }
-  // Ensure it worked by chekcing the file exits
-  if(!file_exists($final_destination)){
-    drupal_set_message(t('An error occured while generating the snapshot', 'error'));
-    watchdog('citethispage_phantomjs', "Could not locate the generated file at %path", array(
-      '%path' => $final_destination
-    ), WATCHDOG_ERROR);
-    return;
+  if($final_destination){
+    // Ensure it worked by chekcing the file exits
+    if(!file_exists($final_destination)){
+      drupal_set_message(t('An error occured while generating the snapshot', 'error'));
+      watchdog('citethispage_phantomjs', "Could not locate the generated file at %path", array(
+        '%path' => $final_destination
+      ), WATCHDOG_ERROR);
+      return;
+    }
+    $file_path = file_create_url($final_destination);
+  }else{
+    $file_path = trim(implode('', $output));
   }
   if(!$preview){
     drupal_set_message(t('Your snapshot has been generated and is available at !path', array(
-      '!path' => l(file_create_url($final_destination), file_create_url($final_destination), array(
+      '!path' => l($file_path, $file_path, array(
         'attributes' => array(
           'target' => '_blank'
         )
       ))
     )));
   }
-  return file_create_url($final_destination);
+  return $file_path;
 }
 
 /**

@@ -35,9 +35,9 @@ function citethispage_phantomjs_settings_form($form, &$form_state){
   );
   $form['citethispage_phantomjs_destination'] = array(
     '#type' => 'textfield',
-    '#required' => TRUE,
+    '#required' => FALSE,
     '#title' => t('Destination'),
-    '#description' => t('The destination path for the generated file. Use ".pdf" extention to generate a PDF, and ".png" to generate a PNG.'),
+    '#description' => t('The destination path for the generated file. Use ".pdf" extention to generate a PDF, and ".png" to generate a PNG. Leave this empty if you want to manage the destination via your phantomjs script instead.'),
     '#default_value' => _citethispage_phantomjs_var_get('citethispage_phantomjs_destination')
   );
   $form['token_help'] = array(
