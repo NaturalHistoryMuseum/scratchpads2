@@ -117,7 +117,6 @@ function scratchpads_forum_block_view($delta = ''){
  * Reorders the tree, adds the data, and adds a count.
  */
 function _scratchpads_forum_tree_add_data($branch, $forum_tree, $forum_count_array){
-  // dpm($branch);;
   $output = array();
   foreach($branch as $key => $twig){
     if(is_array($twig)){
@@ -219,7 +218,7 @@ function scratchpads_forum_tree(){
       unset($tree[$tid]);
       $f_id = $forum_tree->forums[$tid]->parents[0];
       $f_name = $forum_tree->forums[$f_id]->name;
-      // add data for parent items     
+      // add data for parent items
       if((arg(1) == $f_id) && (arg(0) == 'forum')){
         $tree[$forum_tree->forums[$tid]->parents[0]]['data'] = $f_name . $forum_count_array[$f_id];
       }else{
