@@ -142,6 +142,7 @@ function _scratchpads_hands_off_hidden_urls(){
     'admin/config/content/biblio/export',
     'admin/config/content/biblio/citeproc',
     'admin/config/content/diff',
+    'admin/config/media/file-system',
     'admin/config/regional/date-time',
     'admin/config/search/sitemap',
     'admin/config/search/clean-urls',
