@@ -97,6 +97,17 @@ function scratchpads_statistics_stats_page(){
   );
   $site = FALSE;
   $user = FALSE;
+  // Filter by a category, which will add a site query.  This can then be
+  // overridden by the site query below.
+  if(isset($_GET['category'])){
+    $sites_with_category = db_select('scratchpads_statistics_site_site_type', 's')->fields('s', array(
+      'site'
+    ))->condition('site_type', $_GET['category'])->execute()->fetchCol();
+    $site = db_or();
+    foreach($sites_with_category as $site_with_category){
+      $site->condition('d.site', $site_with_category);
+    }
+  }
   // Filter the data by this site.
   if(isset($_GET['site'])){
     $site = db_or();
