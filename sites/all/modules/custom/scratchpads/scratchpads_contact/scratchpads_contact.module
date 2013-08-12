@@ -32,6 +32,13 @@ function scratchpads_contact_form_contact_site_form_alter(&$form, &$form_state){
       $form['subject']['#default_value'] = t('Report abuse');
       $form['message']['#title'] = t('Details');
       break;
+    case 'Contact us':
+      $form['help'] = array(
+        '#weight' => -1000,
+        '#markup' => '<div style="border:solid 1px #BBEE77; padding:8px;background-color:#F8FFF0">
+          <p style="padding:0;margin:0"><strong>' . t('Your message will be sent to the site\'s maintainer.') . '</strong></p>
+        </div>'
+      );
   }
   $form['cid'] = array(
     '#type' => 'hidden',
