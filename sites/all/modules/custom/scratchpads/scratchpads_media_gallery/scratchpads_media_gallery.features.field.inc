@@ -12,7 +12,7 @@ function scratchpads_media_gallery_field_default_fields(){
   // Exported field: 'node-media_gallery-body'
   $fields['node-media_gallery-body'] = array(
     'field_config' => array(
-      'locked' => '1',
+      'locked' => '0',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
