@@ -164,17 +164,46 @@ function scratchpads_statistics_get_site_categories($site = 1){
  * Scratchpads statistics facet form.
  */
 function scratchpads_statistics_facet_form($form, $form_state, $type){
+  $query_without = $_GET;
+  unset($query_without[$type]);
+  unset($query_without['q']);
   switch($type){
     case 'category':
+      $items = array();
+      if(!empty($_GET[$type]) && is_array($_GET[$type])){
+        $results = db_select('scratchpads_statistics_site_type', 's')->fields('s')->condition('id', $_GET[$type])->execute()->fetchAll();
+        foreach($results as $row){
+          $items[] = $row->type;
+        }
+      }
+      $types = db_select('scratchpads_statistics_site_type', 's')->fields('s', array(
+        'id',
+        'type'
+      ))->orderBy('type')->execute()->fetchAllKeyed(0, 1);
       return array(
         'scratchpads_stats_facet_type' => array(
           '#type' => 'hidden',
           '#value' => $type
         ),
         'scratchpads_stats_facet_entry' => array(
-          '#type' => 'select'
+          '#type' => 'select',
+          '#title' => '',
+          '#options' => $types,
+          '#empty_option' => t('Select a category')
+        ),
+        'already_selected' => array(
+          '#prefix' => count($items) ? '<h5>Applied filters</h5>' : '',
+          '#suffix' => count($items) ? l(t('Remove @type filters', array(
+            '@type' => $type
+          )), 'stats', array(
+            'query' => $query_without
+          )) : '',
+          '#theme' => 'item_list',
+          '#items' => $items
         ),
         'submit' => array(
+          '#prefix' => '<div style="display:none">',
+          '#suffix' => '</div>',
           '#type' => 'submit',
           '#value' => t('Filter by category')
         ),
@@ -203,9 +232,6 @@ function scratchpads_statistics_facet_form($form, $form_state, $type){
           }
         }
       }
-      $query_without = $_GET;
-      unset($query_without[$type]);
-      unset($query_without['q']);
       return array(
         'scratchpads_stats_facet_type' => array(
           '#type' => 'hidden',
@@ -259,6 +285,11 @@ function scratchpads_statistics_facet_form_submit($form, &$form_state){
   $query = $_GET;
   unset($query['q']);
   switch($form_state['values']['scratchpads_stats_facet_type']){
+    case 'category':
+      $results = db_select('scratchpads_statistics_site_type', 's')->condition('id', $form_state['values']['scratchpads_stats_facet_entry'])->fields('s', array(
+        'id'
+      ))->execute();
+      break;
     case 'term':
       $results = db_select('scratchpads_statistics_term', 's')->condition('term', $form_state['values']['scratchpads_stats_facet_entry'], 'LIKE')->fields('s', array(
         'id'
