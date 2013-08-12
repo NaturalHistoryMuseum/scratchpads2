@@ -12,7 +12,7 @@ function scratchpads_group_field_default_fields($additional_content_type = FALSE
   // Exported field: 'node-group-body'
   $fields['node-group-body'] = array(
     'field_config' => array(
-      'locked' => '1',
+      'locked' => '0',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
