@@ -8,12 +8,21 @@ include_once ('scratchpads_biography.features.inc');
 /**
  * Implements hook_form_FORM_ID_alter()
  * 
- * Change 'none' to 'unknown' in the drop down list for gender
+ * Change 'none' to 'unknown' in the drop down list for gender on user register form
  */
 function scratchpads_biography_form_user_register_form_alter(&$form, &$form_state, $form_id){
   $form['field_gender'][LANGUAGE_NONE]['#options']['_none'] = t('Unknown');
 }
 
+/**
+ * Implements hook_form_FORM_ID_alter()
+ *
+ * Change 'none' to 'unknown' in the drop down list for gender on user edit form
+ */
+function scratchpads_biography_form_user_profile_form_alter(&$form, &$form_state, $form_id){
+  $form['field_gender'][LANGUAGE_NONE]['#options']['_none'] = t('Unknown');
+}
+//
 /**
  * Implements hook_form_FORM_ID_alter()
  * 
@@ -82,3 +91,30 @@ function scratchpads_biography_form_field_ui_display_overview_form_alter(&$form,
     }
   }
 }
+
+/**
+ * Implements hook_field_display_alter().
+ * 
+ * Alter default user fields to display them inline
+ */
+function scratchpads_biography_field_display_alter(&$display, $context){
+  if($context['entity_type'] == 'user' && $context['view_mode'] == 'full'){
+    $matches = array(
+      'field_user_given_names',
+      'field_user_family_name',
+      'field_user_title',
+      'field_user_institution',
+      'field_user_country',
+      'field_user_institution',
+      'field_homepage'
+    );
+    if(isset($context['field']['field_name'])){
+      if(in_array($context['field']['field_name'], $matches)){
+        $display['label'] = 'inline';
+      }
+    }
+  }
+}
+
+
+

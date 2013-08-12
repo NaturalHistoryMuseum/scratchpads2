@@ -67,14 +67,6 @@ function scratchpads_biography_views_default_views() {
   $handler->display->display_options['fields']['field_user_family_name']['alter']['text'] = '<h3><a href=\'/user/[uid]\'>[field_user_given_names] [field_user_family_name]</a></h3>';
   $handler->display->display_options['fields']['field_user_family_name']['element_type'] = 'span';
   $handler->display->display_options['fields']['field_user_family_name']['element_label_colon'] = FALSE;
-  /* Field: User: Picture */
-  $handler->display->display_options['fields']['picture']['id'] = 'picture';
-  $handler->display->display_options['fields']['picture']['table'] = 'users';
-  $handler->display->display_options['fields']['picture']['field'] = 'picture';
-  $handler->display->display_options['fields']['picture']['label'] = '';
-  $handler->display->display_options['fields']['picture']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['picture']['link_photo_to_profile'] = FALSE;
-  $handler->display->display_options['fields']['picture']['image_style'] = 'thumbnail';
   /* Field: User: Country */
   $handler->display->display_options['fields']['field_user_country']['id'] = 'field_user_country';
   $handler->display->display_options['fields']['field_user_country']['table'] = 'field_data_field_user_country';
