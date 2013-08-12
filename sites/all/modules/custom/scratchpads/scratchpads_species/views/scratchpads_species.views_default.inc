@@ -1339,8 +1339,10 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['query']['options']['query_comment'] = FALSE;
   $handler->display->display_options['exposed_form']['type'] = 'basic';
-  $handler->display->display_options['pager']['type'] = 'some';
-  $handler->display->display_options['pager']['options']['items_per_page'] = '5';
+  $handler->display->display_options['pager']['type'] = 'mini';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '10';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['pager']['options']['id'] = '0';
   $handler->display->display_options['style_plugin'] = 'table';
   $handler->display->display_options['style_options']['group_rendered'] = 1;
   $handler->display->display_options['style_options']['columns'] = array(
@@ -1469,7 +1471,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['arguments']['tid']['break_phrase'] = 1;
   $handler->display->display_options['arguments']['tid']['add_table'] = 0;
   $handler->display->display_options['arguments']['tid']['require_value'] = 0;
-  $handler->display->display_options['arguments']['tid']['reduce_duplicates'] = 0;
+  $handler->display->display_options['arguments']['tid']['reduce_duplicates'] = TRUE;
   $handler->display->display_options['arguments']['tid']['set_breadcrumb'] = 0;
   /* Filter criterion: Content: Published */
   $handler->display->display_options['filters']['status']['id'] = 'status';
