@@ -117,6 +117,51 @@ function scratchpads_biography_field_display_alter(&$display, $context){
   }
 }
 
+/**
+ *  Implements theme_user_view()
+ *  
+ *  We hide specific fields and groups when the 'make_this_profile_public' field has not been checked.
+ */
+function scratchpads_biography_user_view($account, $view_mode, $langcode){
+  // Allow users with 'administer users' access to bypass this control
+  if(($account->field_make_this_profile_public_['und'][0]['value'] != 1) && (!user_access('administer users'))){
+    $fields_to_hide = array(
+      'field_biography',
+      'field_birth_date',
+      'field_birth_place',
+      'field_areas_of_professional_inte',
+      'field_example_of_handwriting',
+      'field_gender',
+      'field_alternative_name',
+      'field_standard_form',
+      'field_orcid',
+      'field_main_collaborators_co_auth',
+      'field_known_for',
+      'field_places_worked',
+      'field_user_keywords',
+      'field_comments',
+      'field_related_links'
+    );
+    $field_groups_to_hide = array(
+      'group_work',
+      'group_personal_information',
+      'group_additional_information',
+      'group_names'
+    );
+    foreach($fields_to_hide as $field){
+      if(isset($account->content[$field])){
+        hide($account->content[$field]);
+      }
+    }
+    foreach($field_groups_to_hide as $field_group){
+      if(isset($account->content['#groups'][$field_group])){
+        $account->content['#groups'][$field_group]->format_type = 'hidden';
+      }
+    }
+  }
+}
+
+
 
 
 
