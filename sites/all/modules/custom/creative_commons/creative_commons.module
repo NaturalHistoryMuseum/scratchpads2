@@ -132,7 +132,9 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
   switch($licence_type){
     // These licence types are text only
     case CC_NONE:
-      return array();
+      return array(
+        '#markup' => t('All rights reserved.')
+      );
       break;
     case CC_0:
       $image = $path . '/images/zero.png';

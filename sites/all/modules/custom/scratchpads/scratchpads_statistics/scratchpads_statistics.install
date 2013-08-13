@@ -252,15 +252,18 @@ function scratchpads_statistics_schema(){
         ),
         'scratchpads_statistics_entity_bundle_bundle_index' => array(
           'bundle'
-        ),
-        'scratchpads_statistics_entity_bundle_bundle_index' => array(
-          'bundle'
         )
       ),
       'unique keys' => array(
         'scratchpads_statistics_entity_bundle_entity_bundle_unique' => array(
-          'entity',
-          'bundle'
+          array(
+            'entity',
+            166
+          ),
+          array(
+            'bundle',
+            166
+          )
         )
       )
     ),

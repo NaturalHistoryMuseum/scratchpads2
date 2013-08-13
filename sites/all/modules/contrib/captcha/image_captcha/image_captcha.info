@@ -1,0 +1,18 @@
+name = "Image CAPTCHA"
+description = "Provides an image based CAPTCHA."
+package = "Spam control"
+dependencies[] = captcha
+core = 7.x
+configure = admin/config/people/captcha/image_captcha
+
+files[] = image_captcha.install
+files[] = image_captcha.module
+files[] = image_captcha.admin.inc
+files[] = image_captcha.user.inc
+
+; Information added by drupal.org packaging script on 2013-06-25
+version = "7.x-1.0"
+core = "7.x"
+project = "captcha"
+datestamp = "1372203950"
+
