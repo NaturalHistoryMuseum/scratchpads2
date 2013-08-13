@@ -21,8 +21,10 @@ function scratchpads_biography_enable(){
     }
   }
 }
-/*
- * Implements hook_disable
+/**
+ * Implements hook_disable().
+ * 
+ * Show warning message and disable the biography view
  */
 function scratchpads_biography_disable(){
   drupal_set_message('The biography module has been disabled. Please note that if you wish to remove the biography fields, this needs to be done manually.');

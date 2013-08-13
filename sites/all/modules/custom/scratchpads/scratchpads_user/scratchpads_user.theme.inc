@@ -28,6 +28,7 @@ function theme_scratchpads_user_register_form($variables){
     <div>';
   // Render "create user" checkbox.
   $output .= drupal_render($variables['form']['create_user_account']);
+  $output .= drupal_render($variables['form']['account']);
   // Move the actions element outside of the columns
   $actions = $variables['form']['actions'];
   unset($variables['form']['actions']);

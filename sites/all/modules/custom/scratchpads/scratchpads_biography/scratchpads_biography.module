@@ -106,7 +106,8 @@ function scratchpads_biography_field_display_alter(&$display, $context){
       'field_user_institution',
       'field_user_country',
       'field_user_institution',
-      'field_homepage'
+      'field_homepage',
+      'field_user_taxonomic_interest'
     );
     if(isset($context['field']['field_name'])){
       if(in_array($context['field']['field_name'], $matches)){
@@ -115,6 +116,7 @@ function scratchpads_biography_field_display_alter(&$display, $context){
     }
   }
 }
+
 
 
 
