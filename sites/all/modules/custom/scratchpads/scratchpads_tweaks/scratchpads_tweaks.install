@@ -630,6 +630,12 @@ function scratchpads_tweaks_update_7014(){
     'theme_config_js' => 'f',
     'js_conf' => '',
     'loadPlugins' => array(
+      'scratchpads_backend_tweaks' => array(
+        'name' => 'scratchpads_backend_tweaks',
+        'desc' => 'Ensure that image width/height/align are set as attributes, not as styles when using the image editor',
+        'path' => '%base_path%sites/all/modules/custom/scratchpads/scratchpads_backend/ckeditor/',
+        'buttons' => FALSE
+      ),
       'counter' => array(
         'name' => 'counter',
         'desc' => 'Plugin to count symbols, symbols without blanks and words',
@@ -1187,11 +1193,18 @@ function scratchpads_tweaks_update_7059(){
     'locked' => 0
   ))->condition('field_name', 'body')->execute();
 }
+
+/**
+ * Enable the width/height/align img attribute plugin.
+ */
+function scratchpads_tweaks_update_7060(){
+  scratchpads_tweaks_update_7014();
+}
 /**
  * Uninstall mollom and scratchpads_mollom
  * 
  * FIXME - Please uncomment this function following the 2.1.7 release.
-function scratchpads_tweaks_update_7060(){
+function scratchpads_tweaks_update_7061(){
   drupal_uninstall_modules(array(
     'scratchpads_mollom',
     'mollom'
