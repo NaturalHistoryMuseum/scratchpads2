@@ -42,6 +42,17 @@ function weight_scratchpads_default_permissions(){
 }
 
 /**
+ * GM3 module
+ */
+function gm3_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer gm3'
+    )
+  );
+}
+
+/**
  * EntityConnect module
  */
 function entityconnect_scratchpads_default_permissions(){
