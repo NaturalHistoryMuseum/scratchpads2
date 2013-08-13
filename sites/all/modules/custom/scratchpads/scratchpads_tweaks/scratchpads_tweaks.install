@@ -1200,11 +1200,18 @@ function scratchpads_tweaks_update_7059(){
 function scratchpads_tweaks_update_7060(){
   scratchpads_tweaks_update_7014();
 }
+
+/**
+ * Use the Imagemagick Identify patch
+ */
+function scratchpads_tweaks_update_7061(){
+  variable_set('imagemagick_use_identify', TRUE);
+}
 /**
  * Uninstall mollom and scratchpads_mollom
  * 
  * FIXME - Please uncomment this function following the 2.1.7 release.
-function scratchpads_tweaks_update_7061(){
+function scratchpads_tweaks_update_7062(){
   drupal_uninstall_modules(array(
     'scratchpads_mollom',
     'mollom'
