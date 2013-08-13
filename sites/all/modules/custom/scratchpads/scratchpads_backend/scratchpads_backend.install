@@ -1,22 +1,9 @@
 <?php
 
 /**
- * Add the Scratchpads backend tweaks CKEditor plugin
+ * Removed scratchpads_backend_update_7001 as the scratchpads_tweaks module
+ * defines the CKEditor settings.
  */
-function scratchpads_backend_update_7001(){
-  // Add the backend tweaks to the CKEditor profile
-  $p = ckeditor_profile_load('Default');
-  $p->settings['loadPlugins']['scratchpads_backend_tweaks'] = array(
-    'name' => 'scratchpads_backend_tweaks',
-    'desc' => 'Ensure that image width/height/align are set as attributes, not as styles when using the image editor',
-    'path' => '%base_path%sites/all/modules/custom/scratchpads/scratchpads_backend/ckeditor/',
-    'buttons' => FALSE
-  );
-  db_update('ckeditor_settings')->condition('name', 'Default')->fields(array(
-    'settings' => serialize($p->settings)
-  ))->execute();
-}
-
 /**
  * Add the scratchpads_views_filter module.
  */
