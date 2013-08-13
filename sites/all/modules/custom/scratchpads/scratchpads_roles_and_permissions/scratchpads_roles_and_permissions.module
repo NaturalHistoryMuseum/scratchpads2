@@ -25,6 +25,7 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'filter' => FALSE,
       'formflow' => FALSE,
       'forum' => FALSE,
+      'gm3' => FALSE,
       'googleanalytics' => FALSE,
       'legal' => FALSE,
       'menu' => FALSE,
