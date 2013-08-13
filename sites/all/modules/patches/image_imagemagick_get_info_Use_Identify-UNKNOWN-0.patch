@@ -1,0 +1,24 @@
+diff --git a/imagemagick.module b/imagemagick.module
+index 804338f..ff04143 100644
+--- a/imagemagick.module
++++ b/imagemagick.module
+@@ -347,7 +347,18 @@ function image_imagemagick_save(stdClass $image, $destination) {
+  */
+ function image_imagemagick_get_info(stdClass $image) {
+   $details = FALSE;
+-  $data = getimagesize(drupal_realpath($image->source));
++  if(variable_get('imagemagick_use_identify', FALSE)){
++    $identify_path = str_replace('convert', 'identify', variable_get('imagemagick_convert', 'convert'));
++    $output = exec($identify_path . ' ' . drupal_realpath($image->source));
++    preg_match('/([0-9]*)x([0-9]*)\+[0-9]*\+[0-9]/', $output, $matches);
++    if(count($matches) == 3){
++      $data = array(2 => '', 'mime' => file_get_mimetype($image->source));
++      $data[0] = $matches[1];
++      $data[1] = $matches[2];
++    }
++  } else {
++    $data = getimagesize(drupal_realpath($image->source));
++  }
+ 
+   if (isset($data) && is_array($data)) {
+     $extensions = array('1' => 'gif', '2' => 'jpg', '3' => 'png');
