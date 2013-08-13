@@ -15,7 +15,6 @@ files[] = tests/tableheader.test
 files[] = tests/tabledrag.test
 files[] = tests/states.test
 files[] = tests/upload.test
-files[] = tests/my_selenium_test.test
 files[] = tests/mytest.test
 
 

@@ -14,7 +14,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
   public static function getInfo(){
     return array(
       'name' => 'FeedsXls',
-      'description' => "Test the import of xls files.",
+      'description' => "Test the import of xls files for all default content types.",
       'group' => 'Scratchpads'
     );
   }
@@ -136,12 +136,12 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
    */
   function testNodeImports(){
     $this->drupalLogin($this->admin_user);
-    // $this->validateXlsPageImport();
-    // $this->validateXlsLocationImport();
-    // create a term for a biological vocabulary so that we can reference it in imports
+    $this->validateXlsPageImport();
+    $this->validateXlsLocationImport();
+    //  create a term for a biological vocabulary so that we can reference it in imports
     $tid = $this->createTerm('myterm');
-    // $this->validateXlsPageImportWithTerm($tid);
-    // $this->validateXlsSpecimenObservationImportBasic();
+    $this->validateXlsPageImportWithTerm($tid);
+    $this->validateXlsSpecimenObservationImportBasic();
     $this->validateXlsSpecimenObservationImportWithUsersAndTerms($tid);
   }
 
@@ -214,11 +214,6 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
    */
   function validateXlsLocationImport(){
     $langcode = 'und';
-    // This causes the test to crash - why?
-    //  $entity_type = 'node';
-    //   $bundle = 'location';
-    //   $info = field_info_instances($entity_type, $bundle);
-    //   dpm($info);
     $this->drupalGet('import/node_importer_location');
     $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/location.xls');
     $this->drupalPost('import/node_importer_location', array(
