@@ -305,26 +305,76 @@ form div.entityconnect-add input:hover,form div.entityconnect-edit input:hover
 }
 
 /* entityconnect fixes */
-.entityconnect-add, .entityconnect-edit{
-  padding:0 !important;
+.entityconnect-add,.entityconnect-edit {
+  padding: 0 !important;
 }
-form div.entityconnect-add input,
-form div.entityconnect-edit input {
+
+form div.entityconnect-add input,form div.entityconnect-edit input {
   border: solid 1px #eeeeee !important;
   margin: 3px 3px 3px 0 !important;
-  padding:3px 3px 3px 18px !important;
+  padding: 3px 3px 3px 18px !important;
   background: url(images/add.png) no-repeat !important;
-  background-position:2% 50% !important;
-}  
+  background-position: 2% 50% !important;
+}
+
 form div.entityconnect-edit input {
   background: url(images/pencil.png) no-repeat !important;
-  background-position:0% 50% !important;
+  background-position: 0% 50% !important;
 }
-form div.entityconnect-add input:hover,
-form div.entityconnect-edit input:hover {
-  color:white !important;
-  background-color:#ccc !important;
+
+form div.entityconnect-add input:hover,form div.entityconnect-edit input:hover
+  {
+  color: white !important;
+  background-color: #ccc !important;
 }
+
 .entityconnect-edit input[disabled] {
   background: none;
+}
+
+/* Media browser */
+#media-browser-tabset .ui-state-default.last {
+  padding-bottom: 0;
+}
+#mediaBrowser{
+  overflow-y:auto;
+}
+#media-browser-tabset,#media-browser-tabset .item-list{
+  border:0 !important;
+}
+.media-browser-tab .form-actions {
+  margin-top:10px;
+  background: none repeat scroll 0 0 #EEEEEE;
+  border: 1px solid #DDDDDD;
+  padding: 9px;
+}
+
+.media-browser-tab .fake-submit {
+  margin-right: 5px;
+  box-shadow: 0 1px 1px #DDDDDD;
+  background: url("../rubik/images/buttons.png") no-repeat scroll -1px 50%
+    #FFFFFF;
+  border-color: #DDDDDD #DDDDDD #CCCCCC;
+  background-position: -2401px 50%;
+  padding-left: 25px;
+  border-style: solid;
+  border-width: 1px;
+  color: #333333;
+  cursor: pointer;
+  font-weight: normal;
+  padding: 2px 10px;
+  text-align: center;
+  color: red;
+  border-color: #DDDDDD #DDDDDD #CCCCCC;
+  border-style: solid;
+  border-width: 1px;
+  color: #333333;
+  cursor: pointer;
+  font-weight: normal;
+  padding: 2px 10px;
+  text-align: center;
+  padding-left: 25px;
+}
+.media-browser-tab .media-item{
+  overflow:hidden;
 }

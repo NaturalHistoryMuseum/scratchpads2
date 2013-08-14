@@ -33,6 +33,14 @@
       $(this).addClass('rubik-processed');
     });
   };
+  if(Drupal.media.browser.resizeIframe){
+    Drupal.media.browser.resizeIframe = function (event) {
+      // Add an extra 20 pixels to prevent the scroll bar from thinking it is
+      // actually required.
+      var h = $('body').height() + 20;
+      $(parent.window.document).find('#mediaBrowser').height(h);
+    };
+  }
   if(Drupal.jsAC) {
     /**
      * Override this core function so that we set the minWidth, and not the
