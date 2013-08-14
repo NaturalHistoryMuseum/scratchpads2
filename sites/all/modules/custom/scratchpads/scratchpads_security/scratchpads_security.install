@@ -36,6 +36,12 @@ function scratchpads_security_install(){
   $query->execute();
   // Set the forms that require a CAPTCHA.
   scratchpads_security_flush_caches();
+  // Set the Spambot settings.
+  variable_set('spambot_blocked_message_email', 'Your email address is blacklisted.');
+  variable_set('spambot_blocked_message_ip', 'Your IP address is blacklisted.');
+  variable_set('spambot_cron_user_limit', 1);
+  variable_set('spambot_check_blocked_accounts', 1);
+  variable_set('spambot_spam_account_action', 1);
 }
 
 /**
@@ -58,4 +64,19 @@ function scratchpads_security_uninstall(){
   drupal_register_shutdown_function('drupal_uninstall_modules', array(
     'captcha'
   ));
+}
+
+/**
+ * Enable the spambot module
+ */
+function scratchpads_security_update_7001(){
+  module_enable(array(
+    'spambot'
+  ));
+  // Set the Spambot settings.
+  variable_set('spambot_blocked_message_email', 'Your email address is blacklisted.');
+  variable_set('spambot_blocked_message_ip', 'Your IP address is blacklisted.');
+  variable_set('spambot_cron_user_limit', 1);
+  variable_set('spambot_check_blocked_accounts', 1);
+  variable_set('spambot_spam_account_action', 1);
 }
