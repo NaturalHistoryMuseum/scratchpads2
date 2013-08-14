@@ -328,3 +328,8 @@ form div.entityconnect-edit input:hover {
 .entityconnect-edit input[disabled] {
   background: none;
 }
+
+/* Media browser */
+#media-browser-tabset .ui-state-default.last{
+  padding-bottom:0;
+}
