@@ -336,8 +336,14 @@ form div.entityconnect-add input:hover,form div.entityconnect-edit input:hover
 #media-browser-tabset .ui-state-default.last {
   padding-bottom: 0;
 }
-
+#mediaBrowser{
+  overflow-y:auto;
+}
+#media-browser-tabset,#media-browser-tabset .item-list{
+  border:0 !important;
+}
 .media-browser-tab .form-actions {
+  margin-top:10px;
   background: none repeat scroll 0 0 #EEEEEE;
   border: 1px solid #DDDDDD;
   padding: 9px;
@@ -369,7 +375,6 @@ form div.entityconnect-add input:hover,form div.entityconnect-edit input:hover
   text-align: center;
   padding-left: 25px;
 }
-
 .media-browser-tab .media-item{
   overflow:hidden;
 }
