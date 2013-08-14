@@ -23,6 +23,7 @@
 - Allow filtering by any field in the VBO views (#3104)
 - Fixed a bug with Slickgrid and views with arguments
 - Only show NCBI data for valid terms (#2190)
+- Display user references as full names (#2735)
 
 2.1.6.1 (2013-08-05)
 
