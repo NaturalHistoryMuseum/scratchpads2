@@ -175,6 +175,7 @@ function _scratchpads_hands_off_hidden_urls(){
     'admin/structure/file-types/manage/%/display/file_styles_slideshow_thumbnail',
     'admin/structure/file-types/manage/%/display/file_styles_thumbnail',
     'admin/structure/file-types/manage/%/file-display',
+    'user/%user/spambot',
     'user/1/edit'
   );
 }
