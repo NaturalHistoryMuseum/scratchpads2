@@ -82,9 +82,11 @@ function tui_form_callback($vocabulary, $action, $tids = ''){
         $form = drupal_get_form('taxonomy_form_term', $term);
         // Remove the delete button, as the user should use the "delete" icon.
         unset($form['actions']['delete']);
+        // Add the TID/UUID hidden values so that they can be displayed on the
+        // page.
         print ajax_render(array(
           ajax_command_html('#tui-form-container', drupal_render($form)),
-          ajax_command_html('#tui-name-live h2', $term->name)
+          ajax_command_html('#tui-name-live', '<h3 style="float:left" title="TID : GUID">' . $term->tid . (isset($term->uuid) ? ' : ' . $term->uuid : '') . '</h3><h2>' . $term->name . '</h2>')
         ));
       }else{
         print ajax_render(array(

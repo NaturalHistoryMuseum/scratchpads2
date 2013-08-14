@@ -130,11 +130,14 @@
 #tui-name-live{
  text-align:right;
 }
-#tui-name-live h2{
+#tui-name-live h2, #tui-name-live h3{
  margin:0;
  padding:5px;
 }
-
+#tui-name-live h3{
+  font-weight:400;
+  color:#aaa;
+}
 
 /* LINK BOX */
 #tui-link-box{
