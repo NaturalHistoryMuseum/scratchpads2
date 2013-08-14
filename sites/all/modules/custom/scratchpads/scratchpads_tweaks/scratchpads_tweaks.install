@@ -318,6 +318,12 @@ function scratchpads_tweaks_install(){
   variable_set('apachesolr_optimize_interval', PHP_INT_MAX);
   // Allow insecure derivatives
   variable_set('image_allow_insecure_derivatives', TRUE);
+  // Set the Spambot settings.
+  variable_set('spambot_blocked_message_email', 'Your email address is blacklisted.');
+  variable_set('spambot_blocked_message_ip', 'Your IP address is blacklisted.');
+  variable_set('spambot_cron_user_limit', 1);
+  variable_set('spambot_check_blocked_accounts', 1);
+  variable_set('spambot_spam_account_action', 1);
 }
 
 /**
@@ -1206,6 +1212,21 @@ function scratchpads_tweaks_update_7060(){
  */
 function scratchpads_tweaks_update_7061(){
   variable_set('imagemagick_use_identify', TRUE);
+}
+
+/**
+ * Install Spambot, and set the settings.
+ */
+function scratchpads_tweaks_update_7062(){
+  module_enable(array(
+    'spambot'
+  ));
+  // Set the Spambot settings.
+  variable_set('spambot_blocked_message_email', 'Your email address is blacklisted.');
+  variable_set('spambot_blocked_message_ip', 'Your IP address is blacklisted.');
+  variable_set('spambot_cron_user_limit', 1);
+  variable_set('spambot_check_blocked_accounts', 1);
+  variable_set('spambot_spam_account_action', 1);
 }
 /**
  * Uninstall mollom and scratchpads_mollom
