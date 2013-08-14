@@ -147,6 +147,7 @@ function _scratchpads_hands_off_hidden_urls(){
     'admin/config/development/modal_forms',
     'admin/config/development/performance',
     'admin/config/development/strongarm',
+    'admin/config/media/browser',
     'admin/config/media/file-system',
     'admin/config/regional/countries',
     'admin/config/regional/date-time',
