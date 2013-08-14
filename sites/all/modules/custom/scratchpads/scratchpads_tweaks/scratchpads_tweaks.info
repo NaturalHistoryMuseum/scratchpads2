@@ -50,7 +50,6 @@ dependencies[] = media_multiselect
 dependencies[] = plupload
 dependencies[] = remember_me
 dependencies[] = role_delegation
-dependencies[] = spambot
 dependencies[] = uuid
 dependencies[] = weight
 
