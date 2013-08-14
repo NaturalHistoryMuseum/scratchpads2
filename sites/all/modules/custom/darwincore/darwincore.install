@@ -232,11 +232,20 @@ function darwincore_update_7013(){
     'locked' => 1
   ))->condition('field_name', $fields_to_lock)->execute();
 }
+/**
+ * Update the display of the Collector and Identified-By fields.
+ */
+function darwincore_update_7014(){
+  module_load_include('features.field.inc', 'darwincore');
+  $fields = darwincore_field_default_fields();
+  field_update_instance($fields['node-specimen_observation-field_collector']['field_instance']);
+  field_update_instance($fields['node-specimen_observation-field_identified_by']['field_instance']);
+}
 
 /**
  * Prepare for switch to GBIF names
  */
-function darwincore_update_7014(){
+function darwincore_update_7015(){
   module_load_include('features.field.inc', 'darwincore');
   $definitions = darwincore_field_default_fields();
   $info = array(
