@@ -151,6 +151,7 @@ function _scratchpads_hands_off_hidden_urls(){
     'admin/config/system/customerror',
     'admin/config/system/globalredirect',
     'admin/config/system/cron',
+    'admin/config/system/spambot',
     'admin/config/user-interface/beautytips',
     'admin/config/development/performance',
     'admin/config/development/logging',
