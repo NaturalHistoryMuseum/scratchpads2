@@ -106,9 +106,11 @@ function citethispage_wget_form_citethispage_backend_selection_form_alter(&$form
 function citethispage_wget_preview_ajax($form, &$form_state){
   // Generate a preview
   $path = $form_state['values']['path'];
-  $results = _citethispage_parse_path($path);
-  $results['form_state'] = $form_state;
-  $preview_path = citethispage_wget_archive($path, $results, TRUE);
+  $context = array(
+    'results' => _citethispage_parse_path($path),
+    'form_state' => $form_state
+  );
+  $preview_path = citethispage_wget_archive($path, $context, TRUE);
   $form_state['citethispage_wget_preview'] = $preview_path;
   return array(
     '#type' => 'ajax',
@@ -200,7 +202,8 @@ function citethispage_wget_tokens($type, $tokens, $data = array(), $options = ar
  * 
  * The archiving callback
  */
-function citethispage_wget_archive($path, $result, $preview = FALSE){
+function citethispage_wget_archive($path, $context, $preview = FALSE){
+  $result = $context['result'];
   // Build the replace tokens
   global $base_url;
   $data = new StdClass();
@@ -264,7 +267,7 @@ function citethispage_wget_archive($path, $result, $preview = FALSE){
     'value' => CITETHISPAGE_WGET_DEFAULT_INJECT,
     'format' => 'filtered_html'
   ));
-  if(!empty($result['form_state']['values']['citethispage_wget_msg']) && $inject_message['value']){
+  if(!empty($context['form_state']['values']['citethispage_wget_msg']) && $inject_message['value']){
     $inject = check_markup($inject_message['value'], $inject_message['format']);
     $inject = token_replace($inject, $tokens);
     $token['message'] = $inject;

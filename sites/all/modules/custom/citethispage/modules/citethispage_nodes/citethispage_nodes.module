@@ -44,23 +44,35 @@ function citethispage_nodes_citethispage_info(){
 /**
  * citethispage_nodes_parse_callback
  */
-function citethispage_nodes_parse_callback($path){
+function citethispage_nodes_parse_callback($path, $page){
   $result = FALSE;
   if(preg_match('/^node\/(\d+)$/', $path, $matches)){
     $nid = $matches[1];
     $node = node_load($nid);
-    $result = array();
-    $result['title'] = array(
-      $node->title
-    );
     if(variable_get('citethispage_nodes_types_' . $node->type, 1)){
-      $author = user_load($node->uid);
+      $result = array();
+      $result['title'] = $node->title;
+      $result['date'] = $node->changed;
+      $revisions = array_reverse(node_revision_list($node), true);
       $result['authors'] = array(
-        $author->uid => $author->name
+        'initial' => array(
+          $revisions[0]->uid
+        ),
+        'current' => array(
+          $node->uid
+        ),
+        'others' => array()
       );
+      foreach($revisions as $revision){
+        if($revision->uid != $node->uid && $revision->uid != $revisions[0]->uid){
+          $result['authors']['others'][] = $revision->uid;
+        }
+      }
     }
-    $result['date'] = array(
-      $node->changed => format_date($node->changed)
+    $result = array(
+      'nodes' => array(
+        $node->uid => $result
+      )
     );
   }
   return $result;
