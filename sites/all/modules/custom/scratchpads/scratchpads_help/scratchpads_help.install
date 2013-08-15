@@ -27,8 +27,14 @@ function scratchpads_help_schema(){
         )
       ),
       'primary key' => array(
-        'path',
-        'page'
+        array(
+          'path',
+          166
+        ),
+        array(
+          'page',
+          166
+        )
       )
     )
   );

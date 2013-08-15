@@ -351,6 +351,18 @@ function gm3_load_geophp(){
 }
 
 /**
+ * Implements hook_permissions
+ */
+function gm3_permission(){
+  return array(
+    'administer gm3' => array(
+      'title' => t('Administer GM3'),
+      'description' => t('Administer the Google Maps V3 Module.')
+    )
+  );
+}
+
+/**
  * Implementation of hook_menu().
  */
 function gm3_menu(){

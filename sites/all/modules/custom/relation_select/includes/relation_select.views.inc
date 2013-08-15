@@ -8,7 +8,7 @@ function relation_select_views_plugins() {
   return array(
     'style' => array(
       'relation_select' => array(
-        'title' => t('Relation select'),
+        'title' => t('Relation Select'),
         'help' => t('Contains rows in contexts.'),
         'handler' => 'relation_select_plugin_style',
         'path' => $path . '/includes',

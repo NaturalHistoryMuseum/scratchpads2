@@ -161,7 +161,7 @@ function entityconnect_form_alter(&$form, &$form_state, $form_id) {
       $instance = $form['#instance'];
       $field = $form['#field'];
       $additions = module_invoke('entityconnect', 'field_instance_settings_form', $field, $instance);
-      if (is_array($additions)) {
+      if (is_array($additions) && isset($form['instance'])) {
         $form['instance'] += $additions;
       }
     }

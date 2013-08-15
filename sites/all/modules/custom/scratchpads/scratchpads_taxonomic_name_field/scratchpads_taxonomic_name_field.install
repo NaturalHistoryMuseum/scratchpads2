@@ -5,6 +5,7 @@
  */
 function scratchpads_taxonomic_name_field_install(){
   $field = array(
+    'locked' => '1',
     'active' => '1',
     'cardinality' => '-1',
     'deleted' => '0',
@@ -250,4 +251,13 @@ function scratchpads_taxonomic_name_field_update_7013(){
     $field_instance['display']['default']['weight'] = '1000';
     field_update_instance($field_instance);
   }
+}
+
+/**
+ * Lock the taxonomic name field.
+ */
+function scratchpads_taxonomic_name_field_update_7014(){
+  db_update('field_config')->fields(array(
+    'locked' => 1
+  ))->condition('field_name', 'field_taxonomic_name')->execute();
 }

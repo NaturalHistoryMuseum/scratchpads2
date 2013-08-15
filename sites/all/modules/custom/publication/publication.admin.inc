@@ -174,14 +174,14 @@ function publication_admin_overview_form(){
       $operations = array();
       if(publication_access('update', $publication)){
         $operations['edit'] = array(
-          'title' => t('edit'),
+          'title' => t('Edit'),
           'href' => 'publication/' . $publication->pid . '/edit',
           'query' => $destination
         );
       }
       if(publication_access('delete', $publication)){
         $operations['delete'] = array(
-          'title' => t('delete'),
+          'title' => t('Delete'),
           'href' => 'publication/' . $publication->pid . '/delete',
           'query' => $destination
         );
@@ -387,7 +387,7 @@ function publication_delete_form_submit($form, &$form_state){
   drupal_set_message(t('The publication %title has been deleted.', array(
     '%title' => $publication->title
   )));
-  watchdog('publication', 'Deleted publication %title.', array(
+  watchdog('Publication', 'Deleted publication %title.', array(
     '%title' => $publication->title
   ));
   $form_state['redirect'] = 'admin/content/publications';

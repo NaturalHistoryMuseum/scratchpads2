@@ -23,7 +23,7 @@ function taxonomy_get_tree($vid, $parent = 0, $max_depth = NULL, $load_entities 
     return taxonomy_term_load_multiple($tids);
   }
   // We're asking too much. Set an error, and return an empty tree.
-  watchdog('taxonomy', 'Attempted to get a large tree.', array(), WATCHDOG_ERROR);
+  watchdog('Taxonomy', 'Attempted to get a large tree.', array(), WATCHDOG_ERROR);
   return array();
 }
 

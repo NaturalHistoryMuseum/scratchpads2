@@ -130,21 +130,75 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
     'field_other_catalogue_numbers' => '16',
     'field_remarks' => 'Test Remarks'
   );
+  
+  protected $imported_user = array(
+    'field_user_title'  => 'Mr',
+    'field_user_given_names' => 'Jon',
+    'field_user_family_name' => 'Smith',
+    'field_user_institution' => 'Cam',
+    'field_homepage' => 'www.mysite.com',
+    'field_user_country' => 'GB',
+    'field_user_taxonomic_interest' => 'Insects',
+    'email' => 'j@gmail.com',
+    'username' => 'jon',
+    'pass' => 'jonspass',
+    'guid' => 'G1234',
+  );
 
   /**
    * A wrapper containing all node import tests
    */
   function testNodeImports(){
     $this->drupalLogin($this->admin_user);
-    $this->validateXlsPageImport();
-    $this->validateXlsLocationImport();
+ //   $this->validateXlsPageImport();
+ //   $this->validateXlsLocationImport();
     //  create a term for a biological vocabulary so that we can reference it in imports
-    $tid = $this->createTerm('myterm');
-    $this->validateXlsPageImportWithTerm($tid);
-    $this->validateXlsSpecimenObservationImportBasic();
-    $this->validateXlsSpecimenObservationImportWithUsersAndTerms($tid);
+  //  $tid = $this->createTerm('myterm');
+  //  $this->validateXlsPageImportWithTerm($tid);
+  //  $this->validateXlsSpecimenObservationImportBasic();
+  //  $this->validateXlsSpecimenObservationImportWithUsersAndTerms($tid);
+ // }
+ // 
+ 
+  
+ /// function testUserImports(){
+ //   $this->drupalLogin($this->admin_user);
+ //   $this->validateXlsUserImport();
+   
   }
 
+  
+  /**
+   * Test the import of page nodes from xls file.
+   
+  function validateXlsUserImport(){
+    $langcode = 'und';
+    
+    $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/user.xls');
+    $this->drupalPost('import/user_importer_user', array(
+      'files[feeds]' => $rpath
+    ), t('Import'));
+    // Test that the users have been imported
+    $this->drupalGet('admin/people');
+    $this->assertText($this->imported_user['username'], 'First imported user present on admin/people page');
+ 
+    // may want to add more detailed test of fields here
+    $this->clickLink($this->imported_user['username']);
+    $this->clickLink('Edit');
+    
+    foreach($this->imported_user as $key => $user_field_data){
+      // check each field
+      if($key == 'field_user_title'){
+       
+        $this->assertFieldByName($key . '[' . $langcode . '][0][value][select_other_list]', $user_field_data, $key . ' field found and correctly set');
+      }else{
+        
+        $this->assertFieldByName($key . '[' . $langcode . '][0][value]', $user_field_data, $key . ' field found and correctly set');
+      }
+    }
+  }
+  */
+  
   /**
    * Test the import of page nodes from xls file.
    */

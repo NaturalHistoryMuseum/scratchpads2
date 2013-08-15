@@ -19,6 +19,9 @@ function theme_simple_google_chart($variables){
   if($variables['title']){
     $variables['title'] = "<h2>{$variables['title']}</h2>";
   }
+  if($variables['subtitle']){
+    $variables['title'] .= "<h3>{$variables['subtitle']}</h3>";
+  }
   $table_data = $variables['data'];
   $table_header = array_shift($table_data);
   return '<div class="google_chart_wrapper">' . $variables['title'] . '<div id="' . $id . '" class="google_chart ' . $variables['type'] . '"><noscript>' . theme('table', array(

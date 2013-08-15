@@ -1,0 +1,82 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpads_security_install(){
+  // Set the Image CAPTCHA options.
+  variable_set('image_captcha_code_length', 7);
+  variable_set('image_captcha_bilinear_interpolation', TRUE);
+  variable_set('image_captcha_distortion_amplitude', 3);
+  variable_set('image_captcha_line_noise', 1);
+  variable_set('image_captcha_noise_level', 1);
+  // Set the CAPTCHA options
+  variable_set('captcha_default_challenge', 'image_captcha/Image');
+  // Set the CAPTCHA After options
+  db_delete('captcha_after')->execute();
+  $query = db_insert('captcha_after')->fields(array(
+    'form_id',
+    'enable',
+    'options'
+  ));
+  foreach(array(
+    'user_login_block',
+    'user_login'
+  ) as $form_id){
+    $query->values(array(
+      'form_id' => $form_id,
+      'enable' => 1,
+      'options' => serialize(array(
+        'submit_threshold' => '',
+        'flooding_threshold' => '',
+        'global_flooding_threshold' => ''
+      ))
+    ));
+  }
+  $query->execute();
+  // Set the forms that require a CAPTCHA.
+  scratchpads_security_flush_caches();
+  // Set the Spambot settings.
+  variable_set('spambot_blocked_message_email', 'Your email address is blacklisted.');
+  variable_set('spambot_blocked_message_ip', 'Your IP address is blacklisted.');
+  variable_set('spambot_cron_user_limit', 1);
+  variable_set('spambot_check_blocked_accounts', 1);
+  variable_set('spambot_spam_account_action', 1);
+}
+
+/**
+ * Implements hook_disable()
+ */
+function scratchpads_security_disable(){
+  // We need to disable the modules once everything else has done. So we register
+  // a shutdown function with arguments.
+  drupal_register_shutdown_function('module_disable', array(
+    'captcha'
+  ));
+}
+
+/**
+ * Implements hook_uninstall()
+ */
+function scratchpads_security_uninstall(){
+  // We need to disable the modules once everything else has done. So we register
+  // a shutdown function with arguments.
+  drupal_register_shutdown_function('drupal_uninstall_modules', array(
+    'captcha'
+  ));
+}
+
+/**
+ * Enable the spambot module
+ */
+function scratchpads_security_update_7001(){
+  module_enable(array(
+    'spambot'
+  ));
+  // Set the Spambot settings.
+  variable_set('spambot_blocked_message_email', 'Your email address is blacklisted.');
+  variable_set('spambot_blocked_message_ip', 'Your IP address is blacklisted.');
+  variable_set('spambot_cron_user_limit', 1);
+  variable_set('spambot_check_blocked_accounts', 1);
+  variable_set('spambot_spam_account_action', 1);
+}

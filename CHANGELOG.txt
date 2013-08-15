@@ -1,3 +1,66 @@
+2.1.7 (2013-08-14)
+
+- Added the tracker module as a tool (#931)
+- Ensure that certain configuration pages are hidden
+- Added the Spambot and Captcha modules to help prevent spam (#3187)
+- Delete any spam comments that may have been received (#3187)
+- Display the TID and GUID in the Taxonomy editor (#2878)
+- Allow uploading of SVG and TIFF images (#1511)
+- Ensure that users can set width/height/align attributes on images (#2852)
+- Automatically tag biblio records based on keywords (#2047)
+- Allow basic GM3 configuration (#976)
+- Performance improvements (#1407)
+- Prevent displaying of duplicate references on the taxon page biblio tab (#3235)
+- Prevent locking of the body field so that it may be removed from content types
+- Added a message to the Contact Us form stating that the message is for the site maintainer
+- Ensure a classification may be exported when the hierarchy is broken
+- Display all rights reserved (#2973)
+- Cache the Remote Issues Tab to improve performance
+- Fixed a display issue with the forum sidebar (#3210)
+- Allocate more memory for the Feeds XLS import
+- Character editor bug fixed (#3200)
+- Allow externally hosted Scratchpads to tweak their own configuration/user 1
+- Allow filtering by any field in the VBO views (#3104)
+- Fixed a bug with Slickgrid and views with arguments
+- Only show NCBI data for valid terms (#2190)
+- Display user references as full names (#2735)
+
+2.1.6.1 (2013-08-05)
+
+- Ensure editing of a site's URL aliases is enabled
+
+2.1.6 (2013-07-31)
+
+- Italicise subgeneric ranked taxa (#3138)
+- Enabled the editing of a site's URL aliases
+- Minor DwC-A additions for image metadata.
+- Enable harvesting of site categories for the stats pages (#110)
+
+2.1.5.2 (2013-07-21)
+
+- Prevent body field from being deleted.
+
+2.1.5.1 (2013-07-18)
+
+- Ensure ITIS Term and Scratchpads Group updates run as expected
+
+2.1.5 (2013-07-17)
+
+- Various DwC-A bug fixes
+- Tweaks to the presentation of Scratchpads statistics (#110)
+- Prevent empty field_collection items from being created by Feeds imports (#3106)
+- Added Vice Counties to the GM3 Regions (#2109)
+- Character editor bug fixes (for those with the Character editor enabled) (#3129, #3125, #3127, #3099, #3113, #1210 #3108, #2262, #3097, #3098, #3095, #3096, #3112)
+- Display the Entity/Bundle on search results pages (#3109)
+- Added quotes to the Google Scholar API searches to get more specific results (#3124)
+- Prevent deleting of stock Scratchpads fields (#3077)
+- A link to open GeoCAT using the CSV view has been added to relevant taxon pages (#2431)
+- Prevent each site from running Optimize on the Solr server
+- Ensure hidden pages are correctly hidden
+- Added SCRATCHPADS_VERSION constant for displaying of the Scratchpads version number
+- Generate COinS on Biblio pages (#3082)
+- Renamed the Taxonomy description field to Comments (#882)
+
 2.1.4.1 (2013-07-04)
 
 - Ensure one time logins work before a user has accepted the T&Cs

@@ -1,13 +1,6 @@
 <?php
 
 /**
- * Implementation of hook_install().
- */
-function scratchpads_group_install(){
-  _scratchpads_group_install_search_page();
-}
-
-/**
  * _scratchpads_group_install_search_page()
  *
  * Define the search page parameters. This is called
@@ -40,16 +33,17 @@ function _scratchpads_group_install_search_page(){
 }
 
 /**
- * Implementation of hook_uninstall().
- */
-function scratchpads_group_uninstall(){
-  db_delete('apachesolr_search_page')->condition('page_id', 'group_search')->execute();
-}
-
-/**
  * Implements hook_disable().
  */
 function scratchpads_group_disable(){
+  db_delete('apachesolr_search_page')->condition('page_id', 'group_search')->execute();
+  // Remove the fields
+  module_load_include('features.field.inc', 'scratchpads_group');
+  $fields = scratchpads_group_field_default_fields();
+  // If the module has been disabled, we delete the fields.
+  foreach($fields as $field){
+    field_delete_instance($field['field_instance']['field_name']);
+  }
   // We need to disable the modules once everything else has done. So we register
   // a shutdown function with arguments.
   drupal_register_shutdown_function('module_disable', array(
@@ -64,6 +58,8 @@ function scratchpads_group_disable(){
  * Implements hook_enable().
  */
 function scratchpads_group_enable(){
+  // Install the search page.
+  _scratchpads_group_install_search_page();
   // Remove the content permissions flag if we have no content.
   $col = db_query('SELECT COUNT(*) FROM {node}')->fetchCol();
   if(!array_pop($col)){
@@ -76,7 +72,7 @@ function scratchpads_group_enable(){
  * Add the solr search page
  */
 function scratchpads_group_update_7001(){
-  scratchpads_group_install();
+  _scratchpads_group_install_search_page();
   // Set the display type
   $scratchpads_pages_display = variable_get('scratchpads_pages_display', array());
   $scratchpads_pages_display['group'] = 'solr';
@@ -125,21 +121,51 @@ function scratchpads_group_update_7004(){
  * Ensure file entities have OG support
  */
 function scratchpads_group_update_7005(){
-  // Add OG Fields to file entities
   module_load_include('features.field.inc', 'scratchpads_group');
   $fields = scratchpads_group_field_default_fields();
-  foreach($fields as $field_name => $field){
-    if($field['field_instance']['entity_type'] == 'file'){
-      $field_exists = field_info_field($field['field_config']['field_name']);
-      if(!$field_exists){
-        field_create_field($field['field_config']);
-      }
-      $instance_exists = field_info_instance($field['field_instance']['entity_type'], $field['field_config']['field_name'], $field['field_instance']['bundle']);
-      if(!$instance_exists){
-        field_create_instance($field['field_instance']);
+  if(!module_exists('scratchpads_group')){
+    // If the module has been disabled, we delete the fields.
+    foreach($fields as $field){
+      field_delete_instance($field['field_config']['field_instance']);
+    }
+  }else{
+    // Add OG Fields to file entities
+    foreach($fields as $field_name => $field){
+      if($field['field_instance']['entity_type'] == 'file'){
+        if(!field_info_field($field['field_config']['field_name'])){
+          field_create_field($field['field_config']);
+        }
+        $instance_exists = field_info_instance($field['field_instance']['entity_type'], $field['field_config']['field_name'], $field['field_instance']['bundle']);
+        if(!$instance_exists){
+          field_create_instance($field['field_instance']);
+        }
       }
     }
+    // Ensure the search page displays files as well as nodes
+    _scratchpads_group_install_search_page();
   }
-  // Ensure the search page displays files as well as nodes
-  _scratchpads_group_install_search_page();
+}
+
+/**
+ * Ensure users haven't deleted any fields.
+ */
+function scratchpads_group_update_7006(){
+  if(module_exists('scratchpads_group')){
+    $fields_to_lock = array();
+    module_load_include('features.field.inc', 'scratchpads_group');
+    foreach(scratchpads_group_field_default_fields() as $field){
+      $fields_to_lock[] = $field['field_config']['field_name'];
+      if(!field_info_field($field['field_config']['field_name'])){
+        field_create_field($field['field_config']);
+      }
+      try{
+        field_create_instance($field['field_instance']);
+      }
+      catch(Exception $e){
+      }
+    }
+    db_update('field_config')->fields(array(
+      'locked' => 1
+    ))->condition('field_name', $fields_to_lock)->execute();
+  }
 }

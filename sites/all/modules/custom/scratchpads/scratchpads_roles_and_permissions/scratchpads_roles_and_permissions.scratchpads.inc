@@ -42,6 +42,17 @@ function weight_scratchpads_default_permissions(){
 }
 
 /**
+ * GM3 module
+ */
+function gm3_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer gm3'
+    )
+  );
+}
+
+/**
  * EntityConnect module
  */
 function entityconnect_scratchpads_default_permissions(){
@@ -341,6 +352,22 @@ function taxonomy_scratchpads_default_permissions(){
     $permissions['editor'][] = 'delete terms in ' . $vocabulary->vid;
   }
   return $permissions;
+}
+
+/**
+ * Path module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function path_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer url aliases'
+    ),
+    'contributor' => array(
+      'create url aliases'
+    )
+  );
 }
 
 /**

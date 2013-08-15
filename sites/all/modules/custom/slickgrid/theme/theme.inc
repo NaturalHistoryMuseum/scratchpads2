@@ -132,7 +132,7 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
     }
     // Is this field sortable?
     // If any fields are sortable, set style option so we can access it in the js
-    if(!in_array($handlers[$field_id]->field_info['type'], array(
+    if(property_exists($handlers[$field_id], 'field_info') && !in_array($handlers[$field_id]->field_info['type'], array(
       'text_with_summary',
       'file'
     ))){
