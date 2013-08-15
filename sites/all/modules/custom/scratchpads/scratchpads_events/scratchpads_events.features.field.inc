@@ -12,7 +12,7 @@ function scratchpads_events_field_default_fields(){
   // Exported field: 'node-event-body'
   $fields['node-event-body'] = array(
     'field_config' => array(
-      'locked' => '1',
+      'locked' => '0',
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',

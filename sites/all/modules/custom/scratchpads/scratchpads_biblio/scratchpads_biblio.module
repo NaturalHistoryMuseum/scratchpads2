@@ -43,8 +43,20 @@ function scratchpads_biblio_menu_alter(&$items){
  * Prevent biblio nodes from being saved with a title.
  */
 function scratchpads_biblio_node_presave($node){
-  if($node->type == 'biblio' && !isset($node->title)){
-    $node->title = t('[TITLE BLANK]');
+  if($node->type == 'biblio'){
+    // Set a title if it is blank.
+    if(!isset($node->title)){
+      $node->title = t('[TITLE BLANK]');
+    }
+    if(isset($node->biblio_keywords) && count($node->biblio_keywords) && ($vids = array_keys(array_filter(variable_get('biological_vids', array()))))){
+      // Associate this record with terms in any vocabulary.
+      $results = db_select('taxonomy_term_data', 't')->fields('t', array(
+        'tid'
+      ))->condition('vid', $vids)->condition('name', $node->biblio_keywords)->execute();
+      foreach($results as $row){
+        $node->field_taxonomic_name[LANGUAGE_NONE][] = (array)taxonomy_term_load($row->tid);
+      }
+    }
   }
   return $node;
 }

@@ -126,6 +126,21 @@ function scratchpads_blocks_block_view($delta = ''){
       $link_text = t('Subscribe to RSS of @site_name', array(
         '@site_name' => variable_get('site_name', t('this site'))
       ));
+      if(module_exists('tracker')){
+        $tree[] = array(
+          'below' => FALSE,
+          'link' => array(
+            'in_active_trail' => FALSE,
+            'has_children' => FALSE,
+            'hidden' => FALSE,
+            'href' => 'tracker',
+            'title' => t('Recent content'),
+            'access' => TRUE,
+            'menu_name' => '',
+            'mlid' => uniqid()
+          )
+        );
+      }
       $tree[] = array(
         'below' => FALSE,
         'link' => array(
