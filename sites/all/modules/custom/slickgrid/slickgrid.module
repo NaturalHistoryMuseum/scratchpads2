@@ -516,6 +516,54 @@ function slickgrid_editor_form($form, &$form_state){
   return $form;
 }
 
+/**
+ * Implements hook_module_implements_alter()
+ * 
+ * Move this module's hook_file_presave to the top.
+ */
+function slickgrid_module_implements_alter(&$implementations, $hook){
+  if($hook == 'file_presave'){
+    $move = $implementations['slickgrid'];
+    unset($implementations['slickgrid']);
+    $new_implementations = array(
+      'slickgrid' => $move
+    );
+    foreach($implementations as $key => $move){
+      $new_implementations[$key] = $move;
+    }
+    $implementations = $new_implementations;
+  }
+}
+
+/**
+ * Due to the fact that we validate all forms at once, and then submit all forms
+ * at once, we can end up with multiple new terms, when only one is required.
+ * This function helps remedy that issue.
+ */
+function slickgrid_prevent_duplicate_terms($entity){
+  // Get the names of all taxonomy fields
+  $field_names = db_select('field_config', 'f')->fields('f', array(
+    'field_name'
+  ))->condition('module', 'taxonomy')->execute()->fetchCol();
+  foreach($field_names as $field_name){
+    if(isset($entity->{$field_name})){
+      foreach(array_keys($entity->{$field_name}) as $lang){
+        foreach($entity->{$field_name}[$lang] as $key => $value){
+          if(isset($value['tid']) && $value['tid'] == 'autocreate'){
+            // We try and load the term, as it may now exist.
+            $new = db_select('taxonomy_term_data', 'td')->fields('td', array(
+              'tid'
+            ))->condition('name', $value['name'])->condition('vid', $value['vid'])->execute()->fetchField();
+            if($new){
+              $entity->{$field_name}[$lang][$key] = (array)taxonomy_term_load($new);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 function slickgrid_editor_form_submit($form, &$form_state){
   $editor = &$form_state['editor'];
   foreach($editor->entities as $entity){
@@ -533,6 +581,7 @@ function slickgrid_editor_form_submit($form, &$form_state){
     entity_form_submit_build_entity($editor->entity_type, $entity, $form, $form_state);
     // Try to save the entity
     try{
+      slickgrid_prevent_duplicate_terms($entity);
       entity_save($editor->entity_type, $entity);
       // Add entity to the editor's updated array
       $editor->updated[$id] = array(
