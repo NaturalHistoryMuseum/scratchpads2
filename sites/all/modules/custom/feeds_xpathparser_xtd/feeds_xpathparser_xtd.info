@@ -1,7 +1,0 @@
-name = Feeds XPath Parser extended
-description = Extend memory limit when parsing an XML or HTML document using XPath.
-package = Feeds
-dependencies[] = feeds
-dependencies[] = feeds_xpathparser
-files[] = FeedsXPathParserMemory.inc
-core = 7.x
