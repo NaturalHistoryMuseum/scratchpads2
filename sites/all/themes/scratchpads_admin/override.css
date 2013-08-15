@@ -378,3 +378,10 @@ form div.entityconnect-add input:hover,form div.entityconnect-edit input:hover
 .media-browser-tab .media-item{
   overflow:hidden;
 }
+
+.media-widget a:before{
+  content:" | ";
+}
+.media-widget a:first-of-type:before{
+  content:"";
+}
