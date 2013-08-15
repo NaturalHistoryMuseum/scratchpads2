@@ -63,8 +63,10 @@ function silver_feeds_importer_default(){
               'unique' => 0
             )
           ),
+          'bundle' => $vocabulary->machine_name,
           'update_existing' => '2',
-          'input_format' => 'plain_text'
+          'input_format' => 'plain_text',
+          'skip_hash_check' => 0
         )
       ),
       'content_type' => '',
@@ -117,8 +119,10 @@ function silver_feeds_importer_default(){
               'unique' => TRUE
             )
           ),
+          'bundle' => $node_type,
           'update_existing' => '2',
-          'input_format' => 'filtered_html'
+          'input_format' => 'filtered_html',
+          'skip_hash_check' => 0
         )
       ),
       'content_type' => '',
