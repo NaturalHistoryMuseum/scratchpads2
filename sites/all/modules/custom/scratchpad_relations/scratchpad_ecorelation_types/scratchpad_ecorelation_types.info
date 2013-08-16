@@ -3,4 +3,5 @@ description = "Add default ecological relationships based on Darwin Core Taxon O
 core = "7.x"
 package = "Relation"
 dependencies[] = relation
+dependencies[] = scratchpad_relations_itis
 tool = true
