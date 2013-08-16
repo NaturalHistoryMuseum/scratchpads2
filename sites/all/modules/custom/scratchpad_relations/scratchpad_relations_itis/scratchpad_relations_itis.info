@@ -4,5 +4,6 @@ package = "Relation"
 core = "7.x"
 dependencies[] = "itis_term"
 dependencies[] = "scratchpad_ecorelation_types"
+dependencies[] = "scratchpad_ecological_relations_block"
 dependencies[] = "inline_relation_form"
 stylesheets[all][] = css/scratchpad_relations_itis.css
