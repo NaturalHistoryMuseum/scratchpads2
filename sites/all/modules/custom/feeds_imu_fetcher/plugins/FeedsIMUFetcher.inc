@@ -95,7 +95,6 @@ class FeedsIMUFetcher extends FeedsFetcher{
       /*
        * Get information from matching records flag, offset, count, columns
        */
-      //    $results = $imumodule->fetch('start', 0, -1, $kemuColumns);
       $results = $imumodule->fetch('start', 0, $returnNumRows, $kemuColumns);
       /* if there are any rows returned */
       if($results->hits){
