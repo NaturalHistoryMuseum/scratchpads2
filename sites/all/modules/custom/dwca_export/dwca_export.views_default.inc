@@ -243,13 +243,16 @@ $handler->display->display_options['fields']['field_unacceptability_reason_3']['
   $handler->display->display_options['fields']['biblio_issn']['alter']['text'] = 'urn:ISSN:[biblio_issn]';
   $handler->display->display_options['fields']['biblio_issn']['biblio_label'] = 1;
   /* Field: Biblio: Biblio Citation */
-  $handler->display->display_options['fields']['citation']['id'] = 'citation';
-  $handler->display->display_options['fields']['citation']['table'] = 'biblio';
-  $handler->display->display_options['fields']['citation']['field'] = 'citation';
-  $handler->display->display_options['fields']['citation']['style_name'] = 'chicago-author-date.csl';
-  $handler->display->display_options['fields']['citation']['export_links'] = 0;
-  $handler->display->display_options['fields']['citation']['file_attachments'] = 0;
-  $handler->display->display_options['fields']['citation']['open_url_link'] = 0;
+/* Field: Biblio: Biblio Citation */
+$handler->display->display_options['fields']['citation']['id'] = 'citation';
+$handler->display->display_options['fields']['citation']['table'] = 'biblio';
+$handler->display->display_options['fields']['citation']['field'] = 'citation';
+$handler->display->display_options['fields']['citation']['alter']['strip_tags'] = TRUE;
+$handler->display->display_options['fields']['citation']['element_default_classes'] = FALSE;
+$handler->display->display_options['fields']['citation']['style_name'] = 'chicago-author-date.csl';
+$handler->display->display_options['fields']['citation']['export_links'] = 0;
+$handler->display->display_options['fields']['citation']['file_attachments'] = 0;
+$handler->display->display_options['fields']['citation']['open_url_link'] = 0;
   /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
