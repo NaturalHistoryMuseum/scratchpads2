@@ -1,5 +1,23 @@
 <?php
 
+function feeds_imu_fetcher_menu_alterOLD(&$items){
+  $items['admin/content/specimen_observation22']['access callback'] = 'user_access';
+  $items['admin/content/specimen_observation22']['access arguments'] = array(
+    'scratchpad team'
+  );
+}
+
+function feeds_imu_fetcher_node_access($node, $op, $account){
+  $type = is_string($node) ? $node : $node->type;
+  print "op=".$op;
+  // Deny updating the content if it's a specimen_observation
+  if($type == 'specimen_observation' && $node->status && $op == 'update'){
+    drupal_set_message('You may not make changes to it.', 'error');
+    print "op=".$op;
+   // return NODE_ACCESS_DENY;
+  }
+}
+
 /**
  * @file
  * Imports data from an external database.
@@ -35,7 +53,7 @@ function feeds_imu_fetcher_feeds_plugins(){
   $info = array();
   $info['FeedsIMUFetcher'] = array(
     'name' => 'IMU fetcher',
-    'description' => 'Fetches data from a KEMU eCatalog module.',
+    'description' => 'Fetches data from KEMU.',
     'handler' => array(
       'parent' => 'FeedsFetcher',
       'class' => 'FeedsIMUFetcher',
