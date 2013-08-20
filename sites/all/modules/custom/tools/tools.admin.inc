@@ -13,9 +13,15 @@ function _tools_features_sort($a, $b){
 
 function tools_admin_form($form, &$form_state){
   $path = drupal_get_path('module', 'tools');
-  $form['#attached']['css'] = array(
-    $path . '/css/tools.css'
-  );
+  if(isset($form_state['storage']['confirm'])){
+    $form['#attached']['css'] = array(
+      $path . '/css/tools_confirmation.css'
+    );
+  }else{
+    $form['#attached']['css'] = array(
+      $path . '/css/tools.css'
+    );
+  }
   // Clear & rebuild key caches
   features_get_info(NULL, NULL, TRUE);
   features_rebuild();
@@ -23,6 +29,7 @@ function tools_admin_form($form, &$form_state){
   $features = array_filter(features_get_features(), 'tools_filter_modules');
   $features = array_merge($modules, $features);
   usort($features, '_tools_features_sort');
+  // We hide the form if we are showing a confirmation message
   $form['left'] = array(
     '#prefix' => '<div class="tools-container"><div class="tools-left">',
     '#suffix' => '</div>'
@@ -80,6 +87,32 @@ function tools_admin_form($form, &$form_state){
     '#type' => 'submit',
     '#value' => t('Save')
   );
+  if(isset($form_state['storage']['confirm'])){
+    $enabled_features = array();
+    foreach($features as $feature){
+      if($feature->status == 1){
+        $enabled_features[$feature->name] = $feature->info['name'];
+      }
+    }
+    $tools_to_remove = array();
+    foreach($form_state['values']['status'] as $feature_name => $feature_status){
+      // If we are disabling a feature
+      if(($feature_status == 0) && (array_key_exists($feature_name, $enabled_features))){
+        $tools_to_remove[] = $enabled_features[$feature_name];
+      }
+    }
+    $tools_to_remove_string = join(' and ', array_filter(array_merge(array(
+      join(', ', array_slice($tools_to_remove, 0, -1))
+    ), array_slice($tools_to_remove, -1))));
+    // We may want to display specific messages for certain modules.
+    $message = '';
+    if(in_array('Darwincore', $tools_to_remove)){
+      $message .= "Specimen/Observation and Location content types will be disabled.";
+    }
+    return confirm_form($form, t('Are you sure you want to disable %tools_to_remove?', array(
+      '%tools_to_remove' => $tools_to_remove_string
+    )), 'admin/structure/tools', t($message), 'Yes', 'Cancel');
+  }
   return $form;
 }
 
@@ -87,25 +120,51 @@ function tools_admin_form($form, &$form_state){
  * Submit handler for the 'manage features' form
  */
 function tools_admin_form_submit(&$form, &$form_state){
-  // Increase limits to ensure we don't fuck up!
-  ini_set('memory_limit', '512M');
-  ini_set('max_execution_time', '60');
-  $status = $form_state['values']['status'];
-  $install = array_keys(array_filter($status));
-  $disable = array_diff(array_keys($status), $install);
-  // Disable first. If there are any features that are disabled that are
-  // dependencies of features that have been queued for install, they will
-  // be re-enabled.
-  module_disable($disable);
-  features_install_modules($install);
-  if(module_exists('views')){
-    ctools_include('export');
-    ctools_export_load_object_reset('views_view');
+  // Compare submitted values to enabled modules
+  $confirmation = false;
+  features_get_info(NULL, NULL, TRUE);
+  features_rebuild();
+  $modules = array_filter(features_get_modules(), 'tools_filter_modules');
+  $features = array_filter(features_get_features(), 'tools_filter_modules');
+  $features = array_merge($modules, $features);
+  $enabled_features = array();
+  foreach($features as $feature){
+    if($feature->status == 1){
+      $enabled_features[] = $feature->name;
+    }
   }
-  menu_rebuild();
-  menu_cache_clear_all();
-  drupal_flush_all_caches();
-  drupal_set_message(t('The configuration options have been saved.'));
+  foreach($form_state['values']['status'] as $feature_name => $feature_status){
+    // If we are disabling a feature
+    if(($feature_status == 0) && (in_array($feature_name, $enabled_features))){
+      $confirmation = true;
+    }
+  }
+  // Only show confirmation form if a module is being disabled
+  if((!isset($form_state['storage']['confirm'])) && $confirmation){
+    $form_state['storage']['confirm'] = TRUE; // this will cause the form to be rebuilt, entering the confirm part of the form
+    $form_state['rebuild'] = TRUE; // along with this
+  }else{
+    // Process the form
+    // Increase memory limits 
+    ini_set('memory_limit', '512M');
+    ini_set('max_execution_time', '60');
+    $status = $form_state['values']['status'];
+    $install = array_keys(array_filter($status));
+    $disable = array_diff(array_keys($status), $install);
+    // Disable first. If there are any features that are disabled that are
+    // dependencies of features that have been queued for install, they will
+    // be re-enabled.
+    module_disable($disable);
+    features_install_modules($install);
+    if(module_exists('views')){
+      ctools_include('export');
+      ctools_export_load_object_reset('views_view');
+    }
+    menu_rebuild();
+    menu_cache_clear_all();
+    drupal_flush_all_caches();
+    drupal_set_message(t('The configuration options have been saved.'));
+  }
 }
 
 /**
@@ -113,4 +172,16 @@ function tools_admin_form_submit(&$form, &$form_state){
  */
 function tools_filter_modules($module){
   return isset($module->info['tool']) && $module->info['tool'];
+}
+
+function tools_admin_form_confirm_delete($form, &$form_state, $comment){
+  $form['#comment'] = $comment;
+  // Always provide entity id in the same form key as in the entity edit form.
+  $form['cid'] = array(
+    '#type' => 'value',
+    '#value' => $comment->cid
+  );
+  return confirm_form($form, t('Are you sure you want to delete all darwin core data?', array(
+    '%title' => $comment->subject
+  )), 'node/' . $comment->nid, t('Any replies to this comment will be lost. This action cannot be undone.'), t('Delete'), t('Cancel'), 'comment_confirm_delete');
 }

@@ -9,6 +9,78 @@ function darwincore_install(){
 }
 
 /**
+ * Implements hook_enable().
+ * 
+ * Re-enable any content types or views that might have been disabled previously
+ */
+function darwincore_enable(){
+  // Re-enable the content types if previously disabled.
+  $type_info = node_type_load('location');
+  if($type_info->disabled == 1){
+    _darwincore_enable_content_type('location');
+  }
+  $type_info2 = node_type_load('specimen_observation');
+  if($type_info2->disabled == 1){
+    _darwincore_enable_content_type('specimen_observation');
+  }
+  // Re-enable views, if previously disabled
+  $status = variable_get('views_defaults', array());
+  if($status['species_specimen_observation'] == TRUE){
+    $status['species_specimen_observation'] = FALSE;
+    $status['species_map'] = FALSE;
+    $status['species_location'] = FALSE;
+    variable_set('views_defaults', $status);
+  }
+  drupal_flush_all_caches();
+}
+
+/**
+ * Implements hook_disable().
+ * 
+ * Rather than removing the content type and deleting data,
+ * disabling this module will disable the content type and related views.
+ */
+function darwincore_disable(){
+  // Disable content types created by features 
+  _darwincore_disable_content_type('location');
+  _darwincore_disable_content_type('specimen_observation');
+  // disable views that are still showing
+  $status = variable_get('views_defaults', array());
+  $status['species_specimen_observation'] = TRUE;
+  $status['species_location'] = TRUE;
+  $status['species_map'] = TRUE;
+  variable_set('views_defaults', $status);
+}
+
+/**
+ * Helper function
+ * Disables a content type belonging to the darwincore module
+ */
+function _darwincore_disable_content_type($type){
+  $type_info = node_type_load($type);
+  $type_info->module = 'darwincore';
+  $type_info->custom = 1;
+  $type_info->modified = 1;
+  $type_info->locked = 0;
+  $type_info->disabled = 1;
+  node_type_save($type_info);
+}
+
+/**
+ * Helper function
+ * Enables a content type belonging to the darwincore module
+ */
+function _darwincore_enable_content_type($type){
+  $type_info = node_type_load($type);
+  $type_info->module = 'darwincore';
+  $type_info->custom = 0;
+  $type_info->modified = 0;
+  $type_info->locked = 1;
+  $type_info->disabled = 0;
+  node_type_save($type_info);
+}
+
+/**
  * Change the input format for the date collected field.
  */
 function darwincore_update_7001(){
