@@ -75,6 +75,13 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
   foreach($potential_filters as $field => $value){
     if(($value = trim($value)) != FALSE){
       // Start with a basic text filter - this will work with most fields.
+      $operator = 'contains';
+      $op_val = $value;
+      // Add the option of a regular expression filter
+      if(substr(strtolower($value), 0, 6) == 'regex:'){
+        $op_val = trim(str_ireplace('regex:', '', $value));
+        $operator = 'regular_expression';
+      }
       $filter = array(
         'id' => $field,
         'table' => 'node',
@@ -82,8 +89,8 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
         'relationship' => 'none',
         'group_type' => 'group',
         'ui_name' => '',
-        'operator' => 'contains',
-        'value' => $value,
+        'operator' => $operator,
+        'value' => $op_val,
         'group' => 1,
         'exposed' => FALSE,
         'expose' => array(),
@@ -110,9 +117,20 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
             }
             switch($real_field['type']){
               case 'node_reference':
-                $filter['value'] = drupal_map_assoc(db_select('node', 'n')->condition('title', db_like($value) . '%', 'LIKE')->fields('n', array(
+                if(($operator == 'regular_expression') && ($op_val != '')){
+                  $val = $op_val;
+                  $op = 'RLIKE';
+                }else{
+                  $val = db_like($value) . '%';
+                  $op = 'LIKE';
+                }
+                $filter['value'] = drupal_map_assoc(db_select('node', 'n')->condition('title', $val, $op)->fields('n', array(
                   'nid'
                 ))->execute()->fetchCol());
+                // Ensure that empty sets don't display items
+                if(empty($filter['value'])){
+                  $filter['value'] = $val;
+                }
                 unset($filter['operator']);
                 break;
               case 'taxonomy_term_reference':
