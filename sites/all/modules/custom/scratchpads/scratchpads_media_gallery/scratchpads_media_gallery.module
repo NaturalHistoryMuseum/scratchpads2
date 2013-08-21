@@ -320,8 +320,8 @@ function scratchpads_media_gallery_facetapi_facet_info($searcher_info = FALSE){
         'im_field_smg_galleries'
       )
     ),
-    'is_field_cc_licence' => array(
-      'name' => 'is_field_cc_licence',
+    'im_field_cc_licence' => array(
+      'name' => 'im_field_cc_licence',
       'label' => t('Licence'),
       'description' => t('Licence'),
       'query types' => array(
