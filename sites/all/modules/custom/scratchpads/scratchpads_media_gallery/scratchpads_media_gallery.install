@@ -405,3 +405,13 @@ function scratchpads_media_gallery_update_7013(){
     'locked' => 1
   ))->condition('field_name', $fields_to_lock)->execute();
 }
+
+/**
+ *  Update the media gallery facets.
+ */
+function scratchpads_media_gallery_update_7014() {
+  features_revert(array('scratchpads_media_gallery' => array('media_gallery_page_facets')));
+}
+
+
+

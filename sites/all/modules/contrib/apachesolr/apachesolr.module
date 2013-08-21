@@ -2437,6 +2437,9 @@ function field_apachesolr_field_mappings() {
       'query types' => array('term'),
       'query type' => 'term',
       'facet mincount allowed' => TRUE,
+      // Taxonomy terms get indexed with their parents, so even a single term
+      // in Drupal becomes multiple in Solr.
+      'multiple' => TRUE,
     ),
   );
 
