@@ -589,9 +589,9 @@ function scratchpads_biography_field_default_fields() {
       'display' => array(
         'default' => array(
           'label' => 'inline',
-          'module' => 'file',
+          'module' => 'styles',
           'settings' => array(),
-          'type' => 'file_default',
+          'type' => 'styles_file_square_thumbnail',
           'weight' => '12',
         ),
         'linked_node' => array(
@@ -621,11 +621,11 @@ function scratchpads_biography_field_default_fields() {
       'public' => 'public',
       ),
       'allowed_types' => array(
-      'audio' => 0,
-      'default' => 0,
-      0 => 0,
       'image' => 'image',
       'video' => 0,
+      0 => 0,
+      'audio' => 0,
+      'default' => 0,
       ),
       'browser_plugins' => array(
       'media_default--media_browser_1' => 'media_default--media_browser_1',
@@ -639,7 +639,6 @@ function scratchpads_biography_field_default_fields() {
       ),
     ),
   );
-  
 
   // Exported field: 'user-user-field_gender'
   $fields['user-user-field_gender'] = array(

@@ -123,6 +123,9 @@ function scratchpads_biography_field_display_alter(&$display, $context){
  *  We hide specific fields and groups when the 'make_this_profile_public' field has not been checked.
  */
 function scratchpads_biography_user_view($account, $view_mode, $langcode){
+  
+  dpm(entity_get_info());
+  
   // Allow users with 'administer users' access to bypass this control
   if(($account->field_make_this_profile_public_['und'][0]['value'] != 1) && (!user_access('administer users'))){
     $fields_to_hide = array(
@@ -161,7 +164,19 @@ function scratchpads_biography_user_view($account, $view_mode, $langcode){
   }
 }
 
-
+/**
+ * Implements theme_preprocess_field().
+ * 
+ * Hide the 'field_example_of_handwriting' field label if the field is empty. 
+ * 
+ */
+function scratchpads_biography_preprocess_field(&$variables){
+  if($variables['element']['#field_name'] == 'field_example_of_handwriting'){
+    if($variables['items']['0']['#markup'] == ''){
+      $variables['label_hidden'] = true;
+    }
+  }
+}
 
 
 
