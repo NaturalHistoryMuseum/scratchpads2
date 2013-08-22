@@ -8,3 +8,7 @@ dependencies[] = "customerror"
 features[ctools][] = "strongarm:strongarm:1"
 features[variable][] = "site_403"
 features[variable][] = "site_404"
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_error

@@ -13,3 +13,7 @@ features[field][] = "user-user-field_user_taxonomic_interest"
 features[field][] = "user-user-field_user_title"
 name = "Scratchpads user"
 package = "Users"
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_user

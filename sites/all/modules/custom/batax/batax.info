@@ -2,3 +2,6 @@ name = "Big Autocomplete TAXonomy"
 description = "Converts select fields into alternate fields if they have greater than 'n' terms in them."
 package = "Scratchpads"
 core = 7.x
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = batax

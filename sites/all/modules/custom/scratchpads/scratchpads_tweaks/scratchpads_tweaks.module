@@ -47,7 +47,7 @@ function scratchpads_tweaks_exception_handler($exception){
 
 /**
  * Implements hook_node_view_alter().
- * 
+ *
  * Prevent the displaying of the taxonomic name field on the descriptions tab.
  */
 function scratchpads_tweaks_node_view_alter(&$build){
@@ -111,7 +111,7 @@ function _scratchpads_tweaks_get_media_browser_query(){
 
 /**
  * Implements hook_watchdog().
- * 
+ *
  * This function simply adds an additional entry to the dblog (if dblog is
  * enabled) that displays the full trace of a PHP error.
  */
@@ -260,8 +260,8 @@ function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
     default:
       // Only use the "comment_filtered_html" input type for comment bodies!
       if(substr($form_id, 0, 8) == 'comment_'){
-        if(@isset($form['comment_body'][LANGUAGE_NONE])){
-          $form['comment_body'][LANGUAGE_NONE]['#after_build'][] = 'scratchpads_tweaks_comment_body_after_build';
+        if(@isset($form['comment_body'][$form['#entity']->language])){
+          $form['comment_body'][$form['#entity']->language]['#after_build'][] = 'scratchpads_tweaks_comment_body_after_build';
         }
       }
   }
@@ -473,7 +473,7 @@ function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
  *        node type object.
  * @param $label The
  *        label for the body instance.
- *        
+ *
  * @return Body field instance.
  */
 function scratchpads_tweaks_add_body_field($type, $label = 'Body', $weight = 0){

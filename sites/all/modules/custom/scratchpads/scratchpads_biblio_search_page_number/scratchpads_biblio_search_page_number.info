@@ -4,3 +4,6 @@ package = "Literature"
 core = 7.x
 dependencies[] = scratchpads_biblio_search
 tool=true
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_biblio_search_page_number

@@ -1,0 +1,64 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpads_multilingual_contribute_install(){
+  // Set the settings for the l10n_client module.
+  variable_set('l10n_client_use_server', 1);
+  variable_set('l10n_client_server', 'http://localize.scratchpads.eu');
+  // Add the API Key to all users on the site.
+  $ini = @parse_ini_file(drupal_get_path('module', 'scratchpads_multilingual_contribute') . '/scratchpads_multilingual_contribute.ini');
+  if($ini['key']){
+    $results = db_select('users', 'u')->fields('u', array(
+      'uid'
+    ))->condition('uid', 1, '>')->execute();
+    foreach($results as $row){
+      $account = user_load($row->uid);
+      // Scratchpads User on the localize.scratchpads.eu site is UID:4.
+      $account->data['l10n_client_key'] = '4:' . md5('l10n_community4' . $ini['key'] . l10n_client_user_token($account));
+      user_save($account);
+    }
+  }
+  // Only show the block to contributors/editors/maintainers.
+  try{
+    db_delete('block_role')->condition('module', 'scratchpads_multilingual_contribute')->condition('delta', 'l10n')->execute();
+    db_insert('block_role')->fields(array(
+      'module',
+      'delta',
+      'rid'
+    ))->values(array(
+      'module' => 'scratchpads_multilingual_contribute',
+      'delta' => 'l10n',
+      'rid' => 3
+    ))->values(array(
+      'module' => 'scratchpads_multilingual_contribute',
+      'delta' => 'l10n',
+      'rid' => 4
+    ))->values(array(
+      'module' => 'scratchpads_multilingual_contribute',
+      'delta' => 'l10n',
+      'rid' => 5
+    ))->execute();
+  }
+  catch(Exception $e){
+    ;
+  }
+  // Use blockexpose
+  variable_set('blockexpose_settings_scratchpads_multilingual_contribute_l10n', array(
+    'side' => 'left',
+    'event' => 'click',
+    'show' => 1
+  ));
+}
+
+/**
+ * Implements hook_disable().
+ */
+function scratchpads_multilingual_contribute_disable(){
+  // We need to disable the modules once everything else has done. So we register
+  // a shutdown function with arguments.
+  drupal_register_shutdown_function('module_disable', array(
+    'l10n_client'
+  ));
+}

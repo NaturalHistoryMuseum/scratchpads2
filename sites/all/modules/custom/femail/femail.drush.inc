@@ -55,7 +55,7 @@ function _femail_get_msg(){
     if(isset($part_data['headers']['reply-to'])){
       $msg['reply-to'] = $part_data['headers']['reply-to'];
     }
-    // Get the To: header, which will be used to work out which forum this 
+    // Get the To: header, which will be used to work out which forum this
     // message wants to go into
     if(isset($part_data['headers']['to'])){
       $to = mailparse_rfc822_parse_addresses($part_data['headers']['to']);
@@ -79,12 +79,12 @@ function _femail_get_msg(){
             $msg['body'] = quoted_printable_decode(substr($msg['body'], $part_data['starting-pos-body'], $part_data['ending-pos-body'] - $part_data['starting-pos-body']));
           }
           // Lets get the charset, for those shite bloody email clients that
-          // don't use UTF-8.  WTF I hear you cry, yes, that's right, why isn't 
+          // don't use UTF-8.  WTF I hear you cry, yes, that's right, why isn't
           // everybody just using UTF-8 nowadays? GRRRRR!
           $charset_array = preg_split('/charset=/i', $part_data['headers']['content-type']);
           if(count($charset_array)){
             // We've got a specific charset, we'll need to convert the encoding
-            // to UTF-8            
+            // to UTF-8
             $charset = array_pop($charset_array);
             // We also need to ensure that we haven't got other spazzy rubbish on
             // the end of this charset string
@@ -99,7 +99,7 @@ function _femail_get_msg(){
     }
     // We'll attempt to save the attachments
     if(isset($part_data['content-disposition']) && ($part_data['content-disposition'] == 'attachment' || $part_data['content-disposition'] == 'inline')){
-      // First we check the file extension, and only continue if we're allowed 
+      // First we check the file extension, and only continue if we're allowed
       // to
       $allowed_extensions = explode(" ", variable_get('upload_extensions_default', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp'));
       $part_data['disposition-filename'] = _femail_decode_text($part_data['disposition-filename']);
@@ -113,7 +113,7 @@ function _femail_get_msg(){
         ), WATCHDOG_NOTICE);
       }else{
         if(in_array(strtolower($pathinfo['extension']), $allowed_extensions)){
-          // Write the data to a tmp file, which will be moved later if the 
+          // Write the data to a tmp file, which will be moved later if the
           // message was from a legitimate user.
           // As we're using Drush, we need the server root.
           $temp_name = tempnam(file_directory_temp(), 'fem');
@@ -140,7 +140,7 @@ function _femail_get_msg(){
     if(isset($part_data['headers']['message-id'])){
       $msg['msgid'] = $part_data['headers']['message-id'];
     }
-    // Get the InReplyTo header for possibly putting this message as a reply to 
+    // Get the InReplyTo header for possibly putting this message as a reply to
     // another forum post
     if(isset($part_data['headers']['in-reply-to'])){
       $msg['in-reply-to'] = $part_data['headers']['in-reply-to'];
@@ -228,8 +228,9 @@ function _femail_post_forum_topic($msg, $user, $status){
   $term = taxonomy_term_load($tid);
   $node = new stdClass();
   $node->uid = $user->uid;
+  $lang = field_language('node', $node, 'body');
   $node->body = array(
-    'und' => array(
+    $lang => array(
       array(
         'value' => $msg['body']
       )
@@ -241,8 +242,9 @@ function _femail_post_forum_topic($msg, $user, $status){
   $node->taxonomy = array(
     $term->vid => $tid
   );
+  $lang = field_language('node', $node, 'taxonomy_forums');
   $node->taxonomy_forums = array(
-    'und' => array(
+    $lang => array(
       array(
         'tid' => $tid
       )
@@ -281,14 +283,14 @@ function femail_drush_callback(){
     }
   }
   watchdog('femail', "Following message was received:\n\n" . print_r($msg, TRUE), array(), WATCHDOG_INFO);
-  // Now that we have a UID, we can upload the files.  We'll check for the 
+  // Now that we have a UID, we can upload the files.  We'll check for the
   // upload permissions too (we need both)
   if(isset($msg['files']) && count($msg['files'])){
     $temp_files = $msg['files'];
     unset($msg['files']);
     foreach($temp_files as $tmpfile){
       $file = file_save_data(file_get_contents($tmpfile['temp_name']), file_default_scheme() . '://' . $tmpfile['original_name']);
-      $msg['femail_files']['und'][] = array(
+      $msg['femail_files']['LANGUAGE_NONE'][] = array(
         'fid' => $file->fid,
         'display' => 1,
         'description' => ''
@@ -314,7 +316,7 @@ function femail_drush_callback(){
   if(isset($msg['in-reply-to']) || strtolower(substr($msg['title'], 0, 3)) == 're:'){
     if(_femail_post_comment($msg, $user, $comment_status)){return;}
   }
-  // else we need to create a node, or creating a comment has failed as the 
+  // else we need to create a node, or creating a comment has failed as the
   // msgid could not be found.
   _femail_post_forum_topic($msg, $user, $node_status);
 }

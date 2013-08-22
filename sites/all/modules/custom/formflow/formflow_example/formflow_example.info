@@ -3,3 +3,6 @@ description = Form flow example plugin
 core = 7.x
 dependencies[] = formflow_ui
 dependencies[] = ctools_ajax_sample
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = formflow_example

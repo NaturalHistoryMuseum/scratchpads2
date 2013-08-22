@@ -10,7 +10,7 @@ $plugin = array(
   'callback' => 'feeds_tamper_explode_callback',
   'validate' => 'feeds_tamper_explode_validate',
   'name' => 'Explode',
-  'multi' => 'direct',
+  'multi' => 'skip',
   'category' => 'List',
 );
 

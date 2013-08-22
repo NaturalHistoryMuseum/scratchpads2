@@ -1,0 +1,708 @@
+<?php
+
+/**
+ * @file
+ *   Localization community UI installation, update and uninstallation.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function l10n_community_install() {
+  $theme_key = variable_get('theme_default', 'bartik');
+  // Set up these blocks.
+  $blocks = array(
+    -6 => 'stats',
+    -7 => 'jump',
+    8 => 'contributions',
+  );
+  $module = 'l10n_community';
+  foreach ($blocks as $weight => $delta) {
+    // Insert or update all instances of this block even if we just added it.
+    db_merge('block')
+      ->key(array(
+          'module' => $module,
+          'delta'  => $delta,
+        ))
+      ->insertFields(array(
+          'module' => $module,
+          'delta'  => $delta,
+          'cache'  => -1,
+          'status' => 1,
+          'weight' => $weight,
+          'region' => 'sidebar_second',
+          'theme'  => $theme_key,
+          'pages'  => '',
+        ))
+      ->updateFields(array(
+          'cache'  => -1,
+          'status' => 1,
+          'weight' => $weight,
+        ))
+      ->execute();
+  }
+  cache_clear_all();
+}
+
+// -- Drupal 5 updates ---------------------------------------------------------
+
+/**
+ * Add home_link column so we can interlink projects with drupal.org pages.
+ *
+ * The uri is not enough as with local projects, we should not automatically
+ * link to http://drupal.org/project/$uri.
+ */
+function l10n_community_update_5000() {
+  db_add_field('l10n_community_project', 'home_link', array('type' => 'text', 'not null' => true));
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_5000()');
+}
+
+/**
+ * Add DEFAULT 0 to integer fields we not always fill in.
+ */
+function l10n_community_update_5001() {
+  $default_to_zero = array('uid_entered', 'uid_approved', 'time_entered', 'time_approved', 'has_suggestion', 'is_suggestion', 'is_active');
+  $ret = array();
+  foreach ($default_to_zero as $column) {
+    db_change_field('l10n_community_translation', $column, $column, array('type' => 'int', 'not null' => true, 'default => 0'));
+  }
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_5001()');
+}
+
+/**
+ * Add type column to lines, so we can track installer and non-installer
+ * string usage separately.
+ */
+function l10n_community_update_5002() {
+  db_add_field('l10n_community_line', 'type', array('type' => 'int'));
+  drupal_set_message('An update was executed to support installer string identification in scanned projects. You need to rescan all your prjects to make this work as expected. Delete data from the project, release, file, error and line tables, and rescan all projects. Make sure to leave the source string and translation tables intact. It is always a good idea to make backups!');
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_5002()');
+}
+
+/**
+ * Clean up starting and trailing spaces and new lines in translations.
+ */
+function l10n_community_update_5003() {
+  // We just search for strings that begin or end with these characters.
+  foreach (array('\n', ' ') as $char) {
+    $query = db_select('l10n_community_string', 's');
+    $query->innerJoin('l10n_community_translation', 't', 's.sid = t.sid');
+    $query->fields('s', array('sid', 'value'))->fields('t', array('tid', 'translation'));
+    $result = $query->condition(db_or()
+              ->condition('s.value', $char.'%', 'LIKE')
+              ->condition('s.value', '%'.$char, 'LIKE')
+              ->condition('t.translation', $char.'%', 'LIKE')
+              ->condition('t.translation', '%'.$char, 'LIKE'))
+      ->execute();
+    foreach ($result as $string) {
+      if ($string->translation) {
+        $trimmed = l10n_community_trim($string->translation, $string->value);
+        if ($trimmed != $string->translation) {
+          db_update('l10n_community_translation')
+	    ->fields(array(
+                'translation' => $trimmed,
+              ))
+	    ->condition('tid', $string->tid)
+	    ->execute();
+          drupal_set_message("Fixed string $string->sid: " . check_plain(substr($string->translation, 0, 50)));
+        }
+      }
+    }
+  }
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_5003()');
+}
+
+// -- Drupal 6 updates ---------------------------------------------------------
+// -- Use schema API from here -------------------------------------------------
+
+/**
+ * Add connector_module column and update existing projects to use the right one.
+ */
+function l10n_community_update_6000() {
+  // Add connector_module column for use as a clue for modules to tap onto their projects.
+  db_add_field('l10n_community_project', 'connector_module', array('type' => 'varchar', 'length' => '50', 'not null' => TRUE));
+
+  if (!module_exists('l10n_drupalorg') && !module_exists('l10n_localpacks')) {
+    // Inform users if no known connector modules were turned on.
+    drupal_set_message("Neither l10n_drupalorg nor l10n_localpacks modules were turned on, while the updates ran. The newly updated Localization Server requires knowledge of connector modules associated to projects. If you run your own connector module, please update the database with the module's internal name.");
+  }
+  else {
+    // Update existing projects to our best guess on what they use. Give priority
+    // to l10n_localpacks, since l10n_drupalorg is often just used for a test-drive
+    // and possibly left turned on.
+    $connector_module = module_exists('l10n_localpacks') ? 'l10n_localpacks' : 'l10n_drupalorg';
+    db_update('l10n_community_project')
+      ->fields(array('connector_module' => $connector_module))
+      ->execute();
+    if (module_exists('l10n_drupalorg') && module_exists('l10n_localpacks')) {
+      // Inform users if both modules were turned on.
+      drupal_set_message('Both l10n_drupalorg and l10n_localpacks modules were turned on, while the updates ran. We picked l10n_localpacks as the connector for existing projects. You might need to adjust your database if this was not the right choice.');
+    }
+  }
+
+  // The same URI should not appear with multiple connector modules.
+  db_add_unique_key('l10n_community_project', 'l10n_community_project_uri_connector_module', array('uri', 'connector_module'));
+
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6000()');
+}
+
+/**
+ * Add support for enabled and disabled projects.
+ *
+ * Disabled projects will not participate in the scanning process.
+ */
+function l10n_community_update_6001() {
+  db_add_field('l10n_community_project', 'status', array('type' => 'int', 'not null' => TRUE));
+  // Make all existing projects enabled.
+  db_update('l10n_community_project')  -> fields(array('status' => 1))  -> execute();
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6001()');
+}
+
+/**
+ * Add an index to the translations table to improve performance.
+ */
+function l10n_community_update_6002() {
+  db_add_index('l10n_community_translation', 'suggestion_active', array('is_suggestion', 'is_active'));
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6002()');
+}
+
+/**
+ * Add an index to the translations table to improve performance.
+ */
+function l10n_community_update_6003() {
+  db_add_index('l10n_community_translation', 'uid_entered', array('uid_entered'));
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6003()');
+}
+
+/**
+ * Add an index to the translations table to improve performance.
+ */
+function l10n_community_update_6004() {
+  db_add_index('l10n_community_translation', 'sid_language_suggestion', array('sid', 'language', 'is_suggestion'));
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6004()');
+}
+
+/**
+ * Add the context column to the source string table for Drupal 7 support.
+ */
+function l10n_community_update_6005() {
+  db_add_field('l10n_community_string', 'context', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6005()');
+}
+
+/**
+ * Denormalize data in order to improve performance: Push project ID to file table.
+ */
+function l10n_community_update_6006() {
+  db_add_field('l10n_community_file', 'pid', array('type' => 'int', 'not null' => FALSE, 'disp-width' => 11));
+
+  $result = db_query("SELECT rid, pid FROM {l10n_community_release}");
+  foreach ($result as $release) {
+    db_update('l10n_community_file')
+      ->fields(array('pid' => $release->pid))
+      ->condition('rid', $release->rid)
+      ->execute();
+  }
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6006()');
+}
+
+/**
+ * Denormalize data in order to improve performance: Push project and release ID to line table.
+ */
+function l10n_community_update_6007() {
+  db_add_field('l10n_community_line', 'pid', array('type' => 'int', 'not null' => FALSE, 'disp-width' => 11));
+  db_add_field('l10n_community_line', 'rid', array('type' => 'int', 'not null' => FALSE, 'disp-width' => 11));
+  db_add_index('l10n_community_line', 'pid', array('pid'));
+  db_add_index('l10n_community_line', 'rid', array('rid'));
+
+  $result = db_query("SELECT fid, rid, pid FROM {l10n_community_file}");
+  foreach ($result as $row) {
+    db_update('l10n_community_line')
+      ->fields(array(
+          'pid' => $row->pid,
+          'rid' => $row->rid,
+        ))
+      ->condition('fid', $row->fid)
+      ->execute();
+  }
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6007()');
+}
+
+/**
+ * Translations which are submitted right away should have equal approval data.
+ */
+function l10n_community_update_6008() {
+  db_update('l10n_community_translation')
+    ->expression('uid_approved', 'uid_entered')
+    ->expression('time_approved', 'time_entered')
+    ->condition('is_suggestion', 0)
+    ->condition('uid_approved', 0)
+    ->execute();
+
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6008()');
+}
+
+/**
+ * Permission "submit translations and approve suggestions" split in two.
+ *
+ * Became "moderate suggestions from others" and "moderate own suggestions".
+ */
+function l10n_community_update_6009() {
+  $result = db_query("SELECT rid, perm FROM {permission} ORDER BY rid");
+  foreach ($result as $role) {
+    $renamed_permission = preg_replace('/submit translations and approve suggestions/', 'moderate suggestions from others, moderate own suggestions', $role->perm);
+    if ($renamed_permission != $role->perm) {
+      db_update('permission')
+	->fields(array('perm' => $renamed_permission))
+	->condition('rid', $role->rid)
+	->execute();
+    }
+  }
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6009()');
+}
+
+/**
+ * Add hashkey to speed up source string lookups.
+ */
+function l10n_community_update_6010() {
+  db_add_field('l10n_community_string', 'hashkey', array('type' => 'char', 'not null' => FALSE, 'length' => 32));
+
+  db_update('l10n_community_string')
+    ->expression('hashkey', 'MD5(CONCAT(value, context))')
+    ->execute();
+
+  db_add_unique_key('l10n_community_string', 'hashkey', array('hashkey'));
+
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6010()');
+}
+
+/**
+ * Separate status flags from translations, so we can do more versatile searches quickly.
+ */
+function l10n_community_update_6011() {
+  db_create_table('l10n_community_status_flag', array(
+      'fields' => array(
+        'sid' => array(
+          'description' => 'Reference to the {l10n_community_string}.sid which is being translated.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'disp-width' => '11',
+        ),
+        'language' => array(
+          'description' => 'Reference to the {languages}.language to which the string is being translated.',
+          'type' => 'varchar',
+          'length' => '12',
+          'not null' => TRUE,
+        ),
+        'has_suggestion' => array(
+          'description' => 'Cached status flag of whether there is at least one row in {l10n_community_translation} where is_suggestion = 1, is_active = 1 and sid and language is the same as this one.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0,
+          'disp-width' => '11',
+        ),
+        'has_translation' => array(
+          'description' => 'Cached status flag of whether there is at least one row in {l10n_community_translation} where is_suggestion = 0, is_active = 1, translation is not empty and sid and language is the same as this one.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0,
+          'disp-width' => '11',
+        ),
+      ),
+      'primary key' => array('sid', 'language'),
+      'indexes' => array(
+        'sid_language_has_suggestion' => array('sid', 'language', 'has_suggestion'),
+        'sid_language_has_translation' => array('sid', 'language', 'has_translation'),
+      ),
+    ));
+
+  // Drop all placeholder records, which were only used to hold the has_suggestion flag.
+  db_delete('l10n_community_translation')
+    ->condition('is_active', 1)
+    ->condition('is_suggestion', 0)
+    ->condition('translation', '')
+    ->execute();
+
+  // Initialize status flags with values based on the current data.
+
+  // TODO update_sql has been removed. Use the database API for any schema or data changes.
+  $ret[] = array() /* update_sql("
+                      REPLACE INTO {l10n_community_status_flag}
+                      SELECT sid, language, MAX(has_suggestion) AS has_suggestion, MAX(has_translation) AS has_translation
+                      FROM (
+                      SELECT sid, language,
+                      (is_suggestion = 1 and is_active = 1) as has_suggestion,
+                      (is_suggestion = 0 and is_active = 1) as has_translation
+                      FROM {l10n_community_translation}
+                      HAVING has_translation = 1 or has_suggestion = 1
+                      ) t
+                      GROUP BY sid, language;
+                      ") */;
+
+  // Drop the has_suggestion field from the translation table.
+  db_drop_field('l10n_community_translation', 'has_suggestion');
+
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6011()');
+}
+
+/**
+ * Drop 0/0 status flags for people who run the unmodified 6011 update.
+ */
+function l10n_community_update_6012() {
+  db_delete('l10n_community_status_flag')
+    ->condition('has_suggestion', 0)
+    ->condition('has_translation', 0)
+    ->execute();
+
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6012()');
+}
+
+/**
+ * Consolidate indexes.
+ */
+function l10n_community_update_6013() {
+  // Drop all but the primary index of the table.
+  db_drop_index('l10n_community_translation', 'is_active');
+  db_drop_index('l10n_community_translation', 'is_suggestion');
+  db_drop_index('l10n_community_translation', 'language');
+  db_drop_index('l10n_community_translation', 'suggestion_active');
+  db_drop_index('l10n_community_translation', 'sid_language_suggestion');
+  db_drop_index('l10n_community_translation', 'sid');
+  // Add two specific indexes.
+  db_add_index('l10n_community_translation', 'is_suggestion_is_active_language', array('is_suggestion', 'is_active', 'language'));
+  db_add_index('l10n_community_translation', 'sid_language_is_suggestion_is_active', array('sid', 'language', 'is_suggestion', 'is_active'));
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6013()');
+}
+
+/**
+ * Permission "administer localization community" renamed.
+ */
+function l10n_community_update_6014() {
+  module_enable(array('l10n_server'));
+  $result = db_query("SELECT rid, perm FROM {permission} ORDER BY rid");
+  foreach ($result as $role) {
+    $renamed_permission = preg_replace('/administer localization community/', 'administer localization server', $role->perm);
+    if ($renamed_permission != $role->perm) {
+      db_update('permission')
+	->fields(array(
+            'perm' => $renamed_permission
+          ))
+	->condition('rid', $role->rid)
+	->execute();
+    }
+  }
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6014()');
+}
+
+/**
+ * Rename tables now owned by l10n_server.
+ */
+function l10n_community_update_6015() {
+  db_rename_table('l10n_community_project',      'l10n_server_project');
+  db_rename_table('l10n_community_release',      'l10n_server_release');
+  db_rename_table('l10n_community_error',        'l10n_server_error');
+  db_rename_table('l10n_community_file',         'l10n_server_file');
+  db_rename_table('l10n_community_line',         'l10n_server_line');
+  db_rename_table('l10n_community_string',       'l10n_server_string');
+  db_rename_table('l10n_community_translation', 'l10n_server_translation');
+  db_rename_table('l10n_community_status_flag', 'l10n_server_status_flag');
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6015()');
+}
+
+/**
+ * Migrate l10n_localpack settings to l10n_drupal settings.
+ */
+function l10n_community_update_6016() {
+  $enable = FALSE;
+  if (variable_get('l10n_localpacks_directory', '')) {
+    variable_set('l10n_server_connector_l10n_drupal_files_directory', variable_get('l10n_localpacks_directory', ''));
+    variable_set('l10n_server_connector_l10n_drupal_files_limit', variable_get('l10n_localpacks_limit', 1));
+    variable_set('l10n_server_connector_l10n_drupal_files_cron', variable_get('l10n_localpacks_cron', 0));
+    variable_set('l10n_server_connector_l10n_drupal_files_drupal_home', variable_get('l10n_localpacks_home_link', 0));
+    variable_set('l10n_server_connector_l10n_drupal_files_enabled', 1);
+    variable_del('l10n_localpacks_directory');
+    variable_del('l10n_localpacks_cron');
+    variable_del('l10n_localpacks_limit');
+    variable_del('l10n_localpacks_home_link');
+    $enable = TRUE;
+    db_update('l10n_server_project')
+      ->fields(array(
+          'connector_module' => 'l10n_drupal_files',
+        ))
+      ->condition('connector_module', 'l10n_localpacks')
+      ->execute();
+  }
+  if (db_query("SELECT 1 FROM {l10n_server_project} WHERE connector_module = 'l10n_project'")->fetchField()) {
+    variable_set('l10n_server_connector_l10n_project_drupalorg_limit', variable_get('l10n_project_limit', 1));
+    variable_set('l10n_server_connector_l10n_project_drupalorg_cron', variable_get('l10n_project_cron', 0));
+    variable_set('l10n_server_connector_l10n_project_drupalorg_last_sync', variable_get('l10n_project_last_sync', 0));
+    variable_set('l10n_server_connector_l10n_project_drupalorg_enabled', 1);
+    variable_del('l10n_project_cron');
+    variable_del('l10n_project_limit');
+    variable_del('l10n_project_last_sync');
+    $enable = TRUE;
+
+    db_update('l10n_server_project')
+      ->fields(array(
+          'connector_module' => 'l10n_project_drupalorg',
+        ))
+      ->condition('connector_module', 'l10n_project')
+      ->execute();
+  }
+
+  if ($enable) {
+    module_enable(array('l10n_drupal'));
+  }
+
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6016()');
+}
+
+/**
+ * Set up blocks that were newly introduced.
+ */
+function l10n_community_update_6017() {
+  $theme_key = variable_get('theme_default', 'bartik');
+  // Set up these blocks.
+  $blocks = array(
+    -6 => 'stats',
+    -7 => 'contribute',
+    8 => 'contributions',
+  );
+  $module = 'l10n_community';
+  foreach ($blocks as $weight => $delta) {
+    // Update all instances of this block even if we just added it.
+    db_merge('block')
+      ->key(array(
+          'module' => $module,
+          'delta'  => $delta,
+        ))
+      ->insertFields(array(
+          'module' => $module,
+          'delta'  => $delta,
+          'cache'  => -1,
+          'status' => 1,
+          'weight' => $weight,
+          'region' => 'sidebar_second',
+          'theme'  => $theme_key,
+          'pages'  => '',
+        ))
+      ->updateFields(array(
+          'cache'  => -1,
+          'status' => 1,
+          'weight' => $weight,
+        ))
+      ->execute();
+  }
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6017()');
+}
+
+/**
+ * Fix previously faulty l10n_community_update_6010() column addition.
+ */
+function l10n_community_update_6018() {
+  db_drop_unique_key('l10n_server_string', 'hashkey');
+  db_change_field('l10n_server_string', 'hashkey', 'hashkey', array('type' => 'char', 'not null' => TRUE, 'length' => 32));
+  db_add_unique_key('l10n_server_string', 'hashkey', array('hashkey'));
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6018()');
+}
+
+/**
+ * Add weight support to projects and releases.
+ */
+function l10n_community_update_6019() {
+  // Add weight field to projects.
+  db_add_field('l10n_server_project', 'weight', array('type' => 'int', 'not null' => FALSE));
+  db_add_index('l10n_server_project', 'weight', array('weight'));
+
+  // Add weight field to releases.
+  db_add_field('l10n_server_release', 'weight', array('type' => 'int', 'not null' => FALSE));
+  db_add_index('l10n_server_release', 'weight', array('weight'));
+
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6019()');
+}
+
+/**
+ * Update weight fields to be 0 by default instead of NULL.
+ */
+function l10n_community_update_6020() {
+  // Modify weight field on projects.
+  db_update('l10n_server_project')
+    ->fields(array('weight', 0))
+    ->isNull('weight')
+    ->execute();
+
+  db_drop_index('l10n_server_project', 'weight');
+  db_change_field('l10n_server_project', 'weight', 'weight', array('type' => 'int', 'not null' => TRUE));
+  db_add_index('l10n_server_project', 'weight', array('weight'));
+
+  // Modify weight field on releases.
+  db_update('l10n_server_release')
+    ->fields(array('weight', 0))
+    ->isNull('weight')
+    ->execute();
+
+  db_drop_index('l10n_server_release', 'weight');
+  db_change_field('l10n_server_release', 'weight', 'weight', array('type' => 'int', 'not null' => TRUE));
+  db_add_index('l10n_server_release', 'weight', array('weight'));
+
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6020()');
+}
+
+/**
+ * Contribute block renamed "jump", since it serves a more generic purpose.
+ */
+function l10n_community_update_6021() {
+  db_update('block')
+    ->fields(array('delta' => 'jump',))
+    ->condition('delta', 'contribute')
+    ->condition('module', 'l10n_community')
+    ->execute();
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6021()');
+}
+
+/**
+ * Refactor translation history tracking to a separate table.
+ */
+function l10n_community_update_6022() {
+  db_create_table('l10n_server_translation_history', array(
+      'fields' => array(
+        'tid' => array(
+          'description' => 'References {l10n_server_translation}.tid',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0,
+          'disp-width' => '11',
+        ),
+        'uid_action' => array(
+          'description' => 'Reference to the {users}.uid who performed the action.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0,
+          'disp-width' => '11',
+        ),
+        'time_action' => array(
+          'description' => 'Unix timestamp of time when the action happened.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0,
+          'disp-width' => '11',
+        ),
+        'type_action' => array(
+          'description' => 'Numeric identifier of the action that happened.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0,
+          'disp-width' => '11',
+        ),
+        'medium_action' => array(
+          'description' => 'Numeric identifier of the medium the action happened through.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0,
+          'disp-width' => '11',
+        ),
+      ),
+      'indexes' => array(
+        'tid' => array('tid'),
+      ),
+    ));
+
+  // Save submission history data with L10N_SERVER_ACTION_ADD (1), and
+  // L10N_SERVER_MEDIUM_UNKNOWN (0) since we don't know how was the string
+  // added really.
+  $query = db_select('l10n_server_translation', 't')
+    ->fields('t', array('tid', 'uid_entered', 'time_entered'));
+  $query->addExpression(1);
+  $query->addExpression(0);
+  db_insert('l10n_server_translation_history')
+    ->fields(array('tid', 'uid_action', 'time_action', 'type_action', 'medium_action'))
+    ->from($query)
+    ->execute();
+
+  // Save approval history data with L10N_SERVER_ACTION_APPROVE (2) and
+  // L10N_SERVER_MEDIUM_WEB (1).
+  $query = db_select('l10n_server_translation', 't')
+    ->fields('t', array('tid', 'uid_approved', 'time_aproved'))
+    ->condition('is_active', 1)
+    ->condition('is_suggestion', 0);
+  $query->addExpression(2);
+  $query->addExpression(1);
+
+  db_insert('l10n_server_translation_history')
+    ->fields(array('tid', 'uid_action', 'time_action', 'type_action', 'medium_action'))
+    ->from($query)
+    ->execute();
+
+  // Save somewhat padded decline data with L10N_SERVER_ACTION_DECLINE (3) and
+  // L10N_SERVER_MEDIUM_WEB (1). Use a second later time based on submission
+  // time, so in time ordering of events, it will appear later. Actual display
+  // of this action will not consider the time, so it is known to be fake
+  // based on the uid being zero.
+  $query = db_select('l10n_server_translation', 't')
+    ->fields('t', array('tid'))
+    ->condition('is_active', 0);
+  $query->addExpression(0);
+  $query->addExpression('time_entered + 1');
+  $query->addExpression(3);
+  $query->addExpression(1);
+
+  db_insert('l10n_server_translation_history')
+    ->fields(array('tid', 'uid_action', 'time_action', 'type_action', 'medium_action'))
+    ->from($query)
+    ->execute();
+
+  // Do nothing for L10N_SERVER_ACTION_DEMOTE (4) and
+  // L10N_SERVER_ACTION_READD (5). We don't know if these happened to any of the
+  // strings, since there is not yet lasting indication of these actions in the
+  // database.
+
+  // Add the time_changed field.
+  db_add_field('l10n_server_translation', 'time_changed', array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '11'));
+
+  // The last change date we know is either the submission or approval time
+  // for active strings.
+  db_update('l10n_server_translation')
+    ->expression('time_changed', 'GREATEST(time_entered, time_approved)')
+    ->condition('is_active', 1)
+    ->execute();
+
+  // The last change date for declined strings is faked above to time_entered + 1,
+  // so use that for consistency. That is sure to be later to time_entered and
+  // will be consistent with the last history action on the string.
+  db_update('l10n_server_translation')
+    ->expression('time_changed', 'time_entered + 1')
+    ->condition('is_active', 0)
+    ->execute();
+
+  // Drop fields not needed anymore in the translation table, now we track these separately.
+  db_drop_field('l10n_server_translation', 'uid_approved');
+  db_drop_field('l10n_server_translation', 'time_approved');
+
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6022()');
+}
+
+/**
+ * Add sid_count to releases.
+ */
+function l10n_community_update_6023() {
+  db_add_field('l10n_server_release', 'sid_count', array('type' => 'int', 'not null' => TRUE, 'default' => 0));
+
+  // Fill in with sid_count based on line data.
+  $sid_counts = db_query('SELECT rid, COUNT(DISTINCT sid) sid_count FROM {l10n_server_line} GROUP BY rid');
+  foreach ($sid_counts as $row) {
+    db_update('l10n_server_release')
+      ->fields(array('sid_count' => $row->sid_count))
+      ->condition('rid', $row->rid)
+      ->execute();
+  }
+
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6023()');
+}
+
+/**
+ * Add an index to the l10n_server_file table to improve performance.
+ */
+function l10n_community_update_6024() {
+  db_add_index('l10n_server_file', 'pid', array('pid'));
+  return t('TODO Add a descriptive string here to show in the UI. l10n_community_update_6024()');
+}

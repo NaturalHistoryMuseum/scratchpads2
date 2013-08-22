@@ -3,3 +3,7 @@ description = Creates a simple chat room for a site.
 core = 7.x
 package = WebSockets
 dependencies[] = websockets
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = chat_room

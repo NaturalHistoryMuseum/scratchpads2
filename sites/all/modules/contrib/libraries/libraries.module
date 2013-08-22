@@ -9,7 +9,12 @@
  * Implements hook_flush_caches().
  */
 function libraries_flush_caches() {
-  return array('cache_libraries');
+  // @todo When upgrading from 1.x, update.php attempts to flush caches before
+  //   the cache table has been created.
+  // @see http://drupal.org/node/1477932
+  if (db_table_exists('cache_libraries')) {
+    return array('cache_libraries');
+  }
 }
 
 /**
@@ -60,34 +65,27 @@ function libraries_get_path($name, $base_path = FALSE) {
  * @ingroup libraries
  */
 function libraries_get_libraries() {
-  $directory = 'libraries';
   $searchdir = array();
-  $profile = drupal_get_profile();
+  $profile = drupal_get_path('profile', drupal_get_profile());
   $config = conf_path();
 
   // Similar to 'modules' and 'themes' directories in the root directory,
   // certain distributions may want to place libraries into a 'libraries'
   // directory in Drupal's root directory.
-  $searchdir[] = $directory;
+  $searchdir[] = 'libraries';
 
-  // The 'profiles' directory contains pristine collections of modules and
-  // themes as organized by a distribution.  It is pristine in the same way
-  // that /modules is pristine for core; users should avoid changing anything
-  // there in favor of sites/all or sites/<domain> directories.
-  if (file_exists("profiles/$profile/$directory")) {
-    $searchdir[] = "profiles/$profile/$directory";
-  }
+  // Similar to 'modules' and 'themes' directories inside an installation
+  // profile, installation profiles may want to place libraries into a
+  // 'libraries' directory.
+  $searchdir[] = "$profile/libraries";
 
-  // Always search sites/all/*.
-  $searchdir[] = 'sites/all/' . $directory;
+  // Always search sites/all/libraries.
+  $searchdir[] = 'sites/all/libraries';
 
   // Also search sites/<domain>/*.
-  if (file_exists("$config/$directory")) {
-    $searchdir[] = "$config/$directory";
-  }
+  $searchdir[] = "$config/libraries";
 
   // Retrieve list of directories.
-  // @todo Core: Allow to scan for directories.
   $directories = array();
   $nomask = array('CVS');
   foreach ($searchdir as $dir) {
@@ -121,13 +119,13 @@ function libraries_get_libraries() {
  *   the files.
  */
 function libraries_scan_info_files() {
-  $profile = drupal_get_profile();
+  $profile = drupal_get_path('profile', drupal_get_profile());
   $config = conf_path();
 
   // Build a list of directories.
   $directories = module_invoke_all('libraries_info_file_paths');
   $directories[] = 'libraries';
-  $directories[] = "profiles/$profile/libraries";
+  $directories[] = "$profile/libraries";
   $directories[] = 'sites/all/libraries';
   $directories[] = "$config/libraries";
 
@@ -342,6 +340,26 @@ function &libraries_info($name = NULL) {
         $libraries[$machine_name] = $properties;
       }
     }
+    // Gather information from hook_libraries_info() in enabled themes.
+    // @see drupal_alter()
+    global $theme, $base_theme_info;
+    if (isset($theme)) {
+      $theme_keys = array();
+      foreach ($base_theme_info as $base) {
+        $theme_keys[] = $base->name;
+      }
+      $theme_keys[] = $theme;
+      foreach ($theme_keys as $theme_key) {
+        $function = $theme_key . '_' . 'libraries_info';
+        if (function_exists($function)) {
+          foreach ($function() as $machine_name => $properties) {
+            $properties['theme'] = $theme_key;
+            $libraries[$machine_name] = $properties;
+          }
+        }
+      }
+    }
+
     // Gather information from .info files.
     // .info files override module definitions.
     foreach (libraries_scan_info_files() as $machine_name => $file) {
@@ -405,6 +423,7 @@ function libraries_info_defaults(&$library, $name) {
     'info' => array(),
     'pre-detect' => array(),
     'post-detect' => array(),
+    'pre-dependencies-load' => array(),
     'pre-load' => array(),
     'post-load' => array(),
   );
@@ -593,6 +612,9 @@ function libraries_load($name, $variant = NULL) {
     // Regardless of whether a specific variant was requested or not, there can
     // only be one variant of a library within a single request.
     unset($library['variants']);
+
+    // Invoke callbacks in the 'pre-dependencies-load' group.
+    libraries_invoke('pre-dependencies-load', $library);
 
     // If the library (variant) is installed, load it.
     $library['loaded'] = FALSE;

@@ -3,3 +3,6 @@ description = Simple module that implements the Tag API and saves tags when a no
 core = 7.x
 files[] = tag_on_save.module
 package = Tags
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = tag_on_save

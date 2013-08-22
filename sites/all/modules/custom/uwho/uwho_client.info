@@ -2,3 +2,6 @@ name = "UWho - Client"
 description = "Provides an easy way of generating the relevant URLs to provide a mechanism to create/signin a user to another site"
 package = "Scratchpads"
 core = 7.x
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = uwho

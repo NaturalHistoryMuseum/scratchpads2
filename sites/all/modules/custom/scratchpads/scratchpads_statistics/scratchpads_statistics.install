@@ -16,8 +16,10 @@ function scratchpads_statistics_install(){
   ));
   foreach($results as $row){
     $user = user_load($row->uid);
+    $lang = field_language('user', $user, 'field_user_family_name');
+    $lang_given_names = field_language('user', $user, 'field_user_given_names');
     $query->values(array(
-      'name' => @isset($user->field_user_family_name[LANGUAGE_NONE][0]['value']) ? trim($user->field_user_given_names[LANGUAGE_NONE][0]['value'] . ' ' . $user->field_user_family_name[LANGUAGE_NONE][0]['value']) : $user->name,
+      'name' => @isset($user->field_user_family_name[$lang][0]['value']) ? trim($user->field_user_given_names[$lang_given_names][0]['value'] . ' ' . $user->field_user_family_name[$lang][0]['value']) : $user->name,
       'email' => $user->mail
     ));
   }
@@ -268,7 +270,7 @@ function scratchpads_statistics_schema(){
       )
     ),
     // Term
-    // Note, we do not store the TID here, as we need to show revisions of 
+    // Note, we do not store the TID here, as we need to show revisions of
     // terms.
     'scratchpads_statistics_term' => array(
       'fields' => array(

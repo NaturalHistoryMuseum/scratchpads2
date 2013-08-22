@@ -2,7 +2,7 @@
 
 /**
  * Implements hook_theme().
- * 
+ *
  * Theme the user edit/create form.
  */
 function scratchpads_user_theme(){
@@ -16,7 +16,7 @@ function scratchpads_user_theme(){
 
 /**
  * Implements hook_admin_paths().
- * 
+ *
  * Add the user/register as an admin path (the registration form looks 100x
  * better in an overlay).
  */
@@ -49,10 +49,10 @@ function scratchpads_user_cron(){
 
 /**
  * Implements hook_menu_alter().
- * 
+ *
  * Override the admin/people page to add columns and display stub users
  * correctly.
- * 
+ *
  * Alter the user_reference/autocomplete function so that we can make the names
  * look a little more beautiful.
  */
@@ -63,9 +63,9 @@ function scratchpads_user_menu_alter(&$items){
 }
 
 /**
- * 
+ *
  * Implements hook_ENTITY_TYPE_load().
- * 
+ *
  * Add the "stub_user" property, and also set the name to the given name/surname
  * fields.
  */
@@ -89,7 +89,7 @@ function scratchpads_user_user_load($entities){
 
 /**
  * Implements hook_ENTITY_TYPE_save().
- * 
+ *
  * Prevent saving of a "1" status for stub users.
  */
 function scratchpads_user_user_presave(&$edit, $account, $category){
@@ -102,7 +102,7 @@ function scratchpads_user_user_presave(&$edit, $account, $category){
 
 /**
  * Implements hook_module_implements_alter()
- * 
+ *
  * Execute our form_alter functions last.
  */
 function scratchpads_user_module_implements_alter(&$imps, $hook){
@@ -117,8 +117,8 @@ function scratchpads_user_module_implements_alter(&$imps, $hook){
 
 /**
  * Implement hook_form_FORM_ID_alter().
- * 
- * The "Create" user form.  This needs to be able to handle both login and 
+ *
+ * The "Create" user form.  This needs to be able to handle both login and
  * loginless changes.
  */
 function scratchpads_user_form_user_register_form_alter(&$form, &$form_state){
@@ -136,8 +136,8 @@ function scratchpads_user_form_user_register_form_alter(&$form, &$form_state){
 
 /**
  * Implement hook_form_FORM_ID_alter().
- * 
- * The "Edit" user form.  This needs to be able to handle both login and 
+ *
+ * The "Edit" user form.  This needs to be able to handle both login and
  * loginless changes.
  */
 function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
@@ -169,7 +169,7 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
     $form['field_user_given_names'][LANGUAGE_NONE][0]['value']['#required'] = FALSE;
     $form['field_user_title'][LANGUAGE_NONE][0]['select_other_list']['#required'] = FALSE;
     $form['field_user_country'][LANGUAGE_NONE]['#required'] = FALSE;
-    // Because "title" defaults to "Mr", we need to set the default to "" if a 
+    // Because "title" defaults to "Mr", we need to set the default to "" if a
     // default value isn't provided.
     $form['field_user_title'][LANGUAGE_NONE][0]['select_other_list']['#options'][NULL] = t('- None -');
     if(!count($form['#user']->field_user_title)){
@@ -202,7 +202,7 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
 }
 
 /**
- * 
+ *
  * helper function - make alterations to both the user_profile_form() & user_register_form() forms
  */
 function _scratchpads_user_form_alter(&$form, &$form_state){
@@ -570,9 +570,11 @@ function scratchpads_user_field_formatter_view($entity_type, $entity, $field, $i
 
 function _scratchpads_user_field_formatter_view($number_of_items, $delta, $item, array $settings = NULL){
   $user = user_load($item['uid']);
-  $content = isset($user->field_user_given_names[LANGUAGE_NONE]) ? $user->field_user_given_names[LANGUAGE_NONE][0]['safe_value'] : '';
+  $lang = field_language('user', $user, 'field_user_given_names');
+  $content = isset($user->field_user_given_names[$user]) ? $user->field_user_given_names[$user][0]['safe_value'] : '';
   $content .= ' ';
-  $content .= (isset($user->field_user_family_name[LANGUAGE_NONE]) ? $user->field_user_family_name[LANGUAGE_NONE][0]['safe_value'] : '');
+  $lang = field_language('user', $user, 'field_user_family_name');
+  $content .= (isset($user->field_user_family_name[$lang]) ? $user->field_user_family_name[$lang][0]['safe_value'] : '');
   $content = trim($content);
   if(!$content){
     $content = $user->name;
@@ -696,7 +698,7 @@ function scratchpads_user_feeds_after_parse($source, $result){
 
 /**
    * Implements hook_user_insert().
-   * 
+   *
    * Send a user notification email if the status is set to 1
    */
 function scratchpads_user_user_insert(&$edit, $account, $category){

@@ -3,3 +3,6 @@ description = Provides RefBank lookup and import into the Biblio module.
 core = 7.x
 package = Biblio
 dependencies[] = biblio_bibtex
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = biblio_refbank

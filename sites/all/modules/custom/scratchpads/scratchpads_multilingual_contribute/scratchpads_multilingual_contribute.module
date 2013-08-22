@@ -1,0 +1,79 @@
+<?php
+
+/**
+ * Implements hook_user_insert()
+ */
+function scratchpads_multilingual_contribute_user_presave(&$edit, $account, $category){
+  // Add the API Key to new users of the site.
+  $ini = @parse_ini_file(drupal_get_path('module', 'scratchpads_multilingual_contribute') . '/scratchpads_multilingual_contribute.ini');
+  if($ini['key']){
+    // Scratchpads User on the localize.scratchpads.eu site is UID:4.
+    $account->data['l10n_client_key'] = '4:' . md5('l10n_community4' . $ini['key'] . l10n_client_user_token($account));
+  }
+}
+
+/**
+ * Implements hook_scratchpads_hands_off_urls_alter().
+ */
+function scratchpads_multilingual_contribute_scratchpads_hands_off_urls_alter(&$urls){
+  $urls = array_merge($urls, array(
+    'admin/config/regional/language/share'
+  ));
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions
+ */
+function scratchpads_multilingual_contribute_scratchpads_default_permissions(){
+  return array(
+    'contributor' => array(
+      'submit translations to localization server',
+      'use on-page translation'
+    )
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function scratchpads_multilingual_contribute_block_info(){
+  return array(
+    'l10n' => array(
+      'info' => t('Scratchpads Localize Block'),
+      'cache' => DRUPAL_CACHE_PER_USER,
+      'region' => 'sidebar',
+      'status' => 1
+    )
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function scratchpads_multilingual_contribute_block_view($delta = ''){
+  switch($delta){
+    case 'l10n':
+      $ini = @parse_ini_file(drupal_get_path('module', 'scratchpads_multilingual_contribute') . '/scratchpads_multilingual_contribute.ini');
+      if($ini['uwho']){
+        module_load_include('admin.inc', 'locale');
+        return array(
+          'subject' => t('Translate') . '...',
+          'content' => array(
+            '#attached' => array(
+              'css' => array(
+                drupal_get_path('module', 'scratchpads_multilingual_contribute') . '/css/scratchpads_multilingual_contribute.css'
+              )
+            ),
+            '#prefix' => '<div id="scratchpads-multilingual-contribute">',
+            '#suffix' => '</div>',
+            'content' => array(
+              '#markup' => '<div class="login-link">
+    <h2>' . uwho_client_block_content($ini['uwho'], 'http://localize.scratchpads.eu/uwho', '', t('Login to the Scratchpads Localize site')) . '</h2>
+  </div><h2>Translation status</h2>' . str_replace('sticky-enabled', '', locale_translate_overview_screen())
+            )
+          )
+        );
+        break;
+      }
+  }
+}

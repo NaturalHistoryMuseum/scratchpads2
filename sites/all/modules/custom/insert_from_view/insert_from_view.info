@@ -8,3 +8,6 @@ dependencies[] = views
 
 files[]=views/insert_from_view_handler_field_insert.inc
 files[]=views/insert_from_view_handler_field_checkbox.inc
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = insert_from_view

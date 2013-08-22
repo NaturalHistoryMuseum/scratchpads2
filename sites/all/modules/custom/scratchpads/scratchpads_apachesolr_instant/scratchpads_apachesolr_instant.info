@@ -3,3 +3,6 @@ description = "Speeds up the indexing of items by solr by adding them as they ar
 package = "Scratchpads"
 core = 7.x
 dependencies[] = apachesolr
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_apachesolr_instant
