@@ -124,7 +124,7 @@ function scratchpads_biography_field_display_alter(&$display, $context){
  */
 function scratchpads_biography_user_view($account, $view_mode, $langcode){
   
-  dpm(entity_get_info());
+ 
   
   // Allow users with 'administer users' access to bypass this control
   if(($account->field_make_this_profile_public_['und'][0]['value'] != 1) && (!user_access('administer users'))){

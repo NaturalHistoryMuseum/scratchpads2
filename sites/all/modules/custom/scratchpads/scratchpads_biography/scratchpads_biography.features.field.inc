@@ -552,7 +552,7 @@ function scratchpads_biography_field_default_fields() {
     ),
   );
 
-  // Exported field: 'user-user-field_example_of_handwriting'
+// Exported field: 'user-user-field_example_of_handwriting'
   $fields['user-user-field_example_of_handwriting'] = array(
     'field_config' => array(
       'active' => '1',
@@ -595,10 +595,10 @@ function scratchpads_biography_field_default_fields() {
           'weight' => '12',
         ),
         'linked_node' => array(
-        'label' => 'above',
-        'settings' => array(),
-        'type' => 'hidden',
-        'weight' => 0,
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
       ),
       'entity_type' => 'user',
@@ -606,39 +606,40 @@ function scratchpads_biography_field_default_fields() {
       'label' => 'Example of handwriting',
       'required' => 0,
       'settings' => array(
-      'description_field' => 0,
-      'file_directory' => '',
-      'file_extensions' => 'png gif jpg jpeg pdf',
-      'max_filesize' => '',
-      'user_register_form' => 1,
+        'description_field' => 0,
+        'file_directory' => 'signature',
+        'file_extensions' => 'png gif jpg jpeg pdf',
+        'max_filesize' => '',
+        'user_register_form' => 1,
       ),
       'widget' => array(
-      'active' => 1,
-      'module' => 'media',
-      'settings' => array(
-      'allowed_schemes' => array(
-      'module' => 0,
-      'public' => 'public',
-      ),
-      'allowed_types' => array(
-      'image' => 'image',
-      'video' => 0,
-      0 => 0,
-      'audio' => 0,
-      'default' => 0,
-      ),
-      'browser_plugins' => array(
-      'media_default--media_browser_1' => 'media_default--media_browser_1',
-      'media_default--media_browser_my_files' => 'media_default--media_browser_my_files',
-      'upload' => 'upload',
-      ),
-      'progress_indicator' => 'throbber',
-      ),
-      'type' => 'media_generic',
-      'weight' => '34',
+        'active' => 1,
+        'module' => 'media',
+        'settings' => array(
+          'allowed_schemes' => array(
+            'module' => 0,
+            'public' => 'public',
+          ),
+          'allowed_types' => array(
+            0 => 0,
+            'audio' => 0,
+            'default' => 0,
+            'image' => 'image',
+            'video' => 0,
+          ),
+          'browser_plugins' => array(
+            'media_default--media_browser_1' => 'media_default--media_browser_1',
+            'media_default--media_browser_my_files' => 'media_default--media_browser_my_files',
+            'upload' => 'upload',
+          ),
+          'progress_indicator' => 'throbber',
+        ),
+        'type' => 'media_generic',
+        'weight' => '34',
       ),
     ),
   );
+  
 
   // Exported field: 'user-user-field_gender'
   $fields['user-user-field_gender'] = array(
