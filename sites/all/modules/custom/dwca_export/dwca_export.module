@@ -251,7 +251,11 @@ function dwca_export_field_formatter_view($entity_type, $entity, $field, $instan
         if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
           $markup = 'accepted';
         }else{
-          $markup = 'not accepted';
+          if (isset($reason_map_taxonomic[$entity->field_unacceptability_reason['und'][0]['value']])) {
+            $markup = $reason_map_taxonomic[$entity->field_unacceptability_reason['und'][0]['value']];
+          } else {
+          	$markup = 'synonym';
+          }
         }
       }
       $element[] = array(
