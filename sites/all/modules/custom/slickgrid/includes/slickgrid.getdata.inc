@@ -77,10 +77,12 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
       // Start with a basic text filter - this will work with most fields.
       $operator = 'contains';
       $op_val = $value;
-      // Add the option of a regular expression filter
-      if(substr(strtolower($value), 0, 6) == 'regex:'){
-        $op_val = trim(str_ireplace('regex:', '', $value));
-        $operator = 'regular_expression';
+      // Add regexp support for MySQL.
+      if(Database::getConnection()->databaseType() == 'mysql'){
+        if(substr(strtolower($value), 0, 6) == 'regex:'){
+          $op_val = trim(substr($value, 6));
+          $operator = 'regular_expression';
+        }
       }
       $filter = array(
         'id' => $field,
