@@ -36,6 +36,8 @@ function _scratchpads_group_install_search_page(){
  * Implements hook_disable().
  */
 function scratchpads_group_disable(){
+  // Delete the content type
+  node_type_delete('group');
   db_delete('apachesolr_search_page')->condition('page_id', 'group_search')->execute();
   // Remove the fields
   module_load_include('features.field.inc', 'scratchpads_group');
@@ -66,6 +68,7 @@ function scratchpads_group_enable(){
     // We do this at the end, to prevent og from setting it after this point.
     register_shutdown_function('variable_del', 'node_access_needs_rebuild');
   }
+  
 }
 
 /**

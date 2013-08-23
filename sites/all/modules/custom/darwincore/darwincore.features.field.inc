@@ -1631,9 +1631,12 @@ function darwincore_field_default_fields(){
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'user_reference',
-          'settings' => array(),
-          'type' => 'user_reference_default',
+          'module' => 'scratchpads_user_full_name',
+          'settings' => array(
+            'show_name_as_link' => 1,
+            'separator_option' => ', '
+          ),
+          'type' => 'scratchpads_user_full_name',
           'weight' => '5'
         ),
         'linked_node' => array(
@@ -2182,9 +2185,12 @@ function darwincore_field_default_fields(){
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'user_reference',
-          'settings' => array(),
-          'type' => 'user_reference_default',
+          'module' => 'scratchpads_user_full_name',
+          'settings' => array(
+            'show_name_as_link' => 1,
+            'separator_option' => ', '
+          ),
+          'type' => 'scratchpads_user_full_name',
           'weight' => '4'
         ),
         'linked_node' => array(

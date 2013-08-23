@@ -126,10 +126,10 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['uuid_1']['relationship'] = 'parent';
   $handler->display->display_options['fields']['uuid_1']['exclude'] = TRUE;
   /* Field: Taxonomy term: Unacceptability Reason */
-$handler->display->display_options['fields']['field_unacceptability_reason_5']['id'] = 'field_unacceptability_reason_5';
-$handler->display->display_options['fields']['field_unacceptability_reason_5']['table'] = 'field_data_field_unacceptability_reason';
-$handler->display->display_options['fields']['field_unacceptability_reason_5']['field'] = 'field_unacceptability_reason';
-$handler->display->display_options['fields']['field_unacceptability_reason_5']['label'] = 'Parent';
+  $handler->display->display_options['fields']['field_unacceptability_reason_5']['id'] = 'field_unacceptability_reason_5';
+  $handler->display->display_options['fields']['field_unacceptability_reason_5']['table'] = 'field_data_field_unacceptability_reason';
+  $handler->display->display_options['fields']['field_unacceptability_reason_5']['field'] = 'field_unacceptability_reason';
+  $handler->display->display_options['fields']['field_unacceptability_reason_5']['label'] = 'Parent';
   $handler->display->display_options['fields']['field_unacceptability_reason_5']['type'] = 'parent_formatter';
   /* Field: Taxonomy term: Unacceptability Reason */
   $handler->display->display_options['fields']['field_unacceptability_reason_2']['id'] = 'field_unacceptability_reason_2';
@@ -138,10 +138,10 @@ $handler->display->display_options['fields']['field_unacceptability_reason_5']['
   $handler->display->display_options['fields']['field_unacceptability_reason_2']['label'] = 'NomenclaturalStatus';
   $handler->display->display_options['fields']['field_unacceptability_reason_2']['type'] = 'name_status';
   /* Field: Taxonomy term: Unacceptability Reason */
-$handler->display->display_options['fields']['field_unacceptability_reason_3']['id'] = 'field_unacceptability_reason_3';
-$handler->display->display_options['fields']['field_unacceptability_reason_3']['table'] = 'field_data_field_unacceptability_reason';
-$handler->display->display_options['fields']['field_unacceptability_reason_3']['field'] = 'field_unacceptability_reason';
-$handler->display->display_options['fields']['field_unacceptability_reason_3']['label'] = 'AssociatedAcceptedName';
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['id'] = 'field_unacceptability_reason_3';
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['table'] = 'field_data_field_unacceptability_reason';
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['field'] = 'field_unacceptability_reason';
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['label'] = 'AssociatedAcceptedName';
   $handler->display->display_options['fields']['field_unacceptability_reason_3']['type'] = 'aan_formatter';
   $handler->display->display_options['sorts']['tid']['id'] = 'tid';
   $handler->display->display_options['sorts']['tid']['table'] = 'taxonomy_term_data';
@@ -243,9 +243,12 @@ $handler->display->display_options['fields']['field_unacceptability_reason_3']['
   $handler->display->display_options['fields']['biblio_issn']['alter']['text'] = 'urn:ISSN:[biblio_issn]';
   $handler->display->display_options['fields']['biblio_issn']['biblio_label'] = 1;
   /* Field: Biblio: Biblio Citation */
+  /* Field: Biblio: Biblio Citation */
   $handler->display->display_options['fields']['citation']['id'] = 'citation';
   $handler->display->display_options['fields']['citation']['table'] = 'biblio';
   $handler->display->display_options['fields']['citation']['field'] = 'citation';
+  $handler->display->display_options['fields']['citation']['alter']['strip_tags'] = TRUE;
+  $handler->display->display_options['fields']['citation']['element_default_classes'] = FALSE;
   $handler->display->display_options['fields']['citation']['style_name'] = 'chicago-author-date.csl';
   $handler->display->display_options['fields']['citation']['export_links'] = 0;
   $handler->display->display_options['fields']['citation']['file_attachments'] = 0;
