@@ -27,6 +27,15 @@
 	margin-bottom: 1px;
 }
 
+.view-front-page-slideshow .views-field-filename{
+  position: absolute;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  width: 100%;
+  padding: 10px 0;
+  color: #fff;
+}
+
 .view-front-page-slideshow span.views-field {
 	position: absolute;
 	bottom: 40px;
