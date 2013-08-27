@@ -136,11 +136,16 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
                 unset($filter['operator']);
                 break;
               case 'taxonomy_term_reference':
+                if(($operator == 'regular_expression') && ($op_val != '')){
+                  $t_val = array_keys(taxonomy_get_terms_by_name_match_regex($op_val));
+                }else{
+                  $t_val = array_keys(taxonomy_get_terms_by_name_match($value));
+                }
                 foreach($real_field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
                   foreach($more_info as $key => $name){
                     if($key != 'format'){
                       $filter['operator'] = 'or';
-                      $filter['value'] = array_keys(taxonomy_get_terms_by_name_match($value));
+                      $filter['value'] = $t_val;
                       $filter['reduce_duplicates'] = 0;
                       $filter['type'] = 'textfield';
                       $filter['limit'] = 100;
@@ -207,6 +212,28 @@ function taxonomy_get_terms_by_name_match($name, $vocabulary = NULL, $match = 'b
   $query = db_select('taxonomy_term_data', 't')->fields('t', array(
     'tid'
   ))->condition('name', $name, 'LIKE');
+  if(isset($vocabulary)){
+    $vocabulary = taxonomy_vocabulary_machine_name_load($vocabulary);
+    $query->condition('vid', $vocabulary->vid);
+  }
+  $tids = $query->execute()->fetchCol();
+  if(count($tids)){
+    return taxonomy_term_load_multiple($tids);
+  }else{
+    return array(
+      PHP_INT_MAX => PHP_INT_MAX
+    );
+  }
+}
+
+/**
+ * Similar to taxonomy_get_terms_by_name_match(), but with regex search
+ */
+function taxonomy_get_terms_by_name_match_regex($name){
+  $name = db_like(trim($name));
+  $query = db_select('taxonomy_term_data', 't')->fields('t', array(
+    'tid'
+  ))->condition('name', $name, 'RLIKE');
   if(isset($vocabulary)){
     $vocabulary = taxonomy_vocabulary_machine_name_load($vocabulary);
     $query->condition('vid', $vocabulary->vid);
