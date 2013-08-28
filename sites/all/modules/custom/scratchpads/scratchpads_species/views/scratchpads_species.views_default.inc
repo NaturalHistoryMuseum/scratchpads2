@@ -1867,6 +1867,12 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['sorts']['sticky']['table'] = 'node';
     $handler->display->display_options['sorts']['sticky']['field'] = 'sticky';
     $handler->display->display_options['sorts']['sticky']['order'] = 'DESC';
+    if($node_type == 'spm'){
+      /* Sort criterion: Weight: Weight */
+      $handler->display->display_options['sorts']['weight']['id'] = 'weight';
+      $handler->display->display_options['sorts']['weight']['table'] = 'weight_weights';
+      $handler->display->display_options['sorts']['weight']['field'] = 'weight';
+    }
     /* Sort criterion: Content: Post date */
     $handler->display->display_options['sorts']['created']['id'] = 'created';
     $handler->display->display_options['sorts']['created']['table'] = 'node';
