@@ -17,6 +17,10 @@ function theme_scratchpads_user_register_form($variables){
   foreach(array_keys($fields) as $field_name){
     $output .= drupal_render($variables['form'][$field_name]);
   }
+  // Add biography, if it exists
+  if(isset($variables['form']['group_tabs'])){
+    $output .= drupal_render($variables['form']['group_tabs']);
+  }
   $output .= '
     </div>
   </div>
@@ -24,6 +28,7 @@ function theme_scratchpads_user_register_form($variables){
     <div>';
   // Render "create user" checkbox.
   $output .= drupal_render($variables['form']['create_user_account']);
+  $output .= drupal_render($variables['form']['account']);
   // Move the actions element outside of the columns
   $actions = $variables['form']['actions'];
   unset($variables['form']['actions']);
