@@ -14,70 +14,28 @@ function darwincore_install(){
  * Re-enable any content types or views that might have been disabled previously
  */
 function darwincore_enable(){
-  // Re-enable the content types if previously disabled.
-  $type_info = node_type_load('location');
-  if($type_info->disabled == 1){
-    _darwincore_enable_content_type('location');
-  }
-  $type_info2 = node_type_load('specimen_observation');
-  if($type_info2->disabled == 1){
-    _darwincore_enable_content_type('specimen_observation');
-  }
-  // Re-enable views, if previously disabled
-  $status = variable_get('views_defaults', array());
-  if($status['species_specimen_observation'] == TRUE){
-    $status['species_specimen_observation'] = FALSE;
-    $status['species_map'] = FALSE;
-    $status['species_location'] = FALSE;
-    variable_set('views_defaults', $status);
-  }
-  drupal_flush_all_caches();
+  // Enable/re-enable all the features of this module.
+  $feature = features_get_features('darwincore');
+  $components = array_keys($feature->info['features']);
+  features_revert(array(
+    'darwincore' => $components
+  ));
 }
 
 /**
  * Implements hook_disable().
  * 
- * Rather than removing the content type and deleting data,
- * disabling this module will disable the content type and related views.
+ * Remove content types defined by this module
+ * 
  */
 function darwincore_disable(){
-  // Disable content types created by features 
-  _darwincore_disable_content_type('location');
-  _darwincore_disable_content_type('specimen_observation');
-  // disable views that are still showing
-  $status = variable_get('views_defaults', array());
-  $status['species_specimen_observation'] = TRUE;
-  $status['species_location'] = TRUE;
-  $status['species_map'] = TRUE;
-  variable_set('views_defaults', $status);
-}
-
-/**
- * Helper function
- * Disables a content type belonging to the darwincore module
- */
-function _darwincore_disable_content_type($type){
-  $type_info = node_type_load($type);
-  $type_info->module = 'darwincore';
-  $type_info->custom = 1;
-  $type_info->modified = 1;
-  $type_info->locked = 0;
-  $type_info->disabled = 1;
-  node_type_save($type_info);
-}
-
-/**
- * Helper function
- * Enables a content type belonging to the darwincore module
- */
-function _darwincore_enable_content_type($type){
-  $type_info = node_type_load($type);
-  $type_info->module = 'darwincore';
-  $type_info->custom = 0;
-  $type_info->modified = 0;
-  $type_info->locked = 1;
-  $type_info->disabled = 0;
-  node_type_save($type_info);
+  // if there is no data, remove the fields and content type
+  if(darwincore_node_count() == 0){
+    node_type_delete('location');
+    variable_del('node_preview_location');
+    node_type_delete('specimen_observation');
+    variable_del('node_preview_specimen_observation');
+  }
 }
 
 /**

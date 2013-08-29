@@ -180,7 +180,7 @@ function silver_silver(){
         'administer users'
       ),
       'redirect' => 'import/user_importer_user'
-    )
+    ) 
   );
 }
 
@@ -451,11 +451,10 @@ function silver_pages_excel_form(){
   $content_types = array();
   $entity_info = entity_get_info('node');
   foreach($entity_info['bundles'] as $node_type => $node_type_info){
-    $node_info = node_type_load($node_type);
-    if((!in_array($node_type, variable_get('silver_restricted_node_types', array(
+    if(!in_array($node_type, variable_get('silver_restricted_node_types', array(
       'biblio',
       'media_gallery'
-    )))) && (!$node_info->disabled)){
+    )))){
       $content_types['node_importer_' . $node_type] = $node_type_info['label'];
     }
   }
