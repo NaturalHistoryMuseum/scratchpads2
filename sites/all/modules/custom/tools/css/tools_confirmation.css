@@ -1,4 +1,5 @@
 
-.tools-container{
-	display:none;
+
+#tools-admin-form.confirmation #edit-description {
+	 border-width: 0px;  
 }

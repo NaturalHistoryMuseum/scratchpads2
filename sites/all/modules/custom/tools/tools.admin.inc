@@ -16,6 +16,10 @@ function tools_admin_form($form, &$form_state){
   $features = tools_get_features();
   // Confirmation form
   if(isset($form_state['storage']['confirm'])){
+    $path = drupal_get_path('module', 'tools');
+    $form['#attached']['css'] = array(
+      $path . '/css/tools_confirmation.css'
+    );
     $enabled_features = array();
     foreach($features as $feature){
       if($feature->status == 1){
