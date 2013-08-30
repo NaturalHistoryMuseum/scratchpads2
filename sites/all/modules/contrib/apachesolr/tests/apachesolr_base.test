@@ -62,7 +62,7 @@ class DrupalSolrOfflineEnvironmentWebTestCase extends DrupalSolrOfflineWebTestCa
    * Implementation of setUp().
    */
   function setUp() {
-    parent::setUp('apachesolr', 'search', 'apachesolr_test');
+    parent::setUp('apachesolr', 'search', 'apachesolr_search', 'apachesolr_test');
     // Create a basic user, which is subject to moderation.
     $permissions = array(
       'access content',
