@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * Implements hook_enable().
+ * 
+ * Change the user display style to show a larger picture
+ * 
+ * Enable the biography viewm, if it is disabled
+ */
+function scratchpads_biography_enable(){
+  variable_set('user_picture_style', 'square_thumbnail_large');
+  // Enable the biographies view, if it is disabled
+  $views_status = variable_get('views_defaults', array());
+  if(isset($views_status['biography'])){
+    $views_status['biography'] = FALSE;
+    // reset the variable with the new list
+    variable_set('views_defaults', $views_status);
+    // empty cache now
+    if(function_exists('views_invalidate_cache')){
+      views_invalidate_cache();
+    }
+  }
+}
+/**
+ * Implements hook_disable().
+ * 
+ * Show warning message and disable the biography view
+ */
+function scratchpads_biography_disable(){
+  drupal_set_message('The biography module has been disabled. Please note that if you wish to remove the biography fields, this needs to be done manually.');
+  // Disable the biographies view
+  $views_status = variable_get('views_defaults', array());
+  $views_status['biography'] = TRUE;
+  // reset the variable with the new list
+  variable_set('views_defaults', $views_status);
+  // empty cache now
+  if(function_exists('views_invalidate_cache')){
+    views_invalidate_cache();
+  }
+}
+
