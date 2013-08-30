@@ -294,34 +294,37 @@ function scratchpads_front_page_edit($form, &$form_state){
       )
     )
   );
-  $form['main_block']['front_page_main_block_slideshow_text_creator'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Display Image Creator'),
-    '#description' => t('Do you want the image creators to be displayed in the slideshow?'),
-    '#default_value' => scratchpads_front_variable_get('front_page_main_block_slideshow_text_creator'),
-    '#required' => false,
-    '#states' => array(
-      'visible' => array(
-        'input[name="front_page_main_block_type"]' => array(
-          'value' => 'images'
+  // if the view has been edited we don't add the option to edit the view via this form
+  if(strlen(views_get_view('front_page_slideshow')->vid)==0){
+    $form['main_block']['front_page_main_block_slideshow_text_creator'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display Image Creator'),
+      '#description' => t('Do you want the image creators to be displayed in the slideshow?'),
+      '#default_value' => scratchpads_front_variable_get('front_page_main_block_slideshow_text_creator'),
+      '#required' => false,
+      '#states' => array(
+        'visible' => array(
+          'input[name="front_page_main_block_type"]' => array(
+            'value' => 'images'
+          )
         )
       )
-    )
-  );
-  $form['main_block']['front_page_main_block_slideshow_text_licence'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Display Image Licence'),
-    '#description' => t('Do you want the image licences to be displayed in the slideshow?'),
-    '#default_value' => scratchpads_front_variable_get('front_page_main_block_slideshow_text_licence'),
-    '#required' => false,
-    '#states' => array(
-      'visible' => array(
-        'input[name="front_page_main_block_type"]' => array(
-          'value' => 'images'
+    );
+    $form['main_block']['front_page_main_block_slideshow_text_licence'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display Image Licence'),
+      '#description' => t('Do you want the image licences to be displayed in the slideshow?'),
+      '#default_value' => scratchpads_front_variable_get('front_page_main_block_slideshow_text_licence'),
+      '#required' => false,
+      '#states' => array(
+        'visible' => array(
+          'input[name="front_page_main_block_type"]' => array(
+            'value' => 'images'
+          )
         )
       )
-    )
-  );
+    );
+  }
   $form['small_blocks'] = array(
     '#type' => 'fieldset',
     '#title' => t('Small blocks'),
