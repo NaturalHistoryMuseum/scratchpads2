@@ -38,7 +38,7 @@ class FeedsXPathParserMemory extends FeedsXPathParserBase{
   public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result){
     // Increase the memory limit to same set for feedsxls
     ini_set('memory_limit', '1500M');
-  //  ini_set('max_execution_time', 240); // 4 minutes
+    ini_set('max_execution_time', 240); // 4 minutes
     ini_set('default_socket_timeout', 300);// 5 minutes suggested by KE
     ini_set('max_input_time', 300);// 5 minutes  suggested by KE
     $parser_result = parent::parse($source, $fetcher_result);
