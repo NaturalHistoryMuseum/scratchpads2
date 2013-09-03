@@ -1685,7 +1685,7 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
   $fields_array = $new_array;
   foreach($fields_array as $key => $field_details){
     $value = $field_details['field_name'] . '_value';
-    if(($field_details['display']['default']['module'] == 'node_reference') && ($field_details['field_name'] != 'field_location')){
+    if(isset($field_details['display']['default']['module']) && ($field_details['display']['default']['module'] == 'node_reference') && ($field_details['field_name'] != 'field_location')){
       // do nothing
     }elseif($field_details['widget']['module'] == 'scratchpads_taxonomic_name_field'){
       // Create a filter for each vocabulary
