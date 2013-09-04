@@ -107,3 +107,20 @@ function scratchpads_translate_module_implements_alter(&$imps, $hook){
     $imps['scratchpads_translate'] = $move;
   }
 }
+
+/**
+ * Implements hook_variable_info().
+ *
+ * Declare the variable so that it can be translated.
+ */
+function scratchpads_translate_variable_info($options){
+  $variables['front_page_welcome_message'] = array(
+    'type' => 'string',
+    'title' => t('Front Page Welcome Message', array(), $options),
+    'default' => '',
+    'description' => t('An introductory message to welcome people to your site.', array(), $options),
+    'required' => TRUE,
+    'group' => 'site_information'
+  );
+  return $variables;
+}

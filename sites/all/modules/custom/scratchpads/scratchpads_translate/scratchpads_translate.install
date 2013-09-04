@@ -56,7 +56,8 @@ function scratchpads_translate_disable(){
     'entity_translation',
     'i18n_field',
     'i18n_taxonomy',
-    'translation'
+    'translation',
+    'i18n_variable'
   ));
 }
 
@@ -83,4 +84,17 @@ function scratchpads_translate_update_7002(){
       'data' => serialize($body_field_config_data)
     ))->condition('field_name', 'body')->execute();
   }
+}
+
+/**
+ * Allow for translations of site variables
+ */
+function scratchpads_translate_update_7007(){
+  module_enable(array(
+    'i18n_variable'
+  ));
+  // Set the front page welcome message as translatable  
+  $value = variable_realm_get('global', 'default', 'variable_realm_list_language');
+  $value[] = 'front_page_welcome_message';
+  variable_realm_set('global', 'default', 'variable_realm_list_language', $value);
 }

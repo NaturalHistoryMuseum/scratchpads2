@@ -6,6 +6,7 @@ dependencies[] = entity_translation
 dependencies[] = i18n_field
 dependencies[] = i18n_taxonomy
 dependencies[] = i18n_menu
+dependencies[] = i18n_variable
 dependencies[] = translation
 dependencies[] = scratchpads_multilingual
 dependencies[] = title
