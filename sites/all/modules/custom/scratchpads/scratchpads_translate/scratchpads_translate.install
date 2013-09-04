@@ -89,7 +89,7 @@ function scratchpads_translate_update_7002(){
 /**
  * Allow for translations of site variables
  */
-function scratchpads_translate_update_7007(){
+function scratchpads_translate_update_7003(){
   module_enable(array(
     'i18n_variable'
   ));
