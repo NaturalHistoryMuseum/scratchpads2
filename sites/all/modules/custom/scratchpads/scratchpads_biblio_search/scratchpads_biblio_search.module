@@ -558,7 +558,7 @@ function scratchpads_biblio_search_apachesolr_index_document_build(ApacheSolrDoc
     $document->content .= strip_tags(theme('biblio_long', array(
       'node' => $entity,
       'base' => $base,
-      'style' => $style
+      'style_name' => $style
     )));
     $document->teaser .= strip_tags(theme('biblio_style', array(
       'node' => $entity,
