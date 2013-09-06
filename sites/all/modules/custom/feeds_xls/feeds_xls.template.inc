@@ -487,13 +487,17 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
     // Set the columnn width
     $sheet->getColumnDimension($column)->setAutoSize(TRUE);
     // Validation
-    if(isset($feeds_importer->processor->config['content_type']) || isset($feeds_importer->processor->config['vocabulary'])){
+  if(isset($feeds_importer->processor->config['content_type']) || isset($feeds_importer->processor->config['vocabulary']) || ($feeds_importer->processor->id == 'user_importer_user')){
       if(isset($feeds_importer->processor->config['content_type'])){
         $bundle = $feeds_importer->processor->config['content_type'];
         $entity_type = 'node';
-      }else if(isset($feeds_importer->processor->config['vocabulary'])){
+      }elseif(isset($feeds_importer->processor->config['vocabulary'])){
         $bundle = $feeds_importer->processor->config['vocabulary'];
         $entity_type = 'taxonomy_term';
+      }
+      elseif($feeds_importer->processor->id == 'user_importer_user'){
+        $bundle = 'user';
+        $entity_type = 'user';
       }
       if(strpos($header['target'], ':')){
         $temp_array = explode(':', $header['target']);
@@ -519,9 +523,12 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
           $objValidation->setPrompt($help_text);
         }
         if($field_instance['required']){
-          $required_cells[] = $column;
-          $objValidation->setPromptTitle(t('Required'));
-          $objValidation->setPrompt(t('This cell may not be left blank') . $help_text ? $help_text : '');
+          // This 'required field' is not required for non-login users
+          if (!(($entity_type == 'user') && ($field['field_name'] == 'field_user_given_names'))){
+            $required_cells[] = $column;
+            $objValidation->setPromptTitle(t('Required'));
+            $objValidation->setPrompt(t('This cell may not be left blank') . $help_text ? $help_text : '');
+          }         
         }
         $objValidation->setShowInputMessage(TRUE);
         $objValidation->setShowErrorMessage(TRUE);
