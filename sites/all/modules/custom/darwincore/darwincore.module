@@ -216,7 +216,3 @@ function darwincore_node_count(){
   $query->condition($or);
   return $query->countQuery()->execute()->fetchField();
 }
-
-
-
-
