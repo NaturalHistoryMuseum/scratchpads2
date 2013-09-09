@@ -347,6 +347,12 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['filters']['type']['value'] = array(
     'biblio' => 'biblio'
   );
+  /* Filter criterion: Field: Taxonomic name (field_taxonomic_name:delta) */
+  $handler->display->display_options['filters']['delta']['id'] = 'delta';
+  $handler->display->display_options['filters']['delta']['table'] = 'field_data_field_taxonomic_name';
+  $handler->display->display_options['filters']['delta']['field'] = 'delta';
+  $handler->display->display_options['filters']['delta']['operator'] = '<';
+  $handler->display->display_options['filters']['delta']['value']['value'] = '1';
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'some';
