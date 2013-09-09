@@ -168,8 +168,9 @@ class SolrFilterSubQuery {
       }
 
       // For the name we allow any character that fits between the A-Z0-9 range and
-      // any alternative for this in other languages. No special characters allowed
-      if (!preg_match('/^[a-zA-Z0-9_\x7f-\xff]+$/', $name)) {
+      // any alternative for this in other languages. No special characters allowed.
+      // Negative filters may have a leading "-".
+      if (!preg_match('/^-?[a-zA-Z0-9_\x7f-\xff]+$/', $name)) {
         return FALSE;
       }
 
