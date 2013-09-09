@@ -36,7 +36,7 @@ jQuery(document).ready(function($){
         $(this).closest(".views-widget").after(html_remove_filter);
       }
     });
-    $('.views-submit-button').append(filter_message);   
+    $('.views-submit-button').append(filter_message);
     $('#edit-word-wrapper label').append(filter_description);
   }
 
@@ -122,8 +122,12 @@ jQuery(document).ready(function($){
   }
 
   // We need to reset the form after Ajax call
-  $(document).ajaxComplete(function(){
-    if(submitted == 1) {
+  $(document).ajaxComplete(function(event, xhr, settings){
+    var autocomplete = false;
+    if(settings.url.indexOf("views/ajax/autocomplete") >= 0) {
+      autocomplete = true;
+    }
+    if((submitted == 1) || (autocomplete == false)) {
       has_been_submitted = 1;
       $('.filter_message').css('display', 'none');
       if($('#edit-selected-wrapper').find('.add_button').length == 0) {
@@ -191,14 +195,14 @@ jQuery(document).ready(function($){
       has_been_submitted = 0;
       $('.views-exposed-widget.views-submit-button').hide();
       reset = 0;
-    }    
+    }
     // Helper function to remove classes from a string
-    function trimClass(a_class){    
+    function trimClass(a_class){
       a_class = a_class.replace('dependent-options', '');
       a_class = a_class.replace('views-exposed-widget', '');
       a_class = a_class.replace('views-submit-button', '');
-      a_class = $.trim(a_class);    
-      return a_class;      
+      a_class = $.trim(a_class);
+      return a_class;
     }
   });
 

@@ -21,6 +21,7 @@ function scratchpads_biography_enable(){
     }
   }
 }
+
 /**
  * Implements hook_disable().
  * 
@@ -39,3 +40,26 @@ function scratchpads_biography_disable(){
   }
 }
 
+/**
+ * Update the 'make this profile public' biography field
+ */
+function scratchpads_biography_update_7001(){
+  // Update allowed values if not already updated.
+  $field = field_info_field('field_make_this_profile_public_');
+  if(($field['settings']['allowed_values'][0] == '') && ($field['settings']['allowed_values'][1] == '')){
+    $field['settings']['allowed_values'] = array(
+      0 => 'No',
+      1 => 'Yes'
+    );
+    field_update_field($field);
+  }
+  // Update field instance to hide this field by default
+  $instance = field_info_instance('user', 'field_make_this_profile_public_', 'user');
+  $instance['display']['default'] = array(
+    'label' => 'hidden',
+    'settings' => array(),
+    'type' => 'hidden',
+    'weight' => '4'
+  );
+  field_update_instance($instance);
+}
