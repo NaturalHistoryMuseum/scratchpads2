@@ -500,7 +500,7 @@ function scratchpads_backend_views_default_views(){
       $handler->display->display_options['filters'][$field_value]['expose']['label'] = $file_field['label'];
       $handler->display->display_options['filters'][$field_value]['expose']['operator'] = $field_value . '_op';
       $handler->display->display_options['filters'][$field_value]['expose']['identifier'] = $field_value;
-    }elseif(($file_field['widget']['module'] == 'options') && ($file_field['display']['default']['module'] != 'taxonomy')){
+    }elseif(($file_field['widget']['module'] == 'options') && isset($file_field['display']['default']['module']) && ($file_field['display']['default']['module'] != 'taxonomy')){
       // We remove certain filters that do not need to be displayed
       if(($key != 'field_sticky') && ($key != 'field_weight') && ($key != 'field_promote_to_home_page')){
         /* Filter criterion: */
@@ -1685,7 +1685,7 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
   $fields_array = $new_array;
   foreach($fields_array as $key => $field_details){
     $value = $field_details['field_name'] . '_value';
-    if(($field_details['display']['default']['module'] == 'node_reference') && ($field_details['field_name'] != 'field_location')){
+    if(isset($field_details['display']['default']['module']) && ($field_details['display']['default']['module'] == 'node_reference') && ($field_details['field_name'] != 'field_location')){
       // do nothing
     }elseif($field_details['widget']['module'] == 'scratchpads_taxonomic_name_field'){
       // Create a filter for each vocabulary
@@ -1840,7 +1840,7 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
       $handler->display->display_options['filters'][$value]['group'] = '1';
     }elseif($field_details['widget']['module'] == 'options'){
       // We treat countries as a separate case, as it is a unique field type
-      if($field_details['display']['default']['module'] == 'countries'){
+      if(isset($field_details['display']['default']['module']) && $field_details['display']['default']['module'] == 'countries'){
         /* Filter criterion: Countries: Name - list */
         $handler->display->display_options['filters']['name_list']['id'] = 'name_list';
         $handler->display->display_options['filters']['name_list']['table'] = 'countries_country';
@@ -1863,7 +1863,7 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
           'enabled' => '1',
           'continents' => array()
         );
-      }elseif($field_details['display']['default']['module'] == 'languagefield'){
+      }elseif(isset($field_details['display']['default']['module']) && $field_details['display']['default']['module'] == 'languagefield'){
         // do nothing  
       }else{
         /* Filter criterion: */
