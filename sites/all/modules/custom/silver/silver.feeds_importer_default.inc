@@ -231,23 +231,40 @@ function silver_feeds_importer_default(){
     'import_on_create' => TRUE,
     'process_in_background' => FALSE
   );
+  // Add user fields 
+  // We use the form to ensure that the fields are in the same order as the form
+  $form = drupal_get_form('user_register_form');
   $field_info = field_info_instances('user', 'user');
-  // reorder the array
-  $out = array();
-  foreach(array(
-    "field_user_title",
-    "field_user_given_names",
-    "field_user_family_name",
-    "field_user_country",
-    "field_homepage",
-    "field_user_institution",
-    "field_user_taxonomic_interest"
-  ) as $key){
-    if(isset($field_info[$key])){
-      $out[$key] = $field_info[$key];
+  $ordered_field_info = array();
+  $order = array();
+  $group_number = 0;
+  // If we are using fieldgroups, as in biography
+  if(!empty($form['#groups'])){
+    foreach($form['#groups'] as $group_name => $group){
+      if($group_name != 'group_tabs'){
+        foreach($group->children as $field_name){
+          // GroupNumber - Weight - Fieldname
+          $order[$group_number . $form[$field_name]['#weight'] . $field_name] = $field_name;
+        }
+      }
+      $group_number++;
+    }
+  }else{
+    // No fieldgroups, as in default scratchpads
+    foreach($field_info as $field_name => $info){
+      $order[$form[$field_name]['#weight'] . $field_name] = $field_name;
     }
   }
-  $field_info = $out;
+  ksort($order);
+  foreach($order as $field_name){
+    $ordered_field_info[$field_name] = $field_info[$field_name];
+    unset($field_info[$field_name]);
+  }
+  // Add any fields that are not in fieldgroups to the end
+  foreach($field_info as $field_name => $info){
+    $ordered_field_info[$field_name] = $info;
+  }
+  $field_info = $ordered_field_info;
   _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'user:user:');
   $feeds_importer->config['processor']['config']['mappings'][] = array(
     'source' => 'E-Mail',
