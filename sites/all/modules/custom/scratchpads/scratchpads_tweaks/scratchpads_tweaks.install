@@ -1240,13 +1240,3 @@ function scratchpads_tweaks_update_7063(){
     }
   }
 }
-
-/**
- * Uninstall mollom and scratchpads_mollom
- */
-function scratchpads_tweaks_update_7064(){
-  drupal_uninstall_modules(array(
-    'scratchpads_mollom',
-    'mollom'
-  ));
-}
