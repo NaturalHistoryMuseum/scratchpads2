@@ -16,11 +16,11 @@
  limitations under the License.
 -->
 
-<!-- 
+<!--
      For more details about configurations options that may appear in
-     this file, see http://wiki.apache.org/solr/SolrConfigXml. 
+     this file, see http://wiki.apache.org/solr/SolrConfigXml.
 -->
-<config name="drupal-4.0-solr-4.x" >
+<config name="drupal-4.1-solr-4.x" >
   <!-- In all configuration below, a prefix of "solr." for class names
        is an alias that causes solr to search appropriate packages,
        including org.apache.solr.(search|update|request|core|analysis)
@@ -40,14 +40,14 @@
          -Dsolr.abortOnConfigurationError=false
     -->
   <abortOnConfigurationError>${solr.abortOnConfigurationError:true}</abortOnConfigurationError>
-  
+
   <!-- Controls what version of Lucene various components of Solr
        adhere to.  Generally, you want to use the latest version to
        get all bug fixes and improvements. It is highly recommended
        that you fully re-index after changing this setting as it can
        affect both how text is indexed and queried.
     -->
-  <luceneMatchVersion>${luceneVersion:LUCENE_35}</luceneMatchVersion>
+  <luceneMatchVersion>${solr.luceneMatchVersion:LUCENE_40}</luceneMatchVersion>
 
   <!-- lib directives can be used to instruct Solr to load an Jars
        identified and use them to resolve any "plugins" specified in
@@ -299,15 +299,15 @@
 
          maxTime - Maximum amount of time that is allowed to pass
                    since a document was added before automaticly
-                   triggering a new commit. 
+                   triggering a new commit.
       -->
-    <autoCommit> 
-      <maxDocs>10000</maxDocs>
-      <maxTime>120000</maxTime> 
+    <autoCommit>
+      <maxDocs>${solr.autoCommit.MaxDocs:10000}</maxDocs>
+      <maxTime>${solr.autoCommit.MaxTime:120000}</maxTime>
     </autoCommit>
 
     <!-- Update Related Event Listeners
-         
+
          Various IndexWriter related events can trigger Listeners to
          take actions.
 
@@ -849,7 +849,7 @@
       <bool name="omitHeader">true</bool>
       <float name="tie">0.01</float>
       <!-- Don't abort searches for the pinkPony request handler (set in solrcore.properties) -->
-      <int name="timeAllowed">${pinkPony.timeAllowed:-1}</int>
+      <int name="timeAllowed">${solr.pinkPony.timeAllowed:-1}</int>
       <str name="q.alt">*:*</str>
 
       <!-- By default, don't spell check -->
@@ -876,8 +876,16 @@
       <str name="mlt.maxqt">20</str>
       <str name="mlt.match.include">false</str>
       <!-- Abort any searches longer than 2 seconds (set in solrcore.properties) -->
-      <int name="timeAllowed">${mlt.timeAllowed:2000}</int>
+      <int name="timeAllowed">${solr.mlt.timeAllowed:2000}</int>
     </lst>
+  </requestHandler>
+
+  <!-- A minimal query type for doing luene queries -->
+  <requestHandler name="standard" class="solr.SearchHandler">
+     <lst name="defaults">
+       <str name="echoParams">explicit</str>
+       <bool name="omitHeader">true</bool>
+     </lst>
   </requestHandler>
 
   <!-- XML Update Request Handler.  
@@ -1070,32 +1078,32 @@
     -->
      <requestHandler name="/replication" class="solr.ReplicationHandler" >
        <lst name="master">
-         <str name="enable">${enable.master:false}</str>
+         <str name="enable">${solr.replication.master:false}</str>
          <str name="replicateAfter">commit</str>
          <str name="replicateAfter">startup</str>
-         <str name="confFiles">${confFiles}</str>
+         <str name="confFiles">${solr.replication.confFiles:schema.xml,mapping-ISOLatin1Accent.txt,protwords.txt,stopwords.txt,synonyms.txt,elevate.xml}</str>
        </lst>
        <lst name="slave">
-         <str name="enable">${enable.slave:false}</str>
-         <str name="masterUrl">${masterCoreUrl}/replication</str>
-         <str name="pollInterval">${pollTime:00:00:60}</str>
+         <str name="enable">${solr.replication.slave:false}</str>
+         <str name="masterUrl">${solr.replication.masterUrl:http://localhost:8983/solr}/replication</str>
+         <str name="pollInterval">${solr.replication.pollInterval:00:00:60}</str>
        </lst>
      </requestHandler>
 
   <!-- Search Components
 
-       Search components are registered to SolrCore and used by 
+       Search components are registered to SolrCore and used by
        instances of SearchHandler (which can access them by name)
-       
+
        By default, the following components are available:
-       
+
        <searchComponent name="query"     class="solr.QueryComponent" />
        <searchComponent name="facet"     class="solr.FacetComponent" />
        <searchComponent name="mlt"       class="solr.MoreLikeThisComponent" />
        <searchComponent name="highlight" class="solr.HighlightComponent" />
        <searchComponent name="stats"     class="solr.StatsComponent" />
        <searchComponent name="debug"     class="solr.DebugComponent" />
-   
+
        Default configuration in a requestHandler would look like:
 
        <arr name="components">
@@ -1360,8 +1368,8 @@
                  default="true"
                  class="solr.highlight.HtmlFormatter">
         <lst name="defaults">
-          <str name="hl.simple.pre"><![CDATA[<em>]]></str>
-          <str name="hl.simple.post"><![CDATA[</em>]]></str>
+          <str name="hl.simple.pre"><![CDATA[<strong>]]></str>
+          <str name="hl.simple.post"><![CDATA[</strong>]]></str>
         </lst>
       </formatter>
 
@@ -1569,7 +1577,28 @@
 
   <!-- Following is a dynamic way to include other components or any customized solrconfig.xml stuff, added by other contrib modules -->
   <xi:include href="solrconfig_extra.xml" xmlns:xi="http://www.w3.org/2001/XInclude">
-    <xi:fallback></xi:fallback>
+    <xi:fallback>
+    <!-- Spell Check
+
+        The spell check component can return a list of alternative spelling
+        suggestions. This component must be defined in
+        solrconfig_extra.xml if present, since it's used in the search handler.
+
+        http://wiki.apache.org/solr/SpellCheckComponent
+     -->
+    <searchComponent name="spellcheck" class="solr.SpellCheckComponent">
+
+    <str name="queryAnalyzerFieldType">textSpell</str>
+
+    <!-- a spellchecker built from a field of the main index -->
+      <lst name="spellchecker">
+        <str name="name">default</str>
+        <str name="field">spell</str>
+        <str name="spellcheckIndexDir">spellchecker</str>
+        <str name="buildOnOptimize">true</str>
+      </lst>
+    </searchComponent>
+    </xi:fallback>
   </xi:include>
 
 </config>

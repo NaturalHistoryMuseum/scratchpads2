@@ -1261,6 +1261,7 @@ function apachesolr_index_config_form(array $form, array $form_state, $env_id) {
       foreach ($entity_info['bundles'] as $key => $info) {
         $options[$key] = $info['label'];
       }
+      asort($options);
 
       $form['config']['entities']['#tree'] = TRUE;
       $form['config']['entities'][$entity_type] = array(
