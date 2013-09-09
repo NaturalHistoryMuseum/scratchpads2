@@ -7,9 +7,7 @@
  */
 function dwca_export_views_default_views(){
   global $base_url;
-  
   $default_licence = variable_get('creative_commons_block_licence_type', CC_BY);
-  
   static $view_description_names = array(
     'general_description',
     'morphology',
@@ -442,11 +440,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['uri']['table'] = 'file_managed';
   $handler->display->display_options['fields']['uri']['field'] = 'uri';
   $handler->display->display_options['fields']['uri']['file_download_path'] = TRUE;
-  /* Field: File: Name */
-  $handler->display->display_options['fields']['filename']['id'] = 'filename';
-  $handler->display->display_options['fields']['filename']['table'] = 'file_managed';
-  $handler->display->display_options['fields']['filename']['field'] = 'filename';
-  $handler->display->display_options['fields']['filename']['exclude'] = TRUE;
   /* Field: File: Mime type */
   $handler->display->display_options['fields']['filemime']['id'] = 'filemime';
   $handler->display->display_options['fields']['filemime']['table'] = 'file_managed';
@@ -456,13 +449,10 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_cc_licence']['table'] = 'field_data_field_cc_licence';
   $handler->display->display_options['fields']['field_cc_licence']['field'] = 'field_cc_licence';
   $handler->display->display_options['fields']['field_cc_licence']['type'] = 'creative_commons_url';
-  /* Field: Content: Title */
-  $handler->display->display_options['fields']['title']['id'] = 'title';
-  $handler->display->display_options['fields']['title']['table'] = 'node';
-  $handler->display->display_options['fields']['title']['field'] = 'title';
-  $handler->display->display_options['fields']['title']['relationship'] = 'file_to_node';
-  $handler->display->display_options['fields']['title']['alter']['alter_text'] = TRUE;
-  $handler->display->display_options['fields']['title']['empty'] = '[filename]';
+  /* Field: File: Name */
+  $handler->display->display_options['fields']['filename']['id'] = 'filename';
+  $handler->display->display_options['fields']['filename']['table'] = 'file_managed';
+  $handler->display->display_options['fields']['filename']['field'] = 'filename';
   /* Field: User: User UUID */
   $handler->display->display_options['fields']['uuid_3']['id'] = 'uuid_3';
   $handler->display->display_options['fields']['uuid_3']['table'] = 'users';
@@ -1362,11 +1352,7 @@ function dwca_export_views_default_views(){
 function _dwca_export_view_description($desc_type){
   //Array to translate our field names into DwC/SPM accepted terms
   module_load_include('module', 'creative_commons');
-  
-  $default_licence = creative_commons_display(
-    variable_get('creative_commons_block_licence_type', CC_BY), 
-    variable_get('creative_commons_block_jurisdiction', ''), 
-    CC_URL);
+  $default_licence = creative_commons_display(variable_get('creative_commons_block_licence_type', CC_BY), variable_get('creative_commons_block_jurisdiction', ''), CC_URL);
   $default_cc_url = $default_licence['#markup'];
   $replacements = array(
     'general_description' => 'general',
