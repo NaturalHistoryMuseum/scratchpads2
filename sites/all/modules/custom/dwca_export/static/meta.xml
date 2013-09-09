@@ -104,6 +104,7 @@
     <field index="5" term="http://purl.org/dc/terms/source" />
     <field index="7" term="http://purl.org/dc/terms/language" />
     <field index="12" term="http://purl.org/dc/terms/license" />
+    <field index="13" term="http://purl.org/dc/terms/identifier" />
   </extension>
   <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://eol.org/schema/media/Document">
     <files>
