@@ -10,6 +10,9 @@ function theme_scratchpads_biblio_search($variables){
     $biblio_node = node_load($result['node']->entity_id);
     if($biblio_node){
       foreach($biblio_node->biblio_contributors as $key => $contributor){
+        if(empty($contributor['firstname']) && empty($contributor['lastname'])){
+          $biblio_node->biblio_contributors[$key]['literal'] = TRUE;
+        }
         if($contributor['auth_category'] > 1){
           unset($biblio_node->biblio_contributors[$key]);
         }

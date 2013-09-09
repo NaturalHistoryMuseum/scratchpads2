@@ -299,6 +299,11 @@ function scratchpads_biblio_tabular($variables){
   foreach($fields as $key => $row){
     // handling the contributor categories like any other field orders them correctly by weight
     if($row['type'] == 'contrib_widget' && ($authors = biblio_get_contributor_category($node->biblio_contributors, $row['fid']))){
+      foreach($authors as $author_index => $author){
+        if(empty($author['firstname']) && empty($author['lastname'])){
+          $authors[$author_index]['literal'] = TRUE;
+        }
+      }
       $data = biblio_format_authors($authors);
     }elseif(empty($node->$row['name']) || $row['name'] == 'biblio_coins'){
       continue;
