@@ -1,0 +1,130 @@
+/*
+ * User form - Biography section
+ */
+
+.page-admin-people #field-birth-date-add-more-wrapper .fieldset-title,#field-death-date-add-more-wrapper .fieldset-title,
+.page-admin-people #user_user_form_group_biography .vertical-tabs-pane .fieldset-title,
+.page-user #field-birth-date-add-more-wrapper .fieldset-title,#field-death-date-add-more-wrapper .fieldset-title,
+.page-user #user_user_form_group_biography .vertical-tabs-pane .fieldset-title
+	{
+	background: none repeat scroll 0 0 #F6F6F6;
+	padding: 4px 9px 5px;
+}
+
+.page-admin-people #field-alternative-name-values,
+.page-user #field-alternative-name-values{
+    float:left;
+    margin-top:8px;
+}
+
+#edit-field-user-title {
+	border:0px;
+}
+
+
+.page-user .scratchpads-user-left .fieldset.titled .fieldset-content,
+.page-admin-people .scratchpads-user-left .fieldset.titled .fieldset-content{
+    display: block;
+    padding-top: 30px;
+    padding-bottom:30px;
+}
+
+/*
+ * Biography View
+ */
+
+.view-biography .view-filters {
+	background: #F6F6F6;
+    padding:1%;   
+}
+
+.view-biography ul li.views-row-odd{
+	background-color: #EDEDED;
+}
+
+.view-biography ul li.views-row div{
+	padding:2px;
+	padding-left:10px;
+    padding-right:10px;
+}
+
+.view-biography .views-field-picture {
+	float:right;
+    vertical-align: none;
+    padding:20px;
+}
+
+.view-biography .view-filters {	
+	float:left;  
+     width:28%;   
+}
+
+.view-biography .view-content {
+	float:right;   
+     width:70%;
+}
+
+.view-biography .form-text {
+    width: 240px;
+}
+
+.view-biography .views-exposed-form .views-submit-button{	
+	padding-left:1em;
+}
+
+.view-biography .view-empty {
+	float:left;
+    margin-left:20px;
+}
+
+
+/*
+ * Individual User page
+ */
+
+.page-user .profile div.field-label {
+	width:250px;
+	padding:1px;
+}
+
+.page-user .profile .user-picture {
+	position:absolute;
+    right:20px;
+    top:100px;
+}
+
+.page-user .profile .user-profile-item{
+	font-size:1.1em;
+    display:inline-block;
+}
+
+.page-user .profile .field-name-field-biography{
+	margin-top:1em;
+}
+
+.page-user .profile .view-filters h3 {
+    margin: 2px 0 5px;
+}
+
+.page-user .profile fieldset{
+	width:70%;
+}
+
+.page-user .profile .user-picture img {
+	width:170px;
+    height:170px;
+}
+
+.page-user .profile .fieldset-wrapper{
+	margin-top:0.5em;
+}
+.page-user .profile .textformatter-list{
+	display:inline;
+}
+
+.page-user .profile .field-name-field-areas-of-professional-inte .field-items p{
+	
+	margin-bottom:0px;
+}
+
+
