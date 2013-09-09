@@ -7,6 +7,9 @@
  */
 function dwca_export_views_default_views(){
   global $base_url;
+  
+  $default_licence = variable_get('creative_commons_block_licence_type', CC_BY);
+  
   static $view_description_names = array(
     'general_description',
     'morphology',
@@ -347,6 +350,12 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['filters']['type']['value'] = array(
     'biblio' => 'biblio'
   );
+  /* Filter criterion: Field: Taxonomic name (field_taxonomic_name:delta) */
+  $handler->display->display_options['filters']['delta']['id'] = 'delta';
+  $handler->display->display_options['filters']['delta']['table'] = 'field_data_field_taxonomic_name';
+  $handler->display->display_options['filters']['delta']['field'] = 'delta';
+  $handler->display->display_options['filters']['delta']['operator'] = '<';
+  $handler->display->display_options['filters']['delta']['value']['value'] = '1';
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'some';
@@ -898,6 +907,11 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['sorts']['created']['table'] = 'comment';
   $handler->display->display_options['sorts']['created']['field'] = 'created';
   $handler->display->display_options['sorts']['created']['order'] = 'DESC';
+  /* Filter criterion: Comment: Approved */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'comment';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = '1';
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'none';
@@ -1347,6 +1361,13 @@ function dwca_export_views_default_views(){
 
 function _dwca_export_view_description($desc_type){
   //Array to translate our field names into DwC/SPM accepted terms
+  module_load_include('module', 'creative_commons');
+  
+  $default_licence = creative_commons_display(
+    variable_get('creative_commons_block_licence_type', CC_BY), 
+    variable_get('creative_commons_block_jurisdiction', ''), 
+    CC_URL);
+  $default_cc_url = $default_licence['#markup'];
   $replacements = array(
     'general_description' => 'general',
     'behavious' => 'behaviour',
@@ -1739,6 +1760,7 @@ function _dwca_export_view_description($desc_type){
   $handler->display->display_options['fields']['nothing_7']['alter']['strip_tags'] = 0;
   $handler->display->display_options['fields']['nothing_7']['alter']['trim'] = 0;
   $handler->display->display_options['fields']['nothing_7']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['nothing_7']['alter']['text'] = $default_cc_url;
   $handler->display->display_options['fields']['nothing_7']['element_label_colon'] = 1;
   $handler->display->display_options['fields']['nothing_7']['element_default_classes'] = 1;
   $handler->display->display_options['fields']['nothing_7']['hide_empty'] = 0;
