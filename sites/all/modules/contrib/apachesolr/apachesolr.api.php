@@ -206,11 +206,11 @@ function hook_apachesolr_query_alter(DrupalSolrQueryInterface $query) {
  * Allows a module to modify the delete query.
  *
  * @param string $query
- *   Defaults to *:*
- *   This is not an instance of DrupalSolrQueryInterface, it is the raw query that is being sent to Solr
+ *   This is not an instance of DrupalSolrQueryInterface, it is the raw query
+ *   that is being sent to Solr. Defaults to "*:*".
  */
-function hook_apachesolr_delete_by_query_alter($query) {
-  // use the site hash so that you only delete this site's content
+function hook_apachesolr_delete_by_query_alter(&$query) {
+  // Use the site hash so that you only delete this site's content.
   if ($query == '*:*') {
     $query = 'hash:' . apachesolr_site_hash();
   }
@@ -295,7 +295,7 @@ function hook_apachesolr_entity_info_alter(array &$entity_info) {
   // See apachesolr_index_node_check_table
   $entity_info['node']['cron_check'] = 'apachesolr_index_node_check_table';
   // Specific output processing for the results
-  $entity_info['node']['apachesolr']['result callback'] = 'apachesolr_search_node_result';
+  $entity_info['node']['result callback'] = 'apachesolr_search_node_result';
 
   // BUNDLE SPECIFIC OVERRIDES
   // The following can be overridden on a per-bundle basis.
@@ -307,7 +307,7 @@ function hook_apachesolr_entity_info_alter(array &$entity_info) {
 
 
 /**
- * The is invoked by apachesolr_search.module for each document returned in a
+ * This is invoked by apachesolr_search.module for each document returned in a
  * search. This has been introduced in 6.x-beta7 as a replacement for the call
  * to HOOK_nodeapi().
  *
