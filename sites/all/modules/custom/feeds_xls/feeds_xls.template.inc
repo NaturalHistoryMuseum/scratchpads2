@@ -463,6 +463,9 @@ POLYGON:POLYGON ((-33.0029296875 60.37170546875135,-20.5224609375 60.84616839706
 }
 
 function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://output'){
+  $not_required = array();
+  // Allow other modules to specify fields that should not be required
+  drupal_alter('feeds_xls_not_required', $not_required);
   // Set properties
   $title = t('Template for !feeds_name', array(
     '!feeds_name' => $feeds_importer->config['name']
@@ -487,15 +490,14 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
     // Set the columnn width
     $sheet->getColumnDimension($column)->setAutoSize(TRUE);
     // Validation
-  if(isset($feeds_importer->processor->config['content_type']) || isset($feeds_importer->processor->config['vocabulary']) || ($feeds_importer->processor->id == 'user_importer_user')){
+    if(isset($feeds_importer->processor->config['content_type']) || isset($feeds_importer->processor->config['vocabulary']) || ($feeds_importer->processor->id == 'user_importer_user')){
       if(isset($feeds_importer->processor->config['content_type'])){
         $bundle = $feeds_importer->processor->config['content_type'];
         $entity_type = 'node';
       }elseif(isset($feeds_importer->processor->config['vocabulary'])){
         $bundle = $feeds_importer->processor->config['vocabulary'];
         $entity_type = 'taxonomy_term';
-      }
-      elseif($feeds_importer->processor->id == 'user_importer_user'){
+      }elseif($feeds_importer->processor->id == 'user_importer_user'){
         $bundle = 'user';
         $entity_type = 'user';
       }
@@ -523,12 +525,12 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
           $objValidation->setPrompt($help_text);
         }
         if($field_instance['required']){
-          // This 'required field' is not required for non-login users
-          if (!(($entity_type == 'user') && ($field['field_name'] == 'field_user_given_names'))){
+          // Allow override of required fields
+          if(!in_array($field['field_name'], $not_required)){
             $required_cells[] = $column;
             $objValidation->setPromptTitle(t('Required'));
             $objValidation->setPrompt(t('This cell may not be left blank') . $help_text ? $help_text : '');
-          }         
+          }
         }
         $objValidation->setShowInputMessage(TRUE);
         $objValidation->setShowErrorMessage(TRUE);
