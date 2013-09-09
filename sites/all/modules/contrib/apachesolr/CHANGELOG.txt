@@ -1,6 +1,42 @@
 Apache Solr integration 7.x-1.x, xxxx-xx-xx
 -----------------------------
 
+Apache Solr integration 7.x-1.4, 2013-07-25
+-----------------------------
+#1807552 by pwolanin: further fixes to use the right language field.
+#2050747 by pwolanin: fix for Anonymous user names are not indexed correctly, empty facet value causes Solr error.
+#1565766 by j0rd: follow-up to not re-load the entity if it's passed in.
+#2032987 by rupertj: fix for entity_get_info() called but result never used.
+#1977832 by blazindrop: fix for Hidden fields in displays are still indexed.
+#1807552 by pwolanin: fix for regression: urls must be rendered at display time in search results.
+#1974076 by Nick_vh, pwolanin: Allow search pages to suppress the search form box on core search pages also.
+#1965210 by pwolanin: fix for More Like This blocks configuration page broken by Solr 3.x vs 4.x schema key positions.
+
+Apache Solr integration 7.x-1.3, 2013-06-10
+-----------------------------
+#1918434 by pwolanin, ajw: fix negative filter queries in validFilterValue() (in commit cdf1e9722d8dece450077)
+#2013805 by janusman: Add watchdog logging for index deletes.
+#1757470 by j0rd: Fix for Boolean field type facet mapping.
+#2012944 by Nick_vh: fix for Call to undefined function apachesolr_environment_variable_set() in update.
+#1933080 by mr.baileys: fix for API docs for hook_apachesolr_delete_by_query().
+#1952444 by kevin.dutra: Bring back the book facet.
+#1984530 by blazindrop: Remove non-existent ctools export callbacks.
+#1978404 by PatchRanger: Fix for Illegal string offset warnings in test.
+#1565766 by grndlvl, David_Rothstein: Pass the full entity to Apache Solr status callbacks.
+#1935266 by David_Rothstein: Fix for apachesolr_search_apachesolr_entity_info_alter() resets the result callback.
+#2006602 by David_Rothstein: Fix for Documents are deleted from the Solr index in read-only environments.
+#1965204 by jantoine, pwolanin: fix for Facets on * as path breaks search, mutiple queries run.
+#1897556 by pwolanin: revert change so fields are again multiple by default.
+#1937598 by kevin.dutra: Fix for Update date boost not applied.
+#1946132 by mkalkbrenner: Fix for Invalid arguments passed to theme_apachesolr_search_snippets().
+#1814080 by pwolanin: stop cacheing the sort block for simplicity.
+#1992602 by drunken monkey: fix for Wrong field used for spellcheck index creation.
+#1988100 by pwolanin: Add back qt=standard support.
+#1988090 by pwolanin: Fix for highlighting should use STRONG not EM tags.
+#1985526 by pwolanin: Add back buildOnOptimize for the spellchecker.
+#799970  by pwolanin: pull in changes to common config in #1984442
+#1917376 by kevin.dutra, pwolanin: Fix for Index configuration form lacks order.
+
 Apache Solr integration 7.x-1.2, 2013-04-10
 -----------------------------
 #1314664 by pwolanin: Fix for Search pages custom pages don't use %value in title.
