@@ -158,9 +158,9 @@ function feeds_xls_feeds_set_target_list_text($source, $entity, $target, $value)
       $value
     );
   }
+  $field = field_info_field($target);
   foreach($value as $k => $v){
     // We load the field and try to do the mapping.
-    $field = field_info_field($target);
     $key = array_search($v, $field['settings']['allowed_values']);
     if($field){
       $value[$k] = $key;
