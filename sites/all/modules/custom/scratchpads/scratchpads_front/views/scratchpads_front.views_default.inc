@@ -12,10 +12,9 @@ function scratchpads_front_views_default_views(){
   $view->human_name = 'Scratchpads front page blocks';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-  
+  $view->disabled = FALSE;  
   /* Display: Master */
-        $handler = $view->new_display('default', 'Master', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Home page block';
   $handler->display->display_options['css_class'] = 'grid-4';
   $handler->display->display_options['use_more_always'] = FALSE;
@@ -166,10 +165,9 @@ function scratchpads_front_views_default_views(){
   $view->human_name = 'Scratchpads front page taxon description';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-  
+  $view->disabled = FALSE;
   /* Display: Master */
-        $handler = $view->new_display('default', 'Master', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Home page block';
   $handler->display->display_options['css_class'] = 'grid-4';
   $handler->display->display_options['use_more_always'] = FALSE;
@@ -376,9 +374,9 @@ function scratchpads_front_views_default_views(){
   $view->human_name = 'Front page slideshow';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
-          $handler = $view->new_display('default', 'Master', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
@@ -611,9 +609,9 @@ function scratchpads_front_views_default_views(){
   $view->human_name = 'Front page content';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
-          $handler = $view->new_display('default', 'Master', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Home page content';
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
