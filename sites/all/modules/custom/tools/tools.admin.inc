@@ -38,15 +38,6 @@ function tools_admin_form($form, &$form_state){
     $tools_to_remove_string = join(' and ', array_filter(array_merge(array(
       join(', ', array_slice($tools_to_remove, 0, -1))
     ), array_slice($tools_to_remove, -1))));
-    $confirmation_description = '';
-    if((in_array('Darwincore', $tools_to_remove)) && (darwincore_node_count() > 0)){
-      drupal_set_message('You cannot disable Darwincore while there is still data in Specimen/Observation or Location content types.');
-      drupal_goto('admin/structure/tools');
-    }
-    // We may want to display specific messages for certain modules.
-    if(in_array('Darwincore', $tools_to_remove)){
-      $confirmation_description = "Specimen/Observation and Location content types will be removed.";
-    }
     // Pass the form values to the confirm form
     foreach($features as $feature){
       $form['status'][$feature->name] = array(
@@ -58,9 +49,33 @@ function tools_admin_form($form, &$form_state){
         )
       );
     }
+    // Allow other modules to add module specific settings
+    $pre_disable_info = array();
+    foreach(module_implements('tools_pre_disable') as $module){
+      $pre_disable_info[$module] = module_invoke($module, 'tools_pre_disable');
+    }
+    $confirmation_descriptions = array();
+    $module_list = system_rebuild_module_data();
+    foreach($pre_disable_info as $module_machine_name => $module_settings){
+      $module_name = $module_list[$module_machine_name]->info['name'];
+      if((in_array($module_name, $tools_to_remove)) && (!$module_settings['can_disable'])){
+        if(isset($module_settings['cannot_disable_message'])){
+          drupal_set_message($module_settings['cannot_disable_message']);
+        }
+        drupal_goto('admin/structure/tools');
+      }
+      if((in_array($module_name, $tools_to_remove)) && (isset($module_settings['disable_message']))){
+        $confirmation_descriptions[] = $module_settings['disable_message'];
+      }
+    }
+    // We set an empty string default value to avoid the drupal default message  
+    $confirmation_description_text = '';
+    foreach($confirmation_descriptions as $confirmation_description){
+      $confirmation_description_text .= '<p>' . $confirmation_description . '</p>';
+    }
     return confirm_form($form, t('Are you sure you want to disable %tools_to_remove?', array(
       '%tools_to_remove' => $tools_to_remove_string
-    )), 'admin/structure/tools', t($confirmation_description), 'Yes', 'Cancel');
+    )), 'admin/structure/tools', t($confirmation_description_text), 'Yes', 'Cancel');
   }
   // Tools form
   $path = drupal_get_path('module', 'tools');

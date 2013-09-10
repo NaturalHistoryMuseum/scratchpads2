@@ -217,6 +217,19 @@ function darwincore_node_count(){
   return $query->countQuery()->execute()->fetchField();
 }
 
-
-
-
+/**
+ * Implements hook_tools_pre_disable().
+ */
+function darwincore_tools_pre_disable(){
+  if(darwincore_node_count() > 0){
+    $can_disable = false;
+  }else{
+    $can_disable = true;
+  }
+  $tools_settings = array(
+    'can_disable' => $can_disable,
+    'cannot_disable_message' => 'You cannot disable Darwincore while there is still data in Specimen/Observation or Location content types.',
+    'disable_message' => 'Specimen/Observation and Location content types will be removed.'
+  );
+  return $tools_settings;
+}
