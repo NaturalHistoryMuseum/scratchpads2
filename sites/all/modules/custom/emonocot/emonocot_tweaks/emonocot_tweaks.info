@@ -5,6 +5,7 @@ package="eMonocot"
 
 dependencies[] = scratchpads_tweaks
 dependencies[] = exif_custom
+dependencies[] = scratchpads_audubon_core
 
 dependencies[] = emonocot_biblio
 dependencies[] = emonocot_blocks
