@@ -42,8 +42,18 @@ function apachesolr_search_init() {
 
     // Converts current path to lowercase for case insensitive matching.
     $paths = array();
-    $paths[] = drupal_strtolower(drupal_get_path_alias(current_path()));
-    $paths[] = drupal_strtolower(current_path());
+    $path = drupal_strtolower(drupal_get_path_alias(current_path()));
+    // Use the path as the key to keep entries unique.
+    $paths[$path] = $path;
+    $path = drupal_strtolower(current_path());
+    $paths[$path] = $path;
+
+    // Do not continue if the current path is the default search path.
+    foreach ($paths as $path) {
+      if (drupal_match_path($path, $search_page['search_path'] . '*')) {
+        return;
+      }
+    }
 
     $facet_pages = apachesolr_environment_variable_get($search_page['env_id'], 'apachesolr_search_facet_pages', '');
 
@@ -65,6 +75,8 @@ function apachesolr_search_init() {
               $context['page_id'] = $search_page_id;
               $context['search_type'] = 'apachesolr_search_show_facets';
               apachesolr_search_run_empty('apachesolr', $params, $search_page['search_path'], $solr, $context);
+              // Exit the foreach loop if this has run.
+              break;
             }
           }
           catch (Exception $e) {
@@ -425,7 +437,7 @@ function apachesolr_search_block_info() {
   // Add the sort block.
   $blocks['sort'] = array(
     'info' => t('Apache Solr Core: Sorting'),
-    'cache' => DRUPAL_CACHE_CUSTOM,
+    'cache' => DRUPAL_NO_CACHE,
   );
   return $blocks;
 }
@@ -440,32 +452,19 @@ function apachesolr_search_block_view($delta = '') {
       if (apachesolr_has_searched($env_id) && !apachesolr_suppress_blocks($env_id) && $delta == 'sort') {
         $response = NULL;
         $query = apachesolr_current_query($env_id);
-        $solrsort = NULL;
         if ($query) {
           // Get the query and response. Without these no blocks make sense.
           $response = apachesolr_static_response_cache($query->getSearcher());
         }
-        
-        // If there are less than two results, do not return the sort block
         if (empty($response) || ($response->response->numFound < 2)) {
           return NULL;
         }
 
-        // Check if we have to return a cached version of this block
-        if ($query) {
-          // Get the URI without any query parameter.
-          $uri = parse_url(request_uri());
-          // Get the current sort as an array.
-          $solrsort = $query->getSolrsort();
-          $cache_id = $uri['path'] . ':' . implode(':', $solrsort);
-          // Do we have something in cache ?
-          if ($cache = cache_get($cache_id, 'cache_block')) {
-            $block = $cache->data;
-            return $block;
-          }
-        }
-
         $sorts = $query->getAvailableSorts();
+
+        // Get the current sort as an array.
+        $solrsort = $query->getSolrsort();
+
         $sort_links = array();
         $path = $query->getPath();
         $new_query = clone $query;
@@ -496,13 +495,10 @@ function apachesolr_search_block_view($delta = '') {
         foreach ($sort_links as $name => $link) {
           $themed_links[$name] = theme('apachesolr_sort_link', $link);
         }
-        $block = array(
+        return array(
         'subject' => t('Sort by'),
           'content' => theme('apachesolr_sort_list', array('items' => $themed_links))
         );
-        // Cache the block
-        cache_set($cache_id, $block, 'cache_block');
-        return $block;
       }
     }
   }
@@ -901,7 +897,7 @@ function apachesolr_search_search_results($keys = NULL, $conditions = NULL, $sea
         // Don't allow local params to pass through to EDismax from the url.
         // We also remove any remaining leading {! since that causes a parse
         // error in Solr.
-        $keys = preg_replace('/^(?:{![^}]*}\s*)+(?:{!\s*)*/',' ', $keys);
+        $keys = preg_replace('/^(?:{![^}]*}\s*)*(?:{!\s*)*/',' ', $keys);
         $params['q'] = $keys;
         // Hardcoded apachesolr name since we rely on this for the facets
         $context['page_id'] = $search_page['page_id'];
@@ -1112,6 +1108,7 @@ function apachesolr_search_basic_params(DrupalSolrQueryInterface $query = NULL) 
         'bundle',
         'bundle_name',
         'label',
+        'ss_language',
         'is_comment_count',
         'ds_created',
         'ds_changed',
@@ -1227,7 +1224,7 @@ function apachesolr_search_add_boost_params(DrupalSolrQueryInterface $query) {
   list($changed_steepness, $changed_boost) = explode(':', $changed_settings);
   if ($changed_boost) {
     $ab = 4 / $changed_steepness;
-    $params['bf'][] = "recip(ms(NOW,ds_created),3.16e-11,$ab,$ab)^$changed_boost";
+    $params['bf'][] = "recip(ms(NOW,ds_changed),3.16e-11,$ab,$ab)^$changed_boost";
   }
   // Boost for nodes with sticky bit set.
   if ($sticky_boost) {
@@ -1261,6 +1258,7 @@ function apachesolr_search_process_response($response, DrupalSolrQueryInterface 
   pager_default_initialize($total, $query->getParam('rows'));
   if ($total > 0) {
     $fl = $query->getParam('fl');
+    $languages = language_list();
     // 'id' and 'entity_type' are the only required fields in the schema, and
     // 'score' is generated by solr.
     foreach ($response->response->docs as $doc) {
@@ -1331,20 +1329,14 @@ function apachesolr_search_process_response($response, DrupalSolrQueryInterface 
       }
 
       $fields = (array) $doc;
-
-      // a path is not a requirement of entity (see entity_uri() ), so we check if we
-      // can show it and fallback to the main page of the site if we don't
-      // have it.
-      if (!isset($doc->url)) {
-        $path = '';
+      // Define our url options. They depend on the document language.
+      $url_options = array('absolute' => TRUE);
+      if (isset($doc->ss_language) && isset($languages[$doc->ss_language])) {
+        $url_options['language'] = $languages[$doc->ss_language];
       }
-      else {
-        $path = $doc->url;
-      }
-
       $result = array(
         // link is a required field, so handle it centrally.
-        'link' => $path,
+        'link' => url($doc->path, $url_options),
         // template_preprocess_search_result() runs check_plain() on the title
         // again.  Decode to correct the display.
         'title' => htmlspecialchars_decode($doc->label, ENT_QUOTES),
@@ -1415,7 +1407,7 @@ function apachesolr_search_get_search_suggestions($env_id) {
 function apachesolr_search_apachesolr_entity_info_alter(&$entity_info) {
   // First set defaults so that we don't need to worry about NULL keys.
   foreach (array_keys($entity_info) as $type) {
-    $entity_info[$type]['result callback'] = '';
+    $entity_info[$type] += array('result callback' => '');
   }
   // Now set those values that we know.  Other modules can do so
   // for their own entities if they want.
@@ -1694,32 +1686,40 @@ function apachesolr_search_theme_registry_alter(&$theme_registry) {
 }
 
 /**
+ * Preprocess function for theme_apachesolr_search_snippets().
+ */
+function apachesolr_search_preprocess_apachesolr_search_snippets(&$vars) {
+  // Flatten the multidimensional array of snippets into a one-dimensional,
+  // ordered array.
+  $vars['flattened_snippets'] = array();
+  $snippets = $vars['snippets'];
+  if (is_array($snippets)) {
+    // Prioritize the 'content' and 'teaser' keys if they are present.
+    foreach (array('content', 'teaser') as $key) {
+      if (isset($snippets[$key])) {
+        $vars['flattened_snippets'] = array_merge($vars['flattened_snippets'], $snippets[$key]);
+        unset($snippets[$key]);
+      }
+    }
+    // Add any remaining snippets from the array. Each snippet can either be a
+    // string or an array itself; see apachesolr_search_process_response().
+    foreach ($snippets as $snippet) {
+      $vars['flattened_snippets'] = array_merge($vars['flattened_snippets'], is_array($snippet) ? $snippet : array($snippet));
+    }
+  }
+
+  // Ensure unique search snippets.
+  $vars['flattened_snippets'] = array_unique($vars['flattened_snippets']);
+}
+
+/**
  * Theme the highlighted snippet text for a search entry.
  *
  * @param array $vars
  *
  */
 function theme_apachesolr_search_snippets($vars) {
-  $result = '';
-  if (is_array($vars['snippets'])) {
-    $snippets = $vars['snippets'];
-    if (isset($snippets['content'])) {
-      $result .= implode(' ... ', $snippets['content']);
-      unset($snippets['content']);
-    }
-    if (isset($snippets['teaser'])) {
-      $result .= (strlen($result) > 0) ? ' ... ' : '';
-      $result .= implode(' ... ', $snippets['teaser']);
-      unset($snippets['teaser']);
-    }
-    if (count($snippets)) {
-      $result .= (strlen($result) > 0) ? ' ... ' : '';
-      foreach ($snippets as $snippet) {
-        $result .= implode(' ... ', $snippet);
-      }
-    }
-  }
-  return $result . ' ...';
+  return implode(' ... ', $vars['flattened_snippets']) . ' ...';
 }
 
 /**
