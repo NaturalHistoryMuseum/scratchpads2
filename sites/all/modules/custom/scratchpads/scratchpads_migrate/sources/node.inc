@@ -347,8 +347,15 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       'sticky'
     ));
     // NOTE: OG works with NID, not VID
-    $query->leftJoin('og_ancestry', 'oga', 'oga.nid = n.nid');
-    $query->addField('oga', 'group_nid', 'group_nid');
+    if(Database::getConnection('default', $this->sourceConnection)->schema()->tableExists('og_ancestry')){
+      $query->leftJoin('og_ancestry', 'oga', 'oga.nid = n.nid');
+      $query->addField('oga', 'group_nid', 'group_nid');
+    }else{
+      // Simulate an empty left join.
+      $query->addExpression(':null', 'group_nid', array(
+        ':null' => NULL
+      ));
+    }
     if(Database::getConnection('default', $this->sourceConnection)->schema()->tableExists('og_access_post')){
       $query->leftJoin('og_access_post', 'ogap', 'ogap.nid = n.nid');
       $query->addField('ogap', 'og_public', 'og_public');
