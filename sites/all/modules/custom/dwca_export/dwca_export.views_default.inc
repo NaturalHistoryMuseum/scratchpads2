@@ -11,6 +11,9 @@ function dwca_export_views_default_views(){
   static $view_description_names = array(
     'general_description',
     'morphology',
+  
+  
+  
     'behavious',
     'biology',
     'conservation_status',
@@ -468,7 +471,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['fid']['table'] = 'file_managed';
   $handler->display->display_options['fields']['fid']['field'] = 'fid';
   $handler->display->display_options['fields']['fid']['alter']['alter_text'] = TRUE;
-  $handler->display->display_options['fields']['fid']['alter']['text'] = 'http://monkey.nhm.ac.uk/file/[fid]';
+  $handler->display->display_options['fields']['fid']['alter']['text'] = $base_url . '/file/[fid]';
   /* Filter criterion: File: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'file_managed';
