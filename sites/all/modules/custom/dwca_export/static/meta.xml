@@ -32,21 +32,21 @@
       <location>reference.txt</location>
     </files>
     <coreid index="0" />
-    <field index="3" term="http://purl.org/ontology/bibo/doi" />
-    <field index="4" term="http://purl.org/ontology/bibo/isbn" />
-    <field index="5" term="http://purl.org/ontology/bibo/issn" />
-    <field index="6" term="http://purl.org/dc/terms/bibliographicCitation" />
-    <field index="7" term="http://purl.org/dc/terms/title" />
-    <field index="8" term="http://purl.org/dc/terms/creator" />
-    <field index="9" term="http://purl.org/dc/terms/identifier" />
-    <field index="10" term="http://purl.org/dc/terms/subject" />
-    <field index="11" term="http://purl.org/dc/terms/language" />
-    <field index="12" term="http://purl.org/dc/terms/type" />
-    <field index="13" term="http://purl.org/dc/terms/date" />
-    <field index="14" term="http://purl.org/dc/terms/created" />
-    <field index="15" term="http://purl.org/dc/terms/modified" />
-    <field index="17" term="http://purl.org/dc/terms/relation" />
-    <field index="18" term="http://purl.org/dc/terms/source" />
+    <field index="2" term="http://purl.org/ontology/bibo/doi" />
+    <field index="3" term="http://purl.org/ontology/bibo/isbn" />
+    <field index="4" term="http://purl.org/ontology/bibo/issn" />
+    <field index="5" term="http://purl.org/dc/terms/bibliographicCitation" />
+    <field index="6" term="http://purl.org/dc/terms/title" />
+    <field index="7" term="http://purl.org/dc/terms/creator" />
+    <field index="8" term="http://purl.org/dc/terms/identifier" />
+    <field index="9" term="http://purl.org/dc/terms/subject" />
+    <field index="10" term="http://purl.org/dc/terms/language" />
+    <field index="11" term="http://purl.org/dc/terms/type" />
+    <field index="12" term="http://purl.org/dc/terms/date" />
+    <field index="13" term="http://purl.org/dc/terms/created" />
+    <field index="14" term="http://purl.org/dc/terms/modified" />
+    <field index="16" term="http://purl.org/dc/terms/relation" />
+    <field index="17" term="http://purl.org/dc/terms/source" />
   </extension>
   <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://eol.org/schema/reference/Reference">
     <files>
@@ -54,10 +54,10 @@
     </files>
     <coreid index="0" />
     <field index="1" term="http://purl.org/dc/terms/identifier" />
-    <field index="3" term="http://purl.org/ontology/bibo/doi" />
-    <field index="6" term="http://eol.org/schema/reference/full_reference" />
-    <field index="7" term="http://eol.org/schema/reference/primaryTitle" />
-    <field index="12" term="http://purl.org/dc/terms/language" />
+    <field index="2" term="http://purl.org/ontology/bibo/doi" />
+    <field index="5" term="http://eol.org/schema/reference/full_reference" />
+    <field index="6" term="http://eol.org/schema/reference/primaryTitle" />
+    <field index="10" term="http://purl.org/dc/terms/language" />
   </extension>
   <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://rs.gbif.org/terms/1.0/Distribution">
     <files>
@@ -87,7 +87,7 @@
     <field index="0" term="http://purl.org/dc/terms/identifier" />
     <field index="5" term="http://purl.org/dc/terms/title" />
     <field index="3" term="http://purl.org/dc/terms/format" />
-    <field index="4" term="http://ns.adobe.com/xap/1.0/rights/UsageTerms" />
+    <field index="12" term="http://ns.adobe.com/xap/1.0/rights/UsageTerms" />
     <field index="6" term="http://eol.org/schema/agent/agentID" />
     <field index="7" term="http://purl.org/dc/terms/type" />
     <field index="8" term="http://rs.tdwg.org/ac/terms/furtherInformationURL" />
@@ -114,7 +114,7 @@
     <field index="0" term="http://rs.tdwg.org/dwc/terms/taxonID" />
     <field index="2" term="http://purl.org/dc/terms/description" />
     <field index="3" term="http://ns.adobe.com/xap/1.0/rights/UsageTerms" />
-    <field index="4" term="http://rs.tdwg.org/ac/terms/accessURI" />
+    <field index="4" term="http://rs.tdwg.org/ac/terms/furtherInformationURL" />
     <field index="6" term="http://ns.adobe.com/xap/1.0/rights/Owner" />
     <field index="7" term="http://purl.org/dc/terms/language" />
     <field index="8" term="http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/CVterm" />
