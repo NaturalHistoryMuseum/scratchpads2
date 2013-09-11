@@ -27,7 +27,7 @@ function iucn_block_view($delta = ''){
       $term = menu_get_object('taxonomy_term', 2);
       if($term){
         $json = json_decode(file_get_contents('http://api.iucnredlist.org/index/species/' . str_replace(' ', '-', $term->name) . '.js'));
-        if(count($json)){
+        if(count($json) && strtolower($json[0]->scientific_name) == strtolower($term->name)){
           $content = file_get_contents('http://api.iucnredlist.org/details/' . $json[0]->species_id . '/0.js');
           $content = str_replace('<h1', '<h3', $content);
           $content = str_replace('</h1', '</h3', $content);
