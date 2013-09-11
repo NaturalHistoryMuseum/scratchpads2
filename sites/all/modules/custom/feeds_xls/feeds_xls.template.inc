@@ -438,6 +438,7 @@ function feeds_xls_download_template($feeds_importer){
 function feeds_xls_field_type_help_text($field){
   switch($field['type']){
     case 'date':
+    case 'datetime':
       return "Dates should be entered in the format 'YYYY/MM/DD'.  You may need to specify that this column is a 'text' column type to ensure the formatting is preserved.";
     case 'gm3_combination':
       return 'Please enter data in the following format, entering multiple values on a single line (this is easier to do in a text editor, and then paste into Excel):
@@ -492,6 +493,7 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
     $sheet->getColumnDimension($column)->setAutoSize(TRUE);
     // Validation
     if(isset($feeds_importer->processor->config['content_type']) || isset($feeds_importer->processor->config['vocabulary']) || ($feeds_importer->processor->id == 'user_importer_user')){
+      $a = 'b';
       if(isset($feeds_importer->processor->config['content_type'])){
         $bundle = $feeds_importer->processor->config['content_type'];
         $entity_type = 'node';
@@ -556,6 +558,18 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
             foreach($results as $row){
               $allowed_values[] = $row->$target_parts[1];
             }
+          }
+        }else if($field['type'] == 'user_reference'){
+          $query = db_select('users', 'u');
+          $query->condition('uid', 1, '>');
+          $query->fields('u', array(
+            'uid',
+            'name'
+          ));
+          $results = $query->execute();
+          $target_parts = explode(':', $header['target']);
+          foreach($results as $row){
+            $allowed_values[] = $row->$target_parts[1];
           }
         }
         if(count($allowed_values)){
