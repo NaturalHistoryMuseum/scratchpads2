@@ -247,7 +247,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_issn']['alter']['text'] = 'urn:ISSN:[biblio_issn]';
   $handler->display->display_options['fields']['biblio_issn']['biblio_label'] = 1;
   /* Field: Biblio: Biblio Citation */
-  /* Field: Biblio: Biblio Citation */
   $handler->display->display_options['fields']['citation']['id'] = 'citation';
   $handler->display->display_options['fields']['citation']['table'] = 'biblio';
   $handler->display->display_options['fields']['citation']['field'] = 'citation';
@@ -264,6 +263,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['title']['label'] = '';
   $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
   $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+  $handler->display->display_options['fields']['title']['link_to_node'] = FALSE;
   /* Field: Biblio: Authors */
   $handler->display->display_options['fields']['biblio_authors']['id'] = 'biblio_authors';
   $handler->display->display_options['fields']['biblio_authors']['table'] = 'biblio';
@@ -1074,7 +1074,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['name']['alter']['html'] = 0;
   $handler->display->display_options['fields']['name']['hide_empty'] = 0;
   $handler->display->display_options['fields']['name']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['name']['link_to_user'] = 1;
+  $handler->display->display_options['fields']['name']['link_to_user'] = 0;
   $handler->display->display_options['fields']['name']['overwrite_anonymous'] = 0;
   /* Sort criterion: User: Created date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
