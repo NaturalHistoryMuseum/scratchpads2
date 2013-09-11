@@ -563,6 +563,10 @@ h1.site-name,h2.site-name {
   top: -30px;
 }
 
+.block-species-page-block{
+  float:none!important;
+}
+
 .block-species-biblio-block,.block-species-spm-block {
   float: none !important;
 }
