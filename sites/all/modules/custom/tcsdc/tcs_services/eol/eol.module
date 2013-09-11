@@ -7,11 +7,11 @@ define('EOL_REQUEST_URL', 'http://services.eol.org/lifedesk/service.php?function
  */
 function eol_tcsdc_form($form, $form_state){
   // Request for Phthiraptera or Pediculus!
-  $xml = file_get_contents(EOL_REQUEST_URL . '34238633', 0, stream_context_create(array(
+  $xml = trim(file_get_contents(EOL_REQUEST_URL . '34238633', 0, stream_context_create(array(
     'http' => array(
       'timeout' => 3
     )
-  )));
+  ))));
   $eol_service_status = FALSE;
   try{
     $eol_service_status = new SimpleXMLElement($xml);
@@ -90,7 +90,7 @@ function eol_classifications_js($form, $form_state){
   // options).
   // sleep(30);
   $url = EOL_QUERY_URL . urlencode($_POST['eol-name']);
-  $eol_xml = file_get_contents($url);
+  $eol_xml = trim(file_get_contents($url));
   if($eol_xml){
     $eol_xml = new SimpleXMLElement($eol_xml);
     $num_results = count($eol_xml->value);
