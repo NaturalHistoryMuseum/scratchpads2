@@ -25,7 +25,7 @@
  * @class Extends standart class google.maps.Polyline by methods runEdit() and
  *        stopEdit()
  */
-if(typeof (google.maps.Polyline.prototype.runEdit) === "undefined") {
+if(typeof google != 'undefined' && typeof (google.maps.Polyline.prototype.runEdit) === "undefined") {
   /**
    * Starts editing the polyline. Optional parameter <code>flag</code>
    * indicates the use of ghost markers in the middle of each segment. By
@@ -170,7 +170,7 @@ if(typeof (google.maps.Polyline.prototype.runEdit) === "undefined") {
     });
   };
 }
-if(typeof (google.maps.Polyline.prototype.stopEdit) === "undefined") {
+if(typeof google != 'undefined' && typeof (google.maps.Polyline.prototype.stopEdit) === "undefined") {
   /**
    * Stops editing polyline
    */
