@@ -176,7 +176,14 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         $this->addFieldMapping('weight_weight', $delta);
       }else{ // Other field types
         // Load the field
-        $field = field_info_field($delta);
+        $source_type = $this->getFieldType($delta);
+        $mapped_delta_source_type = DrupalFieldMigration::getCustomMapping($delta, $source_type, $this->sourceConnection);
+        if($mapped_delta_source_type){
+          $field = field_info_field($mapped_delta_source_type);
+        }
+        if(!$mapped_delta_source_type || !$field){
+          $field = field_info_field($delta);
+        }
         // If we don't have a field with the same name, check if it's a media
         // field
         if($field){
