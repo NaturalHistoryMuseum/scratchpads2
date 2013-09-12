@@ -36,17 +36,6 @@
   color: #fff;
 }
 
-.view-front-page-slideshow span.views-field {
-  position: absolute;
-  bottom: 40px;
-  background: rgba(0, 0, 0, 0.6);
-  width: auto;
-  padding: 10px 0;
-  color: #fff;
-  height: 20px;
-  margin-left: 10px;
-}
-
 .view-front-page-slideshow  #slideshow-transparency {
   position: absolute;
   bottom: 0px;
