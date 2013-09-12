@@ -1,5 +1,5 @@
 <?php
-// Load the PHPExcel library.
+// Load the Imu library.
 if(function_exists('libraries_get_path')){
   $path = libraries_get_path('imu-api-1.0.03');
   $imuPath = "$path/IMu.php";
@@ -33,9 +33,12 @@ class FeedsIMUFetcher extends FeedsFetcher{
     $importTo = trim($source_config['importTo']);
     $kemuHost = trim($source_config['kemuHost']);
     $kemuPort = trim($source_config['kemuPort']);
+    $fetchDelay = trim($source_config['fetchDelay']);
+    $fetchDelay = $fetchDelay ? $fetchDelay : 3; //default to 3 sec    
     $asXML = trim($source_config['asXML']);
+    $debugImu = trim($source_config['debugImu']);
     $returnNumRows = trim($source_config['returnNumRows']);
-    $returnNumRows = $returnNumRows ? $returnNumRows : -1;
+    $returnNumRows = $returnNumRows ? $returnNumRows : 300; //default to 300 rows in a batch retrieve
     if($importTo == 'specimen_observation'){
       $moduleName = 'ecatalogue';
       $termArray = array(
@@ -87,17 +90,43 @@ class FeedsIMUFetcher extends FeedsFetcher{
       $imusession = new IMuSession($kemuHost, $kemuPort);
       /* access a KEmu module/table */
       $imumodule = new IMuModule($moduleName, $imusession);
-      /*
-       * search the module/table findTerms is the most flexible way to search
-       * for records within a module/table
-       */
-      $kemuResults = $imumodule->findTerms($imusearchArray);
-      /*
-       * Get information from matching records flag, offset, count, columns
-       */
-      $results = $imumodule->fetch('start', 0, $returnNumRows, $kemuColumns);
+      /* use the fetchset for greater efficiencey by registering the columns once */
+      $imumodule->addFetchSet('kemu_columns', $kemuColumns);
+      /* search the module/table findTerms is the most flexible way to search */
+      $kemuResultsHits = $imumodule->findTerms($imusearchArray);
+      $totalArray = array();
+      $resultsRows = array();
+      $totalCalls = array();
+      $rownum = 1;
+      $i = 0;
+      while($i < $kemuResultsHits){
+        $imuBatch = ($i % $returnNumRows);
+        if($imuBatch == 0){
+          /* Get information from matching records flag, offset, count, columns  */
+          $results = $imumodule->fetch('start', $rownum - 1, $returnNumRows, 'kemu_columns');
+          $last = $results->rows[count($results->rows) - 1];
+          if($last['rownum'] < $results->hits){
+            $rownum = $last['rownum'] + 1;
+          }
+          $totalArray[] = $results;
+          $resultsRows[] = $results->rows;
+          if($debugImu){
+            $totalCalls[] = " row " . $i . "-" . $last['rownum'] . " " . date('h:i:s');
+          }
+          sleep($fetchDelay);
+        }
+        $i++;
+      }
+      $mergedRows = call_user_func_array('array_merge', $resultsRows);
+      $resultsArray = $totalArray[0];
+      $resultsArray->rows = $mergedRows;
       /* if there are any rows returned */
       if($results->hits){
+        if($debugImu){
+          $times = implode(',', $totalCalls);
+          watchdog('imu debug', '<pre>' . print_r($times, TRUE) . '</pre>');
+          watchdog('imu debug', '<pre> total rows returned ' . print_r($kemuResultsHits, TRUE) . '</pre>');
+        }
         /* if export as xml checkbox ticked */
         if($asXML){
           /*
@@ -111,7 +140,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
            * one advantage of the writeElement is that it can be passed the
            * object returned from IMuModule's fetch method
            */
-          $doc->writeElement('results', $results);
+          $doc->writeElement('results', $resultsArray);
           $results = $doc->saveXML();
         }
         return new FeedsFetcherResult($results);
@@ -139,8 +168,9 @@ class FeedsIMUFetcher extends FeedsFetcher{
       /* vetted, non-sensitive data from outward facing server for delivery to the website */
       'kemuHost' => 'host.name.ac.uk',
       'kemuPort' => '00000',
-      'returnNumRows' => '500',
-      'asXML' => TRUE
+      'returnNumRows' => '300',
+      'asXML' => TRUE,
+      'debugImu' => FALSE
     );
   }
 
@@ -175,11 +205,25 @@ class FeedsIMUFetcher extends FeedsFetcher{
       '#default_value' => $this->config['kemuPort'],
       '#required' => TRUE
     );
+    $form['fetchDelay'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Delay in secs between Imu fetches'),
+      '#description' => t('Number of seconds to delay in between fetches.'),
+      '#default_value' => isset($this->config['fetchDelay']) ? $this->config['fetchDelay'] : 3,
+      '#required' => TRUE
+    );
     $form['asXML'] = array(
       '#type' => 'checkbox',
       '#title' => t('Return results as XML'),
       '#description' => t('Return results as XML.'),
       '#default_value' => isset($this->config['asXML']) ? $this->config['asXML'] : TRUE,
+      '#required' => FALSE
+    );
+    $form['debugImu'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Debug Imu results'),
+      '#description' => t('Send some debug Imu results to watchdog.'),
+      '#default_value' => isset($this->config['debugImu']) ? $this->config['debugImu'] : FALSE,
       '#required' => FALSE
     );
     $form['importTo'] = array(
@@ -192,9 +236,10 @@ class FeedsIMUFetcher extends FeedsFetcher{
     );
     $form['returnNumRows'] = array(
       '#type' => 'textfield',
-      '#title' => t('Return number of rows'),
-      '#description' => t('Enter the number of rows to return. Leave blank to import all returned rows.'),
-      '#default_value' => isset($this->config['returnNumRows']) ? $this->config['returnNumRows'] : '500'
+      '#title' => t('Return number of rows at a time'),
+      '#description' => t('Enter the number of rows to return. If too big this may break the fetch. Default is 300.'),
+      '#default_value' => isset($this->config['returnNumRows']) ? $this->config['returnNumRows'] : '300',
+      '#required' => TRUE
     );
     $form['imuVersion'] = array(
       '#type' => 'item',
@@ -213,8 +258,10 @@ class FeedsIMUFetcher extends FeedsFetcher{
       'importTo' => 'specimen_observation',
       'kemuHost' => 'host.name.ac.uk',
       'kemuPort' => '00000',
-      'returnNumRows' => '500',
-      'asXML' => TRUE
+      'fetchDelay' => 3,
+      'returnNumRows' => '300',
+      'asXML' => TRUE,
+      'debugImu' => FALSE
     );
   }
 
@@ -250,11 +297,25 @@ class FeedsIMUFetcher extends FeedsFetcher{
       '#default_value' => isset($source_config['kemuPort']) ? $source_config['kemuPort'] : '00000',
       '#required' => TRUE
     );
+    $form['fetchDelay'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Delay in secs between Imu fetches'),
+      '#description' => t('Number of seconds to delay in between fetches.'),
+      '#default_value' => isset($source_config['fetchDelay']) ? $source_config['fetchDelay'] : 3,
+      '#required' => TRUE
+    );
     $form['asXML'] = array(
       '#type' => 'checkbox',
       '#title' => t('Return results as XML'),
       '#description' => t('Return results as XML.'),
       '#default_value' => isset($source_config['asXML']) ? $source_config['asXML'] : TRUE,
+      '#required' => FALSE
+    );
+    $form['debugImu'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Debug Imu results'),
+      '#description' => t('Send some debug Imu results to watchdog.'),
+      '#default_value' => isset($source_config['debugImu']) ? $source_config['debugImu'] : FALSE,
       '#required' => FALSE
     );
     $form['importTo'] = array(
@@ -267,9 +328,10 @@ class FeedsIMUFetcher extends FeedsFetcher{
     );
     $form['returnNumRows'] = array(
       '#type' => 'textfield',
-      '#title' => t('Return number of rows'),
-      '#description' => t('Enter the number of rows to return. Leave blank to import all returned rows.'),
-      '#default_value' => isset($source_config['returnNumRows']) ? $source_config['returnNumRows'] : '500'
+      '#title' => t('Return number of rows at a time'),
+      '#description' => t('Enter the number of rows to return. If too big this may break the fetch. Default is 300.'),
+      '#default_value' => isset($source_config['returnNumRows']) ? $source_config['returnNumRows'] : '300',
+      '#required' => TRUE
     );
     $form['imuVersion'] = array(
       '#type' => 'item',
@@ -293,6 +355,8 @@ class FeedsIMUFetcher extends FeedsFetcher{
     $kemuHost = $values['kemuHost'];
     $kemuPort = $values['kemuPort'];
     $importTo = $values['importTo'];
+    $fetchDelay = $values['fetchDelay'];
+    $returnNumRows = $values['returnNumRows'];
     if(empty($importTo)){
       form_set_error('feeds][importTo', t('You must enter a place to import to.'));
     }
@@ -304,6 +368,12 @@ class FeedsIMUFetcher extends FeedsFetcher{
     }
     if(empty($kemuPort) || $kemuPort == '00000'){
       form_set_error('feeds][kemuPort', t('You must enter a valid KEMU server port number'));
+    }
+    if(!empty($fetchDelay) && !is_numeric($fetchDelay)){
+      form_set_error('feeds][fetchDelay', t('Must be a number.'));
+    }
+    if(!empty($returnNumRows) && !is_numeric($returnNumRows)){
+      form_set_error('feeds][returnNumRows', t('Must be a number.'));
     }
   }
 }
