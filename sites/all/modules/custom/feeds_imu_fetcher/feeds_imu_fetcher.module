@@ -15,16 +15,6 @@ function feeds_imu_fetcher_feeds_plugins(){
       'path' => drupal_get_path('module', 'feeds_imu_fetcher') . '/plugins'
     )
   );
-  $info['FeedsXPathParserMemory'] = array(
-    'name' => t('XPath XML extended'),
-    'description' => t('Parse XML using XPath with extended memory.'),
-    'handler' => array(
-      'parent' => 'FeedsParser',
-      'class' => 'FeedsXPathParserMemory',
-      'file' => 'FeedsXPathParserMemory.inc',
-      'path' => drupal_get_path('module', 'feeds_imu_fetcher') . '/plugins'
-    )
-  );
   return $info;
 }
 
