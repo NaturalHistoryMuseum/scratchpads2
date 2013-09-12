@@ -8,4 +8,3 @@ dependencies[] = ctools
 dependencies[] = libraries
 
 files[] = plugins/FeedsIMUFetcher.inc
-files[] = plugins/FeedsXPathParserMemory.inc
