@@ -257,6 +257,8 @@ class DrupalFieldMigration extends DrupalMigration{
     }
     // Ensure that text-based country fields do not get mapped to the field_country field.
     if($field_name == 'field_country' && $field_type == 'text'){return 'field_country_text';}
+    // Ensure that text-based location fields do not get mapped to the field_location field.
+    if($field_name == 'field_location' && $field_type == 'text'){return 'field_location_text';}
     // Custom field field_keywords that is not a taxonmy term reference need to be renamed
     if($field_name == 'field_keywords' && $field_type == 'text'){return 'field_keywords_t';}
     // Field name field_name is reserved.
