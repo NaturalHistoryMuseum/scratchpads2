@@ -1,17 +1,38 @@
 <?php
-
 /**
  * @file
  * Installation and schema related functions for the OAuth module
  */
 
 /**
+ * Implements hook_requirements().
+ */
+function oauth_common_requirements($phase) {
+  $requirements = array();
+  $t = get_t();
+  $curl_available = function_exists('curl_init');
+
+  $requirements['oauth_common_curl'] = array(
+    'title' => $t('OAuth'),
+    'value' => $curl_available ? $t('cURL library Enabled') : $t('cURL library not found'),
+  );
+
+  if (!$curl_available) {
+    $requirements['oauth_common_curl'] += array(
+      'severity' => REQUIREMENT_ERROR,
+      'description' => $t("DrupalOAuthClient requires the PHP <a href='!curl_url'>cURL</a> library.",
+        array('!curl_url' => 'http://php.net/manual/en/curl.setup.php')),
+    );
+  }
+
+  return $requirements;
+}
+
+/**
  * Implements hook_schema().
  */
 function oauth_common_schema() {
   $schema = array();
-
-  //TODO: Schemas shouldn't be translated
 
   $schema['oauth_common_context'] = array(
     'description' => 'Stores contexts for OAuth common',

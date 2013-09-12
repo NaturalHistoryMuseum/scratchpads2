@@ -1,4 +1,7 @@
 <?php
+/**
+ * OAuth Common Provider UI module
+ */
 
 /**
  * Implements hook_menu().
@@ -68,24 +71,14 @@ function oauth_common_providerui_menu() {
   // Authorization administration
   ////////////
 
-  $menu['user/%user/oauth'] = array(
-    'title' => 'Authorization',
+  $menu['user/%user/oauth/authorizations'] = array(
+    'title' => 'OAuth Authorizations',
     'page callback' => 'oauth_common_page_user_authorizations',
     'page arguments' => array(1, TRUE),
     'access callback' => '_oauth_common_user_access',
-    'access arguments' => array(1),
+    'access arguments' => array(1, 'access own authorizations'),
     'file' => 'oauth_common.authorizations.inc',
     'type' => MENU_LOCAL_TASK,
-  );
-
-  $menu['user/%user/oauth/authorizations'] = array(
-    'title' => 'Authorizations',
-    'page callback' => 'oauth_common_page_user_authorizations',
-    'page arguments' => array(1, TRUE),
-    'access callback' => '_oauth_common_user_access',
-    'access arguments' => array(1),
-    'file' => 'oauth_common.authorizations.inc',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
   );
 
   $menu['user/%user/oauth/authorizations/%oauth_common_provider_token'] = array(
@@ -95,7 +88,7 @@ function oauth_common_providerui_menu() {
     'access callback' => '_oauth_common_user_access',
     'access arguments' => array(1, 'oauth authorize any consumers'),
     'file' => 'oauth_common.authorizations.inc',
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_LOCAL_ACTION,
   );
 
   $menu['user/%user/oauth/authorizations/%oauth_common_provider_token/delete'] = array(
@@ -107,19 +100,19 @@ function oauth_common_providerui_menu() {
     'access callback' => 'user_edit_access',
     'access arguments' => array(1),
     'file' => 'oauth_common.authorizations.inc',
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_LOCAL_ACTION,
   );
 
   ////////////
   // Consumer administration
   ////////////
 
-  $menu['user/%user/oauth/consumers'] = array(
-    'title' => 'Consumers',
+  $menu['user/%user/oauth/consumer'] = array(
+    'title' => 'OAuth Consumers',
     'page callback' => 'oauth_common_page_user_consumers',
     'page arguments' => array(1),
     'access callback' => '_oauth_common_user_access',
-    'access arguments' => array(1),
+    'access arguments' => array(1, 'access own consumers'),
     'file' => 'oauth_common.consumers.inc',
     'type' => MENU_LOCAL_TASK,
   );
@@ -130,7 +123,7 @@ function oauth_common_providerui_menu() {
     'page arguments' => array(1),
     'access callback' => 'oauth_common_can_create_consumers',
     'file' => 'oauth_common.consumers.inc',
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_LOCAL_ACTION,
     'weight' => 10,
   );
 
@@ -141,7 +134,7 @@ function oauth_common_providerui_menu() {
     'access callback' => 'oauth_common_can_edit_consumer',
     'access arguments' => array(4),
     'file' => 'oauth_common.consumers.inc',
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_LOCAL_ACTION,
   );
 
   $menu['user/%user/oauth/consumer/%oauth_common_consumer/delete'] = array(
@@ -151,7 +144,7 @@ function oauth_common_providerui_menu() {
     'access callback' => 'oauth_common_can_edit_consumer',
     'access arguments' => array(4),
     'file' => 'oauth_common.consumers.inc',
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_LOCAL_ACTION,
   );
 
   $menu['user/%user/oauth/consumer/%oauth_common_consumer/add-authorization'] = array(
@@ -161,7 +154,7 @@ function oauth_common_providerui_menu() {
     'access callback' => 'oauth_common_can_authorize_consumer',
     'access arguments' => array(4),
     'file' => 'oauth_common.authorizations.inc',
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_LOCAL_ACTION,
   );
 
   return $menu;

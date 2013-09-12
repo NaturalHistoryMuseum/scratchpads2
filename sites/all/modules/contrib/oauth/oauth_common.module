@@ -1,16 +1,16 @@
 <?php
-
-define('OAUTH_COMMON_CODE_BRANCH', '6.x-3.x');
-
+/**
+ * file
+ * OAuth module
+ */
+define('OAUTH_COMMON_CODE_BRANCH', '7.x-3.x');
 define('OAUTH_COMMON_TOKEN_TYPE_REQUEST', 0);
 define('OAUTH_COMMON_TOKEN_TYPE_ACCESS', 1);
-
 define('OAUTH_COMMON_VERSION_1', 1); // The original 1.0 spec
 define('OAUTH_COMMON_VERSION_1_RFC', 2); // The RFC 5849 1.0 spec
-
+define('OAUTH_COMMON_LOGIN_PATH', 'user/login');
 //TODO: Don't act as a provider by default.
 //TODO: Check for other functions with breaking changes
-//TODO: Move admin pages to more regular places
 //TODO: Add watchdog messages about deprecated methods?
 //TODO: Move provider ui related pages to provider ui
 
@@ -19,6 +19,14 @@ define('OAUTH_COMMON_VERSION_1_RFC', 2); // The RFC 5849 1.0 spec
  */
 function oauth_common_permission() {
   $permissions = array(
+    'access own authorizations' => array(
+      'title' => t('Access own OAuth authorizations'),
+      'restrict access' => TRUE,
+    ),
+    'access own consumers' => array(
+      'title' => t('Access own OAuth consumers'),
+      'restrict access' => TRUE,
+    ),
     'oauth authorize any consumers' => array(
       'title' => t('Authorize any OAuth consumers'),
       'restrict access' => TRUE,
@@ -198,7 +206,8 @@ function oauth_common_default_oauth_common_context() {
   $context->authorization_levels = array(
     '*' => array(
       'title' => 'Full access',
-      'description' => 'This will give @appname the same permissions that you normally have and will allow it to access the full range of services that @sitename provides.',
+      'description' => 'This will give @appname the same permissions that you normally have and will ' .
+                       'allow it to access the full range of services that @sitename provides.',
     ),
     'read' => array(
       'title' => 'Read access',
@@ -413,11 +422,16 @@ function oauth_common_get_request_token($consumer_token, $request_endpoint = '/o
  * @return array
  */
 function oauth_common_get_user_provider_tokens($uid) {
-  $res = db_query("SELECT t.*, pt.created, pt.changed, pt.services, pt.authorized FROM {oauth_common_token} t
-    INNER JOIN {oauth_common_provider_token} pt WHERE t.uid = :uid AND t.type = :type", array(
-      ':uid'  => $uid,
-      ':type' => OAUTH_COMMON_TOKEN_TYPE_ACCESS,
-    ));
+  $q = db_select('oauth_common_token', 't')
+    ->condition('t.uid', $uid, '=')
+    ->condition('t.type', OAUTH_COMMON_TOKEN_TYPE_ACCESS, '=');
+
+  $q->join('oauth_common_provider_token', 'pt', 'pt.tid = t.tid');
+
+  $res = $q->fields('t')
+    ->fields('pt', array('created', 'changed', 'services', 'authorized'))
+    ->execute();
+
   $tokens = array();
   while ($token = DrupalOAuthToken::fromResult($res)) {
     $tokens[] = $token;
@@ -429,7 +443,7 @@ function oauth_common_get_user_provider_tokens($uid) {
  * Create a new context with defaults appropriately set from schema.
  *
  * @return stdClass
- *  An context initialized with the default values.
+ *  A context initialized with the default values.
  */
 function oauth_common_context_new() {
   if (!module_exists('ctools')) {
@@ -506,7 +520,7 @@ function oauth_common_context_load_all() {
 }
 
 /**
- * Saves an context in the database.
+ * Saves a context in the database.
  *
  * @return void
  */
@@ -516,7 +530,7 @@ function oauth_common_context_save($context) {
 }
 
 /**
- * Remove an context.
+ * Remove a context.
  *
  * @return void
  */
@@ -528,7 +542,7 @@ function oauth_common_context_delete($context) {
 }
 
 /**
- * Export an context.
+ * Export a context.
  *
  * @return string
  */

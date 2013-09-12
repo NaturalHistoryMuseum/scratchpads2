@@ -1,7 +1,10 @@
 <?php
+/**
+ * @file
+ */
 
 /**
- * Menu system callback for listing a users consumers.
+ * Menu system callback for listing a user's consumers.
  *
  * @param object $account
  */
@@ -107,6 +110,7 @@ function oauth_common_form_consumer($form, &$form_state, $consumer) {
     '#title' => t('Callback url'),
     '#required' => FALSE,
     '#default_value' => $consumer->callback_url,
+    '#description' => t('You must include a schema for this to work correctly, ie. http:// or iphoneappname://'),
   );
 
   if ($consumer->in_database) {
@@ -179,6 +183,16 @@ function oauth_common_form_consumer_secret_ajax_callback($form, $form_state) {
 }
 
 /**
+ * Validate handler for oauth_common_form_consumer
+ */
+function oauth_common_form_consumer_validate($form, &$form_state) {
+  $callback = $form_state['values']['callback_url'];
+  if (!parse_url($callback) || strstr($callback, '://') === FALSE) {
+    form_set_error('callback_url', t('You must set a valid URL as a callback - http/https://some-path or custom://some-path'));
+  }
+}
+
+/**
  * Submit handler for oauth_common_form_consumer.
  */
 function oauth_common_form_consumer_submit($form, &$form_state) {
@@ -189,14 +203,11 @@ function oauth_common_form_consumer_submit($form, &$form_state) {
   if (empty($values['callback_url'])) {
     $values['callback_url'] = 'oob';
   }
-  // Add scheme if missing, and if the callback_url isn't out of band.
-  else if ($values['callback_url'] != 'oob' && preg_match('/^http:\/\/|https:\/\//', $values['callback_url']) === 0) {
-    //TODO: What about custom callback url:s used by eg iphone-apps? We should allow them - right?
-    $values['callback_url'] = 'http://' . $values['callback_url'];
-  }
 
-  // Remove trailing slash
-  $values['callback_url'] = rtrim($values['callback_url'], '/');
+  if(substr($values['callback_url'], strlen($values['callback_url']) - 2) != '//') {
+   // Remove trailing slash
+   $values['callback_url'] = rtrim($values['callback_url'], '/');
+  }
 
   // Transfer editable attributes to the consumer.
   $names = array('name', 'callback_url', 'context');
@@ -223,7 +234,7 @@ function oauth_common_form_consumer_submit($form, &$form_state) {
 /**
  * Consumer deletion form.
  */
-function oauth_common_form_consumer_delete($form_state, $consumer) {
+function oauth_common_form_consumer_delete($form, &$form_state, $consumer) {
   $form = array(
     'consumer_object' => array(
       '#type' => 'value',
