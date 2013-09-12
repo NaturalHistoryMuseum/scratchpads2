@@ -294,6 +294,37 @@ function scratchpads_front_page_edit($form, &$form_state){
       )
     )
   );
+  // if the view has been edited we don't add the option to edit the view via this form
+  if(strlen(views_get_view('front_page_slideshow')->vid)==0){
+    $form['main_block']['front_page_main_block_slideshow_text_creator'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display Image Creator'),
+      '#description' => t('Do you want the image creators to be displayed in the slideshow?'),
+      '#default_value' => scratchpads_front_variable_get('front_page_main_block_slideshow_text_creator'),
+      '#required' => false,
+      '#states' => array(
+        'visible' => array(
+          'input[name="front_page_main_block_type"]' => array(
+            'value' => 'images'
+          )
+        )
+      )
+    );
+    $form['main_block']['front_page_main_block_slideshow_text_licence'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display Image Licence'),
+      '#description' => t('Do you want the image licences to be displayed in the slideshow?'),
+      '#default_value' => scratchpads_front_variable_get('front_page_main_block_slideshow_text_licence'),
+      '#required' => false,
+      '#states' => array(
+        'visible' => array(
+          'input[name="front_page_main_block_type"]' => array(
+            'value' => 'images'
+          )
+        )
+      )
+    );
+  }
   $form['small_blocks'] = array(
     '#type' => 'fieldset',
     '#title' => t('Small blocks'),
@@ -336,10 +367,14 @@ function scratchpads_front_page_edit_submit($form, &$form_state){
   variable_set('front_page_welcome_message', $form_state['values']['front_page_welcome_message']['value']);
   variable_set('front_page_main_block_type', $form_state['values']['front_page_main_block_type']);
   variable_set('front_page_main_block_node_type', $form_state['values']['front_page_main_block_node_type']);
+  variable_set('front_page_main_block_slideshow_text_creator', $form_state['values']['front_page_main_block_slideshow_text_creator']);
+  variable_set('front_page_main_block_slideshow_text_licence', $form_state['values']['front_page_main_block_slideshow_text_licence']);
   foreach($form_state['vars'] as $var){
     variable_set($var, $form_state['values'][$var]);
   }
   $form_state['redirect'] = '<front>';
+  // Clear the views cache, as the slideshow view is dynamic
+  views_invalidate_cache();
 }
 
 /*********************************************************************************************

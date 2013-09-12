@@ -94,8 +94,6 @@ function apachesolr_search_schema() {
         'minimum_version' => 3,
         'current_version' => 3,
       ),
-      // Includes all search page specific configurations.
-      'export callback' => 'apachesolr_search_page_settings_export',
     ),
     'fields' => array(
       'page_id' => array(
@@ -219,7 +217,6 @@ function apachesolr_search_update_7002() {
         'minimum_version' => 3,
         'current_version' => 3,
       ),
-      'export callback' => 'apachesolr_search_page_settings_export',
     ),
     'fields' => array(
       'page_id' => array(

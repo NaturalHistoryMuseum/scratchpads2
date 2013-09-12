@@ -893,8 +893,8 @@ function scratchpads_biography_field_default_fields() {
       'module' => 'list',
       'settings' => array(
         'allowed_values' => array(
-          0 => '',
-          1 => '',
+          0 => 'No',
+          1 => 'Yes',
         ),
         'allowed_values_function' => '',
       ),
@@ -913,9 +913,8 @@ function scratchpads_biography_field_default_fields() {
       'display' => array(
         'default' => array(
           'label' => 'hidden',
-          'module' => 'list',
           'settings' => array(),
-          'type' => 'list_default',
+          'type' => 'hidden',
           'weight' => '4',
         ),
         'linked_node' => array(
@@ -943,7 +942,7 @@ function scratchpads_biography_field_default_fields() {
       ),
     ),
   );
-
+  
   // Exported field: 'user-user-field_orcid'
   $fields['user-user-field_orcid'] = array(
     'field_config' => array(
