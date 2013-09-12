@@ -211,7 +211,7 @@ if(typeof google != 'undefined' && typeof (google.maps.Polygon.prototype.runEdit
     });
   };
 }
-if(typeof (google.maps.Polygon.prototype.stopEdit) === "undefined") {
+if(typeof google != 'undefined' && typeof (google.maps.Polygon.prototype.stopEdit) === "undefined") {
   /**
    * Stops editing Polygon
    */
