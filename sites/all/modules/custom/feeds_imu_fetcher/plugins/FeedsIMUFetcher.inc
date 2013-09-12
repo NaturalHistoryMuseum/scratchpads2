@@ -38,7 +38,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
     $fetchDelay = trim($source_config['fetchDelay']);
     $fetchDelay = $fetchDelay ? $fetchDelay : 4; //default to 4 sec
     $returnNumRows = trim($source_config['returnNumRows']);
-    $returnNumRows = $returnNumRows ? $returnNumRows : 300;// default to 300 rows in a batch
+    $returnNumRows = $returnNumRows ? $returnNumRows : 300; // default to 300 rows in a batch
     if($importTo == 'specimen_observation'){
       $moduleName = 'ecatalogue';
       $termArray = array(
@@ -119,9 +119,9 @@ class FeedsIMUFetcher extends FeedsFetcher{
         }
         $i++;
       }
-      $totalRows2 = call_user_func_array('array_merge', $totalRows);
-      $newtotalarray = $totalarray[0];
-      $newtotalarray->rows = $totalRows2;
+      $mergedRows = call_user_func_array('array_merge', $totalRows);
+      $resultsArray = $totalarray[0];
+      $resultsArray->rows = $mergedRows;
       /* if there are any rows returned */
       if($results->hits){
         if($debugImu){
@@ -142,7 +142,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
            * one advantage of the writeElement is that it can be passed the
            * object returned from IMuModule's fetch method
            */
-          $doc->writeElement('results', $newtotalarray);
+          $doc->writeElement('results', $resultsArray);
           $results = $doc->saveXML();
         }
         return new FeedsFetcherResult($results);
@@ -358,9 +358,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
     $kemuPort = $values['kemuPort'];
     $importTo = $values['importTo'];
     $fetchDelay = $values['fetchDelay'];
-    
     $returnNumRows = $values['returnNumRows'];
-    
     if(!empty($returnNumRows) && !is_numeric($returnNumRows)){
       form_set_error('feeds][returnNumRows', t('You must enter a number.'));
     }
