@@ -12,8 +12,8 @@ function scratchpads_twitter_install(){
   variable_set('twitter_host', 'http://twitter.com');
   variable_set('twitter_import', 0);
   variable_set('twitter_search', 'http://search.twitter.com');
-  variable_set('twitter_signin_button', 'Sign-in-with-Twitter-darker.png');
-  variable_set('twitter_signin_register', 1);
+  //variable_set('twitter_signin_button', 'Sign-in-with-Twitter-darker.png');
+  //variable_set('twitter_signin_register', 1);
   variable_set('twitter_tinyurl', 'http://tinyurl.com');
 }
 
@@ -38,13 +38,4 @@ function scratchpads_twitter_requirements($phase){
     $requirements[] = $requirement;
   }
   return $requirements;
-}
-
-/**
- * Implements hook_disable().
- */
-function scratchpads_twitter_disable(){
-  module_disable(array(
-    'twitter'
-  ));
 }
