@@ -227,6 +227,9 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
                       }
                     }
                     break 3;
+                  }elseif($field['type'] == 'link_field'){
+                    $cell_values[] = $value[$target[1]];
+                    break 3;
                   }
               }
             }
@@ -493,7 +496,6 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
     $sheet->getColumnDimension($column)->setAutoSize(TRUE);
     // Validation
     if(isset($feeds_importer->processor->config['content_type']) || isset($feeds_importer->processor->config['vocabulary']) || ($feeds_importer->processor->id == 'user_importer_user')){
-      $a = 'b';
       if(isset($feeds_importer->processor->config['content_type'])){
         $bundle = $feeds_importer->processor->config['content_type'];
         $entity_type = 'node';
@@ -562,6 +564,7 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
         }else if($field['type'] == 'user_reference'){
           $query = db_select('users', 'u');
           $query->condition('uid', 1, '>');
+          $query->condition('name', 'Anonymous', '!=');
           $query->fields('u', array(
             'uid',
             'name'

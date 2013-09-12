@@ -316,8 +316,9 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
         );
         break;
       case 'date':
+      case 'datetime':
         // Add the from date, and also the to date if required.
-        // We add two columns for the user reference field.
+       
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field_collection_label_addition . $field['label'] . ' (' . t('Start') . ')',
           'target' => $map_field_collection ? $map_field_collection . $key . ':start' : $key . ':start',

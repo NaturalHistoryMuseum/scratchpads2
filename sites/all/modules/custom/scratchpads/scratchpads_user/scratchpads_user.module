@@ -99,7 +99,7 @@ function scratchpads_user_user_presave(&$edit, $account, $category){
   if((!empty($account->stub_user)) && ($edit['create_user_account'] == 0)){
     $edit['status'] = 0;
   }  // Was a stub user but isn't any more
-elseif((!empty($account->stub_user)) && ($edit['create_user_account'] == 1)){
+  elseif((!empty($account->stub_user)) && ($edit['create_user_account'] == 1)){
     $edit['status'] = 1;
   }
 }

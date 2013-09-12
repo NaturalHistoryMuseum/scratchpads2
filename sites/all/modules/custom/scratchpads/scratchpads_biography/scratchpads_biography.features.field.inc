@@ -791,7 +791,7 @@ function scratchpads_biography_field_default_fields() {
     ),
   );
 
-  // Exported field: 'user-user-field_main_collaborators_co_auth'
+// Exported field: 'user-user-field_main_collaborators_co_auth'
   $fields['user-user-field_main_collaborators_co_auth'] = array(
     'field_config' => array(
       'active' => '1',
@@ -826,8 +826,8 @@ function scratchpads_biography_field_default_fields() {
         ),
         'view' => array(
           'args' => array(),
-          'display_name' => '',
-          'view_name' => '',
+          'display_name' => 'references_1',
+          'view_name' => 'users_references',
         ),
       ),
       'translatable' => '0',
@@ -868,7 +868,7 @@ function scratchpads_biography_field_default_fields() {
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
-          'size' => 60,
+          'size' => '60',
         ),
         'type' => 'user_reference_autocomplete',
         'weight' => '19',
