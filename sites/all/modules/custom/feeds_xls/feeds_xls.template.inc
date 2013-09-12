@@ -203,13 +203,13 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
                   $cell_values[] = $value['uid'];
                   break;
                 case 'start':
-                  if (substr($value['value'], -8) == '00:00:00'){
+                  if(substr($value['value'], -8) == '00:00:00'){
                     $value['value'] = trim(substr($value['value'], 0, -8));
-                  }               
+                  }
                   $cell_values[] = $value['value'];
                   break;
                 case 'end':
-                  if (substr($value['value'], -8) == '00:00:00'){
+                  if(substr($value['value'], -8) == '00:00:00'){
                     $value['value'] = trim(substr($value['value'], 0, -8));
                   }
                   $cell_values[] = $value['value2'];
