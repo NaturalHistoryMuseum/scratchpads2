@@ -50,7 +50,7 @@ class BlockMigration extends DrupalMigration{
       'body',
       'info'
     ));
-    $query->condition('status', 1);
+    //$query->condition('status', 1);
     $query->condition('module', array(
       'block',
       'menu'
