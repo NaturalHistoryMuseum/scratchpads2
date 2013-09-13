@@ -215,7 +215,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['uuid']['table'] = 'taxonomy_term_data';
   $handler->display->display_options['fields']['uuid']['field'] = 'uuid';
   $handler->display->display_options['fields']['uuid']['relationship'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['fields']['uuid']['exclude'] = TRUE;
   /* Field: Content: Node UUID */
   $handler->display->display_options['fields']['uuid_1']['id'] = 'uuid_1';
   $handler->display->display_options['fields']['uuid_1']['table'] = 'node';
