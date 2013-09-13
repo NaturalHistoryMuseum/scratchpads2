@@ -558,10 +558,3 @@ function scratchpads_tweaks_form_node_type_form_alter(&$form, &$form_state){
   $form['workflow']['node_options']['sticky']['#description'] = t('Select to always have the content ordered on top of all lists that it appears in.');
   $form['workflow']['node_options']['#description'] = '';
 }
-
-
-
-
-
-
-
