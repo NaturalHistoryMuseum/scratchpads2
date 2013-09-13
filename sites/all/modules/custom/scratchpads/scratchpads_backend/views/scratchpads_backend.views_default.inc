@@ -1353,11 +1353,13 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
     $bundle => $bundle
   );
   /* Filter criterion: File: Path */
-  $handler->display->display_options['filters']['uri']['id'] = 'uri';
-  $handler->display->display_options['filters']['uri']['table'] = 'file_managed';
-  $handler->display->display_options['filters']['uri']['field'] = 'uri';
-  $handler->display->display_options['filters']['uri']['operator'] = 'not';
-  $handler->display->display_options['filters']['uri']['value'] = '/eolapi/';
+  if($entity_type == 'file'){
+    $handler->display->display_options['filters']['uri']['id'] = 'uri';
+    $handler->display->display_options['filters']['uri']['table'] = 'file_managed';
+    $handler->display->display_options['filters']['uri']['field'] = 'uri';
+    $handler->display->display_options['filters']['uri']['operator'] = 'not';
+    $handler->display->display_options['filters']['uri']['value'] = '/eolapi/';
+  }
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
   $handler->display->display_options['path'] = $base_path . '/' . $bundle;
@@ -1383,10 +1385,9 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
   $view->human_name = "Admin VBO node - " . $bundle;
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-
+  $view->disabled = FALSE;
   /* Display: Master */
-        $handler = $view->new_display('default', 'Master', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = $label;
   $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['use_more_always'] = FALSE;
