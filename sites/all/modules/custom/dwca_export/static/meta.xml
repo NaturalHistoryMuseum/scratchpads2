@@ -113,7 +113,6 @@
     <coreid index="0" />
     <field index="0" term="http://rs.tdwg.org/dwc/terms/taxonID" />
     <field index="2" term="http://purl.org/dc/terms/description" />
-    <field index="3" term="http://ns.adobe.com/xap/1.0/rights/UsageTerms" />
     <field index="4" term="http://rs.tdwg.org/ac/terms/furtherInformationURL" />
     <field index="6" term="http://ns.adobe.com/xap/1.0/rights/Owner" />
     <field index="7" term="http://purl.org/dc/terms/language" />
@@ -121,7 +120,7 @@
     <field index="9" term="http://purl.org/dc/terms/format" />
     <field index="10" term="http://purl.org/dc/terms/type" />
     <field index="11" term="http://eol.org/schema/agent/agentID" />
-    <field index="12" term="http://purl.org/dc/terms/license" />
+    <field index="12" term="http://ns.adobe.com/xap/1.0/rights/UsageTerms" />
     <field index="13" term="http://purl.org/dc/terms/identifier" />
   </extension>
   <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://rs.gbif.org/terms/1.0/VernacularName">
