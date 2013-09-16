@@ -48,11 +48,15 @@ function scratchpads_tweaks_exception_handler($exception){
 /**
  * Implements hook_node_view_alter().
  * 
- * Prevent the displaying of the taxonomic name field on the descriptions tab.
+ * - Prevent the displaying of the taxonomic name field on the descriptions tab.
+ * - Remove 'sharethis' for linked nodes (prevents having two shareThis toolbars)
  */
 function scratchpads_tweaks_node_view_alter(&$build){
   if(arg(0) == 'taxonomy' && arg(1) == 'term' && arg(3) == 'descriptions' && isset($build['field_taxonomic_name'])){
     unset($build['field_taxonomic_name']);
+  }
+  if(($build['#view_mode'] == 'linked_node') && (isset($build['sharethis']))){
+    unset($build['sharethis']);
   }
 }
 
