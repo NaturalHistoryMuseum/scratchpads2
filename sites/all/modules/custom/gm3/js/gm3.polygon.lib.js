@@ -28,7 +28,7 @@
  * @class Extends standart class google.maps.Polygon by methods runEdit() and
  *        stopEdit()
  */
-if(typeof (google.maps.Polygon.prototype.runEdit) === "undefined") {
+if(typeof google != 'undefined' && typeof (google.maps.Polygon.prototype.runEdit) === "undefined") {
   /**
    * Starts editing the polygon. Optional parameter "flag" indicates the use of
    * ghost markers in the middle of each segment. By default, the "flag" is
@@ -211,7 +211,7 @@ if(typeof (google.maps.Polygon.prototype.runEdit) === "undefined") {
     });
   };
 }
-if(typeof (google.maps.Polygon.prototype.stopEdit) === "undefined") {
+if(typeof google != 'undefined' && typeof (google.maps.Polygon.prototype.stopEdit) === "undefined") {
   /**
    * Stops editing Polygon
    */

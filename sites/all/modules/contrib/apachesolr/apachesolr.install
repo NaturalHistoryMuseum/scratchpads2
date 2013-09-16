@@ -902,6 +902,11 @@ function apachesolr_update_7016() {
  * Turn global variables in environment specific ones.
  */
 function apachesolr_update_7017() {
+  // @see: drupal_load()
+  if (!function_exists('apachesolr_environment_variable_set')) {
+    include_once dirname(__FILE__) . '/apachesolr.module';
+  }
+
   $stored = variable_get('apachesolr_index_last', array());
   foreach ($stored as $env_id => $entity_info) {
     apachesolr_environment_variable_set($env_id, 'apachesolr_index_last', $entity_info);
