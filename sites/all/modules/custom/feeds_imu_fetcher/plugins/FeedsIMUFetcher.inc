@@ -101,6 +101,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
       $totalCalls = array();
       $rownum = 1;
       $i = 0;
+              
       while($i < $kemuResultsHits){
         $imuBatch = ($i % $returnNumRows);
         if($imuBatch == 0){
@@ -119,6 +120,8 @@ class FeedsIMUFetcher extends FeedsFetcher{
         }
         $i++;
       }
+ 
+      
       $mergedRows = call_user_func_array('array_merge', $totalRows);
       $resultsArray = $totalarray[0];
       $resultsArray->rows = $mergedRows;
@@ -348,7 +351,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
     );
     return $form;
   }
-
+  
   /**
    * Override parent::sourceFormValidate().
    */
