@@ -367,8 +367,10 @@ function image_imagemagick_get_info(stdClass $image) {
     }
   } else {
     $data = getimagesize(drupal_realpath($image->source));
-    $extensions = array('1' => 'gif', '2' => 'jpg', '3' => 'png');
-    $data['extension'] = isset($extensions[$data[2]]) ?  $extensions[$data[2]] : '';
+    if ($data) {
+      $extensions = array('1' => 'gif', '2' => 'jpg', '3' => 'png');
+      $data['extension'] = isset($extensions[$data[2]]) ?  $extensions[$data[2]] : '';
+    }
   }
 
   if (isset($data) && is_array($data)) {
