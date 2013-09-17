@@ -2033,7 +2033,7 @@ function _biblio_filter_replace_callback($matches, $op = '') {
     $text .= '<span id="reference' . $ref . '" class="hovertip">' . _biblio_citekey_print($title) . '</span>';
   }
   else {
-    $text = '<a href="#ref' . $ref . '" title="Reference ' . $ref . '">[' . $ref . ']</a>';
+    $text = '<a href="#ref' . $ref . '" title="Reference ' . $ref . ': '. strip_tags(_biblio_citekey_print($title)).'">[' . $ref . ']</a>';
   }
   return $text;
 }
