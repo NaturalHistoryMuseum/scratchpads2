@@ -2034,7 +2034,6 @@ function _biblio_filter_replace_callback($matches, $op = '') {
   }
   else {
     $text = '<a href="#ref' . $ref . '" title="Reference ' . $ref . '">[' . $ref . ']</a>';
-
   }
   return $text;
 }
