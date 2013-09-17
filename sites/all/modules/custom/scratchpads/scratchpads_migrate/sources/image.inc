@@ -260,7 +260,9 @@ class DrupalImageMigration extends DrupalFileMigration{
       'image/tiff',
       'image/jpeg',
       'image/gif',
-      'image/png'
+      'image/png',
+      'image/pjpeg',
+      'image/bmp'
     );
   }
 }
