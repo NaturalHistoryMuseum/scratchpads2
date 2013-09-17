@@ -196,44 +196,44 @@ function silver_feeds_importer_default(){
     $export['file_importer_' . $file_type] = $feeds_importer;
   }
   // Users ---------------------------------------------------------------------
-  $feeds_importer = new stdClass();
-  $feeds_importer->disabled = FALSE;
-  $feeds_importer->api_version = 1;
-  $feeds_importer->id = 'user_importer_user';
-  $feeds_importer->config = array(
-    'name' => t('Import into: Users'),
-    'description' => t('Add and Update users.'),
-    'fetcher' => array(
-      'plugin_key' => 'FeedsFileFetcher',
-      'config' => array(
-        'allowed_extensions' => 'xls xlsx',
-        'direct' => 0
-      )
-    ),
-    'parser' => array(
-      'plugin_key' => 'FeedsExcelParser',
-      'config' => array(
-        'no_headers' => 0,
-        'all_worksheets' => 1
-      )
-    ),
-    'processor' => array(
-      'plugin_key' => 'FeedsUserProcessor',
-      'config' => array(
-        'status' => 1,
-        'mappings' => array(),
-        'update_existing' => '1'
-      )
-    ),
-    'update' => 0,
-    'import_period' => -1,
-    'expire_period' => 3600,
-    'import_on_create' => TRUE,
-    'process_in_background' => FALSE
-  );
-  // Add user fields 
-  // We use the form to ensure that the fields are in the same order as the form
   if(user_access('administer users')){
+    // Add user fields 
+    // We use the form to ensure that the fields are in the same order as the form
+    $feeds_importer = new stdClass();
+    $feeds_importer->disabled = FALSE;
+    $feeds_importer->api_version = 1;
+    $feeds_importer->id = 'user_importer_user';
+    $feeds_importer->config = array(
+      'name' => t('Import into: Users'),
+      'description' => t('Add and Update users.'),
+      'fetcher' => array(
+        'plugin_key' => 'FeedsFileFetcher',
+        'config' => array(
+          'allowed_extensions' => 'xls xlsx',
+          'direct' => 0
+        )
+      ),
+      'parser' => array(
+        'plugin_key' => 'FeedsExcelParser',
+        'config' => array(
+          'no_headers' => 0,
+          'all_worksheets' => 1
+        )
+      ),
+      'processor' => array(
+        'plugin_key' => 'FeedsUserProcessor',
+        'config' => array(
+          'status' => 1,
+          'mappings' => array(),
+          'update_existing' => '1'
+        )
+      ),
+      'update' => 0,
+      'import_period' => -1,
+      'expire_period' => 3600,
+      'import_on_create' => TRUE,
+      'process_in_background' => FALSE
+    );
     $form = drupal_get_form('user_register_form');
     $field_info = field_info_instances('user', 'user');
     $ordered_field_info = array();
