@@ -195,7 +195,7 @@ function silver_feeds_importer_default(){
     _silver_feeds_importer_default_helper($field_info, $feeds_importer, "file:$file_type:");
     $export['file_importer_' . $file_type] = $feeds_importer;
   }
-  // Users
+  // Users ---------------------------------------------------------------------
   $feeds_importer = new stdClass();
   $feeds_importer->disabled = FALSE;
   $feeds_importer->api_version = 1;
@@ -233,60 +233,62 @@ function silver_feeds_importer_default(){
   );
   // Add user fields 
   // We use the form to ensure that the fields are in the same order as the form
-  $form = drupal_get_form('user_register_form');
-  $field_info = field_info_instances('user', 'user');
-  $ordered_field_info = array();
-  $order = array();
-  $group_number = 0;
-  // If we are using fieldgroups, as in biography
-  if(!empty($form['#groups'])){
-    foreach($form['#groups'] as $group_name => $group){
-      if($group_name != 'group_tabs'){
-        foreach($group->children as $field_name){
-          // GroupNumber - Weight - Fieldname
-          $order[$group_number . $form[$field_name]['#weight'] . $field_name] = $field_name;
+  if(user_access('administer users')){
+    $form = drupal_get_form('user_register_form');
+    $field_info = field_info_instances('user', 'user');
+    $ordered_field_info = array();
+    $order = array();
+    $group_number = 0;
+    // If we are using fieldgroups, as in biography
+    if(!empty($form['#groups'])){
+      foreach($form['#groups'] as $group_name => $group){
+        if($group_name != 'group_tabs'){
+          foreach($group->children as $field_name){
+            // GroupNumber - Weight - Fieldname
+            $order[$group_number . $form[$field_name]['#weight'] . $field_name] = $field_name;
+          }
         }
+        $group_number++;
       }
-      $group_number++;
+    }else{
+      // No fieldgroups, as in default scratchpads
+      foreach($field_info as $field_name => $info){
+        $order[$form[$field_name]['#weight'] . $field_name] = $field_name;
+      }
     }
-  }else{
-    // No fieldgroups, as in default scratchpads
+    ksort($order);
+    foreach($order as $field_name){
+      $ordered_field_info[$field_name] = $field_info[$field_name];
+      unset($field_info[$field_name]);
+    }
+    // Add any fields that are not in fieldgroups to the end
     foreach($field_info as $field_name => $info){
-      $order[$form[$field_name]['#weight'] . $field_name] = $field_name;
+      $ordered_field_info[$field_name] = $info;
     }
+    $field_info = $ordered_field_info;
+    _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'user:user:');
+    $feeds_importer->config['processor']['config']['mappings'][] = array(
+      'source' => 'E-Mail',
+      'target' => 'mail',
+      'unique' => TRUE
+    );
+    $feeds_importer->config['processor']['config']['mappings'][] = array(
+      'source' => 'Username',
+      'target' => 'name',
+      'unique' => TRUE
+    );
+    $feeds_importer->config['processor']['config']['mappings'][] = array(
+      'source' => 'Password',
+      'target' => 'pass',
+      'unique' => 0
+    );
+    $feeds_importer->config['processor']['config']['mappings'][] = array(
+      'source' => 'GUID',
+      'target' => 'guid',
+      'unique' => 1
+    );
+    $export['user_importer_user'] = $feeds_importer;
   }
-  ksort($order);
-  foreach($order as $field_name){
-    $ordered_field_info[$field_name] = $field_info[$field_name];
-    unset($field_info[$field_name]);
-  }
-  // Add any fields that are not in fieldgroups to the end
-  foreach($field_info as $field_name => $info){
-    $ordered_field_info[$field_name] = $info;
-  }
-  $field_info = $ordered_field_info;
-  _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'user:user:');
-  $feeds_importer->config['processor']['config']['mappings'][] = array(
-    'source' => 'E-Mail',
-    'target' => 'mail',
-    'unique' => TRUE
-  );
-  $feeds_importer->config['processor']['config']['mappings'][] = array(
-    'source' => 'Username',
-    'target' => 'name',
-    'unique' => TRUE
-  );
-  $feeds_importer->config['processor']['config']['mappings'][] = array(
-    'source' => 'Password',
-    'target' => 'pass',
-    'unique' => 0
-  );
-  $feeds_importer->config['processor']['config']['mappings'][] = array(
-    'source' => 'GUID',
-    'target' => 'guid',
-    'unique' => 1
-  );
-  $export['file_importer_' . $file_type] = $feeds_importer;
   return $export;
 }
 
