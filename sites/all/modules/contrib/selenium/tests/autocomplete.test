@@ -18,7 +18,7 @@ class AutocompleteTestCase extends DrupalSeleniumWebTestCase {
       'name' => 'Autocomplete',
       'description' => 'Tests for autocomplete javascript.',
       'group' => 'Selenium',
-      'browsers' => array('firefox'),
+      'browsers' => array('firefox', 'chrome'),
     );
   }
 

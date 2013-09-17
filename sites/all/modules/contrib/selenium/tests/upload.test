@@ -36,8 +36,6 @@ class FilefieldTestExample extends DrupalSeleniumWebTestCase {
 
     // Login user.
     $this->drupalLogin($account);
-    $this->drupalGet('');
-    $this->verboseScreenshot();
 
     // Open node edit page.
     $this->drupalGet('node/' . $node->nid . '/edit');
@@ -73,9 +71,5 @@ class FilefieldTestExample extends DrupalSeleniumWebTestCase {
       }
     }
     $this->assertTrue($found, t('Image uploaded succesfully'));
-    
-    $this->drupalGet('');
-    $this->verboseScreenshot();
   }
-  
 }

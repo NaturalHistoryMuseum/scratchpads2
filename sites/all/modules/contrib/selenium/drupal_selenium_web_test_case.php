@@ -1,15 +1,17 @@
 <?php
+
 /**
  * @file
  * Classes for interacting with Selenium.
  */
+
 // Server details constant.
 define('SELENIUM_SERVER_URL', 'http://' . variable_get('selenium_server_host', 'localhost:4444') . "/wd/hub");
 
 /**
  * Test case for Selenium test.
  */
-class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
+abstract class DrupalSeleniumWebTestCase extends DrupalWebTestCase {
 
   /**
    * Selenium Web Driver instance.
@@ -26,17 +28,15 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
   /**
    * Allowed driver types.
    */
-  protected $allowed_browsers = array(
-    'firefox',
-    'chrome',
-    'opera',
-    'iexplorer'
-  );
+  protected $allowed_browsers = array('firefox', 'chrome', 'opera', 'iexplorer');
 
   /**
-   * This variable is intended to be used by browsers that can not run on
-   * Simpletest-sandbox. It gives an opportunity to run all tests on original
-   * site. You should set it to TRUE in setUp before parent::setUp.
+   * Special switcher for testing on original site (ie NOT ON SIMPLETEST SANDBOX).
+   * Tests are performed via standard Simpletest interface but not using its sandbox
+   * - using the original site.
+   * It is useful for some browsers, which can't override User-Agent string (it
+   * means can't redirect to a sandbox).
+   * To use it set this variable to TRUE on setUp() before parent::setUp().
    * Please note: use this possibility with caution since it can damage your
    * original site. Never run it on production sites and always make backup
    * before launching.
@@ -53,23 +53,23 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    */
   protected $originalDatabasePrefix;
 
-  protected function setUp(){
+  protected function setUp() {
     // Backward compatibility together with support of new way of passing modules parameter.
     // @see DrupalWebTestCase::setUp()
     $modules = func_get_args();
-    if(isset($modules[0]) && is_array($modules[0])){
+    if (isset($modules[0]) && is_array($modules[0])) {
       $modules = $modules[0];
     }
     parent::setUp($modules);
     // Determine which test to run.
     // By default we run Firefox.
     $browser = 'firefox';
-    if(in_array($this->browser, $this->allowed_browsers)){
+    if (in_array($this->browser, $this->allowed_browsers)) {
       $browser = $this->browser;
     }
     $this->driver = $this->seleniumDriver($browser);
     // Determine whether we should run on Simpletest sandbox or original site.
-    if($this->onOriginal){
+    if ($this->onOriginal) {
       // Unset database prefix to run all tests on the original site.
       // It is a workaround to make it possible to run Selenium-tests via
       // browsers, that don't support user-agent setting.
@@ -86,54 +86,6 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
     }
   }
 
-  public function tearDown(){
-    if($this->onOriginal){
-      // 3) We must switch connection back to make simpletest to eliminate sandbox - not the original site.
-      $this->switchConnectionTo('simpletest_sandbox');
-    }
-    parent::tearDown();
-  }
-
-  protected function switchConnectionTo($connection_name = 'simpletest_original_default'){
-    if($this->checkSameConnection($connection_name)){return;}
-    switch($connection_name){
-      case 'simpletest_sandbox':
-        $this->databasePrefix = $this->sandboxDatabasePrefix;
-        break;
-      case 'simpletest_original_default':
-      default:
-        $this->databasePrefix = $this->originalDatabasePrefix;
-        break;
-    }
-    // Remove default.
-    Database::removeConnection('default');
-    // Add default as a copy of the connection, we need to switch to.
-    $connection_info = Database::getConnectionInfo($connection_name);
-    Database::addConnectionInfo('default', 'default', $connection_info['default']);
-  }
-
-  /**
-   * Protection from switching to self. Helps to find logic errors.
-   * @param type $connection_name
-   * @return type
-   */
-  protected function checkSameConnection($connection_name = 'simpletest_original_default'){
-    $same = FALSE;
-    switch($connection_name){
-      case 'simpletest_sandbox':
-        $same = ($this->databasePrefix === $this->sandboxDatabasePrefix);
-        break;
-      case 'simpletest_original_default':
-      default:
-        $same = ($this->databasePrefix === $this->originalDatabasePrefix);
-        break;
-    }
-    if($same){
-      $this->fail("Already on $connection_name connection", 'Connection');
-    }
-    return $same;
-  }
-
   /**
    * Run all tests in this class.
    *
@@ -146,57 +98,57 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    *   taken into account, but it can be useful to only run a few selected test
    *   methods during debugging.
    */
-  public function run(array $methods = array()){
+  public function run(array $methods = array()) {
     // Initialize verbose debugging.
     simpletest_verbose(NULL, variable_get('file_public_path', conf_path() . '/files'), get_class($this));
+
     // HTTP auth settings (<username>:<password>) for the simpletest browser
     // when sending requests to the test site.
     $this->httpauth_method = variable_get('simpletest_httpauth_method', CURLAUTH_BASIC);
     $username = variable_get('simpletest_httpauth_username', NULL);
     $password = variable_get('simpletest_httpauth_password', NULL);
-    if($username && $password){
+    if ($username && $password) {
       $this->httpauth_credentials = $username . ':' . $password;
     }
-    set_error_handler(array(
-      $this,
-      'errorHandler'
-    ));
+
+    set_error_handler(array($this, 'errorHandler'));
     $class = get_class($this);
     // Iterate through all the methods in this class, unless a specific list of
     // methods to run was passed.
     $class_methods = get_class_methods($class);
-    if($methods){
+    if ($methods) {
       $class_methods = array_intersect($class_methods, $methods);
     }
-    foreach($class_methods as $method){
+    foreach ($class_methods as $method) {
       // If the current method starts with "test", run it - it's a test.
-      if(strtolower(substr($method, 0, 4)) == 'test'){
+      if (strtolower(substr($method, 0, 4)) == 'test') {
         // Get information about test case.
         $info = $this->getInfo();
         // If no browsers are set we use internal.
-        if(!isset($info['browsers'])){
-          $info['browsers'] = array(
-            'internal'
-          );
+        if (!isset($info['browsers'])) {
+           $info['browsers'] = array('internal');
         }
+
         // Insert a fail record. This will be deleted on completion to ensure
         // that testing completed.
         $method_info = new ReflectionMethod($class, $method);
         $caller = array(
           'file' => $method_info->getFileName(),
           'line' => $method_info->getStartLine(),
-          'function' => $class . '->' . $method . '()'
+          'function' => $class . '->' . $method . '()',
         );
+
         // Run test in each browser.
-        foreach($info['browsers'] as $browser){
+        foreach ($info['browsers'] as $browser) {
           $this->browser = $browser;
+
           $completion_check_id = DrupalTestCase::insertAssert($this->testId, $class, FALSE, t('The test did not complete due to a fatal error.'), 'Completion check', $caller);
-          try{
+          try {
             $this->setUp();
             $this->$method();
             // Finish up.
           }
-          catch(Exception $e){
+          catch (Exception $e) {
             $this->exceptionHandler($e);
           }
           $this->tearDown();
@@ -217,21 +169,23 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    *   Type of the driver.
    * @return object
    */
-  protected function seleniumDriver($browser){
+  protected function seleniumDriver($browser) {
     // We need to define user agent only for local tests, which manipulate database.
     // For remote tests it's not necessary.
-    if(isset($this->databasePrefix)){
+    if (isset($this->databasePrefix)) {
       $test_id = $GLOBALS['drupal_test_info']['test_run_id'];
-      if(preg_match('/simpletest\d+/', $test_id, $matches)){
+      if (preg_match('/simpletest\d+/', $test_id, $matches)) {
         $user_agent = drupal_generate_test_ua($matches[0]);
-      }else{
+      }
+      else {
         throw new Exception('Test is not ready to init connection to Webdriver (no database prefix)');
       }
-    }else{
+    }
+    else {
       $user_agent = '';
       $test_id = $this->testId;
     }
-    switch($browser){
+    switch ($browser) {
       case 'firefox':
         return new SeleniumFirefoxDriver($user_agent, $test_id);
       case 'chrome':
@@ -243,81 +197,90 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
     }
   }
 
+  public function tearDown() {
+    if ($this->onOriginal) {
+      // 3) We must switch connection back to make simpletest to eliminate sandbox - not the original site.
+      $this->switchConnectionTo('simpletest_sandbox');
+    }
+    parent::tearDown();
+  }
+
+  protected function switchConnectionTo($connection_name = 'simpletest_original_default') {
+    if ($this->checkSameConnection($connection_name)) {
+      return;
+    }
+    switch ($connection_name) {
+      case 'simpletest_sandbox':
+        $this->databasePrefix = $this->sandboxDatabasePrefix;
+        break;
+      case 'simpletest_original_default':
+      default:
+        $this->databasePrefix = $this->originalDatabasePrefix;
+        break;
+    }
+    // Remove default.
+    Database::removeConnection('default');
+    // Add default as a copy of the connection, we need to switch to.
+    $connection_info = Database::getConnectionInfo($connection_name);
+    Database::addConnectionInfo('default', 'default', $connection_info['default']);
+  }
+
+  /**
+   * Protection from switching to self. Helps to find logic errors.
+   * @param string $connection_name
+   * @return boolean
+   */
+  protected function checkSameConnection($connection_name = 'simpletest_original_default') {
+    $same = FALSE;
+    switch ($connection_name) {
+      case 'simpletest_sandbox':
+        $same = ($this->databasePrefix === $this->sandboxDatabasePrefix);
+        break;
+      case 'simpletest_original_default':
+      default:
+        $same = ($this->databasePrefix === $this->originalDatabasePrefix);
+        break;
+    }
+    if ($same) {
+      $this->fail("Already on $connection_name connection", 'Connection');
+    }
+    return $same;
+  }
+
   /**
    * Open specific url.
    */
-  protected function drupalGet($url){
-    if(isset($this->databasePrefix)){
-    }
+  protected function drupalGet($url) {
     $this->driver->openUrl($url);
-  }
-
-  /**
-   * Login with current user.
-   */
-  protected function drupalLogin($user){
-    if($this->loggedInUser){
-      $this->drupalLogout();
-    }
-    $this->drupalGet('user');
-    $this->driver->getElement('css=#edit-name')->sendKeys($user->name);
-    $this->driver->getElement('css=#edit-pass')->sendKeys($user->pass_raw);
-    $this->driver->getElement('css=#edit-submit')->submit();
-    // If a "log out" link appears on the page, it is almost certainly because
-    // the login was successful.
-    $pass = $this->assertLink(t('Log out'), 0, t('User %name successfully logged in.', array(
-      '%name' => $user->name
-    )), t('User login'));
-    if($pass){
-      $this->loggedInUser = $user;
-    }
-  }
-
-  /**
-   * Logs a user out.
-   */
-  protected function drupalLogout(){
-    // Make a request to the logout page, and redirect to the user page, the
-    // idea being if you were properly logged out you should be seeing a login
-    // screen.
-    $this->drupalGet('user/logout');
-    $this->drupalGet('user');
-    $pass = $this->assertField('name', t('Username field found.'), t('Logout'));
-    $pass = $pass && $this->assertField('pass', t('Password field found.'), t('Logout'));
-    if($pass){
-      $this->loggedInUser = FALSE;
-    }
+    $this->verbose('GET request to: ' . $url .
+                   '<hr />Ending URL: ' . $this->getUrl() .
+                   '<hr />' . $this->drupalGetContent());
   }
 
   /**
    * Take a screenshot from current page.
    * Save it to verbose directory and add verbose message.
    */
-  protected function verboseScreenshot(){
+  protected function verboseScreenshot() {
     // Take screenshot of current page.
     $screenshot = FALSE;
-    try{
+    try {
       $screenshot = $this->driver->getScreenshot();
     }
-    catch(Exception $e){
-      $this->verbose(t('No support for screenshots in %driver', array(
-        '%driver' => get_class($this->driver)
-      )));
+    catch (Exception $e) {
+      $this->verbose(t('No support for screenshots in %driver', array('%driver' => get_class($this->driver))));
     }
-    if($screenshot){
+    if ($screenshot) {
       // Prepare directory.
       $directory = $this->originalFileDirectory . '/simpletest/verbose/screenshots';
       $writable = file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
-      if($writable){
+      if ($writable) {
         $testname = $this->getTestName();
         // Trying to save screenshot to verbose directory.
         $file = file_unmanaged_save_data($screenshot, $this->originalFileDirectory . '/simpletest/verbose/screenshots/' . $testname . '.png', FILE_EXISTS_RENAME);
+
         // Adding verbose message with link to screenshot.
-        $this->error(l(t('Screenshot created.'), $GLOBALS['base_url'] . '/' . $file, array(
-          'attributes' => array(
-            'target' => '_blank'
-          )
-        )), 'User notice');
+        $this->error(l(t('Screenshot created.'), $GLOBALS['base_url'] . '/' . $file, array('attributes' => array('target' => '_blank'))), 'User notice');
       }
     }
   }
@@ -325,16 +288,14 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
   /**
    * Implements assertTextHelper.
    */
-  protected function assertTextHelper($text, $message = '', $group, $not_exists){
+  protected function assertTextHelper($text, $message = '', $group, $not_exists) {
     $this->plainTextContent = filter_xss($this->driver->getBodyText(), array());
+
     // Remove all symbols of new line as we need raw text here.
     $this->plainTextContent = str_replace("\n", '', $this->plainTextContent);
-    if(!$message){
-      $message = !$not_exists ? t('"@text" found', array(
-        '@text' => $text
-      )) : t('"@text" not found', array(
-        '@text' => $text
-      ));
+
+    if (!$message) {
+      $message = !$not_exists ? t('"@text" found', array('@text' => $text)) : t('"@text" not found', array('@text' => $text));
     }
     return $this->assert($not_exists == (strpos($this->plainTextContent, $text) === FALSE), $message, $group);
   }
@@ -342,12 +303,12 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
   /**
    * Implements assertTitle.
    */
-  protected function assertTitle($title, $message = '', $group = 'Other'){
+  protected function assertTitle($title, $message = '', $group = 'Other') {
     $actual = $this->driver->getPageTitle();
-    if(!$message){
+    if (!$message) {
       $message = t('Page title @actual is equal to @expected.', array(
         '@actual' => var_export($actual, TRUE),
-        '@expected' => var_export($title, TRUE)
+        '@expected' => var_export($title, TRUE),
       ));
     }
     return $this->assertEqual($actual, $title, $message, $group);
@@ -356,30 +317,26 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
   /**
    * Asserts that a field exists with the given name or id.
    *
-   * @param type $field
+   * @param string $field
    *   Name or id of field to assert.
-   * @param type $message
+   * @param string $message
    *   Message to display.
-   * @param type $group
+   * @param string $group
    *   The group this message belongs to.
-   * @return type
+   * @return boolean
    *   TRUE on pass, FALSE on fail.
    */
-  protected function assertField($field, $message = '', $group = 'Other'){
-    try{
+  protected function assertField($field, $message = '', $group = 'Other') {
+    try {
       $element = $this->driver->getElement("name=$field");
-    }
-    catch(Exception $e){
-      try{
+    } catch (Exception $e) {
+      try {
         $element = $this->driver->getElement("id=$field");
-      }
-      catch(Exception $e){
+      } catch (Exception $e) {
         $element = FALSE;
       }
     }
-    return $this->assertTrue(!empty($element), $message ? $message : t('Field %locator found', array(
-      '%locator' => $field
-    )), $group);
+    return $this->assertTrue(!empty($element), $message ? $message : t('Field %locator found', array('%locator' => $field)), $group);
   }
 
   /**
@@ -394,31 +351,27 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
     * @return
     *   TRUE on pass, FALSE on fail.
     */
-  protected function assertNoField($field, $message = '', $group = 'Other'){
-    try{
-      $element = $this->driver->getElement("name=$field");
+   protected function assertNoField($field, $message = '', $group = 'Other') {
+     try {
+       $element = $this->driver->getElement("name=$field");
+     }
+     catch (Exception $e) {
+       try {
+         $element = $this->driver->getElement("id=$field");
+       }
+       catch (Exception $e) {
+         $element = FALSE;
+       }
     }
-    catch(Exception $e){
-      try{
-        $element = $this->driver->getElement("id=$field");
-      }
-      catch(Exception $e){
-        $element = FALSE;
-      }
-    }
-    return $this->assertTrue(empty($element), $message ? $message : t('Field %locator not found', array(
-      '%locator' => $field
-    )), $group);
+    return $this->assertTrue(empty($element), $message ? $message : t('Field %locator not found', array('%locator' => $field)), $group);
   }
 
   /**
    * Implements assertLink.
    */
-  protected function assertLink($label, $index = 0, $message = '', $group = 'Other'){
+  protected function assertLink($label, $index = 0, $message = '', $group = 'Other') {
     $links = $this->driver->waitForElements('link=' . $label);
-    $message = ($message ? $message : t('Link with label %label found.', array(
-      '%label' => $label
-    )));
+    $message = ($message ?  $message : t('Link with label %label found.', array('%label' => $label)));
     return $this->assert(isset($links[$index]), $message, $group);
   }
 
@@ -437,20 +390,18 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * @return
    *   Page on success, or FALSE on failure.
    */
-  protected function clickLink($label, $index = 0){
+  protected function clickLink($label, $index = 0) {
     // Assert that link exists.
-    if(!$this->assertLink($label, $index)){return;}
+    if (!$this->assertLink($label, $index)) {
+      return;
+    }
     // Get link elements.
-    $links = $this->driver->waitForElements('link=' . $label);
+    $links = $this->driver->getAllElements('link=' . $label);
     $link_element = $links[$index];
     // Get current and target urls.
     $url_before = $this->getUrl();
     $url_target = $link_element->getAttributeValue('href');
-    $this->assertTrue(isset($links[$index]), t('Clicked link %label (@url_target) from @url_before', array(
-      '%label' => $label,
-      '@url_target' => $url_target,
-      '@url_before' => $url_before
-    )), t('Browser'));
+    $this->assertTrue(isset($links[$index]), t('Clicked link %label (@url_target) from @url_before', array('%label' => $label, '@url_target' => $url_target, '@url_before' => $url_before)), t('Browser'));
     // Click on element;
     $link_element->click();
   }
@@ -470,11 +421,9 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * @return
    *   TRUE if the assertion succeeded, FALSE otherwise.
    */
-  protected function assertNoLink($label, $index = 0, $message = '', $group = 'Other'){
+  protected function assertNoLink($label, $index = 0, $message = '', $group = 'Other') {
     $links = $this->driver->waitForElements('link=' . $label);
-    $message = ($message ? $message : t('Link with label %label not found.', array(
-      '%label' => $label
-    )));
+    $message = ($message ?  $message : t('Link with label %label not found.', array('%label' => $label)));
     return $this->assert(!isset($links[$index]), $message, $group);
   }
 
@@ -493,11 +442,9 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * @return
    *   TRUE if the assertion succeeded, FALSE otherwise.
    */
-  protected function assertLinkByHref($href, $index = 0, $message = '', $group = 'Other'){
+  protected function assertLinkByHref($href, $index = 0, $message = '', $group = 'Other') {
     $links = $this->driver->getAllElements("//a[contains(@href, '$href')]");
-    $message = ($message ? $message : t('Link containing href %href found.', array(
-      '%href' => $href
-    )));
+    $message = ($message ?  $message : t('Link containing href %href found.', array('%href' => $href)));
     return $this->assert(isset($links[$index]), $message, $group);
   }
 
@@ -516,11 +463,9 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * @return
    *   TRUE if the assertion succeeded, FALSE otherwise.
    */
-  protected function assertNoLinkByHref($href, $index = 0, $message = '', $group = 'Other'){
+  protected function assertNoLinkByHref($href, $index = 0, $message = '', $group = 'Other') {
     $links = $this->driver->getAllElements("//a[contains(@href, '$href')]");
-    $message = ($message ? $message : t('Link containing href %href not found.', array(
-      '%href' => $href
-    )));
+    $message = ($message ?  $message : t('Link containing href %href not found.', array('%href' => $href)));
     return $this->assert(!isset($links[$index]), $message, $group);
   }
 
@@ -528,37 +473,31 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * Implements assertOptionSelected.
    * Asserts that a select option in the current page is checked.
    *
-   * @param type $locator
-   * @param $option
+   * @param string $locator
+   * @param string $option
    *   Option to assert.
-   * @param $message
+   * @param string $message
    *   Message to display.
-   * @return
+   * @return boolean
    *   TRUE on pass, FALSE on fail.
-   *
-   * @todo $id is unusable. Replace with $name.
    */
-  protected function assertOptionSelected($locator, $option, $message = ''){
+  protected function assertOptionSelected($locator, $option, $message = '') {
     $selected = FALSE;
     $element = $this->driver->getElement($locator);
     $is_select = $element && $element->getTagName() == 'select';
-    if($is_select){
+    if ($is_select) {
       $id = $element->getAttributeValue('id');
-      $message = $message ? $message : t('Option @option for field @id is selected.', array(
-        '@option' => $option,
-        '@id' => $id
-      ));
+      $message = $message ? $message : t('Option @option for field @id is selected.', array('@option' => $option, '@id' => $id));
       $selected_options = $this->getSelectedItem($element);
-      foreach($selected_options as $selected_option){
-        if($selected_option->getValue() == $option){
+      foreach ($selected_options as $selected_option) {
+        if ($selected_option->getValue() == $option) {
           $selected = TRUE;
           break;
         }
       }
-    }else{
-      $message = t('There is no element with locator @locator or element is not select list.', array(
-        '@locator' => $locator
-      ));
+    }
+    else {
+      $message = t('There is no element with locator @locator or element is not select list.', array('@locator' => $locator));
     }
     return $this->assertTrue($is_select && $selected, $message, t('Browser'));
   }
@@ -567,36 +506,33 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * Implements assertNoOptionSelected.
    * Asserts that a select option in the current page is not checked.
    *
-   * @param type $locator
-   * @param $option
+   * @param string $locator
+   * @param string $option
    *   Option to assert.
-   * @param $message
+   * @param string $message
    *   Message to display.
-   * @return
+   * @return boolean
    *   TRUE on pass, FALSE on fail.
    */
-  protected function assertNoOptionSelected($locator, $option, $message = ''){
+  protected function assertNoOptionSelected($locator, $option, $message = '') {
     $selected = FALSE;
     $element = $this->driver->getElement($locator);
     $is_select = $element && $element->getTagName() == 'select';
-    if($is_select){
+    if ($is_select) {
       $id = $element->getAttributeValue('id');
-      $message = $message ? $message : t('Option @option for field @id is not selected.', array(
-        '@option' => $option,
-        '@id' => $id
-      ));
+      $message = $message ? $message : t('Option @option for field @id is not selected.', array('@option' => $option, '@id' => $id));
       $selected_options = $this->getSelectedItem($element);
-      foreach($selected_options as $selected_option){
-        if($selected_option->getValue() == $option){
+      foreach ($selected_options as $selected_option) {
+        if ($selected_option->getValue() == $option) {
           $selected = TRUE;
           break;
         }
       }
-    }else{
-      $message = t('There is no element with locator @locator or element is not select list.', array(
-        '@locator' => $locator
-      ));
     }
+    else {
+      $message = t('There is no element with locator @locator or element is not select list.', array('@locator' => $locator));
+    }
+
     return $this->assertTrue($is_select && !$selected, $message, t('Browser'));
   }
 
@@ -604,52 +540,48 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * Implements assertFieldChecked.
    * Asserts that a checkbox field in the current page is checked.
    *
-   * @param type $locator
-   * @param $message
+   * @param string $locator
+   * @param string $message
    *   Message to display.
-   * @return
+   * @return boolean
    *   TRUE on pass, FALSE on fail.
    */
-  protected function assertFieldChecked($locator, $message = ''){
+  protected function assertFieldChecked($locator, $message = '') {
     $element = $this->driver->getElement($locator);
     $is_checkbox = $element && ($element->getTagName() == 'checkbox' || $element->getAttributeValue('type') == 'checkbox');
-    if($is_checkbox){
+    if ($is_checkbox) {
       $id = $element->getAttributeValue('id');
-      $message = $message ? $message : t('Checkbox field @id is checked.', array(
-        '@id' => $id
-      ));
-    }else{
-      $message = t('There is no element with locator @locator or element is not checkbox.', array(
-        '@locator' => $locator
-      ));
+      $message = $message ? $message : t('Checkbox field @id is checked.', array('@id' => $id));
     }
-    return $this->assertTrue($is_checkbox && $element->isSelected(), $message, t('Browser'));
+    else {
+      $message = t('There is no element with locator @locator or element is not checkbox.', array('@locator' => $locator));
+    }
+
+    return $this->assertTrue($is_checkbox && $element->isSelected() , $message, t('Browser'));
   }
 
   /**
    * Implements assertNoFieldChecked.
    * Asserts that a checkbox field in the current page is not checked.
    *
-   * @param type $locator
-   * @param $message
+   * @param string $locator
+   * @param string $message
    *   Message to display.
-   * @return
+   * @return boolean
    *   TRUE on pass, FALSE on fail.
    */
-  protected function assertNoFieldChecked($locator, $message = ''){
+  protected function assertNoFieldChecked($locator, $message = '') {
     $element = $this->driver->getElement($locator);
     $is_checkbox = $element && ($element->getTagName() == 'checkbox' || $element->getAttributeValue('type') == 'checkbox');
-    if($is_checkbox){
+    if ($is_checkbox) {
       $id = $element->getAttributeValue('id');
-      $message = $message ? $message : t('Checkbox field @id is not checked.', array(
-        '@id' => $id
-      ));
-    }else{
-      $message = t('There is no element with locator @locator or element is not checkbox.', array(
-        '@locator' => $locator
-      ));
+      $message = $message ? $message : t('Checkbox field @id is not checked.', array('@id' => $id));
     }
-    return $this->assertTrue($is_checkbox && !$element->isSelected(), $message, t('Browser'));
+    else {
+      $message = t('There is no element with locator @locator or element is not checkbox.', array('@locator' => $locator));
+    }
+
+    return $this->assertTrue($is_checkbox && !$element->isSelected() , $message, t('Browser'));
   }
 
   /**
@@ -669,22 +601,20 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * @return
    *   TRUE on pass, FALSE on fail.
    */
-  protected function assertNoDuplicateIds($message = '', $group = 'Other', $ids_to_skip = array()){
-    try{
+  protected function assertNoDuplicateIds($message = '', $group = 'Other', $ids_to_skip = array()) {
+    try {
       $elements = $this->driver->getAllElements("//*[@id]");
       $status = TRUE;
-      foreach($elements as $element){
-        $id = (string)$element->getAttributeValue("id");
-        if(isset($seen_ids[$id]) && !in_array($id, $ids_to_skip)){
-          $this->fail(t('The HTML ID %id is unique.', array(
-            '%id' => $id
-          )), $group);
+      foreach ($elements as $element) {
+        $id = (string) $element->getAttributeValue("id");
+        if (isset($seen_ids[$id]) && !in_array($id, $ids_to_skip)) {
+          $this->fail(t('The HTML ID %id is unique.', array('%id' => $id)), $group);
           $status = FALSE;
         }
         $seen_ids[$id] = TRUE;
       }
     }
-    catch(Exception $e){
+    catch (Exception $e) {
       $status = FALSE;
     }
     return $this->assertTrue($status, $message ? $message : t('No Duplicate Ids'), $group);
@@ -704,14 +634,14 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * @return
    *   TRUE on pass, FALSE on fail.
    */
-  protected function assertFieldByName($name, $value = '', $message = '', $group = 'Other'){
-    try{
+  protected function assertFieldByName($name, $value = '', $message = '', $group = 'Other') {
+    try {
       $element = $this->driver->getElement("name=$name");
-      if($value){
+      if ($value) {
         $element = $this->elementValue($element, $value);
       }
     }
-    catch(Exception $e){
+    catch (Exception $e) {
       $element = FALSE;
     }
     return $this->assertTrue(!empty($element), $message ? $message : t('Field found by name'), $group);
@@ -731,14 +661,14 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * @return
    *   TRUE on pass, FALSE on fail.
    */
-  protected function assertNoFieldByName($name, $value = '', $message = '', $group = 'Other'){
-    try{
+  protected function assertNoFieldByName($name, $value = '', $message = '', $group = 'Other') {
+    try {
       $element = $this->driver->getElement("name=$name");
-      if($value){
+      if ($value) {
         $element = $this->elementValue($element, $value);
       }
     }
-    catch(Exception $e){
+    catch (Exception $e) {
       $element = FALSE;
     }
     return $this->assertTrue(empty($element), $message ? $message : t('Field found by name'), $group);
@@ -758,14 +688,14 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * @return
    *   TRUE on pass, FALSE on fail.
    */
-  protected function assertFieldById($id, $value = '', $message = '', $group = 'Other'){
-    try{
+  protected function assertFieldById($id, $value = '', $message = '', $group = 'Other') {
+    try {
       $element = $this->driver->getElement("id=$id");
-      if($value){
+      if ($value) {
         $element = $this->elementValue($element, $value);
       }
     }
-    catch(Exception $e){
+    catch (Exception $e) {
       $element = FALSE;
     }
     return $this->assertTrue(!empty($element), $message ? $message : t('Field found by id'), $group);
@@ -785,14 +715,14 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * @return
    *   TRUE on pass, FALSE on fail.
    */
-  protected function assertNoFieldById($id, $value = '', $message = '', $group = 'Other'){
-    try{
+  protected function assertNoFieldById($id, $value = '', $message = '', $group = 'Other') {
+    try {
       $element = $this->driver->getElement("id=$id");
-      if($value){
+      if ($value) {
         $element = $this->elementValue($element, $value);
       }
     }
-    catch(Exception $e){
+    catch (Exception $e) {
       $element = FALSE;
     }
     return $this->assertTrue(empty($element), $message ? $message : t('Field found by id'), $group);
@@ -801,13 +731,13 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
   /**
    * Check the value of the form element.
    *
-   * @param type $element
-   * @param type $value
-   *
-   *
+   * @param SeleniumWebElement $element
+   * @param string $value
+   * @return
+   *   TRUE on pass, FALSE on fail.
    */
-  protected function elementValue($element, $value){
-    switch($element->getTagName()){
+  protected function elementValue($element, $value) {
+    switch ($element->getTagName()) {
       case 'input':
         $element_value = $element->getValue();
         break;
@@ -837,14 +767,14 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * @return
    *   TRUE on pass, FALSE on fail.
    */
-  protected function assertFieldByXPath($xpath, $value = NULL, $message = '', $group = 'Other'){
-    try{
+  protected function assertFieldByXPath($xpath, $value = NULL, $message = '', $group = 'Other') {
+      try {
       $element = $this->driver->getElement($xpath);
-      if($value){
+      if ($value) {
         $element = $this->elementValue($element, $value);
       }
     }
-    catch(Exception $e){
+    catch (Exception $e) {
       $element = FALSE;
     }
     return $this->assertTrue(!empty($element), $message ? $message : t('Field found by Xpath'), $group);
@@ -887,24 +817,25 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    *   example, a form may have one button with the value t('Save') and another
    *   button with the value t('Delete'), and execute different code depending.
    */
-  protected function drupalPost($path, $edit, $submit, $disable_js = array()){
-    if($this->getUrl() != $path && !is_null($path)){
+  protected function drupalPost($path, $edit, $submit, $disable_js = array()) {
+    if ($this->getUrl() != $path && !is_null($path)) {
       $this->drupalGet($path);
     }
     // Disable javascripts that hide elements.
     $this->disableJs($disable_js);
     // Find form elements and set the values.
-    foreach($edit as $selector => $value){
+    foreach ($edit as $selector => $value){
       $element = $this->driver->getElement("name=$selector");
       // Type of input element. Can be textarea, select or input. If input,
       // we need to check 'type' property.
       $type = $element->getTagName();
-      if($type == 'input'){
+      if (strtolower($type) == 'input') {
         $type = $element->getAttributeValue('type');
       }
-      switch($type){
+      switch (strtolower($type)) {
         case 'text':
         case 'textarea':
+        case 'password':
           // Clear element first then send text data.
           $element->clear();
           $element->sendKeys($value);
@@ -914,25 +845,24 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
           break;
         case 'radio':
           $elements = $this->driver->getAllElements("name=$selector");
-          foreach($elements as $element){
-            if($element->getValue() == $value){
+          foreach ($elements as $element) {
+            if ($element->getValue() == $value) {
               $element->click();
             }
           }
           break;
         case 'checkbox':
           $elements = $this->driver->getAllElements("name=$selector");
-          if(!is_array($value)){
-            $value = array(
-              $value
-            );
+          if (!is_array($value)) {
+            $value = array($value);
           }
-          foreach($elements as $element){
+          foreach ($elements as $element) {
             $element_value = $element->getValue();
             $element_selected = $element->isSelected();
             // Click on element if it should be selected but isn't or if element
             // shouldn't be selected but it is.
-            if((in_array($element_value, $value) && !$element_selected) || (!in_array($element_value, $value) && $element_selected)){
+            if ((in_array($element_value, $value) && !$element_selected) ||
+                (!in_array($element_value, $value) && $element_selected)) {
               $element->click();
             }
           }
@@ -941,15 +871,22 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
     }
     // Find button and submit the form.
     $elements = $this->driver->getAllElements("name=op");
-    foreach($elements as $element){
+    foreach ($elements as $element) {
       $val = $element->getValue();
-      if($val == $submit){
-        $element->submit();
+      if ($val == $submit){
+        $element->click();
         break;
       }
     }
-    // Wait for the page to load.
-    $this->driver->waitForElements('css=body');
+    // Wait till message appear.
+    // @todo It is a workaround to determine whether the page is loaded, since submit() and click() don't wait for page to load.
+    // @see http://drupal.org/node/1893666
+    // @see http://code.google.com/p/selenium/wiki/FrequentlyAskedQuestions#Q:_WebDriver_fails_to_find_elements_/_Does_not_block_on_page_loa
+    $this->driver->waitForElements('css=#messages div.messages .placeholder');
+    $this->verbose('POST request to: ' . $path .
+                   '<hr />Ending URL: ' . $this->getUrl() .
+                   '<hr />Fields: ' . highlight_string('<?php ' . var_export($edit, TRUE), TRUE) .
+                   '<hr />' . $this->drupalGetContent());
   }
 
   /**
@@ -962,22 +899,32 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    *
    * @param array $scripts
    */
-  function disableJs($scripts){
-    $scripts += array(
-      'vertical tabs' => TRUE
-    );
-    foreach($scripts as $type => $execute){
-      if(!$execute){
+  function disableJs($scripts = array()) {
+    // Check if vertical tab is present - and disable JS, hiding additional fields.
+    if ($this->driver->isElementPresent('css=vertical-tabs')) {
+      $scripts += array(
+        'vertical tabs' => TRUE,
+      );
+    }
+    foreach ($scripts as $type => $execute) {
+      if (!$execute) {
         continue;
       }
       $javascript = '';
-      switch($type){
+      switch ($type) {
         case 'vertical tabs':
-          $javascript = 'jQuery(".vertical-tabs-pane").show();';
+          // @todo jQuery doesn't work out of the box.
+          // @see http://drupal.org/node/1893678
+          //$javascript = 'jQuery(".vertical-tabs-pane").show();';
+          $javascript = 'nodeList = document.querySelectorAll(".vertical-tabs-pane");
+for (var i = 0; i < nodeList.length; ++i) {
+  var item = nodeList[i];
+  item.style.display = "block";
+}';
           break;
       }
       // Inject javascript.
-      if(!empty($javascript)){
+      if (!empty($javascript)) {
         $this->driver->executeJsSync($javascript);
       }
     }
@@ -988,10 +935,12 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    *
    * @return string
    */
-  protected function getTestName(){
+  protected function getTestName() {
     $backtrace = debug_backtrace();
-    foreach($backtrace as $bt_item){
-      if(strtolower(substr($bt_item['function'], 0, 4)) == 'test'){return $bt_item['function'];}
+    foreach ($backtrace as $bt_item) {
+      if (strtolower(substr($bt_item['function'], 0, 4)) == 'test') {
+        return $bt_item['function'];
+      }
     }
   }
 
@@ -1004,10 +953,10 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * @return
    *   The selected options array.
    */
-  protected function getSelectedItem(SeleniumWebElement $element){
+  protected function getSelectedItem(SeleniumWebElement $element) {
     $result = array();
-    foreach($element->getOptions() as $option){
-      if($option->isSelected()){
+    foreach ($element->getOptions() as $option) {
+      if ($option->isSelected()) {
         $result[] = $option;
       }
     }
@@ -1029,10 +978,10 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * @return
    *   TRUE on pass, FALSE on fail.
    */
-  protected function assertUrl($path, array $options = array(), $message = '', $group = 'Other'){
-    if(!$message){
+  protected function assertUrl($path, array $options = array(), $message = '', $group = 'Other') {
+    if (!$message) {
       $message = t('Current URL is @url.', array(
-        '@url' => var_export(url($path, $options), TRUE)
+        '@url' => var_export(url($path, $options), TRUE),
       ));
     }
     $options['absolute'] = TRUE;
@@ -1051,11 +1000,11 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * @return
    *   TRUE on pass, FALSE on fail.
    */
-  protected function assertNoTitle($title, $message = '', $group = 'Other'){
-    if(!$message){
+  protected function assertNoTitle($title, $message = '', $group = 'Other') {
+    if (!$message) {
       $message = t('Page title @actual is not equal to @unexpected.', array(
         '@actual' => var_export($this->driver->getPageTitle(), TRUE),
-        '@unexpected' => var_export($title, TRUE)
+        '@unexpected' => var_export($title, TRUE),
       ));
     }
     return $this->assertNotEqual($this->driver->getPageTitle(), $title, $message, $group);
@@ -1063,9 +1012,12 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
 
   /**
    * Gets the current raw HTML of requested page.
+   *
+   * @todo It doesn't work for Opera after click() or submit(): all verboses after click() or submit() are empty.
+   * @see http://drupal.org/node/1893674
    */
-  protected function drupalGetContent(){
-    return $this->driver->getBodyText();
+  protected function drupalGetContent() {
+    return $this->driver->getSource();
   }
 
   /**
@@ -1074,132 +1026,88 @@ class DrupalSeleniumWebTestCase extends DrupalWebTestCase{
    * @return
    *   The current url.
    */
-  protected function getUrl(){
+  protected function getUrl() {
     return $this->driver->getUrl();
   }
 }
+
 
 /**
  * Class of the connection to Webdriver.
  *
  * Original implementation https://github.com/chibimagic/WebDriver-PHP
  */
-class SeleniumWebdriver{
-
+class SeleniumWebdriver {
   protected $session_id;
-
   private static $status_codes = array(
-    0 => array(
-      "Success",
-      " The command executed successfully."
-    ),
-    7 => array(
-      "NoSuchElement",
-      " An element could not be located on the page using the given search parameters."
-    ),
-    8 => array(
-      "NoSuchFrame",
-      " A request to switch to a frame could not be satisfied because the frame could not be found."
-    ),
-    9 => array(
-      "UnknownCommand",
-      " The requested resource could not be found, or a request was received using an HTTP method that is not supported by the mapped resource."
-    ),
-    10 => array(
-      "StaleElementReference",
-      " An element command failed because the referenced element is no longer attached to the DOM."
-    ),
-    11 => array(
-      "ElementNotVisible",
-      " An element command could not be completed because the element is not visible on the page."
-    ),
-    12 => array(
-      "InvalidElementState",
-      " An element command could not be completed because the element is in an invalid state (e.g. attempting to click a disabled element)."
-    ),
-    13 => array(
-      "UnknownError",
-      " An unknown server-side error occurred while processing the command."
-    ),
-    15 => array(
-      "ElementIsNotSelectable",
-      " An attempt was made to select an element that cannot be selected."
-    ),
-    17 => array(
-      "JavaScriptError",
-      " An error occurred while executing user supplied JavaScript."
-    ),
-    19 => array(
-      "XPathLookupError",
-      " An error occurred while searching for an element by XPath."
-    ),
-    23 => array(
-      "NoSuchWindow",
-      " A request to switch to a different window could not be satisfied because the window could not be found."
-    ),
-    24 => array(
-      "InvalidCookieDomain",
-      " An illegal attempt was made to set a cookie under a different domain than the current page."
-    ),
-    25 => array(
-      "UnableToSetCookie",
-      " A request to set a cookie's value could not be satisfied."
-    ),
-    28 => array(
-      "Timeout",
-      " A command did not complete before its timeout expired."
-    ),
-    303 => array(
-      "See other",
-      "See other"
-    )
+    0 => array("Success", " The command executed successfully."),
+    7 => array("NoSuchElement", " An element could not be located on the page using the given search parameters."),
+    8 => array("NoSuchFrame", " A request to switch to a frame could not be satisfied because the frame could not be found."),
+    9 => array("UnknownCommand", " The requested resource could not be found, or a request was received using an HTTP method that is not supported by the mapped resource."),
+    10 => array("StaleElementReference", " An element command failed because the referenced element is no longer attached to the DOM."),
+    11 => array("ElementNotVisible", " An element command could not be completed because the element is not visible on the page."),
+    12 => array("InvalidElementState", " An element command could not be completed because the element is in an invalid state (e.g. attempting to click a disabled element)."),
+    13 => array("UnknownError", " An unknown server-side error occurred while processing the command."),
+    15 => array("ElementIsNotSelectable", " An attempt was made to select an element that cannot be selected."),
+    17 => array("JavaScriptError", " An error occurred while executing user supplied JavaScript."),
+    19 => array("XPathLookupError", " An error occurred while searching for an element by XPath."),
+    23 => array("NoSuchWindow", " A request to switch to a different window could not be satisfied because the window could not be found."),
+    24 => array("InvalidCookieDomain", " An illegal attempt was made to set a cookie under a different domain than the current page."),
+    25 => array("UnableToSetCookie", " A request to set a cookie's value could not be satisfied."),
+    28 => array("Timeout", " A command did not complete before its timeout expired."),
+    303 => array("See other", "See other"),
   );
 
   /**
    * Execute call to server.
    */
-  public function execute($http_type, $relative_url, $variables = null){
-    if($variables !== null){
+  public function execute($http_type, $relative_url, $variables = array()) {
+    if (!empty($variables)) {
       $variables = json_encode($variables);
     }
     $relative_url = str_replace(':sessionId', $this->session_id, $relative_url);
     $full_url = SELENIUM_SERVER_URL . $relative_url;
+    // cUrl request.
     $curl = curl_init($full_url);
     curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $http_type);
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
     curl_setopt($curl, CURLOPT_HEADER, TRUE);
-    if(($http_type === "POST" || $http_type === "PUT") && $variables !== null){
+    if (($http_type === "POST" || $http_type === "PUT") && !empty($variables)) {
       curl_setopt($curl, CURLOPT_POSTFIELDS, $variables);
     }
-    //    watchdog($http_type, $full_url, $variables);
+    if ($debug = variable_get('selenium_debug', FALSE)) {
+      curl_setopt($curl, CURLOPT_VERBOSE, TRUE);
+      curl_setopt($curl, CURLOPT_STDERR, $f = fopen(__DIR__.DIRECTORY_SEPARATOR.'verboseOut.txt', "a+"));
+    }
     $full_response = curl_exec($curl);
-    //    watchdog($full_response);
+    if ($debug) {
+      fclose($f);
+    }
     curl_close($curl);
     $response_parts = explode("\r\n\r\n", $full_response, 2);
     $response['header'] = $response_parts[0];
-    if(!empty($response_parts[1])){
+    if (!empty($response_parts[1])) {
       $response['body'] = $response_parts[1];
     }
-    if(isset($response['body'])){
+    if (isset($response['body'])) {
       $this->check_response_status($response['body'], $variables);
     }
     return $response;
   }
 
-  private function check_response_status($body, $variables){
-    $array = json_decode(trim($body), true);
-    if(!is_null($array)){
+  private function check_response_status($body, $variables) {
+    $array = json_decode(trim($body), TRUE);
+    if (!is_null($array)) {
       $response_status_code = $array["status"];
-      if(!self::$status_codes[$response_status_code]){throw new Exception("Unknown status code $response_status_code returned from server.\n$body");}
-      if(!in_array($response_status_code, array(
-        0,
-        303
-      ))){
+      if (!self::$status_codes[$response_status_code]) {
+        throw new Exception("Unknown status code $response_status_code returned from server.\n$body");
+      }
+      if (!in_array($response_status_code, array(0, 303))) {
         $message = $response_status_code . " - " . self::$status_codes[$response_status_code][0] . " - " . self::$status_codes[$response_status_code][1] . "\n";
-        $message .= "Arguments: " . print_r($variables, true) . "\n";
-        if(isset($array['value']['message'])){
+        $message .= "Arguments: " . print_r($variables, TRUE) . "\n";
+        if (isset($array['value']['message'])) {
           $message .= "Message: " . $array['value']['message'] . "\n";
-        }else{
+        } else {
           $message .= "Response: " . $body . "\n";
         }
         throw new Exception($message);
@@ -1210,17 +1118,30 @@ class SeleniumWebdriver{
   /**
    * Destroy session.
    */
-  public function __destruct(){
+  public function __destruct() {
     $this->execute("DELETE", "/session/:sessionId");
   }
 
   /**
    * Getters
    */
+
+  /**
+   * Get server status.
+   *
+   * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/status
+   */
+  public function getServerStatus() {
+    $response = $this->execute("GET", "/status");
+    return $this->GetJSONValue($response);
+  }
+
   /**
    * Get current URL of the browser.
+   *
+   * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/url
    */
-  public function getUrl(){
+  public function getUrl() {
     $response = $this->execute("GET", "/session/:sessionId/url");
     return $this->GetJSONValue($response);
   }
@@ -1230,7 +1151,7 @@ class SeleniumWebdriver{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/title
    */
-  public function getPageTitle(){
+  public function getPageTitle() {
     $response = $this->execute("GET", "/session/:sessionId/title");
     return $this->GetJSONValue($response);
   }
@@ -1240,7 +1161,7 @@ class SeleniumWebdriver{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/source
    */
-  public function getSource(){
+  public function getSource() {
     $response = $this->execute("GET", "/session/:sessionId/source");
     return $this->GetJSONValue($response);
   }
@@ -1248,7 +1169,7 @@ class SeleniumWebdriver{
   /**
    * Get visible text of the body.
    */
-  public function getBodyText(){
+  public function getBodyText() {
     $result = $this->getElement("tag name=body")->getText();
     return $result;
   }
@@ -1258,7 +1179,7 @@ class SeleniumWebdriver{
    *
    * See http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/screenshot
    */
-  public function getScreenshot(){
+  public function getScreenshot() {
     $response = $this->execute("GET", "/session/:sessionId/screenshot");
     $base64_encoded_png = $this->GetJSONValue($response);
     return base64_decode($base64_encoded_png);
@@ -1267,32 +1188,32 @@ class SeleniumWebdriver{
   /**
    * Get element.
    *
-   * @param type $locator
+   * @param string $locator
    * @return SeleniumWebElement
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element
+   *
+   * @todo Refactor using getAllElements(), since it takes identical time to request the server and we need to wait until element is loaded anyway.
+   * @see http://drupal.org/node/1893666
    */
-  public function getElement($locator){
+  public function getElement($locator) {
     $variables = $this->ParseLocator($locator);
-    try{
-      $response = $this->execute("POST", "/session/:sessionId/element", $variables);
-    }
-    catch(Exception $e){
-      return NULL;
-    }
+    $response = $this->execute("POST", "/session/:sessionId/element", $variables);
     $element_id = $this->GetJSONValue($response, "ELEMENT");
-    return new SeleniumWebElement($this, $element_id, $locator);
+    $element = new SeleniumWebElement($this, $element_id, $locator);
+    return $element;
   }
 
   /**
    * Wait for element.
    */
-  public function waitForElements($locator){
+  public function waitForElements($locator) {
+    $elements = array();
     $timeout = 10;
-    $elements = NULL;
-    while($timeout > 0 && empty($elements)){
+    // Wait for elements.
+    while ($timeout > 0 && empty($elements)) {
       $elements = $this->getAllElements($locator);
-      sleep(1);
+      $this->sleep(1);
       $timeout--;
     }
     return $elements;
@@ -1302,36 +1223,49 @@ class SeleniumWebdriver{
    * Wait for visible elements.
    *
    * Check only $item element for visibility.
+   *
+   * @todo Refactor it since its logic is not transparent and results are not obvious.
+   * @see http://drupal.org/node/1893666
    */
-  public function waitForVisibleElements($locator, $item = 0){
-    $timeout = 10;
-    $elements = NULL;
-    while($timeout > 0){
-      $elements = $this->getAllElements($locator);
-      if(!empty($elements) && isset($elements[$item])){
-        $element = $elements[$item];
-        if($element->isVisible()){return $elements;}
+  public function waitForVisibleElements($locator, $item = 0) {
+    $elements = $this->waitForElements($locator);
+    if (!empty($elements) && isset($elements[$item])) {
+      $element = $elements[$item];
+      if ($element->isVisible()) {
+        return $elements;
       }
-      sleep(1);
-      $timeout--;
     }
     return $elements;
   }
 
   /**
+   * sleep() is interrupted by signals - so use a workaround.
+   * @param int $seconds
+   */
+  public function sleep($seconds) {
+    $remained = array($seconds, 0);
+    while (is_array($remained)) {
+      $remained = time_nanosleep(reset($remained), end($remained));
+    }
+  }
+
+  /**
    * Get all elements.
    *
-   * @param type $locator
+   * @param string $locator
    * @return array of SeleniumWebElement objects
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/elements
+   *
+   * @todo Move waitForElements() functionality here, since getAllElements needs to wait until the elements become available.
+   * @see http://drupal.org/node/1893666
    */
-  public function getAllElements($locator){
+  public function getAllElements($locator) {
     $variables = $this->ParseLocator($locator);
     $response = $this->execute("POST", "/session/:sessionId/elements", $variables);
     $element_ids = $this->GetJSONValue($response, "ELEMENT");
     $elements = array();
-    foreach($element_ids as $element_id){
+    foreach ($element_ids as $element_id) {
       $elements[] = new SeleniumWebElement($this, $element_id, $locator);
     }
     return $elements;
@@ -1344,7 +1278,7 @@ class SeleniumWebdriver{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/active
    */
-  public function getActiveElement(){
+  public function getActiveElement() {
     $response = $this->execute("POST", "/session/:sessionId/element/active");
     $element_id = $this->GetJSONValue($response, "ELEMENT");
     return new SeleniumWebElement($this, $element_id, "active=true");
@@ -1353,17 +1287,23 @@ class SeleniumWebdriver{
   /**
    * Check if element presents on the page.
    *
-   * @param type $locator
+   * @param string $locator
    * @return boolean
    */
-  public function isElementPresent($locator){
-    try{
+  public function isElementPresent($locator) {
+    /*
+    try {
       $this->getElement($locator);
-      $is_element_present = true;
+      $is_element_present = TRUE;
     }
-    catch(Exception $e){
-      $is_element_present = false;
+    catch (Exception $e) {
+      $is_element_present = FALSE;
     }
+     *
+     */
+    // Avoid exceptions since they cause fails of sendKeys (it leaves an input field empty).
+    $elements = $this->waitForElements($locator);
+    $is_element_present = !empty($elements) ? TRUE : FALSE;
     return $is_element_present;
   }
 
@@ -1374,7 +1314,7 @@ class SeleniumWebdriver{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window_handle
    */
-  public function getWindowHandle(){
+  public function getWindowHandle() {
     $response = $this->execute("GET", "/session/:sessionId/window_handle");
     return $this->GetJSONValue($response);
   }
@@ -1386,13 +1326,14 @@ class SeleniumWebdriver{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window_handles
    */
-  public function getAllWindowHandles(){
+  public function getAllWindowHandles() {
     $response = $this->execute("GET", "/session/:sessionId/window_handles");
     return $this->GetJSONValue($response);
   }
+
   // See http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/speed
   // Not supported as of Selenium 2.0b3
-  public function get_input_speed(){
+  public function get_input_speed() {
     $response = $this->execute("GET", "/session/:sessionId/speed");
     return $this->GetJSONValue($response);
   }
@@ -1404,7 +1345,7 @@ class SeleniumWebdriver{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/cookie
    */
-  public function get_all_cookies(){
+  public function get_all_cookies() {
     $response = $this->execute("GET", "/session/:sessionId/cookie");
     return $this->GetJSONValue($response);
   }
@@ -1418,11 +1359,13 @@ class SeleniumWebdriver{
    *   What property to return.
    * @return type
    */
-  public function get_cookie($name, $property = null){
+  public function get_cookie($name, $property = NULL) {
     $all_cookies = $this->getCookies();
-    foreach($all_cookies as $cookie){
-      if($cookie['name'] == $name){
-        if(is_null($property)){return $cookie;}
+    foreach ($all_cookies as $cookie) {
+      if ($cookie['name'] == $name) {
+        if (is_null($property)) {
+          return $cookie;
+        }
         return $cookie[$property];
       }
     }
@@ -1431,6 +1374,7 @@ class SeleniumWebdriver{
   /**
    * Setters.
    */
+
   /**
    * Set the amount of time, in milliseconds, that asynchronous scripts executed
    *
@@ -1438,41 +1382,35 @@ class SeleniumWebdriver{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/timeouts/async_script
    */
-  public function setAsyncTimeout($milliseconds){
-    $variables = array(
-      "ms" => $milliseconds
-    );
+  public function setAsyncTimeout($milliseconds) {
+    $variables = array("ms" => $milliseconds);
     $this->execute("POST", "/session/:sessionId/timeouts/async_script", $variables);
   }
+
   // @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/timeouts/implicit_wait
-  public function setImplicitWait($milliseconds){
-    $variables = array(
-      "ms" => $milliseconds
-    );
+  public function setImplicitWait($milliseconds) {
+    $variables = array("ms" => $milliseconds);
     $this->execute("POST", "/session/:sessionId/timeouts/implicit_wait", $variables);
   }
 
   /**
    * Navigate to URL.
    *
-   * @param type $url
+   * @param string $url
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/url
    */
-  public function openUrl($url){
-    if(is_array($url)){
+  public function openUrl($url) {
+    if (is_array($url)) {
       $path = $url[0];
       $options = $url[1];
       $options['absolute'] = TRUE;
       $full_url = url($path, $options);
-    }else{
-      $full_url = url($url, array(
-        'absolute' => TRUE
-      ));
     }
-    $variables = array(
-      "url" => $full_url
-    );
+    else {
+      $full_url = url($url, array('absolute' => TRUE));
+    }
+    $variables = array("url" => $full_url);
     $this->execute("POST", "/session/:sessionId/url", $variables);
   }
 
@@ -1481,7 +1419,7 @@ class SeleniumWebdriver{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/forward
    */
-  public function historyForward(){
+  public function historyForward() {
     $this->execute("POST", "/session/:sessionId/forward");
   }
 
@@ -1490,7 +1428,7 @@ class SeleniumWebdriver{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/back
    */
-  public function historyBack(){
+  public function historyBack() {
     $this->execute("POST", "/session/:sessionId/back");
   }
 
@@ -1499,33 +1437,33 @@ class SeleniumWebdriver{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/refresh
    */
-  public function refresh(){
+  public function refresh() {
     $this->execute("POST", "/session/:sessionId/refresh");
   }
 
   /**
    * Change focus to another opened window.
    *
-   * @param type $window_title
+   * @param string $window_title
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window
    */
-  public function selectWindow($window_title){
+  public function selectWindow($window_title) {
     $all_window_handles = $this->getAllWindowHandles();
     $all_titles = array();
     $current_title = "";
-    foreach($all_window_handles as $window_handle){
-      $variables = array(
-        "name" => $window_handle
-      );
+    foreach ($all_window_handles as $window_handle) {
+      $variables = array("name" => $window_handle);
       $this->execute("POST", "/session/:sessionId/window", $variables);
       $current_title = $this->getTitle();
       $all_titles[] = $current_title;
-      if($current_title == $window_title){
+      if ($current_title == $window_title) {
         break;
       }
     }
-    if($current_title != $window_title){throw new Exception("Could not find window with title <$window_title>. Found " . count($all_titles) . " windows: " . implode("; ", $all_titles));}
+    if ($current_title != $window_title) {
+      throw new Exception("Could not find window with title <$window_title>. Found " . count($all_titles) . " windows: " . implode("; ", $all_titles));
+    }
   }
 
   /**
@@ -1533,61 +1471,61 @@ class SeleniumWebdriver{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window
    */
-  public function closeWindow(){
+  public function closeWindow() {
     $this->execute("DELETE", "/session/:sessionId/window");
   }
+
   // See http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/ime/deactivate
   // Not supported as of Selenium 2.0b3
-  public function deactivate_ime(){
+  public function deactivate_ime() {
     $this->execute("POST", "/session/:sessionId/ime/deactivate");
   }
+
   // See http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/ime/activate
   // Not supported as of Selenium 2.0b3
-  public function activate_ime(){
+  public function activate_ime() {
     $this->execute("POST", "/session/:sessionId/ime/activate");
   }
 
   /**
    * Change focus to another frame on the page.
    *
-   * @param type $identifier
+   * @param string $identifier
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/frame
    */
-  public function selectFrame($identifier){
-    $variables = array(
-      "id" => $identifier
-    );
+  public function selectFrame($identifier) {
+    $variables = array("id" => $identifier);
     $this->execute("POST", "/session/:sessionId/frame", $variables);
   }
 
   /**
    * Set cookie.
    *
-   * @param type $name
-   * @param type $value
-   * @param type $path
-   * @param type $domain
-   * @param type $secure
-   * @param type $expiry
+   * @param string $name
+   * @param string $value
+   * @param string $path
+   * @param string $domain
+   * @param boolean $secure
+   * @param integer $expiry
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/cookie
    */
-  public function setCookie($name, $value, $path = null, $domain = null, $secure = false, $expiry = null){
+  public function setCookie($name, $value, $path = NULL, $domain = NULL, $secure = FALSE, $expiry = NULL) {
     $variables = array(
       'cookie' => array(
         'name' => $name,
         'value' => $value,
-        'secure' => $secure // The documentation says this is optional, but selenium server 2.0b1 throws a NullPointerException if it's not provided
+        'secure' => $secure, // The documentation says this is optional, but selenium server 2.0b1 throws a NullPointerException if it's not provided
       )
     );
-    if(!is_null($path)){
+    if (!is_null($path)) {
       $variables['cookie']['path'] = $path;
     }
-    if(!is_null($domain)){
+    if (!is_null($domain)) {
       $variables['cookie']['domain'] = $domain;
     }
-    if(!is_null($expiry)){
+    if (!is_null($expiry)) {
       $variables['cookie']['expiry'] = $expiry;
     }
     $this->execute("POST", "/session/:sessionId/cookie", $variables);
@@ -1598,18 +1536,18 @@ class SeleniumWebdriver{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/cookie
    */
-  public function deleteAllCookies(){
+  public function deleteAllCookies() {
     $this->execute("DELETE", "/session/:sessionId/cookie");
   }
 
   /**
    * Delete cookie.
    *
-   * @param type $name
+   * @param string $name
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/cookie/:name
    */
-  public function delete_cookie($name){
+  public function delete_cookie($name) {
     $this->execute("DELETE", "/session/:sessionId/cookie/" . $name);
   }
 
@@ -1623,18 +1561,19 @@ class SeleniumWebdriver{
    * The function will be invoked with the provided args array and the values
    * may be accessed via the arguments object in the order specified.
    *
-   * @param type $javascript
-   * @param type $arguments
+   * @param string $javascript
+   * @param array $arguments
    * @return type
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/execute
    */
-  public function executeJsSync($javascript, $arguments = array()){
+  public function executeJsSync($javascript, $arguments = array()) {
     $variables = array(
       "script" => $javascript,
-      "args" => $arguments
+      "args" => $arguments,
     );
-    return $this->execute("POST", "/session/:sessionId/execute", $variables);
+    $result = $this->execute("POST", "/session/:sessionId/execute", $variables);
+    return $result;
   }
 
   /**
@@ -1652,25 +1591,24 @@ class SeleniumWebdriver{
    * The final argument will always be a callback function that must be invoked
    * to signal that the script has finished.
    *
-   * @param type $javascript
-   * @param type $arguments
+   * @param string $javascript
+   * @param array $arguments
    * @return type
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/execute_async
    */
-  public function executeJsAsync($javascript, $arguments = array()){
+  public function executeJsAsync($javascript, $arguments = array()) {
     $variables = array(
       "script" => $javascript,
-      "args" => $arguments
+      "args" => $arguments,
     );
     return $this->execute("POST", "/session/:sessionId/execute_async", $variables);
   }
+
   // See http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/speed
   // Not supported as of Selenium 2.0b3
-  public function set_input_speed($speed){
-    $variables = array(
-      "speed" => $speed
-    );
+  public function set_input_speed($speed) {
+    $variables = array("speed" => $speed);
     $this->execute("POST", "/session/:sessionId/speed", $variables);
   }
 
@@ -1681,8 +1619,11 @@ class SeleniumWebdriver{
    * @param type $is_down
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/modifier
+   *
+   * @todo It looks like we should remove it, since there is no such command in API. It seems that it is replaced with sendKeys().
+   * @see http://drupal.org/node/1893670
    */
-  private function sendModifier($modifier_code, $is_down){
+  private function sendModifier($modifier_code, $is_down) {
     $variables = array(
       'value' => $modifier_code,
       'isdown' => $is_down
@@ -1692,38 +1633,19 @@ class SeleniumWebdriver{
 
   /**
    * Send standard events to active element.
+   *
+   * @todo Refactor using sendKeys().
+   * @see sendKeys()
+   * @see http://drupal.org/node/1893670
    */
-  public function eventCtrlDown(){
-    $this->sendModifier("U+E009", true);
-  }
-
-  public function eventCtrlUp(){
-    $this->sendModifier("U+E009", false);
-  }
-
-  public function eventShiftDown(){
-    $this->sendModifier("U+E008", true);
-  }
-
-  public function eventShiftUp(){
-    $this->sendModifier("U+E008", false);
-  }
-
-  public function eventAltDown(){
-    $this->sendModifier("U+E00A", true);
-  }
-
-  public function eventAltUp(){
-    $this->sendModifier("U+E00A", false);
-  }
-
-  public function eventCommandDown(){
-    $this->sendModifier("U+E03D", true);
-  }
-
-  public function eventCommandUp(){
-    $this->sendModifier("U+E03D", false);
-  }
+  public function eventCtrlDown()     { $this->sendModifier("U+E009", TRUE); }
+  public function eventCtrlUp()       { $this->sendModifier("U+E009", FALSE); }
+  public function eventShiftDown()    { $this->sendModifier("U+E008", TRUE); }
+  public function eventShiftUp()      { $this->sendModifier("U+E008", FALSE); }
+  public function eventAltDown()      { $this->sendModifier("U+E00A", TRUE); }
+  public function eventAltUp()        { $this->sendModifier("U+E00A", FALSE); }
+  public function eventCommandDown()  { $this->sendModifier("U+E03D", TRUE); }
+  public function eventCommandUp()    { $this->sendModifier("U+E03D", FALSE); }
 
   /**
    * Move cursor from element.
@@ -1733,7 +1655,7 @@ class SeleniumWebdriver{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/moveto
    */
-  public function moveCursor($right, $down){
+  public function moveCursor($right, $down) {
     $variables = array(
       "xoffset" => $right,
       "yoffset" => $down
@@ -1748,34 +1670,24 @@ class SeleniumWebdriver{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/click
    */
-  private function mouseClickButton($button){
-    $variables = array(
-      "button" => $button
-    );
+  private function mouseClickButton($button) {
+    $variables = array("button" => $button);
     $this->execute("POST", "/session/:sessionId/click", $variables);
   }
 
   /**
    * Click specific mouse button.
    */
-  public function mouseClick(){
-    $this->mouseClickButton(0);
-  }
-
-  public function mouseClickMiddle(){
-    $this->mouseClickButton(1);
-  }
-
-  public function mouseClickRight(){
-    $this->mouseClickButton(2);
-  }
+  public function mouseClick()        { $this->mouseClickButton(0); }
+  public function mouseClickMiddle()  { $this->mouseClickButton(1); }
+  public function mouseClickRight()   { $this->mouseClickButton(2); }
 
   /**
    * Mouse left button click and hold.
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/buttondown
    */
-  public function mouseClickHold(){
+  public function mouseClickHold() {
     $this->execute("POST", "/session/:sessionId/buttondown");
   }
 
@@ -1784,7 +1696,7 @@ class SeleniumWebdriver{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/buttonup
    */
-  public function mouseClickRelease(){
+  public function mouseClickRelease() {
     $this->execute("POST", "/session/:sessionId/buttonup");
   }
 
@@ -1793,14 +1705,14 @@ class SeleniumWebdriver{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/doubleclick
    */
-  public function mouseClickDouble(){
+  public function mouseClickDouble() {
     $this->execute("POST", "/session/:sessionId/doubleclick");
   }
 
   /**
    * Helpers.
    */
-  public static function ParseLocator($locator){
+  public static function ParseLocator($locator) {
     $se1_to_se2 = array(
       "identifier" => "id",
       "id" => "id",
@@ -1815,48 +1727,56 @@ class SeleniumWebdriver{
       "class",
       "class name"
     );
+
     $locator_parts = explode("=", $locator, 2);
-    if(array_key_exists($locator_parts[0], $se1_to_se2) && $locator_parts[1]){ // Explicit Se1 selector
+    if (array_key_exists($locator_parts[0], $se1_to_se2) && $locator_parts[1]) { // Explicit Se1 selector
       $strategy = $se1_to_se2[$locator_parts[0]];
       $value = $locator_parts[1];
-    }elseif(in_array($locator_parts[0], $se1_to_se2) && $locator_parts[1]){ // Explicit Se2 selector
+    }
+    elseif (in_array($locator_parts[0], $se1_to_se2) && $locator_parts[1]) { // Explicit Se2 selector
       $strategy = $locator_parts[0];
       $value = $locator_parts[1];
-    }elseif(substr($locator, 0, 2) === "//"){ // Guess the selector based on Se1
-      $strategy = "xpath";
-      $value = $locator;
-    }elseif(substr($locator, 0, 9) === "document." || substr($locator, 0, 4) === "dom="){
+    }
+    elseif (substr($locator, 0, 2) === "//") { // Guess the selector based on Se1
+        $strategy = "xpath";
+        $value = $locator;
+    }
+    elseif (substr($locator, 0, 9) === "document." || substr($locator, 0, 4) === "dom=") {
       throw new Exception("DOM selectors aren't supported in WebDriver: $locator");
-    }else{ // Fall back to id
+    }
+    else { // Fall back to id
       $strategy = "id";
       $value = $locator;
     }
-    return array(
-      "using" => $strategy,
-      "value" => $value
-    );
+    return array("using" => $strategy, "value" => $value);
   }
 
-  public static function GetJSONValue($curl_response, $attribute = null){
-    if(!isset($curl_response['body'])){throw new Exception("Response had no body\n{$curl_response['header']}");}
-    $array = json_decode(trim($curl_response['body']), true);
-    if($array === null){throw new Exception("Body could not be decoded as JSON\n{$curl_response['body']}");}
-    if(!isset($array["value"])){throw new Exception("JSON had no value\n" . print_r($array, true));}
-    if($attribute === null){
+  public static function GetJSONValue($curl_response, $attribute = NULL) {
+    if (!isset($curl_response['body'])) {
+      throw new Exception("Response had no body\n{$curl_response['header']}");
+    }
+    $array = json_decode(trim($curl_response['body']), TRUE);
+    if ($array === NULL) {
+      throw new Exception("Body could not be decoded as JSON\n{$curl_response['body']}");
+    }
+    if (!isset($array["value"])) {
+      throw new Exception("JSON had no value\n" . print_r($array, TRUE));
+    }
+    if ($attribute === NULL) {
       $rv = $array["value"];
-    }else{
-      if(isset($array["value"][$attribute])){
+    } else {
+      if (isset($array["value"][$attribute])) {
         $rv = $array["value"][$attribute];
-      }else if(is_array($array["value"])){
+      } else if (is_array($array["value"])) {
         $rv = array();
-        foreach($array["value"] as $a_value){
-          if(isset($a_value[$attribute])){
+        foreach ($array["value"] as $a_value) {
+          if (isset($a_value[$attribute])) {
             $rv[] = $a_value[$attribute];
-          }else{
+          } else {
             throw new Exception("JSON value did not have attribute $attribute\n" . $array["value"]["message"]);
           }
         }
-      }else{
+      } else {
         throw new Exception("JSON value did not have attribute $attribute\n" . $array["value"]["message"]);
       }
     }
@@ -1867,8 +1787,13 @@ class SeleniumWebdriver{
 /**
  * Selenium element.
  */
-class SeleniumWebElement{
+class SeleniumWebElement {
 
+  /**
+   * Selenium Web Driver instance.
+   *
+   * @var SeleniumWebDriver
+   */
   private $driver;
 
   /**
@@ -1946,28 +1871,30 @@ class SeleniumWebElement{
     'F11Key' => "\uE03B",
     'F12Key' => "\uE03C",
     'CommandKey' => "\uE03D",
-    'MetaKey' => "\uE03D"
+    'MetaKey' => "\uE03D",
   );
 
-  public function __construct($driver, $element_id, $locator){
+  public function __construct($driver, $element_id, $locator) {
     $this->driver = $driver;
     $this->element_id = $element_id;
     $this->locator = $locator;
   }
 
-  private function execute($http_type, $relative_url, $variables = null){
-    return $this->driver->execute($http_type, "/session/:sessionId/element/" . $this->element_id . $relative_url, $variables);
+  private function execute($http_type, $relative_url, $variables = array()) {
+    $result = $this->driver->execute($http_type, "/session/:sessionId/element/" . $this->element_id . $relative_url, $variables);
+    return $result;
   }
 
   /**
    * Getters
    */
+
   /**
    * Describe the identified element.
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id
    */
-  public function describe(){
+  public function describe() {
     $response = $this->execute("GET", "");
     return $this->driver->GetJSONValue($response);
   }
@@ -1977,7 +1904,7 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/text
    */
-  public function getText(){
+  public function getText() {
     $response = $this->execute("GET", "/text");
     return $this->driver->GetJSONValue($response);
   }
@@ -1986,11 +1913,11 @@ class SeleniumWebElement{
    * Query for the value of an element, as determined by its value attribute.
    *
    * @return string | NULL
-   *   The element's value, or null if it does not have a value attribute.
+   *   The element's value, or NULL if it does not have a value attribute.
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value
    */
-  public function getValue(){
+  public function getValue() {
     $response = $this->execute("GET", "/value");
     return $this->driver->GetJSONValue($response);
   }
@@ -2003,7 +1930,7 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/displayed
    */
-  public function isVisible(){
+  public function isVisible() {
     $response = $this->execute("GET", "/displayed");
     return $this->driver->GetJSONValue($response);
   }
@@ -2016,7 +1943,7 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/enabled
    */
-  public function isEnabled(){
+  public function isEnabled() {
     $response = $this->execute("GET", "/enabled");
     return $this->driver->GetJSONValue($response);
   }
@@ -2029,7 +1956,7 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/selected
    */
-  public function isSelected(){
+  public function isSelected() {
     $response = $this->execute("GET", "/selected");
     return $this->driver->GetJSONValue($response);
   }
@@ -2044,7 +1971,7 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/element
    */
-  public function getNextElement($locator){
+  public function getNextElement($locator) {
     $variables = $this->driver->ParseLocator($locator);
     $response = $this->execute("POST", "/element", $variables);
     $next_element_id = $this->driver->GetJSONValue($response, "ELEMENT");
@@ -2061,12 +1988,12 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/elements
    */
-  public function getAllNextElements($locator){
+  public function getAllNextElements($locator) {
     $variables = $this->driver->ParseLocator($locator);
     $response = $this->execute("POST", "/elements", $variables);
     $all_element_ids = $this->driver->GetJSONValue($response, "ELEMENT");
     $all_elements = array();
-    foreach($all_element_ids as $element_id){
+    foreach ($all_element_ids as $element_id) {
       $all_elements[] = new SeleniumWebElement($this->driver, $element_id, $locator);
     }
     return $all_elements;
@@ -2080,7 +2007,7 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/name
    */
-  public function getTagName(){
+  public function getTagName() {
     $response = $this->execute("GET", "/name");
     return $this->driver->GetJSONValue($response);
   }
@@ -2089,11 +2016,11 @@ class SeleniumWebElement{
    * Get the value of an element's attribute.
    *
    * @return string | NULL
-   *    The value of the attribute, or null if it is not set on the element.
+   *    The value of the attribute, or NULL if it is not set on the element.
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/attribute/:name
    */
-  public function getAttributeValue($attribute_name){
+  public function getAttributeValue($attribute_name) {
     $response = $this->execute("GET", "/attribute/" . $attribute_name);
     return $this->driver->GetJSONValue($response);
   }
@@ -2106,7 +2033,7 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/equals/:other
    */
-  public function isSameElementAs($other_element_id){
+  public function isSameElementAs($other_element_id) {
     $response = $this->execute("GET", "/equals/" . $other_element_id);
     return $this->driver->GetJSONValue($response);
   }
@@ -2121,7 +2048,7 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/location
    */
-  public function getLocation(){
+  public function getLocation() {
     $response = $this->execute("GET", "/location");
     return $this->driver->GetJSONValue($response);
   }
@@ -2135,7 +2062,7 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/size
    */
-  public function getSize(){
+  public function getSize() {
     $response = $this->execute("GET", "/size");
     return $this->driver->GetJSONValue($response);
   }
@@ -2150,29 +2077,34 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/css/:propertyName
    */
-  public function getCssValue($property_name){
+  public function getCssValue($property_name) {
     $response = $this->execute("GET", "/css/" . $property_name);
     return $this->driver->GetJSONValue($response);
   }
 
+
   /**
    * Setters
    */
+
   /**
    * Click on an element.
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/click
    */
-  public function click(){
+  public function click() {
     $this->execute("POST", "/click");
   }
 
   /**
-   * Submit a FORM element. The submit command may also be applied to any element that is a descendant of a FORM element.
+   * Submit a FORM element. The submit command may also be applied to any element
+   * that is a descendant of a FORM element.
+   * WARNING: This method is a bad idea, use click() instead, since it has better
+   * emulation of user-browser interaction.
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/submit
    */
-  public function submit(){
+  public function submit() {
     $this->execute("POST", "/submit");
   }
 
@@ -2181,7 +2113,7 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/clear
    */
-  public function clear(){
+  public function clear() {
     $this->execute("POST", "/clear");
   }
 
@@ -2191,17 +2123,8 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/hover
    */
-  public function hover(){
+  public function hover() {
     $this->execute("POST", "/hover");
-  }
-
-  /**
-   * Select an OPTION element, or an INPUT element of type checkbox or radiobutton.
-   *
-   * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/selected
-   */
-  public function select(){
-    $this->execute("POST", "/selected");
   }
 
   /**
@@ -2212,7 +2135,7 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/toggle
    */
-  public function toggle(){
+  public function toggle() {
     $response = $this->execute("POST", "/toggle");
     return $this->driver->GetJSONValue($response);
   }
@@ -2222,24 +2145,35 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value
    */
-  public function sendKeys($keys){
-    $variables = array(
-      "value" => preg_split('//u', $keys, -1, PREG_SPLIT_NO_EMPTY)
-    );
-    $this->execute("POST", "/value", $variables);
+  public function sendKeys($keys) {
+    // @todo Replace this solution with switching to necessary window.
+    // It seems that Opera looses active window if you leave the window in which
+    // Selenium executes the test.
+    // @see http://drupal.org/node/1893688
+    while ($this->getValue() != $keys) {
+      // First clear input.
+      $this->clear();
+      // Then try to send keys. "Try" - is for Opera, which is too capricious.
+      // Sometimes it doesn't: for example, after catching an exception or
+      // switching active window.
+      // @see isElementPresent()
+      $variables = array("value" => preg_split('//u', $keys, -1, PREG_SPLIT_NO_EMPTY));
+      $this->execute("POST", "/value", $variables);
+      $this->driver->sleep(1);
+    }
   }
 
   /**
    * Get key from $keys.
    */
-  public function getKey($key_name){
-    if(isset(self::$keys[$key_name])){
+  public function getKey($key_name) {
+    if (isset(self::$keys[$key_name])) {
       return json_decode('"' . self::$keys[$key_name] . '"');
-    }else{
+    }
+    else {
       throw new Exception("Can't type key $key_name");
     }
   }
-
   /**
    * Drag and drop an element.
    * The distance to drag an element should be specified relative to the upper-left corner of the page.
@@ -2256,7 +2190,7 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/drag
    */
-  public function dragAndDrop($pixels_right, $pixels_down){
+  public function dragAndDrop($pixels_right, $pixels_down) {
     $variables = array(
       "x" => $pixels_right,
       "y" => $pixels_down
@@ -2271,10 +2205,8 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/moveto
    */
-  public function moveCursorCenter(){
-    $variables = array(
-      "element" => $this->element_id
-    );
+  public function moveCursorCenter() {
+    $variables = array("element" => $this->element_id);
     $this->driver->execute("POST", "/session/:sessionId/moveto", $variables);
   }
 
@@ -2289,17 +2221,20 @@ class SeleniumWebElement{
    *
    * @see http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/moveto
    */
-  public function moveCursorRelative($right, $down){
+  public function moveCursorRelative($right, $down) {
     $variables = array(
       "element" => $this->element_id,
       "xoffset" => $right,
-      "yoffset" => $down
+      "yoffset" => $down,
     );
     $this->driver->execute("POST", "/session/:sessionId/moveto", $variables);
   }
+
+
   /*
    * Getters for <select> elements
    */
+
   /**
    * Search for selected option of <select> element on the page.
    * The located element will be returned as a SeleniumWebElement JSON object.
@@ -2307,12 +2242,12 @@ class SeleniumWebElement{
    * @return SeleniumWebElement object
    *    A SeleniumWebElement JSON object for the located element.
    */
-  public function getSelected(){
+  public function getSelected() {
     // See http://code.google.com/p/selenium/issues/detail?id=1518
-    try{
+    try {
       return $this->getNextElement("css=option[selected]"); // Does not work in IE8
     }
-    catch(Exception $e){
+    catch (Exception $e) {
       return $this->getNextElement("css=option[selected='selected']"); // Does not work in IE7
     }
   }
@@ -2325,13 +2260,14 @@ class SeleniumWebElement{
    * @return array
    *    A list of SeleniumWebElement JSON objects for the located elements.
    */
-  public function getOptions(){
+  public function getOptions() {
     return $this->getAllNextElements("tag name=option");
   }
 
   /**
    * Setters for <select> elements
    */
+
   /**
    * Search for <select> element on the page, starting from the identified element,
    * which has option with specificed label.
@@ -2339,9 +2275,11 @@ class SeleniumWebElement{
    * @param string
    *   Label of the option for select element
    */
-  public function selectLabel($label){
-    $option_element = $this->getNextElement("xpath=//option[text()='" . $label . "']");
-    $option_element->select();
+  public function selectLabel($label) {
+    $option_element = $this->getNextElement("xpath=.//option[text()='" . $label . "']");
+    $option_element->click();
+    // Workaround for AJAX behavior.
+    $this->driver->sleep(5);
   }
 
   /**
@@ -2351,9 +2289,11 @@ class SeleniumWebElement{
    * @param string
    *   Value of the option for select element
    */
-  public function selectValue($value){
-    $option_element = $this->getNextElement("xpath=//option[@value='" . $value . "']");
-    $option_element->select();
+  public function selectValue($value) {
+    $option_element = $this->getNextElement("xpath=.//option[@value='" . $value . "']");
+    $option_element->click();
+    // Workaround for AJAX behavior.
+    $this->driver->sleep(5);
   }
 
   /**
@@ -2362,28 +2302,33 @@ class SeleniumWebElement{
    *
    * @param string
    */
-  public function selectIndex($index){
-    $option_element = $this->getNextElement("xpath=//option[" . $index . "]");
-    $option_element->select();
+  public function selectIndex($index) {
+    $option_element = $this->getNextElement("xpath=.//option[" . $index . "]");
+    $option_element->click();
+    // Workaround for AJAX behavior.
+    $this->driver->sleep(5);
   }
 }
 
 /**
  * Class of the connection to Firefox.
  */
-class SeleniumFirefoxDriver extends SeleniumWebDriver{
+class SeleniumFirefoxDriver extends SeleniumWebDriver {
 
-  function __construct($user_agent, $test_id){
+  // @todo Abstract this behavior in parent function.
+  // @see http://drupal.org/node/1893672
+  function __construct($user_agent, $test_id) {
     $temporary_path = file_directory_temp();
     file_prepare_directory($temporary_path);
     $zip_file_path = $temporary_path . '/' . $test_id . '_firefox_profile.zip';
     // Generate Firefox profile.
-    $zip = new ZipArchive();
+    $zip = new ZipArchive;
     $res = $zip->open($zip_file_path, ZipArchive::CREATE);
-    if($res === TRUE){
+    if ($res === TRUE) {
       $zip->addFromString('prefs.js', 'user_pref("general.useragent.override", "' . $user_agent . '");');
       $zip->close();
-    }else{
+    }
+    else {
       throw new Exception('Cant create firefox profile ' . $zip_file_path);
     }
     // By specifications of the Webdriver we should encode firefox
@@ -2393,24 +2338,26 @@ class SeleniumFirefoxDriver extends SeleniumWebDriver{
     $capabilities = array(
       'browserName' => 'firefox',
       'javascriptEnabled' => TRUE,
+      'cssSelectorsEnabled' => TRUE,
       'platform' => 'ANY',
-      'firefox_profile' => $firefox_profile
+      'firefox_profile' => $firefox_profile,
     );
-    $variables = array(
-      "desiredCapabilities" => $capabilities
-    );
+    $variables = array("desiredCapabilities" => $capabilities);
     $response = $this->execute("POST", "/session", $variables);
-    // Parse out session id
-    preg_match("/\nLocation:.*\/([^\n$]*)/", $response['header'], $matches);
-    if(count($matches) > 0){
+    // Parse out session id.
+    preg_match("/\n[Ll]ocation:.*\/([^\n$]*)/", $response['header'], $matches);
+    if (count($matches) > 0) {
       $this->session_id = trim($matches[1]);
-    }else{
+    }
+    else {
       $message = "Did not get a session id from " . SELENIUM_SERVER_URL . "\n";
-      if(!empty($response['body'])){
+      if (!empty($response['body'])) {
         $message .= $response['body'];
-      }elseif(!empty($response['header'])){
+      }
+      elseif (!empty($response['header'])) {
         $message .= $response['header'];
-      }else{
+      }
+      else {
         $message .= "No response from server.";
       }
       throw new Exception($message);
@@ -2421,37 +2368,39 @@ class SeleniumFirefoxDriver extends SeleniumWebDriver{
 /**
  * Class of the connection to Chrome.
  */
-class SeleniumChromeDriver extends SeleniumWebDriver{
+class SeleniumChromeDriver extends SeleniumWebDriver {
 
-  function __construct($user_agent, $testCase){
+  // @todo Abstract this behavior in parent function.
+  // @see http://drupal.org/node/1893672
+  function __construct($user_agent, $testCase) {
     $user_agent_string = '--user-agent=' . $user_agent;
     // Start browser.
     $capabilities = array(
       'browserName' => 'chrome',
       'javascriptEnabled' => TRUE,
+      'cssSelectorsEnabled' => TRUE,
       'platform' => 'ANY',
-      'chrome.switches' => array(
-        $user_agent_string
-      )
+      'chromeOptions' => array('args' => array($user_agent_string)),
     );
-    $variables = array(
-      "desiredCapabilities" => $capabilities
-    );
+    $variables = array("desiredCapabilities" => $capabilities);
     $response = $this->execute("POST", "/session", $variables);
     // We add new line charachter to header as ChromeDriver doesn't have ending
     // new line charachter.
     $response['header'] .= "\n";
-    // Parse out session id
+    // Parse out session id.
     preg_match("/\n[Ll]ocation:.*\/([^\n$]*)/", $response['header'], $matches);
-    if(count($matches) > 0){
+    if (count($matches) > 0) {
       $this->session_id = trim($matches[1]);
-    }else{
-      $message = "Did not get a session id from " . $this->SELENIUM_SERVER_URL . "\n";
-      if(!empty($response['body'])){
+    }
+    else {
+      $message = "Did not get a session id from " . SELENIUM_SERVER_URL . "\n";
+      if (!empty($response['body'])) {
         $message .= $response['body'];
-      }elseif(!empty($response['header'])){
+      }
+      elseif (!empty($response['header'])) {
         $message .= $response['header'];
-      }else{
+      }
+      else {
         $message .= "No response from server.";
       }
       throw new Exception($message);
@@ -2462,30 +2411,34 @@ class SeleniumChromeDriver extends SeleniumWebDriver{
 /**
  * Class of the connection to Opera.
  */
-class SeleniumOperaDriver extends SeleniumWebDriver{
+class SeleniumOperaDriver extends SeleniumWebDriver {
 
-  function __construct($user_agent, $testCase){
+  // @todo Abstract this behavior in parent function.
+  // @see http://drupal.org/node/1893672
+  function __construct($user_agent, $testCase) {
     // Start browser.
     $capabilities = array(
       'browserName' => 'opera',
       'javascriptEnabled' => TRUE,
-      'platform' => 'ANY'
+      'cssSelectorsEnabled' => TRUE,
+      'platform' => 'ANY',
     );
-    $variables = array(
-      "desiredCapabilities" => $capabilities
-    );
+    $variables = array("desiredCapabilities" => $capabilities);
     $response = $this->execute("POST", "/session", $variables);
-    // Parse out session id
-    preg_match("/\nLocation:.*\/([^\n$]*)/", $response['header'], $matches);
-    if(count($matches) > 0){
+    // Parse out session id.
+    preg_match("/\n[Ll]ocation:.*\/([^\n$]*)/", $response['header'], $matches);
+    if (count($matches) > 0) {
       $this->session_id = trim($matches[1]);
-    }else{
+    }
+    else {
       $message = "Did not get a session id from " . SELENIUM_SERVER_URL . "\n";
-      if(!empty($response['body'])){
+      if (!empty($response['body'])) {
         $message .= $response['body'];
-      }elseif(!empty($response['header'])){
+      }
+      elseif (!empty($response['header'])) {
         $message .= $response['header'];
-      }else{
+      }
+      else {
         $message .= "No response from server.";
       }
       throw new Exception($message);
@@ -2496,30 +2449,35 @@ class SeleniumOperaDriver extends SeleniumWebDriver{
 /**
  * Class of the connection to Internet Explorer.
  */
-class SeleniumIExplorerDriver extends SeleniumWebDriver{
+class SeleniumIExplorerDriver extends SeleniumWebDriver {
 
-  function __construct($user_agent, $testCase){
+  // @todo Abstract this behavior in parent function.
+  // @see http://drupal.org/node/1893672
+  function __construct($user_agent, $testCase) {
     // Start browser.
     $capabilities = array(
-      'browserName' => 'iexplorer',
+      'browserName' => 'internet explorer',
       'javascriptEnabled' => TRUE,
-      'platform' => 'ANY'
+      'cssSelectorsEnabled' => TRUE,
+      'platform' => 'ANY',
     );
-    $variables = array(
-      "desiredCapabilities" => $capabilities
-    );
+
+    $variables = array("desiredCapabilities" => $capabilities);
     $response = $this->execute("POST", "/session", $variables);
-    // Parse out session id
-    preg_match("/\nLocation:.*\/([^\n$]*)/", $response['header'], $matches);
-    if(count($matches) > 0){
+    // Parse out session id.
+    preg_match("/\n[Ll]ocation:.*\/([^\n$]*)/", $response['header'], $matches);
+    if (count($matches) > 0) {
       $this->session_id = trim($matches[1]);
-    }else{
+    }
+    else {
       $message = "Did not get a session id from " . SELENIUM_SERVER_URL . "\n";
-      if(!empty($response['body'])){
+      if (!empty($response['body'])) {
         $message .= $response['body'];
-      }elseif(!empty($response['header'])){
+      }
+      elseif (!empty($response['header'])) {
         $message .= $response['header'];
-      }else{
+      }
+      else {
         $message .= "No response from server.";
       }
       throw new Exception($message);
