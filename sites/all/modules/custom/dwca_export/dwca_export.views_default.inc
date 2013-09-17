@@ -7,9 +7,13 @@
  */
 function dwca_export_views_default_views(){
   global $base_url;
+  $default_licence = variable_get('creative_commons_block_licence_type', CC_BY);
   static $view_description_names = array(
     'general_description',
     'morphology',
+  
+  
+  
     'behavious',
     'biology',
     'conservation_status',
@@ -126,10 +130,10 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['uuid_1']['relationship'] = 'parent';
   $handler->display->display_options['fields']['uuid_1']['exclude'] = TRUE;
   /* Field: Taxonomy term: Unacceptability Reason */
-$handler->display->display_options['fields']['field_unacceptability_reason_5']['id'] = 'field_unacceptability_reason_5';
-$handler->display->display_options['fields']['field_unacceptability_reason_5']['table'] = 'field_data_field_unacceptability_reason';
-$handler->display->display_options['fields']['field_unacceptability_reason_5']['field'] = 'field_unacceptability_reason';
-$handler->display->display_options['fields']['field_unacceptability_reason_5']['label'] = 'Parent';
+  $handler->display->display_options['fields']['field_unacceptability_reason_5']['id'] = 'field_unacceptability_reason_5';
+  $handler->display->display_options['fields']['field_unacceptability_reason_5']['table'] = 'field_data_field_unacceptability_reason';
+  $handler->display->display_options['fields']['field_unacceptability_reason_5']['field'] = 'field_unacceptability_reason';
+  $handler->display->display_options['fields']['field_unacceptability_reason_5']['label'] = 'Parent';
   $handler->display->display_options['fields']['field_unacceptability_reason_5']['type'] = 'parent_formatter';
   /* Field: Taxonomy term: Unacceptability Reason */
   $handler->display->display_options['fields']['field_unacceptability_reason_2']['id'] = 'field_unacceptability_reason_2';
@@ -138,10 +142,10 @@ $handler->display->display_options['fields']['field_unacceptability_reason_5']['
   $handler->display->display_options['fields']['field_unacceptability_reason_2']['label'] = 'NomenclaturalStatus';
   $handler->display->display_options['fields']['field_unacceptability_reason_2']['type'] = 'name_status';
   /* Field: Taxonomy term: Unacceptability Reason */
-$handler->display->display_options['fields']['field_unacceptability_reason_3']['id'] = 'field_unacceptability_reason_3';
-$handler->display->display_options['fields']['field_unacceptability_reason_3']['table'] = 'field_data_field_unacceptability_reason';
-$handler->display->display_options['fields']['field_unacceptability_reason_3']['field'] = 'field_unacceptability_reason';
-$handler->display->display_options['fields']['field_unacceptability_reason_3']['label'] = 'AssociatedAcceptedName';
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['id'] = 'field_unacceptability_reason_3';
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['table'] = 'field_data_field_unacceptability_reason';
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['field'] = 'field_unacceptability_reason';
+  $handler->display->display_options['fields']['field_unacceptability_reason_3']['label'] = 'AssociatedAcceptedName';
   $handler->display->display_options['fields']['field_unacceptability_reason_3']['type'] = 'aan_formatter';
   $handler->display->display_options['sorts']['tid']['id'] = 'tid';
   $handler->display->display_options['sorts']['tid']['table'] = 'taxonomy_term_data';
@@ -211,7 +215,6 @@ $handler->display->display_options['fields']['field_unacceptability_reason_3']['
   $handler->display->display_options['fields']['uuid']['table'] = 'taxonomy_term_data';
   $handler->display->display_options['fields']['uuid']['field'] = 'uuid';
   $handler->display->display_options['fields']['uuid']['relationship'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['fields']['uuid']['exclude'] = TRUE;
   /* Field: Content: Node UUID */
   $handler->display->display_options['fields']['uuid_1']['id'] = 'uuid_1';
   $handler->display->display_options['fields']['uuid_1']['table'] = 'node';
@@ -246,6 +249,8 @@ $handler->display->display_options['fields']['field_unacceptability_reason_3']['
   $handler->display->display_options['fields']['citation']['id'] = 'citation';
   $handler->display->display_options['fields']['citation']['table'] = 'biblio';
   $handler->display->display_options['fields']['citation']['field'] = 'citation';
+  $handler->display->display_options['fields']['citation']['alter']['strip_tags'] = TRUE;
+  $handler->display->display_options['fields']['citation']['element_default_classes'] = FALSE;
   $handler->display->display_options['fields']['citation']['style_name'] = 'chicago-author-date.csl';
   $handler->display->display_options['fields']['citation']['export_links'] = 0;
   $handler->display->display_options['fields']['citation']['file_attachments'] = 0;
@@ -257,6 +262,7 @@ $handler->display->display_options['fields']['field_unacceptability_reason_3']['
   $handler->display->display_options['fields']['title']['label'] = '';
   $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
   $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+  $handler->display->display_options['fields']['title']['link_to_node'] = FALSE;
   /* Field: Biblio: Authors */
   $handler->display->display_options['fields']['biblio_authors']['id'] = 'biblio_authors';
   $handler->display->display_options['fields']['biblio_authors']['table'] = 'biblio';
@@ -344,6 +350,12 @@ $handler->display->display_options['fields']['field_unacceptability_reason_3']['
   $handler->display->display_options['filters']['type']['value'] = array(
     'biblio' => 'biblio'
   );
+  /* Filter criterion: Field: Taxonomic name (field_taxonomic_name:delta) */
+  $handler->display->display_options['filters']['delta']['id'] = 'delta';
+  $handler->display->display_options['filters']['delta']['table'] = 'field_data_field_taxonomic_name';
+  $handler->display->display_options['filters']['delta']['field'] = 'delta';
+  $handler->display->display_options['filters']['delta']['operator'] = '<';
+  $handler->display->display_options['filters']['delta']['value']['value'] = '1';
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'some';
@@ -430,11 +442,6 @@ $handler->display->display_options['fields']['field_unacceptability_reason_3']['
   $handler->display->display_options['fields']['uri']['table'] = 'file_managed';
   $handler->display->display_options['fields']['uri']['field'] = 'uri';
   $handler->display->display_options['fields']['uri']['file_download_path'] = TRUE;
-  /* Field: File: Name */
-  $handler->display->display_options['fields']['filename']['id'] = 'filename';
-  $handler->display->display_options['fields']['filename']['table'] = 'file_managed';
-  $handler->display->display_options['fields']['filename']['field'] = 'filename';
-  $handler->display->display_options['fields']['filename']['exclude'] = TRUE;
   /* Field: File: Mime type */
   $handler->display->display_options['fields']['filemime']['id'] = 'filemime';
   $handler->display->display_options['fields']['filemime']['table'] = 'file_managed';
@@ -444,13 +451,10 @@ $handler->display->display_options['fields']['field_unacceptability_reason_3']['
   $handler->display->display_options['fields']['field_cc_licence']['table'] = 'field_data_field_cc_licence';
   $handler->display->display_options['fields']['field_cc_licence']['field'] = 'field_cc_licence';
   $handler->display->display_options['fields']['field_cc_licence']['type'] = 'creative_commons_url';
-  /* Field: Content: Title */
-  $handler->display->display_options['fields']['title']['id'] = 'title';
-  $handler->display->display_options['fields']['title']['table'] = 'node';
-  $handler->display->display_options['fields']['title']['field'] = 'title';
-  $handler->display->display_options['fields']['title']['relationship'] = 'file_to_node';
-  $handler->display->display_options['fields']['title']['alter']['alter_text'] = TRUE;
-  $handler->display->display_options['fields']['title']['empty'] = '[filename]';
+  /* Field: File: Name */
+  $handler->display->display_options['fields']['filename']['id'] = 'filename';
+  $handler->display->display_options['fields']['filename']['table'] = 'file_managed';
+  $handler->display->display_options['fields']['filename']['field'] = 'filename';
   /* Field: User: User UUID */
   $handler->display->display_options['fields']['uuid_3']['id'] = 'uuid_3';
   $handler->display->display_options['fields']['uuid_3']['table'] = 'users';
@@ -466,7 +470,7 @@ $handler->display->display_options['fields']['field_unacceptability_reason_3']['
   $handler->display->display_options['fields']['fid']['table'] = 'file_managed';
   $handler->display->display_options['fields']['fid']['field'] = 'fid';
   $handler->display->display_options['fields']['fid']['alter']['alter_text'] = TRUE;
-  $handler->display->display_options['fields']['fid']['alter']['text'] = 'http://monkey.nhm.ac.uk/file/[fid]';
+  $handler->display->display_options['fields']['fid']['alter']['text'] = $base_url . '/file/[fid]';
   /* Filter criterion: File: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'file_managed';
@@ -895,6 +899,11 @@ $handler->display->display_options['fields']['field_unacceptability_reason_3']['
   $handler->display->display_options['sorts']['created']['table'] = 'comment';
   $handler->display->display_options['sorts']['created']['field'] = 'created';
   $handler->display->display_options['sorts']['created']['order'] = 'DESC';
+  /* Filter criterion: Comment: Approved */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'comment';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = '1';
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'none';
@@ -1064,7 +1073,7 @@ $handler->display->display_options['fields']['field_unacceptability_reason_3']['
   $handler->display->display_options['fields']['name']['alter']['html'] = 0;
   $handler->display->display_options['fields']['name']['hide_empty'] = 0;
   $handler->display->display_options['fields']['name']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['name']['link_to_user'] = 1;
+  $handler->display->display_options['fields']['name']['link_to_user'] = 0;
   $handler->display->display_options['fields']['name']['overwrite_anonymous'] = 0;
   /* Sort criterion: User: Created date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
@@ -1344,6 +1353,9 @@ $handler->display->display_options['fields']['field_unacceptability_reason_3']['
 
 function _dwca_export_view_description($desc_type){
   //Array to translate our field names into DwC/SPM accepted terms
+  module_load_include('module', 'creative_commons');
+  $default_licence = creative_commons_display(variable_get('creative_commons_block_licence_type', CC_BY), variable_get('creative_commons_block_jurisdiction', ''), CC_URL);
+  $default_cc_url = $default_licence['#markup'];
   $replacements = array(
     'general_description' => 'general',
     'behavious' => 'behaviour',
@@ -1736,6 +1748,7 @@ function _dwca_export_view_description($desc_type){
   $handler->display->display_options['fields']['nothing_7']['alter']['strip_tags'] = 0;
   $handler->display->display_options['fields']['nothing_7']['alter']['trim'] = 0;
   $handler->display->display_options['fields']['nothing_7']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['nothing_7']['alter']['text'] = $default_cc_url;
   $handler->display->display_options['fields']['nothing_7']['element_label_colon'] = 1;
   $handler->display->display_options['fields']['nothing_7']['element_default_classes'] = 1;
   $handler->display->display_options['fields']['nothing_7']['hide_empty'] = 0;

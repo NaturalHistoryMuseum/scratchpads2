@@ -1207,14 +1207,36 @@ function scratchpads_tweaks_update_7060(){
 function scratchpads_tweaks_update_7061(){
   variable_set('imagemagick_use_identify', TRUE);
 }
+
 /**
  * Uninstall mollom and scratchpads_mollom
  * 
- * FIXME - Please uncomment this function following the 2.1.7 release.
+ */
 function scratchpads_tweaks_update_7062(){
   drupal_uninstall_modules(array(
     'scratchpads_mollom',
     'mollom'
   ));
 }
+
+/**
+ * Enable honeypot
  */
+function scratchpads_tweaks_update_7063(){
+  if(!module_exists('honeypot')){
+    module_enable(array(
+      'honeypot'
+    ));
+  }
+  variable_set('honeypot_form_user_register_form', 1);
+  if(module_exists('boost')){
+    // Unless this has already been customised, change boost to not cache the user register page.
+    // This ensures we don't get caching issues with the spam protection,
+    if(variable_get('boost_cacheability_option', BLOCK_VISIBILITY_NOTLISTED) == BLOCK_VISIBILITY_NOTLISTED){
+      $pages = variable_get('boost_cacheability_pages', BOOST_CACHEABILITY_PAGES);
+      if(empty($pages)){
+        variable_set('boost_cacheability_pages', 'user/register');
+      }
+    }
+  }
+}
