@@ -104,3 +104,137 @@ function scratchpads_biblio_field_formatter_view($entity_type, $entity, $field, 
   }
   return $element;
 }
+
+/**
+ * Implements hook_filter_info_alter().
+ */
+function scratchpads_biblio_filter_info_alter(&$info){
+  $info['biblio_filter_reference']['process callback'] = '_scratchpads_biblio_filter_reference_process';
+}
+
+/**
+ * Helper function
+ * Altered version of _biblio_filter_reference_process in biblio module
+ * Altered to allow the calling of _scratchpads_biblio_filter_replace_callback() in place of _biblio_filter_replace_callback()
+ */
+function _scratchpads_biblio_filter_reference_process($text, $filter, $format, $langcode, $cache, $cache_id){
+  $pattern = array(
+    '|\[bib](.*?)\[/bib]|s',
+    '|<bib>(.*?)</bib>|s'
+  );
+  if(variable_get('biblio_footnotes_integration', 0) && module_exists('footnotes')){
+    $text = preg_replace_callback($pattern, '_biblio_filter_footnote_callback', $text);
+    return $text;
+  }else{
+    $text = preg_replace_callback($pattern, '_scratchpads_biblio_filter_replace_callback', $text);
+    $footer = '';
+    $footer = _scratchpads_biblio_filter_replace_callback(NULL, 'output footer');
+    if(preg_match('/<bibliography(\/( )?)?>/', $text) > 0){
+      $text = preg_replace('/<bibliography(\/( )?)?>/', $footer, $text, 1);
+      return $text;
+    }else{
+      return $text . "\n\n" . $footer;
+    }
+  }
+}
+
+/**
+ * Helper function. 
+ * Altered version of _biblio_filter_replace_callback() function in biblio module.
+ * Altered to allow the addition of descriptive link titles of the form: 'Citation id. Author(s), Year, Title'
+ */
+function _scratchpads_biblio_filter_replace_callback($matches, $op = ''){
+  static $n = 0;
+  static $store_matches = array();
+  $hover_descriptions = array();
+  $str = '';
+  if($op == 'output footer'){
+    if($n > 0){
+      $str = '<hr /><h3>' . t('References') . '</h3>';
+      $str .= '<div class="references"><ol>';
+      for($m = 1; $m <= $n; $m++){
+        $str .= '<li id="reference' . $m . '"><a name="ref' . $m . '">' . _biblio_citekey_print($store_matches[$m - 1]) . " </a></li>\n\n";
+      }
+      $str .= '</ol></div>';
+    }
+    $n = 0;
+    $store_matches = array();
+    return $str;
+  }
+  $ref = array_search($matches[1], $store_matches);
+  if($ref === FALSE){
+    $n++;
+    array_push($store_matches, $matches[1]);
+    $ref = $n;
+  }else{
+    $ref++;
+  }
+  for($m = 1; $m <= $n; $m++){
+    $hover_descriptions[$m] = _scratchpads_biblio_citekey($store_matches[$m - 1]);
+  }
+  $allowed_tags = array();
+  $title = filter_xss($matches[1], biblio_get_allowed_tags());
+  $title = str_replace('"', "&quot;", $title);
+  $title = str_replace("\n", " ", $title);
+  $title = str_replace("\r", "", $title);
+  $text = '<span hovertip="reference' . $ref . '"><a href="#ref' . $ref . '">[' . $ref . ']</a></span>';
+  if(module_exists('hovertip')){
+    $text = '<span hovertip="reference' . $ref . '"><a href="#ref' . $ref . '">[' . $ref . ']</a></span>';
+    $text .= '<span id="reference' . $ref . '" class="hovertip">' . _biblio_citekey_print($title) . '</span>';
+  }else{
+    $text = '<a href="#ref' . $ref . '" title="' . $hover_descriptions[$ref] . '">[' . $ref . ']</a>';
+  }
+  return $text;
+}
+
+/**
+ * Helper function
+ * Returns a formatted string for a biblio citation
+ * Author(s), Year, Title
+ */
+function _scratchpads_biblio_citekey($citekey){
+  $nid = db_query("SELECT nid FROM {biblio} WHERE biblio_citekey = :key", array(
+    ':key' => $citekey
+  ))->fetchObject();
+  if($nid->nid > 0){
+    $node = node_load($nid->nid);
+    $authors = array();
+    $author_count = 0;
+    foreach($node->biblio_contributors as $author){
+      if(!empty($author['lastname'])){
+        $authors[] = $author['lastname'];
+        $author_count++;
+      }
+    }
+    switch($author_count){
+      case 0:
+        $author_string = '';
+        break;
+      case 1:
+        $author_string = $authors[0] . ', ';
+        break;
+      case 2:
+        $author_string = $authors[0] . ' and ' . $authors[1] . ', ';
+        break;
+      case 3:
+        $author_string = $authors[0] . ', ' . $authors[1] . ', and ' . $authors[2] . ' , ';
+        break;
+      default:
+        $author_string = $authors[0] . ' et al.' . ', ';
+    }
+    if(isset($node->biblio_year)){
+      $year = $node->biblio_year . ', ';
+    }else{
+      $year = '';
+    }
+    if(isset($node->title)){
+      $title = $node->title;
+    }else{
+      $title = '';
+    }
+    return $author_string . $year . $title . '.';
+  }else{
+    return t("Citekey @cite not found", array('@cite' => $citekey));
+  }
+}
+
