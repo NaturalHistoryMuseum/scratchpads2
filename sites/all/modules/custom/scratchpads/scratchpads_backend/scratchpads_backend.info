@@ -5,5 +5,9 @@ package = "Administration"
 dependencies[] = views_bulk_operations
 dependencies[] = ctools
 dependencies[] = scratchpads_views_filter
+<<<<<<< HEAD
 files[] = scratchpads_backend.test
 
+=======
+files[] = scratchpads_backend.test
+>>>>>>> 0ff42489a42e50a5ffff89986b480c00b4954be3

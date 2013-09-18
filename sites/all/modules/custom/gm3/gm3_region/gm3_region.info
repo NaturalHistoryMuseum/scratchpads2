@@ -5,3 +5,4 @@ package = Google maps
 dependencies[] = gm3
 files[] = phpcoord/phpcoord-2.3.php
 files[] = gm3_region.test
+
