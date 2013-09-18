@@ -1240,3 +1240,31 @@ function scratchpads_tweaks_update_7063(){
     }
   }
 }
+
+/**
+ * Update nodes to ensure they don't have duplicate UUID and V-UUIDs.
+ */
+function scratchpads_tweaks_update_7064(&$sandbox){
+  if(!isset($sandbox['nids'])){
+    $query = db_select('node', 'lft');
+    $query->fields('lft', array(
+      'nid'
+    ));
+    $query->innerJoin('node', 'rgt', 'lft.uuid = rgt.uuid AND lft.nid > rgt.nid');
+    $query->distinct();
+    $sandbox['nids'] = $query->execute()->fetchCol();
+    $sandbox['max'] = count($sandbox['nids']);
+    if(!$sandbox['max']){
+      $sandbox['#finished'] = 1;
+      return;
+    }
+  }
+  $i = 0;
+  while($i < 10 && count($sandbox['nids'])){
+    $node = node_load(array_pop($sandbox['cids']));
+    unset($node->uuid);
+    unset($node->vuuid);
+    node_save($node);
+  }
+  $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['nids'])) / $sandbox['max'];
+}
