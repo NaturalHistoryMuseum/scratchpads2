@@ -1,7 +1,8 @@
 <?php
 require_once (str_replace('.module', '.authors.inc', __FILE__));
-DEFINE(CITE_SCRATCHPADS_EU_GENERATE_DEFAULT, 'http://cite.scratchpads.eu/generate');
-DEFINE(CITE_SCRATCHPADS_EU_PREVIEW_DEFAULT, 'http://cite.scratchpads.eu/preview');
+DEFINE('CITE_SCRATCHPADS_EU_HOST_DEFAULT', 'http://cite.scratchpads.eu');
+DEFINE('CITE_SCRATCHPADS_EU_GENERATE_DEFAULT', 'http://cite.scratchpads.eu/generate');
+DEFINE('CITE_SCRATCHPADS_EU_PREVIEW_DEFAULT', 'http://cite.scratchpads.eu/preview');
 
 /**
  * Implement hook_block_info_alter
@@ -52,6 +53,7 @@ function scratchpads_citethispage_block_view_citethispage_citethispage_block_alt
  * Implement hook_citethispage_info
  */
 function scratchpads_citethispage_citethispage_info(){
+  $host = variable_get('scratchpads_citethispage_cite_host_url', CITE_SCRATCHPADS_EU_HOST_DEFAULT);
   return array(
     'scratchpads_citethispage' => array(
       'parse' => array(
@@ -75,7 +77,7 @@ function scratchpads_citethispage_citethispage_info(){
       'archive' => array(
         'title' => t('cite.scratchpads.eu'),
         'description' => t('Generate a PDF snapshot on !host', array(
-          '!host' => l('http://cite.scratchpads.eu', 'http://cite.scratchpads.eu')
+          '!host' => l($host, $host)
         )),
         'callback' => 'scratchpads_citethispage_archive'
       )
@@ -172,6 +174,17 @@ function scratchpads_citethispage_init(){
         '!archive_url' => $archive_url
       ));
       drupal_set_message($message);
+      // Set the slickgrid height/tab/filters if required
+      if(!empty($tokens[$token]['slick_state'])){
+        drupal_add_js('(function($){
+          $(document).ready(function() {
+            setTimeout(function() {
+              var state = ' . $tokens[$token]['slick_state'] . ';
+              slickgrid.setGridState(state)
+            }, 1000);
+          });
+        })(jQuery);', 'inline');
+      }
       // Note that we don't need to delete the token here - the call is synchronous,
       // and the deletion is done by the caller.
     }
@@ -218,18 +231,13 @@ function _scratchpads_citethispage_concat_results($results){
     $date[$k] = format_date($v);
   }
   // Prepare the authors
-  $initial_authors = array_unique(array_filter($initial_authors));
-  sort($initial_authors);
-  $other_authors = array_diff(array_unique(array_filter($other_authors)), $initial_authors);
-  sort($other_authors);
-  $authors = array_merge($initial_authors, $other_authors);
   $authors_short['initial'] = array_unique(array_filter($authors_short['initial']));
   sort($authors_short['initial']);
   $authors_short['others'] = array_diff(array_unique(array_filter($authors_short['others'])), $authors_short['initial']);
   sort($authors_short['others']);
-  $authors_full['initial'] = array_unique(array_filter($authors_full['initial']));
+  $authors_full['initial'] = array_map('unserialize', array_unique(array_map('serialize', array_filter($authors_full['initial']))));
   sort($authors_full['initial']);
-  $authors_full['others'] = array_diff(array_unique(array_filter($authors_full['others'])), $authors_full['initial']);
+  $authors_full['others'] = array_map('unserialize', array_diff(array_unique(array_map('serialize', array_filter($authors_full['others']))), array_map('serialize', $authors_full['initial'])));
   sort($authors_full['others']);
   $citation_authors = array_merge($authors_short['initial'], $authors_short['others']);
   $citation_author_list = implode(', ', array_slice($citation_authors, 0, 3));
@@ -237,7 +245,7 @@ function _scratchpads_citethispage_concat_results($results){
     $citation_author_list .= ' ' . t('et al.');
   }
   return array(
-    'title' => implode(' ', $title),
+    'title' => html_entity_decode(str_replace('&nbsp;', ' ', implode(' ', $title))),
     'date' => implode(', ', $date),
     'date_data' => $date_data,
     'authors' => $citation_author_list,
@@ -265,6 +273,11 @@ function scratchpads_citethispage_archive($path, $context, $preview = FALSE){
     'author_list' => $results['authors'],
     'title_of_page' => $results['title']
   );
+  if(!empty($context['form_state']['values']['citethispage_slick_state'])){
+    // Ensure it's JSON by decoding it and re-encoding it.
+    $json = json_encode(json_decode($context['form_state']['values']['citethispage_slick_state']));
+    $token['slick_state'] = $json;
+  }
   $tokens[$rand_token_id] = $token;
   variable_set('scratchpads_citethispage_tokens', $tokens);
   // Prepare the rest of the data
@@ -361,7 +374,7 @@ function scratchpads_citethispage_form_citethispage_backend_selection_form_alter
   if($form_state['citethispage_backend_handler'] == 'scratchpads_citethispage'){
     // Add preview button if applicable
     global $user;
-    if(TRUE || $user->uid > 0){
+    if($user->uid > 0){
       drupal_add_library('system', 'ui.dialog');
       drupal_add_js(drupal_get_path('module', 'scratchpads_citethispage') . '/js/preview.js');
       $warn = NULL;
@@ -380,19 +393,26 @@ function scratchpads_citethispage_form_citethispage_backend_selection_form_alter
         $form['warn'] = $warn;
       }
     }
-    // Add code to parse tinytax block so we can replicate it
-    if(preg_match('/^taxonomy\/term/', current_path()) || !empty($form_state['values']['citethispage_open_tids'])){
-      drupal_add_js(drupal_get_path('module', 'scratchpads_citethispage') . '/js/tinytaxparse.js');
-      if(isset($form_state['values']['citethispage_open_tids'])){
-        $value = $form_state['values']['citethispage_open_tids'];
-      }else{
-        $value = '';
-      }
-      $form['citethispage_open_tids'] = array(
-        '#type' => 'hidden',
-        '#default_value' => $value
-      );
+    // Add code to parse tinytax block and slickgrid settings so we can replicate the page
+    drupal_add_js(drupal_get_path('module', 'scratchpads_citethispage') . '/js/pagestate.js');
+    if(isset($form_state['values']['citethispage_open_tids'])){
+      $value = $form_state['values']['citethispage_open_tids'];
+    }else{
+      $value = '';
     }
+    $form['citethispage_open_tids'] = array(
+      '#type' => 'hidden',
+      '#default_value' => $value
+    );
+    if(isset($form_state['values']['citethispage_slick_state'])){
+      $value = $form_state['values']['citethispage_slick_state'];
+    }else{
+      $value = '';
+    }
+    $form['citethispage_slick_state'] = array(
+      '#type' => 'hidden',
+      '#default_value' => $value
+    );
   }
 }
 
