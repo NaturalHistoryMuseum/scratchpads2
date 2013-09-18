@@ -1,5 +1,8 @@
 <?php
-// $Id: clone.module,v 1.25 2011/02/01 01:22:56 pwolanin Exp $
+/**
+ * @file
+ * Allow users to make a copy of an item of content (a node) and then edit that copy.
+ */
 
 /**
  * Implementation of hook_help().
@@ -7,8 +10,8 @@
 function clone_help($path, $arg) {
   switch ($path) {
     case 'admin/help#clone':
-      $output = '<p>'. t('The clone module allows users to make a copy of an existing node and then edit that copy. The authorship is set to the current user, the menu and url aliases are reset, and the words "Clone of" are inserted into the title to remind you that you are not editing the original node.') .'</p>';
-      $output .= '<p>'. t('Users with the "clone node" permission can utilize this functionality. A new tab will appear on node pages with the word "Clone".') .'</p>';
+      $output = '<p>' . t('The clone module allows users to make a copy of an existing node and then edit that copy. The authorship is set to the current user, the menu and url aliases are reset, and the words "Clone of" are inserted into the title to remind you that you are not editing the original node.') . '</p>';
+      $output .= '<p>' . t('Users with the "clone node" permission can utilize this functionality. A new tab will appear on node pages with the word "Clone".') . '</p>';
       return $output;
     case 'node/%/clone':
       $method = variable_get('clone_method', 'prepopulate');
@@ -46,9 +49,12 @@ function clone_menu() {
     'page callback' => 'clone_node_check',
     'page arguments' => array(1),
     'title' => 'Clone content',
+    'title callback' => 'clone_action_link_title',
+    'title arguments' => array(1),
     'weight' => 5,
     'file' => 'clone.pages.inc',
     'type' => MENU_LOCAL_ACTION,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
   return $items;
 }
@@ -59,8 +65,7 @@ function clone_access_cloning($node) {
   $access = clone_is_permitted($node->type) && (user_access('clone node') || ($user->uid && ($node->uid == $user->uid) && user_access('clone own nodes')));
   // Make sure the user can view the original node content, and create a new one..
   $access = $access && node_access('view', $node) && node_access('create', $node->type);
-  // Let other modules alter this - for exmple to only allow some users
-  // to clone specific nodes or types.
+  // Let other modules alter this.
   drupal_alter("clone_access", $access, $node);
   return $access;
 }
@@ -71,34 +76,45 @@ function clone_is_permitted($type) {
 }
 
 /**
- * Implementation of hook_mode_type().
+ * Menu title callback.
  */
-function clone_node_type($op, $type_obj) {
+function clone_action_link_title($node) {
+  // A hack to present a shorter title in contextual links.
+  if (current_path() != 'node/' . $node->nid) {
+    return t('Clone');
+  }
+  if (variable_get('clone_use_node_type_name', 0)) {
+    return t('Clone this !type', array('!type' => drupal_strtolower(node_type_get_name($node))));
+  }
+  return t('Clone content');
+}
 
-  switch ($op) {
-    case 'delete':
-      variable_del('clone_reset_'. $type_obj->type);
-      break;
-    case 'update':
-      if (!empty($type_obj->old_type) && $type_obj->old_type != $type_obj->type) {
-        if (variable_get('clone_reset_'. $type_obj->old_type, FALSE)) {
-          variable_del('clone_reset_'. $type_obj->old_type);
-          variable_set('clone_reset_'. $type_obj->type, TRUE);
-        }
-      }
-      break;
+/**
+ * Implementation of hook_node_type_delete().
+ */
+function clone_node_type_delete($info) {
+  variable_del('clone_reset_' . $info->type);
+}
+
+/**
+ * Implementation of hook_node_type_update().
+ */
+function clone_node_type_update($info) {
+  if (!empty($info->old_type) && $info->old_type != $info->type) {
+    if (variable_get('clone_reset_' . $info->old_type, FALSE)) {
+      variable_del('clone_reset_' . $info->old_type);
+      variable_set('clone_reset_' . $info->type, TRUE);
+    }
   }
 }
 
 /**
-* Implementation of hook_views_api.
-*/
+  * Implements hook_views_api.
+  */
 function clone_views_api() {
-  //TODO
-  return;
   return array(
-    'api' => 2,
-    'path' => drupal_get_path('module', 'clone') .'/views',
+    'api' => 3,
+    'path' => drupal_get_path('module', 'clone') . '/views',
   );
 }
 
@@ -108,9 +124,46 @@ function clone_views_api() {
 function clone_admin_paths() {
   if (variable_get('node_admin_theme')) {
     $paths = array(
-      'node/*/clone' => TRUE, 
+      'node/*/clone' => TRUE,
     );
     return $paths;
   }
 }
 
+/**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ */
+function clone_form_node_form_alter(&$form, $form_state, $form_id) {
+  // Add the clone_from_original_nid value for node forms triggered by cloning.
+  // This will make sure the clone_from_original_nid property is still
+  // attached to the node when passing through hook_node_insert().
+  if (!empty($form['#node']->clone_from_original_nid)) {
+    $form['clone_from_original_nid'] = array(
+      '#type' => 'value',
+      '#value' => $form['#node']->clone_from_original_nid,
+    );
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function clone_form_node_admin_content_alter(&$form, $form_state, $form_id) {
+  $destination = drupal_get_destination();
+  // The property attribute changes in the $form array depending on the user role.
+  $property = isset($form['admin']['nodes']['#options']) ? '#options' : '#rows';
+  if (empty($form['admin']['nodes'][$property])) {
+    return;
+  }
+  // Expose a Clone operation on each node.
+  foreach ($form['admin']['nodes'][$property] as $nid => &$row) {
+    $node = node_load($nid);
+    if (clone_access_cloning($node)) {
+      $row['operations']['data']['#links']['clone'] = array(
+        'title' => t('clone'),
+        'href' => 'node/' . $nid . '/clone',
+        'query' => $destination,
+      );
+    }
+  }
+}
