@@ -1,0 +1,131 @@
+<?php
+/**
+ * @file
+ *
+ * Test case for Drupal core misc/machine-name.js javascript.
+ */
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
+
+  protected $admin_user;
+  protected $basic_user;
+
+  protected $profile = 'scratchpad_2';
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Tweaks Selenium',
+      'description' => 'Enable all of the modules associated with a Scratchpad to see where errors occur. Tests simple user login and front page access',
+      'group' => 'Scratchpads Selenium',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  /**
+   * Overrides DrupalSeleniumWebTestCase setup()
+   */
+  protected function setUp(){
+    $modules = func_get_args();
+    if(isset($modules[0]) && is_array($modules[0])){
+      $modules = $modules[0];
+    }
+    include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_tweaks') . "/scratchpads_tweaks.inc";
+    $browser = 'firefox';
+    if(in_array($this->browser, $this->allowed_browsers)){
+      $browser = $this->browser;
+    }
+    $this->driver = $this->seleniumDriver($browser);
+    if($this->onOriginal){
+      $this->sandboxDatabasePrefix = $this->databasePrefix;
+      $this->originalDatabasePrefix = NULL;
+      Database::renameConnection('default', 'simpletest_sandbox');
+      $connection_info = Database::getConnectionInfo('simpletest_sandbox');
+      Database::addConnectionInfo('default', 'default', $connection_info['default']);
+      $this->switchConnectionTo('simpletest_original_default');
+    }
+    $this->admin_user = $this->drupalCreateUser(array(
+      'access content',
+      'access administration pages',
+      'administer site configuration',
+      'administer users',
+      'administer permissions',
+      'administer content types',
+      'administer nodes',
+      'bypass node access',
+      'access overlay',
+      'access content overview',
+      'view the administration theme',
+      'access all views',
+      'administer comments',
+      'administer front page'
+    ));
+    legal_save_accept(1, 1, 'en', $this->admin_user->uid);
+    
+    $this->basic_user = $this->drupalCreateUser(array(
+     'access content',
+    'access user profiles'   
+    ));
+    legal_save_accept(1, 1, 'en', $this->basic_user->uid);
+  }
+
+  /**
+   * Overrides DrupalWebTestCase drupallogin().
+   * @see DrupalWebTestCase::drupalLogin()
+   */
+  protected function drupalLogin(stdClass $account){
+    if($this->loggedInUser){
+      $this->drupalLogout();
+    }
+    $edit = array(
+      'name' => $account->name,
+      'pass' => $account->pass_raw
+    );
+    // there may be an issue with post for logins
+    $this->drupalPost('user', $edit, t('Log in'));
+    // override is here
+    $pass = $this->assertText('Member for', 'User successfully logged in');
+    if($pass){
+      $this->loggedInUser = $account;
+    }
+  }
+
+  /**
+   * We temporarily override this function to remove views handler debug errors, mainly caused by legal module
+   */
+  public function errorHandler($severity, $message, $file = NULL, $line = NULL){
+    if($severity & error_reporting()){
+      $error_map = array(
+        E_STRICT => 'Run-time notice',
+        E_WARNING => 'Warning',
+        E_NOTICE => 'Notice',
+        E_CORE_ERROR => 'Core error',
+        E_CORE_WARNING => 'Core warning',
+        E_USER_ERROR => 'User error',
+        E_USER_WARNING => 'User warning',
+        E_USER_NOTICE => 'User notice',
+        E_RECOVERABLE_ERROR => 'Recoverable error'
+      );
+      $backtrace = debug_backtrace();
+      if(strpos($message, 'Missing handler') !== false){
+        // Do not show the error
+      }else{
+        $this->error($message, $error_map[$severity], _drupal_get_last_caller($backtrace));
+      }
+    }
+    return TRUE;
+  }
+
+  /**
+   * Simple test to see if we can login and access the home page
+   */
+  function testSimple(){
+    $this->drupalLogin($this->basic_user);
+    $this->drupalGet('');
+  }
+}
