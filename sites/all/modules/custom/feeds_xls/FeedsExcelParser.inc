@@ -82,6 +82,7 @@ class FeedsExcelParser extends FeedsParser{
         $this->reader->setReadDataOnly(true);
       }
       $tempnam = drupal_tempnam('temporary://', 'feeds_xls_data_');
+      chmod($tempnam, 0660);
       file_put_contents($tempnam, serialize($this));
       $this->state->reader_object_cache_path = $tempnam;
       // Set pointer to 0
