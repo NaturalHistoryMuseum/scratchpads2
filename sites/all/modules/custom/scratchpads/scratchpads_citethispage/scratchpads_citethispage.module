@@ -294,11 +294,12 @@ function scratchpads_citethispage_archive($path, $context, $preview = FALSE){
     'author_data' => serialize($results['author_data']),
     'post' => 'scratchpads_citethispage_msg_token=' . urlencode($rand_token_id) . $open_tids
   );
-  $arguments_str = http_build_query($arguments);
+  $arguments_str = http_build_query($arguments, '', '&');
   $context = stream_context_create(array(
     'http' => array(
       'method' => 'POST',
-      'header' => 'Content-Length: ' . strlen($arguments_str),
+      'header' => 'Content-type: application/x-www-form-urlencoded' . "\r\n"
+                . 'Content-Length: ' . strlen($arguments_str),
       'content' => $arguments_str
     )
   ));
