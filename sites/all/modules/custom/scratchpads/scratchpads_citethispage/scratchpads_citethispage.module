@@ -185,6 +185,7 @@ function scratchpads_citethispage_init(){
           });
         })(jQuery);', 'inline');
       }
+      drupal_add_js(drupal_get_path('module', 'scratchpads_citethispage') . '/js/gmapagg.js');
       // Note that we don't need to delete the token here - the call is synchronous,
       // and the deletion is done by the caller.
     }
