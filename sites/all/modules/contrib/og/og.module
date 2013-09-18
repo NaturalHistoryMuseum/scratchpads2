@@ -357,6 +357,7 @@ function og_modules_enabled($modules) {
   // Reset this cache first, since Drush can call this function multiple times
   // before all modules are available.
   drupal_static_reset('og_get_permissions');
+  entity_get_info(NULL, TRUE);
   foreach ($modules as $module) {
     // Add default roles and permissions, if existing and not set yet.
     og_set_global_access_module($module);
