@@ -176,16 +176,23 @@ function scratchpads_citethispage_init(){
       drupal_set_message($message);
       // Set the slickgrid height/tab/filters if required
       if(!empty($tokens[$token]['slick_state'])){
-        drupal_add_js('(function($){
-          $(document).ready(function() {
-            setTimeout(function() {
-              var state = ' . $tokens[$token]['slick_state'] . ';
-              slickgrid.setGridState(state)
-            }, 1000);
-          });
-        })(jQuery);', 'inline');
+        drupal_add_js(array(
+          'scratchpads_citethispage' => array(
+            'restore_state' => TRUE,
+            'slick_state' => json_decode($tokens[$token]['slick_state'])
+          )
+        ), 'setting');
       }
-      drupal_add_js(drupal_get_path('module', 'scratchpads_citethispage') . '/js/gmapagg.js');
+      // Set the gmap bounds if required
+      if(!empty($tokens[$token]['gmap_state'])){
+        drupal_add_js(array(
+          'scratchpads_citethispage' => array(
+            'restore_state' => TRUE,
+            'gmap_state' => json_decode($tokens[$token]['gmap_state'])
+          )
+        ), 'setting');
+      }
+      drupal_add_js(drupal_get_path('module', 'scratchpads_citethispage') . '/js/pagestate.js');
       // Note that we don't need to delete the token here - the call is synchronous,
       // and the deletion is done by the caller.
     }
@@ -275,9 +282,10 @@ function scratchpads_citethispage_archive($path, $context, $preview = FALSE){
     'title_of_page' => $results['title']
   );
   if(!empty($context['form_state']['values']['citethispage_slick_state'])){
-    // Ensure it's JSON by decoding it and re-encoding it.
-    $json = json_encode(json_decode($context['form_state']['values']['citethispage_slick_state']));
-    $token['slick_state'] = $json;
+    $token['slick_state'] = $context['form_state']['values']['citethispage_slick_state'];
+  }
+  if(!empty($context['form_state']['values']['citethispage_gmap_state'])){
+    $token['gmap_state'] = $context['form_state']['values']['citethispage_gmap_state'];
   }
   $tokens[$rand_token_id] = $token;
   variable_set('scratchpads_citethispage_tokens', $tokens);
@@ -298,8 +306,7 @@ function scratchpads_citethispage_archive($path, $context, $preview = FALSE){
   $context = stream_context_create(array(
     'http' => array(
       'method' => 'POST',
-      'header' => 'Content-type: application/x-www-form-urlencoded' . "\r\n"
-                . 'Content-Length: ' . strlen($arguments_str),
+      'header' => 'Content-type: application/x-www-form-urlencoded' . "\r\n" . 'Content-Length: ' . strlen($arguments_str),
       'content' => $arguments_str
     )
   ));
@@ -395,26 +402,23 @@ function scratchpads_citethispage_form_citethispage_backend_selection_form_alter
         $form['warn'] = $warn;
       }
     }
-    // Add code to parse tinytax block and slickgrid settings so we can replicate the page
+    // Add code to parse tinytax block, slickgrid and gmap settings so we can replicate the page
     drupal_add_js(drupal_get_path('module', 'scratchpads_citethispage') . '/js/pagestate.js');
-    if(isset($form_state['values']['citethispage_open_tids'])){
-      $value = $form_state['values']['citethispage_open_tids'];
-    }else{
-      $value = '';
-    }
-    $form['citethispage_open_tids'] = array(
-      '#type' => 'hidden',
-      '#default_value' => $value
+    $states = array(
+      'citethispage_open_tids',
+      'citethispage_slick_state',
+      'citethispage_gmap_state'
     );
-    if(isset($form_state['values']['citethispage_slick_state'])){
-      $value = $form_state['values']['citethispage_slick_state'];
-    }else{
-      $value = '';
+    foreach($states as $state){
+      $default_value = '';
+      if(isset($form_state['values'][$state])){
+        $default_value = $form_state['values'][$state];
+      }
+      $form[$state] = array(
+        '#type' => 'hidden',
+        '#default_value' => $default_value
+      );
     }
-    $form['citethispage_slick_state'] = array(
-      '#type' => 'hidden',
-      '#default_value' => $value
-    );
   }
 }
 
