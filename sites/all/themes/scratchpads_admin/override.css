@@ -1,4 +1,13 @@
 /* Forms */
+.uuid{
+  font-size:70%;
+  color: #aaa;
+}
+
+.pager.clearfix .active.progress-disabled{
+  float:left !important;
+}
+
 .form-layout-default .column-main .form-actions {
   display: block;
 }
