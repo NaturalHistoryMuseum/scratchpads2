@@ -267,6 +267,17 @@ function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
         if(@isset($form['comment_body'][LANGUAGE_NONE])){
           $form['comment_body'][LANGUAGE_NONE]['#after_build'][] = 'scratchpads_tweaks_comment_body_after_build';
         }
+      }else if(substr($form_id, -10) == '_node_form'){
+        // Add the UUID to the title of the page.
+        if($form['nid']['#value']){
+          $guid = db_select('feeds_item', 'f')->fields('f', array(
+            'guid'
+          ))->condition('entity_type', 'node')->condition('entity_id', $form['nid']['#value'])->execute()->fetchField();
+          if(!$guid){
+            $guid = $form['#node']->uuid;
+          }
+          drupal_set_title(drupal_get_title() . ' <span class="uuid" title="NID : GUID">(' . $form['nid']['#value'] . ' : ' . $guid . ')</span>', PASS_THROUGH);
+        }
       }
   }
 }
