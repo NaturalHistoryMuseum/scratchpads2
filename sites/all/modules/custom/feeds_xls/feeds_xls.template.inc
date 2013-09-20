@@ -288,8 +288,10 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
                       if($item){
                         switch($subkey){
                           case 'tid':
-                            // Do nothing, we're using the TID column instead
-                            // of the name column.
+                            // Links to a term.  We need to load the term, and get the
+                            // value
+                            $term = taxonomy_term_load($item);
+                            $cell_values[] = $term->name;
                             break;
                           case 'licence':
                             $licences = creative_commons_get_licence_types();
