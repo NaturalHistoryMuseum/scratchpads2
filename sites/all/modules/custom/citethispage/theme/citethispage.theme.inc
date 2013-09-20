@@ -70,7 +70,7 @@ function theme_citethispage_info($variables){
     }
   }
   if(!empty($title)){
-    $out .= '<strong>' . t('Title') . ':</strong>' . implode(', ', $title) . '<br/>';
+    $out .= '<strong>' . t('Title') . ':</strong> ' . implode(', ', $title) . '<br/>';
   }
   $initial_authors = array_unique(array_filter($initial_authors));
   sort($initial_authors);
@@ -78,7 +78,7 @@ function theme_citethispage_info($variables){
   sort($other_authors);
   $authors = array_merge($initial_authors, $other_authors);
   if(!empty($authors)){
-    $out .= '<strong>' . t('Authors') . ':</strong>';
+    $out .= '<strong>' . t('Authors') . ':</strong> ';
     $out .= implode(', ', array_slice($authors, 0, 3));
     if(count($authors) > 3){
       $out .= t(' et al.');
@@ -90,7 +90,7 @@ function theme_citethispage_info($variables){
     foreach($date as $date_index => $date_value){
       $date[$date_index] = format_date($date_value);
     }
-    $out .= '<strong>' . t('Date') . ':</strong>' . implode(', ', $date);
+    $out .= '<strong>' . t('Date') . ':</strong> ' . implode(', ', $date);
   }
   return $out;
 }
