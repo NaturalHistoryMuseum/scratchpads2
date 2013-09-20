@@ -9,7 +9,8 @@
   function saveState($form) {
     // Parse the tinytax position
     var open_tids = [];
-    if (typeof Drupal.behaviors.tinytax.getStatus === 'function') {
+    if (typeof Drupal.behaviors.tinytax !== 'undefined' &&
+        typeof Drupal.behaviors.tinytax.getStatus === 'function') {
       var result = Drupal.behaviors.tinytax.getStatus();
       open_tids = result.open_tids;
       $('input[name=citethispage_open_tids]', $form).attr('value', open_tids.join(','));
