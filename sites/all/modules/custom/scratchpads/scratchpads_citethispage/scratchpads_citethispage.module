@@ -72,6 +72,11 @@ function scratchpads_citethispage_citethispage_info(){
           'description' => t('Parses author, date and title information from node pages. Scratchpads aware version.'),
           'default' => variable_get('citethispage_nodes_default', 0),
           'callback' => 'scratchpads_citethispage_nodes_parse_callback'
+        ),
+        'character-editor-project/%' => array(
+          'title' => t('Character editor page information parser'),
+          'description' => t('Returns the author(s) of the character project'),
+          'callback' => 'scratchpads_citethispage_parse_character_editor'
         )
       ),
       'archive' => array(
@@ -128,6 +133,29 @@ function scratchpads_citethispage_nodes_parse_callback($path, $page){
         )
       );
     }
+  }
+  return $result;
+}
+
+/**
+ * scratchpads_citethispage_parse_character_editor
+ */
+function scratchpads_citethispage_parse_character_editor($path, $page){
+  $result = FALSE;
+  if(preg_match('/^character-editor-project\/(\d+)$/', $path, $matches)){
+    $eid = $matches[1];
+    $entity = entity_load_single('character_editor_project', array(
+      $eid
+    ));
+    $item = array();
+    $item['title'] = $entity->title;
+    $item['date'] = $entity->changed;
+    $item = array_merge($item, _scratchpads_citethispage_authors_of_entity('character_editor_project', $eid));
+    $result = array(
+      'character_editor_project' => array(
+        $eid => $item
+      )
+    );
   }
   return $result;
 }
