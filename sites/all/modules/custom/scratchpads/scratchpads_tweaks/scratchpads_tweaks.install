@@ -1261,7 +1261,7 @@ function scratchpads_tweaks_update_7064(&$sandbox){
   }
   $i = 0;
   while($i < 10 && count($sandbox['nids'])){
-    $node = node_load(array_pop($sandbox['cids']));
+    $node = node_load(array_pop($sandbox['nids']));
     unset($node->uuid);
     unset($node->vuuid);
     node_save($node);
