@@ -19,9 +19,11 @@ function twitter_filter_filter_info(){
  */
 function twitter_filter_filter_twitter_script_filter_process($text, $filter, $format, $langcode, $cache, $cache_id){
   $matches = array();
-  preg_match('/\[(twitter|TWITTER):([^\]]*)\]/', $text, $matches);
-  if(count($matches)){
-    $text = str_replace($matches[0], twitter_pull_render($matches[2], NULL, 5), $text);
+  preg_match_all('/\[(twitter|TWITTER):([^\]]*)\]/', $text, $matches);
+  foreach($matches[0] as $key => $match){
+    if(count($matches)){
+      $text = str_replace($match, twitter_pull_render(trim($matches[2][$key]), NULL, 5), $text);
+    }
   }
   return $text;
 }
