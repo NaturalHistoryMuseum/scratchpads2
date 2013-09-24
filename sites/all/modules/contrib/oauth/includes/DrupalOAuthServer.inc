@@ -4,8 +4,8 @@ class DrupalOAuthServer extends OAuthServer {
   public function __construct($context) {
     parent::__construct(new DrupalOAuthDataStore($context));
 
-    if (isset($this->context->authorization_options['signature_methods'])) {
-      $sig_methods = $this->context->authorization_options['signature_methods'];
+    if (isset($context->authorization_options['signature_methods'])) {
+      $sig_methods = $context->authorization_options['signature_methods'];
     }
     else {
       $sig_methods = array('HMAC-SHA1', 'HMAC-SHA256', 'HMAC-SHA384', 'HMAC-SHA512');

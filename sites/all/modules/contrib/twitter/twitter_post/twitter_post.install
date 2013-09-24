@@ -1,10 +1,18 @@
 <?php
-
 /**
  * @file
  * Install, update and uninstall functions for the twitter module.
  *
  */
+
+/**
+ * Implements hook_uninstall().
+ */
+function twitter_post_uninstall() {
+  variable_del('twitter_post_types');
+  variable_del('twitter_post_default_format');
+  variable_del('twitter_post_default_value');
+}
 
 /**
  * Don't default to TinyURL any more.

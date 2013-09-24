@@ -9,28 +9,12 @@ with a Twitter account.
 
 Installation
 ============
-Twitter's REST API library is out of the module. Although this needs an extra step on installation,
-it makes the library reusable for both Drupal 6 and 6 versions and also other modules.
+OAuth module is required for all requests to the Twitter REST API 1.1. When you download the OAuth module, get the latest stable release available at http://drupal.org/project/oauth
 
-To set it up, just download twitter.lib.php from https://github.com/juampy72/twitter-rest-php/downloads
-to your libraries directory (normally sites/all/libraries) so its final location is
-sites/all/libraries/twitter/twitter.lib.php
+Once OAuth and Twitter have been enabled, go to admin/config/services/twitter and follow instructions in order
+to provide your Twitter Application keys.
 
-To verify that it has been installed correctly, view the Status Report at
-http://yoursite/admin/reports/status.
-
-OAuth
-=====
-OAuth module is required for all requests to the Twitter REST API 1.1.
-
-When you download the OAuth module, get the latest stable release available at http://drupal.org/project/oauth
-
-Once OAuth has been enabled, go to admin/config/services/twitter and follow instructions in order
-to provide your Application keys.
-
-How to add a Twitter account to a Drupal user account
-=====================================================
-Read http://drupal.org/node/1253026 for details.
+You can find further installation instructions at http://drupal.org/node/1346824
 
 How to use the username and hashtag input filters
 =================================================
@@ -52,6 +36,8 @@ How to post to Twitter
    node types a user may post to Twitter and the default message.
 3. Verify permissions at admin/people/permissions.
 4. Add a Twitter account and try to edit or post content.
+
+Further information can be found at http://drupal.org/node/1016584.
 
 How to sign in with Twitter
 ===========================
