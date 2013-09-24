@@ -126,6 +126,10 @@ function biblio_refbank_form_biblio_node_form_submit($form, &$form_state){
             '!url' => l($dup_node->title, 'node/' . $dups[0])
           ));
           form_set_error('biblio_refbank', $message);
+        }else{
+          form_set_error('biblio_refbank', t('<strong>RefBank did not return valid BibTeX.</strong><br/>BibTeX returned by RefBank: <pre>"@bibtex"</pre>', array(
+            '@bibtex' => $bibtex
+          )));
         }
       }else{
         form_set_error('biblio_refbank', t('There has been an error.  Please try again.'));
