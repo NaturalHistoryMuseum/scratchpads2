@@ -756,3 +756,14 @@ function scratchpads_user_user_insert(&$edit, $account, $category){
     _user_mail_notify('register_admin_created', $account);
   }
 }
+
+/**
+ * Implements hook_feeds_xls_not_required_alter
+ *
+ * We specify fields that should not be required on user import
+ */
+function scratchpads_user_feeds_xls_not_required_alter(&$fields_array){
+  $fields_array[] = 'field_user_given_names';
+}
+
+

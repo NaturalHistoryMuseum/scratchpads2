@@ -9,6 +9,36 @@ function darwincore_install(){
 }
 
 /**
+ * Implements hook_enable().
+ * 
+ * Re-enable any content types or views that might have been disabled previously
+ */
+function darwincore_enable(){
+  // Enable/re-enable all the features of this module.
+  $feature = features_get_features('darwincore');
+  $components = array_keys($feature->info['features']);
+  features_revert(array(
+    'darwincore' => $components
+  ));
+}
+
+/**
+ * Implements hook_disable().
+ * 
+ * Remove content types defined by this module
+ * 
+ */
+function darwincore_disable(){
+  // if there is no data, remove the fields and content type
+  if(darwincore_node_count() == 0){
+    node_type_delete('location');
+    variable_del('node_preview_location');
+    node_type_delete('specimen_observation');
+    variable_del('node_preview_specimen_observation');
+  }
+}
+
+/**
  * Change the input format for the date collected field.
  */
 function darwincore_update_7001(){
