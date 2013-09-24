@@ -52,6 +52,7 @@ dependencies[] = remember_me
 dependencies[] = role_delegation
 dependencies[] = uuid
 dependencies[] = weight
+dependencies[] = honeypot
 
 ; Scratchpads modules
 dependencies[] = scratchpads_apachesolr_instant

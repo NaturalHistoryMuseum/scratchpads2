@@ -12,10 +12,9 @@ function scratchpads_front_views_default_views(){
   $view->human_name = 'Scratchpads front page blocks';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-  
+  $view->disabled = FALSE;  
   /* Display: Master */
-    $handler = $view->new_display('default', 'Master', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Home page block';
   $handler->display->display_options['css_class'] = 'grid-4';
   $handler->display->display_options['use_more_always'] = FALSE;
@@ -166,10 +165,9 @@ function scratchpads_front_views_default_views(){
   $view->human_name = 'Scratchpads front page taxon description';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-  
+  $view->disabled = FALSE;
   /* Display: Master */
-    $handler = $view->new_display('default', 'Master', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Home page block';
   $handler->display->display_options['css_class'] = 'grid-4';
   $handler->display->display_options['use_more_always'] = FALSE;
@@ -376,9 +374,9 @@ function scratchpads_front_views_default_views(){
   $view->human_name = 'Front page slideshow';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
-      $handler = $view->new_display('default', 'Master', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
@@ -498,24 +496,63 @@ function scratchpads_front_views_default_views(){
   $handler->display->display_options['fields']['filename']['table'] = 'file_managed';
   $handler->display->display_options['fields']['filename']['field'] = 'filename';
   $handler->display->display_options['fields']['filename']['label'] = '';
-  $handler->display->display_options['fields']['filename']['alter']['alter_text'] = 0;
-  $handler->display->display_options['fields']['filename']['alter']['make_link'] = 0;
-  $handler->display->display_options['fields']['filename']['alter']['absolute'] = 0;
-  $handler->display->display_options['fields']['filename']['alter']['external'] = 0;
-  $handler->display->display_options['fields']['filename']['alter']['replace_spaces'] = 0;
-  $handler->display->display_options['fields']['filename']['alter']['trim_whitespace'] = 0;
-  $handler->display->display_options['fields']['filename']['alter']['nl2br'] = 0;
-  $handler->display->display_options['fields']['filename']['alter']['word_boundary'] = 1;
-  $handler->display->display_options['fields']['filename']['alter']['ellipsis'] = 1;
-  $handler->display->display_options['fields']['filename']['alter']['strip_tags'] = 0;
-  $handler->display->display_options['fields']['filename']['alter']['trim'] = 0;
-  $handler->display->display_options['fields']['filename']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['filename']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['filename']['alter']['max_length'] = '75';
+  $handler->display->display_options['fields']['filename']['alter']['trim'] = TRUE;
   $handler->display->display_options['fields']['filename']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['filename']['element_default_classes'] = 1;
-  $handler->display->display_options['fields']['filename']['hide_empty'] = 0;
-  $handler->display->display_options['fields']['filename']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['filename']['hide_alter_empty'] = 1;
-  $handler->display->display_options['fields']['filename']['link_to_file'] = 0;
+  $handler->display->display_options['fields']['filename']['element_wrapper_type'] = 'h3';
+  /* Field: File: Creator */
+  $handler->display->display_options['fields']['field_creator']['id'] = 'field_creator';
+  $handler->display->display_options['fields']['field_creator']['table'] = 'field_data_field_creator';
+  $handler->display->display_options['fields']['field_creator']['field'] = 'field_creator';
+  $handler->display->display_options['fields']['field_creator']['label'] = '';
+  $handler->display->display_options['fields']['field_creator']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['field_creator']['alter']['alter_text'] = TRUE;
+  $handler->display->display_options['fields']['field_creator']['alter']['text'] = '<span class=\'creator\'>Creator: [field_creator]</span>';
+  $handler->display->display_options['fields']['field_creator']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['field_creator']['element_wrapper_type'] = 'div';
+  $handler->display->display_options['fields']['field_creator']['empty'] = '<div></div>';
+  $handler->display->display_options['fields']['field_creator']['hide_alter_empty'] = FALSE;
+  /* Field: File: Licence */
+  $handler->display->display_options['fields']['field_cc_licence_1']['id'] = 'field_cc_licence_1';
+  $handler->display->display_options['fields']['field_cc_licence_1']['table'] = 'field_data_field_cc_licence';
+  $handler->display->display_options['fields']['field_cc_licence_1']['field'] = 'field_cc_licence';
+  $handler->display->display_options['fields']['field_cc_licence_1']['label'] = '';
+  $handler->display->display_options['fields']['field_cc_licence_1']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['field_cc_licence_1']['alter']['alter_text'] = TRUE;
+  $handler->display->display_options['fields']['field_cc_licence_1']['alter']['text'] = '<span class=\'licence\'>[field_cc_licence_1]</span>';
+  $handler->display->display_options['fields']['field_cc_licence_1']['element_label_colon'] = FALSE;
+  /* Field: Container */
+  $handler->display->display_options['fields']['field_cc_licence']['id'] = 'field_cc_licence';
+  $handler->display->display_options['fields']['field_cc_licence']['table'] = 'field_data_field_cc_licence';
+  $handler->display->display_options['fields']['field_cc_licence']['field'] = 'field_cc_licence';
+  $handler->display->display_options['fields']['field_cc_licence']['ui_name'] = 'Container';
+  $handler->display->display_options['fields']['field_cc_licence']['label'] = '';
+  $handler->display->display_options['fields']['field_cc_licence']['alter']['alter_text'] = TRUE;
+  // The display is altered dynamically according to variable values
+  $title_only = "class='title_only'";
+  $creator_display = '';
+  $licence_display = '';
+  $other_fields = '';
+  if(variable_get('front_page_main_block_slideshow_text_creator', 0)){
+    $creator_display = "[field_creator]";
+    $title_only = '';
+  }
+  if(variable_get('front_page_main_block_slideshow_text_licence', 0)){
+    $licence_display = "[field_cc_licence_1]";
+    $title_only = '';
+  }
+  if($title_only == ''){
+    $other_fields = '<div>' . $creator_display . ' ' . $licence_display . '</div>';
+  }
+  $handler->display->display_options['fields']['field_cc_licence']['alter']['text'] = '<div id="slideshow-transparency" ' . $title_only . '></div>
+<div id="slideshow-content" ' . $title_only . '>
+<h3>[filename]</h3>
+' . $other_fields . '
+</div>';
+  $handler->display->display_options['fields']['field_cc_licence']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['field_cc_licence']['element_wrapper_type'] = 'div';
+  $handler->display->display_options['fields']['field_cc_licence']['element_wrapper_class'] = 'caption';
   /* Sort criterion: File: Promote to home page (field_promote_to_home_page) */
   $handler->display->display_options['sorts']['field_promote_to_home_page_value']['id'] = 'field_promote_to_home_page_value';
   $handler->display->display_options['sorts']['field_promote_to_home_page_value']['table'] = 'field_data_field_promote_to_home_page';
@@ -552,6 +589,12 @@ function scratchpads_front_views_default_views(){
   $handler->display->display_options['filters']['uri_1']['field'] = 'uri';
   $handler->display->display_options['filters']['uri_1']['operator'] = 'not';
   $handler->display->display_options['filters']['uri_1']['value'] = '/pictures/';
+  /* Filter criterion: File: Path */
+  $handler->display->display_options['filters']['uri_2']['id'] = 'uri_2';
+  $handler->display->display_options['filters']['uri_2']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['uri_2']['field'] = 'uri';
+  $handler->display->display_options['filters']['uri_2']['operator'] = 'not';
+  $handler->display->display_options['filters']['uri_2']['value'] = '/signature/';
   /* Display: Latest images */
   $handler = $view->new_display('block', 'Latest images', 'block_1');
   $views['front_page_slideshow'] = $view;
@@ -566,9 +609,9 @@ function scratchpads_front_views_default_views(){
   $view->human_name = 'Front page content';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
-      $handler = $view->new_display('default', 'Master', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Home page content';
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';

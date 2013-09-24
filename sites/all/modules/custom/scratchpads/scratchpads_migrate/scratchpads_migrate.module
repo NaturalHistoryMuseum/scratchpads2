@@ -480,18 +480,20 @@ function scratchpads_migrate_register_migrations(){
    * Nodes
    ********************************************************************************************/
   // Create the organic groups migration class seperately so other nodes can be made dependent
-  $arguments = array(
-    'class_name' => 'ScratchpadsNodeOrganicGroupMigration',
-    'description' => t('Migration of %type nodes from Drupal 6', array(
-      '%type' => 'group'
-    )),
-    'machine_name' => 'OrganicGroup',
-    'source_type' => 'group',
-    'destination_type' => 'group'
-  );
-  $arguments = array_merge_recursive($arguments, $common_node_arguments);
-  Migration::registerMigration($arguments['class_name'], $arguments['machine_name'], $arguments);
-  $common_node_arguments['dependencies'][] = 'OrganicGroup';
+  if(scratchpads_migrate_source_table_exists('og')){
+    $arguments = array(
+      'class_name' => 'ScratchpadsNodeOrganicGroupMigration',
+      'description' => t('Migration of %type nodes from Drupal 6', array(
+        '%type' => 'group'
+      )),
+      'machine_name' => 'OrganicGroup',
+      'source_type' => 'group',
+      'destination_type' => 'group'
+    );
+    $arguments = array_merge_recursive($arguments, $common_node_arguments);
+    Migration::registerMigration($arguments['class_name'], $arguments['machine_name'], $arguments);
+    $common_node_arguments['dependencies'][] = 'OrganicGroup';
+  }
   $mappings = DrupalContentTypeMigration::getContentTypeMappings();
   // Get unmapped node types (custom content types on site)
   $query = Database::getConnection('default', 'scratchpad_1')->select('node_type', 'nt');
@@ -1091,9 +1093,9 @@ function scratchpads_migrate_node_save($node, $revision_only = FALSE){
     if($node->is_new){
       // For new nodes, save new records for both the node itself and the node
       // revision.
-      if (!$revision_only) {
+      if(!$revision_only){
         drupal_write_record('node', $node);
-      } else {
+      }else{
         $update_node = FALSE;
       }
       _node_save_revision($node, $user->uid);
@@ -1101,9 +1103,9 @@ function scratchpads_migrate_node_save($node, $revision_only = FALSE){
     }else{
       // For existing nodes, update the node record which matches the value of
       // $node->nid.
-      if (!$revision_only) {
+      if(!$revision_only){
         drupal_write_record('node', $node, 'nid');
-      } else {
+      }else{
         $update_node = FALSE;
       }
       // Then, if a new node revision was requested, save a new record for

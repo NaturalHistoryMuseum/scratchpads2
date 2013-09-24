@@ -442,7 +442,7 @@ function _apachesolr_index_process_entity_get_document($entity, $entity_type) {
   $languages = language_list();
   $url_options = array('absolute' => TRUE);
   if (isset($entity->language) && isset($languages[$entity->language])) {
-    $url_options = $url_options + array('language' => $languages[$entity->language]);
+    $url_options['language'] = $languages[$entity->language];
   }
 
   $document->id = apachesolr_document_id($entity_id, $entity_type);
@@ -456,10 +456,10 @@ function _apachesolr_index_process_entity_get_document($entity, $entity_type) {
 
   if (empty($entity->language)) {
     // 'und' is the language-neutral code in Drupal 7.
-    $document->language = LANGUAGE_NONE;
+    $document->ss_language = LANGUAGE_NONE;
   }
   else {
-    $document->language = $entity->language;
+    $document->ss_language = $entity->language;
   }
 
   $path = entity_uri($entity_type, $entity);
@@ -472,7 +472,7 @@ function _apachesolr_index_process_entity_get_document($entity, $entity_type) {
     if (function_exists('drupal_get_path_alias')) {
       // Add any path alias to the index, looking first for language specific
       // aliases but using language neutral aliases otherwise.
-      $output = drupal_get_path_alias($document->path, $document->language);
+      $output = drupal_get_path_alias($document->path, $document->ss_language);
       if ($output && $output != $document->path) {
         $document->path_alias = $output;
       }
@@ -578,6 +578,9 @@ function apachesolr_index_delete_index($env_id, $entity_type = NULL, $bundle = N
     $solr->deleteByQuery($query);
     $solr->commit();
 
+    // Log the query used for deletion.
+    watchdog('Apache Solr', 'Deleted documents from index with query @query', array('@query' => $query), WATCHDOG_INFO);
+
     if (!empty($entity_type)) {
       $rebuild_callback = apachesolr_entity_get_callback($entity_type, 'reindex callback');
       if (is_callable($rebuild_callback)) {
@@ -619,6 +622,9 @@ function apachesolr_index_delete_bundles($env_id, $entity_type, array $excluded_
       // content:  $query = 'hash:' . apachesolr_site_hash()
       drupal_alter('apachesolr_delete_by_query', $query);
       $solr->deleteByQuery($query);
+
+      // Log the query used for deletion.
+      watchdog('Apache Solr', 'Deleted documents from index with query @query', array('@query' => $query), WATCHDOG_INFO);      
     }
     if ($excluded_bundles) {
       $solr->commit();
@@ -648,11 +654,16 @@ function apachesolr_index_delete_entity_from_index($env_id, $entity_type, $entit
   if ($failed) {
     return FALSE;
   }
+  if (apachesolr_environment_variable_get($env_id, 'apachesolr_read_only', APACHESOLR_READ_WRITE) == APACHESOLR_READ_ONLY) {
+    return FALSE;
+  }
   try {
     $solr = apachesolr_get_solr($env_id);
     $document_id = apachesolr_document_id($entity_id, $entity_type);
     $query = "id:\"$document_id\" OR sm_parent_document_id:\"$document_id\"";
     $solr->deleteByQuery($query);
+    // Log the query used for deletion.
+    watchdog('Apache Solr', 'Deleted documents from index with query @query', array('@query' => $query), WATCHDOG_INFO);    
     apachesolr_set_last_index_updated($env_id, REQUEST_TIME);
     return TRUE;
   }
@@ -791,24 +802,16 @@ function apachesolr_index_node_solr_document(ApacheSolrDocument $document, $node
     $document->teaser = truncate_utf8($document->content, 300, TRUE);
   }
 
-  // Path aliases can have important information about the content.
-  // Add them to the index as well.
-  if (function_exists('drupal_get_path_alias')) {
-    // Add any path alias to the index, looking first for language specific
-    // aliases but using language neutral aliases otherwise.
-    $language = empty($node->language) ? NULL : $node->language;
-    $path = 'node/' . $node->nid;
-    $output = drupal_get_path_alias($path, $language);
-    if ($output && $output != $path) {
-      $document->path_alias = $output;
-    }
-  }
-
   // Author information
-  $document->ss_name = $node->name;
-  // We want the name to be searchable for keywords.
-  $document->tos_name = $node->name;
-
+  if ($node->uid == 0 || strlen($node->name) == 0) {
+    // @see user_validate_name(). !'0' === TRUE.
+    $document->ss_name = '0';
+  }
+  else {
+    $document->ss_name = $node->name;
+    // We want the name to be searchable for keywords.
+    $document->tos_name = $node->name;
+  }
   // Index formatted username so it can be searched and sorted on.
   $account = (object) array('uid' => $node->uid, 'name' => $node->name);
   $username = format_username($account);
@@ -820,15 +823,6 @@ function apachesolr_index_node_solr_document(ApacheSolrDocument $document, $node
   $document->bs_promote = $node->promote;
   $document->is_tnid = $node->tnid;
   $document->bs_translate = $node->translate;
-
-  // Language specific checks
-  if (empty($node->language)) {
-    // 'und' is the language-neutral code in Drupal 7.
-    $document->ss_language = LANGUAGE_NONE;
-  }
-  else {
-    $document->ss_language = $node->language;
-  }
 
   // Timestamp of the node
   $document->ds_created = apachesolr_date_iso($node->created);
@@ -973,22 +967,26 @@ function apachesolr_index_node_solr_reindex($env_id, $bundle = NULL) {
  *
  * @param $entity_id
  * @param $entity_type
+ * @param $entity
+ *   In the case where the status is being checked while the entity is being
+ *   saved, this contains the full entity object. In other cases, it will be
+ *   NULL.
  *
  * @return int
  *   The status of the node
  */
-function apachesolr_index_node_status_callback($entity_id, $entity_type) {
-  // Make sure we have a boolean value.
-  // Anything different from 1 becomes zero
-  $entity = entity_load($entity_type, array($entity_id));
-  $entity = $entity ? reset($entity) : FALSE;
-
+function apachesolr_index_node_status_callback($entity_id, $entity_type, $entity = NULL) {
+  if ($entity === NULL) {
+    $entity = entity_load($entity_type, array($entity_id));
+    $entity = $entity ? reset($entity) : FALSE;
+  }
   if (empty($entity)) {
     // If the object failed to load, just stop.
     return FALSE;
   }
-  $status = ($entity->status == 1 ? 1 : 0);
-  return $status;
+  // Make sure we have an integer value.
+  // Anything different from 1 becomes zero
+  return ($entity->status == 1 ? 1 : 0);
 }
 
 /**
@@ -1028,7 +1026,7 @@ function apachesolr_term_reference_indexing_callback($node, $field_name, $index_
         // hierarchy at all.
         // If the term is singular, then we cannot add another value to the
         // document as the field is single
-        if ($field_info['multiple'] == true) {
+        if ($field_info['multiple']) {
           $fields[] = array(
             'key' => $index_key,
             'value' => $ancestor->tid,

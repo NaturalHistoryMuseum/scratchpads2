@@ -104,14 +104,29 @@ class MigrateSQLMap extends MigrateMap {
         $count = 1;
         $source_key_schema = array();
         $pks = array();
+        $key_length = 0;
+        $var_char_fields = 0;
         foreach ($this->sourceKey as $field_schema) {
           $mapkey = 'sourceid' . $count++;
           $source_key_schema[$mapkey] = $field_schema;
           $pks[] = $mapkey;
+          if ($field_schema['type'] == 'varchar') {
+            $key_length += $field_schema['length'] * 3;
+            $var_char_fields++;
+          }
         }
-
+        if ($key_length > 1000) {
+          $new_pks = array();
+          foreach ($pks as $pk) {
+            if ($source_key_schema[$pk]['type'] == 'varchar') {
+              $new_pks[] = array($pk, intval(1000/(3*$var_char_fields)));
+            } else {
+              $new_pks[] = $pk;
+            }
+          }
+          $pks = $new_pks;
+        }
         $fields = $source_key_schema;
-
         // Add destination keys to map table
         // TODO: How do we discover the destination schema?
         $count = 1;
