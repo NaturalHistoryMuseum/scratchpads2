@@ -1,0 +1,36 @@
+diff --git a/drupal/sites/all/modules/contrib/node_clone/clone.pages.inc b/drupal/sites/all/modules/contrib/node_clone/clone.pages.inc
+index 631d0db..7373fcb 100644
+--- a/drupal/sites/all/modules/contrib/node_clone/clone.pages.inc
++++ b/drupal/sites/all/modules/contrib/node_clone/clone.pages.inc
+@@ -149,6 +149,15 @@ function clone_node_prepopulate($original_node) {
+       $node->nid = NULL;
+       $node->vid = NULL;
+       $node->tnid = NULL;
++
++      // UUID support.
++      // @see http://drupal.org/node/1868302
++      if (module_exists('uuid')) {
++        $node->uuid = NULL;
++        $node->vuuid = NULL;
++        $node->log = NULL;
++      }
++
+       // Anyonmymous users don't have a name.
+       // @see: drupal_anonymous_user().
+       $node->name = isset($user->name) ? $user->name : NULL;
+@@ -200,6 +209,15 @@ function clone_node_save($nid) {
+       $node->nid = NULL;
+       $node->vid = NULL;
+       $node->tnid = NULL;
++      
++      // UUID support.
++      // @see http://drupal.org/node/1868302
++      if (module_exists('uuid')) {
++        $node->uuid = NULL;
++        $node->vuuid = NULL;
++        $node->log = NULL;
++      }
++
+       // Anyonmymous users don't have a name.
+       // @see: drupal_anonymous_user().
+       $node->name = isset($user->name) ? $user->name : NULL;
