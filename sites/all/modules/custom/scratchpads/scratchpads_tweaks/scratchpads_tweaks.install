@@ -325,11 +325,7 @@ function scratchpads_tweaks_install(){
 }
 
 /**
- * Add the twitterscript filter.
- *
- * NOTE, This update should be renumbered and altered when wanting to update the
- * filters.  The hook_install function will also need to be changed to reflect
- * the renumber.
+ * Helper script to install/update filters.
  */
 function scratchpads_tweaks_install_help_install_filters(){
   // Add text formats.
@@ -375,15 +371,15 @@ function scratchpads_tweaks_install_help_install_filters(){
         'weight' => 12,
         'status' => 1
       ),
-      'twitterscript_filter' => array(
-        'weight' => 100,
+      'twitter_filter_filter' => array(
+        'weight' => 1000,
         'status' => 1
       )
     )
   );
   $filtered_html_format = (object)$filtered_html_format;
   filter_format_save($filtered_html_format);
-  unset($filtered_html_format->filters['twitterscript_filter']);
+  unset($filtered_html_format->filters['twitter_filter_filter']);
   $filtered_html_format->format = 'comment_filtered_html';
   $filtered_html_format->name = 'Comment Filtered HTML';
   $filtered_html_format->weight = 1;
@@ -874,21 +870,14 @@ function scratchpads_tweaks_update_7025(){
 }
 
 /**
- * Enable the twitterscript module.
+ * Enable the twitter script module.
+ * 
+ * Removed - the module has been removed from Scratchpads
  */
-function scratchpads_tweaks_update_7026(){
-  module_enable(array(
-    'twitterscript'
-  ));
-}
-
 /**
- * Add the twitterscript filter.
+ * Add the twitter script filter.
+ * Removed - the module has been removed from Scratchpads
  */
-function scratchpads_tweaks_update_7027(){
-  scratchpads_tweaks_install_help_install_filters();
-}
-
 /**
  * Add h1, h2 and div tags.
  */
@@ -1284,4 +1273,17 @@ function scratchpads_tweaks_update_7065(&$sandbox){
     ))->condition('guid', $old_uuid)->condition('entity_id', $node->nid)->execute();
   }
   $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['nids'])) / $sandbox['max'];
+}
+
+/**
+ * Update the filters to ensure the new twitter filter is in there.
+ */
+function scratchpads_tweaks_update_7066(){
+  module_disable(array(
+    'twitterscript'
+  ));
+  module_enable(array(
+    'twitter_filter'
+  ));
+  scratchpads_tweaks_install_help_install_filters();
 }
