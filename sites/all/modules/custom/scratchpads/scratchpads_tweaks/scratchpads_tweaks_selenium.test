@@ -12,6 +12,7 @@ if(!class_exists('DrupalSeleniumWebTestCase')){
 class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
 
   protected $admin_user;
+
   protected $basic_user;
 
   protected $profile = 'scratchpad_2';
@@ -49,7 +50,7 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
       Database::addConnectionInfo('default', 'default', $connection_info['default']);
       $this->switchConnectionTo('simpletest_original_default');
     }
-    $this->admin_user = $this->drupalCreateUser(array(
+    $this->admin_user = $this->drupalCreateUserWithName(array(
       'access content',
       'access administration pages',
       'administer site configuration',
@@ -63,14 +64,15 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
       'view the administration theme',
       'access all views',
       'administer comments',
-      'administer front page'
-    ));
+      'administer front page',
+      'access toolbar'
+    ), 'admin-user');
     legal_save_accept(1, 1, 'en', $this->admin_user->uid);
-    
-    $this->basic_user = $this->drupalCreateUser(array(
-     'access content',
-    'access user profiles'   
-    ));
+    // Create a user with username 'basic-user'
+    $this->basic_user = $this->drupalCreateUserWithName(array(
+      'access content',
+      'access user profiles'
+    ), 'basic-user');
     legal_save_accept(1, 1, 'en', $this->basic_user->uid);
   }
 
@@ -122,10 +124,81 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
   }
 
   /**
+   * Allow the creation of a user with a specific username
+   */
+  protected function drupalCreateUserWithName(array $permissions = array(), $username){
+    // Create a role with the given permission set, if any.
+    $rid = FALSE;
+    if($permissions){
+      $rid = $this->drupalCreateRole($permissions);
+      if(!$rid){return FALSE;}
+    }
+    // Create a user assigned to that role.
+    $edit = array();
+    $edit['name'] = $username;
+    $edit['mail'] = $edit['name'] . '@example.com';
+    $edit['pass'] = user_password();
+    $edit['status'] = 1;
+    if($rid){
+      $edit['roles'] = array(
+        $rid => $rid
+      );
+    }
+    $account = user_save(drupal_anonymous_user(), $edit);
+    $this->assertTrue(!empty($account->uid), t('User created with name %name and pass %pass', array(
+      '%name' => $edit['name'],
+      '%pass' => $edit['pass']
+    )), t('User login'));
+    if(empty($account->uid)){return FALSE;}
+    // Add the raw password so that we can log in as this user.
+    $account->pass_raw = $edit['pass'];
+    return $account;
+  }
+  //
+  /**
+   * Returns a new vocabulary with random properties.
+   * Code based on TaxonomyWebTestCase::createVocabulary
+   */
+  function createBioVocabularyWithName($name = ''){
+    // Create a vocabulary.
+    $vocabulary = new stdClass();
+    if($name != ''){
+      $vocabulary->name = $name;
+    }else{
+      $vocabulary->name = $this->randomName();
+    }
+    $vocabulary->description = $this->randomName();
+    $vocabulary->machine_name = drupal_strtolower($this->randomName());
+    $vocabulary->help = '';
+    $vocabulary->biological_classification = 1;
+    $vocabulary->nodes = array(
+      'article' => 'article'
+    );
+    $vocabulary->weight = mt_rand(0, 10);
+    taxonomy_vocabulary_save($vocabulary);
+    return $vocabulary;
+  }
+
+  /**
+   * Returns a new term with random properties in vocabulary $vid.
+   * Code based on TaxonomyWebTestCase::createTerm
+   */
+  protected function createTermWithName($vocabulary, $name){
+    $term = new stdClass();
+    $term->name = $name;
+    $term->description = $this->randomName();
+    // Use the first available text format.
+    $term->format = db_query_range('SELECT format FROM {filter_format}', 0, 1)->fetchField();
+    $term->vid = $vocabulary->vid;
+    taxonomy_term_save($term);
+    return $term;
+  }
+/**
    * Simple test to see if we can login and access the home page
    */
-  function testSimple(){
-    $this->drupalLogin($this->basic_user);
-    $this->drupalGet('');
-  }
+  // We remove this test as it slows up all dependant tests
+  //function testSimple(){
+  //  $this->drupalLogin($this->basic_user);
+  //  $this->drupalGet('');
+  // }
 }

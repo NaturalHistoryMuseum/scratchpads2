@@ -54,12 +54,12 @@ class DarwincoreTestCase extends ScratchpadsTweaksTestCase{
    */
   function testWrapper(){
     $this->drupalLogin($this->admin_user);
- //   $this->validateRequiredFields();
- //   $this->validateDefaultFields();
- //   $this->validateFieldsGroups();
+    $this->validateRequiredFields();
+    $this->validateDefaultFields();
+    $this->validateFieldsGroups();
     $this->validateCreateSpecimenObservation();
- //   $this->validateCreateLocation();
- //   $this->validateGenBankNumbers();
+    $this->validateCreateLocation();
+    $this->validateGenBankNumbers();
   }
 
   /**
