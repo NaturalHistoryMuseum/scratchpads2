@@ -21,7 +21,7 @@ function hook_twitter_accounts($account) {}
  *
  * @param $status
  *   stdClass containing information about the status message.
- * @see twitter_status_save() for details about the contents of $status.
+ * @see https://dev.twitter.com/docs/platform-objects/tweets for details about the contents of $status.
  */
 function hook_twitter_status_save($status) {}
 
