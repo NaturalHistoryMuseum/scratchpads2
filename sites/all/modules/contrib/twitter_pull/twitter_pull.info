@@ -1,0 +1,16 @@
+name = Twitter Pull
+description = Pull Info from Twitter and Create Contextual Insets
+package = Other
+core = 7.x
+dependencies[] = twitter
+files[] = twitter_pull.module
+files[] = twitter_pull.install
+files[] = plugins/twitter_pull_box.inc
+files[] = twitter_pull.class.inc
+
+; Information added by drupal.org packaging script on 2013-09-11
+version = "7.x-2.0-alpha2+3-dev"
+core = "7.x"
+project = "twitter_pull"
+datestamp = "1378896416"
+
