@@ -195,98 +195,100 @@ function silver_feeds_importer_default(){
     _silver_feeds_importer_default_helper($field_info, $feeds_importer, "file:$file_type:");
     $export['file_importer_' . $file_type] = $feeds_importer;
   }
-  // Users
-  $feeds_importer = new stdClass();
-  $feeds_importer->disabled = FALSE;
-  $feeds_importer->api_version = 1;
-  $feeds_importer->id = 'user_importer_user';
-  $feeds_importer->config = array(
-    'name' => t('Import into: Users'),
-    'description' => t('Add and Update users.'),
-    'fetcher' => array(
-      'plugin_key' => 'FeedsFileFetcher',
-      'config' => array(
-        'allowed_extensions' => 'xls xlsx',
-        'direct' => 0
-      )
-    ),
-    'parser' => array(
-      'plugin_key' => 'FeedsExcelParser',
-      'config' => array(
-        'no_headers' => 0,
-        'all_worksheets' => 1
-      )
-    ),
-    'processor' => array(
-      'plugin_key' => 'FeedsUserProcessor',
-      'config' => array(
-        'status' => 1,
-        'mappings' => array(),
-        'update_existing' => '1'
-      )
-    ),
-    'update' => 0,
-    'import_period' => -1,
-    'expire_period' => 3600,
-    'import_on_create' => TRUE,
-    'process_in_background' => FALSE
-  );
-  // Add user fields 
-  // We use the form to ensure that the fields are in the same order as the form
-  $form = drupal_get_form('user_register_form');
-  $field_info = field_info_instances('user', 'user');
-  $ordered_field_info = array();
-  $order = array();
-  $group_number = 0;
-  // If we are using fieldgroups, as in biography
-  if(!empty($form['#groups'])){
-    foreach($form['#groups'] as $group_name => $group){
-      if($group_name != 'group_tabs'){
-        foreach($group->children as $field_name){
-          // GroupNumber - Weight - Fieldname
-          $order[$group_number . $form[$field_name]['#weight'] . $field_name] = $field_name;
+  // Users ---------------------------------------------------------------------
+  if(user_access('administer users')){
+    // Add user fields 
+    // We use the form to ensure that the fields are in the same order as the form
+    $feeds_importer = new stdClass();
+    $feeds_importer->disabled = FALSE;
+    $feeds_importer->api_version = 1;
+    $feeds_importer->id = 'user_importer_user';
+    $feeds_importer->config = array(
+      'name' => t('Import into: Users'),
+      'description' => t('Add and Update users.'),
+      'fetcher' => array(
+        'plugin_key' => 'FeedsFileFetcher',
+        'config' => array(
+          'allowed_extensions' => 'xls xlsx',
+          'direct' => 0
+        )
+      ),
+      'parser' => array(
+        'plugin_key' => 'FeedsExcelParser',
+        'config' => array(
+          'no_headers' => 0,
+          'all_worksheets' => 1
+        )
+      ),
+      'processor' => array(
+        'plugin_key' => 'FeedsUserProcessor',
+        'config' => array(
+          'status' => 1,
+          'mappings' => array(),
+          'update_existing' => '1'
+        )
+      ),
+      'update' => 0,
+      'import_period' => -1,
+      'expire_period' => 3600,
+      'import_on_create' => TRUE,
+      'process_in_background' => FALSE
+    );
+    $form = drupal_get_form('user_register_form');
+    $field_info = field_info_instances('user', 'user');
+    $ordered_field_info = array();
+    $order = array();
+    $group_number = 0;
+    // If we are using fieldgroups, as in biography
+    if(!empty($form['#groups'])){
+      foreach($form['#groups'] as $group_name => $group){
+        if($group_name != 'group_tabs'){
+          foreach($group->children as $field_name){
+            // GroupNumber - Weight - Fieldname
+            $order[$group_number . $form[$field_name]['#weight'] . $field_name] = $field_name;
+          }
         }
+        $group_number++;
       }
-      $group_number++;
+    }else{
+      // No fieldgroups, as in default scratchpads
+      foreach($field_info as $field_name => $info){
+        $order[$form[$field_name]['#weight'] . $field_name] = $field_name;
+      }
     }
-  }else{
-    // No fieldgroups, as in default scratchpads
+    ksort($order);
+    foreach($order as $field_name){
+      $ordered_field_info[$field_name] = $field_info[$field_name];
+      unset($field_info[$field_name]);
+    }
+    // Add any fields that are not in fieldgroups to the end
     foreach($field_info as $field_name => $info){
-      $order[$form[$field_name]['#weight'] . $field_name] = $field_name;
+      $ordered_field_info[$field_name] = $info;
     }
+    $field_info = $ordered_field_info;
+    _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'user:user:');
+    $feeds_importer->config['processor']['config']['mappings'][] = array(
+      'source' => 'E-Mail',
+      'target' => 'mail',
+      'unique' => TRUE
+    );
+    $feeds_importer->config['processor']['config']['mappings'][] = array(
+      'source' => 'Username',
+      'target' => 'name',
+      'unique' => TRUE
+    );
+    $feeds_importer->config['processor']['config']['mappings'][] = array(
+      'source' => 'Password',
+      'target' => 'pass',
+      'unique' => 0
+    );
+    $feeds_importer->config['processor']['config']['mappings'][] = array(
+      'source' => 'GUID',
+      'target' => 'guid',
+      'unique' => 1
+    );
+    $export['user_importer_user'] = $feeds_importer;
   }
-  ksort($order);
-  foreach($order as $field_name){
-    $ordered_field_info[$field_name] = $field_info[$field_name];
-    unset($field_info[$field_name]);
-  }
-  // Add any fields that are not in fieldgroups to the end
-  foreach($field_info as $field_name => $info){
-    $ordered_field_info[$field_name] = $info;
-  }
-  $field_info = $ordered_field_info;
-  _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'user:user:');
-  $feeds_importer->config['processor']['config']['mappings'][] = array(
-    'source' => 'E-Mail',
-    'target' => 'mail',
-    'unique' => TRUE
-  );
-  $feeds_importer->config['processor']['config']['mappings'][] = array(
-    'source' => 'Username',
-    'target' => 'name',
-    'unique' => TRUE
-  );
-  $feeds_importer->config['processor']['config']['mappings'][] = array(
-    'source' => 'Password',
-    'target' => 'pass',
-    'unique' => 0
-  );
-  $feeds_importer->config['processor']['config']['mappings'][] = array(
-    'source' => 'GUID',
-    'target' => 'guid',
-    'unique' => 1
-  );
-  $export['file_importer_' . $file_type] = $feeds_importer;
   return $export;
 }
 
@@ -316,8 +318,9 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
         );
         break;
       case 'date':
+      case 'datetime':
         // Add the from date, and also the to date if required.
-        // We add two columns for the user reference field.
+       
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field_collection_label_addition . $field['label'] . ' (' . t('Start') . ')',
           'target' => $map_field_collection ? $map_field_collection . $key . ':start' : $key . ':start',
@@ -330,8 +333,12 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
         );
         break;
       case 'link_field':
-        // Add the from date, and also the to date if required.
-        // We add two columns for the user reference field.
+        // We add two columns: 'title' and 'url'
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field_collection_label_addition . $field['label'] . ' (' . t('TITLE') . ')',
+          'target' => $map_field_collection ? $map_field_collection . $key . ':title' : $key . ':title',
+          'unique' => 0
+        );
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field_collection_label_addition . $field['label'] . ' (' . t('URL') . ')',
           'target' => $map_field_collection ? $map_field_collection . $key . ':url' : $key . ':url',
