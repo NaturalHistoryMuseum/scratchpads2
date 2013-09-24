@@ -103,6 +103,14 @@ function scratchpads_user_admin_account($form, &$form_state, $status_filter = NU
   foreach(module_invoke_all('user_operations') as $operation => $array){
     $options[$operation] = $array['label'];
   }
+  if (arg(2) == 'non_users'){   
+    unset($options['block']);
+    unset($options['unblock']);
+    unset($options['Add a role to the selected users']);
+    unset($options['Remove a role from the selected users']);
+    $options['cancel'] = 'Cancel the selected accounts';
+  }
+  
   $form['options']['operation'] = array(
     '#type' => 'select',
     '#title' => t('Operation'),
