@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * Implements hook_filter_info
+ */
+function twitter_filter_filter_info(){
+  return array(
+    'twitter_filter_filter' => array(
+      'title' => t('TwitterScript filter'),
+      'description' => t('Allows a user to enter [TWITTER:SEARCH TERMS] to embed a twitter feed on a page.'),
+      'process callback' => 'twitter_filter_filter_twitter_script_filter_process',
+      'weight' => 1000
+    )
+  );
+}
+
+/**
+ * Callback for the filter defined above.
+ */
+function twitter_filter_filter_twitter_script_filter_process($text, $filter, $format, $langcode, $cache, $cache_id){
+  $matches = array();
+  preg_match_all('/\[(twitter|TWITTER):([^\]]*)\]/', $text, $matches);
+  foreach($matches[0] as $key => $match){
+    if(count($matches)){
+      $text = str_replace($match, twitter_pull_render(trim($matches[2][$key]), NULL, 5), $text);
+    }
+  }
+  return $text;
+}
