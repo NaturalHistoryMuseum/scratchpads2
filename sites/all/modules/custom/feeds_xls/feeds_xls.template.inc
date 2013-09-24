@@ -111,7 +111,7 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
       case 'node':
         $results = db_select('node', 'e')->fields('e', array(
           'nid'
-        ))->condition('type', $feeds_importer->processor->config['content_type'])->execute();
+        ))->condition('type', $feeds_importer->processor->config['bundle'])->execute();
         $entity_key = 'nid';
         $context['sandbox']['entity'] = 'node';
         break;
