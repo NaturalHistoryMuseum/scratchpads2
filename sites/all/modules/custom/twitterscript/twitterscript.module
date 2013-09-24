@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * Implements hook_filter_info
+ */
+function twitterscript_filter_info(){
+  return array(
+    'twitterscript_filter' => array(
+      'title' => t('TwitterScript filter'),
+      'description' => t('Allows a user to enter [TWITTER:SEARCH TERMS] which negates the effects of strict filtering or WYSIWYG editors.'),
+      'process callback' => 'twitterscript_filter_twitterscript_filter_process',
+      'weight' => 1000
+    )
+  );
+}
+
+/**
+ * Callback for the filter defined above.
+ */
+function twitterscript_filter_twitterscript_filter_process($text, $filter, $format, $langcode, $cache, $cache_id){
+  $matches = array();
+  preg_match('/\[(twitter|TWITTER):([^\]]*)\]/', $text, $matches);
+  if(count($matches)){
+    $text = str_replace($matches[0], '<div class="twitterscript">' . $matches[2] . '</div>', $text);
+  }
+  return $text;
+}
