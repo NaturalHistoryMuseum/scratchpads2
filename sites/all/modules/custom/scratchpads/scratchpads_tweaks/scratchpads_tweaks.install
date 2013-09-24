@@ -1233,6 +1233,6 @@ function scratchpads_tweaks_update_7063(){
 /**
  * Update the filters to ensure the new twitter filter is in there.
  */
-function scratchpads_tweaks_udpate_7064(){
+function scratchpads_tweaks_update_7064(){
   scratchpads_tweaks_install_help_install_filters();
 }
