@@ -1,3 +1,11 @@
+2.1.9.2 (2013-09-24)
+
+- Prevent non-admin users from being redirected to their user page (#3444)
+
+2.1.9.1 (2013-09-13)
+
+- Ensure select text fields can be imported from Excel (#3393)
+
 2.1.9 (2013-09-11)
 
 - Ensure the EOL TCS import works (#3318)
