@@ -11,9 +11,6 @@ function dwca_export_views_default_views(){
   static $view_description_names = array(
     'general_description',
     'morphology',
-  
-  
-  
     'behavious',
     'biology',
     'conservation_status',
@@ -471,6 +468,17 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['fid']['field'] = 'fid';
   $handler->display->display_options['fields']['fid']['alter']['alter_text'] = TRUE;
   $handler->display->display_options['fields']['fid']['alter']['text'] = $base_url . '/file/[fid]';
+  /* Field: File: Licence */
+  $handler->display->display_options['fields']['field_cc_licence_1']['id'] = 'field_cc_licence_1';
+  $handler->display->display_options['fields']['field_cc_licence_1']['table'] = 'field_data_field_cc_licence';
+  $handler->display->display_options['fields']['field_cc_licence_1']['field'] = 'field_cc_licence';
+  $handler->display->display_options['fields']['field_cc_licence_1']['label'] = 'Rights Statement';
+  $handler->display->display_options['fields']['field_cc_licence_1']['alter']['alter_text'] = TRUE;
+  $handler->display->display_options['fields']['field_cc_licence_1']['alter']['text'] = '&nbsp;';
+  $handler->display->display_options['fields']['field_cc_licence_1']['alter']['trim_whitespace'] = TRUE;
+  $handler->display->display_options['fields']['field_cc_licence_1']['empty'] = 'All Rights Reserved';
+  $handler->display->display_options['fields']['field_cc_licence_1']['hide_alter_empty'] = FALSE;
+  $handler->display->display_options['fields']['field_cc_licence_1']['type'] = 'creative_commons_url';
   /* Filter criterion: File: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'file_managed';
@@ -1527,7 +1535,7 @@ function _dwca_export_view_description($desc_type){
   $handler->display->display_options['fields']['nothing']['table'] = 'views';
   $handler->display->display_options['fields']['nothing']['field'] = 'nothing';
   $handler->display->display_options['fields']['nothing']['label'] = 'Rights';
-  $handler->display->display_options['fields']['nothing']['alter']['text'] = variable_get('creative_commons_block_licence_type');
+  $handler->display->display_options['fields']['nothing']['alter']['text'] = '';
   $handler->display->display_options['fields']['nothing']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['nothing']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['nothing']['alter']['external'] = 0;
