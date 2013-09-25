@@ -34,6 +34,8 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    * A wrapper for the following tests
    * - Create Location
    * - Create Specimen Observation
+   * - Test that we cannot create another location with the same name
+   * - Test that we cannot create another Specimen Observation with the same name
    * - Edit Location
    * - Edit Specimen Observation
    * - Delete Location
@@ -45,12 +47,11 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $term1 = $this->createTermWithName($vocabulary, 'term1');
     $location_title = $this->verifyCreateLocation();
     $specimen_observation_title = $this->verifyCreateSpecimenObservation($location_title, $term1);
-    // Test that we cannot create location with the same name
     $this->verifyUniqueLocation($location_title);
-   // $this->verifyEditLocation($location_title);
-  //  $specimen_observation_title = $this->verifyEditSpecimenObservation($specimen_observation_title);
-  //  $this->verifyDeleteLocation($location_title);
- //   $this->verifyDeleteSpecimenObservation($specimen_observation_title);
+    $this->verifyEditLocation($location_title);
+    $specimen_observation_title = $this->verifyEditSpecimenObservation($specimen_observation_title);
+    $this->verifyDeleteLocation($location_title);
+    $this->verifyDeleteSpecimenObservation($specimen_observation_title);
   }
 
   /**
@@ -60,7 +61,6 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->drupalGet('node/add/location');
     $field_data = array(
       'title' => $this->randomName(),
-      'field_map' => '(40.64730356252251, -3.33984375)',
       'field_continent_or_ocean' => 'Europe',
       'field_country' => 'Spain',
       'field_island' => $this->randomName(),
@@ -78,13 +78,18 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       'field_min_depth' => rand(1, 100),
       'field_max_depth' => rand(1, 100)
     );
+    // Set title
     $element = $this->driver->getElement("name=title");
     $element->clear();
     $element->sendKeys($field_data['title']);
-    // Could we click the actual map??
-    $element = $this->driver->getElement("name=field_map[und][map][map]");
-    $element->clear();
-    $element->sendKeys($field_data['field_map']);
+    // Click on '+ Point'
+    $element = $this->driver->getElement("xpath=//*[text()='+ Point']");
+    $element->click();
+    // Click on the map (We click in the centre of the first image within the map)
+    $images = $this->driver->getAllElements("css=#field_map img");
+    $images[0]->click();
+    $element = $this->driver->getElement('name=field_map[und][map][map]');
+    $this->verboseScreenshot();
     // Click tab
     $this->driver->getElement('css=ul.vertical-tabs-list li.last a')->click();
     // select field
@@ -152,6 +157,8 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
         $this->assertEqual($value, $text, $field . ' correctly set');
       }
     }
+    // Assert that a map has been created
+    $this->assertRaw('gm3-container', 'A map has been created');
     $this->verboseScreenshot();
     return $field_data['title'];
   }
@@ -161,10 +168,10 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    * and assert that we get an error message
    */
   function verifyUniqueLocation($location_title){
-    $field_data = array(
-      'title' => $location_title,
-      'field_map' => '(40.64730356252251, -3.33984375)'
-    );
+    $this->drupalGet('node/add/location');
+    $element = $this->driver->getElement("name=title");
+    $element->clear();
+    $element->sendKeys($location_title);
     $submit_button = $this->driver->getElement("id=edit-submit");
     $submit_button->click();
     $this->assertText('The title field for a location must be unique.', 'Error message successfully shown when creating duplicate location');
@@ -308,8 +315,39 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
         $this->assertEqual($value, $text, $field . ' correctly set');
       }
     }
+    // Verify that we cannot create another SpecimenObservation with the same name
+    $this->verifyUniqueSpecimenObservation($field_data['field_institution_code'], $field_data['field_collection_code'], $field_data['field_catalogue_number']);
     // We return the title
     return $field_data['field_institution_code'] . ' - ' . $field_data['field_collection_code'] . ' - ' . $field_data['field_catalogue_number'];
+  }
+
+  /**
+   * Attempt to create a location with the same name
+   * and assert that we get an error message
+   */
+  function verifyUniqueSpecimenObservation($institution_code, $collection_code, $catalogue_number){
+    $this->drupalGet('node/add/specimen-observation');
+    $field_data = array(
+      'field_basis_of_record' => 'Human Observation',
+      'field_institution_code' => $institution_code,
+      'field_collection_code' => $collection_code,
+      'field_catalogue_number' => $catalogue_number
+    );
+    // Fill in the form
+    $element = $this->driver->getElement("name=field_basis_of_record[und]");
+    $element->selectValue($field_data['field_basis_of_record']);
+    $element = $this->driver->getElement("name=field_institution_code[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_institution_code']);
+    $element = $this->driver->getElement("name=field_collection_code[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_collection_code']);
+    $element = $this->driver->getElement("name=field_catalogue_number[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_catalogue_number']);
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->assertText('The "Institution code/Collection code/Catalogue number" combination is not unique.', 'Error message successfully shown when creating non unique specimen observation');
   }
 
   /**
