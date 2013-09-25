@@ -42,8 +42,17 @@ class FeedsIMUFetcher extends FeedsFetcher{
     if($importTo == 'specimen_observation'){
       $moduleName = 'ecatalogue';
       $termArray = array(
-        'DarGenus',
-        $IMUsearch
+        'and',
+        array(
+          array(
+            'ColRecordType',
+            'specimen'
+          ),
+          array(
+            'EntRecRecordStatus_tab',
+            'SCAN_record'
+          )
+        )
       );
       $kemuColumns = _returnRequiredColumns('specimen_observation');
     }
@@ -66,8 +75,17 @@ class FeedsIMUFetcher extends FeedsFetcher{
     if($importTo == 'scan'){
       $moduleName = 'ecatalogue';
       $termArray = array(
-        'EntRecRecordStatus_tab',
-        'SCAN_record'
+        'and',
+        array(
+          array(
+            'ColRecordType',
+            'Parasite Card'
+          ),
+          array(
+            'EntRecRecordStatus_tab',
+            'SCAN_record'
+          )
+        )
       );
       $kemuColumns = _returnRequiredColumns('scan');
     }
