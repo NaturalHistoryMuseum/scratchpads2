@@ -101,7 +101,6 @@ class FeedsIMUFetcher extends FeedsFetcher{
       $totalCalls = array();
       $rownum = 1;
       $i = 0;
-              
       while($i < $kemuResultsHits){
         $imuBatch = ($i % $returnNumRows);
         if($imuBatch == 0){
@@ -120,8 +119,6 @@ class FeedsIMUFetcher extends FeedsFetcher{
         }
         $i++;
       }
- 
-      
       $mergedRows = call_user_func_array('array_merge', $totalRows);
       $resultsArray = $totalarray[0];
       $resultsArray->rows = $mergedRows;
@@ -351,7 +348,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
     );
     return $form;
   }
-  
+
   /**
    * Override parent::sourceFormValidate().
    */
@@ -396,35 +393,49 @@ function _returnRequiredColumns($importTo){
   switch($importTo){
     case "specimen_observation":
       $kemuColumns = array(
+        'guid=irn',
         'DarGlobalUniqueIdentifier',
-        'DarBasisOfRecord',
-        'DarCatalogNumber',
-        'DarCollectionCode',
+        'basis_of_record=DarBasisOfRecord',
+        'catalogue_number=DarCatalogNumber',
+        'collection_code=DarCollectionCode',
         'DarCollector',
         'DarCollectorNumber',
-        'DarIndividualCount',
-        'DarStartYearCollected',
-        'DarStartMonthCollected',
-        'DarStartDayCollected',
-        'DarEndYearCollected',
-        'DarEndMonthCollected',
-        'DarEndDayCollected',
+        'count=DarIndividualCount',
+        'date_collected_start_year=DarStartYearCollected',
+        'date_collected_start_month=DarStartMonthCollected',
+        'date_collected_start_day=DarStartDayCollected',
+        'date_collected_end_year=DarEndYearCollected',
+        'date_collected_end_month=DarEndMonthCollected',
+        'date_collected_end_day=DarEndDayCollected',
         'DarYearIdentified',
         'DarMonthIdentified',
         'DarDayIdentified',
         'DarGenBankNum',
         'DarIdentificationQualifier',
         'DarIdentifiedBy',
-        'DarInstitutionCode',
-        'DarLifeStage',
+        'institution_code=DarInstitutionCode',
+        'life_stage=DarLifeStage',
         'DarFieldNotes',
         'DarFieldNumber',
-        'DarOtherCatalogNumbers',
+        'other_catalogue_numbers=DarOtherCatalogNumbers',
+        'EntCatOtherNumbersKind_tab',
+        'DarHigherGeography',
         'DarRemarks',
         'DarSex',
-        'DarGenus',
-        'DarSpecies',
-        'DarTypeStatus'
+        'country=DarCountry',
+        'Genus=DarGenus',
+        'Species=DarSpecies',
+        'DarTypeStatus',
+        'CatKindOfCollection',
+        'CatKindOfObject',
+        'CatPreservative',
+        'EntCatOtherNumbersKind_tab',
+        'EntCatOtherNumbersValue_tab',
+        'taxa=EntIdeTaxonRef_tab.[
+			irn,
+			rank=TaxClassRank_tab,
+			name=TaxClassValue_tab,
+			author=TaxClassAuthors_tab]'
       );
       break;
     case "location":
