@@ -444,26 +444,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     return $field_data['field_institution_code'] . ' - ' . $field_data['field_collection_code'] . ' - ' . $field_data['field_catalogue_number'];
   }
 
-  /**
-   * Helper function for autocomplete fields
-   */
-  function _autocompleteTest($field_name, $firstletter, $expected){
-    $element = $this->driver->getElement("name=" . $field_name);
-    $element->sendKeys($firstletter);
-    // Ensure autocomplete element appeared.
-    $autocomplete_element = current($this->driver->waitForVisibleElements('id=autocomplete'));
-    $this->assertTrue($autocomplete_element->isVisible(), t('Autocomplete element is visible on the page.'));
-    // Get first elements of autocomplete list and click on it.
-    $first_element = current($this->driver->getAllElements('css=#autocomplete li div'));
-    $first_element_text = $first_element->getText();
-    // Click is to select line item.
-    $first_element->click();
-    // Submit selected line item.
-    $first_element->submit();
-    // Ensure that textfield is populated with selected element.
-    $element_value = $element->getValue();
-    $this->assertEqual($expected, $element_value, t('Text of selected element is populated to textfield.'));
-  }
+  
 
   /**
    * Delete a location node and check that it has been deleted

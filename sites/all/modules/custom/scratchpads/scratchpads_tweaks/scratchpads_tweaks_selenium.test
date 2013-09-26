@@ -50,6 +50,7 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
       Database::addConnectionInfo('default', 'default', $connection_info['default']);
       $this->switchConnectionTo('simpletest_original_default');
     }
+    // Admin user without 'access overlay' permission
     $this->admin_user = $this->drupalCreateUserWithName(array(
       'access content',
       'access administration pages',
@@ -59,7 +60,6 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
       'administer content types',
       'administer nodes',
       'bypass node access',
-      'access overlay',
       'access content overview',
       'view the administration theme',
       'access all views',
@@ -91,7 +91,7 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     // there may be an issue with post for logins
     $this->drupalPost('user', $edit, t('Log in'));
     // override is here
-    $pass = $this->assertText('Member for', 'User successfully logged in');
+    $pass = $this->assertNoText('Sorry, unrecognized username or password', 'User successfully logged in');
     if($pass){
       $this->loggedInUser = $account;
     }
@@ -155,6 +155,36 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     return $account;
   }
   //
+  
+  /**
+   * Allow the creation of a user with a specific username
+   */
+  protected function drupalCreateMaintainer(array $permissions = array(), $username){
+    // Create a role with the given permission set, if any.
+    $rid = 5;
+    
+    // Create a user assigned to that role.
+    $edit = array();
+    $edit['name'] = $username;
+    $edit['mail'] = $edit['name'] . '@example.com';
+    $edit['pass'] = user_password();
+    $edit['status'] = 1;
+    if($rid){
+      $edit['roles'] = array(
+        $rid => $rid
+      );
+    }
+    $account = user_save(drupal_anonymous_user(), $edit);
+    $this->assertTrue(!empty($account->uid), t('User created with name %name and pass %pass', array(
+      '%name' => $edit['name'],
+      '%pass' => $edit['pass']
+    )), t('User login'));
+    if(empty($account->uid)){return FALSE;}
+    // Add the raw password so that we can log in as this user.
+    $account->pass_raw = $edit['pass'];
+    return $account;
+  }
+  //
   /**
    * Returns a new vocabulary with random properties.
    * Code based on TaxonomyWebTestCase::createVocabulary
@@ -193,7 +223,29 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     taxonomy_term_save($term);
     return $term;
   }
-/**
+  
+  /**
+   * Helper function for autocomplete fields
+   */
+  function _autocompleteTest($field_name, $firstletter, $expected){
+    $element = $this->driver->getElement("name=" . $field_name);
+    $element->sendKeys($firstletter);
+    // Ensure autocomplete element appeared.
+    $autocomplete_element = current($this->driver->waitForVisibleElements('id=autocomplete'));
+    $this->assertTrue($autocomplete_element->isVisible(), t('Autocomplete element is visible on the page.'));
+    // Get first elements of autocomplete list and click on it.
+    $first_element = current($this->driver->getAllElements('css=#autocomplete li div'));
+    $first_element_text = $first_element->getText();
+    // Click is to select line item.
+    $first_element->click();
+    // Submit selected line item.
+    $first_element->submit();
+    // Ensure that textfield is populated with selected element.
+    $element_value = $element->getValue();
+    $this->assertEqual($expected, $element_value, t('Text of selected element is populated to textfield.'));
+  }
+  
+  /**
    * Simple test to see if we can login and access the home page
    */
   // We remove this test as it slows up all dependant tests
