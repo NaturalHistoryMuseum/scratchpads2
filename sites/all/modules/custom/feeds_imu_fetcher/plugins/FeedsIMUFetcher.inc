@@ -46,7 +46,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
         array(
           array(
             'ColRecordType',
-            'specimen'
+            'Specimen'
           ),
           array(
             'EntRecRecordStatus_tab',
@@ -113,6 +113,10 @@ class FeedsIMUFetcher extends FeedsFetcher{
        * search the module/table findTerms is the most flexible way to search
        * for records within a module/table
        */
+      if($debugImu){
+         watchdog('imu debug', '<pre>Import option was ' . print_r($importTo, TRUE) . '</pre>');
+         watchdog('imu debug', '<pre> Search terms were ' . print_r($imusearchArray, TRUE) . '</pre>');
+      }
       $kemuResultsHits = $imumodule->findTerms($imusearchArray);
       $totalarray = array();
       $totalRows = array();
@@ -173,7 +177,10 @@ class FeedsIMUFetcher extends FeedsFetcher{
       )));
     }
     catch(Exception $error){
-      print("Sorry, an error occurred: $error\n");
+      drupal_set_message(t('Sorry, an error occurred: Error = %error', array(
+        '%error' => $error
+      ), 'error'));
+      //print("Sorry, an error occurred: $error\n");
     }
   }
 
@@ -437,7 +444,6 @@ function _returnRequiredColumns($importTo){
         'DarFieldNumber',
         'other_catalogue_numbers=DarOtherCatalogNumbers',
         'EntCatOtherNumbersKind_tab',
-        'DarHigherGeography',
         'DarRemarks',
         'DarSex',
         'country=DarCountry',
