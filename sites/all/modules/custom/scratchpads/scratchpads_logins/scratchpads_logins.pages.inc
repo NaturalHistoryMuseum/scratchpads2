@@ -24,7 +24,7 @@ function scratchpad_logins(){
   $query->condition('u.uid', 1, '>')->fields('u', array(
     'uid',
     'name'
-  ))->fields('r', array(
+  ))->condition('status', 1)->fields('r', array(
     'rid'
   ))->orderBy('rid', 'DESC')->orderBy('name');
   $results = $query->execute();
