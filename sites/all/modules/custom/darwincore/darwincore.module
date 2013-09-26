@@ -218,6 +218,24 @@ function darwincore_node_count(){
 }
 
 /**
+ * If this is the first node to be created, we clear the views cache.
+ */
+function darwincore_node_insert($node){
+  if($node->type == 'specimen_observation'){
+    if(db_select('node', 'n')->condition('type', 'specimen_observation')->countQuery()->execute()->fetchField() == 1){
+      drupal_register_shutdown_function('drupal_flush_all_caches');
+    }
+  }
+}
+
+/**
+ * If this is the last node to be deleted, we clear the views cache.
+ */
+function darwincore_node_delete($node){
+  darwincore_node_insert($node);
+}
+
+/**
  * Implements hook_tools_pre_disable().
  */
 function darwincore_tools_pre_disable(){
