@@ -94,8 +94,12 @@ function blockexpose_block_view_alter(&$data, $block){
     // function.  This prevents an empty block from appearing in the side bar
     // (depending on theme).
     $blockexpose = &drupal_static('blockexpose', array());
+    $data_copy = $data;
+    if(empty($data_copy['subject'])){
+      $data_copy['subject'] = $block->title;
+    }
     $blockexpose[] = array(
-      'data' => $data,
+      'data' => $data_copy,
       'block' => $block,
       'settings' => $settings
     );
