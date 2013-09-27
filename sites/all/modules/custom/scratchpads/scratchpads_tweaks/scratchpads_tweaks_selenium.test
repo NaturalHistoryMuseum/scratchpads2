@@ -65,7 +65,9 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
       'access all views',
       'administer comments',
       'administer front page',
-      'access toolbar'
+      'access toolbar',
+      'administer files',
+      'create file'
     ), 'admin-user');
     legal_save_accept(1, 1, 'en', $this->admin_user->uid);
     // Create a user with username 'basic-user'
@@ -244,6 +246,7 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $element_value = $element->getValue();
     $this->assertEqual($expected, $element_value, t('Text of selected element is populated to textfield.'));
   }
+  
   
   /**
    * Simple test to see if we can login and access the home page
