@@ -50,42 +50,36 @@ class ScratchpadsForumSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
   /**
    * A wrapper for the following tests
    * 
+   * - Create forums
    * - Create forum topics
-   * - Create forum containers
    * - Test forum tree functionality
-   * 
-   * // We have two forums and 2 forum topics for each forum
-   * 
-   * 
    */
   function testWrapper(){
-    $this->drupalLogin($this->admin_user2);   
+    $this->drupalLogin($this->admin_user2);
     $forum_topic_title = $this->verifyCreateForumTopic('General discussion');
-    $forum_topic_title2 = $this->verifyCreateForumTopic('General discussion');   
-    $forum1 = $this->addForum('<root>');   
+    $forum_topic_title2 = $this->verifyCreateForumTopic('General discussion');
+    $forum1 = $this->addForum('<root>');
     $forum_topic_title3 = $this->verifyCreateForumTopic($forum1);
     $forum_topic_title4 = $this->verifyCreateForumTopic($forum1);
-    
-    // We have two forums and 2 forum topics for each forum
+    // We have 2 forums, and 2 forum topics for each forum
     $forum_array = array(
-      'General discussion'=>array(
+      'General discussion' => array(
         $forum_topic_title,
         $forum_topic_title2
-        ),
+      ),
       $forum1 => array(
         $forum_topic_title3,
         $forum_topic_title4
-        )      
-      );
-    
+      )
+    );
     $this->verifyForumTree($forum_array);
   }
 
   /**
-   * Create a forum 
+   * Create forum topic
    */
   function verifyCreateForumTopic($container){
-    $this->drupalGet('node/add/forum');    
+    $this->drupalGet('node/add/forum');
     $title = $this->randomName();
     $body = $this->randomName();
     $element = $this->driver->getElement("name=title");
@@ -101,7 +95,10 @@ class ScratchpadsForumSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
     $this->assertText($title . ' has been created', 'Forum topic successfully created');
     return $title;
   }
-  
+
+  /**
+   * Create forum 
+   */
   function addForum($parent){
     $this->drupalGet('admin/structure/forum/add/forum');
     $title = $this->randomName();
@@ -109,25 +106,23 @@ class ScratchpadsForumSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
     $element->clear();
     $element->sendKeys($title);
     $element = $this->driver->getElement("name=parent[0]");
-    $element->selectLabel($parent); 
+    $element->selectLabel($parent);
     $this->driver->getElement("id=edit-submit")->click();
-    $this->assertText('Created new forum '. $title , 'Forum topic successfully created');  
+    $this->assertText('Created new forum ' . $title, 'Forum topic successfully created');
     return $title;
   }
 
   /**
    * Test the forum tree functionality
    */
-  function verifyForumTree($forum_array){   
+  function verifyForumTree($forum_array){
     $this->drupalGet('forum');
     // Clicking on the forum name should reveal the forum topics
-    foreach ($forum_array as $forum => $topic_array){
-      $this->clickLink($forum);      
-      foreach ($topic_array as $topic){
+    foreach($forum_array as $forum => $topic_array){
+      $this->clickLink($forum);
+      foreach($topic_array as $topic){
         $this->asserttext($topic, 'Forum topic displayed when forum clicked');
       }
     }
-    
   }
-  
 }
