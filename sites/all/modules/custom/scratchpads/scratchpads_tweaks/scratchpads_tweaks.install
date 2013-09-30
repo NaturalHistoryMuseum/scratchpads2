@@ -1314,13 +1314,13 @@ function scratchpads_tweaks_update_7067(&$sandbox){
         if(($lang = field_language($info->entity_type, $entity[$info->entity_id], $key)) != FALSE){
           if((@isset($value[$lang][0]['value']) && trim($value[$lang][0]['value']) == '')){
             try{
-              db_delete('field_data_' . $key)->condition('entity_type', $info->entity_type)->condition('entity_id', $info->entity_id)->execute();
+              db_delete('field_data_' . $key)->condition('language', $lang)->condition('entity_type', $info->entity_type)->condition('entity_id', $info->entity_id)->execute();
               $entity_info = entity_get_info($info->entity_type);
               $revision_id = $info->entity_id;
               if($entity_info['entity keys']['revision']){
                 $revision_id = $entity->{$entity_info['entity keys']['revision']};
               }
-              db_delete('field_revision_' . $key)->condition('entity_type', $info->entity_type)->condition('entity_id', $info->entity_id)->condition('revision_id', $revision_id)->execute();
+              db_delete('field_revision_' . $key)->condition('language', $lang)->condition('entity_type', $info->entity_type)->condition('entity_id', $info->entity_id)->condition('revision_id', $revision_id)->execute();
             }
             catch(Exception $e){
               ;
