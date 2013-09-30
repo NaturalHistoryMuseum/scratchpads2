@@ -1287,3 +1287,31 @@ function scratchpads_tweaks_update_7066(){
   ));
   scratchpads_tweaks_install_help_install_filters();
 }
+
+/**
+ * Delete empty fields from entities that were imported via Feeds.
+ */
+function scratchpads_tweaks_update_7067(&$sandbox){
+  if(!isset($sandbox['entities'])){
+    $sandbox['entities'] = db_select('feeds_item', 'f')->fields('f', array(
+      'entity_id',
+      'entity_type'
+    ))->execute()->fetchAll();
+    $sandbox['max'] = count($sandbox['entities']);
+    if(!$sandbox['max']){
+      $sandbox['#finished'] = 1;
+      return;
+    }
+  }
+  $i = 0;
+  while($i < 10 && count($sandbox['entities'])){
+    $info = array_pop($sandbox['entities']);
+    $entity = entity_load($info->entity_type, array(
+      $info->entity_id
+    ));
+    // Loop throug each field.
+    //foreach()
+    entity_save($info->entity_type, $entity);
+  }
+  $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['entities'])) / $sandbox['max'];
+}
