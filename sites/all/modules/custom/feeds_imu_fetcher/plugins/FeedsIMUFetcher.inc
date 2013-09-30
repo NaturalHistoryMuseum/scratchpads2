@@ -52,10 +52,6 @@ class FeedsIMUFetcher extends FeedsFetcher{
         'and',
         array(
           array(
-            'irn',
-            '2821160'
-          ),
-          array(
             'ColRecordType',
             'Specimen'
           )
@@ -68,10 +64,6 @@ class FeedsIMUFetcher extends FeedsFetcher{
         'and',
         array(
           array(
-            'irn',
-            '2765235'
-          ),
-          array(
             'ColRecordType',
             'Parasite Card'
           )
@@ -79,7 +71,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
       );
     }
     
-    if($importTo == 'location'){
+ /*  if($importTo == 'location'){
       $termArray = array(
           'and',
           array(
@@ -89,10 +81,10 @@ class FeedsIMUFetcher extends FeedsFetcher{
               )
           )
       );
-    }
+    }*/
     
     
-      if($importTo == 'parasite_card_taxonomy'){
+  /*    if($importTo == 'parasite_card_taxonomy'){
         $termArray = array(
           'and',
           array(
@@ -102,10 +94,10 @@ class FeedsIMUFetcher extends FeedsFetcher{
             )
           )
         );
-      }
+      }*/
     
     
-      if($importTo == 'specimen_taxonomy'){
+  /*    if($importTo == 'specimen_taxonomy'){
         $termArray = array(
           'and',
           array(
@@ -115,7 +107,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
             )
           )
         );
-      }
+      }*/
     
     
     /* Always only search for those items with flag on for internet access */
