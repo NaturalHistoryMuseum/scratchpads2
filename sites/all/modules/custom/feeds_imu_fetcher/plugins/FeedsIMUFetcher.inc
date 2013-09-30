@@ -29,66 +29,95 @@ class FeedsIMUFetcher extends FeedsFetcher{
    */
   public function fetch(FeedsSource $source){
     $source_config = $source->getConfigFor($this);
-    $IMUsearch = trim($source_config['IMUsearch']);
-    $importTo = trim($source_config['importTo']);
+    
     $kemuHost = trim($source_config['kemuHost']);
     $kemuPort = trim($source_config['kemuPort']);
+    
+    $IMUrecord_status = trim($source_config['IMUrecord_status']);
+    $importTo = trim($source_config['importTo']);
+    
     $asXML = trim($source_config['asXML']);
+    
     $debugImu = trim($source_config['debugImu']);
+    
     $fetchDelay = trim($source_config['fetchDelay']);
     $fetchDelay = $fetchDelay ? $fetchDelay : 4; //default to 4 sec
+    
     $returnNumRows = trim($source_config['returnNumRows']);
     $returnNumRows = $returnNumRows ? $returnNumRows : 300; // default to 300 rows in a batch
-    if($importTo == 'specimen_observation'){
-      $moduleName = 'ecatalogue';
+        
+    
+    if($importTo == 'specimen'){
       $termArray = array(
         'and',
         array(
+          array(
+            'irn',
+            '2821160'
+          ),
           array(
             'ColRecordType',
             'Specimen'
-          ),
-          array(
-            'EntRecRecordStatus_tab',
-            'SCAN_record'
           )
         )
       );
-      $kemuColumns = _returnRequiredColumns('specimen_observation');
     }
-    if($importTo == 'location'){
-      $moduleName = 'ecatalogue';
-      $termArray = array(
-        'DarGenus',
-        $IMUsearch
-      );
-      $kemuColumns = _returnRequiredColumns('location');
-    }
-    if($importTo == 'taxonomy'){
-      $moduleName = 'etaxonomy';
-      $termArray = array(
-        'DarGenus',
-        $IMUsearch
-      );
-      $kemuColumns = _returnRequiredColumns('taxonomy');
-    }
-    if($importTo == 'scan'){
-      $moduleName = 'ecatalogue';
+    
+    if($importTo == 'parasite_card'){
       $termArray = array(
         'and',
         array(
           array(
-            'ColRecordType',
-            'Parasite Card'
+            'irn',
+            '2765235'
           ),
           array(
-            'EntRecRecordStatus_tab',
-            'SCAN_record'
+            'ColRecordType',
+            'Parasite Card'
           )
         )
       );
-      $kemuColumns = _returnRequiredColumns('scan');
     }
+    
+    if($importTo == 'location'){
+      $termArray = array(
+          'and',
+          array(
+              array(
+                  'irn',
+                  '2765235'
+              )
+          )
+      );
+    }
+    
+    
+      if($importTo == 'parasite_card_taxonomy'){
+        $termArray = array(
+          'and',
+          array(
+            array(
+              'irn',
+              '2765235'
+            )
+          )
+        );
+      }
+    
+    
+      if($importTo == 'specimen_taxonomy'){
+        $termArray = array(
+          'and',
+          array(
+            array(
+              'irn',
+              '2821192'
+            )
+          )
+        );
+      }
+    
+    
     /* Always only search for those items with flag on for internet access */
     $imusearchArray = array(
       'and',
@@ -97,60 +126,78 @@ class FeedsIMUFetcher extends FeedsFetcher{
           'AdmPublishWebNoPassword',
           'Yes'
         ),
-        $termArray
+        array(
+          'EntRecRecordStatus_tab',
+          $IMUrecord_status
+        )
       )
     );
+    
+    if(is_array($termArray)){
+      $imusearchArray[1][] = $termArray;
+    }
+    
+    $moduleName = 'ecatalogue';
+    
+    $kemuColumns = _returnRequiredColumns($importTo);
+    
     try{
-      /*
-       * create an IMuSession and connect to the IMu server with the hostname
-       * and port
-       */
+      /* create an IMuSession and connect to the IMu server with the hostname and port */
       $imusession = new IMuSession($kemuHost, $kemuPort);
       /* access a KEmu module/table */
       $imumodule = new IMuModule($moduleName, $imusession);
+      /* map columns to a fetchset for greater efficiency */
       $imumodule->addFetchSet('kemu_columns', $kemuColumns);
-      /*
-       * search the module/table findTerms is the most flexible way to search
-       * for records within a module/table
-       */
       if($debugImu){
-         watchdog('imu debug', '<pre>Import option was ' . print_r($importTo, TRUE) . '</pre>');
-         watchdog('imu debug', '<pre> Search terms were ' . print_r($imusearchArray, TRUE) . '</pre>');
+        watchdog('imu debug', '<pre> import to set as ' . print_r($importTo, TRUE) . '</pre>');
+        watchdog('imu debug', '<pre> searched on ' . print_r($imusearchArray, TRUE) . '</pre>');
       }
+      /* findTerms is the most flexible way to search for records within a module/table */
       $kemuResultsHits = $imumodule->findTerms($imusearchArray);
       $totalarray = array();
       $totalRows = array();
       $totalCalls = array();
       $rownum = 1;
       $i = 0;
-      while($i < $kemuResultsHits){
-        $imuBatch = ($i % $returnNumRows);
-        if($imuBatch == 0){
-          /* Get information from matching records flag, offset, count, columns  */
-          $results = $imumodule->fetch('start', $rownum - 1, $returnNumRows, 'kemu_columns');
-          $last = $results->rows[count($results->rows) - 1];
-          if($last['rownum'] < $results->hits){
-            $rownum = $last['rownum'] + 1;
+      /* Get through querying in batches to not overburdern KE  */
+      if($kemuResultsHits != 0){
+        while($i < $kemuResultsHits){
+          $imuBatch = ($i % $returnNumRows);
+          if($imuBatch == 0){
+            /* Get information from matching records flag, offset, count, columns  */
+            $results = $imumodule->fetch('start', $rownum - 1, $returnNumRows, 'kemu_columns');
+            $last = $results->rows[count($results->rows) - 1];
+            if($last['rownum'] < $results->hits){
+              $rownum = $last['rownum'] + 1;
+            }
+            $totalarray[] = $results;
+            $totalRows[] = $results->rows;
+            if($debugImu){
+              $totalCalls[] = " row " . $i . "-" . $last['rownum'] . " " . date('h:i:s');
+            }
+            sleep($fetchDelay);
           }
-          $totalarray[] = $results;
-          $totalRows[] = $results->rows;
-          if($debugImu){
-            $totalCalls[] = " row " . $i . "-" . $last['rownum'] . " " . date('h:i:s');
-          }
-          sleep($fetchDelay);
+          $i++;
         }
-        $i++;
+        $mergedRows = call_user_func_array('array_merge', $totalRows);
+        $resultsArray = $totalarray[0];
+        $resultsArray->rows = $mergedRows;
+      }else{
+        // Return an empty FeedsFetcherResult if we didn't get anything from Kemu
+        throw new Exception(t('No records were returned for %IMUrecord_status from the Kemu server %kemuHost:%kemuPort.', array(
+          '%IMUrecord_status' => $IMUrecord_status,
+          '%kemuHost' => $kemuHost,
+          '%kemuPort' => $kemuPort
+        )));
       }
-      $mergedRows = call_user_func_array('array_merge', $totalRows);
-      $resultsArray = $totalarray[0];
-      $resultsArray->rows = $mergedRows;
       /* if there are any rows returned */
       if($results->hits){
         if($debugImu){
           $times = implode(',', $totalCalls);
           watchdog('imu debug', '<pre>' . print_r($times, TRUE) . '</pre>');
-          watchdog('imu debug', '<pre> total rows returned ' . print_r($kemuResultsHits, TRUE) . '</pre>');
+          watchdog('imu debug', '<pre> total rows returned ' . print_r($kemuResultsHits, TRUE) . '</pre>');          
         }
+        
         /* if export as xml checkbox ticked */
         if($asXML){
           /*
@@ -165,22 +212,20 @@ class FeedsIMUFetcher extends FeedsFetcher{
            * object returned from IMuModule's fetch method
            */
           $doc->writeElement('results', $resultsArray);
-          $results = $doc->saveXML();
+          $results = $doc->saveXML();          
         }
         return new FeedsFetcherResult($results);
+      }else{
+        // Return an empty FeedsFetcherResult if we didn't get anything from Kemu
+        throw new Exception(t('No records were returned for %IMUrecord_status from the Kemu server %kemuHost:%kemuPort.', array(
+          '%IMUrecord_status' => $IMUrecord_status,
+          '%kemuHost' => $kemuHost,
+          '%kemuPort' => $kemuPort
+        )));
       }
-      // Return an empty FeedsFetcherResult if we didn't get anything from Kemu
-      throw new Exception(t('No records were returned for %IMUsearch from the Kemu server %kemuHost:%kemuPort.', array(
-        '%IMUsearch' => $IMUsearch,
-        '%kemuHost' => $kemuHost,
-        '%kemuPort' => $kemuPort
-      )));
     }
     catch(Exception $error){
-      drupal_set_message(t('Sorry, an error occurred: Error = %error', array(
-        '%error' => $error
-      ), 'error'));
-      //print("Sorry, an error occurred: $error\n");
+      watchdog('imu debug', '<pre> Sorry, an error occurred: ' . print_r($error->getMessage(), TRUE) . '</pre>');
     }
   }
 
@@ -190,9 +235,8 @@ class FeedsIMUFetcher extends FeedsFetcher{
    */
   public function configDefaults(){
     return array(
-      'IMUsearch' => 'Schistosoma',
-      'importTo' => 'specimen_observation',
-      /* vetted, non-sensitive data from outward facing server for delivery to the website */
+      'IMUrecord_status' => 'SCAN_record',
+      'importTo' => 'specimen',
       'kemuHost' => 'host.name.ac.uk',
       'kemuPort' => '00000',
       'returnNumRows' => '300',
@@ -211,11 +255,11 @@ class FeedsIMUFetcher extends FeedsFetcher{
       '#type' => 'markup',
       '#markup' => t('Set the host and port of the KEMU server holding the data you wish to import below.')
     );
-    $form['IMUsearch'] = array(
+    $form['IMUrecord_status'] = array(
       '#type' => 'textfield',
-      '#title' => t('Search KEMU'),
-      '#description' => t('Enter an search term.'),
-      '#default_value' => isset($this->config['IMUsearch']) ? $this->config['IMUsearch'] : 'Schistosoma',
+      '#title' => t('Search KEMU record status'),
+      '#description' => t('Enter a record status to search on.'),
+      '#default_value' => isset($this->config['IMUrecord_status']) ? $this->config['IMUrecord_status'] : 'SCAN_record',
       '#required' => TRUE
     );
     $form['kemuHost'] = array(
@@ -258,7 +302,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
       '#title' => t('What would you like to import'),
       '#options' => $importOptions,
       '#description' => t('What would you like to import.'),
-      '#default_value' => isset($this->config['importTo']) ? $this->config['importTo'] : $importOptions['specimen_observation'],
+      '#default_value' => isset($this->config['importTo']) ? $this->config['importTo'] : $importOptions['specimen'],
       '#required' => TRUE
     );
     $form['returnNumRows'] = array(
@@ -281,8 +325,8 @@ class FeedsIMUFetcher extends FeedsFetcher{
    */
   function sourceDefaults(){
     return array(
-      'IMUsearch' => 'Schistosoma',
-      'importTo' => 'specimen_observation',
+      'IMUrecord_status' => 'SCAN_record',
+      'importTo' => 'specimen',
       'kemuHost' => 'host.name.ac.uk',
       'kemuPort' => '00000',
       'fetchDelay' => 4,
@@ -303,11 +347,11 @@ class FeedsIMUFetcher extends FeedsFetcher{
       '#type' => 'markup',
       '#markup' => t('Set the host and port of the KEMU server holding the data you wish to import below.')
     );
-    $form['IMUsearch'] = array(
+    $form['IMUrecord_status'] = array(
       '#type' => 'textfield',
-      '#title' => t('Search KEMU'),
-      '#description' => t('Enter an search term.'),
-      '#default_value' => isset($source_config['IMUsearch']) ? $source_config['IMUsearch'] : 'Schistosoma',
+      '#title' => t('Search KEMU record status'),
+      '#description' => t('Enter a record status to search on.'),
+      '#default_value' => isset($source_config['IMUrecord_status']) ? $source_config['IMUrecord_status'] : 'SCAN_record',
       '#required' => TRUE
     );
     $form['kemuHost'] = array(
@@ -350,7 +394,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
       '#title' => t('What would you like to import'),
       '#options' => $importOptions,
       '#description' => t('What would you like to import.'),
-      '#default_value' => isset($source_config['importTo']) ? $source_config['importTo'] : $importOptions['specimen_observation'],
+      '#default_value' => isset($source_config['importTo']) ? $source_config['importTo'] : $importOptions['specimen'],
       '#required' => TRUE
     );
     $form['returnNumRows'] = array(
@@ -378,7 +422,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
    * Override parent::sourceFormValidate().
    */
   public function sourceFormValidate(&$values){
-    $IMUsearch = $values['IMUsearch'];
+    $IMUrecord_status = $values['IMUrecord_status'];
     $kemuHost = $values['kemuHost'];
     $kemuPort = $values['kemuPort'];
     $importTo = $values['importTo'];
@@ -391,10 +435,10 @@ class FeedsIMUFetcher extends FeedsFetcher{
       form_set_error('feeds][fetchDelay', t('You must enter a number.'));
     }
     if(empty($importTo)){
-      form_set_error('feeds][importTo', t('You must enter a place to import to.'));
+      form_set_error('feeds][importTo', t('You must what you want to import.'));
     }
-    if(empty($IMUsearch)){
-      form_set_error('feeds][IMUsearch', t('You must enter a Genus to search on.'));
+    if(empty($IMUrecord_status)){
+      form_set_error('feeds][IMUrecord_status', t('You must enter a record status to search on.'));
     }
     if(empty($kemuHost) || $kemuHost == 'host.name.ac.uk'){
       form_set_error('feeds][kemuHost', t('You must enter a valid KEMU server address.'));
@@ -407,136 +451,134 @@ class FeedsIMUFetcher extends FeedsFetcher{
 
 function feeds_imu_fetcher_import_options(){
   return array(
-    'specimen_observation' => t('Specimen Observations'),
     'location' => t('Location'),
-    'taxonomy' => t('Taxonomy'),
-    'scan' => t('SCAN')
+    'specimen_taxonomy' => t('Specimen Taxonomy'),
+    'specimen' => t('Specimens'),
+    'parasite_card_taxonomy' => t('Parasite card Taxonomy'),
+    'parasite_card' => t('Parasite card')
   );
 }
 
 function _returnRequiredColumns($importTo){
   switch($importTo){
-    case "specimen_observation":
+    case "location":
       $kemuColumns = array(
-        'guid=irn',
-        'DarGlobalUniqueIdentifier',
+        'collectionEvent=EntLocEventSiteRef.[
+			ecollectioneventsIRN=irn,
+			colleventNotes=NteText0,
+            location_GUID=ColSiteRef,
+			site=ColSiteRef.[
+				site_title=SummaryData,
+				continent=LocContinent_tab,
+				country=LocCountry_tab,
+				province=LocProvinceStateTerritory_tab,
+				district=LocDistrictCountyShire_tab,
+				parish=PolParish,
+				town=LocTownship_tab,
+                island_group=LocIslandGrouping,
+                island=LocIslandName,
+                dec_lat=LatLatitudeDecimal_nesttab,
+				dec_lon=LatLongitudeDecimal_nesttab,
+                geodetic_datum=LatDatum_tab,
+                depth_from=PhyDepthFromMtr,
+                depth_to=PhyDepthToMtr,
+                altitude_from=PhyAltitudeFromMtr,
+                altitude_to=PhyAltitudeToMtr,
+				lat=LatLatitude_nesttab,
+				lng=LatLongitude_nesttab,
+                verbatim_lat=LatLatitudeVerbatim_nesttab,
+				verbatim_long=LatLongitudeVerbatim_nesttab,
+                water_body_type=AquWaterBodyType
+			]
+		 ]'
+      );
+      break;
+    case "specimen":
+      $kemuColumns = array(
+        'specimen_GUID=irn',
+        'taxa_GUID=EntIdeTaxonRef_tab',
+        'collectionEvent=EntLocEventSiteRef.[
+			location_GUID=ColSiteRef
+	    ]',
         'basis_of_record=DarBasisOfRecord',
         'catalogue_number=DarCatalogNumber',
         'collection_code=DarCollectionCode',
-        'DarCollector',
-        'DarCollectorNumber',
+        'institution_code=DarInstitutionCode',
+        'record_status=EntRecRecordStatus_tab',
         'count=DarIndividualCount',
+        'life_stage=DarLifeStage',
         'date_collected_start_year=DarStartYearCollected',
         'date_collected_start_month=DarStartMonthCollected',
         'date_collected_start_day=DarStartDayCollected',
         'date_collected_end_year=DarEndYearCollected',
         'date_collected_end_month=DarEndMonthCollected',
         'date_collected_end_day=DarEndDayCollected',
-        'DarYearIdentified',
-        'DarMonthIdentified',
-        'DarDayIdentified',
-        'DarGenBankNum',
-        'DarIdentificationQualifier',
-        'DarIdentifiedBy',
-        'institution_code=DarInstitutionCode',
-        'life_stage=DarLifeStage',
-        'DarFieldNotes',
-        'DarFieldNumber',
+        'field_notes=DarFieldNotes',
         'other_catalogue_numbers=DarOtherCatalogNumbers',
+        'field_remarks1=EntCatOtherNumbersKind_tab',
+        'field_remarks2=EntCatOtherNumbersValue_tab',
+        'field_remarks3=DarRemarks',
         'EntCatOtherNumbersKind_tab',
-        'DarRemarks',
         'DarSex',
-        'country=DarCountry',
-        'Genus=DarGenus',
-        'Species=DarSpecies',
         'DarTypeStatus',
+        'DarCollector',
+        'DarCollectorNumber',
         'CatKindOfCollection',
         'CatKindOfObject',
         'CatPreservative',
-        'EntCatOtherNumbersKind_tab',
-        'EntCatOtherNumbersValue_tab',
-        'taxa=EntIdeTaxonRef_tab.[
-			irn,
-			rank=TaxClassRank_tab,
-			name=TaxClassValue_tab,
-			author=TaxClassAuthors_tab]'
+        'DarGenBankNum',
+        'DarFieldNumber'
       );
       break;
-    case "location":
+    case "parasite_card":
       $kemuColumns = array(
-        'DarGlobalUniqueIdentifier',
-        'DarContinentOcean',
-        'DarOriginalCoordinateSystem',
-        'DarCoordinateUncertaintyInMeter',
-        'DarCountry',
-        'DarCounty',
-        'DarGeodeticDatum',
-        'DarGeorefMethod',
-        'DarIslandGroup',
-        'DarIsland',
-        'DarLocality',
-        'DarDecimalLatitude',
-        'DarDecimalLongitude',
-        'DarMaximumDepthInMeters',
-        'DarMaximumElevationInMeters',
-        'DarMinimumDepthInMeters',
-        'DarMinimumElevationInMeters',
-        'DarStateProvince'
-      );
-      break;
-    case 'taxonomy':
-      $kemuColumns = array();
-      break;
-    case "scan":
-      $kemuColumns = array(
-        'host=CardHostRef_tab.[
-					irn,
-					rank=TaxClassRank_tab,
-					name=TaxClassValue_tab,
-					author=TaxClassAuthors_tab
-				]',
-        'parasite_stage=CardParasiteStage_nesttab',
-        'parasite=CardParasiteRef_tab.[
-					irn,
-					rank=TaxClassRank_tab,
-					name=TaxClassValue_tab,
-					author=TaxClassAuthors_tab
-				]',
-        'collectedStart=PrePreparedDateFrom',
+        'specimen_GUID=irn',
+        'host_taxa_GUID=CardHostRef_tab',
+        'parasite_taxa_GUID=CardParasiteRef_tab',
         'collectionEvent=EntLocEventSiteRef.[
-					ecollectioneventsIRN=irn,
-					colleventSumm=SummaryData,
-					colleventNotes=NteText0,
-					site=ColSiteRef.[
-						site_guid=irn,
-						SecRecordStatus,
-						continent=LocContinent_tab,
-						country=LocCountry_tab,
-						province=LocProvinceStateTerritory_tab,
-						district=LocDistrictCountyShire_tab,
-						town=LocTownship_tab,
-						decLat=LatLatitudeDecimal_nesttab,
-						decLong=LatLongitudeDecimal_nesttab,
-						lat=LatLatitude_nesttab,
-						lng=LatLongitude_nesttab,
-						waterBodyType=AquWaterBodyType
-					]
-				 ]',
-        'collector=PrePreparedByRef.[
-					collector_irn=irn,
-					collector_full_name=NamFullName,
-					collector_last_name=NamLast,
-					collector_brief_name=NamBriefName,
-					collector_salutation=NamSalutation,
-					collector_organization=NamOrganisation,
-					collector_dept=NamDepartment
-				]',
-        'barcode=CardBarcode',
-        'scan_record_status=EntRecRecordStatus_tab',
-        'catalogue_guid=irn',
+			location_GUID=ColSiteRef,
+			field_notes=NteText0
+	     ]',
+        'catalogue_number=CardBarcode',
+        'collection_code=irn',
+        'record_status=EntRecRecordStatus_tab',
         'count=CardNotes',
-        'PreType',
-        'CatKindOfCollection'
+        'life_stage=CardParasiteStage_nesttab',
+        'person_GUID=PrePreparedByRef',
+        'collector=PrePreparedByRef.[
+			collector_irn=irn,
+			collector_brief_name=NamBriefName
+		]',
+        'date_collected_start=PrePreparedDateFrom',
+        'date_collected_end=PrePreparedDateTo',
+        'field_remarks1=PreType',
+        'field_remarks2=CatKindOfCollection'
+      );
+      break;
+    case "parasite_card_taxonomy":
+      $kemuColumns = array(
+        'host_taxa=CardHostRef_tab.[
+				taxa_GUID=irn,
+				rank=TaxClassRank_tab,
+				term_name=TaxClassValue_tab,
+				author=TaxClassAuthors_tab
+			]',
+        'parasite_taxa=CardParasiteRef_tab.[
+				taxa_GUID=irn,
+				rank=TaxClassRank_tab,
+				term_name=TaxClassValue_tab,
+				author=TaxClassAuthors_tab
+			]'
+      );
+      break;
+    case "specimen_taxonomy":
+      $kemuColumns = array(
+        'taxa=EntIdeTaxonRef_tab.[
+				taxa_GUID=irn,
+				rank=TaxClassRank_tab,
+				term_name=TaxClassValue_tab,
+				author=TaxClassAuthors_tab
+			]'
       );
       break;
   }
