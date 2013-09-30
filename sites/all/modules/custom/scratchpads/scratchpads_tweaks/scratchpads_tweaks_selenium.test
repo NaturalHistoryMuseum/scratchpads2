@@ -10,10 +10,12 @@ if(!class_exists('DrupalSeleniumWebTestCase')){
 }
 
 class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
-
-  protected $admin_user;
-
-  protected $basic_user;
+  
+  protected $maintainer;
+  
+  protected $editor;
+  
+  protected $contributor;
 
   protected $profile = 'scratchpad_2';
 
@@ -76,6 +78,34 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
       'access user profiles'
     ), 'basic-user');
     legal_save_accept(1, 1, 'en', $this->basic_user->uid);
+    
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    
+    $maintainer_permissions = array();
+    foreach($default_permissions['maintainer'] as $permission){
+      $maintainer_permissions[] = $permission;
+      $maintainer_permissions[] = 'access content';
+    }
+    $this->maintainer = $this->drupalCreateUserWithName($maintainer_permissions, 'maintainer_name');
+    legal_save_accept(1, 1, 'en', $this->maintainer->uid);
+    
+    $editor_permissions = array();
+    foreach($default_permissions['editor'] as $permission){
+      $editor_permissions[] = $permission;
+      $editor_permissions[] = 'access content';
+    }
+    $editor_permissions[] = 'access content';
+    $this->editor = $this->drupalCreateUserWithName($editor_permissions, 'editor_name');
+    legal_save_accept(1, 1, 'en', $this->editor->uid);
+    
+    $contributor_permissions = array();
+    foreach($default_permissions['contributor'] as $permission){
+      $contributor_permissions[] = $permission;
+      $contributor_permissions[] = 'access content';
+    }
+    $this->contributor  = $this->drupalCreateUserWithName($contributor_permissions, 'contributor_name');
+    legal_save_accept(1, 1, 'en', $this->contributor->uid);
+     
   }
 
   /**
@@ -252,8 +282,11 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
    * Simple test to see if we can login and access the home page
    */
   // We remove this test as it slows up all dependant tests
-  //function testSimple(){
-  //  $this->drupalLogin($this->basic_user);
+  function testSimple(){
+  //  $this->drupalLogin($this->maintainer);
   //  $this->drupalGet('');
-  // }
+    
+    $this->drupalLogin($this->editor);
+    $this->drupalGet('');
+   }
 }
