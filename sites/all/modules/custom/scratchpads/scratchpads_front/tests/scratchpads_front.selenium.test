@@ -11,8 +11,6 @@ if(!class_exists('DrupalSeleniumWebTestCase')){
 
 class ScratchpadsFrontSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
 
-  protected $admin_user2;
-
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Front',
@@ -33,7 +31,7 @@ class ScratchpadsFrontSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
    * - Test 'display content' functionality. (text)
    */
   function testWrapper(){
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->maintainer);
     $this->verifyDefaultBlocks();
     $this->verifyTeasersAndWelcomeMessage();
     $this->verifyMainBlockImages();
@@ -83,6 +81,7 @@ class ScratchpadsFrontSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
    */
   function verifyMainBlockImages(){
     // wait for reply to issue on drupal.org
+    // https://drupal.org/node/2099543
   }
 
   function verifyMainBlockContent(){

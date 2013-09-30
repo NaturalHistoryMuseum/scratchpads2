@@ -11,8 +11,6 @@ if(!class_exists('DrupalSeleniumWebTestCase')){
 
 class ScratchpadsForumSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
 
-  protected $admin_user2;
-
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Forum',
@@ -26,25 +24,12 @@ class ScratchpadsForumSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
 
   public function setUp(){
     $modules[] = 'scratchpads_forum';
-    parent::setUp($modules);
-    $this->admin_user2 = $this->drupalCreateUserWithName(array(
-      'access content',
-      'access administration pages',
-      'administer site configuration',
-      'administer users',
-      'administer permissions',
-      'administer content types',
-      'administer nodes',
-      'bypass node access',
-      'access content overview',
-      'view the administration theme',
-      'access all views',
-      'administer comments',
-      'administer front page',
-      'access toolbar',
-      'administer forums'
-    ), 'admin-user2');
-    legal_save_accept(1, 1, 'en', $this->admin_user2->uid);
+    parent::setUp($modules);    
+   
+    // We update the permissions for maintainer
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    $maintainer_permissions = $default_permissions['maintainer'];
+    user_role_grant_permissions($this->maintainer->rid, $maintainer_permissions);
   }
 
   /**
@@ -55,7 +40,7 @@ class ScratchpadsForumSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
    * - Test forum tree functionality
    */
   function testWrapper(){
-    $this->drupalLogin($this->admin_user2);
+    $this->drupalLogin($this->maintainer);
     $forum_topic_title = $this->verifyCreateForumTopic('General discussion');
     $forum_topic_title2 = $this->verifyCreateForumTopic('General discussion');
     $forum1 = $this->addForum('<root>');

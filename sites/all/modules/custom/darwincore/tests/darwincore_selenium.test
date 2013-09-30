@@ -25,9 +25,6 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   public function setUp(){
     $modules[] = 'darwincore';
     parent::setUp($modules);
-    $to_disable = array();
-    $to_disable[] = 'overlay';
-    module_disable($to_disable);
   }
 
   /**
@@ -42,7 +39,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    * - Delete Specimen Observation
    */
   function testWrapper(){
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->maintainer);
     $vocabulary = $this->createBioVocabularyWithName('mybiovocab');
     $term1 = $this->createTermWithName($vocabulary, 'term1');
     $location_title = $this->verifyCreateLocation();

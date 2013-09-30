@@ -10,11 +10,11 @@ if(!class_exists('DrupalSeleniumWebTestCase')){
 }
 
 class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
-  
+
   protected $maintainer;
-  
+
   protected $editor;
-  
+
   protected $contributor;
 
   protected $profile = 'scratchpad_2';
@@ -52,7 +52,11 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
       Database::addConnectionInfo('default', 'default', $connection_info['default']);
       $this->switchConnectionTo('simpletest_original_default');
     }
+    $to_disable = array();
+    $to_disable[] = 'overlay';
+    module_disable($to_disable);
     // Admin user without 'access overlay' permission
+    /*
     $this->admin_user = $this->drupalCreateUserWithName(array(
       'access content',
       'access administration pages',
@@ -72,6 +76,28 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
       'create file'
     ), 'admin-user');
     legal_save_accept(1, 1, 'en', $this->admin_user->uid);
+    */
+    
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    
+    // Maintainer
+    $maintainer_permissions = $default_permissions['maintainer'];
+    $maintainer_permissions[] = 'access content';
+    $maintainer_permissions[] = 'view the administration theme';
+    $maintainer_permissions[] = 'access content overview'; 
+    
+    $this->maintainer = $this->drupalCreateUserWithName($maintainer_permissions, 'maintainer_name');
+    legal_save_accept(1, 1, 'en', $this->maintainer->uid);
+    // Editor
+    $editor_permissions = $default_permissions['editor'];
+    $editor_permissions[] = 'access content';
+    $this->editor = $this->drupalCreateUserWithName($editor_permissions, 'editor_name');
+    legal_save_accept(1, 1, 'en', $this->editor->uid);
+    // Contributor
+    $contributor_permissions = $default_permissions['contributor'];
+    $contributor_permissions[] = 'access content';
+    $this->contributor = $this->drupalCreateUserWithName($contributor_permissions, 'contributor_name');
+    legal_save_accept(1, 1, 'en', $this->contributor->uid);
     // Create a user with username 'basic-user'
     $this->basic_user = $this->drupalCreateUserWithName(array(
       'access content',
@@ -79,33 +105,7 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     ), 'basic-user');
     legal_save_accept(1, 1, 'en', $this->basic_user->uid);
     
-    $default_permissions = module_invoke_all('scratchpads_default_permissions');
     
-    $maintainer_permissions = array();
-    foreach($default_permissions['maintainer'] as $permission){
-      $maintainer_permissions[] = $permission;
-      $maintainer_permissions[] = 'access content';
-    }
-    $this->maintainer = $this->drupalCreateUserWithName($maintainer_permissions, 'maintainer_name');
-    legal_save_accept(1, 1, 'en', $this->maintainer->uid);
-    
-    $editor_permissions = array();
-    foreach($default_permissions['editor'] as $permission){
-      $editor_permissions[] = $permission;
-      $editor_permissions[] = 'access content';
-    }
-    $editor_permissions[] = 'access content';
-    $this->editor = $this->drupalCreateUserWithName($editor_permissions, 'editor_name');
-    legal_save_accept(1, 1, 'en', $this->editor->uid);
-    
-    $contributor_permissions = array();
-    foreach($default_permissions['contributor'] as $permission){
-      $contributor_permissions[] = $permission;
-      $contributor_permissions[] = 'access content';
-    }
-    $this->contributor  = $this->drupalCreateUserWithName($contributor_permissions, 'contributor_name');
-    legal_save_accept(1, 1, 'en', $this->contributor->uid);
-     
   }
 
   /**
@@ -184,39 +184,10 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     if(empty($account->uid)){return FALSE;}
     // Add the raw password so that we can log in as this user.
     $account->pass_raw = $edit['pass'];
+    $account->rid = $rid;
     return $account;
   }
-  //
   
-  /**
-   * Allow the creation of a user with a specific username
-   */
-  protected function drupalCreateMaintainer(array $permissions = array(), $username){
-    // Create a role with the given permission set, if any.
-    $rid = 5;
-    
-    // Create a user assigned to that role.
-    $edit = array();
-    $edit['name'] = $username;
-    $edit['mail'] = $edit['name'] . '@example.com';
-    $edit['pass'] = user_password();
-    $edit['status'] = 1;
-    if($rid){
-      $edit['roles'] = array(
-        $rid => $rid
-      );
-    }
-    $account = user_save(drupal_anonymous_user(), $edit);
-    $this->assertTrue(!empty($account->uid), t('User created with name %name and pass %pass', array(
-      '%name' => $edit['name'],
-      '%pass' => $edit['pass']
-    )), t('User login'));
-    if(empty($account->uid)){return FALSE;}
-    // Add the raw password so that we can log in as this user.
-    $account->pass_raw = $edit['pass'];
-    return $account;
-  }
-  //
   /**
    * Returns a new vocabulary with random properties.
    * Code based on TaxonomyWebTestCase::createVocabulary
@@ -255,7 +226,7 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     taxonomy_term_save($term);
     return $term;
   }
-  
+
   /**
    * Helper function for autocomplete fields
    */
@@ -276,17 +247,15 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $element_value = $element->getValue();
     $this->assertEqual($expected, $element_value, t('Text of selected element is populated to textfield.'));
   }
-  
-  
+
   /**
    * Simple test to see if we can login and access the home page
    */
   // We remove this test as it slows up all dependant tests
-  function testSimple(){
-  //  $this->drupalLogin($this->maintainer);
-  //  $this->drupalGet('');
-    
-    $this->drupalLogin($this->editor);
-    $this->drupalGet('');
-   }
+  //function testSimple(){
+   //   $this->drupalLogin($this->maintainer);
+   //   $this->drupalGet('');
+  //  $this->drupalLogin($this->editor);
+   // $this->drupalGet('');
+ // }
 }

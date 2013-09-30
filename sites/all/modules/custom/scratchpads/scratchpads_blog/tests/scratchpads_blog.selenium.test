@@ -11,8 +11,8 @@ if(!class_exists('DrupalSeleniumWebTestCase')){
 
 class ScratchpadsBlogsSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
 
-  protected $admin_user2;
-
+  protected $maintainer2;
+  
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Blogs',
@@ -26,42 +26,37 @@ class ScratchpadsBlogsSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
 
   public function setUp(){
     $modules[] = 'scratchpads_blog';
+    parent::setUp($modules); 
     
-    parent::setUp($modules);
-    $this->admin_user2 = $this->drupalCreateUserWithName(array(
-      'access content',
-      'access administration pages',
-      'administer site configuration',
-      'administer users',
-      'administer permissions',
-      'administer content types',
-      'administer nodes',
-      'bypass node access',
-      'access content overview',
-      'view the administration theme',
-      'access all views',
-      'administer comments',
-      'administer front page',
-      'access toolbar'
-    ), 'admin-user2');
-    legal_save_accept(1, 1, 'en', $this->admin_user2->uid);
+    // We update the permissions for maintainer
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    $maintainer_permissions = $default_permissions['maintainer'];
+    $maintainer_permissions[] = 'access content';
+    $maintainer_permissions[] = 'view the administration theme';
+    $maintainer_permissions[] = 'access content overview';
+    $maintainer_permissions[] = 'create blog content';
+    user_role_grant_permissions($this->maintainer->rid, $maintainer_permissions);
+    
+    // Create a second maintainer
+    $this->maintainer2 = $this->drupalCreateUserWithName($maintainer_permissions, 'maintainer_name2');
+    legal_save_accept(1, 1, 'en', $this->maintainer2->uid);
   }
 
   /**
    * A wrapper for the following tests
    * 
-   * - Create a blog entry (published) using admin_user
-   * - Create a second blog entry using admn_user2
+   * - Create a blog entry (published) using maintainer
+   * - Create a second blog entry using maintainer2
    * - Test that the filter block shows up on the correct page
    * - Test user interaction with the filter block
    * - Edit a blog entry.
    * - Delete a blog entry.
    */
   function testWrapper(){
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->maintainer);
     $terms_array = $this->addTaxomicNameField();
     $blog_entry_title = $this->verifyCreateBlogEntry($terms_array[0]);
-    $this->drupalLogin($this->admin_user2);
+    $this->drupalLogin($this->maintainer2);
     $blog_entry_title2 = $this->verifyCreateBlogEntry();
     $this->verifyBlogFilterBlockPresence();
     $this->verifyBlogFilterBlockInteraction($blog_entry_title, $blog_entry_title2, $terms_array[0]->name);
@@ -167,7 +162,7 @@ class ScratchpadsBlogsSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
     $this->assertText($blog_entry_title);
     $this->assertText($blog_entry2_title);
     // Click the current user's name and verify that only the second blog entry is displayed   
-    $this->clickLink($this->admin_user2->name);
+    $this->clickLink($this->maintainer2->name);
     $this->verboseScreenshot();
     $this->assertNoText($blog_entry_title, 'First blog entry not present after choosing name');
     $this->assertText($blog_entry2_title, 'Second blog entry present after choosing name');
@@ -216,7 +211,7 @@ class ScratchpadsBlogsSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
    * Helper function.
    * Create a taxonomic name field
    */
-  function addTaxomicNameField($vocabulary){
+  function addTaxomicNameField(){
     $vocabulary = $this->createBioVocabularyWithName('mybiovocab');
     $term1 = $this->createTermWithName($vocabulary, 'term1');
     $term2 = $this->createTermWithName($vocabulary, 'term2');
