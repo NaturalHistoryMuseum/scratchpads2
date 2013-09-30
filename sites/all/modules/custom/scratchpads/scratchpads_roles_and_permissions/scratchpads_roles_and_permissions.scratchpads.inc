@@ -12,6 +12,23 @@ function scratchpads_roles_and_permissions_scratchpads_default_permissions_alter
   $permissions['contributor'] = array_merge($permissions['authenticated user'], $permissions['contributor']);
   $permissions['editor'] = array_merge($permissions['contributor'], $permissions['editor']);
   $permissions['maintainer'] = array_merge($permissions['editor'], $permissions['maintainer']);
+  // We also check for permissions that have been enabled for the subpermissions
+  // module.
+  $subperms = array_filter(variable_get('subpermissions_config', array()));
+  foreach($subperms as $subperm){
+    // Remove the permission from the default.
+    foreach($permissions as $role => $role_permissions){
+      foreach($role_permissions as $key => $role_permission){
+        if($subperm == $role_permission){
+          unset($permissions[$role][$key]);
+        }
+      }
+    }
+    // Add the current permissions back.
+    foreach(user_roles(FALSE, $subperm) as $role){
+      $permissions[$role][] = $subperm;
+    }
+  }
 }
 
 /**

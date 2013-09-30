@@ -1,3 +1,10 @@
+OAuth 7.x-3.1, 2013-2-3
+------------------------------
+#1529166 by barraponto: implement hook_requirements() to check that cURL library is available.
+#1535764 by bojanz: Signature selection in includes/DrupalOAuthServer.inc is broken.
+#1133778 by eojthebrave | JGonzalez: Added Permissions to remove Authorization tab from user profile page.
+#1809068 by kylebrowning, MrMaksimize: Fixed Cannot set custom callback for iOS application.
+
 OAuth 7.x-3.0, 2012-2-8
 ------------------------------
 #1378078 by jobeirne: Make Authorizations editable.

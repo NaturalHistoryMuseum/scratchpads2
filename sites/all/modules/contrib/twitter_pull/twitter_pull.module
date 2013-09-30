@@ -1,0 +1,343 @@
+<?php
+
+/**
+ * @file
+ * Twitter Pull module.
+ */
+
+define ('TWITTER_PULL_NUM_ITEMS', 5);
+define ('TWITTER_PULL_CACHE_LENGTH', 20); //-- cache for 20 minutes
+define ('TWITTER_PULL_EMPTY_MESSAGE', 'No Tweets');
+define ('TWITTER_PULL_CACHE_TABLE', 'cache_pulled_tweets');
+
+function twitter_pull_num_items() {
+  return variable_get('twitter_pull_num_items', TWITTER_PULL_NUM_ITEMS);
+}
+
+function twitter_pull_cache_length() {
+  return variable_get('twitter_pull_cache_length', TWITTER_PULL_CACHE_LENGTH);
+}
+
+function twitter_pull_empty_message() {
+  return variable_get('twitter_pull_empty_message', TWITTER_PULL_EMPTY_MESSAGE);
+}
+
+/**
+ * Implements hook_menu().
+ */
+function twitter_pull_menu() {
+  $items = array();
+
+  $items['twitter_pull_lazy/%'] = array(
+    'page callback' => 'twitter_pull_lazy',
+    'page arguments' => array(1),
+    'access arguments' => array('access content'),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_flush_caches().
+ */
+function twitter_pull_flush_caches() {
+  return array(TWITTER_PULL_CACHE_TABLE);
+}
+
+/**
+ * Implements hook_theme().
+ *
+ * Defines default theme template for a list of tweets.
+ */
+function twitter_pull_theme() {
+  global $language;
+  return array(
+    'twitter_pull_listing' => array(
+      'variables' => array('tweets' => NULL, 'twitkey' => NULL, 'title' => NULL, 'lazy_load' => NULL, 'language' => $language->language),
+      'template' => 'twitter-pull-listing',
+    ),
+  );
+}
+
+/**
+ * Processes variables twitter_pull templates.
+ */
+function twitter_pull_preprocess(&$variables, $hook) {
+  switch ($hook) {
+    case 'twitter_pull_listing':
+      if (!empty($variables['tweets']) && is_array($variables['tweets'])) {
+        foreach ($variables['tweets'] as $key => $tweet) {
+          $tweet->time_ago = t('!time ago.', array('!time' => format_interval(time() - $tweet->timestamp)));
+          $variables['tweets'][$key] = $tweet;
+        }
+        // Add Follow Button javascript.
+        drupal_add_js('!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");', 'inline');
+        // Web Intents javascript.
+        drupal_add_js('//platform.twitter.com/widgets.js', 'external');
+      }
+      break;
+  }
+}
+
+/**
+ * Retrieves appropriate tweets (by username, hashkey or search term)
+ * and passes over to the theming function with $themekey key passing
+ * tweets array along.
+ *
+ * The rest of this module needs to make sure that corresponding theming
+ * functions exist, exist tweets array and perform desired theming.
+ *
+ * @param $twitkey
+ *     Twitter key, which can be a username (prepended with @), hashtag
+ *     (prepended with #), or a search term.
+ * @param $title
+ *     Title passed to the theme template.
+ * @param $num_items
+ *     Number of tweets to retrieve from Twitter. Can't be more than 200.
+ * @param $themekey
+ *     Theme key name to use for theming the output of Twitter API.
+ * @param $lazy_load
+ *     Use javascript to retrieve the twitter results once the page is loaded.
+ */
+function twitter_pull_render($twitkey, $title = NULL, $num_items = NULL, $themekey = NULL, $lazy_load = FALSE, $rts = NULL, $exclude_replies = NULL) {
+  drupal_add_css(drupal_get_path('module', 'twitter_pull') . '/twitter-pull-listing.css');
+
+  //-- Set the lazy load id. Encode the twitkey and title to make sure the they don't contain dashes.
+  $lazy_id = rtrim(base64_encode($twitkey) . '-' . base64_encode($title) . '-' . (int)$num_items . '-' . $themekey, '-');
+
+  //-- Set defaults if empty arguments were passed
+  $title = (empty($title) && $title != FALSE ) ? t('Related Tweets') : filter_xss($title);
+  $themekey = empty($themekey) ? 'twitter_pull_listing' : $themekey;
+  $num_items = empty($num_items) ? twitter_pull_num_items() : $num_items;
+
+  if (!$lazy_load) {
+    $tweets = twitter_pull_retrieve($twitkey, $num_items, $rts, $exclude_replies);
+  }
+  else {
+    $tweets = NULL;
+    $uri = url('twitter_pull_lazy/' . $lazy_id);
+    $id = uniqid('twitter-pull-lazy-');
+
+    $lazy_load = '<div class="throbber twitter-pull-lazy" id="' . $id . '">' . t('Loading...') . '</div>';
+    drupal_add_js('jQuery(document).ready(function () { jQuery.get("' . $uri . '", function(data) { jQuery("#' . $id . '").html(data).removeClass("throbber"); }); });', 'inline');
+  }
+
+  module_invoke_all('twitter_pull_modify', $tweets);
+
+  $ret = theme($themekey, array('tweets' => $tweets, 'twitkey' => $twitkey, 'title' => $title, 'lazy_load' => $lazy_load));
+
+  if (empty($ret) && !empty($tweets)) {
+    $errmsg = t("Non-empty list of tweets returned blank space after applying theme function. Most probably you are passing invalid/unregistered theme key or tpl file corresponding to the theme key does not yet exist. Please fix the problem.");
+    watchdog('Twitter Pull', $errmsg, array(), WATCHDOG_WARNING);
+    $ret = t('Errors occured while trying to retrieve tweets. Please check Watchdog log messages.');
+  }
+
+  return $ret;
+}
+
+/**
+ * Retrieves tweets by username, hashkey or search term.
+ *
+ * @param $twitkey
+ *     Twitter key, which can be a username (prepended with @), hashtag
+ *     (prepended with #), or a search term.
+ * @param $num_items
+ *     Number of tweets to retrieve from Twitter. Can't be more than 200.
+ * @param $rts
+ *     If you want to retweets to be included in the results. Defaults to TRUE.
+ * @param $exclude_replies
+ *     If you want to exclude replies.
+ */
+function twitter_pull_retrieve($twitkey, $num_items = NULL, $rts = NULL, $exclude_replies = NULL) {
+  global $is_https;
+
+  // If $num_items is not set, use the default value.
+  // This value is checked more rigorously in twitter_puller->check_arguments().
+  $num_items = (intval($num_items) > 0) ? intval($num_items) : twitter_pull_num_items();
+
+  // Cached value is specific to the Twitter key and number of tweets retrieved.
+  $cache_key = $twitkey . '::' . $num_items;
+  $cache = cache_get($cache_key, TWITTER_PULL_CACHE_TABLE);
+
+  $tweets = array();
+
+  if (!empty($cache) && !empty($cache->data) && (time() < $cache->expire)) {
+    $tweets =  $cache->data;
+  }
+  else {
+    try {
+      $puller = new twitter_puller($twitkey, $num_items);
+      $puller->rts = $rts;
+      $puller->exclude_replies = $exclude_replies;
+      $puller->get_items();
+      $tweets = $puller->tweets;
+    }
+    catch (Exception $e) {
+      watchdog('Twitter Pull', $e->getMessage(), array(), WATCHDOG_WARNING);
+      if (!empty($cache) && !empty($cache->data)) {
+        return $cache->data;
+      }
+      else {
+        return twitter_pull_empty_message();
+      }
+    }
+
+    if (!empty($tweets) && is_array($tweets)) {
+      $cache_length = twitter_pull_cache_length() * 60; //-- in the settings we indicate length in minutes, here we need seconds.
+      cache_set($cache_key, $tweets, TWITTER_PULL_CACHE_TABLE, REQUEST_TIME + $cache_length);
+    }
+  }
+
+  // If we have tweets and are viewing a secure site, we want to set the url
+  // to the userphoto to use the secure image to avoid insecure errors.
+  if (!empty($tweets) && is_array($tweets) && $is_https) {
+    foreach ($tweets as $i => $tweet) {
+      $tweets[$i]->userphoto = $tweet->userphoto_https;
+    }
+  }
+
+  return $tweets;
+}
+
+/**
+ * Automatically add links to URLs and Twitter usernames in a tweet.
+ */
+function twitter_pull_add_links($text) {
+  $pattern = '#(https?)://([^\s\(\)\,]+)#ims';
+  $repl = '<a href="$1://$2" rel="nofollow" title="$1://$2">$2</a>';
+  $text = preg_replace($pattern, $repl, $text);
+
+  $pattern = '#@(\w+)#ims';
+  $repl = '<a href="http://twitter.com/$1" rel="nofollow" title="@$1">@$1</a>';
+  $text = preg_replace($pattern, $repl, $text);
+
+  $pattern = '/[#]+([A-Za-z0-9-_]+)/';
+  $repl = '<a href="http://twitter.com/#!/search?q=%23$1" title="#$1" rel="nofollow">#$1</a>';
+  $text = preg_replace($pattern, $repl, $text);
+
+  return filter_xss($text);
+}
+
+/*
+ *  Implementation of hook_block_info()
+ */
+function twitter_pull_block_info() {
+  $info = twitter_pull_block_data();
+  if (!empty($info) && is_array($info)) {
+    return array_map(create_function('$a', 'return array("info"=>$a->name);'), $info);
+  }
+  else {
+    return array();
+  }
+}
+
+/**
+ * Implementation of hook_block_view()
+ */
+function twitter_pull_block_view($delta = '') {
+  $info = twitter_pull_block_data();
+  $b_info = $info["$delta"];
+  $content = twitter_pull_render($b_info->tweetkey, $b_info->title, $b_info->number_of_items, $b_info->theme_key, $b_info->lazy_load);
+  return array("subject" => "", "content" => $content);
+}
+
+/*
+ * data hook for twitter_pull blocks.
+ * RETURN an array of data object with the following properties
+ *   delta (unique for all blocks)
+ *   name
+ *   title - optional, defaults to name
+ *   tweetkey
+ *   number_of_items - optional, defaults to 5
+ *   theme_key - optional, defaults to twitter_pull_listing. if you set anything else you have to implement corresponding theme in hook_theme()!
+ */
+function twitter_pull_block_data() {
+  static $data;
+
+  //-- Static cache;
+  if (!empty($data)) return $data;
+
+  $data = module_invoke_all('twitter_pull_blocks');
+  drupal_alter('twitter_pull_data', $data);
+
+  //-- Do some cleanup
+  if (!empty($data) && is_array($data)) {
+    foreach ($data as &$block) {
+      //-- assign defaults
+      $block->title = (empty($block->title) && ($block->title !== FALSE)) ? $block->name : $block->title;
+      $block->number_of_items = (empty($block->number_of_items)) ? 5 : $block->number_of_items;
+      $block->theme_key = (empty($block->theme_key)) ? 'twitter_pull_listing' : $block->theme_key;
+      $block->lazy_load = (empty($block->lazy_load)) ? FALSE : $block->lazy_load;
+    }
+  }
+  else {
+    $data = array();
+  }
+
+  return $data;
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function twitter_pull_ctools_plugin_api($module, $api) {
+  if ($module == 'boxes' && $api == 'plugins') {
+    return array('version' => 1);
+  }
+}
+
+/**
+ * Menu callback to provide lazy loading of tweets.
+ *
+ * @param $lazy_id
+ *     The id containing all information needed to render
+ *     the tweets with twitter_pull_render().
+ */
+function twitter_pull_lazy($lazy_id) {
+  // Extract the parameters from the lazy id
+  $parameters = explode('-', $lazy_id, 4);
+  $twitkey = base64_decode($parameters[0]);
+  $title = base64_decode($parameters[1]);
+  $num_items = isset($parameters[2]) ? (int)$parameters[2] : NULL;
+  $themekey = isset($parameters[3]) ? check_plain($parameters[3]) : NULL;
+
+  // Print the results
+  print twitter_pull_render($twitkey, $title, $num_items, $themekey, FALSE);
+}
+
+
+/**
+ * Implements hook_boxes_plugins().
+ */
+function twitter_pull_boxes_plugins() {
+  $info = array();
+  $path = drupal_get_path('module', 'twitter_pull') . '/plugins';
+  $info['twitter'] = array(
+    'title' => 'Twitter Box',
+    'handler' => array(
+      'parent' => 'box',
+      'class' => 'twitter_pull_box',
+      'file' => 'twitter_pull_box.inc',
+      'path' => $path,
+    ),
+  );
+  return $info;
+}
+
+/**
+ * Implements hook_admin_menu_cache_info().
+ */
+function twitter_pull_admin_menu_cache_info() {
+  $caches['twitter_pull'] = array(
+    'title' => t('Twitter pull tweets'),
+    'callback' => '_twitter_pull_cache_clear',
+  );
+  return $caches;
+}
+
+/**
+ * Flushes cache tables used by the module.
+ */
+function _twitter_pull_cache_clear() {
+  cache_clear_all('*', TWITTER_PULL_CACHE_TABLE, TRUE);
+}
