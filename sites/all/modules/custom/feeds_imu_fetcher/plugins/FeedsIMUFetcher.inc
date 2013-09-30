@@ -81,8 +81,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
               )
           )
       );
-    }*/
-    
+    }*/    
     
   /*    if($importTo == 'parasite_card_taxonomy'){
         $termArray = array(
@@ -94,8 +93,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
             )
           )
         );
-      }*/
-    
+      }*/    
     
   /*    if($importTo == 'specimen_taxonomy'){
         $termArray = array(
