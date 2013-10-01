@@ -183,7 +183,9 @@ class FeedsIMUFetcher extends FeedsFetcher{
         if($debugImu){
           $times = implode(',', $totalCalls);
           watchdog('imu debug', '<pre>' . print_r($times, TRUE) . '</pre>');
-          watchdog('imu debug', '<pre> total rows returned ' . print_r($kemuResultsHits, TRUE) . '</pre>');
+          watchdog('imu debug', '<pre> number of rows returned ' . print_r($kemuResultsHits, TRUE) . '</pre>');
+          watchdog('imu debug', '<pre> merged total rows returned ' . print_r($mergedRows, TRUE) . '</pre>');
+          watchdog('imu debug', '<pre> unique rows returned ' . print_r($resultsArray, TRUE) . '</pre>');
         }
         /* if export as xml checkbox ticked */
         if($asXML){
@@ -212,7 +214,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
       }
     }
     catch(Exception $error){
-      watchdog('imu debug', '<pre> Sorry, an error occurred: ' . print_r($error->getMessage(), TRUE) . '</pre>');
+      watchdog('imu debug', '<pre> Sorry, an error occurred: ' . print_r($error, TRUE) . '</pre>');
     }
   }
 
