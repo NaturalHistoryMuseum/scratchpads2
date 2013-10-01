@@ -463,7 +463,7 @@ function _uniqueGUIDS($importTo, $mergedRows){
       break;
     case "parasite_card_parasite_taxonomy":
       foreach($mergedRows as $row){
-        if(!in_array($row['parasite_taxa_GUID'], $unique_GUIDS)){
+        if(isset($row['parasite_taxa_GUID']) && !in_array($row['parasite_taxa_GUID'], $unique_GUIDS)){
           $unique_GUIDS[] = $row['parasite_taxa_GUID'];
           $unique_rows[] = $row;
         }
@@ -471,7 +471,7 @@ function _uniqueGUIDS($importTo, $mergedRows){
       break;
     case "specimen_taxonomy":
       foreach($mergedRows as $row){
-        if(!in_array($row['specimen_taxa_GUID'], $unique_GUIDS)){
+        if(isset($row['specimen_taxa_GUID']) && !in_array($row['specimen_taxa_GUID'], $unique_GUIDS)){
           $unique_GUIDS[] = $row['specimen_taxa_GUID'];
           $unique_rows[] = $row;
         }
@@ -479,7 +479,7 @@ function _uniqueGUIDS($importTo, $mergedRows){
       break;
     case "location":
       foreach($mergedRows as $row){
-        if(!in_array($row['location_GUID'], $unique_GUIDS)){
+        if(isset($row['location_GUID']) && !in_array($row['location_GUID'], $unique_GUIDS)){
           $unique_GUIDS[] = $row['location_GUID'];
           $unique_rows[] = $row;
         }
@@ -529,6 +529,7 @@ function _returnRequiredColumns($importTo){
       break;
     case "specimen_taxonomy":
       $kemuColumns = array(
+        'specimen_taxa_GUID=EntIdeTaxonRef_tab',
         'taxa=EntIdeTaxonRef_tab.[
 				taxa_GUID=irn,
 				rank=TaxClassRank_tab,
@@ -539,6 +540,7 @@ function _returnRequiredColumns($importTo){
       break;
     case "parasite_card_host_taxonomy":
       $kemuColumns = array(
+        'host_taxa_GUID=CardHostRef_tab',
         'host_taxa=CardHostRef_tab.[
 				taxa_GUID=irn,
 				rank=TaxClassRank_tab,
@@ -549,6 +551,7 @@ function _returnRequiredColumns($importTo){
       break;
     case "parasite_card_parasite_taxonomy":
       $kemuColumns = array(
+        'parasite_taxa_GUID=CardParasiteRef_tab',
         'parasite_taxa=CardParasiteRef_tab.[
 				taxa_GUID=irn,
 				rank=TaxClassRank_tab,
@@ -571,6 +574,8 @@ function _returnRequiredColumns($importTo){
         'record_status=EntRecRecordStatus_tab',
         'count=DarIndividualCount',
         'life_stage=DarLifeStage',
+        'DarCollector',
+        'DarCollectorNumber',
         'date_collected_start_year=DarStartYearCollected',
         'date_collected_start_month=DarStartMonthCollected',
         'date_collected_start_day=DarStartDayCollected',
@@ -578,20 +583,18 @@ function _returnRequiredColumns($importTo){
         'date_collected_end_month=DarEndMonthCollected',
         'date_collected_end_day=DarEndDayCollected',
         'field_notes=DarFieldNotes',
+        'DarGenBankNum',
+        'DarFieldNumber',
         'other_catalogue_numbers=DarOtherCatalogNumbers',
-        'field_remarks1=EntCatOtherNumbersKind_tab',
-        'field_remarks2=EntCatOtherNumbersValue_tab',
-        'field_remarks3=DarRemarks',
         'EntCatOtherNumbersKind_tab',
+        'DarRemarks',
         'DarSex',
         'DarTypeStatus',
-        'DarCollector',
-        'DarCollectorNumber',
         'CatKindOfCollection',
         'CatKindOfObject',
         'CatPreservative',
-        'DarGenBankNum',
-        'DarFieldNumber'
+        'field_remarks1=EntCatOtherNumbersKind_tab',
+        'field_remarks2=EntCatOtherNumbersValue_tab'
       );
       break;
     case "parasite_card":
