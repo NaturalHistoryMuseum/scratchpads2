@@ -1,0 +1,6 @@
+name = AGROVOC Automatic Indexing
+description = Defines a automatic extractor tags from a file for Agrovoc field
+dependencies[] = agrovocfield
+core = 7.x
+package = Fields
+

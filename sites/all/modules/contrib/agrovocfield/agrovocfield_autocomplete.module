@@ -1,0 +1,84 @@
+<?php 
+// $Id$
+/**
+ * @file
+ *  Agrovoc CCK field
+ *  This module provides an CCK field to fetch and store terms from AGROVOC thesaurus
+ *  Some portions of code were taken from Content Taxonomy Module and adapted to our objectives.
+ */
+
+require_once('includes/agrovoc.inc');
+require_once('includes/agrovoc_local.inc');
+require_once('includes/agrovoc_remote.inc');
+/**
+ * Implementation of hook_menu
+ */
+function agrovocfield_autocomplete_menu() {
+  $items['agrovocfield_autocomplete/autocomplete'] = array(
+    'title' => 'Autocomplete',
+    'page callback' => 'agrovocfield_autocomplete_autocomplete',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK
+  );
+  return $items; 
+}
+
+function agrovocfield_autocomplete_field_widget_info_alter(&$info) {
+  // Add a setting to a widget type.
+  $info['taxonomy_autocomplete']['settings'] += array(
+    'autocomplete_path' => 'agrovocfield_autocomplete/autocomplete',
+  );
+}
+
+function agrovocfield_autocomplete_field_widget_form_alter(&$element, &$form_state, $context) {
+	if ($context['field']['type'] == 'taxonomy_term_reference' && $context['instance']['widget']['settings']['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_enable']) {
+    $element['#autocomplete_path'] = 'agrovocfield_autocomplete/autocomplete' . '/' . $context['instance']['entity_type'] . '/' . $context['instance']['bundle'] . '/' . $context['field']['field_name'];
+  }
+}
+
+function agrovocfield_autocomplete_autocomplete($entity_type, $bundle, $field_name, $tags_typed = '') {
+  global $language;
+  // If the request has a '/' in the search text, then the menu system will have
+  // split it into multiple arguments, recover the intended $tags_typed.
+  $args = func_get_args();
+  // Shift off the $field_name argument.
+  $entity_type = array_shift($args);
+  $bundle_name = array_shift($args);
+  $field_name = array_shift($args);  
+  $tags_typed = implode('/', $args);
+
+  // Make sure the field exists and is a taxonomy field.
+  if (!($field = field_info_field($field_name)) || $field['type'] !== 'taxonomy_term_reference') {
+    // Error string. The JavaScript handler will realize this is not JSON and
+    // will display it as debugging information.
+    print t('Taxonomy field @field_name not found.', array('@field_name' => $field_name));
+    exit;
+  }
+  $field_info_instance = field_info_instance($entity_type, $field_name, $bundle_name);
+  // The user enters a comma-separated list of tags. We only autocomplete the last tag.
+  $tags_typed = drupal_explode_tags($tags_typed);
+  $tag_last = drupal_strtolower(array_pop($tags_typed));
+
+  $matches = array();
+  if ($tag_last != '') {
+    $prefix = count($tags_typed) ? drupal_implode_tags($tags_typed) . ', ' : '';
+    //call AGROVOC class
+    $agrovoc_mode = agrovoc_ . $field_info_instance['widget']['settings']['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_connection'];
+    $agrovoc = new ${agrovoc_mode}($field_info_instance['widget']['settings']['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_agrovoc_ws_url'], $field_info_instance['widget']['settings']['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_agrovoc_ws_uri']);
+    // Select rows that match by term name.
+    $agrovoc_result = $agrovoc->simple_search_by_mode2($tag_last, 'starting', ',', TRUE, 10000, $language->language);
+     foreach ($agrovoc_result as $term) {
+       $n = $term['term'];
+        // Commas and quotes in terms are special cases, so encode 'em.
+       if (strpos($term['term'], ',') !== FALSE || strpos($term['term'], '"') !== FALSE) {
+         $n = '"'. str_replace('"', '""', $term['term']) .'"';
+       }
+       $term_matches[$prefix . $n] = check_plain($term['term']);
+    }
+
+  }
+
+  drupal_json_output($term_matches);
+}
+
+
