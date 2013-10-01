@@ -124,7 +124,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
         )
       )
     );
-    if(is_array($termArray)){
+    if(isset($termArray) && is_array($termArray)){
       $imusearchArray[1][] = $termArray;
     }
     $moduleName = 'ecatalogue';
