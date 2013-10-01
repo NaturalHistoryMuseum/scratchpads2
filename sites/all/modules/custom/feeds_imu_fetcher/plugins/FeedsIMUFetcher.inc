@@ -29,24 +29,16 @@ class FeedsIMUFetcher extends FeedsFetcher{
    */
   public function fetch(FeedsSource $source){
     $source_config = $source->getConfigFor($this);
-    
     $kemuHost = trim($source_config['kemuHost']);
     $kemuPort = trim($source_config['kemuPort']);
-    
     $IMUrecord_status = trim($source_config['IMUrecord_status']);
     $importTo = trim($source_config['importTo']);
-    
     $asXML = trim($source_config['asXML']);
-    
     $debugImu = trim($source_config['debugImu']);
-    
     $fetchDelay = trim($source_config['fetchDelay']);
     $fetchDelay = $fetchDelay ? $fetchDelay : 4; //default to 4 sec
-    
     $returnNumRows = trim($source_config['returnNumRows']);
     $returnNumRows = $returnNumRows ? $returnNumRows : 300; // default to 300 rows in a batch
-        
-    
     if($importTo == 'specimen'){
       $termArray = array(
         'and',
@@ -58,7 +50,6 @@ class FeedsIMUFetcher extends FeedsFetcher{
         )
       );
     }
-    
     if($importTo == 'parasite_card'){
       $termArray = array(
         'and',
@@ -70,8 +61,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
         )
       );
     }
-    
- /*  if($importTo == 'location'){
+    /*  if($importTo == 'location'){
       $termArray = array(
           'and',
           array(
@@ -83,7 +73,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
       );
     }*/    
     
-  /*    if($importTo == 'parasite_card_taxonomy'){
+  /*    if($importTo == 'parasite_card_host_taxonomy'){
         $termArray = array(
           'and',
           array(
@@ -94,6 +84,18 @@ class FeedsIMUFetcher extends FeedsFetcher{
           )
         );
       }*/    
+    
+    /*    if($importTo == 'parasite_card_parasite_taxonomy'){
+     $termArray = array(
+         'and',
+         array(
+             array(
+                 'irn',
+                 '2765235'
+             )
+         )
+     );
+    }*/
     
   /*    if($importTo == 'specimen_taxonomy'){
         $termArray = array(
@@ -122,15 +124,11 @@ class FeedsIMUFetcher extends FeedsFetcher{
         )
       )
     );
-    
     if(is_array($termArray)){
       $imusearchArray[1][] = $termArray;
     }
-    
     $moduleName = 'ecatalogue';
-    
     $kemuColumns = _returnRequiredColumns($importTo);
-    
     try{
       /* create an IMuSession and connect to the IMu server with the hostname and port */
       $imusession = new IMuSession($kemuHost, $kemuPort);
@@ -171,7 +169,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
         }
         $mergedRows = call_user_func_array('array_merge', $totalRows);
         $resultsArray = $totalarray[0];
-        $resultsArray->rows = $mergedRows;
+        $resultsArray->rows = _uniqueGUIDS($importTo, $mergedRows);
       }else{
         // Return an empty FeedsFetcherResult if we didn't get anything from Kemu
         throw new Exception(t('No records were returned for %IMUrecord_status from the Kemu server %kemuHost:%kemuPort.', array(
@@ -185,9 +183,8 @@ class FeedsIMUFetcher extends FeedsFetcher{
         if($debugImu){
           $times = implode(',', $totalCalls);
           watchdog('imu debug', '<pre>' . print_r($times, TRUE) . '</pre>');
-          watchdog('imu debug', '<pre> total rows returned ' . print_r($kemuResultsHits, TRUE) . '</pre>');          
+          watchdog('imu debug', '<pre> total rows returned ' . print_r($kemuResultsHits, TRUE) . '</pre>');
         }
-        
         /* if export as xml checkbox ticked */
         if($asXML){
           /*
@@ -202,7 +199,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
            * object returned from IMuModule's fetch method
            */
           $doc->writeElement('results', $resultsArray);
-          $results = $doc->saveXML();          
+          $results = $doc->saveXML();
         }
         return new FeedsFetcherResult($results);
       }else{
@@ -442,11 +439,56 @@ class FeedsIMUFetcher extends FeedsFetcher{
 function feeds_imu_fetcher_import_options(){
   return array(
     'location' => t('Location'),
-    'specimen_taxonomy' => t('Specimen Taxonomy'),
+    'specimen_taxonomy' => t('Specimen taxonomy'),
+    'parasite_card_host_taxonomy' => t('Parasite card host taxonomy'),
+    'parasite_card_parasite_taxonomy' => t('Parasite card parasite taxonomy'),
     'specimen' => t('Specimens'),
-    'parasite_card_taxonomy' => t('Parasite card Taxonomy'),
     'parasite_card' => t('Parasite card')
   );
+}
+
+function _uniqueGUIDS($importTo, $mergedRows){
+  $unique_GUIDS = array();
+  $unique_rows = array();
+  switch($importTo){
+    case "parasite_card_host_taxonomy":
+      foreach($mergedRows as $row){
+        if(!in_array($row['host_taxa_GUID'], $unique_GUIDS)){
+          $unique_GUIDS[] = $row['host_taxa_GUID'];
+          $unique_rows[] = $row;
+        }
+      }
+      break;
+    case "parasite_card_parasite_taxonomy":
+      foreach($mergedRows as $row){
+        if(!in_array($row['parasite_taxa_GUID'], $unique_GUIDS)){
+          $unique_GUIDS[] = $row['parasite_taxa_GUID'];
+          $unique_rows[] = $row;
+        }
+      }
+      break;
+    case "specimen_taxonomy":
+      foreach($mergedRows as $row){
+        if(!in_array($row['specimen_taxa_GUID'], $unique_GUIDS)){
+          $unique_GUIDS[] = $row['specimen_taxa_GUID'];
+          $unique_rows[] = $row;
+        }
+      }
+      break;
+    case "location":
+      foreach($mergedRows as $row){
+        if(!in_array($row['location_GUID'], $unique_GUIDS)){
+          $unique_GUIDS[] = $row['location_GUID'];
+          $unique_rows[] = $row;
+        }
+      }
+      break;
+    case "specimen":
+    case "parasite_card":
+      $unique_rows = $mergedRows;
+      break;
+  }
+  return $unique_rows;
 }
 
 function _returnRequiredColumns($importTo){
@@ -481,6 +523,36 @@ function _returnRequiredColumns($importTo){
                 water_body_type=AquWaterBodyType
 			]
 		 ]'
+      );
+      break;
+    case "specimen_taxonomy":
+      $kemuColumns = array(
+        'taxa=EntIdeTaxonRef_tab.[
+				taxa_GUID=irn,
+				rank=TaxClassRank_tab,
+				term_name=TaxClassValue_tab,
+				author=TaxClassAuthors_tab
+			]'
+      );
+      break;
+    case "parasite_card_host_taxonomy":
+      $kemuColumns = array(
+        'host_taxa=CardHostRef_tab.[
+				taxa_GUID=irn,
+				rank=TaxClassRank_tab,
+				term_name=TaxClassValue_tab,
+				author=TaxClassAuthors_tab
+			]'
+      );
+      break;
+    case "parasite_card_parasite_taxonomy":
+      $kemuColumns = array(
+        'parasite_taxa=CardParasiteRef_tab.[
+				taxa_GUID=irn,
+				rank=TaxClassRank_tab,
+				term_name=TaxClassValue_tab,
+				author=TaxClassAuthors_tab
+			]'
       );
       break;
     case "specimen":
@@ -525,6 +597,7 @@ function _returnRequiredColumns($importTo){
         'specimen_GUID=irn',
         'host_taxa_GUID=CardHostRef_tab',
         'parasite_taxa_GUID=CardParasiteRef_tab',
+        'person_GUID=PrePreparedByRef',
         'collectionEvent=EntLocEventSiteRef.[
 			location_GUID=ColSiteRef,
 			field_notes=NteText0
@@ -534,7 +607,6 @@ function _returnRequiredColumns($importTo){
         'record_status=EntRecRecordStatus_tab',
         'count=CardNotes',
         'life_stage=CardParasiteStage_nesttab',
-        'person_GUID=PrePreparedByRef',
         'collector=PrePreparedByRef.[
 			collector_irn=irn,
 			collector_brief_name=NamBriefName
@@ -543,32 +615,6 @@ function _returnRequiredColumns($importTo){
         'date_collected_end=PrePreparedDateTo',
         'field_remarks1=PreType',
         'field_remarks2=CatKindOfCollection'
-      );
-      break;
-    case "parasite_card_taxonomy":
-      $kemuColumns = array(
-        'host_taxa=CardHostRef_tab.[
-				taxa_GUID=irn,
-				rank=TaxClassRank_tab,
-				term_name=TaxClassValue_tab,
-				author=TaxClassAuthors_tab
-			]',
-        'parasite_taxa=CardParasiteRef_tab.[
-				taxa_GUID=irn,
-				rank=TaxClassRank_tab,
-				term_name=TaxClassValue_tab,
-				author=TaxClassAuthors_tab
-			]'
-      );
-      break;
-    case "specimen_taxonomy":
-      $kemuColumns = array(
-        'taxa=EntIdeTaxonRef_tab.[
-				taxa_GUID=irn,
-				rank=TaxClassRank_tab,
-				term_name=TaxClassValue_tab,
-				author=TaxClassAuthors_tab
-			]'
       );
       break;
   }
