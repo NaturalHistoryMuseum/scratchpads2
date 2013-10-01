@@ -455,7 +455,7 @@ function _uniqueGUIDS($importTo, $mergedRows){
   switch($importTo){
     case "parasite_card_host_taxonomy":
       foreach($mergedRows as $row){
-        if(!in_array($row['host_taxa_GUID'], $unique_GUIDS)){
+        if(isset($row['host_taxa_GUID']) && !in_array($row['host_taxa_GUID'], $unique_GUIDS)){
           $unique_GUIDS[] = $row['host_taxa_GUID'];
           $unique_rows[] = $row;
         }
