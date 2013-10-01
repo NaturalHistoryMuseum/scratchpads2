@@ -1,0 +1,5 @@
+name = "anymals+plants - Content Type Export"
+description = "Exports the content type and registers it with the anymals+plants site"
+package = "anymals+plants"
+core = 7.x
+dependencies[] = darwincore

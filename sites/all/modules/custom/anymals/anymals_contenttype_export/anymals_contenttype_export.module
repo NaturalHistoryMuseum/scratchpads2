@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * Create the XML for an entity form.
+ * 
+ * Returns the XML which describes an entity/bundle form.  Note, this defaults
+ * to the darwincore node form.
+ */
+function anymals_contenttype_export_get_xml($entity = 'node', $bundle = 'specimen_observation'){
+  $entity_info = entity_get_info($entity);
+  $function = $entity_info['form callback'];
+  $entity = (object)array(
+    $entity_info['entity keys']['bundle'] => $bundle
+  );
+  $form = $function($entity);
+  return $form;
+}
