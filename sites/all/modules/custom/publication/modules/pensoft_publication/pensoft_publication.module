@@ -359,6 +359,8 @@ function entity_metadata_simple_values($field, $sanitized = TRUE){
 function pensoft_publication_publication_parse_references($entity){
   if($entity->type != 'pensoft'){return;}
   $wrapper = entity_metadata_wrapper('publication', $entity);
+  $info = $wrapper->getPropertyInfo();
+  if(!isset($info['relation_publication_treatments_node'])){return array();}
   $references_to_add = array();
   foreach($wrapper->relation_publication_treatments_node->getIterator() as $delta => $treat_entity_wrapper){
     // Unfortunately entity metadata wrapper doesn't give access to the relation fields
