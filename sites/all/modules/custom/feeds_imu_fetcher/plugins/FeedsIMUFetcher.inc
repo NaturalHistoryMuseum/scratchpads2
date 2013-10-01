@@ -495,10 +495,10 @@ function _returnRequiredColumns($importTo){
   switch($importTo){
     case "location":
       $kemuColumns = array(
-        'collectionEvent=EntLocEventSiteRef.[
-			ecollectioneventsIRN=irn,
-			colleventNotes=NteText0,
-            location_GUID=ColSiteRef,
+        'location_GUID=EntLocEventSiteRef.[GUID=ColSiteRef],
+            collectionEvent=EntLocEventSiteRef.[
+			collection_event_GUID=irn,
+			colleventNotes=NteText0,            
 			site=ColSiteRef.[
 				site_title=SummaryData,
 				continent=LocContinent_tab,
@@ -519,7 +519,7 @@ function _returnRequiredColumns($importTo){
 				lat=LatLatitude_nesttab,
 				lng=LatLongitude_nesttab,
                 verbatim_lat=LatLatitudeVerbatim_nesttab,
-				verbatim_long=LatLongitudeVerbatim_nesttab,
+				verbatim_lon=LatLongitudeVerbatim_nesttab,
                 water_body_type=AquWaterBodyType
 			]
 		 ]'
