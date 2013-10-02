@@ -50,6 +50,11 @@ function anymals_contenttype_export_get_xml($entity_type = 'node', $bundles = 's
   return $xml->asXML();
 }
 
+function xml_deliver($page_callback_result){
+  drupal_add_http_header('Content-Type', 'text/xml; charset=utf-8');
+  print $page_callback_result;
+}
+
 /**
  * Helper function which adds an individual field to an XML object.
  */
