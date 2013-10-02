@@ -2,4 +2,5 @@ name = Tinytax: Tiny Taxonomy Browser
 description = Provides a block for browsing a taxonomy.
 core = 7.x
 dependencies[] = taxonomy
-files[] = tinytax.test
+files[] = tests/tinytax.test
+files[] = tests/tinytax.selenium.test
