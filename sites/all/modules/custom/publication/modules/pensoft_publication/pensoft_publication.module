@@ -425,10 +425,19 @@ function pensoft_publication_form_publication_type_form_alter(&$form, &$form_sta
     '#weight' => 11
   );
   // Test if the schema has changed
+  $fail = FALSE;
   module_load_include('xml.inc', 'publication', 'includes/publication');
   $used_schema_url = variable_get('pensoft_publication_xml_schema_url', drupal_get_path('module', 'pensoft_publication') . '/taxonomic_paper.xsd');
   $used_parser = new PublicationXSDParser($used_schema_url);
-  $used_schema = $used_parser->get_schema_array();
+  try{
+    $used_schema = $used_parser->get_schema_array();
+  }
+  catch(Exception $e){
+    drupal_set_message(t('The local schema could not be loaded: %cause', array(
+      '%cause' => $e->getMessage()
+    )), 'error');
+    $fail = TRUE;
+  }
   $pensoft_schema_url = variable_get('pensoft_schema_url', 'http://pwt.pensoft.net/dev/taxonomic_paper.xsd');
   $pensoft_parser = new PublicationXSDParser($pensoft_schema_url);
   $fail = FALSE;
@@ -511,7 +520,18 @@ function pensoft_publication_publish_form($form, &$form_state, $publication){
   module_load_include('xml.inc', 'publication', 'includes/publication');
   $used_schema_url = variable_get('pensoft_publication_xml_schema_url', drupal_get_path('module', 'pensoft_publication') . '/taxonomic_paper.xsd');
   $used_parser = new PublicationXSDParser($used_schema_url);
-  $used_schema = $used_parser->get_schema_array();
+  try{
+    $used_schema = $used_parser->get_schema_array();
+  }
+  catch(Exception $e){
+    $form['fail'] = array(
+      '#type' => 'markup',
+      '#markup' => '<p>' . t('It is not possible to publish this as we failed to parse the local publication schema. Please report this issue to the site administrator. Error message: %cause', array(
+        '%cause' => $e->getMessage()
+      ))
+    );
+    return $form;
+  }
   $pensoft_schema_url = variable_get('pensoft_schema_url', 'http://pwt.pensoft.net/dev/taxonomic_paper.xsd');
   $pensoft_parser = new PublicationXSDParser($pensoft_schema_url);
   $fail = FALSE;
