@@ -266,9 +266,7 @@ class PublicationXSDParser{
       return $a;
     }
     // Prepare for processing
-    $r = array(
-      '#comment' => ''
-    );
+    $r = array();
     $b_keys = array_keys($b);
     // Start with $a, and look for equivalents in $b
     foreach(array_keys($a) as $a_key){
@@ -276,6 +274,9 @@ class PublicationXSDParser{
       if(!isset($b[$a_key])){
         $r[$a_key] = $a[$a_key];
         if($diff && strpos($a_key, '#') === FALSE){
+          $r += array(
+            '#comment' => ''
+          );
           $r['#comment'] .= " DIFF: $a_key missing in provided schema;";
         }
       }else{
@@ -667,6 +668,10 @@ class PublicationXMLBuilder{
           }
         }
       }
+      // If this is a field, obtain all the values' contexts
+      if(isset($child_schema['#field'])){
+        $child_schema['#values_contexts'] = $this->_get_field_values_contexts($child_schema, $tag, $object);
+      }
       // Check the occurence constraint works
       $this->_build_xml_check_constraint($child_schema, $tag, $object);
       // Insert the value and recurse
@@ -687,10 +692,12 @@ class PublicationXMLBuilder{
   }
 
   /**
-   * Insert a #field value, and recurse through the schema as appropriate
-   * 
+   * Return all the actual values of a given #field value
+   * (applying merges and child object loads), and return
+   * an array of contexts for each actual value.
    */
-  function _build_schema_insert_field($schema, $tag, $object, $xml_element){
+  function _get_field_values_contexts($schema, $tag, $object){
+    $result = array();
     $field = $schema['#field'];
     if(isset($schema['#merge']) && function_exists($schema['#merge'])){
       $merge_function = $schema['#merge'];
@@ -703,7 +710,6 @@ class PublicationXMLBuilder{
     foreach($this->modifiers as $modifier){
       $values = $modifier->insert_value_array($schema, $tag, $values);
     }
-    $inserted = FALSE;
     foreach($values as $delta => $value){
       $value_to_insert = $value;
       if(isset($schema['#value'])){
@@ -718,10 +724,9 @@ class PublicationXMLBuilder{
       }
       if(!$child_object){
         // It's up to the loader to raise errors if need be. Here an empty return means skip it.
-        // XXX doing this test here means we're not checking against min/max occurs.
         continue;
       }
-      $this->_set_context(array(
+      $result[] = array(
         'object' => $object,
         'child_object' => $child_object,
         'field' => $field,
@@ -729,15 +734,27 @@ class PublicationXMLBuilder{
         'raw_value' => $value,
         'value_to_insert' => $value_to_insert,
         'schema' => $schema
-      ));
+      );
+    }
+    return $result;
+  }
+
+  /**
+   * Insert a #field value, and recurse through the schema as appropriate
+   *
+   */
+  function _build_schema_insert_field($schema, $tag, $object, $xml_element){
+    if(empty($schema['#values_contexts'])){return FALSE;}
+    foreach($schema['#values_contexts'] as $context){
+      $this->_set_context($context);
       // XXX The new Modifier functionality means we might end up with a NULL value, and thus
       // should set $inserted to FALSE (depending on min_ocurrence) to provide adequate backtracking.
-      $child_element = $this->_insert_xml_element($schema, $tag, $value_to_insert, $xml_element);
+      $child_element = $this->_insert_xml_element($schema, $tag, $context['value_to_insert'], $xml_element);
       $inserted = TRUE;
-      $this->_build_xml_iteration($schema, $child_object, $child_element);
+      $this->_build_xml_iteration($schema, $context['child_object'], $child_element);
       $this->_pop_context();
     }
-    return $inserted;
+    return TRUE;
   }
 
   /**
@@ -895,16 +912,7 @@ class PublicationXMLBuilder{
     $max_occurence = isset($schema['#max_occurence']) ? $schema['#max_occurence'] : 1;
     if(!empty($schema['#field'])){
       $field = $schema['#field'];
-      if(isset($object->$field)){
-        if(isset($schema['#merge'])){
-          $count = 1;
-        }else{
-          $field_value = $this->_read_values($object->$field);
-          $count = count($field_value);
-        }
-      }else{
-        $count = 0;
-      }
+      $count = count($schema['#values_contexts']);
       if($count < $min_occurence || ($max_occurence >= 0 && $count > $max_occurence)){
         $message_prepare = "the field %field";
         if($count == 0){
