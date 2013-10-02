@@ -13,12 +13,16 @@
  *  array(
  *    #min_occurence:   Minimum number of occurence. Defaults to 1.
  *                      An exception will be raised if this constraint is not respected
+ *
  *    #max_occurence':  Maximum number of occurence. Defaults to 1, use -1 for unlimited
  *                      An expception will be raised if this constraint is not respected
- *    #attributes:      Attributes to add to the element, as an array of name => value/callable function
- *    #process:         Optional function to process the value of the node before insertion.
- *                      available functions are:
- *                        - _pensoft_publication_xml_process_html: to insert HTML values
+ *
+ *    #attributes:      Attributes to add to the element, as an array of name => value/callable function.
+ *                      If the value is NULL, it is ignored.
+ *
+ *    #process:         Optional function to process the given value before insertion. This can be any
+ *                      callable type.
+ *
  *    #process arguments : If the process function is called, this is passed as additional argument
  *    
  *    #load:            Optional function to load the object from which fields are fetched, which
@@ -59,6 +63,15 @@
  *
  *    #error_field      If present, the string '%' in the #error_info will be substituted for the value
  *                      of that field on the current object
+ *
+ *    #restrictions:    Optionally other restrictions. This is an array of the form:
+ *                      array(
+ *                        'enumeration' => array(... allowed values ...),
+ *                        'attributes_enumerations' => array(
+ *                          <attribute_name> => array(... allowed values ...),
+ *                          ...
+ *                        )
+ *                      )
  *
  *   <tag name>:        A schema array for child elements. There can be any number of
  *                      such entries. To allow for several of the same tag (for instance, several
@@ -163,7 +176,22 @@ class PublicationXSDParser{
       $type_element = array_shift($types);
       $element = $this->_parse_complex_type($type_element, $type);
     }
-    // XXX TODO parse restrictions.
+    // Parse restrictions. XXX Only enumerations are supported.
+    $restrictions = $type_element->xpath('xsd:restriction');
+    foreach($restrictions as $restriction){
+      $enumerations = $restriction->xpath('xsd:enumeration');
+      if(count($enumerations)){
+        if(!isset($element['#restriction'])){
+          $element['#restriction'] = array(
+            'enumeration' => array()
+          );
+        }
+        foreach($enumerations as $enumeration){
+          $vars = get_object_vars($enumeration);
+          $element['#restriction']['enumeration'][] = $vars['@attributes']['value'];
+        }
+      }
+    }
     return $element;
   }
 
@@ -173,12 +201,34 @@ class PublicationXSDParser{
   function _parse_complex_type($element, $display_name){
     $result = array();
     // Look for attributes
-    $attributes = $element->xpath('xsd:attribute');
+    $attributes = $element->xpath('xsd:attribute|xsd:simpleContent/xsd:extension/xsd:attribute');
     foreach($attributes as $attribute){
       $vars = get_object_vars($attribute);
       $name = $vars['@attributes']['name'];
-      // XXX Does this mean the attribute is required ? How do we mark this ?
-      //$result['#attributes'] = array($name => NULL);
+      $attr_required = isset($vars['@attributes']['use']) && $vars['@attributes']['use'] == 'required';
+      $default = NULL;
+      // Look for restrictions on the attribute
+      $attr_enumerations = $attribute->xpath('xsd:simpleType/xsd:restriction/xsd:enumeration');
+      if(count($attr_enumerations)){
+        if(!isset($result['#restrictions'])){
+          $result['#restrictions'] = array(
+            'attributes_enumerations' => array()
+          );
+        }else if(!isset($result['#restrictions']['attributes_enumerations'])){
+          $result['#restrictions']['attributes_enumerations'] = array();
+        }
+        $result['#restrictions']['attributes_enumerations'][$name] = array();
+        foreach($attr_enumerations as $attr_enumeration){
+          $vars = get_object_vars($attr_enumeration);
+          $result['#restrictions']['attributes_enumerations'][$name][] = $vars['@attributes']['value'];
+        }
+      }
+      if($attr_required && !empty($result['#restrictions']['attributes_enumerations'][$name])){
+        $default = reset($result['#restrictions']['attributes_enumerations'][$name]);
+      }
+      $result['#attributes'] = array(
+        $name => $default
+      );
     }
     // Look for a sequence
     $sequences = $element->xpath('xsd:sequence');
@@ -198,7 +248,9 @@ class PublicationXSDParser{
     // Base case if either $a or $b is not an array
     if(!is_array($a)){
       if(is_array($b) && $diff){
-        $b += array('#comment' => '');
+        $b += array(
+          '#comment' => ''
+        );
         $b['#comment'] .= " DIFF:Type mismatch, this value was not an array in the source schema;";
       }
       return $b;
@@ -206,13 +258,17 @@ class PublicationXSDParser{
     if(!is_array($b)){
       $a[] = $b;
       if($diff){
-        $a += array('#comment' => '');
+        $a += array(
+          '#comment' => ''
+        );
         $a['#comment'] .= " DIFF:Type mismatch, this value was not an array in the provided schema;";
       }
       return $a;
     }
     // Prepare for processing
-    $r = array('#comment' => '');
+    $r = array(
+      '#comment' => ''
+    );
     $b_keys = array_keys($b);
     // Start with $a, and look for equivalents in $b
     foreach(array_keys($a) as $a_key){
@@ -238,13 +294,92 @@ class PublicationXSDParser{
     if($diff){
       foreach($b as $b_key => $b_val){
         if(strpos($b_key, '#') === FALSE){
-          $b += array('#comment' => '');
+          $b += array(
+            '#comment' => ''
+          );
           $b['#comment'] .= " DIFF:$b_key missing in source schema;";
         }
       }
     }
     $r = array_merge($r, $b);
     return $r;
+  }
+
+  /**
+   * Check whether two schema arrays are equivalent. As with XML
+   * documents, order matters.
+   *
+   * This returns TRUE if the schemas are equivalent, and FALSE if not.
+   * If the option 'description' parameter if provided (and is an array)
+   * this gets filled with an english description of the changes.
+   *
+   * Note: numbered #x keys must be equal.
+   */
+  static function compare_schemas($a, $b, &$description = NULL, $path = 'root'){
+    // Check values
+    if(!is_array($a)){
+      if(is_array($b)){
+        if(is_array($description)){
+          $description[] = "Schema item $path has been changed from a schema array to a value.";
+        }
+        return FALSE;
+      }
+      if(is_array($description) && $a !== $b){
+        $description[] = "Value of $path has been changed from \"$a\" to \"$b\".";
+      }
+      return $a == $b;
+    }
+    if(!is_array($b)){
+      if(is_array($description)){
+        $description[] = "Schema item $path has been changed from a value to a schema array.";
+      }
+      return FALSE;
+    }
+    // Check schema arrays
+    $state = TRUE;
+    $b_keys = array_keys($b);
+    foreach(array_keys($a) as $a_key){
+      if(!array_key_exists($a_key, $b)){
+        if($a_key == 'min_occurence' && $a[$a_key] == 1){
+          continue;
+        }else if($a_key == 'max_occurence' && $a[$a_key] == 1){
+          continue;
+        }else{
+          if(is_array($description)){
+            $val = $a_key;
+            if(!is_array($a[$a_key])){
+              $val .= " => \"" . $a[$a_key] . "\"";
+            }
+            $description[] = "Element $path>$val has been removed.";
+          }
+          $state = FALSE;
+        }
+      }else{
+        // XXX For enumerations we should do an array diff rather than recurse
+        $rec_state = PublicationXSDParser::compare_schemas($a[$a_key], $b[$a_key], $description, $path . '>' . $a_key);
+        $state = $rec_state && $state;
+      }
+      unset($b[$a_key]);
+    }
+    if(!empty($b)){
+      if(isset($b['min_occurrence']) && $b['min_occurence'] == 1){
+        unset($b['min_occurence']);
+      }
+      if(isset($b['max_occurence']) && $b['max_occurence'] == 1){
+        unset($b['max_occurence']);
+      }
+      if(is_array($description) && !empty($b)){
+        foreach(array_keys($b) as $b_key){
+          $val = $b_key;
+          if(!is_array($b[$b_key])){
+            $val .= " => \"" . $b[$b_key] . "\"";
+          }
+          $description[] = "Element $path>$val has been added.";
+        }
+      }
+      return $state && empty($b);
+    }
+    return $state;
   }
 }
 
@@ -270,7 +405,7 @@ class PublicationXMLSchemaExplain{
     $output = array();
     $this->_path = array();
     foreach($this->schema as $tag => $child_schema){
-      if (preg_match('/^#/', $tag)) {
+      if(preg_match('/^#/', $tag)){
         continue;
       }
       $output[] = "<$tag>";
@@ -292,9 +427,9 @@ class PublicationXMLSchemaExplain{
     // Add attributes
     if(!empty($schema['#attributes'])){
       foreach($schema['#attributes'] as $attr_name => $attr_value){
-        if (is_object($attr_value)) {
+        if(is_object($attr_value)){
           $output[] = "SET ATTR $attr_name = function() {...})();";
-        } else {
+        }else if($attr_value !== NULL){
           $output[] = "SET ATTR $attr_name = $attr_value;";
         }
       }
@@ -312,7 +447,12 @@ class PublicationXMLSchemaExplain{
       }
       if(isset($schema['#process'])){
         // XXX need to display process arguments
-        $value_to_set = $schema['#process'] . '(' . $value_to_set . ')';
+        if(is_object($schema['#process'])){
+          $value_to_set = '<inline function>';
+        }else{
+          $value_to_set = $schema['#process'];
+        }
+        $value_to_set = $value_to_set . '(' . $value_to_set . ')';
       }
       $output[] = "SET VALUE = " . $value_to_set . ";";
     }
@@ -320,10 +460,10 @@ class PublicationXMLSchemaExplain{
     $condition = FALSE;
     if(isset($schema['#condition'])){
       if(is_callable($schema['#condition'])){
-        if (is_object($schema['#condition'])) {
+        if(is_object($schema['#condition'])){
           $output[] = "IF (...) {";
           $condition = '...()';
-        } else {
+        }else{
           $output[] = "IF " . $schema['#condition'] . " {";
           $condition = $schema['#condition'] . '()';
         }
@@ -686,7 +826,7 @@ class PublicationXMLBuilder{
     // Apply process function
     if(isset($schema['#process'])){
       $f = $schema['#process'];
-      if(!function_exists($f)){throw new Exception("Process function $f for tag $tag does not exist");}
+      if(!is_callable($f)){throw new Exception("Process function $f for tag $tag does not exist");}
       $args = array(
         $value
       );
@@ -705,8 +845,16 @@ class PublicationXMLBuilder{
     // Add attributes
     if(!empty($schema['#attributes'])){
       foreach($schema['#attributes'] as $attr_name => $attr_value){
+        if($attr_value === NULL){
+          continue;
+        }
         if(is_callable($attr_value)){
           $attr_value = $attr_value($this->_get_context());
+        }
+        if(!empty($schema['#restrictions']['attributes_enumerations'][$attr_name])){
+          if(!in_array($attr_value, $schema['#restrictions']['attributes_enumerations'][$attr_name])){
+            // XXX Raise error.
+          }
         }
         $child_element->setAttribute($attr_name, $attr_value);
       }
