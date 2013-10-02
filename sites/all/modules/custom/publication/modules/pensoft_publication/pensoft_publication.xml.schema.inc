@@ -495,7 +495,6 @@ function _pensoft_publication_xml_systematics_schema(){
         'enter_title_of_this_subsection' => array(
           'value' => array(
             '#value' => 'Dispersal',
-            '#raw' => TRUE
           )
         ),
         'content' => array(
@@ -665,6 +664,7 @@ function _pensoft_publication_xml_systematics_schema(){
   $conservation = array(
     'fields' => array(
       'conservation' => array(
+        '#condition' => 'field_conservation_status',
         'value' => array(
           '#field' => 'field_conservation_status',
           '#raw' => TRUE
@@ -1033,16 +1033,19 @@ function _pensoft_publication_xml_systematics_schema(){
     },
     'fields' => array(
       'genus' => array(
+        '#condition' => 'field_publication_treat_genus',
         'value' => array(
           '#field' => 'field_publication_treat_genus',
         )
       ),
       'species' => array(
+        '#condition' => 'field_publication_treat_species',
         'value' => array(
           '#field' => 'field_publication_treat_species',
         )
       ),
       'taxon_authors' => array(
+        '#condition' => 'field_publication_treat_authy',
         'value' => array(
           '#field' => 'field_publication_treat_authy',
         )
@@ -1050,15 +1053,6 @@ function _pensoft_publication_xml_systematics_schema(){
     )
   );
   $systematics = array(
-    'fields' => array(
-      '#condition' => 'field_publication_systematics',
-      'systematics' => array(
-        'value' => array(
-          '#field' => 'field_publication_systematics',
-          '#raw' => TRUE
-        )
-      )
-    ),
     'treatment' => array(
       '#load' => '_pensoft_publication_xml_load_treatment',
       '#field' => 'field_publication_treatments',
@@ -1115,12 +1109,14 @@ function _pensoft_publication_xml_systematics_schema(){
           return $context->child_object->field_rank[LANGUAGE_NONE][0]['value'] == 'Genus';
         },
         'fields' => array(
+          '#condition' => 'field_publication_treat_genus',
           'genus' => array(
             'value' => array(
               '#field' => 'field_publication_treat_genus'
             )
           ),
           'taxon_authors' => array(
+            '#condition' => 'field_publication_treat_authy',
             'value' => array(
               '#field' => 'field_publication_treat_authy',
             )
