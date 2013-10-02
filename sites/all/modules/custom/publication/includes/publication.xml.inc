@@ -427,6 +427,9 @@ class PublicationXMLSchemaExplain{
     // Add attributes
     if(!empty($schema['#attributes'])){
       foreach($schema['#attributes'] as $attr_name => $attr_value){
+        if($attr_name[0] == '#'){
+          continue;
+        }
         if(is_object($attr_value)){
           $output[] = "SET ATTR $attr_name = function() {...})();";
         }else if($attr_value !== NULL){
@@ -845,7 +848,7 @@ class PublicationXMLBuilder{
     // Add attributes
     if(!empty($schema['#attributes'])){
       foreach($schema['#attributes'] as $attr_name => $attr_value){
-        if($attr_value === NULL){
+        if($attr_name[0] == '#' || $attr_value === NULL){
           continue;
         }
         if(is_callable($attr_value)){
