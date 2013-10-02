@@ -215,10 +215,12 @@ function _pensoft_publication_xml_article_metadata_schema(){
     '#load' => '_pensoft_publication_xml_load_author',
     '#field' => 'field_publication_authors',
     '#value' => '',
+    '#error_info' => 'Authors',
     'fields' => array(
       'e-mail' => array(
         'value' => array(
-          '#field' => 'mail'
+          '#field' => 'mail',
+          '#error_info' => 'mail (author)'
         )
       ),
       'salutation' => array(

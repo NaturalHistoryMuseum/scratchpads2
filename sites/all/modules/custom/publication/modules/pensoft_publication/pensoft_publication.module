@@ -555,6 +555,16 @@ function pensoft_publication_publish_form($form, &$form_state, $publication){
     );
     return $form;
   }
+  // Validate the publication
+  module_load_include('xml.inc', 'pensoft_publication');
+  $xml = _pensoft_publication_build_xml($publication);
+  if(empty($xml)){
+    $form['fail'] = array(
+      '#type' => 'markup',
+      '#markup' => '<p>' . t('The publication does not validate for publication.')
+    );
+    return $form;
+  }
   // The publication form
   $form = array();
   $form['pensoft_publication'] = array(
@@ -573,16 +583,18 @@ function pensoft_publication_publish_form($form, &$form_state, $publication){
     '#default_value' => '',
     '#required' => TRUE
   );
-  $form['pensoft_return_xml'] = array(
-    '#type' => 'radios',
-    '#title' => 'Data handling',
-    '#default_value' => 1,
-    '#options' => array(
-      1 => t('Return XML file'),
-      2 => t('Post XML file to Pensoft'),
-      3 => t('Just valiate the process')
-    )
-  );
+  if(user_access('preview publication xml')){
+    $form['pensoft_return_xml'] = array(
+      '#type' => 'radios',
+      '#title' => 'Data handling',
+      '#default_value' => 1,
+      '#options' => array(
+        1 => t('Return XML file'),
+        2 => t('Post XML file to Pensoft'),
+        3 => t('Just valiate the process')
+      )
+    );
+  }
   $form['pensoft_publish'] = array(
     '#type' => 'submit',
     '#value' => 'Publish'
@@ -607,17 +619,20 @@ function pensoft_publication_publish_form_submit($form, &$form_state){
   module_load_include('xml.inc', 'pensoft_publication');
   $publication = $form_state['values']['pensoft_publication'];
   $xml = _pensoft_publication_build_xml($publication);
-  $mode = $form_state['values']['pensoft_return_xml'];
-  if($mode == 3){
-    drupal_set_message(t('XML contains %bytes bytes', array(
-      '%bytes' => strlen($xml)
-    )), 'status');
-    return;
-  }else if($mode == 1){
-    header('Content-type: application/xml');
-    echo $xml;
-    exit();
-  }else if(empty($xml)){
+  if(user_access('preview publication xml')){
+    $mode = $form_state['values']['pensoft_return_xml'];
+    if($mode == 3){
+      drupal_set_message(t('XML contains %bytes bytes', array(
+        '%bytes' => strlen($xml)
+      )), 'status');
+      return;
+    }else if($mode == 1){
+      header('Content-type: application/xml');
+      echo $xml;
+      exit();
+    }
+  }
+  if(empty($xml)){
     drupal_set_message(t('Could not process XML as required'), 'error');
     return;
   }
@@ -741,12 +756,23 @@ function _pensoft_publication_build_xml($publication){
     $xml = $builder->build_xml($publication, $url, '1.0', 'UTF-8');
   }
   catch(Exception $e){
-    drupal_set_message(t("An error occured while building the publication: %cause", array(
-      '%cause' => $e->getMessage()
+    drupal_set_message(t("An error occured while building the publication: !cause", array(
+      '!cause' => $e->getMessage()
     )), 'error');
     return FALSE;
   }
   return $xml;
+}
+
+/**
+ * Implement hook_perm
+ */
+function pensoft_publication_permission(){
+  return array(
+    'preview publication xml' => array(
+      'title' => t('Preview publication XML')
+    )
+  );
 }
 
 /**
