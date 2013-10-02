@@ -2,3 +2,4 @@ name = Taxonomy editor
 description = Adds an enhanced User Interface for editing a taxonomy.
 core = "7.x"
 dependencies[] = taxonomy
+files[] = tests/tui.selenium.test
