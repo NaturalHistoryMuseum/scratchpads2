@@ -5,13 +5,61 @@
  * 
  * Returns the XML which describes an entity/bundle form.  Note, this defaults
  * to the darwincore node form.
- */
-function anymals_contenttype_export_get_xml($entity = 'node', $bundle = 'specimen_observation'){
-  $entity_info = entity_get_info($entity);
+ * 
+ *
+ * // Alternative code to simply get an entity form.
+  $entity_info = entity_get_info($entity_type);
   $function = $entity_info['form callback'];
   $entity = (object)array(
-    $entity_info['entity keys']['bundle'] => $bundle
+    $entity_info['entity keys']['bundle'] => $bundle_name
   );
   $form = $function($entity);
-  return $form;
+ */
+function anymals_contenttype_export_get_xml($entity_type = 'node', $bundle_name = 'specimen_observation'){
+  // Get the entity info so that we know what label to give this entity's label
+  // field (e.g. Title for node).
+  $entity_info = entity_get_info($entity_type);
+  // Get the fields and the groups.
+  $fields = field_info_instances($entity_type, $bundle_name);
+  $groups = field_group_info_groups($entity_type, $bundle_name, 'form');
+  $sorted_fields = array();
+  // Create an array of tab names
+  $tab_groups = array();
+  foreach($groups as $key => $group){
+    if(empty($group->parent_name)){
+      $tab_groups[$key] = (array)$group;
+      unset($groups[$key]);
+    }
+  }
+  // Loop through each tab set, and get the tabs ordered.
+  foreach($tab_groups as $tab_group_key => $tab_group){
+    $tabs = array();
+    foreach($groups as $group_key => $group){
+      if($group->parent_name == $tab_group_key){
+        $tabs[$group_key] = (array)$group;
+      }
+    }
+    uasort($tabs, 'drupal_sort_weight');
+    foreach($tabs as $key => $tab){
+      $tab_fields = array();
+      foreach($)
+    }
+    //$tabs['weight'] = $tab_group['weight'];
+    //$tab_groups[$tab_group_key] = $tabs;
+  }
+  foreach($groups as $group_key => $group){
+    foreach($group['children'] as $field_name){
+      if(isset($fields[$field_name])){
+        $sorted_fields[$group_key][] = $fields[$field_name];
+        unset($fields[$field_name]);
+      }
+    }
+    if(isset($sorted_fields[$group_key])){
+      uasort($sorted_fields[$group_key]);
+    }
+  }
+  print_r($fields);
+  exit();
+  // Add the fields to the groups and sort again.
+  $sorted_fields = array_merge($fields, $sorted_fields);
 }
