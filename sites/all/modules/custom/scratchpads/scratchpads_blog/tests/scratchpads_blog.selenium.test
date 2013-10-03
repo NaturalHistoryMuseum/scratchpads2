@@ -2,21 +2,21 @@
 /**
  * @file
 *
-* Test case for Darwincore with selenium
+* Test case for scratchpads_blog with selenium
 */
 if(!class_exists('DrupalSeleniumWebTestCase')){
   drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
   return;
 }
 
-class ScratchpadsBlogsSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+class ScratchpadsBlogSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
 
   protected $maintainer2;
   
   public static function getInfo(){
     return array(
-      'name' => 'Scratchpads Blogs',
-      'description' => 'Tests for scratchpads blogs',
+      'name' => 'Scratchpads Blog',
+      'description' => 'Tests for scratchpads blog',
       'group' => 'Scratchpads Selenium',
       'browsers' => array(
         'firefox'

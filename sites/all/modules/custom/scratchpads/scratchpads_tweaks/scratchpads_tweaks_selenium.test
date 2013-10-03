@@ -55,37 +55,12 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $to_disable = array();
     $to_disable[] = 'overlay';
     module_disable($to_disable);
-    // Admin user without 'access overlay' permission
-    /*
-    $this->admin_user = $this->drupalCreateUserWithName(array(
-      'access content',
-      'access administration pages',
-      'administer site configuration',
-      'administer users',
-      'administer permissions',
-      'administer content types',
-      'administer nodes',
-      'bypass node access',
-      'access content overview',
-      'view the administration theme',
-      'access all views',
-      'administer comments',
-      'administer front page',
-      'access toolbar',
-      'administer files',
-      'create file'
-    ), 'admin-user');
-    legal_save_accept(1, 1, 'en', $this->admin_user->uid);
-    */
-    
     $default_permissions = module_invoke_all('scratchpads_default_permissions');
-    
     // Maintainer
     $maintainer_permissions = $default_permissions['maintainer'];
     $maintainer_permissions[] = 'access content';
     $maintainer_permissions[] = 'view the administration theme';
-    $maintainer_permissions[] = 'access content overview'; 
-    
+    $maintainer_permissions[] = 'access content overview';
     $this->maintainer = $this->drupalCreateUserWithName($maintainer_permissions, 'maintainer_name');
     legal_save_accept(1, 1, 'en', $this->maintainer->uid);
     // Editor
@@ -104,8 +79,6 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
       'access user profiles'
     ), 'basic-user');
     legal_save_accept(1, 1, 'en', $this->basic_user->uid);
-    
-    
   }
 
   /**
@@ -187,7 +160,7 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $account->rid = $rid;
     return $account;
   }
-  
+
   /**
    * Returns a new vocabulary with random properties.
    * Code based on TaxonomyWebTestCase::createVocabulary
@@ -230,7 +203,7 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
   /**
    * Helper function for autocomplete fields
    */
-  function _autocompleteTest($field_name, $firstletter, $expected){
+  function _autocompleteTest($field_name, $firstletter, $expected = NULL){
     $element = $this->driver->getElement("name=" . $field_name);
     $element->sendKeys($firstletter);
     // Ensure autocomplete element appeared.
@@ -245,17 +218,70 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $first_element->submit();
     // Ensure that textfield is populated with selected element.
     $element_value = $element->getValue();
-    $this->assertEqual($expected, $element_value, t('Text of selected element is populated to textfield.'));
+    if($expected){
+      $this->assertEqual($expected, $element_value, t('Text of selected element is populated to textfield.'));
+    }
   }
 
   /**
+   *  Import Taxonomy from EOL
+   *  
+   *  Returns true on successful connection to EOL, otherwise false
+   */
+  function importTaxonomy($vocab_name, $search_term){
+    $eol_running = false;
+    $count = 0;
+    // We try 5 times to connect to EOL
+    while($count < 5 && (!$eol_running)){
+      $this->drupalGet('admin/import');
+      $element = $this->driver->getElement("name=silver_import_select");
+      // A manual override of selectLabel method, using xpath contains
+      $option_element = $element->getNextElement("xpath=.//option[text()[contains(.,'TCS')]]");
+      $option_element->click();
+      $this->driver->sleep(6);
+      $element = $this->driver->getElement("name=taxonomy_vid");
+      $element->selectLabel($vocab_name);
+      // Click the collapsed tab to open
+      $this->driver->getElement("css=#edit-eol a")->click();
+      $eol_running = $this->assertText('The EOL classification service appears to be running.', 'EOL service running');
+      $count++;
+      ;
+      if((!$eol_running) && ($count == 5)){
+        $this->error('Could not connect to EOL');
+        return false;
+      }
+    }
+    // Enter the search term
+    $this->driver->waitForElements("name=eol-name");
+    $element = $this->driver->getElement("name=eol-name");
+    $element->clear();
+    $element->sendKeys($search_term);
+    $this->driver->getElement("id=edit-eol-search")->click();
+    // Wait for elements.
+    $this->driver->sleep(6);
+    $results = $this->driver->waitForElements("name=eol-import-id");
+    // Click on the first result
+    // TODO It would be better to select the result by name
+    $this->driver->getElement("name=eol-import-id")->click();
+    // submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit-eol");
+    $submit_button->click();
+    $this->assertText('Importing', 'Taxonomy Import Started');
+    // wait for upload
+    $this->driver->sleep(20);
+    $this->verboseScreenshot();
+    $this->assertText($search_term, 'Taxonomy successfully imported');
+    $this->verboseScreenshot();
+    return true;
+  }
+/**
    * Simple test to see if we can login and access the home page
    */
   // We remove this test as it slows up all dependant tests
   //function testSimple(){
-   //   $this->drupalLogin($this->maintainer);
-   //   $this->drupalGet('');
+  //   $this->drupalLogin($this->maintainer);
+  //   $this->drupalGet('');
   //  $this->drupalLogin($this->editor);
-   // $this->drupalGet('');
- // }
+  // $this->drupalGet('');
+  // }
 }
