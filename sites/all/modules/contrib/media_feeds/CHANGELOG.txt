@@ -1,0 +1,19 @@
+Media Feeds 2.0 Beta 1
+======================
+
+ - Issue #1207296: Support file fields and image fields as targets.
+ - Issue #1386388: Fixed Failed to get the file object for temporary://FILENAME
+   when importing from Mailhandler.
+ - Issue #1386410: Allow import from library by URL.
+ - Require Media 7.x-2.x, so that old workarounds are no longer needed.
+
+Media Feeds 1.0 Beta 2
+======================
+
+- Issue #1290762: Add integration with remote_stream_wrapper.
+- Issue #1262732: Map to existing media.
+
+Media Feeds 1.0 Beta 1
+======================
+
+Initial release that came through the project application review process.

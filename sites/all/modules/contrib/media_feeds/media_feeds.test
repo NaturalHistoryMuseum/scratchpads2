@@ -1,0 +1,109 @@
+<?php
+
+/**
+ * @file
+ * Tests for the Media Feeds module.
+ */
+
+/**
+ * Tests mapping to different field types.
+ */
+class MediaFeedsMappingTestCase extends FeedsMapperTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Mapping',
+      'description' => 'Tests mappings to different field types.',
+      'group' => 'Media Feeds',
+    );
+  }
+
+  protected $admin_user;
+
+  public function setUp() {
+    global $base_url;
+
+    parent::setUp(array('media_internet', 'media_feeds'));
+
+    // Create an admin user with all permissions.
+    $this->admin_user = $this->drupalCreateUser(array(
+      'administer content types',
+      'administer feeds',
+      'access content',
+      'add media from remote sources',
+      'import media',
+      'bypass node access',
+    ));
+    $edit = array(
+      'user_admin_role' => max(array_keys($this->admin_user->roles)),
+    );
+    $this->drupalPost('admin/config/people/accounts', $edit, 'Save configuration');
+
+    // Put testing files in place.
+    $url = $base_url . '/sites/default/files/druplicon.png';
+    $csv = <<<CSV
+title,published,file,GUID
+"Drupal Logo",205200720,$url,0
+CSV;
+    file_put_contents('sites/default/files/sample.csv', $csv);
+    copy(drupal_get_path('module', 'media_feeds') . '/tests/druplicon.png', 'sites/default/files/druplicon.png');
+  }
+
+  public function tearDown() {
+    parent::tearDown();
+
+    // Remove the testing files.
+    unlink('sites/default/files/sample.csv');
+    unlink('sites/default/files/druplicon.png');
+  }
+
+  /**
+   * Tests mapping to a file field.
+   */
+  public function testFileFieldMapping() {
+    global $base_url;
+
+    $this->drupalLogin($this->admin_user);
+
+    // Create a content type with a file field.
+    $content_type = $this->createContentType(array(), array(
+      'alpha' => array(
+        'type' => 'file',
+        'widget' => 'media_generic',
+      ),
+    ));
+
+    // Create a CSV importer configuration.
+    $this->createImporterConfiguration('Node import from CSV', 'node');
+    $this->setPlugin('node', 'FeedsCSVParser');
+    $this->setSettings('node', 'FeedsNodeProcessor', array('content_type' => $content_type));
+    $this->addMappings('node', array(
+      array(
+        'source' => 'title',
+        'target' => 'title',
+      ),
+      array(
+        'source' => 'file',
+        'target' => 'field_alpha',
+      ),
+    ));
+
+    // Import.
+    $edit = array(
+      'feeds[FeedsHTTPFetcher][source]' => $base_url . '/sites/default/files/sample.csv',
+    );
+    debug($edit);
+    $this->drupalPost('import/node', $edit, 'Import');
+    $this->assertText('Created 1 node');
+
+    // Test that the file has been correctly attached.
+    $entities = db_select('feeds_item')
+      ->fields('feeds_item', array('entity_id'))
+      ->condition('id', 'node')
+      ->execute();
+    foreach ($entities as $entity) {
+      $this->drupalGet('node/' . $entity->entity_id . '/edit');
+      $this->assertRaw('druplicon.png');
+    }
+  }
+}
