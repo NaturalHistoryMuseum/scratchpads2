@@ -1,0 +1,6 @@
+Iso 639 x.x-x.x, xxxx-xx-xx
+------------------------
+
+ISO 639 6.x-1.0, 2010-08-18
+------------------------
+Initial release of iso_639 module. Supporting Drupal 6.x.

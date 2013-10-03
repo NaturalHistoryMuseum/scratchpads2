@@ -1,0 +1,306 @@
+<?php
+// $Id: get_list_from_file.module,v 1.1 2010/08/18 17:55:29 omissis Exp $
+
+/**
+ * @file
+ * provide a list of values from a file
+ */
+
+function get_list_from_file_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  
+
+  switch($display['type']){
+	   case 'get_list_from_file_formatter' :
+  foreach($items as $delta => $item) {
+    $element[$delta]['#markup'] = _get_list_from_file_language_from_code($item['get_list_from_file'],$field['settings']['file']);
+	
+  }
+ break;
+}
+  return $element;
+}
+/**
+ * Implementation of hook_field_formatter_info()
+ */
+function _get_list_from_file_language_from_code($code,$file) {
+	//return $code;
+  $codes = _get_list_from_file_get_codes($file);
+ 
+  return $codes[$code];
+}
+
+function get_list_from_file_field_formatter_info() {
+  return array(
+    'get_list_from_file_formatter' => array(
+      'label' => t('Text'),
+      'field types' => array('get_list_from_file'),
+        ),
+  );
+}
+
+
+
+/**
+ * Implementation of hook_field_settings().
+ */
+function get_list_from_file_field_settings_form($field, $instance, $has_data) {
+  $settings = $field['settings'];
+  $form = array();
+   
+      $form['file'] = array(
+        '#title' => t('Select file to get items for your list'),
+        '#type' => 'select',
+		'#default_value' => $settings['file'],
+		'#required' => TRUE,
+        '#options' => _get_list_from_file_get_list_files(),
+        '#description' => t('The maximum length of the field in characters.'),
+     
+      
+      );
+  return $form;
+}
+
+
+/**
+ * Implementation of hook_field_info().
+ */
+function get_list_from_file_field_info() {
+  return array(
+    'get_list_from_file' => array(
+      'label' => t('Field from file'),
+      'description' => t('Extract list from a file.'),
+      'default_widget' => 'get_list_from_file',
+      'default_formatter' => 'get_list_from_file_formatter',
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_widget().
+ */
+function get_list_from_file_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+	if (isset($items[$delta]['get_list_from_file'])) {
+	   $defvalue = $items[$delta]['get_list_from_file'];
+	}
+	else{
+		$defvalue ='[none]';}
+	
+   
+   $element['get_list_from_file'] = array();
+
+   switch ($instance['widget']['type']) {
+   	case 'get_list_from_file':
+   	  $element['get_list_from_file'] += array(
+      '#type' => 'select',
+	  '#title' => $element['#title'],
+	  '#required' => $element['#required'],
+      '#options' => _get_list_from_file_get_codes($field['settings']['file']),
+	  '#default_value' => $defvalue,      
+	
+   		);
+   		break;
+    }
+  return $element;
+}
+
+
+
+/**
+ * Implementation of hook_widget_info().
+ */
+function get_list_from_file_field_widget_info() {
+  return array(
+    'get_list_from_file' => array(
+      'label' => t('Select list'),
+      'field types' => array('get_list_from_file'),
+       ));
+}
+
+/**
+ * Implementation of hook_content_is_empty().
+ */
+
+function get_list_from_file_field_is_empty($item, $field) {
+  
+  return empty($item['get_list_from_file']);
+}
+
+
+
+/**
+ * Return array containing language codes
+ *
+ * Taken from file
+ *
+ */
+function _get_list_from_file_get_list_files() {
+  if ($handle = opendir(realpath('./') . '/' . drupal_get_path('module', 'get_list_from_file') . '/files')) {
+    /* This is the correct way to loop over the directory. */
+    while (false !== ($file = readdir($handle))) {
+	  if (strlen($file)>3){	
+      $list[] = $file;}
+    }
+    closedir($handle);
+  }  
+  return drupal_map_assoc($list);
+}
+
+
+function  _get_list_from_file_get_codes($file){
+	
+global $language;
+
+$lang = array();
+$records=array();
+$file=  drupal_get_path('module', 'get_list_from_file') . '/files/' . $file ;
+
+$records = file($file);
+//line below: commented: language mandatory
+//$lang['XXX'] = "_N/A [not in this list]";
+foreach ($records as $rec)
+{
+  $rec=str_replace('\r\n', '', $rec);	  
+  $arr = explode(",", $rec);
+  
+  $code=str_replace('"', '', $arr[0]);
+ // $code=drupal_convert_to_utf8(str_replace('"', '', $arr[0]),'iso-8859-1');
+  
+ // $code = htmlentities(str_replace('"', '', $arr[1]), ENT_COMPAT, "ISO-8859-15");
+  //$def = htmlentities(str_replace('"', '', $arr[1]), ENT_COMPAT, "ISO-8859-15");
+  //$def=t($code);
+  if (count($arr)<3){
+     $def =str_replace('"', '', $arr[1]);}
+     else{
+  switch ($language->language)
+  {
+    case "en":
+    	$def =str_replace('"', '', $arr[1]);
+        
+      break;
+    case "fr":
+    	$def =str_replace('"', '', $arr[2]);
+    	 break;
+    case "es":
+       	 
+       	  $def =str_replace('"', '', $arr[3]);
+       	  break;
+    case "ar":   	  
+        $def =str_replace('"', '', $arr[5]);
+        break;   
+     case "zh":   	  
+        $def =str_replace('"', '', $arr[6]);
+        break;  
+     case "ru":   	  
+        $def =str_replace('"', '', $arr[7]);
+        break;          	  
+    default:
+        $def =str_replace('"', '', $arr[1]);
+      break;
+  }
+  }
+  if (empty($def)){
+      $def =str_replace('"', '', $arr[1]);}
+  $lang[$code] = $def;
+}
+asort($lang);
+return $lang;
+
+  return drupal_map_assoc(array($lang));
+}
+
+function get_list_from_file_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
+  
+  foreach (field_info_instances($entity_type, $bundle_name) as $name => $instance) {
+    $info = field_info_field($name);
+    if (in_array($info['type'], array('get_list_from_file'))) {
+      $targets[$name] = array(
+        'name' => $instance['label'],
+        'callback' => 'get_list_from_file_feeds_set_target',
+        'description' => t('The @label field of the node.', array('@label' => $instance['label'])),
+      );
+    }
+  }
+}
+
+
+
+/**
+* Callback for mapping. Here is where the actual mapping happens.
+*
+* When the callback is invoked, $target contains the name of the field the
+* user has decided to map to and $value contains the value of the feed item
+* element the user has picked as a source.
+*/
+
+
+
+function get_list_from_file_feeds_set_target($source, $entity, $target, $value, $input_format = FALSE) {
+     if (empty($value)) {
+         return;
+     }
+	if (!is_array($value)) {
+       $value = array($value);
+    }
+
+ 
+  if ($input_format) {
+    if (isset($source->importer->processor->config['input_format'])) {
+      $format = $source->importer->processor->config['input_format'];
+    }
+  }
+
+  $info = field_info_field($target);
+
+  // Iterate over all values.
+  $i = 0;
+  $field = isset($entity->$target) ? $entity->$target : array();
+  foreach ($value as $v) {
+    if (!is_array($v) && !is_object($v)) {
+    	
+    	     $field['und'][$i]['get_list_from_file'] = trim($v);
+        }
+   
+    if ($input_format) {
+      if (isset($format)) {
+        $field['und'][$i]['format'] = $format;
+      }
+    }
+    if ($info['cardinality'] == 1) {
+      break;
+    }
+    $i++;
+  }
+  $entity->{$target} = $field;
+}
+
+//anto add view expose
+function get_list_from_file_views_api() {
+  return array(
+    'api' => 2,
+    'path' =>
+   drupal_get_path('module', 'get_list_from_file') . '/views',
+  );
+}
+
+class views_handler_filter_get_list_from_file_in_operator extends views_handler_filter_in_operator {
+
+	function get_value_options() {
+		if (isset($this->value_options)) {
+			return;
+		}
+
+
+		else {
+			
+				 $fieldname=$this->definition['field_name'];
+				 $fieldinfo=field_info_field($fieldname);
+				 $file= $fieldinfo['settings']['file'] ;
+			     $this->value_options = _get_list_from_file_get_codes($file);
+		}
+
+		return $this->value_options;
+	}
+}
+//return $this->value_options =array('option_1' => t('Option 1'), 'option_2' => t('Option 2'));
+//return $this->value_options= _get_list_from_file_get_codes($field['settings']['file']);

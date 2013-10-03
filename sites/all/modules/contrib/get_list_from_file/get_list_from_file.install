@@ -1,0 +1,62 @@
+<?php
+// $Id: get_list_from_file.install,v 1.1 2010/08/18 17:55:29 omissis Exp $
+
+/**
+ * @file
+ * Implementation of hook_install().
+ */
+
+
+function get_list_from_file_field_schema($field) {
+	
+  switch($field['type']){
+    case 'get_list_from_file':
+      
+	  $columns = array(
+        'get_list_from_file' => array(
+          'type' => 'varchar',
+          'length' => '255',
+          'not null' => FALSE,
+		  
+              )
+			  );
+      break;
+     }
+	
+     return array(
+    'columns' => $columns,
+      );
+}
+
+function get_list_from_file_install() {
+  drupal_load('module', 'field');
+  //content_notify('install', 'get_list_from_file');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function get_list_from_file_uninstall() {
+  drupal_load('module', 'field');
+  //content_notify('uninstall', 'get_list_from_file');
+}
+
+/**
+ * Implementation of hook_enable().
+ *
+ * Notify content module when this module is enabled.
+ */
+function get_list_from_file_enable() {
+  drupal_load('module', 'field');
+  //content_notify('enable', 'get_list_from_file');
+}
+
+/**
+ * Implementation of hook_disable().
+ *
+ * Notify content module when this module is disabled.
+ */
+function get_list_from_file_disable() {
+  drupal_load('module', 'field');
+  //content_notify('disable', 'get_list_from_file');
+}

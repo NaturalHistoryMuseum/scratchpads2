@@ -1,0 +1,13 @@
+; $Id: get_list_from_file.info,v 1.1 2011/09/26 16:55:29 omissis Exp $
+name = Get list from file
+description = This module adds a  field with a list of value from a file.
+dependencies[] = field
+package = "CCK"
+core = 7.x
+
+; Information added by drupal.org packaging script on 2012-03-01
+version = "7.x-1.0-dev"
+core = "7.x"
+project = "get_list_from_file"
+datestamp = "1317052800"
+
