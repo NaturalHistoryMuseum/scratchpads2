@@ -1,0 +1,22 @@
+name = Views OAI-PMH
+description = "Plugin to feed views data in OAI-PMH format"
+
+package = Views
+core = 7.x
+
+dependencies[] = views
+files[] = plugins/views_oai_pmh_plugin_display.inc
+files[] = plugins/views_oai_pmh_plugin_style.inc
+files[] = plugins/views_oai_pmh_plugin_style_dc.inc
+files[] = plugins/views_oai_pmh_plugin_row_dc.inc
+files[] = plugins/views_oai_pmh_plugin_style_agrisap.inc
+files[] = plugins/views_oai_pmh_plugin_row_agrisap.inc
+files[] = plugins/views_oai_pmh_plugin_style_ls.inc
+files[] = plugins/views_oai_pmh_plugin_row_ls.inc
+
+; Information added by drupal.org packaging script on 2011-06-26
+version = "7.x-2.0-dev"
+core = "7.x"
+project = "views_oai_pmh"
+datestamp = "1309051322"
+

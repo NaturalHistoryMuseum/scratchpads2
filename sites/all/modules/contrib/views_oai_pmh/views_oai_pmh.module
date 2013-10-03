@@ -1,0 +1,63 @@
+<?php
+define('OAI_TOKEN_LIFETIME', 24*3600);
+/**
+ * @file
+ */
+
+
+function views_oai_pmh_init() {
+  // We have to include our theme preprocessors here until:
+  // http://drupal.org/node/1096770 is fixed.
+  module_load_include('inc', 'views_oai_pmh', 'theme/views_oai_pmh.theme');
+  if ($_GET['q']=='oai'){
+  	if (isset($_GET['resumptionToken'])){
+  		$cache = cache_get($_GET['resumptionToken'], 'cache_views_oai_pmh');
+  		if($cache->data['metadataPrefix']=='agrisap') {
+  	
+  			$_GET['q']='oai2';
+  			//$_REQUEST['q']='oai2';
+  	
+  		}
+  	}elseif ($_GET['metadataPrefix']=='agrisap' ){
+      
+      $_GET['q']='oai2';
+      $_REQUEST['q']='oai2';
+      
+     }
+	 elseif ($_GET['verb']=='ListSets' ){
+      
+      $_GET['q']='oai3';
+      $_REQUEST['q']='oai3';
+     
+     }
+   
+  }
+}
+
+function views_oai_pmh_views_api() {
+  return array(
+    'api' => 2,
+  );
+}
+
+function views_oai_pmh_theme() {
+  // Make sure that views picks up the preprocess functions.
+  module_load_include('inc', 'views_oai_pmh', 'theme/views_oai_pmh.theme');
+  return array(
+  	'oai_field_mapper_form' => array (
+      'file' => 'theme/views_oai_pmh.theme.inc',
+      'render element' => 'form',
+    )
+  );
+}
+
+function views_oai_pmh_cron() {
+  views_oai_pmh_garbage_collect();
+}
+
+function views_oai_pmh_garbage_collect() {
+  $cache_flush = time() - OAI_TOKEN_LIFETIME;
+  db_delete('cache_views_oai_pmh')
+    ->condition('expire', $cache_flush, '<=')
+    ->execute();
+}
