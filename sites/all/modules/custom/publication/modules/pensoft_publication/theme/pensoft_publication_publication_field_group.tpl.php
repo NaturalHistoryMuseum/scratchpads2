@@ -3,6 +3,9 @@
    * Theme a publication group for the pensoft_publication module
    *
    */
+  if (!empty($variables['skip_group'])) {
+    return;
+  }
 ?>
 <div class="publication-group clearfix">
 	<label><?php echo $label; ?></label>
@@ -10,13 +13,13 @@
   if($element_id == 'publication_pensoft_full_group_publication_auth_contrib'):
     ?>
     <div class='field field-publication-background'>
-		<div class='field-items'>
+      <div class='field-items'>
         <?php echo implode(', ', $variables['authors']); ?>
       </div>
 	</div>
 
 	<div
-		class='field field-publication-background field-publication-secondary'>
+	   class='field field-publication-background field-publication-secondary'>
 		<div class='field-items'>
         <?php echo implode('', $variables['institutions']); ?>
       </div>
@@ -24,7 +27,7 @@
   
     <?php if (!empty($variables['contributors'])): ?>
       <div class='field field-publication-background'>
-		<div class='field-items'>
+	    <div class='field-items'>
 		  <?php foreach($variables['contributors'] as $role => $name): ?>
 		    <div class="field-item"><?php echo $role.': ' . $name; ?></div>
 		  <?php endforeach; ?>
