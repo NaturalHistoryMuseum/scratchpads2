@@ -80,7 +80,7 @@
    * 
    */
   function pensoft_relation_select_setup(tabset, $root, settings) {
-    var $button = $('.field-add-more-submit', $root);
+    var $button = $('#edit-field-publication-treatments-und-add-more', $root);
     var $elements = $('div.form-type-relation-select', $root);
 
     // Set up the tabbed interace
