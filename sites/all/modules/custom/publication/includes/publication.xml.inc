@@ -1,13 +1,20 @@
 <?php
 
 /**
- * 
+ *
  * This module uses what it calls "schema array", to represent
- * an XML file schema and describe how to map Drupal fields
- * to the XML format. When the schema is applied there is an associated
- * object, from which fields may be fetched (using #field). The object
- * itself can be changed during the processing (using #load).
- * 
+ * an XML file schema and describe how to map a given object
+ * to the XML format.
+ *
+ * The schema array is similar to other type definitions in Drupal
+ * (form arrays, render arrays, etc.): items that start with a '#'
+ * are properties while other items are actual values or children
+ * schemas.
+ *
+ * Creating an XML file starts with an object (which can be an entity
+ * but does not have to be) and a schema array. The schema array is
+ * scanned and the XML is generated from the fields of the object.
+ *
  * The schema array has the following format:
  *
  *  array(
@@ -17,47 +24,59 @@
  *    #max_occurence':  Maximum number of occurence. Defaults to 1, use -1 for unlimited
  *                      An expception will be raised if this constraint is not respected
  *
- *    #attributes:      Attributes to add to the element, as an array of name => value/callable function.
- *                      If the value is NULL, it is ignored.
+ *    #attributes:      Attributes to add to the XML element, as an array of name => value/callable function.
+ *                      If the value is NULL, it is ignored. The current context is passed as
+ *                      argument to the called function.
  *
- *    #process:         Optional function to process the given value before insertion. This can be any
- *                      callable type.
+ *    #process:         Optional callable to process the given value before insertion into the XML document.
+ *                      The current context is passed as argument to the called function.
  *
  *    #process arguments : If the process function is called, this is passed as additional argument
  *    
  *    #load:            Optional function to load the object from which fields are fetched, which
- *                      replaces the currently used object. The function is given the current
- *                      value (as defined by #value or #field) as argument.
+ *                      replaces the currently used object. The function is given the value to load
+ *                      and the current context as argument.
  *                      
- *                      Note that this only affects the children of the current node, not the current
- *                      node itself or any other node processed subsequently.
+ *                      The loaded object will replace the main object for the children of the current
+ *                      item (but not for the item itself, or it's siblings/parents).
  *                      
- *                      If this returns a value that evaluates to FALSE, then the child element is
- *                      not inserted. If an exception was expected instead, then the loader should raise it.
- *                      
- *    #field :         A field on the current mapping object to use as value when generating the XML.
- *    
- *                      The field on the object can be a single value, or a Drupal value array:
- *                      array("und" => array("value" => ...)). If the format is different, use '#process'
- *                      to read the value from the array.
- *                      
- *                      If the field is multi-valued and #merge is not defined, then each value is inserted 
- *                      as a separate entry (as long as the min/max constraints are respected).
- *    
+ *                      If the callable returns a value that evaluates to FALSE, then the element is not
+ *                      inserted. If an exception should be raised, the callable should take care of that.
+ *
  *    #value :          A static value to insert when generating the XML. This is inserted as many
  *                      times as required by #min_occurence.
  *                      
- *    #merge :          If a field (as defined by #field) is multi valued and '#merge' is defined and is
- *                      an existing function name, then that function is called and only one value (the 
- *                      return value of that function) is inserted.
+ *    #field :          A field on the current object to use as value when generating the XML.
+ *
+ *                      If the value is a scalar, then it is inserted directly.
+ *                      If the value is an array, it is expected to be as:
+ *                      array(
+ *                        <language code> => array(
+ *                          <delta> => array(
+ *                            'value' => <value>
+ *                          ),
+ *                          ...
+ *                        ),
+ *                        ...
+ *                      )
+ *
+ *                      If the value is in a different format, then '#process' should be used to return
+ *                      the array of values representing the field.
+ *
+ *                      If the field is multi-valued then each value is inserted as a separate XML element (and
+ *                      this is valiadted against mix/max constrainsts) unless '#merge' is defined.
  *
  *                      If both #value and #field are present, #field is used for constraint checking
  *                      (and for #load), but it's the value of #value that is inserted.
- *     
- *    #condition:       If present, the current node (and it's children) are only processed if the field
+ *
+ *    #merge :          If a field (as defined by #field) is multi valued and '#merge' is defined and is
+ *                      callable, then that function is called and only one value (the  return value of 
+ *                      that function) is inserted.
+ *
+ *    #condition:       If present, the current item (and it's children) are only processed if the field
  *                      described by #condition is not empty, or the callable function indicated by
- *                      #condition returns TRUE.
- *                      
+ *                      #condition returns TRUE. The callable is passed the current context as argument.
+ *
  *    #error_info:      If present, this will be used instead of the field name in error messages
  *                      (eg. field ... is required)
  *
@@ -78,6 +97,16 @@
  *                      iteration of a tag mapping to different fields) add #<number> at the end
  *                      of the tag.
  *  );
+ *
+ * The context that is passed to callables is an array defining:
+ *
+ *   object:          The object being processed
+ *   child_object:    The child object (if loaded using #load)
+ *   field:           The current field (if applicable)
+ *   delta:           The delta of the current value (for fields, if applicable)
+ *   raw_value:       The actual value of the field
+ *   value_to_insert: The value that will be inserted
+ *   schema:          The current schema
  *
  */
 /**
@@ -452,11 +481,10 @@ class PublicationXMLSchemaExplain{
       if(isset($schema['#process'])){
         // XXX need to display process arguments
         if(is_object($schema['#process'])){
-          $value_to_set = '<inline function>';
+          $value_to_set = '<inline function>' .'(' . $value_to_set . ')';
         }else{
-          $value_to_set = $schema['#process'];
+          $value_to_set = $schema['#process'] .'(' . $value_to_set . ')';
         }
-        $value_to_set = $value_to_set . '(' . $value_to_set . ')';
       }
       $output[] = "SET VALUE = " . $value_to_set . ";";
     }
@@ -819,19 +847,11 @@ class PublicationXMLBuilder{
   function _load_child_object($schema, $object, $value){
     if(isset($schema['#load'])){
       $arguments = array(
-        $value
+        $value,
+        $this->_get_context()
       );
       if(isset($schema['#load arguments'])){
-        foreach($schema['#load arguments'] as $argument){
-          if(is_string($argument) && preg_match('/^field:(.+)$/', $argument, $matches)){
-            $arg_field = $matches[1];
-            if(isset($object->$arg_field)){
-              $arguments[] = $object->$arg_field;
-            }
-          }else{
-            $arguments[] = $argument;
-          }
-        }
+        $arguments = array_merge($arguments, $schema['#load arguments']);
       }
       $object = call_user_func_array($schema['#load'], $arguments);
     }
@@ -848,7 +868,7 @@ class PublicationXMLBuilder{
       $f = $schema['#process'];
       if(!is_callable($f)){throw new Exception("Process function $f for tag $tag does not exist");}
       $args = array(
-        $value
+        $this->_get_context()
       );
       if(!empty($schema['#process arguments'])){
         $args = array_merge($args, $schema['#process arguments']);
@@ -1110,7 +1130,8 @@ interface PublicationXMLModifierInterface{
  * the country name
  *
  */
-function _publication_xml_process_country($value, $type = 'name'){
+function _publication_xml_process_country($context, $type = 'name'){
+  $value = $context->value_to_insert;
   if($type == 'iso2'){
     return $value['iso2'];
   }else{
@@ -1122,7 +1143,8 @@ function _publication_xml_process_country($value, $type = 'name'){
 /**
  * Process a map field to return just one property (by default the latitude)
  */
-function _publication_xml_process_map($value, $type = 'latitude'){
+function _publication_xml_process_map($context, $type = 'latitude'){
+  $value = $context->value_to_insert;
   if(isset($value[LANGUAGE_NONE][0])){
     $map = (array)($value[LANGUAGE_NONE][0]);
   }else{
@@ -1137,14 +1159,14 @@ function _publication_xml_process_map($value, $type = 'latitude'){
  * This has the effect of replacing the current object
  * with the current value
  */
-function _publication_xml_load_replace($value){
+function _publication_xml_load_replace($value, $context){
   return $value;
 }
 
 /**
  * Loader function for the author/contributor fields
  */
-function _publication_xml_load_user($value){
+function _publication_xml_load_user($value, $context){
   if(is_array($value) && isset($value['uid'])){
     $value = $value['uid'];
   }
@@ -1184,7 +1206,7 @@ function _publication_xml_merge_user($field){
 /**
  * Loader function for files
  */
-function _publication_xml_load_file($value){
+function _publication_xml_load_file($value, $context){
   $value['url'] = url($value['uri'], array(
     'absolute' => TRUE
   ));
@@ -1194,7 +1216,7 @@ function _publication_xml_load_file($value){
 /**
  * Loads the given term
  */
-function _publication_xml_load_term($value, $final_name = NULL){
+function _publication_xml_load_term($value, $context, $final_name = NULL){
   $term = taxonomy_term_load($value['tid']);
   if($final_name){
     $term->name = $final_name;
@@ -1205,7 +1227,7 @@ function _publication_xml_load_term($value, $final_name = NULL){
 /**
  * Loads the parent of the given term
  */
-function _publication_xml_load_parent_term($value, $rank = NULL, $default = NULL){
+function _publication_xml_load_parent_term($value, $context, $rank = NULL, $default = NULL){
   if(is_array($value) && isset($value['tid'])){
     $value = $value['tid'];
   }
@@ -1222,7 +1244,7 @@ function _publication_xml_load_parent_term($value, $rank = NULL, $default = NULL
 /**
  * Loader function for materials
  */
-function _publication_xml_load_specimen($value){
+function _publication_xml_load_specimen($value, $context){
   $specimen = node_load($value['nid']);
   if(!empty($specimen->field_location[$specimen->language][0]['nid'])){
     $location = node_load($specimen->field_location[$specimen->language][0]['nid']);

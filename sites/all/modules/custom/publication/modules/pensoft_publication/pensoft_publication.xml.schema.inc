@@ -10,7 +10,8 @@
 /**
  * Process a salutation to return it as Pensoft expects it.
  */
-function _pensoft_publication_xml_process_salutation($value){
+function _pensoft_publication_xml_process_salutation($context){
+  $value = $context->value_to_insert;
   $map = array(
     'Prof.' => 'Prof',
     'Miss' => 'Ms'
@@ -27,7 +28,7 @@ function _pensoft_publication_xml_process_salutation($value){
 /**
  * Loader function for the treatment/taxon description
  */
-function _pensoft_publication_xml_load_treatment($value){
+function _pensoft_publication_xml_load_treatment($value, $context){
   $endpoint = array_shift(array_values($value['endpoints']));
   list($type, $nid) = explode(':', $endpoint);
   $rid = $value['relation_id'];
@@ -42,7 +43,7 @@ function _pensoft_publication_xml_load_treatment($value){
 /**
  * Loader function for authors
  */
-function _pensoft_publication_xml_load_author($value) {
+function _pensoft_publication_xml_load_author($value, $context) {
   $collection = reset(entity_load('field_collection_item', array($value)));
   if (empty($collection->field_publication_author_user[LANGUAGE_NONE][0]['uid'])) {
     // It's possible to create a field collection without an author. If this was done,
@@ -66,7 +67,7 @@ function _pensoft_publication_xml_load_author($value) {
 /**
  * Loader function for  contributors
  */
-function _pensoft_publication_xml_load_contributor($value) {
+function _pensoft_publication_xml_load_contributor($value, $context) {
   $collection = reset(entity_load('field_collection_item', array($value)));
   if (empty($collection->field_publication_cbtor_user[LANGUAGE_NONE][0]['uid'])) {
     // It's possible to create a field collection without an author. If this was done,
@@ -88,7 +89,7 @@ function _pensoft_publication_xml_load_contributor($value) {
 /**
  * Loader function for figures
  */
-function _pensoft_publication_xml_load_figure($value) {
+function _pensoft_publication_xml_load_figure($value, $context) {
   $collection = reset(entity_load('field_collection_item', array($value)));
   $collection->pensoft_figure_url = file_create_url($collection->field_publication_figure_figure[LANGUAGE_NONE][0]['uri']);
   return $collection;
@@ -97,7 +98,7 @@ function _pensoft_publication_xml_load_figure($value) {
 /**
  * Loader function for tables
  */
-function _pensoft_publication_xml_load_table($value) {
+function _pensoft_publication_xml_load_table($value, $context) {
   $collection = reset(entity_load('field_collection_item', array($value)));
   return $collection;
 }
@@ -105,7 +106,7 @@ function _pensoft_publication_xml_load_table($value) {
 /**
  * Loader function for biblio
  */
-function _pensoft_publication_xml_load_biblio($value) {
+function _pensoft_publication_xml_load_biblio($value, $context) {
   $type_map = array(
     100 => 'Book',
     101 => 'Book chapter',
@@ -164,7 +165,7 @@ function _pensoft_publication_xml_load_biblio($value) {
  * We get passed an already populated object, we just need to filter otu
  * unwanted ones.
  */
-function _pensoft_publication_xml_load_biblio_author($value) {
+function _pensoft_publication_xml_load_biblio_author($value, $context) {
   $biblio_author = array(1,2,3,4,5);
   if (in_array($value['auth_type'], $biblio_author)) {
     return (object)$value;
@@ -178,7 +179,7 @@ function _pensoft_publication_xml_load_biblio_author($value) {
  * We get passed an already populated object, we just need to filter otu
  * unwanted ones.
  */
-function _pensoft_publication_xml_load_biblio_editor($value) {
+function _pensoft_publication_xml_load_biblio_editor($value, $context) {
   $biblio_editor = array(10, 14);
   if (in_array($value['auth_type'], $biblio_editor)) {
     return (object)$value;
