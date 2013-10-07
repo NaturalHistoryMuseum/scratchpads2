@@ -422,7 +422,7 @@ function feeds_xls_redirect_to_populated_file($success, $results, $operations){
     // Open the file.
     $objReader = new PHPExcel_Reader_CSV();
     exec('ls -l ' . $results['csv_path'], $lines);
-    watchdog('feeds_xls', implode("\n", $lines));
+    watchdog('feeds_xls', "Output of ls\n" . implode("\n", $lines));
     $objPHPExcel = $objReader->load($results['csv_path']);
     $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
     feeds_xls_set_headers(feeds_importer_load($results['importer']), $objPHPExcel, $results['csv_path'] . '.xls');
