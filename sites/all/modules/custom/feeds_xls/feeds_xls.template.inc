@@ -144,7 +144,7 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
     }
     $context['sandbox']['max'] = count($context['sandbox']['entity_ids']);
     // Create the template before adding any rows to it.
-    $context['sandbox']['csv_path'] = drupal_tempnam(file_directory_temp(), $feeds_importer->id);
+    $context['sandbox']['csv_path'] = drupal_tempnam('temporary://', $feeds_importer->id);
     // We need a few variables and stuff when finished, so we shove them in the
     // results array.
     $context['results']['csv_path'] = $context['sandbox']['csv_path'];
