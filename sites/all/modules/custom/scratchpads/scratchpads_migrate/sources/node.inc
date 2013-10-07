@@ -695,7 +695,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     }
     $xmlElem->removeAttribute('style');
     // Recurse
-    foreach(iterator_to_array($xmlElem->childNodes) as $child){
+    for($i = 0; $i < $xmlElem->childNodes->length; $i++){
+      $child = $xmlElem->childNodes->item($i);
       if($child->nodeType == 1){
         ScratchpadsNodeMigration::parseStylesHelper($dom, $xpath, $child);
       }
@@ -706,10 +707,15 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     // We need to copy the item and it's children to replace the tag
     $new_elem = $dom->createElement($new_tag);
     $elem->parentNode->replaceChild($new_elem, $elem);
-    foreach($elem->attributes as $attribute){
+    for($i = 0; $i < $elem->attributes->length; $i++){
+      $attribute = $elem->attributes->item($i);
       $new_elem->setAttribute($attribute->name, $attribute->value);
     }
-    foreach(iterator_to_array($elem->childNodes) as $child){
+    $children = array();
+    for($i = 0; $i < $elem->childNodes->length; $i++){
+      $children[] = $elem->childNodes->item($i);
+    }
+    foreach($children as $child){
       $new_elem->appendChild($elem->removeChild($child));
     }
     return $new_elem;
