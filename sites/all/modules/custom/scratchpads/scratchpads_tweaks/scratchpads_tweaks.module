@@ -468,6 +468,7 @@ function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
       $info['tool'] = TRUE;
       $info['name'] = 'Views';
       $info['description'] = 'Allows you to create custom reports or views of the data held on your Scratchpad';
+      $info['dependencies'][] = 'views_date_format_sql';
       break;
     case 'rules':
       $info['dependencies'][] = 'trigger';
