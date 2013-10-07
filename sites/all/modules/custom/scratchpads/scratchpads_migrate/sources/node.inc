@@ -667,8 +667,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     if($body_list->length == 0){return $html;}
     $body = $body_list->item(0);
     ScratchpadsNodeMigration::parseStylesHelper($dom, $xpath, $body);
-    $html = $dom->saveHTML($body);
-    return preg_replace('%</?body>%', '', $html);
+    $html = $dom->saveHTML();
+    return preg_replace('/(^.*<body>|<\/body>.*$)/s', '', $html);
   }
 
   public static function parseStylesHelper($dom, $xpath, $xmlElem){
