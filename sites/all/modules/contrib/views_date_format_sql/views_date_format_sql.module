@@ -1,0 +1,43 @@
+<?php
+
+/**
+ * Implements hook_views_api().
+ */
+function views_date_format_sql_views_api() {
+  return array(
+    'api' => 3,
+  );
+}
+
+/**
+ * Helper to retrieve the format to a given date format name.
+ * see includes/common.inc:function format_date()
+ */
+function _views_date_format_sql_get_date_format($type = 'medium', $format = '') {
+  switch ($type) {
+    case 'short':
+      $format = variable_get('date_format_short', 'm/d/Y - H:i');
+      break;
+
+    case 'long':
+      $format = variable_get('date_format_long', 'l, F j, Y - H:i');
+      break;
+
+    case 'custom':
+      // No change to format.
+      break;
+
+    case 'medium':
+    default:
+      // Retrieve the format of the custom $type passed.
+      if ($type != 'medium') {
+        $format = variable_get('date_format_' . $type, '');
+      }
+      // Fall back to 'medium'.
+      if ($format === '') {
+        $format = variable_get('date_format_medium', 'D, m/d/Y - H:i');
+      }
+      break;
+  }
+  return $format;
+}
