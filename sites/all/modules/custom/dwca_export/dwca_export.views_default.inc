@@ -476,7 +476,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_cc_licence_1']['alter']['alter_text'] = TRUE;
   $handler->display->display_options['fields']['field_cc_licence_1']['alter']['text'] = '&nbsp;';
   $handler->display->display_options['fields']['field_cc_licence_1']['alter']['trim_whitespace'] = TRUE;
-  $handler->display->display_options['fields']['field_cc_licence_1']['empty'] = 'All Rights Reserved';
+  $handler->display->display_options['fields']['field_cc_licence_1']['empty'] = '';
   $handler->display->display_options['fields']['field_cc_licence_1']['hide_alter_empty'] = FALSE;
   $handler->display->display_options['fields']['field_cc_licence_1']['type'] = 'creative_commons_url';
   /* Filter criterion: File: Type */
