@@ -1,8 +1,7 @@
 <?php
-
 /**
  * @file
- * Main hooks for twitter post module
+ * Hook implementations for twitter_post module.
  */
 
 /**
@@ -39,16 +38,14 @@ function twitter_post_permission() {
 function twitter_post_form_alter(&$form, $form_state, $form_id) {
   // Alter any node forms.
   if (isset($form['#node']) && $form['#node']->type . '_node_form' == $form_id) {
-    // If we haven't enabled Twitter posting on this node type, nothing to do
-    // here.
+    // If we haven't enabled Twitter posting on this node type, nothing to do here.
     $type = $form['#node']->type;
-    $allowed_types = variable_get('twitter_post_types', array('story' => 'story', 'blog' => 'blog'));
+    $allowed_types = variable_get('twitter_post_types', array());
     if (empty($allowed_types[$type])) {
       return;
     }
 
     module_load_include('inc', 'twitter');
-
     $twitter_form = twitter_post_form();
     if (!$twitter_form) {
       return;
@@ -64,7 +61,7 @@ function twitter_post_form_alter(&$form, $form_state, $form_id) {
     $form['twitter']['post'] = array(
       '#type' => 'checkbox',
       '#title' => t('Announce this post on Twitter'),
-      '#default_value' => (empty($form['nid']['#value'])),
+      '#default_value' => variable_get('twitter_post_default_value', 0),
       '#id' => 'twitter-toggle',
     );
     $form['twitter'] += $twitter_form;
@@ -118,8 +115,6 @@ function twitter_post_node_update($node) {
  *   A Drupal user object.
  */
 function twitter_post_form($account = NULL) {
-  drupal_add_js(drupal_get_path('module', 'twitter_post') . '/twitter_post.js');
-
   if (empty($account)) {
     $account = user_load($GLOBALS['user']->uid);
   }
@@ -128,8 +123,10 @@ function twitter_post_form($account = NULL) {
     return;
   }
 
+  drupal_add_js(drupal_get_path('module', 'twitter_post') . '/twitter_post.js');
   $options = array();
-  foreach ($account->twitter_accounts as $twitter_account) {
+  $twitter_accounts = twitter_load_authenticated_accounts();
+  foreach ($twitter_accounts as $twitter_account) {
     $options[$twitter_account->id] = $twitter_account->screen_name;
   }
 

@@ -158,6 +158,7 @@ function _scratchpads_hands_off_hidden_urls(){
     'admin/config/search/clean-urls',
     'admin/config/search/sitemap',
     'admin/config/services/aggregator',
+    'admin/config/services/twitter/settings',
     'admin/config/system/boost',
     'admin/config/system/cron',
     'admin/config/system/customerror',
