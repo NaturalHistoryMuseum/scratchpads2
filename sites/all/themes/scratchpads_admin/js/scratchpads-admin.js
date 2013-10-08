@@ -77,7 +77,7 @@
       $(this).addClass('rubik-processed');
     });
   };
-  if(Drupal.media){
+  if(Drupal.media && Drupal.media.browser){
     if(Drupal.media.browser.resizeIframe) {
       Drupal.media.browser.resizeIframe = function(event){
         // Add an extra 20 pixels to prevent the scroll bar from thinking it is
