@@ -65,6 +65,7 @@ function silver_form_feeds_import_form_alter(&$form, &$form_state){
     if(isset($state['start_time']) && $state['start_time']){
       array_unshift($form['#submit'], 'silver_form_feeds_import_form_alter_submit');
       unset($form['submit']);
+      unset($form['feeds']);
       $form['source_status'] = array(
         '#type' => 'fieldset',
         '#title' => t('Another import is running'),
