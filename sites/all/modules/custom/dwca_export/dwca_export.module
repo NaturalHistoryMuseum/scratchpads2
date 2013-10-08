@@ -48,6 +48,37 @@ function dwca_export_views_default_views_alter(&$views){
 }
 
 /**
+ * Implemenation of hook_views_pre_view
+ *
+ * Ensure the right biblio style is selected
+ */
+function dwca_export_views_pre_view(&$view, &$display_id, &$args){
+  if(($view->name == 'dwca_export_reference' || $view->name == 'dwca_export_classification') && $display_id == 'views_data_export_1'){
+    if(module_exists('biblio_citeproc')){
+      $style = variable_get('dwca_biblio_citeproc_style', '_use_default');
+      if($style == '_use_default'){
+        $style = variable_get('biblio_citeproc_style', 'ieee.csl');
+      }
+    }else{
+      $style = variable_get('dwca_biblio_style', '_use_default');
+      if($style == '_use_default'){
+        $style = variable_get('biblio_style', 'cse');
+      }
+    }
+    if(!empty($view->display[$display_id]->handler->handlers['field']['citation'])){
+      // If we have a handler object, we should set the option there
+      $view->display[$display_id]->handler->handlers['field']['citation']->options['style_name'] = $style;
+    }else if(!empty($view->display[$display_id]->handler->options['fields']['citation'])){
+      // Otherwise if this option is defined for this display, set it there
+      $view->display[$display_id]->handler->options['fields']['citation']['style_name'] = $style;
+    }else if(!empty($view->display['default']->handler->options['fields']['citation'])){
+      // Otherwise set it on the master display
+      $view->display['default']->handler->options['fields']['citation']['style_name'] = $style;
+    }
+  }
+}
+
+/**
  * Implementation of hook_views_api()
  *
  * drupal will load dwca_export.views_default.inc when this hook is implemented
@@ -156,7 +187,7 @@ function dwca_export_field_formatter_info(){
       'field types' => array(
         'list_text'
       )
-    ),
+    )
   );
 }
 
@@ -251,10 +282,10 @@ function dwca_export_field_formatter_view($entity_type, $entity, $field, $instan
         if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
           $markup = 'accepted';
         }else{
-          if (isset($reason_map_taxonomic[$entity->field_unacceptability_reason['und'][0]['value']])) {
+          if(isset($reason_map_taxonomic[$entity->field_unacceptability_reason['und'][0]['value']])){
             $markup = $reason_map_taxonomic[$entity->field_unacceptability_reason['und'][0]['value']];
-          } else {
-          	$markup = 'synonym';
+          }else{
+            $markup = 'synonym';
           }
         }
       }
@@ -279,9 +310,9 @@ function dwca_export_field_formatter_view($entity_type, $entity, $field, $instan
         }else{
           $parent = '';
           $parents = taxonomy_get_parents($entity->tid);
-          if (is_array($parents)){
-          	$parent = array_pop($parents);
-          	$parent = $parent->uuid;
+          if(is_array($parents)){
+            $parent = array_pop($parents);
+            $parent = $parent->uuid;
           }
           $markup = $parent;
         }
@@ -298,14 +329,13 @@ function dwca_export_field_formatter_view($entity_type, $entity, $field, $instan
         if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
           $parent = '';
           $parents = taxonomy_get_parents($entity->tid);
-          if (is_array($parents)){
-          	$parent = array_pop($parents);
-          	$parent = $parent->uuid;
+          if(is_array($parents)){
+            $parent = array_pop($parents);
+            $parent = $parent->uuid;
           }
           $markup = $parent;
-
         }else{
-                	$markup = '';  
+          $markup = '';
         }
       }
       $element[] = array(

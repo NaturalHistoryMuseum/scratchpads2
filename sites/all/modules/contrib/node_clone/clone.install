@@ -1,12 +1,8 @@
 <?php
-// $Id: clone.install,v 1.4 2011/02/01 01:22:56 pwolanin Exp $
-
-
 /**
- * Implementation of hook_install.
+ * @file
+ * Install & uninstall functions for Node_Clone module.
  */
-function clone_install() {
-}
 
 /**
  * Implementation of hook_uninstall.
@@ -15,10 +11,11 @@ function clone_uninstall() {
   variable_del('clone_method');
   variable_del('clone_omitted');
   variable_del('clone_nodes_without_confirm');
+  variable_del('clone_use_node_type_name');
   variable_del('clone_menu_links');
   $types = node_type_get_names();
   foreach ($types as $type => $name) {
-    variable_del('clone_reset_'. $type);
+    variable_del('clone_reset_' . $type);
   }
 }
 

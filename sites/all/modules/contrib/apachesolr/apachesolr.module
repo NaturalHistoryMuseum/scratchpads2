@@ -489,7 +489,51 @@ function apachesolr_common_node_facets() {
     ),
   );
 
+  if (module_exists('book')) {
+    $facets['book'] = array(
+      'label' => t('Book'),
+      'description' => t('Filter by the book that the node belongs to.'),
+      'field' => 'is_book_bid',
+      'map callback' => 'apachesolr_map_book',
+      'facet mincount allowed' => TRUE,
+      'dependency plugins' => array('bundle', 'role'),
+    );
+  }
+
   return $facets;
+}
+
+/**
+ * FacetAPI mapping callback.
+ */
+function apachesolr_map_book(array $values) {
+  $map = array();
+  if (!empty($values)) {
+    foreach (book_get_books() as $bid => $book) {
+      if (in_array($bid, $values)) {
+        $map[$bid] = $book['title'];
+      }
+    }
+  }
+  return $map;
+}
+
+/**
+ * Implements hook_form_[form_id]_alter().
+ *
+ * Mark a node for re-indexing when the book outline form is saved.
+ */
+function apachesolr_form_book_outline_form_alter(&$form, $form_state) {
+  $form['#submit'][] = 'apachesolr_mark_book_outline_node';
+}
+
+/**
+ * Submit handler for the book outline form.
+ *
+ * Marks the node for re-indexing.
+ */
+function apachesolr_mark_book_outline_node($form, $form_state) {
+  apachesolr_mark_entity('node', $form['#node']->nid);
 }
 
 /**
@@ -1798,7 +1842,7 @@ function apachesolr_entity_info_alter(&$entity_info) {
   $default_entity_info['node']['index_table'] = 'apachesolr_index_entities_node';
   $default_entity_info['node']['cron_check'] = 'apachesolr_index_node_check_table';
   // apachesolr_search implements a new callback for every entity type
-  // $default_entity_info['node']['apachesolr']['result callback'] = 'apachesolr_search_node_result';
+  // $default_entity_info['node']['result callback'] = 'apachesolr_search_node_result';
   //Allow implementations of HOOK_apachesolr_entity_info to modify these default indexers
   drupal_alter('apachesolr_entity_info', $default_entity_info);
 
@@ -1906,9 +1950,13 @@ function apachesolr_entity_update($entity, $type) {
     if (is_array($status_callbacks)) {
       foreach($status_callbacks as $status_callback) {
         if (is_callable($status_callback)) {
-          // by placing $status in front we prevent calling any other callback
-          // after one status callback returned false
-          $status = $status && $status_callback($id, $type);
+          // By placing $status in front we prevent calling any other callback
+          // after one status callback returned false.
+          // The entity being saved is passed to the status callback in
+          // addition to $id in case the callback needs to examine properties
+          // such as the current node revision which cannot be determined by
+          // loading a fresh copy of the entity.
+          $status = $status && $status_callback($id, $type, $entity);
         }
       }
     }
@@ -1958,7 +2006,6 @@ function apachesolr_entity_delete($entity, $entity_type) {
   $env_id = apachesolr_default_environment();
 
   // Delete the entity's entry from a fictional table of all entities.
-  $info = entity_get_info($entity_type);
   list($entity_id) = entity_extract_ids($entity_type, $entity);
   apachesolr_remove_entity($env_id, $entity_type, $entity_id);
 }
@@ -2006,7 +2053,7 @@ function apachesolr_entity_fields($entity_type = 'node') {
           'facet missing allowed' => FALSE,
           'facet mincount allowed' => FALSE,
           // Field API allows any field to be multi-valued.
-          'multiple' => FALSE,
+          'multiple' => TRUE,
         );
       if ($key !== 'per-field') {
         $mappings[$key] += $defaults;
@@ -2055,7 +2102,8 @@ function apachesolr_entity_fields($entity_type = 'node') {
         // Set display name
         $display_name = array();
         foreach ($field['bundles'][$entity_type] as $bundle) {
-          if (empty($instances[$bundle][$field_name]['display']['search_index']) || $instances[$bundle][$field_name]['display']['search_index'] != 'hidden') {
+          $field_display = isset($instances[$bundle][$field_name]['display']) ? $instances[$bundle][$field_name]['display'] : array();
+          if (empty($field_display['search_index']) || (isset($field_display['search_index']['type']) && $field_display['search_index']['type'] != 'hidden')) {
             $row['display_name'] = $instances[$bundle][$field_name]['label'];
             $row['bundles'][] = $bundle;
           }
@@ -2159,11 +2207,20 @@ function apachesolr_fields_list_facet_map_callback($facets, $options) {
   if (isset($fields[$field_name])) {
     $allowed_values = list_allowed_values($fields[$field_name]);
   }
+  if ($fields[$field_name]['type'] == 'list_boolean') {
+    // Convert boolean allowed value keys (0, 1, TRUE, FALSE) to
+    // Apache Solr representations (string).
+    foreach($allowed_values as $key => $value) {
+      $strkey = $key ? 'true' : 'false';
+      $allowed_values[$strkey] = $value;
+      unset($allowed_values[$key]);
+    }
+  }
   foreach ($facets as $key) {
     if (isset($allowed_values[$key])) {
       $map[$key]['#markup'] = field_filter_xss($allowed_values[$key]);
     }
-    elseif ($key == '_empty_' && $options['facet missing allowed']) {
+    elseif ($key === '_empty_' && !empty($options['facet missing allowed'])) {
       // Facet missing.
       $map[$key]['#markup'] = theme('facetapi_facet_missing', array('field_name' => $options['display_name']));
     }
@@ -2196,7 +2253,7 @@ function apachesolr_nodereference_map_callback($facets, $options) {
     if (isset($allowed_values[$key])) {
       $map[$key]['#markup'] = field_filter_xss($allowed_values[$key]['title']);
     }
-    elseif ($key == '_empty_' && $options['facet missing allowed']) {
+    elseif ($key === '_empty_' && !empty($options['facet missing allowed'])) {
       // Facet missing.
       $map[$key]['#markup'] = theme('facetapi_facet_missing', array('field_name' => $options['display_name']));
     }
@@ -2229,7 +2286,7 @@ function apachesolr_userreference_map_callback($facets, $options) {
     if (isset($allowed_values[$key])) {
       $map[$key]['#markup'] = field_filter_xss($allowed_values[$key]['title']);
     }
-    elseif ($key == '_empty_' && $options['facet missing allowed']) {
+    elseif ($key === '_empty_' && !empty($options['facet missing allowed'])) {
       // Facet missing.
       $map[$key]['#markup'] = theme('facetapi_facet_missing', array('field_name' => $options['display_name']));
     }

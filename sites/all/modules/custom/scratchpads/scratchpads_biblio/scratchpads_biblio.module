@@ -38,6 +38,15 @@ function scratchpads_biblio_menu_alter(&$items){
 }
 
 /**
+ * Implements hook_node_view_alter().
+ */
+function scratchpads_biblio_node_view_alter(&$build){
+  if($build['#node']->type == 'biblio' && (biblio_access('download', $build['#node']) == NODE_ACCESS_DENY || !biblio_access('download', $build['#node']))){
+    unset($build['field_file']);
+  }
+}
+
+/**
  * Implements hook_node_presave().
  * 
  * Prevent biblio nodes from being saved with a title.

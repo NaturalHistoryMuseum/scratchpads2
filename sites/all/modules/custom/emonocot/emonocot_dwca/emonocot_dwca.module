@@ -107,6 +107,7 @@ function emonocot_dwca_views_default_views_alter(&$views){
       if(isset($field_matching[$view->name])){
         $view->display['default']->display_options['fields']['nothing']['exclude'] = TRUE;
         $view->display['default']->display_options['fields']['nothing_1']['exclude'] = TRUE;
+        $view->display['default']->display_options['fields']['licence']['exclude'] = TRUE;
         $view->display['default']->display_options['fields']['path']['exclude'] = TRUE;
         $view->display['default']->display_options['fields']['nothing_7']['alter']['text'] = '[licence]';
         $view->display['default']->display_options['fields']['nothing_7']['empty'] = 'All Rights Reserved';

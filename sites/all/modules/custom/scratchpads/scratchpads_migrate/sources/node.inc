@@ -176,7 +176,14 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         $this->addFieldMapping('weight_weight', $delta);
       }else{ // Other field types
         // Load the field
-        $field = field_info_field($delta);
+        $source_type = $this->getFieldType($delta);
+        $mapped_delta_source_type = DrupalFieldMigration::getCustomMapping($delta, $source_type, $this->sourceConnection);
+        if($mapped_delta_source_type){
+          $field = field_info_field($mapped_delta_source_type);
+        }
+        if(!$mapped_delta_source_type || !$field){
+          $field = field_info_field($delta);
+        }
         // If we don't have a field with the same name, check if it's a media
         // field
         if($field){
@@ -347,8 +354,15 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       'sticky'
     ));
     // NOTE: OG works with NID, not VID
-    $query->leftJoin('og_ancestry', 'oga', 'oga.nid = n.nid');
-    $query->addField('oga', 'group_nid', 'group_nid');
+    if(Database::getConnection('default', $this->sourceConnection)->schema()->tableExists('og_ancestry')){
+      $query->leftJoin('og_ancestry', 'oga', 'oga.nid = n.nid');
+      $query->addField('oga', 'group_nid', 'group_nid');
+    }else{
+      // Simulate an empty left join.
+      $query->addExpression(':null', 'group_nid', array(
+        ':null' => NULL
+      ));
+    }
     if(Database::getConnection('default', $this->sourceConnection)->schema()->tableExists('og_access_post')){
       $query->leftJoin('og_access_post', 'ogap', 'ogap.nid = n.nid');
       $query->addField('ogap', 'og_public', 'og_public');
@@ -646,14 +660,77 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
    * @param string $html
    */
   public static function parseStyles($html){
-    $regex = '%(<span([^<]*?)style="font-style:( ?)italic(;?)"([^<]*?)>([^<]*)</span>)%';
-    $replace = '<em>$6</em>';
-    $html = preg_replace($regex, $replace, $html);
-    // Replace font weight
-    $regex = '%(<span([^<]*?)style="font-weight:( ?)bold(;?)"([^<]*?)>([^<]*)</span>)%';
-    $replace = '<strong>$6</strong>';
-    $html = preg_replace($regex, $replace, $html);
-    return $html;
+    $dom = new DomDocument();
+    @$dom->loadHTML($html);
+    $xpath = new DOMXpath($dom);
+    $body_list = $dom->getElementsByTagName('body');
+    if($body_list->length == 0){return $html;}
+    $body = $body_list->item(0);
+    ScratchpadsNodeMigration::parseStylesHelper($dom, $xpath, $body);
+    $html = $dom->saveHTML();
+    return preg_replace('/(^.*<body>|<\/body>.*$)/s', '', $html);
+  }
+
+  public static function parseStylesHelper($dom, $xpath, $xmlElem){
+    // Replace styles
+    $style = $xmlElem->getAttribute('style');
+    if(preg_match('/text-align\s*:\s*center/i', $style)){
+      $classes = $xmlElem->getAttribute('class');
+      $classes .= ' rtecenter';
+      $xmlElem->setAttribute('class', $classes);
+    }
+    if(preg_match('/float\s*:\s*left/i', $style)){
+      $xmlElem->setAttribute('align', 'left');
+    }else if(preg_match('/float\s*:\s*right/i', $style)){
+      $xmlElem->setAttribute('align', 'right');
+    }
+    if($xmlElem->nodeName == 'span' && preg_match('/font-style\s*:\s*italic/i', $style)){
+      $xmlElem = ScratchpadsNodeMigration::replaceXmlTag($dom, $xmlElem, 'em');
+    }else if($xmlElem->nodeName == 'span' && preg_match('/font-weight\s*:\s*bold/i', $style)){
+      $xmlElem = ScratchpadsNodeMigration::replaceXmlTag($dom, $xmlElem, 'strong');
+    }else if($xmlElem->nodeName == 'h2'){
+      if($xpath->query('.//a', $xmlElem)->length > 0){
+        $xmlElem = ScratchpadsNodeMigration::replaceXmlTag($dom, $xmlElem, 'h3');
+      }
+    }else if($xmlElem->nodeName == 'p'){
+      $images = $xpath->query('img', $xmlElem);
+      if($images->length == 1){
+        $image = $images->item(0);
+        $image_style = $image->getAttribute('style');
+        if(preg_match('/margin-right\s*:\s*auto/', $image_style) && preg_match('/margin-left\s*:\s*auto/', $image_style)){
+          $image->removeAttribute('style');
+          $classes = $xmlElem->getAttribute('class');
+          $classes .= ' rtecenter';
+          $xmlElem->setAttribute('class', $classes);
+        }
+      }
+    }
+    $xmlElem->removeAttribute('style');
+    // Recurse
+    for($i = 0; $i < $xmlElem->childNodes->length; $i++){
+      $child = $xmlElem->childNodes->item($i);
+      if($child->nodeType == 1){
+        ScratchpadsNodeMigration::parseStylesHelper($dom, $xpath, $child);
+      }
+    }
+  }
+
+  public static function replaceXmlTag($dom, $elem, $new_tag){
+    // We need to copy the item and it's children to replace the tag
+    $new_elem = $dom->createElement($new_tag);
+    $elem->parentNode->replaceChild($new_elem, $elem);
+    for($i = 0; $i < $elem->attributes->length; $i++){
+      $attribute = $elem->attributes->item($i);
+      $new_elem->setAttribute($attribute->name, $attribute->value);
+    }
+    $children = array();
+    for($i = 0; $i < $elem->childNodes->length; $i++){
+      $children[] = $elem->childNodes->item($i);
+    }
+    foreach($children as $child){
+      $new_elem->appendChild($elem->removeChild($child));
+    }
+    return $new_elem;
   }
 
   /**

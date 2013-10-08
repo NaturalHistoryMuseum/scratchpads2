@@ -207,9 +207,47 @@ function _darwincore_add_ncbi_links($values){
   return implode(', ', $link_array);
 }
 
+/**
+ * Returns the total number of 'location' and 'specimen_observation' nodes
+ */
+function darwincore_node_count(){
+  $query = db_select('node', 'n');
+  $or = db_or()->condition('n.type', 'location', '=')->condition('n.type', 'specimen_observation', '=');
+  $query->condition($or);
+  return $query->countQuery()->execute()->fetchField();
+}
 
+/**
+ * If this is the first node to be created, we clear the views cache.
+ */
+function darwincore_node_insert($node){
+  if($node->type == 'specimen_observation'){
+    if(db_select('node', 'n')->condition('type', 'specimen_observation')->countQuery()->execute()->fetchField() == 1){
+      drupal_register_shutdown_function('drupal_flush_all_caches');
+    }
+  }
+}
 
+/**
+ * If this is the last node to be deleted, we clear the views cache.
+ */
+function darwincore_node_delete($node){
+  darwincore_node_insert($node);
+}
 
-
-
-
+/**
+ * Implements hook_tools_pre_disable().
+ */
+function darwincore_tools_pre_disable(){
+  if(darwincore_node_count() > 0){
+    $can_disable = false;
+  }else{
+    $can_disable = true;
+  }
+  $tools_settings = array(
+    'can_disable' => $can_disable,
+    'cannot_disable_message' => 'You cannot disable Darwincore while there is still data in Specimen/Observation or Location content types.',
+    'disable_message' => 'Specimen/Observation and Location content types will be removed.'
+  );
+  return $tools_settings;
+}

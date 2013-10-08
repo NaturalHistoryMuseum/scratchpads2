@@ -147,7 +147,7 @@ function og_schema_info() {
       ),
       'permission' => array(
         'type' => 'varchar',
-        'length' => 64,
+        'length' => 128,
         'not null' => TRUE,
         'default' => '',
         'description' => 'A single permission granted to the role identified by rid.',
@@ -764,4 +764,23 @@ function og_update_7102() {
     $instance['default_value_function'] = 'og_field_audience_default_value';
     field_update_instance($instance);
   }
+}
+
+/**
+ * Extend the length of permission field in og_role_permission.
+ */
+function og_update_7103() {
+  $column = array(
+    'type' => 'varchar',
+    'length' => 128,
+    'not null' => TRUE,
+    'default' => '',
+    'description' => 'A single permission granted to the role identified by rid.',
+  );
+
+  if (db_field_exists('og_role_permission', 'permission')) {
+    db_change_field('og_role_permission', 'permission', 'permission', $column);
+  }
+
+  return t('Updated column definition for {og_role_permission} table.');
 }
