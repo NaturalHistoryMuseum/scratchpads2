@@ -39,7 +39,7 @@ function scratchpads_translate_install(){
   language_negotiation_set('language_content', $negotiation);
   // Update the body field.
   scratchpads_translate_update_7002();
-  // Set a message to alert a user that they need to conver their title fields
+  // Set a message to alert a user that they need to convert their title fields
   // before they can be translated.
   drupal_set_message(t('You must convert all field types, including the title field, before translations will work completely.'));
 }

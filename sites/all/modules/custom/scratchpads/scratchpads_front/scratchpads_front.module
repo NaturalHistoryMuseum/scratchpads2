@@ -94,27 +94,16 @@ function scratchpads_front_admin_paths(){
 }
 
 /**
- * 
- * Implements hook_form_alter().
- * Chnage the site information settings for the default front page
- * @param array $form
- * @param array $form_state
- * @param string $form_id
+ * Implements hook_form_FORM_ID_alter().
  */
-function scratchpads_front_form_alter(&$form, $form_state, $form_id){
-  switch($form_id){
-    case 'system_site_information_settings':
-      unset($form['front_page']['default_nodes_main']);
-      // TODO - add this to the sign up form
-      $form['front_page']['front_page_welcome_message'] = array(
-        '#title' => t('Welcome message'),
-        '#type' => 'textarea',
-        '#description' => t('Please enter an introductory message to welcome people to your site. This will be diaplyed on your home page.'),
-        '#default_value' => variable_get('front_page_welcome_message'),
-        '#required' => true
-      );
-      break;
-  }
+function scratchpads_front_form_system_site_information_settings_alter(&$form, $form_state, $form_id){
+  unset($form['front_page']['default_nodes_main']);
+  $form['front_page']['front_page_welcome_message'] = array(
+    '#title' => t('Welcome message'),
+    '#type' => 'textarea',
+    '#default_value' => variable_get('front_page_welcome_message'),
+    '#required' => true
+  );
 }
 
 /*********************************************************************************************
@@ -253,12 +242,15 @@ function scratchpads_front_page_edit($form, &$form_state){
       )
     )
   );
+  $default_welcome_message = variable_get('front_page_welcome_message', array(
+    'value' => ''
+  ));
+  drupal_set_message(print_r($default_welcome_message, 1));
   $form['front_page_welcome_message'] = array(
     '#title' => t('Welcome message'),
     '#type' => 'text_format',
     '#format' => null,
-    '#description' => t('Please enter an introductory message to welcome people to your site.'),
-    '#default_value' => variable_get('front_page_welcome_message'),
+    '#default_value' => $default_welcome_message['value'],
     '#required' => true
   );
   $form['main_block'] = array(
@@ -295,7 +287,7 @@ function scratchpads_front_page_edit($form, &$form_state){
     )
   );
   // if the view has been edited we don't add the option to edit the view via this form
-  if(strlen(views_get_view('front_page_slideshow')->vid)==0){
+  if(strlen(views_get_view('front_page_slideshow')->vid) == 0){
     $form['main_block']['front_page_main_block_slideshow_text_creator'] = array(
       '#type' => 'checkbox',
       '#title' => t('Display Image Creator'),
@@ -350,10 +342,8 @@ function scratchpads_front_page_edit($form, &$form_state){
     );
     $count++;
   }
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save')
-  );
+  $form = system_settings_form($form);
+  $form['#submit'][] = 'scratchpads_front_page_edit_submit';
   return $form;
 }
 
@@ -362,13 +352,6 @@ function scratchpads_front_page_edit($form, &$form_state){
  * Edit the home page
  */
 function scratchpads_front_page_edit_submit($form, &$form_state){
-  variable_set('front_page_override_welcome_title', $form_state['values']['front_page_override_welcome_title']);
-  variable_set('front_page_welcome_title', $form_state['values']['front_page_welcome_title']);
-  variable_set('front_page_welcome_message', $form_state['values']['front_page_welcome_message']['value']);
-  variable_set('front_page_main_block_type', $form_state['values']['front_page_main_block_type']);
-  variable_set('front_page_main_block_node_type', $form_state['values']['front_page_main_block_node_type']);
-  variable_set('front_page_main_block_slideshow_text_creator', $form_state['values']['front_page_main_block_slideshow_text_creator']);
-  variable_set('front_page_main_block_slideshow_text_licence', $form_state['values']['front_page_main_block_slideshow_text_licence']);
   foreach($form_state['vars'] as $var){
     variable_set($var, $form_state['values'][$var]);
   }
