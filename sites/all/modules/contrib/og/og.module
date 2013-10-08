@@ -17,17 +17,27 @@ define('OG_MIGRATE_REQUIRED_CTOOLS_API', '2.0-alpha');
 
 /**
  * Define active group content states.
+ *
+ * When a user has this membership state they are considered to be of
+ * "member" role.
  */
 define('OG_STATE_ACTIVE', 1);
 
 /**
- * Define pending group content states. The user is subscribed to the group but
- * isn't an active member yet.
+ * Define pending group content states. The user is subscribed to the group
+ * but isn't an active member yet.
+ *
+ * When a user has this membership state they are considered to be of
+ * "non-member" role.
  */
 define('OG_STATE_PENDING', 2);
 
 /**
  * Define blocked group content states. The user is rejected from the group.
+ *
+ * When a user has this membership state they are denided access to any
+ * group related action. This state, however, does not prevent user to
+ * access a group or group content node.
  */
 define('OG_STATE_BLOCKED', 3);
 
@@ -347,6 +357,7 @@ function og_modules_enabled($modules) {
   // Reset this cache first, since Drush can call this function multiple times
   // before all modules are available.
   drupal_static_reset('og_get_permissions');
+  entity_get_info(NULL, TRUE);
   foreach ($modules as $module) {
     // Add default roles and permissions, if existing and not set yet.
     og_set_global_access_module($module);
@@ -635,11 +646,26 @@ function og_entity_presave_group_audience_diff($entity, $type) {
   $new_gids = array ();
   $original_gids = array();
 
-  if (isset($entity->{OG_AUDIENCE_FIELD}) && isset($entity->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE])){  	
+  $wrapper = entity_metadata_wrapper($type, $entity);
+  $group_memberships = array();
+  foreach ($wrapper->og_membership->value() as $group_membership) {
+    $group_memberships[$group_membership->gid] = $group_membership;
+  }
+
+  if (isset($entity->{OG_AUDIENCE_FIELD}) && isset($entity->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE])){
     foreach ($entity->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE] as $item) {
-      // Item is still no populated with default values.
-      $item += array('state' => OG_STATE_ACTIVE, 'created' => time());
-      $new_gids[$item['gid']] = $item;
+      $gid = $item['gid'];
+
+      if (empty($group_memberships[$gid])) {
+        // Empty group, assign default values.
+        $item += array('state' => OG_STATE_ACTIVE, 'created' => time());
+      }
+      elseif (empty($item['state']) && empty($item['created'])) {
+        $item['state'] = $group_memberships[$gid]->state;
+        $item['created'] = $group_memberships[$gid]->created;
+      }
+
+      $new_gids[$gid] = $item;
     }
   }
 
@@ -649,7 +675,6 @@ function og_entity_presave_group_audience_diff($entity, $type) {
   // via og_group(). By checking the group membership directly, we make sure we
   // have all the real membership, not only the ones captured on group-audience
   // field.
-  $wrapper = entity_metadata_wrapper($type, $entity);
   foreach ($wrapper->og_membership->value() as $group_membership) {
     $gid = $group_membership->gid;
     $item = array(
@@ -1039,10 +1064,9 @@ function og_group_membership_invalidate_cache() {
  */
 function og_membership_create($gid, $entity_type, $etid, $values = array()) {
   // Make sure the group membership doesn't already exist.
-  // BS: This has been patched
-  // http://drupal.org/node/1664832
-  if ($membership = og_get_group_membership($gid, $entity_type, $etid)) {
-  	return $membership;
+  if (og_get_group_membership($gid, $entity_type, $etid)) {
+    $group = og_label($gid);
+    throw new OgException('OG membership for entity ' . check_plain($entity_type) . ' with ID ' . check_plain($etid) . ' for group ID ' . $gid . ' (' . $group . ') already exists.');
   }
   $values['entity_type'] = $entity_type;
   $values['etid'] = $etid;
@@ -1200,6 +1224,9 @@ function og_membership_access($op, $entity, $account = NULL, $entity_type = 'og_
  * @param $create
  *   Optional; If no existing group is found, create a new one. Defaults to
  *   FALSE.
+ * @param $states
+ *   Array of states the group must be in. Values can be OG_STATE_ACTIVE,
+ *   OG_STATE_PENDING or OG_STATE_BLOCKED. Defaults to OG_STATE_ACTIVE.
  * @param $reset
  *   A boolean indicating that the internal cache should be reset.
  *
@@ -1396,8 +1423,8 @@ function og_invalidate_cache($gids = array()) {
  *   Array with the entity IDs that should be loaded. If FALSE, all groups IDs
  *   that belong to the entity will be returned.
  * @param $states
- *   Array of states the group must be in. Values can be OG_STATE_ACTIVE or
- *   OG_STATE_PENDING. Defaults to OG_STATE_ACTIVE.
+ *   Array of states the group must be in. Values can be OG_STATE_ACTIVE,
+ *   OG_STATE_PENDING or OG_STATE_BLOCKED. Defaults to OG_STATE_ACTIVE.
  * @param $soft_reset
  *   A boolean indicating that the internal cache should be "soft" reset (i.e.
  *   only the cached values of the specific entity type). For a "hard" reset use
