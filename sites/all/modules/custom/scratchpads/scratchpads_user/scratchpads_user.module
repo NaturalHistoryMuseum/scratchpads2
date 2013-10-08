@@ -60,6 +60,72 @@ function scratchpads_user_menu_alter(&$items){
   $items['admin/people']['page callback'] = 'scratchpads_user_admin';
   $items['admin/people']['file'] = 'scratchpads_user.admin.inc';
   $items['admin/people']['module'] = 'scratchpads_user';
+  $items['admin/people/people']['title'] = 'All';
+}
+
+/**
+ * Implements hook_menu();
+ *
+ * Add tabs to the menu for users and non-users
+ */
+function scratchpads_user_menu(){
+  $items['admin/people/users'] = array(
+    'title' => 'Users',
+    'page callback' => 'scratchpads_user_admin',
+    'page arguments' => array(
+      '',
+      '1'
+    ),
+    'file' => 'scratchpads_user.admin.inc',
+    'access arguments' => array(
+      'administer users'
+    ),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => '-2'
+  );
+  $items['admin/people/non_users'] = array(
+    'title' => 'Non Users',
+    'page callback' => 'scratchpads_user_admin',
+    'page arguments' => array(
+      '',
+      '0'
+    ),
+    'file' => 'scratchpads_user.admin.inc',
+    'access arguments' => array(
+      'administer users'
+    ),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => '-1'
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ * 
+ * Add the 'Add user' button
+ */
+function scratchpads_user_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  $local_tasks = array();
+  switch($root_path){
+    case 'admin/people/users':
+      $local_tasks[] = 'admin/people/create';
+      break;
+    case 'admin/people/non_users':
+      $local_tasks[] = 'admin/people/create';
+      break;
+  }
+  if(count($local_tasks)){
+    foreach($local_tasks as $local_task){
+      $item = menu_get_item($local_task);
+      if($item['access']){
+        $data['actions']['output'][] = array(
+          '#theme' => 'menu_local_action',
+          '#link' => $item
+        );
+      }
+    }
+  }
 }
 
 /**
@@ -99,7 +165,7 @@ function scratchpads_user_user_presave(&$edit, $account, $category){
   if((!empty($account->stub_user)) && ($edit['create_user_account'] == 0)){
     $edit['status'] = 0;
   }  // Was a stub user but isn't any more
-  elseif((!empty($account->stub_user)) && ($edit['create_user_account'] == 1)){
+elseif((!empty($account->stub_user)) && ($edit['create_user_account'] == 1)){
     $edit['status'] = 1;
   }
 }
