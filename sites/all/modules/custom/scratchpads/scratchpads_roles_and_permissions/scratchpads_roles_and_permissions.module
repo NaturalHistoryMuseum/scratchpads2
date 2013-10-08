@@ -5,50 +5,57 @@
  */
 function scratchpads_roles_and_permissions_module_implements_alter(&$implementations, $hook){
   if($hook == 'scratchpads_default_permissions'){
-    $implementations = array_merge($implementations, array(
-      'aggregator' => FALSE,
-      'biblio' => FALSE,
-      'block' => FALSE,
-      'clone' => FALSE,
-      'comment' => FALSE,
-      'comment_notify' => FALSE,
-      'contact' => FALSE,
-      'contextual' => FALSE,
-      'dashboard' => FALSE,
-      'entityconnect' => FALSE,
-      'exif_custom' => FALSE,
-      'feeds' => FALSE,
-      'feeds_xls' => FALSE,
-      'femail' => FALSE,
-      'field_group' => FALSE,
-      'file_entity' => FALSE,
-      'filter' => FALSE,
-      'formflow' => FALSE,
-      'forum' => FALSE,
-      'gm3' => FALSE,
-      'googleanalytics' => FALSE,
-      'legal' => FALSE,
-      'menu' => FALSE,
-      'node' => FALSE,
-      'overlay' => FALSE,
-      'path' => FALSE,
-      'pathauto' => FALSE,
-      'redirect' => FALSE,
-      'role_delegation' => FALSE,
-      'search' => FALSE,
-      'shortcut' => FALSE,
-      'simplenews' => FALSE,
-      'subpermissions' => FALSE,
-      'system' => FALSE,
-      'taxonomy' => FALSE,
-      'toolbar' => FALSE,
-      'tools' => FALSE,
-      'user' => FALSE,
-      'views' => FALSE,
-      'webform' => FALSE,
-      'weight' => FALSE,
-      'gravatar' => FALSE
-    ));
+    $additional_modules = array(
+      'aggregator',
+      'biblio',
+      'block',
+      'clone',
+      'comment',
+      'comment_notify',
+      'contact',
+      'contextual',
+      'dashboard',
+      'entityconnect',
+      'exif_custom',
+      'feeds',
+      'feeds_xls',
+      'femail',
+      'field_group',
+      'file_entity',
+      'filter',
+      'formflow',
+      'forum',
+      'gm3',
+      'googleanalytics',
+      'legal',
+      'menu',
+      'node',
+      'overlay',
+      'path',
+      'pathauto',
+      'redirect',
+      'role_delegation',
+      'search',
+      'shortcut',
+      'simplenews',
+      'subpermissions',
+      'system',
+      'taxonomy',
+      'toolbar',
+      'tools',
+      'user',
+      'views',
+      'webform',
+      'weight',
+      'gravatar'
+    );
+    $additional_implementations = array();
+    foreach($additional_modules as $additional_module){
+      if(module_exists($additional_module)){
+        $additional_implementations[$additional_module] = FALSE;
+      }
+    }
+    $implementations = array_merge($implementations, $additional_implementations);
   }
 }
 
