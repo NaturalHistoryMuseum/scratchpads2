@@ -1,0 +1,23 @@
+diff --git a/includes/common.inc b/includes/common.inc
+index 27fa190..8dae517 100644
+--- a/includes/common.inc
++++ b/includes/common.inc
+@@ -7556,7 +7556,7 @@ function drupal_check_incompatibility($v, $current_version) {
+  * @see hook_entity_info()
+  * @see hook_entity_info_alter()
+  */
+-function entity_get_info($entity_type = NULL) {
++function entity_get_info($entity_type = NULL, $reset = FALSE) {
+   global $language;
+ 
+   // Use the advanced drupal_static() pattern, since this is called very often.
+@@ -7564,6 +7564,9 @@ function entity_get_info($entity_type = NULL) {
+   if (!isset($drupal_static_fast)) {
+     $drupal_static_fast['entity_info'] = &drupal_static(__FUNCTION__);
+   }
++  if($reset){
++    $drupal_static_fast = NULL;
++  }
+   $entity_info = &$drupal_static_fast['entity_info'];
+ 
+   // hook_entity_info() includes translated strings, so each language is cached
