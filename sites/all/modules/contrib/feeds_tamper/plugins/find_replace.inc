@@ -30,7 +30,7 @@ function feeds_tamper_find_replace_form($importer, $element_key, $settings) {
     '#type' => 'checkbox',
     '#title' => t('Case sensitive'),
     '#default_value' => isset($settings['case_sensitive']) ? $settings['case_sensitive'] : FALSE,
-    '#description' => t('If checked, "book" will match "book" but not "Book" or "BOOK".')
+    '#description' => t('If checked, "book" will match "book" but not "Book" or "BOOK".'),
   );
   $form['word_boundaries'] = array(
     '#type' => 'checkbox',
@@ -42,7 +42,7 @@ function feeds_tamper_find_replace_form($importer, $element_key, $settings) {
     '#type' => 'checkbox',
     '#title' => t('Match whole word/phrase'),
     '#default_value' => isset($settings['whole']) ? $settings['whole'] : FALSE,
-    '#description' => t('If checked, then the whole word or phrase will be matched, e.g. "book" will match not match "book" in "the book".<br />If this option is selected then "Respect word boundaries" above will be ignored.')
+    '#description' => t('If checked, then the whole word or phrase will be matched, e.g. "book" will match "book" but not "the book".<br />If this option is selected then "Respect word boundaries" above will be ignored.'),
   );
   return $form;
 }
@@ -72,7 +72,7 @@ function feeds_tamper_find_replace_validate(&$settings) {
   }
 }
 
-function feeds_tamper_find_replace_callback($result, $item_key, $element_key, &$field, $settings) {
+function feeds_tamper_find_replace_callback($result, $item_key, $element_key, &$field, $settings, $source) {
   if ($settings['regex']) {
     $field = preg_replace($settings['regex_find'], $settings['replace'], $field);
   }

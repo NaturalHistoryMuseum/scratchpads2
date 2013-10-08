@@ -15,11 +15,10 @@ $plugin = array(
 
 function feeds_tamper_rewrite_form($importer, $element_key, $settings) {
   $form = array();
-  $mappings = $importer->processor->config['mappings'];
   $replace = array();
 
-  foreach ($mappings as $mapping) {
-    $replace[] = '[' . $mapping['source'] . ']';
+  foreach (feeds_tamper_get_unique_source_list($importer) as $source) {
+    $replace[] = '[' . $source . ']';
   }
 
   $form['text'] = array(
@@ -30,14 +29,14 @@ function feeds_tamper_rewrite_form($importer, $element_key, $settings) {
   $form['help'] = array(
     '#type' => 'fieldset',
     '#title' => t('Available Replacement Patterns'),
-    '#collapsed' => TRUE,
-    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#collapsible' => FALSE,
     '#value' => theme('item_list', array('items' => $replace)),
   );
   return $form;
 }
 
-function feeds_tamper_rewrite_callback($result, $item_key, $element_key, &$field, $settings) {
+function feeds_tamper_rewrite_callback($result, $item_key, $element_key, &$field, $settings, $source) {
   $trans = array();
   $item = $result->items[$item_key];
   foreach ($item as $key => $value) {

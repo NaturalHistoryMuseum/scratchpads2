@@ -31,6 +31,6 @@ function feeds_tamper_implode_validate(&$settings) {
   $settings['real_glue'] = str_replace(array('%s', '%t', '%n'), array(' ', "\t", "\n"), $settings['glue']);
 }
 
-function feeds_tamper_implode_callback($result, $item_key, $element_key, &$field, $settings) {
+function feeds_tamper_implode_callback($result, $item_key, $element_key, &$field, $settings, $source) {
   $field = implode($settings['real_glue'], $field);
 }

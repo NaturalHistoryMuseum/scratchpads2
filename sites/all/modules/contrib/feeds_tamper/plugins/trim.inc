@@ -30,7 +30,7 @@ function feeds_tamper_trim_form($importer, $element_key, $settings) {
   return $form;
 }
 
-function feeds_tamper_trim_callback($result, $item_key, $element_key, &$field, $settings) {
+function feeds_tamper_trim_callback($result, $item_key, $element_key, &$field, $settings, $source) {
   if (!empty($settings['mask'])) {
     $field = $settings['side']($field, $settings['mask']);
   }

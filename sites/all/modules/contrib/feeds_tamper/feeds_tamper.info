@@ -6,9 +6,9 @@ files[] = tests/feeds_tamper.test
 files[] = tests/feeds_tamper_plugins.test
 core = 7.x
 
-; Information added by drupal.org packaging script on 2012-10-06
-version = "7.x-1.0-beta4"
+; Information added by drupal.org packaging script on 2013-09-25
+version = "7.x-1.0-beta5"
 core = "7.x"
 project = "feeds_tamper"
-datestamp = "1349522814"
+datestamp = "1380093514"
 

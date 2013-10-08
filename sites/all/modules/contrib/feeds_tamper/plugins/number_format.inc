@@ -38,7 +38,9 @@ function feeds_tamper_number_format_form($importer, $element_key, $settings) {
 }
 
 function feeds_tamper_number_format_validate(&$settings) {
-  if (!ctype_digit($settings['decimals'])) {
+  $settings['decimals'] = trim($settings['decimals']);
+
+  if (!is_int($settings['decimals']) && ($settings['decimals'] !== (string) (int) $settings['decimals'])) {
     form_set_error('settings][decimals', t('Decimals field must be an integer.'));
   }
   else {
@@ -46,7 +48,7 @@ function feeds_tamper_number_format_validate(&$settings) {
   }
 }
 
-function feeds_tamper_number_format_callback($result, $item_key, $element_key, &$field, $settings) {
+function feeds_tamper_number_format_callback($result, $item_key, $element_key, &$field, $settings, $source) {
   if (is_numeric($field)) {
     $field = number_format($field, $settings['decimals'], $settings['dec_point'], $settings['thousands_sep']);
   }
