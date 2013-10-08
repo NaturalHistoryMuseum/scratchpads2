@@ -41,6 +41,8 @@ function scratchpads_translate_install(){
   scratchpads_translate_update_7002();
   // Set a message to alert a user that they need to convert their title fields
   // before they can be translated.
+  // Set which variables may be translated
+  scratchpads_translate_update_7004();
   drupal_set_message(t('You must convert all field types, including the title field, before translations will work completely.'));
 }
 
@@ -93,8 +95,16 @@ function scratchpads_translate_update_7003(){
   module_enable(array(
     'i18n_variable'
   ));
-  // Set the front page welcome message as translatable  
+}
+
+/**
+ * Set which variables may be translated
+ */
+function scratchpads_translate_update_7004(){
+  // Set the front page welcome message as translatable
   $value = variable_realm_get('global', 'default', 'variable_realm_list_language');
-  $value[] = 'front_page_welcome_message';
+  $value = drupal_map_assoc($value);
+  $value['front_page_welcome_message'] = 'front_page_welcome_message';
+  $value['front_page_welcome_title'] = 'front_page_welcome_title';
   variable_realm_set('global', 'default', 'variable_realm_list_language', $value);
 }
