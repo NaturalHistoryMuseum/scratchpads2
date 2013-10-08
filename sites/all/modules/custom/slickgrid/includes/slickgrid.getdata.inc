@@ -79,8 +79,10 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
       $op_val = $value;
       // Add regexp support for MySQL.
       if(Database::getConnection()->databaseType() == 'mysql'){
-        if(substr(strtolower($value), 0, 6) == 'regex:'){
-          $op_val = trim(substr($value, 6));
+        if(_is_regex($value)){
+          // Remove delimiters, as views regex works without them
+          $value = substr($value, 1, -1);
+          $op_val = $value;
           $operator = 'regular_expression';
         }
       }
@@ -196,6 +198,36 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
     'data' => $view->data
   ));
   ajax_footer();
+}
+
+/**
+ * Helper function
+ * Returns TRUE if $str is a regular expression,
+ * according to the following rules:
+ * - Does the string start and end with the same character? 
+ *   (non alphanumeric, excluding whitespaces and backslashes)
+ * - Does the string contain "*" or or '?' or '$' or '^' or "[" and "]"?
+ */
+function _is_regex($str){
+  $first_char = substr($str, 0, 1);
+  $last_char = substr($str, -1);
+  // You can use any non alphanumeric delimiter (excluding whitespaces and backslashes)
+  if((strlen($str) < 3) || ($first_char != $last_char) || ctype_alnum($first_char) || ($first_char == " ") || ($first_char == "\\")){return false;}
+  // Look for 'special' characters and return true if found
+  $str = substr($str, 1, -1);
+  if((strpos($str, '[') !== false) && (strpos($str, ']') !== false)){
+    return true;
+  }elseif(strpos($str, '*') !== false){
+    return true;
+  }elseif(strpos($str, '?') !== false){
+    return true;
+  }elseif(strpos($str, '$') !== false){
+    return true;
+  }elseif(strpos($str, '^') !== false){
+    return true;
+  }else{
+    return false;
+  }
 }
 
 /**
