@@ -55,9 +55,9 @@ class ScratchpadsFrontSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
    * - Add welcome message and verify presence on front page. 
    */
   function verifyTeasersAndWelcomeMessage(){
-    $page_title = $this->createBasicPage();
+    $page_info = $this->createBasicPage();
     $this->drupalGet('');
-    $this->assertText($page_title, 'Page teaser shown on front page');
+    $this->assertText($page_info['body'], 'Page teaser shown on front page');
     $this->clickLink('Edit');
     $welcome_message = $this->randomName();
     $element = $this->driver->getElement("name=front_page_welcome_message[value]");
@@ -69,11 +69,13 @@ class ScratchpadsFrontSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
     $element->selectLabel('Taxon Description');
     $element = $this->driver->getElement("name=front_page_block_3_node_type");
     $element->selectLabel('Taxon Description');
+    $this->verboseScreenshot();
     // Submit the form
     $submit_button = $this->driver->getElement("id=edit-submit");
     $submit_button->click();
     $this->assertText($welcome_message, 'Welcome message shown on front page');
-    $this->assertNoText($page_title, 'Page teaser not shown on front page after changing settings');
+    $this->verboseScreenshot();
+    $this->assertNoText($page_info['body'], 'Page teaser not shown on front page after changing settings');
   }
 
   /**
@@ -85,7 +87,7 @@ class ScratchpadsFrontSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
   }
 
   function verifyMainBlockContent(){
-    $page_title = $this->createBasicPage();
+    $page_info = $this->createBasicPage();
     $this->drupalGet('scratchpads-front/edit');
     $edit = array();
     $this->verboseScreenshot();
@@ -96,7 +98,7 @@ class ScratchpadsFrontSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
     $this->verboseScreenshot();
     $this->drupalGet('');
     // Teasers not visible, from previous test
-    $this->assertText($page_title, 'Content visible in front page');
+    $this->assertText($page_info['body'], 'Content visible in front page');
   }
 
   function changeFileUploadWidget(){
@@ -127,6 +129,9 @@ class ScratchpadsFrontSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
     $element->sendKeys($body);
     // Submit the form
     $this->driver->getElement("id=edit-submit")->click();
-    return $title;
+    return array(
+      'title'=>$title,
+      'body'=> $body
+      );
   }
 }
