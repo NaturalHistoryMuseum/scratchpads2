@@ -28,8 +28,13 @@ function scratchpads_twitter_menu_alter(&$items){
 function scratchpads_twitter_user_settings($account = NULL){
   $output = twitter_user_settings($account);
   if(isset($output['list_form'])){
-    unset($output['add_account']);
-    unset($output['header']);
+    try{
+      unset($output['add_account']);
+      unset($output['header']);
+    }
+    catch(Exception $e){
+      ;
+    }
   }
   return $output;
 }
