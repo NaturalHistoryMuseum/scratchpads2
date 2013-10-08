@@ -98,10 +98,13 @@ function scratchpads_front_admin_paths(){
  */
 function scratchpads_front_form_system_site_information_settings_alter(&$form, $form_state, $form_id){
   unset($form['front_page']['default_nodes_main']);
+  $welcome_message = variable_get('front_page_welcome_message', array(
+    'value' => ''
+  ));
   $form['front_page']['front_page_welcome_message'] = array(
     '#title' => t('Welcome message'),
     '#type' => 'textarea',
-    '#default_value' => variable_get('front_page_welcome_message'),
+    '#default_value' => $welcome_message['value'],
     '#required' => true
   );
 }
@@ -165,8 +168,8 @@ function scratchpads_front_page_view(){
     $welcome_message .= $default_welcome_message;
   }
   $welcome_message .= '</h1>';
-  if(($set_message = variable_get('front_page_welcome_message')) != FALSE){
-    $welcome_message .= check_markup($set_message, 'filtered_html');
+  if(($set_message = variable_get('front_page_welcome_message', FALSE)) !== FALSE){
+    $welcome_message .= check_markup($set_message['value'], 'filtered_html');
   }else{
     if(user_access('administer front page')){
       $welcome_message .= '<p>' . t('Click <em>Edit</em> above to customise the "Welcome message" for your site or, complete your site setup by clicking <em>Dashboard</em>, and then <em>Finish setting up the site</em>.') . '</p>';
@@ -221,6 +224,15 @@ function scratchpads_front_page_view(){
  * Edit the home page
  */
 function scratchpads_front_page_edit($form, &$form_state){
+  // Switch the realm if we need to.
+  if(module_exists('variable_realm')){
+    if(($params = variable_realm_params()) != FALSE){
+      foreach($params as $realm_name => $realm_key){
+        variable_realm_switch($realm_name, $realm_key, FALSE);
+      }
+      variable_realm_rebuild();
+    }
+  }
   $node_types = scratchpads_front_node_types();
   $form['front_page_override_welcome_title'] = array(
     '#title' => t('Override welcome title'),
@@ -245,7 +257,6 @@ function scratchpads_front_page_edit($form, &$form_state){
   $default_welcome_message = variable_get('front_page_welcome_message', array(
     'value' => ''
   ));
-  drupal_set_message(print_r($default_welcome_message, 1));
   $form['front_page_welcome_message'] = array(
     '#title' => t('Welcome message'),
     '#type' => 'text_format',
