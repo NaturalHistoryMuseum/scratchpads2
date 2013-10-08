@@ -603,7 +603,50 @@ class OgGroupMembership extends DrupalWebTestCase {
   }
 
   function setUp() {
-    parent::setUp('og', 'entity_test');
+    parent::setUp('og');
+  }
+
+  /**
+   * Test re-saving user with pending membership.
+   */
+  function testUserEdit() {
+    $user1 = $this->drupalCreateUser();
+    $user2 = $this->drupalCreateUser();
+
+    $type = $this->drupalCreateContentType()->type;
+
+    og_create_field(OG_GROUP_FIELD, 'node', $type);
+
+    $settings = array(
+      'type' => $type,
+      OG_GROUP_FIELD . '[und][0][value]' => 1,
+    );
+    $settings['uid'] = $user1->uid;
+    $node = $this->drupalCreateNode($settings);
+
+    $group = og_get_group('node', $node->nid);
+
+    $this->assertFalse(og_get_entity_groups('user', $user2, array(OG_STATE_PENDING)), 'User has no pending membership, as expected.');
+    og_group($group->gid, array('entity' => $user2, 'state' => OG_STATE_PENDING));
+
+    // Save via UI.
+    $this->drupalLogin($user2);
+    $this->drupalPost("user/$user2->uid/edit", array(), 'Save');
+
+    $gids = og_get_entity_groups('user', $user2, array(OG_STATE_PENDING));
+    $this->assertEqual(array_values($gids), array(1), 'User membership was retained after user save.');
+
+    // Programatic save.
+    $user2 = user_load($user2->uid, TRUE);
+    user_save($user2);
+    $gids = og_get_entity_groups('user', $user2, array(OG_STATE_PENDING));
+    $this->assertEqual(array_values($gids), array(1), 'User membership was retained after programatic save.');
+  }
+
+  /**
+   * Test group group membership create, update and delete.
+   */
+  function testGroupMembershipCrud() {
     module_enable(array('entity_feature'));
 
     // Add OG group field to the entity_test's "main" bundle.
@@ -611,12 +654,7 @@ class OgGroupMembership extends DrupalWebTestCase {
 
     // Add OG audience field to the node's "article" bundle.
     og_create_field(OG_AUDIENCE_FIELD, 'node', 'article');
-  }
 
-  /**
-   * Test group group membership create, update and delete.
-   */
-  function testGroupMembershipCrud() {
     $web_user = $this->drupalCreateUser();
 
     // Create group, assert group manager has group membership.
@@ -1294,6 +1332,8 @@ class OgGroupAudienceField extends DrupalWebTestCase {
       $this->assertEqual($web_user->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE][$i]['gid'], $gid, t("Group ID @id found in user's group-audienec field.", array('@id' => $gid)));
     }
   }
+
+
 }
 
 /**
