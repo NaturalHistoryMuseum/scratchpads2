@@ -144,7 +144,7 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
     }
     $context['sandbox']['max'] = count($context['sandbox']['entity_ids']);
     // Create the template before adding any rows to it.
-    $context['sandbox']['csv_path'] = drupal_tempnam(file_directory_temp(), $feeds_importer->id);
+    $context['sandbox']['csv_path'] = drupal_tempnam('temporary://', $feeds_importer->id);
     // We need a few variables and stuff when finished, so we shove them in the
     // results array.
     $context['results']['csv_path'] = $context['sandbox']['csv_path'];
@@ -156,10 +156,6 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
     $context['progress'] = 0;
   }
   // Load the csv file
-  // We wait two seconds to ensure that the file has actually finished being
-  // updated by another application server, or to allow the NFS server to catch
-  // up.  We shouldn't need to do this, but we are having to!
-  sleep(3);
   $csvf = fopen($context['sandbox']['csv_path'], 'a');
   // Load the entites
   $loop = 0;
@@ -407,11 +403,6 @@ function _feeds_xls_get_value($value){
  */
 function feeds_xls_redirect_to_populated_file($success, $results, $operations){
   if($success){
-    // Load the csv file
-    // We wait two seconds to ensure that the file has actually finished being
-    // updated by another application server, or to allow the NFS server to catch
-    // up.  We shouldn't need to do this, but we are having to!
-    sleep(3);
     // Increase the memory limit
     ini_set('memory_limit', '1500M');
     ini_set('max_execution_time', 600);
@@ -421,8 +412,6 @@ function feeds_xls_redirect_to_populated_file($success, $results, $operations){
     _feeds_xls_initialise_phpexcel();
     // Open the file.
     $objReader = new PHPExcel_Reader_CSV();
-    exec('ls -l ' . $results['csv_path'], $lines);
-    watchdog('feeds_xls', "Output of ls\n" . implode("\n", $lines));
     $objPHPExcel = $objReader->load($results['csv_path']);
     $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
     feeds_xls_set_headers(feeds_importer_load($results['importer']), $objPHPExcel, $results['csv_path'] . '.xls');
