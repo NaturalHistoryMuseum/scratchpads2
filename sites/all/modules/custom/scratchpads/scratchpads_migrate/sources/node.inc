@@ -692,6 +692,18 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       if($xpath->query('.//a', $xmlElem)->length > 0){
         $xmlElem = ScratchpadsNodeMigration::replaceXmlTag($dom, $xmlElem, 'h3');
       }
+    }else if($xmlElem->nodeName == 'p'){
+      $images = $xpath->query('img', $xmlElem);
+      if($images->length == 1){
+        $image = $images->item(0);
+        $image_style = $image->getAttribute('style');
+        if(preg_match('/margin-right\s*:\s*auto/', $image_style) && preg_match('/margin-left\s*:\s*auto/', $image_style)){
+          $image->removeAttribute('style');
+          $classes = $xmlElem->getAttribute('class');
+          $classes .= ' rtecenter';
+          $xmlElem->setAttribute('class', $classes);
+        }
+      }
     }
     $xmlElem->removeAttribute('style');
     // Recurse
