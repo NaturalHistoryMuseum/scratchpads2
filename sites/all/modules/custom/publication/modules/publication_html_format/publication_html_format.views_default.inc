@@ -271,6 +271,13 @@ function publication_html_format_views_default_views(){
   $handler->display->display_options['filters']['filename']['expose']['identifier'] = 'filename';
   $handler->display->display_options['filters']['filename']['expose']['required'] = 0;
   $handler->display->display_options['filters']['filename']['expose']['multiple'] = FALSE;
+  /* Filter criterion: File: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'image' => 'image',
+  );
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'figures');
   $export['publication_citations_figures'] = $view;
