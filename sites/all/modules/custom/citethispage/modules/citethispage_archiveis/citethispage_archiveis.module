@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * Implement hook_citethispage_info
+ */
+function citethispage_archiveis_citethispage_info(){
+  return array(
+    'citethispage_archiveis' => array(
+      'archive' => array(
+        'title' => t('Archive.is'),
+        'description' => t('Archives pages for citation using Archive.is, !url', array(
+          '!url' => l('http://archive.is', 'http://archive.is')
+        )),
+        'callback' => 'citethispage_archiveis_archive'
+      )
+    )
+  );
+}
+
+/**
+ * citethispage_archiveis_archive
+ * 
+ * Callback for archiving using the archive.is backend
+ */
+function citethispage_archiveis_archive($path, $results){
+  $arguments = array(
+    'url' => url($path, array(
+      'absolute' => TRUE
+    )),
+    'run' => 1
+  );
+  drupal_goto(url('http://archive.is', array(
+    'query' => $arguments,
+    'absolute' => TRUE
+  )));
+}
