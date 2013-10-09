@@ -1,0 +1,4 @@
+name = Cite this page
+description = "This module allows site users to create a snapshot of a page at a given time. The snapshot can be created with various archiving systems."
+core = 7.x
+configure = admin/config/services/citethispage
