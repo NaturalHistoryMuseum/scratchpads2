@@ -180,7 +180,7 @@ function scratchpads_backend_admin_content(){
           ));
           $rows[] = array(
             'data' => array(
-              l($bundle, $view_url),
+              l($entity_info['bundles'][$bundle]['label'], $view_url),
               (isset($statistics[$bundle]['published']) ? $statistics[$bundle]['published'] : 0),
               (isset($statistics[$bundle]['unpublished']) ? $statistics[$bundle]['unpublished'] : 0),
               $operations
