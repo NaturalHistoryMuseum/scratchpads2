@@ -19,12 +19,7 @@
  *  stdClass The structured datas extracted from the feed.
  */
 function common_syndication_parser_parse($string) {
-  if (!defined('LIBXML_VERSION') || (version_compare(phpversion(), '5.1.0', '<'))) {
-    @ $xml = simplexml_load_string($string, NULL);
-  }
-  else {
-    @ $xml = simplexml_load_string($string, NULL, LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_NOCDATA);
-  }
+  @ $xml = simplexml_load_string($string, NULL, LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_NOCDATA);
 
   // Got a malformed XML.
   if ($xml === FALSE || is_null($xml)) {
@@ -201,7 +196,19 @@ function _parser_common_syndication_atom10_parse($feed_XML) {
     $item['title'] = _parser_common_syndication_title($title, $body);
     $item['description'] = $body;
     $item['author_name'] = $original_author;
-    $item['timestamp'] = _parser_common_syndication_parse_date(isset($news->published) ? "{$news->published}" : "{$news->issued}");
+
+    // Fall back to updated for timestamp if both published and issued are
+    // empty.
+    if (isset($news->published)) {
+      $item['timestamp'] = _parser_common_syndication_parse_date("{$news->published}");
+    }
+    elseif (isset($news->issued)) {
+       $item['timestamp'] = _parser_common_syndication_parse_date("{$news->issued}");
+    }
+    elseif (isset($news->updated)) {
+      $item['timestamp'] = _parser_common_syndication_parse_date("{$news->updated}");
+    }
+
     $item['url'] = trim($original_url);
     if (valid_url($item['url']) && !valid_url($item['url'], TRUE) && !empty($base)) {
       $item['url'] = $base . $item['url'];
@@ -250,9 +257,8 @@ function _parser_common_syndication_RDF10_parse($feed_XML) {
     'rss'      => 'http://purl.org/rss/1.0/',
   );
 
-  // Get all namespaces declared in the feed element, with special handling
-  // for PHP versions prior to 5.1.2 as they don't handle namespaces.
-  $namespaces = version_compare(phpversion(), '5.1.2', '<') ? array() : $feed_XML->getNamespaces(TRUE);
+  // Get all namespaces declared in the feed element.
+  $namespaces = $feed_XML->getNamespaces(TRUE);
 
   // Process the <rss:channel> resource containing feed metadata:
   foreach ($feed_XML->children($canonical_namespaces['rss'])->channel as $rss_channel) {
@@ -367,11 +373,9 @@ function _parser_common_syndication_RSS20_parse($feed_XML) {
 
     $category = $news->xpath('category');
     // Get children for current namespace.
-    if (version_compare(phpversion(), '5.1.2', '>')) {
-      $content = (array)$news->children($ns["content"]);
-      $dc      = (array)$news->children($ns["dc"]);
-      $georss  = (array)$news->children($ns["georss"]);
-    }
+    $content = (array)$news->children($ns["content"]);
+    $dc      = (array)$news->children($ns["dc"]);
+    $georss  = (array)$news->children($ns["georss"]);
     $news = (array) $news;
     $news['category'] = $category;
 
@@ -493,12 +497,25 @@ function _parser_common_syndication_RSS20_parse($feed_XML) {
  */
 function _parser_common_syndication_parse_date($date_str) {
   // PHP < 5.3 doesn't like the GMT- notation for parsing timezones.
-  $date_str = str_replace("GMT-", "-", $date_str);
-  $date_str = str_replace("GMT+", "+", $date_str);
+  $date_str = str_replace('GMT-', '-', $date_str);
+  $date_str = str_replace('GMT+', '+', $date_str);
   $parsed_date = strtotime($date_str);
+
   if ($parsed_date === FALSE || $parsed_date == -1) {
     $parsed_date = _parser_common_syndication_parse_w3cdtf($date_str);
   }
+
+  if (($parsed_date === FALSE || $parsed_date == -1)) {
+    // PHP does not support the UT timezone. Fake it. The system that generated
+    // this, Google Groups, probably meant UTC.
+    $date_str = strtolower(trim($date_str));
+    $last_three = substr($date_str, strlen($date_str) - 3, 3);
+
+    if ($last_three == ' ut') {
+      $parsed_date = strtotime($date_str . 'c');
+    }
+  }
+
   return $parsed_date === FALSE ? time() : $parsed_date;
 }
 
@@ -571,8 +588,8 @@ function _parser_common_syndication_link($links) {
 function _parser_common_syndication_title($title, $body = FALSE) {
   if (empty($title) && !empty($body)) {
     // Explode to words and use the first 3 words.
-    $words = preg_split("/[\s,]+/", strip_tags($body));
-    $title = $words[0] . ' ' . $words[1] . ' ' . $words[2];
+    $words = preg_split('/[\s,]+/', strip_tags($body));
+    $title = implode(' ', array_slice($words, 0, 3));
   }
   return $title;
 }

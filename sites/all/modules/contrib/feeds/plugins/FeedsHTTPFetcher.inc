@@ -13,6 +13,7 @@ feeds_include_library('PuSHSubscriber.inc', 'PuSHSubscriber');
 class FeedsHTTPFetcherResult extends FeedsFetcherResult {
   protected $url;
   protected $file_path;
+  protected $timeout;
 
   /**
    * Constructor.
@@ -27,11 +28,19 @@ class FeedsHTTPFetcherResult extends FeedsFetcherResult {
    */
   public function getRaw() {
     feeds_include_library('http_request.inc', 'http_request');
-    $result = http_request_get($this->url);
+    $result = http_request_get($this->url, NULL, NULL, NULL, $this->timeout);
     if (!in_array($result->code, array(200, 201, 202, 203, 204, 205, 206))) {
       throw new Exception(t('Download of @url failed with code !code.', array('@url' => $this->url, '!code' => $result->code)));
     }
     return $this->sanitizeRaw($result->data);
+  }
+
+  public function getTimeout() {
+    return $this->timeout;
+  }
+
+  public function setTimeout($timeout) {
+    $this->timeout = $timeout;
   }
 }
 
@@ -48,7 +57,10 @@ class FeedsHTTPFetcher extends FeedsFetcher {
     if ($this->config['use_pubsubhubbub'] && ($raw = $this->subscriber($source->feed_nid)->receive())) {
       return new FeedsFetcherResult($raw);
     }
-    return new FeedsHTTPFetcherResult($source_config['source']);
+    $fetcher_result = new FeedsHTTPFetcherResult($source_config['source']);
+    // When request_timeout is empty, the global value is used.
+    $fetcher_result->setTimeout($this->config['request_timeout']);
+    return $fetcher_result;
   }
 
   /**
@@ -95,6 +107,7 @@ class FeedsHTTPFetcher extends FeedsFetcher {
       'auto_detect_feeds' => FALSE,
       'use_pubsubhubbub' => FALSE,
       'designated_hub' => '',
+      'request_timeout' => NULL,
     );
   }
 
@@ -124,6 +137,18 @@ class FeedsHTTPFetcher extends FeedsFetcher {
         'edit-use-pubsubhubbub' => array(1),
       ),
     );
+   // Per importer override of global http request timeout setting.
+   $form['request_timeout'] = array(
+     '#type' => 'textfield',
+     '#title' => t('Request timeout'),
+     '#description' => t('Timeout in seconds to wait for an HTTP get request to finish.</br>' .
+                         '<b>Note:</b> this setting will override the global setting.</br>' .
+                         'When left empty, the global value is used.'),
+     '#default_value' => $this->config['request_timeout'],
+     '#element_validate' => array('element_validate_integer_positive'),
+     '#maxlength' => 3,
+     '#size'=> 30,
+   );
     return $form;
   }
 
@@ -147,6 +172,8 @@ class FeedsHTTPFetcher extends FeedsFetcher {
    * Override parent::sourceFormValidate().
    */
   public function sourceFormValidate(&$values) {
+    $values['source'] = trim($values['source']);
+
     if (!feeds_valid_url($values['source'], TRUE)) {
       $form_key = 'feeds][' . get_class($this) . '][source';
       form_set_error($form_key, t('The URL %source is invalid.', array('%source' => $values['source'])));
@@ -306,7 +333,7 @@ class PuSHEnvironment implements PuSHSubscriberEnvironmentInterface {
    * Implements PuSHSubscriberEnvironmentInterface::msg().
    */
   public function msg($msg, $level = 'status') {
-    drupal_set_message($msg, $level);
+    drupal_set_message(check_plain($msg), $level);
   }
 
   /**

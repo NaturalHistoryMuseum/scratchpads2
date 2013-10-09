@@ -1287,3 +1287,48 @@ function scratchpads_tweaks_update_7066(){
   ));
   scratchpads_tweaks_install_help_install_filters();
 }
+
+/**
+ * Delete empty fields from entities that were imported via Feeds.
+ */
+function scratchpads_tweaks_update_7067(&$sandbox){
+  if(!isset($sandbox['entities'])){
+    $sandbox['entities'] = db_select('feeds_item', 'f')->fields('f', array(
+      'entity_id',
+      'entity_type'
+    ))->execute()->fetchAll();
+    $sandbox['max'] = count($sandbox['entities']);
+    if(!$sandbox['max']){
+      $sandbox['#finished'] = 1;
+      return;
+    }
+  }
+  $i = 0;
+  while($i < 10 && count($sandbox['entities'])){
+    $info = array_pop($sandbox['entities']);
+    $entity = entity_load($info->entity_type, array(
+      $info->entity_id
+    ));
+    foreach($entity[$info->entity_id] as $key => $value){
+      if(is_array($value)){
+        if(($lang = field_language($info->entity_type, $entity[$info->entity_id], $key)) != FALSE){
+          if((@isset($value[$lang][0]['value']) && trim($value[$lang][0]['value']) == '')){
+            try{
+              db_delete('field_data_' . $key)->condition('language', $lang)->condition('entity_type', $info->entity_type)->condition('entity_id', $info->entity_id)->execute();
+              $entity_info = entity_get_info($info->entity_type);
+              $revision_id = $info->entity_id;
+              if($entity_info['entity keys']['revision']){
+                $revision_id = $entity->{$entity_info['entity keys']['revision']};
+              }
+              db_delete('field_revision_' . $key)->condition('language', $lang)->condition('entity_type', $info->entity_type)->condition('entity_id', $info->entity_id)->condition('revision_id', $revision_id)->execute();
+            }
+            catch(Exception $e){
+              ;
+            }
+          }
+        }
+      }
+    }
+  }
+  $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['entities'])) / $sandbox['max'];
+}

@@ -39,15 +39,24 @@ function pensoft_publication_publication_prepare_build(&$build){
     $weight = 0;
     // Render the relation page
     $relation_page = relation_page($relation);
-    $alternative_name = trim(implode(' ', array(
-      $relation->field_publication_treat_genus[LANGUAGE_NONE][0]['value'],
-      $relation->field_publication_treat_species[LANGUAGE_NONE][0]['value'],
-      $relation->field_publication_treat_authy[LANGUAGE_NONE][0]['value']
-    )));
-    if($alternative_name){
-      $title = $alternative_name;
+    $alt_genus = htmlspecialchars(trim($relation->field_publication_treat_genus[LANGUAGE_NONE][0]['value']));
+    $alt_species = htmlspecialchars(trim($relation->field_publication_treat_species[LANGUAGE_NONE][0]['value']));
+    $alt_authy = htmlspecialchars(trim($relation->field_publication_treat_authy[LANGUAGE_NONE][0]['value']));
+    if($alt_genus || $alt_species || $alt_authy){
+      $title = "<em>$alt_genus</em> <em>$alt_species</em> $alt_authy";
     }else{
-      $title = $treatment->title;
+      $taxon_name_field = field_get_items('node', $treatment, 'field_taxonomic_name');
+      if(!empty($taxon_name_field[0]['tid'])){
+        $taxon_name_tid = $taxon_name_field[0]['tid'];
+        $term = taxonomy_term_load($taxon_name_tid);
+        $title = '<em>' . $term->name . '</em>';
+        $auth_field = field_get_items('taxonomy_term', $term, 'field_authors');
+        if(!empty($auth_field[0]['safe_value'])){
+          $title .= ' ' . $auth_field[0]['safe_value'];
+        }
+      }else{
+        $title = '';
+      }
     }
     $current_treatment_build = array(
       array(

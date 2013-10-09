@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Contains FeedsParser and related classes.
+ */
+
+/**
  * A result of a parsing stage.
  */
 class FeedsParserResult extends FeedsResult {
@@ -49,6 +54,13 @@ class FeedsParserResult extends FeedsResult {
 abstract class FeedsParser extends FeedsPlugin {
 
   /**
+   * Implements FeedsPlugin::pluginType().
+   */
+  public function pluginType() {
+    return 'parser';
+  }
+
+  /**
    * Parse content fetched by fetcher.
    *
    * Extending classes must implement this method.
@@ -91,13 +103,18 @@ abstract class FeedsParser extends FeedsPlugin {
   public function getMappingSources() {
     self::loadMappers();
     $sources = array();
-    feeds_alter('feeds_parser_sources', $sources, feeds_importer($this->id)->config['content_type']);
+    $content_type = feeds_importer($this->id)->config['content_type'];
+    drupal_alter('feeds_parser_sources', $sources, $content_type);
     if (!feeds_importer($this->id)->config['content_type']) {
       return $sources;
     }
     $sources['parent:uid'] = array(
       'name' => t('Feed node: User ID'),
       'description' => t('The feed node author uid.'),
+    );
+    $sources['parent:nid'] = array(
+      'name' => t('Feed node: Node ID'),
+      'description' => t('The feed node nid.'),
     );
     return $sources;
   }
@@ -121,14 +138,21 @@ abstract class FeedsParser extends FeedsPlugin {
    *   The source element from $item identified by $element_key.
    *
    * @see FeedsProcessor::map()
-   * @see FeedsCSVParser::getSourceElement().
+   * @see FeedsCSVParser::getSourceElement()
    */
   public function getSourceElement(FeedsSource $source, FeedsParserResult $result, $element_key) {
-    if ($element_key == 'parent:uid' &&
-        $source->feed_nid &&
-        ($node = node_load($source->feed_nid))) {
-      return $node->uid;
+
+    switch ($element_key) {
+
+      case 'parent:uid':
+        if ($source->feed_nid && $node = node_load($source->feed_nid)) {
+          return $node->uid;
+        }
+        break;
+      case 'parent:nid':
+        return $source->feed_nid;
     }
+
     $item = $result->currentItem();
     return isset($item[$element_key]) ? $item[$element_key] : '';
   }
@@ -349,7 +373,15 @@ class FeedsEnclosure extends FeedsElement {
           require_once drupal_get_path('module', 'transliteration') . '/transliteration.inc';
           $filename = transliteration_clean_filename($filename);
         }
-        $file = file_save_data($this->getContent(), "$destination/$filename");
+        if (file_uri_target($destination)) {
+          $destination = trim($destination, '/') . '/';
+        }
+        try {
+          $file = file_save_data($this->getContent(), $destination . $filename);
+        }
+        catch (Exception $e) {
+          watchdog_exception('Feeds', $e, nl2br(check_plain($e)));
+        }
       }
 
       // We couldn't make sense of this enclosure, throw an exception.
@@ -433,13 +465,13 @@ class FeedsDateTimeElement extends FeedsElement {
    * Helper method for buildDateField(). Build a FeedsDateTimeElement object
    * from a standard formatted node.
    */
-  protected static function readDateField($entity, $field_name) {
+  protected static function readDateField($entity, $field_name, $delta = 0) {
     $ret = new FeedsDateTimeElement();
-    if (isset($entity->{$field_name}['und'][0]['date']) && $entity->{$field_name}['und'][0]['date'] instanceof FeedsDateTime) {
-      $ret->start = $entity->{$field_name}['und'][0]['date'];
+    if (isset($entity->{$field_name}['und'][$delta]['date']) && $entity->{$field_name}['und'][$delta]['date'] instanceof FeedsDateTime) {
+      $ret->start = $entity->{$field_name}['und'][$delta]['date'];
     }
-    if (isset($entity->{$field_name}['und'][0]['date2']) && $entity->{$field_name}['und'][0]['date2'] instanceof FeedsDateTime) {
-      $ret->end = $entity->{$field_name}['und'][0]['date2'];
+    if (isset($entity->{$field_name}['und'][$delta]['date2']) && $entity->{$field_name}['und'][$delta]['date2'] instanceof FeedsDateTime) {
+      $ret->end = $entity->{$field_name}['und'][$delta]['date2'];
     }
     return $ret;
   }
@@ -447,15 +479,17 @@ class FeedsDateTimeElement extends FeedsElement {
   /**
    * Build a entity's date field from our object.
    *
-   * @param $entity
+   * @param object $entity
    *   The entity to build the date field on.
-   * @param $field_name
+   * @param str $field_name
    *   The name of the field to build.
+   * @param int $delta
+   *   The delta in the field.
    */
-  public function buildDateField($entity, $field_name) {
+  public function buildDateField($entity, $field_name, $delta = 0) {
     $info = field_info_field($field_name);
 
-    $oldfield = FeedsDateTimeElement::readDateField($entity, $field_name);
+    $oldfield = FeedsDateTimeElement::readDateField($entity, $field_name, $delta);
     // Merge with any preexisting objects on the field; we take precedence.
     $oldfield = $this->merge($oldfield);
     $use_start = $oldfield->start;
@@ -491,24 +525,24 @@ class FeedsDateTimeElement extends FeedsElement {
       $entity->{$field_name} = array('und' => array());
     }
     if ($use_start) {
-      $entity->{$field_name}['und'][0]['timezone'] = $use_start->getTimezone()->getName();
-      $entity->{$field_name}['und'][0]['offset'] = $use_start->getOffset();
+      $entity->{$field_name}['und'][$delta]['timezone'] = $use_start->getTimezone()->getName();
+      $entity->{$field_name}['und'][$delta]['offset'] = $use_start->getOffset();
       $use_start->setTimezone($db_tz);
-      $entity->{$field_name}['und'][0]['date'] = $use_start;
+      $entity->{$field_name}['und'][$delta]['date'] = $use_start;
       /**
        * @todo the date_type_format line could be simplified based upon a patch
        *   DO issue #259308 could affect this, follow up on at some point.
        *   Without this, all granularity info is lost.
        *   $use_start->format(date_type_format($field['type'], $use_start->granularity));
        */
-      $entity->{$field_name}['und'][0]['value'] = $use_start->format(date_type_format($info['type']));
+      $entity->{$field_name}['und'][$delta]['value'] = $use_start->format(date_type_format($info['type']));
     }
     if ($use_end) {
       // Don't ever use end to set timezone (for now)
-      $entity->{$field_name}['und'][0]['offset2'] = $use_end->getOffset();
+      $entity->{$field_name}['und'][$delta]['offset2'] = $use_end->getOffset();
       $use_end->setTimezone($db_tz);
-      $entity->{$field_name}['und'][0]['date2'] = $use_end;
-      $entity->{$field_name}['und'][0]['value2'] = $use_end->format(date_type_format($info['type']));
+      $entity->{$field_name}['und'][$delta]['date2'] = $use_end;
+      $entity->{$field_name}['und'][$delta]['value2'] = $use_end->format(date_type_format($info['type']));
     }
   }
 }
@@ -520,7 +554,7 @@ class FeedsDateTimeElement extends FeedsElement {
  * This class is a Drupal independent extension of the >= PHP 5.2 DateTime
  * class.
  *
- * @see FeedsDateTimeElement class
+ * @see FeedsDateTimeElement
  */
 class FeedsDateTime extends DateTime {
   public $granularity = array();
@@ -721,7 +755,7 @@ function feeds_to_unixtime($date, $default_value) {
   if (is_numeric($date)) {
     return $date;
   }
-  elseif (is_string($date)) {
+  elseif (is_string($date) && !empty($date)) {
     $date = new FeedsDateTimeElement($date);
     return $date->getValue();
   }
