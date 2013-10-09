@@ -1873,9 +1873,8 @@ Tables are numbered once the publication is saved.',
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'relation_endpoint',
           'settings' => array(),
-          'type' => 'relation_endpoint',
+          'type' => 'hidden',
           'weight' => '1'
         )
       ),
