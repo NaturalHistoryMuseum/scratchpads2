@@ -1,15 +1,21 @@
 (function($){
   Drupal.behaviors.scratchpads = {attach: function(context){
-    // Slide toggles
+    // Slide Toggles
+    // Re-organise the login block to make this easier
+    $('#zone-slide-top #block-user-login', context).addClass('scratchpads-slide-toggle-container');
+    $('#region-slide-top a[href="/user"]', context).detach().appendTo('#zone-slide-top #block-user-login');
+    $('#zone-slide-top #block-user-login form', context).addClass('scratchpads-slide-toggle-body');
+    // Place the labels in the top region
+    var pos = 0;
+    $('#zone-slide-top .scratchpads-slide-toggle', context).each(function() {
+      $(this).css('right', pos.toString() + "px");
+      pos = pos + parseInt($(this).width()) + 30;
+    });
+    $('#region-secondary-menu', context).css('right', pos.toString() + "px");
     $('.scratchpads-slide-toggle', context).once().click(function(){
-      var body = $(this).parent('.scratchpads-slide-toggle-container').find('.scratchpads-slide-toggle-body');
-      if(body.length > 0) {
-        $(this).parents('.zone-wrapper').find('form:visible, .scratchpads-slide-toggle-body:visible').not(body).slideToggle();
-        body.slideToggle();
-      } else {
-        $(this).parents('.zone-wrapper').find('.scratchpads-slide-toggle-body:visible').slideToggle();
-        $(this).parents('.zone-wrapper').find('form').slideToggle();
-      }
+      var body = $(this).parents('.scratchpads-slide-toggle-container').find('.scratchpads-slide-toggle-body');
+      $(this).parents('.zone-wrapper').find('.scratchpads-slide-toggle-body:visible').not(body).slideToggle();
+      body.slideToggle();
       return false;
     });
   }};
