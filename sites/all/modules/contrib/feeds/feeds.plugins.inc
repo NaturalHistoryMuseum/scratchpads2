@@ -85,17 +85,19 @@ function _feeds_feeds_plugins() {
       'path' => $path,
     ),
   );
-  $info['FeedsSyndicationParser'] = array(
-    'name' => 'Common syndication parser',
-    'description' => 'Parse RSS and Atom feeds.',
-    'help' => 'Parse XML feeds in RSS 1, RSS 2 and Atom format.',
-    'handler' => array(
-      'parent' => 'FeedsParser',
-      'class' => 'FeedsSyndicationParser',
-      'file' => 'FeedsSyndicationParser.inc',
-      'path' => $path,
-    ),
-  );
+  if (extension_loaded('SimpleXML')) {
+    $info['FeedsSyndicationParser'] = array(
+      'name' => 'Common syndication parser',
+      'description' => 'Parse RSS and Atom feeds.',
+      'help' => 'Parse XML feeds in RSS 1, RSS 2 and Atom format.',
+      'handler' => array(
+        'parent' => 'FeedsParser',
+        'class' => 'FeedsSyndicationParser',
+        'file' => 'FeedsSyndicationParser.inc',
+        'path' => $path,
+      ),
+    );
+  }
   $info['FeedsOPMLParser'] = array(
     'name' => 'OPML parser',
     'description' => 'Parse OPML files.',
@@ -106,7 +108,7 @@ function _feeds_feeds_plugins() {
       'path' => $path,
     ),
   );
-  if (feeds_library_exists('simplepie.inc', 'simplepie')) {
+  if (feeds_simplepie_exists()) {
     $info['FeedsSimplePieParser'] = array(
       'name' => 'SimplePie parser',
       'description' => 'Parse RSS and Atom feeds.',
