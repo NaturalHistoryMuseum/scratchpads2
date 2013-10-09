@@ -539,6 +539,7 @@ function publication_html_format_views_default_views(){
   $handler->display->display_options['fields']['nothing']['empty_zero'] = 0;
   $handler->display->display_options['fields']['nothing']['hide_alter_empty'] = 0;
   /* Field: Insert from view: Insert from view checkbox */
+  /*
   $handler->display->display_options['fields']['insert_from_view_checkbox']['id'] = 'insert_from_view_checkbox';
   $handler->display->display_options['fields']['insert_from_view_checkbox']['table'] = 'insert_from_view';
   $handler->display->display_options['fields']['insert_from_view_checkbox']['field'] = 'insert_from_view_checkbox';
@@ -561,6 +562,7 @@ function publication_html_format_views_default_views(){
   $handler->display->display_options['fields']['insert_from_view_checkbox']['hide_empty'] = 0;
   $handler->display->display_options['fields']['insert_from_view_checkbox']['empty_zero'] = 0;
   $handler->display->display_options['fields']['insert_from_view_checkbox']['hide_alter_empty'] = 1;
+  */
   /* Field: Biblio: Type of Publication */
   $handler->display->display_options['fields']['name']['id'] = 'name';
   $handler->display->display_options['fields']['name']['table'] = 'biblio_types';
