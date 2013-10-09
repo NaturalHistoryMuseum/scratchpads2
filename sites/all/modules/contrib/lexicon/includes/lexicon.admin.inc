@@ -10,7 +10,10 @@
 function lexicon_settings_page() {
   $mb_status = extension_loaded('mbstring') ? t('enabled') : t('disabled');
   $overload = ini_get('mbstring.func_overload') ? t('enabled') : t('disabled');
-  drupal_set_message(t('Multibyte string support is %status; multibyte function overload is %overload.', array('%status' => $mb_status, '%overload' => $overload)));
+  drupal_set_message(t('Multibyte string support is %status; multibyte function overload is %overload.', array(
+    '%status' => $mb_status,
+    '%overload' => $overload,
+  )));
   $output = drupal_get_form('lexicon_general_settings_form');
   return $output;
 }
@@ -68,6 +71,20 @@ function lexicon_general_settings_form($form, &$form_state) {
     '#title' => t('Show lexicon across many smaller pages.'),
     '#default_value' => variable_get('lexicon_page_per_letter', FALSE),
     '#description' => t('Do you want to show all terms on one lexicon page or break up the lexicon into a page for each first letter (i.e. many pages).'),
+  );
+
+  $form['lexicon_page']['lexicon_page_show_all'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show all terms when no letter argument is given.'),
+    '#default_value' => variable_get('lexicon_page_show_all', FALSE),
+    '#description' => t('Do you want to show all terms on the lexicon page if no letter argument is given.'),
+    '#states' => array(
+      'invisible' => array(
+        ':input[name="lexicon_page_per_letter"]' => array(
+          'checked' => FALSE,
+        ),
+      ),
+    ),
   );
 
   $form['lexicon_page']['lexicon_separate_letters'] = array(
@@ -305,7 +322,9 @@ function lexicon_general_settings_form($form, &$form_state) {
     '#default_value' => variable_get('lexicon_icon', drupal_get_path('module', 'lexicon') . '/imgs/lexicon.gif'),
     '#size' => 50,
     '#maxlength' => 255,
-    '#description' => t('Enter the URL of the lexicon icon relative to the root ("%root") of your Drupal site.', array('%root' => base_path())),
+    '#description' => t('Enter the URL of the lexicon icon relative to the root ("%root") of your Drupal site.', array(
+      '%root' => base_path(),
+    )),
   );
   // Since #states does not support "OR" a workaround is used:
   // http://api.drupal.org/api/drupal/includes!common.inc/function/
@@ -313,7 +332,9 @@ function lexicon_general_settings_form($form, &$form_state) {
   $all_options = array_keys($indicator_options);
   $visible = array('icon', 'iconterm');
   foreach (array_diff($all_options, $visible) as $i => $option) {
-    $form['mark_terms']['indicator']['lexicon_icon']['#states']['visible'][':input[name="lexicon_replace"], dummy-element' . $i] = array('!value' => $option);
+    $form['mark_terms']['indicator']['lexicon_icon']['#states']['visible'][':input[name="lexicon_replace"], dummy-element' . $i] = array(
+      '!value' => $option,
+    );
   }
 
   $form['mark_terms']['indicator']['lexicon_link'] = array(
@@ -371,6 +392,7 @@ function lexicon_general_settings_form_submit($form, &$form_state) {
   variable_set('lexicon_go_to_top_link_fragment', $form_state['values']['lexicon_go_to_top_link_fragment']);
   variable_set('lexicon_local_links_scroll', $form_state['values']['lexicon_local_links_scroll']);
   variable_set('lexicon_page_per_letter', $form_state['values']['lexicon_page_per_letter']);
+  variable_set('lexicon_page_show_all', $form_state['values']['lexicon_page_show_all']);
   variable_set('lexicon_separate_letters', $form_state['values']['lexicon_separate_letters']);
   variable_set('lexicon_allow_no_description', $form_state['values']['lexicon_allow_no_description']);
   variable_set('lexicon_show_description', $form_state['values']['lexicon_show_description']);
@@ -480,9 +502,9 @@ function lexicon_alphabet_form_submit($form, &$form_state) {
 }
 
 /**
- * Lexicon path and titles settings form.
+ * Lexicon pages settings form.
  */
-function lexicon_paths_and_titles_and_intros_form($form, &$form_state) {
+function lexicon_pages_settings_form($form, &$form_state) {
   $form = array();
   $vids = variable_get('lexicon_vids', array());
   $vids_setup = FALSE;
@@ -505,25 +527,46 @@ function lexicon_paths_and_titles_and_intros_form($form, &$form_state) {
       $vocabulary = $result->fetch();
       $vocabulary_name = filter_xss_admin($vocabulary->name);
 
-      $form['paths_and_titles_and_intros' . $vid] = array(
-        '#type' => 'fieldset',
-        '#title' => t('Path, title and intro settings for %vocabulary_name', array('%vocabulary_name' => $vocabulary_name)),
-        '#collapsible' => TRUE,
+      $form['lexicon_page_enabled_' . $vid] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Enable a Lexicon page for the vocabulary %vocabulary_name', array(
+          '%vocabulary_name' => $vocabulary_name,
+        )),
+        '#default_value' => variable_get('lexicon_page_enabled_' . $vid, TRUE),
+        '#description' => t('Determines if a Lexicon page is enabled for the vocabulary. Default is TRUE.'),
       );
 
-      $form['paths_and_titles_and_intros' . $vid]['lexicon_path_' . $vid] = array(
+      $form['page_settings_' . $vid] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Page settings for %vocabulary_name', array(
+          '%vocabulary_name' => $vocabulary_name,
+        )),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+        '#states' => array(
+          'invisible' => array(
+            ':input[name="lexicon_page_enabled_' . $vid . '"]' => array('checked' => FALSE),
+          ),
+        ),
+      );
+
+      $form['page_settings_' . $vid]['lexicon_path_' . $vid] = array(
         '#type' => 'textfield',
         '#title' => t('The path of the lexicon for this vocabulary'),
         '#default_value' => variable_get('lexicon_path_' . $vid, 'lexicon/' . $vid),
-        '#description' => t('Determines the path that is used for the lexicon page for this vocabulary. Default is: <em>%path</em>.', array('%path' => 'lexicon/' . $vid)),
+        '#description' => t('Determines the path that is used for the lexicon page for this vocabulary. Default is: <em>%path</em>.', array(
+          '%path' => 'lexicon/' . $vid,
+        )),
         '#required' => TRUE,
       );
 
-      $form['paths_and_titles_and_intros' . $vid]['lexicon_title_' . $vid] = array(
+      $form['page_settings_' . $vid]['lexicon_title_' . $vid] = array(
         '#type' => 'textfield',
         '#title' => t('The title of the lexicon for this vocabulary'),
         '#default_value' => variable_get('lexicon_title_' . $vid, $vocabulary_name),
-        '#description' => t('Determines the title that is used for the lexicon page for this vocabulary. Default is: <em>%name</em>.', array('%name' => $vocabulary_name)),
+        '#description' => t('Determines the title that is used for the lexicon page for this vocabulary. Default is: <em>%name</em>.', array(
+          '%name' => $vocabulary_name,
+        )),
         '#required' => TRUE,
       );
 
@@ -533,11 +576,13 @@ function lexicon_paths_and_titles_and_intros_form($form, &$form_state) {
         $introduction_text = $introduction_text_format['value'];
       }
 
-      $form['paths_and_titles_and_intros' . $vid]['lexicon_introduction_' . $vid] = array(
+      $form['page_settings_' . $vid]['lexicon_introduction_' . $vid] = array(
         '#type' => 'text_format',
         '#title' => t('The optional introduction text for this vocabulary'),
         '#default_value' => $introduction_text,
-        '#description' => t('The optional introduction text that is displayed at the top of the Lexicon overview or, when the Lexicon is split over multiple pages, is shown on the Lexicon start page.', array('%name' => $vocabulary_name)),
+        '#description' => t('The optional introduction text that is displayed at the top of the Lexicon overview or, when the Lexicon is split over multiple pages, is shown on the Lexicon start page.', array(
+          '%name' => $vocabulary_name,
+        )),
         '#required' => FALSE,
       );
     }
@@ -567,13 +612,14 @@ function lexicon_paths_and_titles_and_intros_form($form, &$form_state) {
 }
 
 /**
- * Lexicon paths and titles settings form submission function.
+ * Lexicon pages settings form submission function.
  */
-function lexicon_paths_and_titles_and_intros_form_submit($form, &$form_state) {
+function lexicon_pages_settings_form_submit($form, &$form_state) {
   $vids = $form_state['values']['vids'];
 
   foreach ($vids as $vid) {
     if ($vid != 0) {
+      variable_set('lexicon_page_enabled_' . $vid, $form_state['values']['lexicon_page_enabled_' . $vid]);
       variable_set('lexicon_path_' . $vid, $form_state['values']['lexicon_path_' . $vid]);
       variable_set('lexicon_title_' . $vid, $form_state['values']['lexicon_title_' . $vid]);
       variable_set('lexicon_introduction_' . $vid, $form_state['values']['lexicon_introduction_' . $vid]);
@@ -589,15 +635,16 @@ function lexicon_paths_and_titles_and_intros_form_submit($form, &$form_state) {
 }
 
 /**
- * Lexicon related terms and synonyms settings form.
+ * Lexicon additional fields settings form.
  */
-function lexicon_related_terms_and_synonyms_and_image_form($form, &$form_state) {
+function lexicon_additional_fields_settings_form($form, &$form_state) {
   $form = array();
 
   $vids = variable_get('lexicon_vids', array());
   $vocs = taxonomy_get_vocabularies();
   $vids_machine_names = array();
   $vids_setup = FALSE;
+  $show_submit = FALSE;
 
   $form['vids'] = array(
     '#type' => 'value',
@@ -632,18 +679,21 @@ function lexicon_related_terms_and_synonyms_and_image_form($form, &$form_state) 
             case "taxonomy_term_reference":
               $options_related_terms[$field['field_name']] = $field['label'];
               $related_terms_setup = TRUE;
+              $show_submit = TRUE;
               break;
 
             // If the type is "text" then it might be a field for "Synonyms"
             case "text":
               $options_synonyms[$field['field_name']] = $field['label'];
               $synonyms_setup = TRUE;
+              $show_submit = TRUE;
               break;
 
             // If the type is "image" then it might be a field for "Image"
             case "image":
               $options_image[$field['field_name']] = $field['label'];
               $image_setup = TRUE;
+              $show_submit = TRUE;
               break;
 
             default:
@@ -652,24 +702,21 @@ function lexicon_related_terms_and_synonyms_and_image_form($form, &$form_state) 
         }
       }
 
-      $result = db_query('SELECT name FROM {taxonomy_vocabulary} WHERE vid = :vid',
-      array(
-        ':vid' => $vid,
-      ));
-      $vocabulary = $result->fetch();
-      $vocabulary_name = filter_xss_admin($vocabulary->name);
+      $vocabulary_name = filter_xss_admin($vocs[(int) $vid]->machine_name);
 
        // Don't create a fieldset if there are no settings to configure.
       if ($related_terms_setup || $synonyms_setup || $image_setup) {
-        $form['related_terms_and_synonyms_and_image_' . $vid] = array(
+        $form['additional_fields_settings_' . $vid] = array(
           '#type' => 'fieldset',
-          '#title' => t('Related terms, synonyms and image settings for %vocabulary_name', array('%vocabulary_name' => $vocabulary_name)),
+          '#title' => t('Related terms, synonyms and image settings for %vocabulary_name', array(
+            '%vocabulary_name' => $vocabulary_name,
+          )),
           '#collapsible' => TRUE,
         );
       }
 
       if ($related_terms_setup) {
-        $form['related_terms_and_synonyms_and_image_' . $vid]['lexicon_related_terms_field_' . $vid] = array(
+        $form['additional_fields_settings_' . $vid]['lexicon_related_terms_field_' . $vid] = array(
           '#type' => 'select',
           '#options' => $options_related_terms,
           '#title' => t('Field for related terms'),
@@ -685,7 +732,7 @@ function lexicon_related_terms_and_synonyms_and_image_form($form, &$form_state) 
       }
 
       if ($synonyms_setup) {
-        $form['related_terms_and_synonyms_and_image_' . $vid]['lexicon_synonyms_field_' . $vid] = array(
+        $form['additional_fields_settings_' . $vid]['lexicon_synonyms_field_' . $vid] = array(
           '#type' => 'select',
           '#options' => $options_synonyms,
           '#title' => t('Field for synonyms'),
@@ -697,11 +744,13 @@ function lexicon_related_terms_and_synonyms_and_image_form($form, &$form_state) 
         );
       }
       else {
-        drupal_set_message(t('No fields for synonyms for the vocabulary <em> %vocabulary_name </em> were found. Until you set up at least one synonyms field of the type "Text" for the vocabulary, no field can be selected.', array('%vocabulary_name' => $vocabulary_name)));
+        drupal_set_message(t('No fields for synonyms for the vocabulary <em> %vocabulary_name </em> were found. Until you set up at least one synonyms field of the type "Text" for the vocabulary, no field can be selected.', array(
+          '%vocabulary_name' => $vocabulary_name,
+        )));
       }
 
       if ($image_setup) {
-        $form['related_terms_and_synonyms_and_image_' . $vid]['lexicon_image_field_' . $vid] = array(
+        $form['additional_fields_settings_' . $vid]['lexicon_image_field_' . $vid] = array(
           '#type' => 'select',
           '#options' => $options_image,
           '#title' => t('Field for image'),
@@ -713,12 +762,14 @@ function lexicon_related_terms_and_synonyms_and_image_form($form, &$form_state) 
         );
       }
       else {
-        drupal_set_message(t('No fields for image for the vocabulary <em> %vocabulary_name </em> were found. Until you set up at least one image field of the type "Image" for the vocabulary, no field can be selected.', array('%vocabulary_name' => $vocabulary_name)));
+        drupal_set_message(t('No fields for image for the vocabulary <em> %vocabulary_name </em> were found. Until you set up at least one image field of the type "Image" for the vocabulary, no field can be selected.', array(
+          '%vocabulary_name' => $vocabulary_name,
+        )));
       }
     }
   }
 
-  if ($vids_setup && ($related_terms_setup || $synonyms_setup || $image_setup)) {
+  if ($show_submit) {
     $form['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Save configuration'),
@@ -735,9 +786,9 @@ function lexicon_related_terms_and_synonyms_and_image_form($form, &$form_state) 
 }
 
 /**
- * Lexicon related terms and synonyms settings form submission function.
+ * Lexicon additional fields settings form submission function.
  */
-function lexicon_related_terms_and_synonyms_and_image_form_submit($form, &$form_state) {
+function lexicon_additional_fields_settings_form_submit($form, &$form_state) {
   $vids = $form_state['values']['vids'];
   foreach ($vids as $vid) {
     if ($vid != 0) {
