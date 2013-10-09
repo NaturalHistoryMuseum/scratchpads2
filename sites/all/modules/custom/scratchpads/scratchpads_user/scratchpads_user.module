@@ -157,13 +157,13 @@ function scratchpads_user_user_load($entities){
  * Implements hook_entity_presave().
  * 
  * Prevent saving of a "1" status for stub users.
+ * Reset password to '' for stub users.
  */
 function scratchpads_user_user_presave(&$edit, $account, $category){
-  // Make sure that our form value 'mymodule_foo' is stored as
-  // 'mymodule_bar' in the 'data' (serialized) column.
   // Was a stub user and is still a stub user
   if((!empty($account->stub_user)) && ($edit['create_user_account'] == 0)){
     $edit['status'] = 0;
+    $edit['pass'] = '';
   }  // Was a stub user but isn't any more
 elseif((!empty($account->stub_user)) && ($edit['create_user_account'] == 1)){
     $edit['status'] = 1;
@@ -199,8 +199,13 @@ function scratchpads_user_form_user_register_form_alter(&$form, &$form_state){
       'user_register_submit',
       'scratchpads_user_register_form_post_submit'
     );
-    _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
+  }else{
+    $handlers = array(
+      'user_register_submit',
+      'scratchpads_user_register_form_post_submit'
+    );
   }
+  _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
   $form['#validate'][] = 'scratchpads_user_user_register_validate';
 }
 
@@ -513,21 +518,25 @@ function _scratchpads_user_get_full_name($name, $uid = ''){
  * @param array $form_state
  */
 function scratchpads_user_register_form_post_submit($form, &$form_state){
-  // Reset the messages
-  drupal_get_messages('status');
-  // Reset the error messages, as the following error is displayed:
-  // Notice: Undefined index: pass in user_register_submit() (line 3752 of /home/simor/Zend/workspaces/DefaultWorkspace7/Scratchpads-2.0/modules/user/user.module).
-  drupal_get_messages('error');
-  drupal_set_message(t('Created a new profile for @user_title @user_given_name @user_family_name.', array(
-    '@user_title' => $form_state['values']['field_user_title'][LANGUAGE_NONE][0]['value'],
-    '@user_given_name' => $form_state['values']['field_user_given_names'][LANGUAGE_NONE][0]['value'],
-    '@user_family_name' => $form_state['values']['field_user_family_name'][LANGUAGE_NONE][0]['value']
-  )));
-  // Give a warning that no user account was created
-  drupal_set_message('No user account was created so this person will not be able to log into the website!', 'warning');
-  // Ensure that no password is set
-  $form['#user']->pass = '';
-  user_save($form['#user']);
+  // check whether this a stub user
+  if(!$form_state['values']['create_user_account']){
+    // Reset the messages
+    drupal_get_messages('status');
+    // Reset the error messages, as the following error is displayed:
+    // Notice: Undefined index: pass in user_register_submit() (line 3752 of /home/simor/Zend/workspaces/DefaultWorkspace7/Scratchpads-2.0/modules/user/user.module).
+    drupal_get_messages('error');
+    drupal_set_message(t('Created a new profile for @user_title @user_given_name @user_family_name.', array(
+      '@user_title' => $form_state['values']['field_user_title'][LANGUAGE_NONE][0]['value'],
+      '@user_given_name' => $form_state['values']['field_user_given_names'][LANGUAGE_NONE][0]['value'],
+      '@user_family_name' => $form_state['values']['field_user_family_name'][LANGUAGE_NONE][0]['value']
+    )));
+    // Give a warning that no user account was created
+    drupal_set_message('No user account was created so this person will not be able to log into the website!', 'warning');
+    // Ensure that no password is set
+    $form['#user']->pass = '';
+    $form['#user']->status = 0;
+    user_save($form['#user']);
+  }
 }
 
 /**
