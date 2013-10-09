@@ -1,7 +1,8 @@
-name = "Pensoft publication"
-description = "Pensoft publication"
+name = "Taxonomic paper (Pensoft Writing Tool)"
+description = "Create taxonomic papers to be published via the Pensoft Writing Tool"
 core = "7.x"
 package = "Publication"
+#tool = true
 php = "5.2.4"
 dependencies[] = "features"
 dependencies[] = "field_collection"
