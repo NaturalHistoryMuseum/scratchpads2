@@ -5,4 +5,4 @@ dependencies[] = switch
 dependencies[] = features
 core = 7.x
 php = 5.x
-
+files[] = tests/tools.selenium.test
