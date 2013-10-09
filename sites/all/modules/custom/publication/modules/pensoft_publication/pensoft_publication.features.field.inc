@@ -990,7 +990,7 @@ Tables are numbered once the publication is saved.',
       'settings' => array(
         'description_field' => 0,
         'file_directory' => '',
-        'file_extensions' => 'txt jpg png gif',
+        'file_extensions' => 'txt jpg png gif xls xlsx doc docx pdf xml svg wav mp3 avi mpg',
         'max_filesize' => '',
         'user_register_form' => FALSE
       ),

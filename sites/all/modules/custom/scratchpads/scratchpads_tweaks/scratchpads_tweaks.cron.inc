@@ -37,10 +37,13 @@ function _scratchpads_tweaks_cron(){
       $query->addExpression('SUM(totalcount)', 'sumtotalcount');
       $views = $query->execute()->fetchCol();
       $views = array_pop($views);
+      $welcome_message = variable_get('front_page_welcome_message', array(
+        'value' => ''
+      ));
       $report_data = array(
         'site_url' => $_SERVER['HTTP_HOST'],
         'site_title' => variable_get('site_name', 'Scratchpad'),
-        'site_mission' => variable_get('front_page_welcome_message', ''),
+        'site_mission' => $welcome_message['value'],
         'nodes' => $nodes,
         'users' => array(
           'login' => $users_login,
