@@ -102,12 +102,21 @@ function tinytax_block_view($delta = ''){
   $vocabulary = taxonomy_vocabulary_load($delta);
   $open_tids = array();
   $matches = array();
-  preg_match('/taxonomy\/term\/([0-9]+)/', $_GET['q'], $matches);
-  if(($term = menu_get_object('taxonomy_term', 2)) || (count($matches) == 2 && $term = taxonomy_term_load(arg(2)))){
-    $parents_all = taxonomy_get_parents_all($term->tid);
-    array_shift($parents_all);
-    foreach($parents_all as $parent){
-      $open_tids[] = $parent->tid;
+  if(!empty($_REQUEST['open_tids'])){
+    foreach(explode(',', $_REQUEST['open_tids']) as $tid){
+      $v = intval($tid);
+      if($v){
+        $open_tids[] = $v;
+      }
+    }
+  }else{
+    preg_match('/taxonomy\/term\/([0-9]+)/', $_GET['q'], $matches);
+    if(($term = menu_get_object('taxonomy_term', 2)) || (count($matches) == 2 && $term = taxonomy_term_load(arg(2)))){
+      $parents_all = taxonomy_get_parents_all($term->tid);
+      array_shift($parents_all);
+      foreach($parents_all as $parent){
+        $open_tids[] = $parent->tid;
+      }
     }
   }
   if($vocabulary){

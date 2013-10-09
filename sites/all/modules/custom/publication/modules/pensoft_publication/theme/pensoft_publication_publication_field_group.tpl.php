@@ -76,7 +76,11 @@
       ?>
          </div>
 	</div>
-     <?php endif; ?>   
+     <?php endif; ?>
+  <?php elseif ($element_id == 'publication_pensoft_full_group_publication_systematics'): ?>
+    <div class="group-publication-systematics">
+      <?php echo $element['#children']; ?>
+    </div>
   <?php else: ?>
     <?php echo $element['#children']; ?>
   <?php endif; ?>
