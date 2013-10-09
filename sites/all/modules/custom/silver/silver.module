@@ -62,24 +62,38 @@ function silver_form_feeds_import_form_alter(&$form, &$form_state){
   $source = db_select('feeds_source', 'f')->fields('f')->condition('id', $form['#importer_id'])->execute()->fetch();
   if($source){
     $state = unserialize($source->state);
-    $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => t('Import')
-    );
-    $form['feeds']['#weight'] = -10;
-    $form['submit']['#weight'] = 10;
-    // Always release the lock!
-    lock_release("feeds_source_{$source->id}_{$source->feed_nid}");
     if(isset($state['start_time']) && $state['start_time']){
-      // Remove the lock (Eeeek, is this a good idea?)
+      array_unshift($form['#submit'], 'silver_form_feeds_import_form_alter_submit');
+      unset($form['submit']);
+      unset($form['feeds']);
       $form['source_status'] = array(
-        '#type' => 'markup',
-        '#markup' => '<div class="messages warning"><h2 class="element-invisible">Warning message</h2>' . t('Another import was started !interval ago.  If you know this import has been stopped, then continue.', array(
-          '!interval' => format_interval(time() - $state['start_time'])
-        )) . '</div>'
+        '#type' => 'fieldset',
+        '#title' => t('Another import is running or did not finish'),
+        'message' => array(
+          '#type' => 'markup',
+          '#markup' => '<div class="messages warning"><h2 class="element-invisible">Warning message</h2>' . t('Another import was started !interval ago. If you know this import is still running or has been deliberately stopped then cancel it.', array(
+            '!interval' => format_interval(time() - $state['start_time'])
+          )) . '</div>'
+        ),
+        'cancel_previous_import' => array(
+          '#type' => 'submit',
+          '#executes_submit_callback' => TRUE,
+          '#value' => t('Cancel import'),
+          '#name' => 'cancel',
+          '#submit' => array(
+            'silver_form_feeds_import_submit'
+          )
+        )
       );
     }
   }
+}
+
+/**
+ * Submit function to wipe the previous feeds source.
+ */
+function silver_form_feeds_import_submit(&$form, &$form_state){
+  db_delete('feeds_source')->condition('id', $form['#importer_id'])->execute();
 }
 
 /**
@@ -180,7 +194,7 @@ function silver_silver(){
         'administer users'
       ),
       'redirect' => 'import/user_importer_user'
-    ) 
+    )
   );
 }
 
