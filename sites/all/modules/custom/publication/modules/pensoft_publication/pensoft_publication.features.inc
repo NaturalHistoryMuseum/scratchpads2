@@ -35,7 +35,7 @@ function pensoft_publication_default_publication_type(){
   $items = array();
   $items['pensoft'] = entity_import('publication_type', '{
     "type" : "pensoft",
-    "label" : "Pensoft",
+    "label" : "Taxonomic paper (Pensoft Writing Tool)",
     "weight" : "0",
     "rdf_mapping" : []
   }');
