@@ -172,7 +172,7 @@ function feeds_xls_feeds_set_target_list_text($source, $entity, $target, $value)
       unset($value[$k]);
     }
   }
-  _field_feeds_set_target($source, $entity, $target, $value, TRUE);
+  text_feeds_set_target($source, $entity, $target, $value, TRUE);
 }
 
 /**
@@ -199,7 +199,7 @@ function feeds_xls_feeds_set_target_numeric($source, $entity, $target, $value){
       }
     }
   }
-  _field_feeds_set_target($source, $entity, $target, $value, FALSE);
+  number_feeds_set_target($source, $entity, $target, $value, FALSE);
 }
 
 /**

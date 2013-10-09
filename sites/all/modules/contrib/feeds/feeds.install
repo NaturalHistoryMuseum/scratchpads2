@@ -6,6 +6,59 @@
  */
 
 /**
+ * Implements hook_requirements().
+ */
+function feeds_requirements($phase) {
+  $t = get_t();
+
+  $requirements = array(
+    'simplexml' => array(
+      'title' => $t('SimpleXML'),
+      'value' => extension_loaded('SimpleXML') ? $t('Enabled') : $t('Disabled'),
+      'description' => $t('SimpleXML PHP module is required for Feeds Syndication Parser.'),
+      'severity' => REQUIREMENT_INFO,
+    ),
+    'simplepie' => array(
+      'title' => $t('SimplePie'),
+      'value' => $t('Unknown at install time.'),
+      'description' => $t('SimplePie library is required for Feeds SimplePie Parser.'),
+      'severity' => REQUIREMENT_INFO,
+    )
+  );
+  if ($phase == 'runtime') {
+    // Check for SimpleXML, required by FeedsSyndicationParser.
+    if (extension_loaded('SimpleXML')) {
+      $requirements['simplexml']['severity'] = REQUIREMENT_OK;
+    }
+    else {
+      $requirements['simplexml']['severity'] = REQUIREMENT_WARNING;
+      $requirements['simplexml']['description'] .= ' ' . t('It has been disabled at compile time, seek instructions from the server mantainers to enable it.');
+    }
+    // Check for SimplePie, required by FeedsSimplePieParser.
+    if (feeds_simplepie_exists()) {
+      $requirements['simplepie']['value'] = t('Enabled');
+      $requirements['simplepie']['severity'] = REQUIREMENT_OK;
+    }
+    else {
+      $requirements['simplepie']['value'] = t('Not installed');
+      $requirements['simplepie']['severity'] = REQUIREMENT_WARNING;
+      $requirements['simplepie']['description'] .= ' ' . t(
+        'Download the compiled version of the library from <a href="@simplepie-download-url">SimplePie download page</a>.',
+        array('@simplepie-download-url' => 'http://simplepie.org/downloads/')
+      );
+    }
+  }
+  return $requirements;
+}
+
+/**
+  * Implement hook_uninstall()
+  */
+function feeds_uninstall() {
+  variable_del('http_request_timeout');
+}
+
+/**
  * Implements hook_schema().
  */
 function feeds_schema() {
@@ -33,7 +86,8 @@ function feeds_schema() {
         'description' => 'Id of the fields object.',
       ),
       'config' => array(
-        'type' => 'text',
+        'type' => 'blob',
+        'size' => 'big',
         'not null' => FALSE,
         'description' => 'Configuration of the feeds object.',
         'serialize' => TRUE,
@@ -59,7 +113,8 @@ function feeds_schema() {
         'description' => 'Node nid if this particular source is attached to a feed node.',
       ),
       'config' => array(
-        'type' => 'text',
+        'type' => 'blob',
+        'size' => 'big',
         'not null' => FALSE,
         'description' => 'Configuration of the source.',
         'serialize' => TRUE,
@@ -70,14 +125,14 @@ function feeds_schema() {
         'description' => 'Main source resource identifier. E. g. a path or a URL.',
       ),
       'state' => array(
-        'type' => 'text',
+        'type' => 'blob',
         'size' => 'big',
         'not null' => FALSE,
         'description' => 'State of import or clearing batches.',
         'serialize' => TRUE,
       ),
       'fetcher_result' => array(
-        'type' => 'text',
+        'type' => 'blob',
         'size' => 'big',
         'not null' => FALSE,
         'description' => 'Cache for fetcher result.',
@@ -516,4 +571,97 @@ function feeds_update_7205() {
   db_add_index('feeds_item', 'lookup_guid', array('entity_type', 'id', 'feed_nid', array('guid', 128)));
   db_add_index('feeds_item', 'global_lookup_url', array('entity_type', array('url', 128)));
   db_add_index('feeds_item', 'global_lookup_guid', array('entity_type', array('guid', 128)));
+}
+
+/**
+ * Change state and fetcher_result fields from text to blob.
+ */
+function feeds_update_7206() {
+  db_change_field('feeds_source', 'state', 'state', array(
+    'type' => 'blob',
+    'size' => 'big',
+    'not null' => FALSE,
+    'description' => 'State of import or clearing batches.',
+    'serialize' => TRUE,
+  ));
+
+  db_change_field('feeds_source', 'fetcher_result', 'fetcher_result', array(
+    'type' => 'blob',
+    'size' => 'big',
+    'not null' => FALSE,
+    'description' => 'Cache for fetcher result.',
+    'serialize' => TRUE,
+  ));
+}
+
+/**
+ * Change config fields from text to big blobs.
+ */
+function feeds_update_7207() {
+  db_change_field('feeds_importer', 'config', 'config', array(
+    'type' => 'blob',
+    'size' => 'big',
+    'not null' => FALSE,
+    'description' => 'Configuration of the feeds object.',
+    'serialize' => TRUE,
+  ));
+
+  db_change_field('feeds_source', 'config', 'config', array(
+    'type' => 'blob',
+    'size' => 'big',
+    'not null' => FALSE,
+    'description' => 'Configuration of the feeds object.',
+    'serialize' => TRUE,
+  ));
+}
+
+/**
+ * Update to use generic bundle handling.
+ */
+function feeds_update_7208(&$sandbox) {
+
+  if (!isset($sandbox['importers'])) {
+    // Get all importers.
+    $sandbox['importers'] = db_query("SELECT id FROM {feeds_importer}")->fetchCol();
+    $sandbox['total'] = count($sandbox['importers']);
+  }
+
+  $importer = array_pop($sandbox['importers']);
+  $config = db_query("SELECT config FROM {feeds_importer} WHERE id = :id", array(':id' => $importer))->fetchField();
+
+  if ($config) {
+    $config = unserialize($config);
+
+    switch ($config['processor']['plugin_key']) {
+      case 'FeedsNodeProcessor':
+        $config_key = 'content_type';
+        break;
+
+      case 'FeedsTermProcessor':
+        $config_key = 'vocabulary';
+        break;
+
+      default:
+        $config_key = FALSE;
+        break;
+    }
+
+    if ($config_key && isset($config['processor']['config'][$config_key])) {
+      $config['processor']['config']['bundle'] = $config['processor']['config'][$config_key];
+      unset($config['processor']['config'][$config_key]);
+
+      // Update databse.
+      db_update('feeds_importer')
+        ->fields(array(
+          'config' => serialize($config),
+        ))
+        ->condition('id', $importer)
+        ->execute();
+    }
+
+    $sandbox['#finished'] = 1 - count($sandbox['importers']) / $sandbox['total'];
+  }
+  else {
+    $sandbox['#finished'] = 1;
+  }
 }
