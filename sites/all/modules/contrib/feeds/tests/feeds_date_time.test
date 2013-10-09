@@ -23,6 +23,11 @@ class FeedsDateTimeTest extends FeedsWebTestCase {
     );
   }
 
+  public function setUp() {
+    parent::setUp();
+    module_load_include('inc', 'feeds' , 'plugins/FeedsParser');
+  }
+
   /**
    * Dispatch tests, only use one entry point method testX to save time.
    */
