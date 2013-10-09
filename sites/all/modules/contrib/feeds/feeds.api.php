@@ -87,9 +87,9 @@ function hook_feeds_plugins() {
 /**
  * Invoked after a feed source has been parsed, before it will be processed.
  *
- * @param $source
+ * @param FeedsSource $source
  *  FeedsSource object that describes the source that has been imported.
- * @param $result
+ * @param FeedsParserResult $result
  *   FeedsParserResult object that has been parsed from the source.
  */
 function hook_feeds_after_parse(FeedsSource $source, FeedsParserResult $result) {
@@ -98,14 +98,54 @@ function hook_feeds_after_parse(FeedsSource $source, FeedsParserResult $result) 
 }
 
 /**
+ * Invoked before a feed source import starts.
+ *
+ * @param FeedsSource $source
+ *  FeedsSource object that describes the source that is going to be imported.
+ */
+function hook_feeds_before_import(FeedsSource $source) {
+  // See feeds_rules module's implementation for an example.
+}
+
+/**
+ * Invoked before a feed item is updated/created/replaced.
+ *
+ * This is called every time a feed item is processed no matter if the item gets
+ * updated or not.
+ *
+ * @param FeedsSource $source
+ *  The source for the current feed.
+ * @param array $item
+ *  All the current item from the feed.
+ * @param int|null $entity_id
+ *  The id of the current item which is going to be updated. If this is a new
+ *  item, then NULL is passed.
+ */
+function hook_feeds_before_update(FeedsSource $source, $item, $entity_id) {
+  if ($entity_id) {
+    $processor = $source->importer->processor;
+    db_update('foo_bar')
+      ->fields(array('entity_type' => $processor->entityType(), 'entity_id' => $entity_id, 'last_seen' => REQUEST_TIME))
+      ->condition('entity_type', $processor->entityType())
+      ->condition('entity_id', $entity_id)
+      ->execute();
+  }
+}
+
+/**
  * Invoked before a feed item is saved.
  *
- * @param $source
+ * @param FeedsSource $source
  *  FeedsSource object that describes the source that is being imported.
  * @param $entity
  *   The entity object.
+ * @param array $item
+ *   The parser result for this entity.
+ * @param int|null $entity_id
+ *  The id of the current item which is going to be updated. If this is a new
+ *  item, then NULL is passed.
  */
-function hook_feeds_presave(FeedsSource $source, $entity) {
+function hook_feeds_presave(FeedsSource $source, $entity, $item) {
   if ($entity->feeds_item->entity_type == 'node') {
     // Skip saving this entity.
     $entity->feeds_item->skip = TRUE;
@@ -113,9 +153,37 @@ function hook_feeds_presave(FeedsSource $source, $entity) {
 }
 
 /**
+ * Invoked after a feed item has been saved.
+ *
+ * @param FeedsSource $source
+ *  FeedsSource object that describes the source that is being imported.
+ * @param $entity
+ *   The entity object that has just been saved.
+ * @param array $item
+ *   The parser result for this entity.
+ * @param int|null $entity_id
+ *  The id of the current item which is going to be updated. If this is a new
+ *  item, then NULL is passed.
+ */
+function hook_feeds_after_save(FeedsSource $source, $entity, $item, $entity_id) {
+  // Use $entity->nid of the saved node.
+
+  // Although the $entity object is passed by reference, any changes made in
+  // this function will be ignored by the FeedsProcessor.
+  $config = $source->importer->getConfig();
+
+  if ($config['processor']['config']['purge_unseen_items'] && isset($entity->feeds_item)) {
+    $feeds_item = $entity->feeds_item;
+    $feeds_item->batch_id = feeds_delete_get_current_batch($feeds_item->feed_nid);
+
+    drupal_write_record('feeds_delete_item', $feeds_item);
+  }
+}
+
+/**
  * Invoked after a feed source has been imported.
  *
- * @param $source
+ * @param FeedsSource $source
  *  FeedsSource object that describes the source that has been imported.
  */
 function hook_feeds_after_import(FeedsSource $source) {
@@ -125,7 +193,7 @@ function hook_feeds_after_import(FeedsSource $source) {
 /**
  * Invoked after a feed source has been cleared of its items.
  *
- * @param $source
+ * @param FeedsSource $source
  *  FeedsSource object that describes the source that has been cleared.
  */
 function hook_feeds_after_clear(FeedsSource $source) {
@@ -173,10 +241,10 @@ function hook_feeds_parser_sources_alter(&$sources, $content_type) {
  * @return
  *   The value to be extracted from the source.
  *
- * @see hook_feeds_parser_sources_alter().
- * @see locale_feeds_get_source().
+ * @see hook_feeds_parser_sources_alter()
+ * @see locale_feeds_get_source()
  */
-function my_source_get_source($source, FeedsParserResult $result, $key) {
+function my_source_get_source(FeedsSource $source, FeedsParserResult $result, $key) {
   $item = $result->currentItem();
   return my_source_parse_images($item['description']);
 }
@@ -205,6 +273,11 @@ function hook_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
       'name' => t('My custom node field'),
       'description' => t('Description of what my custom node field does.'),
       'callback' => 'my_module_set_target',
+
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
     );
     $targets['my_node_field2'] = array(
       'name' => t('My Second custom node field'),
@@ -226,14 +299,67 @@ function hook_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
  *   A string identifying the target on the node.
  * @param $value
  *   The value to populate the target with.
- *
+ * @param $mapping
+ *  Associative array of the mapping settings from the per mapping
+ *  configuration form.
  */
-function my_module_set_target($source, $entity, $target, $value) {
+function my_module_set_target($source, $entity, $target, $value, $mapping) {
   $entity->{$target}[$entity->language][0]['value'] = $value;
   if (isset($source->importer->processor->config['input_format'])) {
-    $entity->{$target}[$entity->language][0]['format'] = 
+    $entity->{$target}[$entity->language][0]['format'] =
       $source->importer->processor->config['input_format'];
   }
+}
+
+/**
+ * Example of the summary_callback specified in
+ * hook_feeds_processor_targets_alter().
+ *
+ * @param $mapping
+ *   Associative array of the mapping settings.
+ * @param $target
+ *   Array of target settings, as defined by the processor or
+ *   hook_feeds_processor_targets_alter().
+ * @param $form
+ *   The whole mapping form.
+ * @param $form_state
+ *   The form state of the mapping form.
+ *
+ * @return
+ *   Returns, as a string that may contain HTML, the summary to display while
+ *   the full form isn't visible.
+ *   If the return value is empty, no summary and no option to view the form
+ *   will be displayed.
+ */
+function my_module_summary_callback($mapping, $target, $form, $form_state) {
+  if (empty($mapping['my_setting'])) {
+    return t('My setting <strong>not</strong> active');
+  }
+  else {
+    return t('My setting <strong>active</strong>');
+  }
+}
+
+/**
+ * Example of the form_callback specified in
+ * hook_feeds_processor_targets_alter().
+ *
+ * The arguments are the same that my_module_summary_callback() gets.
+ *
+ * @return
+ *   The per mapping configuration form. Once the form is saved, $mapping will
+ *   be populated with the form values.
+ *
+ * @see my_module_summary_callback()
+ */
+function my_module_form_callback($mapping, $target, $form, $form_state) {
+  return array(
+    'my_setting' => array(
+      '#type' => 'checkbox',
+      '#title' => t('My setting checkbox'),
+      '#default_value' => !empty($mapping['my_setting']),
+    ),
+  );
 }
 
 /**
