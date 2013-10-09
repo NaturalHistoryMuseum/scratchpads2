@@ -2,3 +2,4 @@ name = "Scratchpads Views Filter"
 description = "Custom exposed filters for the views module. Filters are displayed as a select list with add/remove filter links."
 core = "7.x"
 dependencies[] = "views"
+files[] = tests/scratchpads_views_filter.selenium.test

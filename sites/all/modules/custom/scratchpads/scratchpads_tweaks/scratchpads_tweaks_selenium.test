@@ -243,9 +243,8 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
       $element->selectLabel($vocab_name);
       // Click the collapsed tab to open
       $this->driver->getElement("css=#edit-eol a")->click();
-      $eol_running = $this->assertText('The EOL classification service appears to be running.', 'EOL service running');
+      $eol_running = $this->assertTextNoError('The EOL classification service appears to be running.');
       $count++;
-      ;
       if((!$eol_running) && ($count == 5)){
         $this->error('Could not connect to EOL');
         return false;
@@ -274,7 +273,19 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $this->verboseScreenshot();
     return true;
   }
-/**
+
+  /**
+   * Allows you to assert that there is text on the page without creating an error message.
+   * Useful when looping, and only want an error to be displayed at the end of the loop
+   */
+  protected function assertTextNoError($text){
+    if($this->plainTextContent === FALSE){
+      $this->plainTextContent = filter_xss($this->drupalGetContent(), array());
+    }    
+    return (strpos($this->plainTextContent, $text) === FALSE);    
+  }
+  
+  /**
    * Simple test to see if we can login and access the home page
    */
   // We remove this test as it slows up all dependant tests
