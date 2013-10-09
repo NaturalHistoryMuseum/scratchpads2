@@ -75,6 +75,17 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
   foreach($potential_filters as $field => $value){
     if(($value = trim($value)) != FALSE){
       // Start with a basic text filter - this will work with most fields.
+      $operator = 'contains';
+      $op_val = $value;
+      // Add regexp support for MySQL.
+      if(Database::getConnection()->databaseType() == 'mysql'){
+        if(_is_regex($value)){
+          // Remove delimiters, as views regex works without them
+          $value = substr($value, 1, -1);
+          $op_val = $value;
+          $operator = 'regular_expression';
+        }
+      }
       $filter = array(
         'id' => $field,
         'table' => 'node',
@@ -82,8 +93,8 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
         'relationship' => 'none',
         'group_type' => 'group',
         'ui_name' => '',
-        'operator' => 'contains',
-        'value' => $value,
+        'operator' => $operator,
+        'value' => $op_val,
         'group' => 1,
         'exposed' => FALSE,
         'expose' => array(),
@@ -110,17 +121,33 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
             }
             switch($real_field['type']){
               case 'node_reference':
-                $filter['value'] = drupal_map_assoc(db_select('node', 'n')->condition('title', db_like($value) . '%', 'LIKE')->fields('n', array(
+                if(($operator == 'regular_expression') && ($op_val != '')){
+                  $val = $op_val;
+                  $op = 'RLIKE';
+                }else{
+                  $val = db_like($value) . '%';
+                  $op = 'LIKE';
+                }
+                $filter['value'] = drupal_map_assoc(db_select('node', 'n')->condition('title', $val, $op)->fields('n', array(
                   'nid'
                 ))->execute()->fetchCol());
+                // Ensure that empty sets don't display items
+                if(empty($filter['value'])){
+                  $filter['value'] = $val;
+                }
                 unset($filter['operator']);
                 break;
               case 'taxonomy_term_reference':
+                if(($operator == 'regular_expression') && ($op_val != '')){
+                  $t_val = array_keys(taxonomy_get_terms_by_name_match_regex($op_val));
+                }else{
+                  $t_val = array_keys(taxonomy_get_terms_by_name_match($value));
+                }
                 foreach($real_field['storage']['details']['sql'][FIELD_LOAD_CURRENT] as $table => $more_info){
                   foreach($more_info as $key => $name){
                     if($key != 'format'){
                       $filter['operator'] = 'or';
-                      $filter['value'] = array_keys(taxonomy_get_terms_by_name_match($value));
+                      $filter['value'] = $t_val;
                       $filter['reduce_duplicates'] = 0;
                       $filter['type'] = 'textfield';
                       $filter['limit'] = 100;
@@ -174,6 +201,36 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
 }
 
 /**
+ * Helper function
+ * Returns TRUE if $str is a regular expression,
+ * according to the following rules:
+ * - Does the string start and end with the same character? 
+ *   (non alphanumeric, excluding whitespaces and backslashes)
+ * - Does the string contain "*" or or '?' or '$' or '^' or "[" and "]"?
+ */
+function _is_regex($str){
+  $first_char = substr($str, 0, 1);
+  $last_char = substr($str, -1);
+  // You can use any non alphanumeric delimiter (excluding whitespaces and backslashes)
+  if((strlen($str) < 3) || ($first_char != $last_char) || ctype_alnum($first_char) || ($first_char == " ") || ($first_char == "\\")){return false;}
+  // Look for 'special' characters and return true if found
+  $str = substr($str, 1, -1);
+  if((strpos($str, '[') !== false) && (strpos($str, ']') !== false)){
+    return true;
+  }elseif(strpos($str, '*') !== false){
+    return true;
+  }elseif(strpos($str, '?') !== false){
+    return true;
+  }elseif(strpos($str, '$') !== false){
+    return true;
+  }elseif(strpos($str, '^') !== false){
+    return true;
+  }else{
+    return false;
+  }
+}
+
+/**
  * Similar function to taxonomy_get_term_by_name, but allows for matching!
  */
 function taxonomy_get_terms_by_name_match($name, $vocabulary = NULL, $match = 'both'){
@@ -187,6 +244,28 @@ function taxonomy_get_terms_by_name_match($name, $vocabulary = NULL, $match = 'b
   $query = db_select('taxonomy_term_data', 't')->fields('t', array(
     'tid'
   ))->condition('name', $name, 'LIKE');
+  if(isset($vocabulary)){
+    $vocabulary = taxonomy_vocabulary_machine_name_load($vocabulary);
+    $query->condition('vid', $vocabulary->vid);
+  }
+  $tids = $query->execute()->fetchCol();
+  if(count($tids)){
+    return taxonomy_term_load_multiple($tids);
+  }else{
+    return array(
+      PHP_INT_MAX => PHP_INT_MAX
+    );
+  }
+}
+
+/**
+ * Similar to taxonomy_get_terms_by_name_match(), but with regex search
+ */
+function taxonomy_get_terms_by_name_match_regex($name){
+  $name = db_like(trim($name));
+  $query = db_select('taxonomy_term_data', 't')->fields('t', array(
+    'tid'
+  ))->condition('name', $name, 'RLIKE');
   if(isset($vocabulary)){
     $vocabulary = taxonomy_vocabulary_machine_name_load($vocabulary);
     $query->condition('vid', $vocabulary->vid);
