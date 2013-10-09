@@ -245,6 +245,10 @@ table.scratchpads-admin-content tr.file-default td:nth-child(1) {
   color: #7D7D7D;
 }
 
+#edit-front-page-welcome-message-format{
+  display:none;
+}
+
 #scratchpads-welcome-form h3 {
   font-size: 15px;
 }
