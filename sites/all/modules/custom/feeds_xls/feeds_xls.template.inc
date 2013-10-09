@@ -111,7 +111,7 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
       case 'node':
         $results = db_select('node', 'e')->fields('e', array(
           'nid'
-        ))->condition('type', $feeds_importer->processor->config['content_type'])->execute();
+        ))->condition('type', $feeds_importer->processor->config['bundle'])->execute();
         $entity_key = 'nid';
         $context['sandbox']['entity'] = 'node';
         break;
@@ -413,9 +413,7 @@ function feeds_xls_redirect_to_populated_file($success, $results, $operations){
     // Open the file.
     $objReader = new PHPExcel_Reader_CSV();
     $objPHPExcel = $objReader->load($results['csv_path']);
-    $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
     feeds_xls_set_headers(feeds_importer_load($results['importer']), $objPHPExcel, $results['csv_path'] . '.xls');
-    //drupal_unlink($results['csv_path']);
     $_SESSION['feeds_xls'] = $results;
     drupal_goto('feeds_xls/getfile');
   }
