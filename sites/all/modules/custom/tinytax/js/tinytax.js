@@ -47,5 +47,18 @@
         }
       });
     });
+  },
+  // Return the status of the tinytax block - which elements are open/closed
+  getStatus: function() {
+    var tids = [];
+    $('div.tinytax li:visible ul:visible').each(function() {
+      var id = $(this).closest('li').attr('id');
+      if (id) {
+        tids.push(id.replace(/^tinytax-/, ''));
+      }
+    });
+    return {
+      open_tids: tids
+    };
   }}
 })(jQuery);

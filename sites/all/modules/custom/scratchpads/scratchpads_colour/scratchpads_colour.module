@@ -34,8 +34,30 @@ function scratchpads_colour_block_view($delta = ''){
   switch($delta){
     case 'colour_switcher':
       if(user_access('scratchpads colour')){
+        $path = drupal_get_path('module', 'scratchpads_colour');
+        $image = theme('image', array(
+          'path' => $path . '/images/colour-picker.png',
+          'alt' => 'Colours',
+          'title' => 'Colours'
+        ));
         $block['content'] = array(
-          'form' => drupal_get_form('scratchpads_colour_form'),
+          '#prefix' => '<div class="scratchpads-slide-toggle-container">',
+          '#suffix' => '</div>',
+          'link' => array(
+            '#markup' => l($image, '/', array(
+              'attributes' => array(
+                'class' => array(
+                  'scratchpads-slide-toggle'
+                )
+              ),
+              'html' => true
+            ))
+          ),
+          'body' => array(
+            '#prefix' => '<div class="scratchpads-slide-toggle-body">',
+            '#suffix' => '</div>',
+            'form' => drupal_get_form('scratchpads_colour_form')
+          ),
           '#attached' => array(
             'css' => array(
               $path . '/css/scratchpads_colour.css'
@@ -190,7 +212,6 @@ function scratchpads_colour_form_system_theme_settings_submit($form, $form_state
  * Colour form
  */
 function scratchpads_colour_form($form, $form_state){
-  $path = drupal_get_path('module', 'scratchpads_colour');
   $colours = scratchpads_colour_get_colours();
   $form['colour'] = array(
     '#type' => 'radios',
@@ -206,19 +227,6 @@ function scratchpads_colour_form($form, $form_state){
     '#value' => t('Save'),
     '#weight' => 2
   );
-  $image = theme('image', array(
-    'path' => $path . '/images/colour-picker.png',
-    'alt' => 'Colours',
-    'title' => 'Colours'
-  ));
-  $form['#prefix'] = l($image, '/', array(
-    'attributes' => array(
-      'class' => array(
-        'scratchpads-slide-toggle'
-      )
-    ),
-    'html' => true
-  ));
   $form['#attributes']['class'] = 'clearfix';
   return $form;
 }
