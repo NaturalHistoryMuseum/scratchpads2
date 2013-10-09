@@ -86,3 +86,14 @@ function pensoft_publication_update_7004(){
     field_update_instance($field_instance);
   }
 }
+
+/**
+ * Allow other file types for the supplementary files
+ */
+function pensoft_publication_update_7005(){
+  $field_instance = field_info_instance('publication', 'field_pensoft_files', 'pensoft');
+  if($field_instance){
+    $field_instance['settings']['file_extensions'] = 'txt jpg png gif xls xlsx doc docx pdf xml svg wav mp3 avi mpg';
+    field_update_instance($field_instance);
+  }
+}
