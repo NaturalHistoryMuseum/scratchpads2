@@ -89,6 +89,9 @@ function _lexicon_overview($vocab, $letter = NULL) {
   if (module_exists('i18n_taxonomy')) {
     global $language;
     $tree = i18n_taxonomy_get_tree($vid, $language->language, 0, NULL, TRUE);
+    if(!$tree){
+      $tree = i18n_taxonomy_get_tree($vid, LANGUAGE_NONE, 0, NULL, TRUE);
+    }
   }
   else {
     $tree = taxonomy_get_tree($vid, 0, NULL, TRUE);
