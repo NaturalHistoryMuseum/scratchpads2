@@ -282,9 +282,9 @@ function role_delegation_user_operations($form = array(), $form_state = array())
     $operation_rid = explode('-', $form_state['values']['operation']);
     $operation = $operation_rid[0];
     if ($operation == 'role_delegation_add_role' || $operation == 'role_delegation_remove_role') {
-      if (array_key_exists($form_state['values']['operation'], $operations)) {
+      if (isset($remove_roles[$form_state['values']['operation']]) || isset($add_roles[$form_state['values']['operation']])) {
         $rid = $operation_rid[1];
-        $operations[$form_state['values']['operation']] += array(
+        $operations[$form_state['values']['operation']] = array(
           // use the standard add_role and remove_role operations:
           'callback' => 'user_multiple_role_edit',
           'callback arguments' => array(str_replace('role_delegation_', '', $operation), $rid),
