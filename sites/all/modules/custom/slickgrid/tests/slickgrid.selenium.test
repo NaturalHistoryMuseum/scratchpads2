@@ -1,0 +1,238 @@
+<?php
+/**
+ * @file
+*
+* Test case for scratchpads_species with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class SlickgridSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Slickgrid',
+      'description' => 'Tests for the slickgrid module',
+      'group' => 'Scratchpads Selenium',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  /**
+   * A wrapper for the following tests:
+   * - Create a biological vocabulary and add terms.
+   * - Create 2 pages as maintainter.
+   * - Test data against slickgrid
+   * --- Test filtering
+   * --- Test editing a term
+   * --- Test editing a title
+   * --- Test editing multiple nodes at once
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $vocab_name = $this->randomName();
+    $this->createVocabulary($vocab_name, 'Animal');
+    $this->addTerms($vocab_name, array(
+      'first_term',
+      'second_term'
+    ));
+    $data = $this->addPages(array(
+      'first_term',
+      NULL
+    ));
+    $this->verifySlickgridFilter($data);
+    $this->verifySlickgridEditTerm($data, 'second_term');
+    $data = $this->verifySlickgridEditTitle($data);
+    $this->verifySlickgridMultiEdit($data);
+  }
+
+  /**
+   * Verify that the slickgrid filter is working
+   * - Filtering on title, body and term
+   */
+  function verifySlickgridFilter($data){
+    $this->drupalGet('admin/content');
+    $element = $this->driver->getElement("css=tr.node-page li.last a");
+    $element->click();
+    $this->driver->sleep(2);
+    // Search with page title in the slickgrid
+    $element = $this->driver->getElement("css=.r1 .slickgrid-filter-textFilter input");
+    $element->clear();
+    $element->sendKeys($data[0]['title']);
+    $this->assertText($data[0]['body'], 'Correct body text shown after filtering on title');
+    $this->assertNoText($data[1]['body'], 'Other body text correctly not shown after filtering on title');
+    // Search with taxonomic term in the slickgrid
+    $element = $this->driver->getElement("css=.r2 .slickgrid-filter-textFilter input");
+    $element->clear();
+    $element->sendKeys($data[0]['term']);
+    $this->assertText($data[0]['title'], 'Correct title shown after filtering on term');
+    $this->assertNoText($data[1]['title'], 'Other title correctly not shown after filtering on term');
+    // Search with body text in the slickgrid
+    $element = $this->driver->getElement("css=.r3 .slickgrid-filter-textFilter input");
+    $element->clear();
+    $element->sendKeys($data[0]['body']);
+    $element->moveCursorCenter();
+    $this->assertText($data[0]['title'], 'Correct title shown after filtering on body');
+    $this->assertNoText($data[1]['title'], 'Correct title not shown after filtering on body');
+  }
+
+  /**
+   * Edit a page title using the slickgrid editor 'pop-up'
+   */
+  function verifySlickgridEditTitle($data){
+    $this->drupalGet('admin/content');
+    $element = $this->driver->getElement("css=tr.node-page li.last a");
+    $element->click();
+    $this->driver->sleep(2);
+    $element = $this->driver->getElement("xpath=//*[text()='" . $data[0]['title'] . "']");
+    $element->moveCursorCenter();
+    // Double click on title to open 'pop-up' editor
+    $this->driver->mouseClickDouble();
+    $this->driver->sleep(2);
+    $edited_title = $this->randomName();
+    $element = $this->driver->getElement("id=edit-title");
+    $element->clear();
+    // Update the title
+    $element->sendKeys($edited_title);
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->driver->sleep(2);
+    // Attempt to view this edited page view
+    $this->drupalGet('admin/content/page');
+    $this->assertLink($edited_title, 0, 'Page title successfully updated using slickgrid editor');
+    // Keep the data array up to date
+    $data[0]['title'] = $edited_title;
+    return $data;
+  }
+
+  /**
+   * Edit a page taxonomic term using the slickgrid editor 'pop-up'
+   */
+  function verifySlickgridEditTerm($data, $newterm){
+    $this->drupalGet('admin/content');
+    $element = $this->driver->getElement("css=tr.node-page li.last a");
+    $element->click();
+    $this->driver->sleep(2);
+    $element = $this->driver->getElement("xpath=//*[text()='" . $data[0]['term'] . "']");
+    $element->moveCursorCenter();
+    // Double click on term to open 'pop-up' editor
+    $this->driver->mouseClickDouble();
+    $this->driver->sleep(2);
+    // Autocomplete taxonomy field
+    $element = $this->driver->getElement("name=field_taxonomic_name[und]");
+    $element->clear();
+    $this->_autocompleteTest('field_taxonomic_name[und]', substr($newterm, 0, 1));
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->driver->sleep(2);
+    // Attempt to view this edited page view
+    $this->drupalGet('admin/content/page');
+    $this->clickLink($data[0]['title']);
+    $this->clickLink('Edit');
+    $this->assertRaw($newterm, 'Page term successfully updated using slickgrid editor');
+  }
+
+  /**
+   * Edit multiple page body fields at once, using the slickgrid editor 'pop-up'
+   */
+  function verifySlickgridMultiEdit($data){
+    $this->drupalGet('admin/content');
+    $element = $this->driver->getElement("css=tr.node-page li.last a");
+    $element->click();
+    $this->driver->sleep(2);
+    // Select all nodes
+    $element = $this->driver->getElement("xpath=//*[@title='Select/Deselect All']/span/input");
+    $element->click();
+    $element = $this->driver->getElement("xpath=//*[text()='" . $data[0]['body'] . "']");
+    $element->moveCursorCenter();
+    // Double click on body text to open 'pop-up' editor
+    $this->driver->mouseClickDouble();
+    $this->driver->sleep(2);
+    $edited_body = $this->randomName();
+    $element = $this->driver->getElement("name=body[und][0][value]");
+    $element->clear();
+    $element->sendKeys($edited_body);
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->driver->sleep(2);
+    // Test that all body fields have been updated   
+    foreach($data as $node){
+      $this->drupalGet('admin/content/page');
+      $this->clickLink($node['title']);
+      $this->assertText($edited_body, 'Body field successfully updated.');
+    }
+  }
+
+  /**
+   * Create a number of pages for testing the filter
+   * Returns the created data in an array
+   */
+  function addPages($term_array){
+    $result = array();
+    foreach($term_array as $term){
+      $this->drupalGet('node/add/page');
+      $title = $this->randomName();
+      $body = $this->randomName();
+      $element = $this->driver->getElement("name=title");
+      $element->clear();
+      $element->sendKeys($title);
+      $element = $this->driver->getElement("name=body[und][0][value]");
+      $element->clear();
+      $element->sendKeys($body);
+      // Autocomplete taxonomy field
+      if(isset($term)){
+        $this->_autocompleteTest('field_taxonomic_name[und]', substr($term, 0, 1));
+      }
+      $this->driver->sleep(2);
+      // Submit the form
+      $submit_button = $this->driver->getElement("id=edit-submit");
+      $submit_button->click();
+      $this->assertText($title, 'Page title sucessfully saved');
+      $this->assertText($body, 'Page body sucessfully saved');
+      $result[] = array(
+        'title' => $title,
+        'body' => $body,
+        'term' => $term
+      );
+    }
+    return $result;
+  }
+
+  /**
+   * Create a vocabulary
+   */
+  function createVocabulary($vocab_name, $type){
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $element = $this->driver->getElement("name=name");
+    $element->clear();
+    $element->sendKeys($vocab_name);
+    $element = $this->driver->getElement("name=description");
+    $element->clear();
+    $element->sendKeys($this->randomName());
+    $element = $this->driver->getElement("name=biological_classification");
+    $element->selectLabel($type);
+    // Submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+  }
+
+  /**
+   * Add terms to a vocabulary
+   */
+  function addTerms($vocab_name, $term_array){
+    foreach($term_array as $term_name){
+      $path = 'admin/structure/taxonomy/' . $vocab_name . '/add';
+      $this->drupalGet($path);
+      $element = $this->driver->getElement("name=field_unit_name1[und][0][value]");
+      $element->clear();
+      $element->sendKeys($term_name);
+      // Submit the form
+      $submit_button = $this->driver->getElement("id=edit-submit");
+      $submit_button->click();
+    }
+  }
+}
