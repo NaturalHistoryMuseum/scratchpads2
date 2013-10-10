@@ -710,26 +710,28 @@ function scratchpads_taxonomic_name_field_feeds_set_target($source, $entity, $ta
   $i = 0;
   $entity->$target = isset($entity->$target) ? $entity->$target : array();
   foreach($vocabularies as $vocabulary){
-    foreach($terms as $term){
-      $tid = 0;
-      if($term instanceof FeedsTermElement){
-        $tid = $term->tid;
-      }elseif(is_numeric($term)){
-        $tid = $term;
-      }elseif(is_string($term)){
-        $tid = scratchpads_taxonomic_name_field_term_check_term($term, $vocabulary->vid, count($vocabularies) === 1);
-        if(!$tid){
-          continue;
+    if($vocabulary){
+      foreach($terms as $term){
+        $tid = 0;
+        if($term instanceof FeedsTermElement){
+          $tid = $term->tid;
+        }elseif(is_numeric($term)){
+          $tid = $term;
+        }elseif(is_string($term)){
+          $tid = scratchpads_taxonomic_name_field_term_check_term($term, $vocabulary->vid, count($vocabularies) === 1);
+          if(!$tid){
+            continue;
+          }
         }
+        if($tid){
+          $lang = field_language($entity_type, $entity, $target);
+          $entity->{$target}[$lang][$i]['tid'] = $tid;
+        }
+        if($info['cardinality'] == 1){
+          break;
+        }
+        $i++;
       }
-      if($tid){
-        $lang = field_language($entity_type, $entity, $target);
-        $entity->{$target}[$lang][$i]['tid'] = $tid;
-      }
-      if($info['cardinality'] == 1){
-        break;
-      }
-      $i++;
     }
   }
 }
