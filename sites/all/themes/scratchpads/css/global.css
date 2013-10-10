@@ -1099,3 +1099,17 @@ table,tbody,tfoot,thead,tr,th,td {
   zoom: 1;
   *display: inline;
 }
+/* put a border on the bottom of a views table 
+ it gets to be made missing by biblio table global.css line 675 */
+table.views-table {
+  border-bottom: 1px solid #CCCCCC;
+}
+/* put bullets on the correct side of the div and properly indent long text.
+Either the padding or the margin needs to be set to zero, with the other one set to 1em. 
+A hair out in IE*/
+table.views-table ul {
+  list-style-position: inside;
+  margin-left: 0; 
+  padding-left: 1em;
+  text-indent: -1em;
+}
