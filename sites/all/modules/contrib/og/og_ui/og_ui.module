@@ -53,7 +53,7 @@ function og_ui_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('og_ui_user_admin_account', 1, 2),
     'access callback' => 'og_user_access_by_entity',
-    'access arguments' => array('administer group', 1, 2),
+    'access arguments' => array('approve and deny subscription', 1, 2),
     'weight' => -4,
     'file' => 'og_ui.admin.inc',
   );
@@ -98,7 +98,7 @@ function og_ui_menu() {
         'page callback' => 'og_ui_group_admin_overview',
         'page arguments' => array($entity, 1),
         'access callback' => 'og_user_access_by_entity',
-        'access arguments' => array('administer group', $entity, 1),
+        'access arguments' => array('access administration pages', $entity, 1),
         'type' => MENU_LOCAL_TASK,
         'file' => 'og_ui.admin.inc',
         'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
@@ -501,6 +501,12 @@ function og_ui_og_permission() {
     'default role' => array(OG_ADMINISTRATOR_ROLE),
   );
 
+  $items['access administration pages'] = array(
+    'title' => t('Use the administration pages'),
+    'description' => t('Allow users to see the "Group" tab, and access the administration pages.'),
+    'default role' => array(OG_ADMINISTRATOR_ROLE),
+  );
+
   return $items;
 }
 
@@ -655,19 +661,23 @@ function og_ui_og_ui_get_group_admin($gid) {
 
   $default_access = og_is_group_default_access($gid);
 
-  $items['add_people'] = array(
-    'title' => t('Add people'),
-    'description' => t('Add group members.'),
-    // The final URL will be "group/$entity_type/$etid/admin/people/add-user".
-    // @see og_ui_group_admin_overview().
-    'href' => 'admin/people/add-user',
-  );
+  if (og_user_access($gid, 'add user')) {
+    $items['add_people'] = array(
+      'title' => t('Add people'),
+      'description' => t('Add group members.'),
+      // The final URL will be "group/$entity_type/$etid/admin/people/add-user".
+      // @see og_ui_group_admin_overview().
+      'href' => 'admin/people/add-user',
+    );
+  }
 
-  $items['people'] = array(
-    'title' => t('People'),
-    'description' => t('Manage the group members.'),
-    'href' => "admin/people",
-  );
+  if (og_user_access($gid, 'approve and deny subscription')) {
+    $items['people'] = array(
+      'title' => t('People'),
+      'description' => t('Manage the group members.'),
+      'href' => "admin/people",
+    );
+  }
 
   $items['roles'] = array(
     'title' => !$default_access ? t('Roles') : t('Roles (read-only)'),

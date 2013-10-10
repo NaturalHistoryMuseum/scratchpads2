@@ -1,4 +1,13 @@
 /* Forms */
+.uuid{
+  font-size:70%;
+  color: #aaa;
+}
+
+.pager.clearfix .active.progress-disabled{
+  float:left !important;
+}
+
 .form-layout-default .column-main .form-actions {
   display: block;
 }
@@ -234,6 +243,10 @@ table.scratchpads-admin-content tr.file-default td:nth-child(1) {
 .wizard-trail {
   margin-bottom: 20px;
   color: #7D7D7D;
+}
+
+#edit-front-page-welcome-message-format{
+  display:none;
 }
 
 #scratchpads-welcome-form h3 {

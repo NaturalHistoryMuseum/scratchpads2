@@ -1,0 +1,5 @@
+name = Cite this page parsing for nodes
+description = "This module provides a parser to extract citable information for node pages. This module provides a user interface to enable/disable this functionality per content type."
+core = 7.x
+
+dependencies[] = citethispage

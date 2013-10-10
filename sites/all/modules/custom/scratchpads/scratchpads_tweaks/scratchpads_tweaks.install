@@ -318,14 +318,14 @@ function scratchpads_tweaks_install(){
   variable_set('apachesolr_optimize_interval', PHP_INT_MAX);
   // Allow insecure derivatives
   variable_set('image_allow_insecure_derivatives', TRUE);
+  // Enable the subpermissions module which has lay dormant for many many months
+  variable_set('subpermissions_config', array(
+    'show download links' => 'show download links'
+  ));
 }
 
 /**
- * Add the twitterscript filter.
- *
- * NOTE, This update should be renumbered and altered when wanting to update the
- * filters.  The hook_install function will also need to be changed to reflect
- * the renumber.
+ * Helper script to install/update filters.
  */
 function scratchpads_tweaks_install_help_install_filters(){
   // Add text formats.
@@ -371,15 +371,15 @@ function scratchpads_tweaks_install_help_install_filters(){
         'weight' => 12,
         'status' => 1
       ),
-      'twitterscript_filter' => array(
-        'weight' => 100,
+      'twitter_filter_filter' => array(
+        'weight' => 1000,
         'status' => 1
       )
     )
   );
   $filtered_html_format = (object)$filtered_html_format;
   filter_format_save($filtered_html_format);
-  unset($filtered_html_format->filters['twitterscript_filter']);
+  unset($filtered_html_format->filters['twitter_filter_filter']);
   $filtered_html_format->format = 'comment_filtered_html';
   $filtered_html_format->name = 'Comment Filtered HTML';
   $filtered_html_format->weight = 1;
@@ -870,21 +870,14 @@ function scratchpads_tweaks_update_7025(){
 }
 
 /**
- * Enable the twitterscript module.
+ * Enable the twitter script module.
+ * 
+ * Removed - the module has been removed from Scratchpads
  */
-function scratchpads_tweaks_update_7026(){
-  module_enable(array(
-    'twitterscript'
-  ));
-}
-
 /**
- * Add the twitterscript filter.
+ * Add the twitter script filter.
+ * Removed - the module has been removed from Scratchpads
  */
-function scratchpads_tweaks_update_7027(){
-  scratchpads_tweaks_install_help_install_filters();
-}
-
 /**
  * Add h1, h2 and div tags.
  */
@@ -1207,14 +1200,135 @@ function scratchpads_tweaks_update_7060(){
 function scratchpads_tweaks_update_7061(){
   variable_set('imagemagick_use_identify', TRUE);
 }
+
 /**
  * Uninstall mollom and scratchpads_mollom
  * 
- * FIXME - Please uncomment this function following the 2.1.7 release.
+ */
 function scratchpads_tweaks_update_7062(){
   drupal_uninstall_modules(array(
     'scratchpads_mollom',
     'mollom'
   ));
 }
+
+/**
+ * Enable honeypot
  */
+function scratchpads_tweaks_update_7063(){
+  if(!module_exists('honeypot')){
+    module_enable(array(
+      'honeypot'
+    ));
+  }
+  variable_set('honeypot_form_user_register_form', 1);
+  if(module_exists('boost')){
+    // Unless this has already been customised, change boost to not cache the user register page.
+    // This ensures we don't get caching issues with the spam protection,
+    if(variable_get('boost_cacheability_option', BLOCK_VISIBILITY_NOTLISTED) == BLOCK_VISIBILITY_NOTLISTED){
+      $pages = variable_get('boost_cacheability_pages', BOOST_CACHEABILITY_PAGES);
+      if(empty($pages)){
+        variable_set('boost_cacheability_pages', 'user/register');
+      }
+    }
+  }
+}
+
+/**
+ * Enable the setting of the biblio file attachments permission.
+ */
+function scratchpads_tweaks_update_7064(){
+  variable_set('subpermissions_config', array(
+    'show download links' => 'show download links'
+  ));
+}
+
+/**
+ * Update nodes to ensure they don't have duplicate UUID and V-UUIDs.
+ */
+function scratchpads_tweaks_update_7065(&$sandbox){
+  if(!isset($sandbox['nids'])){
+    $query = db_select('node', 'lft');
+    $query->fields('lft', array(
+      'nid'
+    ));
+    $query->innerJoin('node', 'rgt', 'lft.uuid = rgt.uuid AND lft.nid > rgt.nid');
+    $query->distinct();
+    $sandbox['nids'] = $query->execute()->fetchCol();
+    $sandbox['max'] = count($sandbox['nids']);
+    if(!$sandbox['max']){
+      $sandbox['#finished'] = 1;
+      return;
+    }
+  }
+  $i = 0;
+  while($i < 10 && count($sandbox['nids'])){
+    $node = node_load(array_pop($sandbox['nids']));
+    $old_uuid = $node->uuid;
+    unset($node->uuid);
+    unset($node->vuuid);
+    node_save($node);
+    db_update('feeds_item')->fields(array(
+      'guid' => $node->uuid
+    ))->condition('guid', $old_uuid)->condition('entity_id', $node->nid)->execute();
+  }
+  $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['nids'])) / $sandbox['max'];
+}
+
+/**
+ * Update the filters to ensure the new twitter filter is in there.
+ */
+function scratchpads_tweaks_update_7066(){
+  module_disable(array(
+    'twitterscript'
+  ));
+  module_enable(array(
+    'twitter_filter'
+  ));
+  scratchpads_tweaks_install_help_install_filters();
+}
+
+/**
+ * Delete empty fields from entities that were imported via Feeds.
+ */
+function scratchpads_tweaks_update_7067(&$sandbox){
+  if(!isset($sandbox['entities'])){
+    $sandbox['entities'] = db_select('feeds_item', 'f')->fields('f', array(
+      'entity_id',
+      'entity_type'
+    ))->execute()->fetchAll();
+    $sandbox['max'] = count($sandbox['entities']);
+    if(!$sandbox['max']){
+      $sandbox['#finished'] = 1;
+      return;
+    }
+  }
+  $i = 0;
+  while($i < 10 && count($sandbox['entities'])){
+    $info = array_pop($sandbox['entities']);
+    $entity = entity_load($info->entity_type, array(
+      $info->entity_id
+    ));
+    foreach($entity[$info->entity_id] as $key => $value){
+      if(is_array($value)){
+        if(($lang = field_language($info->entity_type, $entity[$info->entity_id], $key)) != FALSE){
+          if((@isset($value[$lang][0]['value']) && trim($value[$lang][0]['value']) == '')){
+            try{
+              db_delete('field_data_' . $key)->condition('language', $lang)->condition('entity_type', $info->entity_type)->condition('entity_id', $info->entity_id)->execute();
+              $entity_info = entity_get_info($info->entity_type);
+              $revision_id = $info->entity_id;
+              if($entity_info['entity keys']['revision']){
+                $revision_id = $entity->{$entity_info['entity keys']['revision']};
+              }
+              db_delete('field_revision_' . $key)->condition('language', $lang)->condition('entity_type', $info->entity_type)->condition('entity_id', $info->entity_id)->condition('revision_id', $revision_id)->execute();
+            }
+            catch(Exception $e){
+              ;
+            }
+          }
+        }
+      }
+    }
+  }
+  $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['entities'])) / $sandbox['max'];
+}

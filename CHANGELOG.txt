@@ -1,3 +1,85 @@
+2.2.0 (2013-10-09)
+
+- Added the Citations tool (#3130)
+
+- Fixed an issue with the Biography feature (#3473)
+- Prevent failed imports from being restarted (#3439)
+- Updated to DwC-Archives (#3405, #3400)
+- Display the users on three tabs (All/People/Users) (#3285)
+- Ensure the Groups feature enables fully (#3330)
+- Added the views_date_format_sql module for grouping views by dates (#3492)
+- Ensure the XLS templates are created correctly when using multiple application servers (#3467)
+- Simplify the configuration of site information (all from front page) (#3306)
+- Prevent the import of empty strings by feeds (#3237)
+- Allow use of regular expressions in Slickgrid filters (#3102)
+- Allow sidebar tabs to be as wide as they need to be (#3308)
+- Only display the specimens tab when required (#3445)
+- Show optgroups for role delegation (#3448)
+
+2.1.10 (2013-09-25)
+
+- Fixed the twitter filter (#3288)
+- Fixed an issue with cloned nodes and UUIDs (#3384)
+- Display the full reference when hovering over a biblio citation (#3395)
+- Improved error message for RefBank import (#3020)
+- Enable the hiding of PDF attachments associated with biblio nodes (#3404)
+- Tweak the meta.xml file in DwC-A exports (#3400)
+- Ensure Darwincore and other modules warn users when being disabled (#3271)
+- Clean up a bug with Darwincore when disabled (#3067)
+- Reorder facets on search pages (#2244)
+- Prevent redirecting of non-admin users when adding certain nodes (#3444)
+- Add validation to user/people import (#3374)
+- Ensure content type publishing options can be updated (#3433)
+- Prevent jumping numbers in certain pagers (#3329)
+- Only display the BHL magnifying glass if required (#3093)
+- Export TID and Name for a taxonomic name field (#3414)
+- Prevent periodic import failures (#3392)
+- Prevent the ShareThis widget appearing multiple times on a page (#3284)
+- Minor changes to facilitate offline Scratchpads Training courses
+- Partial fix for incorrect species occuring in the IUCN box (#3321)
+- Prevent a "Missing relationship" warning (#3328)
+- Ensure the IUCN and other widgets display correctly (#3385)
+- Fixed (#3393, #3402, #3386)
+
+2.1.9.2 (2013-09-24)
+
+- Prevent non-admin users from being redirected to their user page (#3444)
+
+2.1.9.1 (2013-09-13)
+
+- Ensure select text fields can be imported from Excel (#3393)
+
+2.1.9 (2013-09-11)
+
+- Ensure the EOL TCS import works (#3318)
+- Export TID rather than name for the Excel template (#3362)
+- Various EOL DwC-A fixes
+- Display the copyright owner and the licence on the front page slideshow (#3105)
+- Ensure single value facets display correctly (#3298)
+- Fixed a bug with the filter on content views (#3317)
+- Ensure all biography fields are exported in the template files (#3370)
+- Display 56 media items on gallery pages (#3282)
+- Allow specifying by labels for text fields (#3375)
+- Fixed an issue that prevented images from being uploaded (#3299)
+- Minor fix to the "Make this profile public" option (#3378)
+- Display author names even when they can not be parsed (#3365)
+
+2.1.8 (2013-08-28)
+
+- Only include approved comments in DwC-A exports (#3144)
+- Added honeypot to help fight spam user account submissions (#3238)
+- Weighting option on taxon description pages (#2446)
+- User biographies (#3202)
+- Biblio citation style settings (#3053)
+- Allow People to have login access (#3219)
+- Fix image upload issue (#3303)
+- Use GBIG taxonomic status values in DwC-A exports (#2406)
+- Remove hyperlink from references in DWC-A exports (#3055)
+- Remove Group content type when Groups are disabled (#3074)
+- Separate media links on node edit form (#1478)
+- Prevent duplicate terms from being added to autotag taxonomies (#3236)
+- Theme the media browser (#1962)
+
 2.1.7 (2013-08-14)
 
 - Added the tracker module as a tool (#931)

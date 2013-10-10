@@ -60,6 +60,72 @@ function scratchpads_user_menu_alter(&$items){
   $items['admin/people']['page callback'] = 'scratchpads_user_admin';
   $items['admin/people']['file'] = 'scratchpads_user.admin.inc';
   $items['admin/people']['module'] = 'scratchpads_user';
+  $items['admin/people/people']['title'] = 'All';
+}
+
+/**
+ * Implements hook_menu();
+ *
+ * Add tabs to the menu for users and non-users
+ */
+function scratchpads_user_menu(){
+  $items['admin/people/users'] = array(
+    'title' => 'Users',
+    'page callback' => 'scratchpads_user_admin',
+    'page arguments' => array(
+      '',
+      '1'
+    ),
+    'file' => 'scratchpads_user.admin.inc',
+    'access arguments' => array(
+      'administer users'
+    ),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => '-2'
+  );
+  $items['admin/people/non_users'] = array(
+    'title' => 'Non Users',
+    'page callback' => 'scratchpads_user_admin',
+    'page arguments' => array(
+      '',
+      '0'
+    ),
+    'file' => 'scratchpads_user.admin.inc',
+    'access arguments' => array(
+      'administer users'
+    ),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => '-1'
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ * 
+ * Add the 'Add user' button
+ */
+function scratchpads_user_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  $local_tasks = array();
+  switch($root_path){
+    case 'admin/people/users':
+      $local_tasks[] = 'admin/people/create';
+      break;
+    case 'admin/people/non_users':
+      $local_tasks[] = 'admin/people/create';
+      break;
+  }
+  if(count($local_tasks)){
+    foreach($local_tasks as $local_task){
+      $item = menu_get_item($local_task);
+      if($item['access']){
+        $data['actions']['output'][] = array(
+          '#theme' => 'menu_local_action',
+          '#link' => $item
+        );
+      }
+    }
+  }
 }
 
 /**
@@ -88,15 +154,19 @@ function scratchpads_user_user_load($entities){
 }
 
 /**
- * Implements hook_ENTITY_TYPE_save().
+ * Implements hook_entity_presave().
  * 
  * Prevent saving of a "1" status for stub users.
+ * Reset password to '' for stub users.
  */
 function scratchpads_user_user_presave(&$edit, $account, $category){
-  // Make sure that our form value 'mymodule_foo' is stored as
-  // 'mymodule_bar' in the 'data' (serialized) column.
-  if(!empty($account->stub_user)){
+  // Was a stub user and is still a stub user
+  if((!empty($account->stub_user)) && ($edit['create_user_account'] == 0)){
     $edit['status'] = 0;
+    $edit['pass'] = '';
+  }  // Was a stub user but isn't any more
+elseif((!empty($account->stub_user)) && ($edit['create_user_account'] == 1)){
+    $edit['status'] = 1;
   }
 }
 
@@ -129,8 +199,13 @@ function scratchpads_user_form_user_register_form_alter(&$form, &$form_state){
       'user_register_submit',
       'scratchpads_user_register_form_post_submit'
     );
-    _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
+  }else{
+    $handlers = array(
+      'user_register_submit',
+      'scratchpads_user_register_form_post_submit'
+    );
   }
+  _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
   $form['#validate'][] = 'scratchpads_user_user_register_validate';
 }
 
@@ -199,6 +274,7 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
     $form['biblio_fieldset']['biblio_contributor_id']['#default_value'] = '';
   }
   unset($form['biblio_fieldset']['biblio_contributor_id']['#options']);
+  $form['#validate'][] = 'scratchpads_user_user_profile_validate';
 }
 
 /**
@@ -227,12 +303,18 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
         )
       )
     );
+    $disable_button = ($form['#user']->uid ? 1 : 0);
+    if($form['#id'] == 'user-profile-form'){
+      if($form['#user']->stub_user){
+        $disable_button = false;
+      }
+    }
     $form['create_user_account'] = array(
       '#type' => 'checkbox',
       '#title' => t('Allow user login?'),
       '#description' => t("Do you want to create a user account for this user so they can log into the website?"),
       '#default_value' => 1,
-      '#disabled' => ($form['#user']->uid ? 1 : 0)
+      '#disabled' => $disable_button
     );
   }else{
     $form['create_user_account'] = array(
@@ -289,20 +371,59 @@ function scratchpads_user_allow_picture_validate($form, &$form_state){
 }
 
 /**
+ * Validate the submission of a user edit form so that a user can switch from loginless to login
+ */
+function scratchpads_user_user_profile_validate($form, &$form_state){
+  // If we are converting from a loginless user to a login user 
+  if(($form['#user']->stub_user == true) && ($form_state['values']['create_user_account'])){
+    $required_fields = array(
+      'field_user_family_name',
+      'field_user_given_names'
+    );
+    // if we are converting from loginless to login then a new password is required
+    if($form_state['input']['pass']['pass1'] == ''){
+      form_set_error('pass', 'Password is required');
+    }
+    if((is_array($form_state['input']['field_user_country'][LANGUAGE_NONE])) || ($form_state['input']['field_user_country'][LANGUAGE_NONE] == '_none')){
+      form_set_error('field_user_country', 'Country field is required');
+    }
+    foreach($required_fields as $required_field){
+      if($form_state['input'][$required_field][LANGUAGE_NONE][0]['value'] == ''){
+        $field_name = $form[$required_field][LANGUAGE_NONE]['#title'];
+        form_set_error($required_field, $field_name . ' field is required');
+      }
+    }
+  }
+}
+
+/**
  * Validate the user register form so that we can add an email address if we are
  * not allowing login!
  */
 function scratchpads_user_user_register_validate($form, &$form_state){
   if(!$form_state['values']['create_user_account']){
+    $handlers = array(
+      'scratchpads_user_register_form_pre_submit',
+      'user_register_submit',
+      'scratchpads_user_register_form_post_submit'
+    );
+    _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
+    // This sets the username
+    scratchpads_user_register_form_pre_submit($form, $form_state);
+    // Clear old errors and prevent new errors on non required fields (for non login users)
+    scratchpads_user_register_form_post_submit_clear_error($form, $form_state);
+    $not_required = array(
+      'mail',
+      'field_user_country',
+      'field_user_given_names',
+      'name',
+      'pass'
+    );
     $errors = form_get_errors();
     $set_errors = FALSE;
     foreach($errors as $key => $error){
       $key_parts = explode(']', $key);
-      if(in_array($key_parts[0], array(
-        'mail',
-        'field_user_country',
-        'field_user_given_names'
-      ))){
+      if(in_array($key_parts[0], $not_required)){
         $set_errors = TRUE;
         unset($errors[$key]);
       }
@@ -397,21 +518,25 @@ function _scratchpads_user_get_full_name($name, $uid = ''){
  * @param array $form_state
  */
 function scratchpads_user_register_form_post_submit($form, &$form_state){
-  // Reset the messages
-  drupal_get_messages('status');
-  // Reset the error messages, as the following error is displayed:
-  // Notice: Undefined index: pass in user_register_submit() (line 3752 of /home/simor/Zend/workspaces/DefaultWorkspace7/Scratchpads-2.0/modules/user/user.module).
-  drupal_get_messages('error');
-  drupal_set_message(t('Created a new profile for @user_title @user_given_name @user_family_name.', array(
-    '@user_title' => $form_state['values']['field_user_title'][LANGUAGE_NONE][0]['value'],
-    '@user_given_name' => $form_state['values']['field_user_given_names'][LANGUAGE_NONE][0]['value'],
-    '@user_family_name' => $form_state['values']['field_user_family_name'][LANGUAGE_NONE][0]['value']
-  )));
-  // Give a warning that no user account was created
-  drupal_set_message('No user account was created so this person will not be able to log into the website!', 'warning');
-  // Ensure that no password is set
-  $form['#user']->pass = '';
-  user_save($form['#user']);
+  // check whether this a stub user
+  if(!$form_state['values']['create_user_account']){
+    // Reset the messages
+    drupal_get_messages('status');
+    // Reset the error messages, as the following error is displayed:
+    // Notice: Undefined index: pass in user_register_submit() (line 3752 of /home/simor/Zend/workspaces/DefaultWorkspace7/Scratchpads-2.0/modules/user/user.module).
+    drupal_get_messages('error');
+    drupal_set_message(t('Created a new profile for @user_title @user_given_name @user_family_name.', array(
+      '@user_title' => $form_state['values']['field_user_title'][LANGUAGE_NONE][0]['value'],
+      '@user_given_name' => $form_state['values']['field_user_given_names'][LANGUAGE_NONE][0]['value'],
+      '@user_family_name' => $form_state['values']['field_user_family_name'][LANGUAGE_NONE][0]['value']
+    )));
+    // Give a warning that no user account was created
+    drupal_set_message('No user account was created so this person will not be able to log into the website!', 'warning');
+    // Ensure that no password is set
+    $form['#user']->pass = '';
+    $form['#user']->status = 0;
+    user_save($form['#user']);
+  }
 }
 
 /**
@@ -704,3 +829,14 @@ function scratchpads_user_user_insert(&$edit, $account, $category){
     _user_mail_notify('register_admin_created', $account);
   }
 }
+
+/**
+ * Implements hook_feeds_xls_not_required_alter
+ *
+ * We specify fields that should not be required on user import
+ */
+function scratchpads_user_feeds_xls_not_required_alter(&$fields_array){
+  $fields_array[] = 'field_user_given_names';
+}
+
+

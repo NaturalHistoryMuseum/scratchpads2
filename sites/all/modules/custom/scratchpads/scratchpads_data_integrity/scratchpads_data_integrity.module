@@ -127,36 +127,36 @@ function scratchpads_data_integrity_get_messages($get_all = FALSE){
   return $messages;
 }
 
-/**
- * Implements hook_cron().
- */
-function scratchpads_data_integrity_cron(){
-  // Get a list of messages
-  $messages = scratchpads_data_integrity_get_messages();
-  if(count($messages)){
-    global $language;
-    /*
-     * The following code will be allowed to run once we are confident that
-     * there are no sites with large quantities of problematic data.
-     * 
-    $query = db_select('users', 'u');
-    $query->innerJoin('users_roles', 'r', 'u.uid = r.uid');
-    $results = $query->condition('rid', 5)->fields('u', array(
-      'mail'
-    ))->execute();
-    foreach($results as $row){
-      drupal_mail('scratchpads_data_integrity', 'maintainer', $row->mail, $language, array(
-        'site_url' => url('', array(
-          'absolute' => TRUE
-        ))
-      ), 'Scratchpads Support Team <support@scratchpads.eu>');
-    }
-    */
-    drupal_mail('scratchpads_data_integrity', 'scratchpads_team', 'Simon Rycroft <s.rycroft@nhm.ac.uk>', $language, array(
-      'site_url' => url('', array(
-        'absolute' => TRUE
-      )),
-      'messages' => $messages
-    ), 'Scratchpads Team (No reply) <no-reply@scratchpads.eu>');
-  }
-}
+// /**
+//  * Implements hook_cron().
+//  */
+// function scratchpads_data_integrity_cron(){
+//   // Get a list of messages
+//   $messages = scratchpads_data_integrity_get_messages();
+//   if(count($messages)){
+//     global $language;
+//     /*
+//      * The following code will be allowed to run once we are confident that
+//      * there are no sites with large quantities of problematic data.
+//      * 
+//     $query = db_select('users', 'u');
+//     $query->innerJoin('users_roles', 'r', 'u.uid = r.uid');
+//     $results = $query->condition('rid', 5)->fields('u', array(
+//       'mail'
+//     ))->execute();
+//     foreach($results as $row){
+//       drupal_mail('scratchpads_data_integrity', 'maintainer', $row->mail, $language, array(
+//         'site_url' => url('', array(
+//           'absolute' => TRUE
+//         ))
+//       ), 'Scratchpads Support Team <support@scratchpads.eu>');
+//     }
+//     */
+//     drupal_mail('scratchpads_data_integrity', 'scratchpads_team', 'Simon Rycroft <s.rycroft@nhm.ac.uk>', $language, array(
+//       'site_url' => url('', array(
+//         'absolute' => TRUE
+//       )),
+//       'messages' => $messages
+//     ), 'Scratchpads Team (No reply) <no-reply@scratchpads.eu>');
+//   }
+// }

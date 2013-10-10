@@ -7,6 +7,7 @@
  */
 function dwca_export_views_default_views(){
   global $base_url;
+  $default_licence = variable_get('creative_commons_block_licence_type', CC_BY);
   static $view_description_names = array(
     'general_description',
     'morphology',
@@ -211,7 +212,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['uuid']['table'] = 'taxonomy_term_data';
   $handler->display->display_options['fields']['uuid']['field'] = 'uuid';
   $handler->display->display_options['fields']['uuid']['relationship'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['fields']['uuid']['exclude'] = TRUE;
   /* Field: Content: Node UUID */
   $handler->display->display_options['fields']['uuid_1']['id'] = 'uuid_1';
   $handler->display->display_options['fields']['uuid_1']['table'] = 'node';
@@ -243,7 +243,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_issn']['alter']['text'] = 'urn:ISSN:[biblio_issn]';
   $handler->display->display_options['fields']['biblio_issn']['biblio_label'] = 1;
   /* Field: Biblio: Biblio Citation */
-  /* Field: Biblio: Biblio Citation */
   $handler->display->display_options['fields']['citation']['id'] = 'citation';
   $handler->display->display_options['fields']['citation']['table'] = 'biblio';
   $handler->display->display_options['fields']['citation']['field'] = 'citation';
@@ -260,6 +259,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['title']['label'] = '';
   $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
   $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+  $handler->display->display_options['fields']['title']['link_to_node'] = FALSE;
   /* Field: Biblio: Authors */
   $handler->display->display_options['fields']['biblio_authors']['id'] = 'biblio_authors';
   $handler->display->display_options['fields']['biblio_authors']['table'] = 'biblio';
@@ -347,6 +347,12 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['filters']['type']['value'] = array(
     'biblio' => 'biblio'
   );
+  /* Filter criterion: Field: Taxonomic name (field_taxonomic_name:delta) */
+  $handler->display->display_options['filters']['delta']['id'] = 'delta';
+  $handler->display->display_options['filters']['delta']['table'] = 'field_data_field_taxonomic_name';
+  $handler->display->display_options['filters']['delta']['field'] = 'delta';
+  $handler->display->display_options['filters']['delta']['operator'] = '<';
+  $handler->display->display_options['filters']['delta']['value']['value'] = '1';
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'some';
@@ -433,11 +439,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['uri']['table'] = 'file_managed';
   $handler->display->display_options['fields']['uri']['field'] = 'uri';
   $handler->display->display_options['fields']['uri']['file_download_path'] = TRUE;
-  /* Field: File: Name */
-  $handler->display->display_options['fields']['filename']['id'] = 'filename';
-  $handler->display->display_options['fields']['filename']['table'] = 'file_managed';
-  $handler->display->display_options['fields']['filename']['field'] = 'filename';
-  $handler->display->display_options['fields']['filename']['exclude'] = TRUE;
   /* Field: File: Mime type */
   $handler->display->display_options['fields']['filemime']['id'] = 'filemime';
   $handler->display->display_options['fields']['filemime']['table'] = 'file_managed';
@@ -447,13 +448,10 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_cc_licence']['table'] = 'field_data_field_cc_licence';
   $handler->display->display_options['fields']['field_cc_licence']['field'] = 'field_cc_licence';
   $handler->display->display_options['fields']['field_cc_licence']['type'] = 'creative_commons_url';
-  /* Field: Content: Title */
-  $handler->display->display_options['fields']['title']['id'] = 'title';
-  $handler->display->display_options['fields']['title']['table'] = 'node';
-  $handler->display->display_options['fields']['title']['field'] = 'title';
-  $handler->display->display_options['fields']['title']['relationship'] = 'file_to_node';
-  $handler->display->display_options['fields']['title']['alter']['alter_text'] = TRUE;
-  $handler->display->display_options['fields']['title']['empty'] = '[filename]';
+  /* Field: File: Name */
+  $handler->display->display_options['fields']['filename']['id'] = 'filename';
+  $handler->display->display_options['fields']['filename']['table'] = 'file_managed';
+  $handler->display->display_options['fields']['filename']['field'] = 'filename';
   /* Field: User: User UUID */
   $handler->display->display_options['fields']['uuid_3']['id'] = 'uuid_3';
   $handler->display->display_options['fields']['uuid_3']['table'] = 'users';
@@ -469,7 +467,18 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['fid']['table'] = 'file_managed';
   $handler->display->display_options['fields']['fid']['field'] = 'fid';
   $handler->display->display_options['fields']['fid']['alter']['alter_text'] = TRUE;
-  $handler->display->display_options['fields']['fid']['alter']['text'] = 'http://monkey.nhm.ac.uk/file/[fid]';
+  $handler->display->display_options['fields']['fid']['alter']['text'] = $base_url . '/file/[fid]';
+  /* Field: File: Licence */
+  $handler->display->display_options['fields']['field_cc_licence_1']['id'] = 'field_cc_licence_1';
+  $handler->display->display_options['fields']['field_cc_licence_1']['table'] = 'field_data_field_cc_licence';
+  $handler->display->display_options['fields']['field_cc_licence_1']['field'] = 'field_cc_licence';
+  $handler->display->display_options['fields']['field_cc_licence_1']['label'] = 'Rights Statement';
+  $handler->display->display_options['fields']['field_cc_licence_1']['alter']['alter_text'] = TRUE;
+  $handler->display->display_options['fields']['field_cc_licence_1']['alter']['text'] = '&nbsp;';
+  $handler->display->display_options['fields']['field_cc_licence_1']['alter']['trim_whitespace'] = TRUE;
+  $handler->display->display_options['fields']['field_cc_licence_1']['empty'] = '';
+  $handler->display->display_options['fields']['field_cc_licence_1']['hide_alter_empty'] = FALSE;
+  $handler->display->display_options['fields']['field_cc_licence_1']['type'] = 'creative_commons_url';
   /* Filter criterion: File: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'file_managed';
@@ -898,6 +907,11 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['sorts']['created']['table'] = 'comment';
   $handler->display->display_options['sorts']['created']['field'] = 'created';
   $handler->display->display_options['sorts']['created']['order'] = 'DESC';
+  /* Filter criterion: Comment: Approved */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'comment';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = '1';
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'none';
@@ -1067,7 +1081,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['name']['alter']['html'] = 0;
   $handler->display->display_options['fields']['name']['hide_empty'] = 0;
   $handler->display->display_options['fields']['name']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['name']['link_to_user'] = 1;
+  $handler->display->display_options['fields']['name']['link_to_user'] = 0;
   $handler->display->display_options['fields']['name']['overwrite_anonymous'] = 0;
   /* Sort criterion: User: Created date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
@@ -1347,6 +1361,9 @@ function dwca_export_views_default_views(){
 
 function _dwca_export_view_description($desc_type){
   //Array to translate our field names into DwC/SPM accepted terms
+  module_load_include('module', 'creative_commons');
+  $default_licence = creative_commons_display(variable_get('creative_commons_block_licence_type', CC_BY), variable_get('creative_commons_block_jurisdiction', ''), CC_URL);
+  $default_cc_url = $default_licence['#markup'];
   $replacements = array(
     'general_description' => 'general',
     'behavious' => 'behaviour',
@@ -1518,7 +1535,7 @@ function _dwca_export_view_description($desc_type){
   $handler->display->display_options['fields']['nothing']['table'] = 'views';
   $handler->display->display_options['fields']['nothing']['field'] = 'nothing';
   $handler->display->display_options['fields']['nothing']['label'] = 'Rights';
-  $handler->display->display_options['fields']['nothing']['alter']['text'] = variable_get('creative_commons_block_licence_type');
+  $handler->display->display_options['fields']['nothing']['alter']['text'] = '';
   $handler->display->display_options['fields']['nothing']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['nothing']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['nothing']['alter']['external'] = 0;
@@ -1739,6 +1756,7 @@ function _dwca_export_view_description($desc_type){
   $handler->display->display_options['fields']['nothing_7']['alter']['strip_tags'] = 0;
   $handler->display->display_options['fields']['nothing_7']['alter']['trim'] = 0;
   $handler->display->display_options['fields']['nothing_7']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['nothing_7']['alter']['text'] = $default_cc_url;
   $handler->display->display_options['fields']['nothing_7']['element_label_colon'] = 1;
   $handler->display->display_options['fields']['nothing_7']['element_default_classes'] = 1;
   $handler->display->display_options['fields']['nothing_7']['hide_empty'] = 0;

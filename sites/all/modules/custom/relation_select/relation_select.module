@@ -526,7 +526,7 @@ function _relation_select_field_widget_form(&$form, &$form_state, $field, $insta
   if (isset($items[$delta]) && is_object($items[$delta])) {
     $relation_id = $items[$delta]->rid;
   }
-  elseif (isset($items[$delta]) && is_array($items[$delta])) {
+  elseif (isset($items[$delta]['relation_id'])) {
     $relation_id = $items[$delta]['relation_id'];
   }
   else {

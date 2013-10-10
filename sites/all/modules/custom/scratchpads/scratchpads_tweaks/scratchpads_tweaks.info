@@ -52,6 +52,7 @@ dependencies[] = remember_me
 dependencies[] = role_delegation
 dependencies[] = uuid
 dependencies[] = weight
+dependencies[] = honeypot
 
 ; Scratchpads modules
 dependencies[] = scratchpads_apachesolr_instant
@@ -90,6 +91,7 @@ dependencies[] = scratchpads_solr
 dependencies[] = scratchpads_species
 dependencies[] = scratchpads_statistics
 dependencies[] = scratchpads_taxonomic_name_field
+dependencies[] = scratchpads_twitter
 dependencies[] = scratchpads_user
 dependencies[] = scratchpads_width_and_height
 dependencies[] = scratchpads_vocabularies
@@ -110,4 +112,4 @@ dependencies[] = taxonomy_breadcrumb_lite
 dependencies[] = tools
 dependencies[] = tree_widget
 dependencies[] = tui
-dependencies[] = twitterscript
+dependencies[] = twitter_filter

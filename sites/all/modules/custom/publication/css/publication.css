@@ -144,3 +144,11 @@ tbls_citation {
   background: #DDD;
   border: 1px dashed #AAA;
 }
+
+div.publication-group div.group-publication-systematics div.field-label:nth-child(n+2) {
+  border-top: 1px dotted #D3D7D9;
+}
+
+div.publication-group div.group-publication-systematics > div.field > div.field-label {
+  font-size: 1.5em;
+}

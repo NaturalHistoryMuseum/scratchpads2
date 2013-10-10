@@ -148,7 +148,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
 <body>
   <outline text="Feeds test group" >
     <outline title="Development Seed - Technological Solutions for Progressive Organizations" text="" xmlUrl="' . $path . 'developmentseed.rss2" type="rss" />
-    <outline title="Magyar Nemzet Online - H’rek" text="" xmlUrl="' . $path . 'feed_without_guid.rss2" type="rss" />
+    <outline title="Magyar Nemzet Online - H\'rek" text="" xmlUrl="' . $path . 'feed_without_guid.rss2" type="rss" />
     <outline title="Drupal planet" text="" type="rss" xmlUrl="' . $path . 'drupalplanet.rss2" />
   </outline>
 </body>
@@ -188,6 +188,8 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $this->assertPlugins($id, 'FeedsHTTPFetcher', 'FeedsSyndicationParser', 'FeedsNodeProcessor');
     // Per default attach to page content type.
     $this->setSettings($id, NULL, array('content_type' => 'page'));
+    // Per default attached to article content type.
+    $this->setSettings($id, 'FeedsNodeProcessor', array('bundle' => 'article'));
   }
 
   /**
@@ -377,36 +379,146 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $this->assertEqual($config['processor']['plugin_key'], $processor, 'Correct processor');
   }
 
-  /**
-   * Add mappings to a given configuration.
-   *
-   * @param $mappings
-   *   An array of mapping arrays. Each mapping array must have a source and
-   *   an target key and can have a unique key.
-   *
-   * @see FeedsRSStoDataTest class.
-   */
-  public function addMappings($id, $mappings) {
+   /**
+    * Adds mappings to a given configuration.
+    *
+    * @param string $id
+    *   ID of the importer.
+    * @param array $mappings
+    *   An array of mapping arrays. Each mapping array must have a source and
+    *   an target key and can have a unique key.
+    * @param bool $test_mappings
+    *   (optional) TRUE to automatically test mapping configs. Defaults to TRUE.
+    */
+  public function addMappings($id, $mappings, $test_mappings = TRUE) {
 
-    $path = 'admin/structure/feeds/' . $id . '/mapping';
+    $path = "admin/structure/feeds/$id/mapping";
 
-    // Iterate through all mappings and add the via the form.
+    // Iterate through all mappings and add the mapping via the form.
     foreach ($mappings as $i => $mapping) {
 
-      // Get unique flag and unset it - otherwise drupalPost will complain that
-      // there is no form element named "unique".
-      $unique = !empty($mapping['unique']);
-      unset($mapping['unique']);
-      $this->drupalPost($path, $mapping, t('Add'));
+      if ($test_mappings) {
+        $current_mapping_key = $this->mappingExists($id, $i, $mapping['source'], $mapping['target']);
+        $this->assertEqual($current_mapping_key, -1, 'Mapping does not exist before addition.');
+      }
 
-      // If unique was set, set the last mapping's unique flag.
-      if ($unique) {
-        $edit = array(
-          'unique_flags[' . $i . ']' => 1,
-        );
-        $this->drupalPost($path, $edit, t('Save'));
+      // Get unique flag and unset it. Otherwise, drupalPost will complain that
+      // Split up config and mapping.
+      $config = $mapping;
+      unset($config['source'], $config['target']);
+      $mapping = array('source' => $mapping['source'], 'target' => $mapping['target']);
+
+      // Add mapping.
+      $this->drupalPost($path, $mapping, t('Save'));
+
+      // If there are other configuration options, set them.
+      if ($config) {
+        $this->drupalPostAJAX(NULL, array(), 'mapping_settings_edit_' . $i);
+
+        // Set some settings.
+        $edit = array();
+        foreach ($config as $key => $value) {
+          $edit["config[$i][settings][$key]"] = $value;
+        }
+        $this->drupalPostAJAX(NULL, $edit, 'mapping_settings_update_' . $i);
+        $this->drupalPost(NULL, array(), t('Save'));
+      }
+
+      if ($test_mappings) {
+        $current_mapping_key = $this->mappingExists($id, $i, $mapping['source'], $mapping['target']);
+        $this->assertTrue($current_mapping_key >= 0, 'Mapping exists after addition.');
       }
     }
+  }
+
+  /**
+   * Remove mappings from a given configuration.
+   *
+   * @param array $mappings
+   *   An array of mapping arrays. Each mapping array must have a source and
+   *   a target key and can have a unique key.
+   * @param bool $test_mappings
+   *   (optional) TRUE to automatically test mapping configs. Defaults to TRUE.
+   */
+  public function removeMappings($id, $mappings, $test_mappings = TRUE) {
+    $path = "admin/structure/feeds/$id/mapping";
+
+    $current_mappings = $this->getCurrentMappings($id);
+
+    // Iterate through all mappings and remove via the form.
+    foreach ($mappings as $i => $mapping) {
+
+      if ($test_mappings) {
+        $current_mapping_key = $this->mappingExists($id, $i, $mapping['source'], $mapping['target']);
+        $this->assertEqual($current_mapping_key, $i, 'Mapping exists before removal.');
+      }
+
+      $remove_mapping = array("remove_flags[$i]" => 1);
+
+      $this->drupalPost($path, $remove_mapping, t('Save'));
+
+      $this->assertText('Your changes have been saved.');
+
+      if ($test_mappings) {
+        $current_mapping_key = $this->mappingExists($id, $i, $mapping['source'], $mapping['target']);
+        $this->assertEqual($current_mapping_key, -1, 'Mapping does not exist after removal.');
+      }
+    }
+  }
+
+  /**
+   * Gets an array of current mappings from the feeds_importer config.
+   *
+   * @param string $id
+   *   ID of the importer.
+   *
+   * @return bool|array
+   *   FALSE if the importer has no mappings, or an an array of mappings.
+   */
+  public function getCurrentMappings($id) {
+    $config = db_query("SELECT config FROM {feeds_importer} WHERE id = :id", array(':id' => $id))->fetchField();
+
+    $config = unserialize($config);
+
+    // We are very specific here. 'mappings' can either be an array or not
+    // exist.
+    if (array_key_exists('mappings', $config['processor']['config'])) {
+      $this->assertTrue(is_array($config['processor']['config']['mappings']), 'Mappings is an array.');
+
+      return $config['processor']['config']['mappings'];
+    }
+
+    return FALSE;
+  }
+
+  /**
+   * Determines if a mapping exists for a given importer.
+   *
+   * @param string $id
+   *   ID of the importer.
+   * @param integer $i
+   *   The key of the mapping.
+   * @param string $source
+   *   The source field.
+   * @param string $target
+   *   The target field.
+   *
+   * @return integer
+   *   -1 if the mapping doesn't exist, the key of the mapping otherwise.
+   */
+  public function mappingExists($id, $i, $source, $target) {
+
+    $current_mappings = $this->getCurrentMappings($id);
+
+    if ($current_mappings) {
+      foreach ($current_mappings as $key => $mapping) {
+        if ($mapping['source'] == $source && $mapping['target'] == $target && $key == $i) {
+          return $key;
+        }
+      }
+    }
+
+    return -1;
   }
 
   /**
@@ -416,9 +528,10 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $matches = array();
     preg_match('/node\/(\d+?)$/', $url, $matches);
     $nid = $matches[1];
-    if (!is_numeric($nid)) {
-      $this->error(t('Could not find node id, found @nid instead.', array('@nid' => $nid)));
-    }
+
+    // Test for actual integerness.
+    $this->assertTrue($nid === (string) (int) $nid, 'Node id is an integer.');
+
     return $nid;
   }
 
@@ -432,6 +545,54 @@ class FeedsWebTestCase extends DrupalWebTestCase {
         $file = file_unmanaged_copy("$source/$file", "$dest/$file");
       }
     }
+  }
+
+  /**
+   * Download and extract SimplePIE.
+   *
+   * Sets the 'feeds_simplepie_library_dir' variable to the directory where
+   * SimplePie is downloaded.
+   */
+  function downloadExtractSimplePie($version) {
+    $url = "http://simplepie.org/downloads/simplepie_$version.mini.php";
+    $filename = 'simplepie.mini.php';
+
+    // Avoid downloading the file dozens of times
+    $library_dir = DRUPAL_ROOT . '/' . $this->originalFileDirectory . '/simpletest/feeds';
+    $simplepie_library_dir = $library_dir . '/simplepie';
+
+    if (!file_exists($library_dir)) {
+      drupal_mkdir($library_dir);
+    }
+
+    if (!file_exists($simplepie_library_dir)) {
+      drupal_mkdir($simplepie_library_dir);
+    }
+
+    // Local file name.
+    $local_file = $simplepie_library_dir . '/' . $filename;
+
+    // Begin single threaded code.
+    if (function_exists('sem_get')) {
+      $semaphore = sem_get(ftok(__FILE__, 1));
+      sem_acquire($semaphore);
+    }
+
+    // Download and extact the archive, but only in one thread.
+    if (!file_exists($local_file)) {
+      $local_file = system_retrieve_file($url, $local_file, FALSE, FILE_EXISTS_REPLACE);
+    }
+
+    if (function_exists('sem_get')) {
+      sem_release($semaphore);
+    }
+    // End single threaded code.
+
+    // Verify that files were successfully extracted.
+    $this->assertTrue(file_exists($local_file), t('@file found.', array('@file' => $local_file)));
+
+    // Set the simpletest library directory.
+    variable_set('feeds_library_dir', $library_dir);
   }
 }
 
@@ -485,6 +646,7 @@ class FeedsUnitTestCase extends FeedsUnitTestHelper {
       'example.org/~,$\'*;',
       'caf%C3%A9.example.org',
       '[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html',
+      'graph.asfdasdfasdf.com/blarg/feed?access_token=133283760145143|tGew8jbxi1ctfVlYh35CPYij1eE',
     );
 
     foreach ($url_schemes as $scheme) {

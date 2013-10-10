@@ -111,7 +111,7 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
       case 'node':
         $results = db_select('node', 'e')->fields('e', array(
           'nid'
-        ))->condition('type', $feeds_importer->processor->config['content_type'])->execute();
+        ))->condition('type', $feeds_importer->processor->config['bundle'])->execute();
         $entity_key = 'nid';
         $context['sandbox']['entity'] = 'node';
         break;
@@ -144,7 +144,7 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
     }
     $context['sandbox']['max'] = count($context['sandbox']['entity_ids']);
     // Create the template before adding any rows to it.
-    $context['sandbox']['csv_path'] = drupal_tempnam(file_directory_temp(), $feeds_importer->id);
+    $context['sandbox']['csv_path'] = drupal_tempnam('temporary://', $feeds_importer->id);
     // We need a few variables and stuff when finished, so we shove them in the
     // results array.
     $context['results']['csv_path'] = $context['sandbox']['csv_path'];
@@ -193,6 +193,9 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
                 case 'iso2':
                   $cell_values[] = $value['iso2'];
                   break;
+                case 'tid':
+                  $cell_values[] = $value['tid'];
+                  break;
                 case 'nid':
                   $cell_values[] = $value['nid'];
                   break;
@@ -200,9 +203,15 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
                   $cell_values[] = $value['uid'];
                   break;
                 case 'start':
+                  if(substr($value['value'], -8) == '00:00:00'){
+                    $value['value'] = trim(substr($value['value'], 0, -8));
+                  }
                   $cell_values[] = $value['value'];
                   break;
                 case 'end':
+                  if(substr($value['value'], -8) == '00:00:00'){
+                    $value['value'] = trim(substr($value['value'], 0, -8));
+                  }
                   $cell_values[] = $value['value2'];
                   break;
                 default:
@@ -223,6 +232,9 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
                         }
                       }
                     }
+                    break 3;
+                  }elseif($field['type'] == 'link_field'){
+                    $cell_values[] = $value[$target[1]];
                     break 3;
                   }
               }
@@ -401,9 +413,7 @@ function feeds_xls_redirect_to_populated_file($success, $results, $operations){
     // Open the file.
     $objReader = new PHPExcel_Reader_CSV();
     $objPHPExcel = $objReader->load($results['csv_path']);
-    $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
     feeds_xls_set_headers(feeds_importer_load($results['importer']), $objPHPExcel, $results['csv_path'] . '.xls');
-    //drupal_unlink($results['csv_path']);
     $_SESSION['feeds_xls'] = $results;
     drupal_goto('feeds_xls/getfile');
   }
@@ -437,6 +447,7 @@ function feeds_xls_download_template($feeds_importer){
 function feeds_xls_field_type_help_text($field){
   switch($field['type']){
     case 'date':
+    case 'datetime':
       return "Dates should be entered in the format 'YYYY/MM/DD'.  You may need to specify that this column is a 'text' column type to ensure the formatting is preserved.";
     case 'gm3_combination':
       return 'Please enter data in the following format, entering multiple values on a single line (this is easier to do in a text editor, and then paste into Excel):
@@ -463,6 +474,9 @@ POLYGON:POLYGON ((-33.0029296875 60.37170546875135,-20.5224609375 60.84616839706
 }
 
 function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://output'){
+  $not_required = array();
+  // Allow other modules to specify fields that should not be required
+  drupal_alter('feeds_xls_not_required', $not_required);
   // Set properties
   $title = t('Template for !feeds_name', array(
     '!feeds_name' => $feeds_importer->config['name']
@@ -487,13 +501,16 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
     // Set the columnn width
     $sheet->getColumnDimension($column)->setAutoSize(TRUE);
     // Validation
-    if(isset($feeds_importer->processor->config['content_type']) || isset($feeds_importer->processor->config['vocabulary'])){
+    if(isset($feeds_importer->processor->config['content_type']) || isset($feeds_importer->processor->config['vocabulary']) || ($feeds_importer->processor->id == 'user_importer_user')){
       if(isset($feeds_importer->processor->config['content_type'])){
         $bundle = $feeds_importer->processor->config['content_type'];
         $entity_type = 'node';
-      }else if(isset($feeds_importer->processor->config['vocabulary'])){
+      }elseif(isset($feeds_importer->processor->config['vocabulary'])){
         $bundle = $feeds_importer->processor->config['vocabulary'];
         $entity_type = 'taxonomy_term';
+      }elseif($feeds_importer->processor->id == 'user_importer_user'){
+        $bundle = 'user';
+        $entity_type = 'user';
       }
       if(strpos($header['target'], ':')){
         $temp_array = explode(':', $header['target']);
@@ -519,9 +536,12 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
           $objValidation->setPrompt($help_text);
         }
         if($field_instance['required']){
-          $required_cells[] = $column;
-          $objValidation->setPromptTitle(t('Required'));
-          $objValidation->setPrompt(t('This cell may not be left blank') . $help_text ? $help_text : '');
+          // Allow override of required fields
+          if(!in_array($field['field_name'], $not_required)){
+            $required_cells[] = $column;
+            $objValidation->setPromptTitle(t('Required'));
+            $objValidation->setPrompt(t('This cell may not be left blank') . $help_text ? $help_text : '');
+          }
         }
         $objValidation->setShowInputMessage(TRUE);
         $objValidation->setShowErrorMessage(TRUE);
@@ -546,6 +566,19 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
             foreach($results as $row){
               $allowed_values[] = $row->$target_parts[1];
             }
+          }
+        }else if($field['type'] == 'user_reference'){
+          $query = db_select('users', 'u');
+          $query->condition('uid', 1, '>');
+          $query->condition('name', 'Anonymous', '!=');
+          $query->fields('u', array(
+            'uid',
+            'name'
+          ));
+          $results = $query->execute();
+          $target_parts = explode(':', $header['target']);
+          foreach($results as $row){
+            $allowed_values[] = $row->$target_parts[1];
           }
         }
         if(count($allowed_values)){

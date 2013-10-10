@@ -1,70 +1,112 @@
 <?php
 
 /**
- * 
+ *
  * This module uses what it calls "schema array", to represent
- * an XML file schema and describe how to map Drupal fields
- * to the XML format. When the schema is applied there is an associated
- * object, from which fields may be fetched (using #field). The object
- * itself can be changed during the processing (using #load).
- * 
+ * an XML file schema and describe how to map a given object
+ * to the XML format.
+ *
+ * The schema array is similar to other type definitions in Drupal
+ * (form arrays, render arrays, etc.): items that start with a '#'
+ * are properties while other items are actual values or children
+ * schemas.
+ *
+ * Creating an XML file starts with an object (which can be an entity
+ * but does not have to be) and a schema array. The schema array is
+ * scanned and the XML is generated from the fields of the object.
+ *
  * The schema array has the following format:
  *
  *  array(
  *    #min_occurence:   Minimum number of occurence. Defaults to 1.
  *                      An exception will be raised if this constraint is not respected
+ *
  *    #max_occurence':  Maximum number of occurence. Defaults to 1, use -1 for unlimited
  *                      An expception will be raised if this constraint is not respected
- *    #attributes:      Attributes to add to the element, as an array of name => value/callable function
- *    #process:         Optional function to process the value of the node before insertion.
- *                      available functions are:
- *                        - _pensoft_publication_xml_process_html: to insert HTML values
+ *
+ *    #attributes:      Attributes to add to the XML element, as an array of name => value/callable function.
+ *                      If the value is NULL, it is ignored. The current context is passed as
+ *                      argument to the called function.
+ *
+ *    #process:         Optional callable to process the given value before insertion into the XML document.
+ *                      The current context is passed as argument to the called function.
+ *
  *    #process arguments : If the process function is called, this is passed as additional argument
  *    
  *    #load:            Optional function to load the object from which fields are fetched, which
- *                      replaces the currently used object. The function is given the current
- *                      value (as defined by #value or #field) as argument.
+ *                      replaces the currently used object. The function is given the value to load
+ *                      and the current context as argument.
  *                      
- *                      Note that this only affects the children of the current node, not the current
- *                      node itself or any other node processed subsequently.
+ *                      The loaded object will replace the main object for the children of the current
+ *                      item (but not for the item itself, or it's siblings/parents).
  *                      
- *                      If this returns a value that evaluates to FALSE, then the child element is
- *                      not inserted. If an exception was expected instead, then the loader should raise it.
- *                      
- *    #field :         A field on the current mapping object to use as value when generating the XML.
- *    
- *                      The field on the object can be a single value, or a Drupal value array:
- *                      array("und" => array("value" => ...)). If the format is different, use '#process'
- *                      to read the value from the array.
- *                      
- *                      If the field is multi-valued and #merge is not defined, then each value is inserted 
- *                      as a separate entry (as long as the min/max constraints are respected).
- *    
+ *                      If the callable returns a value that evaluates to FALSE, then the element is not
+ *                      inserted. If an exception should be raised, the callable should take care of that.
+ *
  *    #value :          A static value to insert when generating the XML. This is inserted as many
  *                      times as required by #min_occurence.
  *                      
- *    #merge :          If a field (as defined by #field) is multi valued and '#merge' is defined and is
- *                      an existing function name, then that function is called and only one value (the 
- *                      return value of that function) is inserted.
+ *    #field :          A field on the current object to use as value when generating the XML.
+ *
+ *                      If the value is a scalar, then it is inserted directly.
+ *                      If the value is an array, it is expected to be as:
+ *                      array(
+ *                        <language code> => array(
+ *                          <delta> => array(
+ *                            'value' => <value>
+ *                          ),
+ *                          ...
+ *                        ),
+ *                        ...
+ *                      )
+ *
+ *                      If the value is in a different format, then '#process' should be used to return
+ *                      the array of values representing the field.
+ *
+ *                      If the field is multi-valued then each value is inserted as a separate XML element (and
+ *                      this is valiadted against mix/max constrainsts) unless '#merge' is defined.
  *
  *                      If both #value and #field are present, #field is used for constraint checking
  *                      (and for #load), but it's the value of #value that is inserted.
- *     
- *    #condition:       If present, the current node (and it's children) are only processed if the field
+ *
+ *    #merge :          If a field (as defined by #field) is multi valued and '#merge' is defined and is
+ *                      callable, then that function is called and only one value (the  return value of 
+ *                      that function) is inserted.
+ *
+ *    #condition:       If present, the current item (and it's children) are only processed if the field
  *                      described by #condition is not empty, or the callable function indicated by
- *                      #condition returns TRUE.
- *                      
+ *                      #condition returns TRUE. The callable is passed the current context as argument.
+ *
  *    #error_info:      If present, this will be used instead of the field name in error messages
  *                      (eg. field ... is required)
  *
  *    #error_field      If present, the string '%' in the #error_info will be substituted for the value
  *                      of that field on the current object
  *
+ *    #restrictions:    Optionally other restrictions. This is an array of the form:
+ *                      array(
+ *                        'enumeration' => array(... allowed values ...),
+ *                        'attributes_enumerations' => array(
+ *                          <attribute_name> => array(... allowed values ...),
+ *                          ...
+ *                        )
+ *                      )
+ *
  *   <tag name>:        A schema array for child elements. There can be any number of
  *                      such entries. To allow for several of the same tag (for instance, several
  *                      iteration of a tag mapping to different fields) add #<number> at the end
  *                      of the tag.
  *  );
+ *
+ * The context that is passed to callables is an array defining:
+ *
+ *   object:          The object being processed
+ *   child_object:    The child object (if loaded using #load)
+ *   field:           The current field (if applicable)
+ *   delta:           The delta of the current value (for fields, if applicable)
+ *   raw_value:       The actual value of the field
+ *   value_to_insert: The value that will be inserted
+ *   schema:          The current schema
  *
  */
 /**
@@ -163,7 +205,22 @@ class PublicationXSDParser{
       $type_element = array_shift($types);
       $element = $this->_parse_complex_type($type_element, $type);
     }
-    // XXX TODO parse restrictions.
+    // Parse restrictions. XXX Only enumerations are supported.
+    $restrictions = $type_element->xpath('xsd:restriction');
+    foreach($restrictions as $restriction){
+      $enumerations = $restriction->xpath('xsd:enumeration');
+      if(count($enumerations)){
+        if(!isset($element['#restriction'])){
+          $element['#restriction'] = array(
+            'enumeration' => array()
+          );
+        }
+        foreach($enumerations as $enumeration){
+          $vars = get_object_vars($enumeration);
+          $element['#restriction']['enumeration'][] = $vars['@attributes']['value'];
+        }
+      }
+    }
     return $element;
   }
 
@@ -173,12 +230,34 @@ class PublicationXSDParser{
   function _parse_complex_type($element, $display_name){
     $result = array();
     // Look for attributes
-    $attributes = $element->xpath('xsd:attribute');
+    $attributes = $element->xpath('xsd:attribute|xsd:simpleContent/xsd:extension/xsd:attribute');
     foreach($attributes as $attribute){
       $vars = get_object_vars($attribute);
       $name = $vars['@attributes']['name'];
-      // XXX Does this mean the attribute is required ? How do we mark this ?
-      //$result['#attributes'] = array($name => NULL);
+      $attr_required = isset($vars['@attributes']['use']) && $vars['@attributes']['use'] == 'required';
+      $default = NULL;
+      // Look for restrictions on the attribute
+      $attr_enumerations = $attribute->xpath('xsd:simpleType/xsd:restriction/xsd:enumeration');
+      if(count($attr_enumerations)){
+        if(!isset($result['#restrictions'])){
+          $result['#restrictions'] = array(
+            'attributes_enumerations' => array()
+          );
+        }else if(!isset($result['#restrictions']['attributes_enumerations'])){
+          $result['#restrictions']['attributes_enumerations'] = array();
+        }
+        $result['#restrictions']['attributes_enumerations'][$name] = array();
+        foreach($attr_enumerations as $attr_enumeration){
+          $vars = get_object_vars($attr_enumeration);
+          $result['#restrictions']['attributes_enumerations'][$name][] = $vars['@attributes']['value'];
+        }
+      }
+      if($attr_required && !empty($result['#restrictions']['attributes_enumerations'][$name])){
+        $default = reset($result['#restrictions']['attributes_enumerations'][$name]);
+      }
+      $result['#attributes'] = array(
+        $name => $default
+      );
     }
     // Look for a sequence
     $sequences = $element->xpath('xsd:sequence');
@@ -198,7 +277,9 @@ class PublicationXSDParser{
     // Base case if either $a or $b is not an array
     if(!is_array($a)){
       if(is_array($b) && $diff){
-        $b += array('#comment' => '');
+        $b += array(
+          '#comment' => ''
+        );
         $b['#comment'] .= " DIFF:Type mismatch, this value was not an array in the source schema;";
       }
       return $b;
@@ -206,13 +287,15 @@ class PublicationXSDParser{
     if(!is_array($b)){
       $a[] = $b;
       if($diff){
-        $a += array('#comment' => '');
+        $a += array(
+          '#comment' => ''
+        );
         $a['#comment'] .= " DIFF:Type mismatch, this value was not an array in the provided schema;";
       }
       return $a;
     }
     // Prepare for processing
-    $r = array('#comment' => '');
+    $r = array();
     $b_keys = array_keys($b);
     // Start with $a, and look for equivalents in $b
     foreach(array_keys($a) as $a_key){
@@ -220,6 +303,9 @@ class PublicationXSDParser{
       if(!isset($b[$a_key])){
         $r[$a_key] = $a[$a_key];
         if($diff && strpos($a_key, '#') === FALSE){
+          $r += array(
+            '#comment' => ''
+          );
           $r['#comment'] .= " DIFF: $a_key missing in provided schema;";
         }
       }else{
@@ -238,13 +324,92 @@ class PublicationXSDParser{
     if($diff){
       foreach($b as $b_key => $b_val){
         if(strpos($b_key, '#') === FALSE){
-          $b += array('#comment' => '');
+          $b += array(
+            '#comment' => ''
+          );
           $b['#comment'] .= " DIFF:$b_key missing in source schema;";
         }
       }
     }
     $r = array_merge($r, $b);
     return $r;
+  }
+
+  /**
+   * Check whether two schema arrays are equivalent. As with XML
+   * documents, order matters.
+   *
+   * This returns TRUE if the schemas are equivalent, and FALSE if not.
+   * If the option 'description' parameter if provided (and is an array)
+   * this gets filled with an english description of the changes.
+   *
+   * Note: numbered #x keys must be equal.
+   */
+  static function compare_schemas($a, $b, &$description = NULL, $path = 'root'){
+    // Check values
+    if(!is_array($a)){
+      if(is_array($b)){
+        if(is_array($description)){
+          $description[] = "Schema item $path has been changed from a schema array to a value.";
+        }
+        return FALSE;
+      }
+      if(is_array($description) && $a !== $b){
+        $description[] = "Value of $path has been changed from \"$a\" to \"$b\".";
+      }
+      return $a == $b;
+    }
+    if(!is_array($b)){
+      if(is_array($description)){
+        $description[] = "Schema item $path has been changed from a value to a schema array.";
+      }
+      return FALSE;
+    }
+    // Check schema arrays
+    $state = TRUE;
+    $b_keys = array_keys($b);
+    foreach(array_keys($a) as $a_key){
+      if(!array_key_exists($a_key, $b)){
+        if($a_key == 'min_occurence' && $a[$a_key] == 1){
+          continue;
+        }else if($a_key == 'max_occurence' && $a[$a_key] == 1){
+          continue;
+        }else{
+          if(is_array($description)){
+            $val = $a_key;
+            if(!is_array($a[$a_key])){
+              $val .= " => \"" . $a[$a_key] . "\"";
+            }
+            $description[] = "Element $path>$val has been removed.";
+          }
+          $state = FALSE;
+        }
+      }else{
+        // XXX For enumerations we should do an array diff rather than recurse
+        $rec_state = PublicationXSDParser::compare_schemas($a[$a_key], $b[$a_key], $description, $path . '>' . $a_key);
+        $state = $rec_state && $state;
+      }
+      unset($b[$a_key]);
+    }
+    if(!empty($b)){
+      if(isset($b['min_occurrence']) && $b['min_occurence'] == 1){
+        unset($b['min_occurence']);
+      }
+      if(isset($b['max_occurence']) && $b['max_occurence'] == 1){
+        unset($b['max_occurence']);
+      }
+      if(is_array($description) && !empty($b)){
+        foreach(array_keys($b) as $b_key){
+          $val = $b_key;
+          if(!is_array($b[$b_key])){
+            $val .= " => \"" . $b[$b_key] . "\"";
+          }
+          $description[] = "Element $path>$val has been added.";
+        }
+      }
+      return $state && empty($b);
+    }
+    return $state;
   }
 }
 
@@ -270,7 +435,7 @@ class PublicationXMLSchemaExplain{
     $output = array();
     $this->_path = array();
     foreach($this->schema as $tag => $child_schema){
-      if (preg_match('/^#/', $tag)) {
+      if(preg_match('/^#/', $tag)){
         continue;
       }
       $output[] = "<$tag>";
@@ -292,9 +457,12 @@ class PublicationXMLSchemaExplain{
     // Add attributes
     if(!empty($schema['#attributes'])){
       foreach($schema['#attributes'] as $attr_name => $attr_value){
-        if (is_object($attr_value)) {
+        if($attr_name[0] == '#'){
+          continue;
+        }
+        if(is_object($attr_value)){
           $output[] = "SET ATTR $attr_name = function() {...})();";
-        } else {
+        }else if($attr_value !== NULL){
           $output[] = "SET ATTR $attr_name = $attr_value;";
         }
       }
@@ -312,7 +480,11 @@ class PublicationXMLSchemaExplain{
       }
       if(isset($schema['#process'])){
         // XXX need to display process arguments
-        $value_to_set = $schema['#process'] . '(' . $value_to_set . ')';
+        if(is_object($schema['#process'])){
+          $value_to_set = '<inline function>' .'(' . $value_to_set . ')';
+        }else{
+          $value_to_set = $schema['#process'] .'(' . $value_to_set . ')';
+        }
       }
       $output[] = "SET VALUE = " . $value_to_set . ";";
     }
@@ -320,10 +492,10 @@ class PublicationXMLSchemaExplain{
     $condition = FALSE;
     if(isset($schema['#condition'])){
       if(is_callable($schema['#condition'])){
-        if (is_object($schema['#condition'])) {
+        if(is_object($schema['#condition'])){
           $output[] = "IF (...) {";
           $condition = '...()';
-        } else {
+        }else{
           $output[] = "IF " . $schema['#condition'] . " {";
           $condition = $schema['#condition'] . '()';
         }
@@ -524,6 +696,10 @@ class PublicationXMLBuilder{
           }
         }
       }
+      // If this is a field, obtain all the values' contexts
+      if(isset($child_schema['#field'])){
+        $child_schema['#values_contexts'] = $this->_get_field_values_contexts($child_schema, $tag, $object);
+      }
       // Check the occurence constraint works
       $this->_build_xml_check_constraint($child_schema, $tag, $object);
       // Insert the value and recurse
@@ -544,10 +720,12 @@ class PublicationXMLBuilder{
   }
 
   /**
-   * Insert a #field value, and recurse through the schema as appropriate
-   * 
+   * Return all the actual values of a given #field value
+   * (applying merges and child object loads), and return
+   * an array of contexts for each actual value.
    */
-  function _build_schema_insert_field($schema, $tag, $object, $xml_element){
+  function _get_field_values_contexts($schema, $tag, $object){
+    $result = array();
     $field = $schema['#field'];
     if(isset($schema['#merge']) && function_exists($schema['#merge'])){
       $merge_function = $schema['#merge'];
@@ -560,7 +738,6 @@ class PublicationXMLBuilder{
     foreach($this->modifiers as $modifier){
       $values = $modifier->insert_value_array($schema, $tag, $values);
     }
-    $inserted = FALSE;
     foreach($values as $delta => $value){
       $value_to_insert = $value;
       if(isset($schema['#value'])){
@@ -575,10 +752,9 @@ class PublicationXMLBuilder{
       }
       if(!$child_object){
         // It's up to the loader to raise errors if need be. Here an empty return means skip it.
-        // XXX doing this test here means we're not checking against min/max occurs.
         continue;
       }
-      $this->_set_context(array(
+      $result[] = array(
         'object' => $object,
         'child_object' => $child_object,
         'field' => $field,
@@ -586,15 +762,27 @@ class PublicationXMLBuilder{
         'raw_value' => $value,
         'value_to_insert' => $value_to_insert,
         'schema' => $schema
-      ));
+      );
+    }
+    return $result;
+  }
+
+  /**
+   * Insert a #field value, and recurse through the schema as appropriate
+   *
+   */
+  function _build_schema_insert_field($schema, $tag, $object, $xml_element){
+    if(empty($schema['#values_contexts'])){return FALSE;}
+    foreach($schema['#values_contexts'] as $context){
+      $this->_set_context($context);
       // XXX The new Modifier functionality means we might end up with a NULL value, and thus
       // should set $inserted to FALSE (depending on min_ocurrence) to provide adequate backtracking.
-      $child_element = $this->_insert_xml_element($schema, $tag, $value_to_insert, $xml_element);
+      $child_element = $this->_insert_xml_element($schema, $tag, $context['value_to_insert'], $xml_element);
       $inserted = TRUE;
-      $this->_build_xml_iteration($schema, $child_object, $child_element);
+      $this->_build_xml_iteration($schema, $context['child_object'], $child_element);
       $this->_pop_context();
     }
-    return $inserted;
+    return TRUE;
   }
 
   /**
@@ -659,19 +847,11 @@ class PublicationXMLBuilder{
   function _load_child_object($schema, $object, $value){
     if(isset($schema['#load'])){
       $arguments = array(
-        $value
+        $value,
+        $this->_get_context()
       );
       if(isset($schema['#load arguments'])){
-        foreach($schema['#load arguments'] as $argument){
-          if(is_string($argument) && preg_match('/^field:(.+)$/', $argument, $matches)){
-            $arg_field = $matches[1];
-            if(isset($object->$arg_field)){
-              $arguments[] = $object->$arg_field;
-            }
-          }else{
-            $arguments[] = $argument;
-          }
-        }
+        $arguments = array_merge($arguments, $schema['#load arguments']);
       }
       $object = call_user_func_array($schema['#load'], $arguments);
     }
@@ -686,9 +866,9 @@ class PublicationXMLBuilder{
     // Apply process function
     if(isset($schema['#process'])){
       $f = $schema['#process'];
-      if(!function_exists($f)){throw new Exception("Process function $f for tag $tag does not exist");}
+      if(!is_callable($f)){throw new Exception("Process function $f for tag $tag does not exist");}
       $args = array(
-        $value
+        $this->_get_context()
       );
       if(!empty($schema['#process arguments'])){
         $args = array_merge($args, $schema['#process arguments']);
@@ -705,8 +885,16 @@ class PublicationXMLBuilder{
     // Add attributes
     if(!empty($schema['#attributes'])){
       foreach($schema['#attributes'] as $attr_name => $attr_value){
+        if($attr_name[0] == '#' || $attr_value === NULL){
+          continue;
+        }
         if(is_callable($attr_value)){
           $attr_value = $attr_value($this->_get_context());
+        }
+        if(!empty($schema['#restrictions']['attributes_enumerations'][$attr_name])){
+          if(!in_array($attr_value, $schema['#restrictions']['attributes_enumerations'][$attr_name])){
+            // XXX Raise error.
+          }
         }
         $child_element->setAttribute($attr_name, $attr_value);
       }
@@ -744,16 +932,7 @@ class PublicationXMLBuilder{
     $max_occurence = isset($schema['#max_occurence']) ? $schema['#max_occurence'] : 1;
     if(!empty($schema['#field'])){
       $field = $schema['#field'];
-      if(isset($object->$field)){
-        if(isset($schema['#merge'])){
-          $count = 1;
-        }else{
-          $field_value = $this->_read_values($object->$field);
-          $count = count($field_value);
-        }
-      }else{
-        $count = 0;
-      }
+      $count = count($schema['#values_contexts']);
       if($count < $min_occurence || ($max_occurence >= 0 && $count > $max_occurence)){
         $message_prepare = "the field %field";
         if($count == 0){
@@ -951,7 +1130,8 @@ interface PublicationXMLModifierInterface{
  * the country name
  *
  */
-function _publication_xml_process_country($value, $type = 'name'){
+function _publication_xml_process_country($context, $type = 'name'){
+  $value = $context->value_to_insert;
   if($type == 'iso2'){
     return $value['iso2'];
   }else{
@@ -963,7 +1143,8 @@ function _publication_xml_process_country($value, $type = 'name'){
 /**
  * Process a map field to return just one property (by default the latitude)
  */
-function _publication_xml_process_map($value, $type = 'latitude'){
+function _publication_xml_process_map($context, $type = 'latitude'){
+  $value = $context->value_to_insert;
   if(isset($value[LANGUAGE_NONE][0])){
     $map = (array)($value[LANGUAGE_NONE][0]);
   }else{
@@ -978,14 +1159,14 @@ function _publication_xml_process_map($value, $type = 'latitude'){
  * This has the effect of replacing the current object
  * with the current value
  */
-function _publication_xml_load_replace($value){
+function _publication_xml_load_replace($value, $context){
   return $value;
 }
 
 /**
  * Loader function for the author/contributor fields
  */
-function _publication_xml_load_user($value){
+function _publication_xml_load_user($value, $context){
   if(is_array($value) && isset($value['uid'])){
     $value = $value['uid'];
   }
@@ -1025,7 +1206,7 @@ function _publication_xml_merge_user($field){
 /**
  * Loader function for files
  */
-function _publication_xml_load_file($value){
+function _publication_xml_load_file($value, $context){
   $value['url'] = url($value['uri'], array(
     'absolute' => TRUE
   ));
@@ -1035,7 +1216,7 @@ function _publication_xml_load_file($value){
 /**
  * Loads the given term
  */
-function _publication_xml_load_term($value, $final_name = NULL){
+function _publication_xml_load_term($value, $context, $final_name = NULL){
   $term = taxonomy_term_load($value['tid']);
   if($final_name){
     $term->name = $final_name;
@@ -1046,7 +1227,7 @@ function _publication_xml_load_term($value, $final_name = NULL){
 /**
  * Loads the parent of the given term
  */
-function _publication_xml_load_parent_term($value, $rank = NULL, $default = NULL){
+function _publication_xml_load_parent_term($value, $context, $rank = NULL, $default = NULL){
   if(is_array($value) && isset($value['tid'])){
     $value = $value['tid'];
   }
@@ -1063,7 +1244,7 @@ function _publication_xml_load_parent_term($value, $rank = NULL, $default = NULL
 /**
  * Loader function for materials
  */
-function _publication_xml_load_specimen($value){
+function _publication_xml_load_specimen($value, $context){
   $specimen = node_load($value['nid']);
   if(!empty($specimen->field_location[$specimen->language][0]['nid'])){
     $location = node_load($specimen->field_location[$specimen->language][0]['nid']);

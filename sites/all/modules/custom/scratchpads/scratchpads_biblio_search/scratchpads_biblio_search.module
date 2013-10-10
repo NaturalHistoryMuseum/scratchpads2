@@ -193,14 +193,31 @@ function scratchpads_biblio_search_context_default_contexts(){
     )
   );
   $map = facetapi_get_delta_map();
-  foreach(scratchpads_biblio_search_facetapi_default_facet_settings() as $facet){
+  $order = array(
+    'im_biblio_contributor' => '1',
+    'im_biblio_contributor_global' => '2',
+    'tus_biblio_year' => '3',
+    'tus_biblio_year_global' => '4',
+    'tus_biblio_type' => '5',
+    'tus_biblio_type_global' => '6',
+    'im_biblio_keyword' => '7',
+    'im_biblio_keyword_global' => '8',
+    'im_biblio_secondary_title' => '9',
+    'im_biblio_secondary_title_global' => '10'
+  );
+  foreach(scratchpads_biblio_search_facetapi_default_facet_settings() as $key => $facet){
+    if(isset($order[$key])){
+      $weight = $order[$key];
+    }else{
+      $weight = 20;
+    }
     $delta = array_search($facet->name, $map);
     if($delta){
       $context->reactions['block']['blocks'][] = array(
         'module' => 'facetapi',
         'delta' => $delta,
         'region' => 'sidebar',
-        'weight' => -27
+        'weight' => $weight
       );
     }
   }
@@ -214,7 +231,7 @@ function scratchpads_biblio_search_context_default_contexts(){
         'module' => 'facetapi',
         'delta' => $delta,
         'region' => 'sidebar',
-        'weight' => -27
+        'weight' => 30
       );
     }
   }
@@ -229,7 +246,11 @@ function scratchpads_biblio_search_context_default_contexts(){
 function scratchpads_biblio_search_block_view_alter(&$data, $block){
   if($block->module == 'facetapi'){
     if($data['subject'] == 'Filter by author:'){
-      $data['subject'] = 'Filter by contributor:';
+      if($block->context == 'media_gallery_page_facets'){
+        $data['subject'] = 'Contributor';
+      }else{
+        $data['subject'] = 'Filter by contributor:';
+      }
     }
     $map = facetapi_get_delta_map();
     $facet_info = scratchpads_biblio_search_facetapi_facet_info(array(
@@ -558,7 +579,7 @@ function scratchpads_biblio_search_apachesolr_index_document_build(ApacheSolrDoc
     $document->content .= strip_tags(theme('biblio_long', array(
       'node' => $entity,
       'base' => $base,
-      'style' => $style
+      'style_name' => $style
     )));
     $document->teaser .= strip_tags(theme('biblio_style', array(
       'node' => $entity,

@@ -140,8 +140,39 @@ function feeds_xls_feeds_processor_targets_alter(&$targets, $entity_type, $bundl
     $info = field_info_field($name);
     if(in_array($info['type'], $numeric_types)){
       $targets[$name]['callback'] = 'feeds_xls_feeds_set_target_numeric';
+    }elseif($info['type'] == 'list_text'){
+      $targets[$name]['callback'] = 'feeds_xls_feeds_set_target_list_text';
     }
   }
+}
+
+/**
+ * Callback for mapping text list fields.
+ * 
+ * Maps from a value to a key.
+ * 
+ */
+function feeds_xls_feeds_set_target_list_text($source, $entity, $target, $value){
+  if(!is_array($value)){
+    $value = array(
+      $value
+    );
+  }
+  $field = field_info_field($target);
+  foreach($value as $k => $v){
+    // We load the field and try to do the mapping.
+    if(!empty($field['settings']['allowed_values'])){
+      $key = array_search($v, $field['settings']['allowed_values']);
+    }else{
+      $key = $v;
+    }
+    if($field){
+      $value[$k] = $key;
+    }else{
+      unset($value[$k]);
+    }
+  }
+  text_feeds_set_target($source, $entity, $target, $value, TRUE);
 }
 
 /**
@@ -168,7 +199,7 @@ function feeds_xls_feeds_set_target_numeric($source, $entity, $target, $value){
       }
     }
   }
-  _field_feeds_set_target($source, $entity, $target, $value, FALSE);
+  number_feeds_set_target($source, $entity, $target, $value, FALSE);
 }
 
 /**

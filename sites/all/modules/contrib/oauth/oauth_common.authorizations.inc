@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Functions related to a user's authorization section
