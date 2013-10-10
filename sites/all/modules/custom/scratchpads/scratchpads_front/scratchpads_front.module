@@ -234,11 +234,6 @@ function scratchpads_front_page_edit($form, &$form_state){
     }
   }
   $node_types = scratchpads_front_node_types();
-  $form['front_page_override_welcome_title'] = array(
-    '#title' => t('Override welcome title'),
-    '#type' => 'checkbox',
-    '#default_value' => variable_get('front_page_override_welcome_title', 0)
-  );
   $form['site_information'] = array(
     '#type' => 'fieldset',
     '#title' => t('Site details'),
@@ -265,6 +260,11 @@ function scratchpads_front_page_edit($form, &$form_state){
   $form['front_page_welcome'] = array(
     '#type' => 'fieldset',
     '#title' => 'Welcome'
+  );
+  $form['front_page_welcome']['front_page_override_welcome_title'] = array(
+    '#title' => t('Override welcome title'),
+    '#type' => 'checkbox',
+    '#default_value' => variable_get('front_page_override_welcome_title', 0)
   );
   $form['front_page_welcome']['front_page_welcome_title'] = array(
     '#title' => t('Welcome title'),
