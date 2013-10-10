@@ -656,6 +656,19 @@ function scratchpads_taxonomic_name_field_feeds_processor_targets_alter(&$target
  */
 function scratchpads_taxonomic_name_field_term_check_term($name, $vid, $create_term = FALSE){
   $name = trim($name);
+  if(!function_exists('taxonomy_term_lookup_term')){
+
+    /**
+     * This function used to be defined by the feeds module, but they have
+     * removed it.
+     */
+    function taxonomy_term_lookup_term($name, $vid){
+      return db_select('taxonomy_term_data', 'td')->fields('td', array(
+        'tid',
+        'name'
+      ))->condition('name', $name)->condition('vid', $vid)->execute()->fetchObject();
+    }
+  }
   $term = taxonomy_term_lookup_term($name, $vid);
   if(empty($term)){
     if(!$create_term){return FALSE;}
