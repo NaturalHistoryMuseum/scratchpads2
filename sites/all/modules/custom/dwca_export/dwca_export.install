@@ -36,6 +36,6 @@ function dwca_export_update_7003(){
 }
 
 function dwca_export_set_to_rebuild() {
-  db_delete('variable')->condition('name', 'dwca_export_zip_build_time')->execute();
+  variable_del('dwca_export_zip_build_time');
   variable_set('dwca_export_rebuild', TRUE);
 }
