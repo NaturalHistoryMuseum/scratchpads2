@@ -6,3 +6,24 @@
 function emonocot_blocks_update_7001(){
   cache_clear_all(md5(drupal_get_path('module', 'emonocot_blocks') . '/images/emonocot_nobyline.png'), 'cache_image_sizes');
 }
+
+/**
+ * Ensure views use the right keys as vocabularies are changed to use GBIF vocabularies
+ */
+function emonocot_blocks_update_7002(){
+  $view = views_get_view('checklist_types');
+  if($view && $view->vid){
+    // If the view has an id, it's been modified and saved in database. We must modify the database
+    // version too.
+    $view->display['default']->display_options['filters']['field_type_status_value']['value'] = array(
+      'holotype' => 'holotype',
+      'isotype' => 'isotype',
+      'lectotype' => 'lectotype',
+      'neotype' => 'neotype',
+      'paralectotype' => 'paralectotype',
+      'paratype' => 'paratype',
+      'syntype' => 'syntype'
+    );
+    $view->save();
+  }
+}

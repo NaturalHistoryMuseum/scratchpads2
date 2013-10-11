@@ -589,13 +589,13 @@ function emonocot_checklist_views_default_views(){
   $handler->display->display_options['filters']['field_type_status_value']['field'] = 'field_type_status_value';
   $handler->display->display_options['filters']['field_type_status_value']['relationship'] = 'nid';
   $handler->display->display_options['filters']['field_type_status_value']['value'] = array(
-    'Holotype' => 'Holotype',
-    'Isotype' => 'Isotype',
-    'Lectotype' => 'Lectotype',
-    'Neotype' => 'Neotype',
-    'Paralectotype' => 'Paralectotype',
-    'Paratype' => 'Paratype',
-    'Syntype' => 'Syntype'
+    'holotype' => 'holotype',
+    'isotype' => 'isotype',
+    'lectotype' => 'lectotype',
+    'neotype' => 'neotype',
+    'paralectotype' => 'paralectotype',
+    'paratype' => 'paratype',
+    'syntype' => 'syntype'
   );
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');

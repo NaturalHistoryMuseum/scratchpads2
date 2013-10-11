@@ -150,7 +150,7 @@ function emonocot_blocks_block_view_typification(){
     ;
     //Type specimens
     //TODO: Drupalise this sql (or, better, use view from emonocot_views)
-    $sql = "SELECT field_institution_code_value, n.nid, field_type_status_value  FROM node n INNER JOIN field_data_field_type_status ts ON n.nid = ts.entity_id INNER JOIN field_data_field_institution_code i ON n.nid = i.entity_id LEFT JOIN taxonomy_index t ON n.nid = t.nid WHERE n.type = 'specimen_observation' AND t.tid = :tid AND ts.field_type_status_value IN ('Holotype','Isotype','Lectotype','Neotype','Paralectotype','Paratype','Syntype')";
+    $sql = "SELECT field_institution_code_value, n.nid, field_type_status_value  FROM node n INNER JOIN field_data_field_type_status ts ON n.nid = ts.entity_id INNER JOIN field_data_field_institution_code i ON n.nid = i.entity_id LEFT JOIN taxonomy_index t ON n.nid = t.nid WHERE n.type = 'specimen_observation' AND t.tid = :tid AND ts.field_type_status_value IN ('holotype','isotype','lectotype','neotype','paralectotype','paratype','syntype')";
     $types = db_query($sql, array(
       ':tid' => $args[2]
     ));

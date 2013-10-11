@@ -262,6 +262,7 @@ function darwincore_update_7013(){
     'locked' => 1
   ))->condition('field_name', $fields_to_lock)->execute();
 }
+
 /**
  * Update the display of the Collector and Identified-By fields.
  */
@@ -274,147 +275,117 @@ function darwincore_update_7014(){
 
 /**
  * Prepare for switch to GBIF names
+ *
+ * We are going to update fields on (potentially) all entities, so we won't be using
+ * the entity API but changing the database directly to avoid timeouts.
  */
 function darwincore_update_7015(){
   module_load_include('features.field.inc', 'darwincore');
   $definitions = darwincore_field_default_fields();
-  $info = array(
-    'node' => array(
-      'specimen_observation' => array(
-        'field_basis_of_record' => array(
-          'map' => array(
-            'Fossil Specimen' => 'FossilSpecimen',
-            'Human Observation' => 'HumanObservation',
-            'Living Specimen' => 'LivingSpecimen',
-            'Preserved Specimen' => 'PreservedSpecimen',
-            'Machine Observation' => 'MachineObservation',
-            'Moving Image' => 'MachineObservation',
-            'Other Specimen' => 'PreservedSpecimen',
-            'Sound Recording' => 'MachineObservation',
-            'Still Image' => 'MachineObservation',
-            'Frozen specimen' => 'PreservedSpecimen',
-            'Pinned Specimen' => 'PreservedSpecimen',
-            'Specimen in vial' => 'PreservedSpecimen',
-            'Specimen in vial (70% ethanol)' => 'PreservedSpecimen',
-            'Specimen in vial + genital' => 'PreservedSpecimen'
-          )
-        ),
-        'field_type_status' => array(
-          'map' => array(
-            'Holotype' => 'holotype',
-            'Isotype' => 'isotype',
-            'Lectotype' => 'lectotype',
-            'Neotype' => 'neotype',
-            'Nontype' => NULL,
-            'nontype' => NULL,
-            'Not Provided' => NULL,
-            'Paralectotype' => 'paralectotype',
-            'paraLectotype' => 'paralectotype',
-            'Paratype' => 'paratype',
-            'Syntype' => 'syntype',
-            'Syntypes of T. pacificum wilsoni' => 'syntype',
-            'Type status' => NULL,
-            'Neotype' => 'neotype',
-            'Not a Type' => 'notatype',
-            'female' => NULL,
-            '1 ex. holotype on slide 80/49 at Berlese Acaroteca, Cascine del Riccio, Firenze, Italy' => 'holotype',
-            '1 ex., holotype on slide 23/9 inside finger-like air bubbles but recognizable, 1 ex. on 23/10, 1 ex. on 23/8 and 1 ex. on 23/11 in poor condition, 1 ex. on 23/7, useful, at Berlese Acaroteca, Cascine del Riccio, Firenze, Italy' => 'holotype',
-            '3 females' => NULL,
-            '3 specimens' => NULL,
-            'des adultes des deux sexes (les mâles étant aussi nombreux que les femelles), les 3 sortes de nymphes et un exemplaire de la larve.' => NULL,
-            'des adultes, les 3 sortes de nymphes et la larve. Les adultes étaient peu nombreux, et je n\'ai pu en examiner que 9 (8 femelles et 1 mâle)' => NULL,
-            'female — Holotype and 2 females — paratypes' => NULL,
-            'holotype as Alicus oblongus on a slide' => 'holotype',
-            'holotype on slide N1952109' => 'holotype',
-            'holotype on slide no. 20.02/7560' => 'holotype',
-            'Holotype specimen # 2 of Protacarus crani Hirst, 1923' => 'holotype',
-            'lost' => NULL,
-            'male — Holotype, male — paratype, female — paratype and I paratype tritonymph' => 'type',
-            'Material estudiado: Holotipo fem. (28 -X-81); 9 paratipos: 4 fem. (7-VIII-81; 28-X-81); 2 deutoninfas (7-VIII-81; 14-III-82) y 3 tritoninfas (20-XI-81; 14-III-82).' => 'type',
-            'not stated' => NULL
-          )
-        )
-      )
+  // See #3185 for the map
+  $map = array(
+    'field_basis_of_record' => array(
+      'Fossil Specimen' => 'FossilSpecimen',
+      'Human Observation' => 'HumanObservation',
+      'Living Specimen' => 'LivingSpecimen',
+      'Preserved Specimen' => 'PreservedSpecimen',
+      'Machine Observation' => 'MachineObservation',
+      'Moving Image' => 'MachineObservation',
+      'Other Specimen' => 'PreservedSpecimen',
+      'Sound Recording' => 'MachineObservation',
+      'Still Image' => 'MachineObservation',
+      'Frozen specimen' => 'PreservedSpecimen',
+      'Pinned Specimen' => 'PreservedSpecimen',
+      'Specimen in vial' => 'PreservedSpecimen',
+      'Specimen in vial (70% ethanol)' => 'PreservedSpecimen',
+      'Specimen in vial + genital' => 'PreservedSpecimen'
+    ),
+    'field_type_status' => array(
+      'Holotype' => 'holotype',
+      'Isotype' => 'isotype',
+      'Lectotype' => 'lectotype',
+      'Neotype' => 'neotype',
+      'Nontype' => NULL,
+      'nontype' => NULL,
+      'Not Provided' => NULL,
+      'Paralectotype' => 'paralectotype',
+      'paraLectotype' => 'paralectotype',
+      'Paratype' => 'paratype',
+      'Syntype' => 'syntype',
+      'Syntypes of T. pacificum wilsoni' => 'syntype',
+      'Type status' => NULL,
+      'Neotype' => 'neotype',
+      'Not a Type' => 'notatype',
+      'female' => NULL,
+      '1 ex. holotype on slide 80/49 at Berlese Acaroteca, Cascine del Riccio, Firenze, Italy' => 'holotype',
+      '1 ex., holotype on slide 23/9 inside finger-like air bubbles but recognizable, 1 ex. on 23/10, 1 ex. on 23/8 and 1 ex. on 23/11 in poor condition, 1 ex. on 23/7, useful, at Berlese Acaroteca, Cascine del Riccio, Firenze, Italy' => 'holotype',
+      '3 females' => NULL,
+      '3 specimens' => NULL,
+      'des adultes des deux sexes (les mâles étant aussi nombreux que les femelles), les 3 sortes de nymphes et un exemplaire de la larve.' => NULL,
+      'des adultes, les 3 sortes de nymphes et la larve. Les adultes étaient peu nombreux, et je n\'ai pu en examiner que 9 (8 femelles et 1 mâle)' => NULL,
+      'female — Holotype and 2 females — paratypes' => NULL,
+      'holotype as Alicus oblongus on a slide' => 'holotype',
+      'holotype on slide N1952109' => 'holotype',
+      'holotype on slide no. 20.02/7560' => 'holotype',
+      'Holotype specimen # 2 of Protacarus crani Hirst, 1923' => 'holotype',
+      'lost' => NULL,
+      'male — Holotype, male — paratype, female — paratype and I paratype tritonymph' => 'type',
+      'Material estudiado: Holotipo fem. (28 -X-81); 9 paratipos: 4 fem. (7-VIII-81; 28-X-81); 2 deutoninfas (7-VIII-81; 14-III-82) y 3 tritoninfas (20-XI-81; 14-III-82).' => 'type',
+      'not stated' => NULL
     )
   );
-  // Add the new values to all the fields, so that they include both old set and new set
-  foreach($info as $entity_type => $e_info){
-    foreach($e_info as $bundle => $b_info){
-      foreach($b_info as $field_name => $field_info){
-        $field = field_info_field($field_name);
-        if(!$field){
-          unset($info[$entity_type][$bundle][$field_name]);
-          continue;
-        }
-        $def_key = $entity_type . '-' . $bundle . '-' . $field_name;
-        $old_values = $field['settings']['allowed_values'];
-        $new_values = $definitions[$def_key]['field_config']['settings']['allowed_values'];
-        $field['settings']['allowed_values'] = array_merge($old_values, $new_values);
-        field_update_field($field);
-        $info[$entity_type][$bundle][$field_name]['old'] = $old_values;
-        $info[$entity_type][$bundle][$field_name]['new'] = $new_values;
-        $info[$entity_type][$bundle][$field_name]['field'] = $field;
-      }
-    }
-  }
-  // Remap the old values in existing content, and add non-mapped values to the list of new values
-  foreach($info as $entity_type => $e_info){
-    foreach($e_info as $bundle => $b_info){
-      $efq = new EntityFieldQuery();
-      $efq->entityCondition('entity_type', $entity_type);
-      $efq->entityCondition('bundle', $bundle);
-      $result = $efq->execute();
-      if(empty($result[$entity_type])){
-        continue;
-      }
-      $entities = entity_load($entity_type, array_keys($result[$entity_type]));
-      foreach($entities as $entity){
-        $save = FALSE;
-        foreach($b_info as $field_name => $field_info){
-          if(empty($entity->{$field_name})){
-            continue;
-          }
-          $map = $field_info['map'];
-          foreach($entity->{$field_name} as $language => $values){
-            foreach($values as $delta => $value){
-              $v = trim($value['value']);
-              if(isset($map[$v]) && $map[$v] !== NULL){
-                $entity->{$field_name}[$language][$delta]['value'] = $map[$v];
-                $save = TRUE;
-              }else if(isset($map[$v]) && $map[$v] === NULL){
-                unset($entity->{$field_name}[$language][$delta]);
-                $save = TRUE;
-              }else if(!isset($field_info['new'][$value['value']])){
-                // Re-insert it, the user will have to manually map this one.
-                $info[$entity_type][$bundle][$field_name]['new'][$value['value']] = $field_info['old'][$value['value']];
-              }
-            }
-          }
-        }
-        if($save){
-          entity_save($entity_type, $entity);
-        }
-      }
-    }
-  }
-  // Now re-save the fields with the final list of allowed values
-  foreach($info as $entity_type => $e_info){
-    foreach($e_info as $bundle => $b_info){
-      foreach($b_info as $field_name => $field_info){
-        // We can't use field_update_field because some of the values only change in case, and there is a
-        // drupal bug that will stop us from saving the field - see https://drupal.org/node/2060275
-        $new_field = $field_info['field'];
-        $new_field['settings']['allowed_values'] = $field_info['new'];
-        $data = $new_field;
-        unset($data['columns'], $data['field_name'], $data['type'], $data['locked'], $data['module'], $data['cardinality'], $data['active'], $data['deleted']);
-        unset($data['bundles']);
-        $new_field['data'] = $data;
-        $primary_key = array(
-          'id'
-        );
-        drupal_write_record('field_config', $new_field, $primary_key);
-        field_cache_clear(TRUE);
-        module_invoke_all('field_update_field', $new_field, $field_info['field'], field_has_data($new_field));
+  foreach($map as $field_name => $map){
+    // Change the field definition
+    $field = field_info_field($field_name);
+    $field['settings']['allowed_values'] = $definitions['node-specimen_observation-' . $field_name]['field_config']['settings']['allowed_values'];
+    $data = $field;
+    unset($data['columns'], $data['field_name'], $data['type'], $data['locked'], $data['module'], $data['cardinality'], $data['active'], $data['deleted']);
+    unset($data['bundles']);
+    $field['data'] = $data;
+    $primary_key = array(
+      'id'
+    );
+    drupal_write_record('field_config', $field, $primary_key);
+    //field_cache_clear(TRUE);
+    //module_invoke_all('field_update_field', $new_field, $field_info['field'], field_has_data($new_field));
+    // Update values
+    foreach($map as $old => $new){
+      $data_table = "{field_data_" . $field_name . "}";
+      $revision_table = "{field_revision_" . $field_name . "}";
+      $field_value = $field_name . "_value";
+      if($new === NULL){
+        db_query("
+          DELETE FROM $revision_table r
+          INNER JOIN $data_table d ON d.entity_id = r.entity_id AND d.revision_id = r.revision_id
+          WHERE r.$field_value = :old
+        ", array(
+          ':new' => $new,
+          ':old' => $old
+        ));
+        db_query("
+          DELETE FROM $data_table
+          WHERE $field_value = :old
+        ", array(
+          ':old' => $old
+        ));
+      }else{
+        db_query("
+        UPDATE $revision_table r
+        INNER JOIN $data_table d ON d.entity_id = r.entity_id AND d.revsion_id = r.revision_id
+        SET r.$field_value = :new
+        WHERE r.$field_value = :old
+     ", array(
+          ':new' => $new,
+          ':old' => $old
+        ));
+        db_query("
+        UPDATE $data_table
+        SET $field_value = :new
+        WHERE $field_value = :old
+     ", array(
+          ':new' => $new,
+          ':old' => $old
+        ));
       }
     }
   }
