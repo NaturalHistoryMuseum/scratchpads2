@@ -189,7 +189,7 @@ function user_reference_feeds_processor_targets_alter(&$targets, $entity_type, $
  *   The value to map. Can be an array or a string.
  */
 function references_feeds_set_target($source, $entity, $target, $value) {
-  if (empty($value)) {
+  if (empty($value) || empty($value[key($value)])) {
     return;
   }
 

@@ -1,0 +1,13 @@
+diff --git a/references.feeds.inc b/references.feeds.inc
+index 4fb9db3..c5c2f70 100644
+--- a/references.feeds.inc
++++ b/references.feeds.inc
+@@ -189,7 +189,7 @@ function user_reference_feeds_processor_targets_alter(&$targets, $entity_type, $
+  *   The value to map. Can be an array or a string.
+  */
+ function references_feeds_set_target($source, $entity, $target, $value) {
+-  if (empty($value)) {
++  if (empty($value) || empty($value[key($value)])) {
+     return;
+   }
+ 
