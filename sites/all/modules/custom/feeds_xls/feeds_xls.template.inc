@@ -501,16 +501,16 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
     // Set the columnn width
     $sheet->getColumnDimension($column)->setAutoSize(TRUE);
     // Validation
-    if(isset($feeds_importer->processor->config['content_type']) || isset($feeds_importer->processor->config['vocabulary']) || ($feeds_importer->processor->id == 'user_importer_user')){
-      if(isset($feeds_importer->processor->config['content_type'])){
-        $bundle = $feeds_importer->processor->config['content_type'];
-        $entity_type = 'node';
-      }elseif(isset($feeds_importer->processor->config['vocabulary'])){
+    if(isset($feeds_importer->processor->config['bundle']) || isset($feeds_importer->processor->config['vocabulary']) || ($feeds_importer->processor->id == 'user_importer_user')){
+      if(isset($feeds_importer->processor->config['vocabulary'])){
         $bundle = $feeds_importer->processor->config['vocabulary'];
         $entity_type = 'taxonomy_term';
       }elseif($feeds_importer->processor->id == 'user_importer_user'){
         $bundle = 'user';
         $entity_type = 'user';
+      }else if(isset($feeds_importer->processor->config['bundle'])){
+        $bundle = $feeds_importer->processor->config['bundle'];
+        $entity_type = 'node';
       }
       if(strpos($header['target'], ':')){
         $temp_array = explode(':', $header['target']);
