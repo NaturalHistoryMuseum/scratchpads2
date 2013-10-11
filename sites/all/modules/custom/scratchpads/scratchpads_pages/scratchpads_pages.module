@@ -472,7 +472,13 @@ function scratchpads_pages_node_update($node){
         $node->menu['mlid'],
         'title'
       ), $language->language, $node->menu['link_title']);
+      i18n_string_textgroup('menu')->update_translation(array(
+        'item',
+        $node->menu['mlid'],
+        'description'
+      ), $language->language, $node->menu['description']);
       $original_menu = menu_link_load($node->menu['mlid']);
+      $node->menu['description'] = $original_menu['options']['attributes']['title'];
       $node->menu['link_title'] = $original_menu['link_title'];
     }
   }
