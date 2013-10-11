@@ -65,7 +65,7 @@ Read more about installing modules at http://drupal.org/node/70151
 CONFIGURING AND USING
 ---------------------
 1. Create a taxonomy vocabulary for each Lexicon.
-2. Go to admin/settings/lexicon.
+2. Go to admin/config/system/lexicon.
 3. Select the created taxonomy vocabularies you want to use as Lexicons.
 4. Set the desired behavior of the Lexicon module and save the configuration.
 5. Configure the alphabar and save the configuration.

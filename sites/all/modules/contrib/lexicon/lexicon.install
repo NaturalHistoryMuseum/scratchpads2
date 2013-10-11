@@ -9,20 +9,18 @@
  */
 function lexicon_requirements($phase) {
   $requirements = array();
-  // Ensure translations don't break at install time.
-  $t = get_t();
 
   // Check that php is compiled with ctype support.
   $requirements['ctype'] = array(
-    'title' => $t('Character type functions (ctype)'),
+    'title' => st('Character type functions (ctype)'),
   );
   if (function_exists('ctype_alnum')) {
-    $requirements['ctype']['value'] = $t('Enabled');
+    $requirements['ctype']['value'] = st('Enabled');
     $requirements['ctype']['severity'] = REQUIREMENT_OK;
   }
   else {
-    $requirements['ctype']['value'] = $t('Disabled');
-    $requirements['ctype']['description'] = $t('The Lexicon module requires that you configure PHP with --enable-ctype.');
+    $requirements['ctype']['value'] = st('Disabled');
+    $requirements['ctype']['description'] = st('The Lexicon module requires that you configure PHP with --enable-ctype.');
     $requirements['ctype']['severity'] = REQUIREMENT_ERROR;
   }
 
@@ -39,6 +37,7 @@ function lexicon_uninstall() {
 
   // Delete the settings for each Lexicon vocabulary.
   foreach ($vids as $vid) {
+    variable_del('lexicon_page_enabled_' . $vid);
     variable_del('lexicon_path_' . $vid);
     variable_del('lexicon_title_' . $vid);
     variable_del('lexicon_introduction_' . $vid);
@@ -57,6 +56,7 @@ function lexicon_uninstall() {
   variable_del('lexicon_go_to_top_link_fragment');
   variable_del('lexicon_local_links_scroll');
   variable_del('lexicon_page_per_letter');
+  variable_del('lexicon_page_show_all');
   variable_del('lexicon_separate_letters');
   variable_del('lexicon_allow_no_description');
   variable_del('lexicon_show_description');
