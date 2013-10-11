@@ -28,3 +28,27 @@ function scratchpads_vocabularies_schema(){
   );
   return $schema;
 }
+
+/**
+ * scratchpads_vocabularies_install
+ *
+ * Implementation of hook_install.
+ *
+ * Set the default vocabularies.
+ */
+function scratchpads_vocabularies_install(){
+  variable_set('scratchpads_vocabularies_ui_vocabularies', array(
+    'gbif_type_status' => array(
+      'title' => 'Gbif Type status',
+      'url' => 'http://rs.gbif.org/vocabulary/gbif/type_status.xml',
+      'field' => 'field_type_status',
+      'uid' => 1
+    ),
+    'gbif_basis_of_record' => array(
+      'title' => 'GBif basis of record',
+      'url' => 'http://rs.gbif.org/vocabulary/dwc/basis_of_record.xml',
+      'field' => 'field_basis_of_record',
+      'uid' => 1
+    )
+  ));
+}

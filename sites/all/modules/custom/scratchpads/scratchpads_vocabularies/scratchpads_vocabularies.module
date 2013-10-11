@@ -478,6 +478,20 @@ function _scratchpads_vocabularies_info_build($info){
 }
 
 /**
+ * hook_cron
+ *
+ * Regularly apply updates
+ */
+function scratchpads_vocabularies_cron(){
+  $period = variable_get('scratchpads_vocabularies_update_period', 60*60*24*7);
+  $last_run = variable_get('scratchpads_vocabularies_update_last_run', 0);
+  if (time() > ($last_run + $period)) {
+    scratchpads_vocabularies_process_updates();
+    variable_set('scratchpads_vocabularies_update_last_run', time());
+  }
+}
+
+/**
  * scratchpads_vocabularies_process_updates
  * 
  * This function gathers the information from hook_scratchpads_vocabulary_info,
