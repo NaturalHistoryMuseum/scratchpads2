@@ -12,6 +12,8 @@ require_once str_replace('receiver.inc', 'persistent.inc', __FILE__);
  * 
  * This class cannot be used directly, and must be extended by a
  * receiver class which must at least define:
+ * - function canUpgradeStructure which returns TRUE if it is possible
+ *   to upgrade to the given structure ;
  * 
  * - function structureInUse() which returns a ScratchpadsVocabularies\VocabularyStructure
  *   object representing the structure as it is currently in use on the site

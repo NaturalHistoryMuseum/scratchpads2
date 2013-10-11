@@ -369,7 +369,7 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
    */
   public function setUp(){
     // Include files
-    parent::setUp('scratchpads_vocabularies', 'list', 'entity');
+    parent::setUp('scratchpads_vocabularies', 'list', 'entity', 'views');
     module_load_include('receiver.inc', 'scratchpads_vocabularies', 'includes/selectfield');
     module_load_include('vocabulary.inc', 'scratchpads_vocabularies', 'tests/test');
   }
@@ -493,6 +493,9 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
       $this->{$subtest}($voc, $field, TRUE);
       $this->vocDataReset($voc, $field);
     }
+    // Now tests views get updated properly
+    $this->vocDataReset($voc, $field);
+    $this->subTestViews($voc, $field);
   }
 
   /**
@@ -504,6 +507,7 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
   protected function subTestAdd($voc, $field){
     // Now do a first upgrade. This will simply add some items
     $voc->testAdd();
+    $this->assertTrue($field->canUpgradeStructure($voc), "Ensure we can upgrade the structure for subTestAdd");
     $field->upgradeStructure($voc);
     $field->applyPendingUpdates();
     $field->applyModifications();
@@ -527,6 +531,7 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
    */
   protected function subTestRename($voc, $field){
     $voc->testRename();
+    $this->assertTrue($field->canUpgradeStructure($voc), "Ensure we can upgrade the structure for subTestRename");
     $field->upgradeStructure($voc);
     $field->applyPendingUpdates();
     $field->applyModifications();
@@ -548,6 +553,7 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
    */
   protected function subTestReparent($voc, $field){
     $voc->testReparent();
+    $this->assertTrue($field->canUpgradeStructure($voc), "Ensure we can upgrade the structure for subTestReparent");
     $field->upgradeStructure($voc);
     $field->applyPendingUpdates();
     $field->applyModifications();
@@ -570,6 +576,7 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
    */
   protected function subTestRemove1($voc, $field, $required = FALSE){
     $voc->testRemove();
+    $this->assertTrue($field->canUpgradeStructure($voc), "Ensure we can upgrade the structure for subTestRemove1");
     $field->upgradeStructure($voc);
     // Test structure update only
     $field->applyPendingUpdates();
@@ -612,6 +619,7 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
    */
   protected function subTestRemove2($voc, $field, $required = FALSE){
     $voc->testRemove2();
+    $this->assertTrue($field->canUpgradeStructure($voc), "Ensure we can upgrade the structure for subTestRemove2");
     $field->upgradeStructure($voc);
     // Test structure update only
     $field->applyPendingUpdates();
@@ -665,13 +673,16 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
   protected function subTestMerge($voc, $field){
     // Reset the vocabulary for this test
     $voc->testMergePrepare();
+    $this->assertTrue($field->canUpgradeStructure($voc), "Ensure we can upgrade the structure for subTestMerge(1)");
     $field->upgradeStructure($voc);
     $field->applyPendingUpdates();
     $field->applyModifications();
     // Now do two upgrades without applying anything
     $voc->testMergeStart();
+    $this->assertTrue($field->canUpgradeStructure($voc), "Ensure we can upgrade the structure for subTestMerge(2)");
     $field->upgradeStructure($voc);
     $voc->testMergeEnd();
+    $this->assertTrue($field->canUpgradeStructure($voc), "Ensure we can upgrade the structure for subTestMerge(3)");
     $field->upgradeStructure($voc);
     // And test we have something sensible at the end.
     $updates = $field->pendingUpdates();
@@ -799,13 +810,62 @@ class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
       }
     }
   }
+
+  /**
+   * subTestViews
+   *
+   * Test that a view using a field will prevent upgrade
+   */
+  private function subTestViews($voc, $field){
+    // Create a view
+    $view = new view();
+    $view->name = 'sub_test_views_view';
+    $view->description = '';
+    $view->tag = 'default';
+    $view->base_table = 'node';
+    $view->human_name = 'Sub test views view';
+    $view->core = 7;
+    $view->api_version = '3.0';
+    $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+    /* Display: Master */
+        $handler = $view->new_display('default', 'Master', 'default');
+    $handler->display->display_options['use_more_always'] = FALSE;
+    $handler->display->display_options['access']['type'] = 'perm';
+    $handler->display->display_options['cache']['type'] = 'none';
+    $handler->display->display_options['query']['type'] = 'views_query';
+    $handler->display->display_options['exposed_form']['type'] = 'basic';
+    $handler->display->display_options['pager']['type'] = 'full';
+    $handler->display->display_options['style_plugin'] = 'default';
+    $handler->display->display_options['row_plugin'] = 'fields';
+    /* Field: Content: Title */
+    $handler->display->display_options['fields']['title']['id'] = 'title';
+    $handler->display->display_options['fields']['title']['table'] = 'node';
+    $handler->display->display_options['fields']['title']['field'] = 'title';
+    $handler->display->display_options['fields']['title']['label'] = '';
+    $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+    $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+    /* Filter criterion: Content: testvals (field_testvals) */
+    $handler->display->display_options['filters']['field_test_selectfield_value']['id'] = 'field_test_selectfield_value';
+    $handler->display->display_options['filters']['field_test_selectfield_value']['table'] = 'field_data_field_test_selectfield';
+    $handler->display->display_options['filters']['field_test_selectfield_value']['field'] = 'field_test_selectfield_value';
+    $handler->display->display_options['filters']['field_test_selectfield_value']['value'] = array(
+      'initial:1' => 'initial:1',
+      'initial:2' => 'initial:2',
+      'initial:3' => 'initial:3'
+    );
+    $view->save();
+    // Run the test
+    $field->resetViewsList();
+    $voc->testRemove();
+    $this->assertFalse($field->canUpgradeStructure($voc), "Ensure that a view using a field prevents us from upgrading");
+  }
 }
 
 /**
  * ScratchpadsVocabulariesGbifXmlTestCase
  * 
  * This is a web test used to test the GbifXmlVocabulary implementation.
- * 
+ * XXX 'refresh' and 'description' are not tested.
  */
 class ScratchpadsVocabulariesGbifXmlTestCase extends DrupalWebTestCase{
 

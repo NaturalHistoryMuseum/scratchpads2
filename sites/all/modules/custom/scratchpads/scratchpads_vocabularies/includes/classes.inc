@@ -156,6 +156,16 @@ interface ReceiverInterface{
   public function structure();
 
   /**
+   * canUpgradeStructure
+   *
+   * Check whether this receiver can be upgraded to the given vocabulary.
+   * This should only return FALSE in cases where the site administrator
+   * cannot resolve the conflict - eg. applying the upgrade would
+   * require changing module code.
+   */
+  public function canUpgradeStructure(VocabularyInterface $vocabulary);
+
+  /**
    * upgradeStructure()
    *
    * Upgrade this receiver to the structure of the given vocabulary,

@@ -24,6 +24,8 @@ class SelectFieldReceiver extends VocabularyReceiver{
 
   private $field;
 
+  private $views = NULL;
+
   /**
    * __construct
    * 
@@ -152,6 +154,23 @@ class SelectFieldReceiver extends VocabularyReceiver{
     foreach($new_updates as $type => $items){
       $this->pendingUpdates[] = new VocabularyUpdate($type, $items);
     }
+  }
+
+  /**
+   * canUpgradeStructure
+   *
+   * Return FALSE if any view uses values that would get removed
+   */
+  public function canUpgradeStructure(VocabularyInterface $vocabulary){
+    $current = $this->structure();
+    $updated = $vocabulary->structure();
+    $updates = $current->updatesToUpgrade($updated);
+    foreach($updates as $update){
+      if($update->type() == VocabularyUpdate::T_REMOVE){
+        if($this->viewUsesValue($update)){return FALSE;}
+      }
+    }
+    return TRUE;
   }
 
   /**
@@ -332,5 +351,47 @@ class SelectFieldReceiver extends VocabularyReceiver{
       'id'
     );
     drupal_write_record('field_config', $this->field, $primary_key);
+  }
+
+  /**
+   * viewUsesValue
+   *
+   * Return TRUE if there are existing views that use any of the values in the given update
+   */
+  private function viewUsesValue($update){
+    $vfname = $this->field['field_name'] . '_value';
+    if($this->views === NULL){
+      $this->views = array();
+      $all_views = views_get_all_views();
+      foreach($all_views as $view){
+        foreach($view->display as $display_name => $display){
+          if(isset($display->display_options['filters'][$vfname]['value'])){
+            $this->views[$view->name]['view'] = $view;
+            $this->views[$view->name]['displays'][] = $display_name;
+          }
+        }
+      }
+    }
+    // Loop over the views
+    foreach($this->views as $name => $info){
+      $view = $info['view'];
+      $save = FALSE;
+      foreach($info['displays'] as $display){
+        foreach($update->items() as $id => $label){
+          if(isset($view->display[$display]->display_options['filters'][$vfname]['value'][$id])){return TRUE;}
+        }
+      }
+    }
+    return FALSE;
+  }
+
+  /**
+   * resetViewsList
+   *
+   * Reset the list of views in case it changes between two invocations on this
+   * field. This is mostly used for testing.
+   */
+  public function resetViewsList(){
+    $this->views = NULL;
   }
 }

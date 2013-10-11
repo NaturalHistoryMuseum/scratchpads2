@@ -471,21 +471,28 @@ function scratchpads_vocabularies_process_updates(){
  */
 function _scratchpads_vocabularies_update_vocabulary($vocabulary, $receiver, $status = TRUE){
   if($vocabulary->version() != $receiver->version()){
-    $receiver->upgradeStructure($vocabulary);
-    $receiver->applyPendingUpdates();
-    if(count($receiver->pendingUpdates())){
-      if(!$status){
-        drupal_set_message(t("Vocabulary '%name' (applied to receiver '%receiver') has some pending updates that require your attention.", array(
-          '%name' => $vocabulary->name(),
-          '%receiver' => $receiver->name()
-        )), 'warning');
-      }else{
-      }
-    }else if(!$status){
-      drupal_set_message(t("Vocabulary '%name' (applied to receiver '%receiver') was updated succefully.", array(
+    if(!$receiver->canUpgradeStructure($vocabulary)){
+      drupal_set_message(t("The uptade of vocabulary %name (applied to receiver %receiver) cannot be applied at this time - please contact your site Administrator.", array(
         '%name' => $vocabulary->name(),
         '%receiver' => $receiver->name()
       )), 'warning');
+    }else{
+      $receiver->upgradeStructure($vocabulary);
+      $receiver->applyPendingUpdates();
+      if(count($receiver->pendingUpdates())){
+        if(!$status){
+          drupal_set_message(t("Vocabulary '%name' (applied to receiver '%receiver') has some pending updates that require your attention.", array(
+            '%name' => $vocabulary->name(),
+            '%receiver' => $receiver->name()
+          )), 'warning');
+        }else{
+        }
+      }else if(!$status){
+        drupal_set_message(t("Vocabulary '%name' (applied to receiver '%receiver') was updated succefully.", array(
+          '%name' => $vocabulary->name(),
+          '%receiver' => $receiver->name()
+        )), 'warning');
+      }
     }
   }
 }
@@ -543,4 +550,39 @@ function _scratchpads_vocabularies_form_table($header, $rows){
     $odd = !$odd;
   }
   return $table;
+}
+
+/**
+ * Implements hook_scratchpads_data_integrity().
+ */
+function scratchpads_vocabularies_scratchpads_data_integrity(){
+  return array(
+    'scratchpads_vocabularies_check_for_failed_upgrades' => array(
+      'description' => t('Check for vocabulary upgrades that could not be applied')
+    )
+  );
+}
+
+/**
+ * Data integrity check: ensure no upgrades are failing
+ */
+function scratchpads_vocabularies_check_for_failed_upgrades(){
+  $messages = array();
+  module_load_include('inc', 'scratchpads_vocabularies', 'includes/classes');
+  $all_info = module_invoke_all('scratchpads_vocabulary_info');
+  foreach($all_info as $info){
+    list($vocabulary, $receiver) = _scratchpads_vocabularies_info_build($info);
+    if(!$vocabulary || !$receiver){
+      continue;
+    }
+    if($vocabulary->version() != $receiver->version()){
+      if(!$receiver->canUpgradeStructure($vocabulary)){
+        $messages[] = t("It was not possible to upgrade vocabulary %name (applied to receiver %receiver) as it requires changes to Views", array(
+          '%name' => $vocabulary->name(),
+          '%receiver' => $receiver->name()
+        ));
+      }
+    }
+  }
+  return $messages;
 }
