@@ -115,7 +115,7 @@ function feeds_term_reference_feeds_set_target(FeedsSource $source, $entity, $ta
       if($info['cardinality'] == 1){
         break;
       }
-      $i++;
     }
+    $i++;
   }
 }
