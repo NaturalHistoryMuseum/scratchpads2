@@ -1329,6 +1329,7 @@ function scratchpads_tweaks_update_7067(&$sandbox){
         }
       }
     }
+    $i++;
   }
   $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['entities'])) / $sandbox['max'];
 }
