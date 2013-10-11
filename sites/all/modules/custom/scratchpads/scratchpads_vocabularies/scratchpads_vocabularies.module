@@ -201,7 +201,8 @@ function scratchpads_vocabularies_theme($existing, $type, $theme, $path){
         'label' => NULL,
         'description' => NULL,
         'relation' => NULL,
-        'uri' => NULL
+        'uri' => NULL,
+        'wiki' => NULL
       ),
       'path' => $path . '/theme',
       'template' => 'scratchpads_vocabularies_gbif_term'
@@ -633,7 +634,6 @@ function scratchpads_vocabularies_info_page($info_id){
   if(!$vocabulary || !$receiver){return array(
       '#markup' => t('There was an error loading the mapping')
     );}
-  $vocabulary->refresh(); // Ensure we re-fetch any data
   drupal_add_css(drupal_get_path('module', 'scratchpads_vocabularies') . '/theme/scratchpads_vocabularies.css', 'file');
   drupal_set_title($info['title']);
   $out = '<div class="scratchpads-vocabularies-info-page">';

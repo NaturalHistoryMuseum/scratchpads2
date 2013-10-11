@@ -190,6 +190,15 @@ class GbifXmlVocabulary extends Persistent implements VocabularyInterface{
         $info['label'] = $info['terms']['en']['title'];
         t($info['label']); // Pity we can't easily provide the translations, as we have them at hand!
       }
+      // See if we can find the wiki link
+      $info['wiki'] = '';
+      if (isset($info['uri']) && preg_match('%([^/]+)/([^/]+)$%', $info['uri'], $matches)) {
+        $wiki = 'http://terms.gbif.org/wiki/' . $matches[1] . ':' . $matches[2];
+        $headers = @get_headers($wiki);
+        if (strpos($headers[0], '200') !== FALSE) {
+          $info['wiki'] = $wiki;
+        }
+      }
       $info['render'] = theme('scratchpads_vocabularies_gbif_term', $info);
       $items[$info['id']] = $info['label'];
       $item_data[$info['id']] = $info;
