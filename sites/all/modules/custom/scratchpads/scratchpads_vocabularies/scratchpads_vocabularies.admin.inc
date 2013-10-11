@@ -45,7 +45,10 @@ function scratchpads_vocabularies_admin_list($form, &$form_state){
       l(t('Manage'), 'admin/config/services/vocabularies/' . $info_id)
     );
     if(isset($our_vocs[$info_id])){
-      $operations[] = l(t('Delete'), 'admin/config/services/vocabularies/' . $info_id . '/delete');
+      global $user;
+      if(user_access('delete any vocabulary mapping') || (!empty($our_vocs[$info_id]['uid']) && $our_vocs[$info_id]['uid'] == $user->uid)){
+        $operations[] = l(t('Delete'), 'admin/config/services/vocabularies/' . $info_id . '/delete');
+      }
     }
     $rows[] = array(
       t('Map from %source to %destination', array(
@@ -58,36 +61,38 @@ function scratchpads_vocabularies_admin_list($form, &$form_state){
   }
   $output['list'] = _scratchpads_vocabularies_form_table($header, $rows);
   // Option for a new entry
-  $output['new_vocabulary'] = array(
-    '#type' => 'fieldset',
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#title' => t('Add new')
-  );
-  $output['new_vocabulary']['new_vocabulary_title'] = array(
-    '#title' => t('Title'),
-    '#description' => t('The title for this mapping'),
-    '#type' => 'textfield',
-    '#default_value' => ''
-  );
-  $output['new_vocabulary']['new_vocabulary_url'] = array(
-    '#title' => t('Source'),
-    '#description' => t('A URL to a valid GBIF XML vocabulary'),
-    '#type' => 'textfield',
-    '#default_value' => '',
-    '#field_prefix' => 'http://'
-  );
-  $output['new_vocabulary']['new_vocabulary_field'] = array(
-    '#title' => t('Destination'),
-    '#description' => t('Select a List (text) field to receive the vocabulary. <strong>Warning:</strong> using this will change the allowed values of your field.'),
-    '#type' => 'select',
-    '#options' => $field_options
-  );
-  $output['new_vocabulary']['save'] = array(
-    '#type' => 'submit',
-    '#value' => 'Save',
-    '#name' => 'add_new'
-  );
+  if(user_access('add vocabulary mappings')){
+    $output['new_vocabulary'] = array(
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#title' => t('Add new')
+    );
+    $output['new_vocabulary']['new_vocabulary_title'] = array(
+      '#title' => t('Title'),
+      '#description' => t('The title for this mapping'),
+      '#type' => 'textfield',
+      '#default_value' => ''
+    );
+    $output['new_vocabulary']['new_vocabulary_url'] = array(
+      '#title' => t('Source'),
+      '#description' => t('A URL to a valid GBIF XML vocabulary'),
+      '#type' => 'textfield',
+      '#default_value' => '',
+      '#field_prefix' => 'http://'
+    );
+    $output['new_vocabulary']['new_vocabulary_field'] = array(
+      '#title' => t('Destination'),
+      '#description' => t('Select a List (text) field to receive the vocabulary. <strong>Warning:</strong> using this will change the allowed values of your field.'),
+      '#type' => 'select',
+      '#options' => $field_options
+    );
+    $output['new_vocabulary']['save'] = array(
+      '#type' => 'submit',
+      '#value' => 'Save',
+      '#name' => 'add_new'
+    );
+  }
   return $output;
 }
 
@@ -104,35 +109,43 @@ function scratchpads_vocabularies_admin_list_validate($form, &$form_state){
     $values = & $form_state['values'];
   }
   if($tr['#name'] == 'add_new'){
-    $field_options = _scratchpads_vocabularies_available_fields();
-    if(empty($values['new_vocabulary_title'])){
-      form_set_error('new_vocabulary_title', t('The title is required'));
-    }
-    if(empty($values['new_vocabulary_url'])){
-      form_set_error('new_vocabulary_url', t('The URL is required'));
+    if(!user_access('add vocabulary mappings')){
+      form_set_error('new_vocabulary_title', t("You do not have permission to add new vocabularies"));
     }else{
-      $url = 'http://' . preg_replace('/^(http:)?\/+/', '', $values['new_vocabulary_url']);
-      $voc_failed = FALSE;
-      try{
-        $xml = new ScratchpadsVocabularies\GbifXmlVocabulary($url);
+      $field_options = _scratchpads_vocabularies_available_fields();
+      if(empty($values['new_vocabulary_title'])){
+        form_set_error('new_vocabulary_title', t('The title is required'));
       }
-      catch(Exception $e){
-        form_set_error('new_vocabulary_url', "This does not seem to be a valid GBif XML file. Error message: " . $e->getMessage());
-        $voc_failed = TRUE;
+      if(empty($values['new_vocabulary_url'])){
+        form_set_error('new_vocabulary_url', t('The URL is required'));
+      }else{
+        $url = 'http://' . preg_replace('/^(http:)?\/+/', '', $values['new_vocabulary_url']);
+        $voc_failed = FALSE;
+        try{
+          $xml = new ScratchpadsVocabularies\GbifXmlVocabulary($url);
+        }
+        catch(Exception $e){
+          form_set_error('new_vocabulary_url', "This does not seem to be a valid GBif XML file. Error message: " . $e->getMessage());
+          $voc_failed = TRUE;
+        }
+        try{
+          $test_field = new ScratchpadsVocabularies\SelectFieldReceiver($values['new_vocabulary_field']);
+        }
+        catch(Exception $e){
+          form_set_error('new_vocabulary_field', "It was not possible to use this field. Error message: " . $e->getMessage());
+          $voc_failed = TRUE;
+        }
+        if($test_field->persistentPropertiesExist() && !user_access('delete any vocabulary mapping')){
+          form_set_error('new_vocabulary_field', "This field is already in use and you do not have permission to delete fields");
+          $voc_failed = TRUE;
+        }
+        if(!$voc_failed){
+          $values['new_vocabulary_url'] = $url;
+        }
       }
-      try{
-        $test_field = new ScratchpadsVocabularies\SelectFieldReceiver($values['new_vocabulary_field']);
+      if(!in_array($values['new_vocabulary_field'], $field_options)){
+        form_set_error('new_vocabulary_field', t('The field must be one of the available fields for which there isn\'t already a mapping'));
       }
-      catch(Exception $e){
-        form_set_error('new_vocabulary_field', "It was not possible to use this field. Error message: " . $e->getMessage());
-        $voc_failed = TRUE;
-      }
-      if(!$voc_failed){
-        $values['new_vocabulary_url'] = $url;
-      }
-    }
-    if(!in_array($values['new_vocabulary_field'], $field_options)){
-      form_set_error('new_vocabulary_field', t('The field must be one of the available fields for which there isn\'t already a mapping'));
     }
   }else if($tr['#name'] != 'all_updates' && empty($tr['#view_pending_updates'])){
     form_set_error($tr['#name'], 'An invalid option was selected. Please refresh the form and try again.');
@@ -172,10 +185,12 @@ function scratchpads_vocabularies_admin_list_submit($form, &$form_state){
       $count++;
       $final_id = $id . $count;
     }
+    global $user;
     $our_vocs[$final_id] = array(
       'title' => $values['new_vocabulary_title'],
       'url' => $values['new_vocabulary_url'],
-      'field' => $values['new_vocabulary_field']
+      'field' => $values['new_vocabulary_field'],
+      'uid' => $user->uid
     );
     variable_set('scratchpads_vocabularies_ui_vocabularies', $our_vocs);
     drupal_set_message(t('New mapping was added'), 'info');
@@ -236,7 +251,7 @@ function scratchpads_vocabularies_admin_form($form, &$form_state){
     ))
   );
   $our_vocs = variable_get('scratchpads_vocabularies_ui_vocabularies', array());
-  if($vocabulary->version() != $receiver->version()){
+  if($vocabulary->version() != $receiver->version() && user_access('update vocabularies')){
     $form['voc_gen']['updatemsg'] = array(
       '#markup' => '<strong class="vocabularies_status">' . t('A new version of this vocabulary is available') . '</strong>'
     );
@@ -246,15 +261,18 @@ function scratchpads_vocabularies_admin_form($form, &$form_state){
       '#update_voc_id' => $info_id
     );
   }
-  if(count($receiver->pendingUpdates())){
+  if(count($receiver->pendingUpdates()) && user_access('update vocabularies')){
     $form['voc_gen']['updates'] = array(
       '#markup' => l(t('Updates'), 'admin/config/services/vocabularies/' . $info_id . '/updates')
     );
   }
   if(isset($our_vocs[$info_id])){
-    $form['voc_gen']['delete'] = array(
-      '#markup' => l(t('Delete'), 'admin/config/services/vocabularies/' . $info_id . '/delete')
-    );
+    global $user;
+    if(user_access('delete any vocabulary mapping') || (!empty($our_vocs[$info_id]['uid']) && $our_vocs[$info_id]['uid'] == $user->uid)){
+      $form['voc_gen']['delete'] = array(
+        '#markup' => l(t('Delete'), 'admin/config/services/vocabularies/' . $info_id . '/delete')
+      );
+    }
   }
   // Items tab
   $form['voc_items'] = array(
@@ -334,6 +352,12 @@ function scratchpads_vocabularies_delete_form_submit($form, &$form_state){
     drupal_set_message(t('Could not delete unknown vocabulary mapping %voc', array(
       '%voc' => $info_id
     )));
+    drupal_goto('admin/config/services/vocabularies');
+    return;
+  }
+  global $user;
+  if(!user_access('delete any vocabulary mapping') && (empty($our_vocs[$info_id]['uid']) || $our_vocs[$info_id]['uid'] != $user->uid)){
+    drupal_set_message(t('You do not have permission to delete this vocabulary'));
     drupal_goto('admin/config/services/vocabularies');
     return;
   }

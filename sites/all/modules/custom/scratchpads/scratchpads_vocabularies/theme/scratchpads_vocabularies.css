@@ -69,3 +69,12 @@ div.scratchpads-vocabularies-field-info div.scratchpads-vocabularies-term-other 
   margin-left: 0;
   padding-left: 10px;
 }
+
+div.scratchpads-vocabularies-info-page div.scratchpads-vocabularies-term-label {
+  font-size: 1.1em;
+  font-weight: bold;
+}
+div.scratchpads-vocabularies-info-page div.scratchpads-vocabularies-term-other {
+  margin-left: 32px;
+  margin-bottom: 1em;
+}

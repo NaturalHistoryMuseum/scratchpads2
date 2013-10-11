@@ -16,7 +16,7 @@ function scratchpads_vocabularies_menu(){
       ),
       'file' => 'scratchpads_vocabularies.admin.inc',
       'access arguments' => array(
-        'manage vocabularies'
+        'update vocabularies'
       )
     ),
     'admin/config/services/vocabularies/%' => array(
@@ -29,7 +29,7 @@ function scratchpads_vocabularies_menu(){
       ),
       'file' => 'scratchpads_vocabularies.admin.inc',
       'access arguments' => array(
-        'manage vocabularies'
+        'update vocabularies'
       )
     ),
     'admin/config/services/vocabularies/%/manage' => array(
@@ -42,7 +42,7 @@ function scratchpads_vocabularies_menu(){
       ),
       'file' => 'scratchpads_vocabularies.admin.inc',
       'access arguments' => array(
-        'manage vocabularies'
+        'update vocabularies'
       )
     ),
     'admin/config/services/vocabularies/%/updates' => array(
@@ -54,7 +54,7 @@ function scratchpads_vocabularies_menu(){
       ),
       'file' => 'scratchpads_vocabularies.admin.inc',
       'access arguments' => array(
-        'manage vocabularies'
+        'update vocabularies'
       )
     ),
     'admin/config/services/vocabularies/%/delete' => array(
@@ -67,7 +67,18 @@ function scratchpads_vocabularies_menu(){
       ),
       'file' => 'scratchpads_vocabularies.admin.inc',
       'access arguments' => array(
-        'manage vocabularies'
+        'update vocabularies'
+      )
+    ),
+    'vocabularies/info/%' => array(
+      'title' => t('Vocabulary'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'scratchpads_vocabularies_info_page',
+      'page arguments' => array(
+        2
+      ),
+      'access arguments' => array(
+        'view vocabularies'
       )
     )
   );
@@ -122,14 +133,27 @@ function scratchpads_vocabularies_modification_form_submit($form, &$form_state){
 
 /**
  * scratchpads_vocabularies_permission
- * 
+ *
  * Implement hook_permission
+ *
+ * XXX This could be refined - in particular we
+ * could differentiate 'update own vocabularies'
+ * and 'update any vocabulary'. However as it is now
+ * covers current use cases.
  */
 function scratchpads_vocabularies_permission(){
   return array(
-    'manage vocabularies' => array(
-      'title' => t('Manage Vocabularies'),
-      'description' => t('View and apply pending updates to vocabularies')
+    'view vocabularies' => array(
+      'title' => t('View vocabulary mappings')
+    ),
+    'add vocabulary mappings' => array(
+      'title' => t('Add vocabulary mappings')
+    ),
+    'delete any vocabulary mapping' => array(
+      'title' => t('Delete all vocabulary mappings')
+    ),
+    'update vocabularies' => array(
+      'title' => t('Update Vocabularies')
     )
   );
 }
@@ -142,7 +166,15 @@ function scratchpads_vocabularies_permission(){
 function scratchpads_vocabularies_scratchpads_default_permissions(){
   return array(
     'maintainer' => array(
-      'manage vocabularies'
+      'view vocabularies',
+      'update vocabularies',
+      'add vocabulary mappings'
+    ),
+    'contributor' => array(
+      'view vocabularies'
+    ),
+    'editor' => array(
+      'view vocabularies'
     )
   );
 }
@@ -302,7 +334,7 @@ function scratchpads_vocabularies_field_widget_form_alter(&$element, &$form_stat
       $field_name,
       $element['#language']
     );
-    $subform['#description'] = check_plain($vocabulary->name()) . ' (' . l(t('more information'), 'admin/config/services/vocabularies/' . $voc_id) . ')'; //$vocabulary->description();
+    $subform['#description'] = check_plain($vocabulary->name()) . ' (' . l(t('more information'), 'vocabularies/info/' . $voc_id) . ')';
     // Generate the vocabulary info
     if(isset($form_state['values'][$field_name])){
       $selected = $form_state['values'][$field_name][$element['#language']][0]['value'];
@@ -585,4 +617,29 @@ function scratchpads_vocabularies_check_for_failed_upgrades(){
     }
   }
   return $messages;
+}
+
+/**
+ * scratchpads_vocabularies_info_page
+ */
+function scratchpads_vocabularies_info_page($info_id){
+  $all_info = module_invoke_all('scratchpads_vocabulary_info');
+  if(!isset($all_info[$info_id])){
+    drupal_not_found();
+    return;
+  }
+  $info = $all_info[$info_id];
+  list($vocabulary, $receiver) = _scratchpads_vocabularies_info_build($info);
+  if(!$vocabulary || !$receiver){return array(
+      '#markup' => t('There was an error loading the mapping')
+    );}
+  $vocabulary->refresh(); // Ensure we re-fetch any data
+  drupal_add_css(drupal_get_path('module', 'scratchpads_vocabularies') . '/theme/scratchpads_vocabularies.css', 'file');
+  drupal_set_title($info['title']);
+  $out = '<div class="scratchpads-vocabularies-info-page">';
+  $out .= "<h3>" . $vocabulary->name() . "</h3>";
+  $out .= "<p>" . $vocabulary->description() . "</p>";
+  $out .= $receiver->structure()->render();
+  $out .= '</div>';
+  return $out;
 }
