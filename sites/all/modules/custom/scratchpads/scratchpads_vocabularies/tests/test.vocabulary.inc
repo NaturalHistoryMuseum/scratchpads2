@@ -207,4 +207,12 @@ class TestVocabulary implements VocabularyInterface{
   function structure(){
     return new VocabularyStructure($this->structure, $this->itemData);
   }
+
+  function description(){
+    return 'Test Vocabulary description';
+  }
+
+  function refresh(){
+    /*NO OP*/
+  }
 }
