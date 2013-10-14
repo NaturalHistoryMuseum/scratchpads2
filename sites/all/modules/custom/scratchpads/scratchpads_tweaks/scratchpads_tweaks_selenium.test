@@ -61,6 +61,8 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $maintainer_permissions[] = 'access content';
     $maintainer_permissions[] = 'view the administration theme';
     $maintainer_permissions[] = 'access content overview';
+    $maintainer_permissions[] = 'access form flows';
+    $maintainer_permissions[] = 'access dashboard';
     $this->maintainer = $this->drupalCreateUserWithName($maintainer_permissions, 'maintainer_name');
     legal_save_accept(1, 1, 'en', $this->maintainer->uid);
     // Editor
