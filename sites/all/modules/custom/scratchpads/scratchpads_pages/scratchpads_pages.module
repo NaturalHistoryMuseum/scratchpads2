@@ -136,9 +136,17 @@ function scratchpads_pages_node_type_form_submit($form, $form_state){
  */
 function scratchpads_pages_form_node_form_alter(&$form, $form_state){
   $display_settings = scratchpads_pages_variable_get('scratchpads_pages_display');
-  $type = $form['#node']->type;
+  if(!empty($form['menu']['link']['mlid']['#value'])){
+    global $language;
+    if(($translated_title = _i18n_menu_link_title($form['#node']->menu, $language->language)) != ''){
+      $form['menu']['link']['link_title']['#default_value'] = $translated_title;
+    }
+    if(($translated_description = _i18n_menu_link_description($form['#node']->menu, $language->language)) != ''){
+      $form['menu']['link']['description']['#default_value'] = $translated_description;
+    }
+  }
   // If this is page display type, force providing a menu link
-  if(isset($display_settings[$type]) && $display_settings[$type] == 'page'){
+  if(isset($display_settings[$form['#node']->type]) && $display_settings[$form['#node']->type] == 'page'){
     // Don't do this on edit pages, as the menu item should already be set.
     if(arg(2) != 'edit'){
       $form['menu']['enabled']['#default_value'] = 1;
