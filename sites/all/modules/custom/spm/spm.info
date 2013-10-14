@@ -84,4 +84,5 @@ project status url = "http://modules.scratchpads.eu/"
 scripts[] = js/spm_config.js
 stylesheets[all][] = css/spm.css
 project status url = "http://modules.scratchpads.eu/"
-files[] = spm.test
+files[] = tests/spm.test
+files[] = tests/spm.selenium.test
