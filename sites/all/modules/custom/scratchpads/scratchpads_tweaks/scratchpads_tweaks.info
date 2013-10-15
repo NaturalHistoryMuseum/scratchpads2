@@ -94,7 +94,6 @@ dependencies[] = scratchpads_taxonomic_name_field
 dependencies[] = scratchpads_twitter
 dependencies[] = scratchpads_user
 dependencies[] = scratchpads_width_and_height
-dependencies[] = scratchpads_vocabularies
 
 ; Custom modules
 dependencies[] = biblio_refbank
