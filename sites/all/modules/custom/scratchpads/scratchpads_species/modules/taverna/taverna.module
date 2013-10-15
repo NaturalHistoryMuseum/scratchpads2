@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function taverna_block_info(){
+  return array(
+    'default' => array(
+      'info' => t('Taverna Ecological Niche Modelling Species Page Block'),
+      'cache' => DRUPAL_CACHE_PER_PAGE,
+      // FIXME - Does the following URL make sense for a Taverna player?
+      'pages' => 'taxonomy/term/*/descriptions',
+      'visibility' => BLOCK_VISIBILITY_LISTED,
+      'status' => 1,
+      'region' => 'content',
+      'weight' => 100
+    )
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function taverna_block_view($delta = ''){
+  switch($delta){
+    default:
+  }
+  return array();
+}
