@@ -279,7 +279,7 @@ function darwincore_update_7014(){
  * We are going to update fields on (potentially) all entities, so we won't be using
  * the entity API but changing the database directly to avoid timeouts.
  */
-function darwincore_update_7015(){
+function darwincore_update_7016(){
   module_load_include('features.field.inc', 'darwincore');
   $definitions = darwincore_field_default_fields();
   // See #3185 for the map
@@ -334,6 +334,12 @@ function darwincore_update_7015(){
       'not stated' => NULL
     )
   );
+  $stats = array(
+    'rev_deleted' => 0,
+    'data_deleted' => 0,
+    'rev_updated' => 0,
+    'data_updated' => 0
+  );
   foreach($map as $field_name => $map){
     // Change the field definition
     $field = field_info_field($field_name);
@@ -354,39 +360,45 @@ function darwincore_update_7015(){
       $revision_table = "{field_revision_" . $field_name . "}";
       $field_value = $field_name . "_value";
       if($new === NULL){
-        db_query("
-          DELETE FROM $revision_table r
+        $result = db_query("
+          DELETE r.* FROM $revision_table r
           INNER JOIN $data_table d ON d.entity_id = r.entity_id AND d.revision_id = r.revision_id
-          WHERE r.$field_value = :old
+          WHERE BINARY r.$field_value = :old
         ", array(
-          ':new' => $new,
           ':old' => $old
         ));
-        db_query("
+        $stats['rev_deleted'] += $result->rowCount();
+        $result = db_query("
           DELETE FROM $data_table
-          WHERE $field_value = :old
+          WHERE BINARY $field_value = :old
         ", array(
           ':old' => $old
         ));
+        $stats['data_deleted'] += $result->rowCount();
       }else{
-        db_query("
+        $result = db_query("
         UPDATE $revision_table r
-        INNER JOIN $data_table d ON d.entity_id = r.entity_id AND d.revsion_id = r.revision_id
+        INNER JOIN $data_table d ON d.entity_id = r.entity_id AND d.revision_id = r.revision_id
         SET r.$field_value = :new
-        WHERE r.$field_value = :old
+        WHERE BINARY r.$field_value = :old
      ", array(
           ':new' => $new,
           ':old' => $old
         ));
+        $stats['rev_updated'] += $result->rowCount();
         db_query("
         UPDATE $data_table
         SET $field_value = :new
-        WHERE $field_value = :old
+        WHERE BINARY $field_value = :old
      ", array(
           ':new' => $new,
           ':old' => $old
         ));
+        $stats['data_updated'] += $result->rowCount();
       }
     }
   }
+  cache_clear_all();
+  var_dump($stats);
+  return t("Number of field revisions that were deleted: @rev_deleted ; Number of field entries that were deleted: @data_deleted ; Number of of field revisions that were updated: @rev_updated ; Number of field entries that were updated: @data_updated", $stats);
 }
