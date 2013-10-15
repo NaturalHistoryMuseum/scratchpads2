@@ -24,6 +24,15 @@ function taverna_block_info(){
 function taverna_block_view($delta = ''){
   switch($delta){
     default:
+      // 157.140.126.157
+      return array(
+        'subject' => t('Taverna : Ecological Niche Modelling'),
+        'content' => array(
+          'iframe' => array(
+            '#markup' => '<iframe src="http://157.140.126.157/" width="100%" height="600px"/>'
+          )
+        )
+      );
   }
   return array();
 }
