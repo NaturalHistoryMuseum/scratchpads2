@@ -466,7 +466,7 @@ function silver_pages_excel_form(){
   $entity_info = entity_get_info('node');
   foreach($entity_info['bundles'] as $node_type => $node_type_info){
     if(!in_array($node_type, variable_get('silver_restricted_node_types', array(
-      'biblio',
+      //'biblio',
       'media_gallery'
     )))){
       $content_types['node_importer_' . $node_type] = $node_type_info['label'];
