@@ -3,3 +3,7 @@ description = "Tools for using the Natural History Museum's Dictionary of UK spe
 core = "7.x"
 package = "BioBlitz"
 dependencies[] = "species_dictionary_importer"
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = species_dictionary

@@ -22,7 +22,7 @@ function feeds_tamper_country_to_code_form($importer, $element_key, $settings) {
   return $form;
 }
 
-function feeds_tamper_country_to_code_callback($result, $item_key, $element_key, &$field, $settings) {
+function feeds_tamper_country_to_code_callback($result, $item_key, $element_key, &$field, $settings, $source) {
   include_once DRUPAL_ROOT . '/includes/locale.inc';
   static $countries = array();
 
@@ -32,7 +32,7 @@ function feeds_tamper_country_to_code_callback($result, $item_key, $element_key,
     $countries = array_flip($countries);
   }
 
-  //Trim whitespace, set to lowercase.
+  // Trim whitespace, set to lowercase.
   $country = t(drupal_strtolower(trim($field)));
   if (isset($countries[$country])) {
     $field = $countries[$country];
@@ -43,6 +43,9 @@ function feeds_tamper_country_to_code_callback($result, $item_key, $element_key,
   }
 }
 
+/**
+ * Callback for array_walk().
+ */
 function _feeds_tamper_country_to_code_strtolower(&$word) {
   $word = drupal_strtolower($word);
 }

@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * @file
+ * Test case for multilingual string
+ */
+
+/**
+ * Class for testing i18n_string and modules using these features
+ *
+ * Tests basic API functions
+ */
+
+
+class i18nStringTestCase extends Drupali18nTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'String translation API',
+      'group' => 'Internationalization',
+      'description' => 'User defined strings translation functions'
+    );
+  }
+
+  function setUp() {
+    // We can use any of the modules that define a text group, to use it for testing
+    parent::setUp('i18n_string', 'i18n_menu');
+    parent::setUpLanguages();
+    $this->translator = $this->drupalCreateUser(array('translate interface', 'translate user-defined strings'));
+  }
+
+  /**
+   * Test base i18n_string API
+   */
+  function testStringsAPI() {
+    // Create a bunch of strings for all languages
+    $textgroup = 'menu';
+    $strings = $this->stringCreateArray(2);
+    $translations = array();
+    // Save source strings and store translations
+    foreach ($strings as $key => $string) {
+      $name = "$textgroup:item:$key:title";
+      i18n_string_update($name, $string);
+      $translations[$key] = $this->createStringTranslation($textgroup, $string);
+    }
+    // Reset cache for text group
+    i18n_string_textgroup($textgroup)->cache_reset();
+    // Check translations using the API
+    foreach ($this->getOtherLanguages() as $language) {
+      foreach ($strings as $key => $value) {
+        $name = "$textgroup:item:$key:title";
+        $translation = i18n_string_translate($name, 'NOT FOUND', array('langcode' => $language->language));
+        $this->assertEqual($translation, $translations[$key][$language->language], "The right $language->name ($language->language) translation has been retrieved for $name, $translation");
+      }
+    }
+  }
+
+  /**
+   * Create strings for all languages
+   */
+  public static function stringCreateAll($number = 10, $length = 100) {
+    foreach (language_list() as $lang => $language) {
+      $strings[$lang] = self::stringCreateArray($number, $length);
+    }
+    return $strings;
+  }
+  /**
+   * Create a bunch of random strings to test the API
+   */
+  public static function stringCreateArray($number = 10, $length = 100) {
+    for ($i=1 ; $i <= $number ; $i++) {
+      $strings[$i] = self::randomName($length);
+    }
+    return $strings;
+  }
+  /**
+   * Create and store one translation into the db
+   */
+  public static function stringCreateTranslation($name, $lang, $length = 20) {
+    $translation = $this->randomName($length);
+    if (self::stringSaveTranslation($name, $lang, $translation)) {
+      return $translation;
+    }
+  }
+  /**
+   * Translate one string into the db
+   */
+  public static function stringSaveTranslation($name, $lang, $translation) {
+    list($textgroup, $context) = i18n_string_context($name);
+    return i18n_string_textgroup($textgroup)->update_translation($context, $lang, $translation);
+  }
+}

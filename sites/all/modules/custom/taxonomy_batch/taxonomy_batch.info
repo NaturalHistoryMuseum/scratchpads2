@@ -2,3 +2,6 @@ name = Taxonomy batch
 description = Allows for the deletion of large taxonomy vocabularies or branches by using the Batch API.
 core = 7.x
 dependencies[] = taxonomy
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = taxonomy_batch

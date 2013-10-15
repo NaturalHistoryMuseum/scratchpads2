@@ -5,3 +5,6 @@ core = 7.x
 dependencies[] = biblio
 dependencies[] = facetapi
 dependencies[] = taxonomy_formatter
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_taxonomic_name_field

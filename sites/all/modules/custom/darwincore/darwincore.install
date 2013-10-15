@@ -272,3 +272,18 @@ function darwincore_update_7014(){
   field_update_instance($fields['node-specimen_observation-field_collector']['field_instance']);
   field_update_instance($fields['node-specimen_observation-field_identified_by']['field_instance']);
 }
+
+/**
+ * Enable the auto_entitylabel module
+ */
+function darwincore_update_7015(){
+  module_enable(array(
+    'auto_entitylabel'
+  ));
+  module_disable(array(
+    'auto_nodetitle'
+  ), FALSE);
+  drupal_uninstall_modules(array(
+    'auto_nodetitle'
+  ), FALSE);
+}

@@ -132,7 +132,7 @@ function silver_feeds_importer_default(){
       'import_on_create' => TRUE,
       'process_in_background' => FALSE
     );
-    if(auto_nodetitle_get_setting($node_type) != AUTO_NODETITLE_ENABLED){
+    if(function_exists('auto_entitylabel_get_setting') && auto_entitylabel_get_setting($node_type) != AUTO_ENTITYLABEL_ENABLED){
       $feeds_importer->config['processor']['config']['mappings'][] = array(
         'source' => 'Title',
         'target' => 'title',

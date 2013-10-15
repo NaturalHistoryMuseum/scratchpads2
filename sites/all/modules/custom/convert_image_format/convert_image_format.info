@@ -4,3 +4,6 @@ package = Media
 core = 7.x
 dependencies[] = imagecache_actions
 dependencies[] = image
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = convert_image_format

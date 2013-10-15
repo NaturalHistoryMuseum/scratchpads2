@@ -46,7 +46,7 @@ function eolapi_data_objects($id, $tid, $age = 604800){
   if(is_object($id)){
     // We have been passed an object rather than an ID.  This has most likely
     // come from an EOL page, and therefore needs saving.
-    // We tweak this object to look IDENTICAL to the object that we would 
+    // We tweak this object to look IDENTICAL to the object that we would
     // obtain if using the eolapi_get() function.
     $row = db_select('eolapi', 'e')->condition('label', $id->identifier)->fields('e')->orderBy('changed', 'DESC')->execute()->fetch();
     if($row){
@@ -73,8 +73,9 @@ function eolapi_data_objects($id, $tid, $age = 604800){
     $eolapi->rating = $id->dataRating;
     $eolapi->label = $id->identifier;
     $eolapi->data = serialize($id);
+    $lang = field_language('eolapi', $eolapi, 'eolapi_taxonomy');
     $eolapi->eolapi_taxonomy = array(
-      'und' => array(
+      $lang => array(
         array(
           'tid' => $tid
         )
@@ -111,8 +112,9 @@ function eolapi_data_objects($id, $tid, $age = 604800){
     $file->height = $details['height'];
     $file->filename = $eolapi->eid . '-' . $eolapi->erid . '.' . $details['extension'];
     file_save($file);
+    $lang = field_language('eolapi', $eolapi, 'eolapi_image');
     $eolapi->eolapi_image = array(
-      'und' => array(
+      $lang => array(
         (array)$file
       )
     );
@@ -138,7 +140,7 @@ function eolapi_get($type, $id, $tid, $additional_query = '', $age = 604800){
     }
     // Check first that the service is up. Else we set a warning message.
     if(file_get_contents(EOLAPI_URL . 'ping')){
-      // We get the full amount of data that we can.      
+      // We get the full amount of data that we can.
       $data = file_get_contents(EOLAPI_URL . $type . '/' . EOLAPI_VERSION . '/' . fullescape(urlencode($id)) . '.json?' . $additional_query);
       if($data){
         $data = json_decode($data);
@@ -164,8 +166,9 @@ function eolapi_get($type, $id, $tid, $additional_query = '', $age = 604800){
           if(substr($eolapi->type, 0, 4) == 'http'){
             $eolapi->type = array_pop(explode("/", $eolapi->type));
           }
+          $lang = field_language('eolapi', $eolapi, 'eolapi_taxonomy');
           $eolapi->eolapi_taxonomy = array(
-            'und' => array(
+            $lang => array(
               array(
                 'tid' => $tid
               )
@@ -205,4 +208,4 @@ function fullescape($in){
   $in = str_replace('.', '%2E', $in);
   $in = str_replace('-', '%2D', $in);
   return $in;
-} 
+}

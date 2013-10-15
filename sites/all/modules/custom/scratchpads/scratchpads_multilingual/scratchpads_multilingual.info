@@ -1,10 +1,12 @@
-name = "Interface Language"
-description = "Provides and allows for the translation of the user interface"
-configure = admin/config/regional
-
+name = "Interface Translate"
+description = "Enables the translation of the Scratchpads interface into multiple languages."
+configure = admin/config/regional/language
+package = "Language"
 core = "7.x"
-dependencies[] = "locale"
-
-package = Other
+dependencies[] = locale
+dependencies[] = l10n_update
 tool = true
 php = "5.2.4"
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_multilingual

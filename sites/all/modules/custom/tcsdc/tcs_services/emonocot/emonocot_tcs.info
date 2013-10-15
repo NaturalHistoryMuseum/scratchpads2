@@ -3,3 +3,6 @@ description = "Allows the import of a classification from the World Checklist of
 package = "eMonocot"
 dependencies[] = tcsdc
 core = 7.x
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = tcsdc

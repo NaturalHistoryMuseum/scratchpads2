@@ -1,0 +1,789 @@
+<?php
+
+/**
+ * @file
+ *   Tests to ensure that the localization server works as intended.
+ */
+
+class L10nServerTestCase extends DrupalWebTestCase {
+
+  private $version_base = '3.5';
+  private $version_js = '5.7';
+
+  public static function getInfo() {
+    return array(
+      'name' => t('Localization server'),
+      'description' => t('Ensure that the localization server functions properly.'),
+      'group' => t('Localization server'),
+    );
+  }
+
+  public function setUp() {
+    // Set the theme early, so the modules set blocks with proper themes when
+    // being installed.
+    variable_set('theme_default', 'bartik');
+
+    // Set up required modules for l10n_community.
+    parent::setUp('locale', 'l10n_pconfig', 'potx', 'l10n_server', 'l10n_community', 'l10n_drupal');
+
+    // Prepare users on different permission levels.
+    $this->u_anon = $this->drupalCreateUser();
+    $this->u_auth = $this->drupalCreateUser(array('access localization community', 'browse translations'));
+    $this->u_member_1 = $this->drupalCreateUser(array('access localization community', 'browse translations', 'submit suggestions', 'import gettext files'));
+    $this->u_member_2 = $this->drupalCreateUser(array('access localization community', 'browse translations', 'submit suggestions', 'import gettext files'));
+    $this->u_moderator = $this->drupalCreateUser(array('access localization community', 'browse translations', 'moderate own suggestions', 'moderate suggestions from others', 'import gettext files', 'submit suggestions'));
+    $this->u_admin = $this->drupalCreateUser(array('administer languages', 'administer localization server', 'import gettext files'));
+    $this->u_team = $this->drupalCreateUser();
+
+    // Set up temporary directory for our work. Because this is inside the
+    // simpletest controlled file path, it will be cleaned up later.
+    $this->temp_path = drupal_realpath('temporary://l10n_community_test');
+    if (!is_dir($this->temp_path)) {
+      mkdir($this->temp_path);
+    }
+    else {
+      simpletest_clean_temporary_directory($this->temp_path);
+    }
+    //$this->full_temp_path = drupal_realpath($this->temp_path);
+    $this->full_temp_path = $this->temp_path;
+
+    // Set local package directory, so we can work with this.
+    $this->drupalLogin($this->u_admin);
+    $edit = array('l10n_server_connector_l10n_drupal_files_directory' => $this->temp_path);
+    $this->drupalPost('admin/l10n_server/connectors/config/l10n_drupal/files', $edit, t('Save configuration'));
+    $this->assertText(t('The configuration options have been saved.'), t('Local package directory set.'));
+
+    // Actually enable the Drupal connector.
+    $edit = array('l10n_server_connector_l10n_drupal_files_enabled' => 1);
+    $this->drupalPost('admin/l10n_server/connectors', $edit, t('Save configuration'));
+    $this->assertText(t('The configuration options have been saved.'), t('Drupal connector enabled.'));
+
+    // Set team username.
+    $edit = array('l10n_community_import_user' => $this->u_team->name);
+    $this->drupalPost('admin/l10n_server/l10n_community', $edit, t('Save configuration'));
+    $this->assertText(t('The configuration options have been saved.'), t('Team user set.'));
+
+    $this->project_names = array();
+
+    // Store empty error message for reuse in multiple cases.
+    $this->empty_error = t('Empty string attempted to be localized. Please do not leave test code for localization in your source.');
+  }
+
+  /**
+   * Test accessibility of welcome screen.
+   */
+  public function testWelcome() {
+    // Non-priviledged users should not have access to the welcome screen.
+    $this->drupalLogin($this->u_anon);
+    $this->drupalGet('translate');
+    $this->assertNoText(t('Quick statistics'), t('Welcome screen not visible to non-priviledged user.'));
+    $this->drupalGet('user/logout');
+
+    // Priviledged users should have access to the welcome screen.
+    $this->drupalLogin($this->u_auth);
+    $this->drupalGet('translate');
+    $this->assertText(t('Quick statistics'), t('Welcome screen visible to priviledged user.'));
+    $this->drupalGet('user/logout');
+  }
+
+  /**
+   * Test languages and projects and basic project addition.
+   */
+  public function testLanguagesProjects() {
+    // Non-priviledged users should not have access to the welcome screen.
+    $this->drupalLogin($this->u_auth);
+    $this->drupalGet('translate/languages');
+    $this->assertText(t('No languages to list.'), t('Language list empty on start.'));
+    $this->drupalGet('user/logout');
+
+    // Add a language to the environment.
+    $this->addLanguage();
+
+    // Check that l10n_server now gives us a different error.
+    $this->drupalLogin($this->u_auth);
+    $this->drupalGet('translate/languages');
+    $this->assertText(t('No strings to translate.'), t('Language now recognized, but still no strings to translate.'));
+    $this->drupalGet('user/logout');
+
+    // Add and parse projects in the environment.
+    $this->addProject(5);
+    $this->addProject(6);
+    $this->addProject(6, FALSE);
+    $this->addProject(7);
+
+    $this->drupalLogin($this->u_auth);
+    $this->drupalGet('translate/languages');
+    $this->assertText('Hungarian', t('With projects in place, language list is visible.'));
+
+    $this->drupalGet('translate/projects');
+    foreach ($this->project_names as $api => $name) {
+      $this->assertText($name, t('@project name is shown on project page.', array('@project' => $name)));
+    }
+
+    foreach ($this->project_names as $api => $name) {
+      $this->drupalGet('translate/projects/' . $name);
+      $this->assertText('Hungarian', t('Language shows up on project page.'));
+      if ($api == 6) {
+        $this->assertText(t('@count known', array('@count' => 2)), t('Two releases known on project.'));
+        $this->assertText(t('@count releases parsed', array('@count' => 2)), t('Two releases parsed on project.'));
+      }
+      else {
+        $this->assertText(t('1 known'), t('One release known on project.'));
+        $this->assertText(t('1 release parsed'), t('One release parsed on project.'));
+      }
+    }
+
+    // PROJECTS ====
+
+    // Check that the base list of strings are there.
+    $this->drupalGet('translate/languages/hu/translate', array('query' => array('limit' => '50')));
+    $this->assertMsgID('This is a test string.');
+    $this->assertMsgID('Test menu item in 5');
+    $this->assertMsgID('test potx permission');
+    $this->assertMsgIDPlural('1 test string', '@count test strings');
+    $this->assertMsgIDPlural('1 test string in JS', '@count test strings in JS');
+    $this->assertMsgIDContext('Test string in context', 'Test context');
+    $this->assertCount('<td class="source"', 33);
+
+    // Check Drupal 5 specific pattern with strings.
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('limit' => '50', 'project' => $this->project_names[5])));
+    $this->assertMsgID('This is a test string.');
+    $this->assertMsgID('Test menu item in 5');
+    $this->assertMsgID('test potx permission');
+    $this->assertMsgIDPlural('1 test string', '@count test strings');
+    $this->assertMsgIDPlural('1 test string in JS', '@count test strings in JS', FALSE);
+    $this->assertMsgIDContext('Test string in context', 'Test context', FALSE);
+    $this->assertCount('<td class="source"', 19);
+
+    // Check Drupal 6 specific pattern with strings.
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('limit' => '50', 'project' => $this->project_names[6])));
+    $this->assertMsgID('This is a test string.');
+    $this->assertMsgID('Test menu item in 5', FALSE);
+    $this->assertMsgID('test potx permission');
+    $this->assertMsgIDPlural('1 test string', '@count test strings');
+    $this->assertMsgIDPlural('1 test string in JS', '@count test strings in JS');
+    $this->assertMsgIDContext('Test string in context', 'Test context', FALSE);
+    $this->assertCount('<td class="source"', 28);
+
+    // Check Drupal 7 specific pattern with strings.
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('limit' => '50', 'project' => $this->project_names[7])));
+    $this->assertMsgID('This is a test string.');
+    $this->assertMsgID('Test menu item in 5', FALSE);
+    $this->assertMsgID('test potx permission', FALSE);
+    $this->assertMsgIDPlural('1 test string', '@count test strings');
+    $this->assertMsgIDPlural('1 test string in JS', '@count test strings in JS');
+    $this->assertMsgIDContext('Test string in context', 'Test context');
+    $this->assertCount('<td class="source"', 26);
+
+    // RELEASES ====
+
+    // No JS release should not have JS strings.
+    $query = db_select('l10n_server_project', 'p');
+    $query->leftJoin('l10n_server_release', 'r', 'p.pid = r.pid');
+    $query
+      ->fields('r', array('rid'))
+      ->condition('p.uri', $this->project_names[6])
+      ->condition('r.title', '6.x-' . $this->version_base);
+    $rid = $query->execute()->fetchField();
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array(
+          'limit' => '50',
+          'project' => $this->project_names[6],
+          'release' => $rid,
+        )));
+    $this->assertMsgIDPlural('1 test string in JS', '@count test strings in JS', FALSE);
+    $this->assertCount('<td class="source"', 24);
+
+    // JS release should have JS strings.
+    $query = db_select('l10n_server_project', 'p');
+    $query->leftJoin('l10n_server_release', 'r', 'p.pid = r.pid');
+    $query
+      ->fields('r', array('rid'))
+      ->condition('p.uri', $this->project_names[6])
+      ->condition('r.title', '6.x-' . $this->version_js);
+    $rid = $query->execute()->fetchField();
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array(
+          'limit' => '50',
+          'project' => $this->project_names[6],
+          'release' => $rid,
+        )));
+    $this->assertMsgIDPlural('1 test string in JS', '@count test strings in JS');
+    $this->assertCount('<td class="source"', 28);
+
+    // CONTEXT ====
+
+    // Filtering for context in general works.
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array(
+          'limit' =>'50',
+          'context' => 'Test context',
+        )));
+    $this->assertMsgIDContext('Test string in context', 'Test context');
+    $this->assertMsgID('This is a test string.', FALSE);
+    $this->assertCount('<td class="source"', 1);
+
+    // Filtering for context with project works.
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array(
+          'limit' => '50',
+          'project' => $this->project_names[7],
+          'context' => 'Test context',
+        )));
+    $this->assertMsgIDContext('Test string in context', 'Test context');
+    $this->assertMsgID('This is a test string.', FALSE);
+    $this->assertCount('<td class="source"', 1);
+
+    // Filtering for context but with another project works (no result).
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array(
+          'limit' => '50',
+          'project' => $this->project_names[6],
+          'context' => 'Test context',
+        )));
+    $this->assertRaw(t('No strings found with this filter. Try adjusting the filter options.'));
+
+    // SEARCH ====
+
+    // Filtering for text contained works.
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array(
+          'limit' => '50',
+          'search' => 'is a',
+        )));
+    $this->assertMsgID('This is a test string.');
+    $this->assertMsgID('This is a test menu item in 5');
+    $this->assertMsgID('This is a test menu item');
+    $this->assertMsgID('test potx permission', FALSE);
+    $this->assertMsgIDPlural('1 test string', '@count test strings', FALSE);
+    $this->assertCount('<td class="source"', 3);
+
+    // Filtering for text contained works with project filter.
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array(
+          'limit' => '50',
+          'project' => $this->project_names[6],
+          'search' => 'is a',
+        )));
+    $this->assertMsgID('This is a test string.');
+    $this->assertMsgID('This is a test menu item in 5', FALSE);
+    $this->assertMsgID('This is a test menu item');
+    $this->assertMsgID('test potx permission', FALSE);
+    $this->assertMsgIDPlural('1 test string', '@count test strings', FALSE);
+    $this->assertCount('<td class="source"', 2);
+
+    // LOOKUP ====
+
+    $sid = db_select('l10n_server_string', 's')
+      ->fields('s', array('sid'))
+      ->condition('value', 'This is a test string.')
+      ->execute()
+      ->fetchField();
+    $this->drupalGet('translate/source-details/' . $sid);
+    $this->assertPattern('!<em>' . preg_quote($this->project_names[5]) . ':</em> ' . preg_quote('5.x-' . $this->version_js) . ' <span title="[^>]+">\(1\)</span>!');
+    $this->assertPattern('!<em>' . preg_quote($this->project_names[6]) . ':</em> ' . preg_quote('6.x-' . $this->version_js) . ' <span title="[^>]+">\(1\)</span>, ' . preg_quote('6.x-' . $this->version_base) . ' <span title="[^>]+">\(1\)</span>!');
+    $this->assertPattern('!<em>' . preg_quote($this->project_names[7]) . ':</em> ' . preg_quote('7.x-' . $this->version_js) . ' <span title="[^>]+">\(1\)</span>!');
+
+    // WARNINGS ====
+
+    // 3 in the module.
+    $this->drupalGet('translate/projects/' . $this->project_names[5] . '/releases/1');
+    $this->assertCount($this->empty_error, 3, t('3 warnings found in Drupal 5 project releases.'));
+    // 3 in both releases of modules, 1 in the JS (in the first release).
+    $this->drupalGet('translate/projects/' . $this->project_names[6] . '/releases/2');
+    $this->assertCount($this->empty_error, 4, t('4 warnings found in Drupal 6 project releases.'));
+    $this->drupalGet('translate/projects/' . $this->project_names[6] . '/releases/3');
+    $this->assertCount($this->empty_error, 3, t('3 warnings found in Drupal 6 project releases.'));
+    // 2 in the module, 1 in the JS.
+    $this->drupalGet('translate/projects/' . $this->project_names[7] . '/releases/4');
+    $this->assertCount($this->empty_error, 3, t('3 warnings found in Drupal 7 project releases.'));
+  }
+
+  /**
+   * Test submitting suggestions.
+   */
+  public function testSuggetions() {
+    $this->addLanguage();
+    $this->addProject(5);
+    $this->addProject(6);
+    $this->addProject(6, FALSE);
+    $this->addProject(7);
+
+    // Verify that we can see the suggestion submission screen.
+    $this->drupalLogin($this->u_member_1);
+    $this->drupalGet('translate/languages/hu/translate', array('query' => array('limit' => '50')));
+    $this->assertMsgID('This is a test string.');
+
+    // SUBMIT SUGGESTIONS ====
+
+    // Add suggestions for four strings.
+    $edit = array();
+    $sid1 = db_select('l10n_server_string', 's')
+      ->fields('s', array('sid'))
+      ->condition('value', 'This is a test string.')
+      ->execute()
+      ->fetchField();
+    $edit['strings[' . $sid1 . '][new][value][0]'] = 'This is a test string. suggestion';
+
+    $sid2 = db_select('l10n_server_string', 's')
+      ->fields('s', array('sid'))
+      ->condition('value', 'Test string in context')
+      ->condition('context', '')
+      ->execute()
+      ->fetchField();
+    $edit['strings[' . $sid2 . '][new][value][0]'] = 'Test string in context. suggestion-1';
+
+    $sid3 = db_select('l10n_server_string', 's')
+      ->fields('s', array('sid'))
+      ->condition('value', 'Test string in context')
+      ->condition('context', 'Test context')
+      ->execute()
+      ->fetchField();
+    $edit['strings[' . $sid3 . '][new][value][0]'] = 'Test string in context. suggestion-2';
+
+    $sid4 = db_select('l10n_server_string', 's')
+      ->fields('s', array('sid'))
+      ->condition('value', "1 test string\0@count test strings")
+      ->execute()
+      ->fetchField();
+    $edit['strings[' . $sid4 . '][new][value][0]'] = '1 test string suggestion';
+    $edit['strings[' . $sid4 . '][new][value][1]'] = '@count test strings suggestion';
+
+    $this->drupalPost('translate/languages/hu/translate', $edit, t('Save changes'), array('query' => array('limit' => '50')));
+    $this->assertRaw(t('@count suggestions added', array('@count' => 4)));
+    $this->drupalGet('user/logout');
+
+    // Add second suggestions to test for that later.
+    $this->drupalLogin($this->u_member_2);
+    $edit = array();
+    $edit['strings[' . $sid1 . '][new][value][0]'] = 'This is a test string. suggestion-2';
+    $edit['strings[' . $sid3 . '][new][value][0]'] = 'Test string in context. suggestion-3';
+    $this->drupalPost('translate/languages/hu/translate', $edit, t('Save changes'), array('query' => array('limit' => '50')));
+    $this->assertRaw(t('@count suggestions added', array('@count' => 2)));
+
+    // CHECK SUGGESTIONS ====
+
+    $this->assertMsgID('This is a test string. suggestion');
+    $this->assertMsgID('This is a test string. suggestion-2');
+    $this->assertMsgID('Test string in context. suggestion-1');
+    $this->assertMsgID('Test string in context. suggestion-2');
+    $this->assertMsgID('Test string in context. suggestion-3');
+    $this->assertMsgIDPlural('1 test string suggestion', '@count test strings suggestion');
+    $this->assertCount('>by ' . $this->u_member_1->name . ' ', 4);
+    $this->assertCount('>by ' . $this->u_member_2->name . ' ', 2);
+
+    // CHECK LISTINGS ====
+
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('limit' => '50')));
+    $this->assertCount('<td class="source"', 33);
+
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('status' =>'8', 'limit' =>'50')));
+    $this->assertCount('<td class="source"', 4);
+
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('status' => '4', 'limit' => '50')));
+    $this->assertCount('<td class="source"', 29);
+
+    // Look for translations per user.
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('limit' => '50', 'author' => $this->u_member_1->name)));
+    $this->assertMsgID('This is a test string. suggestion');
+    $this->assertMsgIDPlural('1 test string', '@count test strings');
+    $this->assertCount('<td class="source"', 4);
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('limit' => '50', 'author' => $this->u_member_2->name)));
+    $this->assertMsgID('This is a test string. suggestion-2');
+    $this->assertCount('<td class="source"', 2);
+
+    // MODERATION ====
+
+    $this->drupalGet('user/logout');
+    $this->drupalLogin($this->u_moderator);
+
+    // INDIVIDUAL DECLINE ====
+
+    $tid1 = db_select('l10n_server_translation', 't')
+      ->fields('t', array('tid'))
+      ->condition('translation', 'Test string in context. suggestion-1')
+      ->condition('language', 'hu')
+      ->execute()
+      ->fetchField();
+    $tid2 = db_select('l10n_server_translation', 't')
+      ->fields('t', array('tid'))
+      ->condition('translation', 'Test string in context. suggestion-2')
+      ->condition('language', 'hu')
+      ->execute()
+      ->fetchField();
+    $tid3 = db_select('l10n_server_translation', 't')
+      ->fields('t', array('tid'))
+      ->condition('translation', 'Test string in context. suggestion-3')
+      ->condition('language', 'hu')
+      ->execute()
+      ->fetchField();
+    $edit = array();
+    $edit['strings[' . $sid2 . '][' . $tid1 . '][declined]'] = 1;
+    $edit['strings[' . $sid3 . '][' . $tid2 . '][declined]'] = 1;
+    $edit['strings[' . $sid3 . '][' . $tid3 . '][declined]'] = 1;
+    $this->drupalPost('translate/languages/hu/translate', $edit, t('Save changes'), array('query' => array('limit' => '50')));
+    $this->assertRaw(t('3 suggestions declined'));
+
+    // Now we should be down to 3 suggestions.
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('status' => '8', 'limit' => '50')));
+    $this->assertCount('<input type="checkbox"', 3);
+
+    // INDIVIDUAL APPROVE ====
+
+    $tid1 = db_select('l10n_server_translation', 't')
+      ->fields('t', array('tid'))
+      ->condition('translation', 'This is a test string. suggestion')
+      ->condition('language', 'hu')
+      ->execute()
+      ->fetchField();
+    $tid2 = db_select('l10n_server_translation', 't')
+      ->fields('t', array('tid'))
+      ->condition('translation', "1 test string suggestion\0@count test strings suggestion")
+      ->condition('language', 'hu')
+      ->execute()
+      ->fetchField();
+    $edit = array();
+    $edit['strings[' . $sid1 . '][active]'] = $tid1;
+    $edit['strings[' . $sid4 . '][active]'] = $tid2;
+    $this->drupalPost('translate/languages/hu/translate', $edit, t('Save changes'), array('query' => array('limit' => '50')));
+    $this->assertRaw(t('2 translations approved'));
+
+    // Now we should be down to 1 suggestion and 1 translation.
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('status' => '8', 'limit' => '50')));
+    $this->assertCount('<td class="source"', 1);
+    $this->assertCount('<input type="checkbox"', 2);
+    $this->assertRaw('This is a test string. suggestion');
+    $this->assertRaw('This is a test string. suggestion-2');
+  }
+
+  /**
+   * Test importing functionality.
+   */
+  public function testImport() {
+    $this->addLanguage();
+    $this->addProject(5);
+    $this->addProject(6);
+    $this->addProject(6, FALSE);
+    $this->addProject(7);
+
+    // UNPRIVILEGED
+
+    // Verify that users without permission will not see import screen.
+    $this->drupalLogin($this->u_auth);
+    $this->drupalGet('translate/languages/hu/import');
+    $this->assertRaw(t('Access denied'));
+
+    // SUGGESTION IMPORT AS SELF
+
+    // Verify that we can see the import screen.
+    $this->drupalGet('user/logout');
+    $this->drupalLogin($this->u_member_1);
+    $this->drupalGet('translate/languages/hu/import');
+    $this->assertRaw(t('Gettext .po file with translations'));
+    $this->assertNoRaw(t('Store as approved translations'));
+    $this->assertRaw(t('Attribute import to'));
+
+    // Import our test suggestions
+    $filename = drupal_get_path('module', 'l10n_community') . '/tests/l10n_community_test.po';
+    $this->importPO($filename, $this->u_member_1->uid);
+    $this->assertRaw(t('@count suggestions added', array('@count' => 3)));
+    $this->assertRaw(t('1 duplicate translation not saved'));
+    $this->assertRaw(t('@count source strings not found; their translations were ignored', array('@count' => 2)));
+
+    // Log in with moderator, so we can check the suggestions easily.
+    $this->drupalGet('user/logout');
+    $this->drupalLogin($this->u_moderator);
+
+    // Check whether it is there.
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('limit' => '50', 'status' => '8')));
+    $this->assertMsgID('This is a test string.');
+    $this->assertMsgIDPlural('1 test string', '@count test strings');
+    $this->assertMsgIDContext('Test string in context', 'Test context');
+    $this->assertCount('<td class="source"', 3);
+
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('limit' => '50', 'status' => '2')));
+    $this->assertNoRaw('<td class="source"');
+
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('limit' => '50')));
+    $this->assertMsgID('This is a test string. - imported translation');
+    $this->assertMsgIDPlural('1 test string - imported translation', '@count test strings - imported translation');
+    $this->assertMsgID('Test string in context - imported translation');
+    $this->assertCount('by ' . $this->u_member_1->name . ' ', 3);
+
+    // IMPORT AS MODERATOR
+
+    // Moderators can also choose to import translations directly.
+    $this->drupalGet('translate/languages/hu/import');
+    $this->assertRaw(t('Gettext .po file with translations'));
+    $this->assertRaw(t('Store as approved translations'));
+    $this->assertRaw(t('Attribute import to'));
+
+    // CHECK DUPLICATES
+
+    // Importing the same file, we should only get duplicates (and ignored).
+    $this->importPO($filename, $this->u_moderator->uid);
+    $this->assertRaw(t('@count duplicate translations not saved', array('@count' => 4)));
+    $this->assertRaw(t('@count source strings not found; their translations were ignored', array('@count' => 2)));
+
+    // IMPORT AS TEAM
+
+    // Modify existing suggestions, so we can test importing again.
+    db_update('l10n_server_translation')
+      ->fields(array('translation' =>  'saved for testing'))
+      ->condition('translation', 'This is a test string. - imported translation')
+      ->condition('is_suggestion', 1)
+      ->execute();
+    db_update('l10n_server_translation')
+      ->fields(array('translation' =>  "1 saved for testing\0@count saved for testing"))
+      ->condition('translation', "1 test string - imported translation\0@count test strings - imported translation")
+      ->condition('is_suggestion', 1)
+      ->execute();
+    db_update('l10n_server_translation')
+      ->fields(array('translation' =>  'saved string in context'))
+      ->condition('translation', 'Test string in context - imported translation')
+      ->condition('is_suggestion', 1)
+      ->execute();
+
+    // Importing the same file, but attribute to team (this can be done logged
+    // in as anyone who can import, we don't need to log in as u_team).
+    $this->importPO($filename, $this->u_team->uid, 1);
+    $this->assertRaw(t('@count suggestions added', array('@count' => 3)));
+    $this->assertRaw(t('1 duplicate translation not saved'));
+    $this->assertRaw(t('@count source strings not found; their translations were ignored', array('@count' => 2)));
+
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('limit' => '50')));
+    $this->assertMsgID('saved for testing');
+    $this->assertMsgID('This is a test string. - imported translation');
+    $this->assertMsgIDPlural('1 saved for testing', '@count saved for testing');
+    $this->assertMsgIDPlural('1 test string - imported translation', '@count test strings - imported translation');
+    $this->assertMsgID('saved string in context');
+    $this->assertMsgID('Test string in context - imported translation');
+    $this->assertCount('by ' . $this->u_member_1->name . ' ', 3);
+    $this->assertCount('by ' . $this->u_team->name . ' ', 3);
+
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('limit' => '50', 'status' => '2')));
+    $this->assertNoRaw('<td class="source"');
+
+    // IMPORT AS TRANSLATION (KICKED TO SUGGESTION)
+
+    // Modify existing suggestions (again), so we can test importing (again).
+    // We don't care about the suggestions being the exact same string now,
+    // we only care about that on import and data submission. It is not a
+    // problem for the data model, but an issue for workflow, so for testing,
+    // it is fine as we have it here.
+    db_update('l10n_server_translation')
+      ->fields(array('translation' => 'saved for testing'))
+      ->condition('translation', 'This is a test string. - imported translation')
+      ->condition('is_suggestion', 1)
+      ->execute();
+    db_update('l10n_server_translation')
+      ->fields(array('translation' => "1 saved for testing\0@count saved for testing"))
+      ->condition('translation', "1 test string - imported translation\0@count test strings - imported translation")
+      ->condition('is_suggestion', 1)
+      ->execute();
+    db_update('l10n_server_translation')
+      ->fields(array('translation' => 'saved string in context'))
+      ->condition('translation', 'Test string in context - imported translation')
+      ->condition('is_suggestion', 1)
+      ->execute();
+
+    // Importing the same file, but ask to import as final translation.
+    $this->importPO($filename, $this->u_moderator->uid, 0);
+    $this->assertRaw(t('@count translations added', array('@count' => 3)));
+    $this->assertRaw(t('1 duplicate translation not saved'));
+    $this->assertRaw(t('@count source strings not found; their translations were ignored', array('@count' => 2)));
+
+    // Should still have 3 strings with outstanding suggestions.
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('limit' => '50', 'status' => '8')));
+    $this->assertCount('<td class="source"', 3);
+
+    // Should now have 3 strings with approved translations.
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('limit' => '50', 'status' => '2')));
+    $this->assertCount('<td class="source"', 3);
+
+    // IMPORT AS TRANSLATION
+
+    // Drop all existing translations, so we can see importing a translation.
+    db_delete('l10n_server_translation')->execute();
+
+    $this->importPO($filename, $this->u_moderator->uid, 0);
+    $this->assertRaw(t('@count translations added', array('@count' => 3)));
+    $this->assertRaw(t('1 duplicate translation not saved'));
+    $this->assertRaw(t('@count source strings not found; their translations were ignored', array('@count' => 2)));
+
+    // No string should have suggestions submitted at this point.
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('limit' => '50', 'status' => '8')));
+    $this->assertNoRaw('<td class="source"');
+
+    // Three strings should now have translations submitted by us.
+    $this->drupalGet('translate/languages/hu/translate',
+      array('query' => array('limit' => '50', 'status' => '2')));
+    $this->assertCount('<td class="source"', 3);
+  }
+
+  /**
+   * Import specified file to the given language.
+   */
+  function importPO($filename, $import_uid, $is_suggestion = NULL, $assert = TRUE) {
+    $edit = array();
+    $edit['files[file]']   = $filename;
+    if (!is_null($is_suggestion)) {
+      $edit['is_suggestion'] = $is_suggestion;
+    }
+    $edit['import_uid']    = $import_uid;
+    $this->drupalPost('translate/languages/hu/import', $edit, t('Import'));
+    if ($assert) {
+      $this->assertRaw(t('The translation was successfully imported.'), $filename . ' imported successfully.');
+    }
+  }
+
+  /**
+   * Look for a string appearance on the page for $raw.
+   */
+  private function assertMsgID($raw, $match = TRUE) {
+    if ($match) {
+      $message = t('String "@raw" found', array('@raw' => $raw));
+    }
+    else {
+      $message = t('String "@raw" not found', array('@raw' => $raw));
+    }
+    // Label tag for translations include for="" attribute, but not for source.
+    $found = (bool) preg_match('!<label class="l10n-string([^"]*)"([^>]*)><span>' . preg_quote($raw) . '</span></label>!', $this->content);
+    return $this->assert($match ? $found : !$found, $message);
+  }
+
+  /**
+   * Look for a singular/plural string appearance on the page for $raw.
+   */
+  private function assertMsgIDPlural($raw_singular, $raw_plural, $match = TRUE) {
+    if ($match) {
+      $message = t('Singular/plural string "@singular/@plural" found', array('@singular' => $raw_singular, '@plural' => $raw_plural));
+    }
+    else {
+      $message = t('Singular/plural string "@singular/@plural" not found', array('@singular' => $raw_singular, '@plural' => $raw_plural));
+    }
+    // Look for the string wrapped in a list item on its own line. Only used
+    // for singular and plural strings.
+    $found = (bool) preg_match('!<label class="l10n-string([^"]*)"([^>]*)><span>' . preg_quote($raw_singular) . '</span><br /><span>' . preg_quote($raw_plural) . '</span></label>!', $this->content);
+    return $this->assert($match ? $found : !$found, $message);
+  }
+
+  /**
+   * Look for a string appearance on the page for $raw related to $context.
+   */
+  private function assertMsgIDContext($raw, $context, $match = TRUE) {
+    if ($match) {
+      $message = t('String "@raw" found in context "@context"', array('@raw' => $raw, '@context' => $context));
+    }
+    else {
+      $message = t('String "@raw" not found in context "@context"', array('@raw' => $raw, '@context' => $context));
+    }
+    $found = (bool) preg_match('!<label class="l10n-string([^"]*)"><span>' . preg_quote($raw) . '</span></label><div class="string-context">' . preg_quote(t('in context: @context', array('@context' => $context))) . '</div>!', $this->content);
+    return $this->assert($match ? $found : !$found, $message);
+  }
+
+  /**
+   * Assert count of substring occurance in the output.
+   */
+  private function assertCount($raw, $count) {
+    $message = t('"@raw" found @count times', array('@raw' => $raw, '@count' => $count));
+    return $this->assert(substr_count($this->content, $raw) === $count, $message);
+  }
+
+  /**
+   * Helper function to add a language. Used by other tests.
+   */
+  private function addLanguage() {
+    // Add a language.
+    $this->drupalLogin($this->u_admin);
+    $edit = array('langcode' => 'hu');
+    $this->drupalPost('admin/config/regional/language/add', $edit, t('Add language'));
+    $this->assertText('Hungarian', t('Hungarian language added to system.'));
+    $this->assertText(t('Hungarian'), t('Hungarian language added to system.'));
+    $this->drupalGet('user/logout');
+  }
+
+  /**
+   * Add a project with the given API version.
+   */
+  private function addProject($api_version = 6, $include_js = TRUE) {
+    // If Archive_Tar class does not exist, load it from PEAR directory structure
+    if (!class_exists('Archive_Tar')) {
+      include_once 'Archive/Tar.php';
+    }
+
+    $version = $api_version . '.x-' . ($include_js ?  $this->version_js : $this->version_base);
+
+    // Follow the required file name format, so the package connector finds it.
+    // Include api version name in file basename too (before version string),
+    // to ensure that it is easier to debug what strings appear where.
+    if (!isset($this->project_names[$api_version])) {
+      $temp_file = tempnam($this->full_temp_path, 'l10n_test') . '_' . $api_version;
+      $this->project_names[$api_version] = $project_name = basename($temp_file);
+    }
+    else {
+      $temp_file = $this->full_temp_path . '/' . $this->project_names[$api_version];
+      $project_name = $this->project_names[$api_version];
+    }
+    $package_file = $temp_file . '-' . $version . '.tar.gz';
+    $tar = new Archive_Tar($package_file, 'gz');
+
+    // Add the files as strings, so we can control their placement/name.
+    $tar->addString('potx_test_' . $api_version . '.module', file_get_contents(drupal_get_path('module', 'potx') . '/tests/potx_test_' . $api_version . '.module'));
+    // Add .info file tailored to the module filename (although this is not
+    // important for potx, just to be clear about identification).
+    $tar->addString('potx_test_' . $api_version . '.info', file_get_contents(drupal_get_path('module', 'potx') . '/tests/potx_test_6.info'));
+    $num_files = 2;
+    if ($include_js) {
+      // Add .js file regardless of api version. Although Drupal 5 parsing should
+      // not pick this up, this packaging allows us to test for that exactly.
+      $tar->addString('potx_test_' . $api_version . '.js', file_get_contents(drupal_get_path('module', 'potx') . '/tests/potx_test.js'));
+      $num_files = 3;
+    }
+
+    $this->assertTrue(file_exists($package_file), t('Test package created.'));
+    $this->assertTrue(filesize($package_file) > 0, t('Test package contains data.'));
+    $this->pass('Temporary file at ' . $package_file);
+    $this->pass('List of package files: ' . var_export($tar->listContent(), TRUE));
+
+    // Login as admin and get this package parsed.
+    $this->drupalLogin($this->u_admin);
+    $this->drupalGet('admin/l10n_server/connectors/scan/l10n_drupal/files');
+    // Replace full path name to relative path name to ensure that we check for
+    // the right feedback in the output.
+    $package_file = str_replace($this->full_temp_path, $this->temp_path, $package_file);
+
+    // Number of strings we expect to find.
+    $strings_to_find = array(
+      5 => array(TRUE => 19),
+      6 => array(
+        TRUE => 28,
+        FALSE => 24,
+      ),
+      7 => array(TRUE => 26),
+    );
+    // Assert the right pattern for this feedback message.
+    $this->assertRaw(t('@filename (@files files, @sids strings) scanned.', array('@filename' => basename($package_file), '@files' => $num_files, '@sids' => $strings_to_find[$api_version][$include_js])));
+
+    $this->drupalGet('user/logout');
+  }
+
+}

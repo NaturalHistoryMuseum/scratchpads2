@@ -18,3 +18,6 @@ files[] = views/plugins/entity_admin_views_plugin_query.inc
 files[] = views/handlers/entity_admin_views_handler_field_link.inc
 files[] = views/handlers/entity_admin_views_handler_field_link_edit.inc
 files[] = views/handlers/entity_admin_views_handler_field_link_delete.inc
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = entity_admin

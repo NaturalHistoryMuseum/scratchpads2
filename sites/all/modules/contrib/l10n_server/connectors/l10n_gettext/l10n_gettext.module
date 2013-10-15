@@ -1,0 +1,119 @@
+<?php
+
+/**
+ * @file
+ *   Localization server for Gettext files.
+ */
+
+// = Core hooks ================================================================
+
+/**
+ * Implements hook_l10n_server_connector_info().
+ */
+function l10n_gettext_l10n_server_connector_info() {
+  $connectors = array(
+    'l10n_gettext' => array(
+      'title' => t('Gettext files'),
+      'sources' => array('uploads'),
+      'upload handler' => 'l10n_gettext_upload_handler',
+    ),
+  );
+  return $connectors;
+}
+
+/**
+ * File submission handler defined in hook_l10n_server_connector_info().
+ */
+function l10n_gettext_upload_handler($form, $form_state) {
+  $validators = array('file_validate_extensions' => array());
+  if ($file = file_save_upload('new_source', $validators)) {
+    // Increase time limit for PO parsing if possible.
+    if (!ini_get('safe_mode')) {
+      @set_time_limit(240);
+    }
+    $project = $form_state['values']['project'];
+    $release = $form_state['values']['new_release'];
+
+    // Save file info and mark the file parsed.
+    $fid = db_insert('l10n_server_file')
+      ->fields(array(
+          'pid' => $project->pid,
+          'rid' => $release->rid,
+          'location' => $file->filename,
+          'revision' => '',
+        ))
+      ->execute();
+
+    // Do the actual parsing on the local file.
+    if (l10n_server_parse_po($file, 'l10n_gettext_store_string', array($project->pid, $release->rid, $fid))) {
+      $sid_count = l10n_gettext_store_string();
+      drupal_set_message(format_plural($sid_count, 'The source file was successfully imported. One source string was added.', 'The source file was successfully imported. @count source strings were added.'));
+      db_update('l10n_server_release')
+	->fields(array('sid_count' => $sid_count))
+	->condition('rid', $release->rid)
+	->execute();
+    }
+
+    // Update this only once the parsing process succeeds.
+    db_update('l10n_server_release')
+      ->fields(array('last_parsed' => REQUEST_TIME))
+      ->condition('rid', $release->rid)
+      ->execute();
+  }
+  else {
+    drupal_set_message(t('File to import not found. Did you choose a file to upload which was under %maxsize?', array('%maxsize' => format_size(file_upload_max_size()))), 'error');
+  }
+}
+
+/**
+ * Store one source string as being available.
+ */
+function l10n_gettext_store_string($value = NULL, $pid = NULL, $rid = NULL, $fid = NULL) {
+  static $sids = array();
+
+  if (!empty($value['msgid'])) {
+    // Initialize empty context if not speficied.
+    $context = !empty($value['msgctxt']) ? $value['msgctxt'] : '';
+
+    // A \0 separator in the string means we deal with a string with plural variants.
+    // Unlike Drupal core, we store all in the same string, as it is easier
+    // to handle later, and we don't need the individual string parts.
+    $msgid = is_array($value['msgid']) ? join("\0", $value['msgid']) : $value['msgid'];
+
+    $sid = db_select('l10n_server_string', 's')->fields('s', array('sid'))
+      ->condition('hashkey', md5($msgid . $context))->execute()->fetchField();
+    if (!$sid) {
+      // String does not exist.
+      $sid = db_insert('l10n_server_string')
+	->fields(array(
+            'value' => $msgid,
+            'context' => $context,
+            'hashkey' => md5($msgid . $context),
+          ))
+        ->execute();
+    }
+
+    $select = db_select('l10n_server_line', 'l')->fields('l', array('fid'))
+      ->condition('fid', $fid)
+      ->condition('sid', $sid)
+      ->condition('lineno', 0)
+      ->condition('type', 2);
+    if ( ! $select->execute()->fetchField() ) {
+      // Location does not exist with this string.
+      db_insert('l10n_server_line')
+	->fields(array(
+            'pid' => $pid,
+            'rid' => $rid,
+            'fid' => $fid,
+            'sid' => $sid,
+            'lineno' => 0,
+            'type' => 2,
+          ))
+	->execute();
+    }
+    $sids[$sid] = 1;
+  }
+  else {
+    return count($sids);
+  }
+}

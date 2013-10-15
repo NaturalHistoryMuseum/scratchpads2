@@ -4,8 +4,9 @@ package = "Taxonomy"
 core = 7.x
 
 ; Information added by drupal.org packaging script on 2012-11-14
-version = "7.x-1.2"
 core = "7.x"
-project = "dictionary_export"
 datestamp = "1352891456"
 
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = dictionary_export

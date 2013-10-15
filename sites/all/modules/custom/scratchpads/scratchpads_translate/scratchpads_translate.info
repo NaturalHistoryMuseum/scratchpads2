@@ -1,0 +1,17 @@
+name = "Content Translate"
+description = "Enables the translation of user contributed content into multiple languages.  Enabling this tool will also enable 'Interface Translate'."
+core = "7.x"
+package = "Language"
+dependencies[] = entity_translation
+dependencies[] = i18n_field
+dependencies[] = i18n_taxonomy
+dependencies[] = i18n_menu
+dependencies[] = i18n_variable
+dependencies[] = translation
+dependencies[] = scratchpads_multilingual
+dependencies[] = title
+configure = admin/config/regional/translate-setup
+tool = true
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_translate

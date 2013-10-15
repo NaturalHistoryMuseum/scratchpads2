@@ -92,6 +92,20 @@ function image_imagemagick_strip(stdClass $image) {
 }
 
 /**
+ * Automatically adjusts the orientation of an image.
+ *
+ * @param $image
+ *   An image object. The $image->resource value will be modified by this call.
+ *
+ * @return
+ *   TRUE or FALSE, based on success.
+ */
+function image_imagemagick_auto_orient(stdClass $image) {
+  $image->ops[] = '-auto-orient';
+  return TRUE;
+}
+
+/**
  * Sharpens an image.
  *
  * @param $image
@@ -144,8 +158,14 @@ function image_imagemagick_watermark(stdClass $image, $watermark) {
 function imagemagick_advanced_image_effect_info() {
   $effects['imagemagick_strip'] = array(
     'label' => t('Strip metadata'),
-    'help' => t('Resizing will make images an exact set of dimensions. This may cause images to be stretched or shrunk disproportionately.'),
+    'help' => t('Strips metadata from images.'),
     'effect callback' => 'imagemagick_advanced_strip_effect',
+    'dimensions passthrough' => TRUE,
+  );
+  $effects['imagemagick_auto_orient'] = array(
+    'label' => t('Automatically correct orientation'),
+    'help' => t('Automatically rotates images according to orientation flag set by many phones and digital cameras.'),
+    'effect callback' => 'imagemagick_advanced_auto_orient_effect',
   );
   return $effects;
 }
@@ -157,13 +177,38 @@ function imagemagick_advanced_image_effect_info() {
  *   An image object returned by image_load().
  *
  * @return
- *   TRUE on success. FALSE on failure to resize image.
+ *   TRUE on success. FALSE on failure.
  *
  * @see imagemagick_strip()
  */
 function imagemagick_advanced_strip_effect($image) {
   if (!image_toolkit_invoke('strip', $image)) {
     watchdog('imagemagick', 'Image strip failed using the %toolkit toolkit on %path (%mimetype, %dimensions)', array(
+      '%toolkit' => $image->toolkit,
+      '%path' => $image->source,
+      '%mimetype' => $image->info['mime_type'],
+      '%dimensions' => $image->info['height'] . 'x' . $image->info['height'],
+    ), WATCHDOG_ERROR);
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/**
+ * Image effect callback; Automatically adjusts the orientation of
+ * an image resource.
+ *
+ * @param $image
+ *   An image object returned by image_load().
+ *
+ * @return
+ *   TRUE on success. FALSE on failure.
+ *
+ * @see imagemagick_auto_orient()
+ */
+function imagemagick_advanced_auto_orient_effect($image) {
+  if (!image_toolkit_invoke('auto_orient', $image)) {
+    watchdog('imagemagick', 'Image auto orient failed using the %toolkit toolkit on %path (%mimetype, %dimensions)', array(
       '%toolkit' => $image->toolkit,
       '%path' => $image->source,
       '%mimetype' => $image->info['mime_type'],

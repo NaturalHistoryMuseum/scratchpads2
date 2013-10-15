@@ -2,3 +2,6 @@ name = Scratchpads Metadata Service
 description = Provides information about the Scratchpad.  This service is used by the Scratchpads stats site, although it could easily be used by others.
 core = 7.x
 package = GBIF Registry
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_metadata_service

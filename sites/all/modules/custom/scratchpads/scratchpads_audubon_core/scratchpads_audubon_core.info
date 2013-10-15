@@ -42,3 +42,7 @@ features[field_group][] = "group_img_location|file|image|form"
 features[field_group][] = "group_img_misc|file|image|form"
 features[field_group][] = "group_img_taxa|file|image|form"
 features[field_group][] = "group_rights|file|image|form"
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_audubon_core

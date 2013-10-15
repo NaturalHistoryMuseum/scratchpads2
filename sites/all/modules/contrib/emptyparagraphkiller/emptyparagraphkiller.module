@@ -13,45 +13,33 @@ function emptyparagraphkiller_filter_info() {
   $filters['emptyparagraphkiller'] = array(
     'title' => t('Empty paragraph filter'),
     'description' => t('When entering more than one carriage return, only the first will be honored.'),
-    'prepare callback' => '_emptyparagraphkiller_filter_emptyparagraphkiller_prepare',
-    'process callback' => '_emptyparagraphkiller_filter_emptyparagraphkiller_process',
-    'cache' => FALSE,
-    'tips callback' => 'emptyparagraphkiller_emptyparagraphkiller_tips',
-    'weight' => 10,
+    'prepare callback' => '_emptyparagraphkiller_prepare',
+    'process callback' => '_emptyparagraphkiller_process',
+    'tips callback' => '_emptyparagraphkiller_tips',
   );
-  //$filters[] = array(); The info for the preceding space destroyer filter
   return $filters;
 }
 
 /**
  * Prepare callback for the emptyparagraphkiller filter.
  */
-function _emptyparagraphkiller_filter_emptyparagraphkiller_prepare($text, $filter) {
-  //dsm('prepare_pre: ' . $text);
-  $text = preg_replace('#<p[^>]*>(\s|&nbsp;?)*</p>#', '[empty-para]', $text);
-  //dsm('prepare_post: ' . $text);
-  return $text;
+function _emptyparagraphkiller_prepare($text, $filter) {
+  return preg_replace('#<p[^>]*>(\s|&nbsp;?)*</p>#', '[empty-para]', $text);
 }
 
 /**
  * Process callback for the emptyparagraphkiller filter.
  */
-//function emptyparagraphkiller_filter_emptyparagraphkiller_process($text, $filter, $format, $langcode, $cache, $cache_id) {
-function _emptyparagraphkiller_filter_emptyparagraphkiller_process($text, $filter) {
-  //dsm('process_pre: ' . $text);
-  $text = str_replace('[empty-para]', '', $text);
-  //return preg_replace('#<p[^>]*>(\s|&nbsp;?)*</p>#', '', $text);
-  //$text = preg_replace('#<p[^>]*>(\s|&nbsp;?)*</p>#', '', $text);
-  //dsm('process_post: ' . $text);
-  return $text;
+function _emptyparagraphkiller_process($text, $filter) {
+  return str_replace('[empty-para]', '', $text);
 }
 
 /**
  * Tips callback for emptyparagraphkiller
  */
-function emptyparagraphkiller_emptyparagraphkiller_tips($filter, $format, $long) {
+function _emptyparagraphkiller_tips($filter, $format, $long) {
   if ($long) {
-    return '<p>' . t('Your typing habits may include hitting the return key twice when completing a paragraph. This site will accomodate your habit, and ensure the content is in keeping with the the stylistic formatting of the site\'s theme.') . '</p>';
+    return t('Your typing habits may include hitting the return key twice when completing a paragraph. This site will accomodate your habit, and ensure the content is in keeping with the the stylistic formatting of the site\'s theme.');
   }
   else {
     return t('Empty paragraph killer - multiple returns will not break the site\'s style.');

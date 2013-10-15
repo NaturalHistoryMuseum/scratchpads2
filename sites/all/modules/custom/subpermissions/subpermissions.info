@@ -3,3 +3,6 @@ description = Allows an administrator to specify which permissions a user with l
 core = 7.x
 files[] = subpermissions.module
 configure = admin/config/people/subpermissions
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = subpermissions

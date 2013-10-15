@@ -97,8 +97,9 @@ function scratchpads_user_update_7005(){
       'field_user_given_names',
       'field_user_family_name'
     ) as $field_name){
-      if(@isset($user->{$field_name}[LANGUAGE_NONE][0]['value'])){
-        $name = $name . ' ' . $user->{$field_name}[LANGUAGE_NONE][0]['value'];
+      $lang = field_language('user', $user, $field_name);
+      if(@isset($user->{$field_name}[$lang][0]['value'])){
+        $name = $name . ' ' . $user->{$field_name}[$lang][0]['value'];
       }
       $name = trim($name);
     }

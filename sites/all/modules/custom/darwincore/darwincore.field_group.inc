@@ -344,8 +344,7 @@ function darwincore_field_group_info() {
       0 => 'field_basis_of_record',
       1 => 'field_catalogue_number',
       2 => 'field_collection_code',
-      3 => 'field_institution_code',
-      4 => 'title',
+      3 => 'field_institution_code'
     ),
     'format_type' => 'tab',
     'format_settings' => array(

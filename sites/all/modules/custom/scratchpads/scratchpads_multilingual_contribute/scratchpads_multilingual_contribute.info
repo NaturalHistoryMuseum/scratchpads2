@@ -1,0 +1,12 @@
+name = "Interface Translate - Contribute"
+description = "Enables the editing of the translations of the Scratchpads interface.  This allows you to help the Scratchpads project by adding translations of the interface, which are then fed back to our central translations server (http://localize.scratchpads.eu)."
+package = "Language"
+core = "7.x"
+dependencies[] = scratchpads_multilingual
+dependencies[] = l10n_client
+dependencies[] = uwho_client
+dependencies[] = blockexpose
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_multilingual_contribute
+tool=true

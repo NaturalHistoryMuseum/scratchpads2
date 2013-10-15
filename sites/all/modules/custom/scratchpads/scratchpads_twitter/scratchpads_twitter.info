@@ -3,3 +3,6 @@ description = "Integrates Scratchpads with twitter.  This may include twitter lo
 core = "7.x"
 dependencies[] = twitter_filter
 dependencies[] = twitter
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_twitter
