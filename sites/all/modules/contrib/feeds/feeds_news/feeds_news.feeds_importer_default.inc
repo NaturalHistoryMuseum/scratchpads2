@@ -32,7 +32,7 @@ function feeds_news_feeds_importer_default() {
     'processor' => array(
       'plugin_key' => 'FeedsNodeProcessor',
       'config' => array(
-        'content_type' => 'feed_item',
+        'bundle' => 'feed_item',
         'update_existing' => '0',
         'expire' => '-1',
         'mappings' => array(
@@ -95,7 +95,7 @@ function feeds_news_feeds_importer_default() {
     'processor' => array(
       'plugin_key' => 'FeedsNodeProcessor',
       'config' => array(
-        'content_type' => 'feed',
+        'bundle' => 'feed',
         'update_existing' => 0,
         'expire' => '-1',
         'mappings' => array(

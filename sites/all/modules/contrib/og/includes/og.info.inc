@@ -14,6 +14,12 @@ class OgMetadataController extends EntityDefaultMetadataController {
     $info = parent::entityPropertyInfo();
     $properties = &$info[$this->type]['properties'];
 
+    // Initialize values
+    $properties = !empty($properties) ? $properties : array();
+    $properties += array(
+      'entity_type' => array(),
+    );
+
     $properties['entity'] = array(
       'label' => t('Entity'),
       'type' => 'entity',
@@ -71,6 +77,12 @@ class OgMembershipMetadataController extends EntityDefaultMetadataController {
   public function entityPropertyInfo() {
     $info = parent::entityPropertyInfo();
     $properties = &$info[$this->type]['properties'];
+
+    // Initialize values
+    $properties = !empty($properties) ? $properties : array();
+    $properties += array(
+      'entity_type' => array(),
+    );
 
     // Group ID is provided in the "group" property.
     unset($properties['gid']);

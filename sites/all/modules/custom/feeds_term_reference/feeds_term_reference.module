@@ -67,43 +67,42 @@ function feeds_term_reference_feeds_set_target(FeedsSource $source, $entity, $ta
   $i = 0;
   $entity->$target = isset($entity->$target) ? $entity->$target : array();
   foreach($value as $v){
-    $id = 0;
-    $missing_value = $v;
-    switch($match_key){
-      case 'guid':
-        $error_label = 'Feeds GUID';
-        $id = db_query("SELECT f.entity_id FROM {feeds_item} f WHERE f.entity_type = :type
-			AND f.guid = :guid", array(
-          ':type' => 'taxonomy_term',
-          ':guid' => $v
-        ))->fetchField();
-        break;
-      case 'tid':
-        $error_label = 'Term ID';
-        if($v instanceof FeedsTermElement){
-          $id = $v->tid;
-        }elseif(is_numeric($v)){
-          $is_valid_tid = taxonomy_term_load($v);
-          if($is_valid_tid){
-            $id = $v;
+    if(trim($v)){
+      $id = 0;
+      switch($match_key){
+        case 'guid':
+          $error_label = 'Feeds GUID';
+          $id = db_select('feeds_item', 'f')->fields('f', array(
+            'entity_id'
+          ))->condition('entity_type', 'taxonomy_term')->condition('guid', $v)->execute()->fetchField();
+          break;
+        case 'tid':
+          $error_label = 'Term ID';
+          if($v instanceof FeedsTermElement){
+            $id = $v->tid;
+          }elseif(is_numeric($v)){
+            $is_valid_tid = taxonomy_term_load($v);
+            if($is_valid_tid){
+              $id = $v;
+            }
+          }elseif(is_string($v)){
+            drupal_set_message(t(' The term ID %v must be a number.', array(
+              '%v' => $v
+            )));
           }
-        }elseif(is_string($v)){
-          drupal_set_message(t(' The term ID %v must be a number.', array(
-            '%v' => $v
-          )));
-        }
+          break;
+      }
+      if($id){
+        $entity->{$target}['und'][$i]['tid'] = $id;
+      }else{
+        drupal_set_message(t('%missing_value does not match any existing %match_key.', array(
+          '%missing_value' => $v,
+          '%match_key' => $error_label
+        )));
+      }
+      if($info['cardinality'] == 1){
         break;
-    }
-    if($id){
-      $entity->{$target}['und'][$i]['tid'] = $id;
-    }else{
-      drupal_set_message(t('%missing_value does not match any existing %match_key.', array(
-        '%missing_value' => $missing_value,
-        '%match_key' => $error_label
-      )));
-    }
-    if($info['cardinality'] == 1){
-      break;
+      }
     }
     $i++;
   }
