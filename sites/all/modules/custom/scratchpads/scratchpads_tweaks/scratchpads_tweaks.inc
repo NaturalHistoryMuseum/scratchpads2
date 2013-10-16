@@ -32,6 +32,8 @@
   variable_set('file_public_path', $this->public_files_directory);
   variable_set('file_private_path', $this->private_files_directory);
   variable_set('file_temporary_path', $this->temp_files_directory);
+  // Prevent the site being reported to scratchpads.eu.
+  variable_set('scratchpad_last_reported', PHP_INT_MAX);
   // Set the 'simpletest_parent_profile' variable to add the parent profile's
   // search path to the child site's search paths.
   // @see drupal_system_listing()
