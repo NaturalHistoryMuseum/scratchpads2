@@ -1298,7 +1298,8 @@ function scratchpads_tweaks_update_7067(&$sandbox){
       'entity_type'
     ))->execute()->fetchAll();
     $sandbox['max'] = count($sandbox['entities']);
-    if(!$sandbox['max']){
+    // If we have no entites or too many (more than 5000), we skip this update.
+    if(!$sandbox['max'] || count($sandbox['entities'] > 5000)){
       $sandbox['#finished'] = 1;
       return;
     }
