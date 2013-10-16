@@ -1,7 +1,6 @@
 <?php
 /**
  * @file
-*
 * Test case for scratchpads file lock with selenium
 */
 if(!class_exists('DrupalSeleniumWebTestCase')){
@@ -24,6 +23,7 @@ class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
 
   /**
    * A wrapper for the following
+   * 
    * - Create a page and a gallery
    * - Upload an image to page
    * - Delete page and verify that image has not been deleted
@@ -54,8 +54,7 @@ class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
   }
 
   /**
-   * Helper function.
-   * Create a basic page
+   * Create a basic page.
    */
   private function createBasicPage($title){
     $body = $this->randomName(16);
@@ -111,7 +110,7 @@ class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
   }
 
   /**
-   * Delete page and verify that image has not been deleted
+   * Delete page and verify that the related image has not been deleted.
    */
   private function deletePageAndVerifyImage($page_name, $image_name){
     $this->drupalGet('admin/content');
@@ -126,7 +125,7 @@ class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
   }
 
   /**
-   * Delete gallery and verify that image has not been deleted
+   * Delete gallery and verify that the related image has not been deleted.
    */
   private function deleteGalleryAndVerifyImage($gallery_name, $image_name){
     $this->drupalGet('admin/content');
@@ -140,7 +139,7 @@ class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
   }
 
   /**
-   * Attach image to gallery
+   * Attach an image to a gallery.
    */
   private function addImageToGallery($gallery_name, $image_name){
     $this->drupalGet('admin/content');
@@ -154,7 +153,7 @@ class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
   }
 
   /**
-   * Create an image gallery node
+   * Create an image gallery node.
    */
   private function createGallery($title){
     $body = $this->randomName(16);
@@ -170,7 +169,7 @@ class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
   }
 
   /**
-   * Delete an image and verify deletion
+   * Delete an image and verify deletion.
    */
   private function deleteImage($image_name){
     $this->drupalGet('admin/content');
@@ -184,7 +183,7 @@ class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
   }
 
   /**
-   * Verifies that the image count shown on the admin/content page is as expected
+   * Verify the image count shown on the admin/content page.
    */
   function verifyImageCount($number_of_images){
     $this->drupalGet('admin/content');
