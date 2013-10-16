@@ -1331,6 +1331,6 @@ function scratchpads_tweaks_update_7067(&$sandbox){
     }
     $i++;
   }
-  drupal_set_message($sandbox['entities'] . "/" . $sandbox['max']);
+  drupal_set_message(count($sandbox['entities']) . "/" . $sandbox['max']);
   $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['entities'])) / $sandbox['max'];
 }
