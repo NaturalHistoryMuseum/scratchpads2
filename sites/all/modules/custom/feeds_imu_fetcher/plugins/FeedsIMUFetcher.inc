@@ -61,7 +61,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
         )
       );
     }
-    /*  if($importTo == 'location'){
+    /* if($importTo == 'location'){
       $termArray = array(
           'and',
           array(
@@ -71,9 +71,8 @@ class FeedsIMUFetcher extends FeedsFetcher{
               )
           )
       );
-    }*/    
-    
-  /*    if($importTo == 'parasite_card_host_taxonomy'){
+    }*/   
+    /* if($importTo == 'parasite_card_host_taxonomy'){
         $termArray = array(
           'and',
           array(
@@ -84,8 +83,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
           )
         );
       }*/    
-    
-    /*    if($importTo == 'parasite_card_parasite_taxonomy'){
+   /* if($importTo == 'parasite_card_parasite_taxonomy'){
      $termArray = array(
          'and',
          array(
@@ -95,9 +93,8 @@ class FeedsIMUFetcher extends FeedsFetcher{
              )
          )
      );
-    }*/
-    
-  /*    if($importTo == 'specimen_taxonomy'){
+    }*/    
+    /* if($importTo == 'specimen_taxonomy'){
         $termArray = array(
           'and',
           array(
@@ -108,8 +105,6 @@ class FeedsIMUFetcher extends FeedsFetcher{
           )
         );
       }*/
-    
-    
     /* Always only search for those items with flag on for internet access */
     $imusearchArray = array(
       'and',
@@ -137,7 +132,7 @@ class FeedsIMUFetcher extends FeedsFetcher{
       /* map columns to a fetchset for greater efficiency */
       $imumodule->addFetchSet('kemu_columns', $kemuColumns);
       if($debugImu){
-        watchdog('imu debug', '<pre> import to set as ' . print_r($importTo, TRUE) . '</pre>');
+        watchdog('imu debug', '<pre> importing as ' . print_r($importTo, TRUE) . '</pre>');
         watchdog('imu debug', '<pre> searched on ' . print_r($imusearchArray, TRUE) . '</pre>');
       }
       /* findTerms is the most flexible way to search for records within a module/table */
@@ -183,9 +178,9 @@ class FeedsIMUFetcher extends FeedsFetcher{
         if($debugImu){
           $times = implode(',', $totalCalls);
           watchdog('imu debug', '<pre>' . print_r($times, TRUE) . '</pre>');
-          watchdog('imu debug', '<pre> number of rows returned ' . print_r($kemuResultsHits, TRUE) . '</pre>');
-          watchdog('imu debug', '<pre> merged total rows returned ' . print_r($mergedRows, TRUE) . '</pre>');
-          watchdog('imu debug', '<pre> unique rows returned ' . print_r($resultsArray, TRUE) . '</pre>');
+          watchdog('imu debug', '<pre>number of rows returned ' . print_r($kemuResultsHits, TRUE) . '</pre>');
+          watchdog('imu debug', '<pre>merged total rows returned ' . print_r($mergedRows, TRUE) . '</pre>');
+          watchdog('imu debug', '<pre>unique rows returned ' . print_r($resultsArray, TRUE) . '</pre>');
         }
         /* if export as xml checkbox ticked */
         if($asXML){

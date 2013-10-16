@@ -69,6 +69,7 @@ function scratchpad_ecorelation_types_field_formatter_info(){
  */
 function scratchpad_ecorelation_types_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
   $element = array();
+  $type = array();
   list($entity_id) = entity_extract_ids($entity_type, $entity);
   switch($display['type']){
     case 'relation_add_endpoints_and_fields':
