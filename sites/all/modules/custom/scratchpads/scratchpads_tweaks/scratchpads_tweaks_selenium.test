@@ -63,6 +63,8 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $maintainer_permissions[] = 'access content overview';
     $maintainer_permissions[] = 'access form flows';
     $maintainer_permissions[] = 'access dashboard';
+    $maintainer_permissions[] = 'delete all file';
+    $maintainer_permissions[] = 'edit all file';
     $this->maintainer = $this->drupalCreateUserWithName($maintainer_permissions, 'maintainer_name');
     legal_save_accept(1, 1, 'en', $this->maintainer->uid);
     // Editor
@@ -283,11 +285,10 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
   protected function assertTextNoError($text){
     if($this->plainTextContent === FALSE){
       $this->plainTextContent = filter_xss($this->drupalGetContent(), array());
-    }    
-    return (strpos($this->plainTextContent, $text) === FALSE);    
+    }
+    return (strpos($this->plainTextContent, $text) === FALSE);
   }
-  
-  /**
+/**
    * Simple test to see if we can login and access the home page
    */
   // We remove this test as it slows up all dependant tests
