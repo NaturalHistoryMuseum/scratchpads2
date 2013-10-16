@@ -27,3 +27,19 @@ function dwca_export_update_7001(){
 function dwca_export_update_7002(){
   db_delete('variable')->condition('name', 'dwca_%', 'LIKE')->execute();
 }
+
+/**
+ * Rebuild the archive after update
+ */
+function dwca_export_update_7003(){
+  dwca_export_set_to_rebuild();
+}
+
+function dwca_export_set_to_rebuild() {
+  // Delete the Zip file and any existing CSV files.
+  file_unmanaged_delete('public://dwca.zip');
+  file_unmanaged_delete_recursive('public://dwca');
+  // Set the variables to force a rebuild.
+  variable_del('dwca_export_zip_build_time');
+  variable_set('dwca_export_rebuild', TRUE);
+}

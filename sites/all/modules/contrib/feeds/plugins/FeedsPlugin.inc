@@ -30,6 +30,14 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
   }
 
   /**
+   * Returns the type of plugin.
+   *
+   * @return string
+   *   One of either 'fetcher', 'parser', or 'processor'.
+   */
+  abstract public function pluginType();
+
+  /**
    * Save changes to the configuration of this object.
    * Delegate saving to parent (= Feed) which will collect
    * information from this object by way of getConfig() and store it.
@@ -90,14 +98,14 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
    *
    * @todo: Use CTools Plugin API.
    */
-  protected static function loadMappers() {
+  public static function loadMappers() {
     static $loaded = FALSE;
     if (!$loaded) {
       $path = drupal_get_path('module', 'feeds') . '/mappers';
       $files = drupal_system_listing('/.*\.inc$/', $path, 'name', 0);
       foreach ($files as $file) {
         if (strstr($file->uri, '/mappers/')) {
-          require_once("./$file->uri");
+          require_once(DRUPAL_ROOT . '/' . $file->uri);
         }
       }
     }
@@ -203,6 +211,9 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
  * Used when a plugin is missing.
  */
 class FeedsMissingPlugin extends FeedsPlugin {
+  public function pluginType() {
+    return 'missing';
+  }
   public function menuItem() {
     return array();
   }

@@ -15,7 +15,10 @@ function scratchpad_2_sandbox_install_tasks_alter(&$tasks, &$install_state){
 /**
  * scratchpad_2_sandbox_install_task_one().
  */
-function scratchpad_2_sandbox_install_configure_form(){}
+function scratchpad_2_sandbox_install_configure_form(){
+  variable_set('boost_cacheability_option', BLOCK_VISIBILITY_LISTED);
+  variable_set('boost_cacheability_pages', 'no pages will match this');
+}
 
 function scratchpad_2_sandbox_select_locale(&$install_state){
   $install_state['parameters']['locale'] = 'en';

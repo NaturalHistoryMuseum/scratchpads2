@@ -63,8 +63,10 @@ function silver_feeds_importer_default(){
               'unique' => 0
             )
           ),
+          'bundle' => $vocabulary->machine_name,
           'update_existing' => '2',
-          'input_format' => 'plain_text'
+          'input_format' => 'plain_text',
+          'skip_hash_check' => 0
         )
       ),
       'content_type' => '',
@@ -117,8 +119,10 @@ function silver_feeds_importer_default(){
               'unique' => TRUE
             )
           ),
+          'bundle' => $node_type,
           'update_existing' => '2',
-          'input_format' => 'filtered_html'
+          'input_format' => 'filtered_html',
+          'skip_hash_check' => 0
         )
       ),
       'content_type' => '',
@@ -301,6 +305,11 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
     switch($field_info['type']){
       case 'file':
         // Do nothing.  We can't import files in an Excel template.
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field_collection_label_addition . trim($field['label']),
+          'target' => $map_field_collection ? $map_field_collection . $key . ':MediaFeedsLibraryProvider' : $key . ':MediaFeedsLibraryProvider',
+          'unique' => 0
+        );
         break;
       case 'field_collection':
         // We get the info about the field collection, and add a mapping for
@@ -318,8 +327,8 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
         );
         break;
       case 'date':
+      case 'datetime':
         // Add the from date, and also the to date if required.
-        // We add two columns for the user reference field.
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field_collection_label_addition . $field['label'] . ' (' . t('Start') . ')',
           'target' => $map_field_collection ? $map_field_collection . $key . ':start' : $key . ':start',
@@ -332,8 +341,12 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
         );
         break;
       case 'link_field':
-        // Add the from date, and also the to date if required.
-        // We add two columns for the user reference field.
+        // We add two columns: 'title' and 'url'
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field_collection_label_addition . $field['label'] . ' (' . t('TITLE') . ')',
+          'target' => $map_field_collection ? $map_field_collection . $key . ':title' : $key . ':title',
+          'unique' => 0
+        );
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field_collection_label_addition . $field['label'] . ' (' . t('URL') . ')',
           'target' => $map_field_collection ? $map_field_collection . $key . ':url' : $key . ':url',

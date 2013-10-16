@@ -39,15 +39,24 @@ function pensoft_publication_publication_prepare_build(&$build){
     $weight = 0;
     // Render the relation page
     $relation_page = relation_page($relation);
-    $alternative_name = trim(implode(' ', array(
-      $relation->field_publication_treat_genus[LANGUAGE_NONE][0]['value'],
-      $relation->field_publication_treat_species[LANGUAGE_NONE][0]['value'],
-      $relation->field_publication_treat_authy[LANGUAGE_NONE][0]['value']
-    )));
-    if($alternative_name){
-      $title = $alternative_name;
+    $alt_genus = htmlspecialchars(trim($relation->field_publication_treat_genus[LANGUAGE_NONE][0]['value']));
+    $alt_species = htmlspecialchars(trim($relation->field_publication_treat_species[LANGUAGE_NONE][0]['value']));
+    $alt_authy = htmlspecialchars(trim($relation->field_publication_treat_authy[LANGUAGE_NONE][0]['value']));
+    if($alt_genus || $alt_species || $alt_authy){
+      $title = "<em>$alt_genus</em> <em>$alt_species</em> $alt_authy";
     }else{
-      $title = $treatment->title;
+      $taxon_name_field = field_get_items('node', $treatment, 'field_taxonomic_name');
+      if(!empty($taxon_name_field[0]['tid'])){
+        $taxon_name_tid = $taxon_name_field[0]['tid'];
+        $term = taxonomy_term_load($taxon_name_tid);
+        $title = '<em>' . $term->name . '</em>';
+        $auth_field = field_get_items('taxonomy_term', $term, 'field_authors');
+        if(!empty($auth_field[0]['safe_value'])){
+          $title .= ' ' . $auth_field[0]['safe_value'];
+        }
+      }else{
+        $title = '';
+      }
     }
     $current_treatment_build = array(
       array(
@@ -98,6 +107,10 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
     $form['title']['#default_value'] = t('Publication');
   }
   $form['title']['#type'] = 'hidden';
+  // Hide URL redirect if present
+  if(!empty($form['redirect'])){
+    hide($form['redirect']);
+  }
   // Load the field selector for the treatments
   foreach(element_children($form['field_publication_treatments'][LANGUAGE_NONE]) as $key){
     $treatment_form = $form['field_publication_treatments'][LANGUAGE_NONE][$key];
@@ -139,15 +152,19 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
     $treatment_field_form = _pensoft_publication_treatment_spm_fields_form($form, $selected_fields, $node, $key);
     hide($treatment_form['relation_fields']['field_publication_treat_fields']);
     // Hide Genus if rank is species
-    if ($node) {
+    if($node){
       $tid = $node->field_taxonomic_name[LANGUAGE_NONE][0]['tid'];
       $term = taxonomy_term_load($tid);
-      if ($term->field_rank[LANGUAGE_NONE][0]['value'] != 'Species') {
+      if($term->field_rank[LANGUAGE_NONE][0]['value'] != 'Species'){
         $treatment_form['relation_fields']['field_publication_treat_species']['#type'] = 'hidden';
         $treatment_form['relation_fields']['field_publication_treat_species']['#default_value'] = '';
       }
     }
-    $form['field_publication_treatments'][LANGUAGE_NONE][$key] = array_merge($treatment_form, $treatment_field_form);    
+    // Hide URL Redirect form if present
+    if(!empty($treatment_form['relation_fields']['redirect'])){
+      hide($treatment_form['relation_fields']['redirect']);
+    }
+    $form['field_publication_treatments'][LANGUAGE_NONE][$key] = array_merge($treatment_form, $treatment_field_form);
   }
   _pensoft_publication_relation_tab_prepare_form($form, 'field_publication_treatments');
   // Add our own submit function, ensuring it runs first  
@@ -359,6 +376,8 @@ function entity_metadata_simple_values($field, $sanitized = TRUE){
 function pensoft_publication_publication_parse_references($entity){
   if($entity->type != 'pensoft'){return;}
   $wrapper = entity_metadata_wrapper('publication', $entity);
+  $info = $wrapper->getPropertyInfo();
+  if(!isset($info['relation_publication_treatments_node'])){return array();}
   $references_to_add = array();
   foreach($wrapper->relation_publication_treatments_node->getIterator() as $delta => $treat_entity_wrapper){
     // Unfortunately entity metadata wrapper doesn't give access to the relation fields
@@ -407,6 +426,7 @@ function pensoft_publication_theme_registry_alter(&$registry){
  * 
  */
 function pensoft_publication_form_publication_type_form_alter(&$form, &$form_state, $form_id){
+  // Main fields
   $form['pensoft_submit_url'] = array(
     '#type' => 'textfield',
     '#title' => 'Pensoft API URL',
@@ -414,19 +434,76 @@ function pensoft_publication_form_publication_type_form_alter(&$form, &$form_sta
     '#default_value' => variable_get('pensoft_submit_url', 'http://pwt.pensoft.net/api.php'),
     '#weight' => 10
   );
+  $form['pensoft_schema_url'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Pensoft Schema URL',
+    '#required' => TRUE,
+    '#default_value' => variable_get('pensoft_schema_url', 'http://pwt.pensoft.net/dev/taxonomic_paper.xsd'),
+    '#weight' => 11
+  );
+  // Test if the schema has changed
+  $fail = FALSE;
+  module_load_include('xml.inc', 'publication', 'includes/publication');
+  $used_schema_url = variable_get('pensoft_publication_xml_schema_url', drupal_get_path('module', 'pensoft_publication') . '/taxonomic_paper.xsd');
+  $used_parser = new PublicationXSDParser($used_schema_url);
+  try{
+    $used_schema = $used_parser->get_schema_array();
+  }
+  catch(Exception $e){
+    drupal_set_message(t('The local schema could not be loaded: %cause', array(
+      '%cause' => $e->getMessage()
+    )), 'error');
+    $fail = TRUE;
+  }
+  $pensoft_schema_url = variable_get('pensoft_schema_url', 'http://pwt.pensoft.net/dev/taxonomic_paper.xsd');
+  $pensoft_parser = new PublicationXSDParser($pensoft_schema_url);
+  $fail = FALSE;
+  try{
+    $pensoft_schema = $pensoft_parser->get_schema_array();
+  }
+  catch(Exception $e){
+    drupal_set_message(t('The Pensoft schema could not be loaded: %cause', array(
+      '%cause' => $e->getMessage()
+    )), 'error');
+    $fail = TRUE;
+  }
+  if(!$fail){
+    $description = array();
+    if(!PublicationXSDParser::compare_schemas($used_schema, $pensoft_schema, $description)){
+      drupal_set_message(t('The Pensoft schema does not match the schema in use. See below for a list of differences.'), 'error');
+      $form['schema_diff_detail'] = array(
+        '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+        '#title' => 'Schema differences',
+        'generate' => array(
+          '#type' => 'markup',
+          '#markup' => "<pre>" . htmlspecialchars(implode("\n", $description)) . "</pre>"
+        ),
+        '#weight' => 13
+      );
+    }else{
+      $form['schema_diff_info'] = array(
+        '#type' => 'markup',
+        '#markup' => '<p>' . t('The Pensoft schema matches the schema in use') . '</p>',
+        '#weight' => 12
+      );
+    }
+  }
+  // Output XML generation information
   $schema = _pensoft_publication_schema_array(TRUE);
   $explain_schema = new PublicationXmlSchemaExplain($schema);
   $schema_generate = "<pre>" . htmlspecialchars($explain_schema->explain_with_xml()) . "</pre>";
   $form['schema_info'] = array(
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
-    '#collapsed'  => TRUE,
+    '#collapsed' => TRUE,
     '#title' => 'Pensoft schema generation info',
     'generate' => array(
       '#type' => 'markup',
       '#markup' => $schema_generate
     ),
-    '#weight' => 11
+    '#weight' => 15
   );
   $form['#submit'][] = 'pensoft_publication_type_form_submit';
   $form['#validate'][] = 'pensoft_publication_type_form_validate';
@@ -439,6 +516,9 @@ function pensoft_publication_type_form_validate($form, &$form_state){
   if(!valid_url($form_state['values']['pensoft_submit_url'])){
     form_set_error('pensoft_submit_url', t('You must enter a valid URL'));
   }
+  if(!valid_url($form_state['values']['pensoft_schema_url'])){
+    form_set_error('pensoft_schema_url', t('You must enter a valid URL'));
+  }
 }
 
 /**
@@ -446,12 +526,63 @@ function pensoft_publication_type_form_validate($form, &$form_state){
  */
 function pensoft_publication_type_form_submit($form, &$form_state){
   variable_set('pensoft_submit_url', $form_state['values']['pensoft_submit_url']);
+  variable_set('pensoft_schema_url', $form_state['values']['pensoft_schema_url']);
 }
 
 /**
  * Form for publishing a publication
  */
 function pensoft_publication_publish_form($form, &$form_state, $publication){
+  // Test if the schema has changed
+  module_load_include('xml.inc', 'publication', 'includes/publication');
+  $used_schema_url = variable_get('pensoft_publication_xml_schema_url', drupal_get_path('module', 'pensoft_publication') . '/taxonomic_paper.xsd');
+  $used_parser = new PublicationXSDParser($used_schema_url);
+  try{
+    $used_schema = $used_parser->get_schema_array();
+  }
+  catch(Exception $e){
+    $form['fail'] = array(
+      '#type' => 'markup',
+      '#markup' => '<p>' . t('It is not possible to publish this as we failed to parse the local publication schema. Please report this issue to the site administrator. Error message: %cause', array(
+        '%cause' => $e->getMessage()
+      ))
+    );
+    return $form;
+  }
+  $pensoft_schema_url = variable_get('pensoft_schema_url', 'http://pwt.pensoft.net/dev/taxonomic_paper.xsd');
+  $pensoft_parser = new PublicationXSDParser($pensoft_schema_url);
+  $fail = FALSE;
+  try{
+    $pensoft_schema = $pensoft_parser->get_schema_array();
+  }
+  catch(Exception $e){
+    $form['fail'] = array(
+      '#type' => 'markup',
+      '#markup' => '<p>' . t('It is not possible to publish this as we failed to load the Pensoft publication schema. Please try again later, or report this issue to the site administrator. Error message: %cause', array(
+        '%cause' => $e->getMessage()
+      ))
+    );
+    return $form;
+  }
+  $description = array();
+  if(!PublicationXSDParser::compare_schemas($used_schema, $pensoft_schema, $description)){
+    $form['fail'] = array(
+      '#type' => 'markup',
+      '#markup' => '<p>' . t('It is not possible to publish this as the Pensoft publication schema differs from the schema in use. Please report this issue to the site administrator.')
+    );
+    return $form;
+  }
+  // Validate the publication
+  module_load_include('xml.inc', 'pensoft_publication');
+  $xml = _pensoft_publication_build_xml($publication);
+  if(empty($xml)){
+    $form['fail'] = array(
+      '#type' => 'markup',
+      '#markup' => '<p>' . t('The publication does not validate for publication.')
+    );
+    return $form;
+  }
+  // The publication form
   $form = array();
   $form['pensoft_publication'] = array(
     '#type' => 'value',
@@ -469,16 +600,18 @@ function pensoft_publication_publish_form($form, &$form_state, $publication){
     '#default_value' => '',
     '#required' => TRUE
   );
-  $form['pensoft_return_xml'] = array(
-    '#type' => 'radios',
-    '#title' => 'Data handling',
-    '#default_value' => 1,
-    '#options' => array(
-      1 => t('Return XML file'),
-      2 => t('Post XML file to Pensoft'),
-      3 => t('Just valiate the process')
-    )
-  );
+  if(user_access('preview publication xml')){
+    $form['pensoft_return_xml'] = array(
+      '#type' => 'radios',
+      '#title' => 'Data handling',
+      '#default_value' => 1,
+      '#options' => array(
+        1 => t('Return XML file'),
+        2 => t('Post XML file to Pensoft'),
+        3 => t('Just valiate the process')
+      )
+    );
+  }
   $form['pensoft_publish'] = array(
     '#type' => 'submit',
     '#value' => 'Publish'
@@ -503,17 +636,20 @@ function pensoft_publication_publish_form_submit($form, &$form_state){
   module_load_include('xml.inc', 'pensoft_publication');
   $publication = $form_state['values']['pensoft_publication'];
   $xml = _pensoft_publication_build_xml($publication);
-  $mode = $form_state['values']['pensoft_return_xml'];
-  if($mode == 3){
-    drupal_set_message(t('XML contains %bytes bytes', array(
-      '%bytes' => strlen($xml)
-    )), 'status');
-    return;
-  }else if($mode == 1){
-    header('Content-type: application/xml');
-    echo $xml;
-    exit();
-  }else if(empty($xml)){
+  if(user_access('preview publication xml')){
+    $mode = $form_state['values']['pensoft_return_xml'];
+    if($mode == 3){
+      drupal_set_message(t('XML contains %bytes bytes', array(
+        '%bytes' => strlen($xml)
+      )), 'status');
+      return;
+    }else if($mode == 1){
+      header('Content-type: application/xml');
+      echo $xml;
+      exit();
+    }
+  }
+  if(empty($xml)){
     drupal_set_message(t('Could not process XML as required'), 'error');
     return;
   }
@@ -575,7 +711,7 @@ function pensoft_publication_publish_form_submit($form, &$form_state){
 /**
  * Create the schema array for generating Pensoft publications
  */
-function _pensoft_publication_schema_array($diff = FALSE) {
+function _pensoft_publication_schema_array($diff = FALSE){
   module_load_include('xml.inc', 'publication', 'includes/publication');
   module_load_include('xml.schema.inc', 'pensoft_publication');
   // Parse the schema
@@ -637,10 +773,23 @@ function _pensoft_publication_build_xml($publication){
     $xml = $builder->build_xml($publication, $url, '1.0', 'UTF-8');
   }
   catch(Exception $e){
-    drupal_set_message($e->getMessage(), 'error');
+    drupal_set_message(t("An error occured while building the publication: !cause", array(
+      '!cause' => $e->getMessage()
+    )), 'error');
     return FALSE;
   }
   return $xml;
+}
+
+/**
+ * Implement hook_perm
+ */
+function pensoft_publication_permission(){
+  return array(
+    'preview publication xml' => array(
+      'title' => t('Preview publication XML')
+    )
+  );
 }
 
 /**
