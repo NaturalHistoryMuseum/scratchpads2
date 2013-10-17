@@ -18,10 +18,6 @@ table {
   table-layout: fixed !important;
 }
 
-td{
-  overflow: hidden;
-}
-
 .front table.qa-overview {
   width: 300px;
 }
