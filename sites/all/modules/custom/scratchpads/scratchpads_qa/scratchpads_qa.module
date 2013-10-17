@@ -33,7 +33,7 @@ function scratchpads_qa_block_info(){
   return array(
     'overview' => array(
       'info' => t('Scratchpads Tests Overview'),
-      'cache' => DRUPAL_CACHE_GLOBAL
+      'cache' => DRUPAL_NO_CACHE
     )
   );
 }
