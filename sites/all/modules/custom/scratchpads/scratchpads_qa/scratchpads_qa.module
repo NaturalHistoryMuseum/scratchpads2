@@ -8,7 +8,9 @@ function scratchpads_qa_menu(){
     'results/front' => array(
       'title' => 'Scratchpads Tests',
       'page callback' => 'scratchpads_qa_front',
-      'acccess callback' => TRUE
+      'acccess arguments' => array(
+        'access content'
+      )
     ),
     'results/latest' => array(),
     'results/%' => array()
