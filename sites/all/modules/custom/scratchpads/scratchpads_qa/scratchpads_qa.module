@@ -8,9 +8,7 @@ function scratchpads_qa_menu(){
     'results/front' => array(
       'title' => 'Scratchpads Tests',
       'page callback' => 'scratchpads_qa_front',
-      'acccess arguments' => array(
-        'access content'
-      )
+      'access callback' => TRUE
     ),
     'results/latest' => array(),
     'results/%' => array()
@@ -26,6 +24,15 @@ function scratchpads_qa_block_info(){
       'info' => t('Scratchpads Tests Overview'),
       'cache' => DRUPAL_CACHE_GLOBAL
     )
+  );
+}
+
+/**
+ * Callback to display a page suitable for the front of the QA site.
+ */
+function scratchpads_qa_front(){
+  return array(
+    'overview' => scratchpads_qa_block_view('overview')
   );
 }
 
