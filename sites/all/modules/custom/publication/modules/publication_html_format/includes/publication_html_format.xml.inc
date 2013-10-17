@@ -13,7 +13,7 @@ class PublicationHtmlFormatXMLModifier extends PublicationHtmlFormatChangeCitati
   /**
    * Implement PublicationXMLModifierInterface::start_building
    */
-  public function start_building($schema, $object, $dom){}
+  public function start_building($schema, $entity_type, $entity, $dom){}
 
   /**
    * Implement PublicationXMLModifierInterface::insert_value

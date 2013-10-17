@@ -490,21 +490,6 @@ function pensoft_publication_form_publication_type_form_alter(&$form, &$form_sta
       );
     }
   }
-  // Output XML generation information
-  $schema = _pensoft_publication_schema_array(TRUE);
-  $explain_schema = new PublicationXmlSchemaExplain($schema);
-  $schema_generate = "<pre>" . htmlspecialchars($explain_schema->explain_with_xml()) . "</pre>";
-  $form['schema_info'] = array(
-    '#type' => 'fieldset',
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#title' => 'Pensoft schema generation info',
-    'generate' => array(
-      '#type' => 'markup',
-      '#markup' => $schema_generate
-    ),
-    '#weight' => 15
-  );
   $form['#submit'][] = 'pensoft_publication_type_form_submit';
   $form['#validate'][] = 'pensoft_publication_type_form_validate';
 }
@@ -732,7 +717,7 @@ function _pensoft_publication_schema_array($diff = FALSE){
         'introduction' => _pensoft_publication_xml_introduction_schema(),
         'material_and_methods' => _pensoft_publication_xml_material_and_methods_schema(),
         'data_resources' => _pensoft_publication_xml_data_resources_schema(),
-        'results' => _pensoft_publication_xml_results_schema(),
+        //'results' => _pensoft_publication_xml_results_schema(),
         //'checklist' => _pensoft_publication_xml_checklist_schema(),
         'systematics' => _pensoft_publication_xml_systematics_schema(),
         'discussion' => _pensoft_publication_xml_discussion_schema(),
@@ -770,7 +755,7 @@ function _pensoft_publication_build_xml($publication){
     ), array(
       $modifier
     ));
-    $xml = $builder->build_xml($publication, $url, '1.0', 'UTF-8');
+    $xml = $builder->build_xml('publication', $publication, $url, '1.0', 'UTF-8');
   }
   catch(Exception $e){
     drupal_set_message(t("An error occured while building the publication: !cause", array(
