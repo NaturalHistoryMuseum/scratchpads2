@@ -48,7 +48,7 @@ function scratchpads_qa_result($test_id){
   unset($form['action']);
   unset($form['#action']);
   foreach(array_keys($form['result']['results']) as $key){
-    $form['result']['results'][$key]['table']['#class']['#attributes'] = array(
+    $form['result']['results'][$key]['table']['#attributes'] = array(
       'class' => array(
         'hyphenate'
       )
