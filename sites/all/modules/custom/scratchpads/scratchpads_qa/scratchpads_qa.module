@@ -92,6 +92,12 @@ function scratchpads_qa_block_view($delta){
       return array(
         'subject' => t('Latest test results'),
         'content' => array(
+          '#attached' => array(
+            'css' => array(
+              drupal_get_path('module', 'scratchpads_qa') . '/css/scratchpads_qa.css',
+              drupal_get_path('module', 'simpletest') . '/simpletest.css'
+            )
+          ),
           'table' => array(
             '#theme' => 'table',
             '#header' => array(
@@ -100,16 +106,37 @@ function scratchpads_qa_block_view($delta){
             ),
             '#rows' => array(
               array(
-                'Passes',
-                $status['pass']
+                'data' => array(
+                  'Passes',
+                  $status['pass']
+                ),
+                'class' => $status['pass'] ? array(
+                  'simpletest-pass'
+                ) : array(
+                  'simpletest-fail'
+                )
               ),
               array(
-                'Fails',
-                $status['fail']
+                'data' => array(
+                  'Fails',
+                  $status['fail']
+                ),
+                'class' => $status['fail'] ? array(
+                  'simpletest-fail'
+                ) : array(
+                  'simpletest-pass'
+                )
               ),
               array(
-                'Exceptions',
-                $status['exception']
+                data => array(
+                  'Exceptions',
+                  $status['exception']
+                ),
+                'class' => $status['exception'] ? array(
+                  'simpletest-exception'
+                ) : array(
+                  'simpletest-pass'
+                )
               )
             )
           ),
