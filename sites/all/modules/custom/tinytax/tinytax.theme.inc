@@ -41,7 +41,16 @@ function theme_tinytax_block($variables){
  */
 function theme_tinytax_branch($variables){
   // Get the terms to render
-  $terms = taxonomy_get_tree($variables['vid'], $variables['tid'], 1, TRUE);
+  if(module_exists('relation_add')){
+    // Due to the way the relation_add module loads relaion entities, and the
+    // fact that it is a HUGE performance overhead, we do not load the full
+    // entity if it is enabled.  This means the sorting and display of terms
+    // will be broken.
+    // FIXME - A better solution for this is needed.
+    $terms = taxonomy_get_tree($variables['vid'], $variables['tid'], 1);
+  }else{
+    $terms = taxonomy_get_tree($variables['vid'], $variables['tid'], 1, TRUE);
+  }
   uasort($terms, '_tinytax_sort_terms');
   $output = '<ul>';
   foreach($terms as $term){
