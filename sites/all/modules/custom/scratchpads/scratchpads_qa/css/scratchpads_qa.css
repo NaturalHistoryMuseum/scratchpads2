@@ -1,0 +1,11 @@
+tr.simpletest-fail td {
+  background-color: #FFACAC !important;
+}
+
+tr.simpletest-pass td {
+  background-color: #B6FFB6 !important;
+}
+
+tr.simpletest-exception td {
+  background-color: #F4EA71;
+}
