@@ -48,11 +48,6 @@ function scratchpads_qa_result($test_id){
   unset($form['action']);
   unset($form['#action']);
   foreach(array_keys($form['result']['results']) as $key){
-    $form['result']['results'][$key]['table']['#attributes'] = array(
-      'class' => array(
-        'hyphenate'
-      )
-    );
     if(isset($form['result']['results'][$key]['table']['#header'][5])){
       unset($form['result']['results'][$key]['table']['#header'][5]);
       unset($form['result']['results'][$key]['table']['#header'][2]);
@@ -68,7 +63,6 @@ function scratchpads_qa_result($test_id){
       );
     }
   }
-  $form['#attached']['js'][] = drupal_get_path('module', 'scratchpads_qa').'/js/hyphenator.js';
   return $form;
 }
 
