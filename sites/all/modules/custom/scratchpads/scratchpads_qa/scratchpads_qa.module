@@ -1,0 +1,127 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ */
+function scratchpads_qa_menu(){
+  return array(
+    'results/front' => array(
+      'title' => 'Scratchpads Tests',
+      'page callback' => 'scratchpads_qa_front',
+      'access callback' => TRUE
+    ),
+    'results/latest' => array(
+      'title' => 'Latest Scratchpads Test Result',
+      'page callback' => 'scratchpads_qa_latest',
+      'access callback' => TRUE
+    ),
+    'results/%' => array(
+      'title' => 'Scratchpads Test Result',
+      'page callback' => 'scratchpads_qa_result',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => TRUE
+    )
+  );
+}
+
+/**
+ * Implements hook_block_info()
+ */
+function scratchpads_qa_block_info(){
+  return array(
+    'overview' => array(
+      'info' => t('Scratchpads Tests Overview'),
+      'cache' => DRUPAL_CACHE_GLOBAL
+    )
+  );
+}
+
+/**
+ * Callback to display a specific result set.
+ */
+function scratchpads_qa_result($test_id){
+  $form_state = array();
+  module_load_include('pages.inc', 'simpletest');
+  $form = simpletest_result_form(array(), $form_state, $test_id);
+  unset($form['action']);
+  unset($form['#action']);
+  return $form;
+}
+
+/**
+ * Callback to display the latest test results
+ */
+function scratchpads_qa_latest(){
+  // Get the highest test_id
+  $query = db_select('simpletest', 's');
+  $query->addExpression('MAX(s.test_id)', 'max_test_id');
+  $test_id = $query->execute()->fetchField();
+  if(!$test_id){return array(
+      '#markup' => t('No tests to display')
+    );}
+  return scratchpads_qa_result($test_id);
+}
+
+/**
+ * Callback to display a page suitable for the front of the QA site.
+ */
+function scratchpads_qa_front(){
+  return array(
+    'overview' => scratchpads_qa_block_view('overview')
+  );
+}
+
+/**
+ * Implements hook_block_view()
+ */
+function scratchpads_qa_block_view($delta){
+  switch($delta){
+    case 'overview':
+      // Get the highest test_id
+      $query = db_select('simpletest', 's');
+      $query->addExpression('MAX(s.test_id)', 'max_test_id');
+      $test_id = $query->execute()->fetchField();
+      if(!$test_id){return array();}
+      $query = db_select('simpletest', 's');
+      $query->addExpression('COUNT(*)', 'count_status');
+      $status = $query->condition('test_id', $test_id)->fields('s', array(
+        'status'
+      ))->groupBy('status')->execute()->fetchAllKeyed();
+      return array(
+        'subject' => t('Latest test results'),
+        'content' => array(
+          'table' => array(
+            '#theme' => 'table',
+            '#header' => array(
+              'Status',
+              'Count'
+            ),
+            '#rows' => array(
+              array(
+                'Passes',
+                $status['pass']
+              ),
+              array(
+                'Fails',
+                $status['fail']
+              ),
+              array(
+                'Exceptions',
+                $status['exception']
+              )
+            )
+          ),
+          'link' => array(
+            '#theme' => 'link',
+            '#path' => 'results/latest',
+            '#text' => t('More detail'),
+            '#options' => array(
+              'attributes' => array()
+            )
+          )
+        )
+      );
+  }
+}
