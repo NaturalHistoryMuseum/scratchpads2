@@ -91,7 +91,6 @@ function theme_tinytax_term_count($variables){
  * tinytax_term theme function
  */
 function theme_tinytax_term($variables){
-  $has_children = count(taxonomy_get_children($variables['term']->tid));
   $class = '';
   if($variables['toggle']){
     foreach($variables['toggle'] as $field_name => $toggle_values){
@@ -99,12 +98,14 @@ function theme_tinytax_term($variables){
         foreach($values as $value){
           if(in_array($value['value'], $toggle_values)){
             $class = " class=\"vid-{$variables['term']->vid} toggleable\"";
+            break;
           }
         }
       }
     }
   }
   $output = "<li id=\"tinytax-{$variables['term']->tid}\"$class>";
+  $has_children = db_select('taxonomy_term_hierarchy', 't')->condition('parent', $variables['term']->tid)->countQuery()->execute()->fetchField();
   if($has_children){
     // Plus or minus.
     if(in_array($variables['term']->tid, $variables['open_tids'])){
