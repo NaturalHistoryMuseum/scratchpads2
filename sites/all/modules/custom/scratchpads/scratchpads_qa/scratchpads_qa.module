@@ -10,7 +10,11 @@ function scratchpads_qa_menu(){
       'page callback' => 'scratchpads_qa_front',
       'access callback' => TRUE
     ),
-    'results/latest' => array(),
+    'results/latest' => array(
+      'title' => 'Latest Scratchpads Test',
+      'page callback' => 'scratchpads_qa_latest',
+      'access callback' => TRUE
+    ),
     'results/%' => array()
   );
 }
@@ -25,6 +29,25 @@ function scratchpads_qa_block_info(){
       'cache' => DRUPAL_CACHE_GLOBAL
     )
   );
+}
+
+/**
+ * Callback to display the latest test results
+ */
+function scratchpads_qa_latest(){
+  // Get the highest test_id
+  $query = db_select('simpletest', 's');
+  $query->addExpression('MAX(s.test_id)', 'max_test_id');
+  $test_id = $query->execute()->fetchField();
+  if(!$test_id){return array(
+      '#markup' => t('No tests to display')
+    );}
+  $form_state = array();
+  module_load_include('pages.inc', 'simpletest');
+  $form = simpletest_result_form(array(), $form_state, $test_id);
+  unset($form['action']);
+  unset($form['#action']);
+  return $form;
 }
 
 /**
@@ -53,26 +76,36 @@ function scratchpads_qa_block_view($delta){
         'status'
       ))->groupBy('status')->execute()->fetchAllKeyed();
       return array(
-        'subject' => NULL,
-        'content' => array(
-          '#theme' => 'table',
-          '#header' => array(
-            'Status',
-            'Count'
-          ),
-          '#rows' => array(
-            array(
-              'Passes',
-              $status['pass']
+        'table' => array(
+          'subject' => t('Latest test results'),
+          'content' => array(
+            '#theme' => 'table',
+            '#header' => array(
+              'Status',
+              'Count'
             ),
-            array(
-              'Fails',
-              $status['fail']
-            ),
-            array(
-              'Exceptions',
-              $status['exception']
+            '#rows' => array(
+              array(
+                'Passes',
+                $status['pass']
+              ),
+              array(
+                'Fails',
+                $status['fail']
+              ),
+              array(
+                'Exceptions',
+                $status['exception']
+              )
             )
+          )
+        ),
+        'link' => array(
+          '#theme' => 'link',
+          '#path' => 'results/latest',
+          '#text' => t('More detail'),
+          '#options' => array(
+            'attributes' => array()
           )
         )
       );
