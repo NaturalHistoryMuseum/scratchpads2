@@ -131,6 +131,24 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     }
     return TRUE;
   }
+  
+  /**
+   * Override to add a fail when there is an uncaught exception
+   *
+   * @see set_exception_handler
+   */
+  protected function exceptionHandler($exception) {
+    $backtrace = $exception->getTrace();
+    // Push on top of the backtrace the call that generated the exception.
+    array_unshift($backtrace, array(
+    'line' => $exception->getLine(),
+    'file' => $exception->getFile(),
+    ));
+    require_once DRUPAL_ROOT . '/includes/errors.inc';
+    // The exception message is run through check_plain() by _drupal_decode_exception().
+    $this->fail(t('%type: !message in %function (line %line of %file).', _drupal_decode_exception($exception)), 'Uncaught exception', _drupal_get_last_caller($backtrace));
+    $this->fail('Uncaught exception'); 
+  }
 
   /**
    * Allow the creation of a user with a specific username
