@@ -99,6 +99,11 @@ function scratchpads_qa_block_view($delta){
             )
           ),
           'table' => array(
+            '#attributes' => array(
+              'class' => array(
+                'qa-overview'
+              )
+            ),
             '#theme' => 'table',
             '#header' => array(
               'Status',
@@ -145,7 +150,11 @@ function scratchpads_qa_block_view($delta){
             '#path' => 'results/latest',
             '#text' => t('More detail'),
             '#options' => array(
-              'attributes' => array()
+              'attributes' => array(
+                'class' => array(
+                  'qa-overview'
+                )
+              )
             )
           )
         )

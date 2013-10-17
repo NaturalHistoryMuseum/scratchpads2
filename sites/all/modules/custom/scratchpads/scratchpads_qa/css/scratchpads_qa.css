@@ -9,3 +9,7 @@ tr.simpletest-pass td {
 tr.simpletest-exception td {
   background-color: #F4EA71 !important;
 }
+
+.qa-overview{
+  margin:10px;
+}
