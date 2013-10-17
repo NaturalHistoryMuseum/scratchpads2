@@ -11,11 +11,18 @@ function scratchpads_qa_menu(){
       'access callback' => TRUE
     ),
     'results/latest' => array(
-      'title' => 'Latest Scratchpads Test',
+      'title' => 'Latest Scratchpads Test Result',
       'page callback' => 'scratchpads_qa_latest',
       'access callback' => TRUE
     ),
-    'results/%' => array()
+    'results/%' => array(
+      'title' => 'Scratchpads Test Result',
+      'page callback' => 'scratchpads_qa_result',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => TRUE
+    )
   );
 }
 
@@ -32,6 +39,18 @@ function scratchpads_qa_block_info(){
 }
 
 /**
+ * Callback to display a specific result set.
+ */
+function scratchpads_qa_result($test_id){
+  $form_state = array();
+  module_load_include('pages.inc', 'simpletest');
+  $form = simpletest_result_form(array(), $form_state, $test_id);
+  unset($form['action']);
+  unset($form['#action']);
+  return $form;
+}
+
+/**
  * Callback to display the latest test results
  */
 function scratchpads_qa_latest(){
@@ -42,12 +61,7 @@ function scratchpads_qa_latest(){
   if(!$test_id){return array(
       '#markup' => t('No tests to display')
     );}
-  $form_state = array();
-  module_load_include('pages.inc', 'simpletest');
-  $form = simpletest_result_form(array(), $form_state, $test_id);
-  unset($form['action']);
-  unset($form['#action']);
-  return $form;
+  return scratchpads_qa_result($test_id);
 }
 
 /**
@@ -76,9 +90,9 @@ function scratchpads_qa_block_view($delta){
         'status'
       ))->groupBy('status')->execute()->fetchAllKeyed();
       return array(
-        'table' => array(
-          'subject' => t('Latest test results'),
-          'content' => array(
+        'subject' => t('Latest test results'),
+        'content' => array(
+          'table' => array(
             '#theme' => 'table',
             '#header' => array(
               'Status',
@@ -98,14 +112,14 @@ function scratchpads_qa_block_view($delta){
                 $status['exception']
               )
             )
-          )
-        ),
-        'link' => array(
-          '#theme' => 'link',
-          '#path' => 'results/latest',
-          '#text' => t('More detail'),
-          '#options' => array(
-            'attributes' => array()
+          ),
+          'link' => array(
+            '#theme' => 'link',
+            '#path' => 'results/latest',
+            '#text' => t('More detail'),
+            '#options' => array(
+              'attributes' => array()
+            )
           )
         )
       );
