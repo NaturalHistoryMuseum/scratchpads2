@@ -7,5 +7,5 @@ tr.simpletest-pass td {
 }
 
 tr.simpletest-exception td {
-  background-color: #F4EA71;
+  background-color: #F4EA71 !important;
 }
