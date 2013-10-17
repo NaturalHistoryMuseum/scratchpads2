@@ -41,7 +41,7 @@ function theme_tinytax_block($variables){
  */
 function theme_tinytax_branch($variables){
   // Get the terms to render
-  $terms = taxonomy_get_tree($variables['vid'], $variables['tid'], 1, TRUE);
+  $terms = taxonomy_get_tree($variables['vid'], $variables['tid'], 1);
   uasort($terms, '_tinytax_sort_terms');
   $output = '<ul>';
   foreach($terms as $term){
