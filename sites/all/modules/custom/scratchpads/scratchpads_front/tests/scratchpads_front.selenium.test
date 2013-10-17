@@ -59,6 +59,7 @@ class ScratchpadsFrontSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
     $this->drupalGet('');
     $this->assertText($page_info['body'], 'Page teaser shown on front page');
     $this->clickLink('Edit');
+    $this->verboseScreenshot();
     $welcome_message = $this->randomName();
     $element = $this->driver->getElement("name=front_page_welcome_message[value]");
     $element->clear();
