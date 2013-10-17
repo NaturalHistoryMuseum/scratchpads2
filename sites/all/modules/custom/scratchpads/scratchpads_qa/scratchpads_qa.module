@@ -86,7 +86,7 @@ function scratchpads_qa_block_view($delta){
       if(!$test_id){return array();}
       $query = db_select('simpletest', 's');
       $query->addExpression('COUNT(*)', 'count_status');
-      $status = $query->fields('s', array(
+      $status = $query->condition('test_id', $test_id)->fields('s', array(
         'status'
       ))->groupBy('status')->execute()->fetchAllKeyed();
       return array(
