@@ -10,10 +10,18 @@ tr.simpletest-exception td {
   background-color: #F4EA71 !important;
 }
 
-.front table.qa-overview{
-  width:300px;
+th.wider {
+  width: 40%;
 }
 
-.front .qa-overview{
-  margin:10px;
+table {
+  table-layout: fixed !important;
+}
+
+.front table.qa-overview {
+  width: 300px;
+}
+
+.front .qa-overview {
+  margin: 10px;
 }

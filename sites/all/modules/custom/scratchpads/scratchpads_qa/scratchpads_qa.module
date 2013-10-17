@@ -47,6 +47,22 @@ function scratchpads_qa_result($test_id){
   $form = simpletest_result_form(array(), $form_state, $test_id);
   unset($form['action']);
   unset($form['#action']);
+  foreach(array_keys($form['result']['results']) as $key){
+    if(isset($form['result']['results'][$key]['table']['#header'][5])){
+      unset($form['result']['results'][$key]['table']['#header'][5]);
+      unset($form['result']['results'][$key]['table']['#header'][2]);
+      foreach(array_keys($form['result']['results'][$key]['table']['#rows']) as $row_key){
+        unset($form['result']['results'][$key]['table']['#rows'][$row_key]['data'][5]);
+        unset($form['result']['results'][$key]['table']['#rows'][$row_key]['data'][2]);
+      }
+      $form['result']['results'][$key]['table']['#header'][0] = array(
+        'data' => 'Message',
+        'class' => array(
+          'wider'
+        )
+      );
+    }
+  }
   return $form;
 }
 
