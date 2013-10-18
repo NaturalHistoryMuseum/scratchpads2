@@ -14,7 +14,8 @@ function _pensoft_publication_xml_process_salutation($context){
   $value = $context->value_to_insert;
   $map = array(
     'Prof.' => 'Prof',
-    'Miss' => 'Ms'
+    'Miss' => 'Ms',
+    'Ph.D.' => 'Dr'
   );
   if(isset($map[$value])){
     return array(
@@ -26,45 +27,37 @@ function _pensoft_publication_xml_process_salutation($context){
 }
 
 /**
- * Loader function for the treatment/taxon description
- * 
- * We cannot use entity metadata wrappers with relations,
- * so this returns the node entity with fake fields
- * that can be accessed via process functions.
- */
-function _pensoft_publication_xml_load_treatment($context, $value){
-  $av = array_values($value['endpoints']);
-  $endpoint = array_shift($av);
-  list($type, $nid) = explode(':', $endpoint);
-  $rid = $value['relation_id'];
-  $relation = relation_load($rid);
-  $node = node_load($nid);
-  $relation_fields = array(
-    'field_publication_treat_species',
-    'field_publication_treat_authy',
-    'field_publication_treat_fields',
-    'field_publication_treat_holotype',
-    'field_publication_treat_paratype',
-    'field_publication_treat_type',
-  );
-  foreach($relation_fields as $relation_field){
-    $node->{$relation_field} = field_get_items('relation', $relation, $relation_field);
-  }
-  return array(
-    'entity_type' => 'node',
-    'entity' => $node
-  );
-  //$tid = $node->field_taxonomic_name[LANGUAGE_NONE][0]['tid'];
-  //$term = taxonomy_term_load($tid);
-  //$combine = array_merge((array)$node, (array)$relation, (array)$term);
-  //return ((object)$combine);
-}
-
-/**
  * Return a field value of the object
  */
-function _pensoft_publication_xml_treatment_field($context, $field){
-  return $context->entity->{$field};
+function _pensoft_publication_xml_treatment_field($context, $field, $alt = FALSE){
+  $value = $context->entity->{$field};
+  if (is_array($value) && isset($value[0]['value'])){
+    $value = $value[0]['value'];
+  }
+  if ($alt && $field == 'field_publication_treatment_type'){
+    if ($value == 'New taxon'){
+      $value ='new species described in this paper';
+    } else if ($value == 'Redescription or species observation'){
+      $value = 'previously described species';
+    }
+  }
+  return $value;
+}
+
+function _pensoft_publication_xml_process_continent_ocean($context, $value, $choice){
+  if (!$value){
+    $value = $context->wrapper->field_continent_or_ocean->value();
+  }
+  if (empty($value)){
+    return '';
+  }
+  $is_ocean = preg_match('/(ocean|atlantic|pacific)/i', $value);
+  if ($is_ocean && $choice == 'ocean'){
+    return $value;
+  } else if (!$is_ocean && $choice == 'continent'){
+    return $value;
+  }
+  return '';
 }
 
 /**
@@ -267,10 +260,10 @@ function _pensoft_publication_xml_article_metadata_schema(){
           '#field' => 'field_user_family_name'
         )
       ),
-      // corresponding_author
+      // corresponding_author XXX
       'rights' => array(
         'value' => array(
-          '#field' => 'field_publication_author_rights',  //"Edit & comment" or "Comment only"
+          '#field' => 'field_publication_author_rights', 
           '#comment' => '"Edit & comment" or "Comment only"',
           '#error_info' => 'Author rights for author %',
           '#error_field' => 'field_user_family_name'
@@ -296,7 +289,7 @@ function _pensoft_publication_xml_article_metadata_schema(){
             '#field' => 'field_user_institution',
           )
         ),
-        // city
+        // city XXX
         'country' => array(
           'value' => array(
             '#field' => 'field_user_country',
@@ -310,10 +303,8 @@ function _pensoft_publication_xml_article_metadata_schema(){
     'fields' => array(
       'title' => array(
         'value' => array(
-          //'title' => array(
-            '#field' => 'field_publication_title',
-            '#raw' => TRUE,
-          //)
+          '#field' => 'field_publication_title',
+          '#raw' => TRUE,
         )
       )
     ),
@@ -434,7 +425,7 @@ function _pensoft_publication_xml_article_metadata_schema(){
               '#field' => 'field_user_institution',
             )
           ),
-          // city
+          // city XXX
           'country' => array(
             'value' => array(
               '#field' => 'field_user_country',
@@ -445,31 +436,11 @@ function _pensoft_publication_xml_article_metadata_schema(){
       )
     )
   );
-  /*
-   'classification' => array(
-     'taxon_classification' => array(
-       'value' => array(
-       ),
-     ),
-     'subject_classification' => array(
-       'value' => array(
-       ),
-     ),
-     'chronological_classification' => array(
-       'value' => array(
-       ),
-     ),
-     'geographical_classification' => array(
-       'value' => array(
-       ),
-     )
-   );
-  */
   $article_metadata_schema = array(
     'title_and_authors' => $title_and_authors_schema,
     'abstract_and_keywords' => $abstract_and_keywords,
     'contributors' => $contributors
-    // classifications, funding_agencies
+    // classifications, funding_agencies XXX
   );
   return $article_metadata_schema;
 }
@@ -486,7 +457,8 @@ function _pensoft_publication_xml_introduction_schema(){
           '#raw' => TRUE,
         )
       )
-    )
+    ),
+    '#comment' => 'We could also have any number of subsections'
   );
   return $introduction;
 }
@@ -504,7 +476,8 @@ function _pensoft_publication_xml_material_and_methods_schema(){
           '#raw' => TRUE
         )
       )
-    )
+    ),
+    '#comment' => 'We could also have any number of subsections'
   );
   return $material_and_methods;
 }
@@ -522,7 +495,8 @@ function _pensoft_publication_xml_data_resources_schema() {
           '#raw' => TRUE,
         ),
       ),
-    )
+    ),
+    '#comment' => 'We could also have any number of subsections'
   );
 
   return $data_resources;
@@ -548,13 +522,52 @@ function _pensoft_publication_xml_results_schema() {
 }
 
 /**
- * The systematics section
+ * Test which type of treatment this is
  */
-function _pensoft_publication_xml_systematics_schema(){
-  $distribution = array(
+function _pensoft_publication_treatment_section_test($context, $type){
+  $term = $context->wrapper->field_taxonomic_name[0]->value();
+  $tw = entity_metadata_wrapper('taxonomy_term', $term);
+  $rank = $tw->field_rank->value();
+  $treatment_type = $context->relation->field_publication_treat_type[0]['value'];
+  $biovids = variable_get('biological_vids', array());
+  if (empty($biovids[$term->vid])){
+    return FALSE;
+  }
+  if (preg_match('/_species_/', $type) && $type != 'Species'){
+    return FALSE;
+  }
+  if (preg_match('/_iczn$/', $type) && $biovids[$term->vid] != 1){
+    return FALSE;
+  }
+  if (preg_match('/^new_/', $type) && $treatment_type != 'New taxon'){
+    return FALSE;
+  }
+  return TRUE;
+};
+
+/**
+ * Test whether a given treatment field should be included
+ */
+function _pensoft_publication_xml_treatment_include_field($context, $field){
+  if (!$context->wrapper->get($field)->value()){
+    return FALSE;
+  }
+  $include = explode(',', $context->relation->field_publication_treat_fields[LANGUAGE_NONE][0]['value']);
+  return in_array($field, $include);
+}
+
+/**
+ * Generate a treatment section from given parameters
+ */
+function _pensoft_publication_xml_treatment_section($section_type, $subsections){
+  $stype = array();
+  $stype['distribution'] = array(
     'fields' => array(
       'distribution' => array(
-        '#condition' => 'field_distribution',
+        '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_distribution'
+        ),
         'value' => array(
           '#field' => 'field_distribution',
           '#raw' => TRUE
@@ -562,7 +575,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#2' => array(
-      '#condition' => 'field_dispersal',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_dispersal'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -578,10 +594,13 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     )
   );
-  $ecology = array(
+  $stype['ecology'] = array(
     'fields' => array(
       'ecology' => array(
-        '#condition' => 'field_ecology',
+        '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_ecology'
+        ),
         'value' => array(
           '#field' => 'field_ecology',
           '#raw' => TRUE
@@ -589,7 +608,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#1' => array(
-      '#condition' => 'field_associations',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_associations'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -605,7 +627,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#2' => array(
-      '#condition' => 'field_cyclicity',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_cyclicity'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -621,7 +646,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#3' => array(
-      '#condition' => 'field_habitat',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_habitat'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -637,7 +665,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#4' => array(
-      '#condition' => 'field_life_cycle',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_life_cycle'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -653,7 +684,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#5' => array(
-      '#condition' => 'field_life_expectancy',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_life_expectancy'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -669,7 +703,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#6' => array(
-      '#condition' => 'field_migration',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_migration'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -685,7 +722,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#7' => array(
-      '#condition' => 'field_population_biology',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_population_biology'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -701,7 +741,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#8' => array(
-      '#condition' => 'field_reproduction',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_reproduction'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -717,7 +760,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#9' => array(
-      '#condition' => 'field_trophic_strategy',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_trophic_strategy'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -733,19 +779,24 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     )
   );
-  $conservation = array(
+  $stype['conservation'] = array(
     'fields' => array(
       'conservation' => array(
-        '#condition' => 'field_conservation_status',
+        '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_conservation_status'
+        ),
         'value' => array(
           '#field' => 'field_conservation_status',
           '#raw' => TRUE
         )
       )
     ),
-    /* // XXX conservation does not allow sub sections.
     'subsection' => array(
-      '#condition' => 'field_legislation',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_legislation'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -760,7 +811,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#2' => array(
-      '#condition' => 'field_management',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_management'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -775,7 +829,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#3' => array(
-      '#condition' => 'field_procedures',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_procedures'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -790,7 +847,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#4' => array(
-      '#condition' => 'field_threats',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_threats'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -805,7 +865,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#5' => array(
-      '#condition' => 'field_trends',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_trends'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -819,12 +882,14 @@ function _pensoft_publication_xml_systematics_schema(){
         )
       )
     )
-    */
   );
-  $description = array(
+  $stype['description'] = array(
     'fields' => array(
       'description' => array(
-        '#condition' => 'field_general_description',
+        '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_general_description'
+        ),
         'value' => array(
           '#field' => 'field_general_description',
           '#raw' => TRUE
@@ -832,7 +897,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection' => array(
-      '#condition' => 'field_behavious',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_behavious'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -848,7 +916,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#2' => array(
-      '#condition' => 'field_cytology',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_cytology'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -864,7 +935,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#3' => array(
-      '#condition' => 'field_diagnostic_description',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_diagnostic_description'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -880,7 +954,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#4' => array(
-      '#condition' => 'field_genetics',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_genetics'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -896,7 +973,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#5' => array(
-      '#condition' => 'field_growth',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_growth'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -912,7 +992,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#6' => array(
-      '#condition' => 'field_look_alikes',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_look_alikes'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -928,7 +1011,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#7' => array(
-      '#condition' => 'field_molecular_biology',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_molecular_biology'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -944,7 +1030,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#8' => array(
-      '#condition' => 'field_morphology',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_morphology'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -960,7 +1049,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#9' => array(
-      '#condition' => 'field_physiology',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_physiology'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -976,7 +1068,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#10' => array(
-      '#condition' => 'field_size',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_size'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -992,7 +1087,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#11' => array(
-      '#condition' => 'field_taxon_biology',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_taxon_biology'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -1008,9 +1106,13 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     )
   );
-  $evolution = array(
+  // This is 'evolution', if such a thing existed !
+  $stype['section'] = array(
     'fields' => array(
-      '#condition' => 'field_evolution',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_evolution'
+      ),
       'title' => array(
         'value' => array(
           '#value' => 'Evolution'
@@ -1024,7 +1126,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection' => array(
-      '#condition' => 'field_phylogeny',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_phylogeny'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -1040,9 +1145,12 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     )
   );
-  $biology = array(
+  $stype['biology'] = array(
     'fields' => array(
-      '#condition' => 'field_biology',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_biology'
+       ),
       'biology' => array(
         'value' => array(
           '#field' => 'field_biology',
@@ -1051,23 +1159,30 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     )
   );
-  $relevance = array(
+  // Relevance
+  $stype['section#1'] = array(
     'fields' => array(
-      '#condition' => 'field_diseases',
+      '#condition' => array(
+          '_pensoft_publication_xml_treatment_include_field',
+          'field_diseases'
+      ),
+      'title' => array(
+        'value' => array(
+          '#value' => 'Diseases'
+        )
+      ),
       'content' => array(
         'value' => array(
           '#field' => 'field_diseases',
           '#raw' => TRUE
         )
       ),
-      'title' => array(
-        'value' => array(
-          '#value' => 'Diseases'
-        )
-      )
     ),
     'subsection' => array(
-      '#condition' => 'field_risk_statement',
+      '#condition' => array(
+        '_pensoft_publication_xml_treatment_include_field',
+        'field_risk_statement'
+      ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -1083,7 +1198,10 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     ),
     'subsection#2' => array(
-      '#condition' => 'field_risk_uses',
+      '#condition' => array(
+        '_pensoft_publication_xml_treatment_include_field',
+        'field_uses'
+       ),
       'fields' => array(
         'enter_title_of_this_subsection' => array(
           'value' => array(
@@ -1099,15 +1217,28 @@ function _pensoft_publication_xml_systematics_schema(){
       )
     )
   );
-  $taxon_name_species = array(
-    '#condition' => function($context) {
-      return $context->child_object->field_rank[LANGUAGE_NONE][0]['value'] == 'Species';
-    },
+  $stype['genus_name'] = array(
     'fields' => array(
       'genus' => array(
         '#condition' => 'field_publication_treat_genus',
         'value' => array(
-          '#field' => 'field_publication_treat_genus',
+          '#field' => 'field_publication_treat_genus'
+        )
+      ),
+      'taxon_authors' => array(
+        '#condition' => 'field_publication_treat_authy',
+        'value' => array(
+          '#field' => 'field_publication_treat_authy',
+        )
+      )
+    )
+  );
+  $stype['species_name'] = array(
+    'fields' => array(
+      'genus' => array(
+        '#condition' => 'field_publication_treat_genus',
+        'value' => array(
+          '#field' => 'field_publication_treat_genus'
         )
       ),
       'species' => array(
@@ -1119,139 +1250,226 @@ function _pensoft_publication_xml_systematics_schema(){
       'taxon_authors' => array(
         '#condition' => 'field_publication_treat_authy',
         'value' => array(
-          '#field' => 'field_publication_treat_authy',
+          '#field' => 'field_publication_treat_authy'
         )
       )
+      // XXX subgenus
     )
   );
+  $stype['materials'] =  _pensoft_publication_xml_systematics_materials_schema();
+  $final = array(
+    '#condition' => array(
+      '_pensoft_publication_treatment_section_test',
+      $section_type
+    )
+  );
+  foreach ($subsections as $subsection){
+    $final[$subsection] = $stype[$subsection];
+  }
+  return $final;
+}
+
+/**
+ * The systematics section
+ */
+function _pensoft_publication_xml_systematics_schema(){
+  // Treatment fields, common to all treatments
+  $treatment_fields = array(
+    'classification' => array(
+      'value' => array(
+        '#field' => 'field_taxonomic_name',
+        '#process' => array(
+          '_pensoft_publication_xml_process_classification'
+        )
+      )
+    ),
+    'rank' => array(
+      'value' => array(
+        '#entity' => '_publication_xml_load_taxonomic_name',
+        '#field' => 'field_rank',
+        '#comment' => "from the term, only 'Species' or 'Genus' allowed"
+      )
+    ),
+    'type_of_treatment' => array(
+      'value' => array(
+        '#field' => 'field_publication_treat_type',
+      )
+    ),
+    'select_type' => array(
+      '#entity' => '_publication_xml_load_taxonomic_name',
+      '#condition' => function($context) {
+        return $context->wrapper->field_rank->value() == 'Species';
+      },
+      '#comment' => 'In the Pensoft UI this is only available for species.',
+      'value' => array(
+        '#value' => '', 
+        '#comment' => "'extant' or 'fossil' or ''. This is part of Specimen for us, not taxon ?"
+      ) // XXX
+    ),
+    'habitat' => array(
+      '#condition' => function($context) {
+        $hab_value = $context->wrapper->field_habitat->value();
+        if (empty($hab_value)){
+          return FALSE;
+        }
+        $term = entity_metadata_wrapper('taxonomy_term', $context->wrapper->field_taxonomic_name[0]->value());
+        return $term->field_rank->value() == 'Species';
+      },
+      '#comment' => 'In the Pensoft UI, this is only available for Species',
+      'value' => array(
+        '#field' => 'field_habitat',
+        '#comment' => "'terrestrial', 'marine', 'freshwater', 'N/A' or 'empty'"
+      )
+    )
+    // parasite_of, XXX we will have this with the Relation branch ?
+    // classification_root_id, XXX Not sure what this is ?
+    // taxon_treatment_host_of, XXX we will have this with the Relation branch ?
+    // taxon_treatment_simbiotic_with, taxon_treatment_feeds_on
+  );
+  // Common structure
+
+  $new_tt_genus_iczn = _pensoft_publication_xml_treatment_section('new_tt_genus_iczn', array(
+    'genus_name',
+    // external_links XXX
+    // type_species_ICZN_new
+    'materials',
+    'description',
+    'section',
+    'section#1',
+    'biology',
+    // XXX etymology
+    'ecology',
+    'distribution',
+    // XXX notes
+    'conservation'
+    // XXX taxon_discussion     
+  ));
+  $new_tt_species_iczn = _pensoft_publication_xml_treatment_section('new_tt_species_iczn', array(
+    'species_name',
+    // external_links XXX
+    'materials',
+    'description',
+    // XXX diagnosis
+    'section',
+    'section#1',
+    'biology',
+    // XXX etymology
+    'ecology',
+    'distribution',
+    // XXX notes
+    'conservation'
+    // XXX taxon_discussion      
+  ));
+  $new_tt_species_icn = _pensoft_publication_xml_treatment_section('new_tt_species_icn', array(
+    'species_name',
+    // external_links XXX
+    'materials',
+    'description',
+    // XXX diagnosis
+    'section',
+    'section#1',
+    'ecology',
+    'biology',
+    // XXX taxon_discussion      
+    // XXX notes
+    // XXX etymology
+    'distribution',
+    'conservation'
+  ));
+  $new_tt_genus_icn = _pensoft_publication_xml_treatment_section('new_tt_genus_icn', array(
+    'genus_name',
+    // external_links XXX
+    // type_species_ICN_new does it make sense ?
+    'materials',
+    'description',
+    // XXX diagnosis
+    'section',
+    'biology',
+    // XXX etymology
+    'ecology',
+    'distribution',
+    // XXX notes
+    'conservation'
+    // XXX taxon_discussion      
+  ));
+  $redescription_tt_species_iczn = _pensoft_publication_xml_treatment_section('redescription_tt_species_iczn', array(
+    'species_name',
+    // external_links XXX
+    // Synonyms
+    'materials',
+    'description',
+    // XXX diagnosis
+    'section',
+    'section#1',
+    'biology',
+    'ecology',
+    'distribution',
+    // XXX notes
+    'conservation'
+    // XXX taxon_discussion      
+  ));
+  $redescription_tt_species_icn = _pensoft_publication_xml_treatment_section('redescription_tt_species_icn', array(
+    'species_name',
+    // external_links XXX
+    // Synonyms
+    'materials',
+    'description',
+    // XXX diagnosis
+    'section',
+    'section#1',
+    'biology',
+    'ecology',
+    'distribution',
+    // XXX notes
+    'conservation'
+    // XXX taxon_discussion
+  ));
+  $redescription_tt_genus_iczn = _pensoft_publication_xml_treatment_section('redescription_tt_genus_iczn', array(
+    'genus_name',
+    // external_links XXX
+    // nomenclature
+    // type_species_ICZN_redescription
+    'materials',
+    'section',
+    'section#1',
+    // XXX taxon_discussion
+    'conservation',
+    'biology',
+    'ecology',
+    'distribution',
+    'description',
+    // XXX notes
+    // XXX diagnosis
+  ));
+  $redescription_tt_genus_icn = _pensoft_publication_xml_treatment_section('redescription_tt_genus_icn', array(
+    'genus_name',
+    // external_links XXX
+    // nomenclature
+    // type_species_ICZN_redescription
+    'materials',
+    'section',
+    'section#1',
+    // XXX taxon_discussion
+    'conservation',
+    'biology',
+    'ecology',
+    'distribution',
+    'description',
+    // XXX notes
+    // XXX diagnosis
+  ));
   $systematics = array(
     'treatment' => array(
-      '#field' => 'field_publication_treatments',
-      '#value' => '',
-      '#child_entity' => '_pensoft_publication_xml_load_treatment',
-      'fields' => array(
-        'classification' => array(
-          'value' => array(
-            '#field' => 'field_taxonomic_name',
-            '#process' => array(
-              '_pensoft_publication_xml_process_classification'
-            )
-          )
-        ),
-        'rank' => array(
-          'value' => array(
-            '#entity' => '_publication_xml_load_taxonomic_name',
-            '#field' => 'field_rank',
-            '#comment' => "from the term, only 'Species' or 'Genus' allowed"
-          )
-        ),
-        'type_of_treatment' => array(
-          'value' => array(
-            '#field' => 'nid',
-            '#process' => array(
-              '_pensoft_publication_xml_treatment_field',
-              'field_publication_treat_type'
-            )
-          )
-        ),
-        'select_type' => array(
-          '#entity' => '_publication_xml_load_taxonomic_name',
-          '#condition' => function($context) {
-            return $context->wrapper->field_rank->value() == 'Species';
-          },
-          'value' => array(
-            '#value' => '', 
-            '#comment' => "'extant' or 'fossil' or ''. This is part of Specimen for us, not taxon ?"
-          )
-        ),
-        'habitat' => array(
-          '#condition' => function($context) {
-            $hab_value = $context->wrapper->field_habitat->value();
-            if (empty($hab_value)){
-              return FALSE;
-            }
-            $term = entity_metadata_wrapper('taxonomy_term', $context->wrapper->field_taxonomic_name->value());
-            return $term->field_rank->value() == 'Species';
-          },
-          'value' => array(
-            '#field' => 'field_habitat',
-            '#comment' => "'terrestrial', 'marine', 'freshwater', 'N/A' or 'empty'"
-          )
-        )
-        // parasite_of, classification_root_id, taxon_treatment_host_of, taxon_treatment_simbiotic_with, taxon_treatment_feeds_on
-      ),
-      'taxon_name_genus' => array(
-        '#condition' => function($context) {
-          $term = $context->wrapper->field_taxonomic_name->value();
-          if ($context->wrapper->field_taxonomic_name->type() == 'list<taxonomy_term>'){
-            $term = reset($term);
-          }
-          $term = entity_metadata_wrapper('taxonomy_term', $term);
-          return $term->field_rank->value() == 'Genus';
-        },
-        'fields' => array(
-          '#condition' => array(
-            '_pensoft_publication_xml_treatment_field',
-            'field_publication_treat_genus',
-          ),
-          'genus' => array(
-            'value' => array(
-              '#field' => 'nid',
-              '#process' => array(
-                '_pensoft_publication_xml_treatment_field',
-                'field_publication_treat_genus',
-              )
-            )
-          ),
-          'taxon_authors' => array(
-            '#condition' => array(
-              '_pensoft_publication_xml_treatment_field',
-              'field_publication_treat_authy'
-            ),
-            'value' => array(
-              '#field' => 'nid',
-              '#process' => array(
-                '_pensoft_publication_xml_treatment_field',
-                'field_publication_treat_authy',
-              )
-            )
-          )
-        )
-      ),
-      /*
-      'type_species' => array(
-        'fields' => array(
-          'status' => array(
-            '#value' => '', //empty or "new species described in this paper" or "previously described species"
-          ),
-          'genus' => array(
-            '#value' => '',
-          ),
-          'species' => array(
-            '#value' => '',
-          ),
-          'taxon_authors' => array(
-            '#value' => '',
-          ),
-          'year' => array(
-            '#value' => '',
-          ),
-        ), 
-      ),
-      */
-      /*
-      'materials' => _pensoft_publication_xml_systematics_materials_schema(),
-      'description' => $description,
-      'section' => $evolution,
-      'section#2' => $relevance,
-      'biology' => $biology,
-      'ecology' => $ecology,
-      'distribution' => $distribution,
-      'conservation' => $conservation,
-      // taxon_discussion
-      'taxon_name_species' => $taxon_name_species,
-      // type_species_treatment, synonyms
-       * */
+      '#child_relation' => 'publication_treatments',
+      'fields' => $treatment_fields,
+      'new_tt_genus_iczn' => $new_tt_genus_iczn,
+      'new_tt_species_iczn' => $new_tt_species_iczn,
+      'new_tt_species_icn' => $new_tt_species_icn,
+      'new_tt_genus_icn' => $new_tt_genus_icn,
+      'redescription_tt_species_iczn' => $redescription_tt_species_iczn,
+      'redescription_tt_species_icn' => $redescription_tt_species_icn,
+      'redescription_tt_genus_iczn' => $redescription_tt_genus_iczn,
+      'redescription_tt_genus_icn' => $redescription_tt_genus_icn,
     )
   );
   return $systematics;
@@ -1289,10 +1507,10 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         '#condition' => 'field_collector',
         'value' => array(
           '#field' => 'field_collector',
-          '#merge' => '_publication_xml_merge_user'
+          '#merge' => '_publication_xml_merge_user' // XXX check that method
         )
       ),
-      //individualid - would that be the title ?
+      //individualid - would that be the title ? XXX
       'individualcount' => array(
         '#condition' => 'field_count',
         'value' => array(
@@ -1315,9 +1533,9 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       // occurencestatus,
       // preparations, disposition
       'othercatalognumbers' => array(
-        '#condition' => 'field_other_catalogue_number',
+        '#condition' => 'field_other_catalogue_numbers',
         'value' => array(
-          '#field' => 'field_other_catalogue_number'
+          '#field' => 'field_other_catalogue_numbers'
         )
       ),
       // XXX Should all these things be copied in from the taxonomic term ?
@@ -1332,31 +1550,64 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       /*** LOCATION ***/
       // locationid,highergeographid,higergeography
       'continent' => array(
-        '#condition' => 'generated_continent',
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
+        '#condition' => array(
+          '_pensoft_publication_xml_process_continent_ocean',
+          'continent'
+        ),
         'value' => array(
-          '#field' => 'generated_continent'
+          '#field' => 'field_continent_or_ocean',
+          '#process' => array(
+            '_pensoft_publication_xml_process_continent_ocean',
+            'continent'
+          )
         )
       ),
       'waterbody' => array(
-        '#condition' => 'generated_waterbody',
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
+        '#condition' => array(
+          '_pensoft_publication_xml_process_continent_ocean',
+          'ocean'
+        ),
         'value' => array(
-          '#field' => 'generated_waterbody'
-        )
+          '#field' => 'field_continent_or_ocean',
+          '#process' => array(
+            '_pensoft_publication_xml_process_continent_ocean',
+            'ocean'
+          )
+        )        
       ),
       'islandgroup' => array(
-        '#entity' => '_publication_xml_load_location',
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_island_group',
         'value' => array(
           '#field' => 'field_island_group'
         )
       ),
       'island' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_island',
         'value' => array(
           '#field' => 'field_island'
         )
       ),
       'country' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_country',
         'value' => array(
           '#field' => 'field_country',
@@ -1364,6 +1615,10 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         )
       ),
       'countrycode' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_country',
         'value' => array(
           '#field' => 'field_country',
@@ -1374,12 +1629,20 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         )
       ),
       'stateprovince' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_state_province',
         'value' => array(
           '#field' => 'field_state_province'
         )
       ),
       'county' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_county',
         'value' => array(
           '#field' => 'field_county'
@@ -1387,12 +1650,20 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       //municipality
       'locality' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_locality',
         'value' => array(
           '#field' => 'field_locality'
         )
       ),
       'verbatimlocality' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_locality',
         'value' => array(
           '#field' => 'field_locality'
@@ -1400,12 +1671,20 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       //verbatimelevation
       'minimumelevationinmeters' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_min_elevation',
         'value' => array(
           '#field' => 'field_min_elevation'
         )
       ),
       'maximumelevationinmeters' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_max_elevation',
         'value' => array(
           '#field' => 'field_max_elevation'
@@ -1413,12 +1692,20 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       //verbatimdepth
       'minimumdepthinmeters' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_min_depth',
         'value' => array(
           '#field' => 'field_min_depth'
         )
       ),
       'maximumdepthinmeters' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_max_depth',
         'value' => array(
           '#field' => 'field_max_depth'
@@ -1428,6 +1715,10 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       //locationaccordinto,locationremarks,
       //verbatimcoordinates
       'verbatimlatitude' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_map',
         'value' => array(
           '#field' => 'field_map',
@@ -1438,6 +1729,10 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         )
       ),
       'verbatimlongitude' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_map',
         'value' => array(
           '#field' => 'field_map',
@@ -1448,12 +1743,20 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         )
       ),
       'verbatimcoordinatesystem' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_coordinate_system',
         'value' => array(
           '#field' => 'field_coordinate_system'
         )
       ),
       'decimallatitude' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_map',
         'value' => array(
           '#field' => 'field_map',
@@ -1464,6 +1767,10 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         )
       ),
       'decimallongitude' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_map',
         'value' => array(
           '#field' => 'field_map',
@@ -1474,12 +1781,20 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         )
       ),
       'geodeticdatum' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_geodetic_datum',
         'value' => array(
           '#field' => 'field_geodetic_datum'
         )
       ),
       'coordinateuncertaintyinmeters' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_coordinate_uncertainty',
         'value' => array(
           '#field' => 'field_coordinate_uncertainty'
@@ -1488,6 +1803,10 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       //coordinateprecision, pointradiusspatialfit,footprintwkt,footprintsrs,
       //footprintspatialfit,georeferencedby,
       'georeferenceprotocol' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_georeference_protocol',
         'value' => array(
           '#field' => 'field_georeference_protocol'
@@ -1495,6 +1814,10 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       //georeferencesources, georeferenceverificationstatus,
       'georeferenceremarks' => array(
+        '#entity' => array(
+          '_publication_xml_load_entity_from_field',
+          'field_location'
+        ),
         '#condition' => 'field_georeference_remarks',
         'value' => array(
           '#field' => 'field_georeference_remarks'
@@ -1516,7 +1839,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         ),
         'value' => array(
           '#field' => 'field_user_family_name',
-          '#process' => '_publication_xml_process_full_name'
+          //'#process' => '_publication_xml_process_full_name' XXX
         )
       ),
       'dateidentified' => array(
@@ -1600,7 +1923,7 @@ function _pensoft_publication_xml_discussion_schema() {
   $results = array(
     'fields' => array(
       '#condition' => 'field_publication_discussion',
-      'discussions' => array(
+      'discussion' => array(
         'value' => array(
           '#field' => 'field_publication_discussion',
           '#raw' => TRUE

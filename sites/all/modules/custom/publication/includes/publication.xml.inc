@@ -476,7 +476,9 @@ class PublicationXMLBuilder{
       'value_to_insert' => NULL,
       'schema' => NULL,
       'relation' => NULL,
-      'child_relation' => NULL
+      'relation_wrapper' => NULL,
+      'child_relation' => NULL,
+      'child_relation_wrapper' => NULL
     );
     $this->_build_context[] = (object)array_merge($default, $context);
   }
@@ -564,7 +566,8 @@ class PublicationXMLBuilder{
         'entity' => $wrapper->raw(),
         'entity_type' => $wrapper->type(),
         'wrapper' => $wrapper,
-        'relation' => $parent_context->child_relation
+        'relation' => $parent_context->child_relation,
+        'relation_wrapper' => $parent_context->child_relation_wrapper
       ));
       // Test for coherence
       if(isset($child_schema['#child_relation']) && (isset($child_schema['#field']) || isset($child_schema['#child_entitiy']))){throw new Exception("Schema cannot include #child_relation and #field/#child_entity");}
@@ -659,6 +662,7 @@ class PublicationXMLBuilder{
     $results = $query->execute();
     foreach($results as $relation_data){
       $relation = relation_load($relation_data->rid);
+      $relation_wrapper = entity_metadata_wrapper('relation', $relation);
       $related_entities = field_get_items('relation', $relation, 'endpoints');
       foreach($related_entities as $entity_data){
         if($entity_data['entity_type'] == $wrapper->type() && $entity_data['entity_id'] == $wrapper->getIdentifier()){
@@ -674,7 +678,9 @@ class PublicationXMLBuilder{
           'child_entity' => $related_entity,
           'child_wrapper' => $related_wrapper,
           'child_relation' => $relation,
-          'relation' => $current_context->relation
+          'child_relation_wrapper' => $relation_wrapper,
+          'relation' => $current_context->relation,
+          'relation_wrapper' => $current_context->relation_wrapper
         );
       }
     }
@@ -733,7 +739,9 @@ class PublicationXMLBuilder{
         'value_to_insert' => $value_to_insert,
         'schema' => $schema,
         'relation' => $current_context->relation,
-        'child_relation' => isset($schema['#child_entity']) ? NULL : $current_context->relation
+        'relation_wrapper' => $current_context->relation_wrapper,
+        'child_relation' => isset($schema['#child_entity']) ? NULL : $current_context->relation,
+        'child_relation' => isset($schema['#child_entity']) ? NULL : $current_context->relation_wrapper
       );
     }
     return $result;
@@ -789,7 +797,9 @@ class PublicationXMLBuilder{
           'value_to_insert' => $value,
           'schema' => $schema,
           'relation' => $current_context->relation,
-          'child_relation' => isset($schema['#child_entity']) ? NULL : $current_context->relation
+          'relation_wrapper' => $current_context->relation_wrapper,
+          'child_relation' => isset($schema['#child_entity']) ? NULL : $current_context->relation,
+          'child_relation_wrapper' => isset($schema['#child_entity']) ? NULL : $current_context->relation_wrapper
         ));
         $child_wrapper = $wrapper;
       }
@@ -830,7 +840,9 @@ class PublicationXMLBuilder{
           'delta' => $i,
           'schema' => $schema,
           'relation' => $current_context->relation,
-          'child_relation' => isset($schema['#child_entity']) ? NULL : $current_context->relation
+          'relation_wrapper' => $current_context->relation_wrapper,
+          'child_relation' => isset($schema['#child_entity']) ? NULL : $current_context->relation,
+          'child_relation_wrapper' => isset($schema['#child_entity']) ? NULL : $current_context->relation_wrapper
         ));
         $child_wrapper = $wrapper;
       }
@@ -1041,36 +1053,35 @@ class PublicationXMLBuilder{
   function _read_values($wrapper, $field){
     $context = $this->_get_context();
     if(property_exists($context, 'relation') && property_exists($context->relation, $field)){
-      $value = field_get_items('relation', $context->relation, $field);
-    }else{
-      try{
-        if(!preg_match('/^(list<)?countries>?$/', $wrapper->get($field)->type())){
-          if(strpos($wrapper->get($field)->type(), 'list<') === 0){
-            return array_filter($wrapper->get($field)->value());
-          }else{
-            return array(
-              $wrapper->get($field)->value()
-            );
-          }
+      $wrapper = $context->relation_wrapper;
+    }
+    try{
+      if(!preg_match('/^(list<)?countries>?$/', $wrapper->get($field)->type())){
+        if(strpos($wrapper->get($field)->type(), 'list<') === 0){
+          return array_filter($wrapper->get($field)->value());
+        }else{
+          return array_filter(array(
+            $wrapper->get($field)->value()
+          ));
         }
       }
-      catch(Exception $e){
-        if(!isset($wrapper->raw()->{$field})){throw $e;}
-      }
-      // Not all fields are exposed to wrappers - so if we can't get it
-      // through the wrapper, try directly. Also some wrapper implementations
-      // have bugs (eg. countries) so we avoid them.
-      $value = field_get_items($wrapper->type(), $wrapper->raw(), $field);
     }
+    catch(Exception $e){
+      if(!isset($wrapper->raw()->{$field})){throw $e;}
+    }
+    // Not all fields are exposed to wrappers - so if we can't get it
+    // through the wrapper, try directly. Also some wrapper implementations
+    // have bugs (eg. countries) so we avoid them.
+    $value = field_get_items($wrapper->type(), $wrapper->raw(), $field);
     if(!is_array($value)){
-      return array(
+      return array_filter(array(
         $value
-      );
+      ));
     }else{
       $ak = array_keys($value);
-      if(!empty($ak) && !is_int(reset($ak))){return array(
+      if(!empty($ak) && !is_int(reset($ak))){return array_filter(array(
           $value
-        );}
+        ));}
       return array_filter($value);
     }
   }
@@ -1241,8 +1252,7 @@ function _publication_xml_process_map($context, $type = 'latitude'){
 function _publication_xml_merge_user($values){
   $output = array();
   foreach($values as $value){
-    $user = user_load($value['uid']);
-    $wrapper = entity_metadata_wrapper('user', $user);
+    $wrapper = entity_metadata_wrapper('user', $value);
     $full_name = implode(' ', array(
       $wrapper->field_user_title->value(),
       $wrapper->field_user_given_names->value(),
