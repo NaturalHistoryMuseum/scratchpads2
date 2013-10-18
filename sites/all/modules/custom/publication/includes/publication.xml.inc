@@ -52,6 +52,16 @@
  *                      elements will be replaced by the one returned by this function. The second argument
  *                      passed to the loader function is the value of each delta of the current field.
  *
+ *    #child_relation:  If defined, this is the name of a relation type for which the current entity is
+ *                      an endpoint. Child entities are loaded as the entities on the other endpoint
+ *                      of this relation. If this is defined then #field and #child_entity cannot
+ *                      be defined, as this drives both the number of occurences and the child entities.
+ *                      
+ *                      Once this has been defined child elements will be able to access the fields
+ *                      of the relation as well as the fields of the child entitiy.
+ *                      
+ *                      XXX we should have an analogous #relation
+ *                      
  *    #value :          A static value to insert when generating the XML. This is inserted as many
  *                      times as required by #min_occurence.
  *                      
@@ -446,6 +456,11 @@ class PublicationXMLBuilder{
 
   /**
    * This function sets the active build context
+   * 
+   * XXX We could probably simplify the context management as such:
+   * - all items not specified get passed down to children contexts ;
+   * - all items specified as 'child_xxx' get additionnaly passed down as 'xxx'
+   *
    */
   function _set_context($context){
     $default = array(
@@ -459,9 +474,21 @@ class PublicationXMLBuilder{
       'delta' => NULL,
       'raw_value' => NULL,
       'value_to_insert' => NULL,
-      'schema' => NULL
+      'schema' => NULL,
+      'relation' => NULL,
+      'child_relation' => NULL
     );
     $this->_build_context[] = (object)array_merge($default, $context);
+  }
+
+  /**
+   * Modify the current context
+   */
+  function _modify_context($mod){
+    $idx = count($this->_build_context) - 1;
+    if($idx >= 0){
+      $this->_build_context[$idx] = (object)array_merge((array)$this->_build_context[$idx], $mod);
+    }
   }
 
   /**
@@ -532,11 +559,15 @@ class PublicationXMLBuilder{
       // Prepare wrapper and context
       $wrapper = $root_wrapper;
       $this->path[] = $tag;
+      $parent_context = $this->_get_context();
       $this->_set_context(array(
         'entity' => $wrapper->raw(),
         'entity_type' => $wrapper->type(),
-        'wrapper' => $wrapper
+        'wrapper' => $wrapper,
+        'relation' => $parent_context->child_relation
       ));
+      // Test for coherence
+      if(isset($child_schema['#child_relation']) && (isset($child_schema['#field']) || isset($child_schema['#child_entitiy']))){throw new Exception("Schema cannot include #child_relation and #field/#child_entity");}
       // Look for a '#entity' directive
       if(isset($child_schema['#entity'])){
         try{
@@ -558,6 +589,7 @@ class PublicationXMLBuilder{
           'entity_type' => $wrapper->type(),
           'wrapper' => $wrapper
         ));
+        // XXX should we keep the relation if the entity is being changed ?
       }
       // Check if there is a conditional
       if(isset($child_schema['#condition'])){
@@ -578,8 +610,9 @@ class PublicationXMLBuilder{
             continue;
           }
         }else{
-          $field = $child_schema['#condition'];
-          $cond_value = $wrapper->get($field)->value();
+          if(isset($child_schema['#child_relation'])){throw new Excpetion("Schema cannot define both #child_relation and a #condition that relies on a field");}
+          $cond_field = $child_schema['#condition'];
+          $cond_value = $this->_read_values($wrapper, $cond_field);
           if(empty($cond_value)){
             $this->_pop_context();
             array_pop($this->path);
@@ -588,7 +621,9 @@ class PublicationXMLBuilder{
         }
       }
       // If this is a field, obtain all the values' contexts
-      if(isset($child_schema['#field'])){
+      if(isset($child_schema['#child_relation'])){
+        $child_schema['#values_contexts'] = $this->_get_relation_values_contexts($child_schema, $tag, $wrapper);
+      }else if(isset($child_schema['#field'])){
         $child_schema['#values_contexts'] = $this->_get_field_values_contexts($child_schema, $tag, $wrapper);
       }
       // Check the occurence constraint works
@@ -611,20 +646,56 @@ class PublicationXMLBuilder{
   }
 
   /**
+   * Return all the child entities of a given relation,
+   * as contexts
+   */
+  function _get_relation_values_contexts($schema, $tag, $wrapper){
+    // Entity metadata wrappers don't give us access to the relation itself,
+    // so we need to load it directly.
+    $current_context = $this->_get_context();
+    $contexts = array();
+    $query = relation_query($wrapper->type(), $wrapper->getIdentifier());
+    $query->entityCondition('bundle', $schema['#child_relation']);
+    $results = $query->execute();
+    foreach($results as $relation_data){
+      $relation = relation_load($relation_data->rid);
+      $related_entities = field_get_items('relation', $relation, 'endpoints');
+      foreach($related_entities as $entity_data){
+        if($entity_data['entity_type'] == $wrapper->type() && $entity_data['entity_id'] == $wrapper->getIdentifier()){
+          continue;
+        }
+        $related_entity = entity_load_single($entity_data['entity_type'], $entity_data['entity_id']);
+        $related_wrapper = entity_metadata_wrapper($entity_data['entity_type'], $related_entity);
+        $contexts[] = array(
+          'entity' => $wrapper->raw(),
+          'entity_type' => $wrapper->type(),
+          'wrapper' => $wrapper,
+          'child_entity_type' => $entity_data['entity_type'],
+          'child_entity' => $related_entity,
+          'child_wrapper' => $related_wrapper,
+          'child_relation' => $relation,
+          'relation' => $current_context->relation
+        );
+      }
+    }
+    return $contexts;
+  }
+
+  /**
    * Return all the actual values of a given #field value
    * (applying merges and child entity loads), and return
    * an array of contexts for each actual value.
    */
   function _get_field_values_contexts($schema, $tag, $wrapper){
+    $current_context = $this->_get_context();
     $result = array();
     $field = $schema['#field'];
+    $values = $this->_read_values($wrapper, $field);
     if(isset($schema['#merge']) && function_exists($schema['#merge'])){
       $merge_function = $schema['#merge'];
       $values = array(
-        $merge_function($wrapper->get($field)->value())
+        $merge_function($values)
       );
-    }else{
-      $values = $this->_read_values($wrapper, $field);
     }
     foreach($this->modifiers as $modifier){
       $values = $modifier->insert_value_array($schema, $tag, $values);
@@ -660,7 +731,9 @@ class PublicationXMLBuilder{
         'delta' => $delta,
         'raw_value' => $value,
         'value_to_insert' => $value_to_insert,
-        'schema' => $schema
+        'schema' => $schema,
+        'relation' => $current_context->relation,
+        'child_relation' => isset($schema['#child_entity']) ? NULL : $current_context->relation
       );
     }
     return $result;
@@ -689,24 +762,42 @@ class PublicationXMLBuilder{
    * 
    */
   function _build_schema_insert_value($schema, $tag, $wrapper, $xml_element){
+    $current_context = $this->_get_context();
     $inserted = FALSE;
-    $count = (!isset($schema['#min_occurence']) || $schema['#min_occurence'] == 0) ? 1 : $schema['#min_occurence'];
+    if(isset($schema['#values_contexts'])){
+      $count = count($schema['#values_contexts']);
+    }else{
+      $count = (!isset($schema['#min_occurence']) || $schema['#min_occurence'] == 0) ? 1 : $schema['#min_occurence'];
+    }
     $value = $schema['#value'];
     for($i = 0; $i < $count; $i++){
-      $this->_set_context(array(
-        'entity' => $wrapper->raw(),
-        'entity_type' => $wrapper->type(),
-        'wrapper' => $wrapper,
-        'delta' => $i,
-        'raw_value' => $value,
-        'value_to_insert' => $value,
-        'schema' => $schema
-      ));
+      if(isset($schema['#values_contexts'])){
+        $schema['#values_contexts'][$i] += array(
+          'delta' => $i,
+          'raw_value' => $value,
+          'value_to_insert' => $value
+        );
+        $this->_set_context($schema['#values_contexts'][$i]);
+        $child_wrapper = $schema['#values_contexts'][$i]['child_wrapper'];
+      }else{
+        $this->_set_context(array(
+          'entity' => $wrapper->raw(),
+          'entity_type' => $wrapper->type(),
+          'wrapper' => $wrapper,
+          'delta' => $i,
+          'raw_value' => $value,
+          'value_to_insert' => $value,
+          'schema' => $schema,
+          'relation' => $current_context->relation,
+          'child_relation' => isset($schema['#child_entity']) ? NULL : $current_context->relation
+        ));
+        $child_wrapper = $wrapper;
+      }
       // XXX The new Modifier functionality means we might end up with a NULL value, and thus
       // should set $inserted to FALSE (depending on min_ocurrence) to provide adequate backtracking.
       $child_element = $this->_insert_xml_element($schema, $tag, $value, $xml_element);
       $inserted = TRUE;
-      $this->_build_xml_iteration($schema, $wrapper, $child_element);
+      $this->_build_xml_iteration($schema, $child_wrapper, $child_element);
       $this->_pop_context();
     }
     return $inserted;
@@ -718,21 +809,35 @@ class PublicationXMLBuilder{
    *
    */
   function _build_schema_insert_blank($schema, $tag, $wrapper, $xml_element){
+    $current_context = $this->_get_context();
     $min_occurence = isset($schema['#min_occurence']) ? $schema['#min_occurence'] : 1;
-    $count = ((!isset($schema['#min_occurence']) || $min_occurence == 0) ? 1 : $schema['#min_occurence']);
+    if(isset($schema['#values_contexts'])){
+      $count = count($schema['#values_contexts']);
+    }else{
+      $count = ((!isset($schema['#min_occurence']) || $min_occurence == 0) ? 1 : $schema['#min_occurence']);
+    }
     $inserted = FALSE;
     for($i = 0; $i < $count; $i++){
-      $this->_set_context(array(
-        'entity' => $wrapper->raw(),
-        'entity_type' => $wrapper->type(),
-        'wrapper' => $wrapper,
-        'delta' => $i,
-        'schema' => $schema
-      ));
+      if(isset($schema['#values_contexts'])){
+        $schema['#values_contexts'][$i]['delta'] = $i;
+        $this->_set_context($schema['#values_contexts'][$i]);
+        $child_wrapper = $schema['#values_contexts'][$i]['child_wrapper'];
+      }else{
+        $this->_set_context(array(
+          'entity' => $wrapper->raw(),
+          'entity_type' => $wrapper->type(),
+          'wrapper' => $wrapper,
+          'delta' => $i,
+          'schema' => $schema,
+          'relation' => $current_context->relation,
+          'child_relation' => isset($schema['#child_entity']) ? NULL : $current_context->relation
+        ));
+        $child_wrapper = $wrapper;
+      }
       // XXX The new Modifier functionality means we might end up with a non NULL , and thus
       // should set $inserted to TRUE to provide adequate backtracking.
       $child_element = $this->_insert_xml_element($schema, $tag, NULL, $xml_element);
-      $insert_child = $this->_build_xml_iteration($schema, $wrapper, $child_element);
+      $insert_child = $this->_build_xml_iteration($schema, $child_wrapper, $child_element);
       $this->_pop_context();
       if(!$insert_child && $min_occurence == 0){
         $xml_element->removeChild($child_element);
@@ -850,11 +955,14 @@ class PublicationXMLBuilder{
   function _build_xml_check_constraint(&$schema, $tag, $wrapper){
     $min_occurence = isset($schema['#min_occurence']) ? $schema['#min_occurence'] : 1;
     $max_occurence = isset($schema['#max_occurence']) ? $schema['#max_occurence'] : 1;
-    if(!empty($schema['#field'])){
-      $field = $schema['#field'];
+    if(!empty($schema['#values_contexts'])){
       $count = count($schema['#values_contexts']);
       if($count < $min_occurence || ($max_occurence >= 0 && $count > $max_occurence)){
-        $message_prepare = "the field %field";
+        if(isset($schema['#child_relation'])){
+          $message_prepare = "the relation %field";
+        }else{
+          $message_prepare = "the field %field";
+        }
         if($count == 0){
           $message_prepare .= " is required.";
         }else if($count < $min_occurence){
@@ -862,7 +970,11 @@ class PublicationXMLBuilder{
         }else{
           $message_prepare .= " can be present at most %max times, but is here %count times.";
         }
-        $error_field = $field;
+        if(isset($schema['#child_relation'])){
+          $error_field = $schema['#child_relation'];
+        }else{
+          $error_field = $schema['#field'];
+        }
         if(isset($schema['#error_info'])){
           $error_field = $schema['#error_info'];
           if(isset($schema['#error_field'])){
@@ -889,6 +1001,7 @@ class PublicationXMLBuilder{
           // If no exception was raised and we are asked to enter empty values, make sure we adapt the schema
           $schema['#value'] = '';
           unset($schema['#field']);
+          unset($schema['#child_relation']);
         }
       }
     }
@@ -918,28 +1031,37 @@ class PublicationXMLBuilder{
    * 
    * Return the value of the given field on the given entity
    * such that the value is always wrapped in an array, even
-   * if it's a single scalar value
+   * if it's a single scalar value.
+   * 
+   * If the current context defines a relation, and if the queried field
+   * exists on the relation then that is returned instead of the value
+   * on the current entity.
    * 
    */
   function _read_values($wrapper, $field){
-    try{
-      if(!preg_match('/^(list<)?countries>?$/', $wrapper->get($field)->type())){
-        if(strpos($wrapper->get($field)->type(), 'list<') === 0){
-          return array_filter($wrapper->get($field)->value());
-        }else{
-          return array(
-            $wrapper->get($field)->value()
-          );
+    $context = $this->_get_context();
+    if(property_exists($context, 'relation') && property_exists($context->relation, $field)){
+      $value = field_get_items('relation', $context->relation, $field);
+    }else{
+      try{
+        if(!preg_match('/^(list<)?countries>?$/', $wrapper->get($field)->type())){
+          if(strpos($wrapper->get($field)->type(), 'list<') === 0){
+            return array_filter($wrapper->get($field)->value());
+          }else{
+            return array(
+              $wrapper->get($field)->value()
+            );
+          }
         }
       }
+      catch(Exception $e){
+        if(!isset($wrapper->raw()->{$field})){throw $e;}
+      }
+      // Not all fields are exposed to wrappers - so if we can't get it
+      // through the wrapper, try directly. Also some wrapper implementations
+      // have bugs (eg. countries) so we avoid them.
+      $value = field_get_items($wrapper->type(), $wrapper->raw(), $field);
     }
-    catch(Exception $e){
-      if(!isset($wrapper->raw()->{$field})){throw $e;}
-    }
-    // Not all fields are exposed to wrappers - so if we can't get it
-    // through the wrapper, try directly. Also some wrapper implementations
-    // have bugs (eg. countries) so we avoid them.
-    $value = field_get_items($wrapper->type(), $wrapper->raw(), $field);
     if(!is_array($value)){
       return array(
         $value
@@ -1196,11 +1318,7 @@ function _publication_xml_load_entity_from_field($context, $field, $type = 'node
  * of a node
  */
 function _publication_xml_load_taxonomic_name($context, $value = NULL){
-  $entity = $context->wrapper->field_taxonomic_name->value();
-  if($context->wrapper->field_taxonomic_name->type() == 'list<taxonomy_term>'){
-    // XXX Should we raise a warning ?
-    $entity = reset($entity);
-  }
+  $entity = $context->wrapper->field_taxonomic_name[0]->value();
   return array(
     'entity_type' => 'taxonomy_term',
     'entity' => $entity
