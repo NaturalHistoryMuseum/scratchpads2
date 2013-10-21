@@ -56,6 +56,8 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    */
   function verifyCreateLocation(){
     $this->drupalGet('node/add/location');
+    // Wait for map to load
+    $this->driver->sleep(3);
     $field_data = array(
       'title' => $this->randomName(),
       'field_continent_or_ocean' => 'Europe',
@@ -179,6 +181,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    */
   function verifyCreateSpecimenObservation($location_title = '', $term = NULL){
     $this->drupalGet('node/add/specimen-observation');
+    
     // Create data for testing
     $genbank_numbers_array = array(
       $this->randomName(8),
