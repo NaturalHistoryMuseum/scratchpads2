@@ -4,9 +4,9 @@ class ScratchpadsWidthAndHeightTestCase extends DrupalUnitTestCase{
 
   public static function getInfo(){
     return array(
-      'name' => 'Scratchpads Width And Height unit tests',
+      'name' => 'Scratchpads Width And Height (Unit Tests)',
       'description' => 'Tests scratchpads width and height theme_image() function',
-      'group' => 'Scratchpads Unit Tests'
+      'group' => 'Scratchpads'
     );
   }
 
