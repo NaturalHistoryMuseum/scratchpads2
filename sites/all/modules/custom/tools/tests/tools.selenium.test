@@ -13,9 +13,9 @@ class ScratchpadsToolsSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
 
   public static function getInfo(){
     return array(
-      'name' => 'Scratchpads Tools',
+      'name' => 'Scratchpads Tools (Selenium)',
       'description' => 'Scratchpads specific tests for the tools module, including test for Darwincore/Tools',
-      'group' => 'Scratchpads Selenium',
+      'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
       )

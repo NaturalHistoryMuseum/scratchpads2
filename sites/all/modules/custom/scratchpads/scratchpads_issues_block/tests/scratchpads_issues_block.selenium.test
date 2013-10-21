@@ -13,9 +13,9 @@ class ScratchpadsIssuesBlockSeleniumTestCase extends ScratchpadsTweaksSeleniumTe
 
   public static function getInfo(){
     return array(
-      'name' => 'Scratchpads Issues Block',
+      'name' => 'Scratchpads Issues Block (Selenium)',
       'description' => 'Tests for scratchpads issues block',
-      'group' => 'Scratchpads Selenium',
+      'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
       )

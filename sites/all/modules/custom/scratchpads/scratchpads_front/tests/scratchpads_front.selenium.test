@@ -13,9 +13,9 @@ class ScratchpadsFrontSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
 
   public static function getInfo(){
     return array(
-      'name' => 'Scratchpads Front',
+      'name' => 'Scratchpads Front (Selenium)',
       'description' => 'Tests for scratchpads front module',
-      'group' => 'Scratchpads Selenium',
+      'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
       )

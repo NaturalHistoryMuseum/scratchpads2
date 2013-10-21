@@ -13,9 +13,9 @@ class ScratchpadsForumSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
 
   public static function getInfo(){
     return array(
-      'name' => 'Scratchpads Forum',
+      'name' => 'Scratchpads Forum (Selenium)',
       'description' => 'Tests for scratchpads forum',
-      'group' => 'Scratchpads Selenium',
+      'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
       )

@@ -13,9 +13,9 @@ class ScratchpadsColourSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCas
 
   public static function getInfo(){
     return array(
-      'name' => 'Scratchpads Colour',
+      'name' => 'Scratchpads Colour (Selenium)',
       'description' => 'Tests for Scratchpads Colour module',
-      'group' => 'Scratchpads Selenium',
+      'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
       )

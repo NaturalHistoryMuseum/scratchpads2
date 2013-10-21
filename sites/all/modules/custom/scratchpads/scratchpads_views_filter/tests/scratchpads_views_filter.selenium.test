@@ -15,9 +15,9 @@ class ScratchpadsViewsFilterSeleniumTestCase extends ScratchpadsTweaksSeleniumTe
 
   public static function getInfo(){
     return array(
-      'name' => 'Scratchpads Views Filter',
+      'name' => 'Scratchpads Views Filter (Selenium)',
       'description' => 'Tests for Scratchpads Views Filter',
-      'group' => 'Scratchpads Selenium',
+      'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
       )

@@ -13,9 +13,9 @@ class TuiSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
 
   public static function getInfo(){
     return array(
-      'name' => 'TUI',
+      'name' => 'TUI (Selenium)',
       'description' => 'Test the user interface for editing a taxonomy.',
-      'group' => 'Scratchpads Selenium',
+      'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
       )
@@ -143,7 +143,7 @@ class TuiSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $submit_button = $this->driver->getElement("id=edit-submit")->click();
     // Wait for 'Please wait' to be not visible. We wait for a maximum of 20 seconds
     $this->verboseScreenshot();
-    $elements = $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,'Please wait')]]", 20);
+    $elements = $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,'Please wait')]]", 15);
     $this->verboseScreenshot();
     $this->assertNoText($term_to_delete, 'Term name not visible after deletion');
   }

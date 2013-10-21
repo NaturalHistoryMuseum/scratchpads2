@@ -13,9 +13,9 @@ class SlickgridSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
 
   public static function getInfo(){
     return array(
-      'name' => 'Slickgrid',
+      'name' => 'Slickgrid (Selenium)',
       'description' => 'Tests for the slickgrid module',
-      'group' => 'Scratchpads Selenium',
+      'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
       )

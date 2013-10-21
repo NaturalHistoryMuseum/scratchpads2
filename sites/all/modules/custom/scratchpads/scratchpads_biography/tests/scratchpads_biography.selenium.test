@@ -13,9 +13,9 @@ class ScratchpadsBiographySeleniumTestCase extends ScratchpadsTweaksSeleniumTest
 
   public static function getInfo(){
     return array(
-      'name' => 'Scratchpads Biography',
+      'name' => 'Scratchpads Biography (Selenium)',
       'description' => 'Test the creation of biographies',
-      'group' => 'Scratchpads Selenium',
+      'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
       )

@@ -13,9 +13,9 @@ class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
 
   public static function getInfo(){
     return array(
-      'name' => 'Scratchpads Setup',
+      'name' => 'Scratchpads Setup (Selenium)',
       'description' => 'Tests for scratchpads setup',
-      'group' => 'Scratchpads Selenium',
+      'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
       )

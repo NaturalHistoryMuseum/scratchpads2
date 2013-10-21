@@ -13,9 +13,9 @@ class TinyTaxSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
 
   public static function getInfo(){
     return array(
-      'name' => 'TinyTax',
+      'name' => 'TinyTax (Selenium)',
       'description' => 'Test the import of taxonomy from EOL, and the tinytax tree functionality.',
-      'group' => 'Scratchpads Selenium',
+      'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
       )

@@ -13,9 +13,9 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
 
   public static function getInfo(){
     return array(
-      'name' => 'Darwincore',
+      'name' => 'Darwincore (Selenium)',
       'description' => 'Test the creation, editing and deletion of specimen/observation and location nodes.',
-      'group' => 'Scratchpads Selenium',
+      'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
       )

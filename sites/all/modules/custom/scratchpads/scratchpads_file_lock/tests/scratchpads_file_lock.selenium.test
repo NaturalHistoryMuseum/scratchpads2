@@ -12,9 +12,9 @@ class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
 
   public static function getInfo(){
     return array(
-      'name' => 'Scratchpads File Lock',
+      'name' => 'Scratchpads File Lock (Selenium)',
       'description' => 'Tests for scratchpads file lock',
-      'group' => 'Scratchpads Selenium',
+      'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
       )

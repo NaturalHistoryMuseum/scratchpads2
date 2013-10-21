@@ -13,9 +13,9 @@ class ScratchpadsSpeciesSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCa
 
   public static function getInfo(){
     return array(
-      'name' => 'Scratchpads Species',
+      'name' => 'Scratchpads Species (Selenium)',
       'description' => 'Tests for scratchpads species',
-      'group' => 'Scratchpads Selenium',
+      'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
       )

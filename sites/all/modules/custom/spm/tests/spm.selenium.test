@@ -13,9 +13,9 @@ class SpmSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
 
   public static function getInfo(){
     return array(
-      'name' => 'Spm Selenium',
+      'name' => 'Spm (Selenium)',
       'description' => 'Tests for spm module',
-      'group' => 'Scratchpads Selenium',
+      'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
       )

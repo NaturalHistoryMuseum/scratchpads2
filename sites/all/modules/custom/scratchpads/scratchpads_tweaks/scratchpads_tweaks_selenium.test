@@ -24,9 +24,9 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
 
   public static function getInfo(){
     return array(
-      'name' => 'Scratchpads Tweaks Selenium',
+      'name' => 'Scratchpads Tweaks (Selenium)',
       'description' => 'Enable all of the modules associated with a Scratchpad to see where errors occur. Tests simple user login and front page access',
-      'group' => 'Scratchpads Selenium',
+      'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
       )
