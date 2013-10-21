@@ -35,10 +35,14 @@ class SpmSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     // First test
     $this->verifyNoBioMessage();
     // Add bio vocabulary and term   
-    $vocabulary = $this->createBioVocabularyWithName();
-    $term = $this->createTermWithName($vocabulary, 'term1');
+    $vocab_name = $this->randomName();
+    $term_name = $this->randomName();
+    $this->createAnimalVocabulary($vocab_name);
+    $this->addTerms($vocab_name, array(
+      $term_name
+    ));
     // Run other tests
-    $this->verifyAddSpm($vocabulary, $term);
+    $this->verifyAddSpm($vocab_name, $term_name);
     $this->verifyRemoveFields();
   }
 
@@ -56,11 +60,12 @@ class SpmSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    * 
    * Note: Removal, or change in one of these fields will cause this test to fail.
    */
-  function verifyAddSpm($vocabulary, $term){
+  function verifyAddSpm($vocab_name, $term_name){
     $this->drupalGet('node/add/spm');
+    $this->verboseScreenshot();
     // Autocomplete taxonomy field
-    if(isset($term)){
-      $this->_autocompleteTest('field_taxonomic_name[und]', substr($term->name, 0, 1), $term->name . ' [' . $term->tid . ']');
+    if(isset($term_name)){
+      $this->_autocompleteTest('field_taxonomic_name[und]', substr($term_name, 0, 1));
     }
     $field_array = array(
       'Overview' => array(
@@ -161,7 +166,7 @@ class SpmSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     }
     // Submit the form
     $this->driver->getElement("id=edit-submit")->click();
-    $this->assertText("Taxon Description " . $term->name . " (" . $vocabulary->name . ") has been created.", "Taxon description successfully created");
+    $this->assertText("Taxon Description " . $term_name . " (" . $vocab_name . ") has been created.", "Taxon description successfully created");
     // Assert that values have been saved
     foreach($field_array as $tab => $fieldset){
       if(isset($fieldset['map'])){
@@ -172,7 +177,7 @@ class SpmSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
         $this->assertText($data, $field . ' data saved and displayed on node page');
       }
     }
-    $this->assertText($term->name, 'Term name displayed on node page');
+    $this->assertText($term_name, 'Term name displayed on node page');
   }
 
   /**
@@ -208,6 +213,40 @@ class SpmSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       foreach($fields as $machine_name => $human_name){
         $this->assertNoText($human_name, $human_name . ' successfully removed from taxon description form');
       }
+    }
+  }
+
+  /**
+   * Create a vocabulary
+   */
+  function createAnimalVocabulary($vocab_name){
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $element = $this->driver->getElement("name=name");
+    $element->clear();
+    $element->sendKeys($vocab_name);
+    $element = $this->driver->getElement("name=description");
+    $element->clear();
+    $element->sendKeys($this->randomName());
+    $element = $this->driver->getElement("name=biological_classification");
+    $element->selectLabel('Animal');
+    // Submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+  }
+
+  /**
+   * Add terms to a vocabulary
+   */
+  function addTerms($vocab_name, $term_array){
+    foreach($term_array as $term_name){
+      $path = 'admin/structure/taxonomy/' . $vocab_name . '/add';
+      $this->drupalGet($path);
+      $element = $this->driver->getElement("name=field_unit_name1[und][0][value]");
+      $element->clear();
+      $element->sendKeys($term_name);
+      // Submit the form
+      $submit_button = $this->driver->getElement("id=edit-submit");
+      $submit_button->click();
     }
   }
 }

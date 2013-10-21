@@ -141,8 +141,9 @@ class TuiSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->assertText('Are you sure', 'Confirmation message shown');
     // submit the form
     $submit_button = $this->driver->getElement("id=edit-submit")->click();
-    // Wait for deletion and reload of tree
-    $this->driver->sleep(5);
+    // Wait for 'Please wait' to be not visible. We wait for a maximum of 20 seconds
+    $this->verboseScreenshot();
+    $elements = $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,'Please wait')]]", 20);
     $this->verboseScreenshot();
     $this->assertNoText($term_to_delete, 'Term name not visible after deletion');
   }

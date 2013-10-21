@@ -27,7 +27,7 @@ class TinyTaxSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    * - Create a vocabulary
    * - Import a taxonomy from EOL ('Pediculus')
    * - Verify that the vocab tab has been created
-   * - Verfiy that the tinytax block is present on term page
+   * - Verify that the tinytax block is present on term page
    * - Test the functionality of the taxonomy tree
    */
   function testWrapper(){
@@ -60,19 +60,22 @@ class TinyTaxSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   }
 
   /**
-   * Verfiy the presense of the tiny tax block
+   * Verify the presense of the tiny tax block
    * Verify that clicking on the '+' sign of elements opens the tree.
    * Verify that clicking on a second '+' sign further opens the tree.
    */
-  function verifyTaxonomyTree($vocab_name){
+  function verifyTaxonomyTree($vocab_name){  
     $this->clickLink($vocab_name);
-    // Verfiy that the tiny tax block exists
-    $this->assertRaw('block-tinytax', 'Tiny tax block present on term page');
+    // Wait for the page to load  and verfiy that the tiny tax block exists
+    $elements = $this->driver->waitForElements('css=.block-tinytax');
+    $this->verboseScreenshot();
+    $this->assertTrue(!empty($elements), 'Tiny tax block present on term page');
     $number_of_visible_nodes = $this->driver->getAllElements("xpath=//*[text()[contains(.,'Pediculus')]]");
     $this->driver->getElement("css=.tinytax .plus")->click();
     $this->driver->sleep(5);
     $number_of_visible_nodes2 = $this->driver->getAllElements("xpath=//*[text()[contains(.,'Pediculus')]]");
     $this->assertTrue($number_of_visible_nodes2 > $number_of_visible_nodes, 'Clicking on plus sign successfully opens tree');
+    $this->verboseScreenshot();
     $nodes = $this->driver->getAllElements("css=.tinytax .plus");
     $nodes[1]->click();
     $this->driver->sleep(5);
