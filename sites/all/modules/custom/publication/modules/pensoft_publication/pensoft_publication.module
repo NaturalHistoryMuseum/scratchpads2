@@ -490,21 +490,6 @@ function pensoft_publication_form_publication_type_form_alter(&$form, &$form_sta
       );
     }
   }
-  // Output XML generation information
-  $schema = _pensoft_publication_schema_array(TRUE);
-  $explain_schema = new PublicationXmlSchemaExplain($schema);
-  $schema_generate = "<pre>" . htmlspecialchars($explain_schema->explain_with_xml()) . "</pre>";
-  $form['schema_info'] = array(
-    '#type' => 'fieldset',
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#title' => 'Pensoft schema generation info',
-    'generate' => array(
-      '#type' => 'markup',
-      '#markup' => $schema_generate
-    ),
-    '#weight' => 15
-  );
   $form['#submit'][] = 'pensoft_publication_type_form_submit';
   $form['#validate'][] = 'pensoft_publication_type_form_validate';
 }
@@ -730,19 +715,19 @@ function _pensoft_publication_schema_array($diff = FALSE){
       'objects' => array(
         'article_metadata' => _pensoft_publication_xml_article_metadata_schema(),
         'introduction' => _pensoft_publication_xml_introduction_schema(),
-        'material_and_methods' => _pensoft_publication_xml_material_and_methods_schema(),
+        'materials_and_methods' => _pensoft_publication_xml_material_and_methods_schema(),
         'data_resources' => _pensoft_publication_xml_data_resources_schema(),
-        'results' => _pensoft_publication_xml_results_schema(),
-        //'checklist' => _pensoft_publication_xml_checklist_schema(),
         'systematics' => _pensoft_publication_xml_systematics_schema(),
+        // XXX checklists
+        // XXX identification_keys 
         'discussion' => _pensoft_publication_xml_discussion_schema(),
-        //identification_keys => _pensoft_publication_xml_identification_keys_schema(),
         'acknowledgements' => _pensoft_publication_xml_acknowledgements_schema(),
+        // XXX author_contributions
         'references' => _pensoft_publication_xml_references_schema(),
-        'supplementary_files' => _pensoft_publication_xml_files_schema()
+        'supplementary_files' => _pensoft_publication_xml_files_schema(),
+        'figures' => _pensoft_publication_xml_figures_schema(),
+        'tables' => _pensoft_publication_xml_tables_schema(),
       ),
-      'figures' => _pensoft_publication_xml_figures_schema(),
-      'tables' => _pensoft_publication_xml_tables_schema()
     )
   );
   $schema = $parser->merge_schemas($source_schema, $map_schema, $diff);
@@ -770,7 +755,7 @@ function _pensoft_publication_build_xml($publication){
     ), array(
       $modifier
     ));
-    $xml = $builder->build_xml($publication, $url, '1.0', 'UTF-8');
+    $xml = $builder->build_xml('publication', $publication, $url, '1.0', 'UTF-8');
   }
   catch(Exception $e){
     drupal_set_message(t("An error occured while building the publication: !cause", array(
