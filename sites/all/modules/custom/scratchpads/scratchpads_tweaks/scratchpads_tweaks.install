@@ -22,7 +22,6 @@ function scratchpads_tweaks_install(){
   if(count($backtrace) > 4){
     if(isset($backtrace[4]['file'])){
       $backtrace = explode('/', $backtrace[4]['file']);
-      file_put_contents('/tmp/drupal_debug.txt', print_r($backtrace, 1) . "\n", FILE_APPEND);
       if(array_pop($backtrace) == 'scratchpads_tweaks.test'){return;}
     }
   }
