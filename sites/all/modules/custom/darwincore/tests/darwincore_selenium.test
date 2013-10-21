@@ -57,7 +57,6 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   function verifyCreateLocation(){
     $this->drupalGet('node/add/location');
     // Wait for map to load
-    $this->driver->sleep(3);
     $field_data = array(
       'title' => $this->randomName(),
       'field_continent_or_ocean' => 'Europe',
@@ -85,9 +84,9 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $element = $this->driver->getElement("xpath=//*[text()='+ Point']");
     $element->click();
     // Click on the map (We click in the centre of the first image within the map)
-    $images = $this->driver->getAllElements("css=#field_map img");
+    $images = $this->driver->waitForElements("css=#field_map img");
     $images[0]->click();
-    $element = $this->driver->getElement('name=field_map[und][map][map]');
+   // $element = $this->driver->getElement('name=field_map[und][map][map]');
     $this->verboseScreenshot();
     // Click tab
     $this->driver->getElement('css=ul.vertical-tabs-list li.last a')->click();

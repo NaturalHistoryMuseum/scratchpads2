@@ -150,6 +150,8 @@ class SpmSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
         $polygon_link = $this->driver->getElement("xpath=//*[text()='+ Polygon']");
         $polygon_link->click();
         $this->driver->sleep(1);
+        // Wait for the map elements to load
+        $elements = $this->driver->waitForElements("css=#field_spm_map div div div div div div div");
         $map_elements = $this->driver->getAllElements("css=#field_spm_map div div div div div div div");
         $map_elements[0]->moveCursorCenter();
         $this->driver->mouseClick();
