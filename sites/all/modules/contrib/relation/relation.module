@@ -1,6 +1,7 @@
 <?php
+
 require_once dirname(__FILE__) . '/relation.rules.inc';
-if(module_exists('ctools')){
+if (module_exists('ctools')) {
   require_once dirname(__FILE__) . '/relation.ctools.inc';
 }
 
@@ -8,10 +9,11 @@ if(module_exists('ctools')){
  * @file
  * Describes relations between entities.
  */
+
 /**
  * Implements hook_entity_info().
  */
-function relation_entity_info(){
+function relation_entity_info() {
   $entities['relation'] = array(
     'label' => t('Relation'),
     'base table' => 'relation',
@@ -28,23 +30,21 @@ function relation_entity_info(){
       'id' => 'rid',
       'revision' => 'vid',
       'bundle' => 'relation_type',
-      'label' => 'rid'
+      'label' => 'rid',
     ),
     'bundle keys' => array(
-      'bundle' => 'relation_type'
+      'bundle' => 'relation_type',
     ),
     'bundles' => array(),
-    'view modes' => array()
+    'view modes' => array(),
   );
-  foreach(relation_get_types() as $type => $info){
-    $entities['relation']['bundles'][$type] = (array)$info;
+  foreach (relation_get_types() as $type => $info) {
+    $entities['relation']['bundles'][$type] = (array) $info;
     $entities['relation']['bundles'][$type]['admin'] = array(
       'path' => 'admin/structure/relation/manage/%relation_type',
       'real path' => 'admin/structure/relation/manage/' . $type,
       'bundle argument' => 4,
-      'access arguments' => array(
-        'administer relation types'
-      )
+      'access arguments' => array('administer relation types'),
     );
   }
   return $entities;
@@ -53,15 +53,16 @@ function relation_entity_info(){
 /**
  * Implements hook_entity_property_info().
  */
-function relation_entity_property_info(){
+function relation_entity_property_info() {
   $info = array();
   $properties = &$info['relation']['properties'];
+
   $properties = array(
     'rid' => array(
       'label' => t('Relation ID'),
       'description' => t('The internal numeric ID of the relation.'),
       'type' => 'integer',
-      'schema field' => 'rid'
+      'schema field' => 'rid',
     ),
     'relation_type' => array(
       'label' => t('Relation type'),
@@ -71,7 +72,7 @@ function relation_entity_property_info(){
       'setter permission' => 'administer nodes',
       'options list' => 'relation_rules_get_type_options',
       'required' => TRUE,
-      'schema field' => 'relation_type'
+      'schema field' => 'relation_type',
     ),
     'endpoints' => array(
       'label' => t('Endpoints'),
@@ -80,8 +81,8 @@ function relation_entity_property_info(){
       'setter callback' => 'relation_rules_set_endpoints',
       'getter callback' => 'relation_rules_get_endpoints',
       'setter permission' => 'administer nodes',
-      'required' => TRUE
-    )
+      'required' => TRUE,
+    ),
   );
   return $info;
 }
@@ -89,64 +90,60 @@ function relation_entity_property_info(){
 /**
  * Implements hook_entity_property_info_alter().
  */
-function relation_entity_property_info_alter(&$info){
+function relation_entity_property_info_alter(&$info) {
   // Add relation type-specific information, so that it is easily available
   // for modules that need to introspect the
   // relation structure (ie. Search API).
-  foreach(relation_get_types() as $relation_type => $relation){
-    foreach($relation->source_bundles as $key => $bundles){
+  foreach (relation_get_types() as $relation_type => $relation) {
+    foreach ($relation->source_bundles as $key => $bundles) {
       list($entity_type, $bundle) = explode(':', $bundles, 2);
       $info['relation']['bundles'][$bundle]['properties']['endpoints_source_' . $entity_type] = array(
-        'label' => t('@type (source endpoint)', array(
-          '@type' => $entity_type
-        )),
+        'label' => t('@type (source endpoint)', array('@type' => $entity_type)),
         'type' => 'list<' . $entity_type . '>',
         'getter callback' => 'relation_rules_get_specific_endpoints',
         'endpoint_type' => 'source',
-        'relation_directional' => $relation->directional
+        'relation_directional' => $relation->directional,
       );
     }
-    foreach($relation->target_bundles as $key => $bundles){
+
+    foreach ($relation->target_bundles as $key => $bundles) {
       list($entity_type, $bundle) = explode(':', $bundles, 2);
       $info['relation']['bundles'][$bundle]['properties']['endpoints_target_' . $entity_type] = array(
-        'label' => t('@type (target endpoint)', array(
-          '@type' => $entity_type
-        )),
+        'label' => t('@type (target endpoint)', array('@type' => $entity_type)),
         'type' => 'list<' . $entity_type . '>',
         'getter callback' => 'relation_rules_get_specific_endpoints',
         'endpoint_type' => 'target',
-        'relation_directional' => $relation->directional
+        'relation_directional' => $relation->directional,
       );
     }
+
     $source_bundles = $relation->source_bundles;
     $original_sb = array_values($source_bundles);
     $directional = FALSE;
     // If its a directional relation, merge the source and target bundles.
-    if(count($relation->target_bundles) >= 1){
+    if (count($relation->target_bundles) >= 1) {
       $original_tb = array_values($relation->target_bundles);
       $target_bundles = array_merge($source_bundles, $relation->target_bundles);
       $source_bundles = $target_bundles;
       $directional = TRUE;
-    }else{
+    }
+    else {
       $target_bundles = $source_bundles;
     }
-    foreach($target_bundles as $target_key => $target_bundle){
+    foreach ($target_bundles as $target_key => $target_bundle) {
       list($entity_target) = explode(':', $target_bundle, 2);
-      foreach($source_bundles as $source_key => $source_bundle){
+      foreach ($source_bundles as $source_key => $source_bundle) {
         $property_reverse = ($directional && !in_array($source_bundle, $original_sb) && !in_array($target_bundle, $original_tb));
         $property = ($property_reverse) ? 'relation_' . $relation_type . '_' . $entity_target . '_reverse' : 'relation_' . $relation_type . '_' . $entity_target;
         list($entity_source) = explode(':', $source_bundle, 2);
-        if(!$directional || ($property_reverse) || (in_array($target_bundle, $original_tb) && in_array($source_bundle, $original_sb))){
+        if (!$directional || ($property_reverse) || (in_array($target_bundle, $original_tb) && in_array($source_bundle, $original_sb))) {
           $info[$entity_source]['properties'][$property] = array(
-            'label' => t('Relation @relation_type (to @entity' . (($property_reverse) ? ' reverse)' : ')'), array(
-              '@relation_type' => $relation_type,
-              '@entity' => $entity_target
-            )),
+            'label' => t('Relation @relation_type (to @entity' . (($property_reverse) ? ' reverse)' : ')'), array('@relation_type' => $relation_type, '@entity' => $entity_target)),
             'type' => 'list<' . $entity_target . '>',
             'relation_type' => $relation_type,
             'target_type' => $entity_target,
             'description' => t("A list of entities related."),
-            'getter callback' => 'relation_rules_get_related_entities'
+            'getter callback' => 'relation_rules_get_related_entities',
           );
         }
       }
@@ -157,31 +154,31 @@ function relation_entity_property_info_alter(&$info){
 /**
  * Implements hook_permission().
  */
-function relation_permission(){
+function relation_permission() {
   return array(
     'administer relation types' => array(
       'title' => t('Administer Relation types'),
-      'description' => t('Create, edit, delete, and perform administration tasks for relation types.')
+      'description' => t('Create, edit, delete, and perform administration tasks for relation types.'),
     ),
     'export relation types' => array(
-      'title' => t('Export Relation types')
+      'title' => t('Export Relation types'),
     ),
     'access relations' => array(
       'title' => t('View Relations'),
-      'description' => t('Grant access to view the endpoints of Relations.')
+      'description' => t('Grant access to view the endpoints of Relations.'),
     ),
     'create relations' => array(
-      'title' => t('Create Relations')
+      'title' => t('Create Relations'),
     ),
     'edit relations' => array(
-      'title' => t('Edit Relations')
+      'title' => t('Edit Relations'),
     ),
     'delete relations' => array(
-      'title' => t('Delete Relations')
+      'title' => t('Delete Relations'),
     ),
     'administer relations' => array(
-      'title' => t('Administer Relations')
-    )
+      'title' => t('Administer Relations'),
+    ),
   );
 }
 
@@ -215,9 +212,11 @@ function relation_permission(){
  * @return
  *   Relation type object, or FALSE if creation fails.
  */
-function relation_type_create($info = array()){
-  $info = (array)$info;
-  if(empty($info['relation_type'])){return FALSE;}
+function relation_type_create($info = array()) {
+  $info = (array) $info;
+  if (empty($info['relation_type'])) {
+    return FALSE;
+  }
   $info += array(
     'min_arity' => 2,
     'max_arity' => 2,
@@ -225,17 +224,18 @@ function relation_type_create($info = array()){
     'transitive' => FALSE,
     'r_unique' => FALSE,
     'source_bundles' => array(),
-    'target_bundles' => array()
+    'target_bundles' => array(),
   );
-  if(empty($info['label'])){
+  if (empty($info['label'])) {
     $info['label'] = $info['relation_type'];
   }
-  if(empty($info['reverse_label'])){
+  if (empty($info['reverse_label'])) {
     // Directional relations should have a reverse label, but if they don't,
     // or if they are symmetric:
     $info['reverse_label'] = $info['label'];
   }
-  return (object)$info;
+
+  return (object) $info;
 }
 
 /**
@@ -251,52 +251,41 @@ function relation_type_create($info = array()){
  *   functions should be rebuilt. Setting this to FALSE is useful if multiple
  *   relation types are being created programmatically.
  */
-function relation_type_save($relation_type, $write_record_keys = array(), $rebuild_menu = TRUE){
+function relation_type_save($relation_type, $write_record_keys = array(), $rebuild_menu = TRUE) {
   // Make sure all keys are populated.
   $relation_type = relation_type_create($relation_type);
-  $existing_relation_type = relation_get_types(array(
-    $relation_type->relation_type
-  ));
+  $existing_relation_type = relation_get_types(array($relation_type->relation_type));
+
   $type = $relation_type->relation_type;
   $source_bundles = $relation_type->source_bundles;
   $target_bundles = $relation_type->target_bundles;
   unset($relation_type->source_bundles, $relation_type->target_bundles);
+
   $transaction = db_transaction();
   drupal_write_record('relation_type', $relation_type, $write_record_keys);
+
   // Remove all existing bundles from the relation type before re-adding.
-  db_delete('relation_bundles')->condition('relation_type', $type)->execute();
-  $query = db_insert('relation_bundles')->fields(array(
-    'relation_type',
-    'entity_type',
-    'bundle',
-    'r_index'
-  ));
-  foreach($source_bundles as $entity_bundles){
+  db_delete('relation_bundles')
+    ->condition('relation_type', $type)
+    ->execute();
+  $query = db_insert('relation_bundles')
+    ->fields(array('relation_type', 'entity_type', 'bundle', 'r_index'));
+  foreach ($source_bundles as $entity_bundles) {
     list($entity_type, $bundle) = explode(':', $entity_bundles, 2);
-    $query->values(array(
-      $type,
-      $entity_type,
-      $bundle,
-      0
-    ));
+    $query->values(array($type, $entity_type, $bundle, 0));
   }
-  if($relation_type->directional){
-    foreach($target_bundles as $entity_bundles){
+  if ($relation_type->directional) {
+    foreach ($target_bundles as $entity_bundles) {
       list($entity_type, $bundle) = explode(':', $entity_bundles, 2);
-      $query->values(array(
-        $type,
-        $entity_type,
-        $bundle,
-        1
-      ));
+      $query->values(array($type, $entity_type, $bundle, 1));
     }
   }
   $query->execute();
   relation_type_ensure_instance($type);
-  if($rebuild_menu){
+  if ($rebuild_menu) {
     menu_rebuild();
   }
-  if(empty($existing_relation_type)){
+  if (empty($existing_relation_type)) {
     field_attach_create_bundle('relation', $relation_type->relation_type);
   }
 }
@@ -304,14 +293,15 @@ function relation_type_save($relation_type, $write_record_keys = array(), $rebui
 /**
  * Make sure the instance exists for this type.
  */
-function relation_type_ensure_instance($type){
-  if(!drupal_static('relation_install') && !field_read_instance('relation', 'endpoints', $type)){
+function relation_type_ensure_instance($type) {
+  if (!drupal_static('relation_install') && !field_read_instance('relation', 'endpoints', $type)) {
     $instance = array(
       'field_name' => 'endpoints',
       'entity_type' => 'relation',
-      'bundle' => $type
+      'bundle' => $type,
     );
     field_create_instance($instance);
+    field_read_instance('relation', 'endpoints', $type);
   }
 }
 
@@ -325,10 +315,8 @@ function relation_type_ensure_instance($type){
  *   A relation type record (as an Object) in the same format as expected by
  *   relation_type_save().
  */
-function relation_type_load($relation_type){
-  $types = relation_get_types(array(
-    $relation_type
-  ));
+function relation_type_load($relation_type) {
+  $types = relation_get_types(array($relation_type));
   return isset($types[$relation_type]) ? $types[$relation_type] : FALSE;
 }
 
@@ -343,39 +331,32 @@ function relation_type_load($relation_type){
  *   A an array of relation type records in the same format as expected by
  *   relation_type_save(), keyed by relation_type.
  */
-function relation_get_types($types = array()){
-  if(module_exists('ctools')){
+function relation_get_types($types = array()) {
+  if (module_exists('ctools')) {
     ctools_include('export');
   }
-  if(function_exists('ctools_export_crud_load_multiple')){
+  if (function_exists('ctools_export_crud_load_multiple')) {
     $relation_types = $types ? ctools_export_crud_load_multiple('relation_type', $types) : ctools_export_crud_load_all('relation_type');
     static $recurse = FALSE;
-    if(!$recurse){
+    if (!$recurse) {
       $recurse = TRUE;
-      foreach($relation_types as $type => $data){
-        if(!empty($data->in_code_only)){
+      foreach ($relation_types as $type => $data) {
+        if (!empty($data->in_code_only)) {
           relation_type_ensure_instance($type);
         }
       }
     }
     $recurse = FALSE;
-  }else{
-    $query = db_select('relation_type', 'rt')->fields('rt', array(
-      'relation_type',
-      'label',
-      'reverse_label',
-      'directional',
-      'transitive',
-      'r_unique',
-      'min_arity',
-      'max_arity'
-    ));
-    if($types){
+  }
+  else {
+    $query = db_select('relation_type', 'rt')
+      ->fields('rt', array('relation_type', 'label', 'reverse_label', 'directional', 'transitive', 'r_unique', 'min_arity', 'max_arity'));
+    if ($types) {
       $query->condition('relation_type', $types);
     }
     $results = $query->execute();
     $relation_types = array();
-    foreach($results as $relation_type){
+    foreach ($results as $relation_type) {
       $relation_types[$relation_type->relation_type] = $relation_type;
     }
     _relation_get_types_bundles($relation_types);
@@ -386,28 +367,27 @@ function relation_get_types($types = array()){
 /**
  * Returns all relation types in a way which can be used on form options.
  */
-function relation_get_types_options(){
+function relation_get_types_options() {
   $types = relation_get_types();
   $options = array();
-  foreach($types as $type => $relation_type){
+  foreach ($types as $type => $relation_type) {
     $options[$type] = $relation_type->label;
   }
+
   return $options;
 }
 
 /**
  * Helper function. Attaches bundles to relation type objects in an array.
  */
-function _relation_get_types_bundles(&$relation_types){
-  foreach($relation_types as &$relation_type){
-    if(empty($relation_type->in_code_only) && empty($relation_type->bundles_loaded)){
+function _relation_get_types_bundles(&$relation_types) {
+  foreach ($relation_types as &$relation_type) {
+    if (empty($relation_type->in_code_only) && empty($relation_type->bundles_loaded)) {
       // If overridden or not exported at all, reset the bundles before
       // loading from the database to avoid duplication.
       $relation_type->source_bundles = array();
       $relation_type->target_bundles = array();
-      foreach(db_query('SELECT relation_type, entity_type, bundle, r_index FROM {relation_bundles} WHERE relation_type = :relation_type', array(
-        ':relation_type' => $relation_type->relation_type
-      )) as $record){
+      foreach (db_query('SELECT relation_type, entity_type, bundle, r_index FROM {relation_bundles} WHERE relation_type = :relation_type', array(':relation_type' => $relation_type->relation_type)) as $record) {
         $endpoint = $record->r_index ? 'target_bundles' : 'source_bundles';
         $relation_type->{$endpoint}[] = "$record->entity_type:$record->bundle";
       }
@@ -426,13 +406,10 @@ function _relation_get_types_bundles(&$relation_types){
  *   Array of relation type names in the format "Label (type)", keyed by
  *   relation_type.
  */
-function relation_list_types(){
-  $results = db_select('relation_type', 'rt')->fields('rt', array(
-    'relation_type',
-    'label'
-  ))->execute()->fetchAllAssoc('relation_type');
+function relation_list_types() {
+  $results = relation_get_types();
   $relation_types = array();
-  foreach($results as $type => $relation_type){
+  foreach ($results as $type => $relation_type) {
     $relation_types[$type] = $relation_type->label . ' (' . $type . ')';
   }
   return $relation_types;
@@ -444,9 +421,18 @@ function relation_list_types(){
  * @param $relation_type
  *   The machine name of the relation type (bundle) to be deleted.
  */
-function relation_type_delete($relation_type){
+function relation_type_delete($relation_type) {
   db_delete('relation_type')->condition('relation_type', $relation_type)->execute();
   db_delete('relation_bundles')->condition('relation_type', $relation_type)->execute();
+
+  if (field_read_instance('relation', 'endpoints', $relation_type)) {
+    $instance = array(
+      'field_name' => 'endpoints',
+      'entity_type' => 'relation',
+      'bundle' => $relation_type,
+    );
+    field_delete_instance($instance, FALSE);
+  }
 }
 
 /**
@@ -466,13 +452,9 @@ function relation_type_delete($relation_type){
  *     - entity_type: The type of the entity (eg. node).
  *     - entity_id: Numeric entity ID.
  */
-function relation_load($rid, $vid = NULL, $reset = FALSE){
-  $conditions = (isset($vid) ? array(
-    'vid' => $vid
-  ) : array());
-  $relations = relation_load_multiple(array(
-    $rid
-  ), $conditions, $reset);
+function relation_load($rid, $vid = NULL, $reset = FALSE) {
+  $conditions = (isset($vid) ? array('vid' => $vid) : array());
+  $relations = relation_load_multiple(array($rid), $conditions, $reset);
   return reset($relations);
 }
 
@@ -487,76 +469,35 @@ function relation_load($rid, $vid = NULL, $reset = FALSE){
  *
  * @see relation_load()
  */
-function relation_load_multiple($rids, $conditions = array(), $reset = FALSE){
+function relation_load_multiple($rids, $conditions = array(), $reset = FALSE) {
   // Entity load handles field_attach_load for us.
   return entity_load('relation', $rids, $conditions, $reset);
 }
 
-/**
- * Relation display page. Currently only displays related entities.
- *
- * @TODO: implement directionality, possibly give more details on entities?
- */
-function relation_page($relation){
-  $view_mode = 'full';
-  return relation_view($relation);
-}
-
-function relation_view($relation, $view_mode = 'full'){
+function relation_view($relation, $view_mode = 'full') {
   $entity_type = 'relation';
   $entity = $relation;
-  $entities = array(
-    $relation->rid => $relation
-  );
+  $entities = array($relation->rid => $relation);
+
   field_attach_prepare_view($entity_type, $entities, $view_mode);
   entity_prepare_view($entity_type, $entities);
   $build = field_attach_view($entity_type, $entity, $view_mode);
   $build += array(
     '#entity' => $relation,
     '#view_mode' => $view_mode,
-    '#language' => LANGUAGE_NONE
+    '#language' => LANGUAGE_NONE,
   );
   module_invoke_all('entity_view', $entity, $entity_type, $view_mode, LANGUAGE_NONE);
   drupal_alter('entity_view', $build, $entity_type);
   return $build;
 }
 
-function relation_multiple_view($relations, $view_mode){
+function relation_multiple_view($relations, $view_mode) {
   $build = array();
-  foreach($relations as $relation){
+  foreach ($relations as $relation) {
     $build['relation'][$relation->rid] = relation_view($relation, $view_mode);
   }
   return $build;
-}
-
-/**
- * Relation type display/edit page title callback.
- */
-function relation_type_page_title($type){
-  return $type->label;
-}
-
-/**
- * Relation edit form.
- */
-function relation_edit_form($form, &$form_state, $relation){
-  $form_state['relation'] = $relation;
-  field_attach_form('relation', $relation, $form, $form_state);
-  $form['actions']['#weight'] = 100;
-  $form['actions']['save'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save')
-  );
-  return $form;
-}
-
-function relation_edit_form_submit($form, &$form_state){
-  $relation = $form_state['relation'];
-  entity_form_submit_build_entity('relation', $relation, $form, $form_state);
-  $rid = relation_save($relation);
-  if($rid){
-    $form_state['redirect'] = 'relation/' . $rid;
-  }
 }
 
 /**
@@ -585,19 +526,51 @@ function relation_edit_form_submit($form, &$form_state){
  * @return
  *   Return FALSE if no relation exists, or an array of matching relations.
  */
-function relation_relation_exists($entity_keys, $relation_type = NULL, $enforce_direction = FALSE){
+function relation_relation_exists($entity_keys, $relation_type = NULL, $enforce_direction = FALSE) {
   $query = relation_query();
-  foreach($entity_keys as $r_index => $entity_key){
+  foreach ($entity_keys as $r_index => $entity_key) {
     $query->related($entity_key['entity_type'], $entity_key['entity_id'], $enforce_direction ? $r_index : NULL);
   }
-  if($relation_type){
+  if ($relation_type) {
     $query->propertyCondition('relation_type', $relation_type);
   }
   $query->propertyCondition('arity', count($entity_keys));
   // Avoid Node Access restrictions when checking for a relation
   $query->addTag('DANGEROUS_ACCESS_CHECK_OPT_OUT');
+  // If direction of the relation is not forced make sure the each endpoint
+  // is counted just once.
+  if (!$enforce_direction) {
+    $query->addTag('enforce_distinct_endpoints');
+  }
   $relation_ids = $query->execute();
   return $relation_ids ? $relation_ids : FALSE;
+}
+
+/**
+ * Implements hook_query_TAG_alter().
+ *
+ * Adds conditions to query to ensure different r_index for each endpoint.
+ */
+function relation_query_enforce_distinct_endpoints_alter(QueryAlterableInterface $query) {
+  // Get arity of the query
+  $relation_query = $query->getMetaData('entity_field_query');
+  foreach ($relation_query->propertyConditions as $condition) {
+    if ($condition['column'] == 'arity') {
+      $arity = $condition['value'];
+      break;
+    }
+  }
+  // Add r_index conditions between all endpoints
+  for ($i = 0; $i < $arity; $i++) {
+    for ($k = $i + 1; $k < $arity; $k++) {
+      // @see http://drupal.org/node/1859084
+      // For now each endpoint condition adds 2 joins to the query. Add
+      // conditions between even numbers.
+      $column_left = 'field_data_endpoints' . $i*2 . '.endpoints_r_index';
+      $column_right = 'field_data_endpoints' . $k*2 . '.endpoints_r_index';
+      $query->where("$column_left != $column_right");
+    }
+  }
 }
 
 /**
@@ -618,8 +591,8 @@ function relation_relation_exists($entity_keys, $relation_type = NULL, $enforce_
  * @return
  *   The new relation object.
  */
-function relation_create($type, $endpoints, $account = NULL){
-  if(!isset($account)){
+function relation_create($type, $endpoints, $account = NULL) {
+  if (!isset($account)) {
     $account = $GLOBALS['user'];
   }
   $relation = new stdClass();
@@ -640,20 +613,21 @@ function relation_create($type, $endpoints, $account = NULL){
  * @return
  *   The new relation id.
  */
-function relation_save($relation, $account = NULL){
-  if(!isset($account)){
+function relation_save($relation, $account = NULL) {
+  if (!isset($account)) {
     $account = $GLOBALS['user'];
   }
   global $user;
-  try{
+  try {
     field_attach_validate('relation', $relation);
   }
-  catch(FieldValidationException $e){
-    watchdog_exception('relation', $e, t('Field validation failed.'), NULL, WATCHDOG_ERROR);
+  catch (FieldValidationException $e) {
+    watchdog_exception('relation', $e, t('Field validation failed.'), NULL,
+      WATCHDOG_ERROR);
     return FALSE;
   }
   // Determine if we will be inserting a new relation.
-  if(!isset($relation->is_new)){
+  if (!isset($relation->is_new)) {
     $relation->is_new = empty($relation->rid);
   }
   $transaction = db_transaction();
@@ -662,13 +636,12 @@ function relation_save($relation, $account = NULL){
   // use time() instead of REQUEST_TIME, because otherwise tests
   // RelationQuery::order() are impossible.
   $relation->changed = time();
-  if(!$relation->is_new){
-    $keys = array(
-      'rid'
-    );
+  if (!$relation->is_new) {
+    $keys = array('rid');
     $op = 'update';
     $relation->original = relation_load($relation->rid, $relation->vid);
-  }else{
+  }
+  else {
     $relation->created = $relation->changed;
     $keys = array();
     $op = 'insert';
@@ -681,15 +654,17 @@ function relation_save($relation, $account = NULL){
   drupal_write_record('relation_revision', $relation);
   $relation->uid = $temp_uid;
   drupal_write_record('relation', $relation, $keys);
-  if($relation->is_new){
-    db_update('relation_revision')->fields(array(
-      'rid' => $relation->rid
-    ))->condition('vid', $relation->vid)->execute();
+  if ($relation->is_new) {
+    db_update('relation_revision')
+      ->fields(array('rid' => $relation->rid))
+      ->condition('vid', $relation->vid)
+      ->execute();
   }
   call_user_func("field_attach_$op", 'relation', $relation);
   module_invoke_all('entity_' . $op, $relation, 'relation');
   module_invoke('rules', 'invoke_event', 'relation_' . $op, $relation);
   relation_clear_related_entities_cache($endpoints);
+
   return $relation->rid;
 }
 
@@ -699,9 +674,9 @@ function relation_save($relation, $account = NULL){
  * @param $endpoints
  *   An array of endpoints, with entity_type and entity_id as keys.
  */
-function relation_clear_related_entities_cache($endpoints){
+function relation_clear_related_entities_cache($endpoints) {
   drupal_static_reset('relation_get_related_entity');
-  foreach($endpoints as $endpoint){
+  foreach ($endpoints as $endpoint) {
     cache_clear_all('relation:' . $endpoint['entity_type'] . ':' . $endpoint['entity_id'], 'cache', TRUE);
   }
 }
@@ -709,7 +684,7 @@ function relation_clear_related_entities_cache($endpoints){
 /**
  * Insert a new relation in the database.
  */
-function relation_insert($type, $endpoints){
+function relation_insert($type, $endpoints) {
   $relation = relation_create($type, $endpoints);
   return relation_save($relation);
 }
@@ -717,7 +692,7 @@ function relation_insert($type, $endpoints){
 /**
  * Updates a relation.
  */
-function relation_update($relation){
+function relation_update($relation) {
   relation_save($relation);
 }
 
@@ -727,10 +702,8 @@ function relation_update($relation){
  * @param $rid
  *   The numeric id of the relation to be deleted.
  */
-function relation_delete($rid){
-  relation_delete_multiple(array(
-    $rid
-  ));
+function relation_delete($rid) {
+  relation_delete_multiple(array($rid));
 }
 
 /**
@@ -739,9 +712,9 @@ function relation_delete($rid){
  * @param $rid
  *   An array of numeric ids of the relation to be deleted.
  */
-function relation_delete_multiple($rids){
+function relation_delete_multiple($rids) {
   $relations = relation_load_multiple($rids);
-  foreach($relations as $rid => $relation){
+  foreach ($relations as $rid => $relation) {
     db_delete('relation')->condition('rid', $rid)->execute();
     db_delete('relation_revision')->condition('rid', $rid)->execute();
     module_invoke_all('entity_delete', $relation, 'relation');
@@ -753,48 +726,12 @@ function relation_delete_multiple($rids){
 }
 
 /**
- * Menu callback: ask for confirmation of relation deletion.
- */
-function relation_delete_confirm($form, &$form_state, $relation){
-  $form['#relation'] = $relation;
-  // Always provide entity id in the same form key as in the entity edit form.
-  $form['rid'] = array(
-    '#type' => 'value',
-    '#value' => $relation->rid
-  );
-  return confirm_form($form, t('Are you sure you want to delete relation %rid?', array(
-    '%rid' => $relation->rid
-  )), 'relation/' . $relation->rid, t('This action cannot be undone.'), t('Delete'), t('Cancel'));
-}
-
-/**
- * Executes relation deletion.
- */
-function relation_delete_confirm_submit($form, &$form_state){
-  if($form_state['values']['confirm']){
-    $relation = $form['#relation'];
-    relation_delete($form_state['values']['rid']);
-    watchdog('relation', '@type: deleted %title.', array(
-      '@type' => $relation->relation_type,
-      '%title' => $relation->rid
-    ));
-    drupal_set_message(t('@type %title has been deleted.', array(
-      '@type' => $relation->relation_type,
-      '%title' => $relation->rid
-    )));
-  }
-  $form_state['redirect'] = '<front>';
-}
-
-/**
  * Gets a relation's URI.
  *
  * @see entity_uri()
  */
-function relation_uri($relation){
-  return array(
-    'path' => 'relation/' . $relation->rid
-  );
+function relation_uri($relation) {
+  return array('path' => 'relation/' . $relation->rid);
 }
 
 /**
@@ -812,7 +749,7 @@ function relation_uri($relation){
  * @return RelationQuery
  *   The query object itself.
  */
-function relation_query($entity_type = NULL, $entity_id = NULL, $r_index = NULL){
+function relation_query($entity_type = NULL, $entity_id = NULL, $r_index = NULL) {
   return new RelationQuery($entity_type, $entity_id, $r_index);
 }
 
@@ -826,16 +763,18 @@ function relation_query($entity_type = NULL, $entity_id = NULL, $r_index = NULL)
  *   (optional) Filter endpoints by entity type. Return all endpoint entities
  *   if empty.
  */
-function relation_get_endpoints($relation, $entity_type = NULL){
+function relation_get_endpoints($relation, $entity_type = NULL) {
   $entities = array();
-  foreach($relation->endpoints[LANGUAGE_NONE] as $endpoint){
-    if(!empty($entity_type) && $endpoint['entity_type'] != $entity_type){
+  foreach ($relation->endpoints[LANGUAGE_NONE] as $endpoint) {
+    if (!empty($entity_type) && $endpoint['entity_type'] != $entity_type) {
       continue;
     }
     $entities[$endpoint['entity_type']][] = $endpoint['entity_id'];
   }
-  if(empty($entities)){return FALSE;}
-  foreach($entities as $entity_type => $ids){
+  if (empty($entities)) {
+    return FALSE;
+  }
+  foreach ($entities as $entity_type => $ids) {
     $entities[$entity_type] = entity_load($entity_type, $ids);
   }
   return $entities;
@@ -862,49 +801,56 @@ function relation_get_endpoints($relation, $entity_type = NULL){
  * @return
  *   The entity object from the other endpoint.
  */
-function relation_get_related_entity($entity_type, $entity_id, $relation_type = NULL, $r_index = NULL){
+function relation_get_related_entity($entity_type, $entity_id, $relation_type = NULL, $r_index = NULL) {
+
   // Static cache the results of relation_query() and relation_load() to avoid
   // duplicate queries if this is called multiple times with the same arguments
   // during a request.
   $items = &drupal_static(__FUNCTION__);
   $request_key = "$entity_type:$entity_id";
   $cache_key = "$request_key:$relation_type:$r_index";
-  if(isset($items[$cache_key])){
+
+  if (isset($items[$cache_key])) {
     $entities = $items[$cache_key];
-  }elseif($cached = cache_get('relation:' . $cache_key)){
+  }
+  elseif ($cached = cache_get('relation:' . $cache_key)) {
     $entities = $cached->data;
     $items[$cache_key] = $entities;
-  }else{
+  }
+  else {
     $query = relation_query($entity_type, $entity_id, $r_index)->range(0, 1);
-    if($relation_type){
+    if ($relation_type) {
       $query->entityCondition('bundle', $relation_type);
     }
     $results = $query->execute();
     $result = reset($results);
-    if($result){
+    if ($result) {
       $relation = relation_load($result->rid);
-      $entities = field_get_items('relation', $relation, 'endpoints');
-    }else{
+      if ($relation->arity == 1) {
+        $entities = FALSE;
+      }
+      else {
+        $entities = field_get_items('relation', $relation, 'endpoints');
+      }
+    }
+    else {
       $entities = FALSE;
     }
     cache_set('relation:' . $cache_key, $entities);
     $items[$cache_key] = $entities;
   }
-  if($entities){
+
+  if ($entities) {
     $first_entity_key = $entities[0]['entity_type'] . ':' . $entities[0]['entity_id'];
-    if(isset($r_index)){
+    if (isset($r_index)) {
       $request_key = $request_key . ':' . $r_index;
       $first_entity_key = $first_entity_key . ':' . $entities[0]['r_index'];
     }
-    if($request_key == $first_entity_key){
-      $other_endpoints = entity_load($entities[1]['entity_type'], array(
-        $entities[1]['entity_id']
-      ));
+    if ($request_key == $first_entity_key) {
+      $other_endpoints = entity_load($entities[1]['entity_type'], array($entities[1]['entity_id']));
       return reset($other_endpoints);
     }
-    $other_endpoints = entity_load($entities[0]['entity_type'], array(
-      $entities[0]['entity_id']
-    ));
+    $other_endpoints = entity_load($entities[0]['entity_type'], array($entities[0]['entity_id']));
     return reset($other_endpoints);
   }
   return FALSE;
@@ -924,23 +870,24 @@ function relation_get_related_entity($entity_type, $entity_id, $relation_type = 
  * @return
  *   An array of relation types, keyed by relation_type.
  */
-function relation_get_available_types($entity_type, $bundle, $endpoint = 'source'){
+function relation_get_available_types($entity_type, $bundle, $endpoint = 'source') {
   $bundle_key = $entity_type . ':' . $bundle;
   $all_bundle_key = $entity_type . ':*';
   $relation_types = relation_get_types();
-  foreach($relation_types as $type => $relation_type){
+
+  foreach ($relation_types as $type => $relation_type) {
     $available = FALSE;
-    if($endpoint == 'source' || $endpoint == 'both'){
-      if(in_array($bundle_key, $relation_type->source_bundles) || in_array($all_bundle_key, $relation_type->source_bundles)){
+    if ($endpoint == 'source' || $endpoint == 'both') {
+      if (in_array($bundle_key, $relation_type->source_bundles) || in_array($all_bundle_key, $relation_type->source_bundles)) {
         $available = TRUE;
       }
     }
-    if($endpoint == 'target' || $endpoint == 'both'){
-      if(in_array($bundle_key, $relation_type->target_bundles) || in_array($all_bundle_key, $relation_type->target_bundles)){
+    if ($endpoint == 'target' || $endpoint == 'both') {
+      if (in_array($bundle_key, $relation_type->target_bundles) || in_array($all_bundle_key, $relation_type->target_bundles)) {
         $available = TRUE;
       }
     }
-    if(!$available){
+    if (!$available) {
       unset($relation_types[$type]);
     }
   }
@@ -950,39 +897,39 @@ function relation_get_available_types($entity_type, $bundle, $endpoint = 'source
 /**
  * Implements hook_entity_delete().
  */
-function relation_entity_delete($entity, $entity_type){
+function relation_entity_delete($entity, $entity_type) {
   list($entity_id) = entity_extract_ids($entity_type, $entity);
   $relations = relation_query($entity_type, $entity_id)->execute();
   $relations_to_delete = array();
-  foreach($relations as $row){
+  foreach ($relations as $row) {
     // Remove any endpoints pointing to entity
     $relation = relation_load($row->rid);
-    foreach($relation->endpoints[LANGUAGE_NONE] as $key => $endpoint){
-      if($endpoint['entity_id'] == $entity_id && $endpoint['entity_type'] == $entity_type){
+    foreach ($relation->endpoints[LANGUAGE_NONE] as $key => $endpoint) {
+      if ($endpoint['entity_id'] == $entity_id
+        && $endpoint['entity_type'] == $entity_type) {
         unset($relation->endpoints[LANGUAGE_NONE][$key]);
       }
     }
     // Check if relation remains valid with regards to arity
-    $type = relation_get_types(array(
-      $relation->relation_type
-    ));
+    $type = relation_get_types(array($relation->relation_type));
     $min_arity = $type[$relation->relation_type]->min_arity;
     $arity = count($relation->endpoints[LANGUAGE_NONE]);
-    if($arity < $min_arity){
+    if ($arity < $min_arity) {
       // Not valid - delete
       array_push($relations_to_delete, $relation->rid);
-    }else{
+    }
+    else {
       // Valid - save
       relation_save($relation);
     }
   }
-  if(!empty($relations_to_delete)){
+  if (!empty($relations_to_delete)) {
     relation_delete_multiple($relations_to_delete);
-    drupal_set_message(t('Relations @relations have been deleted.', array(
-      '@relations' => implode(', ', $relations_to_delete)
-    )));
+    drupal_set_message(t('Relations @relations have been deleted.',
+      array('@relations' => implode(', ', $relations_to_delete))));
   }
 }
+
 
 /**
  * Implements hook_views_api().
@@ -1003,7 +950,7 @@ function relation_feeds_plugins(){
       'parent' => 'FeedsProcessor',
       'class' => 'RelationFeedsProcessor',
       'file' => 'RelationFeedsProcessor.inc',
-      'path' => drupal_get_path('module', 'relation')
+      'path' => drupal_get_path('module', 'relation_feeds')
     )
   );
   return $info;
@@ -1020,13 +967,31 @@ function relation_feeds_plugins(){
  * @return
  *   The label of the relation type.
  */
-function relation_get_type_label($relation, $reverse = FALSE){
+function relation_get_type_label($relation, $reverse = FALSE) {
   $type = relation_type_load($relation->relation_type);
-  if($type->directional && $reverse){
+  if ($type->directional && $reverse) {
     return $type->reverse_label;
-  }else{
+  }
+  else {
     return $type->label;
   }
+}
+
+/**
+ * Return the label for a given entity type and bundle.
+ *
+ * @param string $entity_type
+ *   The entity type.
+ *
+ * @param string $entity_bundle
+ *   The entity bundle.
+ *
+ * @return string
+ *   The label of the given entity type and bundle.
+ */
+function _relation_get_bundle_label($entity_type, $entity_bundle) {
+  $entity_info = entity_get_info($entity_type);
+  return $entity_info['bundles'][$entity_bundle]['label'];
 }
 
 /**
@@ -1036,12 +1001,12 @@ function relation_get_type_label($relation, $reverse = FALSE){
  * special handling for relation revisions, very similar to what's being done
  * with nodes.
  */
-class RelationController extends DrupalDefaultEntityController{
+class RelationController extends DrupalDefaultEntityController {
 
-  protected function buildQuery($ids, $conditions = array(), $revision_id = FALSE){
+  protected function buildQuery($ids, $conditions = array(), $revision_id = FALSE) {
     // Ensure that uid is taken from the {relation} table
     $query = parent::buildQuery($ids, $conditions, $revision_id);
-    $fields = & $query->getFields();
+    $fields =& $query->getFields();
     $fields['uid']['table'] = 'base';
     $query->addField('revision', 'uid', 'revision_uid');
     $fields['changed']['table'] = 'base';

@@ -258,7 +258,7 @@ function relation_rules_load_related_form_alter(&$form, &$form_state, $options, 
     unset($form['provides']);
   }
   // Add #ajax to the relation_type selection dropdown to reload the form.
-  if(isset($form['parameter']['relation_type'])) {
+  if (isset($form['parameter']['relation_type'])) {
     $form['parameter']['relation_type']['#ajax'] = rules_ui_form_default_ajax() + array(
       'event' => 'change',
       'trigger_as' => array('name' => 'reload'),
@@ -278,8 +278,7 @@ function relation_rules_load_related($source_entity, $relation_type, $entity_typ
       $related_entities = $source_entity->$property_name->value();
       if (!empty($related_entities)) {
         foreach ($related_entities as $related_entity) {
-          if (empty($entity_type_op) || $entity_type_op == $property['target_type'])
-          {
+          if (empty($entity_type_op) || $entity_type_op == $property['target_type']) {
             $endpoint_wrapper = entity_metadata_wrapper($property['target_type'], $related_entity);
             if ($endpoint_wrapper->type() != $source_entity_type || $endpoint_wrapper->getIdentifier() != $source_entity_id) {
               $endpoints[] = $related_entity;
@@ -295,7 +294,7 @@ function relation_rules_load_related($source_entity, $relation_type, $entity_typ
 /**
  * Returns the options list of available endpoint entity types for the chosen relation type.
  */
-function relation_rules_fetch_endpoint_type_options(RulesAbstractPlugin $element, $param_name=null) {
+function relation_rules_fetch_endpoint_type_options(RulesAbstractPlugin $element, $param_name = NULL) {
   $options = $types = array();
   // The parameter is optional
   if ($param_name = 'entity_type_op') {
@@ -304,7 +303,8 @@ function relation_rules_fetch_endpoint_type_options(RulesAbstractPlugin $element
   $all_entity_types = rules_entity_type_options();
   if (!empty($element->settings['relation_type'])) {
     $types[] = $element->settings['relation_type'];
-  } elseif ($wrapper = $element->applyDataSelector($element->settings['relation:select'])) {
+  }
+  elseif ($wrapper = $element->applyDataSelector($element->settings['relation:select'])) {
     // If we can: limit the list of entity types to those relative to the selected relation type.
     if (($info = $wrapper->info()) && !empty($info['bundle'])) {
       $types[] = $info['bundle'];
@@ -315,14 +315,14 @@ function relation_rules_fetch_endpoint_type_options(RulesAbstractPlugin $element
     // Add the allowed source entity types to the list
     if (!empty($relation_type->source_bundles)) {
       foreach ($relation_type->source_bundles as $source_bundle) {
-        list($entity_type,) = explode(':', $source_bundle, 2);
+        list($entity_type, ) = explode(':', $source_bundle, 2);
         $options[$entity_type] = $all_entity_types[$entity_type];
       }
     }
     // Add the allowed target entity types to the list
     if (!empty($relation_type->target_bundles)) {
       foreach ($relation_type->target_bundles as $target_bundle) {
-        list($entity_type,) = explode(':', $target_bundle, 2);
+        list($entity_type, ) = explode(':', $target_bundle, 2);
         $options[$entity_type] = $all_entity_types[$entity_type];
       }
     }
@@ -355,7 +355,8 @@ function relation_rules_fetch_endpoint_info_alter(&$element_info, $element) {
       // Set the returned entity type so we can access all the data.
       if (!empty($element->settings['number']) && (1 == $element->settings['number'])) {
         $element_info['provides']['endpoint_fetched']['type'] = $element->settings['entity_type']; // only one.
-      } else {
+      }
+      else {
         $element_info['provides']['endpoint_fetched']['type'] = 'list<' . $element->settings['entity_type'] . '>'; // more then one.
       }
     }
@@ -393,7 +394,8 @@ function relation_rules_fetch_endpoint_form_alter(&$form, &$form_state, $options
     }
     unset($form['submit']);
     unset($form['provides']);
-  } else {
+  }
+  else {
     // Change the entity parameter to be not editable.
     $form['parameter']['relation']['settings']['#access'] = FALSE;
     $form['parameter']['relation']['info'] = array(
@@ -405,14 +407,14 @@ function relation_rules_fetch_endpoint_form_alter(&$form, &$form_state, $options
     $form['reload']['#attributes'] = array('class' => array('rules-hide-js'));
   }
   // Add #ajax to the entity_type selection dropdown to reload the form.
-  if(isset($form['parameter']['entity_type'])) {
+  if (isset($form['parameter']['entity_type'])) {
     $form['parameter']['entity_type']['#ajax'] = rules_ui_form_default_ajax() + array(
       'event' => 'change',
       'trigger_as' => array('name' => 'reload'),
     );
   }
   // Add #ajax to the number parameter to allow us to change the type of the provided variable.
-  if(isset($form['parameter']['number'])) {
+  if (isset($form['parameter']['number'])) {
     $form['parameter']['number']['#ajax'] = rules_ui_form_default_ajax() + array(
       'event' => 'change',
       'trigger_as' => array('name' => 'reload'),
@@ -447,7 +449,7 @@ function relation_rules_fetch_endpoint($relation, $entity_type, $number = 1) {
     if (1 == $number) {
       $return = reset($return);
       if (!$return) {
-        throw new RulesEvaluationException('Unable to load relation endpoint of type "@type" for @entity with id "@id".', array('@type' => $entity_type,'@entity' => $relation->relation_type, '@id' => $relation->rid));
+        throw new RulesEvaluationException('Unable to load relation endpoint of type "@type" for @entity with id "@id".', array('@type' => $entity_type, '@entity' => $relation->relation_type, '@id' => $relation->rid));
       }
     }
     return array('endpoint_fetched' => $return);

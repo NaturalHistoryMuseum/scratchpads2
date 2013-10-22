@@ -1,9 +1,10 @@
-name = Relation Dummy Field
-description = Dummy field to display relation data inline on entities.
+name = Relation feeds
+description = Feeds integration module for Relation.
 core = 7.x
 package = Relation
+files[] = tests/relation.feeds_processor.test
 dependencies[] = relation
-files[] = tests/relation_dummy_field.test
+dependencies[] = feeds
 
 ; Information added by drupal.org packaging script on 2013-10-01
 version = "7.x-1.0-rc4+21-dev"

@@ -158,7 +158,8 @@ function relation_entity_collector($form, &$form_state) {
           $valid = TRUE;
         }
         if ($valid) {
-          $options["$entity_type:$entity_id"] = "$entity_bundle: " . entity_label($entity_type, $entity);
+          $bundle_label = _relation_get_bundle_label($entity_type, $entity_bundle);
+          $options["$entity_type:$entity_id"] = $bundle_label . ': ' . entity_label($entity_type, $entity);
         }
       }
     }
@@ -228,7 +229,11 @@ function relation_entity_collector($form, &$form_state) {
       $form['reload']['table']['#tree'] = TRUE;
       $form['reload']['table']['#theme'] = 'relation_entity_collector_table';
     }
-    if (count($_SESSION['relation_entity_keys']) > 1) {
+    if (!isset($relation_type_object) && !empty($relation_type)) {
+      $relation_type_object = relation_type_load($relation_type);
+    }
+    $min_arity = isset($relation_type_object->min_arity) ? $relation_type_object->min_arity : 1;
+    if (count($_SESSION['relation_entity_keys']) >= $min_arity) {
       $form['reload']['save'] = array(
         '#type' => 'submit',
         '#value' => t('Save relation'),
@@ -298,23 +303,21 @@ function relation_entity_collector_validate($form, &$form_state) {
       if ($errors) {
         return;
       }
-      // Here we get (entity_type, entity_id).
-      $break = explode(':', $entity_key);
+      // Get entity info from key ('{entity_type}:{entity_id}').
+      list($entity_type, $entity_id) = explode(':', $entity_key);
       // Add the label for later display. #options is check_plain'd but we need
       // to do that ourselves.
       $entity_label = check_plain($form['entity_key']['#options'][$entity_key]);
-      $entity_label_array = explode(':', $entity_label, 2);
       // Indexes are added in ascending order, starting from 0.
       $_SESSION += array('relation_entity_keys' => array());
       $next_index = count($_SESSION['relation_entity_keys']);
       // If validation succeeds we will add this in the submit handler.
       $form_state['pick'] = array(
-        'entity_type' => $break[0],
-        'entity_id' => $break[1],
-        'entity_bundle' => $entity_label_array[0],
-        'r_index' => $next_index,
-        'entity_label' => $entity_label,
-        'entity_key' => $entity_key,
+        'r_index'       => $next_index,
+        'entity_key'    => $entity_key,
+        'entity_label'  => $entity_label,
+        'entity_type'   => $entity_type,
+        'entity_id'     => $entity_id,
       );
       $endpoints = $_SESSION['relation_entity_keys'];
       $endpoints[] = $form_state['pick'];

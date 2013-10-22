@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * @file
+ * Relation feeds install functions
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function relation_feeds_enable() {
+  // Clear cache so plugins provided by this module are properly discovered.
+  cache_clear_all('plugins:feeds:plugins', 'cache');
+  // Reset static cache as well, this is required to make tests work.
+  ctools_get_plugins_reset();
+}

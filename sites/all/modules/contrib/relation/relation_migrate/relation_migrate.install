@@ -17,3 +17,4 @@ function relation_migrate_uninstall() {
     variable_del('relation_migrate_' . $type . '_user');
   }
 }
+

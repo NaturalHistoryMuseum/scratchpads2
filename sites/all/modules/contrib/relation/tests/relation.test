@@ -48,6 +48,7 @@ class RelationTestCase extends DrupalWebTestCase {
     $this->createRelationSymmetric();
     $this->createRelationDirectional();
     $this->createRelationOctopus();
+    $this->createRelationUnary();
   }
 
   /**
@@ -88,6 +89,9 @@ class RelationTestCase extends DrupalWebTestCase {
       array('entity_type' => 'user', 'entity_id' => $this->user1->uid),
       array('entity_type' => 'node', 'entity_id' => $this->node3->nid),
     );
+    $this->endpoints_unary = array(
+      array('entity_type' => 'node', 'entity_id' => $this->node5->nid),
+    );
   }
 
   /**
@@ -126,6 +130,13 @@ class RelationTestCase extends DrupalWebTestCase {
       'min_arity' => 3,
       'max_arity' => 5,
       'source_bundles' => array('node:article', 'node:page'),
+    );
+    $this->relation_types['unary'] = array(
+      'relation_type' => 'unary',
+      'label' => 'unary',
+      'min_arity' => 1,
+      'max_arity' => 1,
+      'source_bundles' => array('node:page'),
     );
     foreach ($this->relation_types as $relation_type) {
       relation_type_save($relation_type);
@@ -186,6 +197,15 @@ class RelationTestCase extends DrupalWebTestCase {
   }
 
   /**
+   * Creates an Unary relation.
+   */
+  function createRelationUnary() {
+    // Page 5 <--> Page 5
+    $this->relation_type_unary = $this->relation_types['unary']['relation_type'];
+    $this->rid_unary = $this->saveRelation($this->relation_type_unary, $this->endpoints_unary);
+  }
+
+  /**
    * Saves a relation.
    */
   function saveRelation($relation_type, $endpoints) {
@@ -230,6 +250,13 @@ class RelationAPITestCase extends RelationTestCase {
     // Check that symmetric relation is correctly related to node 4.
     $this->assertEqual($relations[$this->rid_symmetric]->endpoints[LANGUAGE_NONE][1]['entity_id'], $this->node4->nid, 'Correct entity is related: ' . $relations[$this->rid_symmetric]->endpoints[LANGUAGE_NONE][1]['entity_id'] . '==' . $this->node4->nid);
 
+    // Symmetric relation is Article 1 <--> Page 4
+    $entity_keys = array(
+      array('entity_type' => 'node', 'entity_id' => $this->node4->nid),
+      array('entity_type' => 'node', 'entity_id' => $this->node4->nid),
+    );
+    $this->assertFalse(relation_relation_exists($entity_keys, 'symmetric'), 'node4 is not related to node4.');
+
     // Get relations for node 1, should return 3 relations.
     $count = count($relations);
     $this->assertEqual($count, 3);
@@ -240,11 +267,11 @@ class RelationAPITestCase extends RelationTestCase {
       ->execute();
     $this->assertEqual($count, 6);
 
-    // Get number of relations for node 5, should return 1 relation.
+    // Get number of relations for node 5, should return 2 relations.
     $count = relation_query('node', $this->node5->nid)
       ->count()
       ->execute();
-    $this->assertEqual($count, 1);
+    $this->assertEqual($count, 2);
 
     // Get relations between entities 2 and 5 (none).
     $count = relation_query('node', $this->node2->nid)
@@ -299,16 +326,16 @@ class RelationAPITestCase extends RelationTestCase {
       ->propertyOrderBy('created', 'DESC')
       ->execute();
     $this->assertEqual(array_keys($relations), array($this->rid_octopus, $this->rid_directional, $this->rid_symmetric));
-    
+
     // Create 10 more symmetric relations and verify that the count works with
     // double digit counts as well.
-    for($i = 0; $i < 10; $i++) {
+    for ($i = 0; $i < 10; $i++) {
       $this->createRelationSymmetric();
     }
     $count = relation_query('node', $this->node4->nid)
       ->count()
       ->execute();
-    $this->assertEqual($count, 16);        
+    $this->assertEqual($count, 16);
   }
 
   /**
@@ -346,7 +373,10 @@ class RelationAPITestCase extends RelationTestCase {
   function testRelationSave() {
     foreach ($this->relation_types as $value) {
       $relation_type = $value['relation_type'];
-      $endpoints = isset($value['min_arity']) ? $this->endpoints_4 : $this->endpoints;
+      $endpoints = $this->endpoints;
+      if (isset($value['min_arity'])) {
+        $endpoints = $value['min_arity'] == 1 ? $this->endpoints_unary : $this->endpoints_4;
+      }
       if ($relation_type == 'directional_entitydifferent') {
         $endpoints = $this->endpoints_entitydifferent;
       }
@@ -380,7 +410,7 @@ class RelationAPITestCase extends RelationTestCase {
    * Tests relation delete.
    */
   function testRelationDelete() {
-    // Invalid relations are deleted when any endpoint entity is deleted. 
+    // Invalid relations are deleted when any endpoint entity is deleted.
     // Octopus relation is valid with 3 endpoints, currently it has 4.
     node_delete($this->node1->nid);
     $this->assertTrue(relation_load($this->rid_octopus, NULL, TRUE), 'Relation is not deleted.');

@@ -1,8 +1,9 @@
 name = "Relation Tests"
-description = "Support module for the Relation - Rules integration tests."
+description = "Support module for the Relation - ctools integration tests."
 package = Testing
 core = 7.x
 hidden = TRUE
+dependencies[] = ctools
 
 ; Information added by drupal.org packaging script on 2013-10-01
 version = "7.x-1.0-rc4+21-dev"

@@ -16,6 +16,11 @@ class views_handler_field_relation_link_delete extends views_handler_field_relat
    * Renders the link.
    */
   function render_link($relation, $values) {
+    // Ensure that relation_ui module enabled.
+    if (!module_exists('relation_ui')) {
+      return;
+    }
+
     // Ensure user has access to delete this relation.
     if (!user_access('delete relations')) {
       return;

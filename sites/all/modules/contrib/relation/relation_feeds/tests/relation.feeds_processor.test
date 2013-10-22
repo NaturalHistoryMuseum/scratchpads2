@@ -1,0 +1,100 @@
+<?php
+
+/**
+ * @file
+ * Tests for RelationFeedsProcessor.inc
+ */
+
+/**
+ * Test aggregating a feed as data records.
+ */
+class FeedsCSVtoRelationsTest extends FeedsWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Feeds CSV import to relations',
+      'description' => 'Tests a standalone import configuration that uses file fetcher and CSV parser to import relations from a CSV file.',
+      'group' => 'Relation',
+    );
+  }
+
+  public function setUp() {
+    // relation_ctools_test module provides relation type that we can use to
+    // test feeds imports
+    parent::setUp(array('relation_feeds', 'relation', 'relation_ctools_test'));
+  }
+
+  /**
+   * Import users from feeds CSV to get some data available for endpoints.
+   */
+  public function importUsers() {
+    $this->createImporterConfiguration('User import', 'user_import');
+
+    // Set and configure plugins.
+    $this->setPlugin('user_import', 'FeedsFileFetcher');
+    $this->setPlugin('user_import', 'FeedsCSVParser');
+    $this->setPlugin('user_import', 'FeedsUserProcessor');
+
+    // Go to mapping page and create a couple of mappings.
+    $mappings = array(
+      0 => array(
+        'source' => 'name',
+        'target' => 'name',
+        'unique' => TRUE,
+      ),
+      1 => array(
+        'source' => 'mail',
+        'target' => 'mail',
+        'unique' => FALSE,
+      ),
+    );
+    $this->addMappings('user_import', $mappings);
+
+    // Import CSV file.
+    $path = $this->absolute() . '/' . drupal_get_path('module', 'feeds');
+    $this->importFile('user_import', $path . '/tests/feeds/users.csv');
+  }
+
+  /**
+   * Test relation creation, refreshing/deleting feeds and feed items.
+   */
+  public function test() {
+    $this->importUsers();
+    // Create an importer.
+    $this->createImporterConfiguration('Relation import', 'relation_import');
+
+    // Set and configure plugins.
+    $this->setPlugin('relation_import', 'FeedsFileFetcher');
+    $this->setPlugin('relation_import', 'FeedsCSVParser');
+    $this->setPlugin('relation_import', 'RelationFeedsProcessor');
+
+    // Go to mapping page and create a couple of mappings.
+    $mappings = array(
+      0 => array(
+        'source' => 'source_user',
+        'target' => 'source_bundles:user:*:guid',
+      ),
+      1 => array(
+        'source' => 'target_user',
+        'target' => 'source_bundles:user:*:guid',
+      ),
+    );
+    $this->setSettings('relation_import', 'RelationFeedsProcessor', array(
+      'bundle' => 'loves'
+    ));
+    $this->addMappings('relation_import', $mappings);
+
+    // Import CSV file creating 'loves' relations between users.
+    $this->importFile('relation_import', $this->absolutePath() . '/tests/feeds/user_relations.csv');
+
+    // Assert result.
+    $this->assertText('Created 3 relations');
+  }
+
+  /**
+   * Get the absolute directory path of the relation module.
+   */
+  public function absolutePath() {
+    return $this->absolute() . '/' . drupal_get_path('module', 'relation_feeds');
+  }
+}

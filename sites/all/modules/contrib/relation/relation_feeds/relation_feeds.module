@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * @file
+ * Relation feeds integration module.
+ */
+
+ /**
+ * Implements hook_ctools_plugin_api().
+ */
+function relation_feeds_ctools_plugin_api($owner, $api) {
+  if ($owner == 'feeds' && $api == 'plugins') {
+    return array('version' => 1);
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_type().
+ */
+function relation_feeds_ctools_plugin_type() {
+  return array(
+    'plugins' => array(
+      'cache' => TRUE,
+      'use hooks' => TRUE,
+      'classes' => array('handler'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_feeds_plugins().
+ */
+function relation_feeds_feeds_plugins() {
+  $info['RelationFeedsProcessor'] = array(
+    'name' => t('Relation processor'),
+    'description' => t('Add and update relations.'),
+    'help' => t('Create and update relations from parsed content.'),
+    'handler' => array(
+      'parent' => 'FeedsProcessor',
+      'class' => 'RelationFeedsProcessor',
+      'file' => 'RelationFeedsProcessor.inc',
+      'path' => drupal_get_path('module', 'relation_feeds'),
+    ),
+  );
+  return $info;
+}

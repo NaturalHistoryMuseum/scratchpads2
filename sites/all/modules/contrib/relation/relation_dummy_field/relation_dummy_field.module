@@ -37,7 +37,9 @@ function relation_dummy_field_field_instance_settings_form($field, $instance) {
   $bundle_wildcard_key = $instance['entity_type'] . ':' . '*';
   $options = array();
   foreach ($relation_types as $relation_type => $relation_type_data) {
-    foreach ($relation_type_data->source_bundles as $relation_bundle_key) {
+    foreach (array_unique(array_merge($relation_type_data->source_bundles, $relation_type_data->target_bundles)) as $relation_bundle_key) {
+      // We can't currently select only source or only target for directional
+      // relations. See TODO:SINGLE_DIR
       if ($bundle_key == $relation_bundle_key || $bundle_wildcard_key == $relation_bundle_key) {
         $options[$relation_type] = $relation_type_data->label;
       }
@@ -126,13 +128,28 @@ function relation_dummy_field_field_formatter_view($entity_type, $entity, $field
         }
         $uri = entity_uri('relation', $relation);
         $relation_link = l(t('Relation @rid', array('@rid' => $relation->rid)), $uri['path'], $uri['options']);
-        // Can't use #heading as it's mercilessly check_plain'd.
-        $element[$delta]['relation']['heading']['#markup'] = t('<h4>Part of !link</h4>', array('!link' => $relation_link));
-        $element[$delta]['relation']['heading']['#access'] = $display['type'] == 'relation_default';
-        $element[$delta]['relation']['links'] = array(
-          '#theme' => 'links',
-          '#links' => $links,
-        );
+        if ($display['type'] == 'relation_default') {
+          // Can't use #heading as it's mercilessly check_plain'd.
+          $element[$delta]['relation']['heading']['#markup'] = t('<h4>Part of !link</h4>', array('!link' => $relation_link));
+        }
+        // We probably need to make this more customisable.
+        if ($display['type'] == 'relation_default' || count($links) > 1) {
+          $element[$delta]['relation']['links'] = array(
+            '#theme' => 'links',
+            '#links' => $links,
+          );
+        }
+        else {
+          $element[$delta]['relation']['link'] = array(
+            '#theme' => 'link',
+            '#path' => $links[0]['href'],
+            '#text' => $links[0]['title'],
+            '#options' => array(
+              'attributes' => array(),
+              'html' => FALSE,
+            )
+          );
+        }
       }
       break;
 
@@ -198,6 +215,9 @@ function relation_dummy_field_field_prepare_view($entity_type, $entities, $field
     $relation_types = $instances[$id]['settings']['relation_type'];
     $query = relation_query($entity_type, $id)->range(0, 50);
     if ($relation_types) {
+      // TODO:SINGLE_DIR: Fails in cases where we want directional relations for
+      // which the entity is only the source, but not the target, or vice versa.
+      // But to do this properly would mean multiple queries (up to 3).
       $query->entityCondition('bundle', $relation_types, 'IN');
     }
     $relation_ids = array_keys($query->execute());

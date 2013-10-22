@@ -76,6 +76,7 @@ class MigrateDestinationRelation extends MigrateDestinationEntity {
    *  Relation object to build. Prefilled with any fields mapped in the Migration.
    * @param $row
    *  Raw source data object - passed through to prepare/complete handlers.
+   *
    * @return array
    *  Array of key fields (rid only in this case) of the relation that was saved if
    *  successful. FALSE on failure.
@@ -89,18 +90,15 @@ class MigrateDestinationRelation extends MigrateDestinationEntity {
       if (isset($relation->rid)) {
         if ($relation->rid != $row->migrate_map_destid1) {
           throw new MigrateException(t("Incoming rid !rid and map destination rid !destid1 don't match",
-            array('!rid' => $relation->rid, '!destid1' => $row->migrate_map_destid1)));
+              array('!rid' => $relation->rid, '!destid1' => $row->migrate_map_destid1)
+            ));
         }
       }
       else {
         $relation->rid = $row->migrate_map_destid1;
       }
       // Get the existing vid, so updates don't generate notices
-      $values = db_select('relation', 'r')
-                   ->fields('r', array('vid'))
-                   ->condition('rid', $relation->rid)
-                   ->execute()
-                   ->fetchAssoc();
+      $values = db_select('relation', 'r')->fields('r', array('vid'))->condition('rid', $relation->rid)->execute()->fetchAssoc();
       $relation->vid = $values['vid'];
     }
     if ($migration->getSystemOfRecord() == Migration::DESTINATION) {
@@ -178,18 +176,12 @@ class MigrateDestinationRelation extends MigrateDestinationEntity {
 
       // Update changed and created dates if needed.
       if (isset($changed)) {
-        db_update('relation')
-          ->fields(array('changed' => $changed))
-          ->condition('rid', $relation->rid)
-          ->execute();
+        db_update('relation')->fields(array('changed' => $changed))->condition('rid', $relation->rid)->execute();
         $relation->changed = $changed;
       }
 
       if (isset($created)) {
-        db_update('relation')
-          ->fields(array('created' => $created))
-          ->condition('rid', $relation->rid)
-          ->execute();
+        db_update('relation')->fields(array('created' => $created))->condition('rid', $relation->rid)->execute();
         $relation->created = $created;
       }
 
@@ -203,3 +195,4 @@ class MigrateDestinationRelation extends MigrateDestinationEntity {
     return $return;
   }
 }
+

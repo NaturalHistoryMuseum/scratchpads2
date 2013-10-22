@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * @file
+ * Tests for ctools support.
+ */
+
+/**
+ * Functional test of Relation's integration with ctools.
+ */
+class RelationCtoolsTestCase extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Relation ctools integration test',
+      'description' => 'Test the ctools integration.',
+      'group' => 'Relation',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('relation', 'relation_ctools_test');
+  }
+
+  function testRelationLoadDefaultRelationTypes() {
+    // endpoint instance count on relation should match relation type count.
+    $relation_types = relation_get_types();
+    $field_instances = field_info_instances('relation');
+    $this->assertEqual(count($relation_types), count($field_instances));
+  }
+}

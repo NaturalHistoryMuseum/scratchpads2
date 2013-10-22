@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * @file
+ * Test for Relation's ctools implementation.
+ */
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function relation_ctools_test_ctools_plugin_api($module, $api) {
+  if ($module == 'relation' && $api == 'relation_type_default') {
+    return array('version' => 1);
+  }
+}
