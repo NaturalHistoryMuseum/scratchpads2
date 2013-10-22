@@ -34,7 +34,7 @@ class ScratchpadsBiographySeleniumTestCase extends ScratchpadsTweaksSeleniumTest
    * - Test the creation of a public non-user 
    * - Test the creation of a private non-user
    * - Test the creation of a public user
-   * - Test the creation of a public user
+   * - Test the creation of a private user
    */
   function testWrapper(){
     $this->drupalLogin($this->maintainer);
@@ -46,7 +46,7 @@ class ScratchpadsBiographySeleniumTestCase extends ScratchpadsTweaksSeleniumTest
     $this->createBiographyAccount(false, false);
     // Create public user
     $this->createBiographyAccount(true, true);
-    // Create public user
+    // Create private user
     $this->createBiographyAccount(false, true);
   }
 
