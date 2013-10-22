@@ -31,23 +31,23 @@ class ScratchpadsBiographySeleniumTestCase extends ScratchpadsTweaksSeleniumTest
    * 
    * - Enable biography on tools page
    * - Test for biography fields
+   *   Test the creation of a public user
+   * - Test the creation of a private user
    * - Test the creation of a public non-user 
    * - Test the creation of a private non-user
-   * - Test the creation of a public user
-   * - Test the creation of a private user
    */
   function testWrapper(){
     $this->drupalLogin($this->maintainer);
     $this->enableBiographyTool();
     $this->checkForBiographyFields();
-    // Create public non-user
-    $this->createBiographyAccount(true, false);
-    // Create private non-user
-    $this->createBiographyAccount(false, false);
     // Create public user
     $this->createBiographyAccount(true, true);
     // Create private user
     $this->createBiographyAccount(false, true);
+    // Create public non-user
+    $this->createBiographyAccount(true, false);
+    // Create private non-user
+    $this->createBiographyAccount(false, false); 
   }
 
   /**
@@ -173,6 +173,7 @@ class ScratchpadsBiographySeleniumTestCase extends ScratchpadsTweaksSeleniumTest
     $element->sendKeys($field_data['field_user_taxonomic_interest']);
     // Click Tab
     $this->clickLink('Name forms/Identifiers');
+    $this->driver->waitForElements("name=field_alternative_name[und][0][value]");
     $element = $this->driver->getElement("name=field_alternative_name[und][0][value]");
     $element->clear();
     $element->sendKeys($field_data['field_alternative_name']);
@@ -184,10 +185,11 @@ class ScratchpadsBiographySeleniumTestCase extends ScratchpadsTweaksSeleniumTest
     $element->sendKeys($field_data['field_orcid']);
     // Click Tab
     $this->clickLink('Professional information');
+    $this->driver->waitForElements("name=field_areas_of_professional_inte[und][0][value]");
     $element = $this->driver->getElement("name=field_areas_of_professional_inte[und][0][value]");
     $element->clear();
     $element->sendKeys($field_data['field_areas_of_professional_inte']);
-    $this->_autocompleteTest('field_main_collaborators_co_auth[und][0][uid]', 'b', 'basic-user' . ' [uid:' . $this->basic_user->uid . ']');
+    $this->_autocompleteTest('field_main_collaborators_co_auth[und][0][uid]', 'b');
     $element = $this->driver->getElement("name=field_known_for[und][0][value]");
     $element->clear();
     $element->sendKeys($field_data['field_known_for']);
@@ -196,6 +198,7 @@ class ScratchpadsBiographySeleniumTestCase extends ScratchpadsTweaksSeleniumTest
     $element->sendKeys($field_data['field_places_worked']);
     // Click Tab
     $this->clickLink('Personal information');
+    $this->driver->waitForElements("name=field_gender[und]");
     $element = $this->driver->getElement("name=field_gender[und]");
     $element->selectLabel($field_data['field_gender']);
     $element = $this->driver->getElement("name=field_birth_place[und][0][value]");
@@ -212,6 +215,7 @@ class ScratchpadsBiographySeleniumTestCase extends ScratchpadsTweaksSeleniumTest
     $element->sendKeys($field_data['field_biography']);
     // Click Tab
     $this->clickLink('Additional information');
+    $this->driver->waitForElements("name=field_user_keywords[und]");
     $element = $this->driver->getElement("name=field_user_keywords[und]");
     $element->clear();
     $element->sendKeys($field_data['field_user_keywords']);

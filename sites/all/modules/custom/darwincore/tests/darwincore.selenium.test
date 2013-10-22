@@ -40,10 +40,18 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    */
   function testWrapper(){
     $this->drupalLogin($this->maintainer);
-    $vocabulary = $this->createBioVocabularyWithName('mybiovocab');
-    $term1 = $this->createTermWithName($vocabulary, 'term1');
+    //$vocabulary = $this->createBioVocabularyWithName('mybiovocab');
+   // $term1 = $this->createTermWithName($vocabulary, 'term1');
+    $vocab_name = $this->randomName();
+    $term_name = $this->randomName();
+    $this->createAnimalVocabulary($vocab_name);
+    $this->addTerms($vocab_name, array(
+      $term_name
+    ));
+    
+    
     $location_title = $this->verifyCreateLocation();
-    $specimen_observation_title = $this->verifyCreateSpecimenObservation($location_title, $term1);
+    $specimen_observation_title = $this->verifyCreateSpecimenObservation($location_title, $term_name, $vocab_name);
     $this->verifyUniqueLocation($location_title);
     $this->verifyEditLocation($location_title);
     $specimen_observation_title = $this->verifyEditSpecimenObservation($specimen_observation_title);
@@ -56,6 +64,8 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    */
   function verifyCreateLocation(){
     $this->drupalGet('node/add/location');
+    
+    $this->assertTrue(true, 'Adding new location');
     // Wait for map to load
     $field_data = array(
       'title' => $this->randomName(),
@@ -77,19 +87,25 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       'field_max_depth' => rand(1, 100)
     );
     // Set title
+    $this->driver->waitForElements("name=title");
     $element = $this->driver->getElement("name=title");
     $element->clear();
     $element->sendKeys($field_data['title']);
+    $this->assertTrue(true, 'Location title added');
     // Click on '+ Point'
+    $this->driver->waitForElements("xpath=//*[text()='+ Point']");
     $element = $this->driver->getElement("xpath=//*[text()='+ Point']");
     $element->click();
+    $this->assertTrue(true, 'Point clicked');
     // Click on the map (We click in the centre of the first image within the map)
     $images = $this->driver->waitForElements("css=#field_map img");
     $images[0]->click();
-   // $element = $this->driver->getElement('name=field_map[und][map][map]');
+    $this->assertTrue(true, 'Map clicked');
+    // $element = $this->driver->getElement('name=field_map[und][map][map]');
     $this->verboseScreenshot();
     // Click tab
     $this->driver->getElement('css=ul.vertical-tabs-list li.last a')->click();
+    $this->assertTrue(true, 'Tab clicked');
     // select field
     $element = $this->driver->getElement("name=field_continent_or_ocean[und]");
     $element->selectLabel($field_data['field_continent_or_ocean']);
@@ -178,9 +194,8 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   /**
    * Test the creation of Specimen/observation node
    */
-  function verifyCreateSpecimenObservation($location_title = '', $term = NULL){
+  function verifyCreateSpecimenObservation($location_title = '', $term_name, $vocab_name){
     $this->drupalGet('node/add/specimen-observation');
-    
     // Create data for testing
     $genbank_numbers_array = array(
       $this->randomName(8),
@@ -206,11 +221,13 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       'field_other_catalogue_numbers' => $this->randomName(),
       'field_remarks' => $this->randomName(),
       'field_location' => $location_title,
-      'field_taxonomic_name' => $term->name,
+      'field_taxonomic_name' => $term_name,
       'field_identified_by' => 'basic-user',
       'field_collector' => 'basic-user'
     );
     // We fill in the form elements one at a time, switching tabs when necessary
+    $this->driver->waitForElements("name=field_basis_of_record[und]");
+    
     $element = $this->driver->getElement("name=field_basis_of_record[und]");
     $element->selectValue($field_data['field_basis_of_record']);
     $element = $this->driver->getElement("name=field_institution_code[und][0][value]");
@@ -240,8 +257,8 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $element->sendKeys($field_data['field_notes']);
     $this->clickLink('Taxonomy');
     // Autocomplete taxonomy field
-    if(isset($term)){
-      $this->_autocompleteTest('field_taxonomic_name[und]', 't', 'term1' . ' [' . $term->tid . ']');
+    if(isset($term_name)){
+      $this->_autocompleteTest('field_taxonomic_name[und]', substr($term_name, 0, 1));
     }
     $element = $this->driver->getElement("name=field_type_status[und]");
     $element->selectValue($field_data['field_type_status']);
@@ -299,12 +316,11 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       }elseif($field == 'field_location'){
         // This displays a map
       }elseif($field == 'field_taxonomic_name'){
-        if(isset($term)){
-          // Value 'term1' is equal to value 'term1 (nxPYBl9d)'.
+        if(isset($term_name)){
           $field = str_replace('_', '-', $field);
           $element = $this->driver->getElement('css=.field-name-' . $field . '  .field-item');
           $text = $element->getText();
-          $value = $value . ' (mybiovocab)';
+          $value = $value . ' ('.$vocab_name.')';
           $this->assertEqual($value, $text, 'Taxonomic name field correctly set');
         }
       }else{
@@ -333,6 +349,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       'field_catalogue_number' => $catalogue_number
     );
     // Fill in the form
+    $this->driver->waitForElements("name=field_basis_of_record[und]");
     $element = $this->driver->getElement("name=field_basis_of_record[und]");
     $element->selectValue($field_data['field_basis_of_record']);
     $element = $this->driver->getElement("name=field_institution_code[und][0][value]");
@@ -355,7 +372,9 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   function verifyEditLocation($location_title){
     $this->drupalGet('admin/content');
     $this->clickLink('Location');
+    $this->driver->waitForElements("xpath=//*[text()=" . $location_title . "]");
     $this->clickLink($location_title);
+    $this->driver->waitForElements("xpath=//*[text()='Edit']");
     $this->clickLink('Edit');
     // We edit some fields
     $field_data = array(
@@ -443,8 +462,6 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     return $field_data['field_institution_code'] . ' - ' . $field_data['field_collection_code'] . ' - ' . $field_data['field_catalogue_number'];
   }
 
-  
-
   /**
    * Delete a location node and check that it has been deleted
    */
@@ -502,6 +519,40 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       $this->assertLink($genbanknumber);
       $href = "http://www.ncbi.nlm.nih.gov/nuccore/" . $genbanknumber;
       $this->assertLinkByHref($href);
+    }
+  }
+  
+  /**
+   * Create a vocabulary
+   */
+  function createAnimalVocabulary($vocab_name){
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $element = $this->driver->getElement("name=name");
+    $element->clear();
+    $element->sendKeys($vocab_name);
+    $element = $this->driver->getElement("name=description");
+    $element->clear();
+    $element->sendKeys($this->randomName());
+    $element = $this->driver->getElement("name=biological_classification");
+    $element->selectLabel('Animal');
+    // Submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+  }
+  
+  /**
+   * Add terms to a vocabulary
+   */
+  function addTerms($vocab_name, $term_array){
+    foreach($term_array as $term_name){
+      $path = 'admin/structure/taxonomy/' . $vocab_name . '/add';
+      $this->drupalGet($path);
+      $element = $this->driver->getElement("name=field_unit_name1[und][0][value]");
+      $element->clear();
+      $element->sendKeys($term_name);
+      // Submit the form
+      $submit_button = $this->driver->getElement("id=edit-submit");
+      $submit_button->click();
     }
   }
 }
