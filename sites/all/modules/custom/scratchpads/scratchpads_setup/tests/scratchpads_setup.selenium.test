@@ -38,6 +38,8 @@ class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
     $setup_data = array();
     $this->drupalGet('admin/dashboard');
     $this->clickLink('Finish setting up the site');
+    // Wait for page to load
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Welcome to your new scratchpad')]]");
     $this->assertText('Welcome to your new scratchpad');
     $this->driver->getElement("id=edit-next")->click();
     // Welcome message
@@ -92,6 +94,8 @@ class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
     // verify about page
     $this->assertLink(strtoupper('About Us'), 0, 'Link to about page present on front page');
     $this->clickLink(strtoupper('About Us'));
+    // Wait for page to load
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$setup_data['about'].")]]");
     $this->assertText($setup_data['about']);
   }
 }

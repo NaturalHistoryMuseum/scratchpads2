@@ -61,6 +61,7 @@ class ScratchpadsSpeciesSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCa
    */
   function verifyTaxonDescription($vocab_name){
     $this->drupalGet('node/add/spm');
+    $this->driver->waitForElements("name=field_taxonomic_name[und]");
     // Autocomplete taxonomy field
     $this->_autocompleteTest('field_taxonomic_name[und]', 'p');
     $general_description = $this->randomName(16);
@@ -80,6 +81,7 @@ class ScratchpadsSpeciesSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCa
     $this->driver->getElement("id=edit-submit")->click();
     $this->drupalGet('');
     $this->clickLink($vocab_name);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$general_description.")]]");
     $this->assertText($general_description, 'General description shown on species page');
     // Click tab
     $this->clickLink('Descriptions');
@@ -100,6 +102,7 @@ class ScratchpadsSpeciesSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCa
     $field_institution_code = $this->randomName();
     $field_collection_code = $this->randomName();
     $field_catalogue_number = $this->randomName();
+    $this->driver->waitForElements("name=field_basis_of_record[und]");
     $element = $this->driver->getElement("name=field_basis_of_record[und]");
     $element->selectValue($field_basis_of_record);
     $element = $this->driver->getElement("name=field_institution_code[und][0][value]");
@@ -120,6 +123,7 @@ class ScratchpadsSpeciesSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCa
     $this->driver->getElement("id=edit-submit")->click();
     $this->drupalGet('');
     $this->clickLink($vocab_name);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Specimens')]]");
     // Click tab
     $this->clickLink('Specimens');
     // Wait for the slickgrid to load
@@ -137,6 +141,7 @@ class ScratchpadsSpeciesSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCa
    */
   function verifyLiterature($vocab_name){
     $this->drupalGet('node/add/biblio');
+    $this->driver->waitForElements("name=biblio_type");
     $element = $this->driver->getElement("name=biblio_type");
     $element->selectLabel('Journal');
     $journal_title = $this->randomName();
@@ -159,7 +164,10 @@ class ScratchpadsSpeciesSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCa
     $this->drupalGet('');
     $this->clickLink($vocab_name);
     // Click tab
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Literature')]]");
     $this->clickLink('Literature');
+    // Wait for page to load
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$journal_title.")]]");
     $this->assertText($journal_title, "Biblio title shown after clicking 'Literature' tab");
   }
 
@@ -168,6 +176,7 @@ class ScratchpadsSpeciesSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCa
    */
   function createAnimalVocabulary($vocab_name){
     $this->drupalGet('admin/structure/taxonomy/add');
+    $this->driver->waitForElements("name=name");
     $element = $this->driver->getElement("name=name");
     $element->clear();
     $element->sendKeys($vocab_name);

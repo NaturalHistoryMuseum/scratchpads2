@@ -186,7 +186,7 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $vocabulary->help = '';
     $vocabulary->biological_classification = 1;
     $vocabulary->nodes = array(
-      'article' => 'article'
+      'page' => 'page'
     );
     $vocabulary->weight = mt_rand(0, 10);
     taxonomy_vocabulary_save($vocabulary);

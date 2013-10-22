@@ -67,6 +67,7 @@ class ScratchpadsForumSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
     $this->drupalGet('node/add/forum');
     $title = $this->randomName();
     $body = $this->randomName();
+    $this->driver->waitForElements("name=title");
     $element = $this->driver->getElement("name=title");
     $element->clear();
     $element->sendKeys($title);
@@ -87,6 +88,7 @@ class ScratchpadsForumSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
   function addForum($parent){
     $this->drupalGet('admin/structure/forum/add/forum');
     $title = $this->randomName();
+    $this->driver->waitForElements("name=name");
     $element = $this->driver->getElement("name=name");
     $element->clear();
     $element->sendKeys($title);
@@ -106,6 +108,8 @@ class ScratchpadsForumSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
     foreach($forum_array as $forum => $topic_array){
       $this->clickLink($forum);
       foreach($topic_array as $topic){
+        // Wait for page to load
+        $this->driver->waitForElements("xpath=//*[text()[contains(.,".$topic.")]]");
         $this->asserttext($topic, 'Forum topic displayed when forum clicked');
       }
     }

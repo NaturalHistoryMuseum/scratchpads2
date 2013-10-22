@@ -106,9 +106,6 @@ class SpmSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
         )
       ),
       'Ecology and Distribution' => array(
-        'map' => array(
-          'field_spm_map'
-        ),
         'text' => array(
           'field_dispersal',
           'field_associations',
@@ -144,37 +141,13 @@ class SpmSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
         unset($field_array[$tab]['text'][$key]);
         $field_array[$tab]['text'][$field] = $value;
       }
-      if(isset($fieldset['map'])){
-        $this->assertText('Map', 'Map field present');
-        // Click on '+ Polygon'
-        $polygon_link = $this->driver->getElement("xpath=//*[text()='+ Polygon']");
-        $polygon_link->click();
-        $this->driver->sleep(1);
-        // Wait for the map elements to load
-        $elements = $this->driver->waitForElements("css=#field_spm_map div div div div div div div");
-        $map_elements = $this->driver->getAllElements("css=#field_spm_map div div div div div div div");
-        $map_elements[0]->moveCursorCenter();
-        $this->driver->mouseClick();
-        $this->driver->sleep(1);
-        $map_elements[1]->moveCursorCenter();
-        $this->driver->mouseClick();
-        $this->driver->sleep(1);
-        $map_elements[2]->moveCursorCenter();
-        $this->driver->mouseClick();
-        $this->driver->sleep(1);
-        $polygon_link->click();
-        $this->driver->sleep(1);
-      }
     }
+    $this->assertTrue(true, 'New section');
     // Submit the form
     $this->driver->getElement("id=edit-submit")->click();
     $this->assertText("Taxon Description " . $term_name . " (" . $vocab_name . ") has been created.", "Taxon description successfully created");
     // Assert that values have been saved
     foreach($field_array as $tab => $fieldset){
-      if(isset($fieldset['map'])){
-        // We can verify that some data has been saved, but cannot verify the precise functionality of the map.
-        $this->assertText('Map', 'Map field present on node page');
-      }
       foreach($fieldset['text'] as $field => $data){
         $this->assertText($data, $field . ' data saved and displayed on node page');
       }
@@ -200,6 +173,8 @@ class SpmSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     );
     $this->drupalGet('admin/config');
     $this->clickLink('Taxon description editor settings');
+    // Wait for page to load
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Please choose the fields')]]");
     foreach($fields_to_remove as $field_group => $fields){
       foreach($fields as $machine_name => $human_name){
         $this->driver->getElement("xpath=//*[text()='" . $human_name . " ']")->click();

@@ -133,6 +133,8 @@ class SlickgridSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->drupalGet('admin/content/page');
     $this->clickLink($data[0]['title']);
     $this->clickLink('Edit');
+    // Wait for page to load
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit Page')]]"); 
     $this->assertRaw($newterm, 'Page term successfully updated using slickgrid editor');
   }
 
@@ -163,6 +165,8 @@ class SlickgridSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     foreach($data as $node){
       $this->drupalGet('admin/content/page');
       $this->clickLink($node['title']);
+      // Wait for page to load
+      $this->driver->waitForElements("xpath=//*[text()[contains(.,".$edited_body.")]]");
       $this->assertText($edited_body, 'Body field successfully updated.');
     }
   }
