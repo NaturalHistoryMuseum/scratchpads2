@@ -75,6 +75,7 @@ class ScratchpadsBlogSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->drupalGet('');
     $this->clickLink('Blogs');
     $this->clickLink('Create new blog entry');
+    $this->driver->waitForElements("name=title");
     $element = $this->driver->getElement("name=title");
     $element->clear();
     $element->sendKeys($title);
