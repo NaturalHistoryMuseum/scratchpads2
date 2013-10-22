@@ -158,10 +158,10 @@ class ContextConditionNodeTaxonomyTest extends DrupalWebTestCase {
   }
 
   function tearDown() {
-    parent::tearDown();
     context_delete($this->context);
     taxonomy_term_delete($this->terms['apples']->tid);
     taxonomy_term_delete($this->terms['oranges']->tid);
+    parent::tearDown();
   }
 
   function test() {
