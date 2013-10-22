@@ -111,6 +111,7 @@ class ScratchpadsBlogSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $title = $this->randomName(8);
     $body = $this->randomName(16);
     // Edit the form
+    $this->driver->waitForElements("name=title");
     $element = $this->driver->getElement("name=title");
     $element->clear();
     $element->sendKeys($title);
@@ -131,8 +132,9 @@ class ScratchpadsBlogSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->clickLink('Blog entry');
     $this->clickLink($title);
     $this->clickLink('Edit');
+    $this->driver->waitForElements("id=edit-delete");
     $this->driver->getElement("id=edit-delete")->click();
-    $this->assertText('Are you sure you want to delete ' . $title, "'Are you sure?' messagae shown on delete");
+    $this->assertText('Are you sure you want to delete ' . $title, "'Are you sure?' message shown on delete");
     $this->driver->getElement("id=edit-submit")->click();
     $this->assertText($title . ' has been deleted', 'Blog entry successfully deleted');
   }
