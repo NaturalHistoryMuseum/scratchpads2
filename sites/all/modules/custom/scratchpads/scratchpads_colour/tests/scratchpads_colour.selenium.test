@@ -52,7 +52,7 @@ class ScratchpadsColourSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCas
     $this->driver->getElement("id=134823")->click();
     $this->verboseScreenshot();
     $header_colour_new = $this->driver->getElement("id=section-header")->getCssValue('background-color');
-    $this->assertTrue($header_colour_original != $header_colour_new, 'Header colour sucessfully updated.');
+    $this->assertTrue($header_colour_original != $header_colour_new, 'Header colour successfully updated.');
     // Click again to hide
     $this->driver->getElement("css=.scratchpads-slide-toggle")->click();
     $this->driver->sleep(1);
