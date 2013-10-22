@@ -266,7 +266,7 @@ class ContentMigrateTextTestCase extends ContentMigrateTestCase {
     parent::setUp();
   }
 
-  function setupField($type, $widget, $multiple, $required, $default) {
+  function setupField($type, $widget, $multiple = 0, $required = 0, $default = '') {
     $field = parent::setupField($type, $widget, $multiple, $required, $default);
 
     $field['widget_module'] = 'text';
@@ -529,7 +529,7 @@ class ContentMigrateListTestCase extends ContentMigrateTestCase {
   /**
    * Slightly different from setupField in text case.
    */
-  function setupField($type, $widget, $multiple, $required, $default, $values) {
+  function setupField($type, $widget, $multiple = 0, $required = 0, $default = '') {
     $field = parent::setupField($type, $widget, $multiple, $required, $default);
 
     $field['widget_module'] = 'optionwidgets';
