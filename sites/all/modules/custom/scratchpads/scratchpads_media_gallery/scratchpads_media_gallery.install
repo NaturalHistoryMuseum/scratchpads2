@@ -25,12 +25,7 @@ function scratchpads_media_gallery_install(){
     ))
   ))->execute();
   // Ensure we're indexing the requried files
-  $query = db_insert('apachesolr_index_bundles')->fields(array(
-    'env_id',
-    'entity_type',
-    'bundle'
-  ));
-  $values = array(
+  foreach(array(
     array(
       'env_id' => 'solr',
       'entity_type' => 'file',
@@ -45,17 +40,19 @@ function scratchpads_media_gallery_install(){
       'env_id' => 'solr',
       'entity_type' => 'file',
       'bundle' => 'audio'
+    ),
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'application'
+    ),
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'text'
     )
-  );
-  foreach($values as $value){
-    $query->values($value);
-  }
-  try{
-    $query->execute();
-  }
-  catch(Exception $e){
-    // Do nothing, most likely as a result of this module being installed before.
-    ;
+  ) as $value){
+    db_merge('apachesolr_index_bundles')->key($value)->fields($value)->execute();
   }
   $vocabularies = array(
     'image_keywords' => array(
@@ -433,3 +430,22 @@ function scratchpads_media_gallery_update_7014(){
   apachesolr_search_page_save($search_page);
 }
 
+/**
+ * Also index the text and application file types.
+ */
+function scratchpads_media_gallery_update_7015(){
+  foreach(array(
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'application'
+    ),
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'text'
+    )
+  ) as $value){
+    db_merge('apachesolr_index_bundles')->key($value)->fields($value)->execute();
+  }
+}
