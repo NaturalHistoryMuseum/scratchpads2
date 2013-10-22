@@ -199,6 +199,7 @@ class ScratchpadsBlogSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $title = $this->randomName(8);
     $body = $this->randomName(16);
     $this->drupalGet('node/add/page');
+    $this->driver->waitForElements("name=title");
     $element = $this->driver->getElement("name=title");
     $element->clear();
     $element->sendKeys($title);
@@ -219,6 +220,7 @@ class ScratchpadsBlogSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $term1 = $this->createTermWithName($vocabulary, 'term1');
     $term2 = $this->createTermWithName($vocabulary, 'term2');
     $this->drupalGet('admin/structure/types/manage/blog/fields');
+    $this->driver->waitForElements("name=fields[_add_new_field][label]");
     $element = $this->driver->getElement("name=fields[_add_new_field][label]");
     $element->clear();
     $element->sendKeys('taxonomic_name_field');
