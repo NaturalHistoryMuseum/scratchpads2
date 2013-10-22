@@ -36,7 +36,7 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
       $modules = $modules[0];
     }
     // include the code for tweaks setup
-    include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_tweaks') . "/scratchpads_tweaks.inc";
+    include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_tweaks') . "/tests/scratchpads_tweaks.inc";
     // Create users.
     $this->test_user = $this->drupalCreateUser(array(
       'access content'

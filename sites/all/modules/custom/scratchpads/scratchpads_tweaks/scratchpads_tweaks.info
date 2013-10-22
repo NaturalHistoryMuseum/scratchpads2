@@ -6,8 +6,8 @@ core = 7.x
 features[menu_links][] = "management:http://help.scratchpads.eu/"
 
 ; Files
-files[] = scratchpads_tweaks.test
-files[] = scratchpads_tweaks_selenium.test
+files[] = tests/scratchpads_tweaks.test
+files[] = tests/scratchpads_tweaks.selenium.test
 
 ; Drupal core
 dependencies[] = block

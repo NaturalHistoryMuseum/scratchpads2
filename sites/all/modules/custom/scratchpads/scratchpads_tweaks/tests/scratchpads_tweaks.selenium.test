@@ -25,7 +25,7 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Tweaks (Selenium)',
-      'description' => 'Enable all of the modules associated with a Scratchpad to see where errors occur. Tests simple user login and front page access',
+      'description' => 'Parent class for all scratchpads selenium tests.',
       'group' => 'Scratchpads',
       'browsers' => array(
         'firefox'
@@ -41,7 +41,7 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     if(isset($modules[0]) && is_array($modules[0])){
       $modules = $modules[0];
     }
-    include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_tweaks') . "/scratchpads_tweaks.inc";
+    include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_tweaks') . "/tests/scratchpads_tweaks.inc";
     $browser = 'firefox';
     if(in_array($this->browser, $this->allowed_browsers)){
       $browser = $this->browser;
