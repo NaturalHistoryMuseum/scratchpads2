@@ -90,6 +90,17 @@ function anymals_login_deliver_page($page_callback_result){
 }
 
 /**
+ * Implements hook_module_implements_alter()
+ */
+function anymals_login_module_implements_alter(&$implementations, $hook){
+  if(($hook == 'form_alter' || $hook == 'form_user_login_alter') && isset($implementations['anymals_login'])){
+    $group = $implementations['anymals_login'];
+    unset($implementations['anymals_login']);
+    $implementations['anymals_login'] = $group;
+  }
+}
+
+/**
  * Submit function
  */
 function anymals_login_user_login_form_submit(&$form, &$form_state){
