@@ -319,7 +319,8 @@ function scratchpads_tweaks_install(){
   variable_set('image_allow_insecure_derivatives', TRUE);
   // Enable the subpermissions module which has lay dormant for many many months
   variable_set('subpermissions_config', array(
-    'show download links' => 'show download links'
+    'show download links' => 'show download links',
+    'post comments' => 'post comments'
   ));
 }
 
@@ -1333,4 +1334,15 @@ function scratchpads_tweaks_update_7067(&$sandbox){
   }
   drupal_set_message(count($sandbox['entities']) . "/" . $sandbox['max']);
   $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['entities'])) / $sandbox['max'];
+}
+
+/**
+ * Allow site maintainers to alter whether or not anonymous users can post
+ * comments.
+ */
+function scratchpads_tweaks_update_7068(){
+  variable_set('subpermissions_config', array(
+    'show download links' => 'show download links',
+    'post comments' => 'post comments'
+  ));
 }
