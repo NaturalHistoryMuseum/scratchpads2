@@ -1,0 +1,4 @@
+name = "anymals+plants - Login Page"
+description = "Creates a basic login page for authorisation from a Scratchpad."
+package = "anymals+plants"
+core = 7.x

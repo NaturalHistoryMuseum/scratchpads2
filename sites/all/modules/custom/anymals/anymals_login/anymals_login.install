@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * Implements hook_schema()
+ * 
+ * It may be possible that a single user has multiple client IDs, so we do not
+ * set the UID as the primary key.
+ */
+function anymals_login_schema(){
+  return array(
+    'anymals_client_ids' => array(
+      'fields' => array(
+        'uid' => array(
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => "User's {users}.uid."
+        ),
+        'client_id' => array(
+          'type' => 'varchar',
+          'not null' => TRUE,
+          'default' => '',
+          'length' => 255
+        )
+      ),
+      'indexes' => array(
+        'uid' => array(
+          'uid'
+        )
+      )
+    )
+  );
+}

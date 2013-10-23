@@ -1,0 +1,14 @@
+#anymals-login{
+  margin:auto;
+  width:300px;
+}
+*{
+  color:white;
+}
+#anymals-login input{
+  width:100%;
+  color:black;
+}
+.form-item-openid-identifier .description, .form-item-remember-me{
+  display:none;
+}

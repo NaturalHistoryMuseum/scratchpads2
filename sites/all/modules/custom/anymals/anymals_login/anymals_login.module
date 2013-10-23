@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ */
+function anymals_login_menu(){
+  return array(
+    'anymals/login' => array(
+      'title' => 'Log in',
+      'description' => 'A basic login page to allow anymals+plants login',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('anymals_login_page_form'),
+      'delivery callback' => 'anymals_login_basic_page',
+      'access callback' => TRUE,
+      'file' => 'anymals_login.pages.inc',
+      'type' => MENU_CALLBACK
+    )
+  );
+}
+
+/**
+ * Implements hook_user_load()
+ */
+function anymals_login_user_load($users){
+  $results = db_select('anymals_client_ids', 'a')->fields('a')->condition('uid', array_keys($users))->execute();
+  foreach($results as $row){
+    if(!isset($users[$row->uid]->anymals_client_id)){
+      $users[$row->uid]->anymals_client_ids = array();
+    }
+    $users[$row->uid]->anymals_client_ids[] = $row->client_id;
+  }
+}
