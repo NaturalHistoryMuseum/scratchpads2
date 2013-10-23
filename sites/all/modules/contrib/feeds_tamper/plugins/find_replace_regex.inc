@@ -38,7 +38,7 @@ function feeds_tamper_find_replace_regex_form($importer, $element_key, $settings
 }
 
 function feeds_tamper_find_replace_regex_validate(&$settings) {
-  // test the regex
+  // Test the regex.
   $test = @preg_replace($settings['find'], '', 'asdfsadf');
   if ($test === NULL) {
     form_set_error('settings][find', 'Invalid regular expression.');
@@ -55,6 +55,6 @@ function feeds_tamper_find_replace_regex_validate(&$settings) {
   }
 }
 
-function feeds_tamper_find_replace_regex_callback($result, $item_key, $element_key, &$field, $settings) {
+function feeds_tamper_find_replace_regex_callback($result, $item_key, $element_key, &$field, $settings, $source) {
   $field = preg_replace($settings['find'], $settings['replace'], $field, $settings['real_limit']);
 }

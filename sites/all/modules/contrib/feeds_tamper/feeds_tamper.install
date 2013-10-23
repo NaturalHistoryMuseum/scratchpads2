@@ -91,6 +91,9 @@ function feeds_tamper_uninstall() {
  * Add weight field to feeds_tamper table.
  */
 function feeds_tamper_update_7001(&$sandbox) {
+  if (db_field_exists('feeds_tamper', 'weight')) {
+    return;
+  }
   $spec = array(
     'type' => 'int',
     'not null' => TRUE,
@@ -105,6 +108,9 @@ function feeds_tamper_update_7001(&$sandbox) {
  * Add description field to feeds_tamper table.
  */
 function feeds_tamper_update_7002(&$sandbox) {
+  if (db_field_exists('feeds_tamper', 'description')) {
+    return;
+  }
   $spec = array(
     'type' => 'varchar',
     'length' => 255,
@@ -119,6 +125,9 @@ function feeds_tamper_update_7002(&$sandbox) {
  * Add index on importer.
  */
 function feeds_tamper_update_7003(&$sandbox) {
+  if (db_index_exists('feeds_tamper', 'importer')) {
+    return;
+  }
   db_add_index('feeds_tamper', 'importer', array('importer'));
 }
 

@@ -19,7 +19,7 @@ function feeds_tamper_convert_boolean_form($importer, $element_key, $settings) {
   $form['true_value'] = array(
     '#type' => 'textfield',
     '#title' => t('Truth value'),
-    '#default_value' => isset($settings['true_value']) ? $settings['true_value'] : 'true'
+    '#default_value' => isset($settings['true_value']) ? $settings['true_value'] : 'true',
   );
   $form['false_value'] = array(
     '#type' => 'textfield',
@@ -44,7 +44,7 @@ function feeds_tamper_convert_boolean_form($importer, $element_key, $settings) {
     '#default_value' => isset($settings['other_text']) ? $settings['other_text'] : '',
     '#states' => array(
       'visible' => array(
-       'input[name="settings[no_match]"]' => array('value' => 'other'),
+        'input[name="settings[no_match]"]' => array('value' => 'other'),
       ),
     ),
   );
@@ -72,18 +72,18 @@ function feeds_tamper_convert_boolean_validate(&$settings) {
   }
 }
 
-function feeds_tamper_convert_boolean_callback($result, $item_key, $element_key, &$field, $settings) {
+function feeds_tamper_convert_boolean_callback($result, $item_key, $element_key, &$field, $settings, $source) {
   // Copy field value in case 'pass' is set.
   $match_field = $field;
   if (!$settings['match_case']) {
     $match_field = drupal_strtolower($match_field);
   }
   if ($match_field == $settings['true_value']) {
-    $field = TRUE;
+    $field = 1;
     return;
   }
   if ($match_field == $settings['false_value']) {
-    $field = FALSE;
+    $field = 0;
     return;
   }
   if ($settings['no_match'] == 'pass') {
