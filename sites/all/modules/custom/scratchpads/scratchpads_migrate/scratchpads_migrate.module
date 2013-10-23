@@ -36,7 +36,7 @@ function _scratchpads_migrate_settings(){
   $is_dev = FALSE;
   if(strpos($host, 's2') === 0){
     $s1_domain = substr($host, 3);
-  }else if(strpos($host, 'dev-s2' === 0)){
+  }else if(strpos($host, 'dev-s2') === 0){
     $s1_domain = substr($host, 7);
   }else if(preg_match('/\.myspecies\.info$/', $host)){
     $s1_domain = str_replace('.myspecies.info', '', $host);
