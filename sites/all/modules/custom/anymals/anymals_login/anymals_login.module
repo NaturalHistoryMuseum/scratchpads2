@@ -20,7 +20,30 @@ function anymals_login_menu(){
       'title' => 'anymals+plants',
       'description' => 'Introduction and welcome page for the anymals+plants app.',
       'page callback' => 'anymals_login_welcome_page',
-      'file' => 'anymals_login.pages.inc'
+      'access callback' => TRUE,
+      'delivery callback' => 'anymals_login_deliver_page',
+      'type' => MENU_CALLBACK
+    )
+  );
+}
+
+/**
+ * Implements hook_init()
+ */
+function anymals_login_init(){
+  global $user;
+  if($user->uid && $_GET['q'] == 'anymals/login'){
+    drupal_goto('anymals');
+  }
+}
+
+/**
+ * Callback to display the "/anymals" page.
+ */
+function anymals_login_welcome_page(){
+  return array(
+    'message' => array(
+      '#markup' => '<p>' . t('You are logged in to this Scratchpad, and we have a record of your anymals+plants client ID.') . '</p>'
     )
   );
 }
@@ -53,15 +76,11 @@ function anymals_login_deliver_page($page_callback_result){
     ' . drupal_get_css() . '
     ' . drupal_get_js() . '
     <meta http-equiv="X-UA-Compatible" content="IE=100">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="cursor-event-mode" value="native">
     <meta name="HandheldFriendly" content="True">
     <meta name="MobileOptimized" content="width">
     <meta name="touch-event-mode" value="native">
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="viewport" content="width=device-width, user-scalable=false;">
   </head>
   <body>
     <div id="anymals-header" style="background-color: #' . variable_get('scratchpads_colour', SCRATCHPADS_DEFAULT_COLOUR) . '"><h1>' . check_plain(variable_get('site_name', 'Drupal')) . '</h1></div>
@@ -71,6 +90,15 @@ function anymals_login_deliver_page($page_callback_result){
 }
 
 /**
+ * Submit function
+ */
+function anymals_login_user_login_form_submit(&$form, &$form_state){
+  $form_state['redirect'] = 'anymals';
+}
+
+/**
  * Implements hook_form_FORM_ID_alter()
  */
-function anymals_login_form_user_login_alter(&$form, &$form_state){}
+function anymals_login_form_user_login_alter(&$form, &$form_state){
+  $form['#submit'][] = 'anymals_login_user_login_form_submit';
+}
