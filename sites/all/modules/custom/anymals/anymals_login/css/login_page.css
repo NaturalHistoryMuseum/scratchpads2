@@ -1,14 +1,30 @@
-#anymals-login{
-  margin:auto;
-  width:300px;
+body,html {
+  margin: 0;
 }
-*{
-  color:white;
+
+#anymals-header {
+  padding: 10px;
 }
-#anymals-login input{
-  width:100%;
-  color:black;
+
+#anymals-content,#anymals-header {
+  margin: auto;
+  width: 300px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
-.form-item-openid-identifier .description, .form-item-remember-me{
-  display:none;
+
+#anymals-header h1 {
+  color: white;
+  margin: 0;
+  padding: 0;
+  font-size: 100%;
+  padding: 0;
+}
+
+#anymals-content input.form-text {
+  width: 90%;
+}
+
+.form-item-openid-identifier .description,.form-item-remember-me {
+  display: none;
 }

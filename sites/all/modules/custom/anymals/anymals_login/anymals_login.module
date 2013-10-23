@@ -9,11 +9,18 @@ function anymals_login_menu(){
       'title' => 'Log in',
       'description' => 'A basic login page to allow anymals+plants login',
       'page callback' => 'drupal_get_form',
-      'page arguments' => array('anymals_login_page_form'),
-      'delivery callback' => 'anymals_login_basic_page',
+      'page arguments' => array(
+        'user_login'
+      ),
+      'delivery callback' => 'anymals_login_deliver_page',
       'access callback' => TRUE,
-      'file' => 'anymals_login.pages.inc',
       'type' => MENU_CALLBACK
+    ),
+    'anymals' => array(
+      'title' => 'anymals+plants',
+      'description' => 'Introduction and welcome page for the anymals+plants app.',
+      'page callback' => 'anymals_login_welcome_page',
+      'file' => 'anymals_login.pages.inc'
     )
   );
 }
@@ -30,3 +37,40 @@ function anymals_login_user_load($users){
     $users[$row->uid]->anymals_client_ids[] = $row->client_id;
   }
 }
+
+/**
+ * Deliver a basic page without any additional theme shit.
+ */
+function anymals_login_deliver_page($page_callback_result){
+  // We render the output first so that "#attached" js and css are added to the
+  // relevant arrays.
+  $output = drupal_render($page_callback_result);
+  print '<!DOCTYPE html>
+<html>
+  <head>
+    <title>' . drupal_get_title() . '</title>
+    <style type="text/css" media="all">@import url("' . file_create_url(drupal_get_path('module', 'anymals_login') . '/css/login_page.css') . '");</style>
+    ' . drupal_get_css() . '
+    ' . drupal_get_js() . '
+    <meta http-equiv="X-UA-Compatible" content="IE=100">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="cursor-event-mode" value="native">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="width">
+    <meta name="touch-event-mode" value="native">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, user-scalable=false;">
+  </head>
+  <body>
+    <div id="anymals-header" style="background-color: #' . variable_get('scratchpads_colour', SCRATCHPADS_DEFAULT_COLOUR) . '"><h1>' . check_plain(variable_get('site_name', 'Drupal')) . '</h1></div>
+    <div id="anymals-content">' . $output . '</div>
+  </body>
+</html>';
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function anymals_login_form_user_login_alter(&$form, &$form_state){}
