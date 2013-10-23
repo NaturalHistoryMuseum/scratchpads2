@@ -28,24 +28,19 @@ function anymals_login_menu(){
 }
 
 /**
- * Implements hook_init()
- */
-function anymals_login_init(){
-  global $user;
-  if($user->uid && $_GET['q'] == 'anymals/login'){
-    drupal_goto('anymals');
-  }
-}
-
-/**
  * Callback to display the "/anymals" page.
  */
 function anymals_login_welcome_page(){
-  return array(
-    'message' => array(
-      '#markup' => '<p>' . t('You are logged in to this Scratchpad, and we have a record of your anymals+plants client ID.') . '</p>'
-    )
-  );
+  global $user;
+  if($user->uid){
+    return array(
+      'message' => array(
+        '#markup' => '<p>' . t('You are logged in to this Scratchpad, and we have a record of your anymals+plants client ID.') . '</p>'
+      )
+    );
+  }else{
+    drupal_goto('anymals/login');
+  }
 }
 
 /**
