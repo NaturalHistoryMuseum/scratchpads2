@@ -1,8 +1,10 @@
 (function($){
   // Tweak what is sent to the server when the button is clicked.
   Drupal.behaviors.slickgrid_clone = {attach: function(context, settings){
-    Drupal.ajax['slickgrid_clone_form'].beforeSend = function(xmlhttprequest, opts){
-      opts.data = $.param({entity_type: options['entity_type'], entity_ids: slickgrid.getEntityIDs()}) + '&' + opts.data;
+    if(Drupal.ajax.slickgrid_clone_form){
+      Drupal.ajax.slickgrid_clone_form.beforeSend = function(xmlhttprequest, opts){
+        opts.data = $.param({entity_type: options['entity_type'], entity_ids: slickgrid.getEntityIDs()}) + '&' + opts.data;
+      }
     }
   }}
   // Enable and disable the button when rows are selected/deselected.
