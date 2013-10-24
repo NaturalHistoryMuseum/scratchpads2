@@ -16,15 +16,57 @@ function anymals_login_menu(){
       'access callback' => TRUE,
       'type' => MENU_CALLBACK
     ),
-    'anymals' => array(
+    'anymals/success' => array(
       'title' => 'anymals+plants',
       'description' => 'Introduction and welcome page for the anymals+plants app.',
       'page callback' => 'anymals_login_welcome_page',
       'access callback' => TRUE,
       'delivery callback' => 'anymals_login_deliver_page',
       'type' => MENU_CALLBACK
+    ),
+    'anymals' => array(
+      'title' => 'anymals+plants',
+      'description' => 'Redirect page which will take a user to either anymals/success or anymals/login',
+      'page callback' => 'anymals_login_redirect_page',
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK
     )
   );
+}
+
+/**
+ * Callback to display the "/anymals" page which simply redirects to
+ * anymals/success or anymals/login
+ */
+function anymals_login_redirect_page(){
+  global $user;
+  if($user->uid){
+    anymals_login_add_client_id($_GET['clientid']);
+    drupal_goto('anymals/success');
+  }else{
+    drupal_goto('anymals/login', array(
+      'query' => array(
+        'clientid' => $_GET['clientid']
+      )
+    ));
+  }
+}
+
+/**
+ * Simple function to add a client id to a user
+ */
+function anymals_login_add_client_id($clientid, $account = FALSE){
+  if(!$account){
+    global $user;
+    $account = $user;
+  }
+  db_merge('anymals_client_ids')->key(array(
+    'uid' => $user->uid,
+    'client_id' => $clientid
+  ))->fields(array(
+    'uid' => $user->uid,
+    'client_id' => $clientid
+  ))->execute();
 }
 
 /**
@@ -52,7 +94,7 @@ function anymals_login_user_load($users){
     if(!isset($users[$row->uid]->anymals_client_id)){
       $users[$row->uid]->anymals_client_ids = array();
     }
-    $users[$row->uid]->anymals_client_ids[] = $row->client_id;
+    $users[$row->uid]->anymals_client_ids[$row->client_id] = $row->client_id;
   }
 }
 
@@ -99,7 +141,14 @@ function anymals_login_module_implements_alter(&$implementations, $hook){
  * Submit function
  */
 function anymals_login_user_login_form_submit(&$form, &$form_state){
-  $form_state['redirect'] = 'anymals';
+  $form_state['redirect'] = array(
+    'anymals',
+    array(
+      'query' => array(
+        'clientid' => $_GET['clientid']
+      )
+    )
+  );
 }
 
 /**
