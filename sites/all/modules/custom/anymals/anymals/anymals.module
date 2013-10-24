@@ -4,5 +4,63 @@
  * Implements hook_menu()
  */
 function anymals_menu(){
-  
+  return array(
+    'admin/config/services/anymals' => array(
+      'title' => 'anymals+plants configuration',
+      'description' => 'Enter your anymals+plants configuration to allow your Scratchpad to "talk" to the anymals+plants service.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'anymals_configuration_form'
+      ),
+      'file' => 'anymals.pages.inc',
+      'access arguments' => array(
+        'administer anymals'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_permission()
+ */
+function anymals_permission(){
+  return array(
+    'administer anymals' => array(
+      'title' => t('Administer anymals+plants'),
+      'description' => t('Perform administration tasks for anymals+plants.')
+    )
+  );
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions()
+ */
+function anymals_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer anymals'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function anymals_form_node_type_form_alter(&$form, &$form_state){
+  $form['#submit'][] = 'anymals_node_type_form_submit';
+}
+
+/**
+ * Submit function for updating the shizzle.
+ */
+function anymals_node_type_form_submit($form, $form_state){
+  if(($anymals_token = variable_get('anymals_token', FALSE)) !== FALSE){
+    anymals_configuration_form_submit(FALSE, array(
+      'values' => array(
+        'anymals_token' => $anymals_token,
+        'anymals_key' => variable_get('anymals_key', ''),
+        'anymals_forms' => array_filter(variable_get('anymals_forms', array()))
+      )
+    ));
+  }
 }
