@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ */
+function anymals_menu(){
+  
+}

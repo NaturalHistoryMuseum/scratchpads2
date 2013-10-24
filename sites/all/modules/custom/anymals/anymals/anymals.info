@@ -1,0 +1,7 @@
+name = "anymals+plants"
+description = "Integrates your Scratchpad with the anymals+plants service, allowing your users to submit specimen observations from their phone."
+package = "anymals+plants"
+dependencies[] = anymals_login
+dependencies[] = anymals_contenttype_export
+core = 7.x
+tool = true
