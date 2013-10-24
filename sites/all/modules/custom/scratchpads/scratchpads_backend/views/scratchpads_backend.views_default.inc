@@ -1,5 +1,13 @@
 <?php
 
+// FIXME - The following code may help add a thumbnail to the slickgrid view
+// #3103.
+// /* Field: File: Rendered */
+// $handler->display->display_options['fields']['rendered']['id'] = 'rendered';
+// $handler->display->display_options['fields']['rendered']['table'] = 'file_managed';
+// $handler->display->display_options['fields']['rendered']['field'] = 'rendered';
+// $handler->display->display_options['fields']['rendered']['file_view_mode'] = 'file_styles_thumbnail';
+
 function scratchpads_backend_views_default_views(){
   $views = array();
   // Build the node slickgrid editor views
