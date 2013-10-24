@@ -55,6 +55,7 @@ function anymals_form_node_type_form_alter(&$form, &$form_state){
  */
 function anymals_node_type_form_submit($form, $form_state){
   if(($anymals_token = variable_get('anymals_token', FALSE)) !== FALSE){
+    module_load_include('pages.inc', 'anymals');
     anymals_configuration_form_submit(FALSE, array(
       'values' => array(
         'anymals_token' => $anymals_token,
