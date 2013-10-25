@@ -74,6 +74,7 @@ class ScratchpadsBlogSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $body = $this->randomName(16);
     $this->drupalGet('');
     $this->clickLink('Blogs');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Create new blog entry')]]");
     $this->clickLink('Create new blog entry');
     $this->driver->waitForElements("name=title");
     $element = $this->driver->getElement("name=title");
@@ -106,7 +107,9 @@ class ScratchpadsBlogSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   function verifyEditBlogEntry($title){
     $this->drupalGet('admin/content');
     $this->clickLink('Blog entry');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$title.")]]");
     $this->clickLink($title);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
     $this->clickLink('Edit');
     $title = $this->randomName(8);
     $body = $this->randomName(16);
@@ -130,7 +133,9 @@ class ScratchpadsBlogSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   function verifyDeleteBlogEntry($title){
     $this->drupalGet('admin/content');
     $this->clickLink('Blog entry');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$title.")]]");
     $this->clickLink($title);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
     $this->clickLink('Edit');
     $this->driver->waitForElements("id=edit-delete");
     $this->driver->getElement("id=edit-delete")->click();
@@ -191,8 +196,8 @@ class ScratchpadsBlogSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->assertText($blog_entry2_title, 'Second blog entry present after reverting selection');
     // Click the term
     $this->clickLink($term);
-    $this->verboseScreenshot();
     $this->driver->waitForElements("xpath=//*[text()[contains(.,'FILTERED ON TAXONOMY')]]");
+    $this->verboseScreenshot();
     $this->assertText($blog_entry_title, 'First blog entry present after choosing term');
     $this->assertNoText($blog_entry2_title, 'Second blog entry not present after choosing term');
   }

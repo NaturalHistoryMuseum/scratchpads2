@@ -132,6 +132,7 @@ class SlickgridSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     // Attempt to view this edited page view
     $this->drupalGet('admin/content/page');
     $this->clickLink($data[0]['title']);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]"); 
     $this->clickLink('Edit');
     // Wait for page to load
     $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit Page')]]"); 
