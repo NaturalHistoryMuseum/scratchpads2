@@ -115,12 +115,15 @@ class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
   private function deletePageAndVerifyImage($page_name, $image_name){
     $this->drupalGet('admin/content');
     $this->clickLink('Page');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$page_name.")]]");
     $this->clickLink($page_name);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
     $this->clickLink('Edit');
     $this->driver->getElement("id=edit-delete")->click();
     $this->driver->getElement("id=edit-submit")->click();
     $this->drupalGet('admin/content');
     $this->clickLink('Image');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$image_name.")]]");
     $this->assertText($image_name, 'Image still present after page has been deleted');
   }
 
@@ -130,11 +133,14 @@ class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
   private function deleteGalleryAndVerifyImage($gallery_name, $image_name){
     $this->drupalGet('admin/content');
     $this->clickLink('Media gallery');
-    $this->clickLink('delete');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'delete')]]");
+    $this->clickLink('delete');  
+    $this->driver->waitForElements("id=edit-submit");
     $this->driver->getElement("id=edit-submit")->click();
     // Verify that the image has not been deleted
     $this->drupalGet('admin/content');
     $this->clickLink('Image');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$image_name.")]]");
     $this->assertText($image_name, 'Image still present after gallery has been deleted');
   }
 
@@ -144,11 +150,13 @@ class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
   private function addImageToGallery($gallery_name, $image_name){
     $this->drupalGet('admin/content');
     $this->clickLink('Image');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
     $this->clickLink('Edit');
     // Autocomplete field for gallery
     if(isset($gallery_name)){
       $this->_autocompleteTest('field_smg_galleries[und][0][nid]', substr($gallery_name, 0, 1));
     }
+    $this->driver->waitForElements("id=edit-submit");
     $this->driver->getElement("id=edit-submit")->click();
   }
 
@@ -174,11 +182,15 @@ class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
   private function deleteImage($image_name){
     $this->drupalGet('admin/content');
     $this->clickLink('Image');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Delete')]]");
     $this->clickLink('Delete');
+    $this->driver->waitForElements("id=edit-submit");
     $this->driver->getElement("id=edit-submit")->click();
     $this->assertText('Image ' . $image_name . ' has been deleted.', 'Image deleted');
     $this->drupalGet('admin/content');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
     $this->clickLink('Image');
+    $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,".$image_name.")]]");
     $this->assertNoText($image_name, 'Image deletion confirmed');
   }
 

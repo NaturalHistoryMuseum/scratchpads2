@@ -93,6 +93,7 @@ class TuiSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->verboseScreenshot();
     // Change the unit name 1
     $edited_unit_name1 = $this->randomName();
+    $this->driver->waitForElements("name=field_unit_name1[und][0][value]");
     $element = $this->driver->getElement("name=field_unit_name1[und][0][value]");
     $element->clear();
     $element->sendKeys($edited_unit_name1);

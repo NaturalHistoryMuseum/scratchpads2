@@ -241,6 +241,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $element->sendKeys($field_data['field_catalogue_number']);
     // Click Tab
     $this->clickLink('Collection');
+    $this->driver->waitForElements("name=field_collector_number[und][0][value]");
     $element = $this->driver->getElement("name=field_collector_number[und][0][value]");
     $element->clear();
     $element->sendKeys($field_data['field_collector_number']);
@@ -256,6 +257,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $element->clear();
     $element->sendKeys($field_data['field_notes']);
     $this->clickLink('Taxonomy');
+    $this->driver->waitForElements("name=field_type_status[und]");
     // Autocomplete taxonomy field
     if(isset($term_name)){
       $this->_autocompleteTest('field_taxonomic_name[und]', substr($term_name, 0, 1));
@@ -272,6 +274,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $element->sendKeys($field_data['field_date_identified']);
     // Click tab
     $this->clickLink('Miscellaneous');
+    $this->driver->waitForElements("name=field_sex[und]");
     $element = $this->driver->getElement("name=field_sex[und]");
     $element->selectValue($field_data['field_sex']);
     $element = $this->driver->getElement("name=field_lifestage[und][0][value]");
@@ -290,8 +293,9 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $element->clear();
     $element->sendKeys($field_data['field_remarks']);
     // Click tab
-    $this->clickLink('Location');
+    $this->clickLink('Location');    
     if($location_title != ''){
+      $this->driver->waitForElements("name=field_location[und]");
       $element = $this->driver->getElement("name=field_location[und]");
       $element->selectLabel($location_title);
     }
@@ -423,7 +427,9 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   function verifyEditSpecimenObservation($specimen_observation_title){
     $this->drupalGet('admin/content');
     $this->clickLink('Specimen/Observation');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$specimen_observation_title.")]]");  
     $this->clickLink($specimen_observation_title);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
     $this->clickLink('Edit');
     $field_data = array(
       'field_basis_of_record' => 'Fossil Specimen',
@@ -431,7 +437,8 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       'field_collection_code' => $this->randomName(),
       'field_catalogue_number' => $this->randomName()
     );
-    // We edit some fields
+    // We edit some fields    
+    $this->driver->waitForElements("name=field_basis_of_record[und]");
     $element = $this->driver->getElement("name=field_basis_of_record[und]");
     $element->selectValue($field_data['field_basis_of_record']);
     $element = $this->driver->getElement("name=field_institution_code[und][0][value]");
@@ -468,9 +475,12 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   function verifyDeleteLocation($location_title){
     $this->drupalGet('admin/content');
     $this->clickLink('Location');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$location_title.")]]");
     $this->verboseScreenshot();
     $this->clickLink($location_title);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
     $this->clickLink('Edit');
+    $this->driver->waitForElements("id=edit-delete");
     $submit_button = $this->driver->getElement("id=edit-delete");
     $submit_button->click();
     $this->assertText(t('Are you sure you want to delete @loc?', array(
@@ -483,6 +493,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     )));
     $this->drupalGet('admin/content');
     $this->clickLink('Location');
+    $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,".$location_title.")]]");
     $this->verboseScreenshot();
     $this->assertNoLink($location_title, 'Deleted location node not present on admin/content/location page');
   }
@@ -493,8 +504,11 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   function verifyDeleteSpecimenObservation($specimen_observation_title){
     $this->drupalGet('admin/content');
     $this->clickLink('Specimen/Observation');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$specimen_observation_title.")]]");
     $this->clickLink($specimen_observation_title);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
     $this->clickLink('Edit');
+    $this->driver->waitForElements("id=edit-delete");
     $submit_button = $this->driver->getElement("id=edit-delete");
     $submit_button->click();
     $this->assertText(t('Are you sure you want to delete @loc?', array(
@@ -507,6 +521,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     )));
     $this->drupalGet('admin/content');
     $this->clickLink('Specimen/Observation');
+    $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,".$specimen_observation_title.")]]");
     $this->verboseScreenshot();
     $this->assertNoLink($specimen_observation_title, 'Deleted Specimen/Observation node not present on admin/content/specimen_observation page');
   }

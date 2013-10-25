@@ -98,8 +98,11 @@ class ScratchpadsToolsSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
     // Delete the Specimen/Observation node and try again to disable DarwinCore
     $this->drupalGet('admin/content');
     $this->clickLink('Specimen/Observation');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $specimen_observation_title . ")]]");
     $this->clickLink($specimen_observation_title);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
     $this->clickLink('Edit');
+    $this->driver->waitForElements("id=edit-delete");
     $submit_button = $this->driver->getElement("id=edit-delete");
     $submit_button->click();
     $this->assertText(t('Are you sure you want to delete @sp?', array(
