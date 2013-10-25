@@ -40,16 +40,12 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    */
   function testWrapper(){
     $this->drupalLogin($this->maintainer);
-    //$vocabulary = $this->createBioVocabularyWithName('mybiovocab');
-   // $term1 = $this->createTermWithName($vocabulary, 'term1');
     $vocab_name = $this->randomName();
     $term_name = $this->randomName();
     $this->createAnimalVocabulary($vocab_name);
     $this->addTerms($vocab_name, array(
       $term_name
     ));
-    
-    
     $location_title = $this->verifyCreateLocation();
     $specimen_observation_title = $this->verifyCreateSpecimenObservation($location_title, $term_name, $vocab_name);
     $this->verifyUniqueLocation($location_title);
@@ -64,7 +60,6 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    */
   function verifyCreateLocation(){
     $this->drupalGet('node/add/location');
-    
     $this->assertTrue(true, 'Adding new location');
     // Wait for map to load
     $field_data = array(
@@ -101,7 +96,6 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $images = $this->driver->waitForElements("css=#field_map img");
     $images[0]->click();
     $this->assertTrue(true, 'Map clicked');
-    // $element = $this->driver->getElement('name=field_map[und][map][map]');
     $this->verboseScreenshot();
     // Click tab
     $this->driver->getElement('css=ul.vertical-tabs-list li.last a')->click();
@@ -227,7 +221,6 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     );
     // We fill in the form elements one at a time, switching tabs when necessary
     $this->driver->waitForElements("name=field_basis_of_record[und]");
-    
     $element = $this->driver->getElement("name=field_basis_of_record[und]");
     $element->selectValue($field_data['field_basis_of_record']);
     $element = $this->driver->getElement("name=field_institution_code[und][0][value]");
@@ -293,7 +286,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $element->clear();
     $element->sendKeys($field_data['field_remarks']);
     // Click tab
-    $this->clickLink('Location');    
+    $this->clickLink('Location');
     if($location_title != ''){
       $this->driver->waitForElements("name=field_location[und]");
       $element = $this->driver->getElement("name=field_location[und]");
@@ -324,7 +317,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
           $field = str_replace('_', '-', $field);
           $element = $this->driver->getElement('css=.field-name-' . $field . '  .field-item');
           $text = $element->getText();
-          $value = $value . ' ('.$vocab_name.')';
+          $value = $value . ' (' . $vocab_name . ')';
           $this->assertEqual($value, $text, 'Taxonomic name field correctly set');
         }
       }else{
@@ -427,7 +420,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   function verifyEditSpecimenObservation($specimen_observation_title){
     $this->drupalGet('admin/content');
     $this->clickLink('Specimen/Observation');
-    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$specimen_observation_title.")]]");  
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $specimen_observation_title . ")]]");
     $this->clickLink($specimen_observation_title);
     $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
     $this->clickLink('Edit');
@@ -475,7 +468,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   function verifyDeleteLocation($location_title){
     $this->drupalGet('admin/content');
     $this->clickLink('Location');
-    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$location_title.")]]");
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $location_title . ")]]");
     $this->verboseScreenshot();
     $this->clickLink($location_title);
     $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
@@ -493,7 +486,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     )));
     $this->drupalGet('admin/content');
     $this->clickLink('Location');
-    $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,".$location_title.")]]");
+    $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.," . $location_title . ")]]");
     $this->verboseScreenshot();
     $this->assertNoLink($location_title, 'Deleted location node not present on admin/content/location page');
   }
@@ -504,7 +497,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   function verifyDeleteSpecimenObservation($specimen_observation_title){
     $this->drupalGet('admin/content');
     $this->clickLink('Specimen/Observation');
-    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$specimen_observation_title.")]]");
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $specimen_observation_title . ")]]");
     $this->clickLink($specimen_observation_title);
     $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
     $this->clickLink('Edit');
@@ -521,7 +514,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     )));
     $this->drupalGet('admin/content');
     $this->clickLink('Specimen/Observation');
-    $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,".$specimen_observation_title.")]]");
+    $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.," . $specimen_observation_title . ")]]");
     $this->verboseScreenshot();
     $this->assertNoLink($specimen_observation_title, 'Deleted Specimen/Observation node not present on admin/content/specimen_observation page');
   }
@@ -536,7 +529,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       $this->assertLinkByHref($href);
     }
   }
-  
+
   /**
    * Create a vocabulary
    */
@@ -554,7 +547,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $submit_button = $this->driver->getElement("id=edit-submit");
     $submit_button->click();
   }
-  
+
   /**
    * Add terms to a vocabulary
    */
