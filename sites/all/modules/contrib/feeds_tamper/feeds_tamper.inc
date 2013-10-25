@@ -118,18 +118,16 @@ function feeds_tamper_load_by_importer($importer, $disabled = FALSE) {
   if (is_scalar($importer)) {
     $importer = feeds_importer($importer);
   }
-
+  $mappings = $importer->processor->config['mappings'];
+  $sources = array();
+  foreach ($mappings as $mapping) {
+    $sources[] = $mapping['source'];
+  }
   ctools_include('export');
   $t = ctools_export_load_object('feeds_tamper', 'conditions', array('importer' => $importer->id));
-
-  $sources = feeds_tamper_get_unique_source_list($importer, FALSE);
-
+  // Sort into array, keyed by source.
   $instances = array();
   foreach ($t as $i) {
-    // Add an empty settings array, if the plugin instance doesn't provide any settings itself.
-    if (empty($i->settings)) {
-      $i->settings = array();
-    }
     // Filter disabled and only pull plugins that actually have a corresponding
     // source since we don't delete them with a mapping.
     if (($disabled || empty($i->disabled)) && in_array($i->source, $sources)) {
@@ -139,41 +137,7 @@ function feeds_tamper_load_by_importer($importer, $disabled = FALSE) {
   foreach ($instances as &$instance_list) {
     usort($instance_list, '_feeds_tamper_cmp');
   }
-
-  // Sort the plugins by the order they appear on the mapping page.
-  $return = array();
-  foreach ($sources as $source) {
-    if (isset($instances[$source])) {
-      $return[$source] = $instances[$source];
-    }
-  }
-
-  return $return;
-}
-
-/**
- * Returns a unique list of sources in order.
- *
- * @param FeedsImporter $importer
- *   The importer.
- *
- * @return array
- *   A list of sources.
- */
-function feeds_tamper_get_unique_source_list($importer, $lower = TRUE) {
-  $sources = array();
-  $is_csv = $lower && get_class($importer->parser) == 'FeedsCSVParser';
-
-  foreach ($importer->processor->getMappings() as $mapping) {
-    if ($is_csv) {
-      $sources[] = drupal_strtolower($mapping['source']);
-    }
-    else {
-      $sources[] = $mapping['source'];
-    }
-  }
-
-  return array_unique($sources);
+  return $instances;
 }
 
 /**
@@ -208,7 +172,7 @@ function feeds_tamper_get_plugins() {
  * Get a single plugin.
  *
  * @param string $id
- *   The id of a plugin.
+ *  The id of a plugin.
  *
  * @return stdClass
  *   A plugin object.
@@ -286,32 +250,28 @@ function feeds_tamper_form_feeds_ui_mapping_form_alter(&$form, &$form_state) {
   if ($form['source']['#type'] == 'textfield') {
     return;
   }
-  $max_source = 0;
-  $max_target = 0;
+  $newest_source = NULL;
+  $newest_target = NULL;
   foreach ($form['#mappings'] as $mapping) {
     if (strpos($mapping['source'], 'Blank source ') === 0) {
-      list(, , $source_value) = explode(' ', $mapping['source']);
-      if ($source_value > $max_source) {
-        $max_source = $source_value;
-      }
+      $newest_source = $mapping['source'];
     }
-    if (strpos($mapping['target'], 'Temporary target ') === 0) {
-      list(, , $target_value) = explode(' ', $mapping['target']);
-      if ($target_value > $max_target) {
-        $max_target = $target_value;
-      }
+    elseif (strpos($mapping['target'], 'Temporary target ') === 0) {
+      $newest_target = $mapping['target'];
     }
   }
-  if ($max_source) {
+  if (!empty($newest_source)) {
+    list(, , $count) = explode(' ', $newest_source);
     unset($form['source']['#options']['Blank source 1']);
-    $form['source']['#options']['Blank source ' . ++$max_source] = 'Blank source';
+    $form['source']['#options']['Blank source ' . ++$count] = 'Blank source';
   }
   else {
     $form['source']['#options']['Blank source 1'] = 'Blank source';
   }
-  if ($max_target) {
+  if (!empty($newest_target)) {
+    list(, , $count) = explode(' ', $newest_target);
     unset($form['target']['#options']['Temporary target 1']);
-    $form['target']['#options']['Temporary target ' . ++$max_target] = 'Temporary target';
+    $form['target']['#options']['Temporary target ' . ++$count] = 'Temporary target';
   }
   else {
     $form['target']['#options']['Temporary target 1'] = 'Temporary target';

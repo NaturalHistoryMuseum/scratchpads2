@@ -38,9 +38,7 @@ function feeds_tamper_str_pad_form($importer, $element_key, $settings) {
 }
 
 function feeds_tamper_str_pad_validate(&$settings) {
-  $settings['pad_length'] = trim($settings['pad_length']);
-
-  if (!is_int($settings['pad_length']) && ($settings['pad_length'] !== (string) (int) $settings['pad_length'])) {
+  if (!ctype_digit($settings['pad_length'])) {
     form_set_error('settings][pad_length', t('Pad length field must be an integer.'));
   }
   else {
@@ -54,6 +52,6 @@ function feeds_tamper_str_pad_validate(&$settings) {
   }
 }
 
-function feeds_tamper_str_pad_callback($result, $item_key, $element_key, &$field, $settings, $source) {
+function feeds_tamper_str_pad_callback($result, $item_key, $element_key, &$field, $settings) {
   $field = str_pad($field, $settings['pad_length'], $settings['real_pad_string'], $settings['pad_type']);
 }
