@@ -7,10 +7,6 @@
 */
 class ScratchpadsCreativeCommonsTestCase extends ScratchpadsTweaksTestCase{
 
-  protected $admin_user;
-
-  protected $test_user;
-
   public static function getInfo(){
     return array(
       'name' => 'Creative Commons',
@@ -25,35 +21,13 @@ class ScratchpadsCreativeCommonsTestCase extends ScratchpadsTweaksTestCase{
   public function setUp(){
     $modules[] = 'creative_commons';
     parent::setUp($modules);
-    //  Create users.
-    $this->admin_user = $this->drupalCreateUser(array(
-      'access content',
-      'access administration pages',
-      'administer site configuration',
-      'administer users',
-      'administer permissions',
-      'administer content types',
-      'administer nodes',
-      'bypass node access',
-      'access overlay',
-      'access content overview',
-      'view the administration theme',
-      'access all views',
-      'administer comments'
-    ));
-    $this->test_user = $this->drupalCreateUser(array(
-      'access content'
-    ));
-    // We set the legal_accepted on the user so that login passes.
-    parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
-    parent::scratchpads_tweaks_legal_save($this->test_user->uid);
   }
 
   /**
    * Wrapper for other tests to speed up test run
    */
   function testWrapper(){
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->maintainer);
     // Add a creative commons field and then edit that field in the node we create
     $field_name = $this->validateAddCreativeCommonsField();
     $nid = $this->createPageNode();

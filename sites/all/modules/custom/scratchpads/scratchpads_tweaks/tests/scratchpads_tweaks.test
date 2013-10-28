@@ -13,6 +13,8 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
 
   protected $test_user;
 
+  protected $maintainer;
+  
   protected $profile = 'scratchpad_2';
 
   public static function getInfo(){
@@ -38,6 +40,20 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
     // include the code for tweaks setup
     include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_tweaks') . "/tests/scratchpads_tweaks.inc";
     // Create users.
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    // Maintainer
+    $maintainer_permissions = $default_permissions['maintainer'];
+    $maintainer_permissions[] = 'access content';
+    $maintainer_permissions[] = 'view the administration theme';
+    $maintainer_permissions[] = 'access content overview';
+    $maintainer_permissions[] = 'access form flows';
+    $maintainer_permissions[] = 'access dashboard';
+    $maintainer_permissions[] = 'delete all file';
+    $maintainer_permissions[] = 'edit all file';
+    
+    $this->maintainer = $this->drupalCreateUser($maintainer_permissions);
+    legal_save_accept(1, 1, 'en', $this->maintainer->uid);
+    
     $this->test_user = $this->drupalCreateUser(array(
       'access content'
     ));

@@ -7,10 +7,6 @@
 */
 class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
 
-  protected $admin_user;
-
-  protected $test_user;
-
   public static function getInfo(){
     return array(
       'name' => 'FeedsXls',
@@ -23,34 +19,9 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
    * Enable modules and create users with specific permissions.
    */
   public function setUp(){
-    $modules[] = 'feeds_xls';
     $modules[] = 'darwincore';
     parent::setUp($modules);
-    //  Create users.
-    $this->admin_user = $this->drupalCreateUser(array(
-      'access content',
-      'access administration pages',
-      'administer site configuration',
-      'administer users',
-      'administer permissions',
-      'administer content types',
-      'administer nodes',
-      'bypass node access',
-      'access overlay',
-      'access content overview',
-      'view the administration theme',
-      'access all views',
-      'administer comments',
-      'administer taxonomy',
-      'administer feeds',
-      'feeds xls allow download'
-    ));
-    $this->test_user = $this->drupalCreateUser(array(
-      'access content'
-    ));
-    // We set the legal_accepted on the user so that login passes.
-    parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
-    parent::scratchpads_tweaks_legal_save($this->test_user->uid);
+    
   }
   // Specific page node data as specified in the page.xls file
   protected $page_data = array(
@@ -181,7 +152,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
   // Need to make tests for updates as well as new data.
   // Test with empty fields (non required)
   function testNodeImports(){
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->maintainer);
     $this->validateXlsPageImport();
     $this->validateXlsLocationImport();
     //  create a term for a biological vocabulary so that we can reference it in imports
@@ -195,7 +166,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
    *  A wrapper for all user import tests
    */
   function testUserImports(){
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->maintainer);
     // Test a user import with all fields given
     $this->validateXlsUserImport();
     // Test the update of user data, based on guid
@@ -208,7 +179,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
    *  A wrapper for all user taxonomy tests
    */
   function testTaxonomyImports(){
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->maintainer);
     $this->validateXlsTaxonomyImport();
   }
 
@@ -291,7 +262,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
     $this->assertNoText('Sorry, unrecognized username or password', 'Imported user successfully logged in');
     $this->drupalLogout();
     // log back in as admin, ready for next test
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->maintainer);
   }
 
   /**
@@ -399,18 +370,6 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
     // may want to add more detailed test of fields here
     $this->clickLink('Test page title one');
     $this->assertText('Test page body text one', 'Imported body field present of node page');
-    $this->clickLink('Edit');
-    // need to also check taxonomy import. 
-    foreach($this->page_data as $key => $page_field_data){
-      // check each field
-      if($key == 'title'){
-        // Title
-        $this->assertFieldByName($key, $page_field_data, $key . ' field found and correctly set');
-      }elseif($key == 'body'){
-        // Body field
-        $this->assertFieldByName($key . '[' . $langcode . '][0][value]', $page_field_data, $key . ' field found and correctly set');
-      }
-    }
   }
 
   /**
