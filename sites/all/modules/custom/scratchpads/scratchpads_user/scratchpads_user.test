@@ -8,9 +8,6 @@
 */
 class ScratchpadsUserTestCase extends ScratchpadsTweaksTestCase{
 
-  protected $test_user2;
-  protected $admin_user;
-
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads User',
@@ -23,20 +20,7 @@ class ScratchpadsUserTestCase extends ScratchpadsTweaksTestCase{
    * Enable modules and create users with specific permissions.
    */
   public function setUp(){
-    $modules[] = 'scratchpads_user';
     parent::setUp($modules);
-    //  Create users.
-    $this->test_user2 = $this->drupalCreateUser(array(
-      'access content'
-    ));
-    //  Create users.
-    $this->admin_user = $this->drupalCreateUser(array(
-      'access content',
-      'administer users'
-    ));
-    // We set the legal_accepted on the user so that login passes.
-    parent::scratchpads_tweaks_legal_save($this->test_user2->uid);
-    parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
   }
   
   /** 
@@ -50,9 +34,9 @@ class ScratchpadsUserTestCase extends ScratchpadsTweaksTestCase{
    * - Test that the user can be edited
    */ 
   public function testNoLoginUsers(){
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->maintainer);
     $this->drupalGet('admin/people/create');
-    $this->assertText('Allow user login?', 'Create user page accessible by admin user');
+    $this->assertText('Allow user login?', 'Create user page accessible by maintainer');
     $edit = array();
     $given_name = $this->randomName();
     $family_name = $this->randomName();
@@ -72,13 +56,13 @@ class ScratchpadsUserTestCase extends ScratchpadsTweaksTestCase{
     
     // Test that the user can be edited
     $this->drupalGet('user/'. $no_login_user->uid . '/edit');
-    $this->assertRaw('user-profile-form', 'User edit form for non login user accessible to admin user');
+    $this->assertRaw('user-profile-form', 'User edit form for non login user accessible to maintainer');
     $edit2['field_user_given_names[und][0][value]'] = $given_name . 'changed';
     $edit2['field_user_family_name[und][0][value]'] = $family_name . 'changed';
     
     $this->drupalPost(NULL, $edit2, t('Save'));   
     $this->assertRaw('The changes have been saved.', 'Edit success page shown');
-    $this->assertText($given_name . 'changed' . ' ' . $family_name . 'changed', 'No login user successfully edited by admin user');   
+    $this->assertText($given_name . 'changed' . ' ' . $family_name . 'changed', 'No login user successfully edited by maintainer');   
   }
   
   

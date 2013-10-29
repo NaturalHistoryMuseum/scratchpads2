@@ -4,11 +4,9 @@
  * @file
  * 
  * Tiny Tax tests.  
- * Tests components on a "FULL" Scratchpad.
+ * 
  */
 class TinyTaxTestCase extends ScratchpadsTweaksTestCase{
-
-  protected $test_user;
 
   public static function getInfo(){
     return array(
@@ -22,29 +20,14 @@ class TinyTaxTestCase extends ScratchpadsTweaksTestCase{
    * Enable modules and create users with specific permissions.
    */
   public function setUp(){
-    $modules[] = 'tinytax';
-    parent::setUp($modules);
-    // Create users.
-    $this->test_user = $this->drupalCreateUser(array(
-      'access content',
-      'access administration pages',
-      'administer site configuration',
-      'administer users',
-      'administer permissions',
-      'administer content types',
-      'administer nodes',
-      'bypass node access',
-      'administer taxonomy'
-    ));
-    // We set the legal_accepted on the user so that login passes.
-    parent::scratchpads_tweaks_legal_save($this->test_user->uid);
+    parent::setUp();
   }
 
   /**
    * Create a vocab and term and test that the tinytax block shows up on the term page.
    */
   public function testTinyTax(){
-    $this->drupalLogin($this->test_user); 
+    $this->drupalLogin($this->maintainer); 
     $result = $this->createVocabAndTerm();
     $tid = $result['tid'];
     $vid = $result['vid'];

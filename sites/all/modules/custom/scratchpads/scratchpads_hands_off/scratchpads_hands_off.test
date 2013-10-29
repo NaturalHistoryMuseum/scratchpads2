@@ -7,8 +7,6 @@
 */
 class Scratchpadshands_offTestCase extends ScratchpadsTweaksTestCase{
 
-  protected $test_user;
-
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Hands Off',
@@ -23,23 +21,6 @@ class Scratchpadshands_offTestCase extends ScratchpadsTweaksTestCase{
   public function setUp(){
     $modules[] = 'scratchpads_hands_off';
     parent::setUp($modules);
-    //  Create users.
-    $this->test_user = $this->drupalCreateUser(array(
-      'access content',
-      'access administration pages',
-      'administer site configuration',
-      'administer users',
-      'administer permissions',
-      'administer content types',
-      'administer nodes',
-      'bypass node access',
-      'access overlay',
-      'access content overview',
-      'view the administration theme',
-      'access all views'
-    ));
-    // We set the legal_accepted on the user so that login passes.
-    parent::scratchpads_tweaks_legal_save($this->test_user->uid);
   }
 
   /**
@@ -47,7 +28,7 @@ class Scratchpadshands_offTestCase extends ScratchpadsTweaksTestCase{
    * even when the user has administration permissions
    */
   public function testHandsOffBasic(){
-    $this->drupalLogin($this->test_user);
+    $this->drupalLogin($this->maintainer);
     // pages that require extra modules to be enabled, or extra content to be created, 
     // have been removed from this list.
     $hidden_urls = array(

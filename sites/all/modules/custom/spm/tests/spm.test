@@ -7,8 +7,6 @@
 */
 class SpmTestCase extends ScratchpadsTweaksTestCase{
 
-  protected $test_user;
-
   public static function getInfo(){
     return array(
       'name' => 'Spm',
@@ -18,32 +16,25 @@ class SpmTestCase extends ScratchpadsTweaksTestCase{
   }
 
   /**
-   * Enable modules and create users with specific permissions.
+   * Set up profile
    */
-  public function setUp(){
-    $modules[] = 'spm';
-    parent::setUp($modules);
-    //  Create users.
-    $this->test_user = $this->drupalCreateUser(array(
-      'access content',
-      'access administration pages',
-      'administer site configuration',
-      'administer users',
-      'administer permissions',
-      'administer content types',
-      'administer nodes',
-      'bypass node access',
-      'administer taxonomy'
-    ));
-    // We set the legal_accepted on the user so that login passes.
-    parent::scratchpads_tweaks_legal_save($this->test_user->uid);
+  public function setUp(){  
+    parent::setUp();  
   }
 
   /**
+   * A wrapper for spm tests
+   */
+  function testSpm(){
+    $this->drupalLogin($this->maintainer);
+    $this->verifySpmNoBiologicalClassification();
+    $this->verifyCreateSpm();
+  }
+  
+  /**
    *  Attempt to create an spm without a biological classification
    */
-  public function testSpmNoBiologicalClassification(){
-    $this->drupalLogin($this->test_user);
+  public function verifySpmNoBiologicalClassification(){ 
     $this->drupalGet('node/add/spm');
     $this->assertRaw('You must <a href="/admin/structure/taxonomy/add">create a biological classification</a> before you can add a taxon description.', "'You must create a biological classification ..' message displayed");
   }
@@ -52,9 +43,8 @@ class SpmTestCase extends ScratchpadsTweaksTestCase{
    *  Create spm node.
    *  We first create a biological classification and a taxonomy term
    */
-  public function testCreateSpm(){
+  public function verifyCreateSpm(){
     // create taxonomy
-    $this->drupalLogin($this->test_user);
     $this->drupalGet('admin/structure/taxonomy/add');
     $edit = array();
     $human_name = $this->randomName();

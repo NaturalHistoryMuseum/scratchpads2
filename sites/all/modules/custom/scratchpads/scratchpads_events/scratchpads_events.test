@@ -7,9 +7,6 @@
 */
 class ScratchpadsEventsTestCase extends ScratchpadsTweaksTestCase{
 
-  protected $admin_user;
-  protected $test_user;
-
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Events',
@@ -24,35 +21,13 @@ class ScratchpadsEventsTestCase extends ScratchpadsTweaksTestCase{
   public function setUp(){
     $modules[] = 'scratchpads_events';
     parent::setUp($modules);
-    //  Create users.
-    $this->admin_user = $this->drupalCreateUser(array(
-      'access content',
-      'access administration pages',
-      'administer site configuration',
-      'administer users',
-      'administer permissions',
-      'administer content types',
-      'administer nodes',
-      'bypass node access',
-      'access overlay',
-      'access content overview',
-      'view the administration theme',
-      'access all views',
-      'administer comments'
-    ));
-    $this->test_user = $this->drupalCreateUser(array(
-      'access content',
-    ));
-    // We set the legal_accepted on the user so that login passes.
-    parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
-    parent::scratchpads_tweaks_legal_save($this->test_user->uid);
   }
 
   /**
    *  Test that event menu item exists
    */
   function testEventsBasic(){
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->maintainer);
     $this->drupalGet('event');
     $this->assertResponse(200);
     $this->assertText('Events ', "'Events' present on home page");
@@ -63,7 +38,7 @@ class ScratchpadsEventsTestCase extends ScratchpadsTweaksTestCase{
    * Create an event using the UI and see if it shows up on the events page
    */
   function testCreateAndViewEvent(){
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->maintainer);
     $this->drupalGet('node/add/event');
     $edit = array();
     $title = $this->randomName(8);

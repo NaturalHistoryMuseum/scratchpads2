@@ -7,8 +7,6 @@
 */
 class ScratchpadsIssuesBlockTestCase extends ScratchpadsTweaksTestCase{
 
-  protected $admin_user;
-
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Issues Block',
@@ -23,17 +21,21 @@ class ScratchpadsIssuesBlockTestCase extends ScratchpadsTweaksTestCase{
   public function setUp(){
     $modules[] = 'scratchpads_issues_block';
     parent::setUp($modules);
-    //  Create users.
-    $this->admin_user = $this->drupalCreateUser($this->getAdminPermissions());
-    // We set the legal_accepted on the user so that login passes.
-    parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
+  }
+  
+  /**
+   * Wrapper for all tests
+   */
+  function testIssuesBlock(){
+    $this->drupalLogin($this->maintainer);
+    $this->verifyIssuesBlockFront();
+    $this->verifyIssuesBlockAdmin();
   }
 
   /**
    * Test that the issues block shows up
    */
-  public function testIssuesBlockFront(){
-    $this->drupalLogin($this->admin_user);
+  public function verifyIssuesBlockFront(){  
     // We create a node as we need a page with a sidebar enabled
     $page_node = $this->drupalCreateNode(array(
       'type' => 'page'
@@ -47,8 +49,7 @@ class ScratchpadsIssuesBlockTestCase extends ScratchpadsTweaksTestCase{
   /**
    * Test that the issues block does not show up on admin pages
    */
-  public function testIssuesBlockAdmin(){
-    $this->drupalLogin($this->admin_user);
+  public function verifyIssuesBlockAdmin(){
     $this->drupalGet('admin/content');
     $this->assertNoRaw('id="remote-issue-tab"', 'Issues block not present on admin/content page');
     $this->assertNoText('Recent Issues', "No 'Recent Issues' text shown on admin/content page");

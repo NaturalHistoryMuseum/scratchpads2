@@ -7,49 +7,39 @@
 */
 class ScratchpadsPagesTestCase extends ScratchpadsTweaksTestCase{
 
-  protected $admin_user;
-
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Pages',
-      'description' => 'Tests scratchpads pages',
+      'description' => 'Tests for scratchpads pages',
       'group' => 'Scratchpads'
     );
   }
 
   /**
-   * Enable modules and create users with specific permissions.
+   * Enable modules and call setup function
    */
   public function setUp(){
     $modules[] = 'scratchpads_pages';
     $modules[] = 'scratchpads_blog';
     $modules[] = 'scratchpads_forum';
-    parent::setUp($modules);
-    //  Create users.
-    $this->admin_user = $this->drupalCreateUser(array(
-      'access content',
-      'access administration pages',
-      'administer site configuration',
-      'administer users',
-      'administer permissions',
-      'administer content types',
-      'administer nodes',
-      'bypass node access',
-      'access overlay',
-      'access content overview',
-      'view the administration theme',
-      'access all views',
-      'administer menu'
-    ));
-    // We set the legal_accepted on the user so that login passes.
-    parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
-    $this->drupalLogin($this->admin_user);
+    parent::setUp($modules);   
   }
 
   /**
+   * A wrapper for all tests
+   */
+  function testIssuesBlock(){
+    $this->drupalLogin($this->maintainer);
+    $this->verifyPageDisplay();
+    $this->verifyLockedTypes();
+    $this->verifyUnlockedTypes();
+    $this->verifyPageMenuLink();
+  }
+  
+  /**
    * Test that 'Page display' is present on all 'manage content type' pages,
    */
-  function testPageDisplay(){
+  function verifyPageDisplay(){
     $content_types = node_type_get_names();
     foreach($content_types as $machine_name => $content_type){
       $this->drupalGet('admin/structure/types/manage/' . $machine_name);
@@ -61,7 +51,7 @@ class ScratchpadsPagesTestCase extends ScratchpadsTweaksTestCase{
   /**
    *  Test that locked content type's page display can't be modified
    */
-  function testLockedTypes(){
+  function verifyLockedTypes(){
     $locked_types = scratchpads_pages_page_display_locked_types();
     foreach($locked_types as $locked_type){
       $this->drupalGet('admin/structure/types/manage/' . $locked_type);
@@ -75,7 +65,7 @@ class ScratchpadsPagesTestCase extends ScratchpadsTweaksTestCase{
   /**
    * Attempt to change the display if not locked.
    */
-  function testUnlockedTypes(){
+  function verifyUnlockedTypes(){
     $content_types = node_type_get_names();
     $locked_types = scratchpads_pages_page_display_locked_types();
     foreach($content_types as $machine_name => $content_type){
@@ -92,7 +82,7 @@ class ScratchpadsPagesTestCase extends ScratchpadsTweaksTestCase{
   /**
    * Test that 'page' content type has a forced menu link.
    */
-  function testPageMenuLink(){
+  function verifyPageMenuLink(){
     $this->drupalGet('node/add/page');
     $edit = array();
     $edit['title'] = $this->randomName();
@@ -102,20 +92,4 @@ class ScratchpadsPagesTestCase extends ScratchpadsTweaksTestCase{
     $this->assertText('Menu link title field is required.');
   }
 
-  /**
-   * Tests block_info() for the scratchpads pages module.
-   */
-  public function testBlockInfo(){
-    $info = module_invoke('scratchpads_pages', 'block_info');
-    $this->assertEqual(1, count($info), t('Module defines a block'));
-    $this->assertTrue(isset($info['signpost']), t('Signpost block exists.'));
-  }
-
-  /**
-   * Tests block_view() for the scratchpads pages module.
-   */
-  public function testBlockView(){
-    $data = module_invoke('scratchpads_pages', 'block_view', 'signpost');
-    $this->assertTrue(is_array($data), t('Block returns renderable array.'));
-  }
 }

@@ -7,8 +7,6 @@
 */
 class ScratchpadsHelpTestCase extends ScratchpadsTweaksTestCase{
 
-  protected $test_user;
-
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Help',
@@ -23,23 +21,6 @@ class ScratchpadsHelpTestCase extends ScratchpadsTweaksTestCase{
   public function setUp(){
     $modules[] = 'scratchpads_help';
     parent::setUp($modules);
-    //  Create users.
-    $this->test_user = $this->drupalCreateUser(array(
-      'access content',
-      'access administration pages',
-      'administer site configuration',
-      'administer users',
-      'administer permissions',
-      'administer content types',
-      'administer nodes',
-      'bypass node access',
-      'access overlay',
-      'access content overview',
-      'view the administration theme',
-      'access all views'
-    ));
-    // We set the legal_accepted on the user so that login passes.
-    parent::scratchpads_tweaks_legal_save($this->test_user->uid);
   }
 
   /**
@@ -63,7 +44,7 @@ class ScratchpadsHelpTestCase extends ScratchpadsTweaksTestCase{
    * Tests that the help block shows up where it should
    */
   public function testScratchpadsHelpShowsUp(){
-    $this->drupalLogin($this->test_user);
+    $this->drupalLogin($this->maintainer);
     $this->drupalGet('admin/content/page');
     $this->assertRaw('Additional help can be found on the following <a href="http://help.scratchpads.eu/">Help</a>', 'Help block found on admin/content/page');
     $this->drupalGet('');

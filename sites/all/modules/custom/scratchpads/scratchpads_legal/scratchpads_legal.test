@@ -7,7 +7,7 @@
 */
 class scratchpads_legalTestCase extends ScratchpadsTweaksTestCase{
 
-  protected $test_user;
+  protected $anonymous_user;
 
   public static function getInfo(){
     return array(
@@ -24,20 +24,17 @@ class scratchpads_legalTestCase extends ScratchpadsTweaksTestCase{
     $modules[] = 'scratchpads_legal';
     parent::setUp($modules);
     //  Create users.
-    $this->test_user = $this->drupalCreateUser(array(
-      'access content',
-      'view Terms and Conditions',
-    ));
-    
-    // We set the legal_accepted on the user so that login passes.
-    parent::scratchpads_tweaks_legal_save($this->test_user->uid);
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    $anonymous_user_permissions = $default_permissions['anonymous user'];
+    $this->anonymous_user = $this->drupalCreateUser($anonymous_user_permissions);
+    legal_save_accept(1, 1, 'en', $this->anonymous_user->uid);
   }
 
   /**
    *  Check that legal statement defined by this module appears on the legal page
    */
   public function testScratchpadsLegalText(){
-    $this->drupalLogin($this->test_user);
+    $this->drupalLogin($this->anonymous_user);
     $this->drupalGet('legal');
     $record = _scratchpads_legal_get_record();
     $this->assertRaw($record['conditions'], 'Legal text displayed');

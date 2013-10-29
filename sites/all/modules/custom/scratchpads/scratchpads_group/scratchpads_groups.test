@@ -9,8 +9,6 @@ class ScratchpadsGroupTestCase extends ScratchpadsTweaksTestCase{
 
   protected $admin_user;
 
-  protected $test_user;
-
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Group',
@@ -43,12 +41,10 @@ class ScratchpadsGroupTestCase extends ScratchpadsTweaksTestCase{
       'administer taxonomy',
       'administer group'
     ));
-    $this->test_user = $this->drupalCreateUser(array(
-      'access content'
-    ));
+    
     // We set the legal_accepted on the user so that login passes.
     parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
-    parent::scratchpads_tweaks_legal_save($this->test_user->uid);
+   
   }
 
   /**
@@ -57,14 +53,13 @@ class ScratchpadsGroupTestCase extends ScratchpadsTweaksTestCase{
   function testScratchpadsGroupBasic(){
     $this->drupalLogin($this->admin_user);
     $this->addGroup();
+    $this->verifyAddContentToGroup();
   }
 
   /**
    * Tests that you can add content to a group
    */
-  function testAddContentToGroup(){
-    $this->drupalLogin($this->admin_user);
-    $this->addGroup();
+  function verifyAddContentToGroup(){
     $this->drupalGet('node/add/page');
     $edit2 = array();
     $title = $this->randomName(8);
