@@ -34,7 +34,6 @@ class ScratchpadsFrontSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
     $this->drupalLogin($this->maintainer);
     $this->verifyDefaultBlocks();
     $this->verifyTeasersAndWelcomeMessage();
-    $this->verifyMainBlockImages();
     $this->verifyMainBlockContent();
   }
 
@@ -78,14 +77,6 @@ class ScratchpadsFrontSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
     $this->assertText($welcome_message, 'Welcome message shown on front page');
     $this->verboseScreenshot();
     $this->assertNoText($page_info['body'], 'Page teaser not shown on front page after changing settings');
-  }
-
-  /**
-   * Verify that the slideshow shows up when you add images
-   */
-  function verifyMainBlockImages(){
-    // wait for reply to issue on drupal.org
-    // https://drupal.org/node/2099543
   }
 
   function verifyMainBlockContent(){
@@ -136,4 +127,5 @@ class ScratchpadsFrontSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase
       'body'=> $body
       );
   }
+  
 }
