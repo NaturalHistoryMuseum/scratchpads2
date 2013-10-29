@@ -16,10 +16,6 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
 
   protected $maintainer;
 
-  protected $editor;
-
-  protected $contributor;
-
   protected $profile = 'scratchpad_2';
 
   public static function getInfo(){
@@ -70,17 +66,6 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $maintainer_permissions[] = 'edit all file';
     $this->maintainer = $this->drupalCreateUserWithName($maintainer_permissions, 'maintainer_name');
     legal_save_accept(1, 1, 'en', $this->maintainer->uid);
-    // Editor
-    $editor_permissions = $default_permissions['editor'];
-    $editor_permissions[] = 'access content';
-    $this->editor = $this->drupalCreateUserWithName($editor_permissions, 'editor_name');
-    legal_save_accept(1, 1, 'en', $this->editor->uid);
-    // Contributor
-    $contributor_permissions = $default_permissions['contributor'];
-    $contributor_permissions[] = 'access content';
-    $this->contributor = $this->drupalCreateUserWithName($contributor_permissions, 'contributor_name');
-    legal_save_accept(1, 1, 'en', $this->contributor->uid);
-    // Create a user with username 'basic-user'
     $this->basic_user = $this->drupalCreateUserWithName(array(
       'access content',
       'access user profiles'
