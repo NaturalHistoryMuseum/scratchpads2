@@ -8,10 +8,6 @@
  */
 class ScratchpadsBlockTestCase extends ScratchpadsTweaksTestCase{
 
-  protected $test_user;
-
-  protected $admin_user;
-
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Blocks',
@@ -25,32 +21,13 @@ class ScratchpadsBlockTestCase extends ScratchpadsTweaksTestCase{
    */
   public function setUp(){
     parent::setUp();
-    // Create users.
-    $this->test_user = $this->drupalCreateUser(array(
-      'access content'
-    ));
-    $this->admin_user = $this->drupalCreateUser(array(
-      'access content',
-      'access administration pages',
-      'administer site configuration',
-      'administer users',
-      'administer permissions',
-      'administer content types',
-      'administer nodes',
-      'bypass node access',
-      'access content overview',
-      'access all views'
-    ));
-    // We set the legal_accepted on the user so that login passes.
-    parent::scratchpads_tweaks_legal_save($this->test_user->uid);
-    parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
   }
 
   /**
    * Wrapper for other tests to speed up test run
    */
   function testWrapper(){
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->maintainer);
     $node_path = $this->createPageNode();
     $this->drupalLogin($this->test_user);
     $this->validateTestBlockInfo();

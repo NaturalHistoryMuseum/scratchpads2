@@ -7,8 +7,6 @@
 */
 class ScratchpadsBiblioTestCase extends ScratchpadsTweaksTestCase{
 
-  protected $admin_user;
-
   public static function getInfo(){
     return array(
       'name' => 'Scratchpads Biblio',
@@ -22,31 +20,13 @@ class ScratchpadsBiblioTestCase extends ScratchpadsTweaksTestCase{
    */
   public function setUp(){
     parent::setUp();
-    //  Create users.
-    $this->admin_user = $this->drupalCreateUser(array(
-      'access content',
-      'access administration pages',
-      'administer site configuration',
-      'administer users',
-      'administer permissions',
-      'administer content types',
-      'administer nodes',
-      'bypass node access',
-      'access overlay',
-      'access content overview',
-      'view the administration theme',
-      'access all views',
-      'administer comments'
-    ));
-    // We set the legal_accepted on the user so that login passes.
-    parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
   }
 
   /**
    *  Test that the field_file field has been added
    */
   function testBiblioFields(){
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->maintainer);
     $this->drupalGet('admin/structure/types/manage/biblio/fields');
     $this->assertResponse(200);
     $this->assertText('field_file', 'field_file field present on biblio page');
@@ -56,7 +36,7 @@ class ScratchpadsBiblioTestCase extends ScratchpadsTweaksTestCase{
    *  Create a new node reference field and set format to citation
    */
   function testCitation(){
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->maintainer);
     $this->drupalGet('admin/structure/types/manage/page/fields');
     $edit = array();
     $my_field = $this->machine_name($this->randomName());
