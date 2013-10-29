@@ -156,8 +156,7 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
       $tid = $node->field_taxonomic_name[LANGUAGE_NONE][0]['tid'];
       $term = taxonomy_term_load($tid);
       if($term->field_rank[LANGUAGE_NONE][0]['value'] != 'Species'){
-        $treatment_form['relation_fields']['field_publication_treat_species']['#type'] = 'hidden';
-        $treatment_form['relation_fields']['field_publication_treat_species']['#default_value'] = '';
+        hide($treatment_form['relation_fields']['field_publication_treat_species']);
       }
     }
     // Hide URL Redirect form if present
