@@ -33,7 +33,7 @@ class ScratchpadsFileLockTestCase extends FileFieldTestCase{
     $modules[] = 'file_module_test';
     $modules[] = 'scratchpads_fine_grained_file_access';
     // include the code for tweaks setup as we are not extenting tweaks class
-    include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_tweaks') . "/scratchpads_tweaks.inc";
+    include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_tweaks') . "/tests/scratchpads_tweaks.inc";
     // has permissions only to edit/delete own files
     $this->admin_user = $this->drupalCreateUser(array(
       'access content',
@@ -205,6 +205,16 @@ class ScratchpadsFileLockTestCase extends FileFieldTestCase{
     $this->drupalLogin($this->admin_user3);
     $this->drupalGet($delete_path);
     $this->assertResponse(200, t("File delete page accessed, with 'delete all file' permissions"));
+  }
+  
+  /**
+   * We temporarily override this function to remove views handler debug errors, mainly caused by legal module
+   */
+  public function errorHandler($severity, $message, $file = NULL, $line = NULL){
+    if(strpos($message, 'Missing handler') === FALSE){
+      parent::errorHandler($severity, $message, $file, $line);
+    }
+    return TRUE;
   }
 }
 
