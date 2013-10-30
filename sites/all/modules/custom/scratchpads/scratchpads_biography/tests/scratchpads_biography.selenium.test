@@ -232,7 +232,11 @@ class ScratchpadsBiographySeleniumTestCase extends ScratchpadsTweaksSeleniumTest
     $submit_button = $this->driver->getElement("id=edit-submit");
     $submit_button->click();
     $this->verboseScreenshot();
-    $this->assertText('Created a new', 'New account or profile created');
+    if(!$login){
+      $this->assertText('Created a new profile', 'New user profile created');
+    }else{
+      $this->assertText('Created a new user account', 'New user account created');
+    }
     // Check to see if the person appears on the biography page
     $this->drupalGet('biographies');
     if($public){
