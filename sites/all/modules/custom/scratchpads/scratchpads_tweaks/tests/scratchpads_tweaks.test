@@ -39,6 +39,9 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
     }
     // include the code for tweaks setup
     include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_tweaks') . "/tests/scratchpads_tweaks.inc";
+    $to_disable = array();
+    $to_disable[] = 'captcha';
+    module_disable($to_disable);
     // Create users.
     $default_permissions = module_invoke_all('scratchpads_default_permissions');
     // Maintainer
