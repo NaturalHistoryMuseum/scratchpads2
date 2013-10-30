@@ -107,7 +107,8 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
     'field_user_given_names' => 'Jon',
     'field_user_family_name' => 'Smith',
     'field_user_institution' => 'Cam',
-    'field_homepage' => 'www.mypage.com',
+    'field_homepage_title' => 'mypage',
+    'field_homepage_url' => 'www.mypage.com',
     'field_user_country' => 'GB',
     'field_user_taxonomic_interest' => 'Insects',
     'mail' => 'j@gmail.com',
@@ -121,7 +122,8 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
     'field_user_given_names' => 'Jonny',
     'field_user_family_name' => 'Smiths',
     'field_user_institution' => 'Oxford',
-    'field_homepage' => 'www.mypage.co.uk',
+    'field_homepage_title' => 'mypageuk',
+    'field_homepage_url' => 'www.mypage.co.uk',
     'field_user_country' => 'FR',
     'field_user_taxonomic_interest' => 'Caterpillars',
     'mail' => 'j2@gmail.com',
@@ -172,7 +174,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
     // Test the update of user data, based on guid
     $this->validateXlsUserUpdate();
     // Test users with no username, email or password
-    $this->validateXlsUserImportHistoric();
+    $this->validateXlsUserImportNoLogin();
   }
 
   /**
@@ -237,9 +239,12 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
         case 'mail':
           $this->assertFieldByName('mail', $user_field_data, $key . ' field found and correctly set');
           break;
-        case 'field_homepage':
+        case 'field_homepage_url':
           $this->assertFieldByName('field_homepage[' . $langcode . '][0][url]', $user_field_data, $key . ' field found and correctly set');
           break;
+        case 'field_homepage_title':
+            $this->assertFieldByName('field_homepage[' . $langcode . '][0][title]', $user_field_data, $key . ' field found and correctly set');
+         break;
         case 'field_user_title':
           $this->assertFieldByName('field_user_title[' . $langcode . '][0][select_other_list]', $user_field_data, $key . ' field found and correctly set');
           break;
@@ -293,9 +298,12 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
         case 'mail':
           $this->assertFieldByName('mail', $user_field_data, $key . ' field found and correctly set');
           break;
-        case 'field_homepage':
+       case 'field_homepage_url':
           $this->assertFieldByName('field_homepage[' . $langcode . '][0][url]', $user_field_data, $key . ' field found and correctly set');
           break;
+        case 'field_homepage_title':
+            $this->assertFieldByName('field_homepage[' . $langcode . '][0][title]', $user_field_data, $key . ' field found and correctly set');
+         break;
         case 'field_user_title':
           $this->assertFieldByName('field_user_title[' . $langcode . '][0][select_other_list]', $user_field_data, $key . ' field found and correctly set');
           break;
@@ -314,9 +322,9 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
    * Tests that all the fields have been correctly imported and that a username has been created
    *
    */
-  function validateXlsUserImportHistoric(){
+  function validateXlsUserImportNoLogin(){
     $langcode = 'und';
-    $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/user_historic.xls');
+    $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/user_no_login.xls');
     $this->drupalPost('import/user_importer_user', array(
       'files[feeds]' => $rpath
     ), t('Import'));
