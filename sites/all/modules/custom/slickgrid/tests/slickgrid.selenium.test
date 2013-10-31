@@ -26,12 +26,15 @@ class SlickgridSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    * A wrapper for the following tests:
    * - Create a biological vocabulary and add terms.
    * - Create 2 pages as maintainter.
-   * - Test data against slickgrid
+   * - Test data against slickgrid:
    * --- Test filtering
    * --- Test filtering with regex
    * --- Test editing a term
    * --- Test editing a title
    * --- Test editing multiple nodes at once
+   * - Test adding a page from the slickgrid editor
+   * - Test deleting a page from the slickgrid editor
+   * - Test cloning a page from the slickgrid editor
    */
   function testWrapper(){
     $this->drupalLogin($this->maintainer);
@@ -45,11 +48,14 @@ class SlickgridSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       'first_term',
       NULL
     ));
-    $this->verifySlickgridFilter($data);
-    $this->verifySlickgridFilterRegex($data);
-    $this->verifySlickgridEditTerm($data, 'second_term');
-    $data = $this->verifySlickgridEditTitle($data);
-    $this->verifySlickgridMultiEdit($data);
+      $this->verifySlickgridFilter($data);
+      $this->verifySlickgridFilterRegex($data);
+      $this->verifySlickgridEditTerm($data, 'second_term');
+      $data = $this->verifySlickgridEditTitle($data);
+      $this->verifySlickgridMultiEditBody($data);
+      $this->verifySlickgridAddPage();
+      $this->verifySlickgridDelete($data[0]);
+      $this->verifySlickgridClonePage($data[1]);
   }
 
   /**
@@ -200,7 +206,7 @@ class SlickgridSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   /**
    * Edit multiple page body fields at once, using the slickgrid editor 'pop-up'
    */
-  function verifySlickgridMultiEdit($data){
+  function verifySlickgridMultiEditBody($data){
     $this->drupalGet('admin/content');
     $element = $this->driver->getElement("css=tr.node-page li.last a");
     $element->click();
@@ -262,6 +268,92 @@ class SlickgridSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       );
     }
     return $result;
+  }
+
+  /**
+   * Add a page via the slickgrid editor
+   */
+  function verifySlickgridAddPage(){
+    $this->drupalGet('admin/content');
+    $element = $this->driver->getElement("css=tr.node-page li.last a");
+    $element->click();
+    $this->driver->waitForElements("css=.r1 .slickgrid-filter-textFilter input");
+    // Click the add page link
+    $this->driver->getElement('css=#slickgrid-add a')->click();
+    // Wait for pop-up to appear
+    $this->driver->waitForElements('css=.popups-container');
+    // Fill out the form to add a page
+    $title = $this->randomName();
+    $body = $this->randomName();
+    $element = $this->driver->getElement('css=.popups-container #edit-title');
+    $element->clear();
+    $element->sendKeys($title);
+    $element = $this->driver->getElement('css=.popups-container #edit-body-und-0-value');
+    $element->clear();
+    $element->sendKeys($body);
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $title . ")]]");
+    $this->assertText($title, 'Page title sucessfully saved');
+    $this->assertText($body, 'Page body sucessfully saved');
+  }
+
+  /**
+   * Delete a page via the slickgrid editor
+   * The page array passed to this function should be the first page in the slickgird
+   */
+  function verifySlickgridDelete($page){
+    $this->drupalGet('admin/content');
+    $element = $this->driver->getElement("css=tr.node-page li.last a");
+    $element->click();
+    $this->driver->waitForElements("css=.r1 .slickgrid-filter-textFilter input");
+    $this->verboseScreenshot();
+    // Click the first checkbox to choose the first page node
+    $this->driver->getElement('css=.slick-viewport .grid-canvas .r0 input')->click();
+    // Click the delete page link
+    $this->driver->getElement('css=#slickgrid-delete a')->click();
+    // Wait for the confirmation popup to appear
+    $this->driver->waitForElements("id=slickgrid-delete-form");
+    // Click the 'Delete' button
+    $this->driver->getElement("css=#slickgrid-delete #edit-do")->click();
+    // Wait for 'Please wait' to not be visible on the page
+    $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,'Please wait')]]", 5);
+    $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.," . $page['title'] . ")]]", 5);
+    $this->assertNoText($page['title'], 'Page title not visible on page after delete');
+  }
+
+  /**
+   * Clone a page via the slickgrid editor
+   * The page array passed to this function should be the first page in the slickgird
+   */
+  function verifySlickgridClonePage($page){
+    $this->drupalGet('admin/content');
+    $element = $this->driver->getElement("css=tr.node-page li.last a");
+    $element->click();
+    $this->driver->waitForElements("css=.r1 .slickgrid-filter-textFilter input");
+    $this->verboseScreenshot();
+    // Click the first checkbox to choose the first page node
+    $this->driver->getElement('css=.slick-viewport .grid-canvas .r0 input')->click();
+    // Click the clone page link
+    $this->driver->getElement('css=#slickgrid-clone a')->click();
+    // Wait for the confirmation popup to appear
+    $this->driver->waitForElements("id=slickgrid-clone-form");
+    // Click the 'Clone' button
+    $this->driver->getElement("css=#slickgrid-clone #edit-do")->click();
+    // Wait for 'Please wait' to not be visible on the page
+    $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,'Please wait')]]", 5);
+    $this->driver->sleep(1);
+    // look for duplicate title
+    $cells = $this->driver->getAllElements('css=.slick-viewport .slick-cell a'); 
+    $count=0;
+    foreach ($cells as $cell){
+      
+      if ($cell->getText() == $page['title']){
+        $count++;
+      }
+    }
+    
+    $this->assertTrue($count == 2, 'Node successfully cloned');
   }
 
   /**
