@@ -8,7 +8,6 @@
 class ScratchpadsbackendTestCase extends ScratchpadsTweaksTestCase{
 
   protected $admin_user;
-  protected $test_user;
 
   public static function getInfo(){
     return array(
@@ -23,7 +22,7 @@ class ScratchpadsbackendTestCase extends ScratchpadsTweaksTestCase{
    */
   public function setUp(){
     parent::setUp();
-    //  Create users.
+    //  Create a new admin user with comment permissions
     $this->admin_user = $this->drupalCreateUser(array(
       'access content',
       'access administration pages',
@@ -39,12 +38,8 @@ class ScratchpadsbackendTestCase extends ScratchpadsTweaksTestCase{
       'access all views',
       'administer comments'
     ));
-    $this->test_user = $this->drupalCreateUser(array(
-      'access content',
-    ));
     // We set the legal_accepted on the user so that login passes.
     parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
-    parent::scratchpads_tweaks_legal_save($this->test_user->uid);
   }
 
   /**
@@ -52,16 +47,16 @@ class ScratchpadsbackendTestCase extends ScratchpadsTweaksTestCase{
    */
   function testCommentSettingsForm(){
     // Test access
-    $this->drupalLogin($this->admin_user);   
+    $this->drupalLogin($this->admin_user);
     $this->drupalGet('admin/config/content/comments');
     $this->assertResponse(200);
     // Test the form   
     $select_id = 'edit-comment-settings-0-comment-setting';
-    $option_name = 'comment_settings[0][comment_setting]'; 
+    $option_name = 'comment_settings[0][comment_setting]';
     $edit = array();
-    $edit[$option_name] = 0;  
+    $edit[$option_name] = 0;
     $this->drupalPost(NULL, $edit, 'Save');
-    $this->assertText('Your settings have been saved');   
+    $this->assertText('Your settings have been saved');
     $this->assertOptionSelected($select_id, 0, 'Comment settings successfully updated');
     // Test again with another value
     $edit[$option_name] = 1;
@@ -69,18 +64,15 @@ class ScratchpadsbackendTestCase extends ScratchpadsTweaksTestCase{
     $this->assertText('Your settings have been saved');
     $this->assertOptionSelected($select_id, 1, 'Comment settings successfully updated');
   }
-  
+
   /**
    *  Test access to non existing content type
    */
-  function testNonContentType(){   
+  function testNonContentType(){
     $this->drupalLogin($this->admin_user);
-    $unknown_path = $this->machine_name($this->randomName()); 
-    $this->drupalGet('node/add/'.$unknown_path);
+    $unknown_path = $this->machine_name($this->randomName());
+    $this->drupalGet('node/add/' . $unknown_path);
     $this->assertResponse(200);
     $this->assertText(t('That content type has been disabled.'), 'Correct error message shown on accessing unknown content type');
   }
-  
-  
-  
 }
