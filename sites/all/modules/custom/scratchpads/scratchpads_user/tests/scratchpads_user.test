@@ -20,7 +20,7 @@ class ScratchpadsUserTestCase extends ScratchpadsTweaksTestCase{
    * Enable modules and create users with specific permissions.
    */
   public function setUp(){
-    parent::setUp($modules);
+    parent::setUp();
   }
 
   function testUsers(){
