@@ -1,0 +1,137 @@
+<?php
+/**
+ * @file
+*
+* Test case for Scratchpads User with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsUserSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads User (Selenium)',
+      'description' => "Test the creation of users",
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  public function setUp(){
+    parent::setUp();
+  }
+
+  /**
+   * A wrapper for the following tests
+   * 
+   * - Test the creation of a user
+   * - Test the creation of a non-user 
+   * - Test the 'Users' and 'Non Users' tabs
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    // Create 'login' user
+    $user_family_name = $this->createUserAccount(true);
+    // Create 'no login' user
+    $non_user_family_name = $this->createUserAccount(false);
+    // Verify the tabs
+    $this->verify_tabs('Users', $user_family_name);
+    $this->verify_tabs('Non Users', $non_user_family_name);
+  }
+
+  /**
+   * Test the creation of a new user.
+   */
+  function createUserAccount($login){
+    $this->drupalGet('admin/people/create');
+    $field_data = array(
+      'field_user_title' => 'Mr',
+      'field_user_given_names' => $this->randomName(),
+      'field_user_family_name' => $this->randomName(),
+      'field_homepage_title' => $this->randomName(),
+      'field_homepage_url' => 'www.' . $this->randomName() . '.com',
+      'field_user_institution' => $this->randomName(),
+      'field_user_country' => 'Spain',
+      'field_user_taxonomic_interest' => $this->randomName()
+    );
+    if(!$login){
+      // Uncheck 'Allow user login' and test that 'User account settings' are not visible
+      $this->driver->waitForElements("id=edit-create-user-account");
+      $this->driver->getElement("id=edit-create-user-account")->click();
+      $this->assertNoText('User account settings', "User account settings not visible after unchecking 'Allow user login'");
+    }else{
+      // We enter username, email and password
+      $this->driver->waitForElements("name=name");
+      $element = $this->driver->getElement("name=name");
+      $element->clear();
+      $element->sendKeys($this->randomName());
+      $element = $this->driver->getElement("name=mail");
+      $element->clear();
+      $element->sendKeys($this->randomName() . '@' . $this->randomName() . '.com');
+      $pass = $this->randomName();
+      $element = $this->driver->getElement("name=pass[pass1]");
+      $element->clear();
+      $element->sendKeys($pass);
+      $element = $this->driver->getElement("name=pass[pass2]");
+      $element->clear();
+      $element->sendKeys($pass);
+    }
+    // We fill in the form elements one at a time
+    $this->driver->waitForElements("name=field_user_title[und][0][select_other_list]");
+    $element = $this->driver->getElement("name=field_user_title[und][0][select_other_list]");
+    $element->selectLabel($field_data['field_user_title']);
+    $element = $this->driver->getElement("name=field_user_given_names[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_user_given_names']);
+    $element = $this->driver->getElement("name=field_user_family_name[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_user_family_name']);
+    $element = $this->driver->getElement("name=field_homepage[und][0][title]");
+    $element->clear();
+    $element->sendKeys($field_data['field_homepage_title']);
+    $element = $this->driver->getElement("name=field_homepage[und][0][url]");
+    $element->clear();
+    $element->sendKeys($field_data['field_homepage_url']);
+    $element = $this->driver->getElement("name=field_user_institution[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_user_institution']);
+    $element = $this->driver->getElement("name=field_user_country[und]");
+    $element->selectLabel($field_data['field_user_country']);
+    $element = $this->driver->getElement("name=field_user_taxonomic_interest[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_user_taxonomic_interest']);
+    // Submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->verboseScreenshot();
+    if(!$login){
+      $this->assertText('Created a new profile', 'New user profile created');
+    }else{
+      $this->assertText('Created a new user account', 'New user account created');
+    }
+    // Verify that the new user appears on the on people page with the correct status
+    $this->drupalGet('admin/people');
+    if(!$login){
+      $this->assertText($field_data['field_user_family_name'], 'Non user shown on people page');
+      // We can correctly assert this as this will be the only 'no login' user
+      $this->assertText('no login', "'no login' status given to non user");
+    }else{
+      $this->assertText($field_data['field_user_family_name'], 'User shown on people page');
+    }
+    return $field_data['field_user_family_name'];
+  }
+  
+  function verify_tabs($tab_text, $user_family_name){
+    $this->drupalGet('admin/people');
+    // Wait for primary tabs to load
+    $this->driver->waitForElements('css=.primary-tabs');
+    $this->clickLink($tab_text);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $user_family_name . ")]]");
+    $this->assertText($user_family_name, "Family name found on page after clicking '".$tab_text."' tab"); 
+  }
+}
