@@ -8,7 +8,7 @@ if(!class_exists('DrupalSeleniumWebTestCase')){
   return;
 }
 
-class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+class ScratchpadsFileLockSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
 
   public static function getInfo(){
     return array(
