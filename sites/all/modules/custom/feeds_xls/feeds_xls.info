@@ -10,4 +10,3 @@ version = "7.x-0.0"
 core = "7.x"
 project = "feeds_xls"
 datestamp = "1317161804"
-files[] = tests/feeds_xls.test

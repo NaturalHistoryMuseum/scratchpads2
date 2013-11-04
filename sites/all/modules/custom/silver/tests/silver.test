@@ -3,14 +3,14 @@
 /**
  * @file
 *
-* FeedsXls tests.
+* Tests the import of all node types and user types
 */
-class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
+class SilverTestCase extends ScratchpadsTweaksTestCase{
 
   public static function getInfo(){
     return array(
-      'name' => 'FeedsXls',
-      'description' => "Tests for all xls imports. Note: some of the logic for these imports is provided by other modules.",
+      'name' => 'Silver',
+      'description' => "Tests the import of all node types and user types from xls. Note: some of the logic for these imports is provided by other modules.",
       'group' => 'Scratchpads'
     );
   }
@@ -20,6 +20,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
    */
   public function setUp(){
     $modules[] = 'darwincore';
+    $modules[] = 'feeds_xls';
     parent::setUp($modules);
     
   }
@@ -196,7 +197,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
     // navigate to the importer
     $path_to_importer = "import/taxonomy_importer_" . $term_name;
     $langcode = 'und';
-    $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/taxonomy.xls');
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/taxonomy.xls');
     $this->drupalPost($path_to_importer, array(
       'feeds[FeedsHTTPFetcher][source]' => $rpath
     ), t('Import'));
@@ -215,7 +216,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
     */
   function validateXlsUserImport(){
     $langcode = 'und';
-    $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/users.xls');
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/users.xls');
     $this->drupalPost('import/user_importer_user', array(
       'files[feeds]' => $rpath
     ), t('Import'));
@@ -275,7 +276,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
    */
   function validateXlsUserUpdate(){
     $langcode = 'und';
-    $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/user_update.xls');
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/user_update.xls');
     $this->drupalPost('import/user_importer_user', array(
       'files[feeds]' => $rpath
     ), t('Import'));
@@ -324,7 +325,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
    */
   function validateXlsUserImportNoLogin(){
     $langcode = 'und';
-    $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/user_no_login.xls');
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/user_no_login.xls');
     $this->drupalPost('import/user_importer_user', array(
       'files[feeds]' => $rpath
     ), t('Import'));
@@ -367,7 +368,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
   function validateXlsPageImport(){
     $langcode = 'und';
     $this->drupalGet('import/node_importer_page');
-    $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/page.xls');
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/page.xls');
     $this->drupalPost('import/node_importer_page', array(
       'files[feeds]' => $rpath
     ), t('Import'));
@@ -386,7 +387,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
   function validateXlsPageImportWithTerm($tid){
     $langcode = 'und';
     $this->drupalGet('import/node_importer_page');
-    $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/page_with_term.xls');
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/page_with_term.xls');
     $this->drupalPost('import/node_importer_page', array(
       'files[feeds]' => $rpath
     ), t('Import'));
@@ -419,7 +420,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
   function validateXlsLocationImport(){
     $langcode = 'und';
     $this->drupalGet('import/node_importer_location');
-    $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/location.xls');
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/location.xls');
     $this->drupalPost('import/node_importer_location', array(
       'files[feeds]' => $rpath
     ), t('Import'));
@@ -448,7 +449,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
   function validateXlsSpecimenObservationImportBasic(){
     $langcode = 'und';
     $this->drupalGet('import/node_importer_specimen_observation');
-    $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/specimenobservation.xls');
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/specimenobservation.xls');
     $this->drupalPost('import/node_importer_specimen_observation', array(
       'files[feeds]' => $rpath
     ), t('Import'));
@@ -489,7 +490,7 @@ class FeedsXlsTestCase extends ScratchpadsTweaksTestCase{
     $uid2 = $this->test_user2->uid;
     $langcode = 'und';
     $this->drupalGet('import/node_importer_specimen_observation');
-    $rpath = realpath(drupal_get_path('module', 'feeds_xls') . '/tests/files/specimenobservation_terms_and_users.xls');
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/specimenobservation_terms_and_users.xls');
     $this->drupalPost('import/node_importer_specimen_observation', array(
       'files[feeds]' => $rpath
     ), t('Import'));
