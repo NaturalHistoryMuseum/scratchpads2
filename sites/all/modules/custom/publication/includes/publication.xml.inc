@@ -125,6 +125,46 @@
  *
  */
 /**
+ * This method is used to fetch the given schema array.
+ *
+ * It will get the schemas returned by module that implement
+ * 'schema_array($schema_name, $variables)' and
+ * 'schema_array_<schema_name>($variables)'
+ * and merge them using PublicationXSDParser::merge_schemas
+ * 
+ * The final schema will be altered by calling
+ * 'schema_array_alter($schema_name, $schema, $variables)' and
+ * 'schema_array_<schema_name>_alter($schema, $variables)'.
+ */
+function schema_array($schema_name, $variables = array()){
+  $result = array();
+  $safe_name = preg_replace('/[^a-zA-Z0-9_]/', '', $schema_name);
+  $modules = module_implements('schema_array');
+  foreach($modules as $module){
+    $fn = $module . '_schema_array';
+    $sc = $fn($schema_name, $variables);
+    $result = PublicationXSDParser::merge_schemas($result, $sc);
+  }
+  $modules = module_implements('schema_array_' . $schema_name);
+  foreach ($modules as $module){
+    $fn = $module . '_schema_array_' . $safe_name;
+    $sc = $fn($variables);
+    $result = PublicationXSDParser::merge_schemas($result, $sc);
+  }
+  $modules = module_implements('schema_array_alter');
+  foreach ($modules as $module){
+    $fn = $module . '_schema_array_alter';
+    $fn($schema_name, $result);
+  }
+  $modules = module_implements('schema_array_' . $safe_name . '_alter');
+  foreach ($modules as $module){
+    $fn = $module . '_schema_array_' . $safe_name . '_alter';
+    $fn($result);
+  }
+  return $result;
+}
+
+/**
  * This class is used to parse an XSD schema into a schema array
  * 
  */
@@ -288,7 +328,7 @@ class PublicationXSDParser{
   /**
    * Merge two schema arrays into one
    */
-  function merge_schemas($a, $b, $diff = FALSE){
+  static function merge_schemas($a, $b, $diff = FALSE){
     // Base case if either $a or $b is not an array
     if(!is_array($a)){
       if(is_array($b) && $diff){
@@ -324,13 +364,13 @@ class PublicationXSDParser{
           $r['#comment'] .= " DIFF: $a_key missing in provided schema;";
         }
       }else{
-        $r[$a_key] = $this->merge_schemas($a[$a_key], $b[$a_key], $diff);
+        $r[$a_key] = PublicationXSDParser::merge_schemas($a[$a_key], $b[$a_key], $diff);
         unset($b[$a_key]);
       }
       // Match number #x keys
       foreach($b_keys as $b_key){
         if(preg_match('/^' . preg_quote($a_key, '/') . '#\d+$/', $b_key)){
-          $r[$b_key] = $this->merge_schemas($a[$a_key], $b[$b_key], $diff);
+          $r[$b_key] = PublicationXSDParser::merge_schemas($a[$a_key], $b[$b_key], $diff);
           unset($b[$b_key]);
         }
       }
@@ -884,7 +924,7 @@ class PublicationXMLBuilder{
       }
     }
     $info = call_user_func_array($loader, $arguments);
-    if(!empty($info)){return entity_metadata_wrapper($info['entity_type'], $info['entity']);}
+    if(is_array($info) && !empty($info['entity_type']) && !empty($info['entity'])){return entity_metadata_wrapper($info['entity_type'], $info['entity']);}
     return NULL;
   }
 
@@ -1052,7 +1092,7 @@ class PublicationXMLBuilder{
    */
   function _read_values($wrapper, $field){
     $context = $this->_get_context();
-    if(property_exists($context, 'relation') && property_exists($context->relation, $field)){
+    if(property_exists($context, 'relation') && is_object($context->relation) && property_exists($context->relation, $field)){
       $wrapper = $context->relation_wrapper;
     }
     try{
@@ -1067,7 +1107,12 @@ class PublicationXMLBuilder{
       }
     }
     catch(Exception $e){
-      if(!isset($wrapper->raw()->{$field})){throw $e;}
+      if(!isset($wrapper->raw()->{$field})){
+        throw new Exception(t('Field %field not found at path %path', array(
+          '%field' => $field,
+          '%path' => implode(' > ', $this->path)
+        )));
+      }
     }
     // Not all fields are exposed to wrappers - so if we can't get it
     // through the wrapper, try directly. Also some wrapper implementations
