@@ -13,6 +13,11 @@
 function _pensoft_publication_xml_process_salutation($context){
   $value = $context->value_to_insert;
   $map = array(
+    'Mr' => 'Mr',
+    'Mrs' => 'Mrs',
+    'Ms' => 'Ms',
+    'Dr' => 'Dr',
+    'Prof' => 'Prof',
     'Prof.' => 'Prof',
     'Miss' => 'Ms',
     'Ph.D.' => 'Dr'
@@ -22,7 +27,9 @@ function _pensoft_publication_xml_process_salutation($context){
       'value' => $map[$value]
     );
   }else{
-    return $value;
+    return array(
+      'value' => ''
+    );
   }
 }
 
@@ -46,7 +53,11 @@ function _pensoft_publication_xml_treatment_field($context, $field, $alt = FALSE
 
 function _pensoft_publication_xml_process_continent_ocean($context, $value, $choice){
   if (!$value){
-    $value = $context->wrapper->field_continent_or_ocean->value();
+    try{
+      $value = $context->wrapper->field_continent_or_ocean->value();
+    } catch (Exception $e){
+      throw new Exception("Failed to obtain continent");
+    }
   }
   if (empty($value)){
     return '';
@@ -165,7 +176,7 @@ function _pensoft_publication_xml_load_biblio_editor($context, $value) {
 /**
  * The document_info section
  */
-function _pensoft_publication_xml_document_info_schema(){
+function pensoft_publication_schema_array_pensoft_publication_document_info($variables){
   $document_info_schema = array(
     'document_type' => array(
       '#attributes' => array(
@@ -184,7 +195,7 @@ function _pensoft_publication_xml_document_info_schema(){
 /**
  * The article_metadata section
  */
-function _pensoft_publication_xml_article_metadata_schema(){
+function pensoft_publication_schema_array_pensoft_publication_article_metadata($variables){
   $author_schema_template = array(
     '#field' => 'field_publication_authors',
     '#value' => '',
@@ -448,7 +459,7 @@ function _pensoft_publication_xml_article_metadata_schema(){
 /**
  * The introduction section
  */
-function _pensoft_publication_xml_introduction_schema(){
+function pensoft_publication_schema_array_pensoft_publication_introduction($variables){
   $introduction = array(
     'fields' => array(
       'introduction' => array(
@@ -466,7 +477,7 @@ function _pensoft_publication_xml_introduction_schema(){
 /**
  *  The material_and_methods section
  */
-function _pensoft_publication_xml_material_and_methods_schema(){
+function pensoft_publication_schema_array_pensoft_publication_material_and_methods($variables){
   $material_and_methods = array(
     'fields' => array(
       '#condition' => 'field_publication_methods',
@@ -485,7 +496,7 @@ function _pensoft_publication_xml_material_and_methods_schema(){
 /**
  * The data resources section
  */
-function _pensoft_publication_xml_data_resources_schema() {
+function pensoft_publication_schema_array_pensoft_publication_data_resources($variables) {
   $data_resources = array(
     'fields' => array(
       '#condition' => 'field_publication_data_resources',
@@ -528,22 +539,31 @@ function _pensoft_publication_treatment_section_test($context, $type){
   $term = $context->wrapper->field_taxonomic_name[0]->value();
   $tw = entity_metadata_wrapper('taxonomy_term', $term);
   $rank = $tw->field_rank->value();
-  $treatment_type = $context->relation->field_publication_treat_type[0]['value'];
+  $treatment_type = $context->relation->field_publication_treat_type[LANGUAGE_NONE][0]['value'];
   $biovids = variable_get('biological_vids', array());
   if (empty($biovids[$term->vid])){
     return FALSE;
   }
-  if (preg_match('/_species_/', $type) && $type != 'Species'){
+  if (preg_match('/_species_/', $type) && $rank != 'Species'){
+    return FALSE;
+  }
+  if (preg_match('/_genus_/', $type) && $rank != 'Genus'){
     return FALSE;
   }
   if (preg_match('/_iczn$/', $type) && $biovids[$term->vid] != 1){
     return FALSE;
   }
+  if (preg_match('/_icn$/', $type) && $biovids[$term->vid] != 2){
+    return FALSE;
+  }
   if (preg_match('/^new_/', $type) && $treatment_type != 'New taxon'){
     return FALSE;
   }
+  if (preg_match('/^redescription_/', $type) && $treatment_type == 'New taxon'){
+    return FALSE;
+  }
   return TRUE;
-};
+}
 
 /**
  * Test whether a given treatment field should be included
@@ -1272,7 +1292,7 @@ function _pensoft_publication_xml_treatment_section($section_type, $subsections)
 /**
  * The systematics section
  */
-function _pensoft_publication_xml_systematics_schema(){
+function pensoft_publication_schema_array_pensoft_publication_systematics($variables){
   // Treatment fields, common to all treatments
   $treatment_fields = array(
     'classification' => array(
@@ -1919,7 +1939,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
 /**
  * The discussion section
  */
-function _pensoft_publication_xml_discussion_schema() {
+function pensoft_publication_schema_array_pensoft_publication_discussion($variables){
   $results = array(
     'fields' => array(
       '#condition' => 'field_publication_discussion',
@@ -1938,7 +1958,7 @@ function _pensoft_publication_xml_discussion_schema() {
 /**
  * The acknowledgements section
  */
-function _pensoft_publication_xml_acknowledgements_schema(){
+function pensoft_publication_schema_array_pensoft_publication_acknowledgements($variables){
   $ack = array(
     'fields' => array(
       'acknowledgements' => array(
@@ -1956,7 +1976,7 @@ function _pensoft_publication_xml_acknowledgements_schema(){
 /**
  * The references section
  */
-function _pensoft_publication_xml_references_schema() {
+function pensoft_publication_schema_array_pensoft_publication_references($variables) {
   $references = array(
     'reference' => array(
       '#attributes' => array(
@@ -2261,7 +2281,7 @@ function _pensoft_publication_xml_references_schema() {
  * The suplementary files section
  * XXX we don't supply file URL yet !
  */
-function _pensoft_publication_xml_files_schema(){
+function pensoft_publication_schema_array_pensoft_publication_sup_files($variables){
   $f = array(
     'supplementary_file' => array(
       'fields' => array(
@@ -2294,7 +2314,7 @@ function _pensoft_publication_xml_files_schema(){
  * 
  * 
  */
-function _pensoft_publication_xml_figures_schema(){
+function pensoft_publication_schema_array_pensoft_publication_figures($variables){
   $f = array(
     'figure' => array(
       '#field' => 'field_publication_figures',
@@ -2345,7 +2365,7 @@ function _pensoft_publication_xml_figures_schema(){
  * format for this, so I'm making it similar to the figures schema.
  *
  */
-function _pensoft_publication_xml_tables_schema(){
+function pensoft_publication_schema_array_pensoft_publication_tables($variables){
   $f = array(
     'table' => array(
       '#min_occurence' => 0,
