@@ -22,7 +22,6 @@ function scratchpads_tweaks_install(){
   if(count($backtrace) > 4){
     if(isset($backtrace[4]['file'])){
       $backtrace = explode('/', $backtrace[4]['file']);
-      file_put_contents('/tmp/drupal_debug.txt', print_r($backtrace, 1) . "\n", FILE_APPEND);
       if(array_pop($backtrace) == 'scratchpads_tweaks.test'){return;}
     }
   }
@@ -303,7 +302,7 @@ function scratchpads_tweaks_install(){
   // Set the logging level
   variable_set('error_level', ERROR_REPORTING_HIDE);
   // Display warnings on development machines.
-  if(strpos($_SERVER['SERVER_ADDR'], '157.140.127') === 0){
+  if(isset($_SERVER['SERVER_ADDR']) && strpos($_SERVER['SERVER_ADDR'], '157.140.126') === 0){
     variable_set('error_level', ERROR_REPORTING_DISPLAY_ALL);
   }
   // Set the comment form defaults.
@@ -320,7 +319,8 @@ function scratchpads_tweaks_install(){
   variable_set('image_allow_insecure_derivatives', TRUE);
   // Enable the subpermissions module which has lay dormant for many many months
   variable_set('subpermissions_config', array(
-    'show download links' => 'show download links'
+    'show download links' => 'show download links',
+    'post comments' => 'post comments'
   ));
 }
 
@@ -1298,7 +1298,8 @@ function scratchpads_tweaks_update_7067(&$sandbox){
       'entity_type'
     ))->execute()->fetchAll();
     $sandbox['max'] = count($sandbox['entities']);
-    if(!$sandbox['max']){
+    // If we have no entites or too many (more than 5000), we skip this update.
+    if(!$sandbox['max'] || count($sandbox['entities'] > 5000)){
       $sandbox['#finished'] = 1;
       return;
     }
@@ -1331,5 +1332,17 @@ function scratchpads_tweaks_update_7067(&$sandbox){
     }
     $i++;
   }
+  drupal_set_message(count($sandbox['entities']) . "/" . $sandbox['max']);
   $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['entities'])) / $sandbox['max'];
+}
+
+/**
+ * Allow site maintainers to alter whether or not anonymous users can post
+ * comments.
+ */
+function scratchpads_tweaks_update_7068(){
+  variable_set('subpermissions_config', array(
+    'show download links' => 'show download links',
+    'post comments' => 'post comments'
+  ));
 }
