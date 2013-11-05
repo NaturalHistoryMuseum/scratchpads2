@@ -1,0 +1,8 @@
+name =  Localize taxonomy fixes
+description = Allows localized search with taxonomy autocomplete, localize taxonomy terms in views display and in edit nodes
+core = 7.x
+version = 7.x-1.0-dev
+
+files[] = views/handler/views_handler_i18n_localize_taxonomy_fixes_term_node_tid.inc
+files[] = views/i18n_localize_taxonomy_fixes.views.inc
+

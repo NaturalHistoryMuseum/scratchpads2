@@ -1,0 +1,208 @@
+<?php
+
+function i18n_localize_taxonomy_fixes_views_api() {
+  return array(
+    'api' => 3.0,
+    'path' => drupal_get_path('module', 'i18n_localize_taxonomy_fixes') . '/views',
+  );
+}
+
+/*
+ * Implementation of hook_views_pre_render(&$view)
+ */
+ 
+function i18n_localize_taxonomy_fixes_views_pre_render(&$view) {
+  global $language;
+
+   foreach($view->result as $delta => $term ){
+   
+  	if(isset($term->tid)) {
+ 
+ 	  i18n_string_translate_langcode( $language->language );
+ 	  $localized_term = i18n_taxonomy_localize_terms( taxonomy_term_load( $term->tid ));
+ 	  $term->tid = $localized_term->tid;
+ 	  $term->taxonomy_term_data_name = $localized_term->name;
+ 	}
+   }
+}
+
+/**
+ * Implement hook_menu().
+ */
+function i18n_localize_taxonomy_fixes_menu_alter(&$items) {
+  $items['admin/views/ajax/autocomplete/taxonomy']['page callback'] = 'i18n_localize_taxonomy_fixes_ajax_autocomplete_taxonomy';
+  return $items;
+}
+
+/**
+ * Page callback for views taxonomy autocomplete.
+ *
+ * @param $vid
+ *   The vocabulary id of the tags which should be returned.
+ *
+ * @param $tags_typed
+ *   The typed string of the user.
+ *
+ * @see taxonomy_autocomplete()
+ */
+function i18n_localize_taxonomy_fixes_ajax_autocomplete_taxonomy($vid, $tags_typed = '') {
+  // The user enters a comma-separated list of tags. We only autocomplete the last tag.
+   global $language;
+  
+  $tags_typed = drupal_explode_tags($tags_typed);
+  $tag_last = drupal_strtolower(array_pop($tags_typed));
+  
+  $matches = array();
+  $tags_return=array();
+  
+  if (strlen($tag_last) >= 3) {
+  	 
+      $query ="SELECT t.translation,s.location FROM `locales_target` t JOIN locales_source s ON t.lid = s.lid WHERE t.language = '".$language->language."' AND s.location LIKE '%taxonomy:term%' AND CAST(t.translation AS CHAR(1000) CHARACTER SET utf8) LIKE '%".$tag_last."%'";
+      $result= db_query($query);
+      $prefix = count($tags_typed) ? drupal_implode_tags($tags_typed) . ', ' : '';
+      foreach($result as $location){
+     	
+     	  $tid=substr($location->location,14,5);
+     	  $tid=intval($tid);
+     	  
+     	  $term_return =taxonomy_term_load($tid);
+          if ($term_return->vid==$vid){
+          	  $name=$location->translation;
+          }
+     	         
+     
+     //end anto add
+        
+    //foreach ($tags_return as ) {
+        $n = $name;
+      // Term names containing commas or quotes must be wrapped in quotes.
+      if (strpos($name, ',') !== FALSE || strpos($name, '"') !== FALSE) {
+        $n = '"' . str_replace('"', '""', $name) . '"';
+      }
+      // Add term name to list of matches.
+      $term_matches[$prefix . $n] = check_plain($name);
+    }
+     if (empty($term_matches)){
+      //anto add code
+  	  $query = db_select('taxonomy_term_data', 't');
+  	  $tags_return = $query
+      ->fields('t', array('tid', 'name'))
+      ->condition('t.vid', $vid)
+      ->condition('t.name', '%' . db_like($tag_last) . '%', 'LIKE')
+      ->range(0, 10)
+      ->execute()
+      ->fetchAllKeyed();
+    
+
+    $term_matches = array();
+    foreach ($tags_return as $tid => $name) {
+      $n = $name;
+     
+      // Term names containing commas or quotes must be wrapped in quotes.
+      if (strpos($name, ',') !== FALSE || strpos($name, '"') !== FALSE) {
+        $n = '"' . str_replace('"', '""', $name) . '"';
+      }
+      // Add term name to list of matches.
+      $term_matches[$prefix . $n] = check_plain($name);
+    } 
+  }
+  }
+  drupal_json_output($term_matches);
+}
+/**
+ * Implements hook_field_widget_form_alter().
+ *
+ * Translate:
+ * - Title (label)
+ * - Description (help)
+ * - Default value
+ * - List options
+ */
+function i18n_localize_taxonomy_fixes_field_widget_form_alter(&$element, &$form_state, $context) {
+  global $language;
+
+  // Skip the node type edit fields by checking for existing entity
+  if (empty($element['#entity'])) {
+    return;
+  }
+
+  // Skip if we are missing any of the parameters
+  if (empty($context['field']) || empty($context['instance']) || empty($context['langcode'])) {
+    return;
+  }
+  $field = $context['field'];
+  $instance = $context['instance'];
+  $langcode = $context['langcode'];
+
+  // The field language may affect some variables (default) but not others (description will be in current page language)
+  $i18n_langcode = empty($element['#language']) || $element['#language'] == LANGUAGE_NONE ? $language->language : $element['#language'];
+
+  // Translate instance to current page language and set to form_state
+  // so it will be used for validation messages later.
+  $instance_current = i18n_string_object_translate('field_instance', $instance);
+  if (isset($form_state['field'][$instance['field_name']][$langcode]['instance'])) {
+    $form_state['field'][$instance['field_name']][$langcode]['instance'] = $instance_current;
+  }
+
+  // Translate field title if set and it is the default one.
+  // When cardinality is 1, $element['value'] is used instead.
+  if (!empty($instance_current['label']) && $instance_current['label'] != $instance['label']) {
+    if (!empty($element['#title']) && $element['#title'] == $instance['label']) {
+      $element['#title'] = $instance_current['label'];
+    }
+    if (isset($element['value']) && !empty($element['value']['#title']) && $element['value']['#title'] == $instance['label']) {
+      $element['value']['#title'] = $instance_current['label'];
+    }
+  }
+
+  // Translate field description if set and it is the default one.
+  // When cardinality is 1, $element['value'] is used instead.
+  if (!empty($instance_current['description']) && $instance_current['description'] != $instance['description']) {
+    if (!empty($element['#description']) && $element['#description'] == $instance['description']) {
+      $element['#description'] = $instance_current['description'];
+    }
+    if (isset($element['value']) && !empty($element['value']['#description']) && $element['value']['#description'] == $instance['description']) {
+      $element['value']['#description'] = $instance_current['description'];
+    }
+  }
+
+  // Translate list options
+  if (!empty($element['#options']) && ($translate = i18n_field_type_info($field['type'], 'translate_options')) && !empty($field['settings']['allowed_values'])) {
+    $element['#options'] = $translate($field, $i18n_langcode);
+    if (isset($element['#properties']) && !empty($element['#properties']['empty_option'])) {
+      $label = theme('options_none', array('instance' => $instance, 'option' => $element['#properties']['empty_option']));
+      $element['#options'] = array('_none' => $label) + $element['#options'];
+      // For some elements, change title to new translated option
+      if (!empty($element['#title']) && $field['type'] == 'list_boolean' && !empty($element['#on_value'])) {
+        $on_value = $element['#on_value'];
+        $element['#title'] = $element['#options'][$on_value];
+      }
+    }
+  }
+
+  // Check for more parameters, skip this part if missing.
+  if (!isset($context['delta']) || !isset($context['items'])) {
+    return;
+  }
+  $delta = $context['delta'];
+  $items = $context['items'];
+  //anto added localize term in edit form
+if (($field['type']=="taxonomy_term_reference") &&  ($element['#type']!="select")){
+	foreach($items as $item){
+		$terms[]= taxonomy_term_load($item['tid']);
+		
+	 }
+	 if (isset($terms)){
+	 	$terms_return=i18n_taxonomy_localize_terms($terms);
+	 	foreach ($terms_return as $term_trans){
+	 		     $terms_trans[]=$term_trans->name;}
+	 		     $terms_trans_str=implode(",",$terms_trans);
+	 	$element['#default_value'] = $terms_trans_str;}
+   }
+  // Translate default value if exists and the current value is the default
+  if (isset($element['value']['#default_value']) && ($translate = i18n_field_type_info($field['type'], 'translate_default')) &&
+      !empty($instance['default_value'][$delta]['value']) && !empty($items[$delta]['value']) &&
+      $instance['default_value'][$delta]['value'] === $items[$delta]['value']) {
+      $element['value']['#default_value'] = $translate($instance, $items[$delta]['value'], $i18n_langcode);
+  }
+}
