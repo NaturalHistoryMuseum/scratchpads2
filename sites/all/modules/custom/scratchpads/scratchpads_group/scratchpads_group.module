@@ -341,6 +341,18 @@ function scratchpads_group_map_callback($values, $options){
 }
 
 /**
+ * Implement hook_apachesolr_query_prepare
+ *
+ * Sort the results page (chronological descending)
+ * on the Group page.
+ */
+function scratchpads_group_apachesolr_query_prepare($query){
+  if(arg(0) == 'group'){
+    $query->setSolrSort('ds_created', 'desc');
+  }
+}
+
+/**
  * OG's very own hooks for apachesolr (these could be added as a patch to the
  * apachesolr module).
  */
