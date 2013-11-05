@@ -300,4 +300,45 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     }
     return $elements;
   }
+
+  /**
+   * Wait for elements to be indexed by Solr
+   *
+   * @param string $url - the page you want to wait on
+   * @param string $locator - the element to waiting for
+   * @param int $timeout - how long you want to wait (the value given will be multiplied by 20 seconds.)
+   */
+  public function waitForSolrIndexing($url, $locator, $timeout){
+    $elements = array();
+    $orig = $timeout;
+    // Wait for elements, reloading page every 20 seconds
+    while($timeout > 0 && empty($elements)){
+      // We avoid drupalGet() as we don't want the verbose messages
+      $this->driver->openUrl($url);
+      $elements = $this->driver->getAllElements($locator);
+      $this->driver->sleep(20);
+      $timeout--;
+    }
+    $total_wait = ($orig - $timeout) * 20;
+    $string = 'Solr successfully indexed after: ' . strval($total_wait) . ' seconds';
+    $this->assertTrue($timeout > 0, $string);
+    return $elements;
+  }
+
+  /**
+   *  Set up the site to use the given url
+   */
+  public function setUpLocalSolr($solr_server_ul){
+    $this->drupalGet('admin/config/search/apachesolr/settings');
+    $this->verboseScreenshot();
+    $this->clickLink('Edit');
+    $this->driver->waitForElements('name=url');
+    $element = $this->driver->getElement('name=url');
+    $element->clear();
+    $element->sendKeys($solr_server_ul);
+    $submit_button = $this->driver->getElement("id=edit-save");
+    $submit_button->click();
+    $this->assertText('The Scratchpad solr server search environment has been saved.');
+    $this->verboseScreenshot();
+  }
 }

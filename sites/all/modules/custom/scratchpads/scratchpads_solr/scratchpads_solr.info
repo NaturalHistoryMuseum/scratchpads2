@@ -11,3 +11,4 @@ dependencies[] = context
 dependencies[] = facetapi
 dependencies[] = scratchpads_pages
 files[] = ScratchpadsSolrBaseQuery.php
+files[] = tests/scratchpads_solr.selenium.test
