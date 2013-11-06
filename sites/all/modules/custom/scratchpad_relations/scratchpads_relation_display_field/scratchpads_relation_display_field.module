@@ -28,6 +28,12 @@ function scratchpads_relation_display_field_field_formatter_info(){
       'field types' => array(
         'relation_add'
       )
+    ),
+    'scratchpad_relation_add_rev_endpoints_and_fields' => array(
+      'label' => t('Endpoints reversed and all fields2'),
+      'field types' => array(
+        'relation_add'
+      )
     )
   );
 }
@@ -119,13 +125,18 @@ function scratchpads_relation_display_field_field_formatter_view($entity_type, $
         }
       }
       break;
+	case 'scratchpad_relation_add_rev_endpoints_and_fields':
     case 'scratchpad_relation_add_endpoints_and_fields':
       foreach($items as $delta => $item){
         $links = array();
         list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
         $relation = (object)$item;
         $relation_type = relation_type_load($relation->relation_type);
-        $label = $relation_type->directional ? $relation_type->reverse_label : $relation_type->label;
+		if($display['type'] == 'scratchpad_relation_add_rev_endpoints_and_fields'){
+			$label = $relation_type->directional ? $relation_type->label : $relation_type->reverse_label;
+		} else {
+			$label = $relation_type->directional ? $relation_type->reverse_label : $relation_type->label;
+		}
         $label = camelCaseToLabel($label);
         if($display['label'] == 'inline'){
           $label_display = ' field-label-inline ';
@@ -145,7 +156,11 @@ function scratchpads_relation_display_field_field_formatter_view($entity_type, $
               // Use the forward label as sentence predicate if r_index == 0.
               // (only makes a difference if relation is directional).
               if($endpoint['r_index'] == 0){
-                $label = camelCaseToLabel($relation_type->label);
+			  if($display['type'] == 'scratchpad_relation_add_rev_endpoints_and_fields'){
+					$label = camelCaseToLabel($relation_type->reverse_label);
+				} else {
+					$label = camelCaseToLabel($relation_type->label);
+				}
                 $label = ' ' . $label;
               }
             }else{
