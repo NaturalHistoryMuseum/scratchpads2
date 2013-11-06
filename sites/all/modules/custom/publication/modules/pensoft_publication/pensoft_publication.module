@@ -540,6 +540,9 @@ function _pensoft_publication_redirect_if_published($publication){
  * Form for publishing a publication
  */
 function pensoft_publication_publish_form($form, &$form_state, $publication){
+  // Just add a message saying that we can't publish at this time
+  drupal_set_message(t("It is not currently possible to publish this to the Pensoft Writting Tool. We hope to have this working in the near future."), 'warning');
+  drupal_goto('publication/' . $publication->pid);
   // Check if we have already published this
   if (_pensoft_publication_redirect_if_published($publication)){
     return;
