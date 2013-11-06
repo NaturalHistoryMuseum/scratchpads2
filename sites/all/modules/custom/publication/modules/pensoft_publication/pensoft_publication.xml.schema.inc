@@ -2378,7 +2378,7 @@ function pensoft_publication_schema_array_pensoft_publication_tables($variables)
       ),
       '#attributes' => array(
         'id' => function($context) {
-           $collection = reset(entity_load('field_collection_item', array($context->raw_value['value'])));
+           $collection = $context->raw_value;
            $wrapper = entity_metadata_wrapper('field_collection_item', $collection);
            return $wrapper->field_publication_table_id->value();
         }
