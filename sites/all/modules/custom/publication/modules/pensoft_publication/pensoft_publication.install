@@ -1,19 +1,6 @@
 <?php
 
 /**
- * hook_enable
- *
- * Ensure the CKEditor profile is correctly installed.
- */
-function pensoft_publication_enable(){
-  features_revert(array(
-    'publication_html_format' => array(
-      'ckeditor_profile'
-    )
-  ));
-}
-
-/**
  * Update field types and views
  * 
  */
