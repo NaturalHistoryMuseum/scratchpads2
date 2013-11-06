@@ -228,7 +228,7 @@ function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed 
       foreach($parents as $parent){
         $authors = '';
         if(!@empty($parent->field_authors['und'][0]['value'])){
-          $authors = " ({$parent->field_authors['und'][0]['value']})";
+          $authors = " {$parent->field_authors['und'][0]['value']}";
         }
         $parent_names[] = check_plain($parent->name.$authors);
       }
