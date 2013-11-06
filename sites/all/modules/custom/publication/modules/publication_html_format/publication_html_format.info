@@ -12,7 +12,6 @@ dependencies[] = "insert_from_view"
 dependencies[] = "ckeditor"
 dependencies[] = "relation_select"
 
-features[filter][] = "publication_html"
 features[ctools][] = "views:views_default:3.0"
 features[views_view][] = "publication_citations_figures"
 features[views_view][] = "publication_citations_references"
