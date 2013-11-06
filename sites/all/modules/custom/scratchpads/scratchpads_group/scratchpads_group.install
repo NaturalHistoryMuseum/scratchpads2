@@ -44,7 +44,7 @@ function scratchpads_group_disable(){
   $fields = scratchpads_group_field_default_fields();
   // If the module has been disabled, we delete the fields.
   foreach($fields as $field){
-    field_delete_instance($field['field_instance']['field_name']);
+    field_delete_instance($field['field_instance']);
   }
   // We need to disable the modules once everything else has done. So we register
   // a shutdown function with arguments.
