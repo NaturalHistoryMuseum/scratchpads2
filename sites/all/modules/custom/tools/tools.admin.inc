@@ -140,6 +140,20 @@ function tools_admin_form($form, &$form_state){
     '#type' => 'submit',
     '#value' => t('Save')
   );
+  if(module_exists('overlay') && overlay_get_mode() == 'child'){
+    // If we are in an overlay, then ensure the parent frame admin paths
+    // get refreshed as these might change when enabling modules.
+    // See https://drupal.org/node/2129815
+    $admin_paths = path_get_admin_paths();
+    drupal_add_js('jQuery(document).ready(function(){
+      try{
+        window.parent.Drupal.settings.overlay.paths.admin = "' . str_replace("\n", '\\n', $admin_paths['admin']) . '";
+        window.parent.Drupal.settings.overlay.paths.non_admin = "' . str_replace("\n", '\\n', $admin_paths['non_admin']) . '";
+        window.parent.Drupal.overlay.adminPathRegExp = false;
+      } catch(e){
+      }
+    });', 'inline');
+  }
   return $form;
 }
 
