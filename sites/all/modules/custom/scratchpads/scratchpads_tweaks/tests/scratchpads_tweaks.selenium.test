@@ -17,6 +17,9 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
   protected $maintainer;
 
   protected $profile = 'scratchpad_2';
+  
+  // Set to Null to use the default settings
+  protected $solr_server_url = 'http://localhost:8983/solr';
 
   public static function getInfo(){
     return array(
@@ -56,12 +59,13 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $to_disable[] = 'captcha';
     module_disable($to_disable);
     $default_permissions = module_invoke_all('scratchpads_default_permissions');
-    // Maintainer
+    $anonymous_user_permissions = $default_permissions['anonymous user'];
     $maintainer_permissions = $default_permissions['maintainer'];
-    $maintainer_permissions[] = 'access content';
-    $maintainer_permissions[] = 'view the administration theme';
+    // Add anonymous user permissions to maintainer
+    foreach($anonymous_user_permissions as $anonymous_permission){
+      $maintainer_permissions[] = $anonymous_permission;
+    }
     $maintainer_permissions[] = 'access content overview';
-    $maintainer_permissions[] = 'access form flows';
     $maintainer_permissions[] = 'access dashboard';
     $maintainer_permissions[] = 'delete all file';
     $maintainer_permissions[] = 'edit all file';
@@ -326,19 +330,20 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
   }
 
   /**
-   *  Set up the site to use the given url
+   *  Set up the site to use the solr url given by $solr_server_url
+   *  
    */
-  public function setUpLocalSolr($solr_server_ul){
-    $this->drupalGet('admin/config/search/apachesolr/settings');
-    $this->verboseScreenshot();
-    $this->clickLink('Edit');
-    $this->driver->waitForElements('name=url');
-    $element = $this->driver->getElement('name=url');
-    $element->clear();
-    $element->sendKeys($solr_server_ul);
-    $submit_button = $this->driver->getElement("id=edit-save");
-    $submit_button->click();
-    $this->assertText('The Scratchpad solr server search environment has been saved.');
-    $this->verboseScreenshot();
+  public function setUpLocalSolr(){
+    if($solr_server_url){
+      $this->drupalGet('admin/config/search/apachesolr/settings');
+      $this->clickLink('Edit');
+      $this->driver->waitForElements('name=url');
+      $element = $this->driver->getElement('name=url');
+      $element->clear();
+      $element->sendKeys($solr_server_url);
+      $submit_button = $this->driver->getElement("id=edit-save");
+      $submit_button->click();
+      $this->assertText('The Scratchpad solr server search environment has been saved.');
+    }
   }
 }
