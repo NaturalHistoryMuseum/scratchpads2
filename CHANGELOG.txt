@@ -1,3 +1,9 @@
+2.3.0.1 (2013-11-07)
+
+- Fixed a minor bug with the tools module
+- Ensure we do not try to edit an incorrectly cached copy of a node (#3503)
+- Cache the language switcher block by page, not role (#3545)
+
 2.3.0 (2013-11-06)
 
 - Added the Publication tool
