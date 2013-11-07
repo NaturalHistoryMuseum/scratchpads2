@@ -1,0 +1,10 @@
+name = Feeds IMU fetcher
+description = Used to fetch and import data from a Kemu ecatalog using Feeds and the Imu API
+package = Feeds
+core = 7.x
+dependencies[] = feeds
+dependencies[] = feeds_xpathparser
+dependencies[] = ctools
+dependencies[] = libraries
+
+files[] = plugins/FeedsIMUFetcher.inc
