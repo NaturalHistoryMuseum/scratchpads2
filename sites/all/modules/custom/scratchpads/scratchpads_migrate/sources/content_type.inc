@@ -42,7 +42,7 @@ class DrupalContentTypeMigration extends DrupalMigration{
       ),
       'story' => MIGRATE_NONE, // Not in use
       'spm' => MIGRATE_ALL, // migrate using the same entity & bundle type
-      'webform' => MIGRATE_NONE,
+      'webform' => MIGRATE_ALL, // migrate content. Settings will be migrated additionally.
       'fileshare' => MIGRATE_NONE
     );
     // Do not migrate term nodes
