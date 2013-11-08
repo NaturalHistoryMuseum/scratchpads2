@@ -17,6 +17,9 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
   protected $maintainer;
 
   protected $profile = 'scratchpad_2';
+  
+  // Set to false to use the default settings
+  protected $solr_server_url = false;//'http://localhost:8983/solr';
 
   public static function getInfo(){
     return array(
@@ -56,6 +59,7 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $to_disable[] = 'captcha';
     module_disable($to_disable);
     $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    
     // Maintainer
     $maintainer_permissions = $default_permissions['maintainer'];
     $maintainer_permissions[] = 'access content';
@@ -65,6 +69,7 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $maintainer_permissions[] = 'access dashboard';
     $maintainer_permissions[] = 'delete all file';
     $maintainer_permissions[] = 'edit all file';
+  
     $this->maintainer = $this->drupalCreateUserWithName($maintainer_permissions, 'maintainer_name');
     legal_save_accept(1, 1, 'en', $this->maintainer->uid);
     $this->basic_user = $this->drupalCreateUserWithName(array(
@@ -298,6 +303,107 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
       $this->driver->sleep(1);
       $timeout--;
     }
+    return $elements;
+  }
+
+  /**
+   * Wait for elements to be indexed by Solr
+   *
+   * @param string $url - the page you want to wait on
+   * @param string $locator - the element to waiting for
+   * @param int $timeout - how long you want to wait (the value given will be multiplied by 20 seconds.)
+   */
+  public function waitForSolrIndexing($url, $locator, $timeout){
+    $elements = array();
+    $orig = $timeout;
+    // Wait for elements, reloading page every 20 seconds
+    while($timeout > 0 && empty($elements)){
+      // We avoid drupalGet() as we don't want the verbose messages
+      $this->driver->openUrl($url);
+      $elements = $this->driver->getAllElements($locator);
+      $this->driver->sleep(20);
+      $timeout--;
+    }
+    $total_wait = ($orig - $timeout) * 20;
+    $string = 'Solr successfully indexed after: ' . strval($total_wait) . ' seconds';
+    $this->assertTrue($timeout > 0, $string);
+    return $elements;
+  }
+
+  /**
+   * Wait for elements to be indexed by Solr and visible with search
+   *
+   * @param string $search_text - the text to search for
+   * @param string $result_text - the result that would mean a positive result
+   * @param int $timeout - how long you want to wait (the value given will be multiplied by 20 seconds.)
+   * 
+   * Returns true if a match is found within the time period
+   */
+  public function waitForSolrSearchIndexing($search_text, $result_text, $timeout){
+    $orig = $timeout;
+    $elements = array();
+    $this->driver->openUrl('');
+    // Wait for positive search result, retrying every 20 seconds
+    while($timeout > 0 && empty($elements)){     
+      $element = $this->driver->getElement("name=search_block_form");
+      $element->clear();
+      $element->sendKeys($search_text);
+      $this->driver->getElement('id=edit-submit')->click();
+      $this->driver->sleep(20);
+      $this->verboseScreenshot();
+      $elements = $this->driver->getAllElements("xpath=//ol[@class='search-results apachesolr_search-results' and ./li[contains(.,'".$result_text."')]]");
+      $timeout--;
+    }
+    $total_wait = ($orig - $timeout) * 20;   
+    if (empty($elements)){
+      $string = 'Solr indexing does not appear to be working on this site. Total wait: ' . strval($total_wait) . ' seconds. Attempted with '. $this->solr_server_url;
+      $this->assertTrue(false, $string);
+      return false;
+    }
+    else{
+      $string = 'Solr successfully indexed after: ' . strval($total_wait) . ' seconds';
+      $this->assertTrue($timeout > 0, $string);
+      return true;
+    }
+  }
+  
+  /**
+   *  Set up the site to use the solr url given by $solr_server_url
+   *  
+   */
+  public function setUpLocalSolr(){
+    if($this->solr_server_url){
+      $this->drupalGet('admin/config/search/apachesolr/settings');
+      $this->clickLink('Edit');
+      $this->driver->waitForElements('name=url');
+      $element = $this->driver->getElement('name=url');
+      $element->clear();
+      $element->sendKeys($this->solr_server_url);
+      $submit_button = $this->driver->getElement("id=edit-save");
+      $submit_button->click();
+      $this->assertText('The Scratchpad solr server search environment has been saved.');
+    }
+  }
+  
+  /**
+   * Wait for element for a specified length of time
+   * @param string $locator
+   * @param int $timeout
+   * @return array of SeleniumWebElements
+   */
+  public function waitLongForElements($locator, $timeout){
+    $elements = array();
+    $orig = $timeout;
+    // Wait for elements, reloading page every 20 seconds
+    while($timeout > 0 && empty($elements)){
+      // We avoid drupalGet() as we don't want the verbose messages
+      $elements = $this->driver->getAllElements($locator);
+      $this->driver->sleep(1);
+      $timeout--;
+    }
+    $total_wait = $orig - $timeout;
+    $string = 'Element found after: ' . strval($total_wait) . ' seconds';
+    $this->assertTrue($timeout > 0, $string);
     return $elements;
   }
 }

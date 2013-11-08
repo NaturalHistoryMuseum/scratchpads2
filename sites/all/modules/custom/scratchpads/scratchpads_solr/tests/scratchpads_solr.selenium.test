@@ -1,0 +1,208 @@
+<?php
+/**
+ * @file
+*
+* Test case for scratchpads solr with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsSolrSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  protected $admin_user;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Solr (Selenium)',
+      'description' => 'Tests solr search with nodes and taxonomy. This test may take a long time to run.',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  public function setUp(){
+    parent::setUp();
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    $admin_user_permissions = $default_permissions['maintainer'];
+    $anon_user_permissions = $default_permissions['anonymous user'];
+    $admin_user_permissions[] = 'access content overview';
+    $admin_user_permissions[] = 'administer search';
+    foreach($anon_user_permissions as $anon_perm){
+      $admin_user_permissions[] = $anon_perm;
+    }
+    $this->admin_user = $this->drupalCreateUserWithName($admin_user_permissions, 'admin_user_name');
+    legal_save_accept(1, 1, 'en', $this->admin_user->uid);
+  }
+
+  /**
+   * - Set up solr search (only necessary if we are changing the solr url - see $solr_server_url in parent class)
+   * - Create vocabulary and terms to test solr search with
+   * - Create nodes to test solr search with 
+   * - Wait for solr to index all the items
+   * - Verify that the search is working correctly
+   * 
+   */
+  function testWrapper(){
+    // Login as admin user to set up solr
+    $this->drupalLogin($this->admin_user);
+    $this->setUpLocalSolr();
+    // Login as maintainer for everything else
+    $this->drupalLogin($this->maintainer);
+    $vocab_name = $this->randomName();
+    $term_name = $this->randomName();
+    // Add vocab and terms
+    $this->createAnimalVocabulary($vocab_name);
+    $this->addTerms($vocab_name, array(
+      $term_name
+    ));
+    // Add content
+    $data = array();
+    $data = $this->createBiblio($data);
+    $data = $this->createBasicPage($data);
+    // Wait for elements to be processed by solr. This might be a long wait.
+    $indexed_page = $this->waitForSolrSearchIndexing($data['page']['search_text'], $data['page']['title'], 20);
+    $indexed_biblio = $this->waitForSolrSearchIndexing($data['biblio']['search_text'], $data['biblio']['title'], 20);
+    if(($indexed_page) && ($indexed_biblio)){
+      $this->verifySolrSearch($data);
+      $this->verifySolrTaxonomySearch($vocab_name, $term_name);
+    }
+  }
+
+  /**
+   * Verify that solr search is working
+   * Test against the provide data array
+   * @param array $data
+   */
+  function verifySolrSearch($data){
+    foreach($data as $key => $node_data){
+      $this->drupalGet('');
+      $element = $this->driver->getElement("name=search_block_form");
+      $element->clear();
+      $element->sendKeys($node_data['search_text']);
+      $this->driver->getElement('id=edit-submit')->click();
+      $this->verboseScreenshot();
+      $elements = $this->driver->getAllElements("xpath=//ol[@class='search-results apachesolr_search-results' and ./li[contains(.,'" . $node_data['title'] . "')]]");
+      if(!empty($elements)){
+        $this->assertTrue(true, 'Successful search, searching on ' . $key . ' data');
+      }else{
+        $this->assertTrue(false, 'Unsuccessful search, searching on ' . $key . ' data');
+      }
+    }
+  }
+
+  /**
+   * Verify that solr taxonomy search is working
+   * @param string $term_name
+   */
+  function verifySolrTaxonomySearch($vocab_name, $term_name){
+    // Select taxonomy search
+    $this->driver->getElement('id=edit-facet-taxonomy')->click();
+    $element = $this->driver->getElement("name=search_block_form");
+    $element->clear();
+    $element->sendKeys($term_name);
+    $this->driver->getElement('id=edit-submit')->click();
+    // Rather than waiting for an element we use a simple sleep function as the resulting page will depend on the success of the search
+    $this->driver->sleep(3);
+    $this->verboseScreenshot();
+    $elements = $this->assertText($vocab_name, 'Successful search, searching taxonomy term');
+  }
+
+  /**
+   * Helper function.
+   * Create a basic page
+   * Return the title field and text to search by (in this case, the body field)
+   * 
+   * @param array $data
+   */
+  private function createBasicPage($data){
+    $title = $this->randomName(8);
+    $body = $this->randomName(8);
+    $this->drupalGet('node/add/page');
+    $element = $this->driver->getElement("name=title");
+    $element->clear();
+    $element->sendKeys($title);
+    $element = $this->driver->getElement("name=body[und][0][value]");
+    $element->clear();
+    $element->sendKeys($body);
+    // Submit the form
+    $this->driver->getElement("id=edit-submit")->click();
+    $data['page'] = array(
+      'title' => $title,
+      'search_text' => $body
+    );
+    return $data;
+  }
+
+  /**
+   * Helper function.
+   * 'Manually' create a biblio record
+   * Return the title field and text to search by (in this case, the abstract)
+   */
+  private function createBiblio($data){
+    $type = 'Book';
+    $this->drupalGet('node/add/biblio');
+    $element = $this->driver->getElement("name=biblio_type");
+    $element->selectLabel($type);
+    $title = $this->randomName(8);
+    $abstract = $this->randomName(8);
+    // generate a random year between 1900 and 2013
+    $year = rand(1900, 2013);
+    // wait for next page to load
+    $this->driver->waitForElements("name=title");
+    $element = $this->driver->getElement("name=title");
+    $element->clear();
+    $element->sendKeys($title);
+    $this->clickLink('Abstract');
+    $element = $this->driver->getElement("name=biblio_abst_e[value]");
+    $element->clear();
+    $element->sendKeys($abstract);
+    $this->clickLink('Publication');
+    $this->driver->waitForElements("name=biblio_year");
+    $element = $this->driver->getElement("name=biblio_year");
+    $element->clear();
+    $element->sendKeys($year);
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $data['biblio'] = array(
+      'title' => $title,
+      'search_text' => $abstract
+    );
+    return $data;
+  }
+
+  /**
+   * Create a vocabulary
+   */
+  function createAnimalVocabulary($vocab_name){
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $element = $this->driver->getElement("name=name");
+    $element->clear();
+    $element->sendKeys($vocab_name);
+    $element = $this->driver->getElement("name=description");
+    $element->clear();
+    $element->sendKeys($this->randomName());
+    $element = $this->driver->getElement("name=biological_classification");
+    $element->selectLabel('Animal');
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+  }
+
+  /**
+   * Add terms to a vocabulary
+   */
+  function addTerms($vocab_name, $term_array){
+    foreach($term_array as $term_name){
+      $path = 'admin/structure/taxonomy/' . $vocab_name . '/add';
+      $this->drupalGet($path);
+      $element = $this->driver->getElement("name=field_unit_name1[und][0][value]");
+      $element->clear();
+      $element->sendKeys($term_name);
+      $submit_button = $this->driver->getElement("id=edit-submit");
+      $submit_button->click();
+    }
+  }
+}
