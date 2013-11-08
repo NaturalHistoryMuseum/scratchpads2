@@ -18,8 +18,8 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
 
   protected $profile = 'scratchpad_2';
   
-  // Set to Null to use the default settings
-  protected $solr_server_url = 'http://localhost:8983/solr';
+  // Set to false to use the default settings
+  protected $solr_server_url = false;//'http://localhost:8983/solr';
 
   public static function getInfo(){
     return array(
