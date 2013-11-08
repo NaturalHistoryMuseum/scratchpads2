@@ -1,3 +1,11 @@
+2.3.0.3 (2013-11-08)
+
+- Added IMu library
+
+2.3.0.2 (2013-11-08)
+
+- Added IMu module
+
 2.3.0.1 (2013-11-07)
 
 - Fixed a minor bug with the tools module
