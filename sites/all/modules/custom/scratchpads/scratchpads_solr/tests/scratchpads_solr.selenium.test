@@ -54,6 +54,7 @@ class ScratchpadsSolrSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->drupalLogin($this->maintainer);
     $vocab_name = $this->randomName();
     $term_name = $this->randomName();
+    // Add vocab and terms
     $this->createAnimalVocabulary($vocab_name);
     $this->addTerms($vocab_name, array(
       $term_name
@@ -69,7 +70,6 @@ class ScratchpadsSolrSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       $this->verifySolrSearch($data);
       $this->verifySolrTaxonomySearch($vocab_name, $term_name);
     }
-    $this->verboseScreenshot();
   }
 
   /**
@@ -96,7 +96,7 @@ class ScratchpadsSolrSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
 
   /**
    * Verify that solr taxonomy search is working
-   * * @param string $term_name
+   * @param string $term_name
    */
   function verifySolrTaxonomySearch($vocab_name, $term_name){
     // Select taxonomy search
@@ -105,16 +105,18 @@ class ScratchpadsSolrSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $element->clear();
     $element->sendKeys($term_name);
     $this->driver->getElement('id=edit-submit')->click();
-    // Rather than waiting for an element we use a simple sleep function as the result will depend on the success of the search
+    // Rather than waiting for an element we use a simple sleep function as the resulting page will depend on the success of the search
     $this->driver->sleep(3);
     $this->verboseScreenshot();
-    $elements = $this->assertText($vocab_name, 'Successful search, searching taxonomy term');    
+    $elements = $this->assertText($vocab_name, 'Successful search, searching taxonomy term');
   }
 
   /**
    * Helper function.
    * Create a basic page
    * Return the title field and text to search by (in this case, the body field)
+   * 
+   * @param array $data
    */
   private function createBasicPage($data){
     $title = $this->randomName(8);
@@ -151,24 +153,18 @@ class ScratchpadsSolrSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $year = rand(1900, 2013);
     // wait for next page to load
     $this->driver->waitForElements("name=title");
-    // Add title
     $element = $this->driver->getElement("name=title");
     $element->clear();
     $element->sendKeys($title);
-    // Click tab
     $this->clickLink('Abstract');
-    // Add abstract
     $element = $this->driver->getElement("name=biblio_abst_e[value]");
     $element->clear();
     $element->sendKeys($abstract);
-    // Click tab
     $this->clickLink('Publication');
-    // Add year
     $this->driver->waitForElements("name=biblio_year");
     $element = $this->driver->getElement("name=biblio_year");
     $element->clear();
     $element->sendKeys($year);
-    // submit the form
     $submit_button = $this->driver->getElement("id=edit-submit");
     $submit_button->click();
     $data['biblio'] = array(
@@ -177,7 +173,7 @@ class ScratchpadsSolrSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     );
     return $data;
   }
-  //// Put these inside tweaks to reuse?
+
   /**
    * Create a vocabulary
    */
@@ -191,7 +187,6 @@ class ScratchpadsSolrSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $element->sendKeys($this->randomName());
     $element = $this->driver->getElement("name=biological_classification");
     $element->selectLabel('Animal');
-    // Submit the form
     $submit_button = $this->driver->getElement("id=edit-submit");
     $submit_button->click();
   }
@@ -206,10 +201,8 @@ class ScratchpadsSolrSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       $element = $this->driver->getElement("name=field_unit_name1[und][0][value]");
       $element->clear();
       $element->sendKeys($term_name);
-      // Submit the form
       $submit_button = $this->driver->getElement("id=edit-submit");
       $submit_button->click();
     }
   }
-  /////
 }

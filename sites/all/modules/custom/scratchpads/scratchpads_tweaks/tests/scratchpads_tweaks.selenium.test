@@ -384,4 +384,26 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
       $this->assertText('The Scratchpad solr server search environment has been saved.');
     }
   }
+  
+  /**
+   * Wait for element for a specified length of time
+   * @param string $locator
+   * @param int $timeout
+   * @return array of SeleniumWebElements
+   */
+  public function waitLongForElements($locator, $timeout){
+    $elements = array();
+    $orig = $timeout;
+    // Wait for elements, reloading page every 20 seconds
+    while($timeout > 0 && empty($elements)){
+      // We avoid drupalGet() as we don't want the verbose messages
+      $elements = $this->driver->getAllElements($locator);
+      $this->driver->sleep(1);
+      $timeout--;
+    }
+    $total_wait = $orig - $timeout;
+    $string = 'Element found after: ' . strval($total_wait) . ' seconds';
+    $this->assertTrue($timeout > 0, $string);
+    return $elements;
+  }
 }
