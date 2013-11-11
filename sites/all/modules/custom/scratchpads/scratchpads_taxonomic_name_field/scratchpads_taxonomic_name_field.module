@@ -227,10 +227,11 @@ function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed 
       $parent_names = array();
       foreach($parents as $parent){
         $authors = '';
-        if(!@empty($parent->field_authors['und'][0]['value'])){
-          $authors = " {$parent->field_authors['und'][0]['value']}";
+        $lang = field_language('taxonomy_term', $parent, 'field_authors');
+        if(!@empty($parent->field_authors[$lang][0]['value'])){
+          $authors = " {$parent->field_authors[$lang][0]['value']}";
         }
-        $parent_names[] = check_plain($parent->name.$authors);
+        $parent_names[] = check_plain($parent->name . $authors);
       }
       $link_text = implode(" &raquo; ", $parent_names);
       $term_matches[$prefix . $n] = (count($field['settings']['allowed_values']) > 1) ? $link_text . ' (' . check_plain($tag->vocab_name) . ')' : $link_text;

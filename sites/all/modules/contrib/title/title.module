@@ -575,6 +575,9 @@ function title_field_attach_form($entity_type, $entity, &$form, &$form_state, $l
         // replaced.
         $form[$legacy_field]['#access'] = FALSE;
         $form[$legacy_field]['#field_replacement'] = TRUE;
+        // Add a class for automatic filling of menu link title.
+        $replacing_field = &$form[$info['instance']['field_name']];
+        $replacing_field['#attributes']['class'][] = 'form-item-title';
       }
     }
   }
