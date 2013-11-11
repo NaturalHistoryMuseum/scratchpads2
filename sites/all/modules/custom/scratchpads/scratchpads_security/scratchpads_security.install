@@ -80,3 +80,17 @@ function scratchpads_security_update_7001(){
   variable_set('spambot_check_blocked_accounts', 1);
   variable_set('spambot_spam_account_action', 1);
 }
+
+/**
+ * Disable the captcha_after module, and also prevent captcha from being added
+ * to the login block form.  This is to enable caching to work.
+ */
+function scratchpads_security_update_7002(){
+  module_disable(array(
+    'captcha_after'
+  ));
+  db_delete('captcha_points')->condition('form_id', array(
+    'user_login',
+    'user_login_block'
+  ))->execute();
+}
