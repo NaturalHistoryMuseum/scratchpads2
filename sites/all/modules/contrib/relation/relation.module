@@ -930,30 +930,14 @@ function relation_entity_delete($entity, $entity_type) {
   }
 }
 
-
 /**
  * Implements hook_views_api().
  */
-function relation_views_api(){
+function relation_views_api() {
   return array(
     'api' => 3.0,
-    'path' => drupal_get_path('module', 'relation') . '/views'
+    'path' => drupal_get_path('module', 'relation') . '/views',
   );
-}
-
-function relation_feeds_plugins(){
-  $info['RelationFeedsProcessor'] = array(
-    'name' => t('Relation processor'),
-    'description' => t('Add and update relations.'),
-    'help' => t('Create and update relations from parsed content.'),
-    'handler' => array(
-      'parent' => 'FeedsProcessor',
-      'class' => 'RelationFeedsProcessor',
-      'file' => 'RelationFeedsProcessor.inc',
-      'path' => drupal_get_path('module', 'relation_feeds')
-    )
-  );
-  return $info;
 }
 
 /**
