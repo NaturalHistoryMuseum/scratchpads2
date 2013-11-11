@@ -342,7 +342,9 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
     case 'field_unit_indicator1':
     case 'field_unit_indicator2':
       if($biological_type){return array(
-          '×' => '×'
+          '×' => '×',
+          'ser.' => 'ser.',
+          'subser.' => 'subser.'
         );}
       return array(
         'x' => 'x',
