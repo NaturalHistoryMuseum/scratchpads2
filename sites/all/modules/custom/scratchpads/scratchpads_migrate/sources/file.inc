@@ -26,18 +26,17 @@ class DrupalFileMigration extends DrupalMigration{
     $this->addFieldMapping('file_replace')->defaultValue(FILE_EXISTS_REPLACE);
     $this->addFieldMapping('preserve_files')->defaultValue(true);
     $this->addSimpleMappings(array(
-      'timestamp'
+      'timestamp',
+      'filename'
     ));
     $this->addUnmigratedDestinations(array(
       'path',
       'destination_dir',
       'destination_file',
-      'source_dir',
-    	'filename'
+      'source_dir'
     ));
     $this->addUnmigratedSources(array(
       'filesize',
-      'filename',
       'filemime',
       'status'
     ));

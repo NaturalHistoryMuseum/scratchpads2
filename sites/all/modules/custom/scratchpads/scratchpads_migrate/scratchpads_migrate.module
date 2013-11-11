@@ -647,6 +647,23 @@ function scratchpads_migrate_register_migrations(){
   );
   Migration::registerMigration('ScratchpadMenuLinkMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
+   * Webform
+  *********************************************************************************************/
+  if (scratchpads_migrate_source_module_exists('webform')){
+    if (!module_exists('webform')){
+      module_enable(array(
+        'webform'
+      ));
+    }
+    $arguments = $common_arguments + array(
+      'description' => t('Migration of Webform settings and submissions from Drupal 6'),
+      'machine_name' => 'WebformSettings',
+      'dependencies' => $all_node_dependencies,
+      'group' => MigrateGroup::getInstance('final')
+    );
+    Migration::registerMigration('ScratchpadsWebformMigration', $arguments['machine_name'], $arguments);
+  }
+  /*********************************************************************************************
    * Blocks
   ********************************************************************************************/
   $arguments = $common_arguments + array(
