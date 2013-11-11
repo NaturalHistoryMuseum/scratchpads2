@@ -3,7 +3,7 @@
 /**
  * Ensure users haven't deleted any fields.
  */
-function scratchpads_events_7001(){
+function scratchpads_events_update_7001(){
   $fields_to_lock = array();
   module_load_include('features.field.inc', 'scratchpads_events');
   foreach(scratchpads_events_field_default_fields() as $field){
