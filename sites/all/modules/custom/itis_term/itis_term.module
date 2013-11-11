@@ -230,6 +230,8 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
               'Subgenus' => 'Subgenus',
               'Section' => 'Section',
               'Subsection' => 'Subsection',
+              'Series' => 'Series',
+              'Subseries' => 'Subseries',
               'Species' => 'Species',
               'Subspecies' => 'Subspecies',
               'Variety' => 'Variety',
@@ -275,6 +277,7 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
         'Order' => 'Order',
         'Phylum' => 'Phylum',
         'Section' => 'Section',
+        'Series' => 'Series',
         'Species' => 'Species',
         'Subclass' => 'Subclass',
         'Subdivision' => 'Subdivision',
@@ -285,6 +288,7 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
         'Suborder' => 'Suborder',
         'Subphylum' => 'Subphylum',
         'Subsection' => 'Subsection',
+        'Subseries' => 'Subseries',
         'Subspecies' => 'Subspecies',
         'Subtribe' => 'Subtribe',
         'Subvariety' => 'Subvariety',
@@ -380,7 +384,9 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
         );}
       return array(
         'x' => 'x',
-        '×' => '×'
+        '×' => '×',
+        'ser.' => 'ser.',
+        'subser.' => 'subser.'
       );
     case 'field_unit_indicator3':
     case 'field_unit_indicator4':
@@ -409,8 +415,10 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
       }
       return array(
         'f.' => 'f.',
+        'ser.' => 'ser.',
         'ssp.' => 'ssp.',
         'subf.' => 'subf.',
+        'subser.' => 'subser.',
         'subsp.' => 'subsp.',
         'subvar.' => 'subvar.',
         'var.' => 'var.',
