@@ -26,6 +26,85 @@ class MigrateDestinationScratchpadsProfile extends MigrateDestinationScratchpads
         $account->{$d7_field} = $row->{$d6_field};
       }
     }
+    // Ensure we use ISO2 for country fields.
+    $country_fields = array();
+    $account->field_user_country = trim($account->field_user_country);
+    if(property_exists($account, 'field_user_country') && !empty($account->field_user_country)){
+      $country_fields[] = $account->field_user_country;
+    }
+    if(property_exists($row, 'profile_Country') && !empty($row->profile_Country)){
+      $country_fields[] = $row->profile_Country;
+    }
+    $matched = FALSE;
+    foreach($country_fields as $country_field_value){
+      $known = array(
+        'uk' => 'GB',
+        'usa' => 'US',
+        'us' => 'US',
+        'sw' => 'SE',
+        'alaska' => 'US',
+        'unitedstats' => 'US',
+        'unitedstates' => 'US',
+        'chicago' => 'US',
+        'alabama' => 'US',
+        'vietnam' => 'VN',
+        'america' => 'US',
+        'london' => 'GB',
+        'england' => 'GB',
+        'dehli' => 'IN',
+        'britain' => 'GB',
+        'greatbritain' => 'GB',
+        'nederland' => 'NL',
+        'heredia' => 'CR',
+        'lessoto' => 'LS',
+        'newyork' => 'US',
+        'unitedstate' => 'US',
+        'floridausa' => 'US',
+        'california' => 'US',
+        'kent' => 'GB',
+        'germanx' => 'DE',
+        'jakrta' => 'ID',
+        'xiamen' => 'CN',
+        'korea' => 'KR', // Assuming south, no offence meant.
+        'berlin' => 'DE',
+        'unitedestate' => 'US',
+        'kentucky' => 'US',
+        'texas' => 'US',
+        'philippiness' => 'PH',
+        'indiana' => 'US',
+        'indonesian' => 'ID',
+        'united kingdomn' => 'GB',
+        'united sates' => 'GB',
+        'florida' => 'US',
+        'unitrd states' => 'US',
+        'pakistani' => 'PK',
+        'ny' => 'US' // Thankfully no country code is 'ny'.
+      );
+      $stripped_value = preg_replace('/[^a-z]/', '', strtolower($country_field_value));
+      if(isset($known[$stripped_value])){
+        $matched = TRUE;
+        $account->field_user_country = $known[$stripped_value];
+        break;
+      }
+      $match = db_query("
+        SELECT iso2
+          FROM {countries_country}
+         WHERE iso2 = :value
+            OR iso3 = :value
+            OR name = :value
+            OR official_name = :value
+      ", array(
+        ':value' => $country_field_value
+      ))->fetchField();
+      if($match){
+        $matched = TRUE;
+        $account->field_user_country = $match;
+        break;
+      }
+    }
+    if(!$matched){
+      $account->field_user_country = 'IM'; // As good as anywhere...
+    }
     // When a user is created, the related profile has that user's UID
     // Stand-alone profiles created by a user also have the same UID
     // So the only way to identify which is the correct profile is to assume the first one created for a UID is the profile - retarded
@@ -46,7 +125,7 @@ class MigrateDestinationScratchpadsProfile extends MigrateDestinationScratchpads
       $account->pass = NULL;
       unset($account->uid);
     }
-    if (!isset($account->picture)) {
+    if(!isset($account->picture)){
       $account->picture = NULL; // Ensure we have value
     }
     $ret = parent::import($account, $row);
