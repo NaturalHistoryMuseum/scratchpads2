@@ -132,18 +132,18 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
       if($original = entity_load_unchanged('node', $node->nid)){
         $is_stub = preg_match('/^Stub for \d+$/', trim($original->title));
         $is_stub = $is_stub || ($original->title == '[node:field-institution-code] - [node:field-collection-code] - [node:field-catalogue-number]');
-        if ($is_stub) {
-          if ($node->vid != $original->vid) {
+        if($is_stub){
+          if($node->vid != $original->vid){
             // We're updating a stub, but this is not the active VID
             unset($node->is_new);
             $node->revision = 1;
             $revision_only = TRUE;
-          } else {
+          }else{
             unset($node->is_new);
             unset($node->revision);
             $node_replace_stub = TRUE;
           }
-        } else {
+        }else{
           unset($node->is_new);
           $node->revision = 1;
           $node->revision_uid = $node->uid;
@@ -270,9 +270,11 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
         if(isset($associated_groups[$node->nid])){
           $og_group_id = $associated_groups[$node->nid];
           foreach($row->og_memberships as $og_membership_info){
-            $og_membership = og_membership_create($og_group_id, $og_membership_info['type'], $og_membership_info['id']);
-            if($og_membership){
-              $og_membership->save();
+            if(!og_get_group_membership($og_group_id, $og_membership_info['type'], $og_membership_info['id'])){
+              $og_membership = og_membership_create($og_group_id, $og_membership_info['type'], $og_membership_info['id']);
+              if($og_membership){
+                $og_membership->save();
+              }
             }
           }
         }
