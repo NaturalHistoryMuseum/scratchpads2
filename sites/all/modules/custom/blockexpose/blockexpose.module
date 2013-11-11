@@ -83,13 +83,9 @@ function blockexpose_block_view_alter(&$data, $block){
   $settings = variable_get('blockexpose_settings_' . $block->module . '_' . $block->delta, array(
     'show' => 0
   ));
-  // Note, we only change the block if the user has JS  
-  if($settings['show'] && (isset($_COOKIE['has_js']) && $_COOKIE['has_js'])){
-    // We tweak the has_js cookie so that it doesn't expire before
-    // the session cookie.  This may be a problem if people turn off JS - F**K 'EM!
-    $params = session_get_cookie_params();
-    $expire = $params['lifetime'] ? REQUEST_TIME + $params['lifetime'] : 0;
-    setcookie('has_js', '1', $expire, '/');
+  // We try to check for the has_js variable, but if we're using a reverse proxy
+  // we may not be able to, so we simply continue.
+  if($settings['show'] && (variable_get('reverse_proxy', FALSE) || (isset($_COOKIE['has_js']) && $_COOKIE['has_js']))){
     // We actually save the $data array for use later in the hook_footer
     // function.  This prevents an empty block from appearing in the side bar
     // (depending on theme).
