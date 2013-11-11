@@ -93,4 +93,14 @@ function scratchpads_security_update_7002(){
     'user_login',
     'user_login_block'
   ))->execute();
+  $query = db_insert('captcha_points')->fields(array(
+    'form_id'
+  ));
+  $query->values(array(
+    'form_id' => 'user_login'
+  ));
+  $query->values(array(
+    'form_id' => 'user_login_block'
+  ));
+  $query->execute();
 }
