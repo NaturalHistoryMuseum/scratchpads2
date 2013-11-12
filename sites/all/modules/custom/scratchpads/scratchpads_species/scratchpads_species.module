@@ -598,6 +598,8 @@ function theme_scratchpads_species_name($vars){
         ));
       }
       break;
+    case 'series':
+    case 'subseries':
     case 'section':
     case 'subsection':
       if($unit2 && $unit1){
