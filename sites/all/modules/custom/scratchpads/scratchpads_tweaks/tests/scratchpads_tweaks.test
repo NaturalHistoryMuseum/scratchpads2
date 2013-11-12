@@ -14,7 +14,7 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
   protected $test_user;
 
   protected $maintainer;
-  
+
   protected $profile = 'scratchpad_2';
 
   public static function getInfo(){
@@ -53,10 +53,8 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
     $maintainer_permissions[] = 'access dashboard';
     $maintainer_permissions[] = 'delete all file';
     $maintainer_permissions[] = 'edit all file';
-    
     $this->maintainer = $this->drupalCreateUser($maintainer_permissions);
     legal_save_accept(1, 1, 'en', $this->maintainer->uid);
-    
     $this->test_user = $this->drupalCreateUser(array(
       'access content'
     ));
@@ -203,7 +201,7 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
     legal_save_accept(1, 1, 'en', $uid);
   }
 
-   /**
+  /**
    * We temporarily override this function to remove views handler debug errors, mainly caused by legal module
    */
   public function errorHandler($severity, $message, $file = NULL, $line = NULL){
@@ -212,8 +210,4 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
     }
     return TRUE;
   }
-  
-  
-  
 }
-
