@@ -125,9 +125,20 @@ function scratchpads_qa_block_view($delta){
               array(
                 'data' => array(
                   'Passes',
-                  $status['pass']
+                  empty($status['pass']) ? 0 : $status['pass']
                 ),
-                'class' => $status['pass'] ? array(
+                'class' => empty($status['pass']) ? array(
+                  'simpletest-fail'
+                ) : array(
+                  'simpletest-pass'
+                )
+              ),
+              array(
+                'data' => array(
+                  'Fails',
+                  empty($status['fail']) ? 0 : $status['fail']
+                ),
+                'class' => empty($status['fail']) ? array(
                   'simpletest-pass'
                 ) : array(
                   'simpletest-fail'
@@ -135,24 +146,13 @@ function scratchpads_qa_block_view($delta){
               ),
               array(
                 'data' => array(
-                  'Fails',
-                  $status['fail']
-                ),
-                'class' => $status['fail'] ? array(
-                  'simpletest-fail'
-                ) : array(
-                  'simpletest-pass'
-                )
-              ),
-              array(
-                data => array(
                   'Exceptions',
-                  $status['exception']
+                  empty($status['exception']) ? 0 : $status['exception']
                 ),
-                'class' => $status['exception'] ? array(
-                  'simpletest-exception'
-                ) : array(
+                'class' => empty($status['exception']) ? array(
                   'simpletest-pass'
+                ) : array(
+                  'simpletest-exception'
                 )
               )
             )
@@ -162,6 +162,7 @@ function scratchpads_qa_block_view($delta){
             '#path' => 'results/latest',
             '#text' => t('More detail'),
             '#options' => array(
+              'html' => FALSE,
               'attributes' => array(
                 'class' => array(
                   'qa-overview'
