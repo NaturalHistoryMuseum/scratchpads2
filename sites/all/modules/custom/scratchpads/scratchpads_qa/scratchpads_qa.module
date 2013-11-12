@@ -95,16 +95,12 @@ function scratchpads_qa_front(){
 function scratchpads_qa_block_view($delta){
   switch($delta){
     case 'overview':
-      // Get the highest test_id
-      $query = db_select('simpletest', 's');
-      $query->addExpression('MAX(s.test_id)', 'max_test_id');
-      $test_id = $query->execute()->fetchField();
-      if(!$test_id){return array();}
-      $query = db_select('simpletest', 's');
-      $query->addExpression('COUNT(*)', 'count_status');
-      $status = $query->condition('test_id', $test_id)->fields('s', array(
-        'status'
-      ))->groupBy('status')->execute()->fetchAllKeyed();
+      // FIXME
+      // As I have no idea how to do "test_class = s.test_class" in a subquery,
+      // without the s.test_class being escaped as if it were a string rather
+      // than a DB column name, I'm having to do this using db_query.  Ugly, but
+      // necessary.
+      $status = db_query('SELECT status, COUNT(*) AS count_status FROM {simpletest} s WHERE test_id = (SELECT MAX(test_id) FROM {simpletest} WHERE test_class = s.test_class) GROUP BY status')->fetchAllKeyed();
       return array(
         'subject' => t('Latest test results'),
         'content' => array(
@@ -129,9 +125,20 @@ function scratchpads_qa_block_view($delta){
               array(
                 'data' => array(
                   'Passes',
-                  $status['pass']
+                  empty($status['pass']) ? 0 : $status['pass']
                 ),
-                'class' => $status['pass'] ? array(
+                'class' => empty($status['pass']) ? array(
+                  'simpletest-fail'
+                ) : array(
+                  'simpletest-pass'
+                )
+              ),
+              array(
+                'data' => array(
+                  'Fails',
+                  empty($status['fail']) ? 0 : $status['fail']
+                ),
+                'class' => empty($status['fail']) ? array(
                   'simpletest-pass'
                 ) : array(
                   'simpletest-fail'
@@ -139,24 +146,13 @@ function scratchpads_qa_block_view($delta){
               ),
               array(
                 'data' => array(
-                  'Fails',
-                  $status['fail']
-                ),
-                'class' => $status['fail'] ? array(
-                  'simpletest-fail'
-                ) : array(
-                  'simpletest-pass'
-                )
-              ),
-              array(
-                data => array(
                   'Exceptions',
-                  $status['exception']
+                  empty($status['exception']) ? 0 : $status['exception']
                 ),
-                'class' => $status['exception'] ? array(
-                  'simpletest-exception'
-                ) : array(
+                'class' => empty($status['exception']) ? array(
                   'simpletest-pass'
+                ) : array(
+                  'simpletest-exception'
                 )
               )
             )
@@ -166,6 +162,7 @@ function scratchpads_qa_block_view($delta){
             '#path' => 'results/latest',
             '#text' => t('More detail'),
             '#options' => array(
+              'html' => FALSE,
               'attributes' => array(
                 'class' => array(
                   'qa-overview'
