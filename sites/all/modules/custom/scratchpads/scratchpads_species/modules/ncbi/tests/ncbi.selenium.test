@@ -42,6 +42,10 @@ class NcbiSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       $this->enableNcbiTool();
       // Verify that the ncbi information shows up on the taxonomy page, under descriptions
       $this->verifyNcbi($vocab_name, $term_name);
+      // Disable NCBI on the tools page
+      $this->disableNcbiTool();
+      // Verify that the ncbi information does not shows up on the taxonomy page, under descriptions
+      $this->verifyNoNcbi($vocab_name, $term_name);
     }
   }
 
@@ -53,6 +57,19 @@ class NcbiSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->driver->getElement("id=edit-submit")->click();
     $this->assertText('The configuration options have been saved.', 'Confirmation message shown when enabling tool.');
   }
+  
+  function disableNcbiTool(){
+    $this->drupalGet('admin/structure/tools');
+    $this->driver->getElement('css=.form-item-status-ncbi .iphone_switch_container img')->click();
+    // Wait 1 second, then submit the form
+    $this->driver->sleep(1);
+    $this->driver->getElement("id=edit-submit")->click();
+    // Wait for page to load
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Are you sure')]]");
+    $this->assertText('Are you sure you want to disable NCBI Widget?', "'Are you sure?', message shown.");
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText('The configuration options have been saved.', 'Confirmation message shown when disabling NCBI Widget tool.');
+  }
 
   function verifyNcbi($vocab_name, $term_name){
     $this->drupalGet('');
@@ -62,6 +79,16 @@ class NcbiSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->driver->waitForElements("xpath=//*[text()[contains(.,'NCBI')]]");
     $this->assertText('NCBI', 'NCBI header text present on on descriptions tab of taxonomy page');
     $this->assertText('Database name', 'NCBI table present on descriptions tab of taxonomy page');
+  }
+  
+  function verifyNoNcbi($vocab_name, $term_name){
+    $this->drupalGet('');
+    $this->clickLink($vocab_name);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $term_name . ")]]");
+    $this->clickLink('Descriptions');
+    $this->driver->sleep(1);
+    $this->assertNoText('NCBI', 'NCBI header text not present on on descriptions tab of taxonomy page, after disabling ncbi');
+    $this->assertNoText('Database name', 'NCBI table not present on descriptions tab of taxonomy page, after disabling ncbi');
   }
 
   /**
