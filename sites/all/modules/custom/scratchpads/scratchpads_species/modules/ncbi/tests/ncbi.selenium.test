@@ -27,8 +27,7 @@ class NcbiSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    * - Create animal vocabulary
    * - Import taxonomy from EOL.('Pediculus')
    * - Enable NCBI on the tools page
-   * - Verify that the ncbi information shows up on the taxonomy page, under descriptions
-   * 
+   * - Verify that the ncbi information shows up on the taxonomy page, under descriptions 
    */
   function testWrapper(){
     $this->drupalLogin($this->maintainer);
@@ -42,11 +41,10 @@ class NcbiSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       // Enable NCBI on the tools page
       $this->enableNcbiTool();
       // Verify that the ncbi information shows up on the taxonomy page, under descriptions
-      $this->verifyNcbi($vocab_name, $term_name);     
+      $this->verifyNcbi($vocab_name, $term_name);
     }
   }
 
- 
   function enableNcbiTool(){
     $this->drupalGet('admin/structure/tools');
     $this->driver->getElement('css=.form-item-status-ncbi .iphone_switch_container img')->click();
@@ -55,18 +53,17 @@ class NcbiSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->driver->getElement("id=edit-submit")->click();
     $this->assertText('The configuration options have been saved.', 'Confirmation message shown when enabling tool.');
   }
-  
+
   function verifyNcbi($vocab_name, $term_name){
     $this->drupalGet('');
     $this->clickLink($vocab_name);
     $this->driver->waitForElements("xpath=//*[text()[contains(.," . $term_name . ")]]");
     $this->clickLink('Descriptions');
     $this->driver->waitForElements("xpath=//*[text()[contains(.,'NCBI')]]");
-    $this->assertText('NCBI', 'NCBI header text present on on desriptions tab of taxonomy page');
-    $this->assertText('Database name', 'NCBI table present on desriptions tab of taxonomy page');
-    
+    $this->assertText('NCBI', 'NCBI header text present on on descriptions tab of taxonomy page');
+    $this->assertText('Database name', 'NCBI table present on descriptions tab of taxonomy page');
   }
-  
+
   /**
    * Create a vocabulary
    */
@@ -84,6 +81,4 @@ class NcbiSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     // Submit the form
     $this->driver->getElement("id=edit-submit")->click();
   }
-
- 
 }
