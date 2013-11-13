@@ -10,11 +10,6 @@ function scratchpads_qa_menu(){
       'page callback' => 'scratchpads_qa_front',
       'access callback' => TRUE
     ),
-    'results/latest' => array(
-      'title' => 'Latest Scratchpads Test Result',
-      'page callback' => 'scratchpads_qa_latest',
-      'access callback' => TRUE
-    ),
     'results/%' => array(
       'title' => 'Scratchpads Test Result',
       'page callback' => 'scratchpads_qa_result',
@@ -39,45 +34,84 @@ function scratchpads_qa_block_info(){
 }
 
 /**
- * Callback to display a specific result set.
+ * Simple method of display ALL fails or passes or exceptions.
  */
-function scratchpads_qa_result($test_id){
-  $form_state = array();
-  module_load_include('pages.inc', 'simpletest');
-  $form = simpletest_result_form(array(), $form_state, $test_id);
-  unset($form['action']);
-  unset($form['#action']);
-  foreach(array_keys($form['result']['results']) as $key){
-    if(isset($form['result']['results'][$key]['table']['#header'][5])){
-      unset($form['result']['results'][$key]['table']['#header'][5]);
-      unset($form['result']['results'][$key]['table']['#header'][2]);
-      foreach(array_keys($form['result']['results'][$key]['table']['#rows']) as $row_key){
-        unset($form['result']['results'][$key]['table']['#rows'][$row_key]['data'][5]);
-        unset($form['result']['results'][$key]['table']['#rows'][$row_key]['data'][2]);
-      }
-      $form['result']['results'][$key]['table']['#header'][0] = array(
-        'data' => 'Message',
-        'class' => array(
-          'wider'
-        )
-      );
-    }
+function scratchpads_qa_results_by_type($type){
+  // Get the test classes
+  
+  //SELECT l.test_class, l.status, COUNT(*) AS count_status FROM simpletest l JOIN (SELECT MAX(test_id) AS max_test_id, test_class FROM simpletest GROUP BY test_class) AS r ON l.test_class = r.test_class GROUP BY test_class, status
+  
+  
+  $test_classes_query = db_select('simpletest', 's')->extend('PagerDefault')->fields('s', array(
+    'test_class'
+  ))->limit(10)->distinct()->orderBy('test_class');
+  $results = $test_classes_query->execute();
+  $rows = array();
+  foreach($results as $row){
+    $rows[] = array(
+      $row->test_class
+    );
   }
-  return $form;
+  return array(
+    'table' => array(
+      '#theme' => 'table',
+      '#header' => array(
+        'Class'
+      ),
+      '#rows' => $rows,
+      '#empty' => t('No results to display')
+    ),
+    'pager' => array(
+      '#theme' => 'pager'
+    )
+  );
 }
 
 /**
- * Callback to display the latest test results
+ * Callback to display a specific result set.
  */
-function scratchpads_qa_latest(){
-  // Get the highest test_id
-  $query = db_select('simpletest', 's');
-  $query->addExpression('MAX(s.test_id)', 'max_test_id');
-  $test_id = $query->execute()->fetchField();
-  if(!$test_id){return array(
-      '#markup' => t('No tests to display')
-    );}
-  return scratchpads_qa_result($test_id);
+function scratchpads_qa_result($argument){
+  switch($argument){
+    case 'fails':
+    case 'passes':
+    case 'exceptions':
+      $return = scratchpads_qa_results_by_type($argument);
+      return $return;
+    case 'latest':
+      // Get the highest test_id
+      $query = db_select('simpletest', 's');
+      $query->addExpression('MAX(s.test_id)', 'max_test_id');
+      $argument = $query->execute()->fetchField();
+    default:
+      if(is_numeric($argument)){
+        $form_state = array();
+        module_load_include('pages.inc', 'simpletest');
+        $form = simpletest_result_form(array(), $form_state, $argument);
+        unset($form['action']);
+        unset($form['#action']);
+        foreach(array_keys($form['result']['results']) as $key){
+          if(isset($form['result']['results'][$key]['table']['#header'][5])){
+            unset($form['result']['results'][$key]['table']['#header'][5]);
+            unset($form['result']['results'][$key]['table']['#header'][2]);
+            foreach(array_keys($form['result']['results'][$key]['table']['#rows']) as $row_key){
+              unset($form['result']['results'][$key]['table']['#rows'][$row_key]['data'][5]);
+              unset($form['result']['results'][$key]['table']['#rows'][$row_key]['data'][2]);
+            }
+            $form['result']['results'][$key]['table']['#header'][0] = array(
+              'data' => 'Message',
+              'class' => array(
+                'wider'
+              )
+            );
+          }
+        }
+        return $form;
+      }else{
+        return array(
+          '#markup' => t('No tests to display')
+        );
+      }
+  }
 }
 
 /**
@@ -100,6 +134,11 @@ function scratchpads_qa_block_view($delta){
       // without the s.test_class being escaped as if it were a string rather
       // than a DB column name, I'm having to do this using db_query.  Ugly, but
       // necessary.
+      $query = db_select('simpletest', 's')->fields('s', array('status', 'test_id'));
+      $query->addExpression('COUNT(*)', 'count_status');
+      $query->having('test_id = MAX(test_id)');
+      $query->groupBy('status');
+      $status = $query->execute()->fetchAll();
       $status = db_query('SELECT status, COUNT(*) AS count_status FROM {simpletest} s WHERE test_id = (SELECT MAX(test_id) FROM {simpletest} WHERE test_class = s.test_class) GROUP BY status')->fetchAllKeyed();
       return array(
         'subject' => t('Latest test results'),
@@ -124,7 +163,7 @@ function scratchpads_qa_block_view($delta){
             '#rows' => array(
               array(
                 'data' => array(
-                  'Passes',
+                  l('Passes', 'results/passes'),
                   empty($status['pass']) ? 0 : $status['pass']
                 ),
                 'class' => empty($status['pass']) ? array(
@@ -135,7 +174,7 @@ function scratchpads_qa_block_view($delta){
               ),
               array(
                 'data' => array(
-                  'Fails',
+                  l('Fails', 'results/fails'),
                   empty($status['fail']) ? 0 : $status['fail']
                 ),
                 'class' => empty($status['fail']) ? array(
@@ -146,7 +185,7 @@ function scratchpads_qa_block_view($delta){
               ),
               array(
                 'data' => array(
-                  'Exceptions',
+                  l('Exceptions', 'results/exceptions'),
                   empty($status['exception']) ? 0 : $status['exception']
                 ),
                 'class' => empty($status['exception']) ? array(
