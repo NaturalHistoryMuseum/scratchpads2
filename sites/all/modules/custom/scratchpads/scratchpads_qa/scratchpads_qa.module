@@ -95,8 +95,7 @@ function scratchpads_qa_results_by_type($type){
     ),
     '#attached' => array(
       'css' => array(
-        drupal_get_path('module', 'scratchpads_qa') . '/css/scratchpads_qa.css',
-        drupal_get_path('module', 'simpletest') . '/simpletest.css'
+        drupal_get_path('module', 'scratchpads_qa') . '/css/scratchpads_qa.css'
       ),
       'js' => array(
         drupal_get_path('module', 'scratchpads_qa') . '/js/scratchpads_qa.js'
@@ -122,6 +121,7 @@ function scratchpads_qa_result($argument){
       $argument = $query->execute()->fetchField();
     default:
       if(is_numeric($argument)){
+        // We have a test_id
         $form_state = array();
         module_load_include('pages.inc', 'simpletest');
         $form = simpletest_result_form(array(), $form_state, $argument);
@@ -144,6 +144,47 @@ function scratchpads_qa_result($argument){
           }
         }
         return $form;
+      }elseif(strlen($argument)){
+        // We have a test_class
+        $query = db_select('simpletest', 's')->fields('s')->condition('test_class', $argument);
+        $subquery = db_select('simpletest', 's')->condition('test_class', $argument);
+        $subquery->addExpression('MAX(test_id)', 'max_test_id');
+        $query->innerJoin($subquery, 'subquery', 'max_test_id = s.test_id');
+        //echo (string)$query;exit;
+        $results = $query->execute();
+        $rows = array();
+        foreach($results as $row){
+          $rows[] = array(
+            $row->message_id,
+            $row->message,
+            $row->message_group,
+            $row->function,
+            $row->line,
+            $row->file
+          );
+        }
+        return array(
+          'table' => array(
+            '#prefix' => user_access('administer unit tests') ? '<p class="hidden-table">' . l(t('Re-run @class tests in Simpletest interface.', array(
+              '@class' => $row->test_class
+            )), 'admin/config/development/testing/results/' . $row->test_id) . '</p>' : '',
+            '#theme' => 'table',
+            '#header' => array(
+              'message id',
+              'message',
+              'message group',
+              'function',
+              'line',
+              'file'
+            ),
+            '#rows' => $rows
+          ),
+          '#attached' => array(
+            'css' => array(
+              drupal_get_path('module', 'scratchpads_qa') . '/css/scratchpads_qa.css'
+            )
+          )
+        );
       }else{
         return array(
           '#markup' => t('No tests to display')
