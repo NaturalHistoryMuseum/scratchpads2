@@ -65,7 +65,9 @@ function scratchpads_qa_results_by_type($type){
         $row2->file
       );
     }
-    $items[] = '<h2>' . $row->test_class . ' <span class="small">(' . count($rows) . ')</span></h2><div class="hidden-table">' . theme('table', array(
+    $items[] = '<h2>' . $row->test_class . ' <span class="small">(' . count($rows) . ')</span></h2>' . (user_access('administer unit tests') ? '<p class="hidden-table">' . l(t('See all results for @class.', array(
+      '@class' => $row->test_class
+    )), 'admin/config/development/testing/results/' . $row->test_id) . '</p>' : '') . '<div class="hidden-table">' . theme('table', array(
       'header' => array(
         'message id',
         'message',
@@ -228,19 +230,6 @@ function scratchpads_qa_block_view($delta){
                   'simpletest-pass'
                 ) : array(
                   'simpletest-exception'
-                )
-              )
-            )
-          ),
-          'link' => array(
-            '#theme' => 'link',
-            '#path' => 'results/latest',
-            '#text' => t('More detail'),
-            '#options' => array(
-              'html' => FALSE,
-              'attributes' => array(
-                'class' => array(
-                  'qa-overview'
                 )
               )
             )
