@@ -165,20 +165,17 @@ function scratchpads_qa_front(){
 function scratchpads_qa_block_view($delta){
   switch($delta){
     case 'overview':
-      // FIXME
-      // As I have no idea how to do "test_class = s.test_class" in a subquery,
-      // without the s.test_class being escaped as if it were a string rather
-      // than a DB column name, I'm having to do this using db_query.  Ugly, but
-      // necessary.
       $query = db_select('simpletest', 's')->fields('s', array(
-        'status',
-        'test_id'
+        'status'
       ));
       $query->addExpression('COUNT(*)', 'count_status');
-      $query->having('test_id = MAX(test_id)');
+      $subquery = db_select('simpletest', 's')->fields('s', array(
+        'test_class'
+      ));
+      $subquery->addExpression('MAX(test_id)', 'max_test_id');
+      $subquery->groupBy('test_class');
+      $query->innerJoin($subquery, 'subquery', 'max_test_id = s.test_id AND subquery.test_class = s.test_class');
       $query->groupBy('status');
-      $status = $query->execute()->fetchAll();
-      $status = db_query('SELECT status, COUNT(*) AS count_status FROM {simpletest} s WHERE test_id = (SELECT MAX(test_id) FROM {simpletest} WHERE test_class = s.test_class) GROUP BY status')->fetchAllKeyed();
       return array(
         'subject' => t('Latest test results'),
         'content' => array(
