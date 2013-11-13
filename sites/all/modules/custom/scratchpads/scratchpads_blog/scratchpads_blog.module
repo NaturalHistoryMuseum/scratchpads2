@@ -653,3 +653,33 @@ function scratchpads_blog_stripe_nodes(&$build){
     }
   }
 }
+
+/**
+ * Returns the total number of blog nodes
+ */
+function scratchpads_blog_node_count(){
+  $query = db_select('node', 'n');
+  $query->condition('n.type', 'blog', '=');
+  return $query->countQuery()->execute()->fetchField();
+}
+
+/**
+ * Implements hook_tools_pre_disable().
+ */
+function scratchpads_blog_tools_pre_disable(){
+  if(scratchpads_blog_node_count() > 0){
+    $can_disable = false;
+  }else{
+    $can_disable = true;
+  }
+  $tools_settings = array(
+    'can_disable' => $can_disable,
+    'cannot_disable_message' => "You cannot disable Blogs while there is still data in the 'blog entry' content type.",
+    'disable_message' => "The 'blog entry' content type will be removed."
+  );
+  return $tools_settings;
+}
+
+
+
+
