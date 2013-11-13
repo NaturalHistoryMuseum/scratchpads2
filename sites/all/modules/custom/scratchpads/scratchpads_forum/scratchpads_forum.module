@@ -245,3 +245,29 @@ function scratchpads_forum_block_list_alter(&$blocks){
     }
   }
 }
+
+/**
+ * Returns the total number of forum nodes
+ */
+function scratchpads_forum_node_count(){
+  $query = db_select('node', 'n');
+  $query->condition('n.type', 'forum', '=');
+  return $query->countQuery()->execute()->fetchField();
+}
+
+/**
+ * Implements hook_tools_pre_disable().
+ */
+function scratchpads_forum_tools_pre_disable(){
+  if(scratchpads_forum_node_count() > 0){
+    $can_disable = false;
+  }else{
+    $can_disable = true;
+  }
+  $tools_settings = array(
+    'can_disable' => $can_disable,
+    'cannot_disable_message' => "You cannot disable Forums while there is still data in the 'Forum Topic' content type.",
+    'disable_message' => "The 'forum topic' content type will be removed."
+  );
+  return $tools_settings;
+}
