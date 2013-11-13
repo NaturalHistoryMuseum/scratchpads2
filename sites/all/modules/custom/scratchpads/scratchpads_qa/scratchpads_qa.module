@@ -65,9 +65,9 @@ function scratchpads_qa_results_by_type($type){
         $row2->file
       );
     }
-    $items[] = '<h2>' . $row->test_class . ' <span class="small">(' . count($rows) . ')</span></h2>' . (user_access('administer unit tests') ? '<p class="hidden-table">' . l(t('See all results for @class.', array(
+    $items[] = '<h2><a href="#">' . $row->test_class . ' <span class="small">(' . count($rows) . ')</span></a></h2><div class="hidden-table">' . (user_access('administer unit tests') ? '<p>' . l(t('See all results for @class.', array(
       '@class' => $row->test_class
-    )), 'admin/config/development/testing/results/' . $row->test_id) . '</p>' : '') . '<div class="hidden-table">' . theme('table', array(
+    )), 'admin/config/development/testing/results/' . $row->test_id) . '</p>' : '') . theme('table', array(
       'header' => array(
         'message id',
         'message',
@@ -165,7 +165,7 @@ function scratchpads_qa_result($argument){
         }
         return array(
           'table' => array(
-            '#prefix' => user_access('administer unit tests') ? '<p class="hidden-table">' . l(t('Re-run @class tests in Simpletest interface.', array(
+            '#prefix' => user_access('administer unit tests') ? '<p>' . l(t('Re-run @class tests in Simpletest interface.', array(
               '@class' => $row->test_class
             )), 'admin/config/development/testing/results/' . $row->test_id) . '</p>' : '',
             '#theme' => 'table',
