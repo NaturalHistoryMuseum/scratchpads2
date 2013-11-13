@@ -1371,3 +1371,15 @@ function scratchpads_tweaks_update_7069(){
     }
   }
 }
+
+/**
+ * Remove boost, and install varnish, setting varnish settings along the way.
+ */
+function scratchpads_tweaks_update_7070(){
+  module_disable(array(
+    'boost'
+  ));
+  module_enable(array(
+    'varnish'
+  ));
+}
