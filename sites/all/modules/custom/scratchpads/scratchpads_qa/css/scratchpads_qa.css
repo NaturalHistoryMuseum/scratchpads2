@@ -52,3 +52,10 @@ ul.scratchpads-qa h2 {
 ul.scratchpads-qa h2 .small {
   font-size: 80%;
 }
+
+h2.block-title {
+  color: #AAAAAA;
+  font-family: Verdana, sans-serif;
+  font-size: 11pt;
+  font-weight: normal;
+}
