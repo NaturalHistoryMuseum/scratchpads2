@@ -33,7 +33,6 @@ dependencies[] = toolbar
 
 ; Contrib
 dependencies[] = advanced_help
-dependencies[] = boost
 dependencies[] = ckeditor
 dependencies[] = clone
 dependencies[] = comment_notify
@@ -45,6 +44,7 @@ dependencies[] = entityconnect
 dependencies[] = feeds_oai_pmh
 dependencies[] = globalredirect
 dependencies[] = gravatar
+dependencies[] = honeypot
 dependencies[] = imagemagick
 dependencies[] = link
 dependencies[] = linkit
@@ -53,8 +53,8 @@ dependencies[] = plupload
 dependencies[] = remember_me
 dependencies[] = role_delegation
 dependencies[] = uuid
+dependencies[] = varnish
 dependencies[] = weight
-dependencies[] = honeypot
 
 ; Scratchpads modules
 dependencies[] = scratchpads_apachesolr_instant
