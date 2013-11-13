@@ -175,7 +175,7 @@ function scratchpads_qa_block_view($delta){
       $subquery->addExpression('MAX(test_id)', 'max_test_id');
       $subquery->groupBy('test_class');
       $query->innerJoin($subquery, 'subquery', 'max_test_id = s.test_id AND subquery.test_class = s.test_class');
-      $query->groupBy('status');
+      $status = $query->groupBy('status')->execute()->fetchAllKeyed();
       return array(
         'subject' => t('Latest test results'),
         'content' => array(
