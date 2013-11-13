@@ -37,32 +37,68 @@ function scratchpads_qa_block_info(){
  * Simple method of display ALL fails or passes or exceptions.
  */
 function scratchpads_qa_results_by_type($type){
-  // Get the test classes
-  
-  //SELECT l.test_class, l.status, COUNT(*) AS count_status FROM simpletest l JOIN (SELECT MAX(test_id) AS max_test_id, test_class FROM simpletest GROUP BY test_class) AS r ON l.test_class = r.test_class GROUP BY test_class, status
-  
-  
-  $test_classes_query = db_select('simpletest', 's')->extend('PagerDefault')->fields('s', array(
+  $query = db_select('simpletest', 's')->fields('s', array(
+    'test_class',
+    'test_id'
+  ));
+  $query->condition('status', $type);
+  $query->addExpression('COUNT(*)', 'count_status');
+  $subquery = db_select('simpletest', 's')->fields('s', array(
     'test_class'
-  ))->limit(10)->distinct()->orderBy('test_class');
-  $results = $test_classes_query->execute();
-  $rows = array();
+  ));
+  $subquery->addExpression('MAX(test_id)', 'max_test_id');
+  $subquery->groupBy('test_class');
+  $query->innerJoin($subquery, 'subquery', 'max_test_id = s.test_id AND subquery.test_class = s.test_class');
+  $query->groupBy('test_class')->groupBy('status');
+  $results = $query->extend('PagerDefault')->execute();
+  $items = array();
   foreach($results as $row){
-    $rows[] = array(
-      $row->test_class
-    );
+    $results2 = db_select('simpletest', 's')->fields('s')->condition('test_class', $row->test_class)->condition('test_id', $row->test_id)->condition('status', $type)->execute();
+    $rows = array();
+    foreach($results2 as $row2){
+      $rows[] = array(
+        $row2->message_id,
+        $row2->message,
+        $row2->message_group,
+        $row2->function,
+        $row2->line,
+        $row2->file
+      );
+    }
+    $items[] = '<h2>' . $row->test_class . ' <span class="small">(' . count($rows) . ')</span></h2><div class="hidden-table">' . theme('table', array(
+      'header' => array(
+        'message id',
+        'message',
+        'message group',
+        'function',
+        'line',
+        'file'
+      ),
+      'rows' => $rows
+    )) . '</div>';
   }
   return array(
-    'table' => array(
-      '#theme' => 'table',
-      '#header' => array(
-        'Class'
-      ),
-      '#rows' => $rows,
-      '#empty' => t('No results to display')
+    'list' => array(
+      '#theme' => 'item_list',
+      '#type' => 'ul',
+      '#items' => $items,
+      '#attributes' => array(
+        'class' => array(
+          'scratchpads-qa'
+        )
+      )
     ),
     'pager' => array(
       '#theme' => 'pager'
+    ),
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'scratchpads_qa') . '/css/scratchpads_qa.css',
+        drupal_get_path('module', 'simpletest') . '/simpletest.css'
+      ),
+      'js' => array(
+        drupal_get_path('module', 'scratchpads_qa') . '/js/scratchpads_qa.js'
+      )
     )
   );
 }
@@ -72,9 +108,9 @@ function scratchpads_qa_results_by_type($type){
  */
 function scratchpads_qa_result($argument){
   switch($argument){
-    case 'fails':
-    case 'passes':
-    case 'exceptions':
+    case 'fail':
+    case 'pass':
+    case 'exception':
       $return = scratchpads_qa_results_by_type($argument);
       return $return;
     case 'latest':
@@ -134,7 +170,10 @@ function scratchpads_qa_block_view($delta){
       // without the s.test_class being escaped as if it were a string rather
       // than a DB column name, I'm having to do this using db_query.  Ugly, but
       // necessary.
-      $query = db_select('simpletest', 's')->fields('s', array('status', 'test_id'));
+      $query = db_select('simpletest', 's')->fields('s', array(
+        'status',
+        'test_id'
+      ));
       $query->addExpression('COUNT(*)', 'count_status');
       $query->having('test_id = MAX(test_id)');
       $query->groupBy('status');
@@ -163,7 +202,7 @@ function scratchpads_qa_block_view($delta){
             '#rows' => array(
               array(
                 'data' => array(
-                  l('Passes', 'results/passes'),
+                  l('Passes', 'results/pass'),
                   empty($status['pass']) ? 0 : $status['pass']
                 ),
                 'class' => empty($status['pass']) ? array(
@@ -174,7 +213,7 @@ function scratchpads_qa_block_view($delta){
               ),
               array(
                 'data' => array(
-                  l('Fails', 'results/fails'),
+                  l('Fails', 'results/fail'),
                   empty($status['fail']) ? 0 : $status['fail']
                 ),
                 'class' => empty($status['fail']) ? array(
@@ -185,7 +224,7 @@ function scratchpads_qa_block_view($delta){
               ),
               array(
                 'data' => array(
-                  l('Exceptions', 'results/exceptions'),
+                  l('Exceptions', 'results/exception'),
                   empty($status['exception']) ? 0 : $status['exception']
                 ),
                 'class' => empty($status['exception']) ? array(
