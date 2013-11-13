@@ -5,3 +5,29 @@
  */
 
 include_once('scratchpads_events.features.inc');
+
+/**
+ * Returns the total number of event nodes
+ */
+function scratchpads_events_node_count(){
+  $query = db_select('node', 'n');
+  $query->condition('n.type', 'event', '=');
+  return $query->countQuery()->execute()->fetchField();
+}
+
+/**
+ * Implements hook_tools_pre_disable().
+ */
+function scratchpads_events_tools_pre_disable(){
+  if(scratchpads_events_node_count() > 0){
+    $can_disable = false;
+  }else{
+    $can_disable = true;
+  }
+  $tools_settings = array(
+    'can_disable' => $can_disable,
+    'cannot_disable_message' => "You cannot disable Scratchpads Events while there is still data in the 'Event' content type.",
+    'disable_message' => "The 'event' content type will be removed."
+  );
+  return $tools_settings;
+}

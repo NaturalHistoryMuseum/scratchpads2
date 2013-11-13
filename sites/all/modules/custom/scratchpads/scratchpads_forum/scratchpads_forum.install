@@ -9,4 +9,5 @@ function scratchpads_forum_disable(){
   // We need to disable the modules once everything else has done. So we register
   // a shutdown function with arguments.
   drupal_register_shutdown_function('module_disable', array('forum'));
+  drupal_register_shutdown_function('drupal_flush_all_caches');
 }
