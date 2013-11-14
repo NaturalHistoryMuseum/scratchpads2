@@ -58,8 +58,7 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $to_disable[] = 'overlay';
     $to_disable[] = 'captcha';
     module_disable($to_disable);
-    $default_permissions = module_invoke_all('scratchpads_default_permissions');
-    
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');    
     // Maintainer
     $maintainer_permissions = $default_permissions['maintainer'];
     $maintainer_permissions[] = 'access content';

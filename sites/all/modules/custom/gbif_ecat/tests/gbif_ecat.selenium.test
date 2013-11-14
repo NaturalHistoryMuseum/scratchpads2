@@ -1,0 +1,151 @@
+<?php
+/**
+ * @file
+*
+* Test case forGbifEcat with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class GbifEcatSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  protected $maintainer2;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Gbif_ecat (Selenium)',
+      'description' => 'Test the import of taxonomy using Gbif Checklist Bank',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  public function setUp(){
+    parent::setUp();
+    // We update the permissions for maintainer
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    $maintainer_permissions = $default_permissions['maintainer'];
+    $maintainer_permissions[] = 'access content';
+    $maintainer_permissions[] = 'view the administration theme';
+    $maintainer_permissions[] = 'access content overview';
+    $maintainer_permissions[] = 'access form flows';
+    $maintainer_permissions[] = 'access dashboard';
+    $maintainer_permissions[] = 'delete all file';
+    $maintainer_permissions[] = 'edit all file';
+    // Oddly the gbif_ecat module requires 'create page content' permission to allow imports
+    $maintainer_permissions[] = 'create page content';
+    user_role_grant_permissions($this->maintainer->rid, $maintainer_permissions);
+    // Create a second maintainer
+    $this->maintainer2 = $this->drupalCreateUserWithName($maintainer_permissions, 'maintainer_name2');
+    legal_save_accept(1, 1, 'en', $this->maintainer2->uid);
+  }
+
+  /**
+   * A wrapper for the following:
+   * - Create Animal Vocabulary
+   * - Enable Gbif Checklist Bank Tool
+   * - Import taxonomy, 'Pediculus'
+   * - Verify import
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer2);
+    $vocab_name = $this->randomName();
+    $term_name = 'Pediculus';
+    $this->createAnimalVocabulary($vocab_name);
+    // enable the tool
+    $this->enableGbifChecklistBankTool();
+    // attempt import
+    $success = $this->importTaxonomyFromGbif($vocab_name, $term_name);
+    if($success){
+      // verify the import
+      $this->clickLink(strtoupper($vocab_name));
+      $this->driver->waitForElements("xpath=.//option[text()[contains(.,".strtoupper('Nomenclature').")]]");
+      $this->assertText($term_name, 'Imported term present on vocabulary page');
+    }
+  }
+
+  /**
+   *  Import Taxonomy from GBIF
+   *
+   *  Returns true on successful connection to GBIF, otherwise false
+   */
+  function importTaxonomyFromGbif($vocab_name, $search_term){
+    $gbif_running = false;
+    $count = 0;
+    // We try 5 times to connect
+    while($count < 5 && (!$gbif_running)){
+      $this->drupalGet('admin/import');
+      $element = $this->driver->getElement("name=silver_import_select");
+      // A manual override of selectLabel method, using xpath contains
+      $option_element = $element->getNextElement("xpath=.//option[text()[contains(.,'GBIF')]]");
+      $option_element->click();
+      $this->driver->sleep(6);
+      $element = $this->driver->getElement("name=taxonomy_vid");
+      $element->selectLabel($vocab_name);
+      $gbif_running = $this->assertTextNoError('The GBIF Checklist Bank service appears to be running.');
+      $count++;
+      if((!$gbif_running) && ($count == 5)){
+        $this->error('Could not connect to GBIF');
+        return false;
+      }
+    }
+    // Enter the search term
+    $this->driver->waitForElements("name=gbif_ecat-name");
+    $element = $this->driver->getElement("name=gbif_ecat-name");
+    $element->clear();
+    $element->sendKeys($search_term);
+    $this->driver->getElement("id=edit-gbif-ecat-search")->click();
+    // Wait for 'Please wait' to not be visible on the page
+    $elements = $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,'Please wait')]]", 20);
+    $results = $this->driver->waitForElements("name=gbif_ecat-import-id");
+    // Click on the first result
+    $this->driver->getElement("name=gbif_ecat-import-id")->click();
+    // submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit-gbif-ecat");
+    $submit_button->click();
+    $this->assertText('Importing', 'Taxonomy Import Started');
+    // wait for upload (maximum of 30 seconds)
+    $elements = $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,'Importing')]]", 30);
+    // Wait another couple of seconds for page redirect
+    $this->driver->sleep(2);
+    $this->verboseScreenshot();
+    $this->assertText($search_term, 'Taxonomy successfully imported');
+    $this->verboseScreenshot();
+    return true;
+  }
+
+  /**
+   * Enable a Gbif Checklist Bank via the tools page
+   */
+  function enableGbifChecklistBankTool(){
+    $this->drupalGet('admin/structure/tools');
+    // Click the switch for blogs
+    $this->driver->getElement("css=.form-item-status-gbif-ecat .iphone_switch_container img")->click();
+    // Wait 1 second, then submit the form
+    $this->driver->sleep(1);
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText('The configuration options have been saved.', 'Confirmation message shown when enabling tool.');
+  }
+
+  /**
+   * Create a vocabulary
+   */
+  function createAnimalVocabulary($vocab_name){
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $element = $this->driver->getElement("name=name");
+    $element->clear();
+    $element->sendKeys($vocab_name);
+    $element = $this->driver->getElement("name=description");
+    $element->clear();
+    $element->sendKeys($this->randomName());
+    $element = $this->driver->getElement("name=biological_classification");
+    $element->selectLabel('Animal');
+    // Submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+  }
+}
