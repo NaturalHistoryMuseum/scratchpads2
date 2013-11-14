@@ -1,0 +1,1030 @@
+<?php
+
+/**
+ * @file
+ * Relation Add module file.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function relation_add_permission() {
+  $return = array();
+
+  $return['relation add endpoint autocomplete access'] = array(
+    'title' => t('Endpoint autocomplete access'),
+    'description' => t('Endpoint autocomplete menu callback access.'),
+  );
+
+  return $return;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function relation_add_menu() {
+  $items['relation_add/autocomplete/%'] = array(
+    'access arguments' => array('relation add endpoint autocomplete access'),
+    'page callback' => 'relation_add_autocomplete',
+    'page arguments' => array(2, 3, 4, 5),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function relation_add_block_info() {
+  return array(
+    'block' => array(
+      'info' => t('Relation Add'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function relation_add_block_view() {
+  if (!(user_access('create relations') || user_access('create relations'))) {
+    return NULL;
+  }
+
+  $block['subject'] = t('Relation Add');
+  $block['content'] = drupal_get_form('relation_add_block_form');
+  return $block;
+}
+
+/**
+ * The relation add block form.
+ */
+function relation_add_block_form($form, &$form_state) {
+  $form['#attached']['css'] = array(
+    drupal_get_path('module', 'relation_add') . '/relation_add.css',
+  );
+
+  if (!isset($form_state['triggering_element']['#ajax'])) {
+    // This stuff is only relevant if we're NOT in an AJAX call.
+
+    // Get the entity for the current page. This fails for taxonomy entities.
+    // Need a better way. Also, this will never really work for comments, or
+    // files, or other entities that don't have their own page.
+    $all_entities = array_keys(entity_get_info());
+    $path = menu_get_item();
+
+    if (count($path['map']) >= 2 && in_array($path['map'][0], $all_entities) && is_object($path['map'][1])) {
+      $entity_type = $path['map'][0];
+      $entity = $path['map'][1];
+    }
+    elseif (count($path['map']) >= 3 && $path['map'][0] == 'taxonomy' && is_object($path['map'][2])) {
+      $entity_type = 'taxonomy_term';
+      $entity = $path['map'][2];
+    }
+    elseif ($path['original_map'][0] == 'colorbox') {
+       $entity_info = explode('/', $path['map'][1]);
+       $entities = entity_load($entity_info[0], array ($entity_info[1]));
+       $entity = $entities[$entity_info[1]];
+       $entity_type = $entity_info[0];
+    }
+
+    if (!isset($entity)) {
+      $form['explanation']['#markup'] = t('No entity found, can\'t create a relation!');
+      return $form;
+    }
+    else {
+      // If we have an $entity, then we have an $entity_type.
+      $entity_label = entity_label($entity_type, $entity);
+      list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+      $label = $entity_label . ' [' . $entity_type . ':' . $id . ']';
+      $relation_types = relation_get_available_types($entity_type, $bundle);
+      $reverse_types = relation_get_available_types($entity_type, $bundle, 'target');
+      $form_state['relation_add'] = $label;
+    }
+
+    if (empty($relation_types) && empty($reverse_types)) {
+      // Act as helper block if no relation types are defined.
+      $form['explanation']['#markup'] = t(
+        'Before you can create relations from entities of this bundle type (!bundle), you need to create one or more !link that include the bundle in the allowed bundles list.
+        Once you\'ve done that, visit any page displays an entity, and use this block to add a new relation from that entity.',
+        array(
+          '!bundle' => $entity_type . ':' . $bundle,
+          '!link' => l(t('relation types'), 'admin/structure/relation'),
+        )
+      );
+      return $form;
+    }
+
+    $form['current_entity'] = array(
+      '#type'           => 'textfield',
+      '#title'          => t('Create a relation from'),
+      '#value'          => $label,
+      '#disabled'       => TRUE,
+    );
+
+    // Relation type selector. On change, rest of form is loaded via ajax.
+    $types = array();
+    foreach ($relation_types as $relation_type) {
+      $types[$relation_type->relation_type] = $relation_type->label;
+    }
+    foreach ($reverse_types as $relation_type) {
+      if ($relation_type->directional  && $relation_type->max_arity == 2) { // Directional n-ary relations are f@*#ing stupid.
+        // Machine name doesn't have colons, so we add a suffix for reverse relations, which we explode off later.
+        $types[$relation_type->relation_type . ':reverse'] = $relation_type->reverse_label ? $relation_type->reverse_label : 'reverse ' . $relation_type->reverse_label;
+      }
+    }
+    ksort($types);
+    $form_state['types'] = $types;
+  } // End non-AJAX part
+
+  if (count($form_state['types']) > 1) {
+    $form['relation_type'] = array(
+      '#type'          => 'select',
+      '#title'         => t('Relation type'),
+      '#options'       => $form_state['types'],
+      '#empty_value'   => '',
+      '#empty_option'  => t('Select a relation type'),
+      '#ajax' => array(
+        'callback' => 'relation_add_block_ajax',
+        'wrapper' => 'block-relation-add-options',
+        'method' => 'replace',
+        'effect' => 'fade',
+      ),
+    );
+  }
+  else {
+    $form['relation_type'] = array(
+      '#type'          => 'value',
+      '#value'         => key($form_state['types']),  //  key of the first option
+    );
+
+    $form['relation_type_item'] = array(
+      '#type'          => 'item',
+      '#title'         => t('Relation type'),
+      '#markup'        => key($form_state['types']),  //  key of the first option
+    );
+
+    // pretend we've already returned from the AJAX callback
+    $form_state['values']['relation_type'] = $form['relation_type']['#value'];
+  }
+
+  $type = '';
+  if (!empty($form_state['values']['relation_type'])) {
+    // Remove ':reverse' suffix if it exists, and set reverse flag
+    $type_array = explode(':', $form_state['values']['relation_type']);
+    $type = $type_array[0];
+    $form_state['relation_reverse'] = (isset($type_array[1])  && $type_array[1] == 'reverse');
+  }
+
+  $form['relation_options'] = array(
+//    '#type'           => 'fieldset',
+//    '#title'          => t('Relation options'),
+    '#prefix' => '<div id="block-relation-add-options">',
+    '#suffix' => '</div>',
+  );
+
+  // AJAXification.
+  if (!empty($form_state['values']['relation_type'])) {
+    $relation_type = relation_type_load($type);
+    $relation = (object) relation_create($type, array());
+
+    // Create one autocomplete for each endpoint beyond the first
+    $direction = $form_state['relation_reverse'] ? '/source' : '/target';
+    for ($i = 2; $i <= $relation_type->max_arity; $i++ ) {
+      $form['relation_options']['targets']['target_' . $i] = array(
+        '#type' => 'textfield',
+        '#title' => t('Endpoint @num', array('@num' => $i)),
+        '#autocomplete_path' => 'relation_add/autocomplete/' . $type . $direction . '/none',
+      );
+    }
+    field_attach_form('relation', $relation, $form['relation_options'], $form_state);
+    unset($form['relation_options']['endpoints']);
+
+    $form['relation_options']['save'] = array(
+      '#type'   => 'submit',
+      '#weight' => 100,
+      '#value'  => t('Create relation'),
+      '#submit' => array('relation_add_save'),
+    );
+  }
+
+  else {
+    $form['relation_options']['explanation'] = array(
+      '#prefix' => '<div id=\'relation-add-explanation\'>',
+      '#markup' => t('This block allows you to create a relation from the current entity (the one displayed on this page), to another one. Please select a relation type.'),
+      '#suffix' => '</div>',
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * AJAX callback for block form.
+ */
+function relation_add_block_ajax($form, $form_state) {
+  return $form['relation_options'];
+}
+
+/**
+ * Validate form submission for the relation add block form.
+ */
+//function relation_add_validate($form, &$form_state) {
+//  @TODO
+//  $type =
+//  $entity_keys =
+//  relation_create($type, $entity_keys);
+//  field_attach_form_validate('relation', $relation, $form['relation_options'], $form_state);
+//}
+
+/**
+ * Submit handler for the save button.
+ */
+function relation_add_save($form, &$form_state) {
+  $type_array = explode(':', $form_state['values']['relation_type']);
+  $type = $type_array[0];
+  // entity_form_submit_build_entity() uses this later, so set it to the correct value
+  $form_state['values']['relation_type'] = $type;
+  // Gather all the endpoint entities into one array
+  $entity_strings = array();
+  for ($i = 2; $i; $i++) {
+    if (isset($form_state['values']['target_' . $i])) {
+      $entity_strings[] = $form_state['values']['target_' . $i];
+    }
+    else {
+      $i = FALSE; // break loop.
+    }
+  }
+  // Add the current entity to the endpoints array.
+  if ($form_state['relation_reverse']) {
+    // For reverse relations, add the "current entity" to the end of the array, else to the start.
+    array_push($entity_strings, $form_state['relation_add']);
+  }
+  else {
+    array_unshift($entity_strings, $form_state['relation_add']);
+  }
+
+  // Convert all entity_strings to proper entity_keys.
+  $entity_keys = array();
+  foreach ($entity_strings as $r_index => $entity_string) {
+    $matches = array();
+    preg_match('/(.*)\[([\w\d]+):(\d+)\]/', $entity_string, $matches);
+    if ($matches) {
+      $entity_keys[] = array(
+        'entity_label' => $matches[1],
+        'entity_type' => $matches[2],
+        'entity_id'   => $matches[3],
+        'r_index'     => $r_index,
+      );
+    }
+  }
+  // @TODO: IF count(entity_keys) != count (entity_strings), FAIL.
+  $relation = relation_create($type, $entity_keys);
+  entity_form_submit_build_entity('relation', $relation, $form['relation_options'], $form_state);
+  $rid = relation_save($relation);
+
+  if ($rid) {
+    $link = l($type, "relation/$rid");
+    // See also _relation_stored_entity_keys_list() in relation_entity_collector.module
+    $list = array('#theme' => 'item_list', '#items' => array());
+    foreach ($entity_keys as $entity_key) {
+      $list['#items'][] = $entity_key['entity_label'];
+    }
+    $rendered_list = drupal_render($list);
+    $message = t('Created new !link from !list', array('!link' => $link, '!list' => $rendered_list));
+    drupal_set_message($message);
+  }
+  else {
+    drupal_set_message(t('Relation not created.'), 'error');
+  }
+}
+
+/**
+ * Autocomplete page for listing entities appropriate for a giver relation type.
+ *
+ * @param $type
+ *   The relation type to search for endpoints for.
+ * @param $direction
+ *   The direction for which to allow endpoint bundles.
+ * @param $string
+ *   The string for which the search through entity labels will be run.
+ */
+function relation_add_autocomplete($type = '', $direction = 'target', $field = 'none', $string = '') {
+  if (empty($type) || empty($direction) || empty($string)) {
+    exit();
+  }
+
+  // Removing the :reverse suffix if exists.
+  $type_array = explode(':', $type);
+  $type = $type_array[0];
+
+  $entity_infos = entity_get_info();
+  $relation_type = relation_type_load($type);
+  $entity_bundles = array();
+
+  $instance = array();
+  if ($field !== 'none') {
+    list($entity_type, $field_name, $bundle) = explode('-', $field);
+    $instance = field_info_instance($entity_type, $field_name, $bundle);
+  }
+
+  // Use source bundles unless relation type is directional and we're looking in the forward direction
+  $direction = ($relation_type->directional && $direction == 'target') ? 'target_bundles' : 'source_bundles';
+  foreach ($relation_type->$direction as $entity_bundle) {
+    list($entity_type, $bundle) = explode(':', $entity_bundle, 2);
+    $entity_bundles[$entity_type][] = $bundle;
+  }
+  // Get about 12, rounded up.
+  $limit = ceil(12 / count(array_keys($entity_bundles)));
+  $suggestions = array();
+  foreach ($entity_bundles as $entity_type => $bundles) {
+    $base_table = $entity_infos[$entity_type]['base table'];
+    // Get the name of the column in the base table for the entity type.
+    if ($entity_type == 'user') { // Special case for users.
+      $label_key = 'name';
+    }
+    elseif (isset($entity_infos[$entity_type]['entity keys']['label'])) {
+      $label_key = $entity_infos[$entity_type]['entity keys']['label'];
+    }
+    else {
+      break; // Can't find a label to search over, give up.
+    }
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', $entity_type);
+    if(!empty($instance)
+      && isset($instance['widget']['settings']['relation_endpoint_search_by_id'])
+      && $instance['widget']['settings']['relation_endpoint_search_by_id']
+      && preg_match("/^[0-9]+$/", $string)) {
+
+      // We are most likely searching for an entity ID.
+      $query->entityCondition('entity_id', (int) $string);
+    }
+    else {
+      $query->propertyCondition($label_key, $string, 'CONTAINS');
+    }
+    $query->range(0, $limit);
+    if (!in_array('*', $bundles) && $entity_type != 'taxonomy_term') {
+      $query->entityCondition('bundle', $bundles, 'IN');
+    }
+    elseif (!in_array('*', $bundles) && $entity_type == 'taxonomy_term') {
+      $vocabularies = taxonomy_vocabulary_load_multiple(NULL, array('machine_name' => $bundles));
+      $bundles = array_keys($vocabularies);
+      $query->propertyCondition('vid', $bundles, 'IN');
+    }
+    if ($results = $query->execute()) {
+      foreach (array_keys($results[$entity_type]) as $id) {
+        $entities = entity_load($entity_type, array($id));
+        $entity = reset($entities);
+        $label = entity_label($entity_type, $entity);
+        $suggestions[$label . ' [' . $entity_type . ':' . $id . ']'] = $label . ' [' . $entity_type . ':' . $id . ']';
+      }
+    }
+  }
+  print drupal_json_encode($suggestions);
+  exit();
+}
+
+/**
+ * Implements hook_field_info().
+ */
+function relation_add_field_info() {
+  return array(
+    'relation_add' => array(
+      'label' => t('Relation add'),
+      'description' => t('Stores relationships between entities.'),
+      'settings' => array(),
+      'default_widget' => 'relation_add_default',
+      'default_formatter' => 'relation_add_endpoints_and_fields',
+      'instance_settings' => array('relation_type' => ''),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function relation_add_field_is_empty($item, $field) {
+  if (!isset($item['relation_options']['rid']) && !isset($item['rid'])) {
+    if (isset($item['relation_options']['targets'])) {
+      $targets_flip = array_flip($item['relation_options']['targets']);
+      if (count($targets_flip) < 2) {
+        $target_key = array_shift($targets_flip);
+        if (empty($item['relation_options']['targets'][$target_key])) {
+          return TRUE;
+        }
+      }
+    }
+    else {
+      return relation_add_item_is_empty($item['relation_options']);
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Determines whether an item is empty
+ */
+function relation_add_item_is_empty($fields) {
+  $is_empty = TRUE;
+
+  foreach ($fields as $field_name => $items) {
+    $field = field_info_field($field_name);
+
+    // Determine the list of languages to iterate on.
+    $languages = field_available_languages('relation', $field);
+
+    foreach ($languages as $langcode) {
+      if (!empty($items[$langcode])) {
+        // If at least one relation-field is not empty; the
+        // relation item is not empty.
+        foreach ($items[$langcode] as $field_item) {
+          if (!module_invoke($field['module'], 'field_is_empty', $field_item, $field)) {
+            $is_empty = FALSE;
+          }
+        }
+      }
+    }
+  }
+  return $is_empty;
+}
+
+/**
+ * Implements hook_field_load().
+ */
+function relation_add_field_load($entity_type, $entities, $field, $instances, $langcode, &$items, $age) {
+  foreach ($entities as $id => $entity) {
+    $types = relation_get_types();
+    if (!empty($instances[$id]['settings']['relation_type'])) {
+      foreach ($instances[$id]['settings']['relation_type'] as $type) {
+        $type_array = explode(':', $type);
+        $relation_types[$type_array[0]] = $type_array[0];
+      }
+    }
+    else {
+      $relation_types = array_keys($types);
+    }
+
+    $query = relation_query($entity_type, $id);
+    if ($relation_types) {
+      $query->entityCondition('bundle', $relation_types, 'IN');
+    }
+    $relation_ids = array_keys($query->execute());
+    // Who knows why but field does not like if the delta does not start at 0...
+    $items[$id] = array();
+    foreach (entity_load('relation', $relation_ids) as $relation) {
+      // Only add items when they are either not directional, or have their relation type
+      // in the field settings.
+      $directional = $types[$relation->relation_type]->directional;
+      $relation_reverse = ($relation->endpoints[LANGUAGE_NONE][0]['entity_id'] == $id ? FALSE : TRUE);
+      if (!$directional
+        || ($relation_reverse && in_array($relation->relation_type . ':reverse', $instances[$id]['settings']['relation_type']))
+        || (!$relation_reverse && in_array($relation->relation_type, $instances[$id]['settings']['relation_type']))) {
+
+        $item = (array) $relation;
+        $item['my_entity_id'] = $id;
+        $items[$id][] = $item;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_instance_settings_form().
+ */
+function relation_add_field_instance_settings_form($field, $instance) {
+  $relation_types = relation_get_types();
+  $bundle_key = $instance['entity_type'] . ':' . $instance['bundle'];
+  $bundle_wildcard_key = $instance['entity_type'] . ':' . '*';
+  $options = array();
+  foreach ($relation_types as $relation_type => $relation_type_data) {
+    foreach ($relation_type_data->source_bundles as $relation_bundle_key) {
+      if ($bundle_key == $relation_bundle_key || $bundle_wildcard_key == $relation_bundle_key) {
+        $options[$relation_type] = $relation_type_data->label;
+      }
+    }
+    foreach ($relation_type_data->target_bundles as $relation_bundle_key) {
+      if ($bundle_key == $relation_bundle_key || $bundle_wildcard_key == $relation_bundle_key) {
+        $options[$relation_type . ':reverse'] = t('@relation_label (reverse)', array('@relation_label' => $relation_type_data->label));
+      }
+    }
+  }
+  ksort($options);
+
+  $form['relation_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Relation types'),
+    '#description' => t('Select all the relation types you want to display in the relation add field. Only relation types applicable to this entity bundle are shown here. If no relation_types are selected, relations of all types will be displayed.'),
+    '#default_value' => $instance['settings']['relation_type'],
+    '#options' => $options,
+    '#multiple' => TRUE,
+  );
+
+  if (count($instance['settings']['relation_type']) > 1) {
+    // The default value can only be set if there are more than 1 relation types
+    $form['fieldset'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Default value'),
+      '#collapsible' => FALSE,
+    );
+    $form['fieldset']['content'] = array(
+      '#pre' => '<p>',
+      '#markup' => t('The default value for this field, used when creating new content.'),
+      '#suffix' => '</p>',
+    );
+
+    foreach ($instance['settings']['relation_type'] as $rel_type) {
+      $type_array = explode(':', $rel_type);
+      $relation_type = relation_type_load($type_array[0]);
+      $types[$rel_type] = (isset($type_array[1]) ? $relation_type->reverse_label : $relation_type->label);
+    }
+    $form['fieldset']['default_value'] = array(
+      '#type'          => 'select',
+      '#title'         => t('Relation type'),
+      '#options'       => $types,
+      '#default_value' => (isset($instance['settings']['fieldset']['default_value'])
+        ? $instance['settings']['fieldset']['default_value'] : ''),
+      '#empty_value'   => '',
+      '#empty_option'  => t('Select a relation type'),
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Implements hook_field_widget_settings_form().
+ */
+function relation_add_field_widget_settings_form($field, $instance) {
+  $widget = $instance['widget'];
+  $settings = $widget['settings'];
+
+  $options = array(
+    'endpoint' => 'Endpoint field',
+    'custom' => 'Custom',
+    'none' => 'None',
+  );
+
+  $form['relation_endpoint_label'] = array(
+    '#type' => 'select',
+    '#title' => t('Endpoint label'),
+    '#default_value' => isset($settings['relation_endpoint_label']) ? $settings['relation_endpoint_label'] : '',
+    '#options' => $options,
+    '#required' => TRUE,
+    '#weight' => 5,
+  );
+
+  $form['relation_endpoint_custom_label'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Label'),
+    '#default_value' => isset($settings['relation_endpoint_custom_label']) ? $settings['relation_endpoint_custom_label'] : '',
+    '#states' => array(
+      'visible' => array(
+        ':input[name="instance[widget][settings][relation_endpoint_label]"]' => array('value' => 'custom'),
+      ),
+    ),
+    '#weight' => 5,
+  );
+
+  $form['relation_endpoint_label_delta'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Adding endpoint delta to the label'),
+    '#default_value' => isset($settings['relation_endpoint_label_delta']) ? $settings['relation_endpoint_label_delta'] : FALSE,
+    '#weight' => 5,
+  );
+
+  $form['relation_endpoint_search_by_id'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Search endpoints by entity id if the input contains only numbers'),
+    '#default_value' => isset($settings['relation_endpoint_search_by_id']) ? $settings['relation_endpoint_search_by_id'] : FALSE,
+    '#weight' => 5,
+  );
+
+  return $form;
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function relation_add_field_widget_info() {
+  return array(
+    'relation_add' => array(
+      'label' => t('Relation add widget'),
+      'field types' => array('relation_add'),
+      'behaviors' => array(
+        // to tell field API to not display the base default value widget
+        // we provide our own
+        'default value' => FIELD_BEHAVIOR_NONE
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function relation_add_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  $item = isset($items[$delta]) ? $items[$delta] : array();
+
+  $types = array();
+  if (empty($instance['settings']['relation_type'])) {
+    $relation_types = relation_get_available_types($instance['entity_type'], $instance['bundle']);
+    $reverse_types = relation_get_available_types($instance['entity_type'], $instance['bundle'], 'target');
+
+    if (empty($relation_types) && empty($reverse_types)) {
+      return $element;
+    }
+
+    // Relation type selector. On change, rest of form is loaded via ajax.
+    foreach ($relation_types as $relation_type) {
+      $types[$relation_type->relation_type] = $relation_type->label;
+    }
+    foreach ($reverse_types as $relation_type) {
+      if ($relation_type->directional && $relation_type->max_arity == 2) { // Directional n-ary relations are f@*#ing stupid.
+        // Machine name doesn't have colons, so we add a suffix for reverse relations, which we explode off later.
+        $types[$relation_type->relation_type . ':reverse'] = $relation_type->reverse_label ? $relation_type->reverse_label : 'reverse ' . $relation_type->reverse_label;
+      }
+    }
+  }
+  elseif (count($instance['settings']['relation_type']) > 1) {
+    foreach ($instance['settings']['relation_type'] as $rel_type) {
+      $type_array = explode(':', $rel_type);
+      $relation_type = relation_type_load($type_array[0]);
+      $types[$rel_type] = !isset($type_array[1]) ? $relation_type->label : $relation_type->reverse_label;
+    }
+  }
+
+  ksort($types);
+  $wrapper = str_replace('_', '-', $instance['field_name']) . '-relation-add-options-' . $delta;
+  $form_element = array(
+    '#tree' => TRUE,
+  );
+
+  if (!empty($types)) {
+    if (isset($item['relation_type'])) {
+      if (isset($types[$item['relation_type'] . ':reverse']) && $item['endpoints'][LANGUAGE_NONE][0]['entity_id'] != $item['my_entity_id']) {
+        $type = $item['relation_type'] . ':reverse';
+        $relation_reverse = TRUE;
+      }
+      elseif (isset($types[$item['relation_type']])) {
+        $type = $item['relation_type'];
+        $relation_reverse = FALSE;
+      }
+    }
+    else if (isset($instance['settings']['fieldset']['default_value'])) {
+        $type = $instance['settings']['fieldset']['default_value'];
+        $type_array = explode(':', $type);
+        $relation_reverse = (isset($type_array[1]) && $type_array[1] == 'reverse');
+    }
+
+    $form_element['relation_type'] = array(
+      '#type'          => 'select',
+      '#title'         => t('Relation type'),
+      '#options'       => $types,
+      '#default_value' => isset($type) ? $type : NULL,
+      '#empty_value'   => '',
+      '#empty_option'  => t('Select a relation type'),
+      '#ajax' => array(
+        'callback' => 'relation_add_widget_ajax',
+        'wrapper'  => $wrapper,
+        'method'   => 'replace',
+        'effect'   => 'fade',
+      ),
+    );
+  }
+  else {
+    $form_element['relation_type'] = array(
+      '#type'  => 'value',
+      '#value' => reset($instance['settings']['relation_type']),
+    );
+  }
+
+  if (isset($form_state['triggering_element']['#ajax'])) {
+    if (!empty($form_state['values'][$field['field_name']][$langcode][$delta]['relation_type'])) {
+      $form_state_relation_type = $form_state['values'][$field['field_name']][$langcode][$delta]['relation_type'];
+    }
+    elseif (!empty($form_state['input'][$field['field_name']][$langcode][$delta]['relation_type'])) {
+      $form_state_relation_type = $form_state['input'][$field['field_name']][$langcode][$delta]['relation_type'];
+    }
+
+    if (isset($form_state_relation_type)) {
+      // Remove ':reverse' suffix if it exists, and set reverse flag
+      $type_array = explode(':', $form_state_relation_type);
+      $type = $type_array[0];
+      $relation_reverse = (isset($type_array[1]) && $type_array[1] == 'reverse');
+    }
+  }
+
+  if (empty($types)) {
+    $type_array = explode(':', reset($instance['settings']['relation_type']));
+    $type = $type_array[0];
+    $relation_reverse = (isset($type_array[1]) && $type_array[1] == 'reverse');
+  }
+
+  $field_parents = $element['#field_parents'];
+  $field_name = $element['#field_name'];
+  $language = $element['#language'];
+
+  $parents = array_merge($field_parents, array($field_name, $language, $delta));
+  $parents[] = 'relation_options';
+  $form_element['relation_options'] = array(
+    '#parents' => $parents,
+    '#prefix' => '<div id="'.$wrapper.'">',
+    '#suffix' => '</div>',
+  );
+
+  if (!empty($type)) {
+    if (isset($item) && !empty($item)) {
+      $relation = (object) $item;
+      $relation_type = relation_type_load($relation->relation_type);
+      $default_targets = array();
+      $i = 2;
+      foreach ($item['endpoints'][LANGUAGE_NONE] as $endpoint) {
+        $entities = entity_load($endpoint['entity_type'], array($endpoint['entity_id']));
+        $entity = reset($entities);
+        $label = entity_label($endpoint['entity_type'], $entity);
+        $entity_label = $label . ' [' . $endpoint['entity_type'] . ':' . $endpoint['entity_id'] . ']';
+
+        if ($endpoint['entity_id'] == $item['my_entity_id'] && $endpoint['entity_type'] == $instance['entity_type']) {
+          $default_targets[1] = $entity_label;
+        }
+        else {
+          $default_targets[$i] = $entity_label;
+          $i++;
+        }
+      }
+    }
+    else {
+      // $type can also have the :reverse suffix here so we have to remove it
+      $type_array = explode(':', $type);
+      $relation_type = relation_type_load($type_array[0]);
+      $relation = (object) relation_create($type_array[0], array());
+    }
+
+    // Create one autocomplete for each endpoint beyond the first
+    $direction = $relation_reverse ? '/source' : '/target';
+
+    $endpoint_title = '';
+    switch ($instance['widget']['settings']['relation_endpoint_label']) {
+      case 'endpoint':
+        $relation_instance = field_info_instance('relation', 'endpoints', $relation_type->relation_type);
+        $endpoint_title = t(check_plain($relation_instance['label']));
+        break;
+      case 'custom':
+        $endpoint_title = t($instance['widget']['settings']['relation_endpoint_custom_label']);
+        break;
+    }
+
+    for ($i = 2; $i <= $relation_type->max_arity; $i++) {
+      $endpoint_title .= $instance['widget']['settings']['relation_endpoint_label_delta'] ? ' ' . ($i - 1) : '';
+      $form_element['relation_options']['targets']['target_' . $i] = array(
+        '#type' => 'textfield',
+        '#maxlength' => 320,
+        '#title' => $endpoint_title,
+        '#default_value' => isset($default_targets[$i]) ? $default_targets[$i] : '',
+        '#autocomplete_path' => 'relation_add/autocomplete/' . $type . $direction . '/'
+          . $instance['entity_type'] . '-' . $instance['field_name'] . '-' . $instance['bundle'],
+      );
+    }
+
+    if (isset($item['my_entity_id'])) {
+      $form_element['relation_options']['rid'] = array(
+        '#type' => 'value',
+        '#value' => $item['rid'],
+      );
+    }
+    field_attach_form('relation', $relation, $form_element['relation_options'], $form_state);
+    $form_element['delete'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Delete'),
+    );
+
+    unset($form_element['relation_options']['endpoints']);
+  }
+
+  if ($field['cardinality'] == 1) {
+    $form_element['label'] = $element + array(
+      '#type' => 'item'
+    );
+  }
+  return $element + $form_element;
+}
+
+/**
+ * AJAX callback for widget form.
+ */
+function relation_add_widget_ajax($form, $form_state) {
+  $path = $form_state['triggering_element']['#parents'];
+  $field_name = array_shift($path);
+  $language = array_shift($path);
+  $item = array_shift($path);
+
+  return $form[$field_name][$language][$item]['relation_options'];
+}
+
+/**
+ * Implements hook_field_insert().
+ */
+function relation_add_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  relation_add_field_update($entity_type, $entity, $field, $instance, $langcode, $items);
+}
+
+/**
+ * Implements hook_field_update().
+ */
+function relation_add_field_update($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  foreach ($items as $key => $item) {
+    if (isset($item['delete']) && $item['delete']) {
+      if (isset($item['relation_options']['rid']) && $item['relation_options']['rid']) {
+        relation_delete($item['relation_options']['rid']);
+        cache_clear_all('field', 'cache_field', TRUE);
+      }
+      continue;
+    }
+
+    $type_array = explode(':', $item['relation_type']);
+    $type = $type_array[0];
+    $relation_reverse = (isset($type_array[1]) && $type_array[1] == 'reverse');
+
+    $entity_label = entity_label($entity_type, $entity);
+    list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+    $relation_add = $entity_label . ' [' . $entity_type . ':' . $id . ']';
+
+    $entity_strings = array();
+    if (isset($item['relation_options']['targets'])) {
+      $targets =& $item['relation_options']['targets'];
+      for ($i = 2; $i; $i++) {
+        if (isset($targets['target_' . $i]) && !empty($targets['target_' . $i])) {
+          $entity_strings[] = $targets['target_' . $i];
+        }
+        else {
+          $i = FALSE; // break loop.
+        }
+      }
+    }
+
+    if (!isset($item['relation_options']['targets']) || (is_array($entity_strings) && count($entity_strings))) {
+      // Add the current entity to the endpoints array.
+      if ($relation_reverse) {
+        // For reverse relations, add the "current entity" to the end of the array, else to the start.
+        array_push($entity_strings, $relation_add);
+      }
+      else {
+        array_unshift($entity_strings, $relation_add);
+      }
+
+      $entity_keys = array();
+      foreach ($entity_strings as $r_index => $entity_string) {
+        $matches = array();
+        preg_match('/(.*)\[([\w\d]+):(\d+)\]/', $entity_string, $matches);
+        if ($matches) {
+          $entity_keys[] = array(
+            'entity_label' => $matches[1],
+            'entity_type' => $matches[2],
+            'entity_id'   => $matches[3],
+            'r_index'     => $r_index,
+          );
+        }
+      }
+
+      if (isset($item['relation_options']['rid'])) {
+        if ($relation = relation_load($item['relation_options']['rid'])) {
+          if ($relation->relation_type == $type) {
+            $relation->endpoints[LANGUAGE_NONE] = $entity_keys;
+          }
+          else {
+            // different relation type
+            relation_delete($item['relation_options']['rid']);
+            $relation = relation_create($type, $entity_keys);
+          }
+        }
+        else {
+          // failed load the relation
+          $relation = relation_create($type, $entity_keys);
+        }
+      }
+      else {
+        $relation = relation_create($type, $entity_keys);
+      }
+
+      $form = $form_state = array();
+      $relation_instances = field_info_instances('relation', $relation->relation_type);
+
+      foreach ($item['relation_options'] as $relation_field_name => $relation_field) {
+        if (isset($relation_instances[$relation_field_name])) {
+          $langcode = array_shift(array_keys($relation_field));
+          $relation_field_items = array_shift($relation_field);
+          $relation_field = field_info_field($relation_field_name);
+          foreach ($relation_field_items as $delta => $relation_field_item) {
+            if (!is_numeric($delta)) {
+              unset($relation_field_items[$delta]);
+            }
+          }
+
+          field_default_submit('relation', $relation, $relation_field, $relation_instances[$relation_field_name], $langcode, $relation_field_items, $form, $form_state);
+          $relation->{$relation_field_name}[$langcode] = $relation_field_items;
+        }
+        else {
+          $relation->{$relation_field_name} = $relation_field;
+        }
+      }
+
+      relation_save($relation);
+      $items[$key] = (array) $relation;
+    }
+    elseif (isset($item['relation_options']['rid'])) {
+      relation_delete($item['relation_options']['rid']);
+      unset($items[$key]);
+    }
+  }
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function relation_add_field_formatter_info() {
+  return array(
+    'relation_add_endpoints_and_fields' => array(
+      'label' => t('Endpoints and fields'),
+      'field types' => array('relation_add'),
+    ),
+  );
+}
+
+function relation_add_field_formatter_info_alter(&$info) {
+  $relation_dummy_formaters = array('relation_default', 'relation_otherendpoint', 'relation_natural');
+  foreach ($relation_dummy_formaters as $dummy_formater) {
+    if (isset($info[$dummy_formater])) {
+      $info[$dummy_formater]['field types'][] = 'relation_add';
+    }
+  }
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function relation_add_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  list($entity_id) = entity_extract_ids($entity_type, $entity);
+  switch ($display['type']) {
+    case 'relation_add_endpoints_and_fields':
+      foreach ($items as $delta => $item) {
+        $links = array();
+        $relation = (object) $item;
+        if (count($relation->endpoints[LANGUAGE_NONE]) > 1) {
+          foreach (array_filter($relation->endpoints[LANGUAGE_NONE]) as $endpoint) {
+            $related_entities = entity_load($endpoint['entity_type'], array($endpoint['entity_id']));
+            $related_entity = reset($related_entities);
+            if (!($endpoint['entity_type'] == $entity_type && $endpoint['entity_id'] == $entity_id)) {
+              $link = entity_uri($endpoint['entity_type'], $related_entity);
+              $link['href'] = $link['path'];
+              $link['title'] = entity_label($endpoint['entity_type'], $related_entity);
+              $links[] = $link;
+            }
+          }
+          $endpoint_title = '';
+          switch ($instance['widget']['settings']['relation_endpoint_label']) {
+            case 'endpoint':
+              $relation_instance = field_info_instance('relation', 'endpoints', $relation->relation_type);
+              $endpoint_title = t(check_plain($relation_instance['label']));
+              break;
+            case 'custom':
+              $endpoint_title = t($instance['widget']['settings']['relation_endpoint_custom_label']);
+              break;
+          }
+
+          $endpoint_title .= $instance['widget']['settings']['relation_endpoint_label_delta'] ? ' ' . ($delta + 1) : '';
+          $element[$delta]['relation']['heading']['#markup'] = t(check_plain($endpoint_title));
+          $element[$delta]['relation']['links'] = array(
+            '#theme' => 'links',
+            '#links' => $links,
+          );
+        }
+
+
+        $relation_view = relation_view($relation);
+        $relation_instances = field_info_instances('relation', $relation->relation_type);
+        foreach (array_keys($relation_instances) as $relation_field_name) {
+          if ($relation_field_name !== 'endpoints') {
+            if (isset($relation_view[$relation_field_name])) {
+              $element[$delta]['relation']['fields'][] = $relation_view[$relation_field_name];
+            }
+          }
+        }
+      }
+      break;
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function relation_add_entity_presave($entity, $entity_type) {
+  if ('relation' == $entity_type) {
+    foreach ($entity->endpoints[LANGUAGE_NONE] as $endpoint) {
+      $cid = "field:{$endpoint['entity_type']}:{$endpoint['entity_id']}";
+      cache_clear_all($cid, 'cache_field');
+    }
+  }
+}

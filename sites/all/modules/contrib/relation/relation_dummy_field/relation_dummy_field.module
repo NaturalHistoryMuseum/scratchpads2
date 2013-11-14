@@ -1,0 +1,210 @@
+<?php
+
+/**
+ * @file
+ * A field storing arbitrary relations between entities.
+ */
+
+/**
+ * Implements hook_field_info().
+ */
+function relation_dummy_field_field_info() {
+  return array(
+    'relation' => array(
+      'label' => t('Relation'),
+      'description' => t('Stores relationships between entities.'),
+      'settings' => array(),
+      'default_widget' => 'relation_default',
+      'default_formatter' => 'relation_default',
+      'instance_settings' => array('relation_type' => ''),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function relation_dummy_field_field_is_empty($item, $field) {
+  return FALSE;
+}
+
+/**
+ * Implements hook_field_instance_settings_form().
+ */
+function relation_dummy_field_field_instance_settings_form($field, $instance) {
+  $relation_types = relation_get_types();
+  $bundle_key = $instance['entity_type'] . ':' . $instance['bundle'];
+  $bundle_wildcard_key = $instance['entity_type'] . ':' . '*';
+  $options = array();
+  foreach ($relation_types as $relation_type => $relation_type_data) {
+    foreach ($relation_type_data->source_bundles as $relation_bundle_key) {
+      if ($bundle_key == $relation_bundle_key || $bundle_wildcard_key == $relation_bundle_key) {
+        $options[$relation_type] = $relation_type_data->label;
+      }
+    }
+  }
+  $form['relation_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Relation types'),
+    '#description' => t('Select all the relation types you want to display in the dummy field. Only relation types applicable to this entity bundle are show here. If no relation_types are selected, relations of all types will be displayed.'),
+    '#default_value' => $instance['settings']['relation_type'],
+    '#options' => $options,
+    '#multiple' => TRUE,
+  );
+  return $form;
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function relation_dummy_field_field_widget_info() {
+  return array(
+    'relation_default' => array(
+      'label' => t('No edit widget'),
+      'field types' => array('relation'),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function relation_dummy_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function relation_dummy_field_field_formatter_info() {
+  return array(
+    'relation_default' => array(
+      'label' => t('Default'),
+      'field types' => array('relation'),
+    ),
+    'relation_otherendpoint' => array(
+      'label' => t('Other endpoint'),
+      'field types' => array('relation'),
+    ),
+    'relation_natural' => array(
+      'label' => t('Natural language'),
+      'field types' => array('relation'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function relation_dummy_field_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  list($entity_id) = entity_extract_ids($entity_type, $entity);
+  switch ($display['type']) {
+    case 'relation_default':
+    case 'relation_otherendpoint':
+      foreach ($items as $delta => $item) {
+        $links = array();
+        $relation = (object) $item;
+        foreach (array_filter($relation->endpoints[LANGUAGE_NONE]) as $endpoint) {
+          $related_entities = entity_load($endpoint['entity_type'], array($endpoint['entity_id']));
+          $related_entity = reset($related_entities);
+          if ($endpoint['entity_type'] == $entity_type && $endpoint['entity_id'] == $entity_id) {
+            if ($display['type'] == 'relation_otherendpoint') {
+              continue;
+            }
+            $link = array();
+          }
+          else {
+            $link = entity_uri($endpoint['entity_type'], $related_entity);
+            $link['href'] = $link['path'];
+          }
+          $link['title'] = entity_label($endpoint['entity_type'], $related_entity);
+          $links[] = $link;
+        }
+        $uri = entity_uri('relation', $relation);
+        $relation_link = l(t('Relation @rid', array('@rid' => $relation->rid)), $uri['path'], $uri['options']);
+        // Can't use #heading as it's mercilessly check_plain'd.
+        $element[$delta]['relation']['heading']['#markup'] = t('<h4>Part of !link</h4>', array('!link' => $relation_link));
+        $element[$delta]['relation']['heading']['#access'] = $display['type'] == 'relation_default';
+        $element[$delta]['relation']['links'] = array(
+          '#theme' => 'links',
+          '#links' => $links,
+        );
+      }
+      break;
+
+    case 'relation_natural':
+      $sentences = array();
+      foreach ($items as $delta => $item) {
+        list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+        $relation = (object) $item;
+        $relation_type = relation_type_load($relation->relation_type);
+
+        $subject = entity_label($entity_type, $entity) . ' '; // Subject of the sentence.
+        $subject_is_source = ($relation->endpoints[LANGUAGE_NONE]['0']['entity_id']) == $id ? TRUE : FALSE;
+        $count = 0; // For comma separation of objects.
+        $duplicate = FALSE; // To make sure duplicates of $entity get included in object list.
+        $objects = ''; // Comma separated list of entities that are the object of the sentence.
+        // Gramatical predicate of teh sentence.
+        $predicate = $relation_type->directional ? $relation_type->reverse_label : $relation_type->label;
+
+        foreach ($relation->endpoints[LANGUAGE_NONE] as $endpoint) {
+          // Add all entities that aren't this entity to the sentence $objects.
+          // Check for duplicates of the $subject first.
+          if ($endpoint['entity_type'] == $entity_type && $endpoint['entity_id'] == $id && $duplicate == FALSE) {
+            $duplicate = TRUE;
+            // Use the forward label as sentence predicate if r_index == 0.
+            // (only makes a difference if relation is directional).
+            if ($endpoint['r_index'] == 0) {
+              $predicate = ' ' . $relation_type->label;
+            }
+          }
+          else {
+            // If the relation is directional and the subject isn't the source,
+            // we want to list the source without any siblings. If it is
+            // directional and the subject is a source, list all targets.
+            // If non-directional, list everything as normal.
+            if (!$relation_type->directional || $subject_is_source || $endpoint['r_index'] == 0) {
+              $object_entities = entity_load($endpoint['entity_type'], array($endpoint['entity_id']));
+              $object_entity = reset($object_entities);
+              $object_label = entity_label($endpoint['entity_type'], $object_entity);
+              $object_uri = entity_uri($endpoint['entity_type'], $object_entity);
+              // Just add a space before the first element, comma and space before further ones.
+              $objects .= $count ? ', ' : ' ';
+              $count += 1;
+              $objects .= l($object_label, $object_uri['path']);
+            }
+          }
+        }
+        $element[$delta]['relation'] = array(
+          '#theme' => 'item_list',
+          '#items' => array($subject . $predicate . $objects),
+        );
+      }
+      break;
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_prepare_view().
+ */
+function relation_dummy_field_field_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays) {
+  foreach ($entities as $id => $entity) {
+    $relation_types = $instances[$id]['settings']['relation_type'];
+    $query = relation_query($entity_type, $id)->range(0, 50);
+    if ($relation_types) {
+      $query->entityCondition('bundle', $relation_types, 'IN');
+    }
+    $relation_ids = array_keys($query->execute());
+    // Who knows why but field does not like if the delta does not start at 0...
+    $items[$id] = array();
+    foreach (entity_load('relation', $relation_ids) as $relation) {
+      $items[$id][] = (array) $relation;
+    }
+  }
+}
