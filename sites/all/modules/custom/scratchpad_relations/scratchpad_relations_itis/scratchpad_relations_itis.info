@@ -1,5 +1,0 @@
-description = "Scratchpad relations ITIS fields"
-name = "Scratchpad relations ITIS"
-package = "Relation"
-core = "7.x"
-stylesheets[all][] = css/scratchpad_relations_itis.css

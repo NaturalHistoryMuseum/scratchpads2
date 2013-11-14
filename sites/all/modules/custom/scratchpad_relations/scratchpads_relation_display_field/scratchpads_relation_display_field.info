@@ -1,4 +1,0 @@
-name = Scratchpads relation custom display
-description = Display relation data.
-core = 7.x
-package = Relation
