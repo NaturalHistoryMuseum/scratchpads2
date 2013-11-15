@@ -76,13 +76,9 @@ function _tinytax_sort_terms($a, $b){
     // As we use 'valid' for default value, it may be that we have one as 'valid' and one as 'accepted'
     $a_usage = ($a_usage == 'valid' || $a_usage == 'accepted');
     $b_usage = ($b_usage == 'valid' || $b_usage == 'accepted');
-    if($a_usage == $b_usage){
-      return strcmp($a->name, $b->name);
-    }else{
-      return $a_usage ? 1 : -1;
-    }
+    if($a_usage != $b_usage){return $a_usage ? 1 : -1;}
   }
-  return strcmp($a->name, $b->name);
+  return strcasecmp($a->name, $b->name);
 }
 
 /**
