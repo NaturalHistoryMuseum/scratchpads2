@@ -1,0 +1,37 @@
+From f4ee25d71e647aac7fdb25c4c0beb770ca17d55a Mon Sep 17 00:00:00 2001
+From: Claudiu Cristea <clau.cristea@gmail.com>
+Date: Tue, 15 Nov 2011 19:56:35 +0200
+Subject: [PATCH] Issue #1342064 by claudiu.cristea: Fixed Test namespace
+ conflict.
+
+---
+ profile2.test |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/profile2.test b/profile2.test
+index 5f1b51c..825a767 100644
+--- a/profile2.test
++++ b/profile2.test
+@@ -3,12 +3,12 @@
+ /**
+  * Test basic CRUD functionality.
+  */
+-class ProfileCRUDTestCase extends DrupalWebTestCase {
++class Profile2CRUDTestCase extends DrupalWebTestCase {
+ 
+   public static function getInfo() {
+     return array(
+       'name' => 'Editing profiles',
+-      'description' => 'Tests basic CRUD and editing of profiles.',
++      'description' => 'Tests basic CRUD and editing of Profile2 profiles.',
+       'group' => 'Profile2',
+     );
+   }
+@@ -135,4 +135,3 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
+   }
+ 
+ }
+-
+-- 
+1.7.5.4
+
