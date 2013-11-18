@@ -325,6 +325,11 @@ function scratchpads_tweaks_install(){
   // Set the Honeypot settings
   variable_set('honeypot_form_user_register_form', 1);
   variable_set('boost_cacheability_pages', 'user/register');
+  // Spambot settings.
+  variable_set('spambot_criteria_ip', 5);
+  variable_set('spambot_criteria_username', 5);
+  variable_set('spambot_blacklisted_delay', 5);
+  variable_set('spambot_cron_user_limit', 10);
 }
 
 /**
@@ -1382,4 +1387,14 @@ function scratchpads_tweaks_update_7070(){
   module_enable(array(
     'varnish'
   ));
+}
+
+/**
+ * Make spambot a little more sensitive.
+ */
+function scratchpads_tweaks_update_7071(){
+  variable_set('spambot_criteria_ip', 5);
+  variable_set('spambot_criteria_username', 5);
+  variable_set('spambot_blacklisted_delay', 5);
+  variable_set('spambot_cron_user_limit', 10);
 }
