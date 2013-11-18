@@ -3,12 +3,12 @@
 /**
  * Test basic CRUD functionality.
  */
-class ProfileCRUDTestCase extends DrupalWebTestCase {
+class Profile2CRUDTestCase extends DrupalWebTestCase {
 
   public static function getInfo() {
     return array(
       'name' => 'Editing profiles',
-      'description' => 'Tests basic CRUD and editing of profiles.',
+      'description' => 'Tests basic CRUD and editing of Profile2 profiles.',
       'group' => 'Profile2',
     );
   }
