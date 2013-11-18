@@ -20,6 +20,11 @@ function theme_tinytax_block($variables){
     }
   }
   $toggle = variable_get('tinytax_hidden_field_and_value_' . $variables['vid'], array());
+  if(module_exists('relation_add')){
+    // FIXME - The toggle will not work when not loading the full term.  We
+    // therefore hide the toggle when the relation_add module is enabled.
+    $toggle = array();
+  }
   $toggle_form = '';
   if(count($toggle)){
     $toggle_form = '<form><input class="tinytax-toggle-checkbox" data-vid="' . $variables['vid'] . '" id="tinytax-toggle-' . $variables['vid'] . '" type="checkbox" value="0" name="tinytax_toggle_' . $variables['vid'] . '"/>
