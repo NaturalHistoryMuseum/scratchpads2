@@ -327,7 +327,7 @@ function scratchpads_tweaks_install(){
   variable_set('boost_cacheability_pages', 'user/register');
   // Spambot settings.
   variable_set('spambot_criteria_ip', 5);
-  variable_set('spambot_criteria_username', 5);
+  variable_set('spambot_criteria_username', 0);
   variable_set('spambot_blacklisted_delay', 5);
   variable_set('spambot_cron_user_limit', 10);
 }
@@ -1394,7 +1394,7 @@ function scratchpads_tweaks_update_7070(){
  */
 function scratchpads_tweaks_update_7071(){
   variable_set('spambot_criteria_ip', 5);
-  variable_set('spambot_criteria_username', 5);
+  variable_set('spambot_criteria_username', 0);
   variable_set('spambot_blacklisted_delay', 5);
   variable_set('spambot_cron_user_limit', 10);
 }
