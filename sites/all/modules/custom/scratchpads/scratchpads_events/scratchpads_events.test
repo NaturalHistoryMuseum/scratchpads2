@@ -24,20 +24,28 @@ class ScratchpadsEventsTestCase extends ScratchpadsTweaksTestCase{
   }
 
   /**
+   * A wrapper for all tests
+   */
+  function testWrapper(){
+    $this->verifyEventsBasic();
+    $this->verifyCreateAndViewEvent();
+  }
+
+  /**
    *  Test that event menu item exists
    */
-  function testEventsBasic(){
+  function verifyEventsBasic(){
     $this->drupalLogin($this->maintainer);
     $this->drupalGet('event');
     $this->assertResponse(200);
-    $this->assertText('Events ', "'Events' present on home page");
+    $this->assertText('Events', "'Events' present on events page");
     $this->assertRaw('view-event-calendar', 'Events calendar view present on events page');
   }
 
   /**
    * Create an event using the UI and see if it shows up on the events page
    */
-  function testCreateAndViewEvent(){
+  function verifyCreateAndViewEvent(){
     $this->drupalLogin($this->maintainer);
     $this->drupalGet('node/add/event');
     $edit = array();
