@@ -59,7 +59,7 @@ class GoogleScholarSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->driver->getElement("id=edit-submit")->click();
     $this->assertText('The configuration options have been saved.', 'Confirmation message shown when enabling tool.');
   }
-  
+
   function disableGoogleScholarTool(){
     $this->drupalGet('admin/structure/tools');
     $this->driver->getElement('css=.form-item-status-googlescholar .iphone_switch_container img')->click();
@@ -80,9 +80,8 @@ class GoogleScholarSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->clickLink('Literature');
     $this->driver->waitForElements("xpath=//*[text()[contains(.,'GOOGLE')]]");
     $this->assertText(strtoupper('Google Scholar'), 'Google Scholar header text present on on descriptions tab of taxonomy page');
-    
   }
-  
+
   function verifyNoGoogleScholar($vocab_name, $term_name){
     $this->drupalGet('');
     $this->clickLink($vocab_name);
@@ -90,7 +89,7 @@ class GoogleScholarSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->clickLink('Literature');
     $this->driver->sleep(1);
     $this->assertNoText(strtoupper('Google Scholar'), 'Google Scholar header text not present on on descriptions tab of taxonomy page, after disabling tool');
-     }
+  }
 
   /**
    * Create a vocabulary
@@ -109,8 +108,4 @@ class GoogleScholarSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     // Submit the form
     $this->driver->getElement("id=edit-submit")->click();
   }
-  
-  
- 
-  
 }
