@@ -42,6 +42,7 @@ class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
     $to_disable = array();
     $to_disable[] = 'captcha';
     module_disable($to_disable);
+    variable_set('honeypot_time_limit', 0);
     // Create users.
     $default_permissions = module_invoke_all('scratchpads_default_permissions');
     // Maintainer
