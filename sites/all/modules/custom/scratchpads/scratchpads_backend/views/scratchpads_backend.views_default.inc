@@ -2138,7 +2138,8 @@ function _scratchpads_backend_views_sort_by_label($array_to_sort){
   ksort($label_keyed);
   $final = array();
   foreach($label_keyed as $key => $element){
-    $final[key($element)] = array_shift(array_values($element));
+    $array_values = array_values($element);
+    $final[key($element)] = array_shift($array_values);
   }
   return array_merge($final, $other);
 }
