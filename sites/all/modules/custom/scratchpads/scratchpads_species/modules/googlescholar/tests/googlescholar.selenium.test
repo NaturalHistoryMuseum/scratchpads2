@@ -78,7 +78,7 @@ class GoogleScholarSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->clickLink($vocab_name);
     $this->driver->waitForElements("xpath=//*[text()[contains(.," . $term_name . ")]]");
     $this->clickLink('Literature');
-    $this->driver->waitForElements("xpath=//*[text()[contains(.,'GOOGLE')]]");
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Google Scholar')]]");
     $this->assertText(strtoupper('Google Scholar'), 'Google Scholar header text present on on descriptions tab of taxonomy page');
   }
 
