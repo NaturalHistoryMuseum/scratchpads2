@@ -22,7 +22,6 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
     $modules[] = 'darwincore';
     $modules[] = 'feeds_xls';
     parent::setUp($modules);
-    
   }
   // Specific page node data as specified in the page.xls file
   protected $page_data = array(
@@ -244,8 +243,8 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
           $this->assertFieldByName('field_homepage[' . $langcode . '][0][url]', $user_field_data, $key . ' field found and correctly set');
           break;
         case 'field_homepage_title':
-            $this->assertFieldByName('field_homepage[' . $langcode . '][0][title]', $user_field_data, $key . ' field found and correctly set');
-         break;
+          $this->assertFieldByName('field_homepage[' . $langcode . '][0][title]', $user_field_data, $key . ' field found and correctly set');
+          break;
         case 'field_user_title':
           $this->assertFieldByName('field_user_title[' . $langcode . '][0][select_other_list]', $user_field_data, $key . ' field found and correctly set');
           break;
@@ -299,12 +298,12 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
         case 'mail':
           $this->assertFieldByName('mail', $user_field_data, $key . ' field found and correctly set');
           break;
-       case 'field_homepage_url':
+        case 'field_homepage_url':
           $this->assertFieldByName('field_homepage[' . $langcode . '][0][url]', $user_field_data, $key . ' field found and correctly set');
           break;
         case 'field_homepage_title':
-            $this->assertFieldByName('field_homepage[' . $langcode . '][0][title]', $user_field_data, $key . ' field found and correctly set');
-         break;
+          $this->assertFieldByName('field_homepage[' . $langcode . '][0][title]', $user_field_data, $key . ' field found and correctly set');
+          break;
         case 'field_user_title':
           $this->assertFieldByName('field_user_title[' . $langcode . '][0][select_other_list]', $user_field_data, $key . ' field found and correctly set');
           break;
@@ -589,37 +588,3 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
     return $account;
   }
 }
-  
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
