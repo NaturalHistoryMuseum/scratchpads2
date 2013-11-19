@@ -1,4 +1,4 @@
-name = "Scratchpads Events"
+name = "Events"
 description = "Provides Events with list and calendar views"
 core = "7.x"
 package = "Events"
