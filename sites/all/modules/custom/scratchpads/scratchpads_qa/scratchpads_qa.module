@@ -22,6 +22,13 @@ function scratchpads_qa_menu(){
 }
 
 /**
+ * Implements hook_test_finished()
+ */
+function scratchpads_qa_test_finished($results){
+  variable_set('scratchpads_qa_last_test_time', time());
+}
+
+/**
  * Implements hook_block_info()
  */
 function scratchpads_qa_block_info(){
@@ -219,6 +226,7 @@ function scratchpads_qa_block_view($delta){
       $subquery->groupBy('test_class');
       $query->innerJoin($subquery, 'subquery', 'max_test_id = s.test_id AND subquery.test_class = s.test_class');
       $status = $query->groupBy('status')->execute()->fetchAllKeyed();
+      $scratchpads_qa_last_test_time = variable_get('scratchpads_qa_last_test_time', FALSE);
       return array(
         'subject' => t('Latest test results'),
         'content' => array(
@@ -274,6 +282,11 @@ function scratchpads_qa_block_view($delta){
                 )
               )
             )
+          ),
+          'time' => array(
+            '#markup' => $scratchpads_qa_last_test_time ? '<p>' . t('Last test run: !time', array(
+              '!time' => format_date($scratchpads_qa_last_test_time)
+            )) . '</p>' : ''
           )
         )
       );
