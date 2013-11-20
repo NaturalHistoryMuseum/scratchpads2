@@ -6,7 +6,7 @@
  */
 
 class LinkBaseTestClass extends DrupalWebTestCase {
-  public $permissions = array(
+  protected $permissions = array(
     'access content',
     'administer content types',
     'administer nodes',
@@ -17,21 +17,18 @@ class LinkBaseTestClass extends DrupalWebTestCase {
     'create page content',
   );
 
-  public $account;
-
-  function setUp($modules = array()) {
-    if ($modules) {
-      parent::setUp($modules);
-    }
-    else {
-      parent::setUp('field_ui', 'link');
-    }
-    $this->account = $this->drupalCreateUser($this->permissions);
-    $this->drupalLogin($this->account);
+  function setUp() {
+    $modules = func_get_args();
+    $modules = (isset($modules[0]) && is_array($modules[0]) ? $modules[0] : $modules);
+    $modules[] = 'field_ui';
+    $modules[] = 'link';
+    parent::setUp($modules);
+    
+    $this->web_user = $this->drupalCreateUser($this->permissions);
+    $this->drupalLogin($this->web_user);
   }
 
-  function createLinkField($node_type = 'page',
-                           $settings = array()) {
+  protected function createLinkField($node_type = 'page', $settings = array()) {
     $name = strtolower($this->randomName());
     $edit = array(
       'fields[_add_new_field][label]' => $name,
