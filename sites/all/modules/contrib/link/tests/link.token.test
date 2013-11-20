@@ -20,10 +20,7 @@ class LinkTokenTest extends LinkBaseTestClass {
   }
 
   function setUp($modules = array()) {
-    $modules[] = 'field_ui';
-    $modules[] = 'link';
-    $modules[] = 'token';
-    parent::setUp($modules);
+    parent::setUp(array('token'));
   }
 
   /**
@@ -31,9 +28,6 @@ class LinkTokenTest extends LinkBaseTestClass {
    * Creates a node with a token in the link title and checks the value.
    */
   function testUserTokenLinkCreate() {
-    /*$account = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
-    $this->drupalLogin($account);*/
-
     // create field
     $settings = array(
       'instance[settings][enable_tokens]' => 1,
@@ -52,7 +46,7 @@ class LinkTokenTest extends LinkBaseTestClass {
         'label' => $this->randomName(),
     );
 
-    //$this->drupalLogin($account);
+    //$this->drupalLogin($this->web_user);
     $this->drupalGet('node/add/page');
 
     $edit = array(
@@ -92,7 +86,7 @@ class LinkTokenTest extends LinkBaseTestClass {
       'href' => 'http://example.com/' . $this->randomName()
     );
 
-    //$this->drupalLogin($account);
+    //$this->drupalLogin($this->web_user);
     $this->drupalGet('node/add/page');
 
     $edit = array(
@@ -135,7 +129,7 @@ class LinkTokenTest extends LinkBaseTestClass {
       'href' => 'http://example.com/' . $this->randomName()
     );
 
-    //$this->drupalLogin($account);
+    //$this->drupalLogin($this->web_user);
     $this->drupalGet('node/add/page');
 
     $edit = array(
@@ -280,8 +274,8 @@ class LinkTokenTest extends LinkBaseTestClass {
    *  Trying to set the url to contain a token.
    */
   function _testUserTokenLinkCreateInURL() {
-    $account = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
-    $this->drupalLogin($account);
+    $this->web_user = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
+    $this->drupalLogin($this->web_user);
 
     // create field
     $name = strtolower($this->randomName());
@@ -310,7 +304,7 @@ class LinkTokenTest extends LinkBaseTestClass {
         'label' => $this->randomName(),
     );
 
-    $this->drupalLogin($account);
+    $this->drupalLogin($this->web_user);
     $this->drupalGet('node/add/page');
 
     $edit = array(
@@ -333,8 +327,8 @@ class LinkTokenTest extends LinkBaseTestClass {
    *  Trying to set the url to contain a token.
    */
   function _testUserTokenLinkCreateInURL2() {
-    $account = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
-    $this->drupalLogin($account);
+    $this->web_user = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
+    $this->drupalLogin($this->web_user);
 
     // create field
     $name = strtolower($this->randomName());
@@ -363,7 +357,7 @@ class LinkTokenTest extends LinkBaseTestClass {
         'label' => $this->randomName(),
     );
 
-    $this->drupalLogin($account);
+    $this->drupalLogin($this->web_user);
     $this->drupalGet('node/add/page');
 
     $edit = array(
@@ -378,6 +372,6 @@ class LinkTokenTest extends LinkBaseTestClass {
     $this->drupalLogout();
     $this->drupalGet($url);
 
-    $this->assertRaw(l($input['label'], $input['href'] .'/'. $account->uid));
+    $this->assertRaw(l($input['label'], $input['href'] .'/'. $this->web_user->uid));
   }
 }
