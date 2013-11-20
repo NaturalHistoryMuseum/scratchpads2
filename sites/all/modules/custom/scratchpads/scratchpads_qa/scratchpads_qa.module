@@ -284,9 +284,9 @@ function scratchpads_qa_block_view($delta){
             )
           ),
           'time' => array(
-            '#markup' => $scratchpads_qa_last_test_time ? '<p>' . t('Last test run: !time', array(
+            '#markup' => $scratchpads_qa_last_test_time ? '<h2 class="block-title">' . t('Last test run:<br/>!time', array(
               '!time' => format_date($scratchpads_qa_last_test_time)
-            )) . '</p>' : ''
+            )) . '</h2>' : ''
           )
         )
       );
