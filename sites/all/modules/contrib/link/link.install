@@ -18,20 +18,21 @@ function link_field_schema($field) {
     'columns' => array(
       'url' => array(
         'type' => 'varchar',
-        'length' => 2048, // Maximum URLs length.
+        // Maximum URLs length.
+        'length' => 2048,
         'not null' => FALSE,
-        'sortable' => TRUE
+        'sortable' => TRUE,
       ),
       'title' => array(
         'type' => 'varchar',
         'length' => 255,
         'not null' => FALSE,
-        'sortable' => TRUE
+        'sortable' => TRUE,
       ),
       'attributes' => array(
         'type' => 'text',
         'size' => 'medium',
-        'not null' => FALSE
+        'not null' => FALSE,
       ),
     ),
   );
@@ -87,8 +88,7 @@ function link_update_7000() {
  * Renames all displays from foobar to link_foobar
  */
 function link_update_7001() {
-  // for each field that is a link field, we need to update the display types:
-  
+  // Update the display type for each link field type.
   $result = db_query("SELECT id, field_name, data FROM {field_config} WHERE module = 'link' AND type = 'link_field'");
   foreach ($result as $field) {
     $field_id = $field->id;
@@ -102,13 +102,12 @@ function link_update_7001() {
       $update_instance = FALSE;
       foreach ($instance_data['display'] as $display_name => $display_data) {
         if ($display_data['type'] && (0 !== strpos($display_data['type'], 'link_'))) {
-          $instance_data['display'][$display_name]['type'] = 'link_'. $display_data['type'];
+          $instance_data['display'][$display_name]['type'] = 'link_' . $display_data['type'];
           $update_instance = TRUE;
         }
       }
       if ($update_instance) {
-        // update the database.
-        $num_updated = db_update('field_config_instance')
+        db_update('field_config_instance')
           ->fields(array('data' => serialize($instance_data)))
           ->condition('id', $instance->id)
           ->execute();

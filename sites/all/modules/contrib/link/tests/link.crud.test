@@ -16,8 +16,7 @@ class LinkContentCrudTest extends DrupalWebTestCase {
   }
 
   function setUp() {
-    parent::setUp('field_ui', 'link'); // was views?
-    //$this->loginWithPermissions();
+    parent::setUp('field_ui', 'link');
   }
 
   /**
@@ -30,14 +29,13 @@ class LinkContentCrudTest extends DrupalWebTestCase {
     $title = $this->randomName(20);
 
     // Create and login user.
-    $account = $this->drupalCreateUser(array('administer content types'));
-    $this->drupalLogin($account);
+    $this->web_user = $this->drupalCreateUser(array('administer content types'));
+    $this->drupalLogin($this->web_user);
 
     $this->drupalGet('admin/structure/types');
 
     // Create the content type.
     $this->clickLink(t('Add content type'));
-
 
     $edit = array (
       'name' => $content_type_friendly,
@@ -55,7 +53,6 @@ class LinkContentCrudTest extends DrupalWebTestCase {
       'fields[_add_new_field][field_name]' => $single_field_name_machine,
       'fields[_add_new_field][type]' => 'link_field',
       'fields[_add_new_field][widget_type]' => 'link_field',
-
     );
     $this->drupalPost(NULL, $edit, t('Save'));
 
