@@ -354,7 +354,7 @@ class LinkValidateSpecificURL extends LinkValidateTestCase {
  *
  * Validation is guided by the rules in http://tools.ietf.org/html/rfc1738 !
  */
-class LinkValidateUrlLight extends DrupalWebTestCase {
+class LinkValidateUrlLight extends LinkBaseTestClass {
 
   public static function getInfo() {
     return array(
