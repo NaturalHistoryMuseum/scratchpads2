@@ -202,12 +202,12 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
   function _autocompleteTest($field_name, $firstletter, $expected = NULL){
     $element = $this->driver->getElement("name=" . $field_name);
     $element->sendKeys($firstletter);
+    $this->driver->sleep(2);
     // Ensure autocomplete element appeared.
-    $this->driver->waitForElements('id=autocomplete');
-    $autocomplete_element = $this->driver->getElement('id=autocomplete');
+    $autocomplete_element = current($this->driver->waitForVisibleElements('id=autocomplete'));
+    $this->assertTrue($autocomplete_element->isVisible(), t('Autocomplete element is visible on the page.'));
     // Get first elements of autocomplete list and click on it.
     $first_element = current($this->driver->getAllElements('css=#autocomplete li div'));
-    $first_element_text = $first_element->getText();
     // Click is to select line item.
     $first_element->click();
     // Submit selected line item.
