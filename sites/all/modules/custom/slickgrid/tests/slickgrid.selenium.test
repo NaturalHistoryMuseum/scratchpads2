@@ -167,6 +167,7 @@ class SlickgridSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->driver->sleep(2);
     // Attempt to view this edited page view
     $this->drupalGet('admin/content/page');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $edited_title . ")]]");
     $this->assertLink($edited_title, 0, 'Page title successfully updated using slickgrid editor');
     // Keep the data array up to date
     $data[0]['title'] = $edited_title;
@@ -195,6 +196,7 @@ class SlickgridSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->driver->sleep(2);
     // Attempt to view this edited page view
     $this->drupalGet('admin/content/page');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $data[0]['title'] . ")]]");
     $this->clickLink($data[0]['title']);
     $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
     $this->clickLink('Edit');
@@ -229,6 +231,7 @@ class SlickgridSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     // Test that all body fields have been updated   
     foreach($data as $node){
       $this->drupalGet('admin/content/page');
+      $this->driver->waitForElements("xpath=//*[text()[contains(.," . $node['title'] . ")]]");
       $this->clickLink($node['title']);
       // Wait for page to load
       $this->driver->waitForElements("xpath=//*[text()[contains(.," . $edited_body . ")]]");
