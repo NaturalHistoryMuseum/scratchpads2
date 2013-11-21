@@ -91,10 +91,14 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->driver->waitForElements("xpath=//*[text()='+ Point']");
     $element = $this->driver->getElement("xpath=//*[text()='+ Point']");
     $element->click();
+    $this->verboseScreenshot();
     $this->assertTrue(true, 'Point clicked');
     // Click on the map (We click in the centre of the first image within the map)
     // Wait for map to load
-    $images = $this->waitLongForElementsToBeVisible("css=#field_map img", 'google map', 60);
+    $this->verboseScreenshot();
+    $this->driver->sleep(5);
+    $images = $this->waitLongForElements("css=#field_map img", 60);
+    $this->verboseScreenshot();
     $images[0]->click();
     $this->assertTrue(true, 'Map clicked');
     $this->verboseScreenshot();
