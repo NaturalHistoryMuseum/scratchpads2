@@ -9,7 +9,7 @@ if(!class_exists('DrupalSeleniumWebTestCase')){
   return;
 }
 
-class DarwincoreModuleSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
 
   public static function getInfo(){
     return array(
