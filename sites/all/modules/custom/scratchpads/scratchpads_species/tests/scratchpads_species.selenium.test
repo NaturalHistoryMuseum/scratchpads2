@@ -38,7 +38,7 @@ class ScratchpadsSpeciesSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCa
     if($success){
       $this->verifyTabs($vocab_name);
       $this->verifyTaxonDescription($vocab_name);
-      $this->verifySpecimen($vocab_name);
+      $this->verifySpecimen($vocab_name, 'Pediculus');
       $this->verifyLiterature($vocab_name);
     }
   }
@@ -81,7 +81,7 @@ class ScratchpadsSpeciesSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCa
     $this->driver->getElement("id=edit-submit")->click();
     $this->drupalGet('');
     $this->clickLink($vocab_name);
-    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$general_description.")]]");
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $general_description . ")]]");
     $this->assertText($general_description, 'General description shown on species page');
     // Click tab
     $this->clickLink('Descriptions');
@@ -95,7 +95,7 @@ class ScratchpadsSpeciesSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCa
    * - Verify that it shows up on the species page
    * - Verfiy that a map shows up under the map tab
    */
-  function verifySpecimen($vocab_name){
+  function verifySpecimen($vocab_name, $term_name){
     $this->drupalGet('node/add/specimen-observation');
     // Required fields
     $field_basis_of_record = 'Fossil Specimen';
@@ -123,15 +123,15 @@ class ScratchpadsSpeciesSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCa
     $this->driver->getElement("id=edit-submit")->click();
     $this->drupalGet('');
     $this->clickLink($vocab_name);
-    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Specimens')]]");
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $term_name . ")]]");
     // Click tab
     $this->clickLink('Specimens');
     // Wait for the slickgrid to load
-    $this->driver->sleep(3);
+    $this->driver->sleep(5);
     $this->assertText($field_basis_of_record, "Specimen shown after clicking 'Specimens' tab");
     $this->clickLink('Maps');
     // Wait for the slickgrid to load
-    $this->driver->sleep(2);
+    $this->driver->sleep(5);
     $this->assertRaw('gm3-map', "Map shown after clicking 'Maps' tab");
   }
 
@@ -167,7 +167,7 @@ class ScratchpadsSpeciesSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCa
     $this->driver->waitForElements("xpath=//*[text()[contains(.,'Literature')]]");
     $this->clickLink('Literature');
     // Wait for page to load
-    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$journal_title.")]]");
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $journal_title . ")]]");
     $this->assertText($journal_title, "Biblio title shown after clicking 'Literature' tab");
   }
 
