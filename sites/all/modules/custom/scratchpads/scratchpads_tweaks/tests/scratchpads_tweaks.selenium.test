@@ -17,9 +17,8 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
   protected $maintainer;
 
   protected $profile = 'scratchpad_2';
-  
   // Set to false to use the default settings
-  protected $solr_server_url = false;//'http://localhost:8983/solr';
+  protected $solr_server_url = false; //'http://localhost:8983/solr';
 
   public static function getInfo(){
     return array(
@@ -58,7 +57,7 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $to_disable[] = 'overlay';
     $to_disable[] = 'captcha';
     module_disable($to_disable);
-    $default_permissions = module_invoke_all('scratchpads_default_permissions');    
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
     // Maintainer
     $maintainer_permissions = $default_permissions['maintainer'];
     $maintainer_permissions[] = 'access content';
@@ -68,7 +67,6 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $maintainer_permissions[] = 'access dashboard';
     $maintainer_permissions[] = 'delete all file';
     $maintainer_permissions[] = 'edit all file';
-  
     $this->maintainer = $this->drupalCreateUserWithName($maintainer_permissions, 'maintainer_name');
     legal_save_accept(1, 1, 'en', $this->maintainer->uid);
     $this->basic_user = $this->drupalCreateUserWithName(array(
@@ -205,8 +203,8 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $element = $this->driver->getElement("name=" . $field_name);
     $element->sendKeys($firstletter);
     // Ensure autocomplete element appeared.
-    $autocomplete_element = current($this->driver->waitForVisibleElements('id=autocomplete'));
-    $this->assertTrue($autocomplete_element->isVisible(), t('Autocomplete element is visible on the page.'));
+    $this->driver->waitForElements('id=autocomplete');
+    $autocomplete_element = $this->driver->getElement('id=autocomplete');
     // Get first elements of autocomplete list and click on it.
     $first_element = current($this->driver->getAllElements('css=#autocomplete li div'));
     $first_element_text = $first_element->getText();
@@ -343,29 +341,28 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
     $elements = array();
     $this->driver->openUrl('');
     // Wait for positive search result, retrying every 20 seconds
-    while($timeout > 0 && empty($elements)){     
+    while($timeout > 0 && empty($elements)){
       $element = $this->driver->getElement("name=search_block_form");
       $element->clear();
       $element->sendKeys($search_text);
       $this->driver->getElement('id=edit-submit')->click();
       $this->driver->sleep(20);
       $this->verboseScreenshot();
-      $elements = $this->driver->getAllElements("xpath=//ol[@class='search-results apachesolr_search-results' and ./li[contains(.,'".$result_text."')]]");
+      $elements = $this->driver->getAllElements("xpath=//ol[@class='search-results apachesolr_search-results' and ./li[contains(.,'" . $result_text . "')]]");
       $timeout--;
     }
-    $total_wait = ($orig - $timeout) * 20;   
-    if (empty($elements)){
-      $string = 'Solr indexing does not appear to be working on this site. Total wait: ' . strval($total_wait) . ' seconds. Attempted with '. $this->solr_server_url;
+    $total_wait = ($orig - $timeout) * 20;
+    if(empty($elements)){
+      $string = 'Solr indexing does not appear to be working on this site. Total wait: ' . strval($total_wait) . ' seconds. Attempted with ' . $this->solr_server_url;
       $this->assertTrue(false, $string);
       return false;
-    }
-    else{
+    }else{
       $string = 'Solr successfully indexed after: ' . strval($total_wait) . ' seconds';
       $this->assertTrue($timeout > 0, $string);
       return true;
     }
   }
-  
+
   /**
    *  Set up the site to use the solr url given by $solr_server_url
    *  
@@ -383,7 +380,7 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
       $this->assertText('The Scratchpad solr server search environment has been saved.');
     }
   }
-  
+
   /**
    * Wait for element for a specified length of time
    * @param string $locator
