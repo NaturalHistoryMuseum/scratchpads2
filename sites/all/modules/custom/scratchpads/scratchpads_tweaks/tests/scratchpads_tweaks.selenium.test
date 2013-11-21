@@ -390,15 +390,42 @@ class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
   public function waitLongForElements($locator, $timeout){
     $elements = array();
     $orig = $timeout;
-    // Wait for elements, reloading page every 20 seconds
+    // Wait for elements
     while($timeout > 0 && empty($elements)){
-      // We avoid drupalGet() as we don't want the verbose messages
       $elements = $this->driver->getAllElements($locator);
       $this->driver->sleep(1);
       $timeout--;
     }
     $total_wait = $orig - $timeout;
     $string = 'Element found after: ' . strval($total_wait) . ' seconds';
+    $this->assertTrue($timeout > 0, $string);
+    return $elements;
+  }
+  
+  /**
+   * Wait for element to be visible for a specified length of time
+   * @param string $locator
+   * @param string $locator_name - a human readable form for verbose messages
+   * @param int $timeout
+   * @return array of SeleniumWebElements
+   */
+  public function waitLongForElementsToBeVisible($locator, $locator_name, $timeout){
+    $elements = array();
+    $is_visible = false;
+    $orig = $timeout;
+    // Wait for element to be visible
+    while($timeout > 0 && ($is_visible==false)){
+      $elements = $this->driver->getAllElements($locator);
+      $this->driver->sleep(1);
+      $timeout--;
+      if(!empty($elements)){
+        if($elements[0]->isVisible()){
+          $is_visible = true;
+        }
+      }
+    }
+    $total_wait = $orig - $timeout;
+    $string = 'Visible element, '.$locator_name.', found after: ' . strval($total_wait) . ' seconds';
     $this->assertTrue($timeout > 0, $string);
     return $elements;
   }

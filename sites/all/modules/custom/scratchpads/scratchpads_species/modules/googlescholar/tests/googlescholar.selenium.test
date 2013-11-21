@@ -68,7 +68,7 @@ class GoogleScholarSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->driver->getElement("id=edit-submit")->click();
     // Wait for page to load
     $this->driver->waitForElements("xpath=//*[text()[contains(.,'Are you sure')]]");
-    $this->assertText('Are you sure you want to disable Google Scholar Widget?', "'Are you sure?', message shown.");
+    $this->assertText('Are you sure you want to disable Google Scholar Widget?', "'Are you sure?', message shown when disabling Google Scholar");
     $this->driver->getElement("id=edit-submit")->click();
     $this->assertText('The configuration options have been saved.', 'Confirmation message shown when disabling Google Scholar Widget tool.');
   }
@@ -79,7 +79,7 @@ class GoogleScholarSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->driver->waitForElements("xpath=//*[text()[contains(.," . $term_name . ")]]");
     $this->clickLink('Literature');
     $this->driver->waitForElements("xpath=//*[text()[contains(.,'Google Scholar')]]");
-    $this->assertText(strtoupper('Google Scholar'), 'Google Scholar header text present on on descriptions tab of taxonomy page');
+    $this->assertText('Google Scholar', 'Google Scholar header text present on on Literature tab of taxonomy page');
   }
 
   function verifyNoGoogleScholar($vocab_name, $term_name){
@@ -88,7 +88,7 @@ class GoogleScholarSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->driver->waitForElements("xpath=//*[text()[contains(.," . $term_name . ")]]");
     $this->clickLink('Literature');
     $this->driver->sleep(1);
-    $this->assertNoText(strtoupper('Google Scholar'), 'Google Scholar header text not present on on descriptions tab of taxonomy page, after disabling tool');
+    $this->assertNoText('Google Scholar', 'Google Scholar header text not present on on Literature tab of taxonomy page, after disabling tool');
   }
 
   /**

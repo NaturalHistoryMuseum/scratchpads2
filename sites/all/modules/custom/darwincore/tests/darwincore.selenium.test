@@ -9,7 +9,7 @@ if(!class_exists('DrupalSeleniumWebTestCase')){
   return;
 }
 
-class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+class DarwincoreModuleSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
 
   public static function getInfo(){
     return array(
@@ -94,7 +94,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->assertTrue(true, 'Point clicked');
     // Click on the map (We click in the centre of the first image within the map)
     // Wait for map to load
-    $images = $this->waitLongForElements("css=#field_map img", 60);
+    $images = $this->waitLongForElementsToBeVisible("css=#field_map img", 'google map', 60);
     $images[0]->click();
     $this->assertTrue(true, 'Map clicked');
     $this->verboseScreenshot();
