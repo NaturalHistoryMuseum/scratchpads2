@@ -148,21 +148,7 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
     'guid' => 'G11'
   );
 
-  /**
-   * A wrapper containing all node import tests
-   */
-  // Need to make tests for updates as well as new data.
-  // Test with empty fields (non required)
-  function testNodeImports(){
-    $this->drupalLogin($this->maintainer);
-    $this->validateXlsPageImport();
-    $this->validateXlsLocationImport();
-    //  create a term for a biological vocabulary so that we can reference it in imports
-    $tid = $this->createTerm('myterm');
-    $this->validateXlsPageImportWithTerm($tid);
-    $this->validateXlsSpecimenObservationImportBasic();
-    $this->validateXlsSpecimenObservationImportWithUsersAndTerms($tid);
-  }
+  
 
   /**
    *  A wrapper for all user import tests
@@ -175,6 +161,20 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
     $this->validateXlsUserUpdate();
     // Test users with no username, email or password
     $this->validateXlsUserImportNoLogin();
+  }
+  
+  /**
+   * A wrapper containing all node import tests
+   */
+  function testNodeImports(){
+    $this->drupalLogin($this->maintainer);
+    //  create a term for a biological vocabulary so that we can reference it in imports
+    $tid = $this->createTerm('myterm'); 
+    $this->validateXlsLocationImport();
+    $this->validateXlsPageImport();
+    $this->validateXlsPageImportWithTerm($tid);
+    $this->validateXlsSpecimenObservationImportBasic();
+    $this->validateXlsSpecimenObservationImportWithUsersAndTerms($tid);
   }
 
   /**

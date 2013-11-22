@@ -374,12 +374,12 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   function verifyEditLocation($location_title){
     $this->drupalGet('admin/content');
     $this->clickLink('Location');
-    $this->sleep(3);
+    $this->driver->sleep(3);
     $this->driver->waitForElements("xpath=//*[text()=" . $location_title . "]");
     $this->clickLink($location_title);
     $this->driver->waitForElements("xpath=//*[text()='Edit']");
     $this->clickLink('Edit');
-    $this->sleep(3);
+    $this->driver->sleep(3);
     // We edit some fields
     $field_data = array(
       'field_coordinate_system' => $this->randomName(),
