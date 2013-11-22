@@ -474,8 +474,8 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    * Delete a location node and check that it has been deleted
    */
   function verifyDeleteLocation($location_title){
-    $this->drupalGet('admin/content');
-    $this->clickLink('Location');
+    $this->drupalGet('admin/content/location');
+    $this->driver->sleep(2);
     $this->driver->waitForElements("xpath=//*[text()[contains(.," . $location_title . ")]]");
     $this->verboseScreenshot();
     $this->clickLink($location_title);
@@ -492,8 +492,8 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->assertText(t('Location @loc has been deleted', array(
       '@loc' => $location_title
     )));
-    $this->drupalGet('admin/content');
-    $this->clickLink('Location');
+    $this->drupalGet('admin/content/location');
+    $this->driver->sleep(2);
     $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.," . $location_title . ")]]");
     $this->verboseScreenshot();
     $this->assertNoLink($location_title, 'Deleted location node not present on admin/content/location page');
@@ -503,8 +503,8 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    * Delete a Specimen/Observation node and check that it has been deleted
    */
   function verifyDeleteSpecimenObservation($specimen_observation_title){
-    $this->drupalGet('admin/content');
-    $this->clickLink('Specimen/Observation');
+    $this->drupalGet('admin/content/specimen_observation');
+    $this->driver->sleep(2);
     $this->driver->waitForElements("xpath=//*[text()[contains(.," . $specimen_observation_title . ")]]");
     $this->clickLink($specimen_observation_title);
     $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
@@ -520,8 +520,8 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->assertText(t('Specimen/Observation @loc has been deleted', array(
       '@loc' => $specimen_observation_title
     )));
-    $this->drupalGet('admin/content');
-    $this->clickLink('Specimen/Observation');
+    $this->drupalGet('admin/content/specimen_observation');
+    $this->driver->sleep(2);
     $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.," . $specimen_observation_title . ")]]");
     $this->verboseScreenshot();
     $this->assertNoLink($specimen_observation_title, 'Deleted Specimen/Observation node not present on admin/content/specimen_observation page');
