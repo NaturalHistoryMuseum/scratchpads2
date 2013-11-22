@@ -119,30 +119,30 @@ class ScratchpadsViewsFilterSeleniumTestCase extends ScratchpadsTweaksSeleniumTe
     // Assert that the result shows the title and user
     $element->selectLabel('Body');
     $this->clickLink('Add Filter');
-    $this->driver->sleep(2);
+    $this->driver->sleep(5);
     $this->driver->waitForVisibleElements("name=body_value");
     $element = $this->driver->getElement("name=body_value");
     $element->clear();
     $element->sendKeys($data['maintainer'][0]['body']);
-    $this->driver->sleep(2);
+    $this->driver->sleep(5);
     $this->driver->getElement("id=edit-submit-admin-vbo-node-page")->click();
-    $this->driver->sleep(3);
+    $this->driver->sleep(5);
     $this->assertText($data['maintainer'][0]['title'], 'Correct title shown after filtering');
     $this->assertNoText($data['maintainer'][1]['title'], 'Other title correctly not shown after filtering');
     $this->assertText($this->maintainer->name, 'Correct user name shown after filtering');
     // Remove filter and check that filter has gone
     $this->clickLink('Remove Filter');
-    $this->driver->sleep(2);
+    $this->driver->sleep(5);
     $this->driver->waitForElements("xpath=//*[text()[contains(.,'to view changes')]]");
     $this->assertText("Click 'Apply' to view changes.", "Message shown after clicking 'Remove Filter'");
     // Click the apply button
     $this->driver->getElement("id=edit-submit-admin-vbo-node-page")->click();
-    $this->driver->sleep(2);
+    $this->driver->sleep(5);
     // Filter again, this time changing the filter to 'Title'
     $element = $this->driver->getElement("id=edit-selected");
     $element->selectLabel('Title');
     $this->clickLink('Add Filter');
-    $this->driver->sleep(2);
+    $this->driver->sleep(5);
     $this->driver->waitForVisibleElements("name=title");
     $element = $this->driver->getElement("name=title");
     $element->clear();
@@ -155,33 +155,33 @@ class ScratchpadsViewsFilterSeleniumTestCase extends ScratchpadsTweaksSeleniumTe
     $element->selectLabel('Is equal to');
     $this->driver->waitForElements("id=edit-submit-admin-vbo-node-page");
     $this->driver->getElement("id=edit-submit-admin-vbo-node-page")->click();
-    $this->driver->sleep(3);
+    $this->driver->sleep(5);
     $this->assertNoText($data['maintainer'][0]['title'], "Title correctly not shown after filtering with 'Is equal to'");
     // Filter again using 'starts with', and verify that there is one correct result
     $element = $this->driver->getElement("id=edit-title-op");
     $element->selectLabel('Starts with');
     $this->driver->getElement("id=edit-submit-admin-vbo-node-page")->click();
-    $this->driver->sleep(3);
+    $this->driver->sleep(5);
     $this->verboseScreenshot();
     $this->assertText($data['maintainer'][0]['title'], "Title correctly shown after filtering with 'Starts with'");
     // Reset the filter
     $this->clickLink('Reset Form');
-    $this->driver->sleep(2);
+    $this->driver->sleep(5);
     // Filter by taxonomy  
     $this->driver->waitForElements("id=edit-selected");
     $element = $this->driver->getElement("id=edit-selected");
     $element->selectLabel($data['vocabulary_name']);
     $this->clickLink('Add Filter');
-    $this->driver->sleep(2);
+    $this->driver->sleep(5);
     $this->driver->waitForVisibleElements("name=tid");
     $element = $this->driver->getElement("name=tid");
     $element->clear();
     $filter_term = $data['maintainer'][0]['term'];
     $element->sendKeys($filter_term);
-    $this->driver->sleep(2);
+    $this->driver->sleep(5);
     // Verfiy that the taxonomy filter works as expected
     $this->driver->getElement("id=edit-submit-admin-vbo-node-page")->click();
-    $this->driver->sleep(3);
+    $this->driver->sleep(5);
     // Look for all items in the data array with chosen taxonomy term
     // Assert that only correct titles are visible after filtering   
     foreach($data['maintainer'] as $page_data){

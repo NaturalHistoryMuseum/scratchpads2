@@ -24,36 +24,45 @@ class ScratchpadsHelpTestCase extends ScratchpadsTweaksTestCase{
   }
 
   /**
-   * Tests block_info() for the scratchpads help module.
+   * A wrapper for all tests in this class
    */
-  public function testBlockInfo(){
-    $info = module_invoke('scratchpads_help', 'block_info');
-    $this->assertEqual(1, count($info), t('Module defines a block'));
-    $this->assertTrue(isset($info['scratchpads_help']), t('Scratchpads help block exists.'));
+  function testWrapper(){
+    $this->verifyBlockInfoAndBlockView();
+    $this->verifyScratchpadsHelpShowsUp();
+    $this->verifyScratchpadsHelpTimeVariable();
   }
 
   /**
-   * Tests block_view() for the scratchpads help module.
+   * Tests block_info() and block_view() for the scratchpads help module.
    */
-  public function testBlockView(){
+  public function verifyBlockInfoAndBlockView(){
+    // block info
+    $info = module_invoke('scratchpads_help', 'block_info');
+    $this->assertEqual(1, count($info), t('Module defines a block'));
+    $this->assertTrue(isset($info['scratchpads_help']), t('Scratchpads help block exists.'));
+    // block view
     $data = module_invoke('scratchpads_help', 'block_view', 'scratchpads_help');
     $this->assertTrue(is_array($data), t('Block returns renderable array.'));
   }
 
   /**
+   * Change the admin theme to 'scratchpads_admin' (if it is not already)
    * Tests that the help block shows up where it should
    */
-  public function testScratchpadsHelpShowsUp(){
+  public function verifyScratchpadsHelpShowsUp(){
     $this->drupalLogin($this->maintainer);
+    // ensure that we are using the scratchpads_admin theme  
+    variable_set('admin_theme', 'scratchpads_admin');
     $this->drupalGet('admin/content/page');
     $this->assertRaw('Additional help can be found on the following <a href="http://help.scratchpads.eu/">Help</a>', 'Help block found on admin/content/page');
     $this->drupalGet('');
     $this->assertNoRaw('Additional help can be found on the following <a href="http://help.scratchpads.eu/">Help</a>', 'Help block not displayed on home page');
   }
-  /*
+
+  /**
    * Tests that the 'scratchpads_help_last_update' variable is set on cron run
    */
-  public function testScratchpadsHelpTimeVariable(){
+  public function verifyScratchpadsHelpTimeVariable(){
     $time1 = 100;
     variable_set('scratchpads_help_last_update', $time1);
     // This is very slow

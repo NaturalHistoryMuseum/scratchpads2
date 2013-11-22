@@ -374,10 +374,12 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   function verifyEditLocation($location_title){
     $this->drupalGet('admin/content');
     $this->clickLink('Location');
+    $this->sleep(3);
     $this->driver->waitForElements("xpath=//*[text()=" . $location_title . "]");
     $this->clickLink($location_title);
     $this->driver->waitForElements("xpath=//*[text()='Edit']");
     $this->clickLink('Edit');
+    $this->sleep(3);
     // We edit some fields
     $field_data = array(
       'field_coordinate_system' => $this->randomName(),
@@ -451,6 +453,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     // Submit the form
     $submit_button = $this->driver->getElement("id=edit-submit");
     $submit_button->click();
+    $this->driver->sleep(4);
     // Check that the title has been updated with the new values
     $this->assertText('Specimen/Observation ' . $field_data['field_institution_code'] . ' - ' . $field_data['field_collection_code'] . ' - ' . $field_data['field_catalogue_number'] . ' has been updated.', 'Specimen/Observation node successfully updated.');
     foreach($field_data as $field => $value){
