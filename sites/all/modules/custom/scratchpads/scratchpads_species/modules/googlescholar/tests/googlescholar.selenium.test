@@ -40,6 +40,8 @@ class GoogleScholarSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     // Import taxonomy from EOL.
     $success = $this->importTaxonomy($vocab_name, $term_name);
     if($success){
+      // make sure that we are using the scratchpads theme
+      variable_set('theme_default', 'scratchpads');
       // Enable GoogleScholar on the tools page
       $this->enableGoogleScholarTool();
       // Verify that the GoogleScholar information shows up on the taxonomy page, under descriptions
@@ -74,6 +76,10 @@ class GoogleScholarSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   }
 
   function verifyGoogleScholar($vocab_name, $term_name){
+    
+    
+   
+    
     $this->drupalGet('');
     $this->clickLink($vocab_name);
     $this->driver->waitForElements("xpath=//*[text()[contains(.," . $term_name . ")]]");
@@ -83,6 +89,7 @@ class GoogleScholarSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   }
 
   function verifyNoGoogleScholar($vocab_name, $term_name){
+    variable_set('theme_default', 'bartik');
     $this->drupalGet('');
     $this->clickLink($vocab_name);
     $this->driver->waitForElements("xpath=//*[text()[contains(.," . $term_name . ")]]");

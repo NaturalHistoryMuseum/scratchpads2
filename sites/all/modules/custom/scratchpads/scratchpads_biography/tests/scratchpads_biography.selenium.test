@@ -40,6 +40,8 @@ class ScratchpadsBiographySeleniumTestCase extends ScratchpadsTweaksSeleniumTest
     $this->drupalLogin($this->maintainer);
     $this->enableBiographyTool();
     $this->checkForBiographyFields();
+    // ensure that we are using the scratchpads_admin theme
+    variable_set('admin_theme', 'scratchpads_admin');
     // Create public user
     $this->createBiographyAccount(true, true);
     // Create private user

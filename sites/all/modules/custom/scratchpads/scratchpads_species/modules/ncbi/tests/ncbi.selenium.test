@@ -40,6 +40,8 @@ class NcbiSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     // Import taxonomy from EOL.
     $success = $this->importTaxonomy($vocab_name, $term_name);
     if($success){
+      // make sure that we are using the scratchpads theme
+      variable_set('theme_default', 'scratchpads');
       // Enable NCBI on the tools page
       $this->enableNcbiTool();
       // Verify that the ncbi information shows up on the taxonomy page, under descriptions

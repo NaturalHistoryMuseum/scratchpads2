@@ -284,7 +284,7 @@ class SlickgridSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     // Click the add page link
     $this->driver->getElement('css=#slickgrid-add a')->click();
     // Wait for pop-up to appear
-    $this->driver->waitForElements('css=.popups-container');
+    $this->driver->sleep(5);
     // Fill out the form to add a page
     $title = $this->randomName();
     $body = $this->randomName();

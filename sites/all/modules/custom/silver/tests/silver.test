@@ -195,7 +195,6 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
     $tid = $this->createTerm($term_name);
     // navigate to the importer
     $path_to_importer = "import/taxonomy_importer_" . $term_name;
-    $langcode = 'und';
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/taxonomy.xls');
     $this->drupalPost($path_to_importer, array(
       'feeds[FeedsHTTPFetcher][source]' => $rpath
@@ -214,7 +213,6 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
    * 
     */
   function validateXlsUserImport(){
-    $langcode = 'und';
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/users.xls');
     $this->drupalPost('import/user_importer_user', array(
       'files[feeds]' => $rpath
@@ -240,19 +238,19 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
           $this->assertFieldByName('mail', $user_field_data, $key . ' field found and correctly set');
           break;
         case 'field_homepage_url':
-          $this->assertFieldByName('field_homepage[' . $langcode . '][0][url]', $user_field_data, $key . ' field found and correctly set');
+          $this->assertFieldByName('field_homepage[' . LANGUAGE_NONE . '][0][url]', $user_field_data, $key . ' field found and correctly set');
           break;
         case 'field_homepage_title':
-          $this->assertFieldByName('field_homepage[' . $langcode . '][0][title]', $user_field_data, $key . ' field found and correctly set');
+          $this->assertFieldByName('field_homepage[' . LANGUAGE_NONE . '][0][title]', $user_field_data, $key . ' field found and correctly set');
           break;
         case 'field_user_title':
-          $this->assertFieldByName('field_user_title[' . $langcode . '][0][select_other_list]', $user_field_data, $key . ' field found and correctly set');
+          $this->assertFieldByName('field_user_title[' . LANGUAGE_NONE . '][0][select_other_list]', $user_field_data, $key . ' field found and correctly set');
           break;
         case 'field_user_country':
-          $this->assertFieldByName($key . '[' . $langcode . ']', $user_field_data, $key . ' field found and correctly set');
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $user_field_data, $key . ' field found and correctly set');
           break;
         default:
-          $this->assertFieldByName($key . '[' . $langcode . '][0][value]', $user_field_data, $key . ' field found and correctly set');
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value]', $user_field_data, $key . ' field found and correctly set');
       }
     }
     // can we log in as the imported user?
@@ -274,7 +272,6 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
    * Test user update, using guid, but no username or password
    */
   function validateXlsUserUpdate(){
-    $langcode = 'und';
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/user_update.xls');
     $this->drupalPost('import/user_importer_user', array(
       'files[feeds]' => $rpath
@@ -299,19 +296,19 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
           $this->assertFieldByName('mail', $user_field_data, $key . ' field found and correctly set');
           break;
         case 'field_homepage_url':
-          $this->assertFieldByName('field_homepage[' . $langcode . '][0][url]', $user_field_data, $key . ' field found and correctly set');
+          $this->assertFieldByName('field_homepage[' . LANGUAGE_NONE . '][0][url]', $user_field_data, $key . ' field found and correctly set');
           break;
         case 'field_homepage_title':
-          $this->assertFieldByName('field_homepage[' . $langcode . '][0][title]', $user_field_data, $key . ' field found and correctly set');
+          $this->assertFieldByName('field_homepage[' . LANGUAGE_NONE . '][0][title]', $user_field_data, $key . ' field found and correctly set');
           break;
         case 'field_user_title':
-          $this->assertFieldByName('field_user_title[' . $langcode . '][0][select_other_list]', $user_field_data, $key . ' field found and correctly set');
+          $this->assertFieldByName('field_user_title[' . LANGUAGE_NONE . '][0][select_other_list]', $user_field_data, $key . ' field found and correctly set');
           break;
         case 'field_user_country':
-          $this->assertFieldByName($key . '[' . $langcode . ']', $user_field_data, $key . ' field found and correctly set');
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $user_field_data, $key . ' field found and correctly set');
           break;
         default:
-          $this->assertFieldByName($key . '[' . $langcode . '][0][value]', $user_field_data, $key . ' field found and correctly set');
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value]', $user_field_data, $key . ' field found and correctly set');
       }
     }
   }
@@ -323,7 +320,6 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
    *
    */
   function validateXlsUserImportNoLogin(){
-    $langcode = 'und';
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/user_no_login.xls');
     $this->drupalPost('import/user_importer_user', array(
       'files[feeds]' => $rpath
@@ -347,16 +343,16 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
           $this->assertFieldByName('name', $username, $key . ' field found and correctly set');
           break;
         case 'field_homepage':
-          $this->assertFieldByName('field_homepage[' . $langcode . '][0][url]', $user_field_data, $key . ' field found and correctly set');
+          $this->assertFieldByName('field_homepage[' . LANGUAGE_NONE . '][0][url]', $user_field_data, $key . ' field found and correctly set');
           break;
         case 'field_user_title':
-          $this->assertFieldByName('field_user_title[' . $langcode . '][0][select_other_list]', $user_field_data, $key . ' field found and correctly set');
+          $this->assertFieldByName('field_user_title[' . LANGUAGE_NONE . '][0][select_other_list]', $user_field_data, $key . ' field found and correctly set');
           break;
         case 'field_user_country':
-          $this->assertFieldByName($key . '[' . $langcode . ']', $user_field_data, $key . ' field found and correctly set');
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $user_field_data, $key . ' field found and correctly set');
           break;
         default:
-          $this->assertFieldByName($key . '[' . $langcode . '][0][value]', $user_field_data, $key . ' field found and correctly set');
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value]', $user_field_data, $key . ' field found and correctly set');
       }
     }
   }
@@ -365,7 +361,6 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
    * Test the import of page nodes from xls file.
    */
   function validateXlsPageImport(){
-    $langcode = 'und';
     $this->drupalGet('import/node_importer_page');
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/page.xls');
     $this->drupalPost('import/node_importer_page', array(
@@ -384,7 +379,6 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
    * Test the import of page nodes with taxonomy term from xls file.
    */
   function validateXlsPageImportWithTerm($tid){
-    $langcode = 'und';
     $this->drupalGet('import/node_importer_page');
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/page_with_term.xls');
     $this->drupalPost('import/node_importer_page', array(
@@ -405,10 +399,10 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
         $this->assertFieldByName($key, $page_field_data, $key . ' field found and correctly set');
       }elseif($key == 'body'){
         // Body field
-        $this->assertFieldByName($key . '[' . $langcode . '][0][value]', $page_field_data, $key . ' field found and correctly set');
+        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value]', $page_field_data, $key . ' field found and correctly set');
       }elseif($key == 'field_taxonomic_name'){
         //field_taxonomic_name[und]
-        $this->assertFieldByName($key . '[' . $langcode . ']', $page_field_data . ' [' . $tid . ']', $key . ' field found and correctly set');
+        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $page_field_data . ' [' . $tid . ']', $key . ' field found and correctly set');
       }
     }
   }
@@ -417,7 +411,6 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
    * Test the import of location nodes from xls file.
    */
   function validateXlsLocationImport(){
-    $langcode = 'und';
     $this->drupalGet('import/node_importer_location');
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/location.xls');
     $this->drupalPost('import/node_importer_location', array(
@@ -431,13 +424,13 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
     foreach($this->location_data as $key => $location_field_data){
       if($key == 'field_map'){
         // Map field
-        $this->assertFieldByName($key . '[' . $langcode . '][map][map]', $location_field_data, $key . ' field found and correctly set');
+        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][map][map]', $location_field_data, $key . ' field found and correctly set');
       }elseif(($key == 'field_continent_or_ocean') || ($key == 'field_country')){
         // Select list
-        $this->assertFieldByName($key . '[' . $langcode . ']', $location_field_data, $key . ' field found and correctly set');
+        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $location_field_data, $key . ' field found and correctly set');
       }else{
         // Text fields      
-        $this->assertFieldByName($key . '[' . $langcode . '][0][value]', $location_field_data, $key . ' field found and correctly set');
+        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value]', $location_field_data, $key . ' field found and correctly set');
       }
     }
   }
@@ -446,7 +439,6 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
    * Tests the import of basic specimen-observation fields, without user or term ids.
    */
   function validateXlsSpecimenObservationImportBasic(){
-    $langcode = 'und';
     $this->drupalGet('import/node_importer_specimen_observation');
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/specimenobservation.xls');
     $this->drupalPost('import/node_importer_specimen_observation', array(
@@ -459,17 +451,17 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
     $this->clickLink('Edit');
     foreach($this->specimen_observation_data as $key => $field_data){
       if(($key == 'field_date_collected') || ($key == 'field_date_identified')){
-        $this->assertFieldByName($key . '[' . $langcode . '][0][value][date]', $field_data, $key . ' date field found and correctly set');
+        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value][date]', $field_data, $key . ' date field found and correctly set');
       }elseif($key == 'field_date_collected2'){
-        $this->assertFieldByName('field_date_collected' . '[' . $langcode . '][0][value2][date]', $field_data, $key . ' date field found and correctly set');
+        $this->assertFieldByName('field_date_collected' . '[' . LANGUAGE_NONE . '][0][value2][date]', $field_data, $key . ' date field found and correctly set');
       }elseif($key == 'field_date_identified2'){
-        $this->assertFieldByName('field_date_identified' . '[' . $langcode . '][0][value2][date]', $field_data, $key . ' date field found and correctly set');
+        $this->assertFieldByName('field_date_identified' . '[' . LANGUAGE_NONE . '][0][value2][date]', $field_data, $key . ' date field found and correctly set');
       }elseif(($key == 'field_basis_of_record') || ($key == 'field_type_status') || ($key == 'field_sex')){
         // Select list
-        $this->assertFieldByName($key . '[' . $langcode . ']', $field_data, $key . ' select field found and correctly set');
+        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $field_data, $key . ' select field found and correctly set');
       }else{
         // Text fields
-        $this->assertFieldByName($key . '[' . $langcode . '][0][value]', $field_data, $key . ' field found and correctly set');
+        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value]', $field_data, $key . ' field found and correctly set');
       }
     }
   }
@@ -487,7 +479,6 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
     ));
     $uid1 = $this->test_user1->uid;
     $uid2 = $this->test_user2->uid;
-    $langcode = 'und';
     $this->drupalGet('import/node_importer_specimen_observation');
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/specimenobservation_terms_and_users.xls');
     $this->drupalPost('import/node_importer_specimen_observation', array(
@@ -502,30 +493,30 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
       switch($key){
         case 'field_date_collected':
         case 'field_date_identified':
-          $this->assertFieldByName($key . '[' . $langcode . '][0][value][date]', $field_data, $key . ' date field found and correctly set');
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value][date]', $field_data, $key . ' date field found and correctly set');
           break;
         case 'field_date_collected2':
-          $this->assertFieldByName('field_date_collected' . '[' . $langcode . '][0][value2][date]', $field_data, $key . ' date field found and correctly set');
+          $this->assertFieldByName('field_date_collected' . '[' . LANGUAGE_NONE . '][0][value2][date]', $field_data, $key . ' date field found and correctly set');
           break;
         case 'field_date_identified2':
-          $this->assertFieldByName('field_date_identified' . '[' . $langcode . '][0][value2][date]', $field_data, $key . ' date field found and correctly set');
+          $this->assertFieldByName('field_date_identified' . '[' . LANGUAGE_NONE . '][0][value2][date]', $field_data, $key . ' date field found and correctly set');
           break;
         case 'field_basis_of_record':
         case 'field_type_status':
         case 'field_sex':
-          $this->assertFieldByName($key . '[' . $langcode . ']', $field_data, $key . ' select field found and correctly set');
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $field_data, $key . ' select field found and correctly set');
           break;
         case 'field_taxonomic_name':
-          $this->assertFieldByName($key . '[' . $langcode . ']', $field_data . ' [' . $tid . ']', $key . ' field found and correctly set');
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $field_data . ' [' . $tid . ']', $key . ' field found and correctly set');
           break;
         case 'field_identified_by':
-          $this->assertFieldByName($key . '[' . $langcode . '][0][uid]', $field_data . ' [uid:' . $uid2 . ']', $key . ' field found and correctly set');
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][uid]', $field_data . ' [uid:' . $uid2 . ']', $key . ' field found and correctly set');
           break;
         case 'field_collector':
-          $this->assertFieldByName($key . '[' . $langcode . '][0][uid]', $field_data . ' [uid:' . $uid1 . ']', $key . ' field found and correctly set');
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][uid]', $field_data . ' [uid:' . $uid1 . ']', $key . ' field found and correctly set');
           break;
         default:
-          $this->assertFieldByName($key . '[' . $langcode . '][0][value]', $field_data, $key . ' field found and correctly set');
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value]', $field_data, $key . ' field found and correctly set');
       }
     }
   }
