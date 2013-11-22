@@ -5,5 +5,6 @@ package = "Administration"
 dependencies[] = views_bulk_operations
 dependencies[] = ctools
 dependencies[] = scratchpads_views_filter
+dependencies[] = entityconnect
 files[] = tests/scratchpads_backend.test
 files[] = tests/scratchpads_backend.selenium.test
