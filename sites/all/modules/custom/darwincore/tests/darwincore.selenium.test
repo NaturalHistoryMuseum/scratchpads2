@@ -40,6 +40,8 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    */
   function testWrapper(){
     $this->drupalLogin($this->maintainer);
+    // ensure that we are using the scratchpads_admin theme
+    variable_set('admin_theme', 'scratchpads_admin');
     $vocab_name = $this->randomName();
     $term_name = $this->randomName();
     $this->createAnimalVocabulary($vocab_name);
@@ -61,7 +63,6 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   function verifyCreateLocation(){
     $this->drupalGet('node/add/location');
     $this->assertTrue(true, 'Adding new location');
-    
     $field_data = array(
       'title' => $this->randomName(),
       'field_continent_or_ocean' => 'Europe',
@@ -475,20 +476,18 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    */
   function verifyDeleteLocation($location_title){
     $this->drupalGet('admin/content/location');
-    $this->driver->sleep(4);
+    $this->driver->sleep(6);
     $this->driver->waitForElements("xpath=//*[text()[contains(.," . $location_title . ")]]");
     $this->verboseScreenshot();
-    $this->clickLink($location_title);
-    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
-    $this->clickLink('Edit');
-    $this->driver->waitForElements("id=edit-delete");
-    $submit_button = $this->driver->getElement("id=edit-delete");
-    $submit_button->click();
+    // There is only one location
+    $this->clickLink('delete');
+    $this->driver->sleep(8);
     $this->assertText(t('Are you sure you want to delete @loc?', array(
       '@loc' => $location_title
     )));
     $submit_button = $this->driver->getElement("id=edit-submit");
     $submit_button->click();
+    $this->driver->sleep(6);
     $this->assertText(t('Location @loc has been deleted', array(
       '@loc' => $location_title
     )));
@@ -506,17 +505,15 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->drupalGet('admin/content/specimen_observation');
     $this->driver->sleep(4);
     $this->driver->waitForElements("xpath=//*[text()[contains(.," . $specimen_observation_title . ")]]");
-    $this->clickLink($specimen_observation_title);
-    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
-    $this->clickLink('Edit');
-    $this->driver->waitForElements("id=edit-delete");
-    $submit_button = $this->driver->getElement("id=edit-delete");
-    $submit_button->click();
+    // There is only one specimen-observation
+    $this->clickLink('delete');
+    $this->driver->sleep(8);
     $this->assertText(t('Are you sure you want to delete @loc?', array(
       '@loc' => $specimen_observation_title
     )));
     $submit_button = $this->driver->getElement("id=edit-submit");
     $submit_button->click();
+    $this->driver->sleep(6);
     $this->assertText(t('Specimen/Observation @loc has been deleted', array(
       '@loc' => $specimen_observation_title
     )));
