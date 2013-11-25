@@ -453,7 +453,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     // Submit the form
     $submit_button = $this->driver->getElement("id=edit-submit");
     $submit_button->click();
-    $this->driver->sleep(4);
+    $this->driver->sleep(8);
     // Check that the title has been updated with the new values
     $this->assertText('Specimen/Observation ' . $field_data['field_institution_code'] . ' - ' . $field_data['field_collection_code'] . ' - ' . $field_data['field_catalogue_number'] . ' has been updated.', 'Specimen/Observation node successfully updated.');
     foreach($field_data as $field => $value){
@@ -475,7 +475,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    */
   function verifyDeleteLocation($location_title){
     $this->drupalGet('admin/content/location');
-    $this->driver->sleep(2);
+    $this->driver->sleep(4);
     $this->driver->waitForElements("xpath=//*[text()[contains(.," . $location_title . ")]]");
     $this->verboseScreenshot();
     $this->clickLink($location_title);
@@ -493,7 +493,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       '@loc' => $location_title
     )));
     $this->drupalGet('admin/content/location');
-    $this->driver->sleep(2);
+    $this->driver->sleep(4);
     $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.," . $location_title . ")]]");
     $this->verboseScreenshot();
     $this->assertNoLink($location_title, 'Deleted location node not present on admin/content/location page');
@@ -504,7 +504,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    */
   function verifyDeleteSpecimenObservation($specimen_observation_title){
     $this->drupalGet('admin/content/specimen_observation');
-    $this->driver->sleep(2);
+    $this->driver->sleep(4);
     $this->driver->waitForElements("xpath=//*[text()[contains(.," . $specimen_observation_title . ")]]");
     $this->clickLink($specimen_observation_title);
     $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
@@ -521,7 +521,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       '@loc' => $specimen_observation_title
     )));
     $this->drupalGet('admin/content/specimen_observation');
-    $this->driver->sleep(2);
+    $this->driver->sleep(4);
     $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.," . $specimen_observation_title . ")]]");
     $this->verboseScreenshot();
     $this->assertNoLink($specimen_observation_title, 'Deleted Specimen/Observation node not present on admin/content/specimen_observation page');

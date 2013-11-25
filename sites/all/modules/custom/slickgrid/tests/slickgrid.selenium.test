@@ -296,6 +296,8 @@ class SlickgridSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $element->sendKeys($body);
     $submit_button = $this->driver->getElement("id=edit-submit");
     $submit_button->click();
+    // Add a extra waiting time for slickgrid to load
+    $this->driver->sleep(5);
     $this->driver->waitForElements("xpath=//*[text()[contains(.," . $title . ")]]");
     $this->assertText($title, 'Page title sucessfully saved');
     $this->assertText($body, 'Page body sucessfully saved');
