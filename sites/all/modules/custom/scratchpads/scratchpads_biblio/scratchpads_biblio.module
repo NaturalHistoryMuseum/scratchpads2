@@ -63,7 +63,16 @@ function scratchpads_biblio_node_presave($node){
         'tid'
       ))->condition('vid', $vids)->condition('name', $node->biblio_keywords)->execute();
       foreach($results as $row){
-        $node->field_taxonomic_name[LANGUAGE_NONE][] = (array)taxonomy_term_load($row->tid);
+        $not_found = TRUE;
+        foreach($node->field_taxonomic_name[LANGUAGE_NONE] as $key => $value){
+          if(isset($value['tid']) && $value['tid'] == $row->tid){
+            $not_found = FALSE;
+            break;
+          }
+        }
+        if($not_found){
+          $node->field_taxonomic_name[LANGUAGE_NONE][] = (array)taxonomy_term_load($row->tid);
+        }
       }
     }
   }
