@@ -589,7 +589,7 @@ class NodeCreationTestCase extends DrupalWebTestCase {
       $this->assertTrue($node, 'Transactions not supported, and node found in database.');
 
       // Check that the failed rollback was logged.
-      // FIXME - This will NEVER pass.
+      // FIXME - This test will NEVER pass, and needs fixing.
       //$records = db_query("SELECT wid FROM {watchdog} WHERE message LIKE 'Explicit rollback failed%'")->fetchAll();
       //$this->assertTrue(count($records) > 0, 'Transactions not supported, and rollback error logged to watchdog.');
     }
