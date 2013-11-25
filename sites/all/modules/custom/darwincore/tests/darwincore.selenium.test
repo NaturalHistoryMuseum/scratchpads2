@@ -375,12 +375,12 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
   function verifyEditLocation($location_title){
     $this->drupalGet('admin/content');
     $this->clickLink('Location');
-    $this->driver->sleep(3);
+    $this->driver->sleep(8);
     $this->driver->waitForElements("xpath=//*[text()=" . $location_title . "]");
     $this->clickLink($location_title);
     $this->driver->waitForElements("xpath=//*[text()='Edit']");
     $this->clickLink('Edit');
-    $this->driver->sleep(3);
+    $this->driver->sleep(8);
     // We edit some fields
     $field_data = array(
       'field_coordinate_system' => $this->randomName(),
@@ -409,6 +409,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     // Submit the form
     $submit_button = $this->driver->getElement("id=edit-submit");
     $submit_button->click();
+    $this->driver->sleep(4);
     $this->assertText('Location ' . $location_title . ' has been updated.', 'Location node successfully updated.');
     foreach($field_data as $field => $value){
       $field = str_replace('_', '-', $field);
@@ -432,6 +433,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
     $this->clickLink($specimen_observation_title);
     $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
     $this->clickLink('Edit');
+    $this->driver->sleep(8);
     $field_data = array(
       'field_basis_of_record' => 'Fossil Specimen',
       'field_institution_code' => $this->randomName(),
