@@ -478,8 +478,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    */
   function verifyDeleteLocation($location_title){
     $this->drupalGet('admin/content/location');
-    $this->driver->sleep(6);
-    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $location_title . ")]]");
+    $this->driver->sleep(8);
     $this->verboseScreenshot();
     // There is only one location
     $this->clickLink('delete');
@@ -494,8 +493,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       '@loc' => $location_title
     )));
     $this->drupalGet('admin/content/location');
-    $this->driver->sleep(4);
-    $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.," . $location_title . ")]]");
+    $this->driver->sleep(8);
     $this->verboseScreenshot();
     $this->assertNoLink($location_title, 'Deleted location node not present on admin/content/location page');
   }
@@ -505,8 +503,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
    */
   function verifyDeleteSpecimenObservation($specimen_observation_title){
     $this->drupalGet('admin/content/specimen_observation');
-    $this->driver->sleep(4);
-    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $specimen_observation_title . ")]]");
+    $this->driver->sleep(8);
     // There is only one specimen-observation
     $this->clickLink('delete');
     $this->driver->sleep(8);
@@ -520,8 +517,7 @@ class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
       '@loc' => $specimen_observation_title
     )));
     $this->drupalGet('admin/content/specimen_observation');
-    $this->driver->sleep(4);
-    $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.," . $specimen_observation_title . ")]]");
+    $this->driver->sleep(8);
     $this->verboseScreenshot();
     $this->assertNoLink($specimen_observation_title, 'Deleted Specimen/Observation node not present on admin/content/specimen_observation page');
   }
