@@ -14,10 +14,6 @@ th.wider {
   width: 40%;
 }
 
-table {
-  table-layout: fixed !important;
-}
-
 ul.scratchpads-qa,ul.scratchpads-qa li {
   margin: 0 !important;
   padding: 0 !important;
@@ -25,6 +21,10 @@ ul.scratchpads-qa,ul.scratchpads-qa li {
 
 ul.scratchpads-qa li {
   list-style-type: none;
+}
+
+ul.scratchpads-qa table {
+  width: 200% !important;
 }
 
 ul.scratchpads-qa .hidden-table {
