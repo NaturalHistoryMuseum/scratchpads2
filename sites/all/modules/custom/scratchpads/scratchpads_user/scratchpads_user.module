@@ -305,7 +305,7 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
     );
     $disable_button = ($form['#user']->uid ? 1 : 0);
     if($form['#id'] == 'user-profile-form'){
-      if($form['#user']->stub_user){
+      if(!empty($form['#user']->stub_user)){
         $disable_button = false;
       }
     }
@@ -375,7 +375,7 @@ function scratchpads_user_allow_picture_validate($form, &$form_state){
  */
 function scratchpads_user_user_profile_validate($form, &$form_state){
   // If we are converting from a loginless user to a login user 
-  if(($form['#user']->stub_user == true) && ($form_state['values']['create_user_account'])){
+  if((!empty($form['#user']->stub_user)) && ($form_state['values']['create_user_account'])){
     $required_fields = array(
       'field_user_family_name',
       'field_user_given_names'
@@ -466,7 +466,7 @@ function scratchpads_user_register_form_post_submit_clear_error($form, &$form_st
  */
 function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state){
   // Don't do anything if this is a login user
-  if($form_state['values']['create_user_account'] || !empty($form_state['values']['picture_upload'])){return;}
+  if(!empty($form_state['values']['create_user_account']) || !empty($form_state['values']['picture_upload'])){return;}
   // Set the name
   $name = '';
   foreach(array(
@@ -519,7 +519,7 @@ function _scratchpads_user_get_full_name($name, $uid = ''){
  */
 function scratchpads_user_register_form_post_submit($form, &$form_state){
   // check whether this a stub user
-  if(!$form_state['values']['create_user_account']){
+  if(empty($form_state['values']['create_user_account'])){
     // Reset the messages
     drupal_get_messages('status');
     // Reset the error messages, as the following error is displayed:
