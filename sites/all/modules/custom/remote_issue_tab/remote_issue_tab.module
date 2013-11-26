@@ -89,7 +89,7 @@ function remote_issue_tab_block_save($delta = '', $edit = array()){
 function remote_issue_tab_block_view($delta = ''){
   global $user;
   $data = cache_get($user->uid, 'cache_remote_issue_tab');
-  if($data->data){
+  if(!empty($data->data)){
     $content = $data->data;
   }else{
     $content = array(
