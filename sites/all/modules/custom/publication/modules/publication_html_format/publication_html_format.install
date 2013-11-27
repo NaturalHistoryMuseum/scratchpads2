@@ -26,6 +26,47 @@ function publication_html_format_install(){
   // Ensure we are heavier than relation_select, as relation_select
   // incorrectly uses hook_entity_insert to save it's data.
   publication_html_format_update_7002();
+  // Create the publication_html filter format. We can't use Features for this, as we
+  // must be sure it's enabled before the CKEditor Profile
+  if(!filter_format_exists('publication_html')){
+    $format = array(
+      'format' => 'publication_html',
+      'name' => 'Publication HTML',
+      'cache' => '0',
+      'status' => '1',
+      'weight' => '0',
+      'filters' => array(
+        'filter_url' => array(
+          'weight' => '-49',
+          'status' => '1',
+          'settings' => array(
+            'filter_url_length' => '72'
+          )
+        ),
+        'filter_autop' => array(
+          'weight' => '-47',
+          'status' => '1',
+          'settings' => array()
+        ),
+        'filter_htmlcorrector' => array(
+          'weight' => '-46',
+          'status' => '1',
+          'settings' => array()
+        ),
+        'media_filter' => array(
+          'weight' => '-45',
+          'status' => '1',
+          'settings' => array()
+        ),
+        'emptyparagraphkiller' => array(
+          'weight' => '-44',
+          'status' => '1',
+          'settings' => array()
+        )
+      )
+    );
+    filter_format_save((object)$format);
+  }
 }
 
 /**

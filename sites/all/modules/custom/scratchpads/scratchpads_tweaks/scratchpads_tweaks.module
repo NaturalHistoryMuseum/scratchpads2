@@ -13,13 +13,19 @@ function scratchpads_tweaks_init(){
     // Set the REQUIREMENT_ERROR variable so that no errors are displayed when
     // viewing the admin/config page as a non-admin user.
     define('REQUIREMENT_ERROR', 'Hide requirement error');
-  }
-  // Check to see if we're trying to view the admin/appearance/settings/scratchpads
-  // page, and if so we redirect to the general settings page.
-  if($_GET['q'] == 'admin/appearance/settings/scratchpads' || $_GET['q'] == 'admin/appearance/settings/scratchpads_em'){
+  }else if($_GET['q'] == 'admin/appearance/settings/scratchpads' || $_GET['q'] == 'admin/appearance/settings/scratchpads_em'){
+    // Check to see if we're trying to view the admin/appearance/settings/scratchpads
+    // page, and if so we redirect to the general settings page.
     if(!user_access('scratchpad team')){
       drupal_goto('admin/appearance/settings');
     }
+  }
+  $menu_item = menu_get_item();
+  if($menu_item['path'] == 'node/%/edit'){
+    // We clear the cache for this node, to ensure we're editing an uncached
+    // version. FIXME - This is a temporary fix, and should be removed once we
+    // know what is causing incorrect copies of a node to be cached.
+    node_load(arg(1), NULL, FALSE);
   }
   // Set the expire/domain/params on the has_js cookie to the same as the session
   // cookie to prevent any issues, especially with the "Issues..." block.
@@ -468,6 +474,7 @@ function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
       $info['tool'] = TRUE;
       $info['name'] = 'Views';
       $info['description'] = 'Allows you to create custom reports or views of the data held on your Scratchpad';
+      $info['dependencies'][] = 'views_date_format_sql';
       break;
     case 'rules':
       $info['dependencies'][] = 'trigger';

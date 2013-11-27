@@ -7,11 +7,7 @@
 
 class LinkValidateTestCase extends LinkBaseTestClass {
 
-  function setUp($modules = array()) {
-    parent::setUp($modules);
-  }
-
-  function createLink($url, $title, $attributes = array()) {
+  protected function createLink($url, $title, $attributes = array()) {
     return array(
       'url' => $url,
       'title' => $title,
@@ -22,7 +18,7 @@ class LinkValidateTestCase extends LinkBaseTestClass {
   /**
    * Takes a url, and sees if it can validate that the url is valid.
    */
-  public function link_test_validate_url($url) {
+  protected function link_test_validate_url($url) {
 
     $field_name = $this->createLinkField();
 
@@ -66,13 +62,13 @@ class LinkValidateTest extends LinkValidateTestCase {
    * Test if we're stopped from posting a bad url on default validation.
    */
   function test_link_validate_bad_url_validate_default() {
-    $account = $this->drupalCreateUser(array('administer content types',
+    $this->web_user = $this->drupalCreateUser(array('administer content types',
                                              'administer nodes',
                                              'administer filters',
                                              'access content',
                                              'create page content',
                                              'access administration pages'));
-    $this->drupalLogin($account);
+    $this->drupalLogin($this->web_user);
 
     // create field
     $name = strtolower($this->randomName());
@@ -104,20 +100,20 @@ class LinkValidateTest extends LinkValidateTestCase {
     );
 
     $this->drupalPost(NULL, $edit, t('Save'));
-    $this->assertText(t('Not a valid URL.'));
+    $this->assertText(t('The value provided for @field is not a valid URL.', array('@field' => $name)));
   }
 
   /**
    * Test if we're stopped from posting a bad url with validation on.
    */
   function test_link_validate_bad_url_validate_on() {
-    $account = $this->drupalCreateUser(array('administer content types',
+    $this->web_user = $this->drupalCreateUser(array('administer content types',
                                              'administer nodes',
                                              'administer filters',
                                              'access content',
                                              'create page content',
                                              'access administration pages'));
-    $this->drupalLogin($account);
+    $this->drupalLogin($this->web_user);
 
     // create field
     $name = strtolower($this->randomName());
@@ -149,7 +145,7 @@ class LinkValidateTest extends LinkValidateTestCase {
     );
 
     $this->drupalPost(NULL, $edit, t('Save'));
-    $this->assertText(t('Not a valid URL.'));
+    $this->assertText(t('The value provided for @field is not a valid URL.', array('@field' => $name)));
 
   }
 
@@ -157,13 +153,13 @@ class LinkValidateTest extends LinkValidateTestCase {
    * Test if we can post a bad url if the validation is expressly turned off.
    */
   function test_link_validate_bad_url_validate_off() {
-    $account = $this->drupalCreateUser(array('administer content types',
+    $this->web_user = $this->drupalCreateUser(array('administer content types',
                                              'administer nodes',
                                              'administer filters',
                                              'access content',
                                              'create page content',
                                              'access administration pages'));
-    $this->drupalLogin($account);
+    $this->drupalLogin($this->web_user);
 
     // create field
     $name = strtolower($this->randomName());
@@ -199,8 +195,7 @@ class LinkValidateTest extends LinkValidateTestCase {
     );
 
     $this->drupalPost(NULL, $edit, t('Save'));
-    $this->assertNoText(t('Not a valid URL.'));
-
+    $this->assertNoText(t('The value provided for @field is not a valid URL.', array('@field' => $name)));
   }
 
   /**
@@ -208,13 +203,13 @@ class LinkValidateTest extends LinkValidateTestCase {
    */
   function x_test_link_validate_switching_between_validation_status() {
     $this->acquireContentTypes(1);
-    $account = $this->drupalCreateUser(array('administer content types',
+    $this->web_user = $this->drupalCreateUser(array('administer content types',
                                              'administer nodes',
                                              'access administration pages',
                                              'access content',
                                              'create '. $this->content_types[0]->type .' content',
                                              'edit any '. $this->content_types[0]->type .' content'));
-    $this->drupalLogin($account);
+    $this->drupalLogin($this->web_user);
     variable_set('node_options_'. $this->content_types[0]->name, array('status', 'promote'));
     $field_settings = array(
       'type' => 'link',
@@ -242,7 +237,7 @@ class LinkValidateTest extends LinkValidateTestCase {
 
     $this->drupalPost('node/'. $this->nodes[0]->nid .'/edit', $edit, t('Save'));
     //$this->pass($this->content);
-    $this->assertNoText(t('Not a valid URL.'));
+    $this->assertNoText(t('The value provided for %field is not a valid URL.', array('%field' => $name)));
 
     // Make sure we get a new version!
     $node = node_load($this->nodes[0]->nid, NULL, TRUE);
@@ -361,11 +356,6 @@ class LinkValidateSpecificURL extends LinkValidateTestCase {
  */
 class LinkValidateUrlLight extends DrupalWebTestCase {
 
-  //function setUp() {
-    // do we need to include something here?
-    //module_load_include('inc', 'link');
-  //}
-
   public static function getInfo() {
     return array(
       'name' => 'Link Light Validation Tests',
@@ -427,19 +417,18 @@ class LinkValidateUrlLight extends DrupalWebTestCase {
     $this->assertEqual(FALSE, $valid, 'newsgroup names can\'t contain underscores, so it should come back as invalid.');
   }
 
-  function testValidateInternalLink() {
-    $valid = link_validate_url('node/5');
-    $this->assertEqual(LINK_INTERNAL, $valid, 'Test normal internal link.');
-  }
-
-  function testValidateInternalLinkWithDot() {
-    $valid = link_validate_url('rss.xml');
-    $this->assertEqual(LINK_INTERNAL, $valid, 'Test rss.xml internal link.');
-  }
-
-  function testValidateInternalLinkToFile() {
-    $valid = link_validate_url('files/test.jpg');
-    $this->assertEqual(LINK_INTERNAL, $valid, 'Test files/test.jpg internal link.');
+  function testValidateInternalLinks() {
+    $links = array(
+      'node/5',
+      'rss.xml',
+      'files/test.jpg',
+      '/var/www/test',
+    );
+    
+    foreach ($links as $link) {
+      $valid = link_validate_url($link);
+      $this->assertEqual(LINK_INTERNAL, $valid, 'Test ' . $link . ' internal link.');
+    }
   }
 
   function testValidateExternalLinks() {
@@ -481,15 +470,20 @@ class LinkValidateUrlLight extends DrupalWebTestCase {
       //$valid2 = valid_url($link, TRUE);
       //$this->assertEqual(TRUE, $valid2, "Using valid_url() on $link.");
     }
+    // Test if we can make a tld valid:
+    variable_set('link_extra_domains', array('frog'));
+    $valid = link_validate_url('http://www.example.frog');
+    $this->assertEqual(LINK_EXTERNAL, $valid, "Testing that http://www.example.frog is a valid external link if we've added 'frog' to the list of valid domains.");
   }
 
   function testInvalidExternalLinks() {
     $links = array(
       'http://www.ex ample.com/',
-      '//www.example.com/',
       'http://25.0.0/', // bad ip!
       'http://4827.0.0.2/',
+      '//www.example.com/',
       'http://www.testß.com/', // ß not allowed in domain names!
+      'http://www.example.frog/', // Bad TLD
       //'http://www.-fudge.com/', // domains can't have sections starting with a dash.
     );
     foreach ($links as $link) {
@@ -497,5 +491,4 @@ class LinkValidateUrlLight extends DrupalWebTestCase {
       $this->assertEqual(FALSE, $valid, 'Testing that '. $link .' is not a valid link.');
     }
   }
-
 }

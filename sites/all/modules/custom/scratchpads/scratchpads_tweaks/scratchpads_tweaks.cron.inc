@@ -37,10 +37,13 @@ function _scratchpads_tweaks_cron(){
       $query->addExpression('SUM(totalcount)', 'sumtotalcount');
       $views = $query->execute()->fetchCol();
       $views = array_pop($views);
+      $welcome_message = variable_get('front_page_welcome_message', array(
+        'value' => ''
+      ));
       $report_data = array(
         'site_url' => $_SERVER['HTTP_HOST'],
         'site_title' => variable_get('site_name', 'Scratchpad'),
-        'site_mission' => variable_get('front_page_welcome_message', ''),
+        'site_mission' => $welcome_message['value'],
         'nodes' => $nodes,
         'users' => array(
           'login' => $users_login,
@@ -140,7 +143,7 @@ function _scratchpads_tweaks_cron(){
   ));
   db_delete('watchdog')->condition($db_or)->execute();
   // Clean up the file_display table now that we have removed its primary key
-  db_query('CREATE TEMPORARY TABLE file_display_temp AS SELECT DISTINCT * FROM file_display; TRUNCATE file_display; INSERT INTO file_display SELECT * FROM file_display_temp;');
+  db_query('CREATE TEMPORARY TABLE file_display_temp AS SELECT DISTINCT * FROM {file_display}; TRUNCATE {file_display}; INSERT INTO {file_display} SELECT * FROM file_display_temp;');
   // Rebuild caches
   _scratchpads_tweaks_register_shutdown();
 }

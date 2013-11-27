@@ -94,27 +94,19 @@ function scratchpads_front_admin_paths(){
 }
 
 /**
- * 
- * Implements hook_form_alter().
- * Chnage the site information settings for the default front page
- * @param array $form
- * @param array $form_state
- * @param string $form_id
+ * Implements hook_form_FORM_ID_alter().
  */
-function scratchpads_front_form_alter(&$form, $form_state, $form_id){
-  switch($form_id){
-    case 'system_site_information_settings':
-      unset($form['front_page']['default_nodes_main']);
-      // TODO - add this to the sign up form
-      $form['front_page']['front_page_welcome_message'] = array(
-        '#title' => t('Welcome message'),
-        '#type' => 'textarea',
-        '#description' => t('Please enter an introductory message to welcome people to your site. This will be diaplyed on your home page.'),
-        '#default_value' => variable_get('front_page_welcome_message'),
-        '#required' => true
-      );
-      break;
-  }
+function scratchpads_front_form_system_site_information_settings_alter(&$form, $form_state, $form_id){
+  unset($form['front_page']['default_nodes_main']);
+  $welcome_message = variable_get('front_page_welcome_message', array(
+    'value' => ''
+  ));
+  $form['front_page']['front_page_welcome_message'] = array(
+    '#title' => t('Welcome message'),
+    '#type' => 'textarea',
+    '#default_value' => $welcome_message['value'],
+    '#required' => true
+  );
 }
 
 /*********************************************************************************************
@@ -176,8 +168,8 @@ function scratchpads_front_page_view(){
     $welcome_message .= $default_welcome_message;
   }
   $welcome_message .= '</h1>';
-  if(($set_message = variable_get('front_page_welcome_message')) != FALSE){
-    $welcome_message .= check_markup($set_message, 'filtered_html');
+  if(($set_message = variable_get('front_page_welcome_message', FALSE)) !== FALSE){
+    $welcome_message .= check_markup($set_message['value'], 'filtered_html');
   }else{
     if(user_access('administer front page')){
       $welcome_message .= '<p>' . t('Click <em>Edit</em> above to customise the "Welcome message" for your site or, complete your site setup by clicking <em>Dashboard</em>, and then <em>Finish setting up the site</em>.') . '</p>';
@@ -232,13 +224,49 @@ function scratchpads_front_page_view(){
  * Edit the home page
  */
 function scratchpads_front_page_edit($form, &$form_state){
+  // Switch the realm if we need to.
+  if(module_exists('variable_realm')){
+    if(($params = variable_realm_params()) != FALSE){
+      foreach($params as $realm_name => $realm_key){
+        variable_realm_switch($realm_name, $realm_key, FALSE);
+      }
+      variable_realm_rebuild();
+    }
+  }
   $node_types = scratchpads_front_node_types();
-  $form['front_page_override_welcome_title'] = array(
+  $form['site_information'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Site details'),
+  );
+  $form['site_information']['site_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Site name'),
+    '#default_value' => variable_get('site_name', 'Drupal'),
+    '#required' => TRUE
+  );
+  $form['site_information']['site_slogan'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Slogan'),
+    '#default_value' => variable_get('site_slogan', ''),
+    '#description' => t("How this is used depends on your site's theme."),
+  );
+  $form['site_information']['site_mail'] = array(
+    '#type' => 'textfield',
+    '#title' => t('E-mail address'),
+    '#default_value' => variable_get('site_mail', ini_get('sendmail_from')),
+    '#description' => t("The <em>From</em> address in automated e-mails sent during registration and new password requests, and other notifications. (Use an address ending in your site's domain to help prevent this e-mail being flagged as spam.)"),
+    '#required' => TRUE,
+  );
+  $form['front_page_welcome'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Welcome'
+  );
+  $form['front_page_welcome']['front_page_override_welcome_title'] = array(
     '#title' => t('Override welcome title'),
     '#type' => 'checkbox',
     '#default_value' => variable_get('front_page_override_welcome_title', 0)
   );
-  $form['front_page_welcome_title'] = array(
+  $form['front_page_welcome']['front_page_welcome_title'] = array(
     '#title' => t('Welcome title'),
     '#type' => 'textfield',
     '#default_value' => variable_get('front_page_welcome_title', t('Welcome to @site-name', array(
@@ -253,12 +281,14 @@ function scratchpads_front_page_edit($form, &$form_state){
       )
     )
   );
-  $form['front_page_welcome_message'] = array(
+  $default_welcome_message = variable_get('front_page_welcome_message', array(
+    'value' => ''
+  ));
+  $form['front_page_welcome']['front_page_welcome_message'] = array(
     '#title' => t('Welcome message'),
     '#type' => 'text_format',
     '#format' => null,
-    '#description' => t('Please enter an introductory message to welcome people to your site.'),
-    '#default_value' => variable_get('front_page_welcome_message'),
+    '#default_value' => $default_welcome_message['value'],
     '#required' => true
   );
   $form['main_block'] = array(
@@ -295,7 +325,7 @@ function scratchpads_front_page_edit($form, &$form_state){
     )
   );
   // if the view has been edited we don't add the option to edit the view via this form
-  if(strlen(views_get_view('front_page_slideshow')->vid)==0){
+  if(strlen(views_get_view('front_page_slideshow')->vid) == 0){
     $form['main_block']['front_page_main_block_slideshow_text_creator'] = array(
       '#type' => 'checkbox',
       '#title' => t('Display Image Creator'),
@@ -350,10 +380,8 @@ function scratchpads_front_page_edit($form, &$form_state){
     );
     $count++;
   }
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save')
-  );
+  $form = system_settings_form($form);
+  $form['#submit'][] = 'scratchpads_front_page_edit_submit';
   return $form;
 }
 
@@ -362,13 +390,6 @@ function scratchpads_front_page_edit($form, &$form_state){
  * Edit the home page
  */
 function scratchpads_front_page_edit_submit($form, &$form_state){
-  variable_set('front_page_override_welcome_title', $form_state['values']['front_page_override_welcome_title']);
-  variable_set('front_page_welcome_title', $form_state['values']['front_page_welcome_title']);
-  variable_set('front_page_welcome_message', $form_state['values']['front_page_welcome_message']['value']);
-  variable_set('front_page_main_block_type', $form_state['values']['front_page_main_block_type']);
-  variable_set('front_page_main_block_node_type', $form_state['values']['front_page_main_block_node_type']);
-  variable_set('front_page_main_block_slideshow_text_creator', $form_state['values']['front_page_main_block_slideshow_text_creator']);
-  variable_set('front_page_main_block_slideshow_text_licence', $form_state['values']['front_page_main_block_slideshow_text_licence']);
   foreach($form_state['vars'] as $var){
     variable_set($var, $form_state['values'][$var]);
   }

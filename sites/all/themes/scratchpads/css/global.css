@@ -205,7 +205,8 @@ sub {
   text-align: right;
 }
 
-#zone-slide-top-wrapper .scratchpads-slide-toggle-body {
+#zone-slide-top-wrapper .scratchpads-slide-toggle-body,
+#zone-slide-bottom-wrapper .scratchpads-slide-toggle-body {
   display: none;
 }
 
@@ -295,10 +296,6 @@ a.scratchpads-slide-toggle {
   border-bottom-right-radius: 8px;
 }
 
-body.multilingual #zone-slide-top-wrapper a.scratchpads-slide-toggle {
-  right: 80px;
-}
-
 #zone-slide-bottom-wrapper a.scratchpads-slide-toggle {
   top: -20px;
   -khtml-border-radius-topleft: 8px;
@@ -310,11 +307,6 @@ body.multilingual #zone-slide-top-wrapper a.scratchpads-slide-toggle {
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
   line-height: 14px;
-}
-
-body.multilingual #zone-slide-top-wrapper #block-scratchpads-multilingual-language-switcher a.scratchpads-slide-toggle
-  {
-  right: 0;
 }
 
 #zone-slide-top-wrapper #block-scratchpads-multilingual-language-switcher ul
@@ -350,10 +342,6 @@ body.multilingual #zone-slide-top-wrapper #block-scratchpads-multilingual-langua
   right: 70px;
   top: 0;
   text-align: right;
-}
-
-body.multilingual #region-secondary-menu {
-  right: 150px;
 }
 
 .logged-in #region-secondary-menu {
@@ -1110,4 +1098,18 @@ table,tbody,tfoot,thead,tr,th,td {
   /* For IE 7 */
   zoom: 1;
   *display: inline;
+}
+/* put a border on the bottom of a views table 
+ it gets to be made missing by biblio table global.css line 675 */
+table.views-table {
+  border-bottom: 1px solid #CCCCCC;
+}
+/* put bullets on the correct side of the div and properly indent long text.
+Either the padding or the margin needs to be set to zero, with the other one set to 1em. 
+A hair out in IE*/
+table.views-table ul {
+  list-style-position: inside;
+  margin-left: 0; 
+  padding-left: 1em;
+  text-indent: -1em;
 }

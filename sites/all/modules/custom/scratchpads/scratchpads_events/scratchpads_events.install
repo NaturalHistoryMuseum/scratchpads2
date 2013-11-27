@@ -1,9 +1,36 @@
 <?php
 
 /**
+ * Implements hook_enable().
+ *
+ * Re-enable any features that might have been disabled previously
+ */
+function scratchpads_events_enable(){
+  // Enable/re-enable all the features of this module.
+  $feature = features_get_features('scratchpads_events');
+  $components = array_keys($feature->info['features']);
+  features_revert(array(
+  'scratchpads_events' => $components
+  ));
+}
+
+
+/**
+ * Implements hook_disable().
+ * Remove content types defined by this module
+ */
+function scratchpads_events_disable(){
+  // if there is no data, remove the fields and content type
+  if(scratchpads_events_node_count() == 0){  
+    node_type_delete('event');
+  }
+}
+
+
+/**
  * Ensure users haven't deleted any fields.
  */
-function scratchpads_events_7001(){
+function scratchpads_events_update_7001(){
   $fields_to_lock = array();
   module_load_include('features.field.inc', 'scratchpads_events');
   foreach(scratchpads_events_field_default_fields() as $field){

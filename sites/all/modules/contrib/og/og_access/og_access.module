@@ -58,6 +58,12 @@ function og_access_node_grants($account, $op) {
  * Implements hook_node_access_records().
  */
 function og_access_node_access_records($node) {
+  if (empty($node->status)) {
+    // Node is unpublished, so we don't allow every group member to see
+    // it.
+    return array();
+  }
+
   $grants = array();
 
   // The group IDs, that in case access is granted, will be recorded.

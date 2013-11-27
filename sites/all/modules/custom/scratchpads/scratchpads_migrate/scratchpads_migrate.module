@@ -36,6 +36,8 @@ function _scratchpads_migrate_settings(){
   $is_dev = FALSE;
   if(strpos($host, 's2') === 0){
     $s1_domain = substr($host, 3);
+  }else if(strpos($host, 'dev-s2') === 0){
+    $s1_domain = substr($host, 7);
   }else if(preg_match('/\.myspecies\.info$/', $host)){
     $s1_domain = str_replace('.myspecies.info', '', $host);
   }else if(preg_match('/\.migration\.local$/', $host)){
@@ -644,6 +646,23 @@ function scratchpads_migrate_register_migrations(){
     'menu_migration' => 'Menu'
   );
   Migration::registerMigration('ScratchpadMenuLinkMigration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * Webform
+  *********************************************************************************************/
+  if (scratchpads_migrate_source_module_exists('webform')){
+    if (!module_exists('webform')){
+      module_enable(array(
+        'webform'
+      ));
+    }
+    $arguments = $common_arguments + array(
+      'description' => t('Migration of Webform settings and submissions from Drupal 6'),
+      'machine_name' => 'WebformSettings',
+      'dependencies' => $all_node_dependencies,
+      'group' => MigrateGroup::getInstance('final')
+    );
+    Migration::registerMigration('ScratchpadsWebformMigration', $arguments['machine_name'], $arguments);
+  }
   /*********************************************************************************************
    * Blocks
   ********************************************************************************************/
