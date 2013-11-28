@@ -900,7 +900,7 @@ class CharacterEditorSDDImport{
     }
     foreach($dom->xpath('/Datasets/Dataset/CodedDescriptions/CodedDescription/SummaryData/Categorical') as $dom_node){
       if(count($dom_node->xpath('State')) > 1){
-        $this->addMessage(t('The SDD file cannot be imported: The chatacter editor only supports one state per controlled (categorical) character.'));
+        $this->addMessage(t('The SDD file cannot be imported: The character editor only supports one state per controlled (categorical) character.'), 'error');
         $fail = TRUE;
         break;
       }
