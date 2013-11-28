@@ -1,5 +1,6 @@
 <?php
 include_once ('character_editor.features.inc');
+include_once ('includes/relations.inc');
 /*********************************************************************************************
  * 
  * CONSTANTS
@@ -28,6 +29,17 @@ function character_editor_menu(){
       ),
       'type' => MENU_CALLBACK,
       'file' => 'character_editor.getdata.inc'
+    ),
+    'admin/content/sdd-import' => array(
+      'title' => 'Character Project SDD Import',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'character_editor_sdd_import_form'
+      ),
+      'access arguments' => array(
+        'create character editor'
+      ),
+      'file' => 'character_editor.import.inc'
     )
   );
 }
@@ -193,10 +205,11 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
   // The project ID will always be passed in as the first argument
   $project = character_editor_entity_load_single('character_editor_project', reset($args), true);
   $project_w = entity_metadata_wrapper('character_editor_project', $project);
-  foreach($project_w->relation_character_character_editor_character as $group_w){
+  $properties = $project_w->getPropertyInfo();
+  foreach(character_editor_get_characters($project_w) as $group_w){
     $column_number = 1;
     $character_group_has_column = FALSE;
-    foreach($group_w->relation_character_character_editor_character as $character_w){
+    foreach(character_editor_get_characters($group_w) as $character_w){
       if($character_w->getBundle() == 'group'){
         continue;
       }
@@ -584,25 +597,35 @@ function character_editor_entity_info(){
  * Implements hook_entity_property_info_alter().
  */
 function character_editor_entity_property_info_alter(&$info){
-  $properties = &$info['character_editor_project']['properties'];
-  $properties['created'] = array(
+  // Set the editor project properties
+  $project = &$info['character_editor_project']['properties'];
+  $project['created'] = array(
     'label' => t("Date created"),
     'type' => 'date',
     'description' => t("The date the character project was created."),
     'schema field' => 'created'
   );
-  $properties['changed'] = array(
+  $project['changed'] = array(
     'label' => t("Date changed"),
     'type' => 'date',
     'description' => t("The date the character project was updated."),
     'schema field' => 'created'
   );
-  $properties['uid'] = array(
+  $project['uid'] = array(
     'label' => t("Author"),
     'type' => 'user',
     'setter callback' => 'entity_property_verbatim_set',
     'description' => t("The author of the character project."),
     'schema field' => 'uid'
+  );
+  // Set the character properties
+  $character = &$info['character_editor_character']['properties'];
+  $character['title'] = array(
+    'type' => 'text',
+    'label' => 'Title',
+    'schema field' => 'title',
+    'description' => 'The title of the character',
+    'setter callback' => 'entity_property_verbatim_set'
   );
 }
 
@@ -667,7 +690,7 @@ function character_editor_entity_delete($entity, $type){
  */
 function character_editor_entity_insert($entity, $type){
   global $user;
-  if($type == 'character_editor_project'){
+  if($type == 'character_editor_project' && !isset($entity->no_default_group)){
     // Create the group entity
     $group = entity_create('character_editor_character', array(
       'type' => 'group',
@@ -1311,39 +1334,13 @@ function character_editor_silver(){
   return array(
     array(
       'type' => 'Character data',
-      'name' => 'Nexus file import',
-      //'access callback' => 'user_access',
+      'name' => 'SDD file import',
+      'access callback' => 'user_access',
       'access arguments' => array(
         'create character editor'
       ),
-      'form_id' => 'character_editor_nexus_import_form'
+      'form_id' => 'character_editor_sdd_import_form',
+      'file' => 'character_editor.import.inc'
     )
   );
 }
-
-function character_editor_nexus_import_form($form, $form_state){
-  drupal_set_message(t("Sorry, the character editor import is not currently working."), 'warning');
-  $form['title'] = array(
-    '#title' => t('Title'),
-    '#type' => 'textfield',
-    '#required' => true
-  );
-  $form['description'] = array(
-    '#title' => t('Description'),
-    '#type' => 'textarea'
-  );
-  $form['submit'] = array(
-    '#disabled' => TRUE,
-    '#type' => 'submit',
-    '#value' => t('Import')
-  );
-  // We need a URL that the form can be accessed from here.  This will also need
-  // adding to the menu.
-  $form['#action'] = '/admin/import';
-  return $form;
-}
-
-function character_editor_nexus_import_form_submit($form, $form_state){}
-
-
-
