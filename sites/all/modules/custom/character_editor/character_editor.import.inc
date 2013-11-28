@@ -291,7 +291,7 @@ function character_editor_reverse_schema_array_sdd_character_group($variables){
   global $user;
   return array(
     'character_editor_character#group' => array(
-      '#xpath' => '/Datasets/Dataset/DescriptiveConcepts/DescriptiveConcept',
+      '#xpath' => '/Datasets/Dataset/DescriptiveConcepts/DescriptiveConcept[@id=/Datasets/Dataset/CharacterTrees/CharacterTree/Nodes/Node/DescriptiveConcept/@ref]',
       '#id' => '@id',
       '#get' => array(
         'character_editor_sdd_import_get_character',
@@ -858,7 +858,7 @@ class CharacterEditorSDDImport{
     }
     // Check it's valid XML
     $use_errors = libxml_use_internal_errors(TRUE);
-    $dom = simplexml_load_string($content);
+    $dom = simplexml_load_string(preg_replace('/xmlns\s*=\s*["\'][^"\']+["\']/', '', $content));
     if(!$dom){
       $errors = libxml_get_errors();
       $this->addMessage(t('The file does not contain valid XML. XML Parsing errors:'), 'error');
@@ -878,10 +878,10 @@ class CharacterEditorSDDImport{
       $this->addMessage(t('Identification keys are not supported and will not be imported.'), 'warning');
     }
     if(!$dom->xpath('/Datasets/Dataset/TaxonNames') || !$dom->xpath('/Datasets/Dataset/Characters')){
-      $this->addMessage(t('The SDD file cannot be imported: it must define some Taxon Names and some Characters.') . 'error');
+      $this->addMessage(t('The SDD file cannot be imported: it must define some Taxon Names and some Characters.'), 'error');
       $fail = TRUE;
     }
-    if($dom->xpath('/Datasets/Dataset/CharacterTrees/Node/Parent')){
+    if($dom->xpath('/Datasets/Dataset/CharacterTrees/CharacterTree/Nodes/Node/Parent')){
       $this->addMessage(t('The SDD file cannot be imported: we do not support character trees that have a depth of more than 1.'), 'error');
       $fail = TRUE;
     }
@@ -971,7 +971,7 @@ class CharacterEditorSDDImport{
     }
     // Prepare CharacterEditorMapXML Object
     $content = file_get_contents($this->filename);
-    $this->dom = simplexml_load_string($content);
+    $this->dom = simplexml_load_string(preg_replace('/xmlns\s*=\s*["\'][^"\']+["\']/', '', $content));
     $this->map = new ReverseSchemaArrayMapXML($this->dom, 'http://rs.tdwg.org/UBIF/2006/', array(
       'autosave' => FALSE
     ));
@@ -1135,16 +1135,28 @@ class CharacterEditorSDDImport{
     // Associates all the characters with their group
     $inconsistent = FALSE;
     foreach($this->dom->xpath('/Datasets/Dataset/CharacterTrees/CharacterTree/Nodes/CharNode') as $tree_node){
-      $group_ref = $this->map->nodeToString($tree_node->xpath('Parent/@ref[1]'));
       $character_ref = $this->map->nodeToString($tree_node->xpath('Character/@ref[1]'));
-      if(!$group_ref || !$character_ref){
-        $inconsistent = TRUE;
+      if(!$character_ref){
+        $this->addMessage("Missing character reference in CharacterTree description, the tree will be incomplete.", 'warning', 'tree');
+        continue;
+      }
+      $node_ref = $this->map->nodeToString($tree_node->xpath('Parent/@ref[1]'));
+      if (!$node_ref){
+        $this->addMessage("Missing parent node reference in CharacterTree description, the tree will be incomplete. Character $character_ref will be associated with default group instead", 'warning', 'tree');
+        continue;
+      }
+      $group_ref = $this->map->nodeToString($tree_node->xpath('../Node[@id=\'' . $node_ref . '\']/DescriptiveConcept/@ref'));
+      if(!$group_ref){
+        $this->addMessage("Missing group reference in CharacterTree description, the tree will be incomplete. Character $character_ref will be associated with default group instead", 'warning', 'tree');
         continue;
       }
       $group_w = $this->map->getEntity('character_editor_character', $group_ref);
       $character_w = $this->map->getEntity('character_editor_character', $character_ref);
-      if(!$group_w || !$character_w){
-        $inconsistent = TRUE;
+      if(!$character_w){
+        $this->addMessage("Could not find Character with reference $character_ref in Character Tree, skipping.", 'warning', 'tree');
+      }
+      if(!$group_w){
+        $this->addMessage("Could not find group with reference $group_ref in CharacterTree, the tree will be incomplete. Character $character_ref will be associated with the default group instead", 'warning', 'tree');
         continue;
       }
       unset($characters_to_associate[$character_w->getIdentifier()]);
@@ -1176,9 +1188,6 @@ class CharacterEditorSDDImport{
       foreach($characters_to_associate as $entity_w){
         character_editor_associate_character($default_group_w, $entity_w);
       }
-    }
-    if($inconsistent){
-      $this->addMessage("Character tree is inconsitent", 'warning');
     }
   }
 
