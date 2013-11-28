@@ -19,6 +19,10 @@ function silver_feeds_presave(FeedsSource $source, $entity){
   if(substr($entity_type, 0, 5) == 'feeds'){
     $entity_type = substr($entity_type, 5);
   }
+  switch($entity_type){
+  	case 'term':
+  	  $entity_type = 'taxonomy_term';
+  }
   if(!entity_get_info($entity_type)){
     $entity_type = 'node';
   }
