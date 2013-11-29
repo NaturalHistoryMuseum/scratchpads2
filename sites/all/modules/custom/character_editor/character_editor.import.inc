@@ -343,9 +343,11 @@ function character_editor_sdd_import_set_media_object($xml_map, $entity_w, $fiel
   // Test protocol
   if(!preg_match('%^https?://%', $href)){
     if(preg_match('%^file://%', $href)){
-      $this->addMessage(t("Uploading media files from your computer is currently not supported. The Media Object will not be imported."));
+      $xml_map->addMessage(t("Please upload %ref separately (if needed) prior to importing the project. The corresponding Media Object will not be imported.", array(
+        '%ref' => $href
+      )));
     }else{
-      $this->addMessage(t("Only http(s):// protocol is supported for for Media Objects. The Media Object will not be imported."));
+      $xml_map->addMessage(t("Only http(s):// protocol is supported for for Media Objects. The Media Object will not be imported."));
     }
     throw new ReverseSchemaArrayException(REVERSE_SCHEMA_ARRAY_SKIP_ENTITY);
   }
@@ -1131,7 +1133,18 @@ class CharacterEditorSDDImport{
         '%count' => $info['total']
       )), 'status');
     }
-    $this->validated = TRUE;
+    // Additional file tests
+    $missing_files = array();
+    foreach($dom->xpath('/Datasets/Dataset/MediaObjects/MediaObject/Source[starts-with(@href, \'file://\')]') as $dom_node){
+      $e = character_editor_sdd_import_get_media_object($map, $dom_node);
+      if(!$e){
+        $missing_files[] = $map->nodeToString($dom_node->xpath('@href'));
+      }
+    }
+    if(count($missing_files)){
+      $this->addMessage(t("The SDD file contains references to local images that cannot be found on the site. You will need to upload those separately first if you want them included in the character project. The list of missing images is:"), 'warning');
+      $this->addMessage($missing_files, 'warning', 'missing-file');
+    }
     return TRUE;
   }
 
@@ -1228,7 +1241,7 @@ class CharacterEditorSDDImport{
    */
   private function importMedia(){
     try{
-      $this->map->mapXML(reverse_schema_array('sdd_media_object', $this->rsa_mode));
+      $this->map->mapXML(reverse_schema_array('sdd_media_object', REVERSE_SCHEMA_ARRAY_GET | REVERSE_SCHEMA_ARRAY_CREATE));
     }
     catch(Exception $e){
       $this->addMessage('The SDD file cannot be imported. Failed to import Media Objects: ' . $e->getMessage(), 'error');
