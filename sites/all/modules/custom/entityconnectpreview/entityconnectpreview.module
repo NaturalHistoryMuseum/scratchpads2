@@ -21,7 +21,6 @@ function entityconnectpreview_form_alter(&$form, &$form_state, $form_id){
     }
     if(isset($form[$field_name])){
       $field_language = field_language($entity_type, $form['#entity'], $field_name);
-      //foreach(element_children($form[$field_name]) as $child_field_name){
       if($form[$field_name][$field_language]['#type'] == 'select'){
         // We only add our preview if there isn't an ajax function already
         // associated with the select box.  This could be altered to work
@@ -30,18 +29,20 @@ function entityconnectpreview_form_alter(&$form, &$form_state, $form_id){
           // We add a CSS file to allow us to do a little themeing.
           $form['#attached']['css'][] = drupal_get_path('module', 'entityconnectpreview') . '/css/entityconnectpreview.css';
           // We add a preview to the form.
-          $id = FALSE;
-          if(!empty($form_state['values'][$field_name][$field_language][0])){
-            $id = $form_state['values'][$field_name][$field_language][0]['nid'];
-          }elseif(!empty($form[$field_name][$field_language]['#default_value'][0])){
-            $id = $form[$field_name][$field_language]['#default_value'][0];
+          $ids = FALSE;
+          if(!empty($form_state['values'][$field_name][$field_language])){
+            $ids = array();
+            $key = array_keys($field['columns']);
+            $key = array_pop($key);
+            foreach($form_state['values'][$field_name][$field_language] as $value){
+              $ids[] = $value[$key];
+            }
+          }elseif(!empty($form[$field_name][$field_language]['#default_value'])){
+            $ids = $form[$field_name][$field_language]['#default_value'];
           }
-          if($id){
-            $entity_to_preview = entity_load($entity_type, array(
-              $id
-            ));
+          if($ids){
+            $entity_to_preview = entity_load($entity_type, $ids);
             $entity_preview = entity_view($entity_type, $entity_to_preview, 'entityconnectpreview');
-            unset($entity_preview[$entity_type][$id]['links']);
             $form[$field_name]['preview'] = array(
               '#markup' => drupal_render($entity_preview)
             );
@@ -75,9 +76,13 @@ function entityconnectpreview_ajax_callback($form, $form_state){
 
 /**
  * Implements hook_entity_view_alter()
+ * 
+ * We remove the submitted section from a node view to keep it as clean as
+ * possible.  This should possibly be an option for the field.
  */
 function entityconnectpreview_process_node(&$variables){
   $variables['submitted'] = '';
+  $variables['links'] = '';
 }
 
 /**
