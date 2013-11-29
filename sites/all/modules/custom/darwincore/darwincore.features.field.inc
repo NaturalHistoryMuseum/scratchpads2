@@ -969,6 +969,15 @@ function darwincore_field_default_fields(){
           'type' => 'gm3_entity_map',
           'weight' => '1'
         ),
+        'entityconnectpreview' => array(
+          'label' => 'above',
+          'module' => 'gm3_field',
+          'settings' => array(
+            'display_convex_hull' => FALSE
+          ),
+          'type' => 'gm3_entity_map',
+          'weight' => '1'
+        ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
