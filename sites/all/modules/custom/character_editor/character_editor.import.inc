@@ -280,6 +280,117 @@ function character_editor_sdd_import_get_taxon_name($xml_map, $xml_node, $availa
 }
 
 /**
+ * character_editor_reverse_schema_array_sdd_media_object
+ *
+ * Implement hook_reverse_schema_array_<schema>
+ *
+ * Defines how a Media Object is imported
+ *
+ */
+function character_editor_reverse_schema_array_sdd_media_object($variables){
+  global $user;
+  return array(
+    'file' => array(
+      '#xpath' => '/Datasets/Dataset/MediaObjects/MediaObject/Source[@href]',
+      '#id' => '../@id',
+      '#get' => array(
+        'character_editor_sdd_import_get_media_object'
+      ),
+      '#create' => array(
+        'uid' => isset($variables['uid']) ? $variables['uid'] : $user->uid,
+        'timestamp' => isset($variables['timestamp']) ? $variables['timestamp'] : time(),
+        'type' => 'image',
+        'status' => 1
+      ),
+      'fid' => array(
+        '#xpath' => '@href',
+        '#set' => 'character_editor_sdd_import_set_media_object'
+      ),
+      'field_description' => '../Representation/Detail[1]'
+    )
+  );
+}
+
+/**
+ * character_editor_sdd_import_get_media_object
+ *
+ * Try to match a media object
+ */
+function character_editor_sdd_import_get_media_object($xml_map, $xml_node){
+  $href = $xml_map->nodeToString($xml_node->xpath('@href'));
+  if(!$href){return FALSE;}
+  $efq = new EntityFieldQuery();
+  $efq->entityCondition('entity_type', 'file');
+  $efq->propertyCondition('type', 'image');
+  $efq->propertyCondition('filename', basename($href));
+  $results = $efq->execute();
+  if(!empty($results['file'])){
+    $id = reset(array_keys($results['file']));
+    $entity = entity_load_single('file', $id);
+    $entity_w = entity_metadata_wrapper('file', $entity);
+    return $entity_w;
+  }
+  return NULL;
+}
+
+/**
+ * character_editor_sdd_import_set_media_object
+ *
+ * Create the media object
+ */
+function character_editor_sdd_import_set_media_object($xml_map, $entity_w, $field_name, $property, $value){
+  $href = $xml_map->nodeToString($value);
+  // Test protocol
+  if(!preg_match('%^https?://%', $href)){
+    if(preg_match('%^file://%', $href)){
+      $this->addMessage(t("Uploading media files from your computer is currently not supported. The Media Object will not be imported."));
+    }else{
+      $this->addMessage(t("Only http(s):// protocol is supported for for Media Objects. The Media Object will not be imported."));
+    }
+    throw new ReverseSchemaArrayException(REVERSE_SCHEMA_ARRAY_SKIP_ENTITY);
+  }
+  // Test mime type
+  $mime = file_get_mimetype($href);
+  if(!$mime){
+    $this->addMessage(t("File %file is of unknown type. The Media Object will not be imported."));
+    throw new ReverseSchemaArrayException(REVERSE_SCHEMA_ARRAY_SKIP_ENTITY);
+  }
+  if(!preg_match('/^image\/(jpeg|gif|png|svg+xml|tiff)$/', $mime)){
+    $this->addMessage(t("File %file is not an image (jpeg, gif, png, svg and tiff are supported). The Media Object will not be imported.", array(
+      '%file' => $href
+    )));
+    throw new ReverseSchemaArrayException(REVERSE_SCHEMA_ARRAY_SKIP_ENTITY);
+  }
+  // Get the file
+  $uri = system_retrieve_file($href, 'public://');
+  if(!$uri){
+    $this->addMessage(t("Could not load file %file. The Media Object will not be imported.", array(
+      '%file' => $href
+    )));
+    throw new ReverseSchemaArrayException(REVERSE_SCHEMA_ARRAY_SKIP_ENTITY);
+  }
+  $info = image_get_info($uri);
+  if(!$info){
+    file_unmanaged_delete($uri);
+    $this->addMessage(t("The file %file cannot be parsed, and does not seem to be an image. The Media Object will not be imported.", array(
+      '%file' => $href
+    )));
+    throw new ReverseSchemaArrayException(REVERSE_SCHEMA_ARRAY_SKIP_ENTITY);
+  }
+  // Set the fields. The wrapper is not usefull for this, do it on the entity directly.
+  $entity = $entity_w->raw();
+  $entity->filename = basename($href);
+  $entity->title = $xml_map->nodeToString($value->xpath('../Representation/Label[1]'));
+  $entity->uri = $uri;
+  $entity->filemime = $mime;
+  $entity->filesize = filesize($uri);
+  $entity->image_dimensions = array(
+    'width' => $info['width'],
+    'height' => $info['height']
+  );
+}
+
+/**
  * character_editor_reverse_schema_array_sdd_character_group
  *
  * Implement hook_reverse_schema_array_<schema>
@@ -306,7 +417,20 @@ function character_editor_reverse_schema_array_sdd_character_group($variables){
         'title' => '(group)'
       ),
       'title' => 'Representation/Label[1]',
-      'field_char_description:value' => 'Representation/Detail[1]'
+      'field_char_description' => 'Representation/Detail[1]',
+      'field_char_image' => array(
+        '#xpath' => 'MediaObject/@ref',
+        '#process' => array(
+          'reverse_schema_array_process_map',
+          'file',
+          array(
+            'array' => TRUE,
+            'error' => "MediaObject reference %ref is missing",
+            'throw' => TRUE,
+            'action' => REVERSE_SCHEMA_ARRAY_SKIP_VALUE
+          )
+        )
+      )
     )
   );
 }
@@ -338,7 +462,20 @@ function character_editor_reverse_schema_array_sdd_character_text($variables){
         'title' => '(text character)'
       ),
       'title' => 'Representation/Label[1]',
-      'field_char_description:value' => 'Representation/Detail[1]'
+      'field_char_description:value' => 'Representation/Detail[1]',
+      'field_char_image' => array(
+        '#xpath' => 'MediaObject/@ref',
+        '#process' => array(
+          'reverse_schema_array_process_map',
+          'file',
+          array(
+            'array' => TRUE,
+            'error' => "MediaObject reference %ref is missing",
+            'throw' => TRUE,
+            'action' => REVERSE_SCHEMA_ARRAY_SKIP_VALUE
+          )
+        )
+      )
     )
   );
 }
@@ -374,6 +511,19 @@ function character_editor_reverse_schema_array_sdd_character_numeric($variables)
       'field_char_unit' => array(
         '#xpath' => 'MeasurementUnit/Label[1]',
         '#process' => 'character_editor_sdd_import_process_measurement_unit'
+      ),
+      'field_char_image' => array(
+        '#xpath' => 'MediaObject/@ref',
+        '#process' => array(
+          'reverse_schema_array_process_map',
+          'file',
+          array(
+            'array' => TRUE,
+            'error' => "MediaObject reference %ref is missing",
+            'throw' => TRUE,
+            'action' => REVERSE_SCHEMA_ARRAY_SKIP_VALUE
+          )
+        )
       )
     )
   );
@@ -437,7 +587,20 @@ function character_editor_reverse_schema_array_sdd_character_dna($variables){
         'title' => '(dna character)'
       ),
       'title' => 'Representation/Label[1]',
-      'field_char_description:value' => 'Representation/Detail[1]'
+      'field_char_description:value' => 'Representation/Detail[1]',
+      'field_char_image' => array(
+        '#xpath' => 'MediaObject/@ref',
+        '#process' => array(
+          'reverse_schema_array_process_map',
+          'file',
+          array(
+            'array' => TRUE,
+            'error' => "MediaObject reference %ref is missing",
+            'throw' => TRUE,
+            'action' => REVERSE_SCHEMA_ARRAY_SKIP_VALUE
+          )
+        )
+      )
     )
   );
 }
@@ -475,6 +638,19 @@ function character_editor_reverse_schema_array_sdd_character_controlled($variabl
         // would require the state definitions to always have an ID however.
         '#xpath' => 'States/StateDefinition',
         '#set' => 'character_editor_sdd_import_set_character_state'
+      ),
+      'field_char_image' => array(
+        '#xpath' => 'MediaObject/@ref',
+        '#process' => array(
+          'reverse_schema_array_process_map',
+          'file',
+          array(
+            'array' => TRUE,
+            'error' => "MediaObject reference %ref is missing",
+            'throw' => TRUE,
+            'action' => REVERSE_SCHEMA_ARRAY_SKIP_VALUE
+          )
+        )
       )
     )
   );
@@ -498,6 +674,20 @@ function character_editor_sdd_import_set_character_state($xml_map, $entity_w, $f
       )
     )
   );
+  $mo_ref = reset($value->xpath('MediaObject/@ref'));
+  if($mo_ref){
+    $img = reverse_schema_array_process_map($xml_map, $mo_ref, 'file', array(
+      'array' => TRUE,
+      'error' => "MediaObject reference %ref is missing"
+    ));
+    if($img){
+      $state->field_char_state_image = array(
+        LANGUAGE_NONE => array(
+          $img
+        )
+      );
+    }
+  }
   $state->setHostEntity($entity_w->type(), $entity_w->raw());
   // Add it to the map so it can be referenced
   $xml_id = $xml_map->nodeToString($value->xpath('@id'));
@@ -600,6 +790,7 @@ function character_editor_sdd_import_get_character($xml_map, $node, $type, $proj
  * Implement hook_reverse_schema_array_<schema>
  *
  * Defines how an SDD Quantitative coded description is saved.
+ * XXX we don't support ranges - test for them!
  */
 function character_editor_reverse_schema_array_sdd_character_data_numeric($variables){
   return array(
@@ -710,8 +901,8 @@ function character_editor_reverse_schema_array_sdd_character_data_controlled($va
         '#process' => array(
           'reverse_schema_array_process_map',
           'field_collection_item',
-          'item_id',
           array(
+            'field' => 'item_id',
             'error' => "CodedDescription could not be imported as the Categorial state %ref is missing",
             'throw' => TRUE,
             'action' => REVERSE_SCHEMA_ARRAY_SKIP_ENTITY
@@ -898,6 +1089,9 @@ class CharacterEditorSDDImport{
     if($dom->xpath('/Datasets/Dataset/Characters/QuantitativeCharacter/Assumptions')){
       $this->addMessage(t('Quantitative character mappings are not supported and will not be imported.'), 'warning');
     }
+    if($dom->xpath('/Datasets/Dataset/MediaObjects/MediaObject/EncodedData')){
+      $this->addMessage(t('MediaObjects with Encoded Data will not be imported'), 'warning');
+    }
     foreach($dom->xpath('/Datasets/Dataset/CodedDescriptions/CodedDescription/SummaryData/Categorical') as $dom_node){
       if(count($dom_node->xpath('State')) > 1){
         $this->addMessage(t('The SDD file cannot be imported: The character editor only supports one state per controlled (categorical) character.'), 'error');
@@ -976,6 +1170,10 @@ class CharacterEditorSDDImport{
       'autosave' => FALSE
     ));
     $this->importTerms();
+    if(!$this->importMedia()){return FALSE;}
+    // XXX we must do this before they can be linked to other values.
+    // We should delete them if the import later fails!
+    $this->map->saveEntities();
     if(!$this->importGroups()){return FALSE;}
     if(!$this->importCharacters()){return FALSE;}
     // We made it this far without failure - we can save all the entities before we start creating relations
@@ -1021,6 +1219,41 @@ class CharacterEditorSDDImport{
         $this->project_w->field_taxonomic_name[] = $term_w->raw();
       }
     }
+  }
+
+  /**
+   * importMedia
+   *
+   * Import media items
+   */
+  private function importMedia(){
+    try{
+      $this->map->mapXML(reverse_schema_array('sdd_media_object', $this->rsa_mode));
+    }
+    catch(Exception $e){
+      $this->addMessage('The SDD file cannot be imported. Failed to import Media Objects: ' . $e->getMessage(), 'error');
+      return FALSE;
+    }
+    $info = $this->map->getInfo();
+    if($info['new'] > 0){
+      $this->addMessage(t("Successfully created %count media objects.", array(
+        '%count' => $info['new']
+      )), 'status');
+    }
+    if($info['loaded'] > 0){
+      $this->addMessage(t("Successfully loaded %count existing media objects.", array(
+        '%count' => $info['loaded']
+      )), 'status');
+    }
+    if($info['skipped']){
+      $this->addMessage(t("%count media objects could not be mapped to existing media objects and were skipped. Missing items:", array(
+        '%count' => $info['skipped']
+      )), 'warning');
+      $this->addMessage($this->map->getMessages(), 'warning', 'map-media');
+    }
+    $this->map->flushMessages();
+    $this->map->flushInfo();
+    return TRUE;
   }
 
   /**
@@ -1141,7 +1374,7 @@ class CharacterEditorSDDImport{
         continue;
       }
       $node_ref = $this->map->nodeToString($tree_node->xpath('Parent/@ref[1]'));
-      if (!$node_ref){
+      if(!$node_ref){
         $this->addMessage("Missing parent node reference in CharacterTree description, the tree will be incomplete. Character $character_ref will be associated with default group instead", 'warning', 'tree');
         continue;
       }

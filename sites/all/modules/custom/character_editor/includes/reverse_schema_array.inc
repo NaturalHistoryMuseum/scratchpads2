@@ -99,7 +99,10 @@
  *
  * - Calls to '#process' and '#set' may raise an excpetion of type ReverseSchemaArrayException
  *   defining how to continue processing (skip current value, skip entity or cancel import) ;
- *   
+ *
+ * - Additional entity creation steps that cannot be done via fields/wrappers are typically
+ *   done by adding a '#set' function to the entity id field ;
+ *
  * - Object of this class may be used a number of times on the same XML data - for processing
  *   that requires intermeditate steps - however only one DOM document may be used.
  *
@@ -738,25 +741,32 @@ class ReverseSchemaArrayException extends Exception{
  * Generic function to apply the XML id map to a value.
  * 
  * Given an entity_type and a value that represents an XML id
- * in the current map, return the given's field value on the given
- * entity.
+ * in the current map, return the matching entity.
  * 
  * If there is no match an empty value is returned unless otherwise
  * specified in $options.
  * 
  * $options may define:
- * - $error: Error message to add to the mapper in case of error. This should
+ * - field: Return the given field of the entity rather than the entity itself ;
+ * - raw: If TRUE, return the raw entity rather than the wrapper ;
+ * - array: If TRUE, return the raw entity as an array rather than the wrapper ;
+ * - error: Error message to add to the mapper in case of error. This should
  *           be untranslated, any may use '%ref' as a placeholder ;
- * - $throw: If defined and TRUE, a ReverseSchemaArrayException should be
+ * - throw: If defined and TRUE, a ReverseSchemaArrayException should be
  *           thrown on error. This will use the action parameter and the
  *           error message.
- * - $action: The action parameter of the exception.
+ * - action: The action parameter of the exception.
  */
-function reverse_schema_array_process_map($xml_map, $value, $entity_type, $field, $options = array()){
+function reverse_schema_array_process_map($xml_map, $value, $entity_type, $options = array()){
   $value = $xml_map->nodeToString($value);
   $entity_w = $xml_map->getEntity($entity_type, $value);
   if($entity_w){
-    return $entity_w->{$field}->value();
+    if(!empty($options['array'])){
+      return (array)($entity_w->raw());
+    }else if(!empty($options['raw'])){
+      return $entity_w->raw();
+    }else if(!empty($options['field'])){return $entity_w->{$options['field']}->value();}
+    return $entity_w;
   }else{
     $msg = '';
     if(!empty($options['error'])){
