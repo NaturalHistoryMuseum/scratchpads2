@@ -344,8 +344,7 @@ function scratchpads_media_gallery_facetapi_facet_info($searcher_info = FALSE){
       'description' => t('Creator'),
       'query types' => array(
         'term'
-      ),
-      
+      )
     ),
     'im_field_imaging_technique' => array(
       'name' => 'im_field_imaging_technique',
@@ -377,10 +376,29 @@ function scratchpads_media_gallery_facetapi_facet_info($searcher_info = FALSE){
   );
 }
 
+/**
+ * Implements hook_media_wysiwyg_allowed_view_modes_alter() to prevent a large
+ * list of media formats on the WYSIWYG editor.
+ */
+function scratchpads_media_gallery_media_wysiwyg_allowed_view_modes_alter(&$view_modes, $file){
+  // file_styles_large, file_styles_medium, file_styles_original, file_styles_square_thumbnail, file_styles_thumbnail
+  $new_view_modes = array();
+  foreach(array(
+    'file_styles_original',
+    'file_styles_large',
+    'file_styles_medium',
+    'file_styles_thumbnail',
+    'file_styles_square_thumbnail'
+  ) as $key){
+    $new_view_modes[$key] = $view_modes[$key];
+  }
+  $view_modes = $new_view_modes;
+}
 
-function scratchpads_media_gallery_apachesolr_field_mappings_alter(&$mappings, $entity_type) {
-  
- 
+/**
+ * Nah, we don't need any documentation here, of course not!
+ */
+function scratchpads_media_gallery_apachesolr_field_mappings_alter(&$mappings, $entity_type){
   // Enable indexing for text fields
   $mappings['text'] = array(
     'indexing_callback' => 'apachesolr_fields_default_indexing_callback',
@@ -388,16 +406,19 @@ function scratchpads_media_gallery_apachesolr_field_mappings_alter(&$mappings, $
     'index_type' => 'string',
     'facets' => TRUE,
     'facet missing allowed' => TRUE,
-    'dependency plugins' => array('bundle', 'role'),
+    'dependency plugins' => array(
+      'bundle',
+      'role'
+    ),
     'hierarchy callback' => FALSE,
     'name_callback' => '',
     'facet mincount allowed' => FALSE,
     // Field API allows any field to be multi-valued.
     // If we set this to false we are able to sort
-    'multiple' => FALSE,
+    'multiple' => FALSE
   );
- 
 }
+
 /**
  * Map callback
  */
