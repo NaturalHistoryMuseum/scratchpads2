@@ -68,12 +68,16 @@
         <Representation><Label>Type of blood sucker</Label></Representation>
         <States>
           <StateDefinition id='s1'>
-            <Representation><Label>The good type</Label></Representation>
-            <MediaObject ref='mo2' />
+            <Representation>
+              <Label>The good type</Label>
+              <MediaObject ref='mo2' />
+            </Representation>
           </StateDefinition>
           <StateDefinition id='s2'>
-            <Representation><Label>The baaaaad type</Label></Representation>
-            <MediaObject ref='mo3' />
+            <Representation>
+              <Label>The baaaaad type</Label>
+              <MediaObject ref='mo3' />
+            </Representation>
           </StateDefinition>
         </States>
       </CategoricalCharacter>
@@ -85,12 +89,16 @@
         </States>
       </CategoricalCharacter>
       <TextCharacter id='c5'>
-        <Representation><Label>Famous Last Words</Label></Representation>
-        <MediaObject ref='mo1' />
+        <Representation>
+          <Label>Famous Last Words</Label>
+          <MediaObject ref='mo1' />
+        </Representation>
       </TextCharacter>
       <SequenceCharacter id='c6'>
-        <Representation><Label>DNA stuff</Label></Representation>
-        <MediaObject ref='mo4' />
+        <Representation>
+          <Label>DNA stuff</Label>
+          <MediaObject ref='mo4' />
+        </Representation>
       </SequenceCharacter>
     </Characters>
     <DescriptiveConcepts>

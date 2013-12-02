@@ -342,7 +342,9 @@ function character_editor_sdd_import_set_media_object($xml_map, $entity_w, $fiel
   $href = $xml_map->nodeToString($value);
   // Test protocol
   if(!preg_match('%^https?://%', $href)){
-    if(preg_match('%^file://%', $href)){
+    if($entity_w->getIdentifier()){      // We already have data - so no need to worry about not being able to download it.
+return;}
+    if(preg_match('%^file:/%', $href)){
       $xml_map->addMessage(t("Please upload %ref separately (if needed) prior to importing the project. The corresponding Media Object will not be imported.", array(
         '%ref' => $href
       )));
@@ -364,7 +366,22 @@ function character_editor_sdd_import_set_media_object($xml_map, $entity_w, $fiel
     throw new ReverseSchemaArrayException(REVERSE_SCHEMA_ARRAY_SKIP_ENTITY);
   }
   // Get the file
-  $uri = system_retrieve_file($href, 'public://');
+  $entity = $entity_w->raw();
+  $default_loc = 'public://';
+  $default_mode = FILE_EXISTS_RENAME;
+  if($entity_w->getIdentifier()){
+    // This was already downloaded - check file
+    // modification time
+    $headers = get_headers($href, 1);
+    if($headers && !empty($headers['Last-Modified'])){
+      $mtime = strtotime($headers['Last-Modified']);
+      if($mtime && $mtime <= $entity_w->timestamp->value()){return;}
+    }
+    $default_loc = $entity->uri;
+    $default_mode = FILE_EXISTS_REPLACE;
+  }
+  // Get the file
+  $uri = system_retrieve_file($href, $default_loc, FALSE, $default_mode);
   if(!$uri){
     $xml_map->addMessage(t("Could not load file %file. The Media Object will not be imported.", array(
       '%file' => $href
@@ -380,7 +397,6 @@ function character_editor_sdd_import_set_media_object($xml_map, $entity_w, $fiel
     throw new ReverseSchemaArrayException(REVERSE_SCHEMA_ARRAY_SKIP_ENTITY);
   }
   // Set the fields. The wrapper is not usefull for this, do it on the entity directly.
-  $entity = $entity_w->raw();
   $entity->filename = basename($href);
   $entity->title = $xml_map->nodeToString($value->xpath('../Representation/Label[1]'));
   $entity->uri = $uri;
@@ -421,7 +437,7 @@ function character_editor_reverse_schema_array_sdd_character_group($variables){
       'title' => 'Representation/Label[1]',
       'field_char_description:value' => 'Representation/Detail[1]',
       'field_char_image' => array(
-        '#xpath' => 'MediaObject/@ref',
+        '#xpath' => 'Representation/MediaObject/@ref',
         '#process' => array(
           'reverse_schema_array_process_map',
           'file',
@@ -466,7 +482,7 @@ function character_editor_reverse_schema_array_sdd_character_text($variables){
       'title' => 'Representation/Label[1]',
       'field_char_description:value' => 'Representation/Detail[1]',
       'field_char_image' => array(
-        '#xpath' => 'MediaObject/@ref',
+        '#xpath' => 'Representation/MediaObject/@ref',
         '#process' => array(
           'reverse_schema_array_process_map',
           'file',
@@ -515,7 +531,7 @@ function character_editor_reverse_schema_array_sdd_character_numeric($variables)
         '#process' => 'character_editor_sdd_import_process_measurement_unit'
       ),
       'field_char_image' => array(
-        '#xpath' => 'MediaObject/@ref',
+        '#xpath' => 'Representation/MediaObject/@ref',
         '#process' => array(
           'reverse_schema_array_process_map',
           'file',
@@ -591,7 +607,7 @@ function character_editor_reverse_schema_array_sdd_character_dna($variables){
       'title' => 'Representation/Label[1]',
       'field_char_description:value' => 'Representation/Detail[1]',
       'field_char_image' => array(
-        '#xpath' => 'MediaObject/@ref',
+        '#xpath' => 'Representation/MediaObject/@ref',
         '#process' => array(
           'reverse_schema_array_process_map',
           'file',
@@ -642,7 +658,7 @@ function character_editor_reverse_schema_array_sdd_character_controlled($variabl
         '#set' => 'character_editor_sdd_import_set_character_state'
       ),
       'field_char_image' => array(
-        '#xpath' => 'MediaObject/@ref',
+        '#xpath' => 'Representation/MediaObject/@ref',
         '#process' => array(
           'reverse_schema_array_process_map',
           'file',
@@ -676,7 +692,7 @@ function character_editor_sdd_import_set_character_state($xml_map, $entity_w, $f
       )
     )
   );
-  $mo_ref = reset($value->xpath('MediaObject/@ref'));
+  $mo_ref = reset($value->xpath('Representation/MediaObject/@ref'));
   if($mo_ref){
     $img = reverse_schema_array_process_map($xml_map, $mo_ref, 'file', array(
       'array' => TRUE,
@@ -1038,7 +1054,7 @@ class CharacterEditorSDDImport{
   /**
    * __construct
    */
-  function __construct($filename, $options){
+  function __construct($filename, $options = array()){
     $this->filename = $filename;
     $this->options = array_merge(array(
       'import_selection' => 'all',
@@ -1161,7 +1177,7 @@ class CharacterEditorSDDImport{
     }
     // Additional file tests
     $missing_files = array();
-    foreach($dom->xpath('/Datasets/Dataset/MediaObjects/MediaObject/Source[starts-with(@href, \'file://\')]') as $dom_node){
+    foreach($dom->xpath('/Datasets/Dataset/MediaObjects/MediaObject/Source[starts-with(@href, \'file:/\')]') as $dom_node){
       $e = character_editor_sdd_import_get_media_object($map, $dom_node);
       if(!$e){
         $missing_files[] = $map->nodeToString($dom_node->xpath('@href'));
