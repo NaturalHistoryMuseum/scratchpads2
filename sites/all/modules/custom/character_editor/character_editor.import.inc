@@ -306,7 +306,7 @@ function character_editor_reverse_schema_array_sdd_media_object($variables){
         '#xpath' => '@href',
         '#set' => 'character_editor_sdd_import_set_media_object'
       ),
-      'field_description' => '../Representation/Detail[1]'
+      'field_description:value' => '../Representation/Detail[1]'
     )
   );
 }
@@ -419,7 +419,7 @@ function character_editor_reverse_schema_array_sdd_character_group($variables){
         'title' => '(group)'
       ),
       'title' => 'Representation/Label[1]',
-      'field_char_description' => 'Representation/Detail[1]',
+      'field_char_description:value' => 'Representation/Detail[1]',
       'field_char_image' => array(
         '#xpath' => 'MediaObject/@ref',
         '#process' => array(
