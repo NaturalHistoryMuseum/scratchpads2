@@ -354,11 +354,11 @@ function character_editor_sdd_import_set_media_object($xml_map, $entity_w, $fiel
   // Test mime type
   $mime = file_get_mimetype($href);
   if(!$mime){
-    $this->addMessage(t("File %file is of unknown type. The Media Object will not be imported."));
+    $xml_map->addMessage(t("File %file is of unknown type. The Media Object will not be imported."));
     throw new ReverseSchemaArrayException(REVERSE_SCHEMA_ARRAY_SKIP_ENTITY);
   }
   if(!preg_match('/^image\/(jpeg|gif|png|svg+xml|tiff)$/', $mime)){
-    $this->addMessage(t("File %file is not an image (jpeg, gif, png, svg and tiff are supported). The Media Object will not be imported.", array(
+    $xml_map->addMessage(t("File %file is not an image (jpeg, gif, png, svg and tiff are supported). The Media Object will not be imported.", array(
       '%file' => $href
     )));
     throw new ReverseSchemaArrayException(REVERSE_SCHEMA_ARRAY_SKIP_ENTITY);
@@ -366,7 +366,7 @@ function character_editor_sdd_import_set_media_object($xml_map, $entity_w, $fiel
   // Get the file
   $uri = system_retrieve_file($href, 'public://');
   if(!$uri){
-    $this->addMessage(t("Could not load file %file. The Media Object will not be imported.", array(
+    $xml_map->addMessage(t("Could not load file %file. The Media Object will not be imported.", array(
       '%file' => $href
     )));
     throw new ReverseSchemaArrayException(REVERSE_SCHEMA_ARRAY_SKIP_ENTITY);
@@ -374,7 +374,7 @@ function character_editor_sdd_import_set_media_object($xml_map, $entity_w, $fiel
   $info = image_get_info($uri);
   if(!$info){
     file_unmanaged_delete($uri);
-    $this->addMessage(t("The file %file cannot be parsed, and does not seem to be an image. The Media Object will not be imported.", array(
+    $xml_map->addMessage(t("The file %file cannot be parsed, and does not seem to be an image. The Media Object will not be imported.", array(
       '%file' => $href
     )));
     throw new ReverseSchemaArrayException(REVERSE_SCHEMA_ARRAY_SKIP_ENTITY);
@@ -798,6 +798,7 @@ function character_editor_reverse_schema_array_sdd_character_data_numeric($varia
   return array(
     'relation#character_state_numeric' => array(
       '#xpath' => '/Datasets/Dataset/CodedDescriptions/CodedDescription/SummaryData/Quantitative',
+      '#get' => 'character_editor_sdd_import_get_character_data',
       '#create' => array(
         'relation_type' => 'character_state',
         'uid' => $user->uid,
@@ -827,6 +828,7 @@ function character_editor_reverse_schema_array_sdd_character_data_text($variable
   return array(
     'relation#character_state_numeric' => array(
       '#xpath' => '/Datasets/Dataset/CodedDescriptions/CodedDescription/SummaryData/Text',
+      '#get' => 'character_editor_sdd_import_get_character_data',
       '#create' => array(
         'relation_type' => 'character_state',
         'uid' => $user->uid,
@@ -856,6 +858,7 @@ function character_editor_reverse_schema_array_sdd_character_data_dna($variables
   return array(
     'relation#character_state_numeric' => array(
       '#xpath' => '/Datasets/Dataset/CodedDescriptions/CodedDescription/SummaryData/Sequence',
+      '#get' => 'character_editor_sdd_import_get_character_data',
       '#create' => array(
         'relation_type' => 'character_state',
         'uid' => $user->uid,
@@ -885,6 +888,7 @@ function character_editor_reverse_schema_array_sdd_character_data_controlled($va
   return array(
     'relation#character_state_controlled' => array(
       '#xpath' => '/Datasets/Dataset/CodedDescriptions/CodedDescription/SummaryData/Categorical',
+      '#get' => 'character_editor_sdd_import_get_character_data',
       '#create' => array(
         'relation_type' => 'character_state',
         'uid' => $user->uid,
@@ -913,6 +917,28 @@ function character_editor_reverse_schema_array_sdd_character_data_controlled($va
       )
     )
   );
+}
+
+/**
+ * character_editor_sdd_import_get_character_data
+ *
+ * Get a character data entry if it exists. There can be only
+ * one entry between a given taxon and character - so we look
+ * for that. We don't check if the value has changed, as we might
+ * be updating it.
+ */
+function character_editor_sdd_import_get_character_data($xml_map, $xml_node){
+  $taxon_ref = $xml_map->nodeToString($xml_node->xpath('../../Scope/TaxonName/@ref[1]'));
+  $term_w = $xml_map->getEntity('taxonomy_term', $taxon_ref);
+  $character_ref = $xml_map->nodeToString($xml_node->xpath('@ref'));
+  $char_w = $xml_map->getEntity('character_editor_character', $character_ref);
+  if(!$term_w || !$char_w){return FALSE;}
+  $values = character_editor_get_character_values($char_w, $term_w);
+  if(empty($values)){
+    return FALSE;
+  }else{
+    return $values[0]['relation_w'];
+  }
 }
 
 /**
@@ -1184,8 +1210,7 @@ class CharacterEditorSDDImport{
     ));
     $this->importTerms();
     if(!$this->importMedia()){return FALSE;}
-    // XXX we must do this before they can be linked to other values.
-    // We should delete them if the import later fails!
+    // XXX We must do this before they can be linked to other values. We should delete them if the import later fails!
     $this->map->saveEntities();
     if(!$this->importGroups()){return FALSE;}
     if(!$this->importCharacters()){return FALSE;}
@@ -1458,8 +1483,13 @@ class CharacterEditorSDDImport{
       return FALSE;
     }
     $info = $this->map->getInfo();
-    if($info['saved'] > 0){
-      $this->addMessage(t("Successfully imported %count coded descriptions.", array(
+    if($info['updated'] > 0){
+      $this->addMessage(t("Successfully updated %count coded descriptions.", array(
+        '%count' => $info['saved']
+      )), 'status');
+    }
+    if($info['new'] > 0){
+      $this->addMessage(t("Successfully created %count new coded descriptions.", array(
         '%count' => $info['saved']
       )), 'status');
     }

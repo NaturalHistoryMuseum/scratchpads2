@@ -104,6 +104,9 @@ function character_editor_associate_character(EntityDrupalWrapper $parent_w, Ent
  * the order of the characters is not important.
  * 
  * project <-> group <-> character
+ *
+ * Returns the first level of the relation on success
+ * (this is mostly usefull when max_depth = 1) and FALSE otherwise.
  */
 function character_editor_association_exists(EntityDrupalWrapper $wrap_1, EntityDrupalWrapper $wrap_2, $max_depth = 1, $exclude = array()){
   $result = relation_query($wrap_1->type(), $wrap_1->getIdentifier())->entityCondition('bundle', 'character')->execute();
@@ -125,15 +128,56 @@ function character_editor_association_exists(EntityDrupalWrapper $wrap_1, Entity
       if($excluded){
         continue;
       }
-      if($endpoint['entity_type'] == $wrap_2->type() && $endpoint['entity_id'] == $wrap_2->getIdentifier()){return TRUE;}
+      if($endpoint['entity_type'] == $wrap_2->type() && $endpoint['entity_id'] == $wrap_2->getIdentifier()){return $relation;}
       if($max_depth > 1){
         $endpoint_entity = entity_load_single($endpoint['entity_type'], $endpoint['entity_id']);
         $endpoint_entity_w = entity_metadata_wrapper($endpoint['entity_type'], $endpoint_entity);
         $exclude_rec = $exclude;
         $exclude_rec[] = $wrap_1;
-        if(character_editor_association_exists($endpoint_entity_w, $wrap_2, $max_depth - 1, $exclude_rec)){return TRUE;}
+        if(character_editor_association_exists($endpoint_entity_w, $wrap_2, $max_depth - 1, $exclude_rec)){return $relation;}
       }
     }
   }
   return FALSE;
+}
+
+/**
+ * character_editor_get_character_values
+ *
+ * Given a character (as an entity metadata wrapper)
+ * return an array of arrays defining:
+ * - 'term_w': a taxonomic term wrapper ;
+ * - 'data': the value of the 'field_character_state_data' field on the relation
+ * - 'relation_w' : The relation that links the two
+ *
+ * Note that the relations are as:
+ *
+ * term -(data field on the relation)-> character
+ *
+ * If $term_w is defined, then only return values linked to that term.
+ */
+function character_editor_get_character_values(EntityDrupalWrapper $character_w, EntityDrupalWrapper $term_w = NULL){
+  $values = array();
+  $result = relation_query($character_w->type(), $character_w->getIdentifier())->entityCondition('bundle', 'character_state')->execute();
+  if(empty($result)){return array();}
+  $relations = relation_load_multiple(array_keys($result));
+  foreach($relations as $relation){
+    $relation_w = entity_metadata_wrapper('relation', $relation);
+    $endpoints = field_get_items('relation', $relation, 'endpoints');
+    foreach($endpoints as $endpoint){
+      if($endpoint['entity_type'] == $character_w->type() && $endpoint['entity_id'] == $character_w->getIdentifier()){
+        continue;
+      }
+      if(isset($term_w) && ($term_w->getIdentifier() != $endpoint['entity_id'] || $term_w->type() != $endpoint['entity_type'])){
+        continue;
+      }
+      $end_term_w = entity_metadata_wrapper($endpoint['entity_type'], entity_load_single($endpoint['entity_type'], $endpoint['entity_id']));
+      $values[] = array(
+        'term_w' => $end_term_w,
+        'data' => field_get_items('relation', $relation, 'field_character_state_data'),
+        'relation_w' => $relation_w
+      );
+    }
+  }
+  return $values;
 }
