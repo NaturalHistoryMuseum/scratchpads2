@@ -344,8 +344,7 @@ function scratchpads_media_gallery_facetapi_facet_info($searcher_info = FALSE){
       'description' => t('Creator'),
       'query types' => array(
         'term'
-      ),
-      
+      )
     ),
     'im_field_imaging_technique' => array(
       'name' => 'im_field_imaging_technique',
@@ -377,10 +376,7 @@ function scratchpads_media_gallery_facetapi_facet_info($searcher_info = FALSE){
   );
 }
 
-
-function scratchpads_media_gallery_apachesolr_field_mappings_alter(&$mappings, $entity_type) {
-  
- 
+function scratchpads_media_gallery_apachesolr_field_mappings_alter(&$mappings, $entity_type){
   // Enable indexing for text fields
   $mappings['text'] = array(
     'indexing_callback' => 'apachesolr_fields_default_indexing_callback',
@@ -388,16 +384,19 @@ function scratchpads_media_gallery_apachesolr_field_mappings_alter(&$mappings, $
     'index_type' => 'string',
     'facets' => TRUE,
     'facet missing allowed' => TRUE,
-    'dependency plugins' => array('bundle', 'role'),
+    'dependency plugins' => array(
+      'bundle',
+      'role'
+    ),
     'hierarchy callback' => FALSE,
     'name_callback' => '',
     'facet mincount allowed' => FALSE,
     // Field API allows any field to be multi-valued.
     // If we set this to false we are able to sort
-    'multiple' => FALSE,
+    'multiple' => FALSE
   );
- 
 }
+
 /**
  * Map callback
  */
