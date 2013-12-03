@@ -3,3 +3,19 @@
 db_query("UPDATE {system} SET weight = :weight WHERE name = 'emonocot_itis'", array(
   ':weight' => 1
 ));
+
+/*
+ * Make WCM-ID hidden by default
+ */
+function emonocot_itis_update_7001() {
+  $instances = field_read_instances(
+    array(
+      'field_name' => 'field_id',
+      'entity_type' => 'taxonomy_term',
+    )
+  );
+  foreach ($instances as $instance) {
+  	$instance['display']['default']['type'] = 'hidden';
+  	field_update_instance($instance);
+  }
+}
