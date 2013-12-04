@@ -435,7 +435,7 @@ function character_editor_reverse_schema_array_sdd_character_group($variables){
         'title' => '(group)'
       ),
       'title' => 'Representation/Label[1]',
-      'field_char_description:value' => 'Representation/Detail[1]',
+      'field_char_description' => 'Representation/Detail[1]',
       'field_char_image' => array(
         '#xpath' => 'Representation/MediaObject/@ref',
         '#process' => array(
@@ -480,7 +480,7 @@ function character_editor_reverse_schema_array_sdd_character_text($variables){
         'title' => '(text character)'
       ),
       'title' => 'Representation/Label[1]',
-      'field_char_description:value' => 'Representation/Detail[1]',
+      'field_char_description' => 'Representation/Detail[1]',
       'field_char_image' => array(
         '#xpath' => 'Representation/MediaObject/@ref',
         '#process' => array(
@@ -525,7 +525,7 @@ function character_editor_reverse_schema_array_sdd_character_numeric($variables)
         'title' => '(numeric character)'
       ),
       'title' => 'Representation/Label[1]',
-      'field_char_description:value' => 'Representation/Detail[1]',
+      'field_char_description' => 'Representation/Detail[1]',
       'field_char_unit' => array(
         '#xpath' => 'MeasurementUnit/Label[1]',
         '#process' => 'character_editor_sdd_import_process_measurement_unit'
@@ -605,7 +605,7 @@ function character_editor_reverse_schema_array_sdd_character_dna($variables){
         'title' => '(dna character)'
       ),
       'title' => 'Representation/Label[1]',
-      'field_char_description:value' => 'Representation/Detail[1]',
+      'field_char_description' => 'Representation/Detail[1]',
       'field_char_image' => array(
         '#xpath' => 'Representation/MediaObject/@ref',
         '#process' => array(
@@ -650,7 +650,7 @@ function character_editor_reverse_schema_array_sdd_character_controlled($variabl
         'title' => '(controlled character)'
       ),
       'title' => 'Representation/Label[1]',
-      'field_char_description:value' => 'Representation/Detail[1]',
+      'field_char_description' => 'Representation/Detail[1]',
       'field_char_states' => array(
         // Alternatively we could create the states before hand, and use '@id' here to map them. This
         // would require the state definitions to always have an ID however.
@@ -1427,6 +1427,11 @@ class CharacterEditorSDDImport{
         $this->addMessage("Missing character reference in CharacterTree description, the tree will be incomplete.", 'warning', 'tree');
         continue;
       }
+      if(count($tree_node->xpath('Parent')) == 0){
+        // This will get added to the Default group
+        continue;
+      }
+      // XXX could we have more than one parent here?
       $node_ref = $this->map->nodeToString($tree_node->xpath('Parent/@ref[1]'));
       if(!$node_ref){
         $this->addMessage("Missing parent node reference in CharacterTree description, the tree will be incomplete. Character $character_ref will be associated with default group instead", 'warning', 'tree');
