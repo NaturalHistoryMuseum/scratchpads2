@@ -344,7 +344,7 @@ function character_editor_sdd_import_set_media_object($xml_map, $entity_w, $fiel
   if(!preg_match('%^https?://%', $href)){
     if($entity_w->getIdentifier()){      // We already have data - so no need to worry about not being able to download it.
 return;}
-    if(preg_match('%^file:/%', $href)){
+    if(preg_match('%^file:/%', $href) || !preg_match('/:/', $href)){
       $xml_map->addMessage(t("Please upload %ref separately (if needed) prior to importing the project. The corresponding Media Object will not be imported.", array(
         '%ref' => $href
       )));
@@ -1177,7 +1177,9 @@ class CharacterEditorSDDImport{
     }
     // Additional file tests
     $missing_files = array();
-    foreach($dom->xpath('/Datasets/Dataset/MediaObjects/MediaObject/Source[starts-with(@href, \'file:/\')]') as $dom_node){
+    $potential = $dom->xpath('/Datasets/Dataset/MediaObjects/MediaObject/Source[starts-with(@href, \'file:/\')]');
+    $potential = array_merge($potential, $dom->xpath('/Datasets/Dataset/MediaObjects/MediaObject/Source[not(contains(@href, \':\'))]'));
+    foreach($potential as $dom_node){
       $e = character_editor_sdd_import_get_media_object($map, $dom_node);
       if(!$e){
         $missing_files[] = $map->nodeToString($dom_node->xpath('@href'));
