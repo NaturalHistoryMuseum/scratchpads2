@@ -47,7 +47,7 @@ function taverna_block_view($delta = ''){
         'subject' => t('Run an Ecological Niche Model via BioVeL'),
         'content' => array(
           'iframe' => array(
-            '#markup' => '<a href="admin/taverna/'.arg(2).'"/>Run a workflow</a>'
+            '#markup' => '<a href="' . url('admin/taverna/' . arg(2)) . '"/>Run a workflow</a>'
           )
         )
       );
