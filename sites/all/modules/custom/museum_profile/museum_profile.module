@@ -1,7 +1,0 @@
-<?php
-/**
- * @file
- * Code for the Museum profile feature.
- */
-
-include_once('museum_profile.features.inc');
