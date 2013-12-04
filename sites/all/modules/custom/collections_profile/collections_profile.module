@@ -1,0 +1,40 @@
+<?php
+/**
+ * @file
+ * Code for the Collections profile feature.
+ */
+include_once ('collections_profile.features.inc');
+
+/**
+* hook_node_view()
+*/
+function collections_profile_init(){
+  drupal_add_css(drupal_get_path('module', 'collections_profile') . '/css/collections_profile.css');
+}
+
+/**
+ * hook_date_format_types
+ */
+function collections_profile_date_format_types(){
+  $types = array();
+  $types['year_only'] = t('Year only');
+  return $types;
+}
+
+/**
+ * hook_date_formats
+ */
+function collections_profile_date_formats(){
+  $formats = array();
+  $formats[] = array(
+    'type' => 'year_only',
+    'format' => 'Y', // 2013
+    'locales' => array()
+  );
+  // save the ne date formats into variables
+  foreach($formats as $format){
+    variable_set('date_format_' . $format['type'], $format['format']);
+  }
+  return $formats;
+}
+
