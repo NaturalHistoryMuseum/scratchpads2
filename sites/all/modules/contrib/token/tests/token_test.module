@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Helper module for token tests.
+ */
+
+/**
  * Implements hook_exit().
  */
 function token_test_exit() {
@@ -11,4 +16,18 @@ function token_test_exit() {
     }
     variable_set('token_page_tokens', $debug);
   }
+}
+
+/**
+ * Implements hook_date_format_types().
+ *
+ * @todo Remove when http://drupal.org/node/1173706 is fixed.
+ */
+function token_test_date_format_types() {
+  $info['token_test'] = t('Token test date format');
+
+  // Explicitly set the variable here as well.
+  variable_set('date_format_token_test', 'Y');
+
+  return $info;
 }
