@@ -289,3 +289,12 @@ function darwincore_update_7015(){
 function darwincore_update_7016(){
   variable_set('ant_pattern_specimen_observation', '[node:field_institution_code] - [node:field_collection_code] - [node:field_catalogue_number]');
 }
+
+/**
+ * Tweak the entityconnectpreview display of the location node.
+ */
+function darwincore_update_7017(){
+  module_load_include('features.field.inc', 'darwincore');
+  $fields = darwincore_field_default_fields();
+  field_update_instance($fields['node-location-field_map']['field_instance']);
+}
