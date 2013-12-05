@@ -33,6 +33,8 @@ Drupal.behaviors.tokenDialog = {
         data,
         function (responseText, textStatus, XMLHttpRequest) {
           dialog.removeClass('loading');
+          Drupal.behaviors.tokenTree.attach();
+          Drupal.behaviors.tokenInsert.attach();
         }
       );
       // Prevent browser from following the link.
