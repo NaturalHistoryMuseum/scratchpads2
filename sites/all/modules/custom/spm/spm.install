@@ -152,9 +152,16 @@ function spm_update_7009(){
 }
 
 /**
- * Enable the auto_entitylabel module
+ * Update to the token module requires a change to our ANT pattern.
  */
 function spm_update_7010(){
+  variable_set('ant_pattern_spm', '[node:field_taxonomic_name]');
+}
+
+/**
+ * Enable the auto_entitylabel module
+ */
+function spm_update_7011(){
   module_enable(array(
     'auto_entitylabel'
   ));
