@@ -272,6 +272,7 @@ function darwincore_update_7014(){
   field_update_instance($fields['node-specimen_observation-field_collector']['field_instance']);
   field_update_instance($fields['node-specimen_observation-field_identified_by']['field_instance']);
 }
+
 /**
  * Alter the Remarks field so that the text is processed and it uses the WYSIWYG
  * editor
@@ -280,6 +281,13 @@ function darwincore_update_7015(){
   module_load_include('features.field.inc', 'darwincore');
   $fields = darwincore_field_default_fields();
   field_update_instance($fields['node-specimen_observation-field_remarks']['field_instance']);
+}
+
+/**
+ * Update to the token module requires a change to our ANT pattern.
+ */
+function darwincore_update_7016(){
+  variable_set('ant_pattern_specimen_observation', '[node:field_institution_code] - [node:field_collection_code] - [node:field_catalogue_number]');
 }
 
 /**
