@@ -293,7 +293,7 @@ function darwincore_update_7016(){
 /**
  * Enable the auto_entitylabel module
  */
-function darwincore_update_7016(){
+function darwincore_update_7017(){
   darwincore_update_7015();
   module_enable(array(
     'auto_entitylabel'

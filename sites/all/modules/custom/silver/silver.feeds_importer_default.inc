@@ -132,7 +132,16 @@ function silver_feeds_importer_default(){
       'import_on_create' => TRUE,
       'process_in_background' => FALSE
     );
-    if(function_exists('auto_entitylabel_get_setting') && auto_entitylabel_get_setting($node_type) != AUTO_ENTITYLABEL_ENABLED){
+    // The title field may not have been enabled.
+    if(function_exists('title_field_replacement_enabled') && title_field_replacement_enabled('node', $node_type, 'title')){
+      if(function_exists('auto_entitylabel_get_setting') && auto_entitylabel_get_setting($node_type) != AUTO_ENTITYLABEL_ENABLED){
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => 'Title',
+          'target' => 'title_field',
+          'unique' => FALSE
+        );
+      }
+    }else if(function_exists('auto_entitylabel_get_setting') && auto_entitylabel_get_setting($node_type) != AUTO_ENTITYLABEL_ENABLED){
       $feeds_importer->config['processor']['config']['mappings'][] = array(
         'source' => 'Title',
         'target' => 'title',
