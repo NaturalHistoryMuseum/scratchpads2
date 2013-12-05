@@ -6,3 +6,4 @@ dependencies[] = views_bulk_operations
 dependencies[] = ctools
 dependencies[] = scratchpads_views_filter
 dependencies[] = entityconnect
+dependencies[] = entityconnectpreview
