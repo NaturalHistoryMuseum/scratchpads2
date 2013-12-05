@@ -14,7 +14,7 @@ function darwincore_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'ant_pattern_specimen_observation';
-  $strongarm->value = '[node:field-institution-code] - [node:field-collection-code] - [node:field-catalogue-number]';
+  $strongarm->value = '[node:field_institution_code] - [node:field_collection_code] - [node:field_catalogue_number]';
   $export['ant_pattern_specimen_observation'] = $strongarm;
 
   $strongarm = new stdClass;
