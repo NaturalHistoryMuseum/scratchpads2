@@ -73,7 +73,7 @@ function spm_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'ant_pattern_spm';
-  $strongarm->value = '[node:field-taxonomic-name:values:?]';
+  $strongarm->value = '[node:field_taxonomic_name]';
   $export['ant_pattern_spm'] = $strongarm;
 
   $strongarm = new stdClass;
