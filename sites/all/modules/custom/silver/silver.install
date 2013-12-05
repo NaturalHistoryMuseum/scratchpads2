@@ -26,3 +26,12 @@ function silver_update_7004(){
     'media_feeds'
   ));
 }
+
+/**
+ * Install the media_feeds module.
+ */
+function silver_update_7005(){
+  module_enable(array(
+    'media_internet'
+  ));
+}
