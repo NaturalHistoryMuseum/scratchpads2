@@ -291,9 +291,18 @@ function darwincore_update_7016(){
 }
 
 /**
- * Enable the auto_entitylabel module
+ * Tweak the entityconnectpreview display of the location node.
  */
 function darwincore_update_7017(){
+  module_load_include('features.field.inc', 'darwincore');
+  $fields = darwincore_field_default_fields();
+  field_update_instance($fields['node-location-field_map']['field_instance']);
+}
+
+/**
+ * Enable the auto_entitylabel module
+ */
+function darwincore_update_7018(){
   darwincore_update_7015();
   module_enable(array(
     'auto_entitylabel'
