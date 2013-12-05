@@ -147,7 +147,7 @@
  *     'authmap'   => 'shared_',
  *   ),
  * @endcode
- * You can also use a reference to a schema/database as a prefix. This maybe
+ * You can also use a reference to a schema/database as a prefix. This may be
  * useful if your Drupal installation exists in a schema that is not the default
  * or you want to access several databases from the same code base at the same
  * time.
@@ -162,22 +162,6 @@
  *   );
  * @endcode
  * NOTE: MySQL and SQLite's definition of a schema is a database.
- *
- * By default MySQL only uses a 3-byte UTF8 character set. This can cause
- * problems when trying to save data that contains high-order UTF8 characters,
- * such as math symbols and rarer languages. If you have MySQL 5.5.3+, you can
- * turn on support for 4-byte UTF8 characters in text fields by enabling the
- * utf8mb4 character set on all text columns. More information on utf8mb4 can be
- * found here:
- * http://dev.mysql.com/doc/refman/5.5/en/charset-unicode-utf8mb4.html
- *
- * An example of using the utf8mb4 character set:
- *
- * @code
- * $databases['default']['default'] = array(
- *   'charset' => 'utf8mb4'
- * );
- * @endcode
  *
  * Advanced users can add or override initial commands to execute when
  * connecting to the database server, as well as PDO connection settings. For
@@ -245,10 +229,10 @@ $update_free_access = FALSE;
  * Salt for one-time login links and cancel links, form tokens, etc.
  *
  * This variable will be set to a random value by the installer. All one-time
- * login links will be invalidated if the value is changed.  Note that this
- * variable must have the same value on every web server.  If this variable is
- * empty, a hash of the serialized database credentials will be used as a
- * fallback salt.
+ * login links will be invalidated if the value is changed. Note that if your
+ * site is deployed on a cluster of web servers, you must ensure that this
+ * variable has the same value on each server. If this variable is empty, a hash
+ * of the serialized database credentials will be used as a fallback salt.
  *
  * For enhanced security, you may set this variable to a value using the
  * contents of a file outside your docroot that is never saved together
@@ -451,7 +435,7 @@ ini_set('session.cookie_lifetime', 2000000);
 /**
  * String overrides:
  *
- * To override specific strings on your site with or without enabling locale
+ * To override specific strings on your site with or without enabling the Locale
  * module, add an entry to this list. This functionality allows you to change
  * a small number of your site's default English language interface strings.
  *
