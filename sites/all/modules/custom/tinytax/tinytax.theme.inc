@@ -75,6 +75,7 @@ function theme_tinytax_branch($variables){
  * little shitty).
  */
 function _tinytax_sort_terms($a, $b){
+  // Compare Usage
   $a_usage = !empty($a->field_usage[LANGUAGE_NONE][0]['value']) ? $a->field_usage[LANGUAGE_NONE][0]['value'] : 'valid';
   $b_usage = !empty($b->field_usage[LANGUAGE_NONE][0]['value']) ? $b->field_usage[LANGUAGE_NONE][0]['value'] : 'valid';
   if($a_usage != $b_usage){
@@ -83,6 +84,9 @@ function _tinytax_sort_terms($a, $b){
     $b_usage = ($b_usage == 'valid' || $b_usage == 'accepted');
     if($a_usage != $b_usage){return $a_usage ? 1 : -1;}
   }
+  // Compare Weight
+  if($a->weight != $b->weight){return $a->weight > $b->weight;}
+  // Compare Name
   return strcasecmp($a->name, $b->name);
 }
 
