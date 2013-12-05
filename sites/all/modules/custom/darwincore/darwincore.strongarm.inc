@@ -12,11 +12,12 @@ function darwincore_strongarm(){
   $strongarm = new stdClass();
   $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
-  $strongarm->name = 'auto_entitylabel_pattern_node_specimen_observation';
-  $strongarm->value = '[node:field_institution_code] - [node:field_collection_code] - [node:field_catalogue_number]';
-  $export[$strongarm->name] = $strongarm;
-  $strongarm = new stdClass();
-  $strongarm->disabled = FALSE;
+  $strongarm->name = 'ant_pattern_specimen_observation';
+  $strongarm->value = '[node:field-institution-code] - [node:field-collection-code] - [node:field-catalogue-number]';
+  $export['ant_pattern_specimen_observation'] = $strongarm;
+
+  $strongarm = new stdClass;
+  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'auto_entitylabel_php_node_specimen_observation';
   $strongarm->value = 0;
