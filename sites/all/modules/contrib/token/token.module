@@ -210,8 +210,12 @@ function token_library() {
     'js' => array(
       drupal_get_path('module', 'token') . '/token.js' => array(),
     ),
+    'css' => array(
+      drupal_get_path('module', 'token') . '/token.css' => array(),
+    ),
     'dependencies' => array(
       array('system', 'ui.dialog'),
+      array('token', 'treeTable'),
     ),
   );
 
