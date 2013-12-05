@@ -304,10 +304,15 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
     $field_info = field_info_field($field['field_name']);
     switch($field_info['type']){
       case 'file':
-        // Do nothing.  We can't import files in an Excel template.
+        // We allow importing from a file, or a URL.
         $feeds_importer->config['processor']['config']['mappings'][] = array(
-          'source' => $field_collection_label_addition . trim($field['label']),
+          'source' => $field_collection_label_addition . trim($field['label']) . ' (Filename)',
           'target' => $map_field_collection ? $map_field_collection . $key . ':MediaFeedsLibraryProvider' : $key . ':MediaFeedsLibraryProvider',
+          'unique' => 0
+        );
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field_collection_label_addition . trim($field['label']) . ' (URL)',
+          'target' => $map_field_collection ? $map_field_collection . $key : $key,
           'unique' => 0
         );
         break;
