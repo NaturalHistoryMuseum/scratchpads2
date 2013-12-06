@@ -267,6 +267,18 @@ function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
         )
       );
       $form['#submit'][] = 'scratchpads_tweaks_form_system_theme_settings_submit';
+    case 'simplenews_admin_settings_newsletter':
+      $form['simplenews_default_options']['simplenews_format'] = array(
+        '#type' => 'value',
+        '#value' => 'plain'
+      );
+      break;
+    case 'simplenews_admin_category_form':
+      $form['email']['format'] = array(
+        '#type' => 'value',
+        '#value' => 'plain'
+      );
+      break;
     default:
       // Only use the "comment_filtered_html" input type for comment bodies!
       if(substr($form_id, 0, 8) == 'comment_'){
