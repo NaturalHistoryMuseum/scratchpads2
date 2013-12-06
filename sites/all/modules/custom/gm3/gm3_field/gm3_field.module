@@ -283,7 +283,6 @@ function gm3_field_form_alter(&$form, &$form_state, $form_id){
         break;
     }
     if(isset($form[$field_name])){
-      $field_language = field_language($entity_type, $form['#entity'], $field_name);
       if(isset($form[$field_name]['preview'])){
         $add_libraries = FALSE;
         switch($entity_type){
