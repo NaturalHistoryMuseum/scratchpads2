@@ -1,3 +1,7 @@
+2.3.1.1 (2013-12-06)
+
+- Remove a faulty line of code (#3719)
+
 2.3.1 (2013-12-05)
 
 - Upgraded Drupal to 7.24 (#3495)
