@@ -414,7 +414,7 @@ function collections_profile_views_default_views(){
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   
   /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
+    $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Specimen count by date';
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['group_by'] = TRUE;
@@ -541,6 +541,7 @@ function collections_profile_views_default_views(){
   $handler->display->display_options['arguments']['field_institution_code_value']['summary_options']['items_per_page'] = '25';
   $handler->display->display_options['arguments']['field_institution_code_value']['limit'] = '0';
   $handler->display->display_options['block_description'] = 'Specimen count all institutions';
+  $export['collections_specimen_statistics'] = $view;
   return $export;
 }
   
