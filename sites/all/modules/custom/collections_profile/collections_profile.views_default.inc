@@ -508,7 +508,7 @@ function collections_profile_views_default_views(){
     'multiple_from' => '',
     'multiple_to' => ''
   );
-  $handler->display->display_options['fields']['field_date_collected']['format_date_sql'] = 0;
+  $handler->display->display_options['fields']['field_date_collected']['format_date_sql'] = 1;
   /* Field: COUNT(Content: Date collected) */
   $handler->display->display_options['fields']['field_date_collected_1']['id'] = 'field_date_collected_1';
   $handler->display->display_options['fields']['field_date_collected_1']['table'] = 'field_data_field_date_collected';
