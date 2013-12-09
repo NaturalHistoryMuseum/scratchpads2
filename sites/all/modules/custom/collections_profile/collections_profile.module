@@ -38,3 +38,93 @@ function collections_profile_date_formats(){
   return $formats;
 }
 
+function collections_profile_block_info(){
+  $blocks['collection_by_year_graph'] = array(
+    'info' => t('Specimens by year graph')
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function collections_profile_block_view($delta = ''){
+  $block = array();
+  switch($delta){
+    case 'collection_by_year_graph':
+      $block['subject'] = '';
+      $block['content'] = _collections_profile_graph_content();
+      break;
+  }
+  return $block;
+}
+
+function _collections_profile_graph_content(){
+  $collection_code = arg(2);
+  $content = array();
+  $sql = 'SELECT YEAR(field_data_field_date_collected.field_date_collected_value) AS date_collected_year,
+          COUNT(*) AS Total 
+          FROM node, field_data_field_institution_code, field_data_field_date_collected
+          WHERE node.nid = field_data_field_institution_code.entity_id 
+          AND field_data_field_institution_code.deleted = 0
+          AND node.nid = field_data_field_date_collected.entity_id AND field_data_field_date_collected.deleted = 0
+          AND field_data_field_institution_code.field_institution_code_value = :collection_code
+          AND node.status = 1 
+          AND node.type IN (:type) 
+          GROUP BY date_collected_year
+          ORDER BY date_collected_year DESC';
+  $args = array(
+    ':collection_code' => $collection_code,
+    ':type' => 'specimen_observation'
+  );
+  $data = db_query($sql, $args)->fetchAllKeyed();
+  $data = collections_profile_stats_processs_data('Year', 'Count', $data, 'PieChart');
+  if($data){
+    $content[] = array(
+      '#theme' => 'simple_google_chart',
+      '#type' => 'PieChart',
+      '#data' => $data,
+      '#title' => t(''),
+      '#options' => array(
+        'is3D' => TRUE,
+        'title' => 'Specimen collections by year',
+        'height' => 250
+      )
+    );
+  }
+  return $content;
+}
+/*
+ * Process a keyed array from an SQL query an turn into a data array for simple_google_charts
+*/
+function collections_profile_stats_processs_data($col1_title, $col2_title, $array, $type = 'PieChart'){
+  $return = array();
+  $return[] = array(
+    $col1_title,
+    $col2_title
+  );
+  switch($type){
+    case 'BarChart':
+    case 'ColumnChart':
+      foreach($array as $key => $value){
+        $return[] = array(
+          (int)$key,
+          (int)$value
+        );
+      }
+      break;
+    case 'PieChart':
+    default:
+      foreach($array as $key => $value){
+        $return[] = array(
+          (string)$key,
+          (int)$value
+        );
+      }
+  }
+  if(count($return) > 1){
+    return $return;
+  }else{
+    return FALSE;
+  }
+}
