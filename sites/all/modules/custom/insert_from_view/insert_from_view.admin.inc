@@ -5,16 +5,21 @@
  * 
  */
 function insert_from_view_setup_form($form, &$form_state){
-  $form = array();
   $inserts = variable_get('insert_from_view_settings', array());
   $views = views_get_all_views();
   $views_select = array();
   foreach($views as $v){
     $views_select[$v->name] = $v->human_name;
   }
+  $form = array();
+  $form['insert-from-view-container'] = array(
+    '#type' => 'vertical_tabs'
+  );
   foreach($inserts as $machine_name => $insert){
-    $element = _insert_from_view_setup_form_element($machine_name, $insert, $form_state, $views_select, $views);
-    $form = array_merge($form, $element);
+    if(empty($insert['type']) || $insert['type'] == 'ckeditor'){
+      $element = _insert_from_view_setup_form_element($machine_name, $insert, $form_state, $views_select, $views);
+      $form = array_merge($form, $element);
+    }
   }
   $empty_element = _insert_from_view_setup_form_element('insert_from_view_new', array(), $form_state, $views_select, $views);
   $form = array_merge($form, $empty_element);
@@ -30,7 +35,6 @@ function insert_from_view_setup_form($form, &$form_state){
  * 
  */
 function _insert_from_view_setup_form_element($machine_name, $settings, $form_state, $views_select, $views){
-  $form = array();
   // Find default view
   $default_view = array_shift(array_keys($views));
   if(isset($form_state['values']["insert-$machine_name-view"])){
@@ -123,14 +127,19 @@ function _insert_from_view_setup_form_element($machine_name, $settings, $form_st
     $default_wrap_tag = $settings['wrap_tag'];
   }
   // The form  
-  $form['insert-from-view-container'] = array(
-    '#type' => 'vertical_tabs'
+  $form_root = array(
+    "insert-$machine_name-group" => array(
+      '#type' => 'fieldset',
+      '#title' => $default_name ? $default_name : t('New'),
+      '#group' => 'insert-from-view-container',
+      "insert-$machine_name-container" => array(
+        '#type' => 'container',
+        '#prefix' => "<div id='insert-$machine_name-display-wrapper'>",
+        '#suffix' => "</div>"
+      )
+    )
   );
-  $form["insert-$machine_name-group"] = array(
-    '#type' => 'fieldset',
-    '#title' => $default_name ? $default_name : t('New'),
-    '#group' => 'insert-from-view-container'
-  );
+  $form = & $form_root["insert-$machine_name-group"]["insert-$machine_name-container"];
   if(!empty($settings)){
     $form["insert-$machine_name-group"]["insert-$machine_name-remove"] = array(
       '#type' => 'checkbox',
@@ -168,12 +177,10 @@ function _insert_from_view_setup_form_element($machine_name, $settings, $form_st
     '#title' => t('Select display'),
     '#options' => $displays_select,
     '#default_value' => $default_display,
-    '#prefix' => "<div id='insert-$machine_name-display-wrapper'>",
-    '#suffix' => "</div>",
     '#insert-from-view-key' => $machine_name,
     '#ajax' => array(
-      'callback' => 'insert_from_view_select_display_callback',
-      'wrapper' => "insert-$machine_name-field-wrapper"
+      'callback' => 'insert_from_view_select_view_callback',
+      'wrapper' => "insert-$machine_name-display-wrapper"
     )
   );
   $form["insert-$machine_name-group"]["insert-$machine_name-field"] = array(
@@ -181,9 +188,7 @@ function _insert_from_view_setup_form_element($machine_name, $settings, $form_st
     '#required' => TRUE,
     '#title' => t('Select field'),
     '#options' => $fields_select,
-    '#default_value' => $default_field,
-    '#prefix' => "<div id='insert-$machine_name-field-wrapper'>",
-    '#suffix' => '</div>'
+    '#default_value' => $default_field
   );
   $form["insert-$machine_name-group"]["insert-$machine_name-wrap_tag"] = array(
     '#type' => 'textfield',
@@ -218,27 +223,22 @@ function _insert_from_view_setup_form_element($machine_name, $settings, $form_st
     '#default_value' => $default_icon,
     '#field_prefix' => $GLOBALS['base_url'] . '/'
   );
-  return $form;
+  return $form_root;
 }
 
 /**
- * Ajax callback for view/display selection
+ * Ajax callback for view/display selection (ckeditor form)
  */
 function insert_from_view_select_view_callback($form, &$form_state){
   $machine_name = $form_state['triggering_element']['#insert-from-view-key'];
-  return $form["insert-$machine_name-group"]["insert-$machine_name-display"];
-}
-
-function insert_from_view_select_display_callback($form, &$form_state){
-  $machine_name = $form_state['triggering_element']['#insert-from-view-key'];
-  return $form["insert-$machine_name-group"]["insert-$machine_name-field"];
+  return $form["insert-$machine_name-group"];
 }
 
 /**
- * Settings form submit
+ * Settings form submit (ckeditor form)
  */
 function insert_from_view_setup_form_submit($form, &$form_state){
-  $settings = array();
+  $settings = variable_get('insert_from_view_settings', array());
   // Read the number of groups and their machine name
   foreach($form_state['values'] as $value_name => $value){
     if(!preg_match('/^insert-(.+)-name$/', $value_name, $matches)){
@@ -249,18 +249,19 @@ function insert_from_view_setup_form_submit($form, &$form_state){
     }
     $temp_name = $matches[1];
     if($temp_name == 'insert_from_view_new'){
-      $inserts = variable_get('insert_from_view_settings', array());
       $machine_name = md5(time() + rand());
-      while(isset($inserts[$machine_name])){
+      while(isset($settings[$machine_name])){
         $machine_name = md5(time() + rand());
       }
     }else{
       $machine_name = $temp_name;
     }
     if(!empty($form_state['values']["insert-$temp_name-remove"])){
+      unset($settings[$machine_name]);
       continue;
     }
     $settings[$machine_name] = array(
+      'type' => 'ckeditor',
       'view' => $form_state['values']["insert-$temp_name-view"],
       'display' => $form_state['values']["insert-$temp_name-display"],
       'field' => $form_state['values']["insert-$temp_name-field"],
@@ -277,4 +278,148 @@ function insert_from_view_setup_form_submit($form, &$form_state){
   variable_set('insert_from_view_settings', $settings);
   cache_clear_all('*', 'cache_bootstrap');
   drupal_set_message(t('Settings have been saved'), 'status');
+}
+
+/**
+ * Implement hook_field_widget_settings_form
+ *
+ * The node/term reference widget settings form
+ */
+function insert_from_view_field_widget_settings_form($field, $instance){
+  // Get form values
+  if(isset($_POST['instance']['widget']['settings']["insert-from-view"])){
+    // Ajax callback values
+    $state = $_POST['instance']['widget']['settings']["insert-from-view"];
+  }else{
+    $state = $instance['widget']['settings']["insert-from-view"];
+  }
+  // Get the list of view and the default view
+  $views = views_get_all_views();
+  $views_select = array();
+  foreach($views as $v){
+    $views_select[$v->name] = $v->human_name;
+  }
+  asort($views_select);
+  $default_view = FALSE;
+  if(isset($state['insert-from-view-view'])){
+    $default_view = $state['insert-from-view-view'];
+  }
+  if(!$default_view || !isset($views_select[$default_view])){
+    $keys = array_keys($views_select);
+    $default_view = reset($keys);
+  }
+  // Get the list of displays and the default display
+  $displays_select = array();
+  foreach($views[$default_view]->display as $display){
+    $displays_select[$display->id] = $display->display_title;
+  }
+  $default_display = FALSE;
+  if(isset($state['insert-from-view-display'])){
+    $default_display = $state['insert-from-view-display'];
+  }
+  if(!$default_display || !isset($displays_select[$default_display])){
+    $keys = array_keys($displays_select);
+    $default_display = reset($keys);
+  }
+  // Get the list of fields and the default field
+  $view = views_get_view($default_view);
+  $view->set_display($default_display);
+  $fields = $view->display_handler->get_option("fields");
+  $fields_select = array();
+  if(!empty($fields)){
+    $fields = array_keys($fields);
+    $fields = array_combine($fields, $fields);
+    $fields_select = array_merge($fields_select, $fields);
+  }
+  $default_field = FALSE;
+  if(isset($state['insert-from-view-field'])){
+    $default_field = $state['insert-from-view-field'];
+  }
+  if(!$default_field || !isset($fields_select[$default_field])){
+    $keys = array_keys($fields_select);
+    $default_field = reset($keys);
+  }
+  // Setup the form
+  $form = array();
+  $form["insert-from-view"] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Insert from view'),
+    '#prefix' => "<div id='insert-from-view-display-wrapper'>",
+    '#suffix' => "</div>"
+  );
+  $form["insert-from-view"]["insert-from-view-view"] = array(
+    '#type' => 'select',
+    '#required' => TRUE,
+    '#title' => t('Select view'),
+    '#description' => t('Select the view to display in the overlay'),
+    '#options' => $views_select,
+    '#default_value' => $default_view,
+    '#ajax' => array(
+      'callback' => 'insert_from_view_field_select_view_callback',
+      'wrapper' => "insert-from-view-display-wrapper"
+    ),
+    '#value_callback' => 'insert_from_view_widget_settings_submit'
+  );
+  $form["insert-from-view"]["insert-from-view-display"] = array(
+    '#type' => 'select',
+    '#required' => TRUE,
+    '#title' => t('Select display'),
+    '#description' => t('Select the view display to display in the overlay'),
+    '#options' => $displays_select,
+    '#default_value' => $default_display,
+    '#ajax' => array(
+      'callback' => 'insert_from_view_field_select_view_callback',
+      'wrapper' => "insert-from-view-display-wrapper"
+    )
+  );
+  $form["insert-from-view"]["insert-from-view-field"] = array(
+    '#type' => 'select',
+    '#required' => TRUE,
+    '#title' => t('Select field'),
+    '#description' => t('Select the field that holds the value to insert. The value should either be a node id, or (preferably) a node id followed by \':\' followed by the node title. This can be achieved in Views by using a \'Custom Text\' field and rewrite pattern of the type [nid]:[title]'),
+    '#options' => $fields_select,
+    '#default_value' => $default_field
+  );
+  $form["insert-from-view"]["insert-from-view-width"] = array(
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#title' => t('Overlay width'),
+    '#default_value' => isset($state['insert-from-view-width']) ? $state['insert-from-view-width'] : '75%'
+  );
+  $form["insert-from-view"]["insert-from-view-height"] = array(
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#title' => t('Overlay height'),
+    '#default_value' => isset($state['insert-from-view-height']) ? $state['insert-from-view-height'] : '75%'
+  );
+  return $form;
+}
+
+/**
+ * Ajax callback for view/display selection (field form)
+ */
+function insert_from_view_field_select_view_callback($form, &$form_state){
+  return $form['instance']['widget']['settings']["insert-from-view"];
+}
+
+/**
+ * Submit (actually value callback) for widget settings form
+ */
+function insert_from_view_widget_settings_submit($element, $input, $form_state){
+  if($input !== FALSE){
+    $instance = $form_state['values']['instance'];
+    $machine_name = '_field_' . $instance['field_name'] . '_' . $instance['entity_type'] . '_' . $instance['bundle'];
+    $setting = array(
+      'type' => 'field',
+      'view' => $_POST['instance']['widget']['settings']['insert-from-view']["insert-from-view-view"],
+      'display' => $_POST['instance']['widget']['settings']['insert-from-view']["insert-from-view-display"],
+      'field' => $_POST['instance']['widget']['settings']['insert-from-view']["insert-from-view-field"],
+      'width' => $_POST['instance']['widget']['settings']['insert-from-view']["insert-from-view-width"],
+      'height' => $_POST['instance']['widget']['settings']['insert-from-view']["insert-from-view-height"],
+      'machine_name' => $machine_name
+    );
+    $inserts = variable_get('insert_from_view_settings', array());
+    $inserts[$machine_name] = $setting;
+    variable_set('insert_from_view_settings', $inserts);
+  }
 }

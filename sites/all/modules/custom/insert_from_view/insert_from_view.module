@@ -1,4 +1,5 @@
 <?php
+require_once (dirname(__FILE__) . '/insert_from_view.admin.inc');
 define("INSERT_FROM_VIEW_FIELD_ROW", '_insert_from_view_field_render_row');
 
 /**
@@ -9,8 +10,10 @@ function insert_from_view_init(){
   $settings = variable_get('insert_from_view_settings', array());
   $js_settings = array();
   foreach($settings as $machine_name => $value){
-    if(!user_access("use insert from view $machine_name")){
-      continue;
+    if(empty($value['type']) || $value['type'] == 'ckeditor'){
+      if(!user_access("use insert from view $machine_name")){
+        continue;
+      }
     }
     $js_settings[] = array_merge(array(
       'machine_name' => $machine_name
@@ -78,11 +81,13 @@ function insert_from_view_permission(){
   );
   $settings = variable_get('insert_from_view_settings', array());
   foreach($settings as $machine_name => $value){
-    $items["use insert from view $machine_name"] = array(
-      'title' => t('Use insert from view @s', array(
-        '@s' => $value['name']
-      ))
-    );
+    if(empty($value['type']) || $value['type'] == 'ckeditor'){
+      $items["use insert from view $machine_name"] = array(
+        'title' => t('Use insert from view @s', array(
+          '@s' => $value['name']
+        ))
+      );
+    }
   }
   return $items;
 }
@@ -103,6 +108,9 @@ function insert_from_view_ckeditor_plugin(){
   $path = drupal_get_path('module', 'insert_from_view') . '/plugins/insert_from_view/';
   $relative_path = preg_replace('/[^\/]+/', '..', $path);
   foreach($settings as $machine_name => $value){
+    if(isset($value['type']) && $value['type'] != 'ckeditor'){
+      continue;
+    }
     $id = "insert_from_view_$machine_name";
     $items[$id] = array(
       'name' => $id,
@@ -129,6 +137,90 @@ function insert_from_view_views_api(){
     'api' => 3,
     'path' => drupal_get_path('module', 'insert_from_view') . '/views'
   );
+}
+
+/**
+ * Implement hook_field_widget_info
+ *
+ * Provide an insert-from-view widget for node/term references
+ */
+function insert_from_view_field_widget_info(){
+  return array(
+    'insert_from_view_node_reference' => array(
+      'label' => t('Insert from view'),
+      'description' => t('Provides a pop-up to select references using a view with exposed filters'),
+      'field types' => array(
+        'node_reference',
+        'term_reference'
+      ),
+      'settings' => array(
+        'view' => ''
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_DEFAULT
+      )
+    )
+  );
+}
+
+/**
+ * Implement hook_field_widget_form
+ *
+ * Return the form for adding node references using insert from view
+ */
+function insert_from_view_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
+  $values = array();
+  foreach($items as $item){
+    $node = node_load($item['nid']);
+    $values[] = $node->nid . ':' . l(preg_replace('/,/', ' ', $node->title), 'node/' . $node->nid);
+  }
+  $settings = $instance['widget']['settings']['insert-from-view'];
+  $machine_name = '_field_' . $instance['field_name'] . '_' . $instance['entity_type'] . '_' . $instance['bundle'];
+  $element += array(
+    '#type' => 'textfield',
+    '#title' => $instance['label'],
+    '#default_value' => implode(',', $values),
+    '#maxlength' => pow(2, 32),
+    '#value_callback' => 'insert_from_view_widget_value',
+    '#attached' => array(
+      'js' => array(
+        drupal_get_path('module', 'insert_from_view') . '/js/widget.js'
+      )
+    ),
+    '#attributes' => array(
+      'class' => array(
+        'insert-from-view-widget'
+      ),
+      'id' => $machine_name
+    )
+  );
+  return $element;
+}
+
+/**
+ * insert_from_view_widget_value
+ *
+ * Expand the returned value into multiple values
+ */
+function insert_from_view_widget_value($element, $input, &$form_state){
+  if($input !== FALSE){
+    $values = array();
+    $parents = $element['#parents'];
+    $source = & $form_state['values'];
+    foreach($parents as $parent){
+      if(!isset($source[$parent])){
+        $source[$parent] = array();
+      }
+      $source = & $source[$parent];
+    }
+    $nids = explode(',', $input);
+    foreach($nids as $nid){
+      $source[] = array(
+        'nid' => preg_replace('/:.*$/', '', $nid)
+      );
+    }
+  }
 }
 
 /**
@@ -171,11 +263,19 @@ function insert_from_view_view_callback($machine_name){
       $inserts_array[$row] = t('(not implemented)');
       drupal_set_message("Insert from view with non-field views has not been implemented", 'error');
     }
-    $commands[] = ajax_command_html('#insert-from-view-' . $machine_name, $html);
-    $commands[] = ajax_command_invoke(NULL, 'insert_from_view_setup_view', array(
-      $machine_name,
-      $insert_array
-    ));
+    if(empty($settings[$machine_name]['type']) || $settings[$machine_name]['type'] == 'ckeditor'){
+      $commands[] = ajax_command_html('#insert-from-view-' . $machine_name, $html);
+      $commands[] = ajax_command_invoke(NULL, 'insert_from_view_setup_view', array(
+        $machine_name,
+        $insert_array
+      ));
+    }else{
+      $commands[] = ajax_command_html('#insert-from-view-overlay', $html);
+      $commands[] = ajax_command_invoke(NULL, 'insert_from_view_setup_field_view', array(
+        $machine_name,
+        $insert_array
+      ));
+    }
     $page = array(
       '#type' => 'ajax',
       '#commands' => $commands
@@ -202,6 +302,7 @@ function insert_from_view_get_instances(){
  * $view: View to pick from
  * $display: display to pick from
  * $settings = array(
+ *   'type' => Type of setting - either 'ckeditor' (default), or 'field'
  *   'field' => Field to insert when row is clicked. By default this would insert the whole row ;
  *   'width' => Width of the colorbox. By default 75%
  *   'height' => Height of the colorbox. By default 75%
@@ -212,11 +313,12 @@ function insert_from_view_get_instances(){
  *      the requested machine name contains illegal characters (a-zA-Z0-9_- accepted) or if it is already used, 
  *      this returns false.
  * )
- * $clear_cache:   By default this call clears Drupal's bootstrap cache, as permissions need 
- * to be added. Set $clear_ cache to FALSE to avoid this.
- *
- * The calling module may then want to
- * set the permission to use this instance as 'use insert from view $machine_name'
+ * 
+ * When adding a CKEditor insert from view button, new permissions are created of the type "use insert from $machine_name"
+ * - the calling module may want to set the permisions accordingly.
+ * 
+ * In order for new permissions to be avaible, this function will clear the cache - if the type is ckeditor and
+ * $clear_cache has not be set to FALSE.
  * 
  * This function returns TRUE, unless the 'machine_name' setting was specified and either contained illegal characters
  * or no machine name was available.
@@ -225,6 +327,7 @@ function insert_from_view_get_instances(){
 function insert_from_view_new_instance($name, $label, $view, $display, $settings = array(), $clear_cache = TRUE){
   $inserts = variable_get('insert_from_view_settings', array());
   $settings = array_merge(array(
+    'type' => 'ckeditor',
     'field' => INSERT_FROM_VIEW_FIELD_ROW,
     'width' => '75%',
     'height' => '75%',
@@ -256,23 +359,24 @@ function insert_from_view_new_instance($name, $label, $view, $display, $settings
     'wrap_tag' => $settings['wrap_tag']
   );
   variable_set('insert_from_view_settings', $inserts);
-  if($clear_cache){
+  if($settings['type'] == 'ckeditor' && $clear_cache){
     cache_clear_all('*', 'cache_bootstrap');
   }
   return $machine_name;
 }
 
 /**
- * API function to delete an instance by machine name. By default this clears
- * Drupal's bootstrap cache, as permissions need to be removed.
- * Set $clear_ cache to FALSE to avoid this.
+ * API function to delete an instance by machine name. When the instance being
+ * deleted is a CKEditor instance, this will clear the cache (to remove
+ * permissions) unless $clear_cache is set to false.
  * 
  */
 function insert_from_view_delete_instance($machine_name, $clear_cache = TRUE){
   $inserts = variable_get('insert_from_view_settings', array());
+  $type = isset($inserts[$machine_name]['type']) ? $inserts[$machine_name]['type'] : 'ckeditor';
   unset($inserts[$machine_name]);
   variable_set('insert_from_view_settings', $inserts);
-  if($clear_cache){
+  if($type == 'ckeditor' && $clear_cache){
     cache_clear_all('*', 'cache_bootstrap');
   }
 }

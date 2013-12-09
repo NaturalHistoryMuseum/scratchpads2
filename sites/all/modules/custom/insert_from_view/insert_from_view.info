@@ -1,5 +1,5 @@
 name = "Insert from view"
-description = "Pick elements from a view and insert them into the CKEditor"
+description = "Insert from view is a tool to make it easy to pick elements from a view and insert them into a form. The view is displayed in a popup form (with paging/exposed filters support) and the selected values can be inserted into a CKEditor instance or a node/term reference field. Insert from view also provides CKEditor buttons to launch the popup."
 package = "Other"
 core = 7.x
 dependencies[] = ckeditor
