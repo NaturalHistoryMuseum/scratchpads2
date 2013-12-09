@@ -514,7 +514,7 @@ function collections_profile_views_default_views(){
   $handler->display->display_options['fields']['field_date_collected_1']['table'] = 'field_data_field_date_collected';
   $handler->display->display_options['fields']['field_date_collected_1']['field'] = 'field_date_collected';
   $handler->display->display_options['fields']['field_date_collected_1']['group_type'] = 'count';
-  $handler->display->display_options['fields']['field_date_collected_1']['label'] = 'Number collected';
+  $handler->display->display_options['fields']['field_date_collected_1']['label'] = 'Count';
   $handler->display->display_options['block_description'] = 'Specimen count by year';
   /* Display: Count all specimens by Institution */
   $handler = $view->new_display('block', 'Count all specimens by Institution', 'block_2');
