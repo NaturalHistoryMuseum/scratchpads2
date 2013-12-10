@@ -1,0 +1,489 @@
+<?php
+
+/**
+ * @file
+ * Loads dynamic blocks on cached page for anonymous users by performing AJAX request.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function ajaxblocks_menu() {
+  $items = array();
+  $items['ajaxblocks'] = array(
+    'title' => 'Ajax blocks',
+    'page callback' => 'ajaxblocks_ajax_handler',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ * Adds AJAX settings to the block configure page.
+ */
+function ajaxblocks_form_block_admin_configure_alter(&$form, &$form_state, $form_id) {
+  // Retrieve current setting for this block.
+  $block_id = $form['module']['#value'] . '-' . $form['delta']['#value'];
+  $settings = array();
+  $value = (int) ajaxblocks_is_ajax($block_id, $settings);
+
+  // AJAX settings fieldset.
+  $form['visibility']['ajaxblocks'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('AJAX settings'),
+    '#description' => t('The settings for loading the block via AJAX request made after the page loading. ' .
+      'This method is used for anonymous user only, and the whole page must be cached.'),
+    '#weight' => 60,
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'visibility',
+  );
+
+  if (module_exists('authcache')) {
+    $form['visibility']['ajaxblocks']['ajaxblocks_warning'] = array(
+      '#type' => 'markup',
+      '#value' => t("Authcache module is installed. Please check <a href=\"@settings\">settings</a> and make sure it doesn't cache AJAX requests to page (Drupal path) 'ajaxblocks'.",
+        array('@setings' => url('admin/config/development/performance/authcache'))),
+    );
+  }
+
+  $form['visibility']['ajaxblocks']['ajaxblocks_is_ajax'] = array(
+    '#type' => 'select',
+    '#title' => t('Load block via AJAX'),
+    '#description' => t("Select \"yes\" if this block has dynamic content and isn't displayed correctly on cached pages."),
+    '#options' => array(
+      0 => t('no'),
+      1 => t('yes'),
+    ),
+    '#default_value' => $value,
+  );
+
+  $picture_dir = base_path() . drupal_get_path('module', 'ajaxblocks') . '/images/';
+  $pictures = array(0 => t('None'));
+  for ($i = 1; $i <= 8; $i++) {
+    $pictures[$i] = '<img alt="" src="' . $picture_dir . 'loader-' . $i . '.gif" />';
+  }
+  $form['visibility']['ajaxblocks']['ajaxblocks_loader_picture'] = array(
+    '#type' => 'radios',
+    '#title' => t('Loader picture'),
+    '#description' => t('Choose the background picture for the block for AJAX loadding period.'),
+    '#options' => $pictures,
+    '#default_value' => isset($settings['loader_picture']) ? $settings['loader_picture'] : 0,
+  );
+
+  $form['visibility']['ajaxblocks']['ajaxblocks_is_late'] = array(
+    '#type' => 'select',
+    '#title' => t('JavaScript event which initiates block loading'),
+    '#description' => t('Select "DOM.ready event" if you want to load the block as soon as possible (this makes better experience on cached pages).'),
+    '#options' => array(
+      0 => t('DOM.ready event'),
+      1 => t('window.onload event'),
+    ),
+    '#default_value' => isset($settings['is_late']) ? $settings['is_late'] : 0,
+  );
+
+  $form['visibility']['ajaxblocks']['ajaxblocks_delay'] = array(
+    '#type' => 'textfield',
+    '#size' => 6,
+    '#maxlength' => 6,
+    '#title' => t('Time in milliseconds to wait before block loading'),
+    '#description' => t('You can defer block loading and create interesting effects if necessary.'),
+    '#default_value' => isset($settings['delay']) ? intval($settings['delay']) : 0,
+  );
+
+  $form['visibility']['ajaxblocks']['ajaxblocks_include_noscript'] = array(
+    '#type' => 'select',
+    '#title' => t('Include NOSCRIPT tag with original block content'),
+    '#description' => t('Original block content can be included in HTML code of the pages for browsers which do not support JavaScript. On cached pages, this content will be static.'),
+    '#options' => array(
+      0 => t('no'),
+      1 => t('yes'),
+    ),
+    '#default_value' => isset($settings['include_noscript']) ? $settings['include_noscript'] : 1,
+  );
+
+  $all_roles = user_roles();
+
+  $form['visibility']['ajaxblocks']['ajaxblocks_cached_roles'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Load the block on cached pages for these roles only'),
+    '#description' => t('Only anonymous role is necesary to be selected for most cases.'),
+    '#options' => $all_roles,
+    '#default_value' => isset($settings['cached_roles']) ? $settings['cached_roles'] : array(1),
+  );
+
+  $form['visibility']['ajaxblocks']['ajaxblocks_uncached_roles'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Load the block on uncached pages for these roles only'),
+    '#description' => t("Don't select any role unless you use authcache module or want to load this block via AJAX even on uncached pages."),
+    '#options' => $all_roles,
+    '#default_value' => isset($settings['uncached_roles']) ? $settings['uncached_roles'] : array(),
+  );
+
+  $form['#submit'][] = 'ajaxblocks_save_settings';
+}
+
+
+/**
+ * Additional submit handler for block settings form. Saves AJAX settings for the block.
+ */
+function ajaxblocks_save_settings($form, &$form_state) {
+  db_merge('ajaxblocks')
+    ->key(array('block_id' => $form_state['values']['module'] . '-' . $form_state['values']['delta']))
+    ->fields(array(
+      'is_ajax' => (int) $form_state['values']['ajaxblocks_is_ajax'],
+      'loader_picture' => (int) $form_state['values']['ajaxblocks_loader_picture'],
+      'is_late' => (int) $form_state['values']['ajaxblocks_is_late'],
+      'delay' => (int) $form_state['values']['ajaxblocks_delay'],
+      'include_noscript' => (int) $form_state['values']['ajaxblocks_include_noscript'],
+      'cached_roles' => implode(' ', array_filter($form_state['values']['ajaxblocks_cached_roles'])),
+      'uncached_roles' => implode(' ', array_filter($form_state['values']['ajaxblocks_uncached_roles'])),
+    ))
+    ->execute();
+  ajaxblocks_update_cache();
+}
+
+
+/**
+ * Stores AJAX settings for the blocks in the system cache table.
+ */
+function ajaxblocks_update_cache() {
+  $block_roles = array();
+  foreach (db_query('SELECT * FROM {block_role}') as $data) {
+    $block_id = $data->module . '-' . $data->delta;
+    if (!array_key_exists($block_id, $block_roles)) {
+      $block_roles[$block_id] = array();
+    }
+    $block_roles[$block_id][] = $data->rid;
+  }
+
+  $ajax_block_data = array();
+  foreach (db_query('SELECT * FROM {ajaxblocks} WHERE is_ajax = 1', array(), array('fetch' => PDO::FETCH_ASSOC)) as $data) {
+    $roles = trim($data['cached_roles']);
+    $data['cached_roles'] = explode(' ', $roles);
+    if ($roles == '') {
+      $data['cached_roles'] = array();
+    }
+    $roles = trim($data['uncached_roles']);
+    $data['uncached_roles'] = explode(' ', $roles);
+    if ($roles == '') {
+      $data['uncached_roles'] = array();
+    }
+    $block_id = $data['block_id'];
+    if (!array_key_exists($block_id, $block_roles)) {
+      $block_roles[$block_id] = array();
+    }
+    $data['role_permission'] = $block_roles[$block_id];
+    $ajax_block_data[$block_id] = $data;
+  }
+
+  cache_set('ajaxblocks', $ajax_block_data);
+  return $ajax_block_data;
+}
+
+
+/**
+ * Returns TRUE if the block is configured to be loaded via AJAX.
+ * Block specific settings are also returned.
+ */
+function ajaxblocks_is_ajax($block_id, &$settings) {
+  static $ajax_blocks = NULL;
+
+  if (is_null($ajax_blocks)) {
+    $cached = cache_get('ajaxblocks');
+    if ($cached) {
+      $ajax_blocks = $cached->data;
+    }
+    else {
+      $ajax_blocks = ajaxblocks_update_cache();
+    }
+  }
+  if (array_key_exists($block_id, $ajax_blocks)) {
+    $settings = $ajax_blocks[$block_id];
+    return TRUE;
+  }
+  $settings = array();
+  return FALSE;
+}
+
+
+/**
+ * Handles AJAX request and returns the content of the appropriate blocks.
+ */
+function ajaxblocks_ajax_handler() {
+  // Disable client-side caching.
+  header('Cache-Control: private, no-cache, no-store, must-revalidate, max-age=0');
+  header('Pragma: no-cache');
+  // Disable server-side caching.
+  drupal_page_is_cacheable(FALSE);
+
+  _ajaxblocks_in_ajax_handler_impl(TRUE);
+  $content = array();
+  $delays = array();
+  $min_delay = 1000000;
+  $current_user_rids = array_keys($GLOBALS['user']->roles);
+  if (isset($_GET['blocks']) && isset($_GET['path'])) {
+    // Set 'q' parameter in order to make arg() work correctly.
+    $_GET['q'] = $_GET['path'];
+    $_REQUEST['q'] = $_GET['path'];
+    // Set $_SERVER variables in order to make request_uri() work correctly.
+    _ajaxblocks_fix_request_uri($_GET['path']);
+
+    // Build the block content and return as json.
+    $ajax_blocks = explode('/', $_GET['blocks']);
+    unset($_GET['blocks']);
+    unset($_GET['path']);
+    unset($_GET['nocache']);
+    $block_settings = array();
+    foreach ($ajax_blocks as $block_id) {
+      if (!ajaxblocks_is_ajax($block_id, $block_settings)) {
+        continue;
+      }
+      // Don't return blocks which are not enabled for the current user.
+      // TODO Check permissions fully.
+      if ((count($block_settings['role_permission']) > 0) && (count(array_intersect($current_user_rids, $block_settings['role_permission'])) == 0)) {
+        continue;
+      }
+      $delay = intval($block_settings['delay']);
+      $delays[$block_id] = $delay;
+      if ($min_delay > $delay) {
+        $min_delay = $delay;
+      }
+      // Drupal.settings can be changed by the block construction code. The handler returns the settings difference to the client.
+      $settings_old = array();
+      $js = drupal_add_js();
+      if (array_key_exists('settings', $js)) {
+        $settings_old = $js['settings']['data'];
+      }
+      $parts = explode("-", $block_id, 2);
+      $block = new stdClass();
+      $block->module = $parts[0];
+      $block->delta = $parts[1];
+      $block_content = module_invoke($block->module, 'block_view', $block->delta);
+      // Allow modules to modify the block before it is viewed, via either
+      // hook_block_view_alter() or hook_block_view_MODULE_DELTA_alter().
+      drupal_alter(array('block_view', "block_view_{$block->module}_" . str_replace('-', '_', $block->delta)), $block_content, $block);
+      $content[$block_id] = array('content' => (isset($block_content['content']) ? render($block_content['content']) : ''));
+      $settings_new = array();
+      $js = drupal_add_js();
+      if (array_key_exists('settings', $js)) {
+        $settings_new = $js['settings']['data'];
+      }
+      $settings_diff = array_diff_assoc($settings_new, $settings_old);
+      $content[$block_id]['ajaxblocks_settings'] = '';
+      if (count($settings_diff) > 0) {
+        $content[$block_id]['ajaxblocks_settings'] = call_user_func_array('array_merge_recursive', $settings_diff);
+      }
+    }
+  }
+  foreach ($delays as $block_id => $delay) {
+    $delay -= $min_delay;
+    if ($delay > 0) {
+      $content[$block_id]['delay'] = $delay;
+    }
+  }
+  drupal_json_output($content);
+}
+
+
+/**
+ * Returns TRUE if current page will be cached (for anonymous or for authenticated users)
+ * by Drupal core or by contrib modules (boost and authcache are supported).
+ */
+function ajaxblocks_page_cacheable() {
+  static $page_cacheable = NULL;
+  if (!is_null($page_cacheable)) {
+    return $page_cacheable;
+  }
+  if (!drupal_page_is_cacheable()) {
+    $page_cacheable = FALSE;
+    return $page_cacheable;
+  }
+  if ((module_exists('boost')) && (isset($GLOBALS['_boost'])) && (isset($GLOBALS['_boost']['cache_this'])) && ($GLOBALS['_boost']['cache_this'])) {
+    //TODO check 403 and 404 for Boost: boost_get_http_status 403 404 for anon -> uncached
+    $page_cacheable = TRUE;
+    return $page_cacheable;
+  }
+  if ((module_exists('authcache')) && (isset($GLOBALS['is_page_authcache'])) && ($GLOBALS['is_page_authcache'])) {
+    //TODO check 403 and 404 for authcache:  (variable_get('authcache_http200', FALSE) && _authcache_get_http_status() != 200)
+    $page_cacheable = TRUE;
+    return $page_cacheable;
+  }
+  $page_cacheable = (($GLOBALS['user']->uid == 0) && (variable_get('cache', 0)));
+  return $page_cacheable;
+}
+
+
+/**
+ * Stores AJAX block IDs temporarily to pass them from ajaxblocks_preprocess_block() to ajaxblocks_preprocess_html().
+ */
+function ajaxblocks_page_ajax_list($block_id = NULL, $settings = array()) {
+  static $ajax_blocks = array();
+
+  if (is_null($block_id)) {
+    return $ajax_blocks;
+  }
+  else {
+    $ajax_blocks[$block_id] = $settings;
+  }
+}
+
+
+/**
+ * Implements hook_preprocess_block().
+ */
+function ajaxblocks_preprocess_block(&$variables) {
+  if (ajaxblocks_in_ajax_handler()) {
+    return;
+  }
+
+  $id = $variables['block']->module . '-' . $variables['block']->delta;
+  $settings = array();
+  if (!ajaxblocks_is_ajax($id, $settings)) {
+    return;
+  }
+
+  $current_user_rids = array_keys($GLOBALS['user']->roles);
+  if ((ajaxblocks_page_cacheable())) {
+    if (count(array_intersect($current_user_rids, $settings['cached_roles'])) == 0) {
+      return;
+    }
+  }
+  else {
+    if (count(array_intersect($current_user_rids, $settings['uncached_roles'])) == 0) {
+      return;
+    }
+  }
+
+  ajaxblocks_page_ajax_list($id, $settings);
+  $noscript = '';
+  if ($settings['include_noscript']) {
+    $noscript = '<script type="text/javascript"></script><noscript>' . $variables['content'] . '</noscript>';
+  }
+  $wrapper_class = "ajaxblocks-wrapper";
+  if ($settings['loader_picture']) {
+    $wrapper_class = "ajaxblocks-wrapper-" . intval($settings['loader_picture']);
+  }
+
+  $variables['content'] = '<div id="block-' . $id . '-ajax-content" class="' . $wrapper_class . '">' . $noscript . '</div>';
+}
+
+
+/**
+ * Implements hook_preprocess_html().
+ */
+function ajaxblocks_preprocess_html(&$variables) {
+  $ajax_blocks = ajaxblocks_page_ajax_list();
+  if (count($ajax_blocks) == 0) {
+    return;
+  }
+  drupal_add_js(drupal_get_path('module', 'ajaxblocks') . '/ajaxblocks.js');
+  $path = url('ajaxblocks');
+  if ($path !== base_path() . 'ajaxblocks') {
+    // Provide path for AJAX handler directly in non-trivial cases (for instance, language prefix).
+    drupal_add_js(array('ajaxblocks_path' => $path), 'setting');
+  }
+  $block_ids = array();
+  $block_ids_late = array();
+  $min_delay = 1000000;
+  $min_delay_late = 1000000;
+  $use_loader_picture = FALSE;
+  foreach ($ajax_blocks as $block_id => $settings) {
+    if ($settings['is_late']) {
+      $block_ids_late[] = $block_id;
+      if ($min_delay_late > $settings['delay']) {
+        $min_delay_late = intval($settings['delay']);
+      }
+    }
+    else {
+      $block_ids[] = $block_id;
+      if ($min_delay > $settings['delay']) {
+        $min_delay = intval($settings['delay']);
+      }
+    }
+    if ($settings['loader_picture'] > 0) {
+      $use_loader_picture = TRUE;
+    }
+  }
+  if ($use_loader_picture) {
+    drupal_add_css(drupal_get_path('module', 'ajaxblocks') . '/ajaxblocks.css');
+    $variables['styles'] = drupal_get_css();
+  }
+  $get_copy = $_GET;
+  $params_to_exclude = array('q', 'blocks', 'path');
+  foreach ($params_to_exclude as $param) {
+    unset($get_copy[$param]);
+  }
+  $get_params = drupal_http_build_query($get_copy);
+  if (strlen($get_params) > 0) {
+    $get_params = '&' . $get_params;
+  }
+
+  if (count($block_ids) > 0) {
+    drupal_add_js(array('ajaxblocks' => 'blocks=' . implode('/', $block_ids) . '&path=' . $_GET['q'] . $get_params), 'setting');
+    if ($min_delay > 0) {
+      drupal_add_js(array('ajaxblocks_delay' => $min_delay), 'setting');
+    }
+  }
+  if (count($block_ids_late) > 0) {
+    drupal_add_js(array('ajaxblocks_late' => 'blocks=' . implode('/', $block_ids_late) . '&path=' . $_GET['q'] . $get_params), 'setting');
+    if ($min_delay_late > 0) {
+      drupal_add_js(array('ajaxblocks_delay_late' => $min_delay_late), 'setting');
+    }
+  }
+  // Rewrite page-level js.
+  $variables['scripts'] = drupal_get_js();
+}
+
+
+/**
+ * Implements hook_help().
+ */
+function ajaxblocks_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#ajaxblocks':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The AjaxBlocks module provides new settings for every block, which allow to choose the loading method ' .
+        'for this block content if the cached page is to be displayed for anonymous users:<br />' .
+        '1. within the page - the usual way for Drupal.<br />' .
+        '2. by additional AJAX request after loading the cached page.') . '</p>';
+      return $output;
+  }
+}
+
+
+/**
+ * Internal function which sets and returns the flag indicating whether current operation is block loading via AJAX.
+ */
+function _ajaxblocks_in_ajax_handler_impl($set = FALSE) {
+  static $in_ajax_handler = FALSE;
+  if ($set) {
+    $in_ajax_handler = TRUE;
+  }
+  return $in_ajax_handler;
+}
+
+
+/**
+ * Returns TRUE if current operation is block loading via AJAX.
+ * May be used by other modules in hook_block() implementations to decide what version of block to return.
+ */
+function ajaxblocks_in_ajax_handler() {
+  return _ajaxblocks_in_ajax_handler_impl();
+}
+
+
+/**
+ * Internal function which makes request_uri() return correct value when handling AJAX request.
+ */
+function _ajaxblocks_fix_request_uri($path) {
+  if (isset($_SERVER['REQUEST_URI'])) {
+    $_SERVER['REQUEST_URI'] = '/' . $path;
+  }
+  // TODO support other ways to fix request_uri().
+}
