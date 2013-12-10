@@ -24,6 +24,24 @@ function scratchpads_user_admin($callback_arg = '', $status_filter = NULL){
 }
 
 function scratchpads_user_admin_account_submit($form, &$form_state){
+  // If we're filtering, we redirect to a URL with the filters as $_GET params.
+  if($form_state['values']['op'] == $form_state['buttons'][1]['#value']){
+    $query = array();
+    foreach(array(
+      'username',
+      'given_name',
+      'family_name'
+    ) as $key){
+      if(trim($form_state['values']['filter_' . $key])){
+        $query[$key] = trim($form_state['values']['filter_' . $key]);
+      }
+    }
+    drupal_goto($_GET['q'], array(
+      'query' => $query
+    ));
+  }else if($form_state['values']['op'] == $form_state['buttons'][2]['#value']){
+    drupal_goto($_GET['q']);
+  }
   module_load_include('admin.inc', 'user');
   return user_admin_account_submit($form, $form_state);
 }
@@ -85,16 +103,15 @@ function scratchpads_user_admin_account($form, &$form_state, $status_filter = NU
     'pass'
   ));
   // Add filters if we have any
-  if(!empty($form_state['input']['op']) && $form_state['input']['op'] == t('Filter')){
-    if(trim($form_state['input']['filter_username'])){
-      $query->condition('u.name', '%' . db_like(trim($form_state['input']['filter_username'])) . '%', 'LIKE');
-    }
-    if(trim($form_state['input']['filter_family_name'])){
-      $query->condition('fn.field_user_family_name_value', '%' . db_like(trim($form_state['input']['filter_family_name'])) . '%', 'LIKE');
-    }
-    if(trim($form_state['input']['filter_given_name'])){
-      $query->condition('fgn.field_user_given_names_value', '%' . db_like(trim($form_state['input']['filter_given_name'])) . '%', 'LIKE');
-    }
+  if(isset($_GET['username'])){
+    $query->condition('u.name', '%' . db_like($_GET['username']) . '%', 'LIKE');
+    $query->condition('u.status', 0, '>');
+  }
+  if(isset($_GET['family_name'])){
+    $query->condition('fn.field_user_family_name_value', '%' . db_like($_GET['family_name']) . '%', 'LIKE');
+  }
+  if(isset($_GET['given_name'])){
+    $query->condition('fgn.field_user_given_names_value', '%' . db_like($_GET['given_name']) . '%', 'LIKE');
   }
   $query->limit(50);
   $query->orderByHeader($header);
@@ -204,7 +221,8 @@ function scratchpads_user_admin_account($form, &$form_state, $status_filter = NU
       '#description' => t('Filters the users displayed below on those whose username contains the string you enter.'),
       '#attributes' => array(
         'placeholder' => t('Username')
-      )
+      ),
+      '#default_value' => isset($_GET['username']) ? $_GET['username'] : ''
     ),
     'filter_given_name' => array(
       '#type' => 'textfield',
@@ -212,7 +230,8 @@ function scratchpads_user_admin_account($form, &$form_state, $status_filter = NU
       '#description' => t('Filters the users displayed below on those whose given name contains the string you enter.'),
       '#attributes' => array(
         'placeholder' => t('Given name')
-      )
+      ),
+      '#default_value' => isset($_GET['given_name']) ? $_GET['given_name'] : ''
     ),
     'filter_family_name' => array(
       '#type' => 'textfield',
@@ -220,14 +239,15 @@ function scratchpads_user_admin_account($form, &$form_state, $status_filter = NU
       '#description' => t('Filters the users displayed below on those whose family name contains the string you enter.'),
       '#attributes' => array(
         'placeholder' => t('Family name')
-      )
+      ),
+      '#default_value' => isset($_GET['family_name']) ? $_GET['family_name'] : ''
     ),
     'submit' => array(
-      '#type' => 'button',
+      '#type' => 'submit',
       '#value' => t('Filter')
     ),
     'clear' => array(
-      '#type' => 'button',
+      '#type' => 'submit',
       '#value' => t('Clear filter')
     )
   );
