@@ -243,13 +243,7 @@
     // Handle exposed forms
     var $widgets_root = $('div.views-exposed-form div.views-exposed-widgets', $root);
     if ($widgets_root.length > 0) {
-      var button_label = $('.views-submit-button input', $widgets_root).attr('value');
-      $('.views-submit-button input', $widgets_root).css('display', 'none');
-
-      var $new_button = $('<input type="button" class="form-submit" value="' + button_label
-        + '" />').appendTo($('.views-submit-button', $widgets_root));
-
-      $new_button.mousedown(function(e) {
+      $widgets_root.closest('form').submit(function(e){
         var ajax = info.ajax;
         var base_url = ajax.options.url;
 
