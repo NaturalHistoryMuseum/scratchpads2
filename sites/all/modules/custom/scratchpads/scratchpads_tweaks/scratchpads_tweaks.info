@@ -33,6 +33,7 @@ dependencies[] = toolbar
 
 ; Contrib
 dependencies[] = advanced_help
+dependencies[] = ajaxblocks
 dependencies[] = ckeditor
 dependencies[] = clone
 dependencies[] = comment_notify
