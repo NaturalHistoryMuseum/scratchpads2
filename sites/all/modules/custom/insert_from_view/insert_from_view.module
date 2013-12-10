@@ -150,8 +150,7 @@ function insert_from_view_field_widget_info(){
       'label' => t('Insert from view'),
       'description' => t('Provides a pop-up to select references using a view with exposed filters'),
       'field types' => array(
-        'node_reference',
-        'term_reference'
+        'node_reference'
       ),
       'settings' => array(
         'view' => ''
@@ -177,6 +176,7 @@ function insert_from_view_field_widget_form(&$form, &$form_state, $field, $insta
   }
   $settings = $instance['widget']['settings']['insert-from-view'];
   $machine_name = '_field_' . $instance['field_name'] . '_' . $instance['entity_type'] . '_' . $instance['bundle'];
+  // Setup the form element
   $element += array(
     '#type' => 'textfield',
     '#title' => $instance['label'],
@@ -185,7 +185,18 @@ function insert_from_view_field_widget_form(&$form, &$form_state, $field, $insta
     '#value_callback' => 'insert_from_view_widget_value',
     '#attached' => array(
       'js' => array(
-        drupal_get_path('module', 'insert_from_view') . '/js/widget.js'
+        drupal_get_path('module', 'insert_from_view') . '/js/widget.js',
+        colorbox_get_js()
+      ),
+      'css' => array(
+        drupal_get_path('module', 'insert_from_view') . '/css/insert_from_view.css',
+        drupal_get_path('module', 'colorbox') . '/styles/default/colorbox_default_style.css'
+      ),
+      'library' => array(
+        array(
+          'system',
+          'drupal.ajax'
+        )
       )
     ),
     '#attributes' => array(
@@ -195,6 +206,19 @@ function insert_from_view_field_widget_form(&$form, &$form_state, $field, $insta
       'id' => $machine_name
     )
   );
+  // Ensure the widget settings are copied to the insert from view settings.
+  $ifw_setting = array(
+    'type' => 'field',
+    'view' => $settings["insert-from-view-view"],
+    'display' => $settings["insert-from-view-display"],
+    'field' => $settings["insert-from-view-field"],
+    'width' => $settings["insert-from-view-width"],
+    'height' => $settings["insert-from-view-height"],
+    'machine_name' => $machine_name
+  );
+  $inserts = variable_get('insert_from_view_settings', array());
+  $inserts[$machine_name] = $ifw_setting;
+  variable_set('insert_from_view_settings', $inserts);
   return $element;
 }
 

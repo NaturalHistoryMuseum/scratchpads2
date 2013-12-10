@@ -357,8 +357,7 @@ function insert_from_view_field_widget_settings_form($field, $instance){
     '#ajax' => array(
       'callback' => 'insert_from_view_field_select_view_callback',
       'wrapper' => "insert-from-view-display-wrapper"
-    ),
-    '#value_callback' => 'insert_from_view_widget_settings_submit'
+    )
   );
   $form["insert-from-view"]["insert-from-view-display"] = array(
     '#type' => 'select',
@@ -400,26 +399,4 @@ function insert_from_view_field_widget_settings_form($field, $instance){
  */
 function insert_from_view_field_select_view_callback($form, &$form_state){
   return $form['instance']['widget']['settings']["insert-from-view"];
-}
-
-/**
- * Submit (actually value callback) for widget settings form
- */
-function insert_from_view_widget_settings_submit($element, $input, $form_state){
-  if($input !== FALSE){
-    $instance = $form_state['values']['instance'];
-    $machine_name = '_field_' . $instance['field_name'] . '_' . $instance['entity_type'] . '_' . $instance['bundle'];
-    $setting = array(
-      'type' => 'field',
-      'view' => $_POST['instance']['widget']['settings']['insert-from-view']["insert-from-view-view"],
-      'display' => $_POST['instance']['widget']['settings']['insert-from-view']["insert-from-view-display"],
-      'field' => $_POST['instance']['widget']['settings']['insert-from-view']["insert-from-view-field"],
-      'width' => $_POST['instance']['widget']['settings']['insert-from-view']["insert-from-view-width"],
-      'height' => $_POST['instance']['widget']['settings']['insert-from-view']["insert-from-view-height"],
-      'machine_name' => $machine_name
-    );
-    $inserts = variable_get('insert_from_view_settings', array());
-    $inserts[$machine_name] = $setting;
-    variable_set('insert_from_view_settings', $inserts);
-  }
 }

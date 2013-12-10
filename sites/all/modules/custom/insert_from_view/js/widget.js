@@ -83,44 +83,36 @@
       open_overlay(info);
     });
     // And the list of nodes
+    var $ul = $('<ul class="insert-from-view-sortable"></ul>').appendTo(info.widget);
     for (var index = 0; index < info.nodes.length; index++){
       var node = info.nodes[index];
       var node_obj = Drupal.theme('insertFromViewItem', node.nid, node.title);
-      if (index == 0){
-        $('a.insert-from-view-up', node_obj).css('display', 'none');
-      } else {
-        $('a.insert-from-view-up', node_obj).click((function(index){
-          return function(){
-            var temp = info.nodes[index-1];
-            info.nodes[index-1] = info.nodes[index];
-            info.nodes[index] = temp;
-            populate_input(info);
-            populate_widget(info);
-          };
-        })(index));
-      }
-      if (index == info.nodes.length -1){
-        $('a.insert-from-view-down', node_obj).css('display', 'none');
-      } else {
-        $('a.insert-from-view-down', node_obj).click((function(index){
-          return function(){
-            var temp = info.nodes[index+1];
-            info.nodes[index+1] = info.nodes[index];
-            info.nodes[index] = temp;
-            populate_input(info);
-            populate_widget(info);
-          };
-        })(index));
-      }
-      $('a.insert-from-view-delete', node_obj).click((function(index){
+      $('.insert-from-view-delete', node_obj).click((function(node){
         return function(){
-          info.nodes.splice(index,1);
+          var pos = info.nodes.indexOf(node);
+          info.nodes.splice(pos,1);
           populate_input(info);
           populate_widget(info);
         };
-      })(index));
-      info.widget.append(node_obj);
+      })(node));
+      var $li = $('<li ifw="' + node.nid.toString() + '"></li>').css('float', 'left').appendTo($ul);
+      node_obj.appendTo($li);
     }
+    $ul.sortable({
+      handle: '.insert-from-view-handle',
+      cursor: 'move',
+      update: function(event, ui){
+        var order = $ul.sortable('toArray', {attribute: 'ifw'});
+        var new_nodes = [];
+        for (var index = 0; index < info.nodes.length; index++){
+          var pos = order.indexOf(info.nodes[index].nid.toString());
+          new_nodes[pos] = info.nodes[index];
+        }
+        info.nodes = new_nodes;
+        populate_input(info);
+      }
+    });
+    $('<br/>').css('clear', 'both').appendTo(info.widget);
   }
   
   /**
@@ -310,35 +302,17 @@
    * input are the node id and the title (may be undefined).
    * 
    * The theme function should return a jQuery object.
-   * 
-   * The returned object may contain <a> elements with the class name:
-   * - insert-from-view-up: to move the item up in the list;
-   * - insert-from-view-down: to move the item down in the list;
-   * - insert-from-view-delete: to remove the item from the list.
    */
   Drupal.theme.prototype.insertFromViewItem = function(nid, title){
     // Text
-    var str = nid.toString();
+    var str = '<div class="insert-from-view-item"><span class="insert-from-view-handle">&harr;</span> '
+    str = str + '<span class="insert-from-view-item-description">' + nid.toString();
     if (typeof(title) !== 'undefined'){
       str = str + ':' + title;
     }
-    // Options
-    str = str + ' ';
-    str = str + '<a href="#" class="insert-from-view-up" title="' + Drupal.t('Move up') + '">&#9668;</a> ';
-    str = str + '<a href="#" class="insert-from-view-down" title="' + Drupal.t('Move down') + '">&#9658;</a> ';
-    str = str + '<a href="#" class="insert-from-view-delete" title="' + Drupal.t('Remove') + '">x</a>';
-    var $obj = $('<div>' + str + '</div>');
-    $obj.css({
-      backgroundColor: '#EEE',
-      display: 'inline',
-      margin: '0 1em 0 0',
-      whiteSpace: 'nowrap'
-    });
-    $('a.insert-from-view-delete', $obj).css({
-      textDecoration: 'none',
-      fontWeight: 'bold',
-      color: '#F00'
-    });
-    return $obj;
+    str = str + '</span> ';
+    str = str + '<span class="insert-from-view-delete" title="' + Drupal.t('Remove') + '">x</span>';
+    str = str + '</div>';
+    return $(str);
   };
 })(jQuery);

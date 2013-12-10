@@ -1,5 +1,45 @@
+/* Overlay */
 .insert-from-view-row:hover,
 .insert-from-view-row:hover td {
   cursor: pointer;
   background: #FFF4C0;
+}
+
+/* Field widget */
+ul.insert-from-view-sortable li {
+  float: left;
+  width: 250px;
+  height: 1.5em;
+  border: 1px #AAA dashed;
+  border-radius: 5px;
+  margin: 0.5em;
+  position: relative;
+}
+
+ul.insert-from-view-sortable li span.insert-from-view-item-description {
+  display: inline-block;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+ul.insert-from-view-sortable li span.insert-from-view-delete {
+  position: absolute;
+  right: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  color: #F00;
+}
+
+ul.insert-from-view-sortable li span.insert-from-view-delete:hover {
+  cursor: pointer;
+}
+
+ul.insert-from-view-sortable li span.insert-from-view-handle {
+  font-weight: bold;
+  color: #AAA;
+  font-size: 1.1em;
+}
+ul.insert-from-view-sortable li span.insert-from-view-handle:hover {
+  cursor: move;
 }
