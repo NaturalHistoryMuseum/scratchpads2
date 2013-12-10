@@ -244,6 +244,23 @@ function scratchpads_preprocess_block(&$variables){
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter.
+ * 
+ * Prevent the ajaxblock options from being displayed to our users.
+ */
+function scratchpads_tweaks_form_block_admin_configure_alter(&$form, &$form_state, $form_id){
+  if(!user_access('scratchpad team')){
+    unset($form['visibility']['ajaxblocks']['#type']);
+    foreach(element_children($form['visibility']['ajaxblocks']) as $key){
+      $form['visibility']['ajaxblocks'][$key] = array(
+        '#type' => 'value',
+        '#value' => $form['visibility']['ajaxblocks'][$key]['#default_value']
+      );
+    }
+  }
+}
+
+/**
  * Implementation of hook_form_alter()
  */
 function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
@@ -413,6 +430,10 @@ function scratchpads_tweaks_module_implements_alter(&$implementations, $hook){
     $jquery_update = $implementations['jquery_update'];
     unset($implementations['jquery_update']);
     $implementations['jquery_update'] = $jquery_update;
+  }elseif($hook == 'form_block_admin_configure_alter'){
+    $jquery_update = $implementations['scratchpads_tweaks'];
+    unset($implementations['scratchpads_tweaks']);
+    $implementations['scratchpads_tweaks'] = $jquery_update;
   }
 }
 
