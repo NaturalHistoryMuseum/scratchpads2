@@ -1398,3 +1398,29 @@ function scratchpads_tweaks_update_7071(){
   variable_set('spambot_blacklisted_delay', 5);
   variable_set('spambot_cron_user_limit', 10);
 }
+
+/**
+ * Enable and set the settings for ajaxblocks
+ */
+function scratchpads_tweaks_update_7072(){
+  module_enable(array(
+    'ajaxblocks'
+  ));
+  $vids = db_select('taxonomy_vocabulary', 'v')->fields('v', array(
+    'vid'
+  ))->execute()->fetchCol();
+  foreach($vids as $vid){
+    db_merge('ajaxblocks')->key(array(
+      'block_id' => 'tinytax-' . $vid
+    ))->fields(array(
+      'block_id' => 'tinytax-' . $vid,
+      'is_ajax' => 1,
+      'loader_picture' => 5,
+      'is_late' => 0,
+      'delay' => 0,
+      'include_noscript' => 0,
+      'cached_roles' => '1 2 3 4 5',
+      'uncached_roles' => '1 2 3 4 5'
+    ))->execute();
+  }
+}
