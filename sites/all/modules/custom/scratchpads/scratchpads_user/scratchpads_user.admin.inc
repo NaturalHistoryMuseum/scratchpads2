@@ -69,8 +69,6 @@ function scratchpads_user_admin_account($form, &$form_state, $status_filter = NU
   $query->condition('u.uid', 0, '<>');
   $query->condition('u.uid', 1, '<>');
   user_build_filter_query($query);
-  $count_query = clone $query;
-  $count_query->addExpression('COUNT(u.uid)');
   $query = $query->extend('PagerDefault')->extend('TableSort');
   // Note, the Joins must appear after the "extend('PagerDefault') code
   // http://drupal.stackexchange.com/questions/36907/pager-query-with-join
@@ -86,8 +84,22 @@ function scratchpads_user_admin_account($form, &$form_state, $status_filter = NU
     'access',
     'pass'
   ));
+  // Add filters if we have any
+  if(!empty($form_state['input']['op']) && $form_state['input']['op'] == t('Filter')){
+    if(trim($form_state['input']['filter_username'])){
+      $query->condition('u.name', '%' . db_like(trim($form_state['input']['filter_username'])) . '%', 'LIKE');
+    }
+    if(trim($form_state['input']['filter_family_name'])){
+      $query->condition('fn.field_user_family_name_value', '%' . db_like(trim($form_state['input']['filter_family_name'])) . '%', 'LIKE');
+    }
+    if(trim($form_state['input']['filter_given_name'])){
+      $query->condition('fgn.field_user_given_names_value', '%' . db_like(trim($form_state['input']['filter_given_name'])) . '%', 'LIKE');
+    }
+  }
   $query->limit(50);
   $query->orderByHeader($header);
+  $count_query = clone $query;
+  $count_query->addExpression('COUNT(u.uid)');
   $query->setCountQuery($count_query);
   $result = $query->execute();
   $form['options'] = array(
@@ -177,6 +189,50 @@ function scratchpads_user_admin_account($form, &$form_state, $status_filter = NU
       )
     );
   }
+  $form['filters'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Filters'),
+    '#attributes' => array(
+      'class' => array(
+        'container-inline',
+        'scratchpads-user-filter'
+      )
+    ),
+    'filter_username' => array(
+      '#type' => 'textfield',
+      '#title' => '',
+      '#description' => t('Filters the users displayed below on those whose username contains the string you enter.'),
+      '#attributes' => array(
+        'placeholder' => t('Username')
+      )
+    ),
+    'filter_given_name' => array(
+      '#type' => 'textfield',
+      '#title' => '',
+      '#description' => t('Filters the users displayed below on those whose given name contains the string you enter.'),
+      '#attributes' => array(
+        'placeholder' => t('Given name')
+      )
+    ),
+    'filter_family_name' => array(
+      '#type' => 'textfield',
+      '#title' => '',
+      '#description' => t('Filters the users displayed below on those whose family name contains the string you enter.'),
+      '#attributes' => array(
+        'placeholder' => t('Family name')
+      )
+    ),
+    'submit' => array(
+      '#type' => 'button',
+      '#value' => t('Filter')
+    ),
+    'clear' => array(
+      '#type' => 'button',
+      '#value' => t('Clear filter')
+    )
+  );
+  // Add some CSS
+  $form['#attached']['css'][] = drupal_get_path('module', 'scratchpads_user') . '/css/scratchpads_user.css';
   $form['accounts'] = array(
     '#type' => 'tableselect',
     '#header' => $header,
