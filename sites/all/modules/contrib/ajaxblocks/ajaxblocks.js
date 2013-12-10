@@ -14,8 +14,9 @@ Drupal.ajaxblocksSendRequest = function (request, delay) {
     url: ((typeof Drupal.settings.ajaxblocks_path !== 'undefined') ? Drupal.settings.ajaxblocks_path : (Drupal.settings.basePath + "ajaxblocks")),
     type: "GET",
     dataType: "json",
-    data: request + '&nocache=1',
-    cache: false,
+    // SDRycroft
+    data: request,// + '&nocache=1',
+    //cache: false,
     success: function (data) {
       // Replaces the placeholder divs by the actual block contents returned by the AJAX call,
       // executes the extra JavaScript code and attach behaviours if the apply to the blocks.

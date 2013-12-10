@@ -215,11 +215,15 @@ function ajaxblocks_is_ajax($block_id, &$settings) {
  * Handles AJAX request and returns the content of the appropriate blocks.
  */
 function ajaxblocks_ajax_handler() {
+  /* SDRycroft
+   * The following code has been commented out to enable caching of the tinytax
+   * blocks in the Scratchpads.
   // Disable client-side caching.
   header('Cache-Control: private, no-cache, no-store, must-revalidate, max-age=0');
   header('Pragma: no-cache');
   // Disable server-side caching.
   drupal_page_is_cacheable(FALSE);
+   */
 
   _ajaxblocks_in_ajax_handler_impl(TRUE);
   $content = array();
