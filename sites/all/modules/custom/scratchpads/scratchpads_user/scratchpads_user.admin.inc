@@ -87,6 +87,8 @@ function scratchpads_user_admin_account($form, &$form_state, $status_filter = NU
   $query->condition('u.uid', 0, '<>');
   $query->condition('u.uid', 1, '<>');
   user_build_filter_query($query);
+  $count_query = clone $query;
+  $count_query->addExpression('COUNT(u.uid)');
   $query = $query->extend('PagerDefault')->extend('TableSort');
   // Note, the Joins must appear after the "extend('PagerDefault') code
   // http://drupal.stackexchange.com/questions/36907/pager-query-with-join
@@ -106,17 +108,25 @@ function scratchpads_user_admin_account($form, &$form_state, $status_filter = NU
   if(isset($_GET['username'])){
     $query->condition('u.name', '%' . db_like($_GET['username']) . '%', 'LIKE');
     $query->condition('u.status', 0, '>');
+    $count_query->condition('u.name', '%' . db_like($_GET['username']) . '%', 'LIKE');
+    $count_query->condition('u.status', 0, '>');
   }
   if(isset($_GET['family_name'])){
     $query->condition('fn.field_user_family_name_value', '%' . db_like($_GET['family_name']) . '%', 'LIKE');
+    $sub_query = db_select('field_revision_field_user_family_name', 'f')->fields('f', array(
+      'entity_id'
+    ))->condition('field_user_family_name_value', '%' . db_like($_GET['family_name']) . '%', 'LIKE');
+    $count_query->condition('u.uid', $sub_query, 'IN');
   }
   if(isset($_GET['given_name'])){
     $query->condition('fgn.field_user_given_names_value', '%' . db_like($_GET['given_name']) . '%', 'LIKE');
+    $sub_query = db_select('field_revision_field_user_given_names', 'f')->fields('f', array(
+      'entity_id'
+    ))->condition('field_user_given_names_value', '%' . db_like($_GET['given_name']) . '%', 'LIKE');
+    $count_query->condition('u.uid', $sub_query, 'IN');
   }
   $query->limit(50);
   $query->orderByHeader($header);
-  $count_query = clone $query;
-  $count_query->addExpression('COUNT(u.uid)');
   $query->setCountQuery($count_query);
   $result = $query->execute();
   $form['options'] = array(
