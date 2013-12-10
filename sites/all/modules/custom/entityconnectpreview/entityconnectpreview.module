@@ -20,45 +20,46 @@ function entityconnectpreview_form_alter(&$form, &$form_state, $form_id){
         break;
     }
     if(isset($form[$field_name])){
-      $field_language = field_language($entity_type, $form['#entity'], $field_name);
-      if($form[$field_name][$field_language]['#type'] == 'select'){
-        // We only add our preview if there isn't an ajax function already
-        // associated with the select box.  This could be altered to work
-        // if there is already an ajax function associated with the box.
-        if(!isset($form[$field_name][$field_language]['#ajax'])){
-          // We add a CSS file to allow us to do a little themeing.
-          $form['#attached']['css'][] = drupal_get_path('module', 'entityconnectpreview') . '/css/entityconnectpreview.css';
-          // We add a preview to the form.
-          $ids = FALSE;
-          if(!empty($form_state['values'][$field_name][$field_language])){
-            $ids = array();
-            $key = array_keys($field['columns']);
-            $key = array_pop($key);
-            foreach($form_state['values'][$field_name][$field_language] as $value){
-              $ids[] = $value[$key];
+      foreach(array_keys($form[$field_name]) as $field_language){
+        if($form[$field_name][$field_language]['#type'] == 'select'){
+          // We only add our preview if there isn't an ajax function already
+          // associated with the select box.  This could be altered to work
+          // if there is already an ajax function associated with the box.
+          if(!isset($form[$field_name][$field_language]['#ajax'])){
+            // We add a CSS file to allow us to do a little themeing.
+            $form['#attached']['css'][] = drupal_get_path('module', 'entityconnectpreview') . '/css/entityconnectpreview.css';
+            // We add a preview to the form.
+            $ids = FALSE;
+            if(!empty($form_state['values'][$field_name][$field_language])){
+              $ids = array();
+              $key = array_keys($field['columns']);
+              $key = array_pop($key);
+              foreach($form_state['values'][$field_name][$field_language] as $value){
+                $ids[] = $value[$key];
+              }
+            }elseif(!empty($form[$field_name][$field_language]['#default_value'])){
+              $ids = $form[$field_name][$field_language]['#default_value'];
             }
-          }elseif(!empty($form[$field_name][$field_language]['#default_value'])){
-            $ids = $form[$field_name][$field_language]['#default_value'];
-          }
-          if($ids){
-            $entity_to_preview = entity_load($entity_type, $ids);
-            $entity_preview = entity_view($entity_type, $entity_to_preview, 'entityconnectpreview');
-            $form[$field_name]['preview'] = array(
-              '#markup' => drupal_render($entity_preview)
+            if($ids){
+              $entity_to_preview = entity_load($entity_type, $ids);
+              $entity_preview = entity_view($entity_type, $entity_to_preview, 'entityconnectpreview');
+              $form[$field_name]['preview'] = array(
+                '#markup' => drupal_render($entity_preview)
+              );
+            }else{
+              $form[$field_name]['preview'] = array(
+                '#markup' => ''
+              );
+            }
+            $form[$field_name]['preview']['#prefix'] = '<div id="' . $field_name . '-preview" class="entityconnectpreview">';
+            $form[$field_name]['preview']['#suffix'] = '</div>';
+            $form[$field_name][$field_language]['#ajax'] = array(
+              'callback' => 'entityconnectpreview_ajax_callback',
+              'wrapper' => $field_name . '-preview',
+              'method' => 'replace',
+              'effect' => 'fade'
             );
-          }else{
-            $form[$field_name]['preview'] = array(
-              '#markup' => ''
-            );
           }
-          $form[$field_name]['preview']['#prefix'] = '<div id="' . $field_name . '-preview" class="entityconnectpreview">';
-          $form[$field_name]['preview']['#suffix'] = '</div>';
-          $form[$field_name][$field_language]['#ajax'] = array(
-            'callback' => 'entityconnectpreview_ajax_callback',
-            'wrapper' => $field_name . '-preview',
-            'method' => 'replace',
-            'effect' => 'fade'
-          );
         }
       }
     }
