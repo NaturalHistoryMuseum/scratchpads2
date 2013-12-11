@@ -190,6 +190,19 @@
       e.stopPropagation();
     });
 
+    // Adds a 'select all' selector. XXX only works for table displays
+    if ($('th.views-field-insert-from-view-checkbox', $root).length > 0){
+      $('<input type="checkbox" />').change(function(){
+        var checked = $(this).prop('checked');
+        $(this).closest('table').find('input.insert_from_view_checkbox').prop('checked', checked);
+      }).appendTo('th.views-field-insert-from-view-checkbox', $root);
+      $('input.insert_from_view_checkbox').change(function(){
+        if (!$(this).prop('checked')){
+          $(this).closest('table').find('th.views-field-insert-from-view-checkbox input').prop('checked', false);
+        }
+      })
+    }
+
     // Create & handle multiple inserts
     if ($('.insert_from_view_checkbox', $root).length > 0) {
       $('<input type="button" class="insert-from-view-button form-submit" value="'+ Drupal.t('Insert') + '" />')
