@@ -25,13 +25,6 @@ function scratchpads_media_gallery_scratchpads_solr_info(){
 }
 
 /**
- * Implements hook_form_FORM_ID_alter()
- */
-function scratchpads_media_gallery_form_alter(&$form, &$form_state, $form_id){
-  drupal_set_message($form_id);
-}
-
-/**
  * Implements hook_file_load()
  */
 function scratchpads_media_gallery_file_load($files){
