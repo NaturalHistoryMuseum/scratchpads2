@@ -1424,3 +1424,13 @@ function scratchpads_tweaks_update_7072(){
     ))->execute();
   }
 }
+
+/**
+ * Add the flag which states whether or not the T&Cs have been altered.
+ */
+function scratchpads_tweaks_update_7073(){
+  $legal = legal_get_conditions();
+  if($legal['version'] > 1 || $legal['revision'] > 1){
+    variable_set('scratchpads_legal_has_changed', TRUE);
+  }
+}
