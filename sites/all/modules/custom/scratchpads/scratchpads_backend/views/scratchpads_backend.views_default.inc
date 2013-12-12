@@ -1,5 +1,4 @@
 <?php
-
 // FIXME - The following code may help add a thumbnail to the slickgrid view
 // #3103.
 // /* Field: File: Rendered */
@@ -7,7 +6,6 @@
 // $handler->display->display_options['fields']['rendered']['table'] = 'file_managed';
 // $handler->display->display_options['fields']['rendered']['field'] = 'rendered';
 // $handler->display->display_options['fields']['rendered']['file_view_mode'] = 'file_styles_thumbnail';
-
 function scratchpads_backend_views_default_views(){
   $views = array();
   // Build the node slickgrid editor views
@@ -1367,6 +1365,17 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
     $handler->display->display_options['filters']['uri']['field'] = 'uri';
     $handler->display->display_options['filters']['uri']['operator'] = 'not';
     $handler->display->display_options['filters']['uri']['value'] = '/eolapi/';
+    // Sort by most recent at the top.
+    $handler->display->display_options['sorts']['timestamp']['id'] = 'timestamp';
+    $handler->display->display_options['sorts']['timestamp']['table'] = 'file_managed';
+    $handler->display->display_options['sorts']['timestamp']['field'] = 'timestamp';
+    $handler->display->display_options['sorts']['timestamp']['order'] = 'DESC';
+  }else{
+    // Sort by most recent at the top.
+    $handler->display->display_options['sorts']['created']['id'] = 'created';
+    $handler->display->display_options['sorts']['created']['table'] = 'node';
+    $handler->display->display_options['sorts']['created']['field'] = 'created';
+    $handler->display->display_options['sorts']['created']['order'] = 'DESC';
   }
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
