@@ -3,6 +3,7 @@ description = Custom blocks for the scratchpads theme.
 package = "Scratchpads theme"
 core = 7.x
 dependencies[] = prepopulate
+dependencies[] = legal
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
 project = scratchpads_blocks
