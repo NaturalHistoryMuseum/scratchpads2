@@ -25,6 +25,15 @@ function scratchpads_media_gallery_scratchpads_solr_info(){
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function scratchpads_media_gallery_form_node_delete_confirm_alter(&$form, &$form_state, $form_id){
+  if($form['#node']->type == 'media_gallery'){
+    $form['description']['#markup'] .= '<br/>' . t('Note, media attached to this gallery will not be deleted.');
+  }
+}
+
+/**
  * Implements hook_file_load()
  */
 function scratchpads_media_gallery_file_load($files){
