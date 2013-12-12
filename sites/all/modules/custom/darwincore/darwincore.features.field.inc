@@ -43,7 +43,7 @@ function darwincore_field_default_fields(){
     'field_instance' => array(
       'bundle' => 'specimen_observation',
       'deleted' => '0',
-      'description' => '',
+      'description' => 'Select media to link them to this specimen/observation. Selected media will appear as links at the bottom of the page. Once media is selected, it may be edited, or removed from this specimen/observation.',
       'display' => array(
         'default' => array(
           'label' => 'above',
