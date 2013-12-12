@@ -530,7 +530,7 @@ h1.site-name,h2.site-name {
 
 /* custom blocks in sidebar */
 #region-sidebar .block-block:not(:last-child)  {
-  margin-top: 15px;
+  margin-bottom: 15px;
 }
 
 /* Facets */
