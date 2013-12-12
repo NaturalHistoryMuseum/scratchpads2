@@ -20,6 +20,10 @@ function scratchpads_twitter_scratchpads_default_permissions(){
  */
 function scratchpads_twitter_menu_alter(&$items){
   $items['admin/config/services/twitter']['page callback'] = 'scratchpads_twitter_user_settings';
+  $items['user/%user/edit/twitter']['access callback'] = 'user_access';
+  $items['user/%user/edit/twitter']['access arguments'] = array(
+    'scratchpads team'
+  );
 }
 
 /**
