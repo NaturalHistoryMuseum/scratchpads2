@@ -159,9 +159,20 @@ function spm_update_7010(){
 }
 
 /**
- * Enable the auto_entitylabel module
+ * Update field field_media description
  */
 function spm_update_7011(){
+  if(field_info_instance('node', 'field_media', 'spm')){
+    module_load_include('features.field.inc', 'spm');
+    $fields = spm_field_default_fields();
+    field_update_instance($fields['node-spm-field_media']['field_instance']);
+  }
+}
+
+/**
+ * Enable the auto_entitylabel module
+ */
+function spm_update_7012(){
   module_enable(array(
     'auto_entitylabel'
   ));
