@@ -182,7 +182,7 @@ function spm_field_default_fields(){
     'field_instance' => array(
       'bundle' => 'spm',
       'deleted' => '0',
-      'description' => '',
+      'description' => 'Select media to link them to this taxon description. Selected media will appear as links at the bottom of the page. Once media is selected, it may be edited, or removed from this taxon description.',
       'display' => array(
         'default' => array(
           'label' => 'above',
