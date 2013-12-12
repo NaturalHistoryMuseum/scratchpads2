@@ -98,7 +98,7 @@ function scratchpads_media_gallery_field_default_fields(){
     'field_instance' => array(
       'bundle' => 'media_gallery',
       'deleted' => '0',
-      'description' => '',
+      'description' => 'Select media to link them to this gallery. Once media is selected, it may be edited, or removed from this media gallery.',
       'display' => array(),
       'entity_type' => 'node',
       'field_name' => 'field_media',
@@ -171,7 +171,7 @@ function scratchpads_media_gallery_field_default_fields(){
     'field_instance' => array(
       'bundle' => 'page',
       'deleted' => '0',
-      'description' => '',
+      'description' => 'Select media to link them to this page. Selected media will appear as links at the bottom of the page. Once media is selected, it may be edited, or removed from this page.',
       'display' => array(
         'default' => array(
           'label' => 'above',
