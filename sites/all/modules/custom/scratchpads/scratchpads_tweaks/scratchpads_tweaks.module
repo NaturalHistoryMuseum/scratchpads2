@@ -69,6 +69,13 @@ function scratchpads_tweaks_node_view_alter(&$build){
 /**
  * Implements hook_form_FORM_ID_alter().
  */
+function media_multiselect_form_media_internet_add_alter(&$form, &$form_state, $form_id){
+  media_multiselect_form_file_entity_add_upload_multiple_alter(&$form, &$form_state, $form_id);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
 function media_multiselect_form_file_entity_add_upload_multiple_alter(&$form, &$form_state, $form_id){
   // Add an additional submit function if we're being called from a popup. This
   // will prevent the redirect from being set to file/[fid]/edit and correctly
