@@ -452,3 +452,17 @@ function scratchpads_media_gallery_update_7016(){
     }
   }
 }
+
+/**
+ * Update field field_media descriptions
+ */
+function scratchpads_media_gallery_update_7017(){
+  module_load_include('features.field.inc', 'scratchpads_media_gallery');
+  $fields = scratchpads_media_gallery_field_default_fields();
+  if(field_info_instance('node', 'field_media', 'media_gallery')){
+    field_update_instance($fields['node-media_gallery-field_media']['field_instance']);
+  }
+  if(field_info_instance('node', 'field_media', 'page')){
+    field_update_instance($fields['node-page-field_media']['field_instance']);
+  }
+}

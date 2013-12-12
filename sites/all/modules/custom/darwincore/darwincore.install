@@ -298,3 +298,14 @@ function darwincore_update_7017(){
   $fields = darwincore_field_default_fields();
   field_update_instance($fields['node-location-field_map']['field_instance']);
 }
+
+/**
+ * Update field field_media description
+ */
+function darwincore_update_7018(){
+  if(field_info_instance('node', 'field_media', 'specimen_observation')){
+    module_load_include('features.field.inc', 'darwincore');
+    $fields = darwincore_field_default_fields();
+    field_update_instance($fields['node-specimen_observation-field_media']['field_instance']);
+  }
+}
