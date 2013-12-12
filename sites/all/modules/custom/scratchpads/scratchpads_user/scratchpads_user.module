@@ -69,35 +69,59 @@ function scratchpads_user_menu_alter(&$items){
  * Add tabs to the menu for users and non-users
  */
 function scratchpads_user_menu(){
-  $items['admin/people/users'] = array(
-    'title' => 'Users',
-    'page callback' => 'scratchpads_user_admin',
-    'page arguments' => array(
-      '',
-      '1'
+  return array(
+    'admin/people/users' => array(
+      'title' => 'Users',
+      'page callback' => 'scratchpads_user_admin',
+      'page arguments' => array(
+        '',
+        '1'
+      ),
+      'file' => 'scratchpads_user.admin.inc',
+      'access arguments' => array(
+        'administer users'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => '-2'
     ),
-    'file' => 'scratchpads_user.admin.inc',
-    'access arguments' => array(
-      'administer users'
+    'admin/people/non_users' => array(
+      'title' => 'Non Users',
+      'page callback' => 'scratchpads_user_admin',
+      'page arguments' => array(
+        '',
+        '0'
+      ),
+      'file' => 'scratchpads_user.admin.inc',
+      'access arguments' => array(
+        'administer users'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => '-1'
     ),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => '-2'
+    'scratchpads-user-autocomplete' => array(
+      'title' => 'Autocomplete ',
+      'page callback' => 'scratchpads_user_biblio_autocomplete',
+      'access callback' => 'user_access',
+      'access arguments' => array(
+        'access biblio content'
+      ),
+      'type' => MENU_CALLBACK
+    )
   );
-  $items['admin/people/non_users'] = array(
-    'title' => 'Non Users',
-    'page callback' => 'scratchpads_user_admin',
-    'page arguments' => array(
-      '',
-      '0'
-    ),
-    'file' => 'scratchpads_user.admin.inc',
-    'access arguments' => array(
-      'administer users'
-    ),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => '-1'
-  );
-  return $items;
+}
+
+/**
+ * Biblio autocomplete function to provide an author ID rather than just a name
+ */
+function scratchpads_user_biblio_autocomplete($string = ''){
+  $string = db_like($string);
+  $or = db_or()->condition('lastname', $string . '%', 'LIKE')->condition('firstname', $string . '%', 'LIKE');
+  $matches = db_select('biblio_contributor_data', 'b')->fields('b', array(
+    'cid',
+    'name'
+  ))->condition($or)->orderBy('lastname')->range(0, 10)->execute()->fetchAllKeyed();
+  print drupal_json_encode($matches);
+  exit();
 }
 
 /**
@@ -269,7 +293,7 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
   }
   // Change the select dropdown to an autocomplete field
   $form['biblio_fieldset']['biblio_contributor_id']['#type'] = 'textfield';
-  $form['biblio_fieldset']['biblio_contributor_id']['#autocomplete_path'] = 'biblio/autocomplete/contributor';
+  $form['biblio_fieldset']['biblio_contributor_id']['#autocomplete_path'] = 'scratchpads-user-autocomplete';
   if($form['biblio_fieldset']['biblio_contributor_id']['#default_value'] == '0'){
     $form['biblio_fieldset']['biblio_contributor_id']['#default_value'] = '';
   }
