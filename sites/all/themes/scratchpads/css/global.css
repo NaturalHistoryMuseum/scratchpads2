@@ -528,6 +528,11 @@ h1.site-name,h2.site-name {
   margin-left: 10px;
 }
 
+/* custom blocks in sidebar */
+#region-sidebar .block-block:not(:last-child)  {
+  margin-top: 15px;
+}
+
 /* Facets */
 #region-sidebar ul.facetapi-facetapi-links {
   margin-bottom: 10px;
