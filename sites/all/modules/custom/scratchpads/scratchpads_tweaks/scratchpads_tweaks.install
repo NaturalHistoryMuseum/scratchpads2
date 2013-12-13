@@ -330,6 +330,8 @@ function scratchpads_tweaks_install(){
   variable_set('spambot_criteria_username', 0);
   variable_set('spambot_blacklisted_delay', 5);
   variable_set('spambot_cron_user_limit', 10);
+  // Use our mirror of the CC images site
+  variable_set('creative_commons_image_uri', 'http://cc-mirror.scratchpads.eu/l');
 }
 
 /**
@@ -1433,4 +1435,11 @@ function scratchpads_tweaks_update_7073(){
   if($legal['version'] > 1 || $legal['revision'] > 1){
     variable_set('scratchpads_legal_has_changed', TRUE);
   }
+}
+
+/**
+ * Use our own mirror of the i.creativecommons.org website (it'll be quicker)
+ */
+function scratchpads_tweaks_update_7074(){
+  variable_set('creative_commons_image_uri', 'http://cc-mirror.scratchpads.eu/l');
 }

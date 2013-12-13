@@ -132,9 +132,9 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
   switch($licence_type){
     // These licence types are text only
     case CC_NONE:
-      if ($display_type == CC_URL) {
-      	$url = '';
-      } else {
+      if($display_type == CC_URL){
+        $url = '';
+      }else{
         return array(
           '#markup' => t('All rights reserved.')
         );
@@ -169,7 +169,7 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
   }
   // Default image 
   if(!isset($image)){
-    $image = CC_IMAGE_URI . '/' . $licence . '/' . $version . '/' . ($jurisdiction ? $jurisdiction . '/' : '') . $display_type;
+    $image = variable_get('creative_commons_image_uri', CC_IMAGE_URI) . '/' . $licence . '/' . $version . '/' . ($jurisdiction ? $jurisdiction . '/' : '') . $display_type;
   }
   if(!isset($url)){
     $url = CC_LICENCE_URI . '/' . $licence . '/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
