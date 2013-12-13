@@ -259,6 +259,15 @@ function tinytax_block_info(){
 }
 
 /**
+ * Implements hook_flush_caches()
+ */
+function tinytax_flush_caches(){
+  return array(
+    'cache_tinytax'
+  );
+}
+
+/**
  * Implements hook_taxonomy_term_insert()
  */
 function tinytax_taxonomy_term_insert($term){
