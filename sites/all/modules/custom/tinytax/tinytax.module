@@ -262,6 +262,9 @@ function tinytax_block_info(){
  * Implements hook_flush_caches()
  */
 function tinytax_flush_caches(){
+  if(function_exists('varnish_purge')){
+    varnish_purge(_varnish_get_host(), 'ajaxblocks');
+  }
   return array(
     'cache_tinytax'
   );
