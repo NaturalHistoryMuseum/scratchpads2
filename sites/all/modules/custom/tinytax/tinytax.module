@@ -263,21 +263,23 @@ function tinytax_block_info(){
  */
 function tinytax_taxonomy_term_insert($term){
   cache_clear_all($term->vid . ':', 'cache_tinytax', TRUE);
+  if(function_exists('varnish_purge')){
+    varnish_purge(_varnish_get_host(), 'ajaxblocks');
+  }
 }
 
 /**
  * Implements tinytax_taxonomoy_term_update()
  */
 function tinytax_taxonomy_term_update($term){
-  drupal_set_message('clearing cache for "' . $term->vid . ':"');
-  cache_clear_all($term->vid . ':', 'cache_tinytax', TRUE);
+  tinytax_taxonomy_term_insert($term);
 }
 
 /**
  * Implements tinytax_taxonomoy_term_delete()
  */
 function tinytax_taxonomy_term_delete($term){
-  cache_clear_all($term->vid . ':', 'cache_tinytax', TRUE);
+  tinytax_taxonomy_term_insert($term);
 }
 
 /**
@@ -286,5 +288,7 @@ function tinytax_taxonomy_term_delete($term){
 function tinytax_taxonomy_vocabulary_delete($vocabulary){
   db_delete('block')->condition('module', 'tinytax')->condition('delta', $vocabulary->vid)->execute();
   variable_del('tinytax_ancestors_' . $vocabulary->vid);
-  cache_clear_all($vocabulary->vid . ':', 'cache_tinytax', TRUE);
+  // It doesn't matter that we pass the vocabulary here, the important thing is
+  // the $term->vid or $vocabulary->vid is the same thing!
+  tinytax_taxonomy_term_insert($vocabulary);
 }
