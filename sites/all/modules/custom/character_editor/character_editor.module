@@ -173,6 +173,16 @@ function character_editor_views_api(){
 }
 
 /**
+ * Implementation of hook_views_pre_execute
+ *
+ * Set the query that was build in the field handler
+ */
+function character_editor_views_pre_execute(&$view){
+  if(!property_exists($view, 'character_editor_query') || !$view->character_editor_query){return;}
+  $view->build_info['query'] = $view->character_editor_query;
+}
+
+/**
  * Implementation of hook_views_pre_view
  * This does the bulk of the work preparing the character project for vieing in a grid
  */
@@ -278,19 +288,20 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
       }
       // Fill in the data for this character
       $relation_items = field_get_items($character_w->type(), $character_w->value(), 'field_characters');
-      foreach($character_w->relation_character_state_taxonomy_term as $term_delta => $term_w){
-        $relation = relation_load($relation_items[$term_delta]['relation_id']);
-        $language = field_language('relation', $relation, 'field_character_state_data');
-        if(isset($relation->field_character_state_data[$language][0]['safe_value'])){
-          // If this is a controlled character, we want to use the delta, not the value
-          $safe_value = $relation->field_character_state_data[$language][0]['safe_value'];
-          if($character_w->getBundle() == 'controlled' && is_array($value_to_delta)){
-            foreach($value_to_delta as $value => $value_delta){
-              $safe_value = str_replace($value, $value_delta, $safe_value);
-            }
-          }
-          $view->characters[$term_w->getIdentifier()][$column_id] = $safe_value;
+      $values = character_editor_get_character_values($character_w);
+      foreach($values as $value){
+        if(!isset($value['data'][0]['safe_value'])){
+          continue;
         }
+        $data = $value['data'][0]['safe_value'];
+        // If this is a controlled character, we want to use the delta, not the value
+        if($character_w->getBundle() == 'controlled' && is_array($value_to_delta)){
+          foreach($value_to_delta as $value_key => $value_delta){
+            $data = str_replace($value_key, $value_delta, $data);
+          }
+        }
+        $char_id = $value['entity_w']->type() . ':' . $value['entity_w']->getIdentifier();
+        $view->characters[$char_id][$column_id] = $data;
       }
       $column_number++;
     }
@@ -1064,8 +1075,19 @@ function character_editor_state_form($form, &$form_state){
   $form = array();
   $form_state['character_id'] = str_replace('character_', '', $_POST['field_id']);
   $form_state['field_id'] = $_POST['field_id'];
-  $form_state['tid'] = reset($form_state['values']['entity_ids']);
-  $form_state['relation'] = character_editor_get_state_relation($form_state['tid'], $form_state['character_id']);
+  list($entity_type, $entity_id) = explode(':', reset($form_state['values']['entity_ids']));
+  $form_state['entity_id'] = $entity_id;
+  $form_state['entity_type'] = $entity_type;
+  $character_w = entity_metadata_wrapper('character_editor_character', entity_load_single('character_editor_character', $form_state['character_id']));
+  $entity_w = entity_metadata_wrapper($entity_type, entity_load_single($entity_type, $entity_id));
+  $values = character_editor_get_character_values($character_w, $entity_w);
+  if(!empty($values)){
+    $form_state['relation'] = $values[0]['relation_w']->raw();
+  }else{
+    $relation = new stdClass();
+    $relation->relation_type = 'character_state';
+    $form_state['relation'] = $relation;
+  }
   field_attach_form('relation', $form_state['relation'], $form, $form_state);
   foreach(element_children($form['field_character_state_data']) as $language){
     unset($form['field_character_state_data'][$language][0]['value']['#title']);
@@ -1171,24 +1193,6 @@ function character_editor_state_form_validate($form, &$form_state){
 }
 
 /**
- * Get the character state (relation) beween a taxa & a character
- */
-function character_editor_get_state_relation($tid, $character_id){
-  $query = relation_query('taxonomy_term', $tid);
-  $query->entityCondition('bundle', 'character_state');
-  $query->related('character_editor_character', $character_id);
-  $results = $query->execute();
-  $result = reset($results);
-  if(empty($result)){
-    $relation = new stdClass();
-    $relation->relation_type = 'character_state';
-  }else{
-    $relation = relation_load($result->rid);
-  }
-  return $relation;
-}
-
-/**
  * Slickgrid state form submit
  */
 function character_editor_state_form_submit($form, &$form_state){
@@ -1198,8 +1202,8 @@ function character_editor_state_form_submit($form, &$form_state){
     if(!isset($form_state['relation']->rid)){
       $entity_keys = array();
       $entity_keys[] = array(
-        'entity_type' => 'taxonomy_term',
-        'entity_id' => $form_state['tid'],
+        'entity_type' => $form_state['entity_type'],
+        'entity_id' => $form_state['entity_id'],
         'r_index' => 0
       );
       $entity_keys[] = array(

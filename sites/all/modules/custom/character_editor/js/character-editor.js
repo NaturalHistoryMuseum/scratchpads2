@@ -7,7 +7,7 @@
   }, initBT: function(){
     var ops = {cssClass: "character-editor-header", fill: 'rgba(0, 0, 0, .7)', cssStyles: {color: 'white', 'font-size': '10px'}, spikeLength: 8, shrinkToFit: true, offsetParent: '#slickgrid', positions: ['bottom']}
     $.each(grid.getColumns(), function(i, col){
-      if(col.name != "Classification") {
+      if(col.field != "character_entity_field") {
         $('.' + col.id).bt(col.data.char, ops);
       }
     });

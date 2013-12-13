@@ -64,11 +64,24 @@ class CharacterProjectViewsController extends EntityDefaultViewsController{
 
   public function views_data(){
     $data = parent::views_data();
+    // Add a field for characters
     $data['views']['character_field'] = array(
       'title' => t('Character field'),
       'help' => t('Display a character editor field.'),
       'field' => array(
         'handler' => 'character_editor_views_handler_field'
+      )
+    );
+    // Add a field used to display both taxonomic terms and specimens
+    $data['character_editor']['table']['group'] = t('Character Editor');
+    $data['character_editor']['table']['join'] = array(
+      '#global' => array(),
+    );
+    $data['character_editor']['character_entity_field'] = array(
+      'title' => t('Taxon and Specimen'),
+      'help' => t('This field returns both taxonomic terms and specimens referenced by the character editor in the first argument. Using this field causes the query to be re-written, so it cannot be used with other fields or filters'),
+      'field' => array(
+        'handler' => 'character_editor_views_handler_entity_field'
       )
     );
     return $data;

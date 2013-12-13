@@ -1178,6 +1178,75 @@ other|Other',
       $i++;
     }
   }
+  // Exported field: 'character_editor_project-default_character_project-field_char_proj_specimen'
+  $fields['character_editor_project-default_character_project-field_char_proj_specimen'] = array(
+    'field_config' => array(
+      'locked' => '1',
+      'active' => '1',
+      'cardinality' => '-1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_proj_specimen',
+      'foreign keys' => array(
+        'nid' => array(
+          'columns' => array(
+            'nid' => 'nid'
+          ),
+          'table' => 'node'
+        )
+      ),
+      'indexes' => array(
+        'nid' => array(
+          0 => 'nid'
+        )
+      ),
+      'module' => 'node_reference',
+      'settings' => array(
+        'referenceable_types' => array(
+          'specimen_observation' => 'specimen_observation'
+        )
+      ),
+      'translatable' => '1',
+      'type' => 'node_reference'
+    ),
+    'field_instance' => array(
+      'bundle' => 'default_character_project',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'node_reference',
+          'settings' => array(),
+          'type' => 'node_reference_default',
+          'weight' => 1001
+        )
+      ),
+      'entity_type' => 'character_editor_project',
+      'field_name' => 'field_char_proj_specimen',
+      'label' => 'Specimen',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'insert_from_view',
+        'settings' => array(
+          'insert-from-view' => array(
+            'insert-from-view-view' => 'specimen_node_ref_selection',
+            'insert-from-view-display' => 'default',
+            'insert-from-view-field' => 'nothing',
+            'insert-from-view-width' => '75%',
+            'insert-from-view-height' => '75%'
+          )
+        ),
+        'type' => 'insert_from_view_node_reference',
+        'weight' => '-2'
+      )
+    )
+  );
   // Exported field: 'character_editor_project-default_character_project-field_characters'
   $fields['character_editor_project-default_character_project-field_characters'] = array(
     'field_config' => array(

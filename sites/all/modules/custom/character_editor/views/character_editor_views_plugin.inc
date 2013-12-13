@@ -25,22 +25,70 @@ class character_editor_views_plugin extends slickgrid_views_plugin{
   }
 
   /**
-   * Add the base field (fid) to the query.
+   * Pre-render is used to:
+   * - Assign the values of the characters ;
+   * - Order the taxon/specimens in a tree ;
+   * - Filter out collapsed values.
    */
-  function query(){
-    $this->view->query->add_field($this->view->base_table, $this->view->base_field);
-    parent::query();
-  }
-
-  function pre_render($result){
-    foreach(array_keys($result) as $row){
-      $tid = $result[$row]->tid;
-      if(isset($this->view->characters[$tid]) && is_array($this->view->characters[$tid])){
-        foreach($this->view->characters[$tid] as $field => $value){
-          $result[$row]->{$field} = $value;
+  function pre_render(&$result){
+    $collapsed = array();
+    if(isset($_GET['character_entity_field'])){
+      $collapsed = explode(',', $_GET['character_entity_field']);
+    }
+    $ids = array();
+    foreach($result as $row){
+      $id = $row->id;
+      // Assign character values
+      if(isset($this->view->characters[$id]) && is_array($this->view->characters[$id])){
+        foreach($this->view->characters[$id] as $field => $value){
+          $row->{$field} = $value;
         }
       }
+      $ids[$id] = $row;
     }
+    // Build the tree
+    $tree = array();
+    foreach($ids as $id => $row){
+      $list = array();
+      $pid = $id;
+      while($pid && !preg_match('/:0$/', $pid)){
+        if(isset($ids[$pid])){
+          $list[] = $pid;
+          $pid = $ids[$pid]->parent;
+        }else{
+          $pid = 0;
+        }
+      }
+      $list = array_reverse($list);
+      $ptr = & $tree;
+      foreach($list as $pid){
+        if(!isset($ptr[$pid])){
+          $ptr[$pid] = array(
+            'value' => $ids[$pid],
+            'children' => array(),
+            'collapsed' => in_array($pid, $collapsed)
+          );
+        }
+        $ptr = & $ptr[$pid]['children'];
+      }
+      unset($ptr);
+    }
+    // And order the items
+    $result = $this->assign_tree_values($tree, 0);
+  }
+
+  private function assign_tree_values($tree, $depth){
+    $result = array();
+    foreach($tree as $item){
+      $item['value']->depth = $depth;
+      $item['value']->children = count($item['children']);
+      $item['value']->collapsed = $item['collapsed'];
+      $result[] = $item['value'];
+      if(!$item['collapsed']){
+        $result = array_merge($result, $this->assign_tree_values($item['children'], $depth + 1));
+      }
+    }
+    return $result;
   }
 }
 ?>

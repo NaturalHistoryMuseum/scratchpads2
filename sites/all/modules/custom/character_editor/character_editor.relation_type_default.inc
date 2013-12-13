@@ -40,7 +40,8 @@ function character_editor_relation_default_relation_types(){
   $relation_type->max_arity = 2;
   $relation_type->source_bundles = array(
     0 => 'taxonomy_term:*',
-    1 => 'character_editor_character:*'
+    1 => 'character_editor_character:*',
+    2 => 'node:specimen_observation'
   );
   $relation_type->target_bundles = array();
   $export['character_state'] = $relation_type;
