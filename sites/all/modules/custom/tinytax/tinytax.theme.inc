@@ -20,7 +20,7 @@ function theme_tinytax_block($variables){
     }
   }
   $toggle = variable_get('tinytax_hidden_field_and_value_' . $variables['vid'], array());
-  if(module_exists('relation_add')){
+  if(module_exists('relation_add-')){
     // FIXME - The toggle will not work when not loading the full term.  We
     // therefore hide the toggle when the relation_add module is enabled.
     $toggle = array();
@@ -46,7 +46,7 @@ function theme_tinytax_block($variables){
  */
 function theme_tinytax_branch($variables){
   // Get the terms to render
-  if(module_exists('relation_add')){
+  if(module_exists('relation_add-')){
     // Due to the way the relation_add module loads relaion entities, and the
     // fact that it is a HUGE performance overhead, we do not load the full
     // entity if it is enabled.  This means the sorting and display of terms
@@ -262,7 +262,8 @@ function theme_tinytax_term($variables){
     )) . theme('tinytax_branch', array(
       'open_tids' => $variables['open_tids'],
       'tid' => $variables['term']->tid,
-      'vid' => $variables['term']->vid
+      'vid' => $variables['term']->vid,
+      'toggle' => $variables['toggle']
     ));
   }else{
     $output .= theme('tinytax_term_count', array(
