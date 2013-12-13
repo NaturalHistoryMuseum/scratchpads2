@@ -2,6 +2,7 @@ name = Tinytax: Tiny Taxonomy Browser
 description = Provides a block for browsing a taxonomy.
 core = 7.x
 dependencies[] = taxonomy
+dependencies[] = ajaxblocks
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
 project = tinytax

@@ -255,6 +255,9 @@ function scratchpads_preprocess_block(&$variables){
  */
 function scratchpads_tweaks_taxonomy_vocabulary_delete($vocabulary){
   db_delete('ajaxblocks')->condition('block_id', 'tinytax-' . $vocabulary->vid)->execute();
+  if(function_exists('ajaxblocks_update_cache')){
+    ajaxblocks_update_cache();
+  }
 }
 
 /**
@@ -273,6 +276,9 @@ function scratchpads_tweaks_taxonomy_vocabulary_insert($vocabulary){
     'cached_roles' => '1 2 3 4 5',
     'uncached_roles' => '1 2 3 4 5'
   ))->execute();
+  if(function_exists('ajaxblocks_update_cache')){
+    ajaxblocks_update_cache();
+  }
 }
 
 /**
