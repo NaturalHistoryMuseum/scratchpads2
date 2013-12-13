@@ -591,8 +591,11 @@ if(!Array.prototype.indexOf) {
         tabs.rebuild();
       }
     }
-    function setColumnFilter(field, value){
+    function setColumnFilter(field, value, refresh){
       columnFilters[field] = value;
+      if (typeof refresh !== 'undefined' && refresh){
+        loader.setFilters(columnFilters);
+      }
     }
     function getContainer(){
       return container;
