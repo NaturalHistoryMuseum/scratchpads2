@@ -3,10 +3,12 @@
   This is a hand made test file for importing SDD into the Scratchpads Character Editor.
   The test site should include the following taxon names:
   'Pediculus Clavicornis', 'Pediculus Humanus', 'Pediculus Humanus Capitis'
-  but not 'NoSuchTerm'.
+  but not 'NoSuchTerm'. It should include a specimen named 'icode - colcode - colnum'
+  but no specimen named 'NoSuchSpecimen'.
 
   Expected Result (when doing full structure + data import on a new project):
   - Warning about missing taxon name match 'NoSuchTerm' ;
+  - Warning about missing specimen match 'NoSuchSpecimen' ;
   - Warning that 2 coded descriptions were not imported due to invalid character
     reference 'nosuchref' and missing categorical state 'nosuchstate' ;
   - Warning about a reference to a local file (nosuchfile.jpg) that needs to be uploaded separately ;
@@ -33,6 +35,7 @@
    | Pediculus clavicornis     | 1           | 0           | 2               | 1         |              |        |
    | Pediculus humanus         | 11          | 1           | 22              | 0         |              |        |
    | Pediculus humanus capitis |             |             |                 |           | Hello World! | ATGATG |
+   | icode - colcode - colnum  | 2           | 1           |                 |           | A pin?       |        |
    _______________________________________________________________________________________________________________
 
 
@@ -56,6 +59,14 @@
         <Representation><Label>NoSuchTerm</Label></Representation>
       </TaxonName>
     </TaxonNames>
+    <Specimens>
+      <Specimen id='sp1'>
+        <Representation><Label>icode - colcode - colnum</Label></Representation>
+      </Specimen>
+      <Specimen id='sp2'>
+        <Representation><Label>NoSuchSpecimen</Label></Representation>
+      </Specimen>
+    </Specimens>
     <Characters>
       <QuantitativeCharacter id='c1'>
         <Representation><Label>Number of heads</Label></Representation>
@@ -186,6 +197,23 @@
             <State ref='nosuchstate' />
           </Categorical>
         </SummaryData>
+      </CodedDescription>
+      <CodedDescription id='cd4'>
+        <SampleData>
+          <SamplingEvent id='icode - colcode - colnum'>
+            <SamplingUnit>
+              <Quantitative ref='c1' value='2' />
+              <Categorical ref='c3'>
+                <State ref='s2' />
+               </Categorical>
+            </SamplingUnit>
+            <SamplingUnit>
+              <Text ref='c5'>
+                <Content>A pin?</Content>
+              </Text>
+            </SamplingUnit>
+          </SamplingEvent>
+        </SampleData>
       </CodedDescription>
     </CodedDescriptions>
     <MediaObjects>

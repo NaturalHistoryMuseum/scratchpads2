@@ -280,6 +280,61 @@ function character_editor_sdd_import_get_taxon_name($xml_map, $xml_node, $availa
 }
 
 /**
+ * character_editor_reverse_schema_array_sdd_specimen
+ *
+ * Implement hook_reverse_schema_array_<schema>
+ *
+ * Defines how an SDD Specimen entry is mapped to a specimen. This only
+ * checks the name, it does not try to check whether there is TaxonName
+ * tag and equivalent taxon name.
+ *
+ * Note: This does not defined '#create' as we do not need it for
+ * character imports. Will need to be implemented for full
+ * SDD import.
+ */
+function character_editor_reverse_schema_array_sdd_specimen($variables){
+  return array(
+    'node' => array(
+      '#xpath' => '/Datasets/Dataset/Specimens/Specimen',
+      '#id' => 'Representation/Label[1]',
+      '#get' => array(
+        'character_editor_sdd_import_get_specimen'
+      )
+    )
+  );
+}
+
+/**
+ * character_editor_sdd_import_get_specimen
+ *
+ * Given an SDD specimen name, attempt to find the matching
+ * existing specimen
+ */
+function character_editor_sdd_import_get_specimen($xml_map, $xml_node){
+  $name = $xml_map->nodeToString($xml_node->xpath('Representation/Label[1]'));
+  if(!$name){
+    $xml_map->addMessage("Could not find a match for specimen $name - this specimen will not be used.");
+    return NULL;
+  }
+  $efq = new EntityFieldQuery();
+  $efq->entityCondition('entity_type', 'node');
+  $efq->propertyCondition('type', 'specimen_observation');
+  $efq->propertyCondition('title', $name);
+  $result = $efq->execute();
+  if(count($result['node']) > 1){
+    $xml_map->addMessage("Multiple matches for specimen $name - this specimen will not be used.");
+    return NULL;
+  }else if(count($result['node']) == 1){
+    $result_keys = array_keys($result['node']);
+    $node = entity_load_single('node', reset($result_keys));
+    return entity_metadata_wrapper('node', $node);
+  }else{
+    $xml_map->addMessage("Could not find a match for specimen $name - this specimen will not be used.");
+    return NULL;
+  }
+}
+
+/**
  * character_editor_reverse_schema_array_sdd_media_object
  *
  * Implement hook_reverse_schema_array_<schema>
@@ -808,12 +863,24 @@ function character_editor_sdd_import_get_character($xml_map, $node, $type, $proj
  * Implement hook_reverse_schema_array_<schema>
  *
  * Defines how an SDD Quantitative coded description is saved.
+ *
+ * If $variables['sample'] is set and true, return the definition used for samples
+ * as opposed to taxons.
+ *
  * XXX we don't support ranges - test for them!
  */
 function character_editor_reverse_schema_array_sdd_character_data_numeric($variables){
+  $taxon = empty($variables['sample']);
+  if($taxon){
+    $spath = 'SummaryData';
+    $value = 'Measure/@value';
+  }else{
+    $spath = 'SampleData/SamplingEvent/SamplingUnit';
+    $value = '@value';
+  }
   return array(
     'relation#character_state_numeric' => array(
-      '#xpath' => '/Datasets/Dataset/CodedDescriptions/CodedDescription/SummaryData/Quantitative',
+      '#xpath' => "/Datasets/Dataset/CodedDescriptions/CodedDescription/$spath/Quantitative",
       '#get' => 'character_editor_sdd_import_get_character_data',
       '#create' => array(
         'relation_type' => 'character_state',
@@ -828,7 +895,7 @@ function character_editor_reverse_schema_array_sdd_character_data_numeric($varia
           'character_editor_sdd_import_set_character_state_data'
         )
       ),
-      'field_character_state_data' => 'Measure/@value'
+      'field_character_state_data' => $value
     )
   );
 }
@@ -839,11 +906,20 @@ function character_editor_reverse_schema_array_sdd_character_data_numeric($varia
  * Implement hook_reverse_schema_array_<schema>
  *
  * Defines how an SDD TextChar coded description is saved.
+ *
+ * If $variables['sample'] is set and true, return the definition used for samples
+ * as opposed to taxons.
  */
 function character_editor_reverse_schema_array_sdd_character_data_text($variables){
+  $taxon = empty($variables['sample']);
+  if($taxon){
+    $spath = 'SummaryData';
+  }else{
+    $spath = 'SampleData/SamplingEvent/SamplingUnit';
+  }
   return array(
     'relation#character_state_numeric' => array(
-      '#xpath' => '/Datasets/Dataset/CodedDescriptions/CodedDescription/SummaryData/Text',
+      '#xpath' => "/Datasets/Dataset/CodedDescriptions/CodedDescription/$spath/Text",
       '#get' => 'character_editor_sdd_import_get_character_data',
       '#create' => array(
         'relation_type' => 'character_state',
@@ -869,11 +945,20 @@ function character_editor_reverse_schema_array_sdd_character_data_text($variable
  * Implement hook_reverse_schema_array_<schema>
  *
  * Defines how an SDD Sequence coded description is saved.
+ *
+ * If $variables['sample'] is set and true, return the definition used for samples
+ * as opposed to taxons.
  */
 function character_editor_reverse_schema_array_sdd_character_data_dna($variables){
+  $taxon = empty($variables['sample']);
+  if($taxon){
+    $spath = 'SummaryData';
+  }else{
+    $spath = 'SampleData/SamplingEvent/SamplingUnit';
+  }
   return array(
     'relation#character_state_numeric' => array(
-      '#xpath' => '/Datasets/Dataset/CodedDescriptions/CodedDescription/SummaryData/Sequence',
+      '#xpath' => "/Datasets/Dataset/CodedDescriptions/CodedDescription/$spath/Sequence",
       '#get' => 'character_editor_sdd_import_get_character_data',
       '#create' => array(
         'relation_type' => 'character_state',
@@ -899,11 +984,20 @@ function character_editor_reverse_schema_array_sdd_character_data_dna($variables
  * Implement hook_reverse_schema_array_<schema>
  *
  * Defines how an SDD Categorical coded description is saved.
+ *
+ * If $variables['sample'] is set and true, return the definition used for samples
+ * as opposed to taxons.
  */
 function character_editor_reverse_schema_array_sdd_character_data_controlled($variables){
+  $taxon = empty($variables['sample']);
+  if($taxon){
+    $spath = 'SummaryData';
+  }else{
+    $spath = 'SampleData/SamplingEvent/SamplingUnit';
+  }
   return array(
     'relation#character_state_controlled' => array(
-      '#xpath' => '/Datasets/Dataset/CodedDescriptions/CodedDescription/SummaryData/Categorical',
+      '#xpath' => "/Datasets/Dataset/CodedDescriptions/CodedDescription/$spath/Categorical",
       '#get' => 'character_editor_sdd_import_get_character_data',
       '#create' => array(
         'relation_type' => 'character_state',
@@ -939,17 +1033,23 @@ function character_editor_reverse_schema_array_sdd_character_data_controlled($va
  * character_editor_sdd_import_get_character_data
  *
  * Get a character data entry if it exists. There can be only
- * one entry between a given taxon and character - so we look
+ * one entry between a given taxon/specimen and character - so we look
  * for that. We don't check if the value has changed, as we might
  * be updating it.
  */
 function character_editor_sdd_import_get_character_data($xml_map, $xml_node){
-  $taxon_ref = $xml_map->nodeToString($xml_node->xpath('../../Scope/TaxonName/@ref[1]'));
-  $term_w = $xml_map->getEntity('taxonomy_term', $taxon_ref);
+  $parent = reset($xml_node->xpath('..'));
+  if($parent->getName() == 'SummaryData'){
+    $taxon_ref = $xml_map->nodeToString($xml_node->xpath('../../Scope/TaxonName/@ref[1]'));
+    $item_w = $xml_map->getEntity('taxonomy_term', $taxon_ref);
+  }else{
+    $specimen_ref = $xml_map->nodeToString($xml_node->xpath('../../@id[1]'));
+    $item_w = $xml_map->getEntity('node', $specimen_ref);
+  }
   $character_ref = $xml_map->nodeToString($xml_node->xpath('@ref'));
   $char_w = $xml_map->getEntity('character_editor_character', $character_ref);
-  if(!$term_w || !$char_w){return FALSE;}
-  $values = character_editor_get_character_values($char_w, $term_w);
+  if(!$item_w || !$char_w){return FALSE;}
+  $values = character_editor_get_character_values($char_w, $item_w);
   if(empty($values)){
     return FALSE;
   }else{
@@ -967,12 +1067,22 @@ function character_editor_sdd_import_get_character_data($xml_map, $xml_node){
 function character_editor_sdd_import_set_character_state_data($xml_map, $entity_w, $field_name, $property, $value){
   $value = reset($value);
   $relation = $entity_w->raw();
-  // Find the term
-  $taxon_ref = $xml_map->nodeToString($value->xpath('../../Scope/TaxonName/@ref[1]'));
-  $term_w = $xml_map->getEntity('taxonomy_term', $taxon_ref);
-  if(!$term_w){
-    $xml_map->addMessage("CodedDescription could not be imported due to invalid TaxonName reference $taxon_ref", "warning");
-    throw new ReverseSchemaArrayException(REVERSE_SCHEMA_ARRAY_SKIP_ENTITY);
+  // Find the item
+  $parent = reset($value->xpath('..'));
+  if($parent->getName() == 'SummaryData'){
+    $taxon_ref = $xml_map->nodeToString($value->xpath('../../Scope/TaxonName/@ref[1]'));
+    $item_w = $xml_map->getEntity('taxonomy_term', $taxon_ref);
+    if(!$item_w){
+      $xml_map->addMessage("CodedDescription could not be imported due to invalid TaxonName reference $taxon_ref", "warning");
+      throw new ReverseSchemaArrayException(REVERSE_SCHEMA_ARRAY_SKIP_ENTITY);
+    }
+  }else{
+    $specimen_ref = $xml_map->nodeToString($value->xpath('../../@id[1]'));
+    $item_w = $xml_map->getEntity('node', $specimen_ref);
+    if(!$item_w){
+      $xml_map->addMessage("CodedDescription could not be imported due to invalid Specimen reference $specimen_ref", "warning");
+      throw new ReverseSchemaArrayException(REVERSE_SCHEMA_ARRAY_SKIP_ENTITY);
+    }
   }
   // Find the character
   $character_ref = $xml_map->nodeToString($value->xpath('@ref'));
@@ -983,8 +1093,8 @@ function character_editor_sdd_import_set_character_state_data($xml_map, $entity_
   }
   $relation->endpoints[LANGUAGE_NONE] = array(
     array(
-      'entity_type' => $term_w->type(),
-      'entity_id' => $term_w->getIdentifier(),
+      'entity_type' => $item_w->type(),
+      'entity_id' => $item_w->getIdentifier(),
       'r_index' => 0
     ),
     array(
@@ -1106,9 +1216,6 @@ class CharacterEditorSDDImport{
     libxml_use_internal_errors($use_errors);
     // Look for content we won't import
     $fail = FALSE;
-    if($dom->xpath('/Datasets/Dataset/Specimens')){
-      $this->addMessage(t('Specimen bases characters are not supported ; Specimen information will not be imported.'), 'warning');
-    }
     if($dom->xpath('/Datasets/Dataset/IdentificationKeys')){
       $this->addMessage(t('Identification keys are not supported and will not be imported.'), 'warning');
     }
@@ -1159,11 +1266,7 @@ class CharacterEditorSDDImport{
       return FALSE;
     }
     $info = $map->getInfo();
-    if($info['total'] == 0){
-      $this->addMessage("There were no Taxon Names that could be imported.", 'error');
-      $this->addMessage($map->getMessages(), 'warning', 'map');
-      return FALSE;
-    }
+    $total_usable = $info['total'];
     if($info['skipped']){
       $this->addMessage(t('There were %count taxon names in the file that were successfully mapped to existing taxon names, and %badcount taxon names that could not be mapped and will not be imported:', array(
         '%count' => $info['total'],
@@ -1172,6 +1275,35 @@ class CharacterEditorSDDImport{
       $this->addMessage($map->getMessages(), 'warning', 'map');
     }else{
       $this->addMessage(t('There were %count taxon names in the file that were successfuly mapped to existing taxon names.', array(
+        '%count' => $info['total']
+      )), 'status');
+    }
+    // Try to match specimen to existing nodes
+    try{
+      $map->flushInfo();
+      $map->flushMessages();
+      $map->mapXML(reverse_schema_array('sdd_specimen', REVERSE_SCHEMA_ARRAY_XGET));
+    }
+    catch(Exception $e){
+      $this->addMessage('The SDD file cannot be imported. Failed to import specimen: ' . $e->getMessage(), 'error');
+      return FALSE;
+    }
+    $info = $map->getInfo();
+    if($info['total'] == 0){
+      if($total_usable == 0){
+        $this->addMessage("There were no Taxon Names nor specimens that could be imported.", 'error');
+        $this->addMessage($map->getMessages(), 'warning', 'mapsp');
+        return FALSE;
+      }
+    }
+    if($info['skipped']){
+      $this->addMessage(t('There were %count specimen in the file that were successfully mapped to existing taxon names, and %badcount specimen that could not be mapped and will not be imported:', array(
+        '%count' => $info['total'],
+        '%badcount' => $info['skipped']
+      )), 'warning');
+      $this->addMessage($map->getMessages(), 'warning', 'mapsp');
+    }else{
+      $this->addMessage(t('There were %count taxon names in the file that were successfuly mapped to existing specimen.', array(
         '%count' => $info['total']
       )), 'status');
     }
@@ -1227,6 +1359,7 @@ class CharacterEditorSDDImport{
       'autosave' => FALSE
     ));
     $this->importTerms();
+    $this->importSpecimen();
     if(!$this->importMedia()){return FALSE;}
     // XXX We must do this before they can be linked to other values. We should delete them if the import later fails!
     $this->map->saveEntities();
@@ -1273,6 +1406,33 @@ class CharacterEditorSDDImport{
     foreach($this->map->getEntities('taxonomy_term') as $term_w){
       if(!in_array($term_w->getIdentifier(), $existing_tids)){
         $this->project_w->field_taxonomic_name[] = $term_w->raw();
+      }
+    }
+  }
+
+  /**
+   * importSpecimen
+   *
+   * Import the specimen, and associate them with the project
+   */
+  private function importSpecimen(){
+    // Load specimen and map of SDD ids to nids. We know this will work
+    // as that test is done in validateFile already.
+    $this->map->mapXML(reverse_schema_array('sdd_specimen', REVERSE_SCHEMA_ARRAY_XGET));
+    // These messages are already included from running validateFile, so flush them out.
+    $this->map->flushMessages();
+    $this->map->flushInfo();
+    // Assign specimen to the project. This is both part of the structure and the data, so we do
+    // it regardless of import_selection
+    $existing_nids = array();
+    foreach($this->project_w->field_char_proj_specimen as $node_w){
+      $existing_nids[] = $node_w->getIdentifier();
+    }
+    foreach($this->map->getEntities('node') as $node_w){
+      if($node_w->getBundle() == 'specimen_observation'){
+        if(!in_array($node_w->getIdentifier(), $existing_nids)){
+          $this->project_w->field_char_proj_specimen[] = $node_w->raw();
+        }
       }
     }
   }
@@ -1496,9 +1656,17 @@ class CharacterEditorSDDImport{
         'sdd_character_data_text',
         'sdd_character_data_dna'
       );
+      $variables = array(
+        array(),
+        array(
+          'sample' => true
+        )
+      );
       // XXX we need to update the data if it exists !!!
-      foreach($character_data_types as $character_data_type){
-        $this->map->mapXML(reverse_schema_array($character_data_type, REVERSE_SCHEMA_ARRAY_GET | REVERSE_SCHEMA_ARRAY_CREATE));
+      foreach($variables as $vars){
+        foreach($character_data_types as $character_data_type){
+          $this->map->mapXML(reverse_schema_array($character_data_type, REVERSE_SCHEMA_ARRAY_GET | REVERSE_SCHEMA_ARRAY_CREATE, $vars));
+        }
       }
     }
     catch(Exception $e){
