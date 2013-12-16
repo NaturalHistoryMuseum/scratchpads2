@@ -64,6 +64,19 @@ function scratchpads_front_menu(){
  * Implements hook_block_view_alter
  */
 function scratchpads_front_block_view_alter(&$data, $block){
+  if(isset($block->context) && substr($block->bid, 0, -1) == 'views-front_page_blocks-block_' && substr($data['subject'], -3) == 'pes'){
+    if($data['content']['#views_contextual_links_info']['views_ui']['view']->args[0] == 'custom'){
+      list($custom_view_name, $custom_view_displayname) = explode(':', $data['content']['#views_contextual_links_info']['views_ui']['view']->args[1]);
+      $custom_view_view = views_get_view($custom_view_name);
+      if(is_object($custom_view_view)){
+        if($custom_view_view->access($custom_view_displayname)){
+          $custom_view_view->set_display($custom_view_displayname);
+          $title = $custom_view_view->get_title();
+          $data['subject'] = $title;
+        }
+      }
+    }
+  }
   if(isset($block->context) && substr($block->bid, 0, -1) == 'views-front_page_blocks-block_' && substr($data['subject'], -3) == 'rys'){
     $data['subject'] = substr($data['subject'], 0, -2) . 'ies';
   }
@@ -134,6 +147,14 @@ function scratchpads_front_views_pre_view(&$view, &$display_id, &$args){
     case 'front_page_blocks':
       $var = 'front_page_' . $display_id . '_node_type';
       $view->args[] = scratchpads_front_variable_get($var);
+      if(in_array('custom', $view->args)){
+        $var = 'front_page_' . $display_id . '_custom_content';
+        $view->args[] = scratchpads_front_variable_get($var);
+        $custom_view_to_insert = $view->args[1];
+        $current_view_empty_options = $view->display_handler->get_option('empty');
+        $current_view_empty_options['view']['view_to_insert'] = $custom_view_to_insert;
+        $view->display_handler->set_option('empty', $current_view_empty_options);
+      }
       break;
     case 'front_page_slideshow':
       $var = 'front_page_' . $display_id . '_node_type';
@@ -236,7 +257,7 @@ function scratchpads_front_page_edit($form, &$form_state){
   $node_types = scratchpads_front_node_types();
   $form['site_information'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Site details'),
+    '#title' => t('Site details')
   );
   $form['site_information']['site_name'] = array(
     '#type' => 'textfield',
@@ -248,14 +269,14 @@ function scratchpads_front_page_edit($form, &$form_state){
     '#type' => 'textfield',
     '#title' => t('Slogan'),
     '#default_value' => variable_get('site_slogan', ''),
-    '#description' => t("How this is used depends on your site's theme."),
+    '#description' => t("How this is used depends on your site's theme.")
   );
   $form['site_information']['site_mail'] = array(
     '#type' => 'textfield',
     '#title' => t('E-mail address'),
     '#default_value' => variable_get('site_mail', ini_get('sendmail_from')),
     '#description' => t("The <em>From</em> address in automated e-mails sent during registration and new password requests, and other notifications. (Use an address ending in your site's domain to help prevent this e-mail being flagged as spam.)"),
-    '#required' => TRUE,
+    '#required' => TRUE
   );
   $form['front_page_welcome'] = array(
     '#type' => 'fieldset',
@@ -364,19 +385,50 @@ function scratchpads_front_page_edit($form, &$form_state){
   $view = views_get_view('front_page_blocks');
   $count = 1;
   $form_state['vars'] = array();
+  $custom_view_options = views_get_views_as_options(FALSE, 'enabled', NULL, FALSE, TRUE); // all enabled views sorted  
+  $custom_view_options = array_merge(array(
+    '0' => '- Select -'
+  ), $custom_view_options);
   foreach(array_keys($view->display) as $display_id){
     if($display_id === 'default'){
       continue;
     }
     $var = 'front_page_' . $display_id . '_node_type';
     $form_state['vars'][] = $var;
-    $form['small_blocks'][$var] = array(
-      '#type' => 'select',
+    $var2 = 'front_page_' . $display_id . '_custom_content';
+    $form_state['vars'][] = $var2;
+    $form['small_blocks']['small_block_' . $count] = array(
+      '#type' => 'fieldset',
       '#title' => t('Block ' . $count),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE
+    );
+    $form['small_blocks']['small_block_' . $count][$var] = array(
+      '#type' => 'select',
+      '#title' => t('Block ' . $count . ' content'),
       '#options' => $node_types,
       '#default_value' => scratchpads_front_variable_get($var),
       '#description' => t('Select which node type to display in the home page block.'),
       '#required' => true
+    );
+    $form['small_blocks']['small_block_' . $count]['custom_block_' . $count] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Custom block ' . $count),
+      '#collapsible' => FALSE,
+      '#collapsed' => FALSE,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="' . $var . '"]' => array(
+            'value' => 'custom'
+          )
+        )
+      )
+    );
+    $form['small_blocks']['small_block_' . $count]['custom_block_' . $count][$var2] = array(
+      '#type' => 'select',
+      '#title' => t('Block ' . $count . ' custom view'),
+      '#options' => $custom_view_options,
+      '#default_value' => scratchpads_front_variable_get($var2)
     );
     $count++;
   }
@@ -431,15 +483,19 @@ function scratchpads_front_variable_default($name = NULL){
         continue;
       }
       $var = 'front_page_' . $display_id . '_node_type';
+      $var2 = 'front_page_' . $display_id . '_custom_content';
       switch($display_id){
         case 'block_1':
           $defaults[$var] = 'page';
+          $defaults[$var2] = '0';
           break;
         case 'block_2':
           $defaults[$var] = 'biblio';
+          $defaults[$var2] = '0';
           break;
         case 'block_3':
           $defaults[$var] = 'spm';
+          $defaults[$var2] = '0';
           break;
       }
     }
@@ -459,6 +515,7 @@ function scratchpads_front_node_types(){
       $node_types[$node_type] = $node_info->name;
     }
   }
+  $node_types['custom'] = 'Custom content (View)';
   return $node_types;
 }
 
