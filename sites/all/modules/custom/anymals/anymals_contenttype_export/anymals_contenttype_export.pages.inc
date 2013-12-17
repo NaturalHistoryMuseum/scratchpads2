@@ -50,7 +50,7 @@ function anymals_contenttype_export_get_xml($entity_type = 'node', $bundles = 's
     if(is_object($language)){
       $language = $language->language;
     }
-    $form->addAttribute('language', $language);
+    $form->addAttribute('iso2language', $language);
     if(!$key){
       $form->addAttribute('main', 'true');
     }
