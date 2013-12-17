@@ -1,4 +1,4 @@
-name = "Scratchpads Forum"
+name = "Forum"
 description = "Provides discussion forums."
 configure = admin/structure/forum
 
