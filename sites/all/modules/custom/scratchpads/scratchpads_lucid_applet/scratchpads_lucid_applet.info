@@ -1,8 +1,7 @@
-name = "Scratchpads Lucid applet"
+name = "Lucid applet"
 description = "Provides a file formatter for embeding the Lucid 3 Applet"
 core = "7.x"
 dependencies[] = "file"
-
 tool = true
 
 l10n server = localize.scratchpads.eu
