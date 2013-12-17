@@ -5,6 +5,37 @@
  */
 include_once ('scratchpads_group.features.inc');
 
+/**
+ * Implements hook_file_download()
+ */
+function scratchpads_group_file_download($uri){
+  $fid = db_select('file_managed', 'f')->fields('f', array(
+    'fid'
+  ))->condition('uri', $uri)->execute()->fetchField();
+  if($fid){
+    $file = file_load($fid);
+    if($file->{OG_CONTENT_ACCESS_FIELD}[LANGUAGE_NONE][0]['value'] != 1){
+      if(isset($file->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE][0]['gid'])){
+        $group = og_load($file->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE][0]['gid']);
+        $group = $group->getEntity();
+        switch($file->{OG_CONTENT_ACCESS_FIELD}[LANGUAGE_NONE][0]['value']){
+          case 0:
+            // We're defaulting to the group access.  Check if it is public, or
+            // simply if we have access to the group.
+            if($group->{OG_ACCESS_FIELD}[LANGUAGE_NONE][0]['value'] == 0){return;}
+          case 2:
+            // The file is private, simply do we have access to the group.
+            global $user;
+            $groups = og_get_entity_groups('user', $user);
+            if(isset($groups[$file->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE][0]['gid']])){return;}
+            break;
+        }
+        return -1;
+      }
+    }
+  }
+}
+
 function scratchpads_group_tools_pre_disable(){
   $tools_settings = array(
     'can_disable' => TRUE,
@@ -12,6 +43,7 @@ function scratchpads_group_tools_pre_disable(){
   );
   return $tools_settings;
 }
+
 /**
  * Implementation of hook_node_type_insert().
  * 
