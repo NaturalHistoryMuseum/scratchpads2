@@ -1,3 +1,7 @@
+2.3.1.3 (2013-12-17)
+
+- Ensure that the Slickgrid data callback is not cached #3738
+
 2.3.1.2 (2013-12-09)
 
 - Remove a faulty line of code (#3719)
