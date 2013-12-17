@@ -43,6 +43,8 @@ function anymals_contenttype_export_get_xml($entity_type = 'node', $bundles = 's
     $form->addAttribute('uuid', $uuid_and_version['uuid']);
     $form->addAttribute('version', $uuid_and_version['version']);
     $form->addAttribute('isPublic', 'false');
+    $entity_info = entity_get_info($entity_type);
+    $form->addAttribute('verboseName', variable_get('site_name', 'Drupal') . ' | ' . $entity_info['bundles'][$bundle]['label']);
     // Get the default language
     $language = variable_get('language_default', 'en');
     if(is_object($language)){
