@@ -1,4 +1,4 @@
-name = "Scratchpads Biblio Search Page Number"
+name = "Biblio Search Page Number"
 description = "Adds a page number column which is sortable to the Scratchpads biblio search page."
 package = "Literature"
 core = 7.x
