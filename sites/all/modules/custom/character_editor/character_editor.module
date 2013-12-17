@@ -287,7 +287,6 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
         $style_options['columns'][$column_id]['editor'] = $editor;
       }
       // Fill in the data for this character
-      $relation_items = field_get_items($character_w->type(), $character_w->value(), 'field_characters');
       $values = character_editor_get_character_values($character_w);
       foreach($values as $value){
         if(!isset($value['data'][0]['safe_value'])){
@@ -387,13 +386,6 @@ function character_editor_field_widget_form(&$form, &$form_state, $field, $insta
   }
 }
 
-function character_editor_field_widget_form_after_build($form){
-  foreach(element_children($form['field_characters']) as $language){
-    unset($form['field_characters'][$language]['add_more']);
-  }
-  return $form;
-}
-
 /**
  * Implementation of hook_form_alter()
  */
@@ -473,14 +465,14 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
           // And settings
           if(arg(2) == 'settings'){
             // Hide the characters on the settings form
-            $form['field_characters']['#attributes']['class'][] = 'element-hidden';
             $form['title']['#title'] = t('Title');
           }else{
             // Hide all other fields on the edit characters form
             foreach(array(
               'title',
               'field_char_proj_description',
-              'field_taxonomic_name'
+              'field_taxonomic_name',
+              'field_char_proj_specimen'
             ) as $key){
               $form[$key]['#prefix'] = '<div class="element-hidden">';
               $form[$key]['#suffix'] = '</div>';
@@ -676,20 +668,12 @@ function character_editor_entity_delete($entity, $type){
   switch($type){
     case 'character_editor_project':
     case 'character_editor_character':
-      if(!empty($entity->field_characaters)){
-        foreach($entity->field_characters as $language => $values){
-          if(empty($values)){
-            continue;
-          }
-          $characters = array();
-          foreach($values as $field_character){
-            foreach($field_character['endpoints'] as $endpoint){
-              list($entity_type, $entity_id) = explode(':', $endpoint);
-              $characters[] = $entity_id;
-            }
-          }
-          entity_delete_multiple('character_editor_character', $characters);
-        }
+      // Delete child characters. Note that character state values are
+      // help as part of the relations - so they will get deleted automatically.
+      $wrapper = entity_metadata_wrapper($type, $entity);
+      $children = character_editor_get_characters($wrapper);
+      foreach($children as $child){
+        $child->delete();
       }
       break;
   }

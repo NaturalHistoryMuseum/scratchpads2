@@ -14,7 +14,7 @@
  *
  * The entities are organised through relations as:
  * 
- * project -> group -> character
+ * project -> group -> character | group
  *
  * So typically this would be used to get a project's groups,
  * and a group's characters.
@@ -23,6 +23,7 @@
  * entity by setting $source to FALSE - however it is clearer to
  * use character_editor_get_parent() for that.
  * 
+ * XXX now that we have sub-groups, do we want depth here?
  */
 function character_editor_get_characters($wrapper, $source = TRUE){
   $direction = $source ? 0 : 1;
@@ -56,11 +57,12 @@ function character_editor_get_characters($wrapper, $source = TRUE){
  * 
  * The entities are organised through relations as:
  * 
- * project -> group -> character
+ * project -> group -> character | group
  *
  * So typically this would be used to get a character's groups,
  * or a group's projects.
  * 
+ * XXX now that we have subgroups, do we want to return all ancestors?
  */
 function character_editor_get_parents($wrapper){
   return character_editor_get_characters($wrapper, FALSE);
@@ -72,7 +74,7 @@ function character_editor_get_parents($wrapper){
  * Associate two characters via a relation. Note that the order of
  * relation is:
  * 
- * project -> group -> character
+ * project -> group -> character | group
  * 
  * So use character_editor_set_character($project, $group) and
  * character_editor_set_character($group, $character)
@@ -103,7 +105,7 @@ function character_editor_associate_character(EntityDrupalWrapper $parent_w, Ent
  * Checks if two characters already have a relation. Note that
  * the order of the characters is not important.
  * 
- * project <-> group <-> character
+ * project <-> group <-> character | group
  *
  * Returns the first level of the relation on success
  * (this is mostly usefull when max_depth = 1) and FALSE otherwise.
@@ -154,7 +156,7 @@ function character_editor_association_exists(EntityDrupalWrapper $wrap_1, Entity
  *
  * term/node -(data field on the relation)-> character
  *
- * If $entity_w is defined, then only return values linked to that term.
+ * If $entity_w is defined, then only return values linked to that term/node.
  */
 function character_editor_get_character_values(EntityDrupalWrapper $character_w, EntityDrupalWrapper $entity_w = NULL){
   $values = array();

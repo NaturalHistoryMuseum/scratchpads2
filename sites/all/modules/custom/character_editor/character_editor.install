@@ -290,3 +290,29 @@ function character_editor_update_7001(){
     }
   }
 }
+
+/**
+ * Remove the relation select field_characters
+ */
+function character_editor_update_7002(){
+  $remove = array(
+    'character_editor_project' => array(
+      'default_character_project'
+    ),
+    'character_editor_character' => array(
+      'controlled',
+      'dna',
+      'numeric',
+      'text',
+      'group'
+    )
+  );
+  foreach ($remove as $type => $bundles){
+    foreach($bundles as $bundle){
+      $instance = field_info_instance($type, 'field_characters', $bundle);
+      if ($instance){
+        field_delete_instance($instance);
+      }
+    }
+  }
+}

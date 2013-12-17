@@ -202,52 +202,6 @@ function character_editor_field_default_fields(){
       )
     )
   );
-  // Exported field: 'character_editor_character-controlled-field_characters'
-  $fields['character_editor_character-controlled-field_characters'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '-1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_characters',
-      'foreign keys' => array(),
-      'indexes' => array(),
-      'module' => 'relation_select',
-      'settings' => array(),
-      'translatable' => '0',
-      'type' => 'relation_select'
-    ),
-    'field_instance' => array(
-      'bundle' => 'controlled',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'hidden',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => '3'
-        )
-      ),
-      'entity_type' => 'character_editor_character',
-      'field_name' => 'field_characters',
-      'label' => 'Characters',
-      'required' => 0,
-      'settings' => array(
-        'relation_type' => 'character_state',
-        'relation_view' => 'relation_select:default',
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 0,
-        'module' => 'relation_dummy_field',
-        'settings' => array(),
-        'type' => 'relation_default',
-        'weight' => '1'
-      )
-    )
-  );
   // Exported field: 'character_editor_character-dna-field_char_description'
   $fields['character_editor_character-dna-field_char_description'] = array(
     'field_config' => array(
@@ -388,52 +342,6 @@ function character_editor_field_default_fields(){
       )
     )
   );
-  // Exported field: 'character_editor_character-dna-field_characters'
-  $fields['character_editor_character-dna-field_characters'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '-1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_characters',
-      'foreign keys' => array(),
-      'indexes' => array(),
-      'module' => 'relation_select',
-      'settings' => array(),
-      'translatable' => '0',
-      'type' => 'relation_select'
-    ),
-    'field_instance' => array(
-      'bundle' => 'dna',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'hidden',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => '2'
-        )
-      ),
-      'entity_type' => 'character_editor_character',
-      'field_name' => 'field_characters',
-      'label' => 'Characters',
-      'required' => 0,
-      'settings' => array(
-        'relation_type' => 'character_state',
-        'relation_view' => 'relation_select:default',
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 0,
-        'module' => 'relation_dummy_field',
-        'settings' => array(),
-        'type' => 'relation_default',
-        'weight' => '6'
-      )
-    )
-  );
   // Exported field: 'character_editor_character-group-field_char_description'
   $fields['character_editor_character-group-field_char_description'] = array(
     'field_config' => array(
@@ -570,52 +478,6 @@ function character_editor_field_default_fields(){
           'progress_indicator' => 'throbber'
         ),
         'type' => 'media_generic',
-        'weight' => '3'
-      )
-    )
-  );
-  // Exported field: 'character_editor_character-group-field_characters'
-  $fields['character_editor_character-group-field_characters'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '-1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_characters',
-      'foreign keys' => array(),
-      'indexes' => array(),
-      'module' => 'relation_select',
-      'settings' => array(),
-      'translatable' => '0',
-      'type' => 'relation_select'
-    ),
-    'field_instance' => array(
-      'bundle' => 'group',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'hidden',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => '3'
-        )
-      ),
-      'entity_type' => 'character_editor_character',
-      'field_name' => 'field_characters',
-      'label' => 'Characters',
-      'required' => 0,
-      'settings' => array(
-        'relation_type' => 'character',
-        'relation_view' => 'relation_select:default',
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 0,
-        'module' => 'character_editor',
-        'settings' => array(),
-        'type' => 'characters',
         'weight' => '3'
       )
     )
@@ -833,52 +695,6 @@ other|Other',
       )
     )
   );
-  // Exported field: 'character_editor_character-numeric-field_characters'
-  $fields['character_editor_character-numeric-field_characters'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '-1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_characters',
-      'foreign keys' => array(),
-      'indexes' => array(),
-      'module' => 'relation_select',
-      'settings' => array(),
-      'translatable' => '0',
-      'type' => 'relation_select'
-    ),
-    'field_instance' => array(
-      'bundle' => 'numeric',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'hidden',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => '2'
-        )
-      ),
-      'entity_type' => 'character_editor_character',
-      'field_name' => 'field_characters',
-      'label' => 'Characters',
-      'required' => 0,
-      'settings' => array(
-        'relation_type' => 'character_state',
-        'relation_view' => 'relation_select:default',
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 0,
-        'module' => 'relation_dummy_field',
-        'settings' => array(),
-        'type' => 'relation_default',
-        'weight' => '6'
-      )
-    )
-  );
   // Exported field: 'character_editor_character-text-field_char_description'
   $fields['character_editor_character-text-field_char_description'] = array(
     'field_config' => array(
@@ -1016,52 +832,6 @@ other|Other',
         ),
         'type' => 'media_generic',
         'weight' => '3'
-      )
-    )
-  );
-  // Exported field: 'character_editor_character-text-field_characters'
-  $fields['character_editor_character-text-field_characters'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '-1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_characters',
-      'foreign keys' => array(),
-      'indexes' => array(),
-      'module' => 'relation_select',
-      'settings' => array(),
-      'translatable' => '0',
-      'type' => 'relation_select'
-    ),
-    'field_instance' => array(
-      'bundle' => 'text',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'hidden',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => '2'
-        )
-      ),
-      'entity_type' => 'character_editor_character',
-      'field_name' => 'field_characters',
-      'label' => 'Characters',
-      'required' => 0,
-      'settings' => array(
-        'relation_type' => 'character_state',
-        'relation_view' => 'relation_select:default',
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 0,
-        'module' => 'relation_dummy_field',
-        'settings' => array(),
-        'type' => 'relation_default',
-        'weight' => '5'
       )
     )
   );
@@ -1244,53 +1014,6 @@ other|Other',
         ),
         'type' => 'insert_from_view_node_reference',
         'weight' => '-2'
-      )
-    )
-  );
-  // Exported field: 'character_editor_project-default_character_project-field_characters'
-  $fields['character_editor_project-default_character_project-field_characters'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '-1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_characters',
-      'foreign keys' => array(),
-      'indexes' => array(),
-      'module' => 'relation_select',
-      'settings' => array(),
-      'translatable' => '0',
-      'type' => 'relation_select'
-    ),
-    'field_instance' => array(
-      'bundle' => 'default_character_project',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'above',
-          'module' => 'relation_select',
-          'settings' => array(),
-          'type' => 'relation_select',
-          'weight' => 3
-        )
-      ),
-      'entity_type' => 'character_editor_project',
-      'field_name' => 'field_characters',
-      'label' => 'Character groups',
-      'required' => 0,
-      'settings' => array(
-        'relation_type' => 'character',
-        'relation_view' => 'relation_select:default',
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 0,
-        'module' => 'character_editor',
-        'settings' => array(),
-        'type' => 'characters',
-        'weight' => '3'
       )
     )
   );
