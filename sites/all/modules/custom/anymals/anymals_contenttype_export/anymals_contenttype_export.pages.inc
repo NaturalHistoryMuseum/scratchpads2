@@ -63,21 +63,27 @@ function xml_deliver($page_callback_result){
 /**
  * Helper function which adds an individual field to an XML object.
  */
-function _anymals_contenttype_export_add_field_to_xml($field, SimpleXMLElement &$xml){
+function _anymals_contenttype_export_add_field_to_xml($field_instance, SimpleXMLElement &$xml){
   $input = FALSE;
   // FIXME - There are far more widgets than this available, we'll need to fix
   // this code to work with the rest.
-  switch($field['widget']['type']){
+  switch($field_instance['widget']['type']){
     case 'gm3_point_gm3':
     case 'gm3_combination_gm3':
     case 'gm3_point_text':
     case 'gm3_combination_text':
       $input = $xml->addChild('location');
+      $input->addChild('label', $field_instance['label']);
+      $input->addAttribute('ref', $field_instance['field_name']);
+      $input->addAttribute('required', ($field_instance['required'] ? 'true' : 'false'));
       break;
     case 'text_textfield':
     case 'text_textarea_with_summary':
     case 'text_textarea':
       $input = $xml->addChild('input');
+      $input->addChild('label', $field_instance['label']);
+      $input->addAttribute('ref', $field_instance['field_name']);
+      $input->addAttribute('required', ($field_instance['required'] ? 'true' : 'false'));
       break;
     case 'number':
       break;
@@ -89,13 +95,16 @@ function _anymals_contenttype_export_add_field_to_xml($field, SimpleXMLElement &
       break;
     case 'options_select':
     case 'select':
-      $field = field_info_field($field['field_name']);
+      $field = field_info_field($field_instance['field_name']);
       if(count($field['settings']['allowed_values'])){
         if($field['cardinality'] == 1){
           $input = $xml->addChild('select1');
         }else{
           $input = $xml->addChild('select');
         }
+        $input->addChild('label', $field_instance['label']);
+        $input->addAttribute('ref', $field_instance['field_name']);
+        $input->addAttribute('required', ($field_instance['required'] ? 'true' : 'false'));
         foreach($field['settings']['allowed_values'] as $key => $value){
           $item = $input->addChild('item');
           $item->addChild('label', $value);
@@ -103,11 +112,6 @@ function _anymals_contenttype_export_add_field_to_xml($field, SimpleXMLElement &
         }
       }
       break;
-  }
-  if($input !== FALSE){
-    $input->addChild('label', $field['label']);
-    $input->addAttribute('ref', $field['field_name']);
-    $input->addAttribute('required', ($field['required'] ? 'true' : 'false'));
   }
 }
 
