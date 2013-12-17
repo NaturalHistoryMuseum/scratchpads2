@@ -39,6 +39,16 @@ function anymals_contenttype_export_get_xml($entity_type = 'node', $bundles = 's
     // will handle errors on the server.
     $form->addAttribute('key', 'autokey');
     $form->addAttribute('num', $key + 1);
+    $uuid_and_version = _anymals_contenttype_export_get_form_uuid_and_version($entity_type, $bundle);
+    $form->addAttribute('uuid', $uuid_and_version['uuid']);
+    $form->addAttribute('version', $uuid_and_version['version']);
+    $form->addAttribute('isPublic', 'false');
+    // Get the default language
+    $language = variable_get('language_default', 'en');
+    if(is_object($language)){
+      $language = $language->language;
+    }
+    $form->addAttribute('language', $language);
     if(!$key){
       $form->addAttribute('main', 'true');
     }
@@ -53,6 +63,29 @@ function anymals_contenttype_export_get_xml($entity_type = 'node', $bundles = 's
     }
   }
   return $ecml->asXML();
+}
+
+/**
+ * Helper function to get a UUID for a specific form.
+ */
+function _anymals_contenttype_export_get_form_uuid_and_version($entity_type, $bundle){
+  $uuid_and_version = db_select('anymals_contenttype_export_uuids', 'a')->fields('a', array(
+    'uuid',
+    'version'
+  ))->condition('entity_type', $entity_type)->condition('bundle', $bundle)->execute()->fetchAssoc();
+  if(!$uuid_and_version){
+    $uuid = uuid_generate();
+    db_insert('anymals_contenttype_export_uuids')->fields(array(
+      'entity_type' => $entity_type,
+      'bundle' => $bundle,
+      'uuid' => $uuid
+    ))->execute();
+    $uuid_and_version = array(
+      'uuid' => $uuid,
+      'version' => 1
+    );
+  }
+  return $uuid_and_version;
 }
 
 function xml_deliver($page_callback_result){

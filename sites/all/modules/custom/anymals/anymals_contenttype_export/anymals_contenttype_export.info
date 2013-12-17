@@ -3,3 +3,4 @@ description = "Exports the content type and registers it with the anymals+plants
 package = "anymals+plants"
 core = 7.x
 dependencies[] = darwincore
+dependencies[] = uuid

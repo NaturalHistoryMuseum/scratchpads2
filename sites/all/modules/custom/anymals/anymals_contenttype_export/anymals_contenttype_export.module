@@ -23,3 +23,43 @@ function anymals_contenttype_export_menu(){
     'ecml/upload' => array()
   );
 }
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function anymals_contenttype_export_form_field_ui_field_overview_form_alter(&$form, &$form_state, $form_id){
+  $form['#submit'][] = 'anymals_contenttype_export_form_field_ui_field_overview_form_alter_submit';
+}
+
+/**
+ * Submit function to increase the version of a form.
+ */
+function anymals_contenttype_export_form_field_ui_field_overview_form_alter_submit($form, $form_state){
+  _anymals_contenttype_export_increase_form_version($form['#entity_type'], $form['#bundle']);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function anymals_contenttype_export_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id){
+  $form['#submit'][] = 'anymals_contenttype_export_form_field_ui_field_edit_form_alter_submit';
+}
+
+/**
+ * Submit function to increase the version of a form.
+ */
+function anymals_contenttype_export_form_field_ui_field_edit_form_alter_submit($form, $form_state){
+  if(isset($form_state['values']['instance'])){
+    _anymals_contenttype_export_increase_form_version($form_state['values']['instance']['entity_type'], $form_state['values']['instance']['bundle']);
+  }
+}
+
+/**
+ * Simple helper function to increase the version number of a form.
+ */
+function _anymals_contenttype_export_increase_form_version($entity_type, $bundle){
+  // Note, it doesn't matter if a row doesn't exist in the table for this form,
+  // as that means version 1 of the form has not yet existed, so the first time
+  // the form is used, it can be version 1.
+  db_update('anymals_contenttype_export_uuids')->condition('entity_type', $entity_type)->condition('bundle', $bundle)->expression('version', 'version + 1')->execute();
+}

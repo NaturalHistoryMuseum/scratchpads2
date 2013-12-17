@@ -7,5 +7,46 @@ function anymals_contenttype_export_install(){
   // We register the darwincore content type with the anymals+plants server.
   // Each time the content type is updated, the server will need to be pinged
   // with an update.
-  
+}
+
+/**
+ * Implements hook_schema()
+ */
+function anymals_contenttype_export_schema(){
+  return array(
+    'anymals_contenttype_export_uuids' => array(
+      'description' => 'Store a UUID for each form.',
+      'fields' => array(
+        'entity_type' => array(
+          'type' => 'varchar',
+          'length' => 128,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'bundle' => array(
+          'type' => 'varchar',
+          'length' => 128,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'uuid' => array(
+          'type' => 'char',
+          'length' => 36,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'The Universally Unique Identifier.'
+        ),
+        'version' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 1
+        )
+      ),
+      'primary key' => array(
+        'entity_type',
+        'bundle'
+      )
+    )
+  );
 }
