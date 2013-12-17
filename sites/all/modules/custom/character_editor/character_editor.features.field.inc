@@ -1207,6 +1207,60 @@ other|Other',
       )
     )
   );
+  // Exported field: 'relation-character-field_character_weight'
+  $fields['relation-character-field_character_weight'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_character_weight',
+      'foreign keys' => array(),
+      'indexes' => array(),
+      'module' => 'number',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'number_integer'
+    ),
+    'field_instance' => array(
+      'bundle' => 'character',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'number',
+          'settings' => array(
+            'decimal_separator' => '.',
+            'prefix_suffix' => TRUE,
+            'scale' => 0,
+            'thousand_separator' => ' '
+          ),
+          'type' => 'text_default',
+          'weight' => 1
+        )
+      ),
+      'entity_type' => 'relation',
+      'field_name' => 'field_character_weight',
+      'label' => 'Weight',
+      'required' => 0,
+      'settings' => array(
+        'max' => '',
+        'min' => '',
+        'prefix' => '',
+        'suffix' => '',
+        'user_regiser_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'number',
+        'settings' => array(),
+        'type' => 'number',
+        'weight' => '1'
+      )
+    )
+  );
   // Exported field: 'relation-character_state-endpoints'
   $fields['relation-character_state-endpoints'] = array(
     'field_config' => array(

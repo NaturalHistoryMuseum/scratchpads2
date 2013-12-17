@@ -307,12 +307,28 @@ function character_editor_update_7002(){
       'group'
     )
   );
-  foreach ($remove as $type => $bundles){
+  foreach($remove as $type => $bundles){
     foreach($bundles as $bundle){
       $instance = field_info_instance($type, 'field_characters', $bundle);
-      if ($instance){
+      if($instance){
         field_delete_instance($instance);
       }
     }
+  }
+}
+
+/**
+ * Add a weight field to character relations
+ */
+function character_editor_update_7003(){
+  module_load_include('features.field.inc', 'character_editor');
+  $definitions = character_editor_field_default_fields();
+  $info = field_info_field('field_character_weight');
+  if(!$info){
+    field_create_field($definitions['relation-character-field_character_weight']['field_config']);
+  }
+  $instance = field_info_instance('relation', 'field_character_weight', 'character');
+  if(!$instance){
+    field_create_instance($definitions['relation-character-field_character_weight']['field_instance']);
   }
 }
