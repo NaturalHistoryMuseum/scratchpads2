@@ -41,6 +41,37 @@ function scratchpads_fine_grained_file_access_menu(){
 }
 
 /**
+ * Implements hook_action_info().
+ * Registers custom VBO actions as Drupal actions.
+ */
+function scratchpads_fine_grained_file_access_action_info(){
+  return array(
+    'scratchpads_fine_grained_file_access_swap_file' => array(
+      'type' => 'file',
+      'label' => t('Swap the file between public and private folders.'),
+      'configurable' => FALSE,
+      'vbo_configurable' => FALSE
+    )
+  );
+}
+
+/**
+ * Action to swap a file from public to private or vice versa.
+ */
+function scratchpads_fine_grained_file_access_swap_file($file){
+  $file_scheme = parse_url($file->uri);
+  switch($file_scheme['scheme']){
+    case 'private':
+      $new_scheme = 'public';
+      break;
+    case 'public':
+      $new_scheme = 'private';
+      break;
+  }
+  @file_move($file, "$new_scheme://{$file_scheme['host']}{$file_scheme['path']}");
+}
+
+/**
  * Page callback: Form constructor for the file deletion confirmation form.
  *
  * Path: file/%file/delete
@@ -79,16 +110,7 @@ function file_move_form($form, &$form_state, $file){
  */
 function file_move_form_submit($form, &$form_state){
   if($form_state['values']['confirm'] && $file = file_load($form_state['values']['fid'])){
-    $file_scheme = parse_url($file->uri);
-    switch($file_scheme['scheme']){
-      case 'private':
-        $new_scheme = 'public';
-        break;
-      case 'public':
-        $new_scheme = 'private';
-        break;
-    }
-    @file_move($file, "$new_scheme://{$file_scheme['host']}{$file_scheme['path']}");
+    scratchpads_fine_grained_file_access_swap_file($file);
     $args = array(
       '@type' => file_type_get_name($file),
       '%title' => entity_label('file', $file)
