@@ -115,50 +115,16 @@ function character_editor_theme(){
 }
 
 /**
- * Implementation of hook_theme().
+ * Implementation of hook_menu_local_tasks_alter().
+ *
+ * Remove local tasks on the character forms, as all operations are managed via the project's
+ * characters page.
  */
 function character_editor_menu_local_tasks_alter(&$data, $router_item, $root_path){
-  // Character edit form has the local tasks for the relation entity which is confusing
-  // So change the local tasks to those used by the character project 
-  if(isset($router_item['map'][0]) && $router_item['map'][0] == 'character' && isset($router_item['map'][1]) && isset($_GET['project'])){
-    $entity = $router_item['map'][1];
-    $tabs = array();
-    $local_tasks = character_editor_get_local_tasks($_GET['project']);
-    foreach($local_tasks as $path => $local_task){
-      $tab = array(
-        '#theme' => 'menu_local_task',
-        '#link' => $local_task
-      );
-      if($path == 'character-editor-project/%/characters'){
-        $tab['#active'] = true;
-      }
-      $tabs[] = $tab;
-    }
-    $data['tabs'] = array(
-      array(
-        'count' => count($tabs),
-        'output' => $tabs
-      )
-    );
+  if(isset($router_item['map'][0]) && $router_item['map'][0] == 'character-editor-character' && isset($router_item['map'][1])){
+    $data['tabs'] = array();
   }
 }
-
-function character_editor_get_local_tasks($project_id){
-  $local_tasks = array();
-  $result = db_select('menu_router', NULL, array(
-    'fetch' => PDO::FETCH_ASSOC
-  ))->fields('menu_router')->condition('tab_parent', 'character-editor-project/%')->condition('context', MENU_CONTEXT_INLINE, '<>')->orderBy('weight')->orderBy('title')->execute();
-  $map = array(
-    'character',
-    $project_id
-  );
-  foreach($result as $item){
-    _menu_translate($item, $map, TRUE);
-    $local_tasks[$item['path']] = $item;
-  }
-  return $local_tasks;
-}
-
 /*********************************************************************************************
  * 
  * VIEWS HOOKS
@@ -335,61 +301,6 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
  * 
  ********************************************************************************************/
 /**
- * Implements hook_field_widget_info().
- */
-function character_editor_field_widget_info(){
-  return array(
-    'characters' => array(
-      'label' => t('Characters'),
-      'field types' => array(
-        'relation'
-      )
-    )
-  );
-}
-
-/**
- * Implements hook_field_widget_form().
- * Define the actual field input element
- */
-function character_editor_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
-  $form['#attached']['css'] = array(
-    drupal_get_path('module', 'character_editor') . '/css/character-editor.css'
-  );
-  if(isset($_GET['project'])){
-    $project_id = $_GET['project'];
-  }elseif(isset($form_state['entity']->id)){
-    $project_id = $form_state['entity']->id;
-  }else{
-    $project_id = null;
-  }
-  if(isset($items[$delta]['endpoints'])){
-    list($entity_type, $entity_id) = explode(':', reset($items[$delta]['endpoints']));
-    // We don't want character projects here
-    if($entity_type != 'character_editor_project'){
-      $character_entity = entity_load($entity_type, array(
-        $entity_id
-      ));
-      $element['character'] = array(
-        '#type' => 'item',
-        '#title' => $character_entity[$entity_id]->label(),
-        '#suffix' => l('Edit', 'character-editor-character/' . $entity_id . '/edit', array(
-          'attributes' => array(
-            'class' => 'character-editor-edit-link'
-          ),
-          'query' => array(
-            'destination' => request_uri(),
-            'project' => $project_id
-          )
-        ))
-      );
-      $form['#after_build'][] = 'character_editor_field_widget_form_after_build';
-      return $element;
-    }
-  }
-}
-
-/**
  * Implementation of hook_form_alter()
  */
 function character_editor_form_alter(&$form, &$form_state, $form_id){
@@ -402,7 +313,11 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
             if($form_state['entity']->is_new){
               $form_state['character_project_id'] = arg(5);
             }else{
-              $form_state['character_project_id'] = $_GET['project'];
+              $entity_w = entity_metadata_wrapper($form['#entity_type'], $form_state['entity']);
+              $project_w = character_editor_get_character_project($entity_w);
+              if($project_w){
+                $form_state['character_project_id'] = $project_w->getIdentifier();
+              }
             }
           }
           if($form_state['entity']->type != 'group'){
@@ -442,12 +357,6 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
           if($form_state['entity']->is_new){
             $form['actions']['submit']['#submit'][] = 'character_editor_character_form_submit';
           }else{
-            $destination = drupal_get_destination();
-            $form['actions']['back'] = array(
-              '#type' => 'submit',
-              '#value' => t('Back'),
-              '#submit' => array()
-            );
             // The tabs have been changed so there's no longer delete - add delete button
             $form['actions']['delete'] = array(
               '#type' => 'submit',
@@ -456,6 +365,12 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
                 'character_editor_character_delete_submit'
               )
             );
+            if(!empty($form_state['character_project_id'])){
+              $form['actions']['cancel'] = array(
+                '#type' => 'markup',
+                '#markup' => l('Cancel', 'character-editor-project/' . $form_state['character_project_id'] . '/characters')
+              );
+            }
             $form['actions']['submit']['#submit'][] = 'character_editor_character_form_submit';
             $form['actions']['submit']['#update'] = TRUE;
           }
@@ -485,7 +400,14 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
       }
       break;
     case 'entity_admin_entity_delete_form':
-      $form['actions']['cancel']['#href'] = 'character-editor-project/' . $_GET['project'] . '/characters';
+      if(preg_match('/^\/character-editor-character\/\d+\/delete$/', $form['#action'])){
+        $form['actions']['submit']['#submit'][] = 'character_editor_character_delete_submit';
+        $entity_w = entity_metadata_wrapper('character_editor_character', $form_state['entity']);
+        $project_w = character_editor_get_character_project($entity_w);
+        if($project_w){
+          $form['actions']['cancel']['#href'] = 'character-editor-project/' . $project_w->getIdentifier() . '/characters';
+        }
+      }
       break;
   }
 }
@@ -804,6 +726,9 @@ function character_editor_character_form_submit(&$form, &$form_state){
         character_editor_create_relation($new_group, $character_entity);
       }
     }
+    if(!empty($form_state['character_project_id'])){
+      $form_state['redirect'] = 'character-editor-project/' . $form_state['character_project_id'] . '/characters';
+    }
   }
 }
 
@@ -813,15 +738,12 @@ function character_editor_character_form_submit(&$form, &$form_state){
  * @param array $form_state
  */
 function character_editor_character_delete_submit($form, &$form_state){
-  unset($_GET['destination']);
-  drupal_static_reset('drupal_get_destination');
-  drupal_get_destination();
-  // Cannot use  $form_state['redirect'] as the query params get mangled
-  drupal_goto('character/' . $form_state['entity']->id . '/delete', array(
-    'query' => array(
-      'project' => $_GET['project']
-    )
-  ));
+  $entity_w = entity_metadata_wrapper('character_editor_character', $form_state['entity']);
+  $project_w = character_editor_get_character_project($entity_w);
+  if($project_w){
+    $form_state['redirect'] = 'character-editor-project/' . $project_w->getIdentifier() . '/characters';
+  }
+  entity_delete($entity_w->type(), $entity_w->getIdentifier());
 }
 
 function character_editor_character_form_after_build(&$form, &$form_state){

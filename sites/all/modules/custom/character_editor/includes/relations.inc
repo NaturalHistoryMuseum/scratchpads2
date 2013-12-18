@@ -77,6 +77,27 @@ function character_editor_get_parents($wrapper){
 }
 
 /**
+ * character_editor_get_character_project
+ *
+ * Given an entity metadata wrapper, returns the
+ * project the given character belongs to.
+ */
+function character_editor_get_character_project($entity_w, $exclude = array()){
+  // Note: the character may be at several places, but it's always
+  // in the same tree. We have to be carefull of loops however!
+  if($entity_w->type() == 'character_editor_project'){return $entity_w;}
+  $id = $entity_w->type() . ':' . $entity_w->getIdentifier();
+  if(in_array($id, $exclude)){return FALSE;}
+  $exclude[] = $id;
+  $parents = character_editor_get_parents($entity_w);
+  foreach($parents as $parent_w){
+    $result = character_editor_get_character_project($parent_w);
+    if($result){return $result;}
+  }
+  return FALSE;
+}
+
+/**
  * character_editor_get_tree
  *
  * Given an entity metadata wrapper, return the tree of
