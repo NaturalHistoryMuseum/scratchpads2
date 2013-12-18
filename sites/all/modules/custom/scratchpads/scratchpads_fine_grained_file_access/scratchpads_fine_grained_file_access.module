@@ -288,11 +288,12 @@ function scratchpads_fine_grained_file_access_access($op = 'view', $file = FALSE
                   if(isset($groups[$file->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE][0]['gid']])){return TRUE;}
                   break;
               }
+              return FALSE;
             }
           }
         }
       }
-      return FALSE;
+      return TRUE;
     case 'edit':
       if(user_access('edit all file')){return TRUE;}
       if($file->uid == $user->uid){return user_access('edit own file');}
