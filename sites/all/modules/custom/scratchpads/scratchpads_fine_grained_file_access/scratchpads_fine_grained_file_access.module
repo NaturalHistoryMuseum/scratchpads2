@@ -9,19 +9,24 @@
  */
 function scratchpads_fine_grained_file_access_menu_alter(&$items){
   // We set a number of paths to have different access rights.
-  $items['file/%file/edit']['access callback'] = 'scratchpads_fine_grained_file_access_access';
-  $items['file/%file/delete']['access callback'] = 'scratchpads_fine_grained_file_access_access';
   $items['file/add']['access callback'] = 'scratchpads_fine_grained_file_access_access';
+  $items['file/add']['access arguments'] = array(
+    'add'
+  );
+  $items['file/%file']['access callback'] = 'scratchpads_fine_grained_file_access_access';
+  $items['file/%file']['access arguments'] = array(
+    'view',
+    1
+  );
+  $items['file/%file/edit']['access callback'] = 'scratchpads_fine_grained_file_access_access';
   $items['file/%file/edit']['access arguments'] = array(
     'edit',
     1
   );
+  $items['file/%file/delete']['access callback'] = 'scratchpads_fine_grained_file_access_access';
   $items['file/%file/delete']['access arguments'] = array(
     'delete',
     1
-  );
-  $items['file/add']['access arguments'] = array(
-    'add'
   );
 }
 
@@ -61,10 +66,35 @@ function scratchpads_fine_grained_file_access_permission(){
  * Access control callback for finer control.
  */
 function scratchpads_fine_grained_file_access_access($op = 'view', $file = FALSE){
+  /*print_r($op);
+  print_r($file);
+  exit();*/
   global $user;
   switch($op){
     case 'view':
-      return user_access('file view');
+      if(user_access('view file')){
+        if(module_exists('scratchpads_group')){
+          if($file->{OG_CONTENT_ACCESS_FIELD}[LANGUAGE_NONE][0]['value'] != 1){
+            if(isset($file->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE][0]['gid'])){
+              $group = og_load($file->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE][0]['gid']);
+              $group = $group->getEntity();
+              switch($file->{OG_CONTENT_ACCESS_FIELD}[LANGUAGE_NONE][0]['value']){
+                case 0:
+                  // We're defaulting to the group access.  Check if it is public, or
+                  // simply if we have access to the group.
+                  if($group->{OG_ACCESS_FIELD}[LANGUAGE_NONE][0]['value'] == 0){return TRUE;}
+                case 2:
+                  // The file is private, simply do we have access to the group.
+                  global $user;
+                  $groups = og_get_entity_groups('user', $user);
+                  if(isset($groups[$file->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE][0]['gid']])){return TRUE;}
+                  break;
+              }
+            }
+          }
+        }
+      }
+      return FALSE;
     case 'edit':
       if(user_access('edit all file')){return TRUE;}
       if($file->uid == $user->uid){return user_access('edit own file');}
