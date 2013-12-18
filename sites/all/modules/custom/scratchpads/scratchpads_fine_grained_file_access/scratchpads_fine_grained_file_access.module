@@ -5,6 +5,182 @@
  * to be solving this problem in a much better way.
  */
 /**
+ * Implements hook_menu().
+ */
+function scratchpads_fine_grained_file_access_menu(){
+  return array(
+    'admin/config/media/file-access' => array(
+      'title' => 'File system',
+      'description' => 'Tell Drupal where to store uploaded files and how they are accessed.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_fine_grained_file_access_menu_file_system_settings'
+      ),
+      'access arguments' => array(
+        'administer site configuration'
+      ),
+      'weight' => -10
+    ),
+    'file/%file/move' => array(
+      'title' => 'Move',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'file_move_form',
+        1
+      ),
+      'access callback' => 'scratchpads_fine_grained_file_access_access',
+      'access arguments' => array(
+        'edit',
+        1
+      ),
+      'weight' => 0,
+      'type' => MENU_LOCAL_TASK,
+      'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE
+    )
+  );
+}
+
+/**
+ * Page callback: Form constructor for the file deletion confirmation form.
+ *
+ * Path: file/%file/delete
+ *
+ * @param object $file
+ *   A file object from file_load().
+ *
+ * @see file_entity_menu()
+ */
+function file_move_form($form, &$form_state, $file){
+  $form_state['file'] = $file;
+  $form['fid'] = array(
+    '#type' => 'value',
+    '#value' => $file->fid
+  );
+  $file_scheme = parse_url($file->uri);
+  switch($file_scheme['scheme']){
+    case 'private':
+      $description = '<p><strong>' . t('Move to @folder folder', array(
+        '@folder' => 'public'
+      )) . '</strong></p><p>' . t('Moving a file could have unintended consequences if the file is linked to in the body text of a node.') . '</p><p>' . t('This will give access to all users of your site, including those that are not logged in.') . '</p>';
+      break;
+    case 'public':
+      $description = '<p><strong>' . t('Move to @folder folder', array(
+        '@folder' => 'private'
+      )) . '</strong></p><p>' . t('Moving a file could have unintended consequences if the file is linked to in the body text of a node.') . '</p><p>' . t('This will only prevent access to the file if it is associated with a Group.') . '</p>';
+      break;
+  }
+  return confirm_form($form, t('Are you sure you want to move the file %title?', array(
+    '%title' => entity_label('file', $file)
+  )), 'file/' . $file->fid, $description, t('Move'));
+}
+
+/**
+ * Form submission handler for file_delete_form().
+ */
+function file_move_form_submit($form, &$form_state){
+  if($form_state['values']['confirm'] && $file = file_load($form_state['values']['fid'])){
+    $file_scheme = parse_url($file->uri);
+    switch($file_scheme['scheme']){
+      case 'private':
+        $new_scheme = 'public';
+        break;
+      case 'public':
+        $new_scheme = 'private';
+        break;
+    }
+    @file_move($file, "$new_scheme://{$file_scheme['host']}{$file_scheme['path']}");
+    $args = array(
+      '@type' => file_type_get_name($file),
+      '%title' => entity_label('file', $file)
+    );
+    watchdog('file', '@type: moved %title.', $args);
+    drupal_set_message(t('@type %title has been moved.', $args));
+  }
+  $form_state['redirect'] = 'file/' . $file->fid;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function scratchpads_fine_grained_file_access_form_file_entity_edit_alter(&$form, &$form_id, $form_id){
+  // We add a button to the public and private files that allows a user to
+  // switch the file to an alternative URI.
+  // We load the file (it should be cached, so we're just trying to use a
+  // reliable attribute in the form).
+  $form['actions']['move_scheme'] = array(
+    '#type' => 'submit',
+    '#weight' => 11,
+    '#submit' => array(
+      'scratchpads_fine_grained_file_access_move_scheme'
+    )
+  );
+  $file = file_load($form['fid']['#value']);
+  $file_scheme = parse_url($file->uri);
+  switch($file_scheme['scheme']){
+    case 'private':
+      $form['actions']['move_scheme']['#value'] = t('Move to @folder folder', array(
+        '@folder' => 'public'
+      ));
+      break;
+    case 'public':
+      $form['actions']['move_scheme']['#value'] = t('Move to @folder folder', array(
+        '@folder' => 'private'
+      ));
+      break;
+  }
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function scratchpads_fine_grained_file_access_admin_paths(){
+  return array(
+    'file/*/move' => TRUE
+  );
+}
+
+/**
+ * Submit function to move a private file to the public folder.  Moving in this
+ * direction requires little warning, as we're opening up access.  We only need
+ * to warn about changes to URLs.
+ */
+function scratchpads_fine_grained_file_access_move_scheme($form, &$form_state, $c, $d){
+  $destination = array();
+  if(isset($_GET['destination'])){
+    $destination = drupal_get_destination();
+    unset($_GET['destination']);
+  }
+  $form_state['redirect'] = array(
+    'file/' . $form_state['values']['fid'] . '/move',
+    array(
+      'query' => $destination
+    )
+  );
+}
+
+/**
+ * Note, we're not using the system_file_system_settings() form, as that could
+ * be altered by other modules.  We only want the file_default_scheme option.
+ */
+function scratchpads_fine_grained_file_access_menu_file_system_settings(){
+  // Any visible, writeable wrapper can potentially be used for the files
+  // directory, including a remote file system that integrates with a CDN.
+  foreach(file_get_stream_wrappers(STREAM_WRAPPERS_WRITE_VISIBLE) as $scheme => $info){
+    $options[$scheme] = check_plain($info['description']);
+  }
+  if(!empty($options)){
+    $form['file_default_scheme'] = array(
+      '#type' => 'radios',
+      '#title' => t('Default download method'),
+      '#default_value' => variable_get('file_default_scheme', isset($options['public']) ? 'public' : key($options)),
+      '#options' => $options,
+      '#description' => t('This setting is used as the preferred download method. The use of public files is more efficient, but does not provide any access control.') . ' ' . t('Note, this will not alter files already on your site.')
+    );
+  }
+  return system_settings_form($form);
+}
+
+/**
  * Implements hook_menu_alter().
  */
 function scratchpads_fine_grained_file_access_menu_alter(&$items){
