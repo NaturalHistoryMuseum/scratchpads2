@@ -125,6 +125,7 @@ function character_editor_menu_local_tasks_alter(&$data, $router_item, $root_pat
     $data['tabs'] = array();
   }
 }
+
 /*********************************************************************************************
  * 
  * VIEWS HOOKS
@@ -182,8 +183,7 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
     drupal_exit();
   }
   // The project ID will always be passed in as the first argument
-  $project = character_editor_entity_load_single('character_editor_project', reset($args), true);
-  $project_w = entity_metadata_wrapper('character_editor_project', $project);
+  $project_w = character_editor_wrapper('character_editor_project', reset($args), TRUE);
   $properties = $project_w->getPropertyInfo();
   foreach(character_editor_get_characters($project_w) as $group_w){
     $column_number = 1;
@@ -313,7 +313,7 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
             if($form_state['entity']->is_new){
               $form_state['character_project_id'] = arg(5);
             }else{
-              $entity_w = entity_metadata_wrapper($form['#entity_type'], $form_state['entity']);
+              $entity_w = character_editor_wrapper($form['#entity_type'], $form_state['entity']);
               $project_w = character_editor_get_character_project($entity_w);
               if($project_w){
                 $form_state['character_project_id'] = $project_w->getIdentifier();
@@ -400,9 +400,9 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
       }
       break;
     case 'entity_admin_entity_delete_form':
-      if(preg_match('/^\/character-editor-character\/\d+\/delete$/', $form['#action'])){
+      if(preg_match('/^\/character-editor-character\/\d+\/delete(\?.*)?$/', $form['#action'])){
         $form['actions']['submit']['#submit'][] = 'character_editor_character_delete_submit';
-        $entity_w = entity_metadata_wrapper('character_editor_character', $form_state['entity']);
+        $entity_w = character_editor_wrapper('character_editor_character', $form_state['entity']);
         $project_w = character_editor_get_character_project($entity_w);
         if($project_w){
           $form['actions']['cancel']['#href'] = 'character-editor-project/' . $project_w->getIdentifier() . '/characters';
@@ -576,16 +576,6 @@ function character_editor_entity_access($op){
 }
 
 /**
- * Clone of entity_load_single, but with an optional reset
- */
-function character_editor_entity_load_single($entity_type, $id, $reset = false){
-  $entities = entity_load($entity_type, array(
-    $id
-  ), array(), $reset);
-  return reset($entities);
-}
-
-/**
  * Entity delete
  * Delete all the character groups & characters 
  */
@@ -596,7 +586,7 @@ function character_editor_entity_delete($entity, $type){
       // XXX should we delete child characters or re-parent them?
       // Delete child characters. Note that character state values are
       // help as part of the relations - so they will get deleted automatically.
-      $wrapper = entity_metadata_wrapper($type, $entity);
+      $wrapper = character_editor_wrapper($type, $entity);
       $children = character_editor_get_characters($wrapper);
       foreach($children as $child){
         $child->delete();
@@ -738,7 +728,7 @@ function character_editor_character_form_submit(&$form, &$form_state){
  * @param array $form_state
  */
 function character_editor_character_delete_submit($form, &$form_state){
-  $entity_w = entity_metadata_wrapper('character_editor_character', $form_state['entity']);
+  $entity_w = character_editor_wrapper('character_editor_character', $form_state['entity']);
   $project_w = character_editor_get_character_project($entity_w);
   if($project_w){
     $form_state['redirect'] = 'character-editor-project/' . $project_w->getIdentifier() . '/characters';
@@ -787,7 +777,7 @@ function character_editor_create_relation($parent_entity, $character_entity){
  */
 function character_editor_characters_order_form($form, &$form_state){
   $project_id = arg(1);
-  $project_w = entity_metadata_wrapper('character_editor_project', entity_load_single('character_editor_project', $project_id));
+  $project_w = character_editor_wrapper('character_editor_project', $project_id);
   if(!$project_w){return;}
   $tree = character_editor_get_tree($project_w);
   $form['characters_order'] = array(
@@ -876,7 +866,7 @@ function theme_character_editor_characters_order($variables){
 function character_editor_characters_order_form_submit($form, &$form_state){
   // Get the project
   $project_id = arg(1);
-  $project_w = entity_metadata_wrapper('character_editor_project', entity_load_single('character_editor_project', $project_id));
+  $project_w = character_editor_wrapper('character_editor_project', $project_id);
   if(!$project_w){return;}
   // Check if endpoints & weight are translatable
   $field_info = field_info_field('endpoints');
@@ -1134,7 +1124,7 @@ function character_editor_state_form($form, &$form_state){
   list($entity_type, $entity_id) = explode(':', reset($form_state['values']['entity_ids']));
   $form_state['entity_id'] = $entity_id;
   $form_state['entity_type'] = $entity_type;
-  $character_w = entity_metadata_wrapper('character_editor_character', entity_load_single('character_editor_character', $form_state['character_id']));
+  $character_w = character_editor_wrapper('character_editor_character', $form_state['character_id']);
   $entity_w = entity_metadata_wrapper($entity_type, entity_load_single($entity_type, $entity_id));
   $values = character_editor_get_character_values($character_w, $entity_w);
   if(!empty($values)){

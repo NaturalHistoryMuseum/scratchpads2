@@ -45,8 +45,7 @@ function character_editor_get_characters($wrapper, $source = TRUE){
         $weight = 0;
       }
       try{
-        $character = entity_load_single($endpoint['entity_type'], $endpoint['entity_id']);
-        $characters[] = entity_metadata_wrapper($endpoint['entity_type'], $character);
+        $characters[] = character_editor_wrapper($endpoint['entity_type'], $endpoint['entity_id']);
         $order[] = $weight;
       }
       catch(Exception $e){
@@ -159,8 +158,7 @@ function character_editor_get_tree($entity_w, $mode = 'flat', $parent_id = 0, $e
     $relation_id = 0;
     $weight = 0;
     if($parent_id){
-      $parent_id_parts = explode(':', $parent_id);
-      $parent_w = entity_metadata_wrapper($parent_id_parts[0], entity_load_single($parent_id_parts[0], $parent_id_parts[1]));
+      $parent_w = character_editor_wrapper($parent_id);
       $relation = character_editor_association_exists($parent_w, $entity_w);
       if($relation){
         $relation_id = $relation->rid;
@@ -255,8 +253,7 @@ function character_editor_association_exists(EntityDrupalWrapper $wrap_1, Entity
       }
       if($endpoint['entity_type'] == $wrap_2->type() && $endpoint['entity_id'] == $wrap_2->getIdentifier()){return $relation;}
       if($max_depth > 1){
-        $endpoint_entity = entity_load_single($endpoint['entity_type'], $endpoint['entity_id']);
-        $endpoint_entity_w = entity_metadata_wrapper($endpoint['entity_type'], $endpoint_entity);
+        $endpoint_entity_w = character_editor_wrapper($endpoint['entity_type'], $endpoint['entity_id']);
         $exclude_rec = $exclude;
         $exclude_rec[] = $wrap_1;
         if(character_editor_association_exists($endpoint_entity_w, $wrap_2, $max_depth - 1, $exclude_rec)){return $relation;}
@@ -305,4 +302,67 @@ function character_editor_get_character_values(EntityDrupalWrapper $character_w,
     }
   }
   return $values;
+}
+
+/**
+ * character_editor_wrapper
+ *
+ * Returns the entity metadata wrapper of the given entity.
+ *
+ * The given entity can be defined as:
+ *
+ * - A string of the form '<entity type>:<entity id>[:<unused>]':
+ *   $w = character_editor_wrapper('character_editor_character:123');
+ *
+ * - An entity type and an entity id:
+ *   $w = character_editor_wrapper('character_editor_character', 123);
+ *
+ * - An entity type, and an entity object:
+ *   $w = character_editor_Wrapper('character_editor_character', entity_load_single('character_editor_character', 123));
+ *
+ * - An entity object alone:
+ *   $w = character_editor_wrapper(entity_load_single('character_editor_character', 123));
+ *
+ * In that last case the function will guess what the type of the entity is by looking at it's field, as either
+ * a character_editor_project or a character_editor_character. It will do this by assuming that character projects
+ * always have a field_taxonomic_name, while characters never do.
+ *
+ * If $reset is TRUE, then this also resets the internal cache for the given entity type before loading.
+ *
+ * The function returns FALSE on failure.
+ */
+function character_editor_wrapper($info, $id = NULL, $reset = FALSE){
+  $entity_type = FALSE;
+  $entity = FALSE;
+  $entity_id = FALSE;
+  if(is_string($info)){
+    if($id === NULL){
+      $parts = explode(':', $info);
+      if(count($parts) < 2){return FALSE;}
+      $entity_type = $parts[0];
+      $entity_id = $parts[1];
+    }else if(is_object($id)){
+      $entity_type = $info;
+      $entity = $id;
+    }else{
+      $entity_type = $info;
+      $entity_id = $id;
+    }
+  }else if(is_object($info)){
+    $entity = $info;
+    if(property_exists($entity, 'field_taxonomic_name')){
+      $entity_type = 'character_editor_project';
+    }else{
+      $entity_type = 'character_editor_character';
+    }
+  }
+  if(!$entity_type || (!$entity_id && !$entity)){return FALSE;}
+  if(!$entity){
+    if($reset){
+      entity_get_controller($entity_type)->resetCache();
+    }
+    $entity = entity_load_single($entity_type, $entity_id);
+    if(!$entity){return FALSE;}
+  }
+  return entity_metadata_wrapper($entity_type, $entity);
 }
