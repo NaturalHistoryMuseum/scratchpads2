@@ -53,10 +53,16 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
           case 'apachesolr_search':
           case 'scratchpads_blocks':
           case 'system':
+          case 'scratchpads_pages':
+          case 'uwho_client':
             unset($form['blocks'][$form_block_key]);
+            break;
           case 'views':
             switch($form_block['delta']['#value']){
               case 'front_page_content-block':
+              case 'front_page_slideshow-block_1':
+              case '16c4f7a3670b362537e67e77d3c889f7':
+              case 'f1e06bda7de42a4d0be1915ce9b2b9e0':
                 unset($form['blocks'][$form_block_key]);
             }
         }

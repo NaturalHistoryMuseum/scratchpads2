@@ -127,6 +127,21 @@ function tinytax_block_view($delta = ''){
       '#ancestors' => variable_get('tinytax_ancestors_' . $vocabulary->vid, 0)
     );
     $block['subject'] = check_plain($vocabulary->name);
+    // As we are now loading blocks dynamically, we can no longer rely on the
+    // block cache for caching tinytax blocks (we're setting the content to an
+    // empty string to improve page build times).  We therefore use our own
+    // cache.
+    $content = '';
+    if(!function_exists('ajaxblocks_in_ajax_handler') || (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler())){
+      $cid = $delta . ':' . implode(',', $open_tids);
+      $cache = cache_get($cid, 'cache_tinytax');
+      if($cache->data){
+        $content = $cache->data;
+      }else{
+        $content = drupal_render($block_array);
+        cache_set($cid, $content, 'cache_tinytax');
+      }
+    }
     $block['content'] = array(
       '#attached' => array(
         'css' => array(
@@ -147,7 +162,7 @@ function tinytax_block_view($delta = ''){
           )
         )
       ),
-      '#markup' => drupal_render($block_array)
+      '#markup' => $content
     );
   }
   return $block;
@@ -237,11 +252,46 @@ function tinytax_block_info(){
     $blocks[$vocabulary->vid] = array(
       'info' => t('Tinytax block for "@vocabulary_name"', array(
         '@vocabulary_name' => $vocabulary->name
-      )),
-      'cache' => DRUPAL_CACHE_PER_PAGE | DRUPAL_CACHE_PER_ROLE
+      ))
     );
   }
   return $blocks;
+}
+
+/**
+ * Implements hook_flush_caches()
+ */
+function tinytax_flush_caches(){
+  if(function_exists('varnish_purge')){
+    varnish_purge(_varnish_get_host(), 'ajaxblocks');
+  }
+  return array(
+    'cache_tinytax'
+  );
+}
+
+/**
+ * Implements hook_taxonomy_term_insert()
+ */
+function tinytax_taxonomy_term_insert($term){
+  cache_clear_all($term->vid . ':', 'cache_tinytax', TRUE);
+  if(function_exists('varnish_purge')){
+    varnish_purge(_varnish_get_host(), 'ajaxblocks');
+  }
+}
+
+/**
+ * Implements tinytax_taxonomoy_term_update()
+ */
+function tinytax_taxonomy_term_update($term){
+  tinytax_taxonomy_term_insert($term);
+}
+
+/**
+ * Implements tinytax_taxonomoy_term_delete()
+ */
+function tinytax_taxonomy_term_delete($term){
+  tinytax_taxonomy_term_insert($term);
 }
 
 /**
@@ -250,4 +300,7 @@ function tinytax_block_info(){
 function tinytax_taxonomy_vocabulary_delete($vocabulary){
   db_delete('block')->condition('module', 'tinytax')->condition('delta', $vocabulary->vid)->execute();
   variable_del('tinytax_ancestors_' . $vocabulary->vid);
+  // It doesn't matter that we pass the vocabulary here, the important thing is
+  // the $term->vid or $vocabulary->vid is the same thing!
+  tinytax_taxonomy_term_insert($vocabulary);
 }

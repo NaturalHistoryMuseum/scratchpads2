@@ -282,3 +282,30 @@ function darwincore_update_7015(){
   $fields = darwincore_field_default_fields();
   field_update_instance($fields['node-specimen_observation-field_remarks']['field_instance']);
 }
+
+/**
+ * Update to the token module requires a change to our ANT pattern.
+ */
+function darwincore_update_7016(){
+  variable_set('ant_pattern_specimen_observation', '[node:field_institution_code] - [node:field_collection_code] - [node:field_catalogue_number]');
+}
+
+/**
+ * Tweak the entityconnectpreview display of the location node.
+ */
+function darwincore_update_7017(){
+  module_load_include('features.field.inc', 'darwincore');
+  $fields = darwincore_field_default_fields();
+  field_update_instance($fields['node-location-field_map']['field_instance']);
+}
+
+/**
+ * Update field field_media description
+ */
+function darwincore_update_7018(){
+  if(field_info_instance('node', 'field_media', 'specimen_observation')){
+    module_load_include('features.field.inc', 'darwincore');
+    $fields = darwincore_field_default_fields();
+    field_update_instance($fields['node-specimen_observation-field_media']['field_instance']);
+  }
+}

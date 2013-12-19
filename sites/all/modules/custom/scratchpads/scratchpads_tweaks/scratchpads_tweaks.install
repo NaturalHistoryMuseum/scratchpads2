@@ -330,6 +330,8 @@ function scratchpads_tweaks_install(){
   variable_set('spambot_criteria_username', 0);
   variable_set('spambot_blacklisted_delay', 5);
   variable_set('spambot_cron_user_limit', 10);
+  // Use our mirror of the CC images site
+  variable_set('creative_commons_image_uri', 'http://cc-mirror.scratchpads.eu/l');
 }
 
 /**
@@ -1397,4 +1399,47 @@ function scratchpads_tweaks_update_7071(){
   variable_set('spambot_criteria_username', 0);
   variable_set('spambot_blacklisted_delay', 5);
   variable_set('spambot_cron_user_limit', 10);
+}
+
+/**
+ * Enable and set the settings for ajaxblocks
+ */
+function scratchpads_tweaks_update_7072(){
+  module_enable(array(
+    'ajaxblocks'
+  ));
+  $vids = db_select('taxonomy_vocabulary', 'v')->fields('v', array(
+    'vid'
+  ))->execute()->fetchCol();
+  foreach($vids as $vid){
+    db_merge('ajaxblocks')->key(array(
+      'block_id' => 'tinytax-' . $vid
+    ))->fields(array(
+      'block_id' => 'tinytax-' . $vid,
+      'is_ajax' => 1,
+      'loader_picture' => 5,
+      'is_late' => 0,
+      'delay' => 0,
+      'include_noscript' => 0,
+      'cached_roles' => '1 2 3 4 5',
+      'uncached_roles' => '1 2 3 4 5'
+    ))->execute();
+  }
+}
+
+/**
+ * Add the flag which states whether or not the T&Cs have been altered.
+ */
+function scratchpads_tweaks_update_7073(){
+  $legal = legal_get_conditions();
+  if($legal['version'] > 1 || $legal['revision'] > 1){
+    variable_set('scratchpads_legal_has_changed', TRUE);
+  }
+}
+
+/**
+ * Use our own mirror of the i.creativecommons.org website (it'll be quicker)
+ */
+function scratchpads_tweaks_update_7074(){
+  variable_set('creative_commons_image_uri', 'http://cc-mirror.scratchpads.eu/l');
 }

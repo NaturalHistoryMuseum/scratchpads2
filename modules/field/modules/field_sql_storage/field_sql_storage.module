@@ -188,7 +188,7 @@ function _field_sql_storage_schema($field) {
   foreach ($field['foreign keys'] as $specifier => $specification) {
     $real_name = _field_sql_storage_indexname($field['field_name'], $specifier);
     $current['foreign keys'][$real_name]['table'] = $specification['table'];
-    foreach ($specification['columns'] as $column => $referenced) {
+    foreach ($specification['columns'] as $column_name => $referenced) {
       $sql_storage_column = _field_sql_storage_columnname($field['field_name'], $column_name);
       $current['foreign keys'][$real_name]['columns'][$sql_storage_column] = $referenced;
     }
@@ -226,7 +226,7 @@ function field_sql_storage_field_storage_create_field($field) {
  */
 function field_sql_storage_field_update_forbid($field, $prior_field, $has_data) {
   if ($has_data && $field['columns'] != $prior_field['columns']) {
-    throw new FieldUpdateForbiddenException("field_sql_storage cannot change the schema for an existing field (".$field['field_name'].") with data.");
+    throw new FieldUpdateForbiddenException("field_sql_storage cannot change the schema for an existing field with data.");
   }
 }
 
