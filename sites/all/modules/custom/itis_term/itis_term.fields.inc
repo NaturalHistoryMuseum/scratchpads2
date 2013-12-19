@@ -634,7 +634,7 @@ function itis_term_fields(){
         'bundle' => 'tags',
         'default_value' => NULL,
         'deleted' => '0',
-        'description' => t('A category indicator located within a polynomial taxonomic name. Allowed values are: "ssp." (plants and fungi), "subsp." (animals and monerans), "var.", "subvar.", "f.", "subf.", and "X".'),
+        'description' => t('A category indicator located within a polynomial taxonomic name. Allowed values are: "ssp." (algae, fungi and plants), "subsp." (animals, bacteria and archaea), "var.", "subvar.", "f.", "subf.", and "X".'),
         'display' => array(
           'default' => array(
             'label' => 'inline',

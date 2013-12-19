@@ -69,35 +69,59 @@ function scratchpads_user_menu_alter(&$items){
  * Add tabs to the menu for users and non-users
  */
 function scratchpads_user_menu(){
-  $items['admin/people/users'] = array(
-    'title' => 'Users',
-    'page callback' => 'scratchpads_user_admin',
-    'page arguments' => array(
-      '',
-      '1'
+  return array(
+    'admin/people/users' => array(
+      'title' => 'Users',
+      'page callback' => 'scratchpads_user_admin',
+      'page arguments' => array(
+        '',
+        '1'
+      ),
+      'file' => 'scratchpads_user.admin.inc',
+      'access arguments' => array(
+        'administer users'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => '-2'
     ),
-    'file' => 'scratchpads_user.admin.inc',
-    'access arguments' => array(
-      'administer users'
+    'admin/people/non_users' => array(
+      'title' => 'Non Users',
+      'page callback' => 'scratchpads_user_admin',
+      'page arguments' => array(
+        '',
+        '0'
+      ),
+      'file' => 'scratchpads_user.admin.inc',
+      'access arguments' => array(
+        'administer users'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => '-1'
     ),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => '-2'
+    'scratchpads-user-autocomplete' => array(
+      'title' => 'Autocomplete ',
+      'page callback' => 'scratchpads_user_biblio_autocomplete',
+      'access callback' => 'user_access',
+      'access arguments' => array(
+        'access biblio content'
+      ),
+      'type' => MENU_CALLBACK
+    )
   );
-  $items['admin/people/non_users'] = array(
-    'title' => 'Non Users',
-    'page callback' => 'scratchpads_user_admin',
-    'page arguments' => array(
-      '',
-      '0'
-    ),
-    'file' => 'scratchpads_user.admin.inc',
-    'access arguments' => array(
-      'administer users'
-    ),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => '-1'
-  );
-  return $items;
+}
+
+/**
+ * Biblio autocomplete function to provide an author ID rather than just a name
+ */
+function scratchpads_user_biblio_autocomplete($string = ''){
+  $string = db_like($string);
+  $or = db_or()->condition('lastname', $string . '%', 'LIKE')->condition('firstname', $string . '%', 'LIKE');
+  $matches = db_select('biblio_contributor_data', 'b')->fields('b', array(
+    'cid',
+    'name'
+  ))->condition($or)->orderBy('lastname')->range(0, 10)->execute()->fetchAllKeyed();
+  print drupal_json_encode($matches);
+  exit();
 }
 
 /**
@@ -269,7 +293,7 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
   }
   // Change the select dropdown to an autocomplete field
   $form['biblio_fieldset']['biblio_contributor_id']['#type'] = 'textfield';
-  $form['biblio_fieldset']['biblio_contributor_id']['#autocomplete_path'] = 'biblio/autocomplete/contributor';
+  $form['biblio_fieldset']['biblio_contributor_id']['#autocomplete_path'] = 'scratchpads-user-autocomplete';
   if($form['biblio_fieldset']['biblio_contributor_id']['#default_value'] == '0'){
     $form['biblio_fieldset']['biblio_contributor_id']['#default_value'] = '';
   }
@@ -305,7 +329,7 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
     );
     $disable_button = ($form['#user']->uid ? 1 : 0);
     if($form['#id'] == 'user-profile-form'){
-      if($form['#user']->stub_user){
+      if(!empty($form['#user']->stub_user)){
         $disable_button = false;
       }
     }
@@ -375,7 +399,7 @@ function scratchpads_user_allow_picture_validate($form, &$form_state){
  */
 function scratchpads_user_user_profile_validate($form, &$form_state){
   // If we are converting from a loginless user to a login user 
-  if(($form['#user']->stub_user == true) && ($form_state['values']['create_user_account'])){
+  if((!empty($form['#user']->stub_user)) && ($form_state['values']['create_user_account'])){
     $required_fields = array(
       'field_user_family_name',
       'field_user_given_names'
@@ -466,7 +490,7 @@ function scratchpads_user_register_form_post_submit_clear_error($form, &$form_st
  */
 function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state){
   // Don't do anything if this is a login user
-  if($form_state['values']['create_user_account'] || !empty($form_state['values']['picture_upload'])){return;}
+  if(!empty($form_state['values']['create_user_account']) || !empty($form_state['values']['picture_upload'])){return;}
   // Set the name
   $name = '';
   foreach(array(
@@ -519,7 +543,7 @@ function _scratchpads_user_get_full_name($name, $uid = ''){
  */
 function scratchpads_user_register_form_post_submit($form, &$form_state){
   // check whether this a stub user
-  if(!$form_state['values']['create_user_account']){
+  if(empty($form_state['values']['create_user_account'])){
     // Reset the messages
     drupal_get_messages('status');
     // Reset the error messages, as the following error is displayed:

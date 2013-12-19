@@ -61,6 +61,7 @@ files[] = sources/variable.inc
 files[] = sources/vocabulary.inc
 files[] = sources/femail.inc
 files[] = sources/field_collection.inc
+files[] = sources/webform.inc
 
 ; Destination classes
 files[] = destinations/block.inc
@@ -87,3 +88,4 @@ files[] = destinations/user.inc
 files[] = destinations/variable.inc
 files[] = destinations/vocabulary.inc
 files[] = destinations/femail.inc
+files[] = destinations/webform.inc

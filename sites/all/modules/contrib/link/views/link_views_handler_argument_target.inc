@@ -93,7 +93,7 @@ class link_views_handler_argument_target extends views_handler_argument {
       '#default_value' => $this->options['validate_type'],
     );
 
-    $validate_types = array('none' => t('<Basic validation>'));
+    $validate_types = array('none' => t('- Basic validation -'));
     $plugins = views_fetch_plugin_data('argument validator');
     foreach ($plugins as $id => $info) {
       $valid = TRUE;
@@ -140,10 +140,10 @@ class link_views_handler_argument_target extends views_handler_argument {
    *
    * The argument sent may be found at $this->argument.
    */
-  function query() {
+  function query($group_by = FALSE) {
     $this->ensure_my_table();
     // Because attributes are stored serialized, our only option is to also
     // serialize the data we're searching for and use LIKE to find similar data.
-    $this->query->add_where(0, $this->table_alias .'.'. $this->real_field ." LIKE '%%%s%'", serialize(array('target' => $this->argument)));
+    $this->query->add_where(0, $this->table_alias . '.' . $this->real_field . " LIKE '%%%s%'", serialize(array('target' => $this->argument)));
   }
 }

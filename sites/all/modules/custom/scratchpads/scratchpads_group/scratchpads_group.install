@@ -44,7 +44,7 @@ function scratchpads_group_disable(){
   $fields = scratchpads_group_field_default_fields();
   // If the module has been disabled, we delete the fields.
   foreach($fields as $field){
-    field_delete_instance($field['field_instance']['field_name']);
+    field_delete_instance($field['field_instance']);
   }
   // We need to disable the modules once everything else has done. So we register
   // a shutdown function with arguments.
@@ -68,7 +68,6 @@ function scratchpads_group_enable(){
     // We do this at the end, to prevent og from setting it after this point.
     register_shutdown_function('variable_del', 'node_access_needs_rebuild');
   }
-  
 }
 
 /**
@@ -170,5 +169,25 @@ function scratchpads_group_update_7006(){
     db_update('field_config')->fields(array(
       'locked' => 1
     ))->condition('field_name', $fields_to_lock)->execute();
+  }
+}
+
+/**
+ * Add the node-group-group_access field.
+ */
+function scratchpads_group_update_7007(){
+  module_load_include('features.field.inc', 'scratchpads_group');
+  $fields = scratchpads_group_field_default_fields();
+  try{
+    field_create_field($fields['node-group-group_access']['field_config']);
+  }
+  catch(Exception $e){
+    ;
+  }
+  try{
+    field_create_instance($fields['scratchpads_group_field_default_fields']['field_instance']);
+  }
+  catch(Exception $e){
+    ;
   }
 }

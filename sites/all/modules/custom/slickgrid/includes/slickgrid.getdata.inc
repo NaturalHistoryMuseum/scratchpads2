@@ -7,6 +7,8 @@
  * to a view.
  */
 function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortdir = 'asc'){
+  // Ensure this page is not cached
+  drupal_add_http_header('Cache-Control','private, no-cache, no-store, must-revalidate, max-age=0');
   $view = views_get_view($view_name);
   if($sortcol){
     $sort = array(

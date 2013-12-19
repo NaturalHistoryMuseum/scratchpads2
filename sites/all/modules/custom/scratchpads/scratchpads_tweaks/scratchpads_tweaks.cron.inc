@@ -143,7 +143,7 @@ function _scratchpads_tweaks_cron(){
   ));
   db_delete('watchdog')->condition($db_or)->execute();
   // Clean up the file_display table now that we have removed its primary key
-  db_query('CREATE TEMPORARY TABLE file_display_temp AS SELECT DISTINCT * FROM file_display; TRUNCATE file_display; INSERT INTO file_display SELECT * FROM file_display_temp;');
+  db_query('CREATE TEMPORARY TABLE file_display_temp AS SELECT DISTINCT * FROM {file_display}; TRUNCATE {file_display}; INSERT INTO {file_display} SELECT * FROM file_display_temp;');
   // Rebuild caches
   _scratchpads_tweaks_register_shutdown();
 }

@@ -346,7 +346,7 @@ function _publication_html_format_entity_upsert($entity, $type){
     $table_collection_item = reset(entity_load('field_collection_item', array(
       $value['value']
     )));
-    if(empty($table_collection_item->field_publication_table) && empty($table_collection_item->field_publication_table_title)){
+    if($table_collection_item && empty($table_collection_item->field_publication_table) && empty($table_collection_item->field_publication_table_title)){
       $table_collection_item->delete();
       $need_saving = FALSE;
     }

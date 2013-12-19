@@ -98,6 +98,9 @@ function pensoft_publication_publication_prepare_build(&$build){
  * 
  */
 function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_state, $form_id){
+  if (!empty($form['#entity']) && _pensoft_publication_redirect_if_published($form['#entity'])){
+    return;
+  }
   // Attach resources
   $form['#attached']['css'][] = drupal_get_path('module', 'pensoft_publication') . '/css/pensoft.css';
   $form['#attached']['css'][] = drupal_get_path('module', 'pensoft_publication') . '/css/pensoft_tabs.css';
@@ -156,8 +159,7 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
       $tid = $node->field_taxonomic_name[LANGUAGE_NONE][0]['tid'];
       $term = taxonomy_term_load($tid);
       if($term->field_rank[LANGUAGE_NONE][0]['value'] != 'Species'){
-        $treatment_form['relation_fields']['field_publication_treat_species']['#type'] = 'hidden';
-        $treatment_form['relation_fields']['field_publication_treat_species']['#default_value'] = '';
+        hide($treatment_form['relation_fields']['field_publication_treat_species']);
       }
     }
     // Hide URL Redirect form if present
@@ -490,21 +492,6 @@ function pensoft_publication_form_publication_type_form_alter(&$form, &$form_sta
       );
     }
   }
-  // Output XML generation information
-  $schema = _pensoft_publication_schema_array(TRUE);
-  $explain_schema = new PublicationXmlSchemaExplain($schema);
-  $schema_generate = "<pre>" . htmlspecialchars($explain_schema->explain_with_xml()) . "</pre>";
-  $form['schema_info'] = array(
-    '#type' => 'fieldset',
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#title' => 'Pensoft schema generation info',
-    'generate' => array(
-      '#type' => 'markup',
-      '#markup' => $schema_generate
-    ),
-    '#weight' => 15
-  );
   $form['#submit'][] = 'pensoft_publication_type_form_submit';
   $form['#validate'][] = 'pensoft_publication_type_form_validate';
 }
@@ -530,9 +517,36 @@ function pensoft_publication_type_form_submit($form, &$form_state){
 }
 
 /**
+ * Test if the given publication has already been published,
+ * and if so redirect to the publication view page and inform
+ * the user.
+ *
+ * Return TRUE if a redirection took place, false otherwise.
+ */
+function _pensoft_publication_redirect_if_published($publication){
+  if ($publication->published){
+    $data = unserialize($publication->publisher_data);
+    drupal_set_message(t("This publication has already been sent to Pensoft. The document id is %id and the link is !link", array(
+          '%id' => $data['document_id'],
+          '!link' => l($data['document_link'], $data['document_link'])
+    )));
+    drupal_goto('publication/' . $publication->pid);
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
  * Form for publishing a publication
  */
 function pensoft_publication_publish_form($form, &$form_state, $publication){
+  // Just add a message saying that we can't publish at this time
+  drupal_set_message(t("It is not currently possible to publish this to the Pensoft Writting Tool. We hope to have this working in the near future."), 'warning');
+  drupal_goto('publication/' . $publication->pid);
+  // Check if we have already published this
+  if (_pensoft_publication_redirect_if_published($publication)){
+    return;
+  }
   // Test if the schema has changed
   module_load_include('xml.inc', 'publication', 'includes/publication');
   $used_schema_url = variable_get('pensoft_publication_xml_schema_url', drupal_get_path('module', 'pensoft_publication') . '/taxonomic_paper.xsd');
@@ -682,8 +696,8 @@ function pensoft_publication_publish_form_submit($form, &$form_state){
   }
   if($xml_result->returnCode == 0){
     $publisher_data = array(
-      'document_id' => $xml_result->document_id,
-      'document_link' => $xml_result->document_link
+      'document_id' => (string)$xml_result->document_id,
+      'document_link' => (string)$xml_result->document_link
     );
     $publication->published = 1;
     $publication->publisher_data = serialize($publisher_data);
@@ -693,7 +707,10 @@ function pensoft_publication_publish_form_submit($form, &$form_state){
         '!message' => '<ul><li>' . implode('</li><li>', $errors) . '</li></ul>'
       )), 'warning');
     }else{
-      drupal_set_message(t('The document was succesfully published'), 'notice');
+      drupal_set_message(t('The document was succesfully published. The document id is %id, and the document link is !link', array(
+        '%id' => $publisher_data['document_id'],
+        '!link' => l($publisher_data['document_link'], $publisher_data['document_link'])
+      )), 'notice');
     }
     drupal_goto($_GET['q']);
   }else{
@@ -711,7 +728,8 @@ function pensoft_publication_publish_form_submit($form, &$form_state){
 /**
  * Create the schema array for generating Pensoft publications
  */
-function _pensoft_publication_schema_array($diff = FALSE){
+function pensoft_publication_schema_array_pensoft_publication($variables){
+  $diff = isset($variables['diff']) ? $variables['diff'] : FALSE;
   module_load_include('xml.inc', 'publication', 'includes/publication');
   module_load_include('xml.schema.inc', 'pensoft_publication');
   // Parse the schema
@@ -726,26 +744,26 @@ function _pensoft_publication_schema_array($diff = FALSE){
   // Now merge the schema with drupal field mapping
   $map_schema = array(
     'document' => array(
-      'document_info' => _pensoft_publication_xml_document_info_schema(),
+      'document_info' => schema_array('pensoft_publication_document_info'),
       'objects' => array(
-        'article_metadata' => _pensoft_publication_xml_article_metadata_schema(),
-        'introduction' => _pensoft_publication_xml_introduction_schema(),
-        'material_and_methods' => _pensoft_publication_xml_material_and_methods_schema(),
-        'data_resources' => _pensoft_publication_xml_data_resources_schema(),
-        'results' => _pensoft_publication_xml_results_schema(),
-        //'checklist' => _pensoft_publication_xml_checklist_schema(),
-        'systematics' => _pensoft_publication_xml_systematics_schema(),
-        'discussion' => _pensoft_publication_xml_discussion_schema(),
-        //identification_keys => _pensoft_publication_xml_identification_keys_schema(),
-        'acknowledgements' => _pensoft_publication_xml_acknowledgements_schema(),
-        'references' => _pensoft_publication_xml_references_schema(),
-        'supplementary_files' => _pensoft_publication_xml_files_schema()
+        'article_metadata' => schema_array('pensoft_publication_article_metadata'),
+        'introduction' => schema_array('pensoft_publication_introduction'),
+        'materials_and_methods' => schema_array('pensoft_publication_material_and_methods'),
+        'data_resources' => schema_array('pensoft_publication_data_resources'),
+        'systematics' => schema_array('pensoft_publication_systematics'),
+        // XXX checklists
+        // XXX identification_keys 
+        'discussion' => schema_array('pensoft_publication_discussion'),
+        'acknowledgements' => schema_array('pensoft_publication_acknowledgements'),
+        // XXX author_contributions
+        'references' => schema_array('pensoft_publication_references'),
+        'supplementary_files' => schema_array('pensoft_publication_sup_files'),
+        'figures' => schema_array('pensoft_publication_figures'),
+        'tables' => schema_array('pensoft_publication_tables')
       ),
-      'figures' => _pensoft_publication_xml_figures_schema(),
-      'tables' => _pensoft_publication_xml_tables_schema()
     )
   );
-  $schema = $parser->merge_schemas($source_schema, $map_schema, $diff);
+  $schema = PublicationXSDParser::merge_schemas($source_schema, $map_schema, $diff);
   return $schema;
 }
 
@@ -759,7 +777,7 @@ function _pensoft_publication_build_xml($publication){
   module_load_include('xml.schema.inc', 'pensoft_publication');
   $url = variable_get('pensoft_publication_xml_schema_url', drupal_get_path('module', 'pensoft_publication') . '/taxonomic_paper.xsd');
   // Get the schema
-  $schema = _pensoft_publication_schema_array();
+  $schema = schema_array('pensoft_publication');
   // Create a modifier for the publication_html_format module to rename and reorder citations
   module_load_include('xml.inc', 'publication_html_format', 'includes/publication_html_format');
   $modifier = new PublicationHtmlFormatXMLModifier();
@@ -770,11 +788,12 @@ function _pensoft_publication_build_xml($publication){
     ), array(
       $modifier
     ));
-    $xml = $builder->build_xml($publication, $url, '1.0', 'UTF-8');
+    $xml = $builder->build_xml('publication', $publication, $url, '1.0', 'UTF-8');
   }
   catch(Exception $e){
-    drupal_set_message(t("An error occured while building the publication: !cause", array(
-      '!cause' => $e->getMessage()
+    drupal_set_message(t("An error occured while building the publication: !cause [path %path]", array(
+      '!cause' => $e->getMessage(),
+      '%path' => implode(' > ', $builder->path)
     )), 'error');
     return FALSE;
   }

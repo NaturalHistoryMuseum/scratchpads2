@@ -116,6 +116,21 @@ function scratchpads_blocks_block_info_alter(&$blocks, $theme, $code_blocks){
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function scratchpads_blocks_form_legal_administration_alter(&$form, &$form_state, $form_id){
+  $form['#submit'][] = 'scratchpads_blocks_form_legal_administration_submit';
+}
+
+/**
+ * Submit for the above alter - we simply set a flag to say that the T&Cs have
+ * been altered.
+ */
+function scratchpads_blocks_form_legal_administration_submit(){
+  variable_set('scratchpads_legal_has_changed', TRUE);
+}
+
+/**
  * Implements hook_block_view().
  */
 function scratchpads_blocks_block_view($delta = ''){
@@ -135,6 +150,21 @@ function scratchpads_blocks_block_view($delta = ''){
             'hidden' => FALSE,
             'href' => 'tracker',
             'title' => t('Recent content'),
+            'access' => TRUE,
+            'menu_name' => '',
+            'mlid' => uniqid()
+          )
+        );
+      }
+      if(variable_get('scratchpads_legal_has_changed', FALSE)){
+        $tree[] = array(
+          'below' => FALSE,
+          'link' => array(
+            'in_active_trail' => FALSE,
+            'has_children' => FALSE,
+            'hidden' => FALSE,
+            'href' => 'legal',
+            'title' => t('Terms & Conditions'),
             'access' => TRUE,
             'menu_name' => '',
             'mlid' => uniqid()

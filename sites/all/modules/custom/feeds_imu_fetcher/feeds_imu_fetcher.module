@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * Implements hook_feeds_plugins().
+ */
+function feeds_imu_fetcher_feeds_plugins(){
+  $info = array();
+  $info['FeedsIMUFetcher'] = array(
+    'name' => 'IMU fetcher',
+    'description' => 'Fetches data from KEMU.',
+    'handler' => array(
+      'parent' => 'FeedsFetcher',
+      'class' => 'FeedsIMUFetcher',
+      'file' => 'FeedsIMUFetcher.inc',
+      'path' => drupal_get_path('module', 'feeds_imu_fetcher') . '/plugins'
+    )
+  );
+  return $info;
+}
+
+/**
+ * @file
+ * Imports data from an external database.
+ */
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function feeds_imu_fetcher_ctools_plugin_api($owner, $api){
+  if($owner == 'feeds' && $api == 'plugins'){return array(
+      'version' => 1
+    );}
+}
+
+/**
+ * Implements hook_ctools_plugin_type().
+ */
+function feeds_imu_fetcher_ctools_plugin_type(){
+  return array(
+    'plugins' => array(
+      'cache' => TRUE,
+      'use hooks' => TRUE,
+      'classes' => array(
+        'handler'
+      )
+    )
+  );
+}

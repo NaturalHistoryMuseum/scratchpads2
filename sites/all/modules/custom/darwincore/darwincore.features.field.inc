@@ -43,7 +43,7 @@ function darwincore_field_default_fields(){
     'field_instance' => array(
       'bundle' => 'specimen_observation',
       'deleted' => '0',
-      'description' => '',
+      'description' => 'Select media to link them to this specimen/observation. Selected media will appear as links at the bottom of the page. Once media is selected, it may be edited, or removed from this specimen/observation.',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -961,6 +961,15 @@ function darwincore_field_default_fields(){
           'weight' => '1'
         ),
         'linked_node' => array(
+          'label' => 'above',
+          'module' => 'gm3_field',
+          'settings' => array(
+            'display_convex_hull' => FALSE
+          ),
+          'type' => 'gm3_entity_map',
+          'weight' => '1'
+        ),
+        'entityconnectpreview' => array(
           'label' => 'above',
           'module' => 'gm3_field',
           'settings' => array(
@@ -2732,7 +2741,7 @@ function darwincore_field_default_fields(){
       'label' => 'Remarks',
       'required' => 0,
       'settings' => array(
-        'text_processing' => '0',
+        'text_processing' => '1',
         'user_register_form' => FALSE
       ),
       'widget' => array(

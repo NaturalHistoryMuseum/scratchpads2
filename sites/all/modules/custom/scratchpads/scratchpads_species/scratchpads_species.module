@@ -552,10 +552,22 @@ function theme_scratchpads_species_name($vars){
   $unit2 = (isset($term->field_unit_name2[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name2[LANGUAGE_NONE][0]['value'] : null);
   $unit3 = (isset($term->field_unit_name3[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name3[LANGUAGE_NONE][0]['value'] : null);
   $unit4 = (isset($term->field_unit_name4[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name4[LANGUAGE_NONE][0]['value'] : null);
-  $unit_ind1 = (isset($term->field_unit_indicator1[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator1[LANGUAGE_NONE][0]['value'] . ' ' : '');
-  $unit_ind2 = (isset($term->field_unit_indicator2[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator2[LANGUAGE_NONE][0]['value'] . ' ' : '');
-  $unit_ind3 = (isset($term->field_unit_indicator3[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator3[LANGUAGE_NONE][0]['value'] . ' ' : '');
-  $unit_ind4 = (isset($term->field_unit_indicator4[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator4[LANGUAGE_NONE][0]['value'] . ' ' : '');
+  $unit_ind1 = (isset($term->field_unit_indicator1[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator1[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
+    '×',
+    'x'
+  )) ? '' : ' ') : '');
+  $unit_ind2 = (isset($term->field_unit_indicator2[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator2[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
+    '×',
+    'x'
+  )) ? '' : ' ') : '');
+  $unit_ind3 = (isset($term->field_unit_indicator3[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator3[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
+    '×',
+    'x'
+  )) ? '' : ' ') : '');
+  $unit_ind4 = (isset($term->field_unit_indicator4[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator4[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
+    '×',
+    'x'
+  )) ? '' : ' ') : '');
   switch($rank){
     case 'genus':
       if($unit1){
@@ -577,16 +589,18 @@ function theme_scratchpads_species_name($vars){
         ));
       }
       break;
+    case 'series':
+    case 'subseries':
     case 'section':
-      if($unit1){
-        $name = t('!ind1<em>!unit1</em>', array(
-          '!unit1' => $unit1,
-          '!ind1' => $unit_ind1
-        ));
-      }
-      break;
     case 'subsection':
-      if($unit1){
+      if($unit2 && $unit1){
+        $name = t('!ind1<em>!unit1</em> !ind2<em>!unit2</em>', array(
+          '!unit1' => $unit1,
+          '!ind1' => $unit_ind1,
+          '!unit2' => $unit2,
+          '!ind2' => $unit_ind2
+        ));
+      }elseif($unit1){
         $name = t('!ind1<em>!unit1</em>', array(
           '!unit1' => $unit1,
           '!ind1' => $unit_ind1

@@ -25,12 +25,7 @@ function scratchpads_media_gallery_install(){
     ))
   ))->execute();
   // Ensure we're indexing the requried files
-  $query = db_insert('apachesolr_index_bundles')->fields(array(
-    'env_id',
-    'entity_type',
-    'bundle'
-  ));
-  $values = array(
+  foreach(array(
     array(
       'env_id' => 'solr',
       'entity_type' => 'file',
@@ -45,17 +40,19 @@ function scratchpads_media_gallery_install(){
       'env_id' => 'solr',
       'entity_type' => 'file',
       'bundle' => 'audio'
+    ),
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'application'
+    ),
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'text'
     )
-  );
-  foreach($values as $value){
-    $query->values($value);
-  }
-  try{
-    $query->execute();
-  }
-  catch(Exception $e){
-    // Do nothing, most likely as a result of this module being installed before.
-    ;
+  ) as $value){
+    db_merge('apachesolr_index_bundles')->key($value)->fields($value)->execute();
   }
   $vocabularies = array(
     'image_keywords' => array(
@@ -322,19 +319,8 @@ function scratchpads_media_gallery_update_7008(){
 }
 
 /**
- * Update the extensions allowed.
+ * scratchpads_media_gallery_update_7009 was renamed to ...7016.
  */
-function scratchpads_media_gallery_update_7009(){
-  $media = field_info_field('field_media');
-  foreach($media['bundles'] as $entity_type => $bundles){
-    foreach($bundles as $bundle_name){
-      $instance = field_info_instance($entity_type, 'field_media', $bundle_name);
-      $instance['settings']['file_extensions'] = FIELD_MEDIA_FILE_EXTENSIONS;
-      field_update_instance($instance);
-    }
-  }
-}
-
 /**
  * Display the label for the Licence field.
  */
@@ -433,3 +419,50 @@ function scratchpads_media_gallery_update_7014(){
   apachesolr_search_page_save($search_page);
 }
 
+/**
+ * Also index the text and application file types.
+ */
+function scratchpads_media_gallery_update_7015(){
+  foreach(array(
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'application'
+    ),
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'text'
+    )
+  ) as $value){
+    db_merge('apachesolr_index_bundles')->key($value)->fields($value)->execute();
+  }
+}
+
+/**
+ * Update the extensions allowed.
+ */
+function scratchpads_media_gallery_update_7016(){
+  $media = field_info_field('field_media');
+  foreach($media['bundles'] as $entity_type => $bundles){
+    foreach($bundles as $bundle_name){
+      $instance = field_info_instance($entity_type, 'field_media', $bundle_name);
+      $instance['settings']['file_extensions'] = FIELD_MEDIA_FILE_EXTENSIONS;
+      field_update_instance($instance);
+    }
+  }
+}
+
+/**
+ * Update field field_media descriptions
+ */
+function scratchpads_media_gallery_update_7017(){
+  module_load_include('features.field.inc', 'scratchpads_media_gallery');
+  $fields = scratchpads_media_gallery_field_default_fields();
+  if(field_info_instance('node', 'field_media', 'media_gallery')){
+    field_update_instance($fields['node-media_gallery-field_media']['field_instance']);
+  }
+  if(field_info_instance('node', 'field_media', 'page')){
+    field_update_instance($fields['node-page-field_media']['field_instance']);
+  }
+}

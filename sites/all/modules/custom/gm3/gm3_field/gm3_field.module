@@ -264,6 +264,84 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
 }
 
 /**
+ * Implements hook_form_alter().
+ *
+ * If we are adding a new entity we pass of to entityconnect_add_form_alter
+ * if we are returning to the parent form we hand off to
+ * entityconnect_return_form_alter.
+ */
+function gm3_field_form_alter(&$form, &$form_state, $form_id){
+  // Theme the entity connect elements if any are present
+  foreach(_entityconnect_get_ref_fields() as $field_name => $field){
+    // What type of entity are we to load.
+    switch($field['type']){
+      case 'node_reference':
+        $entity_type = 'node';
+        break;
+      case 'user_reference':
+        $entity_type = 'user';
+        break;
+    }
+    if(isset($form[$field_name])){
+      if(isset($form[$field_name]['preview'])){
+        $add_libraries = FALSE;
+        switch($entity_type){
+          case 'node':
+            $types = array_filter($field['settings']['referenceable_types']);
+            foreach($types as $bundle){
+              $instances = field_info_instances($entity_type, $bundle);
+              foreach($instances as $instance){
+                if($instance['display']['entityconnectpreview']['module'] == 'gm3_field'){
+                  $add_libraries = TRUE;
+                  break 2;
+                }
+              }
+            }
+            break;
+          case 'user':
+            break;
+        }
+        if($add_libraries){
+          // We add all of the libraries, just to be safe.
+          $form[$field_name]['preview']['#attached'] = array(
+            'library' => array(
+              array(
+                'gm3',
+                'gm3'
+              ),
+              array(
+                'gm3',
+                'gm3.point'
+              ),
+              array(
+                'gm3',
+                'gm3.infobubble'
+              ),
+              array(
+                'gm3',
+                'gm3.clusterer'
+              ),
+              array(
+                'gm3',
+                'gm3.polygon'
+              ),
+              array(
+                'gm3',
+                'gm3.rectangle'
+              ),
+              array(
+                'gm3',
+                'gm3.polyline'
+              )
+            )
+          );
+        }
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_feeds_processor_targets_alter().
  */
 function gm3_field_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name){

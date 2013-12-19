@@ -40,7 +40,7 @@ class LegalTestCase extends DrupalWebTestCase {
  */
 class LegalRegisterTestCase extends LegalTestCase {
 
-  function getInfo() {
+  public static function getInfo() {
     return array(
       'name' => 'Create Account',
       'description' => 'Register as new user and create account.',
@@ -104,7 +104,7 @@ class LegalRegisterTestCase extends LegalTestCase {
 class LegalScrollBoxDisplayTestCase extends LegalTestCase {
   var $conditions;
 
-  function getInfo() {
+  public static function getInfo() {
     return array(
       'name' => 'Scroll Box Display',
       'description' => 'Change display option to Scroll Box and check if display is behaves correctly.',
@@ -141,7 +141,7 @@ class LegalScrollBoxDisplayTestCase extends LegalTestCase {
 class LegalScrollBoxCSSDisplayTestCase extends LegalTestCase {
   var $conditions;
 
-  function getInfo() {
+  public static function getInfo() {
     return array(
       'name' => 'Scroll Box CSS Display',
       'description' => 'Change display option to Scroll Box CSS and check if display is behaves correctly.',
@@ -178,7 +178,7 @@ class LegalScrollBoxCSSDisplayTestCase extends LegalTestCase {
 class LegalHTMLTextDisplayTestCase extends LegalTestCase {
   var $conditions;
 
-  function getInfo() {
+  public static function getInfo() {
     return array(
       'name' => 'HTML Text display',
       'description' => 'Change display option to HTML Text and check if display is behaves correctly.',
@@ -215,7 +215,7 @@ class LegalHTMLTextDisplayTestCase extends LegalTestCase {
 class LegalLinkDisplayTestCase extends LegalTestCase {
   var $conditions;
 
-  function getInfo() {
+  public static function getInfo() {
     return array(
       'name' => 'Page Link display',
       'description' => 'Change display option to Page Link and check if display is behaves correctly.',

@@ -660,6 +660,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
    * @param string $html
    */
   public static function parseStyles($html){
+    // If the text contains no tags, leave it as it is
+    if(!preg_match('/<.+?>/', $html)){return $html;}
     $dom = new DomDocument();
     @$dom->loadHTML($html);
     $xpath = new DOMXpath($dom);

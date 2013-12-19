@@ -111,7 +111,7 @@ function uwho_client_block_content($key, $url, $redirect = FALSE, $text = FALSE)
   // We need to ensure that jquery.js is added to the page
   // FIXME - Is this still necessary?
   drupal_add_js(array(), 'setting');
-  if(count($_COOKIE) && (isset($_COOKIE['has_js']) && ($_COOKIE['has_js']))){
+  if(variable_get('reverse_proxy', FALSE) || (isset($_COOKIE['has_js']) && $_COOKIE['has_js'])){
     $link_or_button = '<a href="' . $url . ((strlen(urlencode($encrypted[$key][$url])) + strlen($url)) < 1800 ? (strpos($url, '?') ? '&' : '?') . 'uwhodata=' . urlencode($encrypted[$key][$url]) : '') . ($redirect ? '&redirect=' . urlencode($redirect) : '') . '" onclick="jQuery(this).parent().trigger(\'submit\'); return false;">' . $text . '</a>';
   }else{
     $link_or_button = '<input type="submit" value="' . $text . '"/>';

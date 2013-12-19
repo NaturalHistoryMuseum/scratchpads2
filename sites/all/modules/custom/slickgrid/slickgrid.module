@@ -523,15 +523,17 @@ function slickgrid_editor_form($form, &$form_state){
  */
 function slickgrid_module_implements_alter(&$implementations, $hook){
   if($hook == 'file_presave'){
-    $move = $implementations['slickgrid'];
-    unset($implementations['slickgrid']);
-    $new_implementations = array(
-      'slickgrid' => $move
-    );
-    foreach($implementations as $key => $move){
-      $new_implementations[$key] = $move;
+    if(isset($implementations['slickgrid'])){
+      $move = $implementations['slickgrid'];
+      unset($implementations['slickgrid']);
+      $new_implementations = array(
+        'slickgrid' => $move
+      );
+      foreach($implementations as $key => $move){
+        $new_implementations[$key] = $move;
+      }
+      $implementations = $new_implementations;
     }
-    $implementations = $new_implementations;
   }
 }
 

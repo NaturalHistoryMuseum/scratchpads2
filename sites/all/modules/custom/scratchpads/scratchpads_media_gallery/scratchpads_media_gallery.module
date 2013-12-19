@@ -1,6 +1,6 @@
 <?php
 // DEFINE the file extensions that we allow.
-DEFINE('FIELD_MEDIA_FILE_EXTENSIONS', 'svg tiff jpg jpeg gif png txt doc docx xls xlsx pdf ppt pptx pps ppsx odt ods odp mp3 mov mp4 m4a m4v mpeg avi ogg oga ogv wmv ico xml nex phy nhx zip');
+DEFINE('FIELD_MEDIA_FILE_EXTENSIONS', 'svg tiff jpg jpeg gif png txt doc docx xls xlsx pdf ppt pptx pps ppsx odt ods odp mp3 mov mp4 m4a m4v mpeg avi ogg oga ogv wmv ico xml nex phy nhx zip kmz');
 include_once ('scratchpads_media_gallery.features.inc');
 
 /**
@@ -22,6 +22,15 @@ function scratchpads_media_gallery_scratchpads_solr_info(){
       'empty' => 'scratchpads_media_gallery_empty'
     )
   );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function scratchpads_media_gallery_form_node_delete_confirm_alter(&$form, &$form_state, $form_id){
+  if($form['#node']->type == 'media_gallery'){
+    $form['description']['#markup'] .= '<br/>' . t('Note, media attached to this gallery will not be deleted.');
+  }
 }
 
 /**
@@ -208,7 +217,7 @@ function scratchpads_media_gallery_node_view($node, $view_mode, $langcode){
 
 /**
  * Implementation of hook_page_alter().
- * 
+ *
  * FIXME - We need to check for the presence of a facet filter.
  */
 function scratchpads_media_gallery_menu_local_tasks_alter(&$data, $router_item, $root_path){
@@ -240,16 +249,18 @@ function scratchpads_media_gallery_node_insert($node){
   if(isset($node->field_media) && $node->type == 'media_gallery'){
     // We edit the file entities to add this node id to their respective field.
     $new_fids = array();
-    foreach($node->field_media[LANGUAGE_NONE] as $delta => $values){
+    $lang = field_language('node', $node, 'field_media');
+    foreach($node->field_media[$lang] as $delta => $values){
       $new_fids[$values['fid']] = $values['fid'];
     }
     $files = entity_load('file', $new_fids);
     foreach($files as $file){
       // Adding
-      if(!isset($file->field_smg_galleries[LANGUAGE_NONE])){
-        $file->field_smg_galleries[LANGUAGE_NONE] = array();
+      $lang = field_language('file', $file, 'field_media');
+      if(!isset($file->field_smg_galleries[$lang])){
+        $file->field_smg_galleries[$lang] = array();
       }
-      $file->field_smg_galleries[LANGUAGE_NONE][] = array(
+      $file->field_smg_galleries[$lang][] = array(
         'nid' => $node->nid
       );
       entity_save('file', $file);
@@ -273,7 +284,8 @@ function scratchpads_media_gallery_node_update($node){
       $current_fids[$row->entity_id] = $row->entity_id;
     }
     $new_fids = array();
-    foreach($node->field_media[LANGUAGE_NONE] as $delta => $values){
+    $lang = field_language('node', $node, 'field_media');
+    foreach($node->field_media[$lang] as $delta => $values){
       $new_fids[$values['fid']] = $values['fid'];
     }
     $fids_to_add = array_diff_key($new_fids, $current_fids);
@@ -281,10 +293,11 @@ function scratchpads_media_gallery_node_update($node){
     $files = entity_load('file', $fids_to_add);
     foreach($files as $file){
       // Adding
-      if(!isset($file->field_smg_galleries[LANGUAGE_NONE])){
-        $file->field_smg_galleries[LANGUAGE_NONE] = array();
+      $lang = field_language('file', $file, 'field_smg_galleries');
+      if(!isset($file->field_smg_galleries[$lang])){
+        $file->field_smg_galleries[$lang] = array();
       }
-      $file->field_smg_galleries[LANGUAGE_NONE][] = array(
+      $file->field_smg_galleries[$lang][] = array(
         'nid' => $node->nid
       );
       entity_save('file', $file);
@@ -292,9 +305,10 @@ function scratchpads_media_gallery_node_update($node){
     $files = entity_load('file', $fids_to_remove);
     foreach($files as $file){
       // Removing
-      foreach($file->field_smg_galleries[LANGUAGE_NONE] as $delta => $value){
+      $lang = field_language('file', $file, 'field_smg_galleries');
+      foreach($file->field_smg_galleries[$lang] as $delta => $value){
         if($value['nid'] == $node->nid){
-          unset($file->field_smg_galleries[LANGUAGE_NONE][$delta]);
+          unset($file->field_smg_galleries[$lang][$delta]);
         }
       }
       entity_save('file', $file);
@@ -344,8 +358,7 @@ function scratchpads_media_gallery_facetapi_facet_info($searcher_info = FALSE){
       'description' => t('Creator'),
       'query types' => array(
         'term'
-      ),
-      
+      )
     ),
     'im_field_imaging_technique' => array(
       'name' => 'im_field_imaging_technique',
@@ -377,10 +390,29 @@ function scratchpads_media_gallery_facetapi_facet_info($searcher_info = FALSE){
   );
 }
 
+/**
+ * Implements hook_media_wysiwyg_allowed_view_modes_alter() to prevent a large
+ * list of media formats on the WYSIWYG editor.
+ */
+function scratchpads_media_gallery_media_wysiwyg_allowed_view_modes_alter(&$view_modes, $file){
+  // file_styles_large, file_styles_medium, file_styles_original, file_styles_square_thumbnail, file_styles_thumbnail
+  $new_view_modes = array();
+  foreach(array(
+    'file_styles_original',
+    'file_styles_large',
+    'file_styles_medium',
+    'file_styles_thumbnail',
+    'file_styles_square_thumbnail'
+  ) as $key){
+    $new_view_modes[$key] = $view_modes[$key];
+  }
+  $view_modes = $new_view_modes;
+}
 
-function scratchpads_media_gallery_apachesolr_field_mappings_alter(&$mappings, $entity_type) {
-  
- 
+/**
+ * Nah, we don't need any documentation here, of course not!
+ */
+function scratchpads_media_gallery_apachesolr_field_mappings_alter(&$mappings, $entity_type){
   // Enable indexing for text fields
   $mappings['text'] = array(
     'indexing_callback' => 'apachesolr_fields_default_indexing_callback',
@@ -388,16 +420,19 @@ function scratchpads_media_gallery_apachesolr_field_mappings_alter(&$mappings, $
     'index_type' => 'string',
     'facets' => TRUE,
     'facet missing allowed' => TRUE,
-    'dependency plugins' => array('bundle', 'role'),
+    'dependency plugins' => array(
+      'bundle',
+      'role'
+    ),
     'hierarchy callback' => FALSE,
     'name_callback' => '',
     'facet mincount allowed' => FALSE,
     // Field API allows any field to be multi-valued.
     // If we set this to false we are able to sort
-    'multiple' => FALSE,
+    'multiple' => FALSE
   );
- 
 }
+
 /**
  * Map callback
  */

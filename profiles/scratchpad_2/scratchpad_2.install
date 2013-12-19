@@ -25,7 +25,7 @@ function scratchpad_2_standard_scratchpad(){
       '#type' => 'checkbox',
       '#default_value' => 1,
       '#title' => 'Standard Scratchpad',
-      '#description' => 'Uncheck this box if you are install a Scratchpad on your own server.'
+      '#description' => 'Uncheck this box if you are installing a Scratchpad on your own server.'
     ),
     'actions' => array(
       '#type' => 'actions',

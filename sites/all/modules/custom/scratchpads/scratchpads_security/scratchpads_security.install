@@ -12,28 +12,6 @@ function scratchpads_security_install(){
   variable_set('image_captcha_noise_level', 1);
   // Set the CAPTCHA options
   variable_set('captcha_default_challenge', 'image_captcha/Image');
-  // Set the CAPTCHA After options
-  db_delete('captcha_after')->execute();
-  $query = db_insert('captcha_after')->fields(array(
-    'form_id',
-    'enable',
-    'options'
-  ));
-  foreach(array(
-    'user_login_block',
-    'user_login'
-  ) as $form_id){
-    $query->values(array(
-      'form_id' => $form_id,
-      'enable' => 1,
-      'options' => serialize(array(
-        'submit_threshold' => '',
-        'flooding_threshold' => '',
-        'global_flooding_threshold' => ''
-      ))
-    ));
-  }
-  $query->execute();
   // Set the forms that require a CAPTCHA.
   scratchpads_security_flush_caches();
   // Set the Spambot settings.
@@ -79,4 +57,18 @@ function scratchpads_security_update_7001(){
   variable_set('spambot_cron_user_limit', 1);
   variable_set('spambot_check_blocked_accounts', 1);
   variable_set('spambot_spam_account_action', 1);
+}
+
+/**
+ * Disable the captcha_after module, and also prevent captcha from being added
+ * to the login block form.  This is to enable caching to work.
+ */
+function scratchpads_security_update_7002(){
+  module_disable(array(
+    'captcha_after'
+  ));
+  db_delete('captcha_points')->condition('form_id', array(
+    'user_login',
+    'user_login_block'
+  ))->execute();
 }

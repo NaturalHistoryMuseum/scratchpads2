@@ -10,7 +10,7 @@ function scratchpads_search_block_autocomplete($search = ''){
     $tags_return = $query->fields('t', array(
       'tid',
       'vid'
-    ))->condition('t.name', '%' . db_like($search) . '%', 'LIKE')->range(0, 10)->execute()->fetchAllKeyed();
+    ))->condition('t.name', '%' . db_like($search) . '%', 'LIKE')->range(0, 10)->orderBy('t.name', 'ASC')->execute()->fetchAllKeyed();
     $term_matches = array();
     $vocabularies = taxonomy_get_vocabularies();
     //print_r($vocabularies);

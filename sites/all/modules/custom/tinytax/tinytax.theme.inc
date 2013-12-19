@@ -20,6 +20,11 @@ function theme_tinytax_block($variables){
     }
   }
   $toggle = variable_get('tinytax_hidden_field_and_value_' . $variables['vid'], array());
+  if(module_exists('relation_add-')){
+    // FIXME - The toggle will not work when not loading the full term.  We
+    // therefore hide the toggle when the relation_add module is enabled.
+    $toggle = array();
+  }
   $toggle_form = '';
   if(count($toggle)){
     $toggle_form = '<form><input class="tinytax-toggle-checkbox" data-vid="' . $variables['vid'] . '" id="tinytax-toggle-' . $variables['vid'] . '" type="checkbox" value="0" name="tinytax_toggle_' . $variables['vid'] . '"/>
@@ -41,7 +46,16 @@ function theme_tinytax_block($variables){
  */
 function theme_tinytax_branch($variables){
   // Get the terms to render
-  $terms = taxonomy_get_tree($variables['vid'], $variables['tid'], 1, TRUE);
+  if(module_exists('relation_add-')){
+    // Due to the way the relation_add module loads relaion entities, and the
+    // fact that it is a HUGE performance overhead, we do not load the full
+    // entity if it is enabled.  This means the sorting and display of terms
+    // will be broken.
+    // FIXME - A better solution for this is needed.
+    $terms = taxonomy_get_tree($variables['vid'], $variables['tid'], 1);
+  }else{
+    $terms = taxonomy_get_tree($variables['vid'], $variables['tid'], 1, TRUE);
+  }
   uasort($terms, '_tinytax_sort_terms');
   $output = '<ul>';
   foreach($terms as $term){
@@ -61,19 +75,19 @@ function theme_tinytax_branch($variables){
  * little shitty).
  */
 function _tinytax_sort_terms($a, $b){
+  // Compare Usage
   $a_usage = !empty($a->field_usage[LANGUAGE_NONE][0]['value']) ? $a->field_usage[LANGUAGE_NONE][0]['value'] : 'valid';
   $b_usage = !empty($b->field_usage[LANGUAGE_NONE][0]['value']) ? $b->field_usage[LANGUAGE_NONE][0]['value'] : 'valid';
   if($a_usage != $b_usage){
     // As we use 'valid' for default value, it may be that we have one as 'valid' and one as 'accepted'
     $a_usage = ($a_usage == 'valid' || $a_usage == 'accepted');
     $b_usage = ($b_usage == 'valid' || $b_usage == 'accepted');
-    if($a_usage == $b_usage){
-      return strcmp($a->name, $b->name);
-    }else{
-      return $a_usage ? 1 : -1;
-    }
+    if($a_usage != $b_usage){return $a_usage ? 1 : -1;}
   }
-  return strcmp($a->name, $b->name);
+  // Compare Weight
+  if($a->weight != $b->weight){return $a->weight > $b->weight;}
+  // Compare Name
+  return strcasecmp($a->name, $b->name);
 }
 
 /**
@@ -91,7 +105,6 @@ function theme_tinytax_term_count($variables){
  * tinytax_term theme function
  */
 function theme_tinytax_term($variables){
-  $has_children = count(taxonomy_get_children($variables['term']->tid));
   $class = '';
   if($variables['toggle']){
     foreach($variables['toggle'] as $field_name => $toggle_values){
@@ -99,12 +112,14 @@ function theme_tinytax_term($variables){
         foreach($values as $value){
           if(in_array($value['value'], $toggle_values)){
             $class = " class=\"vid-{$variables['term']->vid} toggleable\"";
+            break;
           }
         }
       }
     }
   }
   $output = "<li id=\"tinytax-{$variables['term']->tid}\"$class>";
+  $has_children = db_select('taxonomy_term_hierarchy', 't')->condition('parent', $variables['term']->tid)->countQuery()->execute()->fetchField();
   if($has_children){
     // Plus or minus.
     if(in_array($variables['term']->tid, $variables['open_tids'])){
@@ -247,7 +262,8 @@ function theme_tinytax_term($variables){
     )) . theme('tinytax_branch', array(
       'open_tids' => $variables['open_tids'],
       'tid' => $variables['term']->tid,
-      'vid' => $variables['term']->vid
+      'vid' => $variables['term']->vid,
+      'toggle' => $variables['toggle']
     ));
   }else{
     $output .= theme('tinytax_term_count', array(

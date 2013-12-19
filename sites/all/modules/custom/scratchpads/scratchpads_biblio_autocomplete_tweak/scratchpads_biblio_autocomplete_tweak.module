@@ -90,6 +90,7 @@ function _scratchpads_biblio_autocomplete_tweak_node_reference_potential_referen
   $query->join('biblio_contributor', 'bc', 'bc.vid = b.vid');
   $query->join('biblio_contributor_data', 'bcd', 'bcd.cid = bc.cid');
   $biblio_year_alias = $query->addField('b', 'biblio_year', 'year');
+  $biblio_year_alias = $query->addField('b', 'biblio_volume', 'volume');
   $biblio_author_alias = $query->addField('bcd', 'name', 'author');
   $query->condition('bc.rank', 0);
   $query->addTag('node_access')->addMetaData('id', ' _node_reference_potential_references_standard')->addMetaData('field', $field)->addMetaData('options', $options);
@@ -127,7 +128,7 @@ function _scratchpads_biblio_autocomplete_tweak_node_reference_potential_referen
   foreach($result as $node){
     $references[$node->nid] = array(
       'title' => $node->node_title,
-      'rendered' => check_plain($node->author) . " - " . check_plain($node->year) . " - " . check_plain($node->node_title)
+      'rendered' => check_plain($node->author) . " - " . check_plain($node->year) . " - " . check_plain($node->node_title) . ($node->volume ? " (Vol:{$node->volume})":'')
     );
   }
   return $references;

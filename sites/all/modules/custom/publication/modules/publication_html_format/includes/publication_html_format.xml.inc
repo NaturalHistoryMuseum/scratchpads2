@@ -13,7 +13,7 @@ class PublicationHtmlFormatXMLModifier extends PublicationHtmlFormatChangeCitati
   /**
    * Implement PublicationXMLModifierInterface::start_building
    */
-  public function start_building($schema, $object, $dom){}
+  public function start_building($schema, $entity_type, $entity, $dom){}
 
   /**
    * Implement PublicationXMLModifierInterface::insert_value
@@ -53,14 +53,13 @@ class PublicationHtmlFormatXMLModifier extends PublicationHtmlFormatChangeCitati
         // Re-order tables
         $new_values = array();
         $max_order = count($this->table_ids);
-        foreach ($values as $value) {
-          $collection = reset(entity_load('field_collection_item', array($value['value'])));
+        foreach ($values as $collection) {
           $table_id = $collection->field_publication_table_id[LANGUAGE_NONE][0]['value'];
           $order = array_search($table_id, $this->table_ids);
           if ($order === FALSE) {
             $order = $max_order++;
           }
-          $new_values[$order] = $value;
+          $new_values[$order] = $collection;
         }
         ksort($new_values);
         return $new_values;
@@ -68,14 +67,13 @@ class PublicationHtmlFormatXMLModifier extends PublicationHtmlFormatChangeCitati
         // Re-order figures
         $new_values = array();
         $max_order = count($this->figure_ids);
-        foreach ($values as $value) {
-          $collection = reset(entity_load('field_collection_item', array($value['value'])));
+        foreach ($values as $collection) {
           $fid = $collection->field_publication_figure_figure[LANGUAGE_NONE][0]['fid'];
           $order = array_search($fid, $this->figure_ids);
           if ($order === FALSE) {
             $order = $max_order++;
           }
-          $new_values[$order] = $value;
+          $new_values[$order] = $collection;
         }
         ksort($new_values);
         return $new_values;

@@ -27,6 +27,10 @@ function scratchpads_sandbox_block_info(){
  * Implements hook_block_view().
  */
 function scratchpads_sandbox_block_view($delta = ''){
+  // Prevent caching of the page so that the time remaining, and any other
+  // elements are kept fresh.  We do this ONLY for the Sandbox.
+  global $conf;
+  $conf['cache'] = FALSE;
   $login_text = t('<a href="!login_url">Login</a> to the site using the username: "username" and the password: "password"', array(
     '!login_url' => url('user')
   ));

@@ -80,27 +80,28 @@ class link_views_handler_filter_protocol extends views_handler_filter_string {
     $where_conditions = array();
     foreach ($protocols as $protocol) {
       // Simple case, the URL begins with the specified protocol.
-      $condition = $field .' LIKE \''. $protocol .'%\'';
+      $condition = $field . ' LIKE \'' . $protocol . '%\'';
 
       // More complex case, no protocol specified but is automatically cleaned up
       // by link_cleanup_url(). RegEx is required for this search operation.
       if ($protocol == 'http') {
+        $LINK_DOMAINS = _link_domains();
         if ($db_type == 'pgsql') {
           // PostGreSQL code has NOT been tested. Please report any problems to the link issue queue.
           // pgSQL requires all slashes to be double escaped in regular expressions.
           // See http://www.postgresql.org/docs/8.1/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP
-          $condition .= ' OR '. $field .' ~* \''.'^(([a-z0-9]([a-z0-9\\-_]*\\.)+)('. LINK_DOMAINS .'|[a-z][a-z]))'.'\'';
+          $condition .= ' OR ' . $field .' ~* \''.'^(([a-z0-9]([a-z0-9\\-_]*\\.)+)(' . $LINK_DOMAINS . '|[a-z][a-z]))' . '\'';
         }
         else {
           // mySQL requires backslashes to be double (triple?) escaped within character classes.
           // See http://dev.mysql.com/doc/refman/5.0/en/string-comparison-functions.html#operator_regexp
-          $condition .= ' OR '. $field .' REGEXP \''.'^(([a-z0-9]([a-z0-9\\\-_]*\.)+)('. LINK_DOMAINS .'|[a-z][a-z]))'.'\'';
+          $condition .= ' OR ' . $field . ' REGEXP \''.'^(([a-z0-9]([a-z0-9\\\-_]*\.)+)(' . $LINK_DOMAINS . '|[a-z][a-z]))' . '\'';
         }
       }
 
       $where_conditions[] = $condition;
     }
 
-    $this->query->add_where($this->options['group'], implode(' '. $this->operator .' ', $where_conditions));
+    $this->query->add_where($this->options['group'], implode(' ' . $this->operator . ' ', $where_conditions));
   }
 }

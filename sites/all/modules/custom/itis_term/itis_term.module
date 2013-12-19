@@ -15,7 +15,7 @@ function itis_term_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $fo
       '#options' => array(
         1 => 'Animal',
         2 => 'Algae/Fungi/Plants',
-        3 => 'Moneran'
+        3 => 'Bacteria/Archaea'
       ),
       '#empty_option' => t('Not a biological classification'),
       '#default_value' => (isset($form['vid']) && isset($vids[$form['vid']['#value']])) ? $vids[$form['vid']['#value']] : 0,
@@ -192,6 +192,8 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
               'Subgenus' => 'Subgenus',
               'Section' => 'Section',
               'Subsection' => 'Subsection',
+              'Series' => 'Series',
+              'Subseries' => 'Subseries',
               'Species' => 'Species',
               'Subspecies' => 'Subspecies',
               'Variety' => 'Variety',
@@ -237,6 +239,7 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
         'Order' => 'Order',
         'Phylum' => 'Phylum',
         'Section' => 'Section',
+        'Series' => 'Series',
         'Species' => 'Species',
         'Subclass' => 'Subclass',
         'Subdivision' => 'Subdivision',
@@ -247,6 +250,7 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
         'Suborder' => 'Suborder',
         'Subphylum' => 'Subphylum',
         'Subsection' => 'Subsection',
+        'Subseries' => 'Subseries',
         'Subspecies' => 'Subspecies',
         'Subtribe' => 'Subtribe',
         'Subvariety' => 'Subvariety',
@@ -338,11 +342,19 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
     case 'field_unit_indicator1':
     case 'field_unit_indicator2':
       if($biological_type){return array(
-          '×' => '×'
+          '×' => '×',
+          'ser.' => 'ser.',
+          'subser.' => 'subser.',
+          'sect.' => 'sect.',
+          'subsect.' => 'subsect'
         );}
       return array(
         'x' => 'x',
-        '×' => '×'
+        '×' => '×',
+        'ser.' => 'ser.',
+        'subser.' => 'subser.',
+        'sect.' => 'sect.',
+        'subsect.' => 'subsect'
       );
     case 'field_unit_indicator3':
     case 'field_unit_indicator4':
@@ -371,8 +383,10 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
       }
       return array(
         'f.' => 'f.',
+        'ser.' => 'ser.',
         'ssp.' => 'ssp.',
         'subf.' => 'subf.',
+        'subser.' => 'subser.',
         'subsp.' => 'subsp.',
         'subvar.' => 'subvar.',
         'var.' => 'var.',

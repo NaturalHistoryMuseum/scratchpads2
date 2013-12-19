@@ -41,7 +41,8 @@ function scratchpads_multilingual_block_info(){
     'region' => 'slide_top',
     'weight' => 1,
     'theme' => SCRATCHPADS_THEME_NAME,
-    'status' => 1
+    'status' => 1,
+    'cache' => DRUPAL_CACHE_PER_PAGE
   );
   return $blocks;
 }

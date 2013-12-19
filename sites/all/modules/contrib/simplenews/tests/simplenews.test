@@ -13,8 +13,11 @@ class SimplenewsTestCase extends DrupalWebTestCase {
   // Store generated email addresses used to prevent duplications.
   protected $mailadress_cache;
 
-  public function setUp($modules = array()) {
-
+  public function setUp() {
+    $modules = func_get_args();
+    if (isset($modules[0]) && is_array($modules[0])) {
+      $modules = $modules[0];
+    }
     $modules = array_merge(array('taxonomy', 'simplenews'), $modules);
     parent::setUp($modules);
 
@@ -171,7 +174,7 @@ class SimplenewsSubscribeTestCase extends SimplenewsTestCase {
   /**
    * Implement getInfo().
    */
-  function getInfo() {
+  static function getInfo() {
     return array(
       'name' => t('Subscribe and unsubscribe users'),
       'description' => t('(un)subscription of anonymous and authenticated users. Subscription via block, subscription page and account page'),
@@ -985,7 +988,7 @@ class SimpleNewsAdministrationTestCase extends SimplenewsTestCase {
   /**
    * Implement getInfo().
    */
-  function getInfo() {
+  static function getInfo() {
     return array(
       'name' => t('Simplenews administration'),
       'description' => t('Managing of newsletter categories and content types.'),
@@ -1544,6 +1547,19 @@ class SimpleNewsAdministrationTestCase extends SimplenewsTestCase {
     $this->assertFalse(simplenews_user_is_subscribed($subscriber->mail, reset($subscriber->tids), t('Subscriber not subscribed anymore.')));
 
     // @todo Test Admin subscriber edit preferred language $subscription->language
+
+    // Register a subscriber with an insecure e-mail address through the API
+    // and make sure the address is correctly encoded.
+    $xss_mail = "<script>alert('XSS');</script>";
+    simplenews_subscribe_user($xss_mail, $this->getRandomNewsletter(), FALSE);
+    $this->drupalGet('admin/people/simplenews');
+    $this->assertNoRaw($xss_mail);
+    $this->assertRaw(check_plain($xss_mail));
+
+    $xss_subscriber = simplenews_subscriber_load_by_mail($xss_mail);
+    $this->drupalGet('admin/people/simplenews/users/edit/' . $xss_subscriber->snid);
+    $this->assertNoRaw($xss_mail);
+    $this->assertRaw(check_plain($xss_mail));
   }
 
   /**
@@ -1611,7 +1627,7 @@ class SimpleNewsI18nTestCase extends SimplenewsTestCase {
   /**
    * Implementation of getInfo().
    */
-  function getInfo() {
+  static function getInfo() {
     return array(
       'name' => t('Simplenews I18n'),
       'description' => t('Translation of newsletter categories'),
@@ -2019,7 +2035,7 @@ class SimplenewsSendTestCase extends SimplenewsTestCase {
   /**
    * Implementation of getInfo().
    */
-  function getInfo() {
+  static function getInfo() {
     return array(
       'name' => t('Sending newsletters'),
       'description' => t('Creating and sending of newsletters, different send processes (with/without cron, send on publish)'),
@@ -2546,7 +2562,7 @@ class SimplenewsSourceTestCase extends SimplenewsTestCase {
   /**
    * Implementation of getInfo().
    */
-  function getInfo() {
+  static function getInfo() {
     return array(
       'name' => t('Source tests'),
       'description' => t('Tests for the new source interfaces and concepts.'),
@@ -2929,7 +2945,7 @@ class SimplenewsSourceTestCase extends SimplenewsTestCase {
  */
 class SimplenewsUnitTest extends DrupalUnitTestCase {
 
-  function getInfo() {
+  static function getInfo() {
     return array(
       'name' => 'Unit tests',
       'description' => 'Unit tests for certain functions.',

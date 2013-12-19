@@ -2,5 +2,4 @@ name = "Scratchpads Security"
 description = "Enables the CAPTCHA module, and may also provide additional security features like IP blocking."
 core = "7.x"
 dependencies[] = image_captcha
-dependencies[] = captcha_after
 dependencies[] = spambot

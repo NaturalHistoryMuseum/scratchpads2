@@ -150,14 +150,8 @@ function scratchpads_taxonomic_name_field_autocomplete_validate($element, &$form
 }
 
 /**
- * Almost identical to the original function, but with added brackets,  
+ * Almost identical to the original function, but with added brackets,
  * vocabulary name and tweak to return exact matches first.
- * 
- * FIXME - This does not currently allow for homonyms in different vocabularies
- * AAARGH!
- *
- * @param unknown_type $field_name        
- * @param unknown_type $tags_typed        
  */
 function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed = ''){
   // If the request has a '/' in the search text, then the menu system will have
@@ -232,7 +226,11 @@ function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed 
       $parents = array_reverse($parents);
       $parent_names = array();
       foreach($parents as $parent){
-        $parent_names[] = check_plain($parent->name);
+        $authors = '';
+        if(!@empty($parent->field_authors['und'][0]['value'])){
+          $authors = " {$parent->field_authors['und'][0]['value']}";
+        }
+        $parent_names[] = check_plain($parent->name.$authors);
       }
       $link_text = implode(" &raquo; ", $parent_names);
       $term_matches[$prefix . $n] = (count($field['settings']['allowed_values']) > 1) ? $link_text . ' (' . check_plain($tag->vocab_name) . ')' : $link_text;

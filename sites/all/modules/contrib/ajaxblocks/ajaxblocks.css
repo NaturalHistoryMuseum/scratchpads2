@@ -1,0 +1,39 @@
+.ajaxblocks-wrapper-1 {
+  background: url(images/loader-1.gif) center center no-repeat;
+  min-height: 16px;
+}
+
+.ajaxblocks-wrapper-2 {
+  background: url(images/loader-2.gif) center center no-repeat;
+  min-height: 16px;
+}
+
+.ajaxblocks-wrapper-3 {
+  background: url(images/loader-3.gif) center center no-repeat;
+  min-height: 32px;
+}
+
+.ajaxblocks-wrapper-4 {
+  background: url(images/loader-4.gif) center center no-repeat;
+  min-height: 16px;
+}
+
+.ajaxblocks-wrapper-5 {
+  background: url(images/loader-5.gif) center center no-repeat;
+  min-height: 32px;
+}
+
+.ajaxblocks-wrapper-6 {
+  background: url(images/loader-6.gif) center center no-repeat;
+  min-height: 16px;
+}
+
+.ajaxblocks-wrapper-7 {
+  background: url(images/loader-7.gif) center center no-repeat;
+  min-height: 24px;
+}
+
+.ajaxblocks-wrapper-8 {
+  background: url(images/loader-8.gif) center center no-repeat;
+  min-height: 11px;
+}

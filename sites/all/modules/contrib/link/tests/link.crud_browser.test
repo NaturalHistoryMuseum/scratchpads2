@@ -42,13 +42,15 @@ class LinkUITest extends DrupalWebTestcase {
    */
   function testLinkCreate() {
     //libxml_use_internal_errors(true);
-    $account = $this->drupalCreateUser(array('administer content types',
-                                             'administer nodes',
-                                             'administer filters',
-                                             'access content',
-                                             'create page content',
-                                             'access administration pages'));
-    $this->drupalLogin($account);
+    $this->web_user = $this->drupalCreateUser(array(
+      'administer content types',
+      'administer nodes',
+      'administer filters',
+      'access content',
+      'create page content',
+      'access administration pages'
+    ));
+    $this->drupalLogin($this->web_user);
 
     // create field
     $name = strtolower($this->randomName());
@@ -125,7 +127,7 @@ class LinkUITest extends DrupalWebTestcase {
     $input_test_cases[] = $test_case;
 
     foreach ($input_test_cases as $input) {
-      $this->drupalLogin($account);
+      $this->drupalLogin($this->web_user);
       $this->drupalGet('node/add/page');
 
       $edit = array(
@@ -135,7 +137,7 @@ class LinkUITest extends DrupalWebTestcase {
       );
       $this->drupalPost(NULL, $edit, t('Save'));
       if ($input['type'] == self::LINK_INPUT_TYPE_BAD_URL) {
-        $this->assertRaw(t('Not a valid URL.'), 'Not a valid URL: ' . $input['href']);
+        $this->assertRaw(t('The value provided for %field is not a valid URL.', array('%field' => $name)), 'Not a valid URL: ' . $input['href']);
         continue;
       }
       else {
@@ -168,121 +170,12 @@ class LinkUITest extends DrupalWebTestcase {
   }
 
   /**
-   * Creates a link field for the "page" type and creates a page with a link.
-   * Just like the above test, only here we're turning off the validation on the field.
-   */
-  /*function testLinkCreate_NoValidation() {
-    //libxml_use_internal_errors(true);
-    $account = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
-    $this->drupalLogin($account);
-
-    // create field
-    $name = strtolower($this->randomName());
-    $edit = array(
-      'fields[_add_new_field][label]' => $name,
-      'fields[_add_new_field][field_name]' => $name,
-      'fields[_add_new_field][type]' => 'link_field',
-      'fields[_add_new_field][widget_type]' => 'link_field',
-    );
-    $this->drupalPost('admin/structure/types/manage/page/fields', $edit, t('Save'));
-    $this->drupalPost(NULL, array(), t('Save field settings'));
-    $this->drupalPost(NULL, array('validate_url' => FALSE), t('Save settings'));
-
-    // Is field created?
-    $this->assertRaw(t('Saved %label configuration', array('%label' => $name)), 'Field added');
-    _content_type_info(TRUE);
-    $fields = content_fields();
-    $this->assertTRUE(0 === $fields['field_'. $name]['validate_url'], 'Make sure validation is off.');
-
-    // create page form
-    $this->drupalGet('node/add/page');
-    $field_name = 'field_' . $name;
-    $this->assertField($field_name . '[0][title]', 'Title found');
-    $this->assertField($field_name . '[0][url]', 'URL found');
-
-    $input_test_cases = array(
-      array(
-        'href' => 'http://example.com/' . $this->randomName(),
-        'label' => $this->randomName(),
-        'msg' => 'Link found',
-        'type' => self::LINK_INPUT_TYPE_GOOD
-      ),
-      array(
-        'href' => 'http://example.com/' . $this->randomName(),
-        'label' => $this->randomName() . '<script>alert("hi");</script>',
-        'msg' => 'js label',
-        'type' => self::LINK_INPUT_TYPE_BAD_TITLE
-      ),
-      array(
-        'href' => 'http://example.com/' . $this->randomName(),
-        'label' => $this->randomName() . '<script src="http://devil.site.com"></script>',
-        'msg' => 'js label',
-        'type' => self::LINK_INPUT_TYPE_BAD_TITLE
-      ),
-      array(
-        'href' => 'http://example.com/' . $this->randomName(),
-        'label' => $this->randomName() . '" onmouseover="alert(\'hi\')',
-        'msg' => 'js label',
-        'type' => self::LINK_INPUT_TYPE_BAD_TITLE
-      ),
-       array(
-        'href' => 'http://example.com/' . $this->randomName(),
-        'label' => $this->randomName() . '\' onmouseover="alert(\'hi\')',
-        'msg' => 'js label',
-        'type' => self::LINK_INPUT_TYPE_BAD_TITLE
-      ),
-     array(
-        'href' => 'javascript:alert("http://example.com/' . $this->randomName() . '")',
-        'label' => $this->randomName(),
-        'msg' => 'js url',
-        'type' => self::LINK_INPUT_TYPE_BAD_URL
-      ),
-    );
-    foreach ($input_test_cases as $input) {
-      $this->drupalLogin($account);
-      $this->drupalGet('node/add/page');
-
-      $edit = array(
-        'title' => $input['label'],
-        $field_name . '[0][title]' => $input['label'],
-        $field_name . '[0][url]' => $input['href'],
-      );
-      $this->drupalPost(NULL, $edit, t('Save'));
-      if ($input['type'] == self::LINK_INPUT_TYPE_BAD_URL) {
-        //$this->assertRaw(t('Not a valid URL.'), 'Not a valid URL: ' . $input['href']);
-        $this->assertNoRaw($input['href']);
-        $this->assertRaw(t('@type %title has been created.', array('@type' => 'Basic Page', '%title' => $edit['title'])), 'Page created: ' . $input['href']);
-        continue;
-      }
-      else {
-        $this->assertRaw(t('@type %title has been created.', array('@type' => 'Basic Page', '%title' => $edit['title'])), 'Page created: ' . $input['href']);
-      }
-      $url = $this->getUrl();
-
-      // change to anonym user
-      $this->drupalLogout();
-
-      $this->drupalGet($url);
-      //debug($this);
-      // If simpletest starts using something to override the error system, this will flag
-      // us and let us know it's broken.
-      $this->assertFalse(libxml_use_internal_errors(TRUE));
-      $path = '//a[@href="'. $input['href'] .'" and text()="'. $input['label'] .'"]';
-      //$this->pass(htmlentities($path));
-      $elements = $this->xpath($path);
-      libxml_use_internal_errors(FALSE);
-      $this->assertIdentical(isset($elements[0]), $input['type'] == self::LINK_INPUT_TYPE_GOOD, $input['msg']);
-    }
-    //libxml_use_internal_errors(FALSE);
-  }*/
-
-  /**
    * Testing that if you use <strong> in a static title for your link, that the
    * title actually displays <strong>.
    */
   function testStaticLinkCreate() {
-    $account = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
-    $this->drupalLogin($account);
+    $this->web_user = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
+    $this->drupalLogin($this->web_user);
 
     // create field
     $name = strtolower($this->randomName());
@@ -330,8 +223,8 @@ class LinkUITest extends DrupalWebTestcase {
    * sure they are set to the expected results.
    */
   function testCRUDCreateFieldDefaults() {
-    $account = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
-    $this->drupalLogin($account);
+    $this->web_user = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
+    $this->drupalLogin($this->web_user);
 
     // create field
     $name = strtolower($this->randomName());

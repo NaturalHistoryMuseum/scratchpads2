@@ -13,14 +13,15 @@ function taxonomy_get_tree($vid, $parent = 0, $max_depth = NULL, $load_entities 
   if($max_depth == 1){
     $query = db_select('taxonomy_term_data', 't');
     $query->join('taxonomy_term_hierarchy', 'h', 'h.tid = t.tid');
-    $query->addField('t', 'tid');
-    $query->condition('h.parent', $parent);
-    $query->condition('t.vid', $vid);
-    $query->addTag('term_access');
-    $query->orderBy('t.weight');
-    $query->orderBy('t.name');
-    $tids = $query->execute()->fetchCol();
-    return taxonomy_term_load_multiple($tids);
+    $results = $query->addTag('translatable')->addTag('term_access')->fields('t')->fields('h', array(
+      'parent'
+    ))->condition('t.vid', $vid)->condition('h.parent', $parent)->orderBy('t.weight')->orderBy('t.name')->execute();
+    $terms = array();
+    foreach($results as $row){
+      $terms[$row->tid] = $row;
+    }
+    if($load_entities){return taxonomy_term_load_multiple(array_keys($terms));}
+    return $terms;
   }
   // We're asking too much. Set an error, and return an empty tree.
   watchdog('Taxonomy', 'Attempted to get a large tree.', array(), WATCHDOG_ERROR);

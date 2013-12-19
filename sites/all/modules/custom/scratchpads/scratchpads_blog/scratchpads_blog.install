@@ -11,4 +11,6 @@ function scratchpads_blog_disable(){
   drupal_register_shutdown_function('module_disable', array(
     'blog'
   ));
+  // Without this, node/add/blog can still be accessed
+  drupal_register_shutdown_function('drupal_flush_all_caches');
 }

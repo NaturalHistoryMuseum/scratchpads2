@@ -13,13 +13,19 @@ function scratchpads_tweaks_init(){
     // Set the REQUIREMENT_ERROR variable so that no errors are displayed when
     // viewing the admin/config page as a non-admin user.
     define('REQUIREMENT_ERROR', 'Hide requirement error');
-  }
-  // Check to see if we're trying to view the admin/appearance/settings/scratchpads
-  // page, and if so we redirect to the general settings page.
-  if($_GET['q'] == 'admin/appearance/settings/scratchpads' || $_GET['q'] == 'admin/appearance/settings/scratchpads_em'){
+  }else if($_GET['q'] == 'admin/appearance/settings/scratchpads' || $_GET['q'] == 'admin/appearance/settings/scratchpads_em'){
+    // Check to see if we're trying to view the admin/appearance/settings/scratchpads
+    // page, and if so we redirect to the general settings page.
     if(!user_access('scratchpad team')){
       drupal_goto('admin/appearance/settings');
     }
+  }
+  $menu_item = menu_get_item();
+  if($menu_item['path'] == 'node/%/edit'){
+    // We clear the cache for this node, to ensure we're editing an uncached
+    // version. FIXME - This is a temporary fix, and should be removed once we
+    // know what is causing incorrect copies of a node to be cached.
+    node_load(arg(1), NULL, FALSE);
   }
   // Set the expire/domain/params on the has_js cookie to the same as the session
   // cookie to prevent any issues, especially with the "Issues..." block.
@@ -58,6 +64,13 @@ function scratchpads_tweaks_node_view_alter(&$build){
   if(($build['#view_mode'] == 'linked_node') && (isset($build['sharethis']))){
     unset($build['sharethis']);
   }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function media_multiselect_form_media_internet_add_alter(&$form, &$form_state, $form_id){
+  media_multiselect_form_file_entity_add_upload_multiple_alter($form, $form_state, $form_id);
 }
 
 /**
@@ -238,6 +251,54 @@ function scratchpads_preprocess_block(&$variables){
 }
 
 /**
+ * Delete tinytax-[vid] from ajaxblocks
+ */
+function scratchpads_tweaks_taxonomy_vocabulary_delete($vocabulary){
+  db_delete('ajaxblocks')->condition('block_id', 'tinytax-' . $vocabulary->vid)->execute();
+  if(function_exists('ajaxblocks_update_cache')){
+    ajaxblocks_update_cache();
+  }
+}
+
+/**
+ * Insert tinytax-[vid] into ajaxblocks
+ */
+function scratchpads_tweaks_taxonomy_vocabulary_insert($vocabulary){
+  db_merge('ajaxblocks')->key(array(
+    'block_id' => 'tinytax-' . $vocabulary->vid
+  ))->fields(array(
+    'block_id' => 'tinytax-' . $vocabulary->vid,
+    'is_ajax' => 1,
+    'loader_picture' => 5,
+    'is_late' => 0,
+    'delay' => 0,
+    'include_noscript' => 0,
+    'cached_roles' => '1 2 3 4 5',
+    'uncached_roles' => '1 2 3 4 5'
+  ))->execute();
+  if(function_exists('ajaxblocks_update_cache')){
+    ajaxblocks_update_cache();
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter.
+ * 
+ * Prevent the ajaxblock options from being displayed to our users.
+ */
+function scratchpads_tweaks_form_block_admin_configure_alter(&$form, &$form_state, $form_id){
+  if(!user_access('scratchpad team')){
+    unset($form['visibility']['ajaxblocks']['#type']);
+    foreach(element_children($form['visibility']['ajaxblocks']) as $key){
+      $form['visibility']['ajaxblocks'][$key] = array(
+        '#type' => 'value',
+        '#value' => $form['visibility']['ajaxblocks'][$key]['#default_value']
+      );
+    }
+  }
+}
+
+/**
  * Implementation of hook_form_alter()
  */
 function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
@@ -261,6 +322,18 @@ function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
         )
       );
       $form['#submit'][] = 'scratchpads_tweaks_form_system_theme_settings_submit';
+    case 'simplenews_admin_settings_newsletter':
+      $form['simplenews_default_options']['simplenews_format'] = array(
+        '#type' => 'value',
+        '#value' => 'plain'
+      );
+      break;
+    case 'simplenews_admin_category_form':
+      $form['email']['format'] = array(
+        '#type' => 'value',
+        '#value' => 'plain'
+      );
+      break;
     default:
       // Only use the "comment_filtered_html" input type for comment bodies!
       if(substr($form_id, 0, 8) == 'comment_'){
@@ -395,6 +468,10 @@ function scratchpads_tweaks_module_implements_alter(&$implementations, $hook){
     $jquery_update = $implementations['jquery_update'];
     unset($implementations['jquery_update']);
     $implementations['jquery_update'] = $jquery_update;
+  }elseif($hook == 'form_block_admin_configure_alter'){
+    $jquery_update = $implementations['scratchpads_tweaks'];
+    unset($implementations['scratchpads_tweaks']);
+    $implementations['scratchpads_tweaks'] = $jquery_update;
   }
 }
 

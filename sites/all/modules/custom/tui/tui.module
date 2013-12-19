@@ -165,7 +165,7 @@ function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
     }
   }else if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2)) && arg(3) == 'edit'){
     // Redirect to the taxonomy editor if trying to edit a single term.
-    if(isset($_COOKIE['has_js']) && $_COOKIE['has_js']){
+    if(variable_get('reverse_proxy', FALSE) || (isset($_COOKIE['has_js']) && $_COOKIE['has_js'])){
       $options = array();
       if(isset($_GET['destination'])){
         $options = array(
@@ -217,7 +217,7 @@ function tui_menu_alter(&$items){
 }
 
 function tui_menu_local_tasks_alter(&$data, $router_item, $root_path){
-  if(isset($_COOKIE['has_js']) && $_COOKIE['has_js'] && $router_item['path'] == 'admin/structure/taxonomy/%'){
+  if((variable_get('reverse_proxy', FALSE) || (isset($_COOKIE['has_js']) && $_COOKIE['has_js'])) && $router_item['path'] == 'admin/structure/taxonomy/%'){
     foreach($data['tabs'] as $tab_group_index => $tab_group){
       foreach($tab_group['output'] as $key => $tab){
         if($tab['#link']['path'] == 'admin/structure/taxonomy/%/add'){
