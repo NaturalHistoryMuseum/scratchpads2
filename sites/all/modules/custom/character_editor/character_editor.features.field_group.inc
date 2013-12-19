@@ -51,29 +51,5 @@ function character_editor_field_group_default_field_groups(){
       )
     )
   );
-  // Exported field_group: 'character_editor_project-default_character_project-form-group_characters'
-  $field_groups['character_editor_project-default_character_project-form-group_characters'] = array(
-    'group_name' => 'group_characters',
-    'entity_type' => 'character_editor_project',
-    'bundle' => 'default_character_project',
-    'mode' => 'form',
-    'parent_name' => '',
-    'label' => 'Character groups',
-    'weight' => '6',
-    'children' => array(
-      0 => 'field_characters'
-    ),
-    'format_type' => 'tab',
-    'format_settings' => array(
-      'label' => 'Character groups',
-      'instance_settings' => array(
-        'required_fields' => 1,
-        'classes' => '',
-        'description' => '',
-        'display_mode' => ''
-      ),
-      'formatter' => 'closed'
-    )
-  );
   return $field_groups;
 }

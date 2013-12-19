@@ -10,11 +10,12 @@
  * Given an entity metadata wrapper return an array 
  * containing all the entities (as wrappers) 
  * that are children of that entity via a 'character' 
- * relation.
+ * relation, sorted using the field_character_weight
+ * field.
  *
  * The entities are organised through relations as:
  * 
- * project -> group -> character
+ * project -> group -> character | group
  *
  * So typically this would be used to get a project's groups,
  * and a group's characters.
@@ -30,20 +31,29 @@ function character_editor_get_characters($wrapper, $source = TRUE){
   if(empty($result)){return array();}
   $relations = relation_load_multiple(array_keys($result));
   $characters = array();
+  $order = array();
   foreach($relations as $relation){
     $endpoints = field_get_items('relation', $relation, 'endpoints');
     foreach($endpoints as $endpoint){
       if($endpoint['entity_type'] == $wrapper->type() && $endpoint['entity_id'] == $wrapper->getIdentifier()){
         continue;
       }
+      if(isset($relation->field_character_weight)){
+        $weight = field_get_items('relation', $relation, 'field_character_weight');
+        $weight = empty($weight[0]['value']) ? 0 : $weight[0]['value'];
+      }else{
+        $weight = 0;
+      }
       try{
         $character = entity_load_single($endpoint['entity_type'], $endpoint['entity_id']);
         $characters[] = entity_metadata_wrapper($endpoint['entity_type'], $character);
+        $order[] = $weight;
       }
       catch(Exception $e){
       }
     }
   }
+  array_multisort($order, $characters);
   return $characters;
 }
 
@@ -56,7 +66,7 @@ function character_editor_get_characters($wrapper, $source = TRUE){
  * 
  * The entities are organised through relations as:
  * 
- * project -> group -> character
+ * project -> group -> character | group
  *
  * So typically this would be used to get a character's groups,
  * or a group's projects.
@@ -67,12 +77,106 @@ function character_editor_get_parents($wrapper){
 }
 
 /**
+ * character_editor_get_tree
+ *
+ * Given an entity metadata wrapper, return the tree of
+ * entities of which this entity is the root, and such
+ * that the tree is build using 'character' relations.
+ *
+ * If $mode == 'tree', then the returned structure is:
+ *
+ * array(
+ *   'wrapper' => <entity wrapper>,
+ *   'relation' => <relation object that links to parent>
+ *   'children' => array(...)
+ * )
+ *
+ * And it includes the root item provided.
+ *
+ * If $mode == 'flat', then the returned structure is:
+ *
+ * array(
+ *   <entitytype:entityid:relationid> => array(
+ *     'wrapper' => <entity wrapper>,
+ *     'relation' => <relation object that links to parent>
+ *     'parent_id' => <parent entitytype:entityid:relationid>,
+ *     'depth' => <depth in tree>,
+ *     'weight' => <weight value on the relation that links to parent>
+ *   ),
+ *   ...
+ * )
+ *
+ * And it excludes the root item provided, such that the parent_id of the initial children
+ * is set to 0. Also note that relationid is the id of the relation from the parent to the
+ * item.
+ *
+ * Items may be present several times in the tree, however
+ * loops are prevented. Siblings in the tree are sorter according to the
+ * field_character_weight field.
+ */
+function character_editor_get_tree($entity_w, $mode = 'flat', $parent_id = 0, $exclude = array()){
+  // Build the list of children
+  $children = character_editor_get_characters($entity_w);
+  $accepted = array();
+  $exclude[] = $entity_w->type() . ':' . $entity_w->getIdentifier();
+  foreach($children as $child_entity_w){
+    if(!in_array($child_entity_w->type() . ':' . $child_entity_w->getIdentifier(), $exclude)){
+      $accepted[] = $child_entity_w;
+    }
+  }
+  if($mode == 'tree'){
+    $tree = array(
+      'wrapper' => $entity_w,
+      'children' => array()
+    );
+    foreach($accepted as $child_w){
+      $tree['children'] = array_merge($tree['children'], character_editor_get_tree($child_w, $exclude));
+    }
+    return $tree;
+  }else{
+    $flat = array();
+    $relation_id = 0;
+    $weight = 0;
+    if($parent_id){
+      $parent_id_parts = explode(':', $parent_id);
+      $parent_w = entity_metadata_wrapper($parent_id_parts[0], entity_load_single($parent_id_parts[0], $parent_id_parts[1]));
+      $relation = character_editor_association_exists($parent_w, $entity_w);
+      if($relation){
+        $relation_id = $relation->rid;
+        $weight = field_get_items('relation', $relation, 'field_character_weight');
+        $weight = empty($weight[0]['value']) ? 0 : $weight[0]['value'];
+      }
+    }
+    $id = $entity_w->type() . ':' . $entity_w->getIdentifier() . ':' . $relation_id;
+    if($parent_id){
+      $flat[$id] = array(
+        'wrapper' => $entity_w,
+        'parent_id' => $parent_id,
+        'depth' => -1,
+        'weight' => $weight
+      );
+    }
+    foreach($accepted as $child_w){
+      $flat = array_merge($flat, character_editor_get_tree($child_w, 'flat', $id, $exclude));
+    }
+    foreach($flat as $key => $item){
+      if($parent_w){
+        $flat[$key]['depth']++;
+      }else if($item['parent_id'] == $id){
+        $flat[$key]['parent_id'] = 0;
+      }
+    }
+    return $flat;
+  }
+}
+
+/**
  * character_editor_associate_character
  * 
  * Associate two characters via a relation. Note that the order of
  * relation is:
  * 
- * project -> group -> character
+ * project -> group -> character | group
  * 
  * So use character_editor_set_character($project, $group) and
  * character_editor_set_character($group, $character)
@@ -103,7 +207,7 @@ function character_editor_associate_character(EntityDrupalWrapper $parent_w, Ent
  * Checks if two characters already have a relation. Note that
  * the order of the characters is not important.
  * 
- * project <-> group <-> character
+ * project <-> group <-> character | group
  *
  * Returns the first level of the relation on success
  * (this is mostly usefull when max_depth = 1) and FALSE otherwise.
@@ -154,7 +258,7 @@ function character_editor_association_exists(EntityDrupalWrapper $wrap_1, Entity
  *
  * term/node -(data field on the relation)-> character
  *
- * If $entity_w is defined, then only return values linked to that term.
+ * If $entity_w is defined, then only return values linked to that term/node.
  */
 function character_editor_get_character_values(EntityDrupalWrapper $character_w, EntityDrupalWrapper $entity_w = NULL){
   $values = array();

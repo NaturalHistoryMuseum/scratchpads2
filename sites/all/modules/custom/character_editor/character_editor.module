@@ -107,6 +107,9 @@ function character_editor_theme(){
       'render element' => 'elements',
       'template' => 'character-entity',
       'path' => $path . '/theme'
+    ),
+    'character_editor_characters_order' => array(
+      'render element' => 'element'
     )
   );
 }
@@ -287,7 +290,6 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
         $style_options['columns'][$column_id]['editor'] = $editor;
       }
       // Fill in the data for this character
-      $relation_items = field_get_items($character_w->type(), $character_w->value(), 'field_characters');
       $values = character_editor_get_character_values($character_w);
       foreach($values as $value){
         if(!isset($value['data'][0]['safe_value'])){
@@ -387,13 +389,6 @@ function character_editor_field_widget_form(&$form, &$form_state, $field, $insta
   }
 }
 
-function character_editor_field_widget_form_after_build($form){
-  foreach(element_children($form['field_characters']) as $language){
-    unset($form['field_characters'][$language]['add_more']);
-  }
-  return $form;
-}
-
 /**
  * Implementation of hook_form_alter()
  */
@@ -473,14 +468,14 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
           // And settings
           if(arg(2) == 'settings'){
             // Hide the characters on the settings form
-            $form['field_characters']['#attributes']['class'][] = 'element-hidden';
             $form['title']['#title'] = t('Title');
           }else{
             // Hide all other fields on the edit characters form
             foreach(array(
               'title',
               'field_char_proj_description',
-              'field_taxonomic_name'
+              'field_taxonomic_name',
+              'field_char_proj_specimen'
             ) as $key){
               $form[$key]['#prefix'] = '<div class="element-hidden">';
               $form[$key]['#suffix'] = '</div>';
@@ -676,20 +671,13 @@ function character_editor_entity_delete($entity, $type){
   switch($type){
     case 'character_editor_project':
     case 'character_editor_character':
-      if(!empty($entity->field_characaters)){
-        foreach($entity->field_characters as $language => $values){
-          if(empty($values)){
-            continue;
-          }
-          $characters = array();
-          foreach($values as $field_character){
-            foreach($field_character['endpoints'] as $endpoint){
-              list($entity_type, $entity_id) = explode(':', $endpoint);
-              $characters[] = $entity_id;
-            }
-          }
-          entity_delete_multiple('character_editor_character', $characters);
-        }
+      // XXX should we delete child characters or re-parent them?
+      // Delete child characters. Note that character state values are
+      // help as part of the relations - so they will get deleted automatically.
+      $wrapper = entity_metadata_wrapper($type, $entity);
+      $children = character_editor_get_characters($wrapper);
+      foreach($children as $child){
+        $child->delete();
       }
       break;
   }
@@ -868,6 +856,152 @@ function character_editor_create_relation($parent_entity, $character_entity){
   );
   $relation = relation_create(PROJECT_CHARACTER_RELATION_TYPE, $entity_keys);
   relation_save($relation);
+}
+
+/**
+ * character_editor_characters_order_form
+ *
+ * Form for ordering/parenting characters
+ */
+function character_editor_characters_order_form($form, &$form_state){
+  $project_id = arg(1);
+  $project_w = entity_metadata_wrapper('character_editor_project', entity_load_single('character_editor_project', $project_id));
+  if(!$project_w){return;}
+  $tree = character_editor_get_tree($project_w);
+  $form['characters_order'] = array(
+    '#tree' => TRUE,
+    '#theme' => 'character_editor_characters_order'
+  );
+  foreach($tree as $item_id => $item){
+    $edit = l(t('Edit'), 'character-editor-character/' . $item['wrapper']->getIdentifier() . '/edit');
+    $delete = l(t('Delete'), 'character-editor-character/' . $item['wrapper']->getIdentifier() . '/delete');
+    $form['characters_order'][] = array(
+      'label' => array(
+        '#type' => 'item',
+        '#markup' => $item['wrapper']->title->value()
+      ),
+      'operations' => array(
+        '#markup' => $edit . ' ' . $delete
+      ),
+      'weight' => array(
+        '#type' => 'textfield',
+        '#default_value' => $item['weight']
+      ),
+      'id' => array(
+        '#type' => 'hidden',
+        '#value' => $item_id
+      ),
+      'parent_id' => array(
+        '#type' => 'textfield',
+        '#default_value' => $item['parent_id']
+      ),
+      '#depth' => $item['depth']
+    );
+  }
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save')
+  );
+  return $form;
+}
+
+/**
+ * theme_character_editor_characters_order
+ *
+ * Theme the character ordering form into a table of draggable elements
+ */
+function theme_character_editor_characters_order($variables){
+  $element = $variables['element'];
+  drupal_add_tabledrag('character-editor-characters-order-table', 'order', 'sibling', 'row-weight');
+  drupal_add_tabledrag('character-editor-characters-order-table', 'match', 'parent', 'row-parent', 'row-parent', 'row-id');
+  $header = array(
+    'label' => t('Character'),
+    'operations' => t('Operations'),
+    'weight' => t('Weight+Parent')
+  );
+  $rows = array();
+  foreach(element_children($element) as $key){
+    $form_element = & $element[$key];
+    $form_element['weight']['#attributes']['class'][] = 'row-weight';
+    $form_element['id']['#attributes']['class'][] = 'row-id';
+    $form_element['parent_id']['#attributes']['class'][] = 'row-parent';
+    $row = array(
+      'data' => array(),
+      'class' => array(
+        'draggable'
+      )
+    );
+    $indent = theme('indentation', array(
+      'size' => $form_element['#depth']
+    ));
+    $row['data'][] = $indent . drupal_render($form_element['label']);
+    $row['data'][] = drupal_render($form_element['operations']);
+    $row['data'][] = drupal_render($form_element['weight']) . drupal_render($form_element['id']) . drupal_render($form_element['parent_id']);
+    $rows[] = $row;
+  }
+  return theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => array(
+      'id' => 'character-editor-characters-order-table'
+    )
+  ));
+}
+
+/**
+ * character_editor_characters_order_form_submit
+ */
+function character_editor_characters_order_form_submit($form, &$form_state){
+  // Get the project
+  $project_id = arg(1);
+  $project_w = entity_metadata_wrapper('character_editor_project', entity_load_single('character_editor_project', $project_id));
+  if(!$project_w){return;}
+  // Check if endpoints & weight are translatable
+  $field_info = field_info_field('endpoints');
+  $endpoints_tr = $field_info['translatable'];
+  $field_info = field_info_field('field_character_weight');
+  $weight_tr = $field_info['translatable'];
+  // Get the items and update the values as needed
+  $items = $form_state['values']['characters_order'];
+  foreach($items as $item){
+    $update = FALSE;
+    // Get the entity and the existing relationship to it's parent
+    list($entity_type, $entity_id, $relation_id) = explode(':', $item['id']);
+    $relation = entity_load_single('relation', $relation_id);
+    // Update the weight if needed
+    $relation_weight = field_get_items('relation', $relation, 'field_character_weight');
+    if(!isset($relation_weight[0]['value']) || $relation_weight[0]['value'] != $item['weight']){
+      $langcode = $weight_tr ? entity_language('relation', $relation) : LANGUAGE_NONE;
+      $relation->field_character_weight[$langcode][0] = array(
+        'value' => $item['weight']
+      );
+      $update = TRUE;
+    }
+    // Get the parent item, and update the endpoints
+    if($item['parent_id']){
+      list($parent_entity_type, $parent_entity_id, $parent_relation_id) = explode(':', $item['parent_id']);
+    }else{
+      $parent_entity_type = 'character_editor_project';
+      $parent_entity_id = $project_id;
+      $parent_relation_id = 0;
+    }
+    $endpoints = field_get_items('relation', $relation, 'endpoints');
+    foreach($endpoints as $endpoint_index => $endpoint){
+      if($endpoint['entity_type'] == $entity_type && $endpoint['entity_id'] == $entity_id){
+        continue;
+      }
+      if($endpoint['entity_type'] != $parent_entity_type || $endpoint['entity_id'] != $parent_entity_id){
+        $endpoints[$endpoint_index]['entity_type'] = $parent_entity_type;
+        $endpoints[$endpoint_index]['entity_id'] = $parent_entity_id;
+        $langcode = $endpoints_tr ? entity_language('relation', $relation) : LANGUAGE_NONE;
+        $relation->endpoints[$langcode] = $endpoints;
+        $update = TRUE;
+      }
+    }
+    if($update){
+      entity_save('relation', $relation);
+    }
+  }
 }
 
 /*********************************************************************************************
