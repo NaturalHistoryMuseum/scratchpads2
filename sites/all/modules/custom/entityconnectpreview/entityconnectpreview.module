@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * Implements hook_form_alter().
+ *
+ * If we are adding a new entity we pass of to entityconnect_add_form_alter
+ * if we are returning to the parent form we hand off to
+ * entityconnect_return_form_alter.
+ */
+function entityconnectpreview_form_alter(&$form, &$form_state, $form_id){
+  // Theme the entity connect elements if any are present
+  foreach(_entityconnect_get_ref_fields() as $field_name => $field){
+    // What type of entity are we to load.
+    switch($field['type']){
+      case 'node_reference':
+        $entity_type = 'node';
+        break;
+      case 'user_reference':
+        $entity_type = 'user';
+        break;
+    }
+    if(isset($form[$field_name])){
+      foreach(array_keys($form[$field_name]) as $field_language){
+        if($form[$field_name][$field_language]['#type'] == 'select'){
+          // We only add our preview if there isn't an ajax function already
+          // associated with the select box.  This could be altered to work
+          // if there is already an ajax function associated with the box.
+          if(!isset($form[$field_name][$field_language]['#ajax'])){
+            // We add a CSS file to allow us to do a little themeing.
+            $form['#attached']['css'][] = drupal_get_path('module', 'entityconnectpreview') . '/css/entityconnectpreview.css';
+            // We add a preview to the form.
+            $ids = FALSE;
+            if(!empty($form_state['values'][$field_name][$field_language])){
+              $ids = array();
+              $key = array_keys($field['columns']);
+              $key = array_pop($key);
+              foreach($form_state['values'][$field_name][$field_language] as $value){
+                $ids[] = $value[$key];
+              }
+            }elseif(!empty($form[$field_name][$field_language]['#default_value'])){
+              $ids = $form[$field_name][$field_language]['#default_value'];
+            }
+            if($ids){
+              $entity_to_preview = entity_load($entity_type, $ids);
+              $entity_preview = entity_view($entity_type, $entity_to_preview, 'entityconnectpreview');
+              $form[$field_name]['preview'] = array(
+                '#markup' => drupal_render($entity_preview)
+              );
+            }else{
+              $form[$field_name]['preview'] = array(
+                '#markup' => ''
+              );
+            }
+            $form[$field_name]['preview']['#prefix'] = '<div id="' . $field_name . '-preview" class="entityconnectpreview">';
+            $form[$field_name]['preview']['#suffix'] = '</div>';
+            $form[$field_name][$field_language]['#ajax'] = array(
+              'callback' => 'entityconnectpreview_ajax_callback',
+              'wrapper' => $field_name . '-preview',
+              'method' => 'replace',
+              'effect' => 'fade'
+            );
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * AJAX callback
+ */
+function entityconnectpreview_ajax_callback($form, $form_state){
+  // We get the field name from the triggering element name.
+  $field_name = substr($form_state['input']['_triggering_element_name'], 0, strpos($form_state['input']['_triggering_element_name'], '['));
+  return $form[$field_name]['preview'];
+}
+
+/**
+ * Implements hook_entity_view_alter()
+ * 
+ * We remove the submitted section from a node view to keep it as clean as
+ * possible.  This should possibly be an option for the field.
+ */
+function entityconnectpreview_process_node(&$variables){
+  $variables['submitted'] = '';
+  $variables['links'] = '';
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ * 
+ * Add the entityconnectpreview display typel.
+ */
+function entityconnectpreview_entity_info_alter(&$entity_info){
+  $supported_entity_types = array(
+    'node',
+    'user'
+  );
+  foreach($supported_entity_types as $entity_type){
+    if(!empty($entity_info[$entity_type]['view modes'])){
+      $entity_info[$entity_type]['view modes']['entityconnectpreview'] = array(
+        'label' => t('Entity Connect Preview'),
+        'custom settings' => TRUE
+      );
+    }
+  }
+}

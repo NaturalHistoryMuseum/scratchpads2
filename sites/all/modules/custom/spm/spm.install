@@ -150,3 +150,21 @@ function spm_update_7009(){
     'locked' => 1
   ))->condition('field_name', $fields_to_lock)->execute();
 }
+
+/**
+ * Update to the token module requires a change to our ANT pattern.
+ */
+function spm_update_7010(){
+  variable_set('ant_pattern_spm', '[node:field_taxonomic_name]');
+}
+
+/**
+ * Update field field_media description
+ */
+function spm_update_7011(){
+  if(field_info_instance('node', 'field_media', 'spm')){
+    module_load_include('features.field.inc', 'spm');
+    $fields = spm_field_default_fields();
+    field_update_instance($fields['node-spm-field_media']['field_instance']);
+  }
+}
