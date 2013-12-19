@@ -211,6 +211,7 @@ function scratchpads_fine_grained_file_access_menu_alter(&$items){
   $items['file/add']['access arguments'] = array(
     'add'
   );
+  $items['file/%file']['page callback'] = 'scratchpads_fine_grained_file_access_file_entity_view_page';
   $items['file/%file']['access callback'] = 'scratchpads_fine_grained_file_access_access';
   $items['file/%file']['access arguments'] = array(
     'view',
@@ -226,6 +227,27 @@ function scratchpads_fine_grained_file_access_menu_alter(&$items){
     'delete',
     1
   );
+}
+
+/**
+ * Replacement for file_entity_view_page($file).
+ */
+function scratchpads_fine_grained_file_access_file_entity_view_page($file){
+  drupal_set_title($file->filename);
+  $uri = entity_uri('file', $file);
+  // Set the file path as the canonical URL to prevent duplicate content.
+  drupal_add_html_head_link(array(
+    'rel' => 'canonical',
+    'href' => url($uri['path'], $uri['options'])
+  ), TRUE);
+  // Set the non-aliased path as a default shortlink.
+  drupal_add_html_head_link(array(
+    'rel' => 'shortlink',
+    'href' => url($uri['path'], array_merge($uri['options'], array(
+      'alias' => TRUE
+    )))
+  ), TRUE);
+  return file_view($file, 'full');
 }
 
 /**
