@@ -2,10 +2,10 @@
 
 /**
  * @file
- * group.features.field.inc
+ * scratchpads_group.features.field.inc
  */
 /**
- * Implementation of hook_field_default_fields().
+ * Implements hook_field_default_fields().
  */
 function scratchpads_group_field_default_fields($additional_content_type = FALSE){
   $fields = array();
@@ -51,6 +51,18 @@ function scratchpads_group_field_default_fields($additional_content_type = FALSE
           'type' => 'text_default',
           'weight' => 1
         ),
+        'entityconnectpreview' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
         'teaser' => array(
           'label' => 'hidden',
           'module' => 'text',
@@ -79,6 +91,94 @@ function scratchpads_group_field_default_fields($additional_content_type = FALSE
         'type' => 'text_textarea_with_summary',
         'weight' => 1
       )
+    )
+  );
+  // Exported field: 'node-group-group_access'
+  $fields['node-group-group_access'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'group_access',
+      'foreign keys' => array(),
+      'indexes' => array(
+        'value' => array(
+          0 => 'value'
+        )
+      ),
+      'module' => 'list',
+      'no_ui' => TRUE,
+      'settings' => array(
+        'allowed_values' => array(
+          0 => 'Public - accessible to all site users',
+          1 => 'Private - accessible only to group members'
+        ),
+        'allowed_values_function' => ''
+      ),
+      'translatable' => '0',
+      'type' => 'list_boolean'
+    ),
+    'field_instance' => array(
+      'bundle' => 'group',
+      'default_value' => array(
+        0 => array(
+          'value' => 0
+        )
+      ),
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'list',
+          'settings' => array(),
+          'type' => 'list_default',
+          'weight' => 3
+        ),
+        'entityconnectpreview' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'group_access',
+      'label' => 'Group visibility',
+      'required' => TRUE,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'view modes' => array(
+        'full' => array(
+          'label' => 'above',
+          'type' => 'options_onoff'
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'type' => 'options_onoff'
+        )
+      ),
+      'widget' => array(
+        'module' => 'options',
+        'settings' => array(),
+        'type' => 'options_buttons',
+        'weight' => 3
+      ),
+      'widget_type' => 'options_select'
     )
   );
   // Exported field: 'node-group-group_group'
@@ -123,6 +223,18 @@ function scratchpads_group_field_default_fields($additional_content_type = FALSE
           'module' => 'og_ui',
           'settings' => array(),
           'type' => 'og_group_subscribe',
+          'weight' => 0
+        ),
+        'entityconnectpreview' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
           'weight' => 0
         ),
         'teaser' => array(

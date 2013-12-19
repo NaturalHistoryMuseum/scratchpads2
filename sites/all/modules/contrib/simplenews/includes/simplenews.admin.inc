@@ -862,7 +862,7 @@ function simplenews_subscription_list_export($form, &$form_state) {
     '#options' => array(
       'subscribed' => t('Subscribed to the newsletter'),
       'unconfirmed' => t('Unconfirmed to the newsletter'),
-      'unsubscribed' => t('UnSubscribed from the newsletter'),
+      'unsubscribed' => t('Unsubscribed from the newsletter'),
     ),
     '#default_value' => $default['subscribed'],
     '#description' => t('Subscriptions matching the selected subscription states will be exported.'),
@@ -1112,7 +1112,7 @@ function simplenews_subscription_list_form() {
 
   foreach ($result as $subscriber) {
     $options[$subscriber->snid] = array(
-      'mail' => $subscriber->mail,
+      'mail' => check_plain($subscriber->mail),
       'username' => isset($subscriber->uid) ? l($subscriber->name, 'user/' . $subscriber->uid) : check_plain($subscriber->name),
       'status' => theme('simplenews_status', array('source' => 'activated', 'status' => $subscriber->activated)),
       'language' => check_plain($subscriber->language),

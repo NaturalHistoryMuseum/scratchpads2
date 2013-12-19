@@ -1,5 +1,9 @@
 <?php
-// $Id: token.module,v 1.63 2011/02/14 23:22:28 davereid Exp $
+
+/**
+ * @file
+ * Enhances the token API in core: adds a browseable UI, missing tokens, etc.
+ */
 
 /**
  * The maximum depth for token tree recursion.
@@ -7,10 +11,16 @@
 define('TOKEN_MAX_DEPTH', 9);
 
 /**
- * Impelements hook_help().
+ * Implements hook_help().
  */
 function token_help($path, $arg) {
   if ($path == 'admin/help#token') {
+    if (current_path() != 'admin/help/token') {
+      // Because system_modules() executes hook_help() for each module to 'test'
+      // if they will return anything, but not actually display it, we want to
+      // return a TRUE value if this is not actually the help page.
+      return TRUE;
+    }
     $output = '<dl>';
     $output .= '<dt>' . t('List of the currently available tokens on this site') . '</dt>';
     $output .= '<dd>' . theme('token_tree', array('token_types' => 'all', 'click_insert' => FALSE, 'show_restricted' => TRUE)) . '</dd>';
@@ -35,7 +45,7 @@ function token_system_info_alter(&$info, $file, $type) {
  * Return an array of the core modules supported by token.module.
  */
 function _token_core_supported_modules() {
-  return array('book', 'field', 'file', 'image', 'menu', 'profile', 'text');
+  return array('book', 'field', 'menu', 'profile');
 }
 
 /**
@@ -62,6 +72,14 @@ function token_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'token.pages.inc',
   );*/
+
+  $items['token/tree'] = array(
+    'page callback' => 'token_page_output_tree',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'token.pages.inc',
+    'theme callback' => 'ajax_base_page_theme',
+  );
 
   // Devel token pages.
   if (module_exists('devel')) {
@@ -103,7 +121,28 @@ function token_menu() {
     );
   }
 
+  // Admin menu callback to clear token caches.
+  $items['token/flush-cache'] = array(
+    'page callback' => 'token_flush_cache_callback',
+    'access arguments' => array('flush caches'),
+    'type' => MENU_CALLBACK,
+    'file' => 'token.pages.inc',
+  );
+
   return $items;
+}
+
+/**
+ * Implements hook_admin_menu_output_alter().
+ */
+function token_admin_menu_output_alter(&$content) {
+  $content['icon']['icon']['flush-cache']['token'] = array(
+    '#title' => t('Token registry'),
+    '#href' => 'token/flush-cache',
+    '#options' => array(
+      'query' => drupal_get_destination() + array('token' => drupal_get_token('token/flush-cache')),
+    ),
+  );
 }
 
 function token_type_load($token_type) {
@@ -115,16 +154,37 @@ function token_type_load($token_type) {
  * Implements hook_theme().
  */
 function token_theme() {
-  return array(
-    'tree_table' => array(
-      'variables' => array('header' => array(), 'rows' => array(), 'attributes' => array(), 'empty' => '', 'caption' => ''),
-      'file' => 'token.pages.inc',
+  $info['tree_table'] = array(
+    'variables' => array(
+      'header' => array(),
+      'rows' => array(),
+      'attributes' => array(),
+      'empty' => '',
+      'caption' => '',
     ),
-    'token_tree' => array(
-      'variables' => array('token_types' => array(), 'global_types' => TRUE, 'click_insert' => TRUE, 'show_restricted' => FALSE, 'recursion_limit' => 4),
-      'file' => 'token.pages.inc',
-    ),
+    'file' => 'token.pages.inc',
   );
+  $info['token_tree'] = array(
+    'variables' => array(
+      'token_types' => array(),
+      'global_types' => TRUE,
+      'click_insert' => TRUE,
+      'show_restricted' => FALSE,
+      'recursion_limit' => 3,
+      'dialog' => FALSE,
+    ),
+    'file' => 'token.pages.inc',
+  );
+  $info['token_tree_link'] = array(
+    'variables' => array(
+      'text' => NULL,
+      'options' => array(),
+      'dialog' => TRUE,
+    ),
+    'file' => 'token.pages.inc',
+  );
+
+  return $info;
 }
 
 /**
@@ -144,6 +204,21 @@ function token_library() {
     ),
   );
 
+  $libraries['dialog'] = array(
+    'title' => 'Token dialog',
+    'version' => '1.0',
+    'js' => array(
+      drupal_get_path('module', 'token') . '/token.js' => array(),
+    ),
+    'css' => array(
+      drupal_get_path('module', 'token') . '/token.css' => array(),
+    ),
+    'dependencies' => array(
+      array('system', 'ui.dialog'),
+      array('token', 'treeTable'),
+    ),
+  );
+
   return $libraries;
 }
 
@@ -160,9 +235,101 @@ function token_form_alter(&$form, $form_state, $form_id) {
     case 'profile_field_delete':
     // User picture form.
     case 'user_admin_settings':
+    // System date type form.
+    // @todo Remove when http://drupal.org/node/1173706 is fixed.
+    case 'system_add_date_format_type_form':
+    case 'system_delete_date_format_type_form':
       $form += array('#submit' => array());
       array_unshift($form['#submit'], 'token_clear_cache');
       break;
+  }
+}
+
+/**
+ * Implements hook_block_view_alter().
+ */
+function token_block_view_alter(&$data, $block) {
+  if (!empty($block->title) && $block->title != '<none>') {
+    // Perform unsanitized token replacement since _block_render_blocks() will
+    // call check_plain() on $block->title.
+    $block->title = token_replace($block->title, array(), array('sanitize' => FALSE));
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function token_form_block_add_block_form_alter(&$form, $form_state) {
+  token_form_block_admin_configure_alter($form, $form_state);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function token_form_block_admin_configure_alter(&$form, $form_state) {
+  $form['settings']['title']['#description'] .= ' ' . t('This field supports tokens.');
+  // @todo Figure out why this token validation does not seem to be working here.
+  $form['settings']['title']['#element_validate'][] = 'token_element_validate';
+  $form['settings']['title'] += array('#token_types' => array());
+}
+
+/**
+ * Implements hook_widget_form_alter().
+ */
+function token_field_widget_form_alter(&$element, &$form_state, $context) {
+  if (!empty($element['#description']) && is_string($element['#description'])) {
+    $element['#description'] = filter_xss_admin(token_replace($element['#description']));
+  }
+}
+
+/**
+ * Implements hook_field_info_alter().
+ */
+function token_field_info_alter(&$info) {
+  $defaults = array(
+    'taxonomy_term_reference' => 'taxonomy_term_reference_plain',
+    'number_integer' => 'number_unformatted',
+    'number_decimal' => 'number_unformatted',
+    'number_float' => 'number_unformatted',
+    'file' => 'file_url_plain',
+    'image' => 'file_url_plain',
+    'text' => 'text_default',
+    'text_long' => 'text_default',
+    'text_with_summary' => 'text_default',
+    'list_integer' => 'list_default',
+    'list_float' => 'list_default',
+    'list_text' => 'list_default',
+    'list_boolean' => 'list_default',
+  );
+  foreach ($defaults as $field_type => $default_token_formatter) {
+    if (isset($info[$field_type])) {
+      $info[$field_type] += array('default_token_formatter' => $default_token_formatter);
+    }
+  }
+}
+
+/**
+ * Implements hook_field_display_alter().
+ */
+function token_field_display_alter(&$display, $context) {
+  if ($context['view_mode'] == 'token') {
+    $view_mode_settings = field_view_mode_settings($context['instance']['entity_type'], $context['instance']['bundle']);
+    // If the token view mode fell back to the 'default' view mode, then
+    // use the default token formatter.
+    if (empty($view_mode_settings[$context['view_mode']]['custom_settings'])) {
+      $field_type_info = field_info_field_types($context['field']['type']);
+
+      // If the field has specified a specific formatter to be used by default
+      // with tokens, use that, otherwise use the default formatter.
+      $formatter = !empty($field_type_info['default_token_formatter']) ? $field_type_info['default_token_formatter'] : $field_type_info['default_formatter'];
+
+      // Now that we have a formatter, fill in all the settings.
+      $display['type'] = $formatter;
+      $formatter_info = field_info_formatter_types($formatter);
+      $display['settings'] = isset($formatter_info['settings']) ? $formatter_info['settings'] : array();
+      $display['settings']['label'] = 'hidden';
+      $display['module'] = $formatter_info['module'];
+    }
   }
 }
 
@@ -191,11 +358,18 @@ function token_field_delete_instance($instance) {
  * Clear token caches and static variables.
  */
 function token_clear_cache() {
-  cache_clear_all('*', 'cache_token', TRUE);
+  if (db_table_exists('cache_token')) {
+    cache_clear_all('*', 'cache_token', TRUE);
+  }
   drupal_static_reset('token_get_info');
   drupal_static_reset('token_get_global_token_types');
+  drupal_static_reset('token_get_entity_mapping');
   drupal_static_reset('token_build_tree');
   drupal_static_reset('_token_profile_fields');
+  drupal_static_reset('token_menu_link_load');
+  drupal_static_reset('token_book_link_load');
+  drupal_static_reset('token_node_menu_link_load');
+  drupal_static_reset('_token_field_info');
 }
 
 /**
@@ -208,23 +382,26 @@ function token_clear_cache() {
  * @see token_entity_info_alter()
  * @see http://drupal.org/node/737726
  */
-function token_get_entity_mapping($value_type = 'token', $value = NULL) {
+function token_get_entity_mapping($value_type = 'token', $value = NULL, $fallback = FALSE) {
   $mapping = &drupal_static(__FUNCTION__, array());
 
   if (empty($mapping)) {
     foreach (entity_get_info() as $entity_type => $info) {
       $mapping[$entity_type] = !empty($info['token type']) ? $info['token type'] : $entity_type;
     }
+    // Allow modules to alter the mapping array.
+    drupal_alter('token_entity_mapping', $mapping);
   }
 
   if (!isset($value)) {
-    return $mapping;
+    return $value_type == 'token' ? array_flip($mapping) : $mapping;
   }
   elseif ($value_type == 'token') {
-    return array_search($value, $mapping);
+    $return = array_search($value, $mapping);
+    return $return !== FALSE ? $return : ($fallback ? $value : FALSE);
   }
   elseif ($value_type == 'entity') {
-    return isset($mapping[$value]) ? $mapping[$value] : FALSE;
+    return isset($mapping[$value]) ? $mapping[$value] : ($fallback ? $value : FALSE);
   }
 }
 
@@ -239,6 +416,14 @@ function token_get_entity_mapping($value_type = 'token', $value = NULL) {
  */
 function token_entity_info_alter(&$info) {
   foreach (array_keys($info) as $entity_type) {
+    // Add a token view mode if it does not already exist.
+    if (!empty($info[$entity_type]['view modes']) && !isset($info[$entity_type]['view modes']['token'])) {
+      $info[$entity_type]['view modes']['token'] = array(
+        'label' => t('Tokens'),
+        'custom settings' => FALSE,
+      );
+    }
+
     if (!empty($info[$entity_type]['token type'])) {
       // If the entity's token type is already defined, great!
       continue;
@@ -256,28 +441,7 @@ function token_entity_info_alter(&$info) {
         $info[$entity_type]['token type'] = $entity_type;
         break;
     }
-
-    // Add the 'token' view mode.
-    if (!empty($info[$entity_type]['view modes'])) {
-      $info[$entity_type]['view modes']['token'] = array(
-        'label' => t('Token'),
-        'custom settings' => FALSE,
-      );
-    }
   }
-}
-
-/**
- * Implements hook_field_attach_view_alter().
- */
-function token_field_attach_view_alter(&$output, $context) {
-  //if ($context['view_mode'] == 'token') {
-  //  foreach (element_children($output) as $field_name) {
-  //    if (isset($output[$field_name]['#theme']) && $output[$field_name]['#theme'] == 'field') {
-  //      $output[$field_name]['#theme'] = 'item';
-  //    }
-  //  }
-  //}
 }
 
 /**
@@ -286,10 +450,12 @@ function token_field_attach_view_alter(&$output, $context) {
  * Adds missing token support for core modules.
  */
 function token_module_implements_alter(&$implementations, $hook) {
-  if ($hook == 'tokens' || $hook == 'token_info') {
+  module_load_include('inc', 'token', 'token.tokens');
+
+  if ($hook == 'tokens' || $hook == 'token_info' || $hook == 'token_info_alter' || $hook == 'tokens_alter') {
     foreach (_token_core_supported_modules() as $module) {
-      if (module_exists($module)) {
-        $implementations[$module] = TRUE;
+      if (module_exists($module) && function_exists($module . '_' . $hook)) {
+        $implementations[$module] = FALSE;
       }
     }
     // Move token.module to get included first since it is responsible for
@@ -303,7 +469,9 @@ function token_module_implements_alter(&$implementations, $hook) {
  * Implements hook_flush_caches().
  */
 function token_flush_caches() {
-  return array('cache_token');
+  if (db_table_exists('cache_token')) {
+    return array('cache_token');
+  }
 }
 
 /**
@@ -344,10 +512,13 @@ function token_get_info($token_type = NULL, $token = NULL) {
 
       foreach (array_keys($token_info['types']) as $type_key) {
         if (isset($token_info['types'][$type_key]['type'])) {
+          $base_type = $token_info['types'][$type_key]['type'];
           // If this token type extends another token type, then merge in
           // the base token type's tokens.
-          $token_info['tokens'] += array($type_key => array());
-          $token_info['tokens'][$type_key] += $token_info['tokens'][$token_info['types'][$type_key]['type']];
+          if (isset($token_info['tokens'][$base_type])) {
+            $token_info['tokens'] += array($type_key => array());
+            $token_info['tokens'][$type_key] += $token_info['tokens'][$base_type];
+          }
         }
         else {
           // Add a 'type' value to each token type so we can properly use
@@ -379,8 +550,16 @@ function token_get_info($token_type = NULL, $token = NULL) {
 }
 
 /**
- * Return the module responsible for a token if defined in
- * $info['tokens']['type']['module'].
+ * Return the module responsible for a token.
+ *
+ * @param string $type
+ *   The token type.
+ * @param string $name
+ *   The token name.
+ *
+ * @return mixed
+ *   The value of $info['tokens'][$type][$name]['module'] from token_get_info(),
+ *   or NULL if the value does not exist.
  */
 function _token_module($type, $name) {
   $token_info = token_get_info($type, $name);
@@ -547,7 +726,7 @@ function token_element_validate(&$element, &$form_state) {
   }
 
   // Check if the field defines specific token types.
-  if (!empty($element['#token_types'])) {
+  if (isset($element['#token_types'])) {
     $invalid_tokens = token_get_invalid_tokens_by_context($tokens, $element['#token_types']);
     if ($invalid_tokens) {
       form_error($element, t('The %element-title is using the following invalid tokens: @invalid-tokens.', array('%element-title' => $title, '@invalid-tokens' => implode(', ', $invalid_tokens))));
@@ -568,16 +747,28 @@ function token_element_validate_token_context(&$element, &$form_state) {
  * Implements hook_form_FORM_ID_alter().
  */
 function token_form_field_ui_field_edit_form_alter(&$form, $form_state) {
+  if (!isset($form['instance']) || !empty($form['#field']['locked'])) {
+    return;
+  }
+
   if (($form['#field']['type'] == 'file' || $form['#field']['type'] == 'image') && isset($form['instance']['settings']['file_directory']) && !module_exists('filefield_paths')) {
     // GAH! We can only support global tokens in the upload file directory path.
     $form['instance']['settings']['file_directory']['#element_validate'][] = 'token_element_validate';
-    $form['instance']['settings']['file_directory']['#token_types'] = array();
-    $form['instance']['settings']['token_tree'] = array(
-      '#theme' => 'token_tree',
-      '#token_types' => array(),
-      '#weight' => $form['instance']['settings']['file_directory']['#weight'] + 0.5,
-    );
+    $form['instance']['settings']['file_directory'] += array('#token_types' => array());
+    $form['instance']['settings']['file_directory']['#description'] .= ' ' . t('This field supports tokens.');
   }
+
+  // Note that the description is tokenized via token_field_widget_form_alter().
+  $form['instance']['description']['#description'] .= '<br />' . t('This field supports tokens.');
+  $form['instance']['description']['#element_validate'][] = 'token_element_validate';
+  $form['instance']['description'] += array('#token_types' => array());
+
+  $form['instance']['settings']['token_tree'] = array(
+    '#theme' => 'token_tree',
+    '#token_types' => array(),
+    '#dialog' => TRUE,
+    '#weight' => $form['instance']['description']['#weight'] + 0.5,
+  );
 }
 
 /**
@@ -596,6 +787,7 @@ function token_form_system_actions_configure_alter(&$form, $form_state) {
       $form['token_tree'] = array(
         '#theme' => 'token_tree',
         '#token_types' => 'all',
+        '#dialog' => TRUE,
         '#weight' => 100,
       );
       // @todo Add token validation to the action fields that can use tokens.
@@ -617,7 +809,7 @@ function token_form_user_admin_settings_alter(&$form, &$form_state) {
 
     // Remove the crummy default token help text.
     if (!empty($element['#description'])) {
-      $element['#description'] = trim(str_replace($email_token_help, '', $element['#description']));
+      $element['#description'] = trim(str_replace($email_token_help, t('The list of available tokens that can be used in e-mails is provided below.'), $element['#description']));
     }
 
     switch ($key) {
@@ -654,15 +846,16 @@ function token_form_user_admin_settings_alter(&$form, &$form_state) {
         $element[$sub_key] += array('#token_types' => array('user'));
       }
     }
-
-    // Add the token tree UI.
-    $element['token_tree'] = array(
-      '#theme' => 'token_tree',
-      '#token_types' => array('user'),
-      '#show_restricted' => TRUE,
-      '#weight' => 100,
-    );
   }
+
+  // Add the token tree UI.
+  $form['email']['token_tree'] = array(
+    '#theme' => 'token_tree',
+    '#token_types' => array('user'),
+    '#show_restricted' => TRUE,
+    '#dialog' => TRUE,
+    '#weight' => 90,
+  );
 }
 
 /**
@@ -756,7 +949,7 @@ function token_flatten_tree($tree) {
     $result[$token] = $token_info;
     if (isset($token_info['children']) && is_array($token_info['children'])) {
       $result += token_flatten_tree($token_info['children']);
-      //unset($result[$token]['children']);
+      // unset($result[$token]['children']);
     }
   }
   return $result;
@@ -771,7 +964,7 @@ function _token_build_tree($token_type, array $options) {
   );
 
   $info = token_get_info();
-  if ($options['depth'] <= 0 || !isset($info['types'][$token_type])) {
+  if ($options['depth'] <= 0 || !isset($info['types'][$token_type]) || !isset($info['tokens'][$token_type])) {
     return array();
   }
 
@@ -784,6 +977,14 @@ function _token_build_tree($token_type, array $options) {
       // parent.
       $token_parents[] = $token_type;
     }
+    elseif (in_array($token, array_slice($token_parents, 1))) {
+      // Prevent duplicate recursive tokens. For example, this will prevent
+      // the tree from generating the following tokens or deeper:
+      // [comment:parent:parent]
+      // [comment:parent:root:parent]
+      continue;
+    }
+
     $token_parents[] = $token;
     if (!empty($token_info['dynamic'])) {
       $token_parents[] = '?';
@@ -810,40 +1011,6 @@ function _token_build_tree($token_type, array $options) {
   }
 
   return $tree;
-}
-
-/**
- * Find tokens that have been declared twice by different modules.
- */
-function token_find_duplicate_tokens() {
-  $all_tokens = array();
-
-  foreach (module_implements('token_info') as $module) {
-    $module_token_info = module_invoke($module, 'token_info');
-    if (in_array($module, _token_core_supported_modules())) {
-      $module = 'token';
-    }
-    if (!empty($module_token_info['types'])) {
-      foreach (array_keys($module_token_info['types']) as $type) {
-        $all_tokens['type:' . $type][] = $module;
-      }
-    }
-    if (!empty($module_token_info['tokens'])) {
-      foreach ($module_token_info['tokens'] as $type => $tokens) {
-        foreach (array_keys($tokens) as $token) {
-          $all_tokens[$type . ':' . $token][] = $module;
-        }
-      }
-    }
-  }
-
-  foreach ($all_tokens as $token => $modules) {
-    if (count($modules) < 2) {
-      unset($all_tokens[$token]);
-    }
-  }
-
-  return $all_tokens;
 }
 
 /**
@@ -978,4 +1145,143 @@ function token_clean_token_name($name) {
   }
 
   return $names[$name];
+}
+
+/**
+ * Do not use this function yet. Its API has not been finalized.
+ */
+function token_render_array(array $array, array $options = array()) {
+  $rendered = array();
+  foreach (element_children($array) as $key) {
+    $value = $array[$key];
+    $rendered[] = is_array($value) ? render($value) : (string) $value;
+  }
+  if (!empty($options['sanitize'])) {
+    $rendered = array_map('check_plain', $rendered);
+  }
+  $join = isset($options['join']) ? $options['join'] : ', ';
+  return implode($join, $rendered);
+}
+
+/**
+ * Do not use this function yet. Its API has not been finalized.
+ */
+function token_render_array_value($value, array $options = array()) {
+  $rendered = is_array($value) ? render($value) : (string) $value;
+  if (!empty($options['sanitize'])) {
+    $rendered = check_plain($rendered);
+  }
+  return $rendered;
+}
+
+/**
+ * Copy of drupal_render_cache_get() that does not care about request method.
+ */
+function token_render_cache_get($elements) {
+  if (!$cid = drupal_render_cid_create($elements)) {
+    return FALSE;
+  }
+  $bin = isset($elements['#cache']['bin']) ? $elements['#cache']['bin'] : 'cache';
+
+  if (!empty($cid) && $cache = cache_get($cid, $bin)) {
+    // Add additional libraries, JavaScript, CSS and other data attached
+    // to this element.
+    if (isset($cache->data['#attached'])) {
+      drupal_process_attached($cache->data);
+    }
+    // Return the rendered output.
+    return $cache->data['#markup'];
+  }
+  return FALSE;
+}
+
+/**
+ * Coyp of drupal_render_cache_set() that does not care about request method.
+ */
+function token_render_cache_set(&$markup, $elements) {
+  // This should only run of drupal_render_cache_set() did not.
+  if (in_array($_SERVER['REQUEST_METHOD'], array('GET', 'HEAD'))) {
+    return FALSE;
+  }
+
+  $original_method = $_SERVER['REQUEST_METHOD'];
+  $_SERVER['REQUEST_METHOD'] = 'GET';
+  drupal_render_cache_set($markup, $elements);
+  $_SERVER['REQUEST_METHOD'] = $original_method;
+}
+
+function token_menu_link_load_all_parents($mlid) {
+  $cache = &drupal_static(__FUNCTION__, array());
+
+  if (!is_numeric($mlid)) {
+    return array();
+  }
+
+  if (!isset($cache[$mlid])) {
+    $cache[$mlid] = array();
+    $plid = db_query("SELECT plid FROM {menu_links} WHERE mlid = :mlid", array(':mlid' => $mlid))->fetchField();
+    while ($plid && $parent = token_menu_link_load($plid)) {
+      $cache[$mlid] = array($plid => $parent['title']) + $cache[$mlid];
+      $plid = $parent['plid'];
+    }
+  }
+
+  return $cache[$mlid];
+}
+
+function token_taxonomy_term_load_all_parents($tid) {
+  $cache = &drupal_static(__FUNCTION__, array());
+
+  if (!is_numeric($tid)) {
+    return array();
+  }
+
+  if (!isset($cache[$tid])) {
+    $cache[$tid] = array();
+    $parents = taxonomy_get_parents_all($tid);
+    array_shift($parents); // Remove this term from the array.
+    $parents = array_reverse($parents);
+    foreach ($parents as $term) {
+      $cache[$tid][$term->tid] = entity_label('taxonomy_term', $term);
+    }
+  }
+
+  return $cache[$tid];
+}
+
+/**
+ * Load the preferred menu link associated with a node.
+ *
+ * @param $node
+ *   A node object.
+ *
+ * @return
+ *   A menu link array from token_menu_link_load() or FALSE if a menu link was
+ *   not found.
+ *
+ * @see menu_node_prepare()
+ * @see token_menu_link_load()
+ */
+function token_node_menu_link_load($node) {
+  $cache = &drupal_static(__FUNCTIon__, array());
+
+  if (!isset($cache[$node->nid])) {
+    $mlid = FALSE;
+
+    // Nodes do not have their menu links loaded via menu_node_load().
+    if (!isset($node->menu)) {
+      // We need to clone the node as menu_node_prepare() may cause data loss.
+      // @see http://drupal.org/node/1317926
+      $menu_node = clone $node;
+      menu_node_prepare($menu_node);
+      $mlid = !empty($menu_node->menu['mlid']) ? $menu_node->menu['mlid'] : FALSE;
+    }
+    else {
+      $mlid = !empty($node->menu['mlid']) ? $node->menu['mlid'] : FALSE;
+    }
+
+    $cache[$node->nid] = $mlid;
+  }
+
+  return $cache[$node->nid] ? token_menu_link_load($cache[$node->nid]) : FALSE;
 }
