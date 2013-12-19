@@ -2,7 +2,27 @@
 
 /**
  * This files contains helpers for managing relations
- * across character projects, groups and characters
+ * across character projects, groups and characters.
+ *
+ * The structure of relations defines a tree of
+ * characters with a project at it's root.
+ *
+ * - The project is always at the root of the tree ;
+ * - There is only one project per tree ;
+ * - Each character belongs to only one tree ;
+ * - A character can be present several times in the
+ *   tree. Each presence is considered a separate instance
+ *   so that the structure remains a tree ;
+ * - Groups are just special kinds of characters.
+ *
+ * The user interface does not allow users to set non-group
+ * characters as parents ; the rest of the code however
+ * would (and should) allow that, so this decision can
+ * be reverted easily.
+ *
+ * Unless otherwise specified, functions that take a
+ * parent and child entity wrapper will have the first
+ * as the parent and the second as the child.
  */
 /**
  * character_editor_get_characters
@@ -13,11 +33,7 @@
  * relation, sorted using the field_character_weight
  * field.
  *
- * The entities are organised through relations as:
- * 
- * project -> group -> character | group
- *
- * So typically this would be used to get a project's groups,
+ * Typically this would be used to get a project's groups,
  * and a group's characters.
  * 
  * It is possible to get the parents, rather than the children, of the
@@ -63,11 +79,7 @@ function character_editor_get_characters($wrapper, $source = TRUE){
  * (as wrappers) that are parent of that entity via a 
  * 'character' relation.
  * 
- * The entities are organised through relations as:
- * 
- * project -> group -> character | group
- *
- * So typically this would be used to get a character's groups,
+ * Typically this would be used to get a character's groups,
  * or a group's projects.
  * 
  */
@@ -192,12 +204,9 @@ function character_editor_get_tree($entity_w, $mode = 'flat', $parent_id = 0, $e
 /**
  * character_editor_associate_character
  * 
- * Associate two characters via a relation. Note that the order of
- * relation is:
+ * Associate two characters (or a project and a character) via a relation. 
  * 
- * project -> group -> character | group
- * 
- * So use character_editor_set_character($project, $group) and
+ * For instance use character_editor_set_character($project, $group) and
  * character_editor_set_character($group, $character)
  * 
  * Note that the entities must have an ID before a relation can be
@@ -221,12 +230,52 @@ function character_editor_associate_character(EntityDrupalWrapper $parent_w, Ent
 }
 
 /**
+ * character_editor_detatch_character
+ *
+ * Remove the relations of a given character to it's
+ * direct parents.
+ *
+ * If $parent_w is specified, then only remove the relation
+ * to that particular parent (if it exists).
+ *
+ * If $keep is TRUE, then ensure the character remains in the
+ * project by re-attaching it to the project root (even if that
+ * was the parent it was just removed from) if it were to have
+ * no parent left.
+ */
+function character_editor_detach_character($character_w, $parent_w = NULL, $keep = FALSE){
+  if($parent_w === NULL){
+    $parents = character_editor_get_parents($character_w);
+  }else{
+    $parents = array(
+      $parent_w
+    );
+  }
+  $project_w = FALSE;
+  if($keep){
+    $project_w = character_editor_get_character_project($character_w);
+  }
+  foreach($parents as $parent_w){
+    $relation = character_editor_association_exists($character_w, $parent_w);
+    if($relation){
+      relation_delete($relation->rid);
+    }
+  }
+  if($project_w){
+    $parents = character_editor_get_parents($character_w);
+    if(empty($parents)){
+      character_editor_associate_character($project_w, $character_w);
+    }
+  }
+}
+
+/**
  * character_editor_association_exists
  * 
- * Checks if two characters already have a relation. Note that
- * the order of the characters is not important.
- * 
- * project <-> group <-> character | group
+ * Checks if two characters already have a relation. For this
+ * function the order of the entities is not important (so
+ * calling $project, $group and $group, $project would return
+ * the same thing).
  *
  * Returns the first level of the relation on success
  * (this is mostly usefull when max_depth = 1) and FALSE otherwise.

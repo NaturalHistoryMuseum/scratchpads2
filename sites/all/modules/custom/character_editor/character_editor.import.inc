@@ -771,7 +771,16 @@ function character_editor_sdd_import_set_character_state($xml_map, $entity_w, $f
 /**
  * character_editor_sdd_import_get_character
  *
- * Try to match an XML Node to an existing character
+ * Try to match an XML Node to an existing character. This matches
+ * on title and description (for all characters), states (for controlled
+ * characters) and measurement unit (for numerical characters).
+ *
+ * The hierarchy is not taken into consideration when trying to match
+ * a character to an existing one. This allows users to re-import data
+ * after having moved a character. It would only be a problem if two
+ * characters were otherwise identical - however this causes other
+ * problems anyway and is discouraged (see
+ * CharacterEditorSDDImport::validateFile)
  *
  * $map: The ReverseSchemaArrayXMLMap object
  * $node: The XML node to map
@@ -811,7 +820,8 @@ function character_editor_sdd_import_get_character($xml_map, $node, $type, $proj
       continue;
     }
     // Restrict result to the project
-    if(!character_editor_association_exists($project_w, $entity_w, 2)){
+    $entity_project_w = character_editor_get_character_project($entity_w);
+    if($entity_project_w->getIdentifier() != $project_w->getIdentifier()){
       continue;
     }
     if($type == 'numeric' && !$unit){
@@ -1223,10 +1233,6 @@ class CharacterEditorSDDImport{
       $this->addMessage(t('The SDD file cannot be imported: it must define some Taxon Names and some Characters.'), 'error');
       $fail = TRUE;
     }
-    if($dom->xpath('/Datasets/Dataset/CharacterTrees/CharacterTree/Nodes/Node/Parent')){
-      $this->addMessage(t('The SDD file cannot be imported: we do not support character trees that have a depth of more than 1.'), 'error');
-      $fail = TRUE;
-    }
     if($dom->xpath('/Datasets/Dataset/DescriptiveConcepts/ConceptStates')){
       $this->addMessage(t('The SDD file cannot be imported: we do not support descriptive concepts with states.'), 'error');
       $fail = TRUE;
@@ -1242,6 +1248,12 @@ class CharacterEditorSDDImport{
     }
     if($dom->xpath('/Datasets/Dataset/MediaObjects/MediaObject/EncodedData')){
       $this->addMessage(t('MediaObjects with Encoded Data will not be imported'), 'warning');
+    }
+    if($this->findDuplicates($dom, '/Datasets/Dataset/DescriptiveConcepts/DescriptiveConcept')){
+      $this->addMessage(t('The SDD file containes duplicate groups. This is fine for an initial import, but may cause problems if you want to re-import data later.'), 'warning');
+    }
+    if($this->findDuplicates($dom, '/Datasets/Dataset/Characters/*')){
+      $this->addMessage(t('The SDD file containes duplicate characters. This is fine for an initial import, but may cause problems if you want to re-import data later.'), 'warning');
     }
     foreach($dom->xpath('/Datasets/Dataset/CodedDescriptions/CodedDescription/SummaryData/Categorical') as $dom_node){
       if(count($dom_node->xpath('State')) > 1){
@@ -1367,8 +1379,6 @@ class CharacterEditorSDDImport{
     if(!$this->importCharacters()){return FALSE;}
     // We made it this far without failure - we can save all the entities before we start creating relations
     if(!$this->project_w->getIdentifier()){
-      $project_entity = $this->project_w->raw();
-      $project_entity->no_default_group = TRUE;
       $this->project_w->save();
     }
     $this->map->saveEntities();
@@ -1499,7 +1509,7 @@ class CharacterEditorSDDImport{
       )), 'status');
     }
     if($info['skipped']){
-      $this->addMessage(t("%count character groups could not be mapped to existing character groups and were skipped. Character belonging to those groups will get associated with the Default group instead. Missing groups:", array(
+      $this->addMessage(t("%count character groups could not be mapped to existing character groups and were skipped. Character belonging to those groups will get associated with the project root instead. Missing groups:", array(
         '%count' => $info['skipped']
       )), 'warning');
       $this->addMessage($this->map->getMessages(), 'warning', 'map');
@@ -1508,8 +1518,6 @@ class CharacterEditorSDDImport{
       if($options['reuse'] == 'always'){
         $this->addMessage(t("The SDD file cannot be imported without creating new groups."), 'error');
         return FALSE;
-      }else{
-        $this->addMessage(t("No groups were imported - will create a default group"), 'warning');
       }
     }
     $this->map->flushMessages();
@@ -1570,78 +1578,53 @@ class CharacterEditorSDDImport{
    * Create the relations betweens project, groups and characters
    */
   private function importStructure(){
-    // Associate all the groups with the project
     $characters_to_associate = array();
     foreach($this->map->getEntities('character_editor_character') as $entity_w){
-      if($entity_w->getBundle() == 'group'){
-        if(!character_editor_association_exists($this->project_w, $entity_w)){
-          character_editor_associate_character($this->project_w, $entity_w);
-        }
-      }else{
-        $characters_to_associate[$entity_w->getIdentifier()] = $entity_w;
-      }
+      character_editor_detach_character($entity_w);
+      $characters_to_associate[$entity_w->getIdentifier()] = $entity_w;
     }
     // Associates all the characters with their group
     $inconsistent = FALSE;
-    foreach($this->dom->xpath('/Datasets/Dataset/CharacterTrees/CharacterTree/Nodes/CharNode') as $tree_node){
-      $character_ref = $this->map->nodeToString($tree_node->xpath('Character/@ref[1]'));
-      if(!$character_ref){
-        $this->addMessage("Missing character reference in CharacterTree description, the tree will be incomplete.", 'warning', 'tree');
+    foreach($this->dom->xpath('/Datasets/Dataset/CharacterTrees/CharacterTree/Nodes/Node|/Datasets/Dataset/CharacterTrees/CharacterTree/Nodes/CharNode') as $tree_node){
+      $elem_ref = $this->map->nodeToString($tree_node->xpath('Character/@ref[1]|DescriptiveConcept/@ref[1]'));
+      if (!$elem_ref){
+        $this->addMessage("Missing node reference in CharacterTree description, the tree will be incomplete.", 'warning', 'tree');
         continue;
       }
       if(count($tree_node->xpath('Parent')) == 0){
-        // This will get added to the Default group
+        // This will get added to the project root
         continue;
       }
-      // XXX could we have more than one parent here?
-      $node_ref = $this->map->nodeToString($tree_node->xpath('Parent/@ref[1]'));
-      if(!$node_ref){
-        $this->addMessage("Missing parent node reference in CharacterTree description, the tree will be incomplete. Character $character_ref will be associated with default group instead", 'warning', 'tree');
+      $parent_node_ref = $this->map->nodeToString($tree_node->xpath('Parent/@ref[1]'));
+      if(!$parent_node_ref){
+        $this->addMessage("Missing parent node reference in CharacterTree description, the tree will be incomplete. Character/Group $character_ref will be associated with project root instead", 'warning', 'tree');
         continue;
       }
-      $group_ref = $this->map->nodeToString($tree_node->xpath('../Node[@id=\'' . $node_ref . '\']/DescriptiveConcept/@ref'));
-      if(!$group_ref){
-        $this->addMessage("Missing group reference in CharacterTree description, the tree will be incomplete. Character $character_ref will be associated with default group instead", 'warning', 'tree');
+      $parent_node = reset($this->dom->xpath('/Datasets/Dataset/CharacterTrees/CharacterTree/Nodes/*[@id=\'' . $parent_node_ref . '\']'));
+      if ($parent_node){
+        $parent_ref = $this->map->nodeToString($parent_node->xpath('Character/@ref[1]|DescriptiveConcept/@ref[1]'));
+      }
+      if(!$parent_node || !$parent_ref){
+        $this->addMessage("Missing node reference in CharacterTree description, the tree will be incomplete. Character/Group $character_ref will be associated with project root instead", 'warning', 'tree');
         continue;
       }
-      $group_w = $this->map->getEntity('character_editor_character', $group_ref);
-      $character_w = $this->map->getEntity('character_editor_character', $character_ref);
-      if(!$character_w){
-        $this->addMessage("Could not find Character with reference $character_ref in Character Tree, skipping.", 'warning', 'tree');
-      }
-      if(!$group_w){
-        $this->addMessage("Could not find group with reference $group_ref in CharacterTree, the tree will be incomplete. Character $character_ref will be associated with the default group instead", 'warning', 'tree');
+      $elem_w = $this->map->getEntity('character_editor_character', $elem_ref);
+      $parent_w = $this->map->getEntity('character_editor_character', $parent_ref);
+      if (!$elem_w || !$parent_w){
+        $this->addMessage("Could not find matching references for $elem_ref or $parent_ref in Character Tree, skipping.", 'warning', 'tree');
         continue;
       }
-      unset($characters_to_associate[$character_w->getIdentifier()]);
-      if(!character_editor_association_exists($group_w, $character_w)){
-        character_editor_associate_character($group_w, $character_w);
+      // Note: if we ever decide to have non-group parents, then simply removing this test is enough to import such trees.
+      if ($parent_w->getBundle() != 'group'){
+        $this->addMessage("Character Tree uses parent element wich is not a group, skipping.", 'warning', 'tree');
+        continue;
       }
+      unset($characters_to_associate[$elem_w->getIdentifier()]);
+      character_editor_associate_character($parent_w, $elem_w);
     }
-    // Associate remaining characters with the default group.
-    if(!empty($characters_to_associate)){
-      // Fetch/create the default group
-      $default_group_w = NULL;
-      $groups = character_editor_get_characters($this->project_w);
-      foreach($groups as $project_group_w){
-        if($project_group_w->title == 'Default'){
-          $default_group_w = $project_group_w;
-          break;
-        }
-      }
-      if(!$default_group_w){
-        $default_group = entity_create('character_editor_character', array(
-          'type' => 'group',
-          'title' => 'Default'
-        ));
-        $default_group_w = entity_metadata_wrapper('character_editor_character', $default_group);
-        $default_group_w->save();
-        character_editor_associate_character($this->project_w, $default_group_w);
-      }
-      // Associate all the characters with the default group
-      foreach($characters_to_associate as $entity_w){
-        character_editor_associate_character($default_group_w, $entity_w);
-      }
+    // Associate remaining characters with the project root
+    foreach($characters_to_associate as $entity_w){
+      character_editor_associate_character($this->project_w, $entity_w);
     }
   }
 
@@ -1693,6 +1676,21 @@ class CharacterEditorSDDImport{
     $this->map->flushMessages();
     $this->map->flushInfo();
     return TRUE;
+  }
+
+  /**
+   * findDuplicates
+   *
+   * See if two elements under the given xpath are duplicates. This
+   * is done by comparing the inner xml of each element.
+   */
+  private function findDuplicates($dom, $xpath){
+    $nodes = $dom->xpath($xpath);
+    $inner = array();
+    foreach ($nodes as $node){
+      $inner[] = preg_replace('/^<[^>]+>(.*)<[^>]+>$/s', '$1', $node->asXml());
+    }
+    return count($inner) > count(array_unique($inner));
   }
 
   /**

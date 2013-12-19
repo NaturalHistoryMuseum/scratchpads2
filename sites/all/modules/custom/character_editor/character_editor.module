@@ -162,8 +162,8 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
   if(!count($args)){return;}
   $view->characters = array();
   $style_options = $view->display_handler->get_option('style_options');
-  // Always turn on tabs
-  $style_options['tabs'] = true;
+  // Always turn off tabs
+  $style_options['tabs'] = false;
   // Editing entity type will always be relation
   $style_options['entity_type'] = 'relation';
   if(arg(2) != 'edit' && (arg(0) != 'slickgrid' && arg(1) != 'callback')){
@@ -185,112 +185,90 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
   // The project ID will always be passed in as the first argument
   $project_w = character_editor_wrapper('character_editor_project', reset($args), TRUE);
   $properties = $project_w->getPropertyInfo();
-  foreach(character_editor_get_characters($project_w) as $group_w){
-    $column_number = 1;
-    $character_group_has_column = FALSE;
-    foreach(character_editor_get_characters($group_w) as $character_w){
-      if($character_w->getBundle() == 'group'){
+  $column_number = 1;
+  foreach(character_editor_get_tree($project_w) as $item_key => $tree_item){
+    if ($tree_item['wrapper']->getBundle() == 'group'){
+      continue;
+    }
+    $character_w = $tree_item['wrapper'];
+    $column_id = preg_replace('/^.+:(\d+):(\d+)$/', 'character_$1_$2', $item_key);
+    $field = array(
+      'id' => $column_id,
+      'relationship' => 'none',
+      'group_type' => 'group',
+      'label' => $column_number,
+      'hide_empty' => 0
+    );
+    $view->add_item('page', 'field', 'views', 'character_field', $field, $column_id);
+    $style_options['columns'][$column_id] = array(
+      'width' => 35,
+      'filter' => '',
+      'headerCssClass' => 'character character-type-' . $character_w->getBundle() . ' ' . $column_id
+    );
+    $entity_info = $character_w->entityInfo();
+    $style_options['columns'][$column_id]['data']['bt'] = t('<h2>!label</h2><span class="character-type">!type</span>', array(
+      '!type' => $entity_info['bundles'][$character_w->getBundle()]['label'],
+      '!label' => $character_w->label()
+    ));
+    // Render the character node - this is used for the header tooltips
+    $controller = entity_get_controller($character_w->type());
+    $content = $controller->view(array(
+      $character_w->getIdentifier() => clone $character_w->value()
+    ));
+    $style_options['columns'][$column_id]['data']['char'] = drupal_render($content);
+    switch($character_w->getBundle()){
+      case 'text':
+      case 'dna':
+        $editor = 'ModalCharacter';
+        break;
+      case 'numeric':
+        $editor = 'InlineCharacter';
+        if($character_w->field_char_unit->value()){
+          $style_options['columns'][$column_id]['data']['bt'] .= t('<span>!unit</span>', array(
+            '!unit' => $character_w->field_char_unit->value()
+          ));
+        }
+        break;
+      case 'controlled':
+        $editor = 'InlineCharacter';
+        $value_to_delta = array();
+        if($character_w->field_char_states->count() > 0){
+          $conj = '';
+          foreach($character_w->field_char_states as $state_delta => $state_w){
+            $style_options['columns'][$column_id]['data']['bt'] .= $conj . t('<span class="state-delta">@delta</span>@state', array(
+              '@delta' => $state_delta,
+              '@state' => $state_w->field_char_state_label->value()
+            ));
+            $conj = '<br/>';
+            $value_to_delta[$state_w->getIdentifier()] = $state_delta;
+          }
+        }else{
+          $style_options['columns'][$column_id]['data']['bt'] .= t('There are no states for this character');
+        }
+        break;
+    }
+    $style_options['columns'][$column_id]['data']['charType'] = $character_w->getBundle();
+    // Only add the editor if it's editable
+    if($editable){
+      $style_options['columns'][$column_id]['editor'] = $editor;
+    }
+    // Fill in the data for this character
+    $values = character_editor_get_character_values($character_w);
+    foreach($values as $value){
+      if(!isset($value['data'][0]['safe_value'])){
         continue;
       }
-      $character_group_has_column = TRUE;
-      $column_id = 'character_' . $character_w->getIdentifier();
-      $field = array(
-        'id' => $column_id,
-        'relationship' => 'none',
-        'group_type' => 'group',
-        'label' => $column_number,
-        'hide_empty' => 0
-      );
-      $view->add_item('page', 'field', 'views', 'character_field', $field, $column_id);
-      $style_options['columns'][$column_id] = array(
-        'tab' => $group_w->label(),
-        'width' => 35,
-        'filter' => '',
-        'headerCssClass' => 'character character-type-' . $character_w->getBundle() . ' ' . $column_id
-      );
-      $entity_info = $character_w->entityInfo();
-      $style_options['columns'][$column_id]['data']['bt'] = t('<h2>!label</h2><span class="character-type">!type</span>', array(
-        '!type' => $entity_info['bundles'][$character_w->getBundle()]['label'],
-        '!label' => $character_w->label()
-      ));
-      // Render the character node - this is used for the header tooltips
-      $controller = entity_get_controller($character_w->type());
-      $content = $controller->view(array(
-        $character_w->getIdentifier() => clone $character_w->value()
-      ));
-      $style_options['columns'][$column_id]['data']['char'] = drupal_render($content);
-      switch($character_w->getBundle()){
-        case 'text':
-        case 'dna':
-          $editor = 'ModalCharacter';
-          break;
-        case 'numeric':
-          $editor = 'InlineCharacter';
-          if($character_w->field_char_unit->value()){
-            $style_options['columns'][$column_id]['data']['bt'] .= t('<span>!unit</span>', array(
-              '!unit' => $character_w->field_char_unit->value()
-            ));
-          }
-          break;
-        case 'controlled':
-          $editor = 'InlineCharacter';
-          $value_to_delta = array();
-          if($character_w->field_char_states->count() > 0){
-            $conj = '';
-            foreach($character_w->field_char_states as $state_delta => $state_w){
-              $style_options['columns'][$column_id]['data']['bt'] .= $conj . t('<span class="state-delta">@delta</span>@state', array(
-                '@delta' => $state_delta,
-                '@state' => $state_w->field_char_state_label->value()
-              ));
-              $conj = '<br/>';
-              $value_to_delta[$state_w->getIdentifier()] = $state_delta;
-            }
-          }else{
-            $style_options['columns'][$column_id]['data']['bt'] .= t('There are no states for this character');
-          }
-          break;
-      }
-      $style_options['columns'][$column_id]['data']['charType'] = $character_w->getBundle();
-      // Only add the editor if it's editable
-      if($editable){
-        $style_options['columns'][$column_id]['editor'] = $editor;
-      }
-      // Fill in the data for this character
-      $values = character_editor_get_character_values($character_w);
-      foreach($values as $value){
-        if(!isset($value['data'][0]['safe_value'])){
-          continue;
+      $data = $value['data'][0]['safe_value'];
+      // If this is a controlled character, we want to use the delta, not the value
+      if($character_w->getBundle() == 'controlled' && is_array($value_to_delta)){
+        foreach($value_to_delta as $value_key => $value_delta){
+          $data = str_replace($value_key, $value_delta, $data);
         }
-        $data = $value['data'][0]['safe_value'];
-        // If this is a controlled character, we want to use the delta, not the value
-        if($character_w->getBundle() == 'controlled' && is_array($value_to_delta)){
-          foreach($value_to_delta as $value_key => $value_delta){
-            $data = str_replace($value_key, $value_delta, $data);
-          }
-        }
-        $char_id = $value['entity_w']->type() . ':' . $value['entity_w']->getIdentifier();
-        $view->characters[$char_id][$column_id] = $data;
       }
-      $column_number++;
+      $char_id = $value['entity_w']->type() . ':' . $value['entity_w']->getIdentifier();
+      $view->characters[$char_id][$column_id] = $data;
     }
-    if(!$character_group_has_column && (arg(2) == 'edit' || (arg(0) == 'slickgrid' && arg(1) == 'callback'))){
-      $column_id = 'character_group_' . $group_w->getIdentifier();
-      $field = array(
-        'id' => $column_id,
-        'relationship' => 'none',
-        'group_type' => 'group',
-        'label' => '',
-        'hide_empty' => 0
-      );
-      $view->add_item('page', 'field', 'views', 'nothing', $field, $column_id);
-      $style_options['columns'][$column_id] = array(
-        'tab' => $group_w->label(),
-        'headerCssClass' => 'character ' . $column_id
-      );
-      $style_options['columns'][$column_id]['data'] = array(
-        'char' => t('This group is empty. You need to add characters to the group.')
-      );
-    }
+    $column_number++;
   }
   $view->display_handler->set_option('style_options', $style_options);
 }
@@ -301,117 +279,101 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
  * 
  ********************************************************************************************/
 /**
- * Implementation of hook_form_alter()
+ * Implementation of hook_form_entity_admin_entity_form_alter()
+ *
+ * Apply modifications to the character add/edit form
  */
-function character_editor_form_alter(&$form, &$form_state, $form_id){
-  switch($form_id){
-    case 'entity_admin_entity_form':
-      switch($form['#entity_type']){
-        case 'character_editor_character':
-          // Is this an add link from slickgrid
-          if(!isset($form_state['character_project_id'])){
-            if($form_state['entity']->is_new){
-              $form_state['character_project_id'] = arg(5);
-            }else{
-              $entity_w = character_editor_wrapper($form['#entity_type'], $form_state['entity']);
-              $project_w = character_editor_get_character_project($entity_w);
-              if($project_w){
-                $form_state['character_project_id'] = $project_w->getIdentifier();
-              }
-            }
-          }
-          if($form_state['entity']->type != 'group'){
-            $groups = character_editor_get_groups($form_state['character_project_id']);
-            if(count($groups)){
-              $default_group = NULL;
-              if(empty($form_state['entity']->is_new)){
-                $group_entity = character_editor_get_group($form_state['entity']->id);
-                if($group_entity){
-                  $default_group = $group_entity->id;
-                }
-              }
-              if(empty($default_group)){
-                $default_group = reset(array_keys($groups));
-              }
-              // Get the actual title weight - the one in the form gets over-written later
-              $extra_fields = field_info_extra_fields('character_editor_character', $form_state['entity']->type, 'form');
-              if(isset($extra_fields['title']['weight'])){
-                $title_weight = $extra_fields['title']['weight'];
-              }else{
-                $title_weight = $form['title']['#weight'];
-              }
-              $form['group'] = array(
-                '#type' => 'select',
-                '#title' => t('Group'),
-                '#options' => $groups,
-                '#description' => t('Which group would you like to add this character to?'),
-                '#required' => true,
-                '#default_value' => $default_group,
-                '#nane' => 'group',
-                '#weight' => $title_weight + 0.5
-              );
-            }else{
-              form_set_error('group', t("Sorry, you need to create a group before adding any other character"));
-            }
-          }
-          if($form_state['entity']->is_new){
-            $form['actions']['submit']['#submit'][] = 'character_editor_character_form_submit';
-          }else{
-            // The tabs have been changed so there's no longer delete - add delete button
-            $form['actions']['delete'] = array(
-              '#type' => 'submit',
-              '#value' => t('Delete'),
-              '#submit' => array(
-                'character_editor_character_delete_submit'
-              )
-            );
-            if(!empty($form_state['character_project_id'])){
-              $form['actions']['cancel'] = array(
-                '#type' => 'markup',
-                '#markup' => l('Cancel', 'character-editor-project/' . $form_state['character_project_id'] . '/characters')
-              );
-            }
-            $form['actions']['submit']['#submit'][] = 'character_editor_character_form_submit';
-            $form['actions']['submit']['#update'] = TRUE;
-          }
-          $form['#after_build'][] = 'character_editor_character_form_after_build';
-          break;
-        case 'character_editor_project':
-          // Do not do anything for character project creation
-          if($form['#entity']->is_new){return;}
-          // Character editor project form is broken up into edit characters (relations field)
-          // And settings
-          if(arg(2) == 'settings'){
-            // Hide the characters on the settings form
-            $form['title']['#title'] = t('Title');
-          }else{
-            // Hide all other fields on the edit characters form
-            foreach(array(
-              'title',
-              'field_char_proj_description',
-              'field_taxonomic_name',
-              'field_char_proj_specimen'
-            ) as $key){
-              $form[$key]['#prefix'] = '<div class="element-hidden">';
-              $form[$key]['#suffix'] = '</div>';
-            }
-          }
-          break;
+function character_editor_form_entity_admin_entity_form_alter(&$form, &$form_state, $form_id){
+  if($form['#entity_type'] != 'character_editor_character'){return;}
+  // Is this an add link from slickgrid
+  $project_w = FALSE;
+  if(!isset($form_state['character_project_id'])){
+    if($form_state['entity']->is_new){
+      $form_state['character_project_id'] = arg(5);
+    }else{
+      $entity_w = character_editor_wrapper($form['#entity_type'], $form_state['entity']);
+      $project_w = character_editor_get_character_project($entity_w);
+      if($project_w){
+        $form_state['character_project_id'] = $project_w->getIdentifier();
       }
-      break;
-    case 'entity_admin_entity_delete_form':
-      if(preg_match('/^\/character-editor-character\/\d+\/delete(\?.*)?$/', $form['#action'])){
-        $form['actions']['submit']['#submit'][] = 'character_editor_character_delete_submit';
-        $entity_w = character_editor_wrapper('character_editor_character', $form_state['entity']);
-        $project_w = character_editor_get_character_project($entity_w);
-        if($project_w){
-          $form['actions']['cancel']['#href'] = 'character-editor-project/' . $project_w->getIdentifier() . '/characters';
-        }
-      }
-      break;
+    }
   }
+  if(!$project_w){
+    $project_w = character_editor_wrapper('character_editor_project', $form_state['character_project_id']);
+  }
+  $groups = array();
+  if ($project_w){
+    $tree = character_editor_get_tree($project_w);
+    foreach($tree as $tree_item){
+      if($tree_item['wrapper']->getBundle() !== 'group'){
+        continue;
+      }
+      $group_id = $tree_item['wrapper']->getIdentifier();
+      $groups[$group_id] = str_repeat('-', $tree_item['depth']) . ' ' . $tree_item['wrapper']->title->value();
+    }
+  }
+  if(count($groups)){
+    $character_w = character_editor_wrapper('character_editor_character', $form_state['entity']);
+    $selected_group_wrappers = character_editor_get_parents($character_w);
+    $selected_groups = array();
+    foreach($selected_group_wrappers as $group_w){
+      $selected_groups[] = $group_w->getIdentifier();
+    }
+    // Get the actual title weight - the one in the form gets over-written later
+    $extra_fields = field_info_extra_fields('character_editor_character', $form_state['entity']->type, 'form');
+    if(isset($extra_fields['title']['weight'])){
+      $title_weight = $extra_fields['title']['weight'];
+    }else{
+      $title_weight = $form['title']['#weight'];
+    }
+    $form['group'] = array(
+      '#type' => 'select',
+      '#title' => t('Group'),
+      '#options' => $groups,
+      '#description' => t('Which group(s) would you like to add this character to?'),
+      '#required' => FALSE,
+      '#default_value' => $selected_groups,
+      '#nane' => 'group',
+      '#multiple' => TRUE,
+      '#weight' => $title_weight + 0.5
+    );
+  }
+  if(!$form_state['entity']->is_new){
+    // The tabs have been changed so there's no longer delete - add delete button
+    $form['actions']['delete'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete'),
+      '#submit' => array(
+        'character_editor_character_delete_submit'
+      )
+    );
+    if(!empty($form_state['character_project_id'])){
+      $form['actions']['cancel'] = array(
+        '#type' => 'markup',
+        '#markup' => l('Cancel', 'character-editor-project/' . $form_state['character_project_id'] . '/characters')
+      );
+    }
+    $form['actions']['submit']['#update'] = TRUE;
+  }
+  $form['actions']['submit']['#submit'][] = 'character_editor_character_form_submit';
+  $form['#after_build'][] = 'character_editor_character_form_after_build';
 }
 
+/**
+ * Implementation of hook_form_entity_admin_entity_delete_form_alter()
+ *
+ * Apply modifications to the character delete form
+ */
+function character_editor_form_entity_admin_entity_delete_form_alter(&$form, &$form_state, $form_id){
+  if(preg_match('/^\/character-editor-character\/\d+\/delete(\?.*)?$/', $form['#action'])){
+    $form['actions']['submit']['#submit'][] = 'character_editor_character_delete_submit';
+    $entity_w = character_editor_wrapper('character_editor_character', $form_state['entity']);
+    $project_w = character_editor_get_character_project($entity_w);
+    if($project_w){
+      $form['actions']['cancel']['#href'] = 'character-editor-project/' . $project_w->getIdentifier() . '/characters';
+    }
+  }
+}
 /*********************************************************************************************
  * 
  * ENTITY HOOKS & CALLBACKS
@@ -595,28 +557,6 @@ function character_editor_entity_delete($entity, $type){
   }
 }
 
-/**
- * Implements hook_entity_insert
- * Create a default group for charcater projects
- */
-function character_editor_entity_insert($entity, $type){
-  global $user;
-  if($type == 'character_editor_project' && !isset($entity->no_default_group)){
-    // Create the group entity
-    $group = entity_create('character_editor_character', array(
-      'type' => 'group',
-      'is_new' => 1,
-      'title' => t('Default'),
-      'uid' => $user->uid,
-      'name' => $user->name
-    ));
-    // Save group
-    entity_save('character_editor_character', $group);
-    // And relate group to the character project
-    character_editor_create_relation($entity, $group);
-  }
-}
-
 /*********************************************************************************************
  * 
  * MENU CALLBACKS
@@ -669,53 +609,29 @@ function character_editor_project_view($entity){
  * Additional form submit handler for new characters. This is called after entity_admin_entity_form_submit
  */
 function character_editor_character_form_submit(&$form, &$form_state){
-  if(empty($form_state['triggering_element']['#update'])){
-    try{
-      if(isset($form_state['entity'])){
-        $character_entity = $form_state['entity'];
-        switch($character_entity->type){
-          case 'group':
-            $parent_entity = entity_load_single('character_editor_project', $form_state['character_project_id']);
-            drupal_set_message(t("Created new character group @label", array(
-              '@label' => $character_entity->label()
-            )));
-            break;
-          default:
-            $parent_entity = entity_load_single('character_editor_character', $form_state['values']['group']);
-            drupal_set_message(t("Created new character @label", array(
-              '@label' => $character_entity->label()
-            )));
-            break;
-        }
-        character_editor_create_relation($parent_entity, $character_entity);
-      }else{
-        throw new Exception('The character could not be created.');
-      }
+  if (empty($form_state['entity'])){
+    return;
+  }
+  $character_w = character_editor_wrapper('character_editor_character', $form_state['entity']);
+  character_editor_detach_character($character_w);
+  $parents = array();
+  if (isset($form_state['values']['group'])){
+    foreach($form_state['values']['group'] as $group_id){
+      $parents[] = character_editor_wrapper('character_editor_character', $group_id);
     }
-    catch(Exception $e){
-      form_set_error('error', t('Sorry, the character could not be created - please close this form & try again. If the problem happens again, please contact the scratchpads team.'));
-    }
+  }
+  if (empty($parents)){
+    $parents[] = character_editor_wrapper('character_editor_project', $form_state['character_project_id']);
+  }
+  foreach($parents as $parent_w){
+    character_editor_associate_character($parent_w, $character_w);
+  }
+  if (empty($form_state['triggering_element']['#update'])){
     drupal_set_message(t("%type character added", array(
-      "%type" => ucfirst($character_entity->type)
+    "%type" => ucfirst($character_entity->type)
     )));
     unset($form_state['redirect']);
-  }else if(isset($form_state['entity'])){
-    $character_entity = $form_state['entity'];
-    if($character_entity->type != 'group'){
-      $existing_group = character_editor_get_group($character_entity->id);
-      $new_group = entity_load_single('character_editor_character', $form_state['values']['group']);
-      if($existing_group->id != $new_group->id){
-        // Delete the existing group relation
-        $query = relation_query('character_editor_character', $character_entity->id)->entityCondition('bundle', PROJECT_CHARACTER_RELATION_TYPE)->related('character_editor_character', $existing_group->id);
-        $result = $query->execute();
-        if(count($result)){
-          $r = reset($result);
-          relation_delete($r->rid);
-        }
-        // And create a new one
-        character_editor_create_relation($new_group, $character_entity);
-      }
-    }
+  } else {
     if(!empty($form_state['character_project_id'])){
       $form_state['redirect'] = 'character-editor-project/' . $form_state['character_project_id'] . '/characters';
     }
@@ -807,7 +723,8 @@ function character_editor_characters_order_form($form, &$form_state){
         '#type' => 'textfield',
         '#default_value' => $item['parent_id']
       ),
-      '#depth' => $item['depth']
+      '#depth' => $item['depth'],
+      '#is_group' => $item['wrapper']->getBundle() == 'group'
     );
   }
   $form['submit'] = array(
@@ -846,7 +763,12 @@ function theme_character_editor_characters_order($variables){
     $indent = theme('indentation', array(
       'size' => $form_element['#depth']
     ));
-    $row['data'][] = $indent . drupal_render($form_element['label']);
+    if (empty($element[$key]['#is_group'])){
+      $row['class'][] = 'tabledrag-leaf';
+      $row['data'][] = $indent . drupal_render($form_element['label']);
+    } else {
+      $row['data'][] = $indent .'<strong>' . drupal_render($form_element['label']) . '</strong>';
+    }
     $row['data'][] = drupal_render($form_element['operations']);
     $row['data'][] = drupal_render($form_element['weight']) . drupal_render($form_element['id']) . drupal_render($form_element['parent_id']);
     $rows[] = $row;
@@ -1119,7 +1041,7 @@ function character_editor_inline_cell_process($editor){
  */
 function character_editor_state_form($form, &$form_state){
   $form = array();
-  $form_state['character_id'] = str_replace('character_', '', $_POST['field_id']);
+  $form_state['character_id'] = preg_replace('/^character_(\d+)_\d+$/', '$1', $_POST['field_id']);
   $form_state['field_id'] = $_POST['field_id'];
   list($entity_type, $entity_id) = explode(':', reset($form_state['values']['entity_ids']));
   $form_state['entity_id'] = $entity_id;

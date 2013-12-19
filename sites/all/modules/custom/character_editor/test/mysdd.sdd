@@ -15,11 +15,13 @@
   - Successfull creation of 3 media items, 2 character groups, 6 characters and 10 coded descriptions.
 
   The resultuing character project should have:
-   - Three groups: "A group", "Another group" and "Default" ;
+   - Two groups: "A group" and "Another group" such that "Another group" is a child
+     of "A group" ;
    - "A group" should have characters "Number of Heads" and "Type of blood sucker" ;
    - "Another group" should have characters "Number of blood sucking appendix" 
      and "Eye color" ;
-   - "Default group" should have characters "Famous last words" and "DNA stuff" ;
+   - Characters "Famous last words" and "DNA stuff" should be associated with the
+     project root ;
    - Character "Type of blood sucker" should have states "0: The good type",
      "1: The baaaaad type" ;
    - Character "Eye color" should have states "0: Blueish green" and "1: Greenish blue" ;
@@ -119,8 +121,13 @@
     <CharacterTrees>
       <CharacterTree id='t1'>
         <Nodes>
-          <Node id='cn1'><DescriptiveConcept ref='dc1' /></Node>
-          <Node id='cn2'><DescriptiveConcept ref='dc2' /></Node>
+          <Node id='cn1'>
+            <DescriptiveConcept ref='dc1' />
+          </Node>
+          <Node id='cn2'>
+            <Parent ref='cn1' />
+            <DescriptiveConcept ref='dc2' />
+          </Node>
           <CharNode>
             <Parent ref='cn1' />
             <Character ref='c1' />
