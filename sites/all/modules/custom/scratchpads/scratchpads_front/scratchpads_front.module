@@ -64,19 +64,6 @@ function scratchpads_front_menu(){
  * Implements hook_block_view_alter
  */
 function scratchpads_front_block_view_alter(&$data, $block){
-  if(isset($block->context) && substr($block->bid, 0, -1) == 'views-front_page_blocks-block_' && substr($data['subject'], -3) == 'pes'){
-    if($data['content']['#views_contextual_links_info']['views_ui']['view']->args[0] == 'custom'){
-      list($customview_viewname, $customview_displayname) = explode(':', $data['content']['#views_contextual_links_info']['views_ui']['view']->args[1]);
-      $customview_view = views_get_view($customview_viewname);
-      if(is_object($customview_view)){
-        if($customview_view->access($customview_displayname)){
-          $customview_view->set_display($customview_displayname);
-          $title = $customview_view->get_title();
-          $data['subject'] = $title;
-        }
-      }
-    }
-  }
   if(isset($block->context) && substr($block->bid, 0, -1) == 'views-front_page_blocks-block_' && substr($data['subject'], -3) == 'rys'){
     $data['subject'] = substr($data['subject'], 0, -2) . 'ies';
   }
@@ -146,14 +133,13 @@ function scratchpads_front_views_pre_view(&$view, &$display_id, &$args){
   switch($view->name){
     case 'front_page_blocks':
       $var = 'front_page_' . $display_id . '_node_type';
-      $view->args[] = scratchpads_front_variable_get($var);
-      if(in_array('custom', $view->args)){
-        $var = 'front_page_' . $display_id . '_custom_content';
+      /* pass the variables needed to substitute the custom block via hook__preprocess_block */
+      if(scratchpads_front_variable_get($var) == 'custom' && $view->current_display == $display_id){
+        $view->args[] = 'custom';
+        $view->args[] = $display_id;
+        $view->args[] = variable_get($var . '_custom');
+      }else{
         $view->args[] = scratchpads_front_variable_get($var);
-        $customview_to_insert = $view->args[1];
-        $currentview_empty_options = $view->display_handler->get_option('empty');
-        $currentview_empty_options['view']['view_to_insert'] = $customview_to_insert;
-        $view->display_handler->set_option('empty', $currentview_empty_options);
       }
       break;
     case 'front_page_slideshow':
@@ -390,9 +376,7 @@ function scratchpads_front_page_edit($form, &$form_state){
       continue;
     }
     $var = 'front_page_' . $display_id . '_node_type';
-    $var_custom = 'front_page_' . $display_id . '_custom_content';
     $form_state['vars'][] = $var;
-    $form_state['vars'][] = $var_custom;
     $form['small_blocks']['small_block_' . $count] = array(
       '#type' => 'fieldset',
       '#title' => t('Block ' . $count),
@@ -401,7 +385,7 @@ function scratchpads_front_page_edit($form, &$form_state){
     );
     $form['small_blocks']['small_block_' . $count][$var] = array(
       '#type' => 'select',
-      '#title' => t('Block ' . $count . ' content'),
+      '#title' => t('Block ' . $count),
       '#options' => $node_types,
       '#default_value' => scratchpads_front_variable_get($var),
       '#description' => t('Select which node type to display in the home page block.'),
@@ -412,6 +396,7 @@ function scratchpads_front_page_edit($form, &$form_state){
       '#title' => t('Custom block ' . $count),
       '#collapsible' => FALSE,
       '#collapsed' => FALSE,
+      // This #states rule says that the "custom block" fieldset should only be shown if the "nodetype (var)" form element is set to "custom".
       '#states' => array(
         'visible' => array(
           ':input[name="' . $var . '"]' => array(
@@ -420,11 +405,11 @@ function scratchpads_front_page_edit($form, &$form_state){
         )
       )
     );
-    $form['small_blocks']['small_block_' . $count]['custom_block_' . $count][$var_custom] = array(
+    $form['small_blocks']['small_block_' . $count]['custom_block_' . $count][$var . '_custom'] = array(
       '#type' => 'select',
-      '#title' => t('Block ' . $count . ' custom view'),
-      '#options' => scratchpads_front_customviews_get(),
-      '#default_value' => scratchpads_front_variable_get($var_custom)
+      '#title' => t('Block ' . $count . ' custom'),
+      '#options' => scratchpads_front_blocks_as_options(),
+      '#default_value' => scratchpads_front_variable_get($var . '_custom')
     );
     $count++;
   }
@@ -438,6 +423,11 @@ function scratchpads_front_page_edit($form, &$form_state){
  * Edit the home page
  */
 function scratchpads_front_page_edit_submit($form, &$form_state){
+  /*
+   * $form_state['vars'][2] = front_page_block_3_node_type
+   * $form_state['values']['front_page_block_3_node_type'] = 'custom'
+   * $form_state['values']['front_page_block_3_node_type_custom'] = views:custom_twitter_block-block' (module:delta)
+   */
   foreach($form_state['vars'] as $var){
     variable_set($var, $form_state['values'][$var]);
   }
@@ -462,24 +452,6 @@ function scratchpads_front_variable_get($name){
 }
 
 /**
- *
- * Helper function for customviews_get
- * @param string $name
- */
-function scratchpads_front_customviews_get(){
-  $customview_options = views_get_views_as_options(FALSE, 'enabled', NULL, FALSE, TRUE); // all enabled views sorted   
-  foreach($customview_options as $index => $tag){
-    if(strpos($tag, 'admin_')!== false || strpos($tag, 'front_page')!== false){
-      unset($customview_options[$index]);
-    }
-  }
-  $customview_options = array_merge(array(
-    '0' => '- Select -'
-  ), $customview_options);
-  return $customview_options;
-}
-
-/**
  * 
  * Helper function for variable defaults
  * @param string $name
@@ -497,23 +469,25 @@ function scratchpads_front_variable_default($name = NULL){
         continue;
       }
       $var = 'front_page_' . $display_id . '_node_type';
-      $var_custom = 'front_page_' . $display_id . '_custom_content';
       switch($display_id){
         case 'block_1':
           $defaults[$var] = 'page';
-          $defaults[$var_custom] = '0';
+          $defaults[$var . '_custom'] = 0;
           break;
         case 'block_2':
           $defaults[$var] = 'biblio';
-          $defaults[$var_custom] = '0';
+          $defaults[$var . '_custom'] = 0;
           break;
         case 'block_3':
           $defaults[$var] = 'spm';
-          $defaults[$var_custom] = '0';
+          $defaults[$var . '_custom'] = 0;
           break;
       }
     }
   }
+  // $name returns front_page_block_3_node_type
+  // $defaults['front_page_block_3_node_type'] = 'spm' 
+  // $defaults['front_page_block_3_node_type_custom'] = 0 
   if(!isset($name)){return $defaults;}
   if(isset($defaults[$name])){return $defaults[$name];}
 }
@@ -529,7 +503,8 @@ function scratchpads_front_node_types(){
       $node_types[$node_type] = $node_info->name;
     }
   }
-  $node_types['custom'] = 'Custom content (View)';
+  /* add custom as an option. If user selects this, a list of blocks is returned to choose from */
+  $node_types['custom'] = 'Custom';
   return $node_types;
 }
 
@@ -544,6 +519,43 @@ function scratchpads_front_node_types(){
 function scratchpads_front_preprocess_block(&$vars){
   $block = $vars['block'];
   if(isset($block->context) && $block->context == 'scratchpads_front_page'){
+    /* check view argument set as variables in scratchpads_front_views_pre_view */
+    if($vars['elements']['content']['#views_contextual_links_info']['views_ui']['view']->args[0] == 'custom'){
+      $display_id = $vars['elements']['content']['#views_contextual_links_info']['views_ui']['view']->args[1];
+      $custom_block_selected = $vars['elements']['content']['#views_contextual_links_info']['views_ui']['view']->args[2];
+      list($module, $delta) = explode(':', $custom_block_selected);
+      $custom_block = block_load($module, $delta);
+      $render_array = _block_get_renderable_array(_block_render_blocks(array(
+        $custom_block
+      )));
+      $render_block_id = $custom_block->module . '_' . $custom_block->delta;
+      // $custom_css = $render_array[$render_block_id]['#views_contextual_links_info']['views']->display['block']['display_options']['css_class'];
+      if($render_array[$render_block_id]['#views_contextual_links_info']['views_ui']['view']->display['block']->display_options['css_class']){
+        $custom_view_block_css = $render_array[$render_block_id]['#views_contextual_links_info']['views_ui']['view']->display['block']->display_options['css_class'];
+      }
+      switch($display_id){
+        case 'block_1':
+          $class = ' alpha';
+          $custom_class = ' view-front-page-block-custom';
+          break;
+        case 'block_2':
+          $class = '';
+          $custom_class = ' view-front-page-block-custom';
+          break;
+        case 'block_3':
+          $class = ' omega';
+          $custom_class = ' view-front-page-block-custom';
+          break;
+      }
+      if($custom_view_block_css){
+        $custom_class = $custom_class . ' ' . $custom_view_block_css;
+      }
+      $markup = '<div class="view view-front-page-blocks view-id-front_page_blocks view-display-id-' . $display_id . $class . '">
+        <div class="view-content' . $custom_class . '">' . $render_array[$render_block_id]['#markup'] . '</div>
+      </div>';
+      $vars['content'] = $markup;
+      $block->subject = $custom_block->title;
+    }
     // Change the contextual links
     $vars['title_suffix']['contextual_links']['#contextual_links']['block'] = array(
       'scratchpads-front/edit',
@@ -722,5 +734,28 @@ function scratchpads_front_image_default_styles(){
     )
   );
 }
-
-
+/* adding custom blocks */
+function scratchpads_front_blocks_as_options(){
+  $query = db_select('block', 'b');
+  $result = $query->fields('b')->orderBy('b.title', 'ASC')->orderBy('b.module', 'ASC')->condition(db_or()->condition('b.module', 'views', '=')->condition('b.module', 'block', '='))->condition('b.theme', 'scratchpads_admin', '!=')->condition('b.delta', array(
+    'front_page_blocks-block_1',
+    'front_page_blocks-block_2',
+    'front_page_blocks-block_3',
+    'front_page_slideshow-block_1',
+    'front_page_content-block'
+  ), 'NOT IN')->addTag('block_load')->addTag('translatable')->execute();
+  $block_info = $result->fetchAllAssoc('bid');
+  $options = array();
+  foreach($block_info as $block){
+    $blockTitle = strip_tags($block->title);
+    if($blockTitle){
+      $options["{$block->module}:{$block->delta}"] = "{$blockTitle}";
+    }else{
+      $options["{$block->module}:{$block->delta}"] = "{$block->module}:{$block->delta}";
+    }
+  }
+  $options = array_merge(array(
+    '0' => '- Select -'
+  ), $options);
+  return $options;
+}
