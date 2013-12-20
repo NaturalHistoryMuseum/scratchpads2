@@ -12,6 +12,7 @@ function scratchpads_group_tools_pre_disable(){
   );
   return $tools_settings;
 }
+
 /**
  * Implementation of hook_node_type_insert().
  * 
@@ -72,6 +73,13 @@ function scratchpads_group_menu_alter(&$items){
     }
   }
   unset($items['group/%/group']);
+}
+
+/**
+ * Implements hook_scratchpads_hands_off_urls_alter()
+ */
+function scratchpads_group_scratchpads_hands_off_urls_alter(&$urls){
+  $urls[] = 'admin/config/group';
 }
 
 /**
