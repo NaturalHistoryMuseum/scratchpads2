@@ -34,6 +34,17 @@ function scratchpads_roles_and_permissions_scratchpads_default_permissions_alter
 /**
  * Implements hook_scratchpads_default_permissions().
  */
+function og_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer group'
+    )
+  );
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
 function scratchpads_roles_and_permissions_scratchpads_default_permissions(){
   return array(
     'anonymous user' => array(),
