@@ -107,6 +107,13 @@ function scratchpads_group_menu_alter(&$items){
 }
 
 /**
+ * Implements hook_scratchpads_hands_off_urls_alter()
+ */
+function scratchpads_group_scratchpads_hands_off_urls_alter(&$urls){
+  $urls[] = 'admin/config/group';
+}
+
+/**
  * Implementation of hook_scratchpads_solr_info().
  */
 function scratchpads_group_scratchpads_solr_info(){
