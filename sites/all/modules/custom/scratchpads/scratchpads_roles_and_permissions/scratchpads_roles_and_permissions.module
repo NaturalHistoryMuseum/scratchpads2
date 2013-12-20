@@ -30,6 +30,7 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'legal',
       'menu',
       'node',
+      'og',
       'overlay',
       'path',
       'pathauto',
