@@ -12,6 +12,7 @@ function scratchpads_group_tools_pre_disable(){
   );
   return $tools_settings;
 }
+
 /**
  * Implementation of hook_node_type_insert().
  * 
@@ -72,6 +73,29 @@ function scratchpads_group_menu_alter(&$items){
     }
   }
   unset($items['group/%/group']);
+}
+
+/**
+ * Implements hook_module_implements_alter()
+ */
+function scratchpads_group_module_implements_alter(&$implementations, $hook){
+  if($hook == 'field_access'){
+    unset($implementations['og_ui']);
+  }
+}
+
+/**
+ * Implements hook_field_access().
+ * 
+ * Replaces the og_ui implementation, simply changing the user permission.
+ */
+function scratchpads_group_field_access($op, $field, $entity_type, $entity, $account){
+  global $user;
+  if($field['field_name'] != OG_AUDIENCE_FIELD){return;}
+  if(!$user->uid){return;}
+  if($op != 'edit'){return;}
+  if($entity_type != 'user'){return;}
+  if(!user_access('administer site configuration', $account)){return FALSE;}
 }
 
 /**
