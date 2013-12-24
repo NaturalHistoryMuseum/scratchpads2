@@ -768,7 +768,9 @@ function scratchpads_front_blocks_as_options(){
 
 function scratchpads_front_get_custom_block($var){
   $custom_block_selected = variable_get($var . '_custom');
-  list($module, $delta) = explode(':', $custom_block_selected);
-  $custom_block = block_load($module, $delta);
-  return $custom_block;
+  if($custom_block_selected){
+    list($module, $delta) = explode(':', $custom_block_selected);
+    $custom_block = block_load($module, $delta);
+    return $custom_block;
+  }
 }
