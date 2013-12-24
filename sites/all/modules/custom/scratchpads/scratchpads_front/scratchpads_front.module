@@ -429,7 +429,9 @@ function scratchpads_front_page_edit($form, &$form_state){
     $form['small_blocks']['small_block_' . $count][$var] = array(
       '#type' => 'select',
       '#title' => t('Block ' . $count),
-      '#options' => $node_types,
+      '#options' => $node_types + array(   /* add custom as an option. If user selects this, a list of blocks is returned to choose from */
+        'custom' => 'Custom'
+      ),
       '#default_value' => scratchpads_front_variable_get($var),
       '#description' => t('Select which node type to display in the home page block.'),
       '#required' => true
@@ -470,8 +472,13 @@ function scratchpads_front_page_edit_submit($form, &$form_state){
    * $form_state['vars'][2] = front_page_block_3_node_type
    * $form_state['values']['front_page_block_3_node_type'] = 'custom'
    * $form_state['values']['front_page_block_3_node_type_custom'] = views:custom_twitter_block-block' (module:delta)
+   * 
+   * unset custom variable if custom is not selected as a node type
    */
   foreach($form_state['vars'] as $var){
+    if($form_state['values'][$var] && $form_state['values'][$var] != 'custom'){
+      variable_del($var . '_custom');
+    }
     variable_set($var, $form_state['values'][$var]);
   }
   $form_state['redirect'] = '<front>';
@@ -546,8 +553,6 @@ function scratchpads_front_node_types(){
       $node_types[$node_type] = $node_info->name;
     }
   }
-  /* add custom as an option. If user selects this, a list of blocks is returned to choose from */
-  $node_types['custom'] = 'Custom';
   return $node_types;
 }
 
