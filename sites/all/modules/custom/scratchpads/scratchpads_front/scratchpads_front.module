@@ -567,11 +567,31 @@ function scratchpads_front_node_types(){
 function scratchpads_front_preprocess_block(&$vars){
   $block = $vars['block'];
   if(isset($block->context) && $block->context == 'scratchpads_front_page'){
-    // Change the contextual links
-    $vars['title_suffix']['contextual_links']['#contextual_links']['block'] = array(
-      'scratchpads-front/edit',
-      array()
-    );
+    $display_id = substr(strrchr($block->bid, "-"), 1); // this is the block into which we are placing the custom block
+    $var = 'front_page_' . $display_id . '_node_type';
+    $custom_block_selected = variable_get($var . '_custom');
+    if($custom_block_selected){
+      list($module, $delta) = explode(':', $custom_block_selected, 2);
+      $vars['title_suffix']['contextual_links']['#contextual_links']['block'] = array(
+        'admin/structure/block/manage',
+        array(
+          $module,
+          $delta
+        )
+      );
+      // not right - if it's a view block it should point to the correct view
+      //  dpm($vars);
+      //  dpm($custom_block_selected);
+      // $test = scratchpads_front_get_custom_block($var);
+      // how do i know which view this block came from?
+      // dpm($vars['title_suffix']['contextual_links']['#contextual_links']['block']);
+    }else{
+      // Change the contextual links
+      $vars['title_suffix']['contextual_links']['#contextual_links']['block'] = array(
+        'scratchpads-front/edit',
+        array()
+      );
+    }
   }
 }
 
