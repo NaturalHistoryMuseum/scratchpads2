@@ -186,12 +186,21 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
   $project_w = character_editor_wrapper('character_editor_project', reset($args), TRUE);
   $properties = $project_w->getPropertyInfo();
   $column_number = 1;
+  $editor_tree = array();
   foreach(character_editor_get_tree($project_w) as $item_key => $tree_item){
-    if ($tree_item['wrapper']->getBundle() == 'group'){
-      continue;
-    }
     $character_w = $tree_item['wrapper'];
     $column_id = preg_replace('/^.+:(\d+):(\d+)$/', 'character_$1_$2', $item_key);
+    $editor_tree[$column_id] = array(
+      'id' => $column_id,
+      'label' => $character_w->label(),
+      'depth' => $tree_item['depth'],
+      'group' => $character_w->getBundle() == 'group',
+      'visible' => true,
+      'parent' => preg_replace('/^.+:(\d+):(\d+)$/', 'character_$1_$2', $tree_item['parent_id'])
+    );
+    if($character_w->getBundle() == 'group'){
+      continue;
+    }
     $field = array(
       'id' => $column_id,
       'relationship' => 'none',
@@ -271,6 +280,11 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
     $column_number++;
   }
   $view->display_handler->set_option('style_options', $style_options);
+  drupal_add_js(array(
+    'CharacterTreeUI' => array(
+      'tree' => $editor_tree
+    )
+  ), 'setting');
 }
 
 /*********************************************************************************************
@@ -302,7 +316,7 @@ function character_editor_form_entity_admin_entity_form_alter(&$form, &$form_sta
     $project_w = character_editor_wrapper('character_editor_project', $form_state['character_project_id']);
   }
   $groups = array();
-  if ($project_w){
+  if($project_w){
     $tree = character_editor_get_tree($project_w);
     foreach($tree as $tree_item){
       if($tree_item['wrapper']->getBundle() !== 'group'){
@@ -374,6 +388,7 @@ function character_editor_form_entity_admin_entity_delete_form_alter(&$form, &$f
     }
   }
 }
+
 /*********************************************************************************************
  * 
  * ENTITY HOOKS & CALLBACKS
@@ -609,29 +624,27 @@ function character_editor_project_view($entity){
  * Additional form submit handler for new characters. This is called after entity_admin_entity_form_submit
  */
 function character_editor_character_form_submit(&$form, &$form_state){
-  if (empty($form_state['entity'])){
-    return;
-  }
+  if(empty($form_state['entity'])){return;}
   $character_w = character_editor_wrapper('character_editor_character', $form_state['entity']);
   character_editor_detach_character($character_w);
   $parents = array();
-  if (isset($form_state['values']['group'])){
+  if(isset($form_state['values']['group'])){
     foreach($form_state['values']['group'] as $group_id){
       $parents[] = character_editor_wrapper('character_editor_character', $group_id);
     }
   }
-  if (empty($parents)){
+  if(empty($parents)){
     $parents[] = character_editor_wrapper('character_editor_project', $form_state['character_project_id']);
   }
   foreach($parents as $parent_w){
     character_editor_associate_character($parent_w, $character_w);
   }
-  if (empty($form_state['triggering_element']['#update'])){
+  if(empty($form_state['triggering_element']['#update'])){
     drupal_set_message(t("%type character added", array(
-    "%type" => ucfirst($character_entity->type)
+      "%type" => ucfirst($character_entity->type)
     )));
     unset($form_state['redirect']);
-  } else {
+  }else{
     if(!empty($form_state['character_project_id'])){
       $form_state['redirect'] = 'character-editor-project/' . $form_state['character_project_id'] . '/characters';
     }
@@ -763,11 +776,11 @@ function theme_character_editor_characters_order($variables){
     $indent = theme('indentation', array(
       'size' => $form_element['#depth']
     ));
-    if (empty($element[$key]['#is_group'])){
+    if(empty($element[$key]['#is_group'])){
       $row['class'][] = 'tabledrag-leaf';
       $row['data'][] = $indent . drupal_render($form_element['label']);
-    } else {
-      $row['data'][] = $indent .'<strong>' . drupal_render($form_element['label']) . '</strong>';
+    }else{
+      $row['data'][] = $indent . '<strong>' . drupal_render($form_element['label']) . '</strong>';
     }
     $row['data'][] = drupal_render($form_element['operations']);
     $row['data'][] = drupal_render($form_element['weight']) . drupal_render($form_element['id']) . drupal_render($form_element['parent_id']);

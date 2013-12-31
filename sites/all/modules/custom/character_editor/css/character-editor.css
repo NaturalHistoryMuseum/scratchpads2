@@ -96,3 +96,27 @@
 .character-editor .odd div.l0{
   background: #EAEFF6!important;
 }
+
+/* Character tree */
+#character-editor-tree {
+  padding: 2px;
+  border: 1px solid #AAA;
+  background: #EEE;
+  position: relative;
+}
+
+#character-editor-tree .character-editor-tree-arrow{
+  color: #047DB8;
+}
+
+#character-editor-tree.character-editor-tree-collapsed {
+  cursor: pointer;
+}
+
+#character-editor-tree.character-editor-tree-collapsed:hover {
+  background: #DDD;
+}
+
+#character-editor-tree .character-editor-tree-item {
+  margin-bottom: 0.5em;
+}

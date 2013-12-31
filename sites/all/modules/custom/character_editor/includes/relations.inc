@@ -191,7 +191,7 @@ function character_editor_get_tree($entity_w, $mode = 'flat', $parent_id = 0, $e
       $flat = array_merge($flat, character_editor_get_tree($child_w, 'flat', $id, $exclude));
     }
     foreach($flat as $key => $item){
-      if($parent_w){
+      if(isset($parent_w) && $parent_w){
         $flat[$key]['depth']++;
       }else if($item['parent_id'] == $id){
         $flat[$key]['parent_id'] = 0;
