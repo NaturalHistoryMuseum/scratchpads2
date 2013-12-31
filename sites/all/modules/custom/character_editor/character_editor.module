@@ -205,7 +205,7 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
       'id' => $column_id,
       'relationship' => 'none',
       'group_type' => 'group',
-      'label' => $column_number,
+      'label' => $character_w->label(),
       'hide_empty' => 0
     );
     $view->add_item('page', 'field', 'views', 'character_field', $field, $column_id);

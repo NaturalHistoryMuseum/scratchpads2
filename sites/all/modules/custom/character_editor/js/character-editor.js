@@ -97,11 +97,13 @@
           }
           html = '<div><input type="checkbox" />&nbsp;' + html + '</div>';
           var $input = $(html).addClass('character-editor-tree-item').css('margin-left', (item.depth*20).toString() + "px").appendTo($tree);
+          item.elem = $input;
           item.input = $('input', $input);
           if (item.visible){
             item.input.prop('checked', true);
           }
-          item.input.click($.proxy(this, 'treeElemClick', item));
+          item.elem.click($.proxy(this, 'treeElemClick', item));
+          $input.hover($.proxy(this, 'treeElemHover', item));
         }
         this.$elem.removeClass('character-editor-tree-collapsed').addClass('character-editor-tree-expanded');
         this.resize(this.expanded_width);
@@ -110,13 +112,98 @@
     }
 
     /**
+     * treeElemHover
+     *
+     * Callback when a tree element is hovered
+     */
+    this.treeElemHover = function(item, event){
+      var hoverin = (event.type == 'mouseenter');
+      if (item.group){
+        if (hoverin){
+          var box = this.groupHeaderBoundingBox(item);
+          $('<div></div>').addClass('character-editor-tree-group-hover')
+          .html('<span>' + item.label + '</span>')
+          .css({
+            display: 'none',
+            position: 'absolute',
+            top: (box.top - 36).toString() + "px",
+            height: "32px",
+            left: box.min.toString() + "px",
+            width: (box.max - box.min - 6).toString() + "px"
+          }).appendTo(this.$root).fadeIn('fast');
+        } else {
+          $('.character-editor-tree-group-hover').remove();
+        }
+      } else {
+        var header = $('#slickgrid div.' + item.id);
+        if (header.length > 0){
+          if (hoverin){
+            header.trigger('mouseenter');
+          } else {
+            header.trigger('mouseleave');
+          }
+        }
+      }
+    }
+
+    /**
+     * groupHeaderBoundingBox
+     *
+     * Return the bounding box (min, max) that covers all the slickgrid header
+     * rows for columns that are children of the given item
+     */
+    this.groupHeaderBoundingBox = function(item){
+      var box = {
+          min: -1,
+          max: -1,
+          top: 0
+      };
+      for(var i in Drupal.settings.CharacterTreeUI.liveTree){
+        var child_item = Drupal.settings.CharacterTreeUI.liveTree[i];
+        var child_box = {};
+        if (child_item.parent != item.id){
+          continue;
+        }
+        if (child_item.group){
+          child_box = this.groupHeaderBoundingBox(child_item);
+        } else {
+          var header = $('#slickgrid div.' + child_item.id);
+          if (header.length == 0){
+            continue;
+          }
+          child_box.min = header.offset().left;
+          child_box.max = child_box.min + header.outerWidth();
+        }
+        if (box.min < 0 || child_box.min < box.min){
+          box.min = child_box.min;
+        }
+        if (child_box.max > box.max){
+          box.max = child_box.max;
+        }
+      }
+      box.top = $('div.slick-header-columns').offset().top;
+      return box;
+    }
+
+    /**
      * treeElemClick
      *
      * Callback when an input element in the tree is clicked
      */
     this.treeElemClick = function(item, event){
-      this.setItemStatus(item, item.input.prop('checked'));
+      // Check the box if the outer element was clicked
+      if (!$(event.target).is('input')){
+        item.input.prop('checked', !item.input.prop('checked'));
+      }
+      var visible = item.input.prop('checked');
+      // Remove hovers on the slickgrid header column
+      this.treeElemHover(item, {type: 'mouseleave'});
+      // Set the status and update the slickgrid columns
+      this.setItemStatus(item, visible);
       this.setColumns();
+      // Add hover on the slickgrid header column
+      this.treeElemHover(item, {type: 'mouseenter'});
+      // Cancel event
       event.stopPropagation();
     }
 
@@ -182,7 +269,7 @@
      * Apply the column settings to the slickgrid.
      */
     this.setColumns = function(){
-      // XXX we rely on slickgrid module internals :(
+      // XXX we rely on slickgrid module internals :( Specifically the fact that 'columns' is a global.
       var cols = [];
       $(columns).each(function(i, col){
         if (typeof Drupal.settings.CharacterTreeUI.liveTree[col.field] !== 'undefined' ){
@@ -195,6 +282,7 @@
         }
       });
       grid.setColumns(cols);
+      Drupal.CharacterEditor.initBT();
     }
 
     /**
@@ -241,7 +329,15 @@
   Drupal.CharacterEditor = {slickgridInit: function(){
     Drupal.CharacterEditor.initBT();
   }, initBT: function(){
-    var ops = {cssClass: "character-editor-header", fill: 'rgba(0, 0, 0, .7)', cssStyles: {color: 'white', 'font-size': '10px'}, spikeLength: 8, shrinkToFit: true, offsetParent: '#slickgrid', positions: ['bottom']}
+    var ops = {
+        cssClass: "character-editor-header",
+        fill: 'rgba(0, 0, 0, .7)',
+        cssStyles: {color: 'white', 'font-size': '10px'},
+        spikeLength: 8,
+        shrinkToFit: true,
+        offsetParent: '#slickgrid',
+        positions: ['bottom']
+    };
     $.each(grid.getColumns(), function(i, col){
       if(col.field != "character_entity_field") {
         $('.' + col.id).bt(col.data.char, ops);

@@ -119,4 +119,29 @@
 
 #character-editor-tree .character-editor-tree-item {
   margin-bottom: 0.5em;
+  background: transparent;
+  transition: background 0.25s;
+}
+
+#character-editor-tree .character-editor-tree-item:hover {
+  background: #DDD;
+  cursor: pointer;
+}
+
+#character-editor-tree .character-editor-tree-item:hover input {
+  cursor: pointer;
+}
+
+.character-editor-tree-group-hover {
+  border: 1px solid #888;
+  border-bottom: 0;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  overflow: hidden;
+}
+
+.character-editor-tree-group-hover span {
+  display: inline-block;
+  color: #888;
+  padding: 4px 0 0 4px;
 }
