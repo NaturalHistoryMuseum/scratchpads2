@@ -161,3 +161,13 @@
 .character-editor-tree-group-hover span {
   padding: 4px;
 }
+
+#character-editor-tree .character-editor-tree-close {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  cursor: pointer;
+  color: #047DB8;
+  font-weight: bold;
+  font-size: 1.5em;
+}

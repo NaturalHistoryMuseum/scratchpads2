@@ -279,9 +279,20 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
     }
     $column_number++;
   }
+  // Always use the author's settings as default. These may be overriden per user.
+  $author_settings = slickgrid_get_settings(array(
+    'uid' => $project_w->uid->uid->value(),
+    'view_name' => $view->name,
+    'display_id' => $view->current_display
+  ));
+  if(is_array($author_settings)){
+    $style_options = array_merge($style_options, $author_settings);
+  }
   $view->display_handler->set_option('style_options', $style_options);
   drupal_add_js(array(
     'CharacterTreeUI' => array(
+      'editable' => $editable,
+      'mode' => isset($style_options['character_tree_mode']) ? $style_options['character_tree_mode'] : 'collapsed',
       'tree' => $editor_tree
     )
   ), 'setting');
