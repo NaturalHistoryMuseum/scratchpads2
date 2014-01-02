@@ -130,16 +130,41 @@
           if (box.min < 0){
             return;
           }
-          $('<div></div>').addClass('character-editor-tree-group-hover')
-          .html('<span>' + item.label + '</span>')
-          .css({
-            display: 'none',
-            position: 'absolute',
-            top: (this.$root.offset().top - this.group_box_height).toString() + "px",
-            height: this.group_box_height.toString() + "px",
-            left: box.min.toString() + "px",
-            width: (box.max - box.min).toString() + "px"
-          }).appendTo(this.$root).fadeIn(50);
+          // Calculate the group hover tab position
+          var hover_elem_top = this.$root.offset().top - this.group_box_height;
+          var hover_elem_left = box.min;
+          var right_border = true;
+          var left_border = true;
+          if (hover_elem_left < this.$slick.offset().left){
+            hover_elem_left = this.$slick.offset().left;
+            left_border = false;
+          }
+          var hover_elem_width = box.max - hover_elem_left + 6;
+          if (hover_elem_left + hover_elem_width > this.$slick.width() + this.$slick.offset().left){
+            hover_elem_width = this.$slick.width() + this.$slick.offset().left - hover_elem_left;
+            right_border = false;
+          }
+          if (hover_elem_width > 0){
+            var $hover = $('<div></div>').addClass('character-editor-tree-group-hover')
+            .html('<span>' + item.label + '</span>')
+            .css({
+              display: 'none',
+              position: 'absolute',
+              top: hover_elem_top.toString() + "px",
+              height: this.group_box_height.toString() + "px",
+              left: hover_elem_left.toString() + "px",
+              width: hover_elem_width.toString() + "px"
+            });
+            if (!right_border){
+              $hover.css('border-right', 0);
+              $hover.css('border-top-right-radius', 0);
+            }
+            if (!left_border){
+              $hover.css('border-left', 0);
+              $hover.css('border-top-left-radius', 0);
+            }
+            $hover.appendTo('body').fadeIn(50);
+          }
         } else {
           $('.character-editor-tree-group-hover').remove();
         }
