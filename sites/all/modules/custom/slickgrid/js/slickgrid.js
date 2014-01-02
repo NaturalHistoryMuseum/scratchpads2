@@ -623,7 +623,7 @@ if(!Array.prototype.indexOf) {
         grid.scrollRowToTop(state.row);
       }
     }
-    $.extend(this, {"callback": callback, "getViewName": getViewName, "getViewDisplayID": getViewDisplayID, "getEntityIDs": getEntityIDs, "getContainer": getContainer, "openDialog": openDialog, "closeDialog": closeDialog, "reload": reload, 'setColumnFilter': setColumnFilter, 'updateFilters': updateFilters, 'updateStatus': updateStatus, 'getGridState': getGridState, 'setGridState': setGridState});
+    $.extend(this, {"callback": callback, "getViewName": getViewName, "getViewDisplayID": getViewDisplayID, "getEntityIDs": getEntityIDs, "getContainer": getContainer, "openDialog": openDialog, "closeDialog": closeDialog, "reload": reload, 'setColumnFilter': setColumnFilter, 'updateFilters': updateFilters, 'updateSettings': updateSettings, 'updateStatus': updateStatus, 'getGridState': getGridState, 'setGridState': setGridState});
     init();
   }
 })(jQuery);
