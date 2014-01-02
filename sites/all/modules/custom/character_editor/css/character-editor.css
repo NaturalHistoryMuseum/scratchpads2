@@ -99,14 +99,23 @@
 
 /* Character tree */
 #character-editor-tree {
-  padding: 2px;
+  padding: 0 2px;
   border: 1px solid #AAA;
   background: #EEE;
   position: relative;
 }
 
+#character-editor-tree div.character-editor-tree{
+  margin-top: 4px;
+}
+
 #character-editor-tree .character-editor-tree-arrow{
   color: #047DB8;
+  position: absolute;
+  height: 1em;
+  top: 0;
+  bottom: 0;
+  margin: auto;
 }
 
 #character-editor-tree.character-editor-tree-collapsed {
@@ -120,7 +129,7 @@
 #character-editor-tree .character-editor-tree-item {
   margin-bottom: 0.5em;
   background: transparent;
-  transition: background 0.25s;
+  transition: background 0.05s;
 }
 
 #character-editor-tree .character-editor-tree-item:hover {
@@ -132,16 +141,23 @@
   cursor: pointer;
 }
 
+#character-editor-tree .character-editor-tree-header {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 1em;
+}
+
 .character-editor-tree-group-hover {
   border: 1px solid #888;
   border-bottom: 0;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   overflow: hidden;
+  color: #888;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .character-editor-tree-group-hover span {
-  display: inline-block;
-  color: #888;
-  padding: 4px 0 0 4px;
+  padding: 4px;
 }

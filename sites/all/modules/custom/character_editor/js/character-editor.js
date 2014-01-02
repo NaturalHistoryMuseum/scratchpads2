@@ -7,7 +7,7 @@
    *
    * This class represents the character tree used to show/hide characters on the slickgrid
    */
-  function CharacterTreeUI(){
+  function CharacterTreeUI(context){
     /**
      * init
      */
@@ -17,20 +17,18 @@
       this.spacing = 8;
       this.expanded_width = 200;
       this.collapsed_width = 8;
+      this.group_box_height = 32;
       this.mode = 'collapsed';
 
       // Info
-      this.$root = $('#slickgrid').closest('.view-character-editor').parent();
+      this.$slick = $('#slickgrid', context);
+      this.$root = this.$slick.closest('div.view-character-editor').parent();
       // Setup
       this.$elem = $('<div id="character-editor-tree"></div>').css({
         float: 'left',
-        margin: '0 ' + this.spacing.toString() + 'px 0 0',
-        overflow: 'auto'
+        margin: '0 ' + this.spacing.toString() + 'px 0 0'
       }).click($.proxy(this, 'treeClick')).prependTo(this.$root);
-      $('#controls').css({
-        overflow: 'visible',
-        marginLeft: (this.spacing - 2).toString() + "px"
-      });
+      $('div.view-character-editor', this.$root).css('margin-left', this.spacing.toString() + "px");
       this.display();
     }
 
@@ -54,6 +52,7 @@
     this.display = function(){
       var that = this;
       if (this.mode == 'collapsed'){
+        this.$elem.css('overflow', 'hidden');
         this.$elem.removeClass('character-editor-tree-expanded').addClass('character-editor-tree-collapsed');
         $('div.character-editor-tree', this.$elem).stop().animate({
           opacity: 0
@@ -64,31 +63,25 @@
         $('<div></div>').addClass('character-editor-tree-arrow').html('&#9654;').prependTo(this.$elem);
         this.resize(this.collapsed_width);
         $('div.character-editor-tree-arrow', this.$elem).stop().css({
-          position: 'absolute',
-          top: ((this.$elem.height() - 32)/2).toString() + "px",
-          left: '2px',
           opacity: 0
         }).animate({
           opacity: 1
         });
       } else {
+        var that = this;
         $('div.character-editor-tree-arrow', this.$elem).stop().animate({
           opacity: 0
         }, function(){
           $(this).remove();
+          that.$elem.css('overflow', 'auto');
         });
         $('div.character-editor-tree', this.$elem).remove();
         var $tree = $('<div></div>').addClass('character-editor-tree');
         $tree.css({
           overflow: 'auto',
-          width: this.expanded_width.toString() + "px",
-          marginTop: '4px'
+          width: this.expanded_width.toString() + "px"
         });
-        $('<div>Character Tree</div>').css({
-          textAlign: 'center',
-          fontWeight: 'bold',
-          marginBottom: '1em'
-        }).appendTo($tree);
+        $('<div>Character Tree</div>').addClass('character-editor-tree-header').appendTo($tree);
         for (var i in Drupal.settings.CharacterTreeUI.liveTree){
           var item = Drupal.settings.CharacterTreeUI.liveTree[i];
           html = item.label;
@@ -121,21 +114,24 @@
       if (item.group){
         if (hoverin){
           var box = this.groupHeaderBoundingBox(item);
+          if (box.min < 0){
+            return;
+          }
           $('<div></div>').addClass('character-editor-tree-group-hover')
           .html('<span>' + item.label + '</span>')
           .css({
             display: 'none',
             position: 'absolute',
-            top: (box.top - 36).toString() + "px",
-            height: "32px",
+            top: (this.$root.offset().top - this.group_box_height).toString() + "px",
+            height: this.group_box_height.toString() + "px",
             left: box.min.toString() + "px",
-            width: (box.max - box.min - 6).toString() + "px"
-          }).appendTo(this.$root).fadeIn('fast');
+            width: (box.max - box.min).toString() + "px"
+          }).appendTo(this.$root).fadeIn(50);
         } else {
           $('.character-editor-tree-group-hover').remove();
         }
       } else {
-        var header = $('#slickgrid div.' + item.id);
+        var header = $('div.' + item.id, this.$slick);
         if (header.length > 0){
           if (hoverin){
             header.trigger('mouseenter');
@@ -154,9 +150,8 @@
      */
     this.groupHeaderBoundingBox = function(item){
       var box = {
-          min: -1,
-          max: -1,
-          top: 0
+        min: -1,
+        max: -1
       };
       for(var i in Drupal.settings.CharacterTreeUI.liveTree){
         var child_item = Drupal.settings.CharacterTreeUI.liveTree[i];
@@ -167,12 +162,12 @@
         if (child_item.group){
           child_box = this.groupHeaderBoundingBox(child_item);
         } else {
-          var header = $('#slickgrid div.' + child_item.id);
+          var header = $('div.' + child_item.id, this.$slick);
           if (header.length == 0){
             continue;
           }
           child_box.min = header.offset().left;
-          child_box.max = child_box.min + header.outerWidth();
+          child_box.max = child_box.min + header.width();
         }
         if (box.min < 0 || child_box.min < box.min){
           box.min = child_box.min;
@@ -181,7 +176,6 @@
           box.max = child_box.max;
         }
       }
-      box.top = $('div.slick-header-columns').offset().top;
       return box;
     }
 
@@ -210,7 +204,7 @@
     /**
      * setItemStatus
      *
-     * The the checked/unchecked status of an item, and propagate to parents/children
+     * Set the checked/unchecked status of an item, and propagate to parents/children
      */
     this.setItemStatus = function(item, status, noup){
       if (item.visible == status){
@@ -309,8 +303,7 @@
           }
         });
       }
-      var height = $('div.slickgrid-wrapper').height();
-      this.$elem.height(height - 5);
+      this.$elem.height(this.$slick.parent().height());
     }
 
     /**
@@ -353,20 +346,22 @@
     return false;
   }}
   Drupal.behaviors.characterEditor = {attach: function(context, settings){
+    var $slick = $('#slickgrid', context);
+    if ($slick.length == 0){
+      return;
+    }
     // Overlay width fix
     if(typeof settings.overlay === 'undefined') {
-      $('#slickgrid').parent().width($('#overlay-content').find('#content').width());
+      $slick.parent().width($('#overlay-content').find('#content').width());
     }
-    $('#slickgrid', context).bind('onSlickgridInit', Drupal.CharacterEditor.slickgridInit);
-    // $('#slickgrid', context).bind('onSlickgridCallback',
-    // Drupal.CharacterEditor.slickgridCallback);
-    $('#slickgrid', context).bind('onSlickgridTabChanged', Drupal.CharacterEditor.slickgridInit);
+    $slick.bind('onSlickgridInit', Drupal.CharacterEditor.slickgridInit);
+    $slick.bind('onSlickgridTabChanged', Drupal.CharacterEditor.slickgridInit);
     // Add the character tree widget
     if (typeof Drupal.characterTreeUI === 'undefined'){
-      $('#slickgrid', context).bind('onSlickgridInit', function(){
+      $slick.bind('onSlickgridInit', function(){
         Drupal.settings.CharacterTreeUI.liveTree = Drupal.settings.CharacterTreeUI.tree;
         Drupal.settings.CharacterTreeUI.tree = {};
-        Drupal.characterTreeUI = new CharacterTreeUI();
+        Drupal.characterTreeUI = new CharacterTreeUI(context);
       });
     } else if (!$.isEmptyObject(Drupal.settings.CharacterTreeUI.tree)) {
       var old_tree = Drupal.settings.CharacterTreeUI.liveTree;
