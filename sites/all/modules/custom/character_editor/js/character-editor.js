@@ -22,8 +22,10 @@
 
       // Info
       this.$slick = $('#slickgrid', context);
+      this.$wrapper = this.$slick.closest('div.slickgrid-wrapper');
       this.$root = this.$slick.closest('div.view-character-editor').parent();
       // Setup
+      this.$wrapper.css('position', 'relative');
       this.$elem = $('<div id="character-editor-tree"></div>').css({
         float: 'left',
         margin: '0 ' + this.spacing.toString() + 'px 0 0'
@@ -127,21 +129,20 @@
       if (item.group){
         if (hoverin){
           var box = this.groupHeaderBoundingBox(item);
-          if (box.min < 0){
+          if (box.min === false || box.max === false){
             return;
           }
           // Calculate the group hover tab position
-          var hover_elem_top = this.$root.offset().top - this.group_box_height;
           var hover_elem_left = box.min;
           var right_border = true;
           var left_border = true;
-          if (hover_elem_left < this.$slick.offset().left){
-            hover_elem_left = this.$slick.offset().left;
+          if (hover_elem_left < 0){
+            hover_elem_left = 0;
             left_border = false;
           }
           var hover_elem_width = box.max - hover_elem_left + 6;
-          if (hover_elem_left + hover_elem_width > this.$slick.width() + this.$slick.offset().left){
-            hover_elem_width = this.$slick.width() + this.$slick.offset().left - hover_elem_left;
+          if (hover_elem_left + hover_elem_width > this.$slick.width()){
+            hover_elem_width = this.$slick.width() - hover_elem_left;
             right_border = false;
           }
           if (hover_elem_width > 0){
@@ -150,7 +151,7 @@
             .css({
               display: 'none',
               position: 'absolute',
-              top: hover_elem_top.toString() + "px",
+              top: (-this.group_box_height).toString() + "px",
               height: this.group_box_height.toString() + "px",
               left: hover_elem_left.toString() + "px",
               width: hover_elem_width.toString() + "px"
@@ -163,7 +164,7 @@
               $hover.css('border-left', 0);
               $hover.css('border-top-left-radius', 0);
             }
-            $hover.appendTo('body').fadeIn(50);
+            $hover.appendTo(this.$wrapper).fadeIn(50);
           }
         } else {
           $('.character-editor-tree-group-hover').remove();
@@ -188,9 +189,10 @@
      */
     this.groupHeaderBoundingBox = function(item){
       var box = {
-        min: -1,
-        max: -1
+        min: false,
+        max: false
       };
+      var base = this.$slick.offset().left;
       for(var i in Drupal.settings.CharacterTreeUI.liveTree){
         var child_item = Drupal.settings.CharacterTreeUI.liveTree[i];
         var child_box = {};
@@ -204,13 +206,13 @@
           if (header.length == 0){
             continue;
           }
-          child_box.min = header.offset().left;
+          child_box.min = header.offset().left - base;
           child_box.max = child_box.min + header.width();
         }
-        if (box.min < 0 || child_box.min < box.min){
+        if (box.min === false || child_box.min < box.min){
           box.min = child_box.min;
         }
-        if (child_box.max > box.max){
+        if (box.max === false || child_box.max > box.max){
           box.max = child_box.max;
         }
       }
@@ -336,8 +338,10 @@
       }
       var start = this.$elem.width();
       if (start != width){
+        var wrapper_width = this.$wrapper.width();
         if (typeof this.initial_resize == 'undefined'){
-          $('div.slickgrid-wrapper').css('margin-left', (width + this.spacing).toString() + 'px');
+          this.$wrapper.css('margin-left', (width + this.spacing).toString() + 'px');
+          this.$wrapper.width(wrapper_width - width + start - this.spacing);
           this.$elem.width(width);
           this.initial_resize = true;
         } else {
@@ -347,7 +351,8 @@
             duration: 300,
             easing: 'swing',
             step: function(step) {
-              $('div.slickgrid-wrapper').css('margin-left', (step + that.spacing).toString() + 'px');
+              that.$wrapper.css('margin-left', (step + that.spacing).toString() + 'px');
+              that.$wrapper.width(wrapper_width - step + start);
               that.$elem.width(step);
             }
           });
