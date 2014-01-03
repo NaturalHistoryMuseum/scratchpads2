@@ -994,6 +994,8 @@ other|Other',
         )
       ),
       'entity_type' => 'character_editor_project',
+      'entityconnect_unload_add' => '1',
+      'entityconnect_unload_edit' => '1',
       'field_name' => 'field_char_proj_specimen',
       'label' => 'Specimen',
       'required' => 0,

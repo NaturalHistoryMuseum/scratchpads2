@@ -332,3 +332,19 @@ function character_editor_update_7003(){
     field_create_instance($definitions['relation-character-field_character_weight']['field_instance']);
   }
 }
+
+/**
+ * Add the specimen field to character projects
+ */
+function character_editor_update_7004(){
+  module_load_include('features.field.inc', 'character_editor');
+  $definitions = character_editor_field_default_fields();
+  $info = field_info_field('field_char_proj_specimen');
+  if(!$info){
+    field_create_field($definitions['character_editor_project-default_character_project-field_char_proj_specimen']['field_config']);
+  }
+  $instance = field_info_instance('character_editor_project', 'field_char_proj_specimen', 'default_character_project');
+  if(!$instance){
+    field_create_instance($definitions['character_editor_project-default_character_project-field_char_proj_specimen']['field_instance']);
+  }
+}

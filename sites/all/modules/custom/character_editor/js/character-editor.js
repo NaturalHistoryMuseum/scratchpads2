@@ -209,10 +209,10 @@
           child_box.min = header.offset().left - base;
           child_box.max = child_box.min + header.width();
         }
-        if (box.min === false || child_box.min < box.min){
+        if (child_box.min !== false && (box.min === false || child_box.min < box.min)){
           box.min = child_box.min;
         }
-        if (box.max === false || child_box.max > box.max){
+        if (child_box.max !== false && (box.max === false || child_box.max > box.max)){
           box.max = child_box.max;
         }
       }

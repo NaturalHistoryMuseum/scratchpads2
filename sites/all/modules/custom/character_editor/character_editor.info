@@ -62,12 +62,11 @@ dependencies[] = relation
 dependencies[] = "cck_select_other"
 dependencies[] = "features"
 dependencies[] = "media"
-dependencies[] = "relation_dummy_field"
-dependencies[] = "relation_select"
 dependencies[] = "tree_widget"
 dependencies[] = "ctools"
 dependencies[] = "views_data_export"
 dependencies[] = "field_group"
+dependencies[] = insert_from_view
 
 package = Scratchpad tools
 
