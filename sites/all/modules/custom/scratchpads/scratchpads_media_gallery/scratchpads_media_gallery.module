@@ -369,6 +369,23 @@ function scratchpads_media_gallery_node_update($node){
       }
       entity_save('file', $file);
     }
+    // We're updating a media gallery node.  We therefore mark each file associated
+    // with the node as needing reindexing.
+    $table = apachesolr_get_indexer_table('file');
+    db_update($table)->fields(array(
+      'changed' => REQUEST_TIME
+    ))->condition('entity_id', $new_fids)->condition('entity_type', 'file')->execute();
+    // We set the last successfully indexed file based on the request time.
+    $query = db_select($table);
+    $query->addExpression('MAX(entity_id)', 'max_entity_id');
+    $last_entity_id = $query->condition('entity_type', 'file')->condition('changed', REQUEST_TIME, '<')->execute()->fetchField();
+    $env_id = apachesolr_default_environment();
+    $env = apachesolr_environment_load($env_id);
+    $env['conf']['apachesolr_index_last']['file']['last_entity_id'] = $last_entity_id ? $last_entity_id : 0;
+    apachesolr_environment_save($env);
+    apachesolr_environments_clear_cache();
+    // Warn the user that changing the order may take a while to be processed.
+    drupal_set_message('Note, changes to the order of images in a gallery will be processed on the next cron run.', 'warning');
   }
 }
 
