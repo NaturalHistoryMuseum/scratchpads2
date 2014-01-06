@@ -14,6 +14,8 @@ function insert_from_view_init(){
       if(!user_access("use insert from view $machine_name")){
         continue;
       }
+    }else{
+      continue;
     }
     $js_settings[] = array_merge(array(
       'machine_name' => $machine_name
@@ -102,7 +104,7 @@ function insert_from_view_access_callback($machine_name){
   $settings = variable_get('insert_from_view_settings', array());
   if(empty($settings[$machine_name]['type']) || $settings[$machine_name]['type'] == 'ckeditor'){
     return user_access("use insert from view $machine_name");
-  } else {
+  }else{
     return TRUE;
   }
 }
@@ -184,6 +186,15 @@ function insert_from_view_field_widget_form(&$form, &$form_state, $field, $insta
   }
   $settings = $instance['widget']['settings']['insert-from-view'];
   $machine_name = '_field_' . $instance['field_name'] . '_' . $instance['entity_type'] . '_' . $instance['bundle'];
+  $ifw_setting = array(
+    'type' => 'field',
+    'view' => $settings["insert-from-view-view"],
+    'display' => $settings["insert-from-view-display"],
+    'field' => $settings["insert-from-view-field"],
+    'width' => $settings["insert-from-view-width"],
+    'height' => $settings["insert-from-view-height"],
+    'machine_name' => $machine_name
+  );
   // Setup the form element
   $element += array(
     '#type' => 'textfield',
@@ -194,7 +205,13 @@ function insert_from_view_field_widget_form(&$form, &$form_state, $field, $insta
     '#attached' => array(
       'js' => array(
         drupal_get_path('module', 'insert_from_view') . '/js/widget.js',
-        colorbox_get_js()
+        colorbox_get_js(),
+        array(
+          'data' => array(
+            'insert_from_view_' . $machine_name => $ifw_setting
+          ),
+          'type' => 'setting'
+        )
       ),
       'css' => array(
         drupal_get_path('module', 'insert_from_view') . '/css/insert_from_view.css',
@@ -215,15 +232,6 @@ function insert_from_view_field_widget_form(&$form, &$form_state, $field, $insta
     )
   );
   // Ensure the widget settings are copied to the insert from view settings.
-  $ifw_setting = array(
-    'type' => 'field',
-    'view' => $settings["insert-from-view-view"],
-    'display' => $settings["insert-from-view-display"],
-    'field' => $settings["insert-from-view-field"],
-    'width' => $settings["insert-from-view-width"],
-    'height' => $settings["insert-from-view-height"],
-    'machine_name' => $machine_name
-  );
   $inserts = variable_get('insert_from_view_settings', array());
   $inserts[$machine_name] = $ifw_setting;
   variable_set('insert_from_view_settings', $inserts);

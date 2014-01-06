@@ -157,16 +157,10 @@
     // Read machine name
     var machine_name = $input.attr('id');
     // Find the overlay settings
-    var settings = false;
-    for (var i = 0; i < Drupal.settings['insert_from_view'].settings.length; i++){
-      if (Drupal.settings['insert_from_view'].settings[i].machine_name == machine_name){
-        settings = Drupal.settings['insert_from_view'].settings[i];
-        break;
-      }
-    }
-    if (settings === false){
+    if (typeof Drupal.settings['insert_from_view_' + machine_name] == 'undefined'){
       throw "No settings for insert from view widget " + machine_name;
     }
+    settings = Drupal.settings['insert_from_view_' + machine_name];
     // Set value and return
     info = {
       input: $input,
