@@ -72,6 +72,9 @@ function insert_from_view_admin_paths(){
 
 /**
  * Implement hook_permission
+ *
+ * We create a permission for the CKEditor insert from view
+ * buttons.
  */
 function insert_from_view_permission(){
   $items = array(
@@ -96,7 +99,12 @@ function insert_from_view_permission(){
  * Access callback
  */
 function insert_from_view_access_callback($machine_name){
-  return user_access("use insert from view $machine_name");
+  $settings = variable_get('insert_from_view_settings', array());
+  if(empty($settings[$machine_name]['type']) || $settings[$machine_name]['type'] == 'ckeditor'){
+    return user_access("use insert from view $machine_name");
+  } else {
+    return TRUE;
+  }
 }
 
 /**

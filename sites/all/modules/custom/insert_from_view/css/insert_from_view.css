@@ -39,6 +39,7 @@ ul.insert-from-view-sortable li span.insert-from-view-handle {
   font-weight: bold;
   color: #AAA;
   font-size: 1.1em;
+  float: left;
 }
 ul.insert-from-view-sortable li span.insert-from-view-handle:hover {
   cursor: move;
