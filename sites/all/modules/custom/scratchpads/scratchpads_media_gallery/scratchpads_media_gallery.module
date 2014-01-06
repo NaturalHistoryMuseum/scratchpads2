@@ -269,6 +269,62 @@ function scratchpads_media_gallery_node_insert($node){
 }
 
 /**
+ * Implementation of hook_apachesolr_index_document_build($document, $entity, $entity_type, $env_id)
+ */
+function scratchpads_media_gallery_apachesolr_index_document_build(ApacheSolrDocument $document, $entity, $entity_type, $env_id){
+  if($entity_type == 'file'){
+    if(@isset($entity->field_smg_galleries[LANGUAGE_NONE])){
+      foreach($entity->field_smg_galleries[LANGUAGE_NONE] as $value){
+        // We load the media gallery node, and try to find where this file is
+        // in the list.
+        $media_gallery_node = node_load($value['nid']);
+        foreach($media_gallery_node->field_media[LANGUAGE_NONE] as $delta => $mgn_value){
+          if($mgn_value['fid'] == $entity->fid){
+            // We try to find the gallery nodes that this file is associated with, and
+            // then save a sortable field for each one.
+            $document->addField('iss_scratchpads_media_gallery_delta_for_nid_' . $value['nid'], $delta);
+            break;
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_apache_solr_sortstring_alter()
+ */
+function scratchpads_media_gallery_apache_solr_sortstring_alter(&$sortstring){
+  if(arg(0) == 'gallery'){
+    if(isset($_GET['f'])){
+      foreach($_GET['f'] as $value){
+        $value = explode(':', $value);
+        if($value[0] == 'im_field_smg_galleries'){
+          $sortstring = 'iss_scratchpads_media_gallery_delta_for_nid_' . $value[1] . ' asc';
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_apache_solr_default_sorts_alter()
+ */
+function scratchpads_media_gallery_apache_solr_default_sorts_alter(&$default_sorts){
+  $results = db_select('node', 'n')->fields('n', array(
+    'nid'
+  ))->condition('type', 'media_gallery')->execute();
+  $additional_sorts = array();
+  foreach($results as $row){
+    $additional_sorts['iss_scratchpads_media_gallery_delta_for_nid_' . $row->nid] = array(
+      'title' => t('Image order'),
+      'default' => 'asc'
+    );
+  }
+  $default_sorts = array_merge($additional_sorts, $default_sorts);
+}
+
+/**
  * Implementation of hook_node_update().
  */
 function scratchpads_media_gallery_node_update($node){
