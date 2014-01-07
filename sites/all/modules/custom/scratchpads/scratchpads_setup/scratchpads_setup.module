@@ -305,18 +305,35 @@ function scratchpads_setup_category_form_submit($form, &$form_state){
   scratchpads_statistics_set_site_categories($categories);
 }
 
+/**
+ * Implements hook_form_alter()
+ * 
+ * We add the "scratchpads_setup_form_submit" function to ALL steps of the setup 
+ * work flow.
+ */
 function scratchpads_setup_form_alter(&$form, &$form_state, $form_id){
-  global $user;
-  // Add scratchpads_setup_form_submit() to all set up flow forms
-  if(scratchpads_setup_get_step_delta('site_setup', $form_id) !== false){
-    $form['#submit'][] = 'scratchpads_setup_form_submit';
-  }
   switch($form_id){
-    case 'user_profile_form':
-      if($user->uid == 2 && !variable_get('scratchpads_setup_complete', false)){
-        $form['#submit'][] = 'scratchpads_setup_user_profile_form_submit';
+    case 'scratchpads_welcome_form':
+    case 'scratchpads_setup_front_form':
+    case 'scratchpads_setup_about_form':
+    case 'scratchpads_setup_licence_form':
+    case 'scratchpads_setup_category_form':
+    case 'tools_admin_form':
+      // Add scratchpads_setup_form_submit() to all set up flow forms
+      if(scratchpads_setup_get_step_delta('site_setup', $form_id) !== FALSE){
+        $form['#submit'][] = 'scratchpads_setup_form_submit';
       }
-      break;
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ * 
+ * Tweak the user_profile form so that we can redirect to the setup workflow.
+ */
+function scratchpads_setup_form_user_profile_form_alter(&$form, &$form_state, $form_id){
+  if($form['#user']->uid == 2 && !variable_get('scratchpads_setup_complete', FALSE)){
+    $form['#submit'][] = 'scratchpads_setup_user_profile_form_submit';
   }
 }
 
