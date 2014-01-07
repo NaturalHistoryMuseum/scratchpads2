@@ -44,6 +44,20 @@ function scratchpads_tweaks_init(){
 }
 
 /**
+ * Implements hook_registry_files_alter()
+ * 
+ * We remove the FeedsProcessor.inc file from the feeds module, and add in our
+ * own replacement file which 
+ */
+function scratchpads_tweaks_registry_files_alter(&$files, $indexed_modules){
+  unset($files[drupal_get_path('module', 'feeds') . '/plugins/FeedsProcessor.inc']);
+  $files[drupal_get_path('module', 'scratchpads_tweaks') . '/FeedsProcessor.inc'] = array(
+    'module' => 'scratchpads_tweaks',
+    'weight' => 0
+  );
+}
+
+/**
  * Alternative exception handler so that we can ignore "duplicate" errors.
  */
 function scratchpads_tweaks_exception_handler($exception){
