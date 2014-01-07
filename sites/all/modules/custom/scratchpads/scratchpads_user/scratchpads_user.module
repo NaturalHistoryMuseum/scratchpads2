@@ -240,6 +240,7 @@ function scratchpads_user_form_user_register_form_alter(&$form, &$form_state){
  * loginless changes.
  */
 function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
+  if(arg(3)){return;}
   _scratchpads_user_form_alter($form, $form_state);
   if(isset($form['#user']->stub_user)){
     $form['create_user_account']['#default_value'] = 0;
@@ -503,13 +504,16 @@ function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state)
     }
     $name = trim($name);
   }
-  if(@isset($form['#user']->uid)){
-    $user_id = $form['#user']->uid;
-  }else{
-    $user_id = '';
+  // If we have a blank $name, then we're probably on a profile page (e.g. simplenews).
+  if($name){
+    if(@isset($form['#user']->uid)){
+      $user_id = $form['#user']->uid;
+    }else{
+      $user_id = '';
+    }
+    $name = _scratchpads_user_get_full_name($name, $user_id);
+    $form_state['values']['name'] = $name;
   }
-  $name = _scratchpads_user_get_full_name($name, $user_id);
-  $form_state['values']['name'] = $name;
 }
 
 /**
