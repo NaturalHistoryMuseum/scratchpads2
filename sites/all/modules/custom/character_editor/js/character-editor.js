@@ -7,7 +7,7 @@
    *
    * This class represents the character tree used to show/hide characters on the slickgrid
    */
-  function CharacterTreeUI(character_tree_mode, context){
+  function CharacterTreeUI(character_tree_mode, tree, context, slickgrid){
     /**
      * init
      */
@@ -19,7 +19,7 @@
       this.collapsed_width = 8;
       this.group_box_height = 32;
       this.mode = character_tree_mode;
-
+      this.tree = tree;
       // Info
       this.$slick = $('#slickgrid', context);
       this.$wrapper = this.$slick.closest('div.slickgrid-wrapper');
@@ -28,9 +28,36 @@
       this.$wrapper.css('position', 'relative');
       this.$elem = $('<div id="character-editor-tree"></div>').css({
         float: 'left',
-        margin: '0 ' + this.spacing.toString() + 'px 0 0'
+        margin: '0 ' + this.spacing.toString() + 'px 0 0',
+        zIndex: 10 // Go above View's tool tip overlay
       }).prependTo(this.$root);
       $('div.view-character-editor', this.$root).css('margin-left', this.spacing.toString() + "px");
+      // Apply intial column state
+      var slick_columns = slickgrid.getColumns(true);
+      for (var i = 0; i < slick_columns.length; i++){
+        if (slick_columns[i].hidden && typeof this.tree[slick_columns[i].id] != 'undefined'){
+          this.setItemStatus(this.tree[slick_columns[i].id], false);
+        }
+      }
+      this.display();
+    }
+
+    /**
+     * updateTree
+     *
+     * Update the tree with a new definition (as sent by server)
+     */
+    this.updateTree = function(new_tree){
+      for (var i in new_tree){
+        var item = new_tree[i];
+        if (typeof this.tree[i] !== 'undefined'){
+          item.visible = this.tree[i].visible;
+        } else if (typeof this.tree[item.parent] !== 'undefined'){
+          item.visible = this.tree[item.parent].visible;
+        }
+      }
+      this.tree = new_tree;
+      this.setColumns();
       this.display();
     }
 
@@ -97,8 +124,8 @@
         $('<div>&otimes;</div>').addClass('character-editor-tree-close').css({
           display: 'none'
         }).appendTo($tree).fadeIn().click($.proxy(this, 'treeClick'));
-        for (var i in Drupal.settings.CharacterTreeUI.liveTree){
-          var item = Drupal.settings.CharacterTreeUI.liveTree[i];
+        for (var i in this.tree){
+          var item = this.tree[i];
           html = item.label;
           if (item.group){
             html = '<strong>' + html + '</strong>';
@@ -193,8 +220,8 @@
         max: false
       };
       var base = this.$slick.offset().left;
-      for(var i in Drupal.settings.CharacterTreeUI.liveTree){
-        var child_item = Drupal.settings.CharacterTreeUI.liveTree[i];
+      for(var i in this.tree){
+        var child_item = this.tree[i];
         var child_box = {};
         if (child_item.parent != item.id){
           continue;
@@ -257,8 +284,8 @@
       noup = (typeof noup === 'undefined') ? false : noup;
       if (item.group){
         // Propagate checkbox status to children
-        for (var i in Drupal.settings.CharacterTreeUI.liveTree){
-          var child_item = Drupal.settings.CharacterTreeUI.liveTree[i];
+        for (var i in this.tree){
+          var child_item = this.tree[i];
           if (child_item.parent == item.id){
             this.setItemStatus(child_item, status, true);
           }
@@ -268,8 +295,8 @@
       if (!noup){
         if(!item.visible){
           var p = item.parent;
-          while(typeof Drupal.settings.CharacterTreeUI.liveTree[p] !== 'undefined'){
-            var parent_item = Drupal.settings.CharacterTreeUI.liveTree[p];
+          while(typeof this.tree[p] !== 'undefined'){
+            var parent_item = this.tree[p];
             parent_item.visible = false;
             if (typeof parent_item.input !== 'undefined'){
               parent_item.input.prop('checked', false);
@@ -278,11 +305,11 @@
           }
         } else {
           var p = item.parent;
-          while(typeof Drupal.settings.CharacterTreeUI.liveTree[p] !== 'undefined'){
-            var parent_item = Drupal.settings.CharacterTreeUI.liveTree[p];
+          while(typeof this.tree[p] !== 'undefined'){
+            var parent_item = this.tree[p];
             parent_item.visible = true;
-            for (var i in Drupal.settings.CharacterTreeUI.liveTree){
-              var parent_child_item = Drupal.settings.CharacterTreeUI.liveTree[i];
+            for (var i in this.tree){
+              var parent_child_item = this.tree[i];
               if (parent_child_item.parent == parent_item.id && !parent_child_item.visible){
                 parent_item.visible = false;
                 break;
@@ -303,23 +330,24 @@
      * Apply the column settings to the slickgrid.
      */
     this.setColumns = function(){
-      // XXX we rely on slickgrid module internals :( Specifically the fact that 'columns' is a global.
-      var cols = [];
       var hidden_columns = [];
-      $(columns).each(function(i, col){
-        if (typeof Drupal.settings.CharacterTreeUI.liveTree[col.field] !== 'undefined' ){
-          var item = Drupal.settings.CharacterTreeUI.liveTree[col.field];
+      var all_columns = slickgrid.getColumns(true);
+      for (var i = 0; i < all_columns.length; i++){
+        var col = all_columns[i];
+        if (typeof this.tree[col.field] !== 'undefined' ){
+          var item = this.tree[col.field];
           if (item.visible){
-            cols.push(col);
+            col.hidden = false;
           } else {
+            col.hidden = true;
             hidden_columns.push(col.id);
           }
         } else {
-          cols.push(col);
+          col.hidden = false;
         }
-      });
-      grid.setColumns(cols);
-      Drupal.CharacterEditor.initBT();
+      }
+      slickgrid.setColumns(all_columns);
+      Drupal.characterHoverUI.refresh();
       if (Drupal.settings.CharacterTreeUI.editable){
         slickgrid.updateSettings('hidden_columns', hidden_columns);
       }
@@ -374,68 +402,95 @@
     this.init();
   }
 
-  Drupal.CharacterEditor = {slickgridInit: function(){
-    Drupal.CharacterEditor.initBT();
-  }, initBT: function(){
-    var ops = {
-        cssClass: "character-editor-header",
-        fill: 'rgba(0, 0, 0, .7)',
-        cssStyles: {color: 'white', 'font-size': '10px'},
-        spikeLength: 8,
-        shrinkToFit: true,
-        offsetParent: '#slickgrid',
-        positions: ['bottom']
-    };
-    $.each(grid.getColumns(), function(i, col){
-      if(col.field != "character_entity_field") {
-        $('.' + col.id).bt(col.data.char, ops);
-      }
-    });
-    ops.contentSelector = Drupal.CharacterEditor.cellHover;
-    $('div.slick-cell:not(.l0, :empty)').bt(ops);
-  }, cellHover: function(){
-    var cellText = $(this).html();
-    if(cellText.length > 2) {
-      return cellText;
+  /**
+   * ColumnHoverUI
+   *
+   * This class is used to create and manage the column/cell hover elements
+   */
+  function ColumnHoverUI(slickgrid){
+    /**
+     * init
+     */
+    this.init = function(){
+      this.refresh();
     }
-    return false;
-  }}
-  Drupal.behaviors.characterEditor = {attach: function(context, settings){
-    var $slick = $('#slickgrid', context);
-    // Overlay width fix
-    if(typeof settings.overlay === 'undefined') {
-      $slick.parent().width($('#overlay-content').find('#content').width());
-    }
-    $slick.bind('onSlickgridInit', Drupal.CharacterEditor.slickgridInit);
-    $slick.bind('onSlickgridTabChanged', Drupal.CharacterEditor.slickgridInit);
-    // Add the character tree widget
-    if (typeof Drupal.characterTreeUI === 'undefined'){
-      $slick.bind('onSlickgridInit', function(){
-        Drupal.settings.CharacterTreeUI.liveTree = Drupal.settings.CharacterTreeUI.tree;
-        Drupal.settings.CharacterTreeUI.tree = {};
-        Drupal.characterTreeUI = new CharacterTreeUI(Drupal.settings.CharacterTreeUI.mode, context);
-        // XXX We rely on slickgrid internals (specifically that 'columns' is a global)
-        for (var i in columns){
-          if (columns[i].hidden && typeof Drupal.settings.CharacterTreeUI.liveTree[columns[i].id] != 'undefined'){
-            Drupal.characterTreeUI.setItemStatus(Drupal.settings.CharacterTreeUI.liveTree[columns[i].id], false);
-          }
+
+    /**
+     * refresh
+     *
+     */
+    this.refresh = function(){
+      var ops = {
+          cssClass: "character-editor-header",
+          fill: 'rgba(0, 0, 0, .7)',
+          cssStyles: {color: 'white', 'font-size': '10px'},
+          spikeLength: 8,
+          shrinkToFit: true,
+          offsetParent: slickgrid.getContainer(),
+          positions: ['bottom']
+      };
+      $.each(slickgrid.getColumns(), function(i, col){
+        if(col.field != "character_entity_field") {
+          $('.' + col.id).bt(col.data.char, ops);
         }
-        Drupal.characterTreeUI.display();
       });
-    } else if (!$.isEmptyObject(Drupal.settings.CharacterTreeUI.tree)) {
-      var old_tree = Drupal.settings.CharacterTreeUI.liveTree;
-      Drupal.settings.CharacterTreeUI.liveTree = Drupal.settings.CharacterTreeUI.tree;
-      Drupal.settings.CharacterTreeUI.tree = {};
-      for (var i in Drupal.settings.CharacterTreeUI.liveTree){
-        var item = Drupal.settings.CharacterTreeUI.liveTree[i];
-        if (typeof old_tree[i] !== 'undefined'){
-          item.visible = old_tree[i].visible;
-        } else if (typeof old_tree[item.parent] !== 'undefined'){
-          item.visible = old_tree[item.parent].visible;
-        }
-      }
-      Drupal.characterTreeUI.setColumns();
-      Drupal.characterTreeUI.display();
+      ops.contentSelector = this.cellHoverCallback;
+      $('div.slick-cell:not(.l0, :empty)').bt(ops);
     }
-  }}
+
+    /**
+     * cellHoverCallback
+     */
+    this.cellHoverCallback = function(){
+      var cellText = $(this).html();
+      if(cellText.length > 2) {
+        return cellText;
+      }
+      return false;
+    }
+
+    this.init();
+  }
+
+  /**
+   * Drupal Behaviour.
+   *
+   * UI elements are created here. Note that it is assumed that there is only
+   * one CharacterEditor on a page.
+   */
+  Drupal.behaviors.characterEditor = {
+    attach: function(context, settings){
+      var $slick = $('#slickgrid', context);
+      // Overlay width fix
+      if(typeof settings.overlay === 'undefined') {
+        $slick.parent().width($('#overlay-content').find('#content').width());
+      }
+      // Bind to slickgrid init
+      if (typeof Drupal.characterTreeUI === 'undefined'){
+        $slick.bind('onSlickgridInit', function(event, slickgrid){
+          // Create the tree
+          Drupal.characterTreeUI = new CharacterTreeUI(Drupal.settings.CharacterTreeUI.mode, Drupal.settings.CharacterTreeUI.tree, context, slickgrid);
+          // Empty the tree so we can detect when the settings are updated easily.
+          Drupal.settings.CharacterTreeUI.tree = {};
+          // Create the cell hover
+          Drupal.characterHoverUI = new ColumnHoverUI(slickgrid);
+          // Alter Slickgrid ajax call to specifiy which character project this is (slickgrid typically
+          // only specifies the view/display)
+          $.ajaxSetup({
+            beforeSend: function(jqXHR, settings){
+              if (settings.url.match(/slickgrid\/get\/form\/slickgrid_settings_form/)){
+                if (typeof settings.data == 'string' && settings.data.length > 0){
+                  var project_id = encodeURIComponent(Drupal.settings.CharacterTreeUI.project);
+                  settings.data = settings.data.replace(/display_id=[^&]+(&|$)/, 'display_id=' + project_id + '$1');
+                }
+              }
+            }
+          });
+        });
+      } else if (!$.isEmptyObject(Drupal.settings.CharacterTreeUI.tree)) {
+        Drupal.characterTreeUI.updateTree(Drupal.settings.CharacterTreeUI.tree);
+        Drupal.settings.CharacterTreeUI.tree = {};
+      }
+    }
+  }
 })(jQuery);

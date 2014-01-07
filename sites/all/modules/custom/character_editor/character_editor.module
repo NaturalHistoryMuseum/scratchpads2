@@ -283,7 +283,7 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
   $author_settings = slickgrid_get_settings(array(
     'uid' => $project_w->uid->uid->value(),
     'view_name' => $view->name,
-    'display_id' => $view->current_display
+    'display_id' => $project_w->getBundle() . ':' . $project_w->getIdentifier()
   ));
   if(is_array($author_settings)){
     $style_options = array_merge($style_options, $author_settings);
@@ -293,7 +293,8 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
     'CharacterTreeUI' => array(
       'editable' => $editable,
       'mode' => isset($style_options['character_tree_mode']) ? $style_options['character_tree_mode'] : 'collapsed',
-      'tree' => $editor_tree
+      'tree' => $editor_tree,
+      'project' => $project_w->getBundle() . ':' . $project_w->getIdentifier()
     )
   ), 'setting');
 }
