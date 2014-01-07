@@ -144,6 +144,8 @@ function scratchpads_pages_views_default_views(){
     'default' => 'default',
     'page_1' => 'page_1'
   );
+  $handler->display->display_options['use_batch'] = 'batch';
+  $handler->display->display_options['segment_size'] = '100';
   /* Display: CSV Export */
   $handler = $view->new_display('views_data_export', 'CSV Export', 'views_data_export_2');
   $handler->display->display_options['pager']['type'] = 'none';
@@ -154,6 +156,8 @@ function scratchpads_pages_views_default_views(){
     'default' => 'default',
     'page_1' => 'page_1'
   );
+  $handler->display->display_options['use_batch'] = 'batch';
+  $handler->display->display_options['segment_size'] = '100';
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page_1');
   $handler->display->display_options['path'] = 'specimen_observation';
