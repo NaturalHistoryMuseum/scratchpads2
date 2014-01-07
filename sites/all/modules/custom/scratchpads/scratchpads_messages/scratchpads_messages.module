@@ -90,7 +90,7 @@ function scratchpads_messages_user_delete($account){
  * loginless changes.
  */
 function scratchpads_messages_form_user_profile_form_alter(&$form, &$form_state){
-  if($form['#user']->uid && empty($form['#user']->stub_user)){
+  if($form['#user']->uid && empty($form['#user']->stub_user) && !arg(3)){
     $form['messages'] = array(
       '#type' => 'fieldset',
       '#title' => t('Scratchpads messages'),
