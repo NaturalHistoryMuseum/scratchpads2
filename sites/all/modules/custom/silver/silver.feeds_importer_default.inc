@@ -368,7 +368,12 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
         );
         break;
       case 'user_reference':
-        // We add two columns for the user reference field.
+        // We add three columns for the user reference field.
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field_collection_label_addition . $field['label'] . ' (GUID)',
+          'target' => $map_field_collection ? $map_field_collection . $key . ':guid:duplicates' : $key . ':guid:duplicates',
+          'unique' => 0
+        );
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $field_collection_label_addition . $field['label'] . ' (UID)',
           'target' => $map_field_collection ? $map_field_collection . $key . ':uid:duplicates' : $key . ':uid:duplicates',
