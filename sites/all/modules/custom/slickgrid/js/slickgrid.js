@@ -199,7 +199,6 @@ if(!Array.prototype.indexOf) {
           $('#slickgrid').animate().height($('#slickgrid').height() + increase_by);
         }
       }
-      $(container).trigger('onSlickgridInit');
     }
     function handleValidationError(eventData, error){
       alert(Drupal.t('There has been an error, please reload the page.'))
@@ -591,6 +590,33 @@ if(!Array.prototype.indexOf) {
         tabs.rebuild();
       }
     }
+    // Return the current active columns, or the entire list if 'all' is defined and true.
+    function getColumns(all){
+      if (typeof all !== 'undefined' && all){
+        // Make sure properties are up to date
+        var grid_cols = grid.getColumns();
+        for (var i = 0; i < columns.length; i++){
+          var existing_col = grid.getColumnIndex(columns[i].id);
+          if (typeof existing_col !== 'undefined'){
+            $.extend(columns[i], grid_cols[existing_col]);
+          }
+        }
+        return columns;
+      } else {
+        return grid.getColumns();
+      }
+    }
+    // Batch change the columns.
+    function setColumns(cols){
+      columns = cols;
+      var new_grid_cols = [];
+      for (var i = 0; i < columns.length; i++){
+        if (!columns[i].hidden){
+          new_grid_cols.push(columns[i]);
+        }
+      }
+      grid.setColumns(new_grid_cols);
+    }
     function setColumnFilter(field, value, refresh){
       columnFilters[field] = value;
       if (typeof refresh !== 'undefined' && refresh){
@@ -623,7 +649,8 @@ if(!Array.prototype.indexOf) {
         grid.scrollRowToTop(state.row);
       }
     }
-    $.extend(this, {"callback": callback, "getViewName": getViewName, "getViewDisplayID": getViewDisplayID, "getEntityIDs": getEntityIDs, "getContainer": getContainer, "openDialog": openDialog, "closeDialog": closeDialog, "reload": reload, 'setColumnFilter': setColumnFilter, 'updateFilters': updateFilters, 'updateSettings': updateSettings, 'updateStatus': updateStatus, 'getGridState': getGridState, 'setGridState': setGridState});
-    init();
+    $.extend(this, {"callback": callback, "getViewName": getViewName, "getViewDisplayID": getViewDisplayID, "getEntityIDs": getEntityIDs, "getContainer": getContainer, "getColumns": getColumns, "setColumns": setColumns, "openDialog": openDialog, "closeDialog": closeDialog, "reload": reload, 'setColumnFilter': setColumnFilter, 'updateFilters': updateFilters, 'updateSettings': updateSettings, 'updateStatus': updateStatus, 'getGridState': getGridState, 'setGridState': setGridState});
+    init(this);
+    $(container).trigger('onSlickgridInit', this);
   }
 })(jQuery);
