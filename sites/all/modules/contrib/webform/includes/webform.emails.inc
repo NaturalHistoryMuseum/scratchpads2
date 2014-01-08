@@ -484,7 +484,7 @@ function webform_email_delete_form($form, $form_state, $node, $email) {
 }
 
 /**
- * Submit handler for webform_component_delete_form().
+ * Submit handler for webform_email_delete_form().
  */
 function webform_email_delete_form_submit($form, &$form_state) {
   // Delete the e-mail settings.
