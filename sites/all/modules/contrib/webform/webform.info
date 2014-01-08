@@ -14,7 +14,9 @@ files[] = views/webform_handler_field_node_link_edit.inc
 files[] = views/webform_handler_field_node_link_results.inc
 files[] = views/webform_handler_field_submission_count.inc
 files[] = views/webform_handler_field_submission_link.inc
+files[] = views/webform_handler_field_webform_status.inc
 files[] = views/webform_handler_filter_is_draft.inc
+files[] = views/webform_handler_filter_webform_status.inc
 files[] = views/webform.views.inc
 
 files[] = tests/components.test
@@ -22,9 +24,9 @@ files[] = tests/permissions.test
 files[] = tests/submission.test
 files[] = tests/webform.test
 
-; Information added by drupal.org packaging script on 2012-03-07
-version = "7.x-3.17"
+; Information added by drupal.org packaging script on 2013-05-29
+version = "7.x-3.19"
 core = "7.x"
 project = "webform"
-datestamp = "1331149848"
+datestamp = "1369860079"
 

@@ -6,6 +6,37 @@
  */
 
 function webform_views_data() {
+
+  /**
+   * Webform table definitions.
+   */
+  $data['webform']['table']['group'] = t('Webform');
+  $data['webform']['table']['join'] = array(
+    'node' => array(
+      'left_field' => 'nid',
+      'field' => 'nid',
+      'type' => 'INNER',
+    ),
+  );
+
+  // status
+  $data['webform']['status'] = array(
+    'title' => t('Status'),
+    'help' => t('The open or closed status of a webform.'),
+    'field' => array(
+      'handler' => 'webform_handler_field_webform_status',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'label' => t('Status'),
+      'handler' => 'webform_handler_filter_webform_status',
+      'type' => 'open-closed',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+
   /**
    * Submissions table definitions.
    */
@@ -166,6 +197,7 @@ function webform_views_data_alter(&$data) {
   );
   // Submission count (node).
   $data['node']['webform_submission_count_node'] = array(
+    'group' => t('Webform'),
     'field' => array(
       'title' => t('Webform submission count'),
       'help' => t('The number of webform submissions on this node.'),
@@ -199,6 +231,7 @@ function webform_views_data_alter(&$data) {
 
   // Link for editing the webform.
   $data['node']['webform_edit'] = array(
+    'group' => t('Webform'),
     'field' => array(
       'title' => t('Webform edit link'),
       'help' => t('Provide a simple link to edit the webform components and configuration.'),
@@ -208,6 +241,7 @@ function webform_views_data_alter(&$data) {
 
   // Link for viewing webform results.
   $data['node']['webform_results'] = array(
+    'group' => t('Webform'),
     'field' => array(
       'title' => t('Webform results link'),
       'help' => t('Provide a simple link to view the results of a webform.'),
@@ -217,6 +251,7 @@ function webform_views_data_alter(&$data) {
 
   // Webform form content.
   $data['node']['webform_form_body'] = array(
+    'group' => t('Webform'),
     'field' => array(
       'title' => t('Webform form body'),
       'help' => t('The Webform form body display for this node.'),
@@ -259,6 +294,14 @@ function webform_views_handlers() {
       'webform_handler_filter_is_draft' => array(
         'parent' => 'views_handler_filter_in_operator',
         'file' => 'webform_handler_filter_is_draft.inc',
+      ),
+      'webform_handler_field_webform_status' => array(
+        'parent' => 'views_handler_field_boolean',
+        'file' => 'webform_handler_field_webform_status.inc',
+      ),
+      'webform_handler_filter_webform_status' => array(
+        'parent' => 'views_handler_filter_boolean_operator',
+        'file' => 'webform_handler_filter_webform_status.inc',
       ),
     ),
   );
