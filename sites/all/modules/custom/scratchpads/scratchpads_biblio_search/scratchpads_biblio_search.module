@@ -594,6 +594,15 @@ function scratchpads_biblio_search_apachesolr_index_document_build(ApacheSolrDoc
  */
 function scratchpads_biblio_search_menu(){
   return array(
+    'admin/biblio_search_export' => array(
+      'title' => 'Export',
+      'type' => MENU_CALLBACK,
+      'access callback' => 'user_access',
+      'access arguments' => array(
+        'show export links'
+      ),
+      'page callback' => '_scratchpads_biblio_search_export'
+    ),
     'biblio_search_export' => array(
       'title' => 'Export',
       'type' => MENU_CALLBACK,
@@ -694,9 +703,10 @@ function scratchpads_biblio_search_block_view($delta = ''){
           'attributes' => $link['attributes']
         );
         if($pager_total[0] > 1){
-          $options['attributes']['target'] = '_blank';
+          $href = str_replace('biblio/export', 'admin/biblio_search_export', $link['href']);
+        }else{
+          $href = str_replace('export', 'biblio_search_export', $link['href']);
         }
-        $href = str_replace('biblio/export', 'biblio_search_export', $link['href']);
         if($is_node){
           $href = preg_replace('/\/?$/', '/' . arg(1), $href);
         }
@@ -785,8 +795,11 @@ function _scratchpads_biblio_search_batch_export($format, $conditions, $search_p
         break;
     }
   }
-  if($format == 'xml' && $context['sandbox']['page'] == $context['sandbox']['total_pages']){
-    $output .= _endnote8_XML_export('', 'end');
+  if($context['sandbox']['page'] == $context['sandbox']['total_pages']){
+    if($format == 'xml'){
+      $output .= _endnote8_XML_export('', 'end');
+    }
+    $context['message'] = '<p class="ok">' . t('You may close the overlay once the file download starts.') . '</p>';
   }
   file_put_contents(drupal_realpath($context['sandbox']['output_file']), $output, FILE_APPEND);
   $context['finished'] = $context['sandbox']['page'] / $context['sandbox']['total_pages'];
