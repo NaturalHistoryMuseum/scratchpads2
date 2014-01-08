@@ -45,7 +45,7 @@ function webform_results_submissions($node, $user_filter, $pager_count) {
   foreach ($submissions as $sid => $submission) {
     $row = array(
       $submission->is_draft ? t('@sid (draft)', array('@sid' => $sid)) : $sid,
-      format_date($submission->submitted, 'small'),
+      format_date($submission->submitted, 'short'),
     );
     if (webform_results_access($node, $user)) {
       $row[] = theme('username', array('account' => $submission));
@@ -224,14 +224,14 @@ function theme_webform_results_table($variables) {
   $rows = array();
   $cell = array();
 
-  // This header has to be generated seperately so we can add the SQL necessary.
+  // This header has to be generated separately so we can add the SQL necessary.
   // to sort the results.
   $header = theme('webform_results_table_header', array('node' => $node));
 
   // Generate a row for each submission.
   foreach ($submissions as $sid => $submission) {
     $cell[] = l($sid, 'node/' . $node->nid . '/submission/' . $sid);
-    $cell[] = format_date($submission->submitted, 'small');
+    $cell[] = format_date($submission->submitted, 'short');
     $cell[] = theme('username', array('account' => $submission));
     $cell[] = $submission->remote_addr;
     $component_headers = array();
@@ -442,7 +442,8 @@ function webform_results_download_form($form, &$form_state, $node) {
     '#default_value' => TRUE
   );
 
-  $form['submit'] = array(
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Download'),
   );
@@ -761,7 +762,7 @@ function webform_results_export($node, $format = 'delimited', $options = array()
       $row[] = $sid;
     }
     if (isset($submission_information['time'])) {
-      $row[] = format_date($submission->submitted, 'small');
+      $row[] = format_date($submission->submitted, 'short');
     }
     if (isset($submission_information['draft'])) {
       $row[] = $submission->is_draft;
@@ -807,6 +808,7 @@ function webform_results_export($node, $format = 'delimited', $options = array()
   $export_info['file_name'] = $file_name;
   $export_info['exporter'] = $exporter;
   $export_info['row_count'] = $row_count;
+  $export_info['last_sid'] = $sid;
 
   return $export_info;
 }
@@ -829,7 +831,7 @@ function webform_results_download($node, $export_info) {
   @unlink($export_info['file_name']);  // Clean up, the @ makes it silent.
 
   // Update user last downloaded sid if required.
-  if ($options['range_type'] != 'range' && $row_count > 0) {
+  if ($export_info['options']['range_type'] != 'range' && $export_info['row_count'] > 0) {
     // Delete existing record.
     db_delete('webform_last_download')
       ->condition('nid', $node->nid)
@@ -840,7 +842,7 @@ function webform_results_download($node, $export_info) {
       ->fields(array(
         'nid' => $node->nid,
         'uid' => $user->uid,
-        'sid' => $sid,
+        'sid' => $export_info['last_sid'],
         'requested' => REQUEST_TIME,
       ))
       ->execute();
