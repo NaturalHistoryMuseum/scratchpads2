@@ -685,6 +685,9 @@ function scratchpads_biblio_search_block_view($delta = ''){
         $info = t('Export entry as');
       }
       global $pager_total;
+      if($pager_total[0] > 1){
+        unset($export_links['biblio_rtf']);
+      }
       foreach($export_links as $link){
         $options = array(
           'query' => $query,
