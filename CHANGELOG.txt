@@ -1,3 +1,7 @@
+2.3.2.1 (2014-01-08)
+
+- Enable CAPTCHA on Webform forms (#3749)
+
 2.3.2 (2014-01-08)
 
 - Allow exporting of all references from a search, rather than just the first 100 (#1420)
