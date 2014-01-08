@@ -17,9 +17,14 @@ function scratchpads_security_install(){
   // Set the Spambot settings.
   variable_set('spambot_blocked_message_email', 'Your email address is blacklisted.');
   variable_set('spambot_blocked_message_ip', 'Your IP address is blacklisted.');
-  variable_set('spambot_cron_user_limit', 1);
+  variable_set('spambot_cron_user_limit', 10);
   variable_set('spambot_check_blocked_accounts', 1);
   variable_set('spambot_spam_account_action', 1);
+  variable_set('spambot_criteria_ip', 5);
+  variable_set('spambot_criteria_username', 0);
+  variable_set('spambot_blacklisted_delay', 5);
+  // Set the Honeypot settings
+  variable_set('honeypot_form_user_register_form', 1);
 }
 
 /**
@@ -71,4 +76,20 @@ function scratchpads_security_update_7002(){
     'user_login',
     'user_login_block'
   ))->execute();
+}
+
+/**
+ * Enable honeypot and make spambot a little more sensitive.
+ */
+function scratchpads_security_update_7003(){
+  if(!module_exists('honeypot')){
+    module_enable(array(
+      'honeypot'
+    ));
+  }
+  variable_set('honeypot_form_user_register_form', 1);
+  variable_set('spambot_criteria_ip', 5);
+  variable_set('spambot_criteria_username', 0);
+  variable_set('spambot_blacklisted_delay', 5);
+  variable_set('spambot_cron_user_limit', 10);
 }
