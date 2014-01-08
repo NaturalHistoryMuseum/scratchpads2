@@ -831,3 +831,15 @@ function webform_update_7319(&$sandbox) {
 function webform_update_7320() {
   db_query("UPDATE {file_managed} SET status = 1 WHERE fid IN (SELECT fid FROM {file_usage} WHERE module = :module_name)", array(':module_name' => 'webform'));
 }
+
+/**
+ * Remove files left over from deleted submissions. Such files are now deleted
+ * automatically.
+ */
+function webform_update_7321() {
+  module_load_include('inc', 'webform', 'components/file');
+  $fids = db_query("SELECT fid FROM {file_usage} WHERE module = 'webform' AND type = 'submission' AND NOT id IN(SELECT sid FROM {webform_submissions})")->fetchCol();
+  foreach ($fids as $fid) {
+    _webform_delete_file(NULL, array($fid));
+  }
+}

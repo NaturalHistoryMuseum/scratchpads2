@@ -69,6 +69,7 @@ function _webform_edit_grid($component) {
       '#options' => _webform_select_options_from_text($component['extra']['options'], TRUE),
       '#optgroups' => FALSE,
       '#default_value' => FALSE,
+      '#default_value_allowed' => FALSE,
       '#optgroups' => FALSE,
       '#key_type' => 'mixed',
       '#key_type_toggle' => t('Customize option keys (Advanced)'),
@@ -88,6 +89,7 @@ function _webform_edit_grid($component) {
       '#options' => _webform_select_options_from_text($component['extra']['questions'], TRUE),
       '#optgroups' => FALSE,
       '#default_value' => FALSE,
+      '#default_value_allowed' => FALSE,
       '#optgroups' => FALSE,
       '#key_type' => 'mixed',
       '#key_type_toggle' => t('Customize question keys (Advanced)'),
@@ -203,10 +205,10 @@ function webform_expand_grid($element) {
   $value = isset($element['#default_value']) ? $element['#default_value'] : array();
   foreach (element_children($element) as $key) {
     if (isset($value[$key])) {
-      $element[$key]['#default_value'] = ($value[$key] !== '') ? $value[$key] : FALSE;
+      $element[$key]['#default_value'] = ($value[$key] !== '') ? $value[$key] : NULL;
     }
     else {
-      $element[$key]['#default_value'] = FALSE;
+      $element[$key]['#default_value'] = NULL;
     }
   }
 

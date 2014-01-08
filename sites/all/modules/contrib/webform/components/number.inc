@@ -81,7 +81,7 @@ function _webform_edit_number($component) {
   );
   $form['display']['field_prefix'] = array(
     '#type' => 'textfield',
-    '#title' => t('Label placed to the left of the field'),
+    '#title' => t('Prefix text placed to the left of the field'),
     '#default_value' => $component['extra']['field_prefix'],
     '#description' => t('Examples: $, #, -.'),
     '#size' => 20,
@@ -91,7 +91,7 @@ function _webform_edit_number($component) {
   );
   $form['display']['field_suffix'] = array(
     '#type' => 'textfield',
-    '#title' => t('Label placed to the right of the field'),
+    '#title' => t('Postfix text placed to the right of the field'),
     '#default_value' => $component['extra']['field_suffix'],
     '#description' => t('Examples: lb, kg, %.'),
     '#size' => 20,
@@ -160,7 +160,7 @@ function _webform_edit_number($component) {
     '#description' => t('Minimum numeric value. e.g. 0 would ensure positive numbers.'),
     '#size' => 5,
     '#maxlength' => 10,
-    '#weight' => 2,
+    '#weight' => 2.1,
     '#parents' => array('extra', 'min'),
     '#element_validate' => array('_webform_edit_number_validate'),
   );
@@ -171,7 +171,7 @@ function _webform_edit_number($component) {
     '#description' => t('Maximum numeric value. This may also determine the display width of your field.'),
     '#size' => 5,
     '#maxlength' => 10,
-    '#weight' => 2,
+    '#weight' => 2.2,
     '#parents' => array('extra', 'max'),
     '#element_validate' => array('_webform_edit_number_validate'),
   );
@@ -219,9 +219,18 @@ function theme_webform_number($variables) {
   }
 
   // Step property *must* be a full number with 0 prefix if a decimal.
-  if (!is_int($element['#step'] * 1)) {
+  if (!empty($element['#step']) && !is_int($element['#step'] * 1)) {
     $decimals = strlen($element['#step']) - strrpos($element['#step'], '.') - 1;
     $element['#step'] = sprintf('%1.' . $decimals . 'F', $element['#step']);
+  }
+
+  // If the number is not an integer and step is undefined/empty, set the "any"
+  // value to allow any decimal.
+  if (empty($element['#integer']) && empty($element['#step'])) {
+    $element['#step'] = 'any';
+  }
+  elseif ($element['#integer'] && empty($element['#step'])) {
+    $element['#step'] = 1;
   }
 
   // Convert properties to attributes on the element if set.
@@ -255,7 +264,7 @@ function _webform_render_number($component, $value = NULL, $filter = TRUE) {
     '#theme_wrappers' => array('webform_element'),
     '#min' => $component['extra']['min'],
     '#max' => $component['extra']['max'],
-    '#step' => abs($component['extra']['step']),
+    '#step' => $component['extra']['step'] ? abs($component['extra']['step']) : '',
     '#integer' => $component['extra']['integer'],
     '#translatable' => array('title', 'description'),
   );
@@ -357,6 +366,7 @@ function _webform_analysis_number($component, $sids = array(), $single = FALSE) 
   $population = array();
   $submissions = 0;
   $nonzero = 0;
+  $not_empty = 0;
   $sum = 0;
 
   $result = $query->execute();
@@ -369,6 +379,10 @@ function _webform_analysis_number($component, $sids = array(), $single = FALSE) 
       $number = $value * 1.0;
     }
 
+    if ($value !== '') {
+      $not_empty++;
+    }
+
     if ($number > 0) {
       $nonzero++;
       $sum += $number;
@@ -378,40 +392,39 @@ function _webform_analysis_number($component, $sids = array(), $single = FALSE) 
   }
   sort($population, SORT_NUMERIC);
 
-  // Average and population count (if we have values).
-  if ($sum) {
-    if ($component['extra']['excludezero']) {
-      $average = $sum / $nonzero;
-      $average_title = t('Average !mu excluding zeros/blanks', array('!mu' => $advanced_stats ? '(&mu;)' : ''));
-      // Sample (sub-set of total population).
-      $population_count = $nonzero - 1;
-      $sigma = 'sd';
-      $description = t('sample');
-    }
-    else {
-      $average = $sum / $submissions;
-      $average_title = t('Average !mu including zeros/blanks', array('!mu' => $advanced_stats ? '(&mu;)' : ''));
-      // Population.
-      $population_count = $submissions;
-      $sigma = '&sigma;';
-      $description = t('population');
-    }
+  // Average and population count.
+  if ($component['extra']['excludezero']) {
+    $average = $nonzero ? ($sum / $nonzero) : 0;
+    $average_title = t('Average !mu excluding zeros/blanks', array('!mu' => $advanced_stats ? '(&mu;)' : ''));
+    // Sample (sub-set of total population).
+    $population_count = $nonzero - 1;
+    $sigma = 'sd';
+    $description = t('sample');
+  }
+  else {
+    $average = $submissions ? ($sum / $submissions) : 0;
+    $average_title = t('Average !mu including zeros/blanks', array('!mu' => $advanced_stats ? '(&mu;)' : ''));
+    // Population.
+    $population_count = $submissions;
+    $sigma = '&sigma;';
+    $description = t('population');
   }
 
   // Formatting.
-  if ($component['extra']['decimals'] != '') {
-    $average = _webform_number_format($component, $average);
-    $sum = _webform_number_format($component, $sum);
-  }
+  $average = _webform_number_format($component, $average);
+  $sum = _webform_number_format($component, $sum);
 
   $rows[0] = array(t('Zero/blank'), ($submissions - $nonzero));
-  $rows[1] = array(t('User entered value'), $submissions);
+  $rows[1] = array(t('User entered value'), $not_empty);
   $rows[2] = array(t('Sum') . ($advanced_stats ? ' (&Sigma;)' : ''), $sum);
   $rows[3] = array($average_title, $average);
-  $rows[4] = array('', l(t('More stats »'), 'node/' . $component['nid'] . '/webform-results/analysis/' . $component['cid']));
+
+  if (!$advanced_stats && $sum != 0) {
+    $rows[4] = array('', l(t('More stats »'), 'node/' . $component['nid'] . '/webform-results/analysis/' . $component['cid']));
+  }
 
   // Normal distribution information.
-  if ($advanced_stats && $population_count) {
+  if ($advanced_stats && $population_count && $sum != 0) {
     // Standard deviation.
     $stddev = 0;
     foreach($population as $value) {
@@ -433,7 +446,7 @@ function _webform_analysis_number($component, $sids = array(), $single = FALSE) 
 
     $count[] = 0;
     $limit[] = $average - ($stddev * 4);
-    foreach($population as $value) {
+    foreach ($population as $value) {
       while ($value >= $limit[$index]) {
         $percent[] = number_format($count[$index] / $population_count * 100, 2, '.', '');
         $limit[] = $limit[$index] + $stddev;
@@ -448,18 +461,11 @@ function _webform_analysis_number($component, $sids = array(), $single = FALSE) 
     $percent[] = number_format($count[$index] / $population_count * 100, 2, '.', '');
 
     // Format normal distribution table output.
-    if ($component['extra']['decimals'] != '') {
-      $stddev = _webform_number_format($component, $stddev);
-      $low = _webform_number_format($component, $population[0]);
-      $high = _webform_number_format($component, end($population));
-      foreach($limit as $key => $value) {
-        $limit[$key] = _webform_number_format($component, $value);
-      }
-    }
-    else {
-      foreach($limit as $key => $value) {
-        $limit[$key] = number_format($value, 2, '.', '');
-      }
+    $stddev = _webform_number_format($component, $stddev);
+    $low = _webform_number_format($component, $population[0]);
+    $high = _webform_number_format($component, end($population));
+    foreach($limit as $key => $value) {
+      $limit[$key] = _webform_number_format($component, $value);
     }
 
     // Column headings (override potential theme uppercase, e.g. Seven in D7).
@@ -512,7 +518,7 @@ function _webform_csv_headers_number($component, $export_options) {
  * Implements _webform_csv_data_component().
  */
 function _webform_csv_data_number($component, $export_options, $value) {
-  if (isset($value[0]) && $component['extra']['decimals'] !== '') {
+  if (isset($value[0]) && is_numeric($value[0]) && $component['extra']['decimals'] !== '') {
     $value[0] = number_format($value[0], $component['extra']['decimals'], '.', '');
   }
   return isset($value[0]) ? $value[0] : '';
@@ -591,13 +597,18 @@ function _webform_validate_number($element, &$form_state) {
  * Validation of number edit form items.
  */
 function _webform_edit_number_validate($element, &$form_state) {
-  // Shorten field names.
-  $values = $form_state['values']['extra'];
+  // Find the value of all related fields to this element.
+  $parents = $element['#parents'];
+  $key = array_pop($parents);
+  $values = $form_state['values'];
+  foreach ($parents as $parent) {
+    $values = $values[$parent];
+  }
 
-  switch ($element['#name']) {
-    case 'extra[min]':
+  switch ($key) {
+    case 'min':
       if ($values['min'] == '') {
-        if ($values['type'] == 'select') {
+        if (isset($values['type']) && $values['type'] === 'select') {
           form_error($element, t('Minimum is required when using a select list element.'));
         }
       }
@@ -610,9 +621,9 @@ function _webform_edit_number_validate($element, &$form_state) {
         }
       }
       break;
-    case 'extra[max]':
+    case 'max':
       if ($values['max'] == '') {
-        if ($values['type'] == 'select') {
+        if (isset($values['type']) && $values['type'] === 'select') {
           form_error($element, t('Maximum is required when using a select list element.'));
         }
       }
@@ -625,8 +636,8 @@ function _webform_edit_number_validate($element, &$form_state) {
         }
       }
       break;
-    case 'extra[step]':
-      if ($values['step'] != '') {
+    case 'step':
+      if ($values['step'] !== '') {
         if (!is_numeric($values['step'])) {
           form_error($element, t('Step must be numeric.'));
         }
@@ -688,6 +699,9 @@ function _webform_number_select_options($component) {
  * Apply number format.
  */
 function _webform_number_format($component, $value) {
+  if (!is_numeric($value)) {
+    return '';
+  }
   // If no decimal places are specified, do a best guess length of decimals.
   $decimals = $component['extra']['decimals'];
   if ($decimals === '') {
