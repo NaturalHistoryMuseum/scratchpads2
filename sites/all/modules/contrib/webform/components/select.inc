@@ -115,11 +115,11 @@ function _webform_edit_select($component) {
       '#multiple_toggle' => t('Multiple'),
       '#default_value' => $component['value'],
       '#options' => $options,
+      '#options_readonly' => !empty($component['extra']['options_source']),
       '#key_type' => 'mixed',
       '#key_type_toggle' => t('Customize keys (Advanced)'),
       '#key_type_toggled' => $component['extra']['custom_keys'],
       '#default_value_pattern' => '^%.+\[.+\]$',
-      '#disabled' => !empty($component['extra']['options_source']),
       '#weight' => 1,
     );
 
@@ -166,7 +166,7 @@ function _webform_edit_select($component) {
     '#type' => 'checkbox',
     '#title' => t('Listbox'),
     '#default_value' => $component['extra']['aslist'],
-    '#description' => t('Check this option if you want the select component to be of listbox type instead of radio buttons or checkboxes.'),
+    '#description' => t('Check this option if you want the select component to be displayed as a select list box instead of radio buttons or checkboxes. Option groups (nested options) are only supported with listbox components.'),
     '#parents' => array('extra', 'aslist'),
   );
   $form['display']['optrand'] = array(
@@ -232,6 +232,11 @@ function _webform_edit_validate_select($element, &$form_state) {
       form_error($element, t('Options within the select list must be unique. The following keys have been used multiple times:') . theme('item_list', array('items' => $duplicate_keys)));
     }
 
+    // Set the listbox option if needed.
+    if (empty($missing_keys) && empty($long_keys) && empty($duplicate_keys)) {
+      $options = _webform_select_options_from_text($element['#value']);
+      _webform_edit_validate_set_aslist($options, $form_state);
+    }
   }
 
   return TRUE;
@@ -252,10 +257,28 @@ function _webform_edit_validate_options($element, &$form_state) {
     $form_state['values']['extra']['multiple'] = $element_options['multiple'];
     $form_state['values']['extra']['custom_keys'] = $element_options['custom_keys'];
     $form_state['values']['value'] = is_array($element_options['default_value']) ? implode(', ', $element_options['default_value']) : $element_options['default_value'];
+
+    // Set the listbox option if needed.
+    _webform_edit_validate_set_aslist($element_options['options'], $form_state);
   }
   // Options saved for grid components.
   else {
     $form_state['values']['extra']['custom_' . rtrim($key, 's') . '_keys'] = $element_options['custom_keys'];
+  }
+}
+
+/**
+ * Ensure "aslist" is used for option groups. Called from options validations.
+ */
+function _webform_edit_validate_set_aslist($options, &$form_state) {
+  if (empty($form_state['values']['extra']['aslist']) && !empty($options)) {
+    foreach ($options as $option) {
+      if (is_array($option)) {
+        $form_state['values']['extra']['aslist'] = 1;
+        drupal_set_message(t('The component %name has automatically been set to display as a listbox in order to support option groups.', array('%name' => $form_state['values']['name'])), 'warning');
+        break;
+      }
+    }
   }
 }
 
@@ -328,9 +351,6 @@ function _webform_render_select($component, $value = NULL, $filter = TRUE) {
   elseif ($component['extra']['multiple']) {
     $element['#default_value'] = array();
   }
-  else {
-    $element['#default_value'] = FALSE;
-  }
 
   if ($component['extra']['other_option'] && module_exists('select_or_other')) {
     // Set display as a select_or_other element:
@@ -396,6 +416,10 @@ function webform_expand_select_or_other($element) {
 
   $element['other']['#validated'] = TRUE;
   $element['other']['#webform_validated'] = FALSE;
+
+  // The Drupal FAPI does not support #title_display inline so we need to move
+  // to a supported value here to be compatible with select_or_other.
+  $element['select']['#title_display'] = $element['#title_display'] === 'inline' ? 'before' : $element['#title_display'];
 
   // If the default value contains "select_or_other" (the key of the select
   // element for the "other..." choice), discard it and set the "other" value.
@@ -467,6 +491,7 @@ function _webform_display_select($component, $value, $format = 'html') {
   return array(
     '#title' => $component['name'],
     '#weight' => $component['weight'],
+    '#multiple' => $component['extra']['multiple'],
     '#theme' => 'webform_display_select',
     '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
     '#format' => $format,
@@ -519,7 +544,6 @@ function _webform_submit_select($component, $value) {
  */
 function theme_webform_display_select($variables) {
   $element = $variables['element'];
-  $component = $element['#webform_component'];
 
   // Flatten the list of options so we can get values easily. These options
   // may be translated by hook_webform_display_component_alter().
@@ -536,7 +560,7 @@ function theme_webform_display_select($variables) {
   }
 
   $items = array();
-  if ($component['extra']['multiple']) {
+  if ($element['#multiple']) {
     foreach ((array) $element['#value'] as $option_value) {
       if ($option_value !== '') {
         // Administer provided values.
@@ -849,7 +873,7 @@ function _webform_select_options_callback($name, $component, $flat = FALSE, $fil
 }
 
 /**
- * Utility function to split user-entered values from new-line seperated
+ * Utility function to split user-entered values from new-line separated
  * text into an array of options.
  *
  * @param $text

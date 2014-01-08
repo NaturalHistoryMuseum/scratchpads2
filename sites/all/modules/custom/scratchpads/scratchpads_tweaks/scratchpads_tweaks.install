@@ -322,14 +322,6 @@ function scratchpads_tweaks_install(){
     'show download links' => 'show download links',
     'post comments' => 'post comments'
   ));
-  // Set the Honeypot settings
-  variable_set('honeypot_form_user_register_form', 1);
-  variable_set('boost_cacheability_pages', 'user/register');
-  // Spambot settings.
-  variable_set('spambot_criteria_ip', 5);
-  variable_set('spambot_criteria_username', 0);
-  variable_set('spambot_blacklisted_delay', 5);
-  variable_set('spambot_cron_user_limit', 10);
   // Use our mirror of the CC images site
   variable_set('creative_commons_image_uri', 'http://cc-mirror.scratchpads.eu/l');
 }
@@ -1223,28 +1215,6 @@ function scratchpads_tweaks_update_7062(){
 }
 
 /**
- * Enable honeypot
- */
-function scratchpads_tweaks_update_7063(){
-  if(!module_exists('honeypot')){
-    module_enable(array(
-      'honeypot'
-    ));
-  }
-  variable_set('honeypot_form_user_register_form', 1);
-  if(module_exists('boost')){
-    // Unless this has already been customised, change boost to not cache the user register page.
-    // This ensures we don't get caching issues with the spam protection,
-    if(variable_get('boost_cacheability_option', BLOCK_VISIBILITY_NOTLISTED) == BLOCK_VISIBILITY_NOTLISTED){
-      $pages = variable_get('boost_cacheability_pages', BOOST_CACHEABILITY_PAGES);
-      if(empty($pages)){
-        variable_set('boost_cacheability_pages', 'user/register');
-      }
-    }
-  }
-}
-
-/**
  * Enable the setting of the biblio file attachments permission.
  */
 function scratchpads_tweaks_update_7064(){
@@ -1358,28 +1328,6 @@ function scratchpads_tweaks_update_7068(){
 }
 
 /**
- * Enable honeypot
- */
-function scratchpads_tweaks_update_7069(){
-  if(!module_exists('honeypot')){
-    module_enable(array(
-      'honeypot'
-    ));
-  }
-  variable_set('honeypot_form_user_register_form', 1);
-  if(module_exists('boost')){
-    // Unless this has already been customised, change boost to not cache the user register page.
-    // This ensures we don't get caching issues with the spam protection,
-    if(variable_get('boost_cacheability_option', BLOCK_VISIBILITY_NOTLISTED) == BLOCK_VISIBILITY_NOTLISTED){
-      $pages = variable_get('boost_cacheability_pages', BOOST_CACHEABILITY_PAGES);
-      if(empty($pages)){
-        variable_set('boost_cacheability_pages', 'user/register');
-      }
-    }
-  }
-}
-
-/**
  * Remove boost, and install varnish, setting varnish settings along the way.
  */
 function scratchpads_tweaks_update_7070(){
@@ -1389,16 +1337,6 @@ function scratchpads_tweaks_update_7070(){
   module_enable(array(
     'varnish'
   ));
-}
-
-/**
- * Make spambot a little more sensitive.
- */
-function scratchpads_tweaks_update_7071(){
-  variable_set('spambot_criteria_ip', 5);
-  variable_set('spambot_criteria_username', 0);
-  variable_set('spambot_blacklisted_delay', 5);
-  variable_set('spambot_cron_user_limit', 10);
 }
 
 /**
