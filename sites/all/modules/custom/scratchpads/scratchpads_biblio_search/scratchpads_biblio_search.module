@@ -244,6 +244,11 @@ function scratchpads_biblio_search_context_default_contexts(){
  * Implementation of hook_block_view_alter()
  */
 function scratchpads_biblio_search_block_view_alter(&$data, $block){
+  // Remove the login block from the batch and admin/biblio_search_export pages
+  if($block->module == 'user' && $block->delta == 'login' && (arg(1) == 'biblio_search_export' || arg(0) == 'batch')){
+    $data = array();
+    return;
+  }
   if($block->module == 'facetapi'){
     if($data['subject'] == 'Filter by author:'){
       if($block->context == 'media_gallery_page_facets'){
