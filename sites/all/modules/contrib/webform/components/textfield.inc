@@ -69,7 +69,7 @@ function _webform_edit_textfield($component) {
   );
   $form['display']['field_prefix'] = array(
     '#type' => 'textfield',
-    '#title' => t('Label placed to the left of the textfield'),
+    '#title' => t('Prefix text placed to the left of the textfield'),
     '#default_value' => $component['extra']['field_prefix'],
     '#description' => t('Examples: $, #, -.'),
     '#size' => 20,
@@ -79,7 +79,7 @@ function _webform_edit_textfield($component) {
   );
   $form['display']['field_suffix'] = array(
     '#type' => 'textfield',
-    '#title' => t('Label placed to the right of the textfield'),
+    '#title' => t('Postfix text placed to the right of the textfield'),
     '#default_value' => $component['extra']['field_suffix'],
     '#description' => t('Examples: lb, kg, %.'),
     '#size' => 20,

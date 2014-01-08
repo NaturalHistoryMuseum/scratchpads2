@@ -620,7 +620,7 @@ function webform_get_submissions($filters = array(), $header = NULL, $pager_coun
       $pager_query->condition($column, $value);
     }
 
-    if (isset($filters['u.uid'])) {
+    if (isset($filters['u.uid']) || !empty($header)) {
       // Join to the users table for sorting by user name.
       $pager_query->leftJoin('users', 'u', 'u.uid = ws.uid');
     }
