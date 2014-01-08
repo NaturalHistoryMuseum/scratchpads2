@@ -606,6 +606,8 @@ function character_editor_project_view($entity){
       '#markup' => $view->execute_display($display_id, $args),
       '#attached' => array(
         'js' => array(
+          $path . '/js/character-editor-info-popups.js',
+          $path . '/js/character-editor-character-tree.js',
           $path . '/js/character-editor.js'
         ),
         'css' => array(
