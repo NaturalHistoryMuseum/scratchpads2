@@ -54,6 +54,33 @@ function contact_scratchpads_security_captcha_form_ids_alter(&$form_ids){
 }
 
 /**
+ * Implements hook_scratchpads_security_captcha_form_ids_alter()
+ * 
+ * Add webforms to the mix.
+ */
+function webform_scratchpads_security_captcha_form_ids_alter(&$form_ids){
+  $query = db_select('node', 'n');
+  $query->addExpression("CONCAT('webform_client_form_',nid)", 'form_id');
+  $rows = $query->condition('type', 'webform')->execute()->fetchCol();
+  $rows = drupal_map_assoc($rows);
+  $form_ids = array_merge($form_ids, $rows);
+}
+
+/**
+ * Implements hook_node_insert()
+ */
+function scratchpads_security_node_insert($node){
+  if($node->type == 'webform'){
+    $query = db_merge('captcha_points')->key(array(
+      'form_id' => 'webform_client_form_' . $node->nid
+    ))->fields(array(
+      'form_id' => 'webform_client_form_' . $node->nid,
+      'captcha_type' => 'default'
+    ))->execute();
+  }
+}
+
+/**
  * Implements hook_scratchpads_default_permissions().
  */
 function captcha_scratchpads_default_permissions(){
