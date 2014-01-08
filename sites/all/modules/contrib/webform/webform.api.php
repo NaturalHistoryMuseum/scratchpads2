@@ -320,9 +320,9 @@ function hook_webform_component_delete($component) {
  *     - spam_analysis
  *     - group
  *
- *   Note that most of these features do not indicate the default state, but 
+ *   Note that most of these features do not indicate the default state, but
  *   determine if the component can have this property at all. Setting
- *   "required" to TRUE does not mean that a component's fields will always be 
+ *   "required" to TRUE does not mean that a component's fields will always be
  *   required, but instead give the option to the administrator to choose the
  *   requiredness. See the example implementation for details on how these
  *   features may be set.
@@ -398,7 +398,7 @@ function hook_webform_component_info() {
       // Defaults to TRUE.
       'conditional' => TRUE,
 
-      // If this component allows other components to be grouped within it 
+      // If this component allows other components to be grouped within it
       // (like a fieldset or tabs). Defaults to FALSE.
       'group' => FALSE,
 
@@ -429,6 +429,67 @@ function hook_webform_component_info_alter(&$components) {
 
   // Change the name of a component.
   $components['textarea']['label'] = t('Text box');
+}
+
+/**
+ * Alter access to a Webform submission.
+ *
+ * @param $node
+ *   The Webform node on which this submission was made.
+ * @param $submission
+ *   The Webform submission.
+ * @param $op
+ *   The operation to be performed on the submission. Possible values are:
+ *   - "view"
+ *   - "edit"
+ *   - "delete"
+ *   - "list"
+ * @param $account
+ *   A user account object.
+ * @return
+ *   TRUE if the current user has access to submission,
+ *   or FALSE otherwise.
+ */
+function hook_webform_submission_access($node, $submission, $op = 'view', $account = NULL) {
+  switch ($op) {
+    case 'view':
+      return TRUE;
+      break;
+    case 'edit':
+      return FALSE;
+      break;
+    case 'delete':
+      return TRUE;
+      break;
+    case 'list':
+      return TRUE;
+      break;
+  }
+}
+
+/**
+ * Determine if a user has access to see the results of a webform.
+ *
+ * Note in addition to the view access to the results granted here, the $account
+ * must also have view access to the Webform node in order to see results.
+ *
+ * @see webform_results_access().
+ *
+ * @param $node
+ *   The Webform node to check access on.
+ * @param $account
+ *   The user account to check access on.
+ * @return
+ *   TRUE or FALSE if the user can access the webform results.
+ */
+function hook_webform_results_access($node, $account) {
+  // Let editors view results of unpublished webforms.
+  if ($node->status == 0 && in_array('editor', $account->roles)) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
 }
 
 /**
@@ -612,11 +673,11 @@ function _webform_display_component($component, $value, $format = 'html') {
 /**
  * A hook for changing the input values before saving to the database.
  *
- * Webform expects a component to consist of a single field, or a single array 
+ * Webform expects a component to consist of a single field, or a single array
  * of fields. If you have a component that requires a deeper form tree
- * you must flatten the data into a single array using this callback 
+ * you must flatten the data into a single array using this callback
  * or by setting #parents on each field to avoid data loss and/or unexpected
- * behavior. 
+ * behavior.
  *
  * Note that Webform will save the result of this function directly into the
  * database.
@@ -679,15 +740,21 @@ function _webform_help_component($section) {
 /**
  * Module specific instance of hook_theme().
  *
- * This allows each Webform component to add information into hook_theme().
+ * This allows each Webform component to add information into hook_theme(). If
+ * you specify a file to include, you must define the path to the module that
+ * this file belongs to.
  */
 function _webform_theme_component() {
   return array(
     'webform_grid' => array(
-      'arguments' => array('grid_element' => NULL),
+      'render element' => 'element',
+      'file' => 'components/grid.inc',
+      'path' => drupal_get_path('module', 'webform'),
     ),
-    'webform_mail_grid' => array(
-      'arguments' => array('component' => NULL, 'value' => NULL),
+    'webform_display_grid' => array(
+      'render element' => 'element',
+      'file' => 'components/grid.inc',
+      'path' => drupal_get_path('module', 'webform'),
     ),
   );
 }
