@@ -3,3 +3,4 @@ description = "Enables the CAPTCHA module, and may also provide additional secur
 core = "7.x"
 dependencies[] = image_captcha
 dependencies[] = spambot
+dependencies[] = honeypot
