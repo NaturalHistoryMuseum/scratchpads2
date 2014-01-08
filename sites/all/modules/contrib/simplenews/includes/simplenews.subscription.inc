@@ -229,7 +229,7 @@ function simplenews_subscriptions_page_form($form, &$form_state, $code = NULL) {
   // Get newsletters for subscription form checkboxes.
   // Newsletters with opt-in/out method 'hidden' will not be listed.
   foreach (simplenews_category_get_visible() as $newsletter) {
-    $options[$newsletter->tid] = check_plain($newsletter->name);
+    $options[$newsletter->tid] = check_plain(_simplenews_newsletter_name($newsletter));
     $default_value[$newsletter->tid] = FALSE;
   }
 
@@ -395,7 +395,7 @@ function simplenews_subscriptions_multi_block_form($form, &$form_state) {
   // Get newsletters for subscription form checkboxes.
   // Newsletters with opt-in/out method 'hidden' will not be listed.
   foreach (simplenews_category_get_visible() as $newsletter) {
-    $options[$newsletter->tid] = check_plain($newsletter->name);
+    $options[$newsletter->tid] = check_plain(_simplenews_newsletter_name($newsletter));
     $default_value[$newsletter->tid] = FALSE;
   }
 
@@ -726,7 +726,7 @@ function simplenews_subscriptions_admin_form($form, &$form_state, $snid) {
   // Get newsletters for subscription form checkboxes.
   // Newsletters with opt-in/out method 'hidden' will not be listed.
   foreach (simplenews_category_get_visible() as $newsletter) {
-    $options[$newsletter->tid] = check_plain($newsletter->name);
+    $options[$newsletter->tid] = check_plain(_simplenews_newsletter_name($newsletter));
     $default_value[$newsletter->tid] = FALSE;
   }
 
@@ -760,7 +760,7 @@ function simplenews_subscriptions_admin_form($form, &$form_state, $snid) {
     }
     $form['language'] = array(
       '#type' => 'fieldset',
-      '#title' => 'Preferred language',
+      '#title' => t('Preferred language'),
       '#description' => t('The e-mails will be localized in language chosen. Real users have their preference in account settings.'),
       '#disabled' => FALSE,
     );

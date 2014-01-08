@@ -140,7 +140,7 @@ function taxonomy_entity_info() {
 }
 
 /**
- * Entity URI callback.
+ * Implements callback_entity_info_uri().
  */
 function taxonomy_term_uri($term) {
   return array(
@@ -513,7 +513,7 @@ function taxonomy_vocabulary_delete($vid) {
   }
   catch (Exception $e) {
     $transaction->rollback();
-    watchdog_exception('Taxonomy', $e);
+    watchdog_exception('taxonomy', $e);
     throw $e;
   }
 }
@@ -737,7 +737,7 @@ function taxonomy_term_delete($tid) {
   }
   catch (Exception $e) {
     $transaction->rollback();
-    watchdog_exception('Taxonomy', $e);
+    watchdog_exception('taxonomy', $e);
     throw $e;
   }
 }
