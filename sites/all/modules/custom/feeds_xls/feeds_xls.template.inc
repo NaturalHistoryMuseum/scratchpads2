@@ -19,7 +19,7 @@ function feeds_xls_get_populated_template(){
     header('Cache-Control: max-age=0');
     readfile($_SESSION['feeds_xls']['csv_path'] . '.xls');
     // delete the file
-    //drupal_unlink($_SESSION['feeds_xls']['csv_path'] . '.xls');
+    drupal_unlink($_SESSION['feeds_xls']['csv_path'] . '.xls');
     unset($_SESSION['feeds_xls']);
     exit();
   }else{
