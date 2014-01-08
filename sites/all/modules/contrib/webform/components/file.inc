@@ -127,7 +127,7 @@ function _webform_edit_file($component) {
       '#type' => 'textfield',
       '#title' => t('Additional extensions'),
       '#default_value' => $component['extra']['filtering']['addextensions'],
-      '#description' => t('Enter a list of additional file extensions for this upload field, seperated by commas.<br /> Entered extensions will be appended to checked items above.'),
+      '#description' => t('Enter a list of additional file extensions for this upload field, separated by commas.<br /> Entered extensions will be appended to checked items above.'),
       '#size' => 20,
       '#weight' => 3,
     );
@@ -336,6 +336,18 @@ function _webform_render_file($component, $value = NULL, $filter = TRUE) {
 }
 
 /**
+ * Implements _webform_submit_component().
+ */
+function _webform_submit_file($component, $value) {
+  if (is_array($value)) {
+    return !empty($value['fid']) ? $value['fid'] : '';
+  }
+  else {
+    return !empty($value) ? $value : '';
+  }
+}
+
+/**
  * Pre-render callback to allow access to uploaded files.
  *
  * Files that have not yet been saved into a submission must be accessible to
@@ -387,6 +399,7 @@ function theme_webform_display_file($variables) {
 function _webform_delete_file($component, $value) {
   // Delete an individual submission file.
   if (!empty($value[0]) && ($file = webform_get_file($value[0]))) {
+    file_usage_delete($file, 'webform');
     file_delete($file);
   }
 }
