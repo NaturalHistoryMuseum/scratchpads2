@@ -374,6 +374,12 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['filters']['type']['value'] = array(
     'specimen_observation' => 'specimen_observation'
   );
+  /* Filter criterion: Content: Type status (field_type_status) */
+  $handler->display->display_options['filters']['field_type_status_value']['id'] = 'field_type_status_value';
+  $handler->display->display_options['filters']['field_type_status_value']['table'] = 'field_data_field_type_status';
+  $handler->display->display_options['filters']['field_type_status_value']['field'] = 'field_type_status_value';
+  $handler->display->display_options['filters']['field_type_status_value']['relationship'] = 'reverse_field_taxonomic_name_node';
+  $handler->display->display_options['filters']['field_type_status_value']['operator'] = 'not empty';
   $handler->display->display_options['displays'] = array(
     'default' => 'default',
     'block' => 'block'
