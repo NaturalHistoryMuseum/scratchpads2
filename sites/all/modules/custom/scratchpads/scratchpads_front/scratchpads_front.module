@@ -459,6 +459,7 @@ function scratchpads_front_variable_get($name){
   return variable_get($name, $default);
 }
 
+
 /**
  * 
  * Helper function for variable defaults
@@ -480,16 +481,22 @@ function scratchpads_front_variable_default($name = NULL){
       switch($display_id){
         case 'block_1':
           $defaults[$var] = 'page';
+          $defaults[$var . '_custom'] = 0;
           break;
         case 'block_2':
           $defaults[$var] = 'biblio';
+          $defaults[$var . '_custom'] = 0;
           break;
         case 'block_3':
           $defaults[$var] = 'spm';
+          $defaults[$var . '_custom'] = 0;
           break;
       }
     }
   }
+  // $name returns front_page_block_3_node_type
+  // $defaults['front_page_block_3_node_type'] = 'spm' 
+  // $defaults['front_page_block_3_node_type_custom'] = 0 
   if(!isset($name)){return $defaults;}
   if(isset($defaults[$name])){return $defaults[$name];}
 }
@@ -776,6 +783,5 @@ function scratchpads_front_context_load_alter(&$context){
         );
       }
     }
-    //  cache_clear_all('context', 'cache');    
   }
 }
