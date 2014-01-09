@@ -310,7 +310,7 @@ function scratchpads_statistics_stats_page(){
         $user_counts[date('Y', $created) . "/" . date('n', $created)] += 1;
       }
     }
-    $site_counts_table = array(
+    $user_counts_table = array(
       array(
         t('Year/Month'),
         t('Users')
