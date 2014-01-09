@@ -731,7 +731,14 @@ function scratchpads_front_blocks_as_options(){
     if($blockTitle){
       $options["{$block->module}:{$block->delta}"] = "{$blockTitle}";
     }else{
-      $options["{$block->module}:{$block->delta}"] = "{$block->module}:{$block->delta}";
+      $blockInfo = db_query("SELECT info FROM {block_custom} WHERE bid=:bid", array(
+        ":bid" => $block->delta
+      ))->fetchField();
+      if($blockInfo){
+        $options["{$block->module}:{$block->delta}"] = "{$block->module}:{$block->delta}:{$blockInfo}";
+      }else{
+        $options["{$block->module}:{$block->delta}"] = "{$block->module}:{$block->delta}";
+      }
     }
   }
   $options = array_merge(array(
