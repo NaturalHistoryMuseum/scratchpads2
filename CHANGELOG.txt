@@ -1,3 +1,7 @@
+2.3.2.2 (2014-01-09)
+
+- Prevent the user being fooled into thinking a block is going to appear (#3773)
+
 2.3.2.1 (2014-01-08)
 
 - Enable CAPTCHA on Webform forms (#3749)
