@@ -708,13 +708,14 @@ function scratchpads_front_image_default_styles(){
 /* adding custom blocks */
 function scratchpads_front_blocks_as_options(){
   $query = db_select('block', 'b');
-  $result = $query->fields('b')->orderBy('b.title', 'ASC')->orderBy('b.module', 'ASC')->condition(db_or()->condition('b.module', 'views', '=')->condition('b.module', 'block', '='))->condition('b.theme', 'scratchpads_admin', '!=')->condition('b.delta', array(
+  $result = $query->fields('b')->orderBy('b.title', 'ASC')->orderBy('b.module', 'ASC')->condition(db_or()->condition('b.module', 'views', '=')->condition('b.module', 'block', '='))->condition('b.delta', 'species_%', 'NOT LIKE')->condition('b.theme', 'scratchpads_admin', '!=')->condition('b.delta', array(
     'front_page_blocks-block_1',
     'front_page_blocks-block_2',
     'front_page_blocks-block_3',
     'front_page_slideshow-block_1',
     'front_page_content-block'
   ), 'NOT IN')->addTag('block_load')->addTag('translatable')->execute();
+  //dpq($query); // Display the query. 
   $block_info = $result->fetchAllAssoc('bid');
   $options = array();
   foreach($block_info as $block){
