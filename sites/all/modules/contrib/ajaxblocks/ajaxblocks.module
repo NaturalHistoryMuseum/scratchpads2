@@ -250,6 +250,7 @@ function ajaxblocks_ajax_handler() {
       // Don't return blocks which are not enabled for the current user.
       // TODO Check permissions fully.
       if ((count($block_settings['role_permission']) > 0) && (count(array_intersect($current_user_rids, $block_settings['role_permission'])) == 0)) {
+        $content[$block_id] = array('content' => '');
         continue;
       }
       $delay = intval($block_settings['delay']);
