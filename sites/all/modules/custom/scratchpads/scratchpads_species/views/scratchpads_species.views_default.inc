@@ -325,6 +325,60 @@ function scratchpads_species_views_default_views(){
     'block' => 'block'
   );
   $handler->display->display_options['attachment_position'] = 'after';
+  /* Display: Attachment: Type specimens */
+  $handler = $view->new_display('attachment', 'Attachment: Type specimens', 'attachment_3');
+  $handler->display->display_options['defaults']['title'] = FALSE;
+  $handler->display->display_options['title'] = 'Type specimens';
+  $handler->display->display_options['pager']['type'] = 'none';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['defaults']['style_plugin'] = FALSE;
+  $handler->display->display_options['style_plugin'] = 'list';
+  $handler->display->display_options['defaults']['style_options'] = FALSE;
+  $handler->display->display_options['defaults']['row_plugin'] = FALSE;
+  $handler->display->display_options['row_plugin'] = 'fields';
+  $handler->display->display_options['row_options']['inline'] = array(
+    'field_type_status' => 'field_type_status',
+    'title' => 'title'
+  );
+  $handler->display->display_options['defaults']['row_options'] = FALSE;
+  $handler->display->display_options['defaults']['relationships'] = FALSE;
+  /* Relationship: Taxonomy term: Content using Taxonomic name */
+  $handler->display->display_options['relationships']['reverse_field_taxonomic_name_node']['id'] = 'reverse_field_taxonomic_name_node';
+  $handler->display->display_options['relationships']['reverse_field_taxonomic_name_node']['table'] = 'taxonomy_term_data';
+  $handler->display->display_options['relationships']['reverse_field_taxonomic_name_node']['field'] = 'reverse_field_taxonomic_name_node';
+  $handler->display->display_options['defaults']['fields'] = FALSE;
+  /* Field: Content: Type status */
+  $handler->display->display_options['fields']['field_type_status']['id'] = 'field_type_status';
+  $handler->display->display_options['fields']['field_type_status']['table'] = 'field_data_field_type_status';
+  $handler->display->display_options['fields']['field_type_status']['field'] = 'field_type_status';
+  $handler->display->display_options['fields']['field_type_status']['relationship'] = 'reverse_field_taxonomic_name_node';
+  $handler->display->display_options['fields']['field_type_status']['label'] = '';
+  $handler->display->display_options['fields']['field_type_status']['alter']['alter_text'] = TRUE;
+  $handler->display->display_options['fields']['field_type_status']['alter']['text'] = '<strong>[field_type_status-value]:</strong>';
+  $handler->display->display_options['fields']['field_type_status']['element_label_colon'] = FALSE;
+  /* Field: Content: Title */
+  $handler->display->display_options['fields']['title']['id'] = 'title';
+  $handler->display->display_options['fields']['title']['table'] = 'node';
+  $handler->display->display_options['fields']['title']['field'] = 'title';
+  $handler->display->display_options['fields']['title']['relationship'] = 'reverse_field_taxonomic_name_node';
+  $handler->display->display_options['fields']['title']['label'] = '';
+  $handler->display->display_options['fields']['title']['element_label_colon'] = FALSE;
+  $handler->display->display_options['defaults']['arguments'] = FALSE;
+  $handler->display->display_options['defaults']['filter_groups'] = FALSE;
+  $handler->display->display_options['defaults']['filters'] = FALSE;
+  /* Filter criterion: Content: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['relationship'] = 'reverse_field_taxonomic_name_node';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'specimen_observation' => 'specimen_observation'
+  );
+  $handler->display->display_options['displays'] = array(
+    'default' => 'default',
+    'block' => 'block'
+  );
+  $handler->display->display_options['attachment_position'] = 'after';
   $views[$view->name] = $view;
   $view = new view();
   $view->name = 'species_slideshow';
