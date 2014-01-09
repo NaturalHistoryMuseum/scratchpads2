@@ -512,10 +512,20 @@ function scratchpads_front_preprocess_block(&$vars){
   $block = $vars['block'];
   if(isset($block->context) && $block->context == 'scratchpads_front_page'){
     /*
-     * It's a custom view so add the required classes
+     * It's a custom block so add the required classes
     */
     if(substr($block->bid, 0, -1) != 'views-front_page_blocks-block_'){
       $vars['classes_array'][] = 'grid-4';
+      $vars['classes_array'][] = 'front-page-block-custom';
+      $vars['classes_array'][] = 'view-front-page-blocks';
+      // Classes describing the position of the block within the region.
+      if($vars['block_id'] == 2){
+        $vars['classes_array'][] = 'alpha';
+        $vars['classes_array'][] = 'block-front-page-blocks-block-1';
+      }else{
+        $vars['classes_array'][] = 'omega';
+        $vars['classes_array'][] = 'block-front-page-blocks-block-' . ($vars['block_id'] - 1);
+      }
     }
     // Change the contextual links
     $vars['title_suffix']['contextual_links']['#contextual_links']['block'] = array(
