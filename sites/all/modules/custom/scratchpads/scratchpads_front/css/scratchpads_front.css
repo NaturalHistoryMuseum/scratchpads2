@@ -163,19 +163,14 @@ body #region-content .caption span {
   margin-left: 30px;
 }
 
-.view-front-page-block-custom {
-  margin-left: 10px;
-}
-
-.view-front-page-block-custom.fp-custom-grid {
+/* media grid on front page small block */
+.fp-custom-grid {
   margin-left: 0px;
 }
-
-.view-front-page-block-custom.fp-custom-grid table {
+.fp-custom-grid table {
   border: none;
 }
 
-.view-front-page-blocks .view-front-page-block-custom li {
-  margin: 1px 0px 5px 5px !important;
+.front-page-block-custom li {
   list-style-position: inside;
 }
