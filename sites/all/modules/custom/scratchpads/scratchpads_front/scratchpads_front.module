@@ -64,6 +64,12 @@ function scratchpads_front_menu(){
  * Implements hook_block_view_alter
  */
 function scratchpads_front_block_view_alter(&$data, $block){
+  // if the block does not have a title set it to the required info field
+  if(isset($block->context) && substr($block->bid, 0, -1) != 'views-front_page_blocks-block_'){
+    if(!isset($data['subject'])){
+      $data['subject'] = $block->info;
+    }
+  }
   if(isset($block->context) && substr($block->bid, 0, -1) == 'views-front_page_blocks-block_' && substr($data['subject'], -3) == 'rys'){
     $data['subject'] = substr($data['subject'], 0, -2) . 'ies';
   }
@@ -434,6 +440,8 @@ function scratchpads_front_page_edit_submit($form, &$form_state){
   $form_state['redirect'] = '<front>';
   // Clear the views cache, as the slideshow view is dynamic
   views_invalidate_cache();
+  // Clear the context cache
+  context_invalidate_cache();
 }
 
 /*********************************************************************************************
@@ -761,5 +769,6 @@ function scratchpads_front_context_load_alter(&$context){
         );
       }
     }
+    //  cache_clear_all('context', 'cache');    
   }
 }
