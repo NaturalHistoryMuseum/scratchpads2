@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ */
+function scratchpads_backup_menu(){
+  return array(
+    'admin/config/system/backup' => array(
+      'title' => 'Backup Scratchpad',
+      'description' => 'Request a backup of your Scratchpad to be created, or download a previously created one.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_backup_request_form'
+      ),
+      'access arguments' => array(
+        'administer site configuration'
+      ),
+      'file' => 'scratchpads_backup.admin.inc',
+      'type' => MENU_NORMAL_ITEM
+    )
+  );
+}
