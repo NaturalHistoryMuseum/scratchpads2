@@ -21,37 +21,56 @@ define('SCRATCHPADS_BACKUP_REQUEST_FILE', 'public://scratchpads_backup_requested
  * Form for requesting/downloading a site backup.
  */
 function scratchpads_backup_request_form($form, $form_state){
-  drupal_add_http_header('Refresh', '180');
-  $backup_running = file_exists(SCRATCHPADS_BACKUP_REQUEST_FILE);
-  return array(
-    'previous_backups' => array(
-      '#type' => 'fieldset',
-      '#title' => t('Previous backups'),
-      '#collapsed' => TRUE,
-      '#collapsible' => FALSE,
-      'list' => array(
-        '#theme' => 'item_list',
-        '#items' => _scratchpads_backup_get_previous_backups()
-      ),
-      'note' => array(
-        '#markup' => '<p>' . t('Note, backups older than one week will be automatically deleted.') . '</p>'
+  // We don't do backups if the site is larger than 20GB.  Instead, we give a 
+  // warning and ask them to email the Scratchpads team instead.
+  $query = db_select('file_managed');
+  $query->addExpression('SUM(filesize)', 'sum_filesize');
+  $size = $query->condition('uri', 'public://%', 'LIKE')->execute()->fetchField();
+  if($size && $size > 20000000000){
+    return array(
+      'previous_backups' => array(
+        '#type' => 'fieldset',
+        '#title' => t('Site too big'),
+        '#collapsed' => TRUE,
+        '#collapsible' => FALSE,
+        'note' => array(
+          '#markup' => '<p>' . t('Your site is too large to request a backup, please raise an issue on our issues tracker.') . '</p>'
+        )
       )
-    ),
-    'request_backup' => array(
-      '#type' => 'fieldset',
-      '#title' => t('Request backup'),
-      '#collapsed' => TRUE,
-      '#collapsible' => FALSE,
-      'generate_new_backup' => array(
-        '#type' => 'submit',
-        '#value' => t('Generate new backup'),
-        '#disabled' => $backup_running
+    );
+  }else{
+    drupal_add_http_header('Refresh', '180');
+    $backup_running = file_exists(SCRATCHPADS_BACKUP_REQUEST_FILE);
+    return array(
+      'previous_backups' => array(
+        '#type' => 'fieldset',
+        '#title' => t('Previous backups'),
+        '#collapsed' => TRUE,
+        '#collapsible' => FALSE,
+        'list' => array(
+          '#theme' => 'item_list',
+          '#items' => _scratchpads_backup_get_previous_backups()
+        ),
+        'note' => array(
+          '#markup' => '<p>' . t('Note, backups older than one week will be automatically deleted.') . '</p>'
+        )
       ),
-      'backup_running' => array(
-        '#markup' => $backup_running ? '<div class="messages status" style="margin-top:10px">' . t('A backup has already been request, please wait for that to complete before requesting another') . '</div>' : ''
+      'request_backup' => array(
+        '#type' => 'fieldset',
+        '#title' => t('Request backup'),
+        '#collapsed' => TRUE,
+        '#collapsible' => FALSE,
+        'generate_new_backup' => array(
+          '#type' => 'submit',
+          '#value' => t('Generate new backup'),
+          '#disabled' => $backup_running
+        ),
+        'backup_running' => array(
+          '#markup' => $backup_running ? '<div class="messages status" style="margin-top:10px">' . t('A backup has already been request, please wait for that to complete before requesting another') . '</div>' : ''
+        )
       )
-    )
-  );
+    );
+  }
 }
 
 /**
