@@ -136,8 +136,6 @@ function scratchpads_front_views_api(){
  * Pass the view front page settings as arguments
  */
 function scratchpads_front_views_pre_view(&$view, &$display_id, &$args){
-  
-  
   switch($view->name){
     case 'front_page_blocks':
       $var = 'front_page_' . $display_id . '_node_type';
@@ -723,29 +721,62 @@ function scratchpads_front_image_default_styles(){
 }
 /* adding custom blocks */
 function scratchpads_front_blocks_as_options(){
-  $query = db_select('block', 'b');
-  $result = $query->fields('b')->orderBy('b.title', 'ASC')->orderBy('b.module', 'ASC')->condition(db_or()->condition('b.module', 'views', '=')->condition('b.module', 'block', '='))->condition('b.delta', 'species_%', 'NOT LIKE')->condition('b.theme', 'scratchpads_admin', '!=')->condition('b.delta', array(
+  $views_ui_enabled = module_exists('views_ui');
+  /* don't show views blocks unless the views_ui has been turned on via the tools menu*/
+  if($views_ui_enabled){
+    $module_conditions = array(
+      'views',
+      'block'
+    );
+  }else{
+    $module_conditions = array(
+      'block'
+    );
+  }
+  /* don't show any blocks starting with these strings */
+  $ignore_delta_start_strings = array(
+    'species_'
+  );
+  /* don't show any blocks in this array */
+  $ignore_deltas = array(
     'front_page_blocks-block_1',
     'front_page_blocks-block_2',
     'front_page_blocks-block_3',
     'front_page_slideshow-block_1',
     'front_page_content-block'
-  ), 'NOT IN')->addTag('block_load')->addTag('translatable')->execute();
+  );
+  $query = db_select('block', 'b')->fields('b')->orderBy('b.title', 'ASC')->orderBy('b.module', 'ASC')->condition('b.module', $module_conditions, 'IN')->condition('b.theme', 'scratchpads_admin', '!=')->condition('b.delta', $ignore_deltas, 'NOT IN');
+  /* add query condition(s) for each $ignore_delta_start_strings */
+  foreach($ignore_delta_start_strings as $ignore_delta_start_string){
+    $query->condition('b.delta', db_like($ignore_delta_start_string) . '%', 'NOT LIKE');
+  }
+  $result = $query->execute();
   //dpq($query); // Display the query. 
   $block_info = $result->fetchAllAssoc('bid');
   $options = array();
   foreach($block_info as $block){
-    $blockTitle = strip_tags($block->title);
-    if($blockTitle){
+    if($block->title){
+      $blockTitle = strip_tags($block->title);
       $options["{$block->module}:{$block->delta}"] = "{$blockTitle}";
     }else{
-      $blockInfo = db_query("SELECT info FROM {block_custom} WHERE bid=:bid", array(
-        ":bid" => $block->delta
-      ))->fetchField();
-      if($blockInfo){
-        $options["{$block->module}:{$block->delta}"] = "{$block->module}:{$block->delta}:{$blockInfo}";
+      /* blocks in views have ugly hash names. Get the views title */
+      if($block->module == 'views'){
+        $views_block = views_block_view($block->delta);
+        $blockTitle = strip_tags($views_block['subject']);
+        if($blockTitle){
+          $options["{$block->module}:{$block->delta}"] = "{$blockTitle}";
+        }else{
+          $options["{$block->module}:{$block->delta}"] = "{$block->module}:{$block->delta}";
+        }
       }else{
-        $options["{$block->module}:{$block->delta}"] = "{$block->module}:{$block->delta}";
+        $blockInfo = db_query("SELECT info FROM {block_custom} WHERE bid=:bid", array(
+          ":bid" => $block->delta
+        ))->fetchField();
+        if($blockInfo){
+          $options["{$block->module}:{$block->delta}"] = "{$block->module}:{$block->delta}:{$blockInfo}";
+        }else{
+          $options["{$block->module}:{$block->delta}"] = "{$block->module}:{$block->delta}";
+        }
       }
     }
   }
