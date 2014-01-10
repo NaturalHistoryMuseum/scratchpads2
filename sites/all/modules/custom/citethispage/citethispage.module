@@ -109,7 +109,7 @@ function citethispage_page_alter(&$page){
   foreach(element_children($page) as $region){
     if(is_array($page[$region]) && isset($page[$region]['citethispage_citethispage_block'])){
       $results = _citethispage_parse_path(current_path(), $page);
-      $_SESSION['citethispage'][current_path()] = $results;
+      citethispage_store_parse_result(current_path(), $results);
       if($results === FALSE && !variable_get('citethispage_showall', 0)){
         unset($page[$region]['citethispage_citethispage_block']);
       }else{
@@ -248,11 +248,7 @@ function citethispage_backend_selection_form_validate($form, &$form_state){
  */
 function citethispage_backend_selection_form_submit($form, &$form_state){
   $path = $form_state['values']['path'];
-  if(isset($_SESSION['citethispage'][$path])){
-    $results = $_SESSION['citethispage'][$path];
-  }else{
-    $results = array();
-  }
+  $results = citethispage_get_parse_result($path);
   $context = array(
     'results' => $results,
     'form_state' => $form_state
@@ -270,6 +266,57 @@ function citethispage_backend_selection_form_submit($form, &$form_state){
         )
       )
     );
+  }
+}
+
+/**
+ * citethispage_store_parse_result
+ *
+ * Store the result of the parsing of the given path, for the give user
+ * (or the current one if none is given).
+ *
+ * This will overwrite any previous value.
+ */
+function citethispage_store_parse_result($path, $results, $uid = NULL){
+  global $user;
+  if($uid === NULL){
+    $uid = $user->uid;
+  }
+  $data = array(
+    'path' => $path,
+    'uid' => $uid,
+    'results' => serialize($results)
+  );
+  $q = db_select('citethispage', 'c');
+  $q->addField('c', 'sid', 's');
+  $sid = $q->condition('path', $path)->condition('uid', $uid)->execute()->fetchField();
+  if ($sid){
+    db_update('citethispage')->condition('sid', $sid)->fields($data)->execute();
+  } else {
+    db_insert('citethispage')->fields(array_keys($data), array_values($data))->execute();
+  }
+}
+
+/**
+ * citethispage_get_parse_result
+ *
+ * Get the result of the last parse for the given path and user (or current
+ * user if none is given).
+ *
+ * Returns an empty array if no parse was run for that path/user.
+ */
+function citethispage_get_parse_result($path, $uid = NULL){
+  global $user;
+  if($uid === NULL){
+    $uid = $user->uid;
+  }
+  $q = db_select('citethispage', 'c');
+  $q->addField('c', 'results', 'r');
+  $r = $q->condition('c.uid', $uid)->condition('c.path', $path)->execute()->fetchField();
+  if(!$r){
+    return array();
+  }else{
+    return unserialize($r);
   }
 }
 
