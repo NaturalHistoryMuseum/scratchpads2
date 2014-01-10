@@ -1,0 +1,50 @@
+<?php
+
+/**
+ * hook_schema
+ */
+function citethispage_schema(){
+  return array(
+    'citethispage' => array(
+      'description' => 'Store parse results from citethispage',
+      'fields' => array(
+        'sid' => array(
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'uid' => array(
+          'description' => 'The user for whom the parse was run',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'path' => array(
+          'description' => 'The path for which the parse was run',
+          'type' => 'text',
+          'size' => 'normal',
+          'not null' => TRUE
+        ),
+        'results' => array(
+          'description' => 'The serialized parse results',
+          'type' => 'text',
+          'size' => 'normal',
+          'not null' => TRUE
+        )
+      ),
+      'primary key' => array(
+        'sid'
+      )
+    )
+  );
+}
+
+/**
+ * Install the table to store parse results
+ */
+function citethispage_update_7001(){
+  if(!db_table_exists('citethispage')){
+    drupal_install_schema('citethispage');
+  }
+}
