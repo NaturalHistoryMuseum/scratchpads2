@@ -25,7 +25,7 @@ function scratchpads_backup_request_form($form, $form_state){
   // warning and ask them to email the Scratchpads team instead.
   $query = db_select('file_managed');
   $query->addExpression('SUM(filesize)', 'sum_filesize');
-  $size = $query->condition('uri', 'public://%', 'LIKE')->execute()->fetchField();
+  $size = $query->execute()->fetchField();
   if($size && $size > 20000000000){
     return array(
       'previous_backups' => array(
