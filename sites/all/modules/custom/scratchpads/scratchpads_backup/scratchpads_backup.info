@@ -1,0 +1,4 @@
+core = "7.x"
+name = "Scratchpads Backup"
+description = "Allows a user to request a backup of their site from our Aegir instance.  Note, this module will only work for NHM Scratchpads."
+package = "Administration"
