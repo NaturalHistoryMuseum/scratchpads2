@@ -41,6 +41,7 @@ function scratchpads_backup_request_form($form, $form_state){
   }else{
     drupal_add_http_header('Refresh', '180');
     $backup_running = file_exists(SCRATCHPADS_BACKUP_REQUEST_FILE);
+    $previous_backups = _scratchpads_backup_get_previous_backups();
     return array(
       'previous_backups' => array(
         '#type' => 'fieldset',
@@ -49,7 +50,7 @@ function scratchpads_backup_request_form($form, $form_state){
         '#collapsible' => FALSE,
         'list' => array(
           '#theme' => 'item_list',
-          '#items' => _scratchpads_backup_get_previous_backups()
+          '#items' => $previous_backups
         ),
         'note' => array(
           '#markup' => '<p>' . t('Note, backups older than one week will be automatically deleted.') . '</p>'
@@ -63,10 +64,13 @@ function scratchpads_backup_request_form($form, $form_state){
         'generate_new_backup' => array(
           '#type' => 'submit',
           '#value' => t('Generate new backup'),
-          '#disabled' => $backup_running
+          '#disabled' => $backup_running || count($previous_backups) >= 5
         ),
         'backup_running' => array(
           '#markup' => $backup_running ? '<div class="messages status" style="margin-top:10px">' . t('A backup has already been request, please wait for that to complete before requesting another') . '</div>' : ''
+        ),
+        'max_backups' => array(
+          '#markup' => count($previous_backups) >= 5 ? '<div class="messages status" style="margin-top:10px">' . t('You may only have upto five backups at any one time.  Please wait for your oldest backup to be deleted.') . '</div>' : ''
         )
       )
     );
