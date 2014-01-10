@@ -305,12 +305,83 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
  * 
  ********************************************************************************************/
 /**
- * Implementation of hook_form_entity_admin_entity_form_alter()
+ * Implementation of hook_form_entity_admin_entity_form_alter
+ *
+ * Dispatch to character or project forms.
+ */
+function character_editor_form_entity_admin_entity_form_alter(&$form, &$form_state, $form_id){
+  if ($form['#entity_type'] == 'character_editor_project'){
+    character_editor_form_character_editor_project_alter($form, $form_state, $form_id);
+  } else if ($form['#entity_type'] == 'character_editor_character'){
+    character_editor_form_character_editor_character_alter($form, $form_state, $form_id);
+  }
+}
+
+/**
+ * Implementation of hook_form_entity_admin_entity_form_alter for project form
+ *
+ * Apply modifications to the character project form
+ */
+function character_editor_form_character_editor_project_alter(&$form, &$form_state, $form_id){
+  $fields_to_disable = array(
+    'computed',
+    'inherited'
+  );
+  // Hide the flag identifier field ; we set that automatically. Add classes for the
+  // javascript to do auto-completion and remove the 'Remove' buttons.
+  $existing_ids = array();
+  foreach (element_children($form['field_char_proj_flags']) as $lang){
+    foreach (element_children($form['field_char_proj_flags'][$lang]) as $delta){
+      $disable = array();
+      $elem =& $form['field_char_proj_flags'][$lang][$delta]['field_char_proj_flags_id'];
+      foreach (element_children($elem) as $field_lang){
+        $value = $elem[$field_lang][0]['value']['#default_value'];
+        $is_new = !empty($elem[$field_lang][0]['#entity']) && property_exists($elem[$field_lang][0]['#entity'], 'is_new') && $elem[$field_lang][0]['#entity']->is_new;
+        if (!empty($value)){
+          $existing_ids[] = $value;
+        }
+        if (in_array($value, $fields_to_disable)){
+          $elem[$field_lang][0]['value']['#type'] = 'value';
+          $elem[$field_lang][0]['value']['#value'] = $value;
+          $disable[] = $field_lang;
+        } else {
+          $form['field_char_proj_flags'][$lang][$delta]['field_char_proj_flags_flag']['#attributes']['class'][] = 'character-editor-flag-flag';
+          $form['field_char_proj_flags'][$lang][$delta]['field_char_proj_flags_abbr']['#attributes']['class'][] = 'character-editor-flag-abbr';
+          if (empty($value) || $is_new){
+            $elem[$field_lang][0]['value']['#type'] = 'hidden';
+            $elem['#attributes']['class'][] = 'character-editor-flag-id';
+          } else {
+            $elem[$field_lang][0]['value']['#type'] = 'value';
+            $elem[$field_lang][0]['value']['#value'] = $value;
+          }
+        }
+      }
+      // Disable editing of 'computed' and 'inherited', and instruct js to remove the 'Remove' button
+      foreach ($disable as $field_lang){
+        $elem =& $form['field_char_proj_flags'][$lang][$delta]['field_char_proj_flags_flag'];
+        $elem[$field_lang][0]['value']['#disabled'] = TRUE;
+        $elem[$field_lang][0]['value']['#description'] = t('This is a system flag and cannot be edited.');
+        $elem['#attributes']['class'][] = 'character-editor-flag-flag-fixed';
+      }
+    }
+  }
+  $form['#attached']['js'][] = drupal_get_path('module', 'character_editor') . '/js/character-editor-settings-form.js';
+  $form['#attached']['js'][] = array(
+    'type' => 'setting',
+    'data' => array(
+      'characterEditorSettingsForm' => array(
+        'existingIds' => $existing_ids
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_form_entity_admin_entity_form_alter for character form
  *
  * Apply modifications to the character add/edit form
  */
-function character_editor_form_entity_admin_entity_form_alter(&$form, &$form_state, $form_id){
-  if($form['#entity_type'] != 'character_editor_character'){return;}
+function character_editor_form_character_editor_character_alter(&$form, &$form_state, $form_id){
   // Is this an add link from slickgrid
   $project_w = FALSE;
   if(!isset($form_state['character_project_id'])){
@@ -608,6 +679,7 @@ function character_editor_project_view($entity){
         'js' => array(
           $path . '/js/character-editor-info-popups.js',
           $path . '/js/character-editor-character-tree.js',
+          $path . '/js/character-editor-context-menu.js',
           $path . '/js/character-editor.js'
         ),
         'css' => array(

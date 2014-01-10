@@ -896,6 +896,96 @@ other|Other',
       )
     )
   );
+  // Exported field: 'character_editor_project-default_character_project-field_char_proj_flags'
+  $fields['character_editor_project-default_character_project-field_char_proj_flags'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '-1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_proj_flags',
+      'foreign keys' => array(),
+      'indexes' => array(),
+      'module' => 'field_collection',
+      'settings' => array(
+        'hide_blank_items' => 0,
+        'path' => ''
+      ),
+      'translatable' => '0',
+      'type' => 'field_collection'
+    ),
+    'field_instance' => array(
+      'bundle' => 'default_character_project',
+      'default_value' => array(),
+      'deleted' => '0',
+      'description' => 'List of flags (and abbreviation) that can be used to mark values, such as "rare" or "guessed". "computed" and "inherited" are reserved for computed and inherited values, but you can change the abbreviation here.',
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => '1002'
+        )
+      ),
+      'entity_type' => 'character_editor_project',
+      'field_name' => 'field_char_proj_flags',
+      'label' => 'Flags',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 0,
+        'module' => 'field_collection_table',
+        'settings' => array(),
+        'type' => 'field_collection_table',
+        'weight' => '2'
+      )
+    )
+  );
+  $flag_defaults = array(
+    'c' => 'computed',
+    'i' => 'inherited',
+    'a' => 'approximate',
+    'g' => 'guessed',
+    'r' => 'rare'
+  );
+  foreach($flags_defaults as $flag_abbr => $flag){
+    $fields['character_editor_project-default_character_project-field_char_proj_flags']['field_instance']['default_value'][] = array(
+      'field_char_proj_flags_abbr' => array(
+        'und' => array(
+          0 => array(
+            'value' => $flag_abbr
+          )
+        )
+      ),
+      'field_char_proj_flags_flag' => array(
+        'und' => array(
+          0 => array(
+            'value' => $flag
+          )
+        )
+      ),
+      'field_char_proj_flags_id' => array(
+        'und' => array(
+          0 => array(
+            'value' => $flag
+          )
+        )
+      ),
+      'remove_button' => 'Remove',
+      'entity' => entity_import('field_collection_item', '{
+            "item_id" : null,
+            "revision_id" : null,
+            "field_name" : "field_char_proj_flags",
+            "default_revision" : true,
+            "archived" : false,
+            "field_char_proj_flags_abbr" : { "und" : [ { "value" : "' . $flag_abbr . '" } ] },
+            "field_char_proj_flags_flag" : { "und" : [ { "value" : "' . $flag . '" } ] },
+            "field_char_proj_flags_id" : { "und" : [ { "value" : "' . $flag . '" } ] }
+          }')
+    );
+  }
   // Exported field: 'character_editor_project-default_character_project-field_taxonomic_name'
   $fields['character_editor_project-default_character_project-field_taxonomic_name'] = array(
     'field_config' => field_info_field('field_taxonomic_name'),
@@ -1372,6 +1462,218 @@ other|Other',
       )
     )
   );
+  // Exported field: 'field_collection_item-field_char_proj_flags-field_char_proj_flags_abbr'
+  $fields['field_collection_item-field_char_proj_flags-field_char_proj_flags_abbr'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_proj_flags_abbr',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '5'
+      ),
+      'translatable' => '0',
+      'type' => 'text'
+    ),
+    'field_instance' => array(
+      'bundle' => 'field_char_proj_flags',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => '1'
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'field_collection_item',
+      'field_name' => 'field_char_proj_flags_abbr',
+      'label' => 'Abbreviation',
+      'required' => 0,
+      'settings' => array(
+        'linkit' => array(
+          'enable' => 0,
+          'insert_plugin' => ''
+        ),
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'size' => '5'
+        ),
+        'type' => 'text_textfield',
+        'weight' => '1'
+      )
+    )
+  );
+  // Exported field: 'field_collection_item-field_char_proj_flags-field_char_proj_flags_flag'
+  $fields['field_collection_item-field_char_proj_flags-field_char_proj_flags_flag'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_proj_flags_flag',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255'
+      ),
+      'translatable' => '0',
+      'type' => 'text'
+    ),
+    'field_instance' => array(
+      'bundle' => 'field_char_proj_flags',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => '2'
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'field_collection_item',
+      'field_name' => 'field_char_proj_flags_flag',
+      'label' => 'Flag',
+      'required' => 0,
+      'settings' => array(
+        'linkit' => array(
+          'enable' => 0,
+          'insert_plugin' => ''
+        ),
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'size' => '20'
+        ),
+        'type' => 'text_textfield',
+        'weight' => '0'
+      )
+    )
+  );
+  // Exported field: 'field_collection_item-field_char_proj_flags-field_char_proj_flags_id'
+  $fields['field_collection_item-field_char_proj_flags-field_char_proj_flags_id'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_proj_flags_id',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255'
+      ),
+      'translatable' => '0',
+      'type' => 'text'
+    ),
+    'field_instance' => array(
+      'bundle' => 'field_char_proj_flags',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => '3'
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'field_collection_item',
+      'field_name' => 'field_char_proj_flags_id',
+      'label' => 'Id',
+      'required' => 0,
+      'settings' => array(
+        'linkit' => array(
+          'enable' => 0,
+          'insert_plugin' => ''
+        ),
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'size' => '20'
+        ),
+        'type' => 'text_textfield',
+        'weight' => '2'
+      )
+    )
+  );
   // Translatables
   // Included for use with string extractors like potx.
   t('Data');
@@ -1384,5 +1686,10 @@ other|Other',
   t('States');
   t('Taxa');
   t('Unit');
+  t('Abbreviation');
+  t('Flag');
+  t('Flags');
+  t('Id');
+  t('List of flags (and abbreviation) that can be used to mark values, such as "rare" or "guessed". "computed" and "inherited" are reserved for computed and inherited values, but you can change the abbreviation here.');
   return $fields;
 }

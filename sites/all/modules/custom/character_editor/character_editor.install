@@ -348,3 +348,51 @@ function character_editor_update_7004(){
     field_create_instance($definitions['character_editor_project-default_character_project-field_char_proj_specimen']['field_instance']);
   }
 }
+
+/**
+ * Add the flags field to character projects
+ */
+function character_editor_update_7005(){
+  // Enable the field collection & field collection table modules
+  if (!module_exists('field_collection')){
+    module_enable(array(
+      'field_collection'
+    ));
+  }
+  if (!module_exists('field_collection_table')){
+    module_enable(array(
+      'field_collection_table'
+    ));
+  }
+  // Create the field collection and it's fields
+  module_load_include('features.field.inc', 'character_editor');
+  $definitions = character_editor_field_default_fields();
+  $create = array(
+    'character_editor_project' => array(
+      'default_character_project' => array(
+        'field_char_proj_flags'
+      )
+    ),
+    'field_collection_item' => array(
+      'field_char_proj_flags' => array(
+        'field_char_proj_flags_flag',
+        'field_char_proj_flags_abbr',
+        'field_char_proj_flags_id'
+      )
+    )
+  );
+  foreach ($create as $entity_type => $bundles){
+    foreach ($bundles as $bundle => $fields){
+      foreach ($fields as $field_name){
+        $info = field_info_field($field_name);
+        if(!$info){
+          field_create_field($definitions["$entity_type-$bundle-$field_name"]['field_config']);
+        }
+        $instance = field_info_instance($entity_type, $field_name, $bundle);
+        if(!$instance){
+          field_create_instance($definitions["$entity_type-$bundle-$field_name"]['field_instance']);
+        }
+      }
+    }
+  }
+}

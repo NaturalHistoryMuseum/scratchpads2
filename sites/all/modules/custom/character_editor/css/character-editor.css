@@ -172,3 +172,19 @@
   font-weight: bold;
   font-size: 1.5em;
 }
+
+/* Character context menu */
+#character-context-menu {
+  border: 1px solid #AAA;
+  background: #EEE;
+}
+
+#character-context-menu .character-context-menu-row{
+  background: #EEE;
+  padding: 2px 4px;
+}
+
+#character-context-menu .character-context-menu-row:hover{
+  background: #DDD;
+  cursor: pointer;
+}

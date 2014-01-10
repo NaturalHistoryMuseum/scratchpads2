@@ -24,6 +24,8 @@
           Drupal.settings.CharacterTreeUI.tree = {};
           // Create the cell hover
           Drupal.characterHoverUI = new Drupal.ColumnHoverUI(slickgrid);
+          // Create the context menu
+          Drupal.characterContextMenu = new Drupal.CharacterContextMenu(slickgrid);
           // Alter Slickgrid ajax call to specifiy which character project this is (slickgrid typically
           // only specifies the view/display)
           $.ajaxSetup({
