@@ -64,7 +64,7 @@ function scratchpads_front_menu(){
  * Implements hook_block_view_alter
  */
 function scratchpads_front_block_view_alter(&$data, $block){
-  // if the block does not have a title set it to the required info field
+  // if the block does not have a title set it to the block info field (which is a required field so should exist)
   if(isset($block->context) && substr($block->bid, 0, -1) != 'views-front_page_blocks-block_'){
     if(!isset($data['subject'])){
       $data['subject'] = $block->info;
@@ -136,6 +136,8 @@ function scratchpads_front_views_api(){
  * Pass the view front page settings as arguments
  */
 function scratchpads_front_views_pre_view(&$view, &$display_id, &$args){
+  
+  
   switch($view->name){
     case 'front_page_blocks':
       $var = 'front_page_' . $display_id . '_node_type';
@@ -441,7 +443,7 @@ function scratchpads_front_page_edit_submit($form, &$form_state){
   // Clear the views cache, as the slideshow view is dynamic
   views_invalidate_cache();
   // Clear the context cache
-  context_invalidate_cache();
+  context_flush_caches();
 }
 
 /*********************************************************************************************
@@ -458,7 +460,6 @@ function scratchpads_front_variable_get($name){
   $default = scratchpads_front_variable_default($name);
   return variable_get($name, $default);
 }
-
 
 /**
  * 
