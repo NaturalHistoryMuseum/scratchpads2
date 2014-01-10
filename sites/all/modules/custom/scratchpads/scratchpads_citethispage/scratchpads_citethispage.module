@@ -446,7 +446,7 @@ function scratchpads_citethispage_preview_ajax($form, &$form_state){
   // Generate a preview
   $path = $form_state['values']['path'];
   $context = array(
-    'results' => $_SESSION['citethispage'][$path],
+    'results' => citethispage_get_parse_result($path),
     'form_state' => $form_state
   );
   $preview_path = scratchpads_citethispage_archive($path, $context, TRUE);
