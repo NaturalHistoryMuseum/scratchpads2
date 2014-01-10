@@ -67,7 +67,7 @@ function scratchpads_backup_request_form($form, $form_state){
           '#disabled' => $backup_running || count($previous_backups) >= 5
         ),
         'backup_running' => array(
-          '#markup' => $backup_running ? '<div class="messages status" style="margin-top:10px">' . t('A backup has already been request, please wait for that to complete before requesting another') . '</div>' : ''
+          '#markup' => $backup_running ? '<div class="messages status" style="margin-top:10px">' . t('A backup has already been requested, please wait for that to complete before requesting another') . '</div>' : ''
         ),
         'max_backups' => array(
           '#markup' => count($previous_backups) >= 5 ? '<div class="messages status" style="margin-top:10px">' . t('You may only have upto five backups at any one time.  Please wait for your oldest backup to be deleted.') . '</div>' : ''
