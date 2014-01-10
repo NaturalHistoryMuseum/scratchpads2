@@ -1,10 +1,27 @@
 <?php
+/**
+ * The following simple BASH script creates the backups for us, which is run
+ * every minute from cron using the flock (file-lock) command
+ * $ flock -n /tmp/create_scratchpads_backups -c /var/aegir/bin/create_scratchpads_backups
+ */
+// #!/bin/bash
+// # Look for the request files
+// for i in $(ls -1 /var/aegir/platforms/*/sites/*/files/scratchpads_backup_requested 2>/dev/null)
+// do
+// 	# Get the domain name from the path of the file
+// 	DOMAIN=`echo $i|sed "s|/var/aegir/platforms/[^/]*/sites/||;s|/.*||"`
+// 	# Move the file so that we know this backup has been requested.
+// 	# Request the backup
+// 	drush @$DOMAIN provision-backup
+// 	rm $i
+// done
 define('SCRATCHPADS_BACKUP_REQUEST_FILE', 'public://scratchpads_backup_requested');
 
 /**
  * Form for requesting/downloading a site backup.
  */
 function scratchpads_backup_request_form($form, $form_state){
+  drupal_add_http_header('Refresh', '180');
   $backup_running = file_exists(SCRATCHPADS_BACKUP_REQUEST_FILE);
   return array(
     'previous_backups' => array(
@@ -42,7 +59,7 @@ function scratchpads_backup_request_form($form, $form_state){
  */
 function scratchpads_backup_request_form_submit(&$form, &$form_state){
   file_unmanaged_save_data(time(), SCRATCHPADS_BACKUP_REQUEST_FILE, FILE_EXISTS_REPLACE);
-  drupal_set_message('Backup requested');
+  drupal_set_message('Backup requested.  Your backup will be available on this page once it has been created.  Please allow up to three hours for the backup to be created.');
 }
 
 /**
