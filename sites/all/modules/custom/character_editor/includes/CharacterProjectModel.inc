@@ -1,0 +1,132 @@
+<?php
+
+/**
+ * class CharacterProjectModel
+ * 
+ * This class is used to fetch data from a character project
+ */
+class CharacterProjectModel{
+
+  private $w; // The project entity metadata wrapper
+
+  private $tree; // Cached tree of characters
+
+  private $flags; // Cached list of flags
+
+  /**
+   * __construct
+   * 
+   * Create a CharacterProjectModel from an entity metadata wrapper, an
+   * entity type and an entity object or idk, or a string of the
+   * form 'entity type:entity id[:ignored].
+   * 
+   * See character_editor_wrapper for more information.
+   */
+  function __construct($info, $id = NULL, $reset = FALSE){
+    $this->w = character_editor_wrapper($info, $id, $reset);
+  }
+
+  /**
+   * static getProjectOfEntity
+   * 
+   * Given an entity type and entity, return a new character project model
+   * for the project that the given entity belongs to.
+   * 
+   * Returns false if no such project was found.
+   */
+  static function getProjectOfEntity($entity_type, $entity){
+    $entity_w = character_editor_wrapper($entity_type, $entity);
+    $project_w = character_editor_get_character_project($entity_w);
+    if($project_w){
+      return new CharacterProjectModel($project_w);
+    }else{
+      return FALSE;
+    }
+  }
+
+  /**
+   * id
+   * 
+   * Return a string id that represents this character project
+   */
+  public function id(){
+    return $this->w->getBundle() . ':' . $this->w->getIdentifier();
+  }
+
+  /**
+   * entityId
+   * 
+   * Return the entity id of this project model's entity
+   */
+  public function entityId(){
+    return $this->w->getIdentifier();
+  }
+
+  /**
+   * uid
+   * 
+   * Return the user id of the project's author
+   */
+  public function uid(){
+    return $this->w->uid->uid->value();
+  }
+
+  /**
+   * getFlags
+   * 
+   * Return the list of available flags for this project.
+   * Returned is an array of arrays defining 'flag', 'abbr' and 'id'
+   */
+  public function getFlags(){
+    if(empty($this->flags)){
+      $this->flags = array();
+      foreach($this->w->field_char_proj_flags as $f){
+        $this->flags[] = array(
+          'flag' => $f->field_char_proj_flags_flag->value(),
+          'abbr' => $f->field_char_proj_flags_abbr->value(),
+          'id' => $f->field_char_proj_flags_id->value()
+        );
+      }
+    }
+    return $this->flags;
+  }
+
+  /**
+   * getTree
+   * 
+   * Return the tree of characters of this project as a flat
+   * array of CharacterTreeNode objects. The array is indexed
+   * by each node's id and, while flat, is ordered as if
+   * displayed in a hierarchy.
+   * 
+   */
+  public function getTree(){
+    if(empty($this->tree)){
+      $this->tree = array();
+      $tree = character_editor_get_tree($this->w);
+      foreach($tree as $id => $tree_node){
+        $this->tree[$id] = new CharacterTreeNode($id, $tree_node);
+      }
+    }
+    return $this->tree;
+  }
+
+  /**
+   * getGroupSelect
+   * 
+   * Return the list of groups in this project formatted to be used
+   * in a select item
+   */
+  public function getGroupSelect(){
+    $groups = array();
+    $tree = character_editor_get_tree($this->w);
+    foreach($tree as $tree_item){
+      if($tree_item['wrapper']->getBundle() !== 'group'){
+        continue;
+      }
+      $group_id = $tree_item['wrapper']->getIdentifier();
+      $groups[$group_id] = str_repeat('-', $tree_item['depth']) . ' ' . $tree_item['wrapper']->title->value();
+    }
+    return $groups;
+  }
+}

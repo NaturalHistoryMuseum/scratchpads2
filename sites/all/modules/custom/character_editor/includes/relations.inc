@@ -4,6 +4,10 @@
  * This files contains helpers for managing relations
  * across character projects, groups and characters.
  *
+ * The functions here should be considered as low-level
+ * functions, and are often wrapped in higher level models
+ * such as the CharacterProjectModel class
+ *
  * The structure of relations defines a tree of
  * characters with a project at it's root.
  *
@@ -376,7 +380,8 @@ function character_editor_get_character_values(EntityDrupalWrapper $character_w,
  * a character_editor_project or a character_editor_character. It will do this by assuming that character projects
  * always have a field_taxonomic_name, while characters never do.
  *
- * If $reset is TRUE, then this also resets the internal cache for the given entity type before loading.
+ * If $reset is TRUE, then this also resets the internal cache for the given entity type before loading. Note that if
+ * an entity metadatawrapper object is given it will be returned unchanged, regardless of $reset.
  *
  * The function returns FALSE on failure.
  */
@@ -398,6 +403,7 @@ function character_editor_wrapper($info, $id = NULL, $reset = FALSE){
       $entity_id = $id;
     }
   }else if(is_object($info)){
+    if($info instanceof EntityMetadataWrapper){return $info;}
     $entity = $info;
     if(property_exists($entity, 'field_taxonomic_name')){
       $entity_type = 'character_editor_project';
