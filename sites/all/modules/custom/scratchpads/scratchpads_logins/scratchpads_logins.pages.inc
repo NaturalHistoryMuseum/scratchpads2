@@ -4,9 +4,8 @@ function scratchpad_admin_openids(){
   return array(
     'http://vbrant.eu/users/alice-heaton/openid' => 'Alice Heaton (http://vbrant.eu/users/alice-heaton/openid)',
     'http://vbrant.eu/user/57/identity' => 'Ben Scott (http://vbrant.eu/user/57/identity)',
-    'http://vbrant.eu/users/dave-roberts/openid' => 'Dave Roberts (http://vbrant.eu/users/dave-roberts/openid)',
     'http://vbrant.eu/users/dimitris-koureas/openid' => 'Dimitris Koureas (http://vbrant.eu/users/dimitris-koureas/openid)',
-    'https://plus.google.com/u/0/+EdwardBaker' => 'Edward Baker (https://plus.google.com/u/0/+EdwardBaker)',
+    'https://profiles.google.com/106483633665200690531' => 'Edward Baker (https://profiles.google.com/106483633665200690531)',
     'http://vbrant.eu/users/katherine-bouton/openid' => 'Katherine Bouton (http://vbrant.eu/users/katherine-bouton/openid)',
     'http://vbrant.eu/users/laurence-livermore/openid' => 'Laurence Livermore (http://vbrant.eu/users/laurence-livermore/openid)',
     'http://openid.simon.rycroft.name/' => 'Simon Rycroft (http://openid.simon.rycroft.name/)',
