@@ -373,6 +373,10 @@ function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
  * Implements hook_theme_registry_alter()
  */
 function scratchpads_tweaks_theme_registry_alter(&$reg){
+  // Always display the token table as a popup (quicker page loads, and also
+  // potentially save memory).
+  $reg['token_tree']['variables']['dialog'] = TRUE;
+  $reg['token_tree']['variables']['recursion_limit'] = 2;
   $reg['filter_guidelines']['function'] = 'theme_scratchpads_tweaks_filter_guidelines';
 }
 
