@@ -1,3 +1,7 @@
+2.3.2.3 (2014-01-14)
+
+- Updated Ed's OpenID
+
 2.3.2.2 (2014-01-09)
 
 - Prevent the user being fooled into thinking a block is going to appear (#3773)
