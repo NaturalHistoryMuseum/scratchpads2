@@ -369,7 +369,7 @@ class DrupalSolrOfflineSearchPagesWebTestCase extends DrupalSolrOfflineWebTestCa
     $this->assertText(t('Test Search Page'), t('Search Page was succesfully created'));
 
     // Remove the same environment
-    $this->clickLink(t('Delete'));
+    $this->clickLink(t('Delete'), 1);
     $this->assertText(t('search page configuration will be deleted.This action cannot be undone.'), t('Delete confirmation page was succesfully loaded'));
     $this->drupalPost($this->getUrl(), array(), t('Delete'));
     $this->assertResponse(200);

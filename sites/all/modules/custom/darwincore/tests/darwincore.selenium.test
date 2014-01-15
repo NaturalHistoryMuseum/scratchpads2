@@ -1,0 +1,569 @@
+<?php
+/**
+ * @file
+*
+* Test case for Darwincore with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class DarwincoreSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Darwincore (Selenium)',
+      'description' => 'Test the creation, editing and deletion of specimen/observation and location nodes.',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  public function setUp(){
+    $modules[] = 'darwincore';
+    parent::setUp($modules);
+  }
+
+  /**
+   * A wrapper for the following tests
+   * - Create Location
+   * - Create Specimen Observation
+   * - Test that we cannot create another location with the same name
+   * - Test that we cannot create another Specimen Observation with the same name
+   * - Edit Location
+   * - Edit Specimen Observation
+   * - Delete Location
+   * - Delete Specimen Observation
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    // ensure that we are using the scratchpads_admin theme
+    variable_set('admin_theme', 'scratchpads_admin');
+    $vocab_name = $this->randomName();
+    $term_name = $this->randomName();
+    $this->createAnimalVocabulary($vocab_name);
+    $this->addTerms($vocab_name, array(
+      $term_name
+    ));
+    $location_title = $this->verifyCreateLocation();
+    $specimen_observation_title = $this->verifyCreateSpecimenObservation($location_title, $term_name, $vocab_name);
+    $this->verifyUniqueLocation($location_title);
+    $this->verifyEditLocation($location_title);
+    $specimen_observation_title = $this->verifyEditSpecimenObservation($specimen_observation_title);
+    $this->verifyDeleteLocation($location_title);
+    $this->verifyDeleteSpecimenObservation($specimen_observation_title);
+  }
+
+  /**
+   * Test the creation of Location node
+   */
+  function verifyCreateLocation(){
+    $this->drupalGet('node/add/location');
+    $this->assertTrue(true, 'Adding new location');
+    $field_data = array(
+      'title' => $this->randomName(),
+      'field_continent_or_ocean' => 'Europe',
+      'field_country' => 'Spain',
+      'field_island' => $this->randomName(),
+      'field_island_group' => $this->randomName(),
+      'field_state_province' => $this->randomName(),
+      'field_county' => $this->randomName(),
+      'field_locality' => $this->randomName(),
+      'field_coordinate_uncertainty' => rand(1, 100),
+      'field_geodetic_datum' => $this->randomName(),
+      'field_coordinate_system' => $this->randomName(),
+      'field_georeference_protocol' => $this->randomName(),
+      'field_georeference_remarks' => $this->randomName(),
+      'field_max_elevation' => rand(1, 100),
+      'field_min_elevation' => rand(1, 100),
+      'field_min_depth' => rand(1, 100),
+      'field_max_depth' => rand(1, 100)
+    );
+    // Set title
+    $this->driver->waitForElements("name=title");
+    $element = $this->driver->getElement("name=title");
+    $element->clear();
+    $element->sendKeys($field_data['title']);
+    $this->assertTrue(true, 'Location title added');
+    // Click on '+ Point'
+    $this->driver->waitForElements("xpath=//*[text()='+ Point']");
+    $element = $this->driver->getElement("xpath=//*[text()='+ Point']");
+    $element->click();
+    $this->verboseScreenshot();
+    $this->assertTrue(true, 'Point clicked');
+    // Click on the map (We click in the centre of the first image within the map)
+    // Wait for map to load
+    $this->verboseScreenshot();
+    $this->driver->sleep(5);
+    $images = $this->waitLongForElements("css=#field_map img", 60);
+    $this->verboseScreenshot();
+    $images[0]->click();
+    $this->assertTrue(true, 'Map clicked');
+    $this->verboseScreenshot();
+    // Click tab
+    $this->driver->getElement('css=ul.vertical-tabs-list li.last a')->click();
+    $this->assertTrue(true, 'Tab clicked');
+    // select field
+    $element = $this->driver->getElement("name=field_continent_or_ocean[und]");
+    $element->selectLabel($field_data['field_continent_or_ocean']);
+    // select field
+    $element = $this->driver->getElement("name=field_country[und]");
+    $element->selectLabel($field_data['field_country']);
+    $element = $this->driver->getElement("name=field_island[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_island']);
+    $element = $this->driver->getElement("name=field_island_group[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_island_group']);
+    $element = $this->driver->getElement("name=field_state_province[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_state_province']);
+    $element = $this->driver->getElement("name=field_county[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_county']);
+    $element = $this->driver->getElement("name=field_locality[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_locality']);
+    $element = $this->driver->getElement("name=field_coordinate_uncertainty[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_coordinate_uncertainty']);
+    $element = $this->driver->getElement("name=field_geodetic_datum[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_geodetic_datum']);
+    $element = $this->driver->getElement("name=field_coordinate_system[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_coordinate_system']);
+    $element = $this->driver->getElement("name=field_georeference_protocol[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_georeference_protocol']);
+    $element = $this->driver->getElement("name=field_georeference_remarks[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_georeference_remarks']);
+    $element = $this->driver->getElement("name=field_max_elevation[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_max_elevation']);
+    $element = $this->driver->getElement("name=field_min_elevation[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_min_elevation']);
+    $element = $this->driver->getElement("name=field_min_depth[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_min_depth']);
+    $element = $this->driver->getElement("name=field_max_depth[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_max_depth']);
+    // submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->assertText($field_data['title'] . ' has been created', 'Location node successfully created');
+    // Assert that all fields have been saved correctly
+    foreach($field_data as $field => $value){
+      // field map displays a map, title is handled above
+      if(!($field == 'field_map') && !($field == 'title')){
+        $field = str_replace('_', '-', $field);
+        $element = $this->driver->getElement('css=.field-name-' . $field . '  .field-item');
+        $text = $element->getText();
+        if(is_numeric($value)){
+          $value = $value . ' m';
+        }
+        $this->assertEqual($value, $text, $field . ' correctly set');
+      }
+    }
+    // Assert that a map has been created
+    $this->assertRaw('gm3-container', 'A map has been created');
+    $this->verboseScreenshot();
+    return $field_data['title'];
+  }
+
+  /**
+   * Attempt to create a location with the same name
+   * and assert that we get an error message
+   */
+  function verifyUniqueLocation($location_title){
+    $this->drupalGet('node/add/location');
+    $element = $this->driver->getElement("name=title");
+    $element->clear();
+    $element->sendKeys($location_title);
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->assertText('The title field for a location must be unique.', 'Error message successfully shown when creating duplicate location');
+  }
+
+  /**
+   * Test the creation of Specimen/observation node
+   */
+  function verifyCreateSpecimenObservation($location_title = '', $term_name, $vocab_name){
+    $this->drupalGet('node/add/specimen-observation');
+    // Create data for testing
+    $genbank_numbers_array = array(
+      $this->randomName(8),
+      $this->randomName(8)
+    );
+    $genbank_numbers_string = $genbank_numbers_array[0] . ', ' . $genbank_numbers_array[1];
+    $field_data = array(
+      'field_basis_of_record' => 'Fossil Specimen',
+      'field_institution_code' => $this->randomName(),
+      'field_collection_code' => $this->randomName(),
+      'field_catalogue_number' => $this->randomName(),
+      'field_type_status' => 'Isotype',
+      'field_identification_qualifier' => $this->randomName(),
+      'field_date_identified' => '2013/09/18',
+      'field_collector_number' => $this->randomName(),
+      'field_number' => $this->randomName(),
+      'field_date_collected' => '2013/09/19',
+      'field_notes' => $this->randomName(),
+      'field_sex' => 'Female',
+      'field_lifestage' => $this->randomName(),
+      'field_count' => rand(1, 20),
+      'field_genbank_number' => $genbank_numbers_string,
+      'field_other_catalogue_numbers' => $this->randomName(),
+      'field_remarks' => $this->randomName(),
+      'field_location' => $location_title,
+      'field_taxonomic_name' => $term_name,
+      'field_identified_by' => 'basic-user',
+      'field_collector' => 'basic-user'
+    );
+    // We fill in the form elements one at a time, switching tabs when necessary
+    $this->driver->waitForElements("name=field_basis_of_record[und]");
+    $element = $this->driver->getElement("name=field_basis_of_record[und]");
+    $element->selectValue($field_data['field_basis_of_record']);
+    $element = $this->driver->getElement("name=field_institution_code[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_institution_code']);
+    $element = $this->driver->getElement("name=field_collection_code[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_collection_code']);
+    $element = $this->driver->getElement("name=field_catalogue_number[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_catalogue_number']);
+    // Click Tab
+    $this->clickLink('Collection');
+    $this->driver->waitForElements("name=field_collector_number[und][0][value]");
+    $element = $this->driver->getElement("name=field_collector_number[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_collector_number']);
+    $element = $this->driver->getElement("name=field_number[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_number']);
+    // Autocomplete user field
+    $this->_autocompleteTest('field_collector[und][0][uid]', 'b', 'basic-user' . ' [uid:' . $this->basic_user->uid . ']');
+    $element = $this->driver->getElement("name=field_date_collected[und][0][value][date]");
+    $element->clear();
+    $element->sendKeys($field_data['field_date_collected']);
+    $element = $this->driver->getElement("name=field_notes[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_notes']);
+    $this->clickLink('Taxonomy');
+    $this->driver->waitForElements("name=field_type_status[und]");
+    // Autocomplete taxonomy field
+    if(isset($term_name)){
+      $this->_autocompleteTest('field_taxonomic_name[und]', substr($term_name, 0, 1));
+    }
+    $element = $this->driver->getElement("name=field_type_status[und]");
+    $element->selectValue($field_data['field_type_status']);
+    $element = $this->driver->getElement("name=field_identification_qualifier[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_identification_qualifier']);
+    // Autocomplete user field
+    $this->_autocompleteTest('field_identified_by[und][0][uid]', 'b', 'basic-user' . ' [uid:' . $this->basic_user->uid . ']');
+    $element = $this->driver->getElement("name=field_date_identified[und][0][value][date]");
+    $element->clear();
+    $element->sendKeys($field_data['field_date_identified']);
+    // Click tab
+    $this->clickLink('Miscellaneous');
+    $this->driver->waitForElements("name=field_sex[und]");
+    $element = $this->driver->getElement("name=field_sex[und]");
+    $element->selectValue($field_data['field_sex']);
+    $element = $this->driver->getElement("name=field_lifestage[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_lifestage']);
+    $element = $this->driver->getElement("name=field_count[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_count']);
+    $element = $this->driver->getElement("name=field_genbank_number[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_genbank_number']);
+    $element = $this->driver->getElement("name=field_other_catalogue_numbers[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_other_catalogue_numbers']);
+    $element = $this->driver->getElement("name=field_remarks[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_remarks']);
+    // Click tab
+    $this->clickLink('Location');
+    if($location_title != ''){
+      $this->driver->waitForElements("name=field_location[und]");
+      $element = $this->driver->getElement("name=field_location[und]");
+      $element->selectLabel($location_title);
+    }
+    // Submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    // Assert that the title is properly set
+    $this->assertText('Specimen/Observation ' . $field_data['field_institution_code'] . ' - ' . $field_data['field_collection_code'] . ' - ' . $field_data['field_catalogue_number'] . ' has been created', 'Specimen/observation node successfully created');
+    // Assert that all fields have been saved correctly
+    foreach($field_data as $field => $value){
+      if($field == 'field_genbank_number'){
+        $this->validateGenBankLinks($genbank_numbers_array);
+      }elseif(($field == 'field_date_identified') || ($field == 'field_date_collected')){
+        //'2013/09/18' is equal to value 'Wednesday, September 18, 2013'.
+        $value = str_replace('/', '-', $value);
+        $date = new DateTime($value);
+        $value = $date->format('l, F j, Y');
+        $field = str_replace('_', '-', $field);
+        $element = $this->driver->getElement('css=.field-name-' . $field . '  .field-item');
+        $text = $element->getText();
+        $this->assertEqual($value, $text, $field . ' correctly set');
+      }elseif($field == 'field_location'){
+        // This displays a map
+      }elseif($field == 'field_taxonomic_name'){
+        if(isset($term_name)){
+          $field = str_replace('_', '-', $field);
+          $element = $this->driver->getElement('css=.field-name-' . $field . '  .field-item');
+          $text = $element->getText();
+          $value = $value . ' (' . $vocab_name . ')';
+          $this->assertEqual($value, $text, 'Taxonomic name field correctly set');
+        }
+      }else{
+        $field = str_replace('_', '-', $field);
+        $element = $this->driver->getElement('css=.field-name-' . $field . '  .field-item');
+        $text = $element->getText();
+        $this->assertEqual($value, $text, $field . ' correctly set');
+      }
+    }
+    // Verify that we cannot create another SpecimenObservation with the same name
+    $this->verifyUniqueSpecimenObservation($field_data['field_institution_code'], $field_data['field_collection_code'], $field_data['field_catalogue_number']);
+    // We return the title
+    return $field_data['field_institution_code'] . ' - ' . $field_data['field_collection_code'] . ' - ' . $field_data['field_catalogue_number'];
+  }
+
+  /**
+   * Attempt to create a location with the same name
+   * and assert that we get an error message
+   */
+  function verifyUniqueSpecimenObservation($institution_code, $collection_code, $catalogue_number){
+    $this->drupalGet('node/add/specimen-observation');
+    $field_data = array(
+      'field_basis_of_record' => 'Human Observation',
+      'field_institution_code' => $institution_code,
+      'field_collection_code' => $collection_code,
+      'field_catalogue_number' => $catalogue_number
+    );
+    // Fill in the form
+    $this->driver->waitForElements("name=field_basis_of_record[und]");
+    $element = $this->driver->getElement("name=field_basis_of_record[und]");
+    $element->selectValue($field_data['field_basis_of_record']);
+    $element = $this->driver->getElement("name=field_institution_code[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_institution_code']);
+    $element = $this->driver->getElement("name=field_collection_code[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_collection_code']);
+    $element = $this->driver->getElement("name=field_catalogue_number[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_catalogue_number']);
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->assertText('The "Institution code/Collection code/Catalogue number" combination is not unique.', 'Error message successfully shown when creating non unique specimen observation');
+  }
+
+  /**
+   * Edit a location node. 
+   */
+  function verifyEditLocation($location_title){
+    $this->drupalGet('admin/content');
+    $this->clickLink('Location');
+    $this->driver->sleep(8);
+    $this->driver->waitForElements("xpath=//*[text()=" . $location_title . "]");
+    $this->clickLink($location_title);
+    $this->driver->waitForElements("xpath=//*[text()='Edit']");
+    $this->clickLink('Edit');
+    $this->driver->sleep(8);
+    // We edit some fields
+    $field_data = array(
+      'field_coordinate_system' => $this->randomName(),
+      'field_georeference_protocol' => $this->randomName(),
+      'field_georeference_remarks' => $this->randomName(),
+      'field_max_elevation' => rand(1, 100),
+      'field_min_elevation' => rand(1, 100)
+    );
+    // Click tab
+    $this->driver->getElement('css=ul.vertical-tabs-list li.last a')->click();
+    $element = $this->driver->getElement("name=field_coordinate_system[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_coordinate_system']);
+    $element = $this->driver->getElement("name=field_georeference_protocol[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_georeference_protocol']);
+    $element = $this->driver->getElement("name=field_georeference_remarks[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_georeference_remarks']);
+    $element = $this->driver->getElement("name=field_max_elevation[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_max_elevation']);
+    $element = $this->driver->getElement("name=field_min_elevation[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_min_elevation']);
+    // Submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->driver->sleep(4);
+    $this->assertText('Location ' . $location_title . ' has been updated.', 'Location node successfully updated.');
+    foreach($field_data as $field => $value){
+      $field = str_replace('_', '-', $field);
+      $element = $this->driver->getElement('css=.field-name-' . $field . '  .field-item');
+      $text = $element->getText();
+      if(is_numeric($value)){
+        $value = $value . ' m';
+      }
+      $this->assertEqual($value, $text, $field . ' successfully updated.');
+    }
+    $this->verboseScreenshot();
+  }
+
+  /**
+   * Edit a SpecimenObservation node.
+  */
+  function verifyEditSpecimenObservation($specimen_observation_title){
+    $this->drupalGet('admin/content');
+    $this->clickLink('Specimen/Observation');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $specimen_observation_title . ")]]");
+    $this->clickLink($specimen_observation_title);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
+    $this->clickLink('Edit');
+    $this->driver->sleep(8);
+    $field_data = array(
+      'field_basis_of_record' => 'Fossil Specimen',
+      'field_institution_code' => $this->randomName(),
+      'field_collection_code' => $this->randomName(),
+      'field_catalogue_number' => $this->randomName()
+    );
+    // We edit some fields    
+    $this->driver->waitForElements("name=field_basis_of_record[und]");
+    $element = $this->driver->getElement("name=field_basis_of_record[und]");
+    $element->selectValue($field_data['field_basis_of_record']);
+    $element = $this->driver->getElement("name=field_institution_code[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_institution_code']);
+    $element = $this->driver->getElement("name=field_collection_code[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_collection_code']);
+    $element = $this->driver->getElement("name=field_catalogue_number[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_catalogue_number']);
+    // Submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->driver->sleep(8);
+    // Check that the title has been updated with the new values
+    $this->assertText('Specimen/Observation ' . $field_data['field_institution_code'] . ' - ' . $field_data['field_collection_code'] . ' - ' . $field_data['field_catalogue_number'] . ' has been updated.', 'Specimen/Observation node successfully updated.');
+    foreach($field_data as $field => $value){
+      $field = str_replace('_', '-', $field);
+      $element = $this->driver->getElement('css=.field-name-' . $field . '  .field-item');
+      $text = $element->getText();
+      if(is_numeric($value)){
+        $value = $value . ' m';
+      }
+      $this->assertEqual($value, $text, $field . ' successfully updated.');
+    }
+    $this->verboseScreenshot();
+    // We return the updated title
+    return $field_data['field_institution_code'] . ' - ' . $field_data['field_collection_code'] . ' - ' . $field_data['field_catalogue_number'];
+  }
+
+  /**
+   * Delete a location node and check that it has been deleted
+   */
+  function verifyDeleteLocation($location_title){
+    $this->drupalGet('admin/content/location');
+    $this->driver->sleep(8);
+    $this->verboseScreenshot();
+    // There is only one location
+    $this->clickLink('delete');
+    $this->driver->sleep(8);
+    $this->assertText(t('Are you sure you want to delete @loc?', array(
+      '@loc' => $location_title
+    )));
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->driver->sleep(6);
+    $this->assertText(t('Location @loc has been deleted', array(
+      '@loc' => $location_title
+    )));
+    $this->drupalGet('admin/content/location');
+    $this->driver->sleep(8);
+    $this->verboseScreenshot();
+    $this->assertNoLink($location_title, 'Deleted location node not present on admin/content/location page');
+  }
+
+  /**
+   * Delete a Specimen/Observation node and check that it has been deleted
+   */
+  function verifyDeleteSpecimenObservation($specimen_observation_title){
+    $this->drupalGet('admin/content/specimen_observation');
+    $this->driver->sleep(8);
+    // There is only one specimen-observation
+    $this->clickLink('delete');
+    $this->driver->sleep(8);
+    $this->assertText(t('Are you sure you want to delete @loc?', array(
+      '@loc' => $specimen_observation_title
+    )));
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->driver->sleep(6);
+    $this->assertText(t('Specimen/Observation @loc has been deleted', array(
+      '@loc' => $specimen_observation_title
+    )));
+    $this->drupalGet('admin/content/specimen_observation');
+    $this->driver->sleep(8);
+    $this->verboseScreenshot();
+    $this->assertNoLink($specimen_observation_title, 'Deleted Specimen/Observation node not present on admin/content/specimen_observation page');
+  }
+
+  /**
+   * Test that entering csv numbers creates genbank links
+   */
+  function validateGenBankLinks(array $genbanknumbers){
+    foreach($genbanknumbers as $genbanknumber){
+      $this->assertLink($genbanknumber);
+      $href = "http://www.ncbi.nlm.nih.gov/nuccore/" . $genbanknumber;
+      $this->assertLinkByHref($href);
+    }
+  }
+
+  /**
+   * Create a vocabulary
+   */
+  function createAnimalVocabulary($vocab_name){
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $element = $this->driver->getElement("name=name");
+    $element->clear();
+    $element->sendKeys($vocab_name);
+    $element = $this->driver->getElement("name=description");
+    $element->clear();
+    $element->sendKeys($this->randomName());
+    $element = $this->driver->getElement("name=biological_classification");
+    $element->selectLabel('Animal');
+    // Submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+  }
+
+  /**
+   * Add terms to a vocabulary
+   */
+  function addTerms($vocab_name, $term_array){
+    foreach($term_array as $term_name){
+      $path = 'admin/structure/taxonomy/' . $vocab_name . '/add';
+      $this->drupalGet($path);
+      $element = $this->driver->getElement("name=field_unit_name1[und][0][value]");
+      $element->clear();
+      $element->sendKeys($term_name);
+      // Submit the form
+      $submit_button = $this->driver->getElement("id=edit-submit");
+      $submit_button->click();
+    }
+  }
+}

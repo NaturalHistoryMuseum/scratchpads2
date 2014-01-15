@@ -1,0 +1,257 @@
+<?php
+/**
+ * @file
+*
+* Test case for scratchpads_blog with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsBlogSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  protected $maintainer2;
+  
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Blog (Selenium)',
+      'description' => 'Tests for scratchpads blog',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  public function setUp(){
+    $modules[] = 'scratchpads_blog';
+    parent::setUp($modules); 
+    
+    // We update the permissions for maintainer
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    $maintainer_permissions = $default_permissions['maintainer'];
+    $maintainer_permissions[] = 'access content';
+    $maintainer_permissions[] = 'view the administration theme';
+    $maintainer_permissions[] = 'access content overview';
+    $maintainer_permissions[] = 'create blog content';
+    user_role_grant_permissions($this->maintainer->rid, $maintainer_permissions);
+    
+    // Create a second maintainer
+    $this->maintainer2 = $this->drupalCreateUserWithName($maintainer_permissions, 'maintainer_name2');
+    legal_save_accept(1, 1, 'en', $this->maintainer2->uid);
+  }
+
+  /**
+   * A wrapper for the following tests
+   * 
+   * - Create a blog entry (published) using maintainer
+   * - Create a second blog entry using maintainer2
+   * - Test that the filter block shows up on the correct page
+   * - Test user interaction with the filter block
+   * - Edit a blog entry.
+   * - Delete a blog entry.
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $terms_array = $this->addTaxomicNameField();
+    $blog_entry_title = $this->verifyCreateBlogEntry($terms_array[0]);
+    $this->drupalLogin($this->maintainer2);
+    $blog_entry_title2 = $this->verifyCreateBlogEntry();
+    $this->verifyBlogFilterBlockPresence();
+    $this->verifyBlogFilterBlockInteraction($blog_entry_title, $blog_entry_title2, $terms_array[0]->name);
+    $blog_entry_title = $this->verifyEditBlogEntry($blog_entry_title);
+    $this->verifyDeleteBlogEntry($blog_entry_title);
+  }
+
+  /**
+   * Create a blog entry using the user interface.
+   * 
+   * Return the title of the blog entry.
+   */
+  function verifyCreateBlogEntry($term = NULL){
+    $title = $this->randomName(8);
+    $body = $this->randomName(16);
+    $this->drupalGet('');
+    $this->clickLink('Blogs');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Create new blog entry')]]");
+    $this->clickLink('Create new blog entry');
+    $this->driver->waitForElements("name=title");
+    $element = $this->driver->getElement("name=title");
+    $element->clear();
+    $element->sendKeys($title);
+    $element = $this->driver->getElement("name=body[und][0][value]");
+    $element->clear();
+    $element->sendKeys($body);
+    if(isset($term)){
+      $this->_autocompleteTest('field_taxonomic_name_field[und]', substr($term->name, 0, 1), $term->name . ' [' . $term->tid . ']');
+    }
+    $element = $this->driver->getElement("name=body[und][0][value]");
+    $element->clear();
+    $element->sendKeys($body);
+    // Click the 'Publishing options' tab
+    $this->driver->getElement("xpath=//*[text()[contains(.,'Publishing options')]]")->click();
+    $this->verboseScreenshot();
+    // Click the checkbox for published
+    $this->driver->getElement("id=edit-status")->click();
+    // Submit the form
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText($title . ' has been created', 'Blog entry successfully created');
+    return $title;
+  }
+
+  /**
+   * Edit a blog entry using the user interface.
+   * Return the title of the blog entry.
+   */
+  function verifyEditBlogEntry($title){
+    $this->drupalGet('admin/content');
+    $this->clickLink('Blog entry');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$title.")]]");
+    $this->clickLink($title);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
+    $this->clickLink('Edit');
+    $title = $this->randomName(8);
+    $body = $this->randomName(16);
+    // Edit the form
+    $this->driver->waitForElements("name=title");
+    $element = $this->driver->getElement("name=title");
+    $element->clear();
+    $element->sendKeys($title);
+    $element = $this->driver->getElement("name=body[und][0][value]");
+    $element->clear();
+    $element->sendKeys($body);
+    // Submit the form
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText($title . ' has been updated', 'Blog entry successfully updated');
+    return $title;
+  }
+
+  /**
+   * Delete a blog entry using the user interface.
+   */
+  function verifyDeleteBlogEntry($title){
+    $this->drupalGet('admin/content');
+    $this->clickLink('Blog entry');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$title.")]]");
+    $this->clickLink($title);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
+    $this->clickLink('Edit');
+    $this->driver->waitForElements("id=edit-delete");
+    $this->driver->getElement("id=edit-delete")->click();
+    $this->assertText('Are you sure you want to delete ' . $title, "'Are you sure?' message shown on delete");
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText($title . ' has been deleted', 'Blog entry successfully deleted');
+  }
+
+  /**
+   * Test that the filter block is present on the blog page. 
+   * Test that the filter block is not present on front page or basic page
+   */
+  function verifyBlogFilterBlockPresence(){
+    $this->drupalGet('blog');
+    $this->assertRaw('block-scratchpads-blog-blog-filters', 'Blog filters present on blog page');
+    $this->drupalGet('');
+    $this->assertNoRaw('block-scratchpads-blog-blog-filters', 'Blog filters not present on front page');
+    $newpage = $this->createBasicPage();
+    $this->assertNoRaw('block-scratchpads-blog-blog-filters', 'Blog filters not present on basic page');
+  }
+
+  /**
+   * Test interaction with the filter block
+   * - Click on a user name - only that users blog entries should be shown
+   * - Click '(-)' to revert the selection - all blog entries should be shown
+   * - Click the current year - all blog entries should be shown
+   * - Click a term - only the first blog entry should be shown
+   */
+  function verifyBlogFilterBlockInteraction($blog_entry_title, $blog_entry2_title, $term){
+    $this->drupalGet('blog');
+    // Verify that both blog entries are displayed
+    $this->assertText($blog_entry_title);
+    $this->assertText($blog_entry2_title);
+    // Click the current user's name and verify that only the second blog entry is displayed   
+    $this->clickLink($this->maintainer2->name);
+    $this->verboseScreenshot();  
+    //Filtered on Author
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Filtered on Author')]]");
+    $this->assertNoText($blog_entry_title, 'First blog entry not present after choosing name');
+    $this->assertText($blog_entry2_title, 'Second blog entry present after choosing name');
+    // Click '(-)' to revert the selection
+    $this->clickLink('(-)');
+    $this->verboseScreenshot();
+    $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,'Filtered on Author')]]");
+    $this->assertText($blog_entry_title, 'First blog entry present after reverting selection');
+    $this->assertText($blog_entry2_title, 'Second blog entry present after reverting selection');
+    // Click the current year
+    $this->clickLink(date("Y"));
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'FILTERED ON - DATE')]]");
+    $this->verboseScreenshot();
+    $this->assertText($blog_entry_title, 'First blog entry present after choosing year');
+    $this->assertText($blog_entry2_title, 'Second blog entry present after choosing year');
+    // Click '(-)' to revert the selection
+    $this->clickLink('(-)');
+    $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,'FILTERED ON - DATE')]]");  
+    $this->verboseScreenshot();
+    $this->assertText($blog_entry_title, 'First blog entry present after reverting selection');
+    $this->assertText($blog_entry2_title, 'Second blog entry present after reverting selection');
+    // Click the term
+    $this->clickLink($term);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'FILTERED ON TAXONOMY')]]");
+    $this->verboseScreenshot();
+    $this->assertText($blog_entry_title, 'First blog entry present after choosing term');
+    $this->assertNoText($blog_entry2_title, 'Second blog entry not present after choosing term');
+  }
+
+  /**
+   * Helper function. 
+   * Create a basic page and return the title
+   */
+  private function createBasicPage(){
+    $title = $this->randomName(8);
+    $body = $this->randomName(16);
+    $this->drupalGet('node/add/page');
+    $this->driver->waitForElements("name=title");
+    $element = $this->driver->getElement("name=title");
+    $element->clear();
+    $element->sendKeys($title);
+    $element = $this->driver->getElement("name=body[und][0][value]");
+    $element->clear();
+    $element->sendKeys($body);
+    // Submit the form
+    $this->driver->getElement("id=edit-submit")->click();
+    return $title;
+  }
+
+  /**
+   * Helper function.
+   * Create a taxonomic name field
+   */
+  function addTaxomicNameField(){
+    $vocabulary = $this->createBioVocabularyWithName('mybiovocab');
+    $term1 = $this->createTermWithName($vocabulary, 'term1');
+    $term2 = $this->createTermWithName($vocabulary, 'term2');
+    $this->drupalGet('admin/structure/types/manage/blog/fields');
+    $this->driver->waitForElements("name=fields[_add_new_field][label]");
+    $element = $this->driver->getElement("name=fields[_add_new_field][label]");
+    $element->clear();
+    $element->sendKeys('taxonomic_name_field');
+    $element = $this->driver->getElement("name=fields[_add_new_field][type]");
+    $element->selectLabel('Term reference');
+    $element = $this->driver->getElement("name=fields[_add_new_field][widget_type]");
+    $element->selectLabel('Autocomplete term widget (tagging)');
+    // Submit the form - stage 1
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->verboseScreenshot();
+    $this->driver->getElement("xpath=//*[text()[contains(.,'mybiovocab')]]")->click();
+    // Submit the form - stage 2
+    $this->driver->getElement("id=edit-submit")->click();
+    // Submit the form - stage 3
+    $this->verboseScreenshot();
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText('Saved taxonomic_name_field configuration.');
+    return array(
+      $term1,
+      $term2
+    );
+  }
+}

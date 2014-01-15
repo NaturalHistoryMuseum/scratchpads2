@@ -3,3 +3,4 @@ name = "Scratchpads setup"
 description = "Scratchpads setup process"
 package = "Scratchpads"
 dependencies[] = formflow
+files[] = tests/scratchpads_setup.selenium.test

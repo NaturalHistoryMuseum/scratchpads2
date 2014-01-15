@@ -144,7 +144,7 @@ class FeedsMapperFileTestCase extends FeedsMapperTestCase {
       ->execute();
     foreach ($entities as $entity) {
       $this->drupalGet('node/' . $entity->entity_id . '/edit');
-      $f = new FeedsEnclosure(array_shift($files), NULL);
+      $f = new FeedsEnclosure(array_pop($files), NULL);
       $this->assertRaw('images/' . $f->getUrlEncodedValue());
     }
 
