@@ -1,6 +1,52 @@
 <?php
 
 /**
+ * Implements hook_cron()
+ */
+function scratchpads_qa_cron(){
+  // We check for failed tests between 4am and 6am.  This is to try and avoid
+  // spotting tests which appear to have failed, only because they are currently
+  // running.
+  if(6 > date('G') > 4 && variable_get('scratchpads_qa_last_email_time', 0) < (time() - 10000)){
+    variable_set('scratchpads_qa_last_email_time', time());
+    $query = db_select('simpletest', 's')->fields('s', array(
+      'test_class'
+    ));
+    $query->condition('status', 'fail');
+    $query->addExpression('COUNT(*)', 'count_status');
+    $subquery = db_select('simpletest', 's')->fields('s', array(
+      'test_class'
+    ));
+    $subquery->addExpression('MAX(test_id)', 'max_test_id');
+    $subquery->groupBy('test_class');
+    $query->innerJoin($subquery, 'subquery', 'max_test_id = s.test_id AND subquery.test_class = s.test_class');
+    $query->groupBy('test_class')->groupBy('status');
+    $results = $query->extend('PagerDefault')->execute()->fetchAssoc();
+    if($results){
+      // We have some fails, we therefore need to send out an email message.
+      drupal_mail('scratchpads_qa', 'fails', 's.rycroft@nhm.ac.uk', language_default(), $results);
+    }
+  }
+}
+
+/**
+ * Implements hook_mail().
+ */
+function scratchpads_qa_mail($key, &$message, $params){
+  switch($key){
+    case 'fails':
+      $message['subject'] = t('Scratchpads Testing fails detected');
+      $message['body'] = array(
+        'The following fails were detected:',
+        ''
+      );
+      foreach($params as $param){
+        $message['body'][] = $param['test_class'] . '(' . $param['count_status'] . ')';
+      }
+  }
+}
+
+/**
  * Implements hook_menu()
  */
 function scratchpads_qa_menu(){
