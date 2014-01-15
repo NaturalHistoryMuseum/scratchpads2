@@ -1,0 +1,203 @@
+<?php
+/**
+ * @file
+*
+* Test case for scratchpads backend with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsBackendSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Backend (Selenium)',
+      'description' => 'Tests for scratchpads backend',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  public function setUp(){
+    $modules[] = 'darwincore';
+    parent::setUp($modules);
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    
+    // Maintainer
+    $maintainer_permissions = $default_permissions['maintainer'];
+    $maintainer_permissions[] = 'access content';
+    $maintainer_permissions[] = 'view the administration theme';
+    $maintainer_permissions[] = 'access content overview';
+    $maintainer_permissions[] = 'administer comments';
+    $this->maintainer = $this->drupalCreateUser($maintainer_permissions);
+    legal_save_accept(1, 1, 'en', $this->maintainer->uid);
+  }
+
+  /**
+  * Wrapper for all backend tests
+  * 
+  * - Test the admin/content page links 
+  * - Test published/unpublished counters on admin/content page
+  * - Test that pages appear on admin/content/page view
+  */
+  function testBackend(){
+    $this->drupalLogin($this->maintainer);
+    $this->verifyAdminContentLinks();
+    $published_data = $this->addPublishedPages(2);
+    $unpublished_data = $this->addUnPublishedPages(1);
+    $this->verifyPageNodeView($published_data, $unpublished_data);
+  }
+
+  /**
+   * Verify that all default links are present and link to an overview page
+   */
+  function verifyAdminContentLinks(){
+    $links = array(
+      'content' => array(
+        'Biblio',
+        'Location',
+        'Media gallery',
+        'Page',
+        'Specimen/Observation',
+        'Taxon Description'
+      ),
+      'comments' => array(
+        'Comments'
+      ),
+      'files' => array(
+        'Other',
+        'Audio',
+        'Image',
+        'Text',
+        'Video'
+      )
+    );
+    foreach($links as $cat => $category){
+      foreach($category as $key => $link){
+        $this->drupalGet('admin/content');
+        $this->assertLink($link, 0, "' " . $link . "' link present on content/admin page");
+        $this->clickLink($link);
+        // Wait for page to load
+        $this->driver->waitForElements("xpath=//h1[text()[contains(.,'" . $link . "')]]");
+        switch($cat){
+          case "content":
+            $this->assertRaw('vbo-views-form', 'Views form present after clicking ' . $link);
+            break;
+          case "comments":
+            $this->verboseScreenshot();
+            $this->assertText('No comments available.', "comments table shown after clicking 'Comments'");
+            break;
+          case "files":
+            $this->assertRaw('vbo-views-form', 'Views form present after clicking ' . $link);
+            break;
+        }
+      }
+    }
+  }
+
+  /**
+   * Verify published/ unpublished counters on admin/content page
+   * Verify that added pages appear on node view
+   */
+  function verifyPageNodeView($published_data, $unpublished_data){
+    $this->drupalGet('admin/content');
+    $page_elements = $this->driver->getAllElements('css=.scratchpads-admin-content .node-page td');
+    $published_pages_count = $page_elements[1]->getText();
+    $unpublished_pages_count = $page_elements[2]->getText();
+    $this->assertTrue($published_pages_count == count($published_data), 'Published page count correct in admin/content page');
+    $this->assertTrue($unpublished_pages_count == count($unpublished_data), 'Unpublished page count correct in admin/content page');
+    $this->clickLink('Page');
+    // wait for page to load
+    $this->driver->waitForElements("xpath=//h1[text()[contains(.,'Page')]]");
+    foreach ($published_data as $page){
+      $this->assertText($page['title'], 'title of published page shown on admin/content/page');
+    }
+    foreach ($unpublished_data as $page){
+      $this->assertText($page['title'], 'title of unpublished page shown on admin/content/page');
+    }
+  }
+
+  /**
+   * Create a number of pages for testing the filter
+   * Returns the created data in an array
+   */
+  function addPublishedPages($number_of_pages){
+    $result = array();
+    while($number_of_pages > 0){
+      $this->drupalGet('node/add/page');
+      $title = $this->randomName();
+      $body = $this->randomName();
+      $element = $this->driver->getElement("name=title");
+      $element->clear();
+      $element->sendKeys($title);
+      $element = $this->driver->getElement("name=body[und][0][value]");
+      $element->clear();
+      $element->sendKeys($body);
+      $this->driver->sleep(2);
+      $submit_button = $this->driver->getElement("id=edit-submit");
+      $submit_button->click();
+      $this->assertText($title, 'Page title sucessfully saved');
+      $this->assertText($body, 'Page body sucessfully saved');
+      $result[] = array(
+        'title' => $title,
+        'body' => $body
+      );
+      $number_of_pages--;
+    }
+    return $result;
+  }
+
+  /**
+   * Create a number of pages for testing the filter
+   * Returns the created data in an array
+   */
+  function addUnPublishedPages($number_of_pages){
+    $result = array();
+    while($number_of_pages > 0){
+      $this->drupalGet('node/add/page');
+      $title = $this->randomName();
+      $body = $this->randomName();
+      $element = $this->driver->getElement("name=title");
+      $element->clear();
+      $element->sendKeys($title);
+      $element = $this->driver->getElement("name=body[und][0][value]");
+      $element->clear();
+      $element->sendKeys($body);
+      $this->driver->sleep(2);
+      // Click the Publishing Options tab
+      $this->driver->getElement("xpath=//*[text()[contains(.,'Publishing options')]]")->click();
+      $this->driver->sleep(1);
+      // Tick to unpublish page
+      $this->driver->getElement('id=edit-status')->click();
+      $this->driver->sleep(1);
+      $submit_button = $this->driver->getElement("id=edit-submit");
+      $submit_button->click();
+      $this->assertText($title, 'Page title sucessfully saved');
+      $this->assertText($body, 'Page body sucessfully saved');
+      $result[] = array(
+        'title' => $title,
+        'body' => $body
+      );
+      $number_of_pages--;
+    }
+    return $result;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * @file
+*
+* Scratchpads hands_off tests.
+*/
+class Scratchpadshands_offTestCase extends ScratchpadsTweaksTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Hands Off',
+      'description' => 'Tests access to various hands-off pages',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    $modules[] = 'scratchpads_hands_off';
+    parent::setUp($modules);
+  }
+
+  /**
+   * Tests that a user cannot access various hands-off pages
+   * even when the user has administration permissions
+   */
+  public function testHandsOffBasic(){
+    $this->drupalLogin($this->maintainer);
+    // pages that require extra modules to be enabled, or extra content to be created, 
+    // have been removed from this list.
+    $hidden_urls = array(
+      'admin/appearance/settings/scratchpads',
+      'admin/appearance/settings/scratchpads_admin',
+      'admin/config/content/clone',
+      'admin/config/content/biblio/basic',
+      'admin/config/content/biblio/fields',
+      'admin/config/content/biblio/pubtype',
+      'admin/config/content/biblio/export',
+      'admin/config/content/biblio/citeproc',
+      'admin/config/content/diff',
+      'admin/config/regional/date-time',
+      'admin/config/system/boost',
+      'admin/config/system/customerror',
+      'admin/config/system/globalredirect',
+      'admin/config/system/cron',
+      'admin/config/user-interface/beautytips',
+      'admin/config/development/performance',
+      'admin/config/development/logging',
+      'admin/config/development/modal_forms',
+      'admin/config/development/strongarm',
+      'admin/dashboard/configure',
+      'admin/structure/block/list/scratchpads_admin',
+      'admin/structure/file-types/manage/image/display/media_link',
+      'admin/structure/file-types/manage/image/display/media_preview',
+      'admin/structure/file-types/manage/image/display/media_small',
+      'admin/structure/file-types/manage/image/display/media_large',
+      'admin/structure/file-types/manage/image/display/media_original',
+      'admin/structure/file-types/manage/image/display/linked_node',
+      'admin/structure/file-types/manage/image/display/file_styles_square_thumbnail',
+      'admin/structure/file-types/manage/image/display/file_styles_large',
+      'admin/structure/file-types/manage/image/display/file_styles_medium',
+      'admin/structure/file-types/manage/image/display/file_styles_original',
+      'admin/structure/file-types/manage/image/display/file_styles_thumbnail',
+      'admin/structure/file-types/manage/image/file-display',
+      'user/1/edit'
+    );
+    foreach($hidden_urls as $hands_off_page){
+      $this->drupalGet($hands_off_page);
+      $this->assertText(t('access denied'), "Access denied for hands-off page " . $hands_off_page);
+      $this->assertResponse(403);
+    }
+  }
+}
