@@ -6,3 +6,5 @@ dependencies[] = uwho_client
 dependencies[] = aggregator
 dependencies[] = blockexpose
 dependencies[] = remote_issue_tab
+files[] = tests/scratchpads_issues_block.test
+files[] = tests/scratchpads_issues_block.selenium.test

@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * @file
+ *
+ * Test case for form posts.
+ */
+
+if (!class_exists('DrupalSeleniumWebTestCase')) {
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class FormTestCase extends DrupalSeleniumWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Form posts',
+      'description' => 'Tests for posting and setting different form elements.',
+      'group' => 'Selenium',
+      'browsers' => array('firefox', 'chrome'),
+    );
+  }
+
+  /**
+   * Test atocomplete functionality on the article node edit form on tags field.
+   */
+  function testPost() {
+    // Login user.
+    $user = $this->drupalCreateUser(array('administer content types', 'create article content'));
+    $this->drupalLogin($user);
+    // Text element and text area.
+    $title = $this->randomName();
+    $body = $this->randomName();
+    $edit = array(
+      'title' => $title,
+      'body[und][0][value]' => $body,
+    );
+    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $this->assertText($title, 'posts to text field work because the title appears on the resulting page.');
+    $this->assertText($body, 'posts to text area work');
+    // Select.
+    $edit = array(
+      'fields[body][type]' => 'hidden',
+    );
+    $this->drupalPost('admin/structure/types/manage/article/display', $edit, t('Save'));
+    $this->drupalGet('node/1');
+    $this->assertNoText($body, 'Possible to enter something in a select list because we opted to hide article body using a select list, and body is hidden in an article.');
+    // @todo Radio
+    // @todo Checkbox
+  }
+}

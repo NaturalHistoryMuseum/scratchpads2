@@ -6,3 +6,4 @@ dependencies[] = scratchpads_species
 dependencies[] = slickgrid
 dependencies[] = views_data_export
 dependencies[] = menu_block
+files[] = scratchpads_pages.test

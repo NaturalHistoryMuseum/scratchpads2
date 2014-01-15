@@ -3,4 +3,5 @@ description = Enables multi-user blogs.
 package = "Blog"
 core = 7.x
 dependencies[] = blog
+files[] = tests/scratchpads_blog.selenium.test
 tool=true

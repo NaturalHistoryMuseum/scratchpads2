@@ -1,13 +1,13 @@
 <?php
 
-class ItisTermTestCase extends DrupalWebTestCase{
+class ItisTermTestCase extends ScratchpadsTweaksTestCase{
 
   protected $itis_term_user;
 
   public static function getInfo(){
     return array(
       'name' => 'ITIS Term functionality',
-      'description' => 'Create, view, edit, delete ITIS term classifications',
+      'description' => 'Test that the Itis fields have been added. Tests create, view, edit, delete ITIS term classifications',
       'group' => 'Scratchpads'
     );
   }
@@ -21,39 +21,152 @@ class ItisTermTestCase extends DrupalWebTestCase{
     $this->itis_term_user = $this->drupalCreateUser(array(
       'administer taxonomy'
     ));
+    // We set the legal_accepted on the user so that login passes.
+    parent::scratchpads_tweaks_legal_save($this->itis_term_user->uid);
+  }
+
+  protected $itis_fields = array(
+    'field_rank',
+    'field_unit_name1',
+    'field_unit_name2',
+    'field_unit_name3',
+    'field_unit_name4',
+    'field_unit_indicator1',
+    'field_unit_indicator2',
+    'field_unit_indicator3',
+    'field_unit_indicator4',
+    'field_usage',
+    'field_aan',
+    'field_unacceptability_reason',
+    'field_authors',
+    'field_reference',
+    'field_page_number',
+    'field_vernacular_name_collection'
+  );
+
+  protected $itis_groups = array(
+    'group_scientific_name',
+    'group_usage',
+    'group_reference',
+    'group_vernacular_names',
+    'group_misc'
+  );
+
+  /**
+   * Wrapper for other tests to speed up test run
+   */
+  function testItisTermBasic(){
+    $this->drupalLogin($this->itis_term_user);
+    $this->verifyNoItisFieldsAndGroupsForNonBio();
+    $this->verifyItisFieldsAndGroupsForBio();
+    $this->verifyBiologicalClassifications();
+    $this->verifyCreateEditDelete();
   }
 
   /**
-   * Confirm that the "admin/structure/taxonomy/add" page is accessible when
-   * this module is installed.
+   * Test that the Itis terms appear on the form
    */
-  function testAccessTaxonomyAddPage(){
-    $this->drupalLogin($this->itis_term_user);
+  protected function verifyBiologicalClassifications(){
     $this->drupalGet('admin/structure/taxonomy/add');
-    $this->assertResponse(200);
+    $this->assertText(t('biological classification'), 'Biological classification shown', 'Biological Classifications');
+    $this->assertRaw(t('Animal'), 'Animal classification shown', 'Biological Classifications');
+    $this->assertRaw(t('Algae/Fungi/Plants'), 'Algae/Fungi/Plants classification shown', 'Biological Classifications');
+    $this->assertRaw(t('Moneran'), 'Moneran classification shown', 'Biological Classifications');
   }
 
   /**
-   * Login users, create taxonomy, and test functionality through the admin and
-   * user interfaces.
-  function testItisTerm() {
-    // Login the admin user.
-    $this->drupalLogin($this->itis_term_user);
-    // Do basic tests for each user.
-    $this->doBasicTests($this->any_user, TRUE);
-    $this->doBasicTests($this->own_user, FALSE);
-
-    // Create another blog node for the any blog user.
-    $node = $this->drupalCreateNode(array('type' => 'blog', 'uid' => $this->any_user->uid));
-    // Verify the own blog user only has access to the blog view node.
-    $this->verifyBlogs($this->any_user, $node, FALSE, 403);
-
-    // Create another blog node for the own blog user.
-    $node = $this->drupalCreateNode(array('type' => 'blog', 'uid' => $this->own_user->uid));
-    // Login the any blog user.
-    $this->drupalLogin($this->any_user);
-    // Verify the any blog user has access to all the blog nodes.
-    $this->verifyBlogs($this->own_user, $node, TRUE);
-  }
+   * Verify that the itis fields and groups have been added
    */
+  function verifyItisFieldsAndGroupsForBio(){
+    // create a biological vocabulary then navigate to the manage fields page
+    $edit = array();
+    $human_name = $this->randomName();
+    $edit['name'] = $human_name;
+    $machine_readable = $this->machine_name($human_name);
+    $edit['machine_name'] = $machine_readable;
+    $edit['biological_classification'] = 1;
+    $this->drupalPost('admin/structure/taxonomy/add', $edit, t('Save'));
+    $this->assertText(t('Created new vocabulary'), 'Biological classification successfully created');
+    $vocab_object = taxonomy_vocabulary_machine_name_load($machine_readable);
+    // Test that extra fields have been added. We are checking one from each group
+    $this->drupalGet('admin/structure/taxonomy/' . $machine_readable . '/fields');
+    // Assert that all of the fields are present
+    foreach($this->itis_fields as $itis_field){
+      if($itis_field == 'field_aan'){
+        // fields that are unique per vocabulary
+        $itis_field = $itis_field . '_' . $vocab_object->vid;
+      }
+      $this->assertText($itis_field, $itis_field . ' field found for biological vocabulary');
+    }
+    // Assert that all of the fields are present
+    foreach($this->itis_groups as $itis_group){
+      $this->assertText($itis_group, $itis_group . ' field group found for biological vocabulary');
+    }
+  }
+
+  /**
+   * Verify that the itis fields and groups are not added to non biological taxonomy
+   */
+  function verifyNoItisFieldsAndGroupsForNonBio(){
+    // create a non biological vocabulary then navigate to the manage fields page
+    $edit = array();
+    $human_name = $this->randomName();
+    $edit['name'] = $human_name;
+    $machine_readable = $this->machine_name($human_name);
+    $edit['machine_name'] = $machine_readable;
+    $edit['biological_classification'] = '';
+    $this->drupalPost('admin/structure/taxonomy/add', $edit, t('Save'));
+    $this->assertText(t('Created new vocabulary'), 'Created new vocabulary');
+    $this->drupalGet('admin/structure/taxonomy/' . $machine_readable . '/fields');
+    // Assert that all of the fields are not present
+    foreach($this->itis_fields as $itis_field){
+      $this->assertNoText($itis_field, $itis_field . ' field not found on for non biological vocabulary');
+    }
+    // Assert that all of the fields are not present
+    foreach($this->itis_groups as $itis_group){
+      $this->assertNoText($itis_group, $itis_group . ' field group not found for non biological vocabulary');
+    }
+  }
+
+  /**
+   * Create a vocabulary, check that extra fields have been added, edit the vocabulary, add a term, and delete the vocabulary
+   */
+  protected function verifyCreateEditDelete(){
+    // Create a vocabulary
+    $edit = array();
+    $human_name = $this->randomName();
+    $edit['name'] = $human_name;
+    $machine_readable = $this->machine_name($human_name);
+    $edit['machine_name'] = $machine_readable;
+    $edit['biological_classification'] = 1;
+    $this->drupalPost('admin/structure/taxonomy/add', $edit, t('Save'));
+    $this->assertText(t('Created new vocabulary'), 'Biological classification successfully created');
+    // Edit the vocabulary.
+    $this->drupalGet('admin/structure/taxonomy/' . $machine_readable . '/edit');
+    $edit2 = array();
+    $edit2['name'] = $this->randomName();
+    $this->drupalPost(NULL, $edit2, t('Save'));
+    $this->drupalGet('admin/structure/taxonomy');
+    $this->assertText($edit2['name'], 'Vocabulary found in the vocabulary overview listing.');
+    // Add term to vocabulary
+    $this->drupalGet('admin/structure/taxonomy/' . $machine_readable . '/add');
+    $edit3 = array();
+    $name2 = $this->randomName();
+    $name3 = $this->randomName();
+    $edit3['name'] = $name2;
+    $edit3['field_unit_name1[und][0][value]'] = $name3;
+    $this->drupalPost(NULL, $edit3, t('Save'));
+    $this->assertText(t('Created new term'), 'New term successfully created');
+    // View the vocab and check that the newly added term is present
+    $this->drupalGet('admin/structure/taxonomy/' . $machine_readable);
+    $this->assertText($name3, 'Term found on vocabulary page');
+    // Delete the vocabulary
+    $this->drupalPost('admin/structure/taxonomy/' . $machine_readable . '/edit', array(), t('Delete'));
+    $this->assertText(t('Deleting a vocabulary will delete all the terms in it. This action cannot be undone.'), 'Delete warning shown');
+    $this->drupalPost(NULL, array(), t('Delete'));
+    $this->assertText(t('Deleted vocabulary'), 'Delete Confirmed');
+    // Confirm the delete by attempting to navigate to the vocabulary
+    $this->drupalGet('admin/structure/taxonomy/' . $machine_readable);
+    $this->assertText('requested page not found', 'Deleted vocabulary page not found');
+  }
 }
