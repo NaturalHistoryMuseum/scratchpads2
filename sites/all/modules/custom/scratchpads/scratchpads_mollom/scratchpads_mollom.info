@@ -1,4 +1,0 @@
-name = "scratchpads_mollom"
-description = "scratchpads_mollom"
-core = "7.x"
-dependencies[] = "mollom"
