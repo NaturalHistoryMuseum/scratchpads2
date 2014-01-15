@@ -312,7 +312,8 @@ function scratchpads_tweaks_install(){
     }
   }
   // Set the jQuery settings
-  scratchpads_tweaks_update_7049();
+  variable_set('jquery_update_jquery_version', '1.8');
+  variable_set('jquery_update_jquery_cdn', 'google');
   // Prevent optimize from running on Solr.
   variable_set('apachesolr_optimize_interval', PHP_INT_MAX);
   // Allow insecure derivatives
@@ -1388,4 +1389,11 @@ function scratchpads_tweaks_update_7074(){
 function scratchpads_tweaks_update_7075(){
   system_rebuild_theme_data();
   drupal_flush_all_caches();
+}
+
+/**
+ * Set the jQuery CDN to Google's rather than Microsoft's
+ */
+function scratchpads_tweaks_update_7076(){
+  variable_set('jquery_update_jquery_cdn', 'google');
 }
