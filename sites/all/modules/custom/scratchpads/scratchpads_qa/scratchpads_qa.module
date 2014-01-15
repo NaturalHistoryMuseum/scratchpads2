@@ -7,7 +7,7 @@ function scratchpads_qa_cron(){
   // We check for failed tests between 4am and 6am.  This is to try and avoid
   // spotting tests which appear to have failed, only because they are currently
   // running.
-  if(6 > date('G') > 4 && variable_get('scratchpads_qa_last_email_time', 0) < (time() - 10000)){
+  if(date('G') > 4 && date('G') < 6 && variable_get('scratchpads_qa_last_email_time', 0) < (time() - 10000)){
     variable_set('scratchpads_qa_last_email_time', time());
     $query = db_select('simpletest', 's')->fields('s', array(
       'test_class'
