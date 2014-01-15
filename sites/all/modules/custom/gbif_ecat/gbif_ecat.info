@@ -4,3 +4,4 @@ package = "Data provider"
 dependencies[] = tcsdc
 tool=true;
 core = 7.x
+files[] = tests/gbif_ecat.selenium.test

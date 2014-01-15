@@ -1,0 +1,86 @@
+<?php
+/**
+ * @file
+*
+* Test case for Darwincore with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class TinyTaxSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'TinyTax (Selenium)',
+      'description' => 'Test the import of taxonomy from EOL, and the tinytax tree functionality.',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  /**
+   * A wrapper for the following tests
+   * - Create a vocabulary
+   * - Import a taxonomy from EOL ('Pediculus')
+   * - Verify that the vocab tab has been created
+   * - Verify that the tinytax block is present on term page
+   * - Test the functionality of the taxonomy tree
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $vocab_name = $this->randomName();
+    $this->createAnimalVocabulary($vocab_name);
+    $success = $this->importTaxonomy($vocab_name, 'Pediculus');
+    if($success){
+      $this->drupalGet('');
+      $this->verifyTaxonomyTree($vocab_name);
+    }
+  }
+
+  /**
+   * Create a vocabulary
+   */
+  function createAnimalVocabulary($vocab_name){
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $element = $this->driver->getElement("name=name");
+    $element->clear();
+    $element->sendKeys($vocab_name);
+    $element = $this->driver->getElement("name=description");
+    $element->clear();
+    $element->sendKeys($this->randomName());
+    $element = $this->driver->getElement("name=biological_classification");
+    $element->selectLabel('Animal');
+    // Submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+  }
+
+  /**
+   * Verify the presense of the tiny tax block
+   * Verify that clicking on the '+' sign of elements opens the tree.
+   * Verify that clicking on a second '+' sign further opens the tree.
+   */
+  function verifyTaxonomyTree($vocab_name){  
+    $this->clickLink($vocab_name);
+    // Wait for the page to load  and verfiy that the tiny tax block exists
+    $elements = $this->driver->waitForElements('css=.block-tinytax');
+    $this->verboseScreenshot();
+    $this->assertTrue(!empty($elements), 'Tiny tax block present on term page');
+    $number_of_visible_nodes = $this->driver->getAllElements("xpath=//*[text()[contains(.,'Pediculus')]]");
+    $this->driver->getElement("css=.tinytax .plus")->click();
+    $this->driver->sleep(5);
+    $number_of_visible_nodes2 = $this->driver->getAllElements("xpath=//*[text()[contains(.,'Pediculus')]]");
+    $this->assertTrue($number_of_visible_nodes2 > $number_of_visible_nodes, 'Clicking on plus sign successfully opens tree');
+    $this->verboseScreenshot();
+    $nodes = $this->driver->getAllElements("css=.tinytax .plus");
+    $nodes[1]->click();
+    $this->driver->sleep(5);
+    $number_of_visible_nodes3 = $this->driver->getAllElements("xpath=//*[text()[contains(.,'Pediculus')]]");
+    $this->assertTrue($number_of_visible_nodes3 > $number_of_visible_nodes2, 'Clicking on a second plus sign successfully opens sub tree');
+    $this->verboseScreenshot();
+  }
+}

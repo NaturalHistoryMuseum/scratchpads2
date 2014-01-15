@@ -12,3 +12,4 @@ dependencies[] = biblio_marc
 dependencies[] = biblio_pm
 dependencies[] = biblio_ris
 dependencies[] = biblio_rtf
+files[] = tests/scratchpads_biblio_search.selenium.test

@@ -9,7 +9,7 @@ function eol_tcsdc_form($form, $form_state){
   // Request for Phthiraptera or Pediculus!
   $xml = file_get_contents(EOL_REQUEST_URL . '34238633', 0, stream_context_create(array(
     'http' => array(
-      'timeout' => 3
+      'timeout' => 10
     )
   )));
   $eol_service_status = FALSE;

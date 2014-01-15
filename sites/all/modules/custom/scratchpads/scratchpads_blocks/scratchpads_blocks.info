@@ -4,3 +4,4 @@ package = "Scratchpads theme"
 core = 7.x
 dependencies[] = prepopulate
 dependencies[] = legal
+files[] = scratchpads_blocks.test
