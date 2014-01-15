@@ -21,7 +21,7 @@ function scratchpads_qa_cron(){
     $subquery->groupBy('test_class');
     $query->innerJoin($subquery, 'subquery', 'max_test_id = s.test_id AND subquery.test_class = s.test_class');
     $query->groupBy('test_class')->groupBy('status');
-    $results = $query->extend('PagerDefault')->execute()->fetchAssoc();
+    $results = $query->extend('PagerDefault')->execute()->fetchAll();
     if($results){
       // We have some fails, we therefore need to send out an email message.
       drupal_mail('scratchpads_qa', 'fails', 's.rycroft@nhm.ac.uk', language_default(), $results);
@@ -37,12 +37,15 @@ function scratchpads_qa_mail($key, &$message, $params){
     case 'fails':
       $message['subject'] = t('Scratchpads Testing fails detected');
       $message['body'] = array(
-        'The following fails were detected:',
-        ''
+        'The following fails were detected:'
       );
+      $extra_line = '';
       foreach($params as $param){
-        $message['body'][] = $param['test_class'] . '(' . $param['count_status'] . ')';
+        $extra_line .= $param->test_class . '(' . $param->count_status . ")\n";
       }
+      $message['body'][] = $extra_line;
+      $message['body'][] = 'Cheers,';
+      $message['body'][] = "Scratchpads Testing Bot\n--\nhttp://qa.scratchpads.eu/";
   }
 }
 
