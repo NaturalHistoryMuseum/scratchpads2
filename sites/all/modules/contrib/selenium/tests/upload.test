@@ -1,0 +1,75 @@
+<?php
+
+/**
+ * @file
+ *
+ * Test case for filefield ajax upload functionality in Firefox.
+ */
+
+if (!class_exists('DrupalSeleniumWebTestCase')) {
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class FilefieldTestExample extends DrupalSeleniumWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Filefield ajax upload',
+      'description' => 'Test ajax filefield upload functionality (Firefox only).',
+      'group' => 'Selenium',
+    );
+  }
+
+  /**
+   * Test node edit with image upload.
+   */
+  function testEditPage() {
+    $node = $this->drupalCreateNode(array('type' => 'article'));
+    $this->drupalGet('node/' . $node->nid);
+
+    // Assert title of the page.
+    $this->assertTitle($node->title . ' | Drupal');
+
+    // Create user.
+    $account = $this->drupalCreateUser(array('bypass node access'));
+
+    // Login user.
+    $this->drupalLogin($account);
+
+    // Open node edit page.
+    $this->drupalGet('node/' . $node->nid . '/edit');
+    // Get text of h1 title element.
+    $title = $this->driver->getElement('css=h1.title')->getText();
+
+    $this->assertEqual($title, 'Edit Article ' . $node->title);
+
+    // Upload image to the node.
+    $image_file = array_pop($this->drupalGetTestFiles('image'));
+    $image_file_path = drupal_realpath($image_file->uri);
+    $this->driver->getElement('css=#edit-field-image-und-0-upload')->sendKeys($image_file_path);
+    $this->driver->getElement('css=#edit-field-image-und-0-upload-button')->click();
+
+    $this->verboseScreenshot();
+    // Wait until Remove button appear.
+    $this->driver->waitForElements('css=#edit-field-image-und-0-remove-button');
+
+    $this->verboseScreenshot();
+    $this->driver->getElement('css=#edit-submit')->submit();
+    // Wait till message appear
+    $this->driver->waitForElements('css=#messages div.messages .placeholder');
+    $this->verboseScreenshot();
+
+    // Try to find image on the node view page.
+    // Unfortunately 'css=img[src*=_string_]' doesn't work at the moment.
+    $elements = $this->driver->getAllElements('css=img');
+    $found = FALSE;
+    foreach ($elements as $element) {
+      $src = $element->getAttributeValue('src');
+      if (!$found) {
+        $found = (strpos($src, $image_file->filename) !== FALSE);
+      }
+    }
+    $this->assertTrue($found, t('Image uploaded succesfully'));
+  }
+}

@@ -1,0 +1,59 @@
+<?php
+/**
+ * @file
+*
+* Test case for scratchpads_issues_block with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsIssuesBlockSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Issues Block (Selenium)',
+      'description' => 'Tests for scratchpads issues block',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  /**
+   * A wrapper for the following tests
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $this->verifyOpenClose();
+  }
+
+  /**
+   * Verify that the block opens and close when you click on the tab
+   */
+  function verifyOpenClose(){
+    $locator = "xpath=//*[text()[contains(.,'Report an issue')]]";
+    // The normal assertText method does not work here as the text is not hidden by css but moved off the visible screen
+    // Instead, we look for the location and size of the elmement and determine whether it is on the screen
+    $element = $this->driver->getElement($locator);
+    $location = $element->getLocation();
+    $size = $element->getSize();
+    $this->assertFalse($location['x'] + $size['width'] > 0, 'Issues block not visible before clicking tab.');
+    // Click to open
+    $this->driver->getElement("css=.blockexpose .open-close")->click();
+    $this->driver->sleep(1);
+    $element = $this->driver->getElement($locator);
+    $location = $element->getLocation();
+    $size = $element->getSize();
+    $this->assertTrue($location['x'] + $size['width'] > 0, 'Issues block opens after clicking the tab.');
+    // Click to close
+    $this->driver->getElement("css=.blockexpose .open-close")->click();
+    $this->driver->sleep(1);
+    $element = $this->driver->getElement($locator);
+    $location = $element->getLocation();
+    $size = $element->getSize();
+    $this->assertFalse($location['x'] + $size['width'] > 0, 'Issues block closes after clicking tab a second time.');
+  }
+}

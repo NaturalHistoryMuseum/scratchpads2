@@ -1,0 +1,183 @@
+<?php
+/**
+ * @file
+*
+* Test case for scratchpads biblio search with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsBiblioSearchSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  protected $admin_user;
+
+  protected $admin_user2;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Biblio Search (Selenium)',
+      'description' => 'Tests searching for Biblio nodes with solr facets ',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  public function setUp(){
+    parent::setUp();
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    $admin_user_permissions = $default_permissions['maintainer'];
+    $anon_user_permissions = $default_permissions['anonymous user'];
+    $admin_user_permissions[] = 'access content overview';
+    $admin_user_permissions[] = 'administer search';
+    foreach($anon_user_permissions as $anon_perm){
+      $admin_user_permissions[] = $anon_perm;
+    }
+    $this->admin_user = $this->drupalCreateUserWithName($admin_user_permissions, 'admin_user_name');
+    legal_save_accept(1, 1, 'en', $this->admin_user->uid);
+    $this->admin_user2 = $this->drupalCreateUserWithName($admin_user_permissions, 'admin_user_name2');
+    legal_save_accept(1, 1, 'en', $this->admin_user2->uid);
+  }
+
+  /**
+   * A wrapper for the following tests
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->admin_user);
+    // The following line sets solr server url
+    $this->setUpLocalSolr();
+    // Add some biblio records to test solr facets with
+    $data = array();
+    $data = $this->addBiblio($data, 'Journal Article');
+    $data = $this->addBiblio($data, 'Conference Paper');
+    $data = $this->addBiblio($data, 'Book');
+    // Add some records as another user, so we can test the contributor facet
+    $this->drupalLogin($this->admin_user2);
+    $data = $this->addBiblio($data, 'Book');
+    $this->drupalGet('biblio');
+    // Wait for elements to be processed by solr. This might be a long wait.
+    $this->waitForSolrIndexing('biblio', "xpath=//*[text()[contains(.,'" . $data['admin_user_name'][0]['title'] . "')]]", 30);
+    $this->verifyBiblioFacets($data);
+  }
+
+  /**
+   * Verify that the solr facets are working correctly with biblio nodes
+   * The data passed to this function must contain at least 2 contributors
+   */
+  function verifyBiblioFacets($data){
+    $this->verboseScreenshot();
+    // Test facet filtering for our first biblio entry
+    $users = array_keys($data);
+    $user1 = $users[0];
+    $user2 = $users[1];
+    foreach($data[$user1][0] as $field_name => $field_data){
+      if($field_name != 'title'){
+        $link_text = $field_data . ' (1)';
+        // We can't use the regular clickLink() function as the link also contains hidden text
+        $this->driver->getElement("xpath=//a[text()[contains(.,'" . $link_text . "')]]")->click();
+        $this->waitForElementsToBeNotVisible($data[$user1][1]['title']);
+        $this->assertText($data[$user1][0]['title'], 'title 1 correctly shown after filtering by ' . $field_name);
+        $this->assertNoText($data[$user1][1]['title'], 'title 2 correctly not shown after filtering by ' . $field_name);
+        $this->assertNoText($data[$user1][2]['title'], 'title 3 correctly not shown after filtering by ' . $field_name);
+        $this->verboseScreenshot();
+        $this->driver->getElement("css=.facetapi-active")->click();
+        $this->driver->waitForElements("xpath=//*[text()[contains(.,'" . $data[$user1][1]['title'] . "')]]");
+        $this->assertText($data[$user1][0]['title'], "title 1 correctly shown after clicking '-' sign on " . $field_name);
+        $this->assertText($data[$user1][1]['title'], "title 2 correctly shown after clicking '-' sign on " . $field_name);
+        $this->assertText($data[$user1][2]['title'], "title 3 correctly shown after clicking '-' sign on " . $field_name);
+        $this->verboseScreenshot();
+      }
+    }
+    // Test facet filtering by contributor
+    $link_text = $user1 . ' (' . count($data[$user1]) . ')';
+    $this->driver->getElement("xpath=//a[text()[contains(.,'" . $link_text . "')]]")->click();
+    $this->waitForElementsToBeNotVisible($data[$user1][1]['title']);
+    $this->assertText($data[$user1][0]['title'], 'title 1 correctly shown after filtering by contributor: ' . $user1);
+    $this->assertText($data[$user1][1]['title'], 'title 2 correctly shown after filtering by contributor: ' . $user1);
+    $this->assertText($data[$user1][2]['title'], 'title 3 correctly shown after filtering by contributor: ' . $user1);
+    $this->assertNoText($data[$user2][0]['title'], 'title 4 correctly not shown after filtering by contributor: ' . $user1);
+    $this->verboseScreenshot();
+    $this->driver->getElement("css=.facetapi-active")->click();
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'" . $data[$user1][1]['title'] . "')]]");
+    $this->assertText($data[$user1][0]['title'], "title 1 correctly shown after after clicking '-' sign on contributor");
+    $this->assertText($data[$user1][1]['title'], "title 2 correctly shown after after clicking '-' sign on contributor");
+    $this->assertText($data[$user1][2]['title'], "title 3 correctly shown after after clicking '-' sign on contributor");
+    $this->assertText($data[$user2][0]['title'], "title 4 correctly shown after after clicking '-' sign on contributor");
+    $this->verboseScreenshot();
+  }
+
+  /**
+   * 'Manually' add a biblio record
+   */
+  function addBiblio($data, $type){
+    $this->drupalGet('node/add/biblio');
+    $element = $this->driver->getElement("name=biblio_type");
+    $element->selectLabel($type);
+    $title = $this->randomName();
+    $author = $this->randomName();
+    $keyword = $this->randomName();
+    // generate a random year between 1900 and 2013
+    $year = rand(1900, 2013);
+    // for the purposes of this test we don't want random duplicate entries
+    while($this->is_duplicate($data, $year)){
+      $year = rand(1900, 2013);
+    }
+    // wait for next page to load
+    $this->driver->waitForElements("name=title");
+    $element = $this->driver->getElement("name=title");
+    $element->clear();
+    $element->sendKeys($title);
+    $element = $this->driver->getElement("name=biblio_contributors[0][name]");
+    $element->clear();
+    $element->sendKeys($author);
+    // Click Tab
+    $this->clickLink('Publication');
+    $this->driver->waitForElements("name=biblio_year");
+    $element = $this->driver->getElement("name=biblio_year");
+    $element->clear();
+    $element->sendKeys($year);
+    if($type == 'Journal Article'){
+      $secondary_title = $this->randomName();
+      $element = $this->driver->getElement("name=biblio_secondary_title");
+      $element->clear();
+      $element->sendKeys($secondary_title);
+    }else{
+      $secondary_title = '';
+    }
+    // Click Tab
+    $this->clickLink('Keywords');
+    $this->driver->waitForElements("name=biblio_keywords");
+    $element = $this->driver->getElement("name=biblio_keywords");
+    $element->clear();
+    $element->sendKeys($keyword);
+    // submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $data[$this->loggedInUser->name][] = array(
+      'title' => $title,
+      'year' => $year,
+      'author' => $author,
+      'type' => $type,
+      'keywords' => $keyword,
+      'secondary title' => $secondary_title
+    );
+    return $data;
+  }
+
+  /**
+   * Checks for duplicate year entries
+   * Returns true if duplcate is found, otherwise false
+   */
+  function is_duplicate($data, $year){
+    if(count($data) == 0){return false;}
+    foreach($data as $userdata){
+      foreach($userdata as $field_data){
+        if($field_data['year'] == $year){return true;}
+      }
+    }
+    return false;
+  }
+}

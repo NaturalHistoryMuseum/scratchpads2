@@ -4,3 +4,4 @@ description = "Displays a National Center for Biotechnology Information widget o
 package = "Widgets"
 dependencies[] = scratchpads_species
 tool=yes
+files[] = tests/ncbi.selenium.test
