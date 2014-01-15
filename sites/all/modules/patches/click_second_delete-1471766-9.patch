@@ -1,0 +1,20 @@
+diff --git a/tests/apachesolr_base.test b/tests/apachesolr_base.test
+index 6e23b0f..7accbf9 100644
+--- a/tests/apachesolr_base.test
++++ b/tests/apachesolr_base.test
+@@ -369,7 +369,7 @@ class DrupalSolrOfflineSearchPagesWebTestCase extends DrupalSolrOfflineWebTestCa
+     $this->assertText(t('Test Search Page'), t('Search Page was succesfully created'));
+ 
+     // Remove the same environment
+-    $this->clickLink(t('Delete'));
++    $this->clickLink(t('Delete'), 1);
+     $this->assertText(t('search page configuration will be deleted.This action cannot be undone.'), t('Delete confirmation page was succesfully loaded'));
+     $this->drupalPost($this->getUrl(), array(), t('Delete'));
+     $this->assertResponse(200);
+@@ -689,4 +689,4 @@ EOF;
+     $this->assertFalse(strpos($cleaned, 'COMMENT'), 'html comment content removed ');
+     $this->assertTrue(strpos(trim($cleaned), 'GOOD_CONTENT') === 0, 'Real content retained');
+   }
+-}
+\ No newline at end of file
++}
