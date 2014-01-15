@@ -46,67 +46,68 @@ class DateUITestCase extends DrupalWebTestCase {
     $this->assertText('The content type Story has been added.', 'Content type added.');
 
     // Creates select list field stored as a date with default settings.
-    $this->createDateField($type = 'date', $widget = 'date_select');
+    $this->createDateField('date', 'date_select');
     $edit = array();
+    $current_year = date('Y');
     $this->drupalPost(NULL, $edit, t('Save field settings'));
     $this->dateForm($options = 'select');
-    $this->assertText('Thu, 10/07/2010 - 10:30', 'Found the correct date for a date field using the date_select widget.');
+    $this->assertText(format_string('10/07/!year - 10:30', array('!year' => $current_year)), 'Found the correct date for a date field using the date_select widget.');
     $this->deleteDateField();
     // Creates text field stored as a date with default settings.
     $this->createDateField($type = 'date', $widget = 'date_text');
     $edit = array();
     $this->drupalPost(NULL, $edit, t('Save field settings'));
     $this->dateForm($options = 'text');
-    $this->assertText('Thu, 10/07/2010 - 10:30', 'Found the correct date for a date field using the date_text widget.');
+    $this->assertText(format_string('10/07/!year - 10:30', array('!year' => $current_year)), 'Found the correct date for a date field using the date_text widget.');
     $this->deleteDateField();
     // Creates popup field stored as a date with default settings.
     $this->createDateField($type = 'date', $widget = 'date_popup');
     $edit = array();
     $this->drupalPost(NULL, $edit, t('Save field settings'));
     $this->dateForm($options = 'popup');
-    $this->assertText('Thu, 10/07/2010 - 10:30', 'Found the correct date for a date field using the date_popup widget.');
+    $this->assertText(format_string('10/07/!year - 10:30', array('!year' => $current_year)), 'Found the correct date for a date field using the date_popup widget.');
     $this->deleteDateField();
     // Creates select list field stored as a datestamp with default settings.
     $this->createDateField($type = 'datestamp', $widget = 'date_select');
     $edit = array();
     $this->drupalPost(NULL, $edit, t('Save field settings'));
     $this->dateForm($options = 'select');
-    $this->assertText('Thu, 10/07/2010 - 10:30', 'Found the correct date for a datestamp field using the date_select widget.');
+    $this->assertText(format_string('10/07/!year - 10:30', array('!year' => $current_year)), 'Found the correct date for a datestamp field using the date_select widget.');
     $this->deleteDateField();
     // Creates text field stored as a datestamp with default settings.
     $this->createDateField($type = 'datestamp', $widget = 'date_text');
     $edit = array();
     $this->drupalPost(NULL, $edit, t('Save field settings'));
     $this->dateForm($options = 'text');
-    $this->assertText('Thu, 10/07/2010 - 10:30', 'Found the correct date for a datestamp field using the date_text widget.');
+    $this->assertText(format_string('10/07/!year - 10:30', array('!year' => $current_year)), 'Found the correct date for a datestamp field using the date_text widget.');
     $this->deleteDateField();
     // Creates popup field stored as a datestamp with default settings.
     $this->createDateField($type = 'datestamp', $widget = 'date_popup');
     $edit = array();
     $this->drupalPost(NULL, $edit, t('Save field settings'));
     $this->dateForm($options = 'popup');
-    $this->assertText('Thu, 10/07/2010 - 10:30', 'Found the correct date for a datestamp field using the date_popup widget.');
+    $this->assertText(format_string('10/07/!year - 10:30', array('!year' => $current_year)), 'Found the correct date for a datestamp field using the date_popup widget.');
     $this->deleteDateField();
     // Creates select list field stored as a datetime with default settings.
     $this->createDateField($type = 'datetime', $widget = 'date_select');
     $edit = array();
     $this->drupalPost(NULL, $edit, t('Save field settings'));
     $this->dateForm($options = 'select');
-    $this->assertText('Thu, 10/07/2010 - 10:30', 'Found the correct date for a datetime field using the date_select widget.');
+    $this->assertText(format_string('10/07/!year - 10:30', array('!year' => $current_year)), 'Found the correct date for a datetime field using the date_select widget.');
     $this->deleteDateField();
     // Creates text field stored as a datetime with default settings.
     $this->createDateField($type = 'datetime', $widget = 'date_text');
     $edit = array();
     $this->drupalPost(NULL, $edit, t('Save field settings'));
     $this->dateForm($options = 'text');
-    $this->assertText('Thu, 10/07/2010 - 10:30', 'Found the correct date for a datetime field using the date_text widget.');
+    $this->assertText(format_string('10/07/!year - 10:30', array('!year' => $current_year)), 'Found the correct date for a datetime field using the date_text widget.');
     $this->deleteDateField();
     // Creates popup field stored as a datetime with default settings.
     $this->createDateField($type = 'datetime', $widget = 'date_popup');
     $edit = array();
     $this->drupalPost(NULL, $edit, t('Save field settings'));
     $this->dateForm($options = 'popup');
-    $this->assertText('Thu, 10/07/2010 - 10:30', 'Found the correct date for a datetime field using the date_popup widget.');
+    $this->assertText(format_string('10/07/!year - 10:30', array('!year' => $current_year)), 'Found the correct date for a datetime field using the date_popup widget.');
     $this->deleteDateField();
 
     // Test timezone handling validation on the field settings form.
@@ -125,18 +126,20 @@ class DateUITestCase extends DrupalWebTestCase {
     $edit = array();
     $edit['title'] = $this->randomName(8);
     $edit['body[und][0][value]'] = $this->randomName(16);
+    $current_year = date('Y');
+
     if ($options == 'select') {
-      $edit['field_test[und][0][value][year]'] = '2010';
+      $edit['field_test[und][0][value][year]'] = $current_year;
       $edit['field_test[und][0][value][month]'] = '10';
       $edit['field_test[und][0][value][day]'] = '7';
       $edit['field_test[und][0][value][hour]'] = '10';
       $edit['field_test[und][0][value][minute]'] = '30';
     }
     elseif ($options == 'text') {
-      $edit['field_test[und][0][value][date]'] = '10/07/2010 - 10:30';
+      $edit['field_test[und][0][value][date]'] = format_string('10/07/!year - 10:30', array('!year' => $current_year));
     }
     elseif ($options == 'popup') {
-      $edit['field_test[und][0][value][date]'] = '10/07/2010';
+      $edit['field_test[und][0][value][date]'] = format_string('10/07/!year', array('!year' => $current_year));
       $edit['field_test[und][0][value][time]'] = '10:30';
     }
     $this->drupalPost('node/add/story', $edit, t('Save'));
