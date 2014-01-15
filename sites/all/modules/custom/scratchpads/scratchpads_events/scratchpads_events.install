@@ -8,12 +8,13 @@
 function scratchpads_events_enable(){
   // Enable/re-enable all the features of this module.
   $feature = features_get_features('scratchpads_events');
-  $components = array_keys($feature->info['features']);
-  features_revert(array(
-  'scratchpads_events' => $components
-  ));
+  if($feature->schema_version > 0){
+    $components = array_keys($feature->info['features']);
+    features_revert(array(
+      'scratchpads_events' => $components
+    ));
+  }
 }
-
 
 /**
  * Implements hook_disable().
@@ -21,11 +22,10 @@ function scratchpads_events_enable(){
  */
 function scratchpads_events_disable(){
   // if there is no data, remove the fields and content type
-  if(scratchpads_events_node_count() == 0){  
+  if(scratchpads_events_node_count() == 0){
     node_type_delete('event');
   }
 }
-
 
 /**
  * Ensure users haven't deleted any fields.

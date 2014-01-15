@@ -54,10 +54,12 @@ function scratchpads_blog_block_view($delta = ''){
   global $user;
   $actions = _scratchpads_blog_action_links();
   $links = array();
-  foreach($actions as $a){
-    $links[] = theme('menu_local_action', array(
-      'element' => $a
-    ));
+  if(is_array($actions)){
+    foreach($actions as $a){
+      $links[] = theme('menu_local_action', array(
+        'element' => $a
+      ));
+    }
   }
   return array(
     'subject' => t(''),

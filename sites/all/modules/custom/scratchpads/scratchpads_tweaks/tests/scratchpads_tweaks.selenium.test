@@ -1,0 +1,432 @@
+<?php
+/**
+ * @file
+ *
+ * Test case for Scratchpads Selenium Tweaks
+ * This class acts as a parent class for all other selenium tests, and contains both new methods and method overrides.
+ * To save test run time, there are no actual tests within this class.
+ *
+ */
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsTweaksSeleniumTestCase extends DrupalSeleniumWebTestCase{
+
+  protected $maintainer;
+
+  protected $profile = 'scratchpad_2';
+  // Set to false to use the default settings
+  protected $solr_server_url = false; //'http://localhost:8983/solr';
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Tweaks (Selenium)',
+      'description' => 'Parent class for all scratchpads selenium tests.',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  /**
+   * Overrides DrupalSeleniumWebTestCase setup()
+   */
+  protected function setUp(){
+    $modules = func_get_args();
+    if(isset($modules[0]) && is_array($modules[0])){
+      $modules = $modules[0];
+    }
+    include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_tweaks') . "/tests/scratchpads_tweaks.inc";
+    $browser = 'firefox';
+    if(in_array($this->browser, $this->allowed_browsers)){
+      $browser = $this->browser;
+    }
+    $this->driver = $this->seleniumDriver($browser);
+    if($this->onOriginal){
+      $this->sandboxDatabasePrefix = $this->databasePrefix;
+      $this->originalDatabasePrefix = NULL;
+      Database::renameConnection('default', 'simpletest_sandbox');
+      $connection_info = Database::getConnectionInfo('simpletest_sandbox');
+      Database::addConnectionInfo('default', 'default', $connection_info['default']);
+      $this->switchConnectionTo('simpletest_original_default');
+    }
+    $to_disable = array();
+    $to_disable[] = 'overlay';
+    $to_disable[] = 'captcha';
+    module_disable($to_disable);
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    // Maintainer
+    $maintainer_permissions = $default_permissions['maintainer'];
+    $maintainer_permissions[] = 'access content';
+    $maintainer_permissions[] = 'view the administration theme';
+    $maintainer_permissions[] = 'access content overview';
+    $maintainer_permissions[] = 'access form flows';
+    $maintainer_permissions[] = 'access dashboard';
+    $maintainer_permissions[] = 'delete all file';
+    $maintainer_permissions[] = 'edit all file';
+    $this->maintainer = $this->drupalCreateUserWithName($maintainer_permissions, 'maintainer_name');
+    legal_save_accept(1, 1, 'en', $this->maintainer->uid);
+    $this->basic_user = $this->drupalCreateUserWithName(array(
+      'access content',
+      'access user profiles'
+    ), 'basic-user');
+    legal_save_accept(1, 1, 'en', $this->basic_user->uid);
+  }
+
+  /**
+   * Overrides DrupalWebTestCase drupallogin().
+   * @see DrupalWebTestCase::drupalLogin()
+   */
+  protected function drupalLogin(stdClass $account){
+    if($this->loggedInUser){
+      $this->drupalLogout();
+    }
+    $edit = array(
+      'name' => $account->name,
+      'pass' => $account->pass_raw
+    );
+    // there may be an issue with post for logins
+    $this->drupalPost('user', $edit, t('Log in'));
+    // override is here
+    $pass = $this->assertNoText('Sorry, unrecognized username or password', 'User successfully logged in');
+    if($pass){
+      $this->loggedInUser = $account;
+    }
+  }
+
+  /**
+   * We temporarily override this function to remove views handler debug errors, mainly caused by legal module
+   */
+  public function errorHandler($severity, $message, $file = NULL, $line = NULL){
+    if(strpos($message, 'Missing handler') === FALSE){
+      parent::errorHandler($severity, $message, $file, $line);
+    }
+    return TRUE;
+  }
+
+  /**
+   * Override to add a fail when there is an uncaught exception
+   *
+   * @see set_exception_handler
+   */
+  protected function exceptionHandler($exception){
+    $backtrace = $exception->getTrace();
+    // Push on top of the backtrace the call that generated the exception.
+    array_unshift($backtrace, array(
+      'line' => $exception->getLine(),
+      'file' => $exception->getFile()
+    ));
+    require_once DRUPAL_ROOT . '/includes/errors.inc';
+    // The exception message is run through check_plain() by _drupal_decode_exception().
+    $this->fail(t('%type: !message in %function (line %line of %file).', _drupal_decode_exception($exception)), 'Uncaught exception', _drupal_get_last_caller($backtrace));
+  }
+
+  /**
+   * Allow the creation of a user with a specific username
+   */
+  protected function drupalCreateUserWithName(array $permissions = array(), $username){
+    // Create a role with the given permission set, if any.
+    $rid = FALSE;
+    if($permissions){
+      $rid = $this->drupalCreateRole($permissions);
+      if(!$rid){return FALSE;}
+    }
+    // Create a user assigned to that role.
+    $edit = array();
+    $edit['name'] = $username;
+    $edit['mail'] = $edit['name'] . '@example.com';
+    $edit['pass'] = user_password();
+    $edit['status'] = 1;
+    if($rid){
+      $edit['roles'] = array(
+        $rid => $rid
+      );
+    }
+    $account = user_save(drupal_anonymous_user(), $edit);
+    $this->assertTrue(!empty($account->uid), t('User created with name %name and pass %pass', array(
+      '%name' => $edit['name'],
+      '%pass' => $edit['pass']
+    )), t('User login'));
+    if(empty($account->uid)){return FALSE;}
+    // Add the raw password so that we can log in as this user.
+    $account->pass_raw = $edit['pass'];
+    $account->rid = $rid;
+    return $account;
+  }
+
+  /**
+   * Returns a new vocabulary with random properties.
+   * Code based on TaxonomyWebTestCase::createVocabulary
+   */
+  function createBioVocabularyWithName($name = ''){
+    // Create a vocabulary.
+    $vocabulary = new stdClass();
+    if($name != ''){
+      $vocabulary->name = $name;
+    }else{
+      $vocabulary->name = $this->randomName();
+    }
+    $vocabulary->description = $this->randomName();
+    $vocabulary->machine_name = drupal_strtolower($this->randomName());
+    $vocabulary->help = '';
+    $vocabulary->biological_classification = 1;
+    $vocabulary->nodes = array(
+      'page' => 'page'
+    );
+    $vocabulary->weight = mt_rand(0, 10);
+    taxonomy_vocabulary_save($vocabulary);
+    return $vocabulary;
+  }
+
+  /**
+   * Returns a new term with random properties in vocabulary $vid.
+   * Code based on TaxonomyWebTestCase::createTerm
+   */
+  protected function createTermWithName($vocabulary, $name){
+    $term = new stdClass();
+    $term->name = $name;
+    $term->description = $this->randomName();
+    // Use the first available text format.
+    $term->format = db_query_range('SELECT format FROM {filter_format}', 0, 1)->fetchField();
+    $term->vid = $vocabulary->vid;
+    taxonomy_term_save($term);
+    return $term;
+  }
+
+  /**
+   * Helper function for autocomplete fields
+   */
+  function _autocompleteTest($field_name, $firstletter, $expected = NULL){
+    $element = $this->driver->getElement("name=" . $field_name);
+    $element->clear();
+    $element->sendKeys($firstletter);
+    $this->driver->sleep(10);
+    // Get first elements of autocomplete list and click on it.
+    $first_element = current($this->driver->getAllElements('css=#autocomplete li div'));
+    // Click is to select line item.
+    $first_element->click();
+    $this->driver->sleep(2);
+    // Submit selected line item.
+    $first_element->submit();   
+    $this->driver->sleep(2);
+    if($expected){
+      // Ensure that textfield is populated with selected element.
+      $element_value = $element->getValue();
+      $this->assertEqual($expected, $element_value, t('Text of selected element is populated to textfield.'));
+    }
+  }
+
+  /**
+   *  Import Taxonomy from EOL
+   *  
+   *  Returns true on successful connection to EOL, otherwise false
+   */
+  function importTaxonomy($vocab_name, $search_term){
+    $eol_running = false;
+    $count = 0;
+    // We try 5 times to connect to EOL
+    while($count < 5 && (!$eol_running)){
+      $this->drupalGet('admin/import');
+      $element = $this->driver->getElement("name=silver_import_select");
+      // A manual override of selectLabel method, using xpath contains
+      $option_element = $element->getNextElement("xpath=.//option[text()[contains(.,'TCS')]]");
+      $option_element->click();
+      $this->driver->sleep(6);
+      $element = $this->driver->getElement("name=taxonomy_vid");
+      $element->selectLabel($vocab_name);
+      // Click the collapsed tab to open
+      $this->driver->getElement("css=#edit-eol a")->click();
+      $eol_running = $this->assertTextNoError('The EOL classification service appears to be running.');
+      $count++;
+      if((!$eol_running) && ($count == 5)){
+        $this->error('Could not connect to EOL');
+        return false;
+      }
+    }
+    // Enter the search term
+    $this->driver->waitForElements("name=eol-name");
+    $element = $this->driver->getElement("name=eol-name");
+    $element->clear();
+    $element->sendKeys($search_term);
+    $this->driver->getElement("id=edit-eol-search")->click();
+    // Wait for 'Please wait' to not be visible on the page
+    $elements = $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,'Please wait')]]", 20);
+    $results = $this->driver->waitForElements("name=eol-import-id");
+    // Click on the first result
+    $this->driver->getElement("name=eol-import-id")->click();
+    // submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit-eol");
+    $submit_button->click();
+    $this->assertText('Importing', 'Taxonomy Import Started');
+    // wait for upload (maximum of 30 seconds)
+    $elements = $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,'Importing')]]", 30);
+    // Wait another couple of seconds for page redirect
+    $this->driver->sleep(2);
+    $this->verboseScreenshot();
+    $this->assertText($search_term, 'Taxonomy successfully imported');
+    $this->verboseScreenshot();
+    return true;
+  }
+
+  /**
+   * Allows you to assert that there is text on the page without creating an error message.
+   * Useful when looping, and only want an error to be displayed at the end of the loop
+   */
+  protected function assertTextNoError($text){
+    if($this->plainTextContent === FALSE){
+      $this->plainTextContent = filter_xss($this->drupalGetContent(), array());
+    }
+    return (strpos($this->plainTextContent, $text) === FALSE);
+  }
+
+  /**
+   * Wait for element to be not visible on page
+   * 
+   * @param string $locator
+   * @param int $timeout
+   * @return SeleniumWebElement
+   * 
+   * Returns empty array if element is not visible within the specified time (defaults to 10 seconds)
+   * Otherwise returns an array of elements matching the locator
+   */
+  public function waitForElementsToBeNotVisible($locator, $timeout = 10){
+    $elements = $this->driver->getAllElements($locator);
+    // Wait for elements.
+    while($timeout > 0 && !empty($elements)){
+      $elements = $this->driver->getAllElements($locator);
+      $this->driver->sleep(1);
+      $timeout--;
+    }
+    return $elements;
+  }
+
+  /**
+   * Wait for elements to be indexed by Solr
+   *
+   * @param string $url - the page you want to wait on
+   * @param string $locator - the element to waiting for
+   * @param int $timeout - how long you want to wait (the value given will be multiplied by 20 seconds.)
+   */
+  public function waitForSolrIndexing($url, $locator, $timeout){
+    $elements = array();
+    $orig = $timeout;
+    // Wait for elements, reloading page every 20 seconds
+    while($timeout > 0 && empty($elements)){
+      // We avoid drupalGet() as we don't want the verbose messages
+      $this->driver->openUrl($url);
+      $elements = $this->driver->getAllElements($locator);
+      $this->driver->sleep(20);
+      $timeout--;
+    }
+    $total_wait = ($orig - $timeout) * 20;
+    $string = 'Solr successfully indexed after: ' . strval($total_wait) . ' seconds';
+    $this->assertTrue($timeout > 0, $string);
+    return $elements;
+  }
+
+  /**
+   * Wait for elements to be indexed by Solr and visible with search
+   *
+   * @param string $search_text - the text to search for
+   * @param string $result_text - the result that would mean a positive result
+   * @param int $timeout - how long you want to wait (the value given will be multiplied by 20 seconds.)
+   * 
+   * Returns true if a match is found within the time period
+   */
+  public function waitForSolrSearchIndexing($search_text, $result_text, $timeout){
+    $orig = $timeout;
+    $elements = array();
+    $this->driver->openUrl('');
+    // Wait for positive search result, retrying every 20 seconds
+    while($timeout > 0 && empty($elements)){
+      $element = $this->driver->getElement("name=search_block_form");
+      $element->clear();
+      $element->sendKeys($search_text);
+      $this->driver->getElement('id=edit-submit')->click();
+      $this->driver->sleep(20);
+      $this->verboseScreenshot();
+      $elements = $this->driver->getAllElements("xpath=//ol[@class='search-results apachesolr_search-results' and ./li[contains(.,'" . $result_text . "')]]");
+      $timeout--;
+    }
+    $total_wait = ($orig - $timeout) * 20;
+    if(empty($elements)){
+      $string = 'Solr indexing does not appear to be working on this site. Total wait: ' . strval($total_wait) . ' seconds. Attempted with ' . $this->solr_server_url;
+      $this->assertTrue(false, $string);
+      return false;
+    }else{
+      $string = 'Solr successfully indexed after: ' . strval($total_wait) . ' seconds';
+      $this->assertTrue($timeout > 0, $string);
+      return true;
+    }
+  }
+
+  /**
+   *  Set up the site to use the solr url given by $solr_server_url
+   *  
+   */
+  public function setUpLocalSolr(){
+    if($this->solr_server_url){
+      $this->drupalGet('admin/config/search/apachesolr/settings');
+      $this->clickLink('Edit');
+      $this->driver->waitForElements('name=url');
+      $element = $this->driver->getElement('name=url');
+      $element->clear();
+      $element->sendKeys($this->solr_server_url);
+      $submit_button = $this->driver->getElement("id=edit-save");
+      $submit_button->click();
+      $this->assertText('The Scratchpad solr server search environment has been saved.');
+    }
+  }
+
+  /**
+   * Wait for element for a specified length of time
+   * @param string $locator
+   * @param int $timeout
+   * @return array of SeleniumWebElements
+   */
+  public function waitLongForElements($locator, $timeout){
+    $elements = array();
+    $orig = $timeout;
+    // Wait for elements
+    while($timeout > 0 && empty($elements)){
+      $elements = $this->driver->getAllElements($locator);
+      $this->driver->sleep(1);
+      $timeout--;
+    }
+    $total_wait = $orig - $timeout;
+    $string = 'Element found after: ' . strval($total_wait) . ' seconds';
+    $this->assertTrue($timeout > 0, $string);
+    return $elements;
+  }
+  
+  /**
+   * Wait for element to be visible for a specified length of time
+   * @param string $locator
+   * @param string $locator_name - a human readable form for verbose messages
+   * @param int $timeout
+   * @return array of SeleniumWebElements
+   */
+  public function waitLongForElementsToBeVisible($locator, $locator_name, $timeout){
+    $elements = array();
+    $is_visible = false;
+    $orig = $timeout;
+    // Wait for element to be visible
+    while($timeout > 0 && ($is_visible==false)){
+      $elements = $this->driver->getAllElements($locator);
+      $this->driver->sleep(1);
+      $timeout--;
+      if(!empty($elements)){
+        if($elements[0]->isVisible()){
+          $is_visible = true;
+        }
+      }
+    }
+    $total_wait = $orig - $timeout;
+    $string = 'Visible element, '.$locator_name.', found after: ' . strval($total_wait) . ' seconds';
+    $this->assertTrue($timeout > 0, $string);
+    return $elements;
+  }
+}
