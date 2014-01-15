@@ -2,6 +2,176 @@
 
     var SlickEditor = {
         
+        /**
+         *  ControlledCharacter
+         */
+        ControlledCharacter: function(editor){
+          /**
+           * init
+           */
+          this.init = function(){
+            this.$input = $('<div></div>')
+            .addClass('character-editor-popup')
+            .attr('value', '')
+            .css({
+              position: 'absolute',
+              zIndex: '100',
+              top: $(editor.container).offset().top,
+              left: $(editor.container).offset().left
+            });
+            for (var i in editor.column.data.options){
+              var $row = $('<div></div>')
+              .addClass('character-editor-popup-row')
+              .html(editor.column.data.options[i])
+              .attr('value', i);
+              $row.appendTo(this.$input);
+              $row.click((function(context, val){
+                return $.proxy(context, 'rowClick', i)
+              })(this, i));
+            }
+            this.$input.appendTo('body');
+            // Click-out overlay
+            this.$overlay = $('<div></div>').css({
+              position: 'absolute',
+              top: '0',
+              left: '0',
+              width: $(document).width().toString() + "px",
+              height: $(document).height().toString() + "px",
+              zIndex: '99'
+            }).appendTo('body').one('click', $.proxy(function(e){
+              editor.cancelChanges();
+            }, this));
+          }
+
+          /**
+           * rowClick
+           */
+          this.rowClick = function(val){
+            if (val == this.getValue()){
+              val = '';
+            }
+            this.setValue(val);
+            if (!this.isValueChanged()){
+              editor.cancelChanges();
+            } else {
+              editor.commitChanges();
+            }
+          }
+
+          /**
+           * destroy
+           */
+          this.destroy = function(){
+            this.$overlay.remove();
+            this.$input.remove();
+          }
+
+          /**
+           * focus
+           */
+          this.focus = function() {
+            /* No-op */
+          };
+
+          /**
+           * getValue
+           */
+          this.getValue = function() {
+            return this.$input.attr('value');
+          };
+
+          /**
+           * setValue
+           */
+          this.setValue = function(val) {
+            this.$input.attr('value', val);
+            $('div.character-editor-popup-row', this.$input)
+            .removeClass('character-editor-popup-row-selected')
+            .css({
+              backgroundImage: 'none'
+            });
+            $('div.character-editor-popup-row[value=' + val.toString() + ']', this.$input)
+            .addClass('character-editor-popup-row-selected')
+            .css({
+              backgroundImage: 'url("' + Drupal.settings.basePath + Drupal.settings.CharacterEditorPath + '/images/tick.png")',
+              backgroundPosition: '0 center',
+              backgroundRepeat: 'no-repeat'
+            })
+          };
+
+          /**
+           * loadValue
+           */
+          this.loadValue = function(item) {
+            var m = Drupal.characterMetadataManager.getMetadata(item.index, editor.column.id);
+            if (m && typeof m.value !== 'undefined'){
+              this.defaultValue = m.value;
+            } else {
+              this.defaultValue = '';
+            }
+            this.$input[0].defaultValue = this.defaultValue;
+            this.setValue(this.defaultValue);
+          };
+
+          /**
+           * serializeValue
+           */
+          this.serializeValue = function() {
+            return this.$input.attr('value');
+          };
+
+          /**
+           * applyValue
+           */
+          this.applyValue = function(item, value) {
+            var data = {
+              // Data to be passed to the backend
+              display_id: slickgrid.getViewDisplayID(),
+              view: slickgrid.getViewName(),
+              entity_ids: slickgrid.getEntityIDs(item),
+              field_id: editor.column.id,
+              field_name: editor.column.fieldName,
+              entity_type: options['entity_type'],
+              revision: options['undo'],
+              value: value,
+              plugin: 'ControlledCharacter',
+              character_type: editor.column.data.charType,
+              id: editor.item.id
+            };
+            // Perform the update
+            slickgrid.callback('update', data);
+          }
+
+          /**
+           * isValueChanged
+           */
+          this.isValueChanged = function() {
+            return (this.$input.attr('value') != "" || this.defaultValue != null) &&
+                   (this.$input.attr('value') != this.defaultValue);
+          };
+
+          /**
+           * validate
+           */
+          this.validate = function() {
+            if (editor.column.validator) {
+              var validationResults = editor.column.validator(this.$input.attr('value'), this.$input);
+              if (!validationResults.valid)
+                return validationResults;
+            }
+
+            return {
+              valid: true,
+              msg: null
+            }
+          }
+
+          this.init();
+        },
+
+        /**
+         * InlineCharacter
+         */
         InlineCharacter: function(args) {
             var $input;
             var defaultValue;
@@ -108,6 +278,9 @@
             this.init();
         },
 
+        /**
+         * ModalCharacter
+         */
         ModalCharacter: function(args) {
 
             var scope = this;

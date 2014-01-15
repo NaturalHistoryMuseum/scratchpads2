@@ -23,10 +23,22 @@
         var col = 0;
         for (var column in data[i]){
           if (column.match(/^character_\d+_\d+$/)){
-            var match = data[i][column].match(/^(?:([^:]*):)?([\s\S]*)$/);
-            if (match){
-              row[column] = match[1];
-              data[i][column] = match[2];
+            try{
+              var decode = $.parseJSON(data[i][column]);
+              if (typeof decode == 'object'){
+                row[column] = {};
+                if (typeof decode.data !== 'undefined'){
+                  data[i][column] = decode.data;
+                }
+                if (typeof decode.metadata !== 'undefined'){
+                  row[column].flag = decode.metadata;
+                }
+                if (typeof decode.value !== 'undefined'){
+                  row[column].value = decode.value;
+                }
+              }
+            } catch(e){
+              /* NO OP */
             }
           }
         }
@@ -36,9 +48,9 @@
       window.setTimeout($.proxy(function(){
         for (var i = 0; i < this.metadata.length; i++){
           for (var column in this.metadata[i]){
-            if (this.metadata[i][column] && this.metadata[i][column].length > 0){
+            if (this.metadata[i][column].flag && this.metadata[i][column].flag.length > 0){
               var node = grid.getCellNode(i, grid.getColumnIndex(column));
-              var flag = Drupal.settings.CharacterEditorFlags[this.metadata[i][column]];
+              var flag = Drupal.settings.CharacterEditorFlags[this.metadata[i][column].flag];
               $(node).attr('character-flag', flag.abbr);
             }
           }
@@ -55,7 +67,7 @@
         return [];
       }
       var elements = [];
-      var cell_flag_id = this.metadata[info.cell.row][info.column.id];
+      var cell_flag_id = this.metadata[info.cell.row][info.column.id].flag;
       if (cell_flag_id == 'computed' || cell_flag_id == 'inherited'){
         return [];
       }
@@ -84,13 +96,13 @@
     this.contextClickCallback = function(info, selected_flag){
       // Update the cell
       var node = grid.getCellNode(info.cell.row, info.cell.cell);
-      var cell_flag_id = this.metadata[info.cell.row][info.column.id];
+      var cell_flag_id = this.metadata[info.cell.row][info.column.id].flag;
       if (cell_flag_id == selected_flag.id){
         $(node).attr('character-flag', '');
-        this.metadata[info.cell.row][info.column.id] = '';
+        this.metadata[info.cell.row][info.column.id].flag = '';
       } else {
         $(node).attr('character-flag', selected_flag.abbr);
-        this.metadata[info.cell.row][info.column.id] = selected_flag.id;
+        this.metadata[info.cell.row][info.column.id].flag = selected_flag.id;
       }
       // And send the data to be saved.
       slickgrid.callback('update', {
@@ -101,6 +113,17 @@
       });
     }
     
+    /**
+     * getMetadata
+     */
+    this.getMetadata = function(row, column_id){
+      if (typeof this.metadata[row] !== 'undefined' && typeof this.metadata[row][column_id] !== 'undefined'){
+        return this.metadata[row][column_id];
+      } else {
+        return null;
+      }
+    }
+
     this.init();
   }
 })(jQuery);

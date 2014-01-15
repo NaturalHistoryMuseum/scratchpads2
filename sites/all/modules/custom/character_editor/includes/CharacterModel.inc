@@ -105,26 +105,22 @@ class CharacterModel{
   }
 
   /**
-   * getControlledStateValue
+   * getControlledMap
    * 
    * If this is a controlled character, return the value associated with the given
    * state id
    */
-  public function getControlledStateValue($id){
-    if($this->w->getBundle() !== 'controlled'){return $id;}
+  public function getControlledMap(){
+    if($this->w->getBundle() !== 'controlled'){return array();}
     if(empty($this->state_values)){
       $this->state_values = array();
       if($this->w->field_char_states->count() > 0){
-        foreach($this->w->field_char_states as $state_delta => $state_w){
-          $this->state_values[$state_w->getIdentifier()] = $state_delta;
+        foreach($this->w->field_char_states as $state_w){
+          $this->state_values[$state_w->getIdentifier()] = $state_w->field_char_state_label->value();
         }
       }
     }
-    if(isset($this->state_values[$id])){
-      return $this->state_values[$id];
-    }else{
-      return $id;
-    }
+    return $this->state_values;
   }
 
   /**
@@ -142,7 +138,7 @@ class CharacterModel{
         return 'InlineCharacter';
         break;
       case 'controlled':
-        return 'InlineCharacter';
+        return 'ControlledCharacter';
         break;
     }
   }
@@ -157,5 +153,35 @@ class CharacterModel{
    */
   public function getValues($row_ids = array()){
     return character_editor_get_character_values($this->w, $row_ids);
+  }
+
+  /**
+   * hasOptions
+   *
+   * Return TRUE if this character has options to pass on to the editor
+   */
+  public function hasOptions(){
+    return $this->w->getBundle() == 'controlled';
+  }
+
+  /**
+   * getOptions
+   *
+   * Return the options to pass on to the editor
+   */
+  public function getOptions(){
+    if($this->w->getBundle() == 'controlled'){
+      $states = array();
+      foreach($this->w->field_char_states->raw() as $state_id){
+        $state = character_editor_wrapper('field_collection_item', $state_id);
+        $states[$state_id] = $state->field_char_state_label->value();
+      }
+      return array(
+        'options' => $states,
+        'multiple' => FALSE
+      );
+    }else{
+      return array();
+    }
   }
 }

@@ -160,7 +160,7 @@ class CharacterProjectModel{
       // Assign character values
       if(isset($characters[$id]) && is_array($characters[$id])){
         foreach($characters[$id] as $field => $value){
-          $row->{$field} = $value['metadata'] . ':' . $value['data'];
+          $row->{$field} = drupal_json_encode($value);
         }
       }
       $ids[$id] = $row;
