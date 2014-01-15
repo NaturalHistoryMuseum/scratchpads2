@@ -3,6 +3,7 @@ description = "Provides the default Scratchpads terms and conditions."
 package = "Scratchpads"
 core = 7.x
 dependencies[] = "legal"
+files[] = scratchpads_legal.test
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
 project = scratchpads_legal

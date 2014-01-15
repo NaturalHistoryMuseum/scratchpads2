@@ -2,6 +2,7 @@ core = "7.x"
 name = "Sitemap"
 description = "This feature provides a site map that gives visitors an overview of your site."
 dependencies[] = site_map
+files[] = scratchpads_sitemap.test
 tool=true
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml

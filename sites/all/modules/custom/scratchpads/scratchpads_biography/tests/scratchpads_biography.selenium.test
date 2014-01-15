@@ -1,0 +1,250 @@
+<?php
+/**
+ * @file
+*
+* Test case for Darwincore with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsBiographySeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Biography (Selenium)',
+      'description' => 'Test the creation of biographies',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  public function setUp(){
+    parent::setUp();
+  }
+
+  /**
+   * A wrapper for the following tests
+   * 
+   * - Enable biography on tools page
+   * - Test for biography fields
+   *   Test the creation of a public user
+   * - Test the creation of a private user
+   * - Test the creation of a public non-user 
+   * - Test the creation of a private non-user
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $this->enableBiographyTool();
+    $this->checkForBiographyFields();
+    // ensure that we are using the scratchpads_admin theme
+    variable_set('admin_theme', 'scratchpads_admin');
+    // Create public user
+    $this->createBiographyAccount(true, true);
+    // Create private user
+    $this->createBiographyAccount(false, true);
+    // Create public non-user
+    $this->createBiographyAccount(true, false);
+    // Create private non-user
+    $this->createBiographyAccount(false, false); 
+  }
+
+  /**
+   * Test the enabling of biography via the tools page
+   */
+  function enableBiographyTool(){
+    $this->drupalGet('admin/structure/tools');
+    $this->driver->getElement("css=.form-item-status-scratchpads-biography .iphone_switch")->click();
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText('The configuration options have been saved.');
+    $this->verboseScreenshot();
+  }
+
+  /**
+   * Test that biography fields have been created
+   */
+  function checkForBiographyFields(){
+    $biography_fields = array(
+      'field_make_this_profile_public_',
+      'field_alternative_name',
+      'field_standard_form',
+      'field_orcid',
+      'field_areas_of_professional_inte',
+      'field_main_collaborators_co_auth',
+      'field_known_for',
+      'field_places_worked',
+      'field_gender',
+      'field_birth_place',
+      'field_birth_date',
+      'field_death_date',
+      'field_example_of_handwriting',
+      'field_biography',
+      'field_user_keywords',
+      'field_comments',
+      'field_related_links'
+    );
+    $this->drupalGet('admin/config/people/accounts/fields');
+    $this->verboseScreenshot();
+    foreach($biography_fields as $field){
+      $this->assertText($field, "Field '" . $field . "' present on admin/config/people/accounts/fields page");
+    }
+  }
+
+  /**
+   * Test the creation of a new user.
+   */
+  function createBiographyAccount($public = TRUE, $login = FALSE){
+    $this->drupalGet('admin/people/create');
+    $field_data = array(
+      'field_user_title' => 'Mr',
+      'field_user_given_names' => $this->randomName(),
+      'field_user_family_name' => $this->randomName(),
+      'field_homepage_title' => $this->randomName(),
+      'field_homepage_url' => 'www.' . $this->randomName() . '.com',
+      'field_user_institution' => $this->randomName(),
+      'field_user_country' => 'Spain',
+      'field_user_taxonomic_interest' => $this->randomName(),
+      'field_make_this_profile_public_' => 1,
+      'field_alternative_name' => $this->randomName(),
+      'field_standard_form' => $this->randomName(),
+      'field_orcid' => '1111-2222-3333-4444',
+      'field_areas_of_professional_inte' => $this->randomName(),
+      'field_main_collaborators_co_auth' => 'basic-user',
+      'field_known_for' => $this->randomName(),
+      'field_places_worked' => $this->randomName(),
+      'field_places_worked2' => $this->randomName(),
+      'field_gender' => 'Male',
+      'field_birth_place' => $this->randomName(),
+      'field_birth_date' => '1913-09-19',
+      'field_death_date' => '2013-09-19',
+      // 'field_example_of_handwriting',
+      'field_biography' => $this->randomName(),
+      'field_user_keywords' => $this->randomName(),
+      'field_comments' => $this->randomName(),
+      'field_related_links_title' => $this->randomName(),
+      'field_related_links_url' => 'www.' . $this->randomName() . '.com'
+    );
+    if($public){
+      $this->driver->getElement("id=edit-field-make-this-profile-public-und")->click();
+    }
+    if(!$login){
+      // Uncheck 'Allow user login' and test that 'User account settings' are not visible
+      $this->driver->getElement("id=edit-create-user-account")->click();
+      $this->assertNoText('User account settings', "User account settings not visible after unchecking 'Allow user login'");
+    }else{
+      // We enter username, email and password
+      $element = $this->driver->getElement("name=name");
+      $element->clear();
+      $element->sendKeys($this->randomName());
+      $element = $this->driver->getElement("name=mail");
+      $element->clear();
+      $element->sendKeys($this->randomName() . '@' . $this->randomName() . '.com');
+      $pass = $this->randomName();
+      $element = $this->driver->getElement("name=pass[pass1]");
+      $element->clear();
+      $element->sendKeys($pass);
+      $element = $this->driver->getElement("name=pass[pass2]");
+      $element->clear();
+      $element->sendKeys($pass);
+    }
+    // We fill in the form elements one at a time, switching tabs when necessary
+    $element = $this->driver->getElement("name=field_user_title[und][0][select_other_list]");
+    $element->selectLabel($field_data['field_user_title']);
+    $element = $this->driver->getElement("name=field_user_given_names[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_user_given_names']);
+    $element = $this->driver->getElement("name=field_user_family_name[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_user_family_name']);
+    $element = $this->driver->getElement("name=field_homepage[und][0][title]");
+    $element->clear();
+    $element->sendKeys($field_data['field_homepage_title']);
+    $element = $this->driver->getElement("name=field_homepage[und][0][url]");
+    $element->clear();
+    $element->sendKeys($field_data['field_homepage_url']);
+    $element = $this->driver->getElement("name=field_user_institution[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_user_institution']);
+    $element = $this->driver->getElement("name=field_user_country[und]");
+    $element->selectLabel($field_data['field_user_country']);
+    $element = $this->driver->getElement("name=field_user_taxonomic_interest[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_user_taxonomic_interest']);
+    // Click Tab
+    $this->clickLink('Name forms/Identifiers');
+    $this->driver->waitForElements("name=field_alternative_name[und][0][value]");
+    $element = $this->driver->getElement("name=field_alternative_name[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_alternative_name']);
+    $element = $this->driver->getElement("name=field_standard_form[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_standard_form']);
+    $element = $this->driver->getElement("name=field_orcid[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_orcid']);
+    // Click Tab
+    $this->clickLink('Professional information');
+    $this->driver->waitForElements("name=field_areas_of_professional_inte[und][0][value]");
+    $element = $this->driver->getElement("name=field_areas_of_professional_inte[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_areas_of_professional_inte']);
+    $this->_autocompleteTest('field_main_collaborators_co_auth[und][0][uid]', 'b');
+    $element = $this->driver->getElement("name=field_known_for[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_known_for']);
+    $element = $this->driver->getElement("name=field_places_worked[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_places_worked']);
+    // Click Tab
+    $this->clickLink('Personal information');
+    $this->driver->waitForElements("name=field_gender[und]");
+    $element = $this->driver->getElement("name=field_gender[und]");
+    $element->selectLabel($field_data['field_gender']);
+    $element = $this->driver->getElement("name=field_birth_place[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_birth_place']);
+    $element = $this->driver->getElement("name=field_birth_date[und][0][value][date]");
+    $element->clear();
+    $element->sendKeys($field_data['field_birth_date']);
+    $element = $this->driver->getElement("name=field_death_date[und][0][value][date]");
+    $element->clear();
+    $element->sendKeys($field_data['field_death_date']);
+    $element = $this->driver->getElement("name=field_biography[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_biography']);
+    // Click Tab
+    $this->clickLink('Additional information');
+    $this->driver->waitForElements("name=field_user_keywords[und]");
+    $element = $this->driver->getElement("name=field_user_keywords[und]");
+    $element->clear();
+    $element->sendKeys($field_data['field_user_keywords']);
+    $element = $this->driver->getElement("name=field_comments[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_comments']);
+    $element = $this->driver->getElement("name=field_related_links[und][0][title]");
+    $element->clear();
+    $element->sendKeys($field_data['field_related_links_title']);
+    $element = $this->driver->getElement("name=field_related_links[und][0][url]");
+    $element->clear();
+    $element->sendKeys($field_data['field_related_links_url']);
+    // Submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->verboseScreenshot();
+    if(!$login){
+      $this->assertText('Created a new profile', 'New user profile created');
+    }else{
+      $this->assertText('Created a new user account', 'New user account created');
+    }
+    // Check to see if the person appears on the biography page
+    $this->drupalGet('biographies');
+    if($public){
+      $this->assertText($field_data['field_user_family_name'], 'Public biography shown on biography page');
+    }else{
+      $this->assertNoText($field_data['field_user_family_name'], 'Non Public biography not shown on biography page');
+    }
+  }
+}

@@ -1,0 +1,63 @@
+<?php
+/**
+ * @file
+*
+* Test case for scratchpads_colour with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsColourSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Colour (Selenium)',
+      'description' => 'Tests for Scratchpads Colour module',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  /**
+   * A wrapper for the following tests
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $this->verifyColourToggle();
+  }
+
+  /**
+   * - Verify that the colour form is not visible by default
+   * - Click on colour tab and verify that the form becomes visible
+   * - Click on a colour and verify that the header background colour changes
+   * - Click the colour tab again and verify that the form is no longer visible
+   */
+  function verifyColourToggle(){
+    $this->drupalGet('');
+    $header_colour_original = $this->driver->getElement("id=section-header")->getCssValue('background-color');   
+    $elements = $this->driver->getAllElements('id=scratchpads-colour-form');
+    $is_colour_form = $elements[0]->isVisible();
+    $this->assertFalse($is_colour_form, 'Colour form not present on front page before toggle');
+    // Click on toggle and wait for it to open   
+    $this->driver->getElement("css=.scratchpads-slide-toggle")->click();
+    $this->driver->sleep(1);
+    $elements = $this->driver->getAllElements('id=scratchpads-colour-form');
+    $is_colour_form = $elements[0]->isVisible();
+    $this->assertTrue($is_colour_form, 'Colour form present on front page after toggle');
+    // Choose a colour
+    $this->driver->getElement("id=134823")->click();
+    $this->verboseScreenshot();
+    $header_colour_new = $this->driver->getElement("id=section-header")->getCssValue('background-color');
+    $this->assertTrue($header_colour_original != $header_colour_new, 'Header colour successfully updated.');
+    // Click again to hide
+    $this->driver->getElement("css=.scratchpads-slide-toggle")->click();
+    $this->driver->sleep(1);
+    $elements = $this->driver->getAllElements('id=scratchpads-colour-form');
+    $is_colour_form = $elements[0]->isVisible();
+    $this->assertFalse($is_colour_form, 'Colour form not present on front page after second click');
+  }
+}

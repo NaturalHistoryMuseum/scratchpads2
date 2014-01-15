@@ -20,6 +20,7 @@ files[] = includes/slickgrid_views_plugin.inc
 files[] = plugins/editors/handler.class.php
 files[] = plugins/editors/ModalForm.inc
 files[] = plugins/editors/InlineCell.inc
+files[] = tests/slickgrid.selenium.test
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
 project = slickgrid

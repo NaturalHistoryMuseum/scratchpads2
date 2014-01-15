@@ -1,0 +1,95 @@
+<?php
+
+/**
+ * @file
+*
+* Scratchpads pages tests.
+*/
+class ScratchpadsPagesTestCase extends ScratchpadsTweaksTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Pages',
+      'description' => 'Tests for scratchpads pages',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and call setup function
+   */
+  public function setUp(){
+    $modules[] = 'scratchpads_pages';
+    $modules[] = 'scratchpads_blog';
+    $modules[] = 'scratchpads_forum';
+    parent::setUp($modules);   
+  }
+
+  /**
+   * A wrapper for all tests
+   */
+  function testIssuesBlock(){
+    $this->drupalLogin($this->maintainer);
+    $this->verifyPageDisplay();
+    $this->verifyLockedTypes();
+    $this->verifyUnlockedTypes();
+    $this->verifyPageMenuLink();
+  }
+  
+  /**
+   * Test that 'Page display' is present on all 'manage content type' pages,
+   */
+  function verifyPageDisplay(){
+    $content_types = node_type_get_names();
+    foreach($content_types as $machine_name => $content_type){
+      $this->drupalGet('admin/structure/types/manage/' . $machine_name);
+      $this->assertText('Page display');
+      $this->assertRaw('edit-page-display-type');
+    }
+  }
+
+  /**
+   *  Test that locked content type's page display can't be modified
+   */
+  function verifyLockedTypes(){
+    $locked_types = scratchpads_pages_page_display_locked_types();
+    foreach($locked_types as $locked_type){
+      $this->drupalGet('admin/structure/types/manage/' . $locked_type);
+      $edit = array();
+      $edit['page_display_type'] = 'none';
+      // custom method defined in scratchpads_tweaks
+      $this->drupalAssertPostFail(NULL, $edit, 'Save content type');
+    }
+  }
+
+  /**
+   * Attempt to change the display if not locked.
+   */
+  function verifyUnlockedTypes(){
+    $content_types = node_type_get_names();
+    $locked_types = scratchpads_pages_page_display_locked_types();
+    foreach($content_types as $machine_name => $content_type){
+      // if not a locked type, attempt to change the page display
+      if(!in_array($machine_name, $locked_types)){
+        $this->drupalGet('admin/structure/types/manage/' . $machine_name);
+        $edit = array();
+        $edit['page_display_type'] = 'none';
+        $this->drupalPost(NULL, $edit, 'Save content type');
+      }
+    }
+  }
+
+  /**
+   * Test that 'page' content type has a forced menu link.
+   */
+  function verifyPageMenuLink(){
+    $this->drupalGet('node/add/page');
+    $edit = array();
+    $edit['title'] = $this->randomName();
+    $edit['menu[link_title]'] = '';
+    // custom method defined in scratchpads_tweaks
+    $this->drupalPost(NULL, $edit, 'Save');
+    $this->assertText('Menu link title field is required.');
+  }
+
+}

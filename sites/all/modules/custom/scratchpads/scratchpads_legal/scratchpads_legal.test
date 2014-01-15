@@ -1,0 +1,43 @@
+<?php
+
+/**
+ * @file
+ * 
+*  scratchpads_legal tests.
+*/
+class scratchpads_legalTestCase extends ScratchpadsTweaksTestCase{
+
+  protected $anonymous_user;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Legal',
+      'description' => 'Tests that the legal text appears on the legal page',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    $modules[] = 'scratchpads_legal';
+    parent::setUp($modules);
+    //  Create users.
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    $anonymous_user_permissions = $default_permissions['anonymous user'];
+    $this->anonymous_user = $this->drupalCreateUser($anonymous_user_permissions);
+    legal_save_accept(1, 1, 'en', $this->anonymous_user->uid);
+  }
+
+  /**
+   *  Check that legal statement defined by this module appears on the legal page
+   */
+  public function testScratchpadsLegalText(){
+    $this->drupalLogin($this->anonymous_user);
+    $this->drupalGet('legal');
+    $record = _scratchpads_legal_get_record();
+    $this->assertRaw($record['conditions'], 'Legal text displayed');
+  }
+  
+}
