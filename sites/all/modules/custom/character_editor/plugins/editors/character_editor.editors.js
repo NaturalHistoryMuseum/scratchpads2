@@ -10,6 +10,7 @@
            * init
            */
           this.init = function(){
+            // Create the popup body
             this.$input = $('<div></div>')
             .addClass('character-editor-popup')
             .attr('value', '')
@@ -19,6 +20,26 @@
               top: $(editor.container).offset().top,
               left: $(editor.container).offset().left
             });
+            // Set up the text input
+            this.$textinputwrapper = $('<div></div>')
+            .addClass('character-editor-popup-header')
+            .css('position', 'relative')
+            .appendTo(this.$input);
+            this.$textinput = $('<input type="text" />')
+            .css({
+              position: 'absolute',
+              zIndex: '11',
+              background: 'rgba(0,0,0,0)'
+            })
+            .on('input', $.proxy(this, 'textInputChange'))
+            .on('change', $.proxy(this, 'textInputSubmit'))
+            .appendTo(this.$textinputwrapper);
+            this.$textinputshadow = $('<input type="text" />')
+            .attr('disabled', 'disabled')
+            .css({
+            })
+            .appendTo(this.$textinputwrapper);
+            // Add the selectable rows
             for (var i in editor.column.data.options){
               var $row = $('<div></div>')
               .addClass('character-editor-popup-row')
@@ -41,6 +62,7 @@
             }).appendTo('body').one('click', $.proxy(function(e){
               editor.cancelChanges();
             }, this));
+            this.focus();
           }
 
           /**
@@ -59,6 +81,44 @@
           }
 
           /**
+           * textInputChange
+           */
+          this.textInputChange = function(){
+            $('div.character-editor-popup-row', this.$input).css('display', 'block');
+            if (this.$textinput.val().length > 0){
+              var textInputAuto = '';
+              var textInputVal = '';
+              var start = this.$textinput.val();
+              $('div.character-editor-popup-row', this.$input).filter(function(){
+                if ($(this).html().indexOf(start) != 0){
+                  return true;
+                } else if (textInputAuto.length == 0) {
+                  textInputAuto = $(this).html();
+                  textInputVal = $(this).attr('value');
+                }
+              }).css('display', 'none');
+            }
+            this.textInputVal = textInputVal;
+            this.$textinputshadow.val(textInputAuto);
+          }
+
+          /**
+           * textInputSubmit
+           */
+          this.textInputSubmit = function(){
+            if (this.textInputVal && this.textInputVal.length > 0){
+              this.setValue(this.textInputVal);
+              if (!this.isValueChanged()){
+                editor.cancelChanges();
+              } else {
+                editor.commitChanges();
+              }
+            } else {
+              editor.cancelChanges();
+            }
+          }
+
+          /**
            * destroy
            */
           this.destroy = function(){
@@ -70,7 +130,7 @@
            * focus
            */
           this.focus = function() {
-            /* No-op */
+            this.$textinput.focus();
           };
 
           /**
