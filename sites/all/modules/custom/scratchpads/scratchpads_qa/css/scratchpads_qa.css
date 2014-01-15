@@ -1,0 +1,53 @@
+tr.simpletest-fail td {
+  background-color: #FFACAC !important;
+}
+
+tr.simpletest-pass td {
+  background-color: #B6FFB6 !important;
+}
+
+tr.simpletest-exception td {
+  background-color: #F4EA71 !important;
+}
+
+th.wider {
+  width: 40%;
+}
+
+ul.scratchpads-qa,ul.scratchpads-qa li {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+ul.scratchpads-qa li {
+  list-style-type: none;
+}
+
+ul.scratchpads-qa table {
+  width: 200% !important;
+}
+
+ul.scratchpads-qa .hidden-table {
+  display: none;
+}
+
+ul.scratchpads-qa h2 {
+  background-color: #DBDBDB;
+  border: solid 1px black;
+  color: #3B3B3B;
+  display: block;
+  line-height: 2;
+  padding: 5px;
+  text-shadow: 0 1px 0 #FFFFFF;
+}
+
+ul.scratchpads-qa h2 .small {
+  font-size: 80%;
+}
+
+h2.block-title {
+  color: #AAAAAA;
+  font-family: Verdana, sans-serif;
+  font-size: 11pt;
+  font-weight: normal;
+}

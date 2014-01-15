@@ -1,0 +1,294 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ */
+function scratchpads_qa_menu(){
+  return array(
+    'results/front' => array(
+      'title' => 'Scratchpads Tests',
+      'page callback' => 'scratchpads_qa_front',
+      'access callback' => TRUE
+    ),
+    'results/%' => array(
+      'title' => 'Scratchpads Test Result',
+      'page callback' => 'scratchpads_qa_result',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => TRUE
+    )
+  );
+}
+
+/**
+ * Implements hook_test_finished()
+ */
+function scratchpads_qa_test_finished($results){
+  variable_set('scratchpads_qa_last_test_time', time());
+}
+
+/**
+ * Implements hook_block_info()
+ */
+function scratchpads_qa_block_info(){
+  return array(
+    'overview' => array(
+      'info' => t('Scratchpads Tests Overview'),
+      'cache' => DRUPAL_NO_CACHE
+    )
+  );
+}
+
+/**
+ * Simple method of display ALL fails or passes or exceptions.
+ */
+function scratchpads_qa_results_by_type($type){
+  $query = db_select('simpletest', 's')->fields('s', array(
+    'test_class',
+    'test_id'
+  ));
+  $query->condition('status', $type);
+  $query->addExpression('COUNT(*)', 'count_status');
+  $subquery = db_select('simpletest', 's')->fields('s', array(
+    'test_class'
+  ));
+  $subquery->addExpression('MAX(test_id)', 'max_test_id');
+  $subquery->groupBy('test_class');
+  $query->innerJoin($subquery, 'subquery', 'max_test_id = s.test_id AND subquery.test_class = s.test_class');
+  $query->groupBy('test_class')->groupBy('status');
+  $results = $query->extend('PagerDefault')->execute();
+  $items = array();
+  foreach($results as $row){
+    $results2 = db_select('simpletest', 's')->fields('s')->condition('test_class', $row->test_class)->condition('test_id', $row->test_id)->condition('status', $type)->execute();
+    $rows = array();
+    foreach($results2 as $row2){
+      $rows[] = array(
+        $row2->message_id,
+        $row2->message,
+        $row2->message_group,
+        $row2->function,
+        $row2->line,
+        $row2->file
+      );
+    }
+    $items[] = '<h2><a href="#">' . $row->test_class . ' <span class="small">(' . count($rows) . ')</span></a></h2><div class="hidden-table">' . (user_access('administer unit tests') ? '<p>' . l(t('See all results for @class.', array(
+      '@class' => $row->test_class
+    )), 'admin/config/development/testing/results/' . $row->test_id) . '</p>' : '') . theme('table', array(
+      'header' => array(
+        'message id',
+        'message',
+        'message group',
+        'function',
+        'line',
+        'file'
+      ),
+      'rows' => $rows
+    )) . '</div>';
+  }
+  return array(
+    'list' => array(
+      '#theme' => 'item_list',
+      '#type' => 'ul',
+      '#items' => $items,
+      '#attributes' => array(
+        'class' => array(
+          'scratchpads-qa'
+        )
+      )
+    ),
+    'pager' => array(
+      '#theme' => 'pager'
+    ),
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'scratchpads_qa') . '/css/scratchpads_qa.css'
+      ),
+      'js' => array(
+        drupal_get_path('module', 'scratchpads_qa') . '/js/scratchpads_qa.js'
+      )
+    )
+  );
+}
+
+/**
+ * Callback to display a specific result set.
+ */
+function scratchpads_qa_result($argument){
+  switch($argument){
+    case 'fail':
+    case 'pass':
+    case 'exception':
+      $return = scratchpads_qa_results_by_type($argument);
+      return $return;
+    case 'latest':
+      // Get the highest test_id
+      $query = db_select('simpletest', 's');
+      $query->addExpression('MAX(s.test_id)', 'max_test_id');
+      $argument = $query->execute()->fetchField();
+    default:
+      if(is_numeric($argument)){
+        // We have a test_id
+        $form_state = array();
+        module_load_include('pages.inc', 'simpletest');
+        $form = simpletest_result_form(array(), $form_state, $argument);
+        unset($form['action']);
+        unset($form['#action']);
+        foreach(array_keys($form['result']['results']) as $key){
+          if(isset($form['result']['results'][$key]['table']['#header'][5])){
+            unset($form['result']['results'][$key]['table']['#header'][5]);
+            unset($form['result']['results'][$key]['table']['#header'][2]);
+            foreach(array_keys($form['result']['results'][$key]['table']['#rows']) as $row_key){
+              unset($form['result']['results'][$key]['table']['#rows'][$row_key]['data'][5]);
+              unset($form['result']['results'][$key]['table']['#rows'][$row_key]['data'][2]);
+            }
+            $form['result']['results'][$key]['table']['#header'][0] = array(
+              'data' => 'Message',
+              'class' => array(
+                'wider'
+              )
+            );
+          }
+        }
+        return $form;
+      }elseif(strlen($argument)){
+        // We have a test_class
+        $query = db_select('simpletest', 's')->fields('s')->condition('test_class', $argument);
+        $subquery = db_select('simpletest', 's')->condition('test_class', $argument);
+        $subquery->addExpression('MAX(test_id)', 'max_test_id');
+        $query->innerJoin($subquery, 'subquery', 'max_test_id = s.test_id');
+        //echo (string)$query;exit;
+        $results = $query->execute();
+        $rows = array();
+        foreach($results as $row){
+          $rows[] = array(
+            $row->message_id,
+            $row->message,
+            $row->message_group,
+            $row->function,
+            $row->line,
+            $row->file
+          );
+        }
+        return array(
+          'table' => array(
+            '#prefix' => user_access('administer unit tests') ? '<p>' . l(t('Re-run @class tests in Simpletest interface.', array(
+              '@class' => $row->test_class
+            )), 'admin/config/development/testing/results/' . $row->test_id) . '</p>' : '',
+            '#theme' => 'table',
+            '#header' => array(
+              'message id',
+              'message',
+              'message group',
+              'function',
+              'line',
+              'file'
+            ),
+            '#rows' => $rows
+          ),
+          '#attached' => array(
+            'css' => array(
+              drupal_get_path('module', 'scratchpads_qa') . '/css/scratchpads_qa.css'
+            )
+          )
+        );
+      }else{
+        return array(
+          '#markup' => t('No tests to display')
+        );
+      }
+  }
+}
+
+/**
+ * Callback to display a page suitable for the front of the QA site.
+ */
+function scratchpads_qa_front(){
+  return array(
+    'overview' => scratchpads_qa_block_view('overview')
+  );
+}
+
+/**
+ * Implements hook_block_view()
+ */
+function scratchpads_qa_block_view($delta){
+  switch($delta){
+    case 'overview':
+      $query = db_select('simpletest', 's')->fields('s', array(
+        'status'
+      ));
+      $query->addExpression('COUNT(*)', 'count_status');
+      $subquery = db_select('simpletest', 's')->fields('s', array(
+        'test_class'
+      ));
+      $subquery->addExpression('MAX(test_id)', 'max_test_id');
+      $subquery->groupBy('test_class');
+      $query->innerJoin($subquery, 'subquery', 'max_test_id = s.test_id AND subquery.test_class = s.test_class');
+      $status = $query->groupBy('status')->execute()->fetchAllKeyed();
+      $scratchpads_qa_last_test_time = variable_get('scratchpads_qa_last_test_time', FALSE);
+      return array(
+        'subject' => t('Latest test results'),
+        'content' => array(
+          '#attached' => array(
+            'css' => array(
+              drupal_get_path('module', 'scratchpads_qa') . '/css/scratchpads_qa.css',
+              drupal_get_path('module', 'simpletest') . '/simpletest.css'
+            )
+          ),
+          'table' => array(
+            '#attributes' => array(
+              'class' => array(
+                'qa-overview'
+              )
+            ),
+            '#theme' => 'table',
+            '#header' => array(
+              'Status',
+              'Count'
+            ),
+            '#rows' => array(
+              array(
+                'data' => array(
+                  l('Passes', 'results/pass'),
+                  empty($status['pass']) ? 0 : $status['pass']
+                ),
+                'class' => empty($status['pass']) ? array(
+                  'simpletest-fail'
+                ) : array(
+                  'simpletest-pass'
+                )
+              ),
+              array(
+                'data' => array(
+                  l('Fails', 'results/fail'),
+                  empty($status['fail']) ? 0 : $status['fail']
+                ),
+                'class' => empty($status['fail']) ? array(
+                  'simpletest-pass'
+                ) : array(
+                  'simpletest-fail'
+                )
+              ),
+              array(
+                'data' => array(
+                  l('Exceptions', 'results/exception'),
+                  empty($status['exception']) ? 0 : $status['exception']
+                ),
+                'class' => empty($status['exception']) ? array(
+                  'simpletest-pass'
+                ) : array(
+                  'simpletest-exception'
+                )
+              )
+            )
+          ),
+          'time' => array(
+            '#markup' => $scratchpads_qa_last_test_time ? '<h2 class="block-title">' . t('Last test run:<br/>!time', array(
+              '!time' => format_date($scratchpads_qa_last_test_time)
+            )) . '</h2>' : ''
+          )
+        )
+      );
+  }
+}

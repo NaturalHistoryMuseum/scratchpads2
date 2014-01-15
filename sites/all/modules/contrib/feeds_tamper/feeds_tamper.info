@@ -2,8 +2,6 @@ name = Feeds Tamper
 description = Modify feeds data before it gets saved.
 package = Feeds
 dependencies[] = feeds
-files[] = tests/feeds_tamper.test
-files[] = tests/feeds_tamper_plugins.test
 core = 7.x
 
 ; Information added by drupal.org packaging script on 2011-07-31

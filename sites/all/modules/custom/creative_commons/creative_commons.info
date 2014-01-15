@@ -1,3 +1,4 @@
 name = Creative Commons
 description = Defines a field type for attaching creative commons licence types. 
 core = 7.x
+files[] = creative_commons.test

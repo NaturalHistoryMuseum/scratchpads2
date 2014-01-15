@@ -1,0 +1,78 @@
+<?php
+
+/**
+ * @file
+*
+* Scratchpads backend tests.
+*/
+class ScratchpadsbackendTestCase extends ScratchpadsTweaksTestCase{
+
+  protected $admin_user;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Backend',
+      'description' => 'Tests for scratchpads backend',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    parent::setUp();
+    //  Create a new admin user with comment permissions
+    $this->admin_user = $this->drupalCreateUser(array(
+      'access content',
+      'access administration pages',
+      'administer site configuration',
+      'administer users',
+      'administer permissions',
+      'administer content types',
+      'administer nodes',
+      'bypass node access',
+      'access overlay',
+      'access content overview',
+      'view the administration theme',
+      'access all views',
+      'administer comments'
+    ));
+    // We set the legal_accepted on the user so that login passes.
+    parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
+  }
+
+  /**
+   *  Test the comment settings form
+   */
+  function testCommentSettingsForm(){
+    // Test access
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet('admin/config/content/comments');
+    $this->assertResponse(200);
+    // Test the form   
+    $select_id = 'edit-comment-settings-0-comment-setting';
+    $option_name = 'comment_settings[0][comment_setting]';
+    $edit = array();
+    $edit[$option_name] = 0;
+    $this->drupalPost(NULL, $edit, 'Save');
+    $this->assertText('Your settings have been saved');
+    $this->assertOptionSelected($select_id, 0, 'Comment settings successfully updated');
+    // Test again with another value
+    $edit[$option_name] = 1;
+    $this->drupalPost(NULL, $edit, 'Save');
+    $this->assertText('Your settings have been saved');
+    $this->assertOptionSelected($select_id, 1, 'Comment settings successfully updated');
+  }
+
+  /**
+   *  Test access to non existing content type
+   */
+  function testNonContentType(){
+    $this->drupalLogin($this->admin_user);
+    $unknown_path = $this->machine_name($this->randomName());
+    $this->drupalGet('node/add/' . $unknown_path);
+    $this->assertResponse(200);
+    $this->assertText(t('That content type has been disabled.'), 'Correct error message shown on accessing unknown content type');
+  }
+}

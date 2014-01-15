@@ -1,0 +1,243 @@
+<?php
+/**
+ * @file
+*
+* Test case for scratchpads_colour with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsViewsFilterSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  protected $admin_user;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Views Filter (Selenium)',
+      'description' => 'Tests for Scratchpads Views Filter',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  public function setUp(){
+    parent::setUp();
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    $maintainer_permissions = $default_permissions['maintainer'];
+    $maintainer_permissions[] = 'access content';
+    $maintainer_permissions[] = 'view the administration theme';
+    $maintainer_permissions[] = 'access content overview';
+    $this->admin_user = $this->drupalCreateUserWithName($maintainer_permissions, 'admin_user');
+    legal_save_accept(1, 1, 'en', $this->admin_user->uid);
+  }
+
+  /**
+   * A wrapper for the following tests:
+   * - Create a biological vocabulary and add terms.
+   * - Create 2 pages as 'admin_user', and 2 as 'maintainter'.
+   * - Verify that the views filter works, by testing against created content.
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $vocab_name = $this->randomName();
+    $this->createVocabulary($vocab_name, 'Animal');
+    $this->addTerms($vocab_name, array(
+      'term1',
+      'term2'
+    ));
+    // We use $data array to hold the generated content
+    // so that we can test against it.
+    $data['maintainer'] = $this->addPages(array(
+      'term1',
+      NULL
+    ));
+    $this->drupalLogin($this->admin_user);
+    $data['admin_user'] = $this->addPages(array(
+      'term1',
+      NULL
+    ));
+    $data['vocabulary_name'] = $vocab_name;
+    $this->verfiyFilter($data);
+  }
+
+  /**
+   * Create a number of pages for testing the filter
+   * Returns the created data in an array
+   */
+  function addPages($term_array){
+    $result = array();
+    foreach($term_array as $term){
+      $this->drupalGet('node/add/page');
+      $title = $this->randomName();
+      $body = $this->randomName();
+      $element = $this->driver->getElement("name=title");
+      $element->clear();
+      $element->sendKeys($title);
+      $element = $this->driver->getElement("name=body[und][0][value]");
+      $element->clear();
+      $element->sendKeys($body);
+      // Autocomplete taxonomy field
+      if(isset($term)){
+        $this->_autocompleteTest('field_taxonomic_name[und]', 't');
+      }
+      $this->driver->sleep(2);
+      // Submit the form
+      $submit_button = $this->driver->getElement("id=edit-submit");
+      $submit_button->click();
+      $this->assertText($title, 'Page title sucessfully saved');
+      $this->assertText($body, 'Page body sucessfully saved');
+      $result[] = array(
+        'title' => $title,
+        'body' => $body,
+        'term' => $term
+      );
+    }
+    return $result;
+  }
+
+  /**
+   * Verify that the filter works correctly
+   * - Verify that the filter is present
+   * - Filter by body field
+   * - Remove filter and verify that filter has been removed
+   * - Filter by title field, 'Is equal to'.
+   * - Filter by title field, 'Starts with'.
+   * - Reset form.
+   * - Filter by taxonomy.
+   */
+  function verfiyFilter($data){
+    $this->drupalGet('admin/content/page');
+    // Verify that the filter is present
+    $this->assertText('Filter By Fields', 'Views filter header present on admin/content/page');
+    // select field
+    $element = $this->driver->getElement("id=edit-selected");
+    // Search for the body field of a page create by maintainer
+    // Assert that the result shows the title and user
+    $element->selectLabel('Body');
+    $this->clickLink('Add Filter');
+    $this->driver->sleep(5);
+    $this->driver->waitForVisibleElements("name=body_value");
+    $element = $this->driver->getElement("name=body_value");
+    $element->clear();
+    $element->sendKeys($data['maintainer'][0]['body']);
+    $this->driver->sleep(5);
+    $this->driver->getElement("id=edit-submit-admin-vbo-node-page")->click();
+    $this->driver->sleep(5);
+    $this->assertText($data['maintainer'][0]['title'], 'Correct title shown after filtering');
+    $this->assertNoText($data['maintainer'][1]['title'], 'Other title correctly not shown after filtering');
+    $this->assertText($this->maintainer->name, 'Correct user name shown after filtering');
+    // Remove filter and check that filter has gone
+    $this->clickLink('Remove Filter');
+    $this->driver->sleep(5);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'to view changes')]]");
+    $this->assertText("Click 'Apply' to view changes.", "Message shown after clicking 'Remove Filter'");
+    // Click the apply button
+    $this->driver->getElement("id=edit-submit-admin-vbo-node-page")->click();
+    $this->driver->sleep(5);
+    // Filter again, this time changing the filter to 'Title'
+    $element = $this->driver->getElement("id=edit-selected");
+    $element->selectLabel('Title');
+    $this->clickLink('Add Filter');
+    $this->driver->sleep(5);
+    $this->driver->waitForVisibleElements("name=title");
+    $element = $this->driver->getElement("name=title");
+    $element->clear();
+    // Get just the begining of a title
+    $part_title = substr($data['maintainer'][0]['title'], 0, 2);
+    $element->sendKeys($part_title);
+    // Filter with 'Is equal to' and verify that there are no results    
+    $this->driver->waitForElements("id=edit-title-op");
+    $element = $this->driver->getElement("id=edit-title-op");
+    $element->selectLabel('Is equal to');
+    $this->driver->waitForElements("id=edit-submit-admin-vbo-node-page");
+    $this->driver->getElement("id=edit-submit-admin-vbo-node-page")->click();
+    $this->driver->sleep(5);
+    $this->assertNoText($data['maintainer'][0]['title'], "Title correctly not shown after filtering with 'Is equal to'");
+    // Filter again using 'starts with', and verify that there is one correct result
+    $element = $this->driver->getElement("id=edit-title-op");
+    $element->selectLabel('Starts with');
+    $this->driver->getElement("id=edit-submit-admin-vbo-node-page")->click();
+    $this->driver->sleep(5);
+    $this->verboseScreenshot();
+    $this->assertText($data['maintainer'][0]['title'], "Title correctly shown after filtering with 'Starts with'");
+    // Reset the filter
+    $this->clickLink('Reset Form');
+    $this->driver->sleep(5);
+    // Filter by taxonomy  
+    $this->driver->waitForElements("id=edit-selected");
+    $element = $this->driver->getElement("id=edit-selected");
+    $element->selectLabel($data['vocabulary_name']);
+    $this->clickLink('Add Filter');
+    $this->driver->sleep(5);
+    $this->driver->waitForVisibleElements("name=tid");
+    $element = $this->driver->getElement("name=tid");
+    $element->clear();
+    $filter_term = $data['maintainer'][0]['term'];
+    $element->sendKeys($filter_term);
+    $this->driver->sleep(5);
+    // Verfiy that the taxonomy filter works as expected
+    $this->driver->getElement("id=edit-submit-admin-vbo-node-page")->click();
+    $this->driver->sleep(5);
+    // Look for all items in the data array with chosen taxonomy term
+    // Assert that only correct titles are visible after filtering   
+    foreach($data['maintainer'] as $page_data){
+      // it may be NULL
+      if(isset($page_data['term'])){
+        if($page_data['term'] == $filter_term){
+          $this->assertText($page_data['title'], "Title correctly shown after filtering by term");
+        }
+      }else{
+        $this->assertNoText($page_data['title'], "Title correctly not shown after filtering by term");
+      }
+    }
+    foreach($data['admin_user'] as $page_data){
+      // it may be NULL
+      if(isset($page_data['term'])){
+        if($page_data['term'] == $filter_term){
+          $this->assertText($page_data['title'], "Title correctly shown after filtering by term");
+        }
+      }else{
+        $this->assertNoText($page_data['title'], "Title correctly not shown after filtering by term");
+      }
+    }
+  }
+
+  /**
+   * Create a vocabulary
+   */
+  function createVocabulary($vocab_name, $type){
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $element = $this->driver->getElement("name=name");
+    $element->clear();
+    $element->sendKeys($vocab_name);
+    $element = $this->driver->getElement("name=description");
+    $element->clear();
+    $element->sendKeys($this->randomName());
+    $element = $this->driver->getElement("name=biological_classification");
+    $element->selectLabel($type);
+    // Submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+  }
+
+  /** 
+   * Add terms to a vocabulary
+   */
+  function addTerms($vocab_name, $term_array){
+    foreach($term_array as $term_name){
+      $path = 'admin/structure/taxonomy/' . $vocab_name . '/add';
+      $this->drupalGet($path);
+      $element = $this->driver->getElement("name=field_unit_name1[und][0][value]");
+      $element->clear();
+      $element->sendKeys($term_name);
+      // Submit the form
+      $submit_button = $this->driver->getElement("id=edit-submit");
+      $submit_button->click();
+    }
+  }
+}
+

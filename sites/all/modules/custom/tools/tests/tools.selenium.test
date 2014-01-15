@@ -1,0 +1,156 @@
+<?php
+/**
+ * @file
+*
+* Test case for scratchpads_species with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsToolsSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Tools (Selenium)',
+      'description' => 'Scratchpads specific tests for the tools module, including test for Darwincore/Tools',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  public function setUp(){
+    $modules[] = 'darwincore';
+    parent::setUp($modules);
+  }
+
+  /**
+   * A wrapper for the following tests
+   * 
+   * - Enable a tool via the tools page
+   * ---- verify that the tool has been enabled
+   * ---- verify that correct messages are shown
+   * 
+   * - Disable a tool via the tools page
+   * ---- verify that the tool has been disabled
+   * ---- verify that correct messages are shown
+   * 
+   * - Create DarwinCore content and attempt to disable the darwincore tool
+   * ---- verify 'cannot disable' message
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $this->enableTool();
+    $this->disableTool();
+    $this->darwincoreToolDisable();
+  }
+
+  /**
+   * Enable a module via the tools page and verify that the module has been enabled.
+   */
+  function enableTool(){
+    $this->drupalGet('admin/structure/tools');
+    // Click the switch for blogs
+    $this->driver->getElement("css=.form-item-status-scratchpads-blog .iphone_switch_container img")->click();
+    // Wait 1 second, then submit the form
+    $this->driver->sleep(1);
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText('The configuration options have been saved.', 'Confirmation message shown when enabling tool.');
+    $this->drupalGet('admin/content');
+    $this->assertLink('Blog entry');
+  }
+
+  /**
+   * Disable a module via the tools page and verify that the module has been disabled.
+   */
+  function disableTool(){
+    $this->drupalGet('admin/structure/tools');
+    // Click the switch for blogs
+    $this->driver->getElement("css=.form-item-status-scratchpads-blog .iphone_switch_container img")->click();
+    // Wait 1 second, then submit the form
+    $this->driver->sleep(1);
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText('Are you sure you want to disable Blogs?', "'Are you sure?', message shown.");
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText('The configuration options have been saved.', 'Confirmation message shown when disabling tool.');
+    $this->drupalGet('admin/content');
+    $this->assertNoLink('Blog entry');
+  }
+
+  /**
+   * Verify that Darwincore cannot be disabled via tools if there is darwincore content. (we test with Specimen/Observation)
+   * Verify that Darwincore can be disable via tools if there is no darwincore content.
+   */
+  function darwincoreToolDisable(){
+    $specimen_observation_title = $this->createSimpleSpecimenObservation();
+    $this->drupalGet('admin/structure/tools');
+    // Click the switch for blogs
+    $this->driver->getElement("css=.form-item-status-darwincore .iphone_switch_container img")->click();
+    // Wait 1 second, then submit the form
+    $this->driver->sleep(1);
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText('You cannot disable Darwincore', "'You cannot disable Darwincore' message shown");
+    $this->drupalGet('admin/content');
+    $this->assertLink('Specimen/Observation', 0, 'Darwincore not disabled via tools when there is Specimen/Observation content');
+    // Delete the Specimen/Observation node and try again to disable DarwinCore
+    $this->drupalGet('admin/content');
+    $this->clickLink('Specimen/Observation');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $specimen_observation_title . ")]]");
+    $this->clickLink($specimen_observation_title);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
+    $this->clickLink('Edit');
+    $this->driver->waitForElements("id=edit-delete");
+    $submit_button = $this->driver->getElement("id=edit-delete");
+    $submit_button->click();
+    $this->assertText(t('Are you sure you want to delete @sp?', array(
+      '@sp' => $specimen_observation_title
+    )));
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->assertText(t('Specimen/Observation @sp has been deleted', array(
+      '@sp' => $specimen_observation_title
+    )));
+    $this->drupalGet('admin/structure/tools');
+    // Click the switch for blogs
+    $this->driver->getElement("css=.form-item-status-darwincore .iphone_switch_container img")->click();
+    // Wait 1 second, then submit the form
+    $this->driver->sleep(1);
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->drupalGet('admin/content');
+    $this->assertNoLink('Specimen/Observation', 'Darwincore disabled via tools when there is no Specimen/Observation content');
+  }
+
+  /**
+   * Test the creation of Specimen/observation node
+   */
+  function createSimpleSpecimenObservation(){
+    $this->drupalGet('node/add/specimen-observation');
+    $field_data = array(
+      'field_basis_of_record' => 'Fossil Specimen',
+      'field_institution_code' => $this->randomName(),
+      'field_collection_code' => $this->randomName(),
+      'field_catalogue_number' => $this->randomName()
+    );
+    // We fill in the form elements one at a time, switching tabs when necessary
+    $element = $this->driver->getElement("name=field_basis_of_record[und]");
+    $element->selectValue($field_data['field_basis_of_record']);
+    $element = $this->driver->getElement("name=field_institution_code[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_institution_code']);
+    $element = $this->driver->getElement("name=field_collection_code[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_collection_code']);
+    $element = $this->driver->getElement("name=field_catalogue_number[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_data['field_catalogue_number']);
+    // Submit the form
+    $submit_button = $this->driver->getElement("name=op");
+    $submit_button->click();
+    // Assert that the title is properly set
+    $this->assertText('Specimen/Observation ' . $field_data['field_institution_code'] . ' - ' . $field_data['field_collection_code'] . ' - ' . $field_data['field_catalogue_number'] . ' has been created', 'Specimen/observation node successfully created');
+    return $field_data['field_institution_code'] . ' - ' . $field_data['field_collection_code'] . ' - ' . $field_data['field_catalogue_number'];
+  }
+}
