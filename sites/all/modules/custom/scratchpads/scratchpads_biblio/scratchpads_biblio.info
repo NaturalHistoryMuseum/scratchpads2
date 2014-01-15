@@ -8,3 +8,4 @@ dependencies[] = "field_sql_storage"
 dependencies[] = "file"
 features[field][] = "node-biblio-field_file"
 features[field_group][] = "node-biblio-default-group_container"
+files[] = scratchpads_biblio.test

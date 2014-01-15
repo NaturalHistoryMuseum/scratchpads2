@@ -1,0 +1,207 @@
+<?php
+/**
+ * @file
+* Test case for scratchpads file lock with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsFileLockSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads File Lock (Selenium)',
+      'description' => 'Tests for scratchpads file lock',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  /**
+   * A wrapper for the following
+   * 
+   * - Create a page and a gallery
+   * - Upload an image to page
+   * - Delete page and verify that image has not been deleted
+   * - Attach image to gallery
+   * - Delete gallery and verify that image has not been delete
+   * - Delete image directly and verify delete
+   * - Verify the image count on admin/content at various times during the process
+   * 
+   * - Note: Uploading of images in this test is done programmatically rather than through the UI.
+   * 
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $gallery_name = $this->randomName();
+    $page_name = $this->randomName();
+    $this->createBasicPage($page_name);
+    $this->createGallery($gallery_name);
+    $image_name = $this->upload_image_to_page(1);
+    $this->verifyImageCount(1);
+    $this->deletePageAndVerifyImage($page_name, $image_name);
+    $this->verifyImageCount(1);
+    $this->addImageToGallery($gallery_name, $image_name);
+    $this->verifyImageCount(1);
+    $this->deleteGalleryAndVerifyImage($gallery_name, $image_name);
+    $this->verifyImageCount(1);
+    $this->deleteImage($image_name);
+    $this->verifyImageCount(0);
+  }
+
+  /**
+   * Create a basic page.
+   */
+  private function createBasicPage($title){
+    $body = $this->randomName(16);
+    $this->drupalGet('node/add/page');
+    $element = $this->driver->getElement("name=title");
+    $element->clear();
+    $element->sendKeys($title);
+    $element = $this->driver->getElement("name=body[und][0][value]");
+    $element->clear();
+    $element->sendKeys($body);
+    // Submit the form
+    $this->driver->getElement("id=edit-submit")->click();
+  }
+
+  /**
+   * Upload a test image to the site and attach it to a page node
+   * Note: This is done programmatically rather than through the UI.
+   */
+  private function upload_image_to_page($nid){
+    $image_file = array_pop($this->drupalGetTestFiles('image'));
+    $image_file_path = drupal_realpath($image_file->uri);
+    $image_name = $image_file->filename;
+    $file_temp = file_get_contents($image_file_path);
+    // Saves a file to the specified destination and creates a database entry.
+    $file_temp = file_save_data($file_temp, 'public://' . $image_name, FILE_EXISTS_RENAME);
+    // Attach file to a node
+    $node = node_load($nid);
+    $node->field_media = array(
+      'und' => array(
+        0 => array(
+          'fid' => $file_temp->fid,
+          'filename' => $file_temp->filename,
+          'filemime' => $file_temp->filemime,
+          'uid' => 1,
+          'uri' => $file_temp->uri,
+          'status' => 1,
+          'display' => 1,
+          'title' => $file_temp->filename,
+          'type' => 'image',
+          'timestamp' => time(),
+          'field_cc_license' => array(
+            'und' => array(
+              0 => array(
+                'licence' => '2'
+              )
+            )
+          )
+        )
+      )
+    );
+    node_save($node);
+    return $image_name;
+  }
+
+  /**
+   * Delete page and verify that the related image has not been deleted.
+   */
+  private function deletePageAndVerifyImage($page_name, $image_name){
+    $this->drupalGet('admin/content');
+    $this->clickLink('Page');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$page_name.")]]");
+    $this->clickLink($page_name);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
+    $this->clickLink('Edit');
+    $this->driver->getElement("id=edit-delete")->click();
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->drupalGet('admin/content');
+    $this->clickLink('Image');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$image_name.")]]");
+    $this->assertText($image_name, 'Image still present after page has been deleted');
+  }
+
+  /**
+   * Delete gallery and verify that the related image has not been deleted.
+   */
+  private function deleteGalleryAndVerifyImage($gallery_name, $image_name){
+    $this->drupalGet('admin/content');
+    $this->clickLink('Media gallery');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'delete')]]");
+    $this->clickLink('delete');  
+    $this->driver->waitForElements("id=edit-submit");
+    $this->driver->getElement("id=edit-submit")->click();
+    // Verify that the image has not been deleted
+    $this->drupalGet('admin/content');
+    $this->clickLink('Image');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$image_name.")]]");
+    $this->assertText($image_name, 'Image still present after gallery has been deleted');
+  }
+
+  /**
+   * Attach an image to a gallery.
+   */
+  private function addImageToGallery($gallery_name, $image_name){
+    $this->drupalGet('admin/content');
+    $this->clickLink('Image');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
+    $this->clickLink('Edit');
+    // Autocomplete field for gallery
+    if(isset($gallery_name)){
+      $this->_autocompleteTest('field_smg_galleries[und][0][nid]', substr($gallery_name, 0, 1));
+    }
+    $this->driver->waitForElements("id=edit-submit");
+    $this->driver->getElement("id=edit-submit")->click();
+  }
+
+  /**
+   * Create an image gallery node.
+   */
+  private function createGallery($title){
+    $body = $this->randomName(16);
+    $this->drupalGet('node/add/media-gallery');
+    $element = $this->driver->getElement("name=title");
+    $element->clear();
+    $element->sendKeys($title);
+    $element = $this->driver->getElement("name=body[und][0][value]");
+    $element->clear();
+    $element->sendKeys($body);
+    // Submit the form
+    $this->driver->getElement("id=edit-submit")->click();
+  }
+
+  /**
+   * Delete an image and verify deletion.
+   */
+  private function deleteImage($image_name){
+    $this->drupalGet('admin/content');
+    $this->clickLink('Image');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Delete')]]");
+    $this->clickLink('Delete');
+    $this->driver->waitForElements("id=edit-submit");
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText('Image ' . $image_name . ' has been deleted.', 'Image deleted');
+    $this->drupalGet('admin/content');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
+    $this->clickLink('Image');
+    $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,".$image_name.")]]");
+    $this->assertNoText($image_name, 'Image deletion confirmed');
+  }
+
+  /**
+   * Verify the image count shown on the admin/content page.
+   */
+  function verifyImageCount($number_of_images){
+    $this->drupalGet('admin/content');
+    $elements = $this->driver->getAllElements('css=tr.file-image td');
+    // The second element should contain the image count for published images
+    $image_count = $elements[1]->getText();
+    $this->assertTrue($image_count == $number_of_images, 'Image count on admin/content page correct');
+  }
+}

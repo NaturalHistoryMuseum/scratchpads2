@@ -1,0 +1,61 @@
+<?php
+
+
+/**
+ * @file
+ *
+ * Test case for Drupal core misc/machine-name.js javascript.
+ */
+
+if (!class_exists('DrupalSeleniumWebTestCase')) {
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class MachineNameTestCase extends DrupalSeleniumWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Machine name',
+      'description' => 'Tests for machine-name javascript.',
+      'group' => 'Selenium',
+      'browsers' => array('firefox', 'chrome'),
+    );
+  }
+
+  /**
+   * Test machine name on content type creation form.
+   */
+  function testContentType() {
+    // Login user.
+    $user = $this->drupalCreateUser(array('administer nodes', 'bypass node access', 'administer content types'));
+    $this->drupalLogin($user);
+
+    $this->drupalGet('admin/structure/types/add');
+
+    // Assert that type field is invisible.
+    $type_element = $this->driver->getElement('id=edit-type');
+    $this->assertFalse($type_element->isVisible(), t('Type element is invisible.'));
+
+    $name_element = $this->driver->getElement('id=edit-name');
+
+    $name = 'New Content-type name';
+    $machine_name = 'new_content_type_name';
+
+    $name_element->sendKeys($name);
+
+    // Ensure machine name.
+    $machine_name_element = $this->driver->getElement('css=#edit-name-machine-name-suffix .machine-name-value');
+    $this->assertEqual($machine_name, $machine_name_element->getText(), t('Machine name is correct'));
+
+    // Click on Edit link and ensure form element "type" is visible
+    // and helper span element is not visible.
+    $this->driver->getElement('css=#edit-name-machine-name-suffix .admin-link a')->click();
+
+    $this->assertTrue($type_element->isVisible(), t('Type element became visible invisible.'));
+    $this->assertFalse($this->driver->getElement('id=edit-name-machine-name-suffix')->isVisible(), t('Helper element is no more visible.'));
+
+    // Ensure that value of type input field is the same.
+    $this->assertEqual($type_element->getValue(), $machine_name, t('Value of the text input type is valid.'));
+  }
+}

@@ -1,0 +1,61 @@
+<?php
+
+/**
+ * @file
+*
+* Scratchpads front tests.
+*/
+class ScratchpadsIssuesBlockTestCase extends ScratchpadsTweaksTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Issues Block',
+      'description' => "Tests for the Issues Block",
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    $modules[] = 'scratchpads_issues_block';
+    parent::setUp($modules);
+  }
+  
+  /**
+   * Wrapper for all tests
+   */
+  function testIssuesBlock(){
+    $this->drupalLogin($this->maintainer);
+    $this->verifyIssuesBlockFront();
+    $this->verifyIssuesBlockAdmin();
+  }
+
+  /**
+   * Test that the issues block shows up
+   */
+  public function verifyIssuesBlockFront(){  
+    // We create a node as we need a page with a sidebar enabled
+    $page_node = $this->drupalCreateNode(array(
+      'type' => 'page'
+    ));
+    $path = 'node/' . $page_node->nid;
+    $this->drupalGet($path);
+    $this->assertRaw('remote-issue-tab', 'Issues block present on node page');
+    $this->assertText('Recent Issues', "'Recent Issues' text shown on node page");
+  }
+
+  /**
+   * Test that the issues block does not show up on admin pages
+   */
+  public function verifyIssuesBlockAdmin(){
+    $this->drupalGet('admin/content');
+    $this->assertNoRaw('id="remote-issue-tab"', 'Issues block not present on admin/content page');
+    $this->assertNoText('Recent Issues', "No 'Recent Issues' text shown on admin/content page");
+  }
+}
+
+
+
+
