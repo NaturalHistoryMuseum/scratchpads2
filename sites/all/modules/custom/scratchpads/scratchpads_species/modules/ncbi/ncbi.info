@@ -4,6 +4,7 @@ description = "Displays a National Center for Biotechnology Information widget o
 package = "Widgets"
 dependencies[] = scratchpads_species
 tool=yes
+files[] = tests/ncbi.selenium.test
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
 project = ncbi

@@ -217,7 +217,7 @@ function scratchpads_media_gallery_node_view($node, $view_mode, $langcode){
 
 /**
  * Implementation of hook_page_alter().
- * 
+ *
  * FIXME - We need to check for the presence of a facet filter.
  */
 function scratchpads_media_gallery_menu_local_tasks_alter(&$data, $router_item, $root_path){
@@ -249,16 +249,18 @@ function scratchpads_media_gallery_node_insert($node){
   if(isset($node->field_media) && $node->type == 'media_gallery'){
     // We edit the file entities to add this node id to their respective field.
     $new_fids = array();
-    foreach($node->field_media[LANGUAGE_NONE] as $delta => $values){
+    $lang = field_language('node', $node, 'field_media');
+    foreach($node->field_media[$lang] as $delta => $values){
       $new_fids[$values['fid']] = $values['fid'];
     }
     $files = entity_load('file', $new_fids);
     foreach($files as $file){
       // Adding
-      if(!isset($file->field_smg_galleries[LANGUAGE_NONE])){
-        $file->field_smg_galleries[LANGUAGE_NONE] = array();
+      $lang = field_language('file', $file, 'field_media');
+      if(!isset($file->field_smg_galleries[$lang])){
+        $file->field_smg_galleries[$lang] = array();
       }
-      $file->field_smg_galleries[LANGUAGE_NONE][] = array(
+      $file->field_smg_galleries[$lang][] = array(
         'nid' => $node->nid
       );
       entity_save('file', $file);
@@ -282,7 +284,8 @@ function scratchpads_media_gallery_node_update($node){
       $current_fids[$row->entity_id] = $row->entity_id;
     }
     $new_fids = array();
-    foreach($node->field_media[LANGUAGE_NONE] as $delta => $values){
+    $lang = field_language('node', $node, 'field_media');
+    foreach($node->field_media[$lang] as $delta => $values){
       $new_fids[$values['fid']] = $values['fid'];
     }
     $fids_to_add = array_diff_key($new_fids, $current_fids);
@@ -290,10 +293,11 @@ function scratchpads_media_gallery_node_update($node){
     $files = entity_load('file', $fids_to_add);
     foreach($files as $file){
       // Adding
-      if(!isset($file->field_smg_galleries[LANGUAGE_NONE])){
-        $file->field_smg_galleries[LANGUAGE_NONE] = array();
+      $lang = field_language('file', $file, 'field_smg_galleries');
+      if(!isset($file->field_smg_galleries[$lang])){
+        $file->field_smg_galleries[$lang] = array();
       }
-      $file->field_smg_galleries[LANGUAGE_NONE][] = array(
+      $file->field_smg_galleries[$lang][] = array(
         'nid' => $node->nid
       );
       entity_save('file', $file);
@@ -301,9 +305,10 @@ function scratchpads_media_gallery_node_update($node){
     $files = entity_load('file', $fids_to_remove);
     foreach($files as $file){
       // Removing
-      foreach($file->field_smg_galleries[LANGUAGE_NONE] as $delta => $value){
+      $lang = field_language('file', $file, 'field_smg_galleries');
+      foreach($file->field_smg_galleries[$lang] as $delta => $value){
         if($value['nid'] == $node->nid){
-          unset($file->field_smg_galleries[LANGUAGE_NONE][$delta]);
+          unset($file->field_smg_galleries[$lang][$delta]);
         }
       }
       entity_save('file', $file);

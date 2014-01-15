@@ -1,0 +1,27 @@
+name = Selenium testing
+description = Integrates Selenium framework with simpletest.
+package = Development
+core = 7.x
+
+files[] = selenium.install
+files[] = drupal_selenium_web_test_case.php
+files[] = tests/autocomplete.test
+files[] = tests/collapse.test
+files[] = tests/machine_name.test
+files[] = tests/post.test
+files[] = tests/states.test
+files[] = tests/tabledrag.test
+files[] = tests/tableheader.test
+files[] = tests/tableselect.test
+files[] = tests/textarea.test
+files[] = tests/upload.test
+files[] = tests/vertical_tabs.test
+
+dependencies[] = simpletest
+
+; Information added by drupal.org packaging script on 2013-08-31
+version = "7.x-3.0+4-dev"
+core = "7.x"
+project = "selenium"
+datestamp = "1377912806"
+

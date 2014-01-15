@@ -13,6 +13,7 @@ dependencies[] = auto_entitylabel
 dependencies[] = media_feeds
 dependencies[] = media_internet
 files[] = includes/FeedsNodeProcessorValidate.inc
+files[] = tests/silver.test
 features[ctools][] = "feeds:feeds_importer_default:1"
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml

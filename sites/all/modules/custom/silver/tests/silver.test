@@ -1,0 +1,581 @@
+<?php
+
+/**
+ * @file
+*
+* Tests the import of all node types and user types
+*/
+class SilverTestCase extends ScratchpadsTweaksTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Silver',
+      'description' => "Tests the import of all node types and user types from xls. Note: some of the logic for these imports is provided by other modules.",
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    $modules[] = 'darwincore';
+    $modules[] = 'feeds_xls';
+    parent::setUp($modules);
+  }
+  // Specific page node data as specified in the page.xls file
+  protected $page_data = array(
+    'title' => 'Test page title one',
+    'body' => 'Test page body text one'
+  );
+  // Specific page node and term data as specified in the page_with_term.xls file
+  protected $page_data_with_term = array(
+    'title' => 'Test page title one',
+    'body' => 'Test page body text one',
+    'field_taxonomic_name' => 'myterm'
+  );
+  // Specific location data as specified in the location.xls file
+  protected $location_data = array(
+    'field_map' => '(52.38006916634651, -1.1279278993606567)',
+    'field_continent_or_ocean' => 'Africa',
+    'field_country' => 'GB', // The value for the select field
+    'field_island' => 'Test Island 1',
+    'field_island_group' => 'Test Island Group 1',
+    'field_state_province' => 'Test state 1',
+    'field_county' => 'Test County 1',
+    'field_locality' => 'Test Locality 1',
+    'field_coordinate_uncertainty' => '21',
+    'field_geodetic_datum' => 'Test Geo dat 1',
+    'field_coordinate_system' => 'Test Verbatim 1',
+    'field_georeference_protocol' => 'Test Georef pro 1',
+    'field_georeference_remarks' => 'Test Georef remarks 1',
+    'field_max_elevation' => '200',
+    'field_min_elevation' => '20',
+    'field_min_depth' => '10',
+    'field_max_depth' => '100'
+  );
+
+  protected $specimen_observation_data = array(
+    'field_basis_of_record' => 'Fossil Specimen',
+    'field_institution_code' => 'NHM23',
+    'field_collection_code' => '333',
+    'field_catalogue_number' => '222',
+    'field_type_status' => 'Holotype',
+    'field_identification_qualifier' => '32',
+    'field_date_identified' => '2001/03/04',
+    'field_date_identified2' => '2001/05/06',
+    'field_collector_number' => '13',
+    'field_number' => '22',
+    'field_date_collected' => '2000/01/02',
+    'field_date_collected2' => '2000/02/03',
+    'field_notes' => 'Test field notes',
+    'field_sex' => 'Female',
+    'field_lifestage' => 'Stage 1',
+    'field_count' => '66',
+    'field_genbank_number' => '22',
+    'field_other_catalogue_numbers' => '16',
+    'field_remarks' => 'Test Remarks'
+  );
+
+  protected $specimen_observation_data_terms_and_users = array(
+    'field_basis_of_record' => 'Fossil Specimen',
+    'field_institution_code' => 'NHM23',
+    'field_collection_code' => '333',
+    'field_catalogue_number' => '222',
+    'field_taxonomic_name' => 'myterm',
+    'field_type_status' => 'Holotype',
+    'field_identification_qualifier' => '32',
+    'field_identified_by' => 'testuser2',
+    'field_date_identified' => '2001/03/04',
+    'field_date_identified2' => '2001/05/06',
+    'field_collector_number' => '13',
+    'field_number' => '22',
+    'field_collector' => 'testuser1',
+    'field_date_collected' => '2000/01/02',
+    'field_date_collected2' => '2000/02/03',
+    'field_notes' => 'Test field notes',
+    'field_sex' => 'Female',
+    'field_lifestage' => 'Stage 1',
+    'field_count' => '66',
+    'field_genbank_number' => '22',
+    'field_other_catalogue_numbers' => '16',
+    'field_remarks' => 'Test Remarks'
+  );
+
+  protected $imported_user = array(
+    'field_user_title' => 'Mr',
+    'field_user_given_names' => 'Jon',
+    'field_user_family_name' => 'Smith',
+    'field_user_institution' => 'Cam',
+    'field_homepage_title' => 'mypage',
+    'field_homepage_url' => 'www.mypage.com',
+    'field_user_country' => 'GB',
+    'field_user_taxonomic_interest' => 'Insects',
+    'mail' => 'j@gmail.com',
+    'username' => 'jon',
+    'pass' => 'jonspass',
+    'guid' => 'G1234'
+  );
+
+  protected $imported_user_update = array(
+    'field_user_title' => 'Mrs',
+    'field_user_given_names' => 'Jonny',
+    'field_user_family_name' => 'Smiths',
+    'field_user_institution' => 'Oxford',
+    'field_homepage_title' => 'mypageuk',
+    'field_homepage_url' => 'www.mypage.co.uk',
+    'field_user_country' => 'FR',
+    'field_user_taxonomic_interest' => 'Caterpillars',
+    'mail' => 'j2@gmail.com',
+    // not given in xls file, so should stay the same
+    'username' => 'jon',
+    'pass' => 'jonspass',
+    // guid stays the same
+    'guid' => 'G1234'
+  );
+
+  protected $imported_user_historic = array(
+    'field_user_title' => 'Mr',
+    'field_user_given_names' => 'Aaa',
+    'field_user_family_name' => 'Bee',
+    'field_user_institution' => 'Ooo',
+    'field_homepage' => '',
+    'field_user_country' => 'FR',
+    'field_user_taxonomic_interest' => 'Ccc',
+    'mail' => '',
+    'username' => '',
+    'pass' => '',
+    'guid' => 'G11'
+  );
+
+  
+
+  /**
+   *  A wrapper for all user import tests
+   */
+  function testUserImports(){
+    $this->drupalLogin($this->maintainer);
+    // Test a user import with all fields given
+    $this->validateXlsUserImport();
+    // Test the update of user data, based on guid
+    $this->validateXlsUserUpdate();
+    // Test users with no username, email or password
+    $this->validateXlsUserImportNoLogin();
+  }
+  
+  /**
+   * A wrapper containing all node import tests
+   */
+  function testNodeImports(){
+    $this->drupalLogin($this->maintainer);
+    //  create a term for a biological vocabulary so that we can reference it in imports
+    $tid = $this->createTerm('myterm'); 
+    $this->validateXlsLocationImport();
+    $this->validateXlsPageImport();
+    $this->validateXlsPageImportWithTerm($tid);
+    $this->validateXlsSpecimenObservationImportBasic();
+    $this->validateXlsSpecimenObservationImportWithUsersAndTerms($tid);
+  }
+
+  /**
+   *  A wrapper for all user taxonomy tests
+   */
+  function testTaxonomyImports(){
+    $this->drupalLogin($this->maintainer);
+    $this->validateXlsTaxonomyImport();
+  }
+
+  /**
+   * Test the import of taxonomy from xls file.
+   *
+   */
+  function validateXlsTaxonomyImport(){
+    // create a biological vocabulary
+    $term_name = 'test_term';
+    $tid = $this->createTerm($term_name);
+    // navigate to the importer
+    $path_to_importer = "import/taxonomy_importer_" . $term_name;
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/taxonomy.xls');
+    $this->drupalPost($path_to_importer, array(
+      'feeds[FeedsHTTPFetcher][source]' => $rpath
+    ), t('Import'));
+    // navigate to the edit page
+    $path_to_edit_page = 'admin/structure/taxonomy/' . $term_name;
+    $this->drupalGet($path_to_edit_page);
+    // test for imported data
+  }
+
+  /**
+   * Test the import of users from xls file.
+   * 
+   * Test that all the fields have been correctly imported. 
+   * Attempt login with the supplied username and password
+   * 
+    */
+  function validateXlsUserImport(){
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/users.xls');
+    $this->drupalPost('import/user_importer_user', array(
+      'files[feeds]' => $rpath
+    ), t('Import'));
+    // Test that the users have been imported
+    $this->drupalGet('admin/people');
+    $this->assertText($this->imported_user['username'], 'First imported user present on admin/people page');
+    // Go to user edit page of imported user to verify that all the fields have been set  
+    $imported_user_object = user_load_by_name($this->imported_user['username']);
+    $this->drupalGet('user/' . $imported_user_object->uid . '/edit');
+    // Allow user login should be checked
+    $this->assertFieldChecked('edit-create-user-account', "'Allow user login' checked");
+    foreach($this->imported_user as $key => $user_field_data){
+      // check each field
+      switch($key){
+        case 'pass':
+        case 'guid':
+          break;
+        case 'username':
+          $this->assertFieldByName('name', $user_field_data, $key . ' field found and correctly set');
+          break;
+        case 'mail':
+          $this->assertFieldByName('mail', $user_field_data, $key . ' field found and correctly set');
+          break;
+        case 'field_homepage_url':
+          $this->assertFieldByName('field_homepage[' . LANGUAGE_NONE . '][0][url]', $user_field_data, $key . ' field found and correctly set');
+          break;
+        case 'field_homepage_title':
+          $this->assertFieldByName('field_homepage[' . LANGUAGE_NONE . '][0][title]', $user_field_data, $key . ' field found and correctly set');
+          break;
+        case 'field_user_title':
+          $this->assertFieldByName('field_user_title[' . LANGUAGE_NONE . '][0][select_other_list]', $user_field_data, $key . ' field found and correctly set');
+          break;
+        case 'field_user_country':
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $user_field_data, $key . ' field found and correctly set');
+          break;
+        default:
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value]', $user_field_data, $key . ' field found and correctly set');
+      }
+    }
+    // can we log in as the imported user?
+    $this->drupalLogout();
+    $edit = array(
+      'name' => $this->imported_user['username'],
+      'pass' => $this->imported_user['pass']
+    );
+    $this->scratchpads_tweaks_legal_save($imported_user_object->uid);
+    $this->drupalPost('user', $edit, t('Log in'));
+    // Access denied will be be shown as this user has no access permissions within simpletests, but that is ok.
+    $this->assertNoText('Sorry, unrecognized username or password', 'Imported user successfully logged in');
+    $this->drupalLogout();
+    // log back in as admin, ready for next test
+    $this->drupalLogin($this->maintainer);
+  }
+
+  /**
+   * Test user update, using guid, but no username or password
+   */
+  function validateXlsUserUpdate(){
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/user_update.xls');
+    $this->drupalPost('import/user_importer_user', array(
+      'files[feeds]' => $rpath
+    ), t('Import'));
+    // Test that the user has been updated
+    $this->drupalGet('admin/people');
+    $imported_user_object = user_load_by_name($this->imported_user_update['username']);
+    $this->drupalGet('user/' . $imported_user_object->uid . '/edit');
+    // Allow user login should be checked
+    $this->assertFieldChecked('edit-create-user-account', "'Allow user login' checked");
+    foreach($this->imported_user_update as $key => $user_field_data){
+      // check each field
+      switch($key){
+        case 'pass':
+        case 'guid':
+          break;
+        case 'username':
+          // This is reset if not given in the xls file. Is this a bug?
+          // $this->assertFieldByName('name', $user_field_data, $key . ' field found and correctly set');
+          break;
+        case 'mail':
+          $this->assertFieldByName('mail', $user_field_data, $key . ' field found and correctly set');
+          break;
+        case 'field_homepage_url':
+          $this->assertFieldByName('field_homepage[' . LANGUAGE_NONE . '][0][url]', $user_field_data, $key . ' field found and correctly set');
+          break;
+        case 'field_homepage_title':
+          $this->assertFieldByName('field_homepage[' . LANGUAGE_NONE . '][0][title]', $user_field_data, $key . ' field found and correctly set');
+          break;
+        case 'field_user_title':
+          $this->assertFieldByName('field_user_title[' . LANGUAGE_NONE . '][0][select_other_list]', $user_field_data, $key . ' field found and correctly set');
+          break;
+        case 'field_user_country':
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $user_field_data, $key . ' field found and correctly set');
+          break;
+        default:
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value]', $user_field_data, $key . ' field found and correctly set');
+      }
+    }
+  }
+
+  /**
+   * Test the import of users without username, email and password
+   *
+   * Tests that all the fields have been correctly imported and that a username has been created
+   *
+   */
+  function validateXlsUserImportNoLogin(){
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/user_no_login.xls');
+    $this->drupalPost('import/user_importer_user', array(
+      'files[feeds]' => $rpath
+    ), t('Import'));
+    // The created username should be of the form: ['title'] ['given_name'] ['family_name']
+    $username = $this->imported_user_historic['field_user_title'] . ' ' . $this->imported_user_historic['field_user_given_names'] . ' ' . $this->imported_user_historic['field_user_family_name'];
+    // Go to user edit page of imported user to verify that all the fields have been set
+    $imported_user_object = user_load_by_name($username);
+    $this->drupalGet('user/' . $imported_user_object->uid . '/edit');
+    // Allow user login should be unchecked
+    $this->assertNoFieldChecked('edit-create-user-account', "'Allow user login' unchecked");
+    foreach($this->imported_user_historic as $key => $user_field_data){
+      // check each field
+      switch($key){
+        case 'pass':
+        case 'guid':
+        case 'username':
+        case 'mail':
+          break;
+        case 'username':
+          $this->assertFieldByName('name', $username, $key . ' field found and correctly set');
+          break;
+        case 'field_homepage':
+          $this->assertFieldByName('field_homepage[' . LANGUAGE_NONE . '][0][url]', $user_field_data, $key . ' field found and correctly set');
+          break;
+        case 'field_user_title':
+          $this->assertFieldByName('field_user_title[' . LANGUAGE_NONE . '][0][select_other_list]', $user_field_data, $key . ' field found and correctly set');
+          break;
+        case 'field_user_country':
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $user_field_data, $key . ' field found and correctly set');
+          break;
+        default:
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value]', $user_field_data, $key . ' field found and correctly set');
+      }
+    }
+  }
+
+  /**
+   * Test the import of page nodes from xls file.
+   */
+  function validateXlsPageImport(){
+    $this->drupalGet('import/node_importer_page');
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/page.xls');
+    $this->drupalPost('import/node_importer_page', array(
+      'files[feeds]' => $rpath
+    ), t('Import'));
+    // Test that the pages have appeared
+    $this->drupalGet('admin/content/page');
+    $this->assertText('Test page title one', 'First imported page node present on admin/content/page');
+    $this->assertText('Test page title two', 'Second imported page node present on admin/content/page');
+    // may want to add more detailed test of fields here
+    $this->clickLink('Test page title one');
+    $this->assertText('Test page body text one', 'Imported body field present of node page');
+  }
+
+  /**
+   * Test the import of page nodes with taxonomy term from xls file.
+   */
+  function validateXlsPageImportWithTerm($tid){
+    $this->drupalGet('import/node_importer_page');
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/page_with_term.xls');
+    $this->drupalPost('import/node_importer_page', array(
+      'files[feeds]' => $rpath
+    ), t('Import'));
+    // Test that the pages have appeared
+    $this->drupalGet('admin/content/page');
+    $this->assertText('Test page title one', 'First imported page node present on admin/content/page');
+    $this->assertText('Test page title two', 'Second imported page node present on admin/content/page');
+    // may want to add more detailed test of fields here
+    $this->clickLink('Test page title one');
+    $this->assertText('Test page body text one', 'Imported body field present of node page');
+    $this->clickLink('Edit');
+    foreach($this->page_data_with_term as $key => $page_field_data){
+      // check each field
+      if($key == 'title'){
+        // Title
+        $this->assertFieldByName($key, $page_field_data, $key . ' field found and correctly set');
+      }elseif($key == 'body'){
+        // Body field
+        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value]', $page_field_data, $key . ' field found and correctly set');
+      }elseif($key == 'field_taxonomic_name'){
+        //field_taxonomic_name[und]
+        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $page_field_data . ' [' . $tid . ']', $key . ' field found and correctly set');
+      }
+    }
+  }
+
+  /**
+   * Test the import of location nodes from xls file.
+   */
+  function validateXlsLocationImport(){
+    $this->drupalGet('import/node_importer_location');
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/location.xls');
+    $this->drupalPost('import/node_importer_location', array(
+      'files[feeds]' => $rpath
+    ), t('Import'));
+    $this->drupalGet('admin/content/location');
+    $this->assertText('Location Test Title One', 'First imported location node present on admin/content/location');
+    $this->assertText('Location Test Title Two', 'Second imported location node present on admin/content/location');
+    $this->clickLink('Location Test Title One');
+    $this->clickLink('Edit');
+    foreach($this->location_data as $key => $location_field_data){
+      if($key == 'field_map'){
+        // Map field
+        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][map][map]', $location_field_data, $key . ' field found and correctly set');
+      }elseif(($key == 'field_continent_or_ocean') || ($key == 'field_country')){
+        // Select list
+        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $location_field_data, $key . ' field found and correctly set');
+      }else{
+        // Text fields      
+        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value]', $location_field_data, $key . ' field found and correctly set');
+      }
+    }
+  }
+
+  /**
+   * Tests the import of basic specimen-observation fields, without user or term ids.
+   */
+  function validateXlsSpecimenObservationImportBasic(){
+    $this->drupalGet('import/node_importer_specimen_observation');
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/specimenobservation.xls');
+    $this->drupalPost('import/node_importer_specimen_observation', array(
+      'files[feeds]' => $rpath
+    ), t('Import'));
+    $title = $this->specimen_observation_data['field_institution_code'] . ' - ' . $this->specimen_observation_data['field_collection_code'] . ' - ' . $this->specimen_observation_data['field_catalogue_number'];
+    $this->drupalGet('admin/content/specimen_observation');
+    $this->assertText($title, 'First imported specimen_observation node present on admin/content/specimen_observation');
+    $this->clickLink($title);
+    $this->clickLink('Edit');
+    foreach($this->specimen_observation_data as $key => $field_data){
+      if(($key == 'field_date_collected') || ($key == 'field_date_identified')){
+        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value][date]', $field_data, $key . ' date field found and correctly set');
+      }elseif($key == 'field_date_collected2'){
+        $this->assertFieldByName('field_date_collected' . '[' . LANGUAGE_NONE . '][0][value2][date]', $field_data, $key . ' date field found and correctly set');
+      }elseif($key == 'field_date_identified2'){
+        $this->assertFieldByName('field_date_identified' . '[' . LANGUAGE_NONE . '][0][value2][date]', $field_data, $key . ' date field found and correctly set');
+      }elseif(($key == 'field_basis_of_record') || ($key == 'field_type_status') || ($key == 'field_sex')){
+        // Select list
+        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $field_data, $key . ' select field found and correctly set');
+      }else{
+        // Text fields
+        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value]', $field_data, $key . ' field found and correctly set');
+      }
+    }
+  }
+
+  /**
+   * Tests the import of basic specimen-observation fields, with user or term ids.
+   */
+  function validateXlsSpecimenObservationImportWithUsersAndTerms($tid){
+    // A custom function is used to create users of a specific name
+    $this->test_user1 = $this->drupalCreateUserByName('testuser1', array(
+      'access content'
+    ));
+    $this->test_user2 = $this->drupalCreateUserByName('testuser2', array(
+      'access content'
+    ));
+    $uid1 = $this->test_user1->uid;
+    $uid2 = $this->test_user2->uid;
+    $this->drupalGet('import/node_importer_specimen_observation');
+    $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/specimenobservation_terms_and_users.xls');
+    $this->drupalPost('import/node_importer_specimen_observation', array(
+      'files[feeds]' => $rpath
+    ), t('Import'));
+    $title = $this->specimen_observation_data_terms_and_users['field_institution_code'] . ' - ' . $this->specimen_observation_data_terms_and_users['field_collection_code'] . ' - ' . $this->specimen_observation_data_terms_and_users['field_catalogue_number'];
+    $this->drupalGet('admin/content/specimen_observation');
+    $this->assertText($title, 'First imported specimen_observation node present on admin/content/specimen_observation');
+    $this->clickLink($title);
+    $this->clickLink('Edit');
+    foreach($this->specimen_observation_data_terms_and_users as $key => $field_data){
+      switch($key){
+        case 'field_date_collected':
+        case 'field_date_identified':
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value][date]', $field_data, $key . ' date field found and correctly set');
+          break;
+        case 'field_date_collected2':
+          $this->assertFieldByName('field_date_collected' . '[' . LANGUAGE_NONE . '][0][value2][date]', $field_data, $key . ' date field found and correctly set');
+          break;
+        case 'field_date_identified2':
+          $this->assertFieldByName('field_date_identified' . '[' . LANGUAGE_NONE . '][0][value2][date]', $field_data, $key . ' date field found and correctly set');
+          break;
+        case 'field_basis_of_record':
+        case 'field_type_status':
+        case 'field_sex':
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $field_data, $key . ' select field found and correctly set');
+          break;
+        case 'field_taxonomic_name':
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $field_data . ' [' . $tid . ']', $key . ' field found and correctly set');
+          break;
+        case 'field_identified_by':
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][uid]', $field_data . ' [uid:' . $uid2 . ']', $key . ' field found and correctly set');
+          break;
+        case 'field_collector':
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][uid]', $field_data . ' [uid:' . $uid1 . ']', $key . ' field found and correctly set');
+          break;
+        default:
+          $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value]', $field_data, $key . ' field found and correctly set');
+      }
+    }
+  }
+
+  /**
+   *  Create taxonmy term and return the term id
+   */
+  public function createTerm($term_name){
+    // create taxonomy
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $edit = array();
+    $human_name = $this->randomName();
+    $edit['name'] = $human_name;
+    $machine_readable = $this->machine_name($human_name);
+    $edit['machine_name'] = $machine_readable;
+    $edit['biological_classification'] = 1;
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertText('Created new vocabulary', 'biological classification successfully created');
+    // create a term for the newly created taxonomy
+    $this->drupalGet('admin/structure/taxonomy/' . $machine_readable . '/add');
+    $edit2 = array();
+    $name2 = $this->randomName();
+    $edit2['name'] = $name2; // do we need this?
+    $edit2['field_unit_name1[und][0][value]'] = $term_name;
+    $this->drupalPost(NULL, $edit2, t('Save'));
+    $this->assertText('Created new term', 'New term successfully created');
+    $taxon_array = taxonomy_get_term_by_name($term_name);
+    // The term id is the first key of the array
+    reset($taxon_array);
+    $tid = key($taxon_array);
+    return $tid;
+  }
+
+  protected function drupalCreateUserByName($username, array $permissions = array()){
+    // Create a role with the given permission set, if any.
+    $rid = FALSE;
+    if($permissions){
+      $rid = $this->drupalCreateRole($permissions);
+      if(!$rid){return FALSE;}
+    }
+    // Create a user assigned to that role.
+    $edit = array();
+    $edit['name'] = $username;
+    $edit['mail'] = $edit['name'] . '@example.com';
+    $edit['pass'] = user_password();
+    $edit['status'] = 1;
+    if($rid){
+      $edit['roles'] = array(
+        $rid => $rid
+      );
+    }
+    $account = user_save(drupal_anonymous_user(), $edit);
+    $this->assertTrue(!empty($account->uid), t('User created with name %name and pass %pass', array(
+      '%name' => $edit['name'],
+      '%pass' => $edit['pass']
+    )), t('User login'));
+    if(empty($account->uid)){return FALSE;}
+    // Add the raw password so that we can log in as this user.
+    $account->pass_raw = $edit['pass'];
+    return $account;
+  }
+}

@@ -40,7 +40,7 @@ features[variable][] = "node_options_event"
 features[variable][] = "node_preview_event"
 features[variable][] = "node_submitted_event"
 features[views_view][] = "event_calendar"
-
+files[] = scratchpads_events.test
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
 project = scratchpads_events

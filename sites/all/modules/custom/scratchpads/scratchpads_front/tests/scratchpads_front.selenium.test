@@ -1,0 +1,131 @@
+<?php
+/**
+ * @file
+*
+* Test case for Darwincore with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsFrontSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Front (Selenium)',
+      'description' => 'Tests for scratchpads front module',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  /**
+   * A wrapper for the following tests
+   * - Test that default blocks and views are present
+   * - Test the front page teasers: Add page, verify teaser, change settings, verify changes.
+   * - Add welcome message and verify presence on front page.
+   * - Test 'display images' functionality (slideshow)
+   * - Test 'display content' functionality. (text)
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $this->verifyDefaultBlocks();
+    $this->verifyTeasersAndWelcomeMessage();
+    $this->verifyMainBlockContent();
+  }
+
+  /**
+   * Verfiy the presence of the default blocks and slideshow
+   */
+  function verifyDefaultBlocks(){
+    $this->drupalGet('');
+    $this->assertRaw('block-views-front-page-blocks-block-1', 'Front page views block 1 present.');
+    $this->assertRaw('block-views-front-page-blocks-block-2', 'Front page views block 2 present.');
+    $this->assertRaw('block-views-front-page-blocks-block-3', 'Front page views block 3 present.');
+    $this->assertRaw('view-front-page-slideshow', 'Front page slideshow present.');
+  }
+
+  /**
+   * - Add a page node and see if it appears as a teaser on the front page.
+   * - Change the settings on the front page edit page and check that the page teaser is no longer displayed
+   * - Add welcome message and verify presence on front page. 
+   */
+  function verifyTeasersAndWelcomeMessage(){
+    $page_info = $this->createBasicPage();
+    $this->drupalGet('');
+    $this->assertText($page_info['body'], 'Page teaser shown on front page');
+    $this->clickLink('Edit');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Edit')]]");
+    $this->verboseScreenshot();
+    $welcome_message = $this->randomName();
+    $element = $this->driver->getElement("name=front_page_welcome_message[value]");
+    $element->clear();
+    $element->sendKeys($welcome_message);
+    $element = $this->driver->getElement("name=front_page_block_1_node_type");
+    $element->selectLabel('Taxon Description');
+    $element = $this->driver->getElement("name=front_page_block_2_node_type");
+    $element->selectLabel('Taxon Description');
+    $element = $this->driver->getElement("name=front_page_block_3_node_type");
+    $element->selectLabel('Taxon Description');
+    $this->verboseScreenshot();
+    // Submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->assertText($welcome_message, 'Welcome message shown on front page');
+    $this->verboseScreenshot();
+    $this->assertNoText($page_info['body'], 'Page teaser not shown on front page after changing settings');
+  }
+
+  function verifyMainBlockContent(){
+    $page_info = $this->createBasicPage();
+    $this->drupalGet('scratchpads-front/edit');
+    $edit = array();
+    $this->verboseScreenshot();
+    $element = $this->driver->getElement("id=edit-front-page-main-block-type-content")->click();
+    // submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->verboseScreenshot();
+    $this->drupalGet('');
+    // Teasers not visible, from previous test
+    $this->assertText($page_info['body'], 'Content visible in front page');
+  }
+
+  function changeFileUploadWidget(){
+    $this->drupalGet('admin/structure/types/manage/page/fields/field_media/widget-type');
+    $element = $this->driver->getElement("name=widget_type");
+    $element->selectLabel('File');
+    // Submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+    $this->drupalGet('');
+  }
+
+  /**
+   * Helper function.
+   * Create a basic page and return the title
+   */
+  private function createBasicPage(){
+    $title = $this->randomName(8);
+    $body = $this->randomName(16);
+    $this->drupalGet('node/add/page');
+    $element = $this->driver->getElement("name=title");
+    $element->clear();
+    $element->sendKeys($title);
+    $element = $this->driver->getElement("name=body[und][0][value]");
+    $element->clear();
+    $element->sendKeys($body);
+    // Submit the form
+    $this->driver->getElement("id=edit-submit")->click();
+    return array(
+      'title'=>$title,
+      'body'=> $body
+      );
+  }
+  
+}
