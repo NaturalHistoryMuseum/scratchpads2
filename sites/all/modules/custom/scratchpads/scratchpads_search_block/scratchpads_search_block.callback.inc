@@ -22,6 +22,10 @@ function scratchpads_search_block_autocomplete($search = ''){
         $parents[$key] = $parent->name;
       }
       $name = implode(" » ", $parents);
+      $term = taxonomy_term_load($tid);
+      if(!empty($term->field_authors[LANGUAGE_NONE][0]['value'])){
+        $name .= ' ' . $term->field_authors[LANGUAGE_NONE][0]['value'];
+      }
       $term_matches[$parent->name . ' [' . $tid . ']'] = '<span style="font-size:90%">' . check_plain($name) . '</span>';
     }
   }
