@@ -1,0 +1,151 @@
+<?php
+/**
+ * @file
+*
+* Test case for Tui with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class TuiSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'TUI (Selenium)',
+      'description' => 'Test the user interface for editing a taxonomy.',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  /**
+   * A wrapper for the following tests
+   * - Create a vocabulary
+   * - Import a taxonomy from EOL ('Pediculus')
+   * - Verify that the vocab tab has been created
+   * - Verfiy that the tui tree is present on edit page
+   * - Test the tui tree user interface.
+   * - Edit a term using the interface.
+   * - Delete a term using the interface.
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $vocab_name = $this->randomName();
+    $this->createAnimalVocabulary($vocab_name);
+    $success = $this->importTaxonomy($vocab_name, 'Pediculus');
+    if($success){
+      $this->verifyTuiTree($vocab_name);
+      $this->verifyEditTerm($vocab_name);
+      $this->verfiyDeleteTerm($vocab_name);
+    }
+  }
+
+  /**
+   * Create a vocabulary
+   */
+  function createAnimalVocabulary($vocab_name){
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $element = $this->driver->getElement("name=name");
+    $element->clear();
+    $element->sendKeys($vocab_name);
+    $element = $this->driver->getElement("name=description");
+    $element->clear();
+    $element->sendKeys($this->randomName());
+    $element = $this->driver->getElement("name=biological_classification");
+    $element->selectLabel('Animal');
+    // Submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+  }
+
+  /**
+   * Verfiy the presense of the tui-tree
+   * Verify that clicking on the '+' sign of elements opens the tree.
+   * Verify that clicking on a second '+' sign further opens the tree.
+   */
+  function verifyTuiTree($vocab_name){
+    $path = 'admin/structure/taxonomy/' . $vocab_name;
+    $this->drupalGet($path);
+    $this->assertRaw('tui-tree', 'tui-tree present on vocabulary edit page');
+    $number_of_visible_nodes = $this->driver->getAllElements("xpath=//*[text()[contains(.,'Pediculus')]]");
+    $this->driver->getElement("css=#tui-tree .tui-has-children span")->click();
+    $this->driver->sleep(5);
+    $number_of_visible_nodes2 = $this->driver->getAllElements("xpath=//*[text()[contains(.,'Pediculus')]]");
+    $this->assertTrue($number_of_visible_nodes2 > $number_of_visible_nodes, 'Clicking on plus sign successfully opens tree');
+    $this->driver->getElement("css=#tui-tree .tui-has-children .tui-has-children span")->click();
+    $this->driver->sleep(5);
+    $number_of_visible_nodes3 = $this->driver->getAllElements("xpath=//*[text()[contains(.,'Pediculus')]]");
+    $this->assertTrue($number_of_visible_nodes3 > $number_of_visible_nodes2, 'Clicking on a second plus sign successfully opens sub tree');
+    $this->verboseScreenshot();
+  }
+
+  /** 
+   * Edit a term using the user interface
+   */
+  function verifyEditTerm($vocab_name){
+    // We edit a term
+    $this->clickLink('edit', 1);
+    $this->driver->sleep(5);
+    $this->verboseScreenshot();
+    // Change the unit name 1
+    $edited_unit_name1 = $this->randomName();
+    $this->driver->waitForElements("name=field_unit_name1[und][0][value]");
+    $element = $this->driver->getElement("name=field_unit_name1[und][0][value]");
+    $element->clear();
+    $element->sendKeys($edited_unit_name1);
+    // Change the unit name 2
+    $edited_unit_name2 = $this->randomName();
+    $element = $this->driver->getElement("name=field_unit_name2[und][0][value]");
+    $element->clear();
+    $element->sendKeys($edited_unit_name2);
+    // Change/create the unit name 3
+    $edited_unit_name3 = $this->randomName();
+    $element = $this->driver->getElement("name=field_unit_name3[und][0][value]");
+    $element->clear();
+    $element->sendKeys($edited_unit_name3);
+    // Change/create the unit name 4
+    $edited_unit_name4 = $this->randomName();
+    $element = $this->driver->getElement("name=field_unit_name4[und][0][value]");
+    $element->clear();
+    $element->sendKeys($edited_unit_name4);
+    // submit the form
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->driver->sleep(5);
+    // reload the page and navigate the tree to check that it has really saved  
+    $edited_name = $edited_unit_name1 . ' ' . $edited_unit_name2 . ' ' . $edited_unit_name3 . ' ' . $edited_unit_name4;
+    $this->assertText($edited_name, 'Unit names 1-4 successfully edited:' . $edited_name);
+  }
+
+  /**
+   * Select a term and then delete on , using the user interface
+   * Verify that the term has been deleted
+   */
+  function verfiyDeleteTerm($vocab_name){
+    // Open the first level of the tree
+    $path = 'admin/structure/taxonomy/' . $vocab_name;
+    $this->drupalGet($path);
+    $this->driver->getElement("css=#tui-tree .tui-has-children span")->click();
+    $this->driver->sleep(5);
+    // Select a term to delete
+    $element = $this->driver->getElement("css=#tui-tree .tui-no-children div");
+    $term_to_delete = $element->getText();
+    $this->assertText($term_to_delete, 'Term name visible before deletion');
+    $element->click();
+    $this->driver->sleep(2);
+    // Click the delete button
+    $this->driver->getElement("css=#tui-delete")->click();
+    $this->driver->sleep(2);
+    $this->assertText('Are you sure', 'Confirmation message shown');
+    // submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit")->click();
+    // Wait for 'Please wait' to be not visible. We wait for a maximum of 20 seconds
+    $this->verboseScreenshot();
+    $elements = $this->waitForElementsToBeNotVisible("xpath=//*[text()[contains(.,'Please wait')]]", 15);
+    $this->verboseScreenshot();
+    $this->assertNoText($term_to_delete, 'Term name not visible after deletion');
+  }
+}

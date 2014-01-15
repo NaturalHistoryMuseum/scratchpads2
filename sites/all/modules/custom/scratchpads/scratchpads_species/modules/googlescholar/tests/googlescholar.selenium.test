@@ -1,0 +1,118 @@
+<?php
+/**
+ * @file
+*
+* Test case for Google Scholar Widget with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class GoogleScholarSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Google Scholar (Selenium)',
+      'description' => 'Tests for Google Scholar Widget',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  /**
+   * A wrapper for the following:
+   * - Create animal vocabulary
+   * - Import taxonomy from EOL.('Pediculus')
+   * - Enable Google Scholar Widget on the tools page
+   * - Verify that the google scholar information shows up on the taxonomy page, under literature 
+   * - Disable Google Scholar Widget on the tools page
+   * - Verify that the  google scholar information does not shows up on the taxonomy page, under literature
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $vocab_name = $this->randomName();
+    $term_name = 'Pediculus';
+    // Create animal vocabulary
+    $this->createAnimalVocabulary($vocab_name);
+    // Import taxonomy from EOL.
+    $success = $this->importTaxonomy($vocab_name, $term_name);
+    if($success){
+      // make sure that we are using the scratchpads theme
+      variable_set('theme_default', 'scratchpads');
+      // Enable GoogleScholar on the tools page
+      $this->enableGoogleScholarTool();
+      // Verify that the GoogleScholar information shows up on the taxonomy page, under descriptions
+      $this->verifyGoogleScholar($vocab_name, $term_name);
+      // Disable GoogleScholar on the tools page
+      $this->disableGoogleScholarTool();
+      // Verify that the GoogleScholar information does not shows up on the taxonomy page, under descriptions
+      $this->verifyNoGoogleScholar($vocab_name, $term_name);
+    }
+  }
+
+  function enableGoogleScholarTool(){
+    $this->drupalGet('admin/structure/tools');
+    $this->driver->getElement('css=.form-item-status-googlescholar .iphone_switch_container img')->click();
+    // Wait 1 second, then submit the form
+    $this->driver->sleep(1);
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText('The configuration options have been saved.', 'Confirmation message shown when enabling tool.');
+  }
+
+  function disableGoogleScholarTool(){
+    $this->drupalGet('admin/structure/tools');
+    $this->driver->getElement('css=.form-item-status-googlescholar .iphone_switch_container img')->click();
+    // Wait 1 second, then submit the form
+    $this->driver->sleep(1);
+    $this->driver->getElement("id=edit-submit")->click();
+    // Wait for page to load
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Are you sure')]]");
+    $this->assertText('Are you sure you want to disable Google Scholar Widget?', "'Are you sure?', message shown when disabling Google Scholar");
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText('The configuration options have been saved.', 'Confirmation message shown when disabling Google Scholar Widget tool.');
+  }
+
+  function verifyGoogleScholar($vocab_name, $term_name){
+    
+    
+   
+    
+    $this->drupalGet('');
+    $this->clickLink($vocab_name);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $term_name . ")]]");
+    $this->clickLink('Literature');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Google Scholar')]]");
+    $this->assertText('Google Scholar', 'Google Scholar header text present on on Literature tab of taxonomy page');
+  }
+
+  function verifyNoGoogleScholar($vocab_name, $term_name){
+    variable_set('theme_default', 'bartik');
+    $this->drupalGet('');
+    $this->clickLink($vocab_name);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $term_name . ")]]");
+    $this->clickLink('Literature');
+    $this->driver->sleep(1);
+    $this->assertNoText('Google Scholar', 'Google Scholar header text not present on on Literature tab of taxonomy page, after disabling tool');
+  }
+
+  /**
+   * Create a vocabulary
+   */
+  function createAnimalVocabulary($vocab_name){
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $this->driver->waitForElements("name=name");
+    $element = $this->driver->getElement("name=name");
+    $element->clear();
+    $element->sendKeys($vocab_name);
+    $element = $this->driver->getElement("name=description");
+    $element->clear();
+    $element->sendKeys($this->randomName());
+    $element = $this->driver->getElement("name=biological_classification");
+    $element->selectLabel('Animal');
+    // Submit the form
+    $this->driver->getElement("id=edit-submit")->click();
+  }
+}

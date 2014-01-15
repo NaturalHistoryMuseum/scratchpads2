@@ -1,0 +1,192 @@
+<?php
+/**
+ * @file
+*
+* Test case for scratchpads_species with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsSpeciesSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Species (Selenium)',
+      'description' => 'Tests for scratchpads species',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  public function setUp(){
+    $modules[] = 'darwincore';
+    parent::setUp($modules);
+  }
+
+  /**
+   * A wrapper for the following tests
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $vocab_name = $this->randomName();
+    $this->createAnimalVocabulary($vocab_name);
+    $success = $this->importTaxonomy($vocab_name, 'Pediculus');
+    if($success){
+      $this->verifyTabs($vocab_name);
+      $this->verifyTaxonDescription($vocab_name);
+      $this->verifySpecimen($vocab_name, 'Pediculus');
+      $this->verifyLiterature($vocab_name);
+    }
+  }
+
+  /**
+   * Test that the tabs show up on the species page
+   */
+  function verifyTabs($vocab_name){
+    $this->drupalGet('');
+    $this->clickLink($vocab_name);
+    $tabs = scratchpads_species_get_default_tabs();
+    foreach($tabs as $tab){
+      $this->assertLink($tab);
+    }
+  }
+
+  /**
+   * - Add a taxon description
+   * - Verify that it shows up on the species page
+   */
+  function verifyTaxonDescription($vocab_name){
+    $this->drupalGet('node/add/spm');
+    $this->driver->waitForElements("name=field_taxonomic_name[und]");
+    // Autocomplete taxonomy field
+    $this->_autocompleteTest('field_taxonomic_name[und]', 'p');
+    $general_description = $this->randomName(16);
+    $biology = $this->randomName(16);
+    $element = $this->driver->getElement("name=field_general_description[und][0][value]");
+    $element->clear();
+    $element->sendKeys($general_description);
+    $element = $this->driver->getElement("name=field_biology[und][0][value]");
+    $element->clear();
+    $element->sendKeys($biology);
+    // Click the 'Publishing options' tab
+    $this->driver->getElement("xpath=//*[text()[contains(.,'Publishing options')]]")->click();
+    $this->verboseScreenshot();
+    // Click the checkbox for published
+    $this->driver->getElement("id=edit-status")->click();
+    // Submit the form
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->drupalGet('');
+    $this->clickLink($vocab_name);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $general_description . ")]]");
+    $this->assertText($general_description, 'General description shown on species page');
+    // Click tab
+    $this->clickLink('Descriptions');
+    $this->verboseScreenshot();
+    $this->assertText($general_description, "Spm General description text shown after clicking 'Descriptions' tab");
+    $this->assertText($biology, "Spm Biology text shown after clicking 'Descriptions' tab");
+  }
+
+  /**
+   * - Add a specimen, with taxonomic name
+   * - Verify that it shows up on the species page
+   * - Verfiy that a map shows up under the map tab
+   */
+  function verifySpecimen($vocab_name, $term_name){
+    $this->drupalGet('node/add/specimen-observation');
+    // Required fields
+    $field_basis_of_record = 'Fossil Specimen';
+    $field_institution_code = $this->randomName();
+    $field_collection_code = $this->randomName();
+    $field_catalogue_number = $this->randomName();
+    $this->driver->waitForElements("name=field_basis_of_record[und]");
+    $element = $this->driver->getElement("name=field_basis_of_record[und]");
+    $element->selectValue($field_basis_of_record);
+    $element = $this->driver->getElement("name=field_institution_code[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_institution_code);
+    $element = $this->driver->getElement("name=field_collection_code[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_collection_code);
+    $element = $this->driver->getElement("name=field_catalogue_number[und][0][value]");
+    $element->clear();
+    $element->sendKeys($field_catalogue_number);
+    // Click tab
+    $this->clickLink('Taxonomy');
+    // Autocomplete taxonomy field
+    $this->_autocompleteTest('field_taxonomic_name[und]', 'p');
+    // Wait for the field to be populated
+    $this->driver->sleep(2);
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->drupalGet('');
+    $this->clickLink($vocab_name);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $term_name . ")]]");
+    // Click tab
+    $this->clickLink('Specimens');
+    // Wait for the slickgrid to load
+    $this->driver->sleep(5);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'" . $field_basis_of_record . "')]]");
+    $this->assertText($field_basis_of_record, "Specimen shown after clicking 'Specimens' tab");
+    $this->clickLink('Maps');
+    // Wait for the slickgrid to load
+    $this->driver->sleep(5);
+    $this->assertRaw('gm3-map', "Map shown after clicking 'Maps' tab");
+  }
+
+  /**
+   * - Add a biblio entry, with taxonomic name
+   * - Verify that it shows up on the species page
+   */
+  function verifyLiterature($vocab_name){
+    $this->drupalGet('node/add/biblio');
+    $this->driver->waitForElements("name=biblio_type");
+    $element = $this->driver->getElement("name=biblio_type");
+    $element->selectLabel('Journal');
+    $journal_title = $this->randomName();
+    $journal_year = '1974';
+    // Wait for javasscript
+    $this->driver->sleep(2);
+    $element = $this->driver->getElement("name=title");
+    $element->clear();
+    $element->sendKeys($journal_title);
+    // Autocomplete taxonomy field
+    $this->_autocompleteTest('field_taxonomic_name[und]', 'p');
+    // Wait for the field to be populated
+    $this->driver->sleep(2);
+    // Click tab
+    $this->clickLink('Publication');
+    $element = $this->driver->getElement("name=biblio_year");
+    $element->clear();
+    $element->sendKeys($journal_year);
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->drupalGet('');
+    $this->clickLink($vocab_name);
+    // Click tab
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Literature')]]");
+    $this->clickLink('Literature');
+    // Wait for page to load
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $journal_title . ")]]");
+    $this->assertText($journal_title, "Biblio title shown after clicking 'Literature' tab");
+  }
+
+  /**
+   * Create a vocabulary
+   */
+  function createAnimalVocabulary($vocab_name){
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $this->driver->waitForElements("name=name");
+    $element = $this->driver->getElement("name=name");
+    $element->clear();
+    $element->sendKeys($vocab_name);
+    $element = $this->driver->getElement("name=description");
+    $element->clear();
+    $element->sendKeys($this->randomName());
+    $element = $this->driver->getElement("name=biological_classification");
+    $element->selectLabel('Animal');
+    // Submit the form
+    $this->driver->getElement("id=edit-submit")->click();
+  }
+}

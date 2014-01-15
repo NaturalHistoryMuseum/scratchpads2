@@ -1,0 +1,115 @@
+<?php
+/**
+ * @file
+*
+* Test case for Ncbi with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class NcbiSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Ncbi (Selenium)',
+      'description' => 'Tests for Ncbi',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  /**
+   * A wrapper for the following:
+   * - Create animal vocabulary
+   * - Import taxonomy from EOL.('Pediculus')
+   * - Enable NCBI on the tools page
+   * - Verify that the ncbi information shows up on the taxonomy page, under descriptions 
+   * - Disable NCBI on the tools page
+   * - Verify that the ncbi information does not shows up on the taxonomy page, under descriptions
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $vocab_name = $this->randomName();
+    $term_name = 'Pediculus';
+    // Create animal vocabulary
+    $this->createAnimalVocabulary($vocab_name);
+    // Import taxonomy from EOL.
+    $success = $this->importTaxonomy($vocab_name, $term_name);
+    if($success){
+      // make sure that we are using the scratchpads theme
+      variable_set('theme_default', 'scratchpads');
+      // Enable NCBI on the tools page
+      $this->enableNcbiTool();
+      // Verify that the ncbi information shows up on the taxonomy page, under descriptions
+      $this->verifyNcbi($vocab_name, $term_name);
+      // Disable NCBI on the tools page
+      $this->disableNcbiTool();
+      // Verify that the ncbi information does not shows up on the taxonomy page, under descriptions
+      $this->verifyNoNcbi($vocab_name, $term_name);
+    }
+  }
+
+  function enableNcbiTool(){
+    $this->drupalGet('admin/structure/tools');
+    $this->driver->getElement('css=.form-item-status-ncbi .iphone_switch_container img')->click();
+    // Wait 1 second, then submit the form
+    $this->driver->sleep(1);
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText('The configuration options have been saved.', 'Confirmation message shown when enabling tool.');
+  }
+  
+  function disableNcbiTool(){
+    $this->drupalGet('admin/structure/tools');
+    $this->driver->getElement('css=.form-item-status-ncbi .iphone_switch_container img')->click();
+    // Wait 1 second, then submit the form
+    $this->driver->sleep(1);
+    $this->driver->getElement("id=edit-submit")->click();
+    // Wait for page to load
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Are you sure')]]");
+    $this->assertText('Are you sure you want to disable NCBI Widget?', "'Are you sure?', message shown.");
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText('The configuration options have been saved.', 'Confirmation message shown when disabling NCBI Widget tool.');
+  }
+
+  function verifyNcbi($vocab_name, $term_name){
+    $this->drupalGet('');
+    $this->clickLink($vocab_name);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $term_name . ")]]");
+    $this->clickLink('Descriptions');
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'NCBI')]]");
+    $this->assertText('NCBI', 'NCBI header text present on on descriptions tab of taxonomy page');
+    $this->assertText('Database name', 'NCBI table present on descriptions tab of taxonomy page');
+  }
+  
+  function verifyNoNcbi($vocab_name, $term_name){
+    $this->drupalGet('');
+    $this->clickLink($vocab_name);
+    $this->driver->waitForElements("xpath=//*[text()[contains(.," . $term_name . ")]]");
+    $this->clickLink('Descriptions');
+    $this->driver->sleep(1);
+    $this->assertNoText('NCBI', 'NCBI header text not present on on descriptions tab of taxonomy page, after disabling ncbi');
+    $this->assertNoText('Database name', 'NCBI table not present on descriptions tab of taxonomy page, after disabling ncbi');
+  }
+
+  /**
+   * Create a vocabulary
+   */
+  function createAnimalVocabulary($vocab_name){
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $this->driver->waitForElements("name=name");
+    $element = $this->driver->getElement("name=name");
+    $element->clear();
+    $element->sendKeys($vocab_name);
+    $element = $this->driver->getElement("name=description");
+    $element->clear();
+    $element->sendKeys($this->randomName());
+    $element = $this->driver->getElement("name=biological_classification");
+    $element->selectLabel('Animal');
+    // Submit the form
+    $this->driver->getElement("id=edit-submit")->click();
+  }
+}

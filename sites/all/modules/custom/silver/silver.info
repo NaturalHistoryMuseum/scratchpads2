@@ -13,4 +13,5 @@ dependencies[] = auto_nodetitle
 dependencies[] = media_feeds
 dependencies[] = media_internet
 files[] = includes/FeedsNodeProcessorValidate.inc
+files[] = tests/silver.test
 features[ctools][] = "feeds:feeds_importer_default:1"
