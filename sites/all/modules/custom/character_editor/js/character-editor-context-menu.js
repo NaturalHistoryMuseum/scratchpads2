@@ -5,9 +5,9 @@
      */
     this.init = function(){
       // Setup
+      this.$slick = $(slickgrid.getContainer());
       this.plugins = [];
       this.setupContextHandler();
-      this.addFlagPlugin();
     }
     
     /**
@@ -18,7 +18,7 @@
     this.setupContextHandler = function(){
       grid.onContextMenu.subscribe($.proxy(function(e){
         // Hide menu if already up
-        $('#character-context-menu').remove();
+        this.close();
         // Work out which cell we're working with
         var columns = slickgrid.getColumns();
         var info = {};
@@ -31,20 +31,25 @@
         for (var i = 0; i < this.plugins.length; i++){
           var out = this.plugins[i](info);
           if ($.isArray(out)){
-            elements.concat(out);
+            elements = elements.concat(out);
           } else if (typeof out !== 'undefined' && out){
             elements.push(out);
           }
         }
-        // Display the menu
+        // Display the menu if we have any plugins
         if (elements.length > 0){
           e.preventDefault();
+          // Create the menu div
           var $menu = $('<div id="character-context-menu"></div>').css({
             position: 'absolute',
             zIndex: '100',
             left: e.pageX,
             top: e.pageY,
-          });
+          })
+          $('<div></div>').addClass('character-context-menu-header')
+          .html($(info.row.character_entity_field).text() + ' / ' + info.column.name)
+          .appendTo($menu);
+          // Add the elements from the hooks
           for (var i = 0; i < elements.length; i++){
             if (typeof elements[i].element == 'undefined'){
               continue;
@@ -67,7 +72,7 @@
             $menu.append($elem);
           }
           $menu.appendTo('body').show();
-          // Overlay for click-out
+          // Add an overlay for click-out
           $('<div id="character-context-menu-out"></div>').css({
             position: 'absolute',
             top: '0',
@@ -78,6 +83,9 @@
           }).appendTo('body').one('click', $.proxy(function(e){
             this.close();
           }, this));
+          // Highlight the cell
+          this.$active_cell = $(grid.getCellNode(info.cell.row, info.cell.cell));
+          this.$active_cell.addClass('character-context-menu-active-cell');
         }
       }, this));
     }
@@ -88,25 +96,10 @@
     this.close = function(){
       $('#character-context-menu').remove();
       $('#character-context-menu-out').remove();
-    }
-    
-    /**
-     * addFlagPlugin
-     * 
-     * Add the flag plugin. This is done in it's own function so we can
-     * eventually factor the functionality out easily.
-     */
-    this.addFlagPlugin = function(){
-      /*
-      this.subscribe(function(info){
-        return {
-          element: 'hello',
-          callback: function(menu){
-            console.log("Clicked!");
-          }
-        };
-      });
-      */
+      if (typeof this.$active_cell !== 'undefined' && this.$active_cell){
+        this.$active_cell.removeClass('character-context-menu-active-cell');
+        this.$active_cell = null;
+      }
     }
     
     /**

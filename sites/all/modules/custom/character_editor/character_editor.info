@@ -8,11 +8,9 @@ files[] = views/character_editor_views_plugin.inc
 files[] = views/character_editor_views_handler_field.inc
 files[] = views/character_editor_views_handler_entity_field.inc
 ; Plugins
-files[] = plugins/editors/TextCharacter.inc
-files[] = plugins/editors/NumericCharacter.inc
-files[] = plugins/editors/ControlledCharacter.inc
 files[] = plugins/editors/handler.class.php
 files[] = plugins/formatters/characterCollapsibleFormatter.inc
+files[] = plugins/editors/CharacterFlag.inc
 ; Entity UI
 files[] = includes/CharacterProjectEntityController.inc
 

@@ -115,24 +115,40 @@ class CharacterTreeNode{
 
   /**
    * getValues
-   * 
-   * Return the values associated with this node's characters, in a format
-   * used to provide the data to slickgrid (to views)
+   *
+   * Return the values associated with this node's characters, prepared for
+   * displaying in the grid. The returned value is of the form:
+   *
+   * array(
+   *   <character id> => array(
+   *     <this column's id> => array(
+   *       'data' => <cell value>
+   *       'metadata' => <cell metadata>
+   *     )
+   *   )
+   * )
+   *
+   * $row_ids may define an array of rows for which to fetch the values (otherwise
+   * all values are defined), as an array parsable by character_editor_parse_entities.
    */
-  public function getValuesForViews(){
+  public function getValues($row_ids = array()){
     $result = array();
-    $values = $this->model->getValues();
+    $values = $this->model->getValues($row_ids);
     foreach($values as $value){
       if(!isset($value['data'][0]['safe_value'])){
         continue;
       }
       $data = $value['data'][0]['safe_value'];
+      $metadata = $value['metadata'][0]['safe_value'];
       // If this is a controlled character, we want to use the delta, not the value
       if($this->model->wrapper()->getBundle() == 'controlled'){
         $data = $this->model->getControlledStateValue($data);
       }
       $char_id = $value['entity_w']->type() . ':' . $value['entity_w']->getIdentifier();
-      $result[$char_id][$this->column_id] = $data;
+      $result[$char_id][$this->column_id] = array(
+        'data' => $data,
+        'metadata' => $metadata
+      );
     }
     return $result;
   }

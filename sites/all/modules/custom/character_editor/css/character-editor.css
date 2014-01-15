@@ -188,3 +188,24 @@
   background: #DDD;
   cursor: pointer;
 }
+
+#character-context-menu .character-context-menu-header {
+  border-bottom: 1px solid #AAA;
+  font-weight: bold;
+  background: #CCC;
+  padding: 4px;
+}
+
+#slickgrid .character-context-menu-active-cell{
+  border: 1px solid #000;
+}
+
+/* Cell metadata */
+#slickgrid div.slick-cell:after {
+  content: attr(character-flag);
+  position: absolute;
+  right: 1px;
+  bottom: -4px;
+  font-size: 0.9em;
+  color: #444;
+}

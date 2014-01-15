@@ -26,6 +26,8 @@
           Drupal.characterHoverUI = new Drupal.ColumnHoverUI(slickgrid);
           // Create the context menu
           Drupal.characterContextMenu = new Drupal.CharacterContextMenu(slickgrid);
+          // Create the metadata manager
+          Drupal.characterMetadataManager = new Drupal.CharacterMetadataManager(slickgrid);
           // Alter Slickgrid ajax call to specifiy which character project this is (slickgrid typically
           // only specifies the view/display)
           $.ajaxSetup({

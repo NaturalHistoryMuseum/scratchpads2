@@ -81,10 +81,11 @@ class CharacterProjectModel{
     if(empty($this->flags)){
       $this->flags = array();
       foreach($this->w->field_char_proj_flags as $f){
-        $this->flags[] = array(
+        $flagid = $f->field_char_proj_flags_id->value();
+        $this->flags[$flagid] = array(
           'flag' => $f->field_char_proj_flags_flag->value(),
           'abbr' => $f->field_char_proj_flags_abbr->value(),
-          'id' => $f->field_char_proj_flags_id->value()
+          'id' => $flagid
         );
       }
     }
@@ -128,5 +129,90 @@ class CharacterProjectModel{
       $groups[$group_id] = str_repeat('-', $tree_item['depth']) . ' ' . $tree_item['wrapper']->title->value();
     }
     return $groups;
+  }
+
+  /**
+   * getRowValues
+   *
+   * Given a set of rows (as a Views result), returns the row extended to include all
+   * the character values for this project.
+   */
+  public function getRowValues($rows){
+    // Read the ids
+    $row_ids = array();
+    foreach($rows as $r){
+      $row_ids[] = $r->id;
+    }
+    // Check for collapsed rows
+    $collapsed = array();
+    if(isset($_GET['character_entity_field'])){
+      $collapsed = explode(',', $_GET['character_entity_field']);
+    }
+    // Fetch the values
+    $characters = array();
+    foreach($this->getTree() as $item_key => $tree_item){
+      $characters = array_merge_recursive($characters, $tree_item->getValues($row_ids));
+    }
+    // Assign them to the rows
+    $ids = array();
+    foreach($rows as $row){
+      $id = $row->id;
+      // Assign character values
+      if(isset($characters[$id]) && is_array($characters[$id])){
+        foreach($characters[$id] as $field => $value){
+          $row->{$field} = $value['metadata'] . ':' . $value['data'];
+        }
+      }
+      $ids[$id] = $row;
+    }
+    // Build the tree
+    $tree = array();
+    foreach($ids as $id => $row){
+      $list = array();
+      $pid = $id;
+      while($pid && !preg_match('/:0$/', $pid)){
+        if(isset($ids[$pid])){
+          $list[] = $pid;
+          $pid = $ids[$pid]->parent;
+        }else{
+          $pid = 0;
+        }
+      }
+      $list = array_reverse($list);
+      $ptr = & $tree;
+      foreach($list as $pid){
+        if(!isset($ptr[$pid])){
+          $ptr[$pid] = array(
+            'value' => $ids[$pid],
+            'children' => array(),
+            'collapsed' => in_array($pid, $collapsed)
+          );
+        }
+        $ptr = & $ptr[$pid]['children'];
+      }
+      unset($ptr);
+    }
+    // And order the items
+    return $this->assign_tree_values($tree, 0);
+  }
+
+  /**
+   * assign_tree_values
+   *
+   * Helper method used to create the tree of rows for the Views
+   * display
+   */
+  private function assign_tree_values($tree, $depth){
+    $result = array();
+    foreach($tree as $item){
+      $item['value']->depth = $depth;
+      $item['value']->children = count($item['children']);
+      $item['value']->collapsed = $item['collapsed'];
+      $result[] = $item['value'];
+      if(!$item['collapsed']){
+        $result = array_merge($result, $this->assign_tree_values($item['children'], $depth + 1));
+      }
+    }
+    return $result;
   }
 }

@@ -157,13 +157,13 @@ function character_editor_views_pre_execute(&$view){
 
 /**
  * Implementation of hook_views_pre_view
- * This does the bulk of the work preparing the character project for vieing in a grid
+ *
+ * Add all the characters as columns in the view.
  */
 function character_editor_views_pre_view(&$view, $display_id, &$args){
   // Is this a slickgrid? Is there an argument ?
   if($view->display_handler->get_option('style_plugin') != 'character_editor'){return;}
   if(!count($args)){return;}
-  $view->characters = array();
   $style_options = $view->display_handler->get_option('style_options');
   // Always turn off tabs
   $style_options['tabs'] = false;
@@ -187,6 +187,7 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
   }
   // The project ID will always be passed in as the first argument
   $project_model = new CharacterProjectModel('character_editor_project', reset($args), TRUE);
+  $view->project_model = $project_model;
   $editor_tree = array();
   foreach($project_model->getTree() as $item_key => $tree_item){
     $column_id = $tree_item->columnId();
@@ -201,9 +202,6 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
     if($editable){
       $style_options['columns'][$column_id]['editor'] = $tree_item->model()->getEditorName();
     }
-    // Fill in the data for this character
-    // XXX we are fetching all possible values ; regardless of chunk loading.
-    $view->characters = array_merge($view->characters, $tree_item->getValuesForViews());
   }
   // Always use the author's settings as default. These may be overriden per user.
   $author_settings = slickgrid_get_settings(array(
@@ -598,6 +596,7 @@ function character_editor_project_view($entity){
           $path . '/js/character-editor-info-popups.js',
           $path . '/js/character-editor-character-tree.js',
           $path . '/js/character-editor-context-menu.js',
+          $path . '/js/character-editor-metadata-manager.js',
           $path . '/js/character-editor.js'
         ),
         'css' => array(
@@ -1089,7 +1088,8 @@ function character_editor_state_form($form, &$form_state){
     'entity_type',
     'entity_ids',
     'id',
-    'character_type'
+    'character_type',
+    'field_character_state_meta'
   ) as $element_name){
     if(is_array($form_state['values'][$element_name])){ // entity ids will be passed as an array
       foreach($form_state['values'][$element_name] as $element_value){

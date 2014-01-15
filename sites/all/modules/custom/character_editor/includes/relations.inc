@@ -317,6 +317,66 @@ function character_editor_association_exists(EntityDrupalWrapper $wrap_1, Entity
 }
 
 /**
+ * character_editor_set_character_value
+ *
+ * Given a character and an entity, set the data and metadata
+ * for that tuple.
+ *
+ * This will update the existing relation, or create a new one
+ * if none exist
+ */
+function character_editor_set_character_value(EntityDrupalWrapper $character_w, EntityDrupalWrapper $entity_w, $data = NULL, $flag = NULL){
+  global $user;
+  // Get the relation or create a new one
+  $values = character_editor_get_character_values($character_w, $entity_w);
+  $values = reset($values);
+  if (empty($values) || empty($values['relation_w'])){
+    $relation = (object)(array(
+      'relation_type' => 'character_state',
+      'uid' => $user->uid,
+      'created' => time(),
+      'changed' => time(),
+      'endpoints' => array(
+        LANGUAGE_NONE => array(
+          array(
+            'entity_type' => $entity_w->type(),
+            'entity_id' => $entity_w->getIdentifier(),
+            'r_index' => 0
+          ),
+          array(
+            'entity_type' => $character_w->type(),
+            'entity_id' => $character_w->getIdentifier(),
+            'r_index' => 0
+          )
+        )
+      )
+    ));
+  } else {
+    $relation = $values['relation_w']->raw();
+  }
+  // Assign the field values
+  if ($data !== NULL){
+    $relation->field_character_state_data = array(
+      LANGUAGE_NONE => array(
+        array(
+          'value' => $data
+        )
+      )
+    );
+  }
+  if ($flag !== NULL){
+    $relation->field_character_state_meta = array(
+      LANGUAGE_NONE => array(
+        array(
+          'value' => $flag
+        )
+      )
+    );
+  }
+  return entity_save('relation', $relation) !== false;
+}
+
+/**
  * character_editor_get_character_values
  *
  * Given a character (as an entity metadata wrapper)
@@ -329,30 +389,69 @@ function character_editor_association_exists(EntityDrupalWrapper $wrap_1, Entity
  *
  * term/node -(data field on the relation)-> character
  *
- * If $entity_w is defined, then only return values linked to that term/node.
+ * $entities may be an item or array of items that can be fetched using character_editor_wrapper.
+ * 
+ * In which case the returned values are those for the given character and given entities.
  */
-function character_editor_get_character_values(EntityDrupalWrapper $character_w, EntityDrupalWrapper $entity_w = NULL){
-  $values = array();
-  $result = relation_query($character_w->type(), $character_w->getIdentifier())->entityCondition('bundle', 'character_state')->execute();
-  if(empty($result)){return array();}
-  $relations = relation_load_multiple(array_keys($result));
-  foreach($relations as $relation){
-    $relation_w = entity_metadata_wrapper('relation', $relation);
-    $endpoints = field_get_items('relation', $relation, 'endpoints');
-    foreach($endpoints as $endpoint){
-      if($endpoint['entity_type'] == $character_w->type() && $endpoint['entity_id'] == $character_w->getIdentifier()){
-        continue;
-      }
-      if(isset($entity_w) && ($entity_w->getIdentifier() != $endpoint['entity_id'] || $entity_w->type() != $endpoint['entity_type'])){
-        continue;
-      }
-      $end_term_w = entity_metadata_wrapper($endpoint['entity_type'], entity_load_single($endpoint['entity_type'], $endpoint['entity_id']));
-      $values[] = array(
-        'entity_w' => $end_term_w,
-        'data' => field_get_items('relation', $relation, 'field_character_state_data'),
-        'relation_w' => $relation_w
-      );
+function character_editor_get_character_values(EntityDrupalWrapper $character_w, $entities = NULL){
+  // Build the query
+  $query = db_select('field_data_endpoints', 'e');
+  // Select a relation
+  $query->condition('e.entity_type', 'relation');
+  $query->condition('e.bundle', 'character_state');
+  $query->addField('e', 'entity_id', 'relation_id');
+  $query->addField('e', 'endpoints_entity_type', 'entity_type');
+  $query->addField('e', 'endpoints_entity_id', 'entity_id');
+  // Ensure it has our character as one of it's endpoints
+  $query->innerJoin('field_data_endpoints', 'e1', 'e1.entity_type = e.entity_type AND e1.entity_id = e.entity_id');
+  $query->condition('e1.endpoints_entity_type', $character_w->type());
+  $query->condition('e1.endpoints_entity_id', $character_w->getIdentifier());
+  // Ensure it has one of the requested entities as one of it's endpoints
+  $entities = character_editor_parse_entities($entities);
+  if(!empty($entities)){
+    $extra_conditions = array();
+    foreach($entities as $limit_elem){
+      $extra_conditions[$limit_elem[0]][] = $limit_elem[1];
     }
+    // Add another endpoint per entity type in $entities
+    $db_or = db_or();
+    foreach($extra_conditions as $extra_condition_type => $extra_condition_ids){
+      $db_and = db_and();
+      $db_and->condition('e.endpoints_entity_type', $extra_condition_type);
+      $db_and->condition('e.endpoints_entity_id', $extra_condition_ids);
+      $db_or->condition($db_and);
+      continue;
+      $alias = 'e' . ((string)$count);
+      $count++;
+      $query->innerJoin('field_data_endpoints', $alias, "$alias.entity_type = e.entity_type AND $alias.entity_id = e.entity_id");
+      $db_and = db_and();
+      $db_and->condition("$alias.endpoints_entity_type", $extra_condition_type);
+      $db_and->condition("$alias.endpoints_entity_id", $extra_condition_ids);
+      $db_or->condition($db_and);
+    }
+    $query->condition($db_or);
+  }else{
+    // If there are no conditions on the resulting entities, at least ensure we don't return the
+    // character itself.
+    $db_or = db_or();
+    $db_or->condition('e.endpoints_entity_type', $character_w->type(), '<>');
+    $db_or->condition('e.endpoints_entity_id', $character_w->getIdentifier(), '<>');
+    $query->condition($db_or);
+  }
+  $results = $query->execute()->fetchAll();
+  if(empty($results)){return array();}
+  $values = array();
+  foreach($results as $row){
+    $relation_w = entity_metadata_wrapper('relation', relation_load($row->relation_id));
+    $entity_w = entity_metadata_wrapper($row->entity_type, entity_load_single($row->entity_type, $row->entity_id));
+    $data = field_get_items('relation', $relation_w->raw(), 'field_character_state_data');
+    $metadata = field_get_items('relation', $relation_w->raw(), 'field_character_state_meta');
+    $values[] = array(
+      'entity_w' => $entity_w,
+      'relation_w' => $relation_w,
+      'data' => $data,
+      'metadata' => $metadata
+    );
   }
   return $values;
 }
@@ -420,4 +519,66 @@ function character_editor_wrapper($info, $id = NULL, $reset = FALSE){
     if(!$entity){return FALSE;}
   }
   return entity_metadata_wrapper($entity_type, $entity);
+}
+
+/**
+ * character_editor_parse_entities
+ * 
+ * Similar to character_editor_wrapper, excepts:
+ * 
+ * - It may take an array of items rather than one item ;
+ * - It returns an array of tuples defining <entity_type>:<entity_id>
+ */
+function character_editor_parse_entities($info, $id = NULL){
+  if(is_array($info) && empty($info)){
+    // Empty array, we assume this was an empty list of entities
+    return array();
+  }else if(is_array($info) && !is_array(reset($info))){
+    // This is a list of entities
+    $result = array();
+    foreach($info as $key => $info_item){
+      if(is_array($id) && isset($id[$key])){
+        $child_id = $id[$key];
+      }else if(!is_array($id)){
+        $child_id = $id;
+      }
+      $result = array_merge($result, character_editor_parse_entities($info_item));
+    }
+    return $result;
+  }else if(is_array($info)){
+    // We have entity_type, entity_id - just return it.
+    return array(
+      $info
+    );
+  }else if(is_string($info)){
+    if($id === NULL){
+      return array(
+        explode(':', $info)
+      );
+    }else if(is_object($id)){
+      $w = character_editor_wrapper($info, $id);
+      return array(
+        array(
+          $w->type(),
+          $w->getIdentifier()
+        )
+      );
+    }else{
+      return array(
+        array(
+          $info,
+          $id
+        )
+      );
+    }
+  }else if(is_object($info)){
+    $w = character_editor_wrapper($info, $id);
+    return array(
+      array(
+        $w->type(),
+        $w->getIdentifier()
+      )
+    );
+  }
+  return FALSE;
 }

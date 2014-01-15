@@ -149,10 +149,13 @@ class CharacterModel{
 
   /**
    * getValues
-   * 
+   *
    * Return the values associated with this character
+   *
+   * $row_ids may define an array of rows for which to fetch the values (otherwise
+   * all values are defined), as an array parsable by character_editor_parse_entities.
    */
-  public function getValues(){
-    return character_editor_get_character_values($this->w);
+  public function getValues($row_ids = array()){
+    return character_editor_get_character_values($this->w, $row_ids);
   }
 }

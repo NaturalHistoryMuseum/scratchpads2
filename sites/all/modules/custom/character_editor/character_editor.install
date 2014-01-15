@@ -379,6 +379,11 @@ function character_editor_update_7005(){
         'field_char_proj_flags_abbr',
         'field_char_proj_flags_id'
       )
+    ),
+    'relation' => array(
+      'character_state' => array(
+        'field_character_state_meta'
+      )
     )
   );
   foreach ($create as $entity_type => $bundles){
