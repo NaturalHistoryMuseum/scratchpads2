@@ -105,12 +105,13 @@ class CharacterTreeNode{
    * Note that this includes the rendered character for tooltips.
    */
   public function getViewStyleOptions(){
-    return array(
+    $options = array(
       'width' => 35,
       'filter' => '',
       'headerCssClass' => 'character character-type-' . $this->model->wrapper()->getBundle() . ' ' . $this->column_id,
       'data' => $this->model->getTooltip()
     );
+    return $options;
   }
 
   /**
@@ -135,14 +136,13 @@ class CharacterTreeNode{
     $result = array();
     $values = $this->model->getValues($row_ids);
     foreach($values as $value){
-      if(!isset($value['data'][0]['safe_value'])){
-        continue;
+      $data = '';
+      $metadata = '';
+      if(isset($value['data'][0]['safe_value'])){
+        $data = $value['data'][0]['safe_value'];
       }
-      $data = $value['data'][0]['safe_value'];
-      $metadata = $value['metadata'][0]['safe_value'];
-      // If this is a controlled character, we want to use the delta, not the value
-      if($this->model->wrapper()->getBundle() == 'controlled'){
-        $data = $this->model->getControlledStateValue($data);
+      if(isset($value['metadata'][0]['safe_value'])){
+        $metadata = $value['metadata'][0]['safe_value'];
       }
       $char_id = $value['entity_w']->type() . ':' . $value['entity_w']->getIdentifier();
       $result[$char_id][$this->column_id] = array(

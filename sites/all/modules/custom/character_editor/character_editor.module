@@ -597,7 +597,13 @@ function character_editor_project_view($entity){
           $path . '/js/character-editor-character-tree.js',
           $path . '/js/character-editor-context-menu.js',
           $path . '/js/character-editor-metadata-manager.js',
-          $path . '/js/character-editor.js'
+          $path . '/js/character-editor.js',
+          array(
+            'data' => array(
+              'CharacterEditorPath' => drupal_get_path('module', 'character_editor')
+             ),
+            'type' => 'setting'
+          )
         ),
         'css' => array(
           $path . '/css/character-editor.css'

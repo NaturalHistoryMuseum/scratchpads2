@@ -45,8 +45,8 @@
             zIndex: '100',
             left: e.pageX,
             top: e.pageY,
-          })
-          $('<div></div>').addClass('character-context-menu-header')
+          }).addClass('character-editor-popup');
+          $('<div></div>').addClass('character-editor-popup-header')
           .html($(info.row.character_entity_field).text() + ' / ' + info.column.name)
           .appendTo($menu);
           // Add the elements from the hooks
@@ -54,7 +54,10 @@
             if (typeof elements[i].element == 'undefined'){
               continue;
             }
-            var $elem = $('<div></div>').addClass('character-context-menu-row');
+            var $elem = $('<div></div>').addClass('character-editor-popup-row');
+            if (typeof elements[i].css !== 'undefined'){
+              $elem.css(elements[i].css);
+            }
             if (typeof elements[i].element == 'string'){
               $elem.html(elements[i].element)
             } else {

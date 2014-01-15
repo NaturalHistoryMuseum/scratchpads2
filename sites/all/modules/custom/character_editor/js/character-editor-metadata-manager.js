@@ -21,7 +21,6 @@
       for (var i = from; i <= to; i++){
         var row = {};
         var col = 0;
-        console.log(data);
         for (var column in data[i]){
           if (column.match(/^character_\d+_\d+$/)){
             var match = data[i][column].match(/^(?:([^:]*):)?([\s\S]*)$/);
@@ -60,14 +59,20 @@
       if (cell_flag_id == 'computed' || cell_flag_id == 'inherited'){
         return [];
       }
+      var selected_background = 'url("' + Drupal.settings.basePath + Drupal.settings.CharacterEditorPath + '/images/tick.png")';
       for (var flag_id in Drupal.settings.CharacterEditorFlags){
         if (flag_id == 'computed' || flag_id == 'inherited'){
           continue;
         }
         var flag = Drupal.settings.CharacterEditorFlags[flag_id];
         elements.push({
-          element: flag.flag + (cell_flag_id == flag_id ? ' v' : ''),
-          callback: $.proxy(this, 'contextClickCallback', info, flag)
+          element: flag.flag,
+          callback: $.proxy(this, 'contextClickCallback', info, flag),
+          css: {
+            backgroundImage: (cell_flag_id == flag_id) ? selected_background: '',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: '0 center'
+          }
         });
       }
       return elements;
@@ -88,11 +93,10 @@
         this.metadata[info.cell.row][info.column.id] = selected_flag.id;
       }
       // And send the data to be saved.
-      console.log(info);
       slickgrid.callback('update', {
         entity_id: info.row.id,
         column_id: info.column.id,
-        flag: selected_flag.id,
+        flag: cell_flag_id == selected_flag.id ? '' : selected_flag.id,
         plugin: 'CharacterFlag'
       });
     }

@@ -173,32 +173,35 @@
   font-size: 1.5em;
 }
 
-/* Character context menu */
-#character-context-menu {
-  border: 1px solid #AAA;
-  background: #EEE;
+/* Popup styling (context menu, select box, etc.) */
+.character-editor-popup {
+  background: #FFF;
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 4px;
+  box-shadow: 5px 5px 6px 0px rgb(50, 50, 50, 0.3);
 }
 
-#character-context-menu .character-context-menu-row{
-  background: #EEE;
-  padding: 2px 4px;
+.character-editor-popup-header {
+  border-bottom: 1px solid #AAA;
+  font-size: 0.9em;
+  font-weight: bold;
 }
 
-#character-context-menu .character-context-menu-row:hover{
+.character-editor-popup-row {
+  background: #FFF;
+  padding: 2px 4px 2px 18px;
+}
+
+.character-editor-popup-row:hover {
   background: #DDD;
   cursor: pointer;
-}
-
-#character-context-menu .character-context-menu-header {
-  border-bottom: 1px solid #AAA;
-  font-weight: bold;
-  background: #CCC;
-  padding: 4px;
 }
 
 #slickgrid .character-context-menu-active-cell{
   border: 1px solid #000;
 }
+
 
 /* Cell metadata */
 #slickgrid div.slick-cell:after {
