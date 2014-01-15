@@ -1,0 +1,117 @@
+<?php
+/**
+ * @file
+*
+* Test case for scratchpads_forum with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsForumSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Forum (Selenium)',
+      'description' => 'Tests for scratchpads forum',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  public function setUp(){
+    $modules[] = 'scratchpads_forum';
+    parent::setUp($modules);    
+   
+    // We update the permissions for maintainer
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    $maintainer_permissions = $default_permissions['maintainer'];
+    user_role_grant_permissions($this->maintainer->rid, $maintainer_permissions);
+  }
+
+  /**
+   * A wrapper for the following tests
+   * 
+   * - Create forums
+   * - Create forum topics
+   * - Test forum tree functionality
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $forum_topic_title = $this->verifyCreateForumTopic('General discussion');
+    $forum_topic_title2 = $this->verifyCreateForumTopic('General discussion');
+    $forum1 = $this->addForum('<root>');
+    $forum_topic_title3 = $this->verifyCreateForumTopic($forum1);
+    $forum_topic_title4 = $this->verifyCreateForumTopic($forum1);
+    // We have 2 forums, and 2 forum topics for each forum
+    $forum_array = array(
+      'General discussion' => array(
+        $forum_topic_title,
+        $forum_topic_title2
+      ),
+      $forum1 => array(
+        $forum_topic_title3,
+        $forum_topic_title4
+      )
+    );
+    $this->verifyForumTree($forum_array);
+  }
+
+  /**
+   * Create forum topic
+   */
+  function verifyCreateForumTopic($container){
+    $this->drupalGet('node/add/forum');
+    $title = $this->randomName();
+    $body = $this->randomName();
+    $this->driver->waitForElements("name=title");
+    $element = $this->driver->getElement("name=title");
+    $element->clear();
+    $element->sendKeys($title);
+    $element = $this->driver->getElement("name=body[und][0][value]");
+    $element->clear();
+    $element->sendKeys($body);
+    $element = $this->driver->getElement("name=taxonomy_forums[und]");
+    $element->selectLabel($container);
+    // Submit the form
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText($title . ' has been created', 'Forum topic successfully created');
+    return $title;
+  }
+
+  /**
+   * Create forum 
+   */
+  function addForum($parent){
+    $this->drupalGet('admin/structure/forum/add/forum');
+    $title = $this->randomName();
+    $this->driver->waitForElements("name=name");
+    $element = $this->driver->getElement("name=name");
+    $element->clear();
+    $element->sendKeys($title);
+    $element = $this->driver->getElement("name=parent[0]");
+    $element->selectLabel($parent);
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText('Created new forum ' . $title, 'Forum topic successfully created');
+    return $title;
+  }
+
+  /**
+   * Test the forum tree functionality
+   */
+  function verifyForumTree($forum_array){
+    $this->drupalGet('forum');
+    // Clicking on the forum name should reveal the forum topics
+    foreach($forum_array as $forum => $topic_array){
+      $this->clickLink($forum);
+      foreach($topic_array as $topic){
+        // Wait for page to load
+        $this->driver->waitForElements("xpath=//*[text()[contains(.,".$topic.")]]");
+        $this->asserttext($topic, 'Forum topic displayed when forum clicked');
+      }
+    }
+  }
+}
