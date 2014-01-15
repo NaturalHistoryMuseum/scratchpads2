@@ -1,0 +1,101 @@
+<?php
+/**
+ * @file
+*
+* Test case for scratchpads setup with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class ScratchpadsSetupSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Setup (Selenium)',
+      'description' => 'Tests for scratchpads setup',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  /**
+   * A wrapper for the following tests
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $setup_data = $this->followSetup();
+    $this->verifySetup($setup_data);
+  }
+
+  /**
+   * Follow the set up process
+   */
+  function followSetup(){
+    $setup_data = array();
+    $this->drupalGet('admin/dashboard');
+    $this->clickLink('Finish setting up the site');
+    // Wait for page to load
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Welcome to your new scratchpad')]]");
+    $this->assertText('Welcome to your new scratchpad');
+    $this->driver->getElement("id=edit-next")->click();
+    // Welcome message
+    $this->assertText(strtoupper('Welcome message'));
+    $setup_data['welcome_message'] = $this->randomName();
+    $element = $this->driver->getElement("name=front_page_welcome_message[value]");
+    $element->clear();
+    $element->sendKeys($setup_data['welcome_message']);
+    $this->driver->getElement("id=edit-next")->click();
+    //About your site 
+    $this->assertText(strtoupper('About your site'));
+    $setup_data['about'] = $this->randomName();
+    $element = $this->driver->getElement("name=about_us[value]");
+    $element->clear();
+    $element->sendKeys($setup_data['about']);
+    $this->driver->getElement("id=edit-next")->click();
+    //Licence type 
+    $this->assertText(strtoupper('Licence type'));
+    $setup_data['licence'] = 'Public Domain';
+    $element = $this->driver->getElement("name=licence_type");
+    $element->selectLabel($setup_data['licence']);
+    $this->driver->getElement("id=edit-next")->click();
+    // Options
+    $this->assertText(strtoupper('Scope'));
+    $element = $this->driver->getElement("name=scope_focus[Citizen Science]")->click();
+    $element = $this->driver->getElement("name=ecoregion[Marine]")->click();
+    $element = $this->driver->getElement("name=geography[Global/No geographic restriction]")->click();
+    $element = $this->driver->getElement("name=research_domain[Biogeography]")->click();
+    $element = $this->driver->getElement("name=taxonomic_area[Algae/Fungi]")->click();
+    $this->driver->getElement("id=edit-next")->click();
+    // Tools
+    $this->assertText('Tools');
+    $this->driver->getElement("id=edit-return")->click();
+    // Setup complete
+    $this->drupalGet('admin/dashboard');
+    $this->assertText('100% complete', 'Setup percentage displayed as 100% when complete');
+    return $setup_data;
+  }
+
+  /**
+   * Verfiy the setup
+   * - verify welcome message
+   * - verify licence
+   * - verify about page
+   */
+  function verifySetup($setup_data){
+    // verify welcome message
+    $this->drupalGet('');
+    $this->assertText($setup_data['welcome_message'], 'Welcome message present on front page');
+    // verify licence
+    $this->assertText($setup_data['licence'], 'Licence correctly set');
+    // verify about page
+    $this->assertLink(strtoupper('About Us'), 0, 'Link to about page present on front page');
+    $this->clickLink(strtoupper('About Us'));
+    // Wait for page to load
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,".$setup_data['about'].")]]");
+    $this->assertText($setup_data['about']);
+  }
+}

@@ -54,3 +54,4 @@ features[taxonomy][] = "user_keywords"
 features[views_view][] = "biography"
 stylesheets[all][] = css/scratchpads_biography.css
 tool = "true"
+files[] = tests/scratchpads_biography.selenium.test
