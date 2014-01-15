@@ -1,0 +1,73 @@
+<?php
+
+/**
+ * @file
+ *
+ * Test case for Drupal core misc/tableselect.js javascript.
+ */
+
+if (!class_exists('DrupalSeleniumWebTestCase')) {
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class TableselectTestCase extends DrupalSeleniumWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Tableselect',
+      'description' => 'Tests for tableselect javascript.',
+      'group' => 'Selenium',
+      'browsers' => array('firefox', 'chrome'),
+    );
+  }
+
+  /**
+   * Test tableselect functionality on content list page.
+   */
+  function testContentList() {
+    // Create 5 nodes.
+    for ($i = 0; $i < 5; $i++) {
+      $this->drupalCreateNode();
+    }
+
+    // Login user.
+    $user = $this->drupalCreateUser(array('administer nodes', 'bypass node access', 'access content overview'));
+    $this->drupalLogin($user);
+
+    $this->drupalGet('admin/content');
+
+    $this->verboseScreenshot();
+
+    // Click on select all checkbox.
+    $tableselect_element = $this->driver->getElement('css=.tableheader-processed th.select-all input.form-checkbox');
+    $tableselect_element->click();
+
+    $this->verboseScreenshot();
+
+    // Ensure that all row checkboxes are selected.
+    $row_checkboxes = $this->driver->getAllElements('css=td input.form-checkbox');
+    $all_selected = TRUE;
+    foreach ($row_checkboxes as $checkbox_element) {
+      if (!$checkbox_element->getValue()) {
+        $all_selected = FALSE;
+      }
+    }
+    $this->assertTrue($all_selected, t('All checkboxes are selected'));
+
+    $this->verboseScreenshot();
+
+    // Now click on select all checkbox and ensure all checkboxes are unselected.
+    $tableselect_element->click();
+
+    $all_unsselected = TRUE;
+    foreach ($row_checkboxes as $checkbox_element) {
+      if ($checkbox_element->getValue()) {
+        $all_unsselected = FALSE;
+      }
+    }
+    $this->assertTrue($all_selected, t('All checkboxes are unselected'));
+
+    $this->verboseScreenshot();
+  }
+}

@@ -1,76 +1,74 @@
 <?php
+/**
+ * @file
+ * Tests for the CustomError module.
+ */
 
-class CustomErrorTestCas extends DrupalWebTestCase {
+
+
+
+class CustomErrorTestCase extends DrupalWebTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => t('Custom Error'),
-      'description' => t('Check that the custom error messages are displayed.'),
-      'group' => t('Custom Error'),
+      'name' => 'Custom Error',
+      'description' => 'Check that the custom error messages are displayed.',
+      'group' => 'Custom Error',
     );
   }
 
   function setUp() {
-    parent::setUp(array('variable', 'customerror'));
+    // Enable any modules required for the test.
+    parent::setUp('customerror');
   }
+
+  /**
+   * Tests 404 pages.
+   */
 
   function testPageNotFoundMessage() {
-    // Set title and text of error message.
-    $error_code = 404;
-    $title = $this->randomName($number = 10, $prefix = 'simpletest_');
-    variable_set('customerror_'. $error_code .'_title', $title);
-    $description = array(
-      'value' => $this->randomName($number = 512, $prefix = 'simpletest_'),
-      'format' =>  filter_default_format(),
-    );
-    variable_set('customerror_'. $error_code, $description);
+    // Set title and description of error message.
+    $title = $this->randomName($number = 10);
+    $description = $this->randomName($number = 80);
+    variable_set('site_404', 'customerror/404');
+    variable_set('customerror_404_title', $title);
+    variable_set('customerror_404', $description);
 
-    // Access error page directly, check for title and text of error message.
-    $this->drupalGet('customerror/'. $error_code);
-    $this->assertText($title, 'Title on '. $error_code .' error page set when accessed directly');
-    $this->assertText($description['value'], 'Description on '. $error_code .' error page set when accessed directly');
+    // Access error page directly, check for response code, title and description of error message.
+    $this->drupalGet('customerror/404');
+    $this->assertResponse(404, 'Response code on 404 error page set when accessed directly.');
+    $this->assertText($title, 'Title on 404 error page set when accessed directly.');
+    $this->assertText($description, 'Description on 404 error page set when accessed directly.');
 
-    // Point Drupal to the new error message.
-    variable_set('site_'. $error_code, 'customerror/'. $error_code);
-
-    // Access a non-existing page, check for title and text of error message.
-    $this->drupalGet('foo/bar');
-
-    /* Check for response code, title and text of error message */
-    $this->assertResponse($error_code, 'Response code on '. $error_code .' error page set when accessed at non-existent URL');
-    $this->assertText($title, 'Title on '. $error_code .' error page set when accessed at non-existent URL');
-    $this->assertText($description['value'], 'Description on '. $error_code .' error page set when accessed at non-existent URL');
+    // Access a non-existing page, check for response code, title and description of error message.
+    $this->drupalGet('foo/dontexist');
+    $this->assertResponse(404, 'Response code on 404 error page set when accessed at non-existent URL.');
+    $this->assertText($title, 'Title on 404 error page set when accessed at non-existent URL.');
+    $this->assertText($description, 'Description on 404 error page set when accessed at non-existent URL.');
   }
+
 
   /**
    * Tests 403 pages.
    */
   function testAccessDeniedMessage() {
-    /* Set title and text of error message */
-    $error_code = 403;
-    $title = $this->randomName($number = 10, $prefix = 'simpletest_');
-    variable_set('customerror_'. $error_code .'_title', $title);
-    $description = array(
-      'value' => $this->randomName($number = 512, $prefix = 'simpletest_'),
-      'format' =>  filter_default_format(),
-    );
-    variable_set('customerror_'. $error_code, $description);
+    // Set title and description of error message.
+    $title = $this->randomName($number = 10);
+    $description = $this->randomName($number = 80);
+    variable_set('site_403', 'customerror/403');
+    variable_set('customerror_403_title', $title);
+    variable_set('customerror_403', $description);
 
-    // Access error page directly, check for title and text of error message.
-    $this->drupalGet('customerror/'. $error_code);
-    $this->assertText($title, 'Title on '. $error_code .' error page set when accessed directly');
-    $this->assertText($description['value'], 'Description on '. $error_code .' error page set when accessed directly');
+    // Access error page directly, check for response code, title and description of error message.
+    $this->drupalGet('customerror/403');
+    $this->assertResponse(403, 'Response code on 403 error page set when accessed at non-existent URL');
+    $this->assertText($title, 'Title on 403 error page set when accessed directly');
+    $this->assertText($description, 'Description on 403 error page set when accessed directly');
 
-    // Point Drupal to the new error message.
-    variable_set('site_'. $error_code, 'customerror/'. $error_code);
-
-    // Access admin page as un anonymous user, check for title and text of error message.
+    // Access admin page as an anonymous user, check for response code, title and description of error message.
     $this->drupalGet('admin');
-
-    /* Check for response code, title and text of error message */
-    $this->assertResponse($error_code, 'Response code on '. $error_code .' error page set when accessed at non-existent URL');
-    $this->assertText($title, 'Title on '. $error_code .' error page set when accessed at non-existent URL');
-    $this->assertText($description['value'], 'Description on '. $error_code .' error page set when accessed at non-existent URL');
+    $this->assertResponse(403, 'Response code on 403 error page set when accessed at non-existent URL');
+    $this->assertText($title, 'Title on 403 error page set when accessed at non-existent URL');
+    $this->assertText($description, 'Description on 403 error page set when accessed at non-existent URL');
   }
-
 }

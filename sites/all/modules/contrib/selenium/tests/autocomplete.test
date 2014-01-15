@@ -1,0 +1,141 @@
+<?php
+
+/**
+ * @file
+ *
+ * Test case for Drupal core misc/autocomplete.js javascript.
+ */
+
+if (!class_exists('DrupalSeleniumWebTestCase')) {
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class AutocompleteTestCase extends DrupalSeleniumWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Autocomplete',
+      'description' => 'Tests for autocomplete javascript.',
+      'group' => 'Selenium',
+      'browsers' => array('firefox', 'chrome'),
+    );
+  }
+
+  /**
+   * Test atocomplete functionality on the article node edit form on tags field.
+   */
+  function testNodeTags() {
+    // Load Tags vocabulary as it is only one created in the system.
+    $vocabulary = current(taxonomy_get_vocabularies());
+
+    // Create ten terms in Tags vocabulary. All terms start with letter 'a'.
+    $terms = array();
+    $format = db_query_range('SELECT format FROM {filter_format}', 0, 1)->fetchField();
+    for ($i = 0; $i < 15; $i++) {
+      $term = new stdClass();
+      $term->name = 'a' . $this->randomName();
+      $term->description = $this->randomName();
+      $term->format = $format;
+      $term->vid = $vocabulary->vid;
+      taxonomy_term_save($term);
+      $terms[] =  $term;
+    }
+
+    // Login user.
+    $user = $this->drupalCreateUser(array('administer nodes', 'bypass node access'));
+    $this->drupalLogin($user);
+
+    $this->drupalGet('node/add/article');
+
+    // Find tags form element.
+    $tags_element = $this->driver->getElement('id=edit-field-tags-und');
+
+    // Type letter 'a'.
+    $tags_element->sendKeys('a');
+
+    // Ensure autocomplete element appeared.
+    $autocomplete_element = current($this->driver->waitForVisibleElements('id=autocomplete'));
+    $this->assertTrue($autocomplete_element->isVisible(), t('Autocomplete element is visible on the page.'));
+
+    // Get first elements of autocomplete list and click on it.
+    $first_element = current($this->driver->getAllElements('css=#autocomplete li div'));
+    $first_element_text = $first_element->getText();
+
+    // Click is to select line item.
+    $first_element->click();
+    // Submit selected line item.
+    $first_element->submit();
+
+    // Wait till autocomplete block hides.
+    $this->assertAutocompleteHidden(t('Autocomplete element is hidden when one element selected.'));
+
+    // Ensure that textfield is populated with selected element.
+    $tags_element_value = $tags_element->getValue();
+    $this->assertEqual($first_element_text, $tags_element_value, t('Text of selected element is populated to textfield.'));
+
+    // Send coma and letter 'a' to textfield to start autocomplete again.
+    $tags_element = $this->driver->getElement('id=edit-field-tags-und');
+    $tags_element->sendKeys(', a');
+    $first_element = current($this->driver->waitForVisibleElements('css=#autocomplete li'));
+    $this->verboseScreenshot();
+    $this->assertTrue(!empty($first_element), t('Autocomplete element is visible on the page again.'));
+
+    // Click on title textfield to hide autocomplete.
+    $this->driver->getElement('id=edit-title')->click();
+
+    // Ensure autocomplete is hidden.
+    $this->assertAutocompleteHidden(t('Autocomplete element is hidden when we clicked on other element on the page.'));
+
+    $tags_element = $this->driver->getElement('id=edit-field-tags-und');
+    $tags_element->clear();
+    $tags_element->sendKeys('a');
+
+    // Get the text of third suggestion element.
+    $suggestion_elements = $this->driver->waitForVisibleElements('css=#autocomplete li');
+    $third_suggestion_element_text = $suggestion_elements[2]->getText();
+
+    $tags_element = $this->driver->getElement('id=edit-field-tags-und');
+    // Select third autocomplete element with keyboard.
+    for ($i = 0; $i < 3; $i++) {
+      $tags_element->sendKeys($tags_element->getKey('DownArrowKey'));
+    }
+
+    if (get_class($this->driver) == 'SeleniumFirefoxDriver') {
+      $selected_element = $this->driver->getElement('css=#autocomplete li.selected');
+      $selected_element->sendKeys($tags_element->getKey('EnterKey'));
+    }
+
+    if (get_class($this->driver) == 'SeleniumChromeDriver') {
+      $tags_element->sendKeys($tags_element->getKey('EnterKey'));
+    }
+
+    // Ensure autocomplete is hidden.
+    $this->assertAutocompleteHidden(t('Autocomplete element is hidden when we pressed Enter on keyboard.'));
+
+    $tags_element_value = $tags_element->getValue();
+    $this->assertEqual($tags_element_value, $third_suggestion_element_text, t('Third element selected successfully with keyboard.'));
+  }
+
+  function assertAutocompleteHidden($message = NULL) {
+    $this->verboseScreenshot();
+    $hidden = FALSE;
+    // Wait till autocomplete block hides.
+    for ($i = 0; $i < 2; $i++) {
+      $autocomplete_element = $this->driver->getElement('id=autocomplete');
+      if (empty($autocomplete_element) || (!empty($autocomplete_element) && !$autocomplete_element->isVisible())) {
+        $hidden = TRUE;
+        break;
+      }
+      sleep(1);
+    }
+    $this->verboseScreenshot();
+
+    if (empty($message)) {
+      $message = t('Autocomplete element is hidden.');
+    }
+
+    $this->assertTrue($hidden, $message);
+    return $hidden;
+  }
+}

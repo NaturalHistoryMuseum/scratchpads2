@@ -1,0 +1,229 @@
+<?php
+/**
+ * @file
+*
+* Test case for spm with selenium
+*/
+if(!class_exists('DrupalSeleniumWebTestCase')){
+  drupal_set_message(t('Selenium tests are not displayed because the selenium module is not enabled.'), 'warning', FALSE);
+  return;
+}
+
+class SpmSeleniumTestCase extends ScratchpadsTweaksSeleniumTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Spm (Selenium)',
+      'description' => 'Tests for spm module',
+      'group' => 'Scratchpads',
+      'browsers' => array(
+        'firefox'
+      )
+    );
+  }
+
+  /**
+   * A wrapper for the following tests
+   * 
+   * - Verify 'no bio term' message
+   * - Create term and add taxon description 
+   * - Verify change in configuration settings (remove fields from form)
+   */
+  function testWrapper(){
+    // Login
+    $this->drupalLogin($this->maintainer);
+    // First test
+    $this->verifyNoBioMessage();
+    // Add bio vocabulary and term   
+    $vocab_name = $this->randomName();
+    $term_name = $this->randomName();
+    $this->createAnimalVocabulary($vocab_name);
+    $this->addTerms($vocab_name, array(
+      $term_name
+    ));
+    // Run other tests
+    $this->verifyAddSpm($vocab_name, $term_name);
+    $this->verifyRemoveFields();
+  }
+
+  /**
+   * Verify 'error' message when attempting to add a taxon description without a bio vocabulary
+   */
+  function verifyNoBioMessage(){
+    $this->drupalGet('node/add/spm');
+    $this->assertText('You must create a biological classification before you can add a taxon description.');
+  }
+
+  /**
+   * A taxon description is created with all fields populated
+   * A polygon will be created for the mpa field.
+   * 
+   * Note: Removal, or change in one of these fields will cause this test to fail.
+   */
+  function verifyAddSpm($vocab_name, $term_name){
+    $this->drupalGet('node/add/spm');
+    $this->verboseScreenshot();
+    // Autocomplete taxonomy field
+    if(isset($term_name)){
+      $this->_autocompleteTest('field_taxonomic_name[und]', substr($term_name, 0, 1));
+    }
+    $field_array = array(
+      'Overview' => array(
+        'text' => array(
+          'field_general_description',
+          'field_biology'
+        )
+      ),
+      'Conservation' => array(
+        'text' => array(
+          'field_conservation_status',
+          'field_legislation',
+          'field_management',
+          'field_procedures',
+          'field_threats',
+          'field_trends'
+        )
+      ),
+      'Description' => array(
+        'text' => array(
+          'field_diagnostic_description',
+          'field_behavious',
+          'field_cytology',
+          'field_genetics',
+          'field_growth',
+          'field_look_alikes',
+          'field_molecular_biology',
+          'field_morphology',
+          'field_physiology',
+          'field_size',
+          'field_taxon_biology'
+        )
+      ),
+      'Evolution and Systematics' => array(
+        'text' => array(
+          'field_evolution',
+          'field_phylogeny'
+        )
+      ),
+      'Ecology and Distribution' => array(
+        'text' => array(
+          'field_dispersal',
+          'field_associations',
+          'field_cyclicity',
+          'field_distribution',
+          'field_ecology',
+          'field_habitat',
+          'field_life_cycle',
+          'field_life_expectancy',
+          'field_migration',
+          'field_trophic_strategy',
+          'field_population_biology',
+          'field_reproduction'
+        )
+      ),
+      'Relevance' => array(
+        'text' => array(
+          'field_diseases',
+          'field_risk_statement',
+          'field_uses'
+        )
+      )
+    );
+    foreach($field_array as $tab => $fieldset){
+      $this->clickLink($tab);
+      foreach($fieldset['text'] as $field){
+        $element = $this->driver->getElement('name=' . $field . '[und][0][value]');
+        $element->clear();
+        $value = $this->randomName();
+        $element->sendKeys($value);
+        // update the array with the inputed data
+        $key = array_search($field, $field_array[$tab]['text']);
+        unset($field_array[$tab]['text'][$key]);
+        $field_array[$tab]['text'][$field] = $value;
+      }
+    }
+    $this->assertTrue(true, 'New section');
+    // Submit the form
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText("Taxon Description " . $term_name . " (" . $vocab_name . ") has been created.", "Taxon description successfully created");
+    // Assert that values have been saved
+    foreach($field_array as $tab => $fieldset){
+      foreach($fieldset['text'] as $field => $data){
+        $this->assertText($data, $field . ' data saved and displayed on node page');
+      }
+    }
+    $this->assertText($term_name, 'Term name displayed on node page');
+  }
+
+  /**
+   * Verify that you can remove fields from the taxon descriptions form 
+   * using the configuration form
+   */
+  function verifyRemoveFields(){
+    $fields_to_remove = array(
+      'Overview' => array(
+        'field_biology' => 'Biology'
+      ),
+      'Conservation' => array(
+        'field_management' => 'Management'
+      ),
+      'Description' => array(
+        'field_genetics' => 'Genetics'
+      )
+    );
+    $this->drupalGet('admin/config');
+    $this->clickLink('Taxon description editor settings');
+    // Wait for page to load
+    $this->driver->waitForElements("xpath=//*[text()[contains(.,'Please choose the fields')]]");
+    foreach($fields_to_remove as $field_group => $fields){
+      foreach($fields as $machine_name => $human_name){
+        $this->driver->getElement("xpath=//*[text()='" . $human_name . " ']")->click();
+      }
+    }
+    // Submit the form
+    $this->driver->getElement("id=edit-submit")->click();
+    $this->assertText('The configuration options have been saved.');
+    $this->drupalGet('node/add/spm');
+    foreach($fields_to_remove as $field_group => $fields){
+      // Click the tab
+      $this->clickLink($field_group);
+      foreach($fields as $machine_name => $human_name){
+        $this->assertNoText($human_name, $human_name . ' successfully removed from taxon description form');
+      }
+    }
+  }
+
+  /**
+   * Create a vocabulary
+   */
+  function createAnimalVocabulary($vocab_name){
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $element = $this->driver->getElement("name=name");
+    $element->clear();
+    $element->sendKeys($vocab_name);
+    $element = $this->driver->getElement("name=description");
+    $element->clear();
+    $element->sendKeys($this->randomName());
+    $element = $this->driver->getElement("name=biological_classification");
+    $element->selectLabel('Animal');
+    // Submit the form
+    $submit_button = $this->driver->getElement("id=edit-submit");
+    $submit_button->click();
+  }
+
+  /**
+   * Add terms to a vocabulary
+   */
+  function addTerms($vocab_name, $term_array){
+    foreach($term_array as $term_name){
+      $path = 'admin/structure/taxonomy/' . $vocab_name . '/add';
+      $this->drupalGet($path);
+      $element = $this->driver->getElement("name=field_unit_name1[und][0][value]");
+      $element->clear();
+      $element->sendKeys($term_name);
+      // Submit the form
+      $submit_button = $this->driver->getElement("id=edit-submit");
+      $submit_button->click();
+    }
+  }
+}
