@@ -103,6 +103,20 @@ function anymals_login_user_load($users){
 }
 
 /**
+ * Implements hook_user_delete()
+ */
+function anymals_login_user_delete($account){
+  // Get the clientid so that we can request the delete, and then delete the
+  // entry from the table.
+  if($account->anymals_client_ids){
+    foreach($account->anymals_client_ids as $clientid){
+      file_get_contents('https://www.anymals.org/intercom/?request=removeClients&key=' . variable_get('anymals_key', '') . '&token=' . variable_get('anymals_token', '') . '&clientid=' . $clientid);
+    }
+    db_delete('anymals_client_ids')->condition('uid', $account->uid)->execute();
+  }
+}
+
+/**
  * Deliver a basic page without any additional theme shit.
  */
 function anymals_login_deliver_page($page_callback_result){
