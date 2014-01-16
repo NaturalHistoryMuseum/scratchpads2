@@ -10,7 +10,8 @@
            * init
            */
           this.init = function(){
-            this.multiple = editor.column.data.multiple;
+            // We can have multiple values if this is a taxon, or if this is an 'and' character
+            this.multiple = editor.column.data.type == 'AND' || editor.item.id.match(/^taxonomy_term:\d+$/);
             // Create the popup body
             this.$input = $('<div></div>')
             .addClass('character-editor-popup')
@@ -68,9 +69,7 @@
               width: $(document).width().toString() + "px",
               height: $(document).height().toString() + "px",
               zIndex: '99'
-            }).appendTo('body').one('click', $.proxy(function(e){
-              editor.cancelChanges();
-            }, this));
+            }).appendTo('body').one('click', $.proxy(this, 'commit'));
             this.focus();
           }
 

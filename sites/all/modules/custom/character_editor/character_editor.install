@@ -354,12 +354,12 @@ function character_editor_update_7004(){
  */
 function character_editor_update_7005(){
   // Enable the field collection & field collection table modules
-  if (!module_exists('field_collection')){
+  if(!module_exists('field_collection')){
     module_enable(array(
       'field_collection'
     ));
   }
-  if (!module_exists('field_collection_table')){
+  if(!module_exists('field_collection_table')){
     module_enable(array(
       'field_collection_table'
     ));
@@ -386,9 +386,9 @@ function character_editor_update_7005(){
       )
     )
   );
-  foreach ($create as $entity_type => $bundles){
-    foreach ($bundles as $bundle => $fields){
-      foreach ($fields as $field_name){
+  foreach($create as $entity_type => $bundles){
+    foreach($bundles as $bundle => $fields){
+      foreach($fields as $field_name){
         $info = field_info_field($field_name);
         if(!$info){
           field_create_field($definitions["$entity_type-$bundle-$field_name"]['field_config']);
@@ -417,9 +417,9 @@ function characater_editor_update_7006(){
       )
     )
   );
-  foreach ($create as $entity_type => $bundles){
-    foreach ($bundles as $bundle => $fields){
-      foreach ($fields as $field_name){
+  foreach($create as $entity_type => $bundles){
+    foreach($bundles as $bundle => $fields){
+      foreach($fields as $field_name){
         $info = field_info_field($field_name);
         if(!$info){
           field_create_field($definitions["$entity_type-$bundle-$field_name"]['field_config']);
@@ -436,12 +436,12 @@ function characater_editor_update_7006(){
   $efq->entityCondition('entity_type', 'character_editor_character');
   $efq->entityCondition('bundle', 'controlled');
   $r = $efq->execute();
-  if (isset($r['character_editor_character'])){
+  if(isset($r['character_editor_character'])){
     foreach(array_keys($r['character_editor_character']) as $entity_id){
       $w = entity_metadata_wrapper('character_editor_character', entity_load_single('character_editor_character', $entity_id));
       if($w){
         $w->field_char_ordered = false;
-        $w->field_char_and_or = 0;
+        $w->field_char_and_or = 'OR';
         $w->save();
       }
     }

@@ -78,9 +78,8 @@ function character_editor_field_default_fields(){
       'entity_types' => array(),
       'settings' => array(
         'allowed_values' => array(
-          0 => 'Single value',
-          1 => 'AND',
-          2 => 'OR'
+          'AND' => 'AND',
+          'OR' => 'OR'
         ),
         'allowed_values_function' => ''
       ),

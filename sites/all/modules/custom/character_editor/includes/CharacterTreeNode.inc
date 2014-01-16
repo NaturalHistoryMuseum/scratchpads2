@@ -158,7 +158,7 @@ class CharacterTreeNode{
         foreach($value as $d){
           $data[] = $value_map[$d];
         }
-        $conj = $this->model->wrapper()->field_char_and_or->value() == 1 ? ' and ' : ' or ';
+        $conj = ' <em>' . strtolower($this->model->wrapper()->field_char_and_or->value()) . '</em> ';
         $result[$char_id][$this->column_id] = array(
           'data' => implode($conj, $data),
           'value' => implode(',', $value),
