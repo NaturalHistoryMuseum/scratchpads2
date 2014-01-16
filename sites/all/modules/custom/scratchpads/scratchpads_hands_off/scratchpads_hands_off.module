@@ -1,4 +1,234 @@
 <?php
+define('SCRATCHPADS_HANDS_OFF_ALLOWED_EXISTING_FIELDS', 'field_media,body,field_cc_licence,field_reference,field_taxonomic_name');
+
+/**
+ * Returns an array of existing fields to be added to a bundle.
+ */
+function scratchpads_hands_off_field_ui_existing_field_options($entity_type, $bundle){
+  $info = array();
+  $field_types = field_info_field_types();
+  $fields = field_info_instances();
+  $allowed_fields = explode(',', SCRATCHPADS_HANDS_OFF_ALLOWED_EXISTING_FIELDS);
+  foreach(field_info_instances() as $existing_entity_type => $bundles){
+    foreach($bundles as $existing_bundle => $instances){
+      // No need to look in the current bundle.
+      if(!($existing_bundle == $bundle && $existing_entity_type == $entity_type)){
+        foreach($instances as $instance){
+          if(in_array($instance['field_name'], $allowed_fields)){
+            $field = field_info_field($instance['field_name']);
+            // Don't show
+            // - locked fields,
+            // - fields already in the current bundle,
+            // - fields that cannot be added to the entity type,
+            // - fields that should not be added via user interface.
+            if(!field_info_instance($entity_type, $field['field_name'], $bundle) && (empty($field['entity_types']) || in_array($entity_type, $field['entity_types'])) && empty($field_types[$field['type']]['no_ui'])){
+              $info[$instance['field_name']] = array(
+                'type' => $field['type'],
+                'type_label' => $field_types[$field['type']]['label'],
+                'field' => $field['field_name'],
+                'label' => $instance['label'],
+                'widget_type' => $instance['widget']['type']
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+  return $info;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function scratchpads_hands_off_form_field_ui_field_overview_form_alter(&$form, &$form_state, $form_id){
+  // Additional row: add existing field.
+  $widget_type_options = field_ui_widget_type_options(NULL, TRUE);
+  $entity_type = $form['#entity_type'];
+  $bundle = $form['#bundle'];
+  $existing_fields = scratchpads_hands_off_field_ui_existing_field_options($entity_type, $bundle);
+  $max_weight = field_info_max_weight($entity_type, $bundle, 'form');
+  if($existing_fields && $widget_type_options){
+    // Build list of options.
+    $existing_field_options = array();
+    // Add settings for the update selects behavior.
+    $js_fields = array();
+    foreach($existing_fields as $field_name => $info){
+      $text = t('@type: @field (@label)', array(
+        '@type' => $info['type_label'],
+        '@label' => $info['label'],
+        '@field' => $info['field']
+      ));
+      $existing_field_options[$field_name] = truncate_utf8($text, 80, FALSE, TRUE);
+      $js_fields[$field_name] = array(
+        'label' => $info['label'],
+        'type' => $info['type'],
+        'widget' => $info['widget_type']
+      );
+    }
+    asort($existing_field_options);
+    $name = '_add_existing_field';
+    $form['fields'][$name] = array(
+      '#attributes' => array(
+        'class' => array(
+          'draggable',
+          'tabledrag-leaf',
+          'add-new'
+        )
+      ),
+      '#row_type' => 'add_new_field',
+      '#region_callback' => 'field_ui_field_overview_row_region',
+      'label' => array(
+        '#type' => 'textfield',
+        '#title' => t('Existing field label'),
+        '#title_display' => 'invisible',
+        '#size' => 15,
+        '#description' => t('Label'),
+        '#attributes' => array(
+          'class' => array(
+            'label-textfield'
+          )
+        ),
+        '#prefix' => '<div class="label-input"><div class="add-new-placeholder">' . t('Add existing field') . '</div>',
+        '#suffix' => '</div>'
+      ),
+      'weight' => array(
+        '#type' => 'textfield',
+        '#default_value' => $max_weight + 2,
+        '#size' => 3,
+        '#title_display' => 'invisible',
+        '#title' => t('Weight for added field'),
+        '#attributes' => array(
+          'class' => array(
+            'field-weight'
+          )
+        ),
+        '#prefix' => '<div class="add-new-placeholder">&nbsp;</div>'
+      ),
+      'parent_wrapper' => array(
+        'parent' => array(
+          '#type' => 'select',
+          '#title' => t('Parent for existing field'),
+          '#title_display' => 'invisible',
+          '#options' => $form['fields']['#parent_options'],
+          '#empty_value' => '',
+          '#attributes' => array(
+            'class' => array(
+              'field-parent'
+            )
+          ),
+          '#prefix' => '<div class="add-new-placeholder">&nbsp;</div>',
+          '#parents' => array(
+            'fields',
+            $name,
+            'parent'
+          )
+        ),
+        'hidden_name' => array(
+          '#type' => 'hidden',
+          '#default_value' => $name,
+          '#attributes' => array(
+            'class' => array(
+              'field-name'
+            )
+          )
+        )
+      ),
+      'field_name' => array(
+        '#type' => 'select',
+        '#title' => t('Existing field to share'),
+        '#title_display' => 'invisible',
+        '#options' => $existing_field_options,
+        '#empty_option' => t('- Select an existing field -'),
+        '#description' => t('Field to share'),
+        '#attributes' => array(
+          'class' => array(
+            'field-select'
+          )
+        ),
+        '#cell_attributes' => array(
+          'colspan' => 2
+        ),
+        '#prefix' => '<div class="add-new-placeholder">&nbsp;</div>'
+      ),
+      'widget_type' => array(
+        '#type' => 'select',
+        '#title' => t('Widget for existing field'),
+        '#title_display' => 'invisible',
+        '#options' => $widget_type_options,
+        '#empty_option' => t('- Select a widget -'),
+        '#description' => t('Form element to edit the data.'),
+        '#attributes' => array(
+          'class' => array(
+            'widget-type-select'
+          )
+        ),
+        '#cell_attributes' => array(
+          'colspan' => 3
+        ),
+        '#prefix' => '<div class="add-new-placeholder">&nbsp;</div>'
+      )
+    );
+    $form['#attached']['js'][] = array(
+      'type' => 'setting',
+      'data' => array(
+        'fields' => $js_fields,
+        'fieldWidgetTypes' => field_ui_widget_type_options()
+      )
+    );
+    // Add our own submit so that we can add the field instance.
+    $form['#submit'][] = 'scratchpads_hands_off_field_ui_overview_submit';
+  }
+}
+
+/**
+ * 
+ */
+function scratchpads_hands_off_field_ui_overview_submit($form, &$form_state){
+  // We get the error messages, and clear any thrown by the field_ui module
+  $messages = drupal_get_messages('error');
+  foreach($messages['error'] as $message){
+    if($message != t('The field %label cannot be added because it is locked.', array(
+      '%label' => $form_state['values']['fields']['_add_existing_field']['label']
+    ))){
+      drupal_set_message($message, 'error');
+    }
+  }
+  // Add existing field.
+  if(!empty($form_state['values']['fields']['_add_existing_field']['field_name'])){
+    $field = field_info_field($form_state['values']['fields']['_add_existing_field']['field_name']);
+    if(!empty($field['locked'])){
+      // We only need to do anything if the field_ui has refused due to the field
+      // being locked.
+      $instance = array(
+        'field_name' => $field['field_name'],
+        'entity_type' => $form['#entity_type'],
+        'bundle' => $form['#bundle'],
+        'label' => $form_state['values']['fields']['_add_existing_field']['label'],
+        'widget' => array(
+          'type' => $form_state['values']['fields']['_add_existing_field']['widget_type'],
+          'weight' => $form_state['values']['fields']['_add_existing_field']['weight']
+        )
+      );
+      try{
+        field_create_instance($instance);
+        // We add this to a list of field instances that we will allow to be
+        // deleted.
+        $instances_allow_delete = variable_get('scratchpads_hands_off_allow_instance_delete', array());
+        $instances_allow_delete[$field['field_name'] . ':' . $form['#entity_type'] . ':' . $form['#bundle']] = TRUE;
+        variable_set('scratchpads_hands_off_allow_instance_delete', $instances_allow_delete);
+        // Store new field information for any additional submit handlers.
+        $form_state['fields_added']['_add_existing_field'] = $instance['field_name'];
+      }
+      catch(Exception $e){
+        drupal_set_message(t('There was a problem creating field instance %label: @message.', array(
+          '%label' => $instance['label'],
+          '@message' => $e->getMessage()
+        )), 'error');
+      }
+    }
+  }
+}
 
 /**
  * Implements hook_form_alter
@@ -122,6 +352,99 @@ function scratchpads_hands_off_menu_alter(&$items){
   // Change the callback for admin/structure/file-types so that we can remove
   // links to paths the user does not have access to.
   $items['admin/structure/file-types']['page callback'] = 'scratchpads_hands_off_file_entity_list_types_page';
+  // Change the callback for the delete an instance of a field form.  This will
+  // allow us to delete isntances of fields that are locked, but that the user
+  // added themselves.
+  foreach($items as $url => $item){
+    if(strpos($url, 'fields/%field_ui_menu/delete') && $item['page arguments'][0] == 'field_ui_field_delete_form'){
+      $items[$url]['page arguments'][0] = 'scratchpads_hands_off_field_ui_field_delete_form';
+    }
+  }
+}
+
+/**
+ * Copy of field_ui_field_delete_form(), adding the check to see if the user
+ * added the locked field instance themselves.
+ * 
+ * Form constructor for removing a field instance from a bundle.
+ *
+ * @see field_ui_field_delete_form_submit()
+ * @ingroup forms
+ */
+function scratchpads_hands_off_field_ui_field_delete_form($form, &$form_state, $instance){
+  $bundle = $instance['bundle'];
+  $entity_type = $instance['entity_type'];
+  $field = field_info_field($instance['field_name']);
+  $admin_path = _field_ui_bundle_admin_path($entity_type, $bundle);
+  $form['entity_type'] = array(
+    '#type' => 'value',
+    '#value' => $entity_type
+  );
+  $form['bundle'] = array(
+    '#type' => 'value',
+    '#value' => $bundle
+  );
+  $form['field_name'] = array(
+    '#type' => 'value',
+    '#value' => $field['field_name']
+  );
+  $output = confirm_form($form, t('Are you sure you want to delete the field %field?', array(
+    '%field' => $instance['label']
+  )), $admin_path . '/fields', t('If you have any content left in this field, it will be lost. This action cannot be undone.'), t('Delete'), t('Cancel'), 'confirm');
+  // Addition from the standard form - the check to see if the user added the
+  // instance of this field.
+  $allow_delete_fields = variable_get('scratchpads_hands_off_allow_instance_delete', array());
+  if($field['locked'] && empty($allow_delete_fields[$field['field_name'] . ':' . $entity_type . ':' . $bundle])){
+    unset($output['actions']['submit']);
+    $output['description']['#markup'] = t('This field is <strong>locked</strong> and cannot be deleted.');
+  }
+  return $output;
+}
+
+/**
+ * Copy of field_ui_field_delete_form_submit(), adding the check to see if the
+ * user added the locked field instance themselves.
+ *
+ * Removes a field instance from a bundle. If the field has no more instances,
+ * it will be marked as deleted too.
+ */
+function scratchpads_hands_off_field_ui_field_delete_form_submit($form, &$form_state){
+  $form_values = $form_state['values'];
+  $field_name = $form_values['field_name'];
+  $bundle = $form_values['bundle'];
+  $entity_type = $form_values['entity_type'];
+  $field = field_info_field($field_name);
+  $instance = field_info_instance($entity_type, $field_name, $bundle);
+  $bundles = field_info_bundles();
+  $bundle_label = $bundles[$entity_type][$bundle]['label'];
+  $allow_delete_fields = variable_get('scratchpads_hands_off_allow_instance_delete', array());
+  // Addition from the standard form - the check to see if the user added the
+  // instance of this field.
+  if(!empty($bundle) && $field && (!$field['locked'] || !empty($allow_delete_fields[$field_name . ':' . $entity_type . ':' . $bundle])) && $form_values['confirm']){
+    unset($allow_delete_fields[$field_name . ':' . $entity_type . ':' . $bundle]);
+    variable_set('scratchpads_hands_off_allow_instance_delete', $allow_delete_fields);
+    field_delete_instance($instance);
+    drupal_set_message(t('The field %field has been deleted from the %type content type.', array(
+      '%field' => $instance['label'],
+      '%type' => $bundle_label
+    )));
+  }else{
+    drupal_set_message(t('There was a problem removing the %field from the %type content type.', array(
+      '%field' => $instance['label'],
+      '%type' => $bundle_label
+    )), 'error');
+  }
+  $admin_path = _field_ui_bundle_admin_path($entity_type, $bundle);
+  $form_state['redirect'] = field_ui_get_destinations(array(
+    $admin_path . '/fields'
+  ));
+  // Fields are purged on cron. However field module prevents disabling modules
+  // when field types they provided are used in a field until it is fully
+  // purged. In the case that a field has minimal or no content, a single call
+  // to field_purge_batch() will remove it from the system. Call this with a
+  // low batch limit to avoid administrators having to wait for cron runs when
+  // removing instances that meet this criteria.
+  field_purge_batch(10);
 }
 
 /**
