@@ -9,17 +9,17 @@ function anymals_configuration_form(){
     $options[$key] = $type->name;
   }
   $form = array(
-    'anymals_token' => array(
-      '#type' => 'textfield',
-      '#title' => t('anymals+plants Token'),
-      '#default_value' => variable_get('anymals_token', ''),
-      '#description' => t('Your anymals+plants token, as found in the anymals+plants interface.')
-    ),
     'anymals_key' => array(
       '#type' => 'textfield',
       '#title' => t('anymals+plants Key'),
       '#default_value' => variable_get('anymals_key', ''),
       '#description' => t('Your anymals+plants key, as found in the anymals+plants interface.')
+    ),
+    'anymals_token' => array(
+      '#type' => 'textfield',
+      '#title' => t('anymals+plants Token'),
+      '#default_value' => variable_get('anymals_token', ''),
+      '#description' => t('Your anymals+plants token, as found in the anymals+plants interface.')
     ),
     'advanced' => array(
       '#type' => 'fieldset',
