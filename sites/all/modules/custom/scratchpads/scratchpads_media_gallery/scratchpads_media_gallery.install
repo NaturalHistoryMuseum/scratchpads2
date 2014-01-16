@@ -466,3 +466,31 @@ function scratchpads_media_gallery_update_7017(){
     field_update_instance($fields['node-page-field_media']['field_instance']);
   }
 }
+
+/**
+ * Add default value of "0" to all image entities.
+ */
+function scratchpads_media_gallery_update_7018(){
+  $select_data = db_select('file_managed', 'f');
+  $select_data->addExpression("'file'", 'entity_type');
+  $select_data->addExpression("'image'", 'bundle');
+  $select_data->addExpression(0, 'deleted');
+  $select_data->addExpression('fid', 'entity_id');
+  $select_data->addExpression('fid', 'revision_id');
+  $select_data->addExpression("'" . LANGUAGE_NONE . "'", 'language');
+  $select_data->addExpression(0, 'delta');
+  $select_data->addExpression(0, 'field_weight_value');
+  $select_revision = clone $select_data;
+  // field_data_field_weight query
+  $subquery = db_select('field_data_field_weight', 'f')->fields('f', array(
+    'entity_id'
+  ));
+  $select_data->condition('fid', $subquery, 'NOT IN');
+  db_insert('field_data_field_weight')->from($select_data)->execute();
+  // field_data_field_weight query
+  $subquery = db_select('field_revision_field_weight', 'f')->fields('f', array(
+    'entity_id'
+  ));
+  $select_revision->condition('fid', $subquery, 'NOT IN');
+  db_insert('field_revision_field_weight')->from($select_revision)->execute();
+}
