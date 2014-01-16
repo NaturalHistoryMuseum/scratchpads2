@@ -16,7 +16,7 @@ function anymals_login_menu(){
       'access callback' => TRUE,
       'type' => MENU_CALLBACK
     ),
-    'anymals/success' => array(
+    'login/success' => array(
       'title' => 'anymals+plants',
       'description' => 'Introduction and welcome page for the anymals+plants app.',
       'page callback' => 'anymals_login_welcome_page',
@@ -26,7 +26,7 @@ function anymals_login_menu(){
     ),
     'anymals' => array(
       'title' => 'anymals+plants',
-      'description' => 'Redirect page which will take a user to either anymals/success or anymals/login',
+      'description' => 'Redirect page which will take a user to either login/success or anymals/login',
       'page callback' => 'anymals_login_redirect_page',
       'access callback' => TRUE,
       'type' => MENU_CALLBACK
@@ -36,13 +36,13 @@ function anymals_login_menu(){
 
 /**
  * Callback to display the "/anymals" page which simply redirects to
- * anymals/success or anymals/login
+ * login/success or anymals/login
  */
 function anymals_login_redirect_page(){
   global $user;
   if($user->uid){
     anymals_login_add_client_id($_GET['clientid']);
-    drupal_goto('anymals/success');
+    drupal_goto('login/success');
   }else{
     drupal_goto('anymals/login', array(
       'query' => array(
