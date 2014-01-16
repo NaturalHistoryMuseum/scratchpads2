@@ -56,17 +56,19 @@ function anymals_login_redirect_page(){
  * Simple function to add a client id to a user
  */
 function anymals_login_add_client_id($clientid, $account = FALSE){
-  if(!$account){
-    global $user;
-    $account = $user;
+  if($clientid){
+    if(!$account){
+      global $user;
+      $account = $user;
+    }
+    db_merge('anymals_client_ids')->key(array(
+      'uid' => $user->uid,
+      'client_id' => $clientid
+    ))->fields(array(
+      'uid' => $user->uid,
+      'client_id' => $clientid
+    ))->execute();
   }
-  db_merge('anymals_client_ids')->key(array(
-    'uid' => $user->uid,
-    'client_id' => $clientid
-  ))->fields(array(
-    'uid' => $user->uid,
-    'client_id' => $clientid
-  ))->execute();
 }
 
 /**
