@@ -202,6 +202,23 @@
   cursor: pointer;
 }
 
+.character-editor-popup-button{
+  background: #EEE;
+  border: 1px solid #888;
+  font-size: 0.9em;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 4px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.character-editor-popup-button:hover,
+div.character-editor-popup-button-highlight {
+  background: #FFF;
+  border: 1px solid #000;
+}
+
 #slickgrid .character-context-menu-active-cell{
   border: 1px solid #000;
 }

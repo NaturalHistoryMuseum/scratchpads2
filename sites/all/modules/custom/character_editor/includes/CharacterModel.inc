@@ -178,7 +178,7 @@ class CharacterModel{
       }
       return array(
         'options' => $states,
-        'multiple' => FALSE
+        'multiple' => intval($this->w->field_char_and_or->value()) > 0
       );
     }else{
       return array();

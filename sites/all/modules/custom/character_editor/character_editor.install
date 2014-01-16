@@ -401,3 +401,49 @@ function character_editor_update_7005(){
     }
   }
 }
+
+/**
+ * Update characters
+ */
+function characater_editor_update_7006(){
+  // Create new fields
+  module_load_include('features.field.inc', 'character_editor');
+  $definitions = character_editor_field_default_fields();
+  $create = array(
+    'character_editor_character' => array(
+      'controlled' => array(
+        'field_char_ordered',
+        'field_char_and_or'
+      )
+    )
+  );
+  foreach ($create as $entity_type => $bundles){
+    foreach ($bundles as $bundle => $fields){
+      foreach ($fields as $field_name){
+        $info = field_info_field($field_name);
+        if(!$info){
+          field_create_field($definitions["$entity_type-$bundle-$field_name"]['field_config']);
+        }
+        $instance = field_info_instance($entity_type, $field_name, $bundle);
+        if(!$instance){
+          field_create_instance($definitions["$entity_type-$bundle-$field_name"]['field_instance']);
+        }
+      }
+    }
+  }
+  // Set default values on existing characters
+  $efq = new EntityFieldQuery();
+  $efq->entityCondition('entity_type', 'character_editor_character');
+  $efq->entityCondition('bundle', 'controlled');
+  $r = $efq->execute();
+  if (isset($r['character_editor_character'])){
+    foreach(array_keys($r['character_editor_character']) as $entity_id){
+      $w = entity_metadata_wrapper('character_editor_character', entity_load_single('character_editor_character', $entity_id));
+      if($w){
+        $w->field_char_ordered = false;
+        $w->field_char_and_or = 0;
+        $w->save();
+      }
+    }
+  }
+}

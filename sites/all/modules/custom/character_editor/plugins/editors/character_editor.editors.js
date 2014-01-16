@@ -10,6 +10,7 @@
            * init
            */
           this.init = function(){
+            this.multiple = editor.column.data.multiple;
             // Create the popup body
             this.$input = $('<div></div>')
             .addClass('character-editor-popup')
@@ -32,7 +33,6 @@
               background: 'rgba(0,0,0,0)'
             })
             .on('input', $.proxy(this, 'textInputChange'))
-            .on('change', $.proxy(this, 'textInputSubmit'))
             .appendTo(this.$textinputwrapper);
             this.$textinputshadow = $('<input type="text" />')
             .attr('disabled', 'disabled')
@@ -50,6 +50,14 @@
               $row.click((function(context, val){
                 return $.proxy(context, 'rowClick', i)
               })(this, i));
+            }
+            if (this.multiple){
+              // Add a 'done' button
+              $('<div></div>')
+              .addClass('character-editor-popup-button')
+              .html('done')
+              .click($.proxy(this, 'commit'))
+              .appendTo(this.$input);
             }
             this.$input.appendTo('body');
             // Click-out overlay
@@ -70,10 +78,16 @@
            * rowClick
            */
           this.rowClick = function(val){
-            if (val == this.getValue()){
-              val = '';
+            this.toggleValue(val);
+            if (!this.multiple){
+              this.commit();
             }
-            this.setValue(val);
+          }
+
+          /**
+           * commit
+           */
+          this.commit = function(){
             if (!this.isValueChanged()){
               editor.cancelChanges();
             } else {
@@ -110,23 +124,34 @@
           /**
            * textInputSubmit
            */
-          this.textInputSubmit = function(){
+          this.textInputSubmit = function(e){
             var value = null;
             if (typeof this.current !== 'undefined' && this.current !== null){
               value = $('div.character-editor-popup-row-highlight', this.$input).attr('value');
-              console.log(value);
             } else if (this.textInputVal && this.textInputVal.length > 0){
               value = this.textInputVal;
             }
             if (typeof value !== 'undefined' && value !== null){
-              this.setValue(value);
-              if (!this.isValueChanged()){
-                editor.cancelChanges();
-              } else {
-                editor.commitChanges();
+              this.toggleValue(value);
+              if (typeof e.nocommit == 'undefined' || !e.nocommit){
+                this.commit();
               }
-            } else {
+            } else if (typeof e.nocommit == 'undefined' || !e.nocommit){
               editor.cancelChanges();
+            }
+          }
+
+          /**
+           * activeDoneButton
+           */
+          this.activeDoneButton = function(m){
+            this.done_active = m;
+            if (this.done_active){
+              $('div.character-editor-popup-button', this.$input)
+              .addClass('character-editor-popup-button-highlight');
+            } else {
+              $('div.character-editor-popup-button', this.$input)
+              .removeClass('character-editor-popup-button-highlight');
             }
           }
 
@@ -135,21 +160,39 @@
            */
           this.textInputKeyUp = function(e){
             if (e.keyCode == 13) { // Enter
-              this.textInputSubmit();
-            } else if (e.keyCode == 27){ // Esc key
-              editor.cancelChanges();
+              if (typeof this.done_active !== 'undefined' && this.done_active){
+                this.commit();
+              } else {
+                this.textInputSubmit({nocommit: this.multiple});
+              }
+            }  else if (e.keyCode == 27){ // Esc key
+              this.commit();
             } else if (e.keyCode == 40 || e.keyCode == 38) { // Down/Up key
-              var delta = e.keyCode == 40 ? 1 : -1;
               var $items = $('div.character-editor-popup-row', this.$input).filter(':visible');
+              var delta = e.keyCode == 40 ? 1 : -1;
+              if (delta < 0 && this.done_active){
+                this.current = $items.length;
+              }
+              this.activeDoneButton(false);
               if (typeof this.current == 'undefined' || this.current === null){
                 this.current = delta == 1 ? 0 : -1;
               } else {
                 this.current = this.current + delta;
               }
               if (this.current >= $items.length){
-                this.current = 0;
+                if (this.multiple){
+                  this.current = null;
+                  this.activeDoneButton(true);
+                } else {
+                  this.current = 0;
+                }
               } else if (this.current < 0){
-                this.current = $items.length - 1;
+                if (this.multiple){
+                  this.current = null;
+                  this.activeDoneButton(true);
+                } else {
+                  this.current = $items.length - 1;
+                }
               }
               $items.removeClass('character-editor-popup-row-highlight');
               $($items[this.current]).addClass('character-editor-popup-row-highlight');
@@ -172,6 +215,13 @@
           };
 
           /**
+           * getValueArray
+           */
+          this.getValueArray = function(){
+            return this.getValue().split(',');
+          }
+
+          /**
            * getValue
            */
           this.getValue = function() {
@@ -179,22 +229,55 @@
           };
 
           /**
+           * toggleValue
+           */
+          this.toggleValue = function(val){
+            var a = this.getValueArray();
+            var p = $.inArray(val, a);
+            if (p >= 0){
+              if (this.multiple){
+                a.splice(p, 1);
+              } else {
+                a = [];
+              }
+            } else {
+              if (this.multiple){
+                a.push(val);
+              } else {
+                a = [val];
+              }
+            }
+            this.setValue(a);
+          }
+
+          /**
            * setValue
            */
           this.setValue = function(val) {
-            this.$input.attr('value', val);
+            if (typeof val !== 'undefined'){
+              if (!$.isArray(val)){
+                val = val.split(',');
+              }
+              val.sort();
+              if (!this.multiple && val.length > 0){
+                val = [val[0]];
+              }
+              this.$input.attr('value', val.join(','));
+            }
             $('div.character-editor-popup-row', this.$input)
             .removeClass('character-editor-popup-row-selected')
             .css({
               backgroundImage: 'none'
             });
-            $('div.character-editor-popup-row[value=' + val.toString() + ']', this.$input)
-            .addClass('character-editor-popup-row-selected')
-            .css({
-              backgroundImage: 'url("' + Drupal.settings.basePath + Drupal.settings.CharacterEditorPath + '/images/tick.png")',
-              backgroundPosition: '0 center',
-              backgroundRepeat: 'no-repeat'
-            })
+            for (var i = 0; i < val.length; i++){
+              $('div.character-editor-popup-row[value=' + val[i].toString() + ']', this.$input)
+              .addClass('character-editor-popup-row-selected')
+              .css({
+                backgroundImage: 'url("' + Drupal.settings.basePath + Drupal.settings.CharacterEditorPath + '/images/tick.png")',
+                backgroundPosition: '0 center',
+                backgroundRepeat: 'no-repeat'
+              });
+            }
           };
 
           /**

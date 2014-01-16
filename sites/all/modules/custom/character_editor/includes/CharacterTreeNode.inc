@@ -138,7 +138,7 @@ class CharacterTreeNode{
   public function getValues($row_ids = array()){
     $result = array();
     $values = $this->model->getValues($row_ids);
-    if ($this->model->wrapper()->getBundle() == 'controlled'){
+    if($this->model->wrapper()->getBundle() == 'controlled'){
       $value_map = $this->model->getControlledMap();
     }
     foreach($values as $value){
@@ -151,16 +151,23 @@ class CharacterTreeNode{
         $metadata = $value['metadata'][0]['safe_value'];
       }
       $char_id = $value['entity_w']->type() . ':' . $value['entity_w']->getIdentifier();
-      if (!empty($value_map)){
+      if(!empty($value_map)){
+        $value = explode(',', $data);
+        sort($value);
+        $data = array();
+        foreach($value as $d){
+          $data[] = $value_map[$d];
+        }
+        $conj = $this->model->wrapper()->field_char_and_or->value() == 1 ? ' and ' : ' or ';
         $result[$char_id][$this->column_id] = array(
-          'data' => $value_map[$data],
-          'value' => $data,
+          'data' => implode($conj, $data),
+          'value' => implode(',', $value),
           'metadata' => $metadata
         );
-      } else {
+      }else{
         $result[$char_id][$this->column_id] = array(
           'data' => $data,
-          'metadata' => $metadata,
+          'metadata' => $metadata
         );
       }
     }

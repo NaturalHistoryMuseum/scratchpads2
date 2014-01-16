@@ -9,6 +9,134 @@
  */
 function character_editor_field_default_fields(){
   $fields = array();
+  // Exported field: 'character_editor_character-controlled-field_char_ordered'
+  $fields['character_editor_character-controlled-field_char_ordered'] = array(
+    'field_config' => array(
+      'translatable' => '0',
+      'entity_types' => array(),
+      'settings' => array(
+        'allowed_values' => array(
+          0 => '0',
+          1 => '1'
+        ),
+        'allowed_values_function' => ''
+      ),
+      'foreign keys' => array(),
+      'indexes' => array(
+        'value' => array(
+          0 => 'value'
+        )
+      ),
+      'field_name' => 'field_char_ordered',
+      'type' => 'list_boolean',
+      'module' => 'list',
+      'active' => '1',
+      'locked' => '0',
+      'cardinality' => '1',
+      'deleted' => '0'
+    ),
+    'field_instance' => array(
+      'label' => 'Ordered character',
+      'widget' => array(
+        'weight' => '1',
+        'type' => 'options_onoff',
+        'module' => 'options',
+        'active' => 1,
+        'settings' => array(
+          'display_label' => 1
+        )
+      ),
+      'settings' => array(
+        'user_register_form' => false
+      ),
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'type' => 'list_default',
+          'settings' => array(),
+          'module' => 'list',
+          'weight' => 5
+        )
+      ),
+      'required' => 0,
+      'description' => '',
+      'default_value' => array(
+        0 => array(
+          'value' => 0
+        )
+      ),
+      'field_name' => 'field_char_ordered',
+      'entity_type' => 'character_editor_character',
+      'bundle' => 'controlled',
+      'deleted' => '0'
+    )
+  );
+  // Exported field: 'character_editor_character-controlled-field_char_ordered'
+  $fields['character_editor_character-controlled-field_char_and_or'] = array(
+    'field_config' => array(
+      'translatable' => '0',
+      'entity_types' => array(),
+      'settings' => array(
+        'allowed_values' => array(
+          0 => 'Single value',
+          1 => 'AND',
+          2 => 'OR'
+        ),
+        'allowed_values_function' => ''
+      ),
+      'foreign keys' => array(),
+      'indexes' => array(
+        'value' => array(
+          0 => 'value'
+        )
+      ),
+      'field_name' => 'field_char_and_or',
+      'type' => 'list_text',
+      'module' => 'list',
+      'active' => '1',
+      'locked' => '0',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'bundles' => array(
+        'character_editor_character' => array(
+          0 => 'controlled'
+        )
+      )
+    ),
+    'field_instance' => array(
+      'label' => 'AND/OR',
+      'widget' => array(
+        'weight' => '2',
+        'type' => 'options_select',
+        'module' => 'options',
+        'active' => 1,
+        'settings' => array()
+      ),
+      'settings' => array(
+        'user_register_form' => false
+      ),
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'type' => 'list_default',
+          'settings' => array(),
+          'module' => 'list',
+          'weight' => 6
+        )
+      ),
+      'required' => 1,
+      'description' => '',
+      'default_value' => array(
+        0 => array(
+          'value' => '0'
+        )
+      ),
+      'field_name' => 'field_char_and_or',
+      'entity_type' => 'character_editor_character',
+      'bundle' => 'controlled',
+      'deleted' => '0'
+    )
+  );
   // Exported field: 'character_editor_character-controlled-field_char_description'
   $fields['character_editor_character-controlled-field_char_description'] = array(
     'field_config' => array(
@@ -950,7 +1078,7 @@ other|Other',
     'g' => 'guessed',
     'r' => 'rare'
   );
-  foreach($flags_defaults as $flag_abbr => $flag){
+  foreach($flag_defaults as $flag_abbr => $flag){
     $fields['character_editor_project-default_character_project-field_char_proj_flags']['field_instance']['default_value'][] = array(
       'field_char_proj_flags_abbr' => array(
         'und' => array(
