@@ -68,6 +68,8 @@ function anymals_login_add_client_id($clientid, $account = FALSE){
       'uid' => $user->uid,
       'client_id' => $clientid
     ))->execute();
+    // We add this user to the group.
+    file_get_contents('https://www.anymals.org/intercom/?request=addClients&key=' . variable_get('anymals_key', '') . '&token=' . variable_get('anymals_token', '') . '&clientid=' . $clientid);
   }
 }
 
