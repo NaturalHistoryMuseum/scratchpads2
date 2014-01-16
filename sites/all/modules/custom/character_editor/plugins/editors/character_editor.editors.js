@@ -39,6 +39,7 @@
             .css({
             })
             .appendTo(this.$textinputwrapper);
+            this.$textinput.on('keyup', $.proxy(this, 'textInputKeyUp'));
             // Add the selectable rows
             for (var i in editor.column.data.options){
               var $row = $('<div></div>')
@@ -84,7 +85,11 @@
            * textInputChange
            */
           this.textInputChange = function(){
-            $('div.character-editor-popup-row', this.$input).css('display', 'block');
+            // Remove any arrow selected item
+            this.current = null;
+            $('div.character-editor-popup-row', this.$input)
+            .removeClass('character-editor-popup-row-highlight')
+            .css('display', 'block');
             if (this.$textinput.val().length > 0){
               var textInputAuto = '';
               var textInputVal = '';
@@ -106,8 +111,15 @@
            * textInputSubmit
            */
           this.textInputSubmit = function(){
-            if (this.textInputVal && this.textInputVal.length > 0){
-              this.setValue(this.textInputVal);
+            var value = null;
+            if (typeof this.current !== 'undefined' && this.current !== null){
+              value = $('div.character-editor-popup-row-highlight', this.$input).attr('value');
+              console.log(value);
+            } else if (this.textInputVal && this.textInputVal.length > 0){
+              value = this.textInputVal;
+            }
+            if (typeof value !== 'undefined' && value !== null){
+              this.setValue(value);
               if (!this.isValueChanged()){
                 editor.cancelChanges();
               } else {
@@ -115,6 +127,32 @@
               }
             } else {
               editor.cancelChanges();
+            }
+          }
+
+          /**
+           * textInputKeyUp
+           */
+          this.textInputKeyUp = function(e){
+            if (e.keyCode == 13) { // Enter
+              this.textInputSubmit();
+            } else if (e.keyCode == 27){ // Esc key
+              editor.cancelChanges();
+            } else if (e.keyCode == 40 || e.keyCode == 38) { // Down/Up key
+              var delta = e.keyCode == 40 ? 1 : -1;
+              var $items = $('div.character-editor-popup-row', this.$input).filter(':visible');
+              if (typeof this.current == 'undefined' || this.current === null){
+                this.current = delta == 1 ? 0 : -1;
+              } else {
+                this.current = this.current + delta;
+              }
+              if (this.current >= $items.length){
+                this.current = 0;
+              } else if (this.current < 0){
+                this.current = $items.length - 1;
+              }
+              $items.removeClass('character-editor-popup-row-highlight');
+              $($items[this.current]).addClass('character-editor-popup-row-highlight');
             }
           }
 

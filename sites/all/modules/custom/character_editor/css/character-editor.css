@@ -193,6 +193,10 @@
   padding: 2px 18px 2px 18px;
 }
 
+.character-editor-popup-row-highlight {
+  background: #DDD;
+}
+
 .character-editor-popup-row:hover {
   background: #DDD;
   cursor: pointer;
