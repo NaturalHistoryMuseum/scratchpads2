@@ -71,7 +71,7 @@ class ItisTermTestCase extends ScratchpadsTweaksTestCase{
     $this->assertText(t('biological classification'), 'Biological classification shown', 'Biological Classifications');
     $this->assertRaw(t('Animal'), 'Animal classification shown', 'Biological Classifications');
     $this->assertRaw(t('Algae/Fungi/Plants'), 'Algae/Fungi/Plants classification shown', 'Biological Classifications');
-    $this->assertRaw(t('Moneran'), 'Moneran classification shown', 'Biological Classifications');
+    $this->assertRaw(t('Bacteria/Archaea'), 'Bacteria/Archaea classification shown', 'Biological Classifications');
   }
 
   /**
