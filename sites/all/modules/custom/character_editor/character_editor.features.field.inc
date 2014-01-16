@@ -71,7 +71,7 @@ function character_editor_field_default_fields(){
       'deleted' => '0'
     )
   );
-  // Exported field: 'character_editor_character-controlled-field_char_ordered'
+  // Exported field: 'character_editor_character-controlled-field_char_and_or'
   $fields['character_editor_character-controlled-field_char_and_or'] = array(
     'field_config' => array(
       'translatable' => '0',
@@ -607,6 +607,68 @@ function character_editor_field_default_fields(){
         'type' => 'media_generic',
         'weight' => '3'
       )
+    )
+  );
+  // Exported field: 'character_editor_character-numeric-field_char_integer'
+  $fields['character_editor_character-numeric-field_char_integer'] = array(
+    'field_config' => array(
+      'translatable' => '0',
+      'entity_types' => array(),
+      'settings' => array(
+        'allowed_values' => array(
+          0 => '0',
+          1 => '1'
+        ),
+        'allowed_values_function' => ''
+      ),
+      'foreign keys' => array(),
+      'indexes' => array(
+        'value' => array(
+          0 => 'value'
+        )
+      ),
+      'field_name' => 'field_char_integer',
+      'type' => 'list_boolean',
+      'module' => 'list',
+      'active' => '1',
+      'locked' => '0',
+      'cardinality' => '1',
+      'deleted' => '0'
+    ),
+    'field_instance' => array(
+      'label' => 'Integer character',
+      'widget' => array(
+        'weight' => '1',
+        'type' => 'options_onoff',
+        'module' => 'options',
+        'active' => 1,
+        'settings' => array(
+          'display_label' => 1
+        )
+      ),
+      'settings' => array(
+        'user_register_form' => false
+      ),
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'type' => 'list_default',
+          'settings' => array(),
+          'module' => 'list',
+          'weight' => 5
+        )
+      ),
+      'required' => 0,
+      'description' => '',
+      'default_value' => array(
+        0 => array(
+          'value' => 0
+        )
+      ),
+      'field_name' => 'field_char_integer',
+      'entity_type' => 'character_editor_character',
+      'bundle' => 'numeric',
+      'deleted' => '0'
     )
   );
   // Exported field: 'character_editor_character-numeric-field_char_description'

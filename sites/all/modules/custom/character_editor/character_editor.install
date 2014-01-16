@@ -405,21 +405,24 @@ function character_editor_update_7005(){
 /**
  * Update characters
  */
-function characater_editor_update_7006(){
-  // Create new fields
+function character_editor_update_7006(){
   module_load_include('features.field.inc', 'character_editor');
   $definitions = character_editor_field_default_fields();
   $create = array(
     'character_editor_character' => array(
       'controlled' => array(
-        'field_char_ordered',
-        'field_char_and_or'
+        'field_char_ordered' => false,
+        'field_char_and_or' => 'AND'
+      ),
+      'numeric' => array(
+        'field_char_integer' => false
       )
     )
   );
+  // Create new fields
   foreach($create as $entity_type => $bundles){
     foreach($bundles as $bundle => $fields){
-      foreach($fields as $field_name){
+      foreach($fields as $field_name => $default){
         $info = field_info_field($field_name);
         if(!$info){
           field_create_field($definitions["$entity_type-$bundle-$field_name"]['field_config']);
@@ -432,17 +435,23 @@ function characater_editor_update_7006(){
     }
   }
   // Set default values on existing characters
-  $efq = new EntityFieldQuery();
-  $efq->entityCondition('entity_type', 'character_editor_character');
-  $efq->entityCondition('bundle', 'controlled');
-  $r = $efq->execute();
-  if(isset($r['character_editor_character'])){
-    foreach(array_keys($r['character_editor_character']) as $entity_id){
-      $w = entity_metadata_wrapper('character_editor_character', entity_load_single('character_editor_character', $entity_id));
-      if($w){
-        $w->field_char_ordered = false;
-        $w->field_char_and_or = 'OR';
-        $w->save();
+  foreach($create as $entity_type => $bundles){
+    foreach($bundles as $bundle => $fields){
+      $efq = new EntityFieldQuery();
+      $efq->entityCondition('entity_type', $entity_type);
+      $efq->entityCondition('bundle', $bundle);
+      $r = $efq->execute();
+      if(isset($r[$entity_type])){
+        foreach(array_keys($r[$entity_type]) as $entity_id){
+          $w = entity_metadata_wrapper($entity_type, entity_load_single($entity_type, $entity_id));
+          if(!$w){
+            continue;
+          }
+          foreach($fields as $field_name => $default){
+            $w->{$field_name} = $default;
+          }
+          $w->save();
+        }
       }
     }
   }

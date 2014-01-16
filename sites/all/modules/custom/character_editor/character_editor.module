@@ -1132,17 +1132,18 @@ function character_editor_state_form($form, &$form_state){
 function character_editor_state_form_validate($form, &$form_state){
   $editor = &$form_state['editor'];
   $id = $form_state['values']['id'];
+  $character = entity_load_single('character_editor_character', $form_state['character_id']);
+  $character_w = entity_metadata_wrapper('character_editor_character', $character);
   foreach(element_children($form_state['values']['field_character_state_data']) as $language){
     switch($form_state['values']['character_type']){
       case 'controlled':
         // Is the state field not empty - then validate it
         if(is_string($form_state['values']['field_character_state_data'][$language][0]['value']) && $form_state['values']['field_character_state_data'][$language][0]['value'] != '?' && $form_state['values']['field_character_state_data'][$language][0]['value'] != '-'){
-          $character = entity_load_single('character_editor_character', $form_state['character_id']);
           if(!count($character->field_char_states[$language])){
             $err = t("There are no states for this character");
             break;
           }
-          if(strpos($form_state['values']['field_character_state_data'][$language][0]['value'], ',')){
+          if(strpos($form_state['values']['field_character_state_data'][$language][0]['value'], ',') !== false){
             $states = explode(',', $form_state['values']['field_character_state_data'][$language][0]['value']);
           }else{
             $states = array(
@@ -1162,8 +1163,13 @@ function character_editor_state_form_validate($form, &$form_state){
         }
         break;
       case 'numeric':
-        if(!empty($form_state['values']['field_character_state_data'][$language][0]['value']) && !is_numeric($form_state['values']['field_character_state_data'][$language][0]['value'])){
-          $err = t('Character state needs to be a numeric value.');
+        if(!empty($form_state['values']['field_character_state_data'][$language][0]['value'])){
+          $value = $form_state['values']['field_character_state_data'][$language][0]['value'];
+          if(!is_numeric($value)){
+            $err = t('Character state needs to be a numeric value.');
+          }else if($character_w->field_char_integer->value() && strpos((string)$value, '.') !== false){
+            $err = t('Character state needs to be a integer value.');
+          }
         }
         break;
       case 'dna':
