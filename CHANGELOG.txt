@@ -1,3 +1,7 @@
+2.3.2.4 (2014-01-16)
+
+- Half of the fix for #3680 which will allow sites to be fixed by clearing their caches.
+
 2.3.2.3 (2014-01-14)
 
 - Updated Ed's OpenID
