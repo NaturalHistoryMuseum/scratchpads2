@@ -4,6 +4,7 @@ core = "7.x"
 package = "Export"
 dependencies[] = views_data_export
 dependencies[] = darwincore
+files[] = views/views_handler_field_file_filedcmitype.inc
 ;configure = admin/config/system/dwca_export
 tool = true
 l10n server = localize.scratchpads.eu
