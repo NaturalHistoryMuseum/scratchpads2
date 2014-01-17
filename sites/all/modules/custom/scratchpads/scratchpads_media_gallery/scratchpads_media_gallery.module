@@ -296,13 +296,18 @@ function scratchpads_media_gallery_apachesolr_index_document_build(ApacheSolrDoc
  */
 function scratchpads_media_gallery_apache_solr_sortstring_alter(&$sortstring){
   if(arg(0) == 'gallery'){
+    $sorted_by_media_gallery = FALSE;
     if(isset($_GET['f'])){
       foreach($_GET['f'] as $value){
         $value = explode(':', $value);
         if($value[0] == 'im_field_smg_galleries'){
+          $sorted_by_media_gallery = TRUE;
           $sortstring = 'iss_scratchpads_media_gallery_delta_for_nid_' . $value[1] . ' asc';
         }
       }
+    }
+    if(!$sorted_by_media_gallery){
+      $sortstring = 'is_field_weight asc';
     }
   }
 }
@@ -314,7 +319,12 @@ function scratchpads_media_gallery_apache_solr_default_sorts_alter(&$default_sor
   $results = db_select('node', 'n')->fields('n', array(
     'nid'
   ))->condition('type', 'media_gallery')->execute();
-  $additional_sorts = array();
+  $additional_sorts = array(
+    'is_field_weight' => array(
+      'title' => t('Image order'),
+      'default' => 'asc'
+    )
+  );
   foreach($results as $row){
     $additional_sorts['iss_scratchpads_media_gallery_delta_for_nid_' . $row->nid] = array(
       'title' => t('Image order'),
