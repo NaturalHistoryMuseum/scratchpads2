@@ -1,9 +1,14 @@
 (function($){
   Drupal.behaviors.tinytax = {attach: function(context, settings){
+    if($.cookie('tinytax_toggled') > 0) {
+      $('.tinytax-toggle-checkbox').attr('checked', 'checked');
+    }
     $('.tinytax-toggle-checkbox').change(function(){
       if($(this).attr('checked')) {
+        $.cookie('tinytax_toggled', 1);
         $('.vid-' + $(this).data('vid') + '.toggleable').hide();
       } else {
+        $.cookie('tinytax_toggled', 0);
         $('.vid-' + $(this).data('vid') + '.toggleable').show();
       }
     });
@@ -49,16 +54,14 @@
     });
   },
   // Return the status of the tinytax block - which elements are open/closed
-  getStatus: function() {
+  getStatus: function(){
     var tids = [];
-    $('div.tinytax li:visible ul:visible').each(function() {
+    $('div.tinytax li:visible ul:visible').each(function(){
       var id = $(this).closest('li').attr('id');
-      if (id) {
+      if(id) {
         tids.push(id.replace(/^tinytax-/, ''));
       }
     });
-    return {
-      open_tids: tids
-    };
+    return {open_tids: tids};
   }}
 })(jQuery);
