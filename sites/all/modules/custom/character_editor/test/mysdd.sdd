@@ -40,8 +40,9 @@
    _______________________________________________________________________________________________________________
    |                           | Nb of heads | Type of ... | Nb of blood ... | Eye color | Famous...    | DNA    |
    _______________________________________________________________________________________________________________
-   | Pediculus clavicornis     | 1           | 0           | 2               | 1  (r)    |              |        |
-   | Pediculus humanus         | 11 (u)      | 1           | 22 - 33         | 0         |              |        |
+   | Pediculus clavicornis     | 1           | The good... | 2               | G...  (r) |              |        |
+   |                           |             | and The ba..|
+   | Pediculus humanus         | 11 (u)      | The baaa... | 22 - 33         | Blueis... |              |        |
    | Pediculus humanus capitis |             |             |                 |           | Hello World! | ATGATG |
    | icode - colcode - colnum  | 2           | 1           |                 |           | A pin?       |        |
    _______________________________________________________________________________________________________________
@@ -177,6 +178,7 @@
           </Quantitative>
           <Categorical ref='c3'>
             <State ref='s1' />
+            <State ref='s2' />
           </Categorical>
           <Categorical ref='c4'>
             <State ref='s4'><Modifier ref='mod1' /></State>

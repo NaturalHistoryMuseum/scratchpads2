@@ -1135,21 +1135,30 @@ function character_editor_reverse_schema_array_sdd_character_data_controlled($va
         )
       ),
       'field_character_state_data' => array(
-        '#xpath' => 'State/@ref[1]',
-        '#process' => array(
-          'reverse_schema_array_process_map',
-          'field_collection_item',
-          array(
-            'field' => 'item_id',
-            'error' => "CodedDescription could not be imported as the Categorial state %ref is missing",
-            'throw' => TRUE,
-            'action' => REVERSE_SCHEMA_ARRAY_SKIP_ENTITY
-          )
-        )
+        '#xpath' => '.',
+        '#combine' => TRUE,
+        '#set' => 'character_editor_sdd_import_set_categorical_state'
       ),
       'field_character_state_meta' => 'State/Modifier/@ref[1]'
     )
   );
+}
+
+/**
+ * character_editor_sdd_import_set_categorical_state
+ */
+function character_editor_sdd_import_set_categorical_state($map, $entity_w, $field_name, $property, $value){
+  $value = reset($value);
+  $result = array();
+  foreach($value->xpath('State/@ref') as $ref){
+    $result[] = reverse_schema_array_process_map($map, $ref, 'field_collection_item', array(
+      'field' => 'item_id',
+      'error' => 'CodedDescription could not be imported as the Categorical state %ref is missing',
+      'throw' => TRUE,
+      'action' => REVERSE_SCHEMA_ARRAY_SKIP_ENTITY
+    ));
+  }
+  $entity_w->field_character_state_data = implode(',', $result);
 }
 
 /**
@@ -1367,13 +1376,6 @@ class CharacterEditorSDDImport{
     }
     if($this->findDuplicates($dom, '/Datasets/Dataset/Characters/*')){
       $this->addMessage(t('The SDD file containes duplicate characters. This is fine for an initial import, but may cause problems if you want to re-import data later.'), 'warning');
-    }
-    foreach($dom->xpath('/Datasets/Dataset/CodedDescriptions/CodedDescription/SummaryData/Categorical') as $dom_node){
-      if(count($dom_node->xpath('State')) > 1){
-        $this->addMessage(t('The SDD file cannot be imported: The character editor only supports one state per controlled (categorical) character.'), 'error');
-        $fail = TRUE;
-        break;
-      }
     }
     if($fail){return FALSE;}
     // Try to match the taxon names to existing vids
