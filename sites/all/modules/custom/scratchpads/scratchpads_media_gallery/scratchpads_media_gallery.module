@@ -269,6 +269,72 @@ function scratchpads_media_gallery_node_insert($node){
 }
 
 /**
+ * Implementation of hook_apachesolr_index_document_build($document, $entity, $entity_type, $env_id)
+ */
+function scratchpads_media_gallery_apachesolr_index_document_build(ApacheSolrDocument $document, $entity, $entity_type, $env_id){
+  if($entity_type == 'file'){
+    if(@isset($entity->field_smg_galleries[LANGUAGE_NONE])){
+      foreach($entity->field_smg_galleries[LANGUAGE_NONE] as $value){
+        // We load the media gallery node, and try to find where this file is
+        // in the list.
+        $media_gallery_node = node_load($value['nid']);
+        foreach($media_gallery_node->field_media[LANGUAGE_NONE] as $delta => $mgn_value){
+          if($mgn_value['fid'] == $entity->fid){
+            // We try to find the gallery nodes that this file is associated with, and
+            // then save a sortable field for each one.
+            $document->addField('iss_scratchpads_media_gallery_delta_for_nid_' . $value['nid'], $delta);
+            break;
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_apache_solr_sortstring_alter()
+ */
+function scratchpads_media_gallery_apache_solr_sortstring_alter(&$sortstring){
+  if(arg(0) == 'gallery'){
+    $sorted_by_media_gallery = FALSE;
+    if(isset($_GET['f'])){
+      foreach($_GET['f'] as $value){
+        $value = explode(':', $value);
+        if($value[0] == 'im_field_smg_galleries'){
+          $sorted_by_media_gallery = TRUE;
+          $sortstring = 'iss_scratchpads_media_gallery_delta_for_nid_' . $value[1] . ' asc';
+        }
+      }
+    }
+    if(!$sorted_by_media_gallery){
+      $sortstring = 'is_field_weight asc';
+    }
+  }
+}
+
+/**
+ * Implementation of hook_apache_solr_default_sorts_alter()
+ */
+function scratchpads_media_gallery_apache_solr_default_sorts_alter(&$default_sorts){
+  $results = db_select('node', 'n')->fields('n', array(
+    'nid'
+  ))->condition('type', 'media_gallery')->execute();
+  $additional_sorts = array(
+    'is_field_weight' => array(
+      'title' => t('Image order'),
+      'default' => 'asc'
+    )
+  );
+  foreach($results as $row){
+    $additional_sorts['iss_scratchpads_media_gallery_delta_for_nid_' . $row->nid] = array(
+      'title' => t('Image order'),
+      'default' => 'asc'
+    );
+  }
+  $default_sorts = array_merge($additional_sorts, $default_sorts);
+}
+
+/**
  * Implementation of hook_node_update().
  */
 function scratchpads_media_gallery_node_update($node){
@@ -313,6 +379,23 @@ function scratchpads_media_gallery_node_update($node){
       }
       entity_save('file', $file);
     }
+    // We're updating a media gallery node.  We therefore mark each file associated
+    // with the node as needing reindexing.
+    $table = apachesolr_get_indexer_table('file');
+    db_update($table)->fields(array(
+      'changed' => REQUEST_TIME
+    ))->condition('entity_id', $new_fids)->condition('entity_type', 'file')->execute();
+    // We set the last successfully indexed file based on the request time.
+    $query = db_select($table);
+    $query->addExpression('MAX(entity_id)', 'max_entity_id');
+    $last_entity_id = $query->condition('entity_type', 'file')->condition('changed', REQUEST_TIME, '<')->execute()->fetchField();
+    $env_id = apachesolr_default_environment();
+    $env = apachesolr_environment_load($env_id);
+    $env['conf']['apachesolr_index_last']['file']['last_entity_id'] = $last_entity_id ? $last_entity_id : 0;
+    apachesolr_environment_save($env);
+    apachesolr_environments_clear_cache();
+    // Warn the user that changing the order may take a while to be processed.
+    drupal_set_message('Note, changes to the order of images in a gallery will be processed on the next cron run.', 'warning');
   }
 }
 
