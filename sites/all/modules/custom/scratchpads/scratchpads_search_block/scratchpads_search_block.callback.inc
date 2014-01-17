@@ -10,7 +10,7 @@ function scratchpads_search_block_autocomplete($search = ''){
     $tags_return = $query->fields('t', array(
       'tid',
       'vid'
-    ))->condition('t.name', '%' . db_like($search) . '%', 'LIKE')->range(0, 10)->execute()->fetchAllKeyed();
+    ))->condition('t.name', '%' . db_like($search) . '%', 'LIKE')->range(0, 10)->orderBy('t.name', 'ASC')->execute()->fetchAllKeyed();
     $term_matches = array();
     $vocabularies = taxonomy_get_vocabularies();
     //print_r($vocabularies);
@@ -22,6 +22,10 @@ function scratchpads_search_block_autocomplete($search = ''){
         $parents[$key] = $parent->name;
       }
       $name = implode(" » ", $parents);
+      $term = taxonomy_term_load($tid);
+      if(!empty($term->field_authors[LANGUAGE_NONE][0]['value'])){
+        $name .= ' ' . $term->field_authors[LANGUAGE_NONE][0]['value'];
+      }
       $term_matches[$parent->name . ' [' . $tid . ']'] = '<span style="font-size:90%">' . check_plain($name) . '</span>';
     }
   }

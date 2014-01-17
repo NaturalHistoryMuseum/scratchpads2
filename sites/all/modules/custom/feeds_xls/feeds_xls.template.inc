@@ -13,13 +13,20 @@ function feeds_xls_get_populated_template(){
   if(isset($_SESSION['feeds_xls']) && is_array($_SESSION['feeds_xls'])){
     // We should have the file path in the $results array, so we will output it
     // to the browser.
-    $session = $_SESSION;
-    header('Content-Type: application/vnd.ms-excel');
-    header('Content-Disposition: attachment;filename="' . $_SESSION['feeds_xls']['filename'] . '"');
+    switch($_SESSION['feeds_xls']['writer']){
+      case 'Excel5':
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment; filename="' . $_SESSION['feeds_xls']['importer'] . '.xls"');
+        break;
+      case 'Excel2007':
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $_SESSION['feeds_xls']['importer'] . '.xlsx"');
+        break;
+    }
     header('Cache-Control: max-age=0');
-    readfile($_SESSION['feeds_xls']['csv_path'] . '.xls');
+    readfile($_SESSION['feeds_xls']['csv_path'] . '.excel');
     // delete the file
-    //drupal_unlink($_SESSION['feeds_xls']['csv_path'] . '.xls');
+    drupal_unlink($_SESSION['feeds_xls']['csv_path'] . '.excel');
     unset($_SESSION['feeds_xls']);
     exit();
   }else{
@@ -149,7 +156,11 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
     // results array.
     $context['results']['csv_path'] = $context['sandbox']['csv_path'];
     // FIXME - repetition!
-    $context['results']['filename'] = $feeds_importer->id . '.xls';
+    if($context['sandbox']['max'] > 65534){ // One less than XLS max due to the header row
+      $context['results']['writer'] = 'Excel2007';
+    }else{
+      $context['results']['writer'] = 'Excel5';
+    }
     $context['results']['importer'] = $feeds_importer->id;
     file_put_contents($context['results']['csv_path'], "\n");
     $context['finished'] = FALSE;
@@ -413,7 +424,7 @@ function feeds_xls_redirect_to_populated_file($success, $results, $operations){
     // Open the file.
     $objReader = new PHPExcel_Reader_CSV();
     $objPHPExcel = $objReader->load($results['csv_path']);
-    feeds_xls_set_headers(feeds_importer_load($results['importer']), $objPHPExcel, $results['csv_path'] . '.xls');
+    feeds_xls_set_headers(feeds_importer_load($results['importer']), $objPHPExcel, $results['csv_path'] . '.excel', $results['writer']);
     $_SESSION['feeds_xls'] = $results;
     drupal_goto('feeds_xls/getfile');
   }
@@ -473,7 +484,7 @@ POLYGON:POLYGON ((-33.0029296875 60.37170546875135,-20.5224609375 60.84616839706
   }
 }
 
-function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://output'){
+function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://output', $writer = 'Excel5'){
   $not_required = array();
   // Allow other modules to specify fields that should not be required
   drupal_alter('feeds_xls_not_required', $not_required);
@@ -679,12 +690,26 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
   ));
   // Rename sheet
   $sheet->setTitle('Template');
-  // Redirect output to a client’s web browser (Excel5)
-  header('Content-Type: application/vnd.ms-excel');
-  $filename = str_replace(' ', '_', preg_replace('/[^a-z\ ]/', '', strtolower($feeds_importer->config['name'])));
-  header('Content-Disposition: attachment;filename="TEMPLATE-' . $filename . '.xls"');
-  header('Cache-Control: max-age=0');
-  $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+  // If we are outputting to a browser, then we need to add some headers.
+  if($output == 'php://output'){
+    $filename = str_replace(' ', '_', preg_replace('/[^a-z\ ]/', '', strtolower($feeds_importer->config['name'])));
+    switch($writer){
+      case 'Excel5':
+        // Redirect output to a client’s web browser (Excel5)
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="TEMPLATE-' . $filename . '.xls"');
+        break;
+      case 'Excel2007':
+        // Redirect output to a client’s web browser (Excel5)
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="TEMPLATE-' . $filename . '.xlsx"');
+        break;
+    }
+    header('Cache-Control: max-age=0');
+  }else{
+    $output = drupal_realpath($output);
+  }
+  $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, $writer);
   $objWriter->save($output);
 }
 

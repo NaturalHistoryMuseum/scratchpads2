@@ -42,10 +42,12 @@ function gm3_region_field_update_7001(){
       ) as $table){
         $table = "field_{$table}_{$id}";
         $field = "{$id}_region_id";
-        db_update($table)->fields(array(
-          $field => ''
-        ))->isNull($field)->execute();
         db_drop_unique_key($table, $field);
+        if($field['type'] == 'gm3_combination'){
+          $spec['columns']['region_id']['not null'] = FALSE;
+        }else{
+          $spec['columns']['region_id']['not null'] = TRUE;
+        }
         db_change_field($table, $field, $field, $spec['columns']['region_id'], array(
           'indexes' => array(
             $field => array(
@@ -53,6 +55,33 @@ function gm3_region_field_update_7001(){
             )
           )
         ));
+      }
+    }
+  }
+  // Finally
+  cache_clear_all();
+}
+
+/**
+ * Update all field_data_* and field_revision_* tables associated with GM3
+ * combination fields.  The region_id column should not be "not null" as set by
+ * the above update before it was fixed.
+ */
+function gm3_region_field_update_7002(){
+  $spec = gm3_region_field_field_schema(array(
+    'type' => 'gm3_region'
+  ));
+  $spec['columns']['region_id']['not null'] = FALSE;
+  foreach(field_info_fields() as $id => $field){
+    if($field['type'] == 'gm3_combination' && isset($field['columns']['region_id'])){
+      // Update both field_data_N and field_revision_N
+      foreach(array(
+        'data',
+        'revision'
+      ) as $table){
+        $table = "field_{$table}_{$id}";
+        $field = "{$id}_region_id";
+        db_change_field($table, $field, $field, $spec['columns']['region_id']);
       }
     }
   }

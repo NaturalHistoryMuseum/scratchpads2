@@ -1,0 +1,137 @@
+<?php
+
+/**
+* @file
+* 
+* Scratchpads File Lock tests.
+* 
+* ScratchpadsFileLockTestCase::getInfo();
+* 
+*/
+class ScratchpadsFileLockTestCase extends FileFieldTestCase{
+
+  protected $profile = 'scratchpad_2';
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads File Lock',
+      'description' => 'Testing of scratchpads file lock',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  function setUp(){
+    $modules = array();
+    $modules[] = 'file';
+    $modules[] = 'file_module_test';
+    $modules[] = 'file_lock';
+    $modules[] = 'scratchpads_file_lock';
+    // include the code for tweaks setup
+    include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_tweaks') . "/scratchpads_tweaks.inc";
+    $this->admin_user = $this->drupalCreateUser(array(
+      'access content',
+      'access administration pages',
+      'administer site configuration',
+      'administer users',
+      'administer permissions',
+      'administer content types',
+      'administer nodes',
+      'bypass node access'
+    ));
+    $this->scratchpads_file_lock_legal_save($this->admin_user->uid);
+    $this->drupalLogin($this->admin_user);
+  }
+
+  /**
+   * We set the legal_accepted on the user so that login passes.
+   */
+  function scratchpads_file_lock_legal_save($uid){
+    legal_save_accept(1, 1, 'en', $uid);
+  }
+
+  /**
+   * Overrides DrupalWebTestCase drupallogin().
+   * @see DrupalWebTestCase::drupalLogin()
+   */
+  protected function drupalLogin(stdClass $account){
+    if($this->loggedInUser){
+      $this->drupalLogout();
+    }
+    $edit = array(
+      'name' => $account->name,
+      'pass' => $account->pass_raw
+    );
+    $this->drupalPost('user', $edit, t('Log in'));
+    // override is here
+    $pass = $this->assertText('Member for', 'User successfully logged in');
+    if($pass){
+      $this->loggedInUser = $account;
+    }
+  }
+
+
+  /**
+   * Tests if a text file still exists after it's parent node is deleted
+  */
+  function testNodeTextFileIsLocked(){
+    $type_name = 'page';
+    $field_name = strtolower($this->randomName());
+    $this->createFileField($field_name, $type_name);
+    $field = field_info_field($field_name);
+    $instance = field_info_instance('node', $field_name, $type_name);
+    $test_file = $this->getTestFile('text');
+    // Create a new node with the uploaded file.
+    $nid = $this->uploadNodeFile($test_file, $field_name, $type_name);
+    $node = node_load($nid, NULL, TRUE);
+    $node_file = (object)$node->{$field_name}[LANGUAGE_NONE][0];
+    // Ensure the file got uploaded successfully.
+    $this->assertFileExists($node_file, t('New text file saved to disk on node creation.'));
+    // Ensure the file can be downloaded.
+    $this->drupalGet(file_create_url($node_file->uri));
+    $this->assertResponse(200, t('Confirmed that the generated URL is correct by downloading the shipped file.'));
+    node_delete($nid);
+    $node = node_load($nid);
+    $this->assertFalse($node, "The parent node has been successfull deleted");
+    // Ensure the file is still there
+    $this->assertFileExists($node_file, t('The text file still exists after the node has been deleted.'));
+  }
+
+  /**
+   * Tests if an image file still exists after it's parent node is deleted
+   */
+  function testNodeImageFileIsLocked(){
+    $type_name = 'page';
+    $field_name = strtolower($this->randomName());
+    $this->createFileField($field_name, $type_name);
+    $field = field_info_field($field_name);
+    $instance = field_info_instance('node', $field_name, $type_name);
+    $test_file = $this->getTestFile('image');
+    // Disable extension checking.
+    $this->updateFileField($field_name, $type_name, array(
+      'file_extensions' => ''
+    ));
+    // Create a new node with the uploaded file.
+    $nid = $this->uploadNodeFile($test_file, $field_name, $type_name);
+    $node = node_load($nid, NULL, TRUE);
+    $node_file = (object)$node->{$field_name}[LANGUAGE_NONE][0];
+    // Ensure the file got uploaded successfully.
+    $this->assertFileExists($node_file, t('New image file saved to disk on node creation.'));
+    // Ensure the file can be downloaded.
+    $this->drupalGet(file_create_url($node_file->uri));
+    $this->assertResponse(200, t('Confirmed that the generated URL is correct by downloading the shipped file.'));
+    node_delete($nid);
+    $node = node_load($nid);
+    $this->assertFalse($node, "The parent node has been successfull deleted");
+    // Ensure the file is still there
+    $this->assertFileExists($node_file, t('The image file still exists after the node has been deleted.'));
+  }
+}
+
+
+/*
+ * To do: Testing with media multiselect
+ */
+  

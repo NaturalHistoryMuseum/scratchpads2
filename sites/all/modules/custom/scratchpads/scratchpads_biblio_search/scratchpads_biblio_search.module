@@ -244,6 +244,11 @@ function scratchpads_biblio_search_context_default_contexts(){
  * Implementation of hook_block_view_alter()
  */
 function scratchpads_biblio_search_block_view_alter(&$data, $block){
+  // Remove the login block from the batch and admin/biblio_search_export pages
+  if($block->module == 'user' && $block->delta == 'login' && (arg(1) == 'biblio_search_export' || arg(0) == 'batch')){
+    $data = array();
+    return;
+  }
   if($block->module == 'facetapi'){
     if($data['subject'] == 'Filter by author:'){
       if($block->context == 'media_gallery_page_facets'){
@@ -594,6 +599,15 @@ function scratchpads_biblio_search_apachesolr_index_document_build(ApacheSolrDoc
  */
 function scratchpads_biblio_search_menu(){
   return array(
+    'admin/biblio_search_export' => array(
+      'title' => 'Export',
+      'type' => MENU_CALLBACK,
+      'access callback' => 'user_access',
+      'access arguments' => array(
+        'show export links'
+      ),
+      'page callback' => '_scratchpads_biblio_search_export'
+    ),
     'biblio_search_export' => array(
       'title' => 'Export',
       'type' => MENU_CALLBACK,
@@ -602,6 +616,14 @@ function scratchpads_biblio_search_menu(){
         'show export links'
       ),
       'page callback' => '_scratchpads_biblio_search_export'
+    ),
+    'scratchpads-biblio-search-send-file' => array(
+      'title' => 'Download Biblio Export',
+      'page callback' => '_scratchpads_biblio_search_export_get_file',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK
     ),
     'biblio_search_facet_autocomplete' => array(
       'title' => 'Autocomplete',
@@ -676,12 +698,20 @@ function scratchpads_biblio_search_block_view($delta = ''){
         $query = NULL;
         $info = t('Export entry as');
       }
+      global $pager_total;
+      if($pager_total[0] > 1){
+        unset($export_links['biblio_rtf']);
+      }
       foreach($export_links as $link){
         $options = array(
           'query' => $query,
           'attributes' => $link['attributes']
         );
-        $href = str_replace('biblio/export', 'biblio_search_export', $link['href']);
+        if($pager_total[0] > 1){
+          $href = str_replace('biblio/export', 'admin/biblio_search_export', $link['href']);
+        }else{
+          $href = str_replace('export', 'biblio_search_export', $link['href']);
+        }
         if($is_node){
           $href = preg_replace('/\/?$/', '/' . arg(1), $href);
         }
@@ -706,6 +736,115 @@ function scratchpads_biblio_search_block_view($delta = ''){
 }
 
 /**
+ * Batch function for exporting more than one page of biblio results.
+ */
+function _scratchpads_biblio_search_batch_export($format, $conditions, $search_page, $total_pages, &$context){
+  if(!isset($context['sandbox']['total_pages'])){
+    // Set the total pages from the variable passed.
+    $context['sandbox']['total_pages'] = $total_pages;
+    // Create a temporary file for writing the data to.
+    $context['sandbox']['output_file'] = drupal_tempnam('temporary://', 'scratchpads_biblio_search');
+    // Set the output file in the $_SESSION variable so that we can redirect to
+    // it once we're finished.
+    $_SESSION['scratchpads_biblio_search_file_path'] = $context['sandbox']['output_file'];
+    // Set the page
+    $context['sandbox']['page'] = 0;
+    // Set the headers for setting when the file is delivered.
+    switch($format){
+      case 'ris':
+        $_SESSION['scratchpads_biblio_search_content_type'] = 'application/x-endnote-refer';
+        $_SESSION['scratchpads_biblio_search_content_disposition'] = 'attachment; filename="Drupal-Biblio.ris"';
+        break;
+      case 'xml':
+        $_SESSION['scratchpads_biblio_search_content_type'] = 'application/xml; charset=utf-8';
+        $_SESSION['scratchpads_biblio_search_content_disposition'] = 'attachment; filename="Biblio-EndNote.xml"';
+        break;
+      case 'tagged':
+        $_SESSION['scratchpads_biblio_search_content_type'] = 'application/x-endnote-refer';
+        $_SESSION['scratchpads_biblio_search_content_disposition'] = 'attachment; filename="Drupal-Biblio.enw"';
+        break;
+      case 'bibtex':
+        $_SESSION['scratchpads_biblio_search_content_type'] = 'application/text; charset=utf-8';
+        $_SESSION['scratchpads_biblio_search_content_disposition'] = 'attachment; filename="Biblio-Bibtex.bib"';
+        break;
+    }
+  }
+  $_GET['page'] = $context['sandbox']['page'];
+  $context['sandbox']['page']++;
+  $results = apachesolr_search_search_results('', $conditions, $search_page);
+  // Is this include line definitely required?
+  module_load_include('inc', 'biblio', 'includes/biblio.contributors');
+  $nids = array();
+  foreach($results as $row){
+    $nids[] = $row['fields']['entity_id'];
+  }
+  $nodes = node_load_multiple($nids);
+  $output = '';
+  foreach($nodes as $node){
+    switch($format){
+      case 'ris':
+        $output .= _biblio_ris_export($node);
+        break;
+      case 'xml':
+        module_load_include('inc', 'biblio_xml', 'endnote8_export');
+        if($_GET['page'] == 0){
+          $output = _endnote8_XML_export('', 'begin');
+        }
+        $output .= _endnote8_XML_export($node);
+        break;
+      case 'tagged':
+        $output .= _biblio_tagged_export($node);
+        break;
+      case 'bibtex':
+        $output .= _biblio_bibtex_export($node);
+        break;
+    }
+  }
+  if($context['sandbox']['page'] == $context['sandbox']['total_pages']){
+    if($format == 'xml'){
+      $output .= _endnote8_XML_export('', 'end');
+    }
+    $context['message'] = '<p class="ok">' . t('You may close the overlay once the file download starts.') . '</p>';
+  }
+  file_put_contents(drupal_realpath($context['sandbox']['output_file']), $output, FILE_APPEND);
+  $context['finished'] = $context['sandbox']['page'] / $context['sandbox']['total_pages'];
+}
+
+/**
+ * Redirect to get the file, or give a warning if we failed.
+ */
+function _scratchpads_biblio_search_batch_send_file($success, $results, $operations){
+  if($success){
+    drupal_goto('scratchpads-biblio-search-send-file');
+  }else{
+    drupal_set_message(t('Unable to export bibliography'), 'error');
+    drupal_goto('biblio');
+  }
+}
+
+/**
+ * 
+ */
+function _scratchpads_biblio_search_export_get_file(){
+  // The path of the output file should be saved to a session.
+  if(isset($_SESSION['scratchpads_biblio_search_file_path'])){
+    // We should have the file path in the $results array, so we will output it
+    // to the browser.
+    drupal_add_http_header('Content-Type', $_SESSION['scratchpads_biblio_search_content_type']);
+    drupal_add_http_header('Content-Disposition', $_SESSION['scratchpads_biblio_search_content_disposition']);
+    drupal_add_http_header('Cache-Control', 'max-age=0');
+    readfile($_SESSION['scratchpads_biblio_search_file_path']);
+    // delete the file
+    drupal_unlink($_SESSION['scratchpads_biblio_search_file_path']);
+    unset($_SESSION['scratchpads_biblio_search_file_path']);
+    exit();
+  }else{
+    drupal_set_message(t('Unable to export bibliography'), 'error');
+    drupal_goto('biblio');
+  }
+}
+
+/**
  * Export filtered biblio entries
  */
 function _scratchpads_biblio_search_export($format = "tagged", $nid = NULL, $popup = FALSE){
@@ -717,6 +856,29 @@ function _scratchpads_biblio_search_export($format = "tagged", $nid = NULL, $pop
     $search_page->search_path = str_replace('%', '', $search_page->search_path);
     $conditions = apachesolr_search_conditions_default($search_page);
     $results = apachesolr_search_search_results('', $conditions, $search_page);
+    global $pager_total;
+    if($pager_total[0] > 1 && $format != 'rtf'){
+      // We set a batch if we have more than 1 page of results to return.
+      batch_set(array(
+        'operations' => array(
+          array(
+            '_scratchpads_biblio_search_batch_export',
+            array(
+              $format,
+              $conditions,
+              $search_page,
+              $pager_total[0]
+            )
+          )
+        ),
+        'finished' => '_scratchpads_biblio_search_batch_send_file',
+        'title' => t('Exporting biblio')
+      ));
+      batch_process();
+    }
+    if($format == 'rtf'){
+      drupal_set_message(t('We are only able to export the first 100 records in RTF format'), 'warning');
+    }
     foreach($results as $row){
       $nids[] = $row['fields']['entity_id'];
     }
@@ -727,3 +889,7 @@ function _scratchpads_biblio_search_export($format = "tagged", $nid = NULL, $pop
   // Not ideal, but as long as poormanscron is enabled, it is best to leave early.
   exit();
 }
+
+/**
+ * Batch function for populating a file with the biblio export in.
+ */

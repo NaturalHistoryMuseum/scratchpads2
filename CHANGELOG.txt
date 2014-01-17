@@ -1,3 +1,80 @@
+2.3.2.4 (2014-01-16)
+
+- Half of the fix for #3680 which will allow sites to be fixed by clearing their caches.
+
+2.3.2.3 (2014-01-14)
+
+- Updated Ed's OpenID
+
+2.3.2.2 (2014-01-09)
+
+- Prevent the user being fooled into thinking a block is going to appear (#3773)
+
+2.3.2.1 (2014-01-08)
+
+- Enable CAPTCHA on Webform forms (#3749)
+
+2.3.2 (2014-01-08)
+
+- Allow exporting of all references from a search, rather than just the first 100 (#1420)
+- Batch the export of specimens to CSV/XML from the Slickgrid table (#3769)
+- Add a user and node reference (GUID) column to import templates (#3755,#2487)
+- Ensure that GUIDs in imports are GUIDs, and not IDs for a specific import (#3731)
+- Prevent user 2 from being redirected to the setup work-flow when editing other users
+- Clean up the user/%uid/edit/%profile form pages
+- Enable subscribing of users to newsletters (#3750)
+- Ensure that creation of Biblio nodes using a DOI works as expected (#3764)
+- Allow setting of whether content in a group is public or private, and a general tidy of group permissions (#3721)
+- Ensure that terms can always be toggled in Tinytax
+- Load Tinytax dynamically, and cache the data in Varnish
+- Moved CC images to our own mirror which can be cached by Varnish (actually quicker than CC's own server)
+- Fix the autocomplete for associating a user with a biblio author (#2954)
+- Allow twitter feeds on the front page of a site, and hide the users' twitter settings page (#3711)
+- Tweaked the default sort order for Slickgrid views (#3199)
+- If T&Cs have been tweaked, link to them, otherwise link to the default scratchpads.eu page
+- Enable adding of media by URL as well as file upload (#867)
+- Advise users that deleting a gallery does not delete the images in it (#1099)
+- Add a description to the Media field (#1104)
+- Allow filtering of the users pages (#3724)
+- Remove the confusing HTML option for newsletters (it is not supported) (#3701)
+
+2.3.1.3 (2013-12-17)
+
+- Ensure that the Slickgrid data callback is not cached #3738
+
+2.3.1.2 (2013-12-09)
+
+- Remove a faulty line of code (#3719)
+
+2.3.1.1 (2013-12-06)
+
+- Remove a faulty line of code (#3719)
+
+2.3.1 (2013-12-05)
+
+- Upgraded Drupal to 7.24 (#3495)
+- Display a preview of an entity when using the entityconnect widget (#1297)
+- Enable importing into a file field using a URL (#1456)
+- Clean up the WYSIWYG Media options (#1971)
+- Order the Taxonomy search autocomplete (#3679)
+- General testing bug fixes (#107)
+- Allow the upload of KMZ files (#3673)
+- Prevent duplication of tags on biblio nodes (#3657)
+- Order of terms in Tinytax/TUI (#3078)
+- Ensure taxonomy hierarchies are imported correctly (#3663)
+- Remove our use of the term "moneran" (#3638)
+- Improved performance of the Tinytax block
+- Increased the sensitivity of our spam detection
+- Removed a link to GBIF's ECAT (#3645)
+- Move to using Varnish, rather than Boost (#3049)
+- Italics for series and subseries (#3638)
+- Prevent disabling of tools if they're in use (#3635)
+- Display unit indicators and names correctly (#3222)
+- Display Volume when selecting biblio nodes in an autocomplete field (#3527)
+- Bandaged an issue with caching (#3503)
+- Use WYSIWYG editor for the Remarks field (#3567)
+- Refresh the admin paths when enabling a tool (#3623)
+
 2.3.0.3 (2013-11-08)
 
 - Added IMu library

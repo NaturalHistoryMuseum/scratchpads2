@@ -91,6 +91,13 @@ function slickgrid_schema(){
 }
 
 /**
+ * Implements hook_install()
+ */
+function slickgrid_install(){
+  variable_set('jquery_update_jquery_version', '1.8');
+}
+
+/**
  * Set the jQuery update settings.
  */
 function slickgrid_update_7200(){

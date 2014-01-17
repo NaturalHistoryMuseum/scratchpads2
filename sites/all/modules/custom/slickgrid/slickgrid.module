@@ -685,7 +685,7 @@ function slickgrid_form_alter(&$form, &$form_state, $form_id){
  * loginless changes.
  */
 function slickgrid_form_user_profile_form_alter(&$form, &$form_state){
-  if($form['#user']->uid){
+  if($form['#user']->uid && !arg(3)){
     $disabled = db_select('slickgrid', 's')->fields('s')->condition('uid', $form['#user']->uid)->countQuery()->execute()->fetchCol();
     $form['slickgrid'] = array(
       '#type' => 'fieldset',
