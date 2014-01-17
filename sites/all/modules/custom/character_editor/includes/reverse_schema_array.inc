@@ -30,6 +30,9 @@
  *                (by calling entity_create). This should at least define the bundle, though
  *                values such as uid, created, etc. are usually expected too.
  *
+ *                This may define a '#process' callable that is invoked with the created
+ *                entitiy after it is created and before it is saved.
+ *
  *                Entities created via '#create' are always saved
  *
  *     <field name[:property name]>: Any number of fields on the entity (with an optional
@@ -519,8 +522,16 @@ class ReverseSchemaArrayMapXml{
       }
     }
     if(!$entity_w && isset($def['#create'])){
+      $process = false;
+      if(isset($def['#create']['#process'])){
+        $process = $def['#create']['#process'];
+        unset($def['#create']['#process']);
+      }
       $entity = entity_create($entity_type, $def['#create']);
       $entity_w = entity_metadata_wrapper($entity_type, $entity);
+      if($process){
+        $this->call($process, $entity_w);
+      }
       $save = TRUE;
       $set_fields = TRUE;
     }
@@ -782,4 +793,14 @@ function reverse_schema_array_process_map($xml_map, $value, $entity_type, $optio
       return '';
     }
   }
+}
+
+/**
+ * reverse_schema_array_process_attach_field_collection
+ *
+ * A #create process function used to attach the created
+ * field collection item to a host entity
+ */
+function reverse_schema_array_process_attach_field_collection($xml_map, $entity_w, $host_w){
+  $entity_w->raw()->setHostEntity($host_w->type(), $host_w->raw());
 }

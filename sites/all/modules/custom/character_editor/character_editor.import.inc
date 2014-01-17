@@ -464,6 +464,67 @@ return;}
 }
 
 /**
+ * character_editor_reverse_schema_array_sdd_modifiers
+ *
+ * Implement hook_reverse_schema_array_<schema>
+ *
+ * Define how to import SDD Modifiers
+ */
+function character_editor_reverse_schema_array_sdd_modifiers($variables){
+  global $user;
+  return array(
+    'field_collection_item' => array(
+      '#xpath' => '/Datasets/Dataset/DescriptiveConcepts/DescriptiveConcept/Modifiers/Modifier',
+      '#id' => '@id',
+      '#get' => array(
+        'character_editor_sdd_import_get_flag',
+        $variables['project_w']
+      ),
+      '#create' => array(
+        'field_name' => 'field_char_proj_flags',
+        '#process' => array(
+          'reverse_schema_array_process_attach_field_collection',
+          $variables['project_w']
+        )
+      ),
+      'field_char_proj_flags_id' => '@id',
+      'field_char_proj_flags_flag' => 'Representation/Label[1]',
+      'field_char_proj_flags_abbr' => array(
+        '#xpath' => 'Representation/Label[1]',
+        '#process' => array(
+          'character_editor_process_substr',
+          0,
+          1
+        )
+      )
+    )
+  );
+}
+
+/**
+ * character_editor_sdd_import_get_flag
+ *
+ * Return existing field_collection_item for field
+ * field_char_proj_flags with the given id on the same project
+ */
+function character_editor_sdd_import_get_flag($map, $value, $project_w){
+  $id = $map->nodeToString($value->xpath('@id'));
+  for($i = 0; $i < count($project_w->field_char_proj_flags); $i++){
+    if($project_w->field_char_proj_flags[$i]->field_char_proj_flags_id->value() == $id){return $project_w->field_char_proj_flags[$i]->raw();}
+  }
+  return FALSE;
+}
+
+/**
+ * character_editor_process_substr
+ *
+ * Return a substring of the XML node value
+ */
+function character_editor_process_substr($map, $value, $start, $length){
+  return substr($map->nodeToString($value), $start, $length);
+}
+
+/**
  * character_editor_reverse_schema_array_sdd_character_group
  *
  * Implement hook_reverse_schema_array_<schema>
@@ -905,7 +966,8 @@ function character_editor_reverse_schema_array_sdd_character_data_numeric($varia
           'character_editor_sdd_import_set_character_state_data'
         )
       ),
-      'field_character_state_data' => $value
+      'field_character_state_data' => $value,
+      'field_character_state_meta' => 'Modifier/@ref[1]'
     )
   );
 }
@@ -944,7 +1006,8 @@ function character_editor_reverse_schema_array_sdd_character_data_text($variable
           'character_editor_sdd_import_set_character_state_data'
         )
       ),
-      'field_character_state_data' => 'Content'
+      'field_character_state_data' => 'Content',
+      'field_character_state_meta' => 'Modifier/@ref[1]'
     )
   );
 }
@@ -983,7 +1046,8 @@ function character_editor_reverse_schema_array_sdd_character_data_dna($variables
           'character_editor_sdd_import_set_character_state_data'
         )
       ),
-      'field_character_state_data' => 'Sequence'
+      'field_character_state_data' => 'Sequence',
+      'field_character_state_meta' => 'Modifier/@ref[1]'
     )
   );
 }
@@ -1034,7 +1098,8 @@ function character_editor_reverse_schema_array_sdd_character_data_controlled($va
             'action' => REVERSE_SCHEMA_ARRAY_SKIP_ENTITY
           )
         )
-      )
+      ),
+      'field_character_state_meta' => 'State/Modifier/@ref[1]'
     )
   );
 }
@@ -1309,13 +1374,13 @@ class CharacterEditorSDDImport{
       }
     }
     if($info['skipped']){
-      $this->addMessage(t('There were %count specimen in the file that were successfully mapped to existing taxon names, and %badcount specimen that could not be mapped and will not be imported:', array(
+      $this->addMessage(t('There were %count specimen in the file that were successfully mapped to existing specimen, and %badcount specimen that could not be mapped and will not be imported:', array(
         '%count' => $info['total'],
         '%badcount' => $info['skipped']
       )), 'warning');
       $this->addMessage($map->getMessages(), 'warning', 'mapsp');
-    }else{
-      $this->addMessage(t('There were %count taxon names in the file that were successfuly mapped to existing specimen.', array(
+    }else if($info['total'] > 0){
+      $this->addMessage(t('There were %count specimen in the file that were successfuly mapped to existing specimen.', array(
         '%count' => $info['total']
       )), 'status');
     }
@@ -1378,10 +1443,13 @@ class CharacterEditorSDDImport{
     if(!$this->importGroups()){return FALSE;}
     if(!$this->importCharacters()){return FALSE;}
     // We made it this far without failure - we can save all the entities before we start creating relations
+    $new = FALSE;
     if(!$this->project_w->getIdentifier()){
       $this->project_w->save();
+      $new = TRUE;
     }
     $this->map->saveEntities();
+    if(!$this->importModifiers($new)){return FALSE;}
     if($this->options['import_selection'] != 'data'){
       $this->importStructure();
     }
@@ -1526,6 +1594,61 @@ class CharacterEditorSDDImport{
   }
 
   /**
+   * importModifiers
+   */
+  private function importModifiers($new){
+    // If this is newly created and the project has some modifiers, then remove the default ones.
+    if($new && count($this->dom->xpath('/Datasets/Dataset/DescriptiveConcepts/DescriptiveConcept/Modifiers/Modifier')) > 0){
+      $keep_defaults = array(
+        'inherited',
+        'computed'
+      );
+      for($i = 0; $i < count($this->project_w->field_char_proj_flags); $i++){
+        $f = $this->project_w->field_char_proj_flags[$i]->value();
+        $i = field_get_item('field_collection_item', $f, 'field_char_proj_flags_id');
+        if(!in_array($i, $keep_defaults)){
+          entity_delete('field_collection_item', $f);
+        }
+      }
+    }
+    try{
+      $this->map->mapXML(reverse_schema_array('sdd_modifiers', REVERSE_SCHEMA_ARRAY_CREATE | REVERSE_SCHEMA_ARRAY_GET, array(
+        'project_w' => $this->project_w
+      )));
+    }
+    catch(Exception $e){
+      $this->addMessage('The SDD file cannot be imported. Failed to import modifiers: ' . $e->getMessage(), 'error');
+      return FALSE;
+    }
+    $info = $this->map->getInfo();
+    if($info['new'] > 0){
+      $this->addMessage(t("Successfully created %count flags.", array(
+        '%count' => $info['new']
+      )), 'status');
+    }
+    if($info['loaded'] > 0){
+      $this->addMessage(t("Successfully loaded %count existing flags.", array(
+        '%count' => $info['loaded']
+      )), 'status');
+    }
+    if($info['skipped']){
+      $this->addMessage(t("%count flags could not be mapped to existing character groups and were skipped. Missing flags:", array(
+        '%count' => $info['skipped']
+      )), 'warning');
+      $this->addMessage($this->map->getMessages(), 'warning', 'map');
+    }
+    if($info['total'] == 0){
+      if($options['reuse'] == 'always'){
+        $this->addMessage(t("The SDD file cannot be imported without creating new flags."), 'error');
+        return FALSE;
+      }
+    }
+    $this->map->flushMessages();
+    $this->map->flushInfo();
+    return TRUE;
+  }
+
+  /**
    * importCharacters
    */
   private function importCharacters(){
@@ -1587,7 +1710,7 @@ class CharacterEditorSDDImport{
     $inconsistent = FALSE;
     foreach($this->dom->xpath('/Datasets/Dataset/CharacterTrees/CharacterTree/Nodes/Node|/Datasets/Dataset/CharacterTrees/CharacterTree/Nodes/CharNode') as $tree_node){
       $elem_ref = $this->map->nodeToString($tree_node->xpath('Character/@ref[1]|DescriptiveConcept/@ref[1]'));
-      if (!$elem_ref){
+      if(!$elem_ref){
         $this->addMessage("Missing node reference in CharacterTree description, the tree will be incomplete.", 'warning', 'tree');
         continue;
       }
@@ -1601,7 +1724,7 @@ class CharacterEditorSDDImport{
         continue;
       }
       $parent_node = reset($this->dom->xpath('/Datasets/Dataset/CharacterTrees/CharacterTree/Nodes/*[@id=\'' . $parent_node_ref . '\']'));
-      if ($parent_node){
+      if($parent_node){
         $parent_ref = $this->map->nodeToString($parent_node->xpath('Character/@ref[1]|DescriptiveConcept/@ref[1]'));
       }
       if(!$parent_node || !$parent_ref){
@@ -1610,12 +1733,12 @@ class CharacterEditorSDDImport{
       }
       $elem_w = $this->map->getEntity('character_editor_character', $elem_ref);
       $parent_w = $this->map->getEntity('character_editor_character', $parent_ref);
-      if (!$elem_w || !$parent_w){
+      if(!$elem_w || !$parent_w){
         $this->addMessage("Could not find matching references for $elem_ref or $parent_ref in Character Tree, skipping.", 'warning', 'tree');
         continue;
       }
       // Note: if we ever decide to have non-group parents, then simply removing this test is enough to import such trees.
-      if ($parent_w->getBundle() != 'group'){
+      if($parent_w->getBundle() != 'group'){
         $this->addMessage("Character Tree uses parent element wich is not a group, skipping.", 'warning', 'tree');
         continue;
       }
@@ -1687,7 +1810,7 @@ class CharacterEditorSDDImport{
   private function findDuplicates($dom, $xpath){
     $nodes = $dom->xpath($xpath);
     $inner = array();
-    foreach ($nodes as $node){
+    foreach($nodes as $node){
       $inner[] = preg_replace('/^<[^>]+>(.*)<[^>]+>$/s', '$1', $node->asXml());
     }
     return count($inner) > count(array_unique($inner));
