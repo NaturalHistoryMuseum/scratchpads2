@@ -29,6 +29,8 @@
    - Character "Type of blood sucker" should be an ordered, 'AND' character ;
    - Character "Eye color" should have states "0: Blueish green" and "1: Greenish blue" ;
    - Character "Eye color" should be an un-ordered, 'AND' character ;
+   - Numeric Character "Number of heads" should be an integer character ;
+   - Numeric Character "Number of blood sucking appendix" should be a real character ;
    - Text Character "Famous Last Words" should have an associated image (the Scratchpads logo) ;
    - State "The good type" should have an associated image (computer with scratchpad logo) ;
    - State "The baaaaad type" should have an associated image (spider).
@@ -39,7 +41,7 @@
    |                           | Nb of heads | Type of ... | Nb of blood ... | Eye color | Famous...    | DNA    |
    _______________________________________________________________________________________________________________
    | Pediculus clavicornis     | 1           | 0           | 2               | 1  (r)    |              |        |
-   | Pediculus humanus         | 11 (u)      | 1           | 22              | 0         |              |        |
+   | Pediculus humanus         | 11 (u)      | 1           | 22 - 33         | 0         |              |        |
    | Pediculus humanus capitis |             |             |                 |           | Hello World! | ATGATG |
    | icode - colcode - colnum  | 2           | 1           |                 |           | A pin?       |        |
    _______________________________________________________________________________________________________________
@@ -77,6 +79,7 @@
       <QuantitativeCharacter id='c1'>
         <Representation><Label>Number of heads</Label></Representation>
         <MeasurementUnit><Label>heads</Label></MeasurementUnit>
+        <Assumptions><ValuesAreInteger>true</ValuesAreInteger></Assumptions>
       </QuantitativeCharacter>
       <QuantitativeCharacter id='c2'>
         <Representation><Label>Number of blood sucking appendix</Label></Representation>
@@ -190,7 +193,8 @@
             <Modifier ref='mod2' />
           </Quantitative>
           <Quantitative ref='c2'>
-            <Measure value='22' />
+            <Measure type='Min' value='22' />
+            <Measure type='Max' value='33' />
           </Quantitative>
           <Categorical ref='c3'>
             <State ref='s2' />

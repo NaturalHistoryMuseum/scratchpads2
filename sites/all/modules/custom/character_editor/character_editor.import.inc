@@ -658,6 +658,10 @@ function character_editor_reverse_schema_array_sdd_character_numeric($variables)
             'action' => REVERSE_SCHEMA_ARRAY_SKIP_VALUE
           )
         )
+      ),
+      'field_char_integer' => array(
+        '#xpath' => 'Assumptions/ValuesAreInteger',
+        '#process' => 'reverse_schema_array_process_boolean'
       )
     )
   );
@@ -951,14 +955,16 @@ function character_editor_sdd_import_get_character($xml_map, $node, $type, $proj
  *
  * If $variables['sample'] is set and true, return the definition used for samples
  * as opposed to taxons.
- *
- * XXX we don't support ranges - test for them!
  */
 function character_editor_reverse_schema_array_sdd_character_data_numeric($variables){
   $taxon = empty($variables['sample']);
   if($taxon){
     $spath = 'SummaryData';
-    $value = 'Measure/@value';
+    $value = array(
+      '#xpath' => '.',
+      '#combine' => TRUE,
+      '#set' => 'character_editor_sdd_import_set_range_value'
+    );
   }else{
     $spath = 'SampleData/SamplingEvent/SamplingUnit';
     $value = '@value';
@@ -984,6 +990,34 @@ function character_editor_reverse_schema_array_sdd_character_data_numeric($varia
       'field_character_state_meta' => 'Modifier/@ref[1]'
     )
   );
+}
+
+/**
+ * character_editor_sdd_import_set_range_value
+ */
+function character_editor_sdd_import_set_range_value($map, $entity_w, $field_name, $property, $value){
+  $min = false;
+  $max = false;
+  $value = reset($value);
+  if(count($value->xpath('Measure[@type=\'min\']')) > 0){
+    $min = $map->nodeToString($value->xpath('Measure[@type=\'min\']/@value[1]'));
+  }else if(count($value->xpath('Measure[@type=\'Min\']')) > 0){
+    $min = $map->nodeToString($value->xpath('Measure[@type=\'Min\']/@value[1]'));
+  }
+  if(count($value->xpath('Measure[@type=\'max\']')) > 0){
+    $max = $map->nodeToString($value->xpath('Measure[@type=\'max\']/@value[1]'));
+  }else if(count($value->xpath('Measure[@type=\'Max\']')) > 0){
+    $max = $map->nodeToString($value->xpath('Measure[@type=\'Max\']/@value[1]'));
+  }
+  if($min !== false && $max !== false){
+    if($min != $max){
+      $entity_w->field_character_state_data = "$min - $max";
+    }else{
+      $entity_w->field_character_state_data = $min;
+    }
+  }else{
+    $entity_w->field_character_state_data = $map->nodeToString($value->xpath('Measure/@value[1]'));
+  }
 }
 
 /**
