@@ -345,3 +345,21 @@ function dwca_export_field_formatter_view($entity_type, $entity, $field, $instan
       break;
   }
 }
+
+/**
+ * Implement hook_views_data_alter
+ *
+ */
+function dwca_export_views_data_alter(&$data){
+  // Add a handler to display a file's DCMI type
+  $data['file_managed']['dcmitype'] = array(
+    'title' => t('DCMI file type'),
+    'help' => t('The Darwin Core Metadata Initiative type of the file.'),
+    'real field' => 'uri',
+    'field' => array(
+      'handler' => 'views_handler_field_file_filedcmitype',
+      'click sortable' => FALSE
+    )
+  );
+  return $data;
+}
