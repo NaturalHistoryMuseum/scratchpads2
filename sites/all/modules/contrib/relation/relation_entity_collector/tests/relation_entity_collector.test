@@ -62,7 +62,6 @@ class RelationEntityCollectorTestCase extends RelationTestCase {
     );
     $list = drupal_render($item_list);
     $message = t('Created new !link from !list', array('!link' => $link, '!list' => $list));
-    $message = array_shift(explode("\n", $message));
     $this->assertRaw($message, 'Created a new relation.');
     $this->drupalGet($path);
     $node1_uri = entity_uri('node', $this->node1);
