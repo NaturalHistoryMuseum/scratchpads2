@@ -15,6 +15,8 @@
   - Successfull creation of 3 media items, 2 character groups, 6 characters and 10 coded descriptions.
 
   The resultuing character project should have:
+   - Two flags (on top of the default 'computer' and 'inherited'): 'rarely' (abbrev 'r')
+     and 'uncertain' (abbrev 'u') ;
    - Two groups: "A group" and "Another group" such that "Another group" is a child
      of "A group" ;
    - "A group" should have characters "Number of Heads" and "Type of blood sucker" ;
@@ -36,8 +38,8 @@
    _______________________________________________________________________________________________________________
    |                           | Nb of heads | Type of ... | Nb of blood ... | Eye color | Famous...    | DNA    |
    _______________________________________________________________________________________________________________
-   | Pediculus clavicornis     | 1           | 0           | 2               | 1         |              |        |
-   | Pediculus humanus         | 11          | 1           | 22              | 0         |              |        |
+   | Pediculus clavicornis     | 1           | 0           | 2               | 1  (r)    |              |        |
+   | Pediculus humanus         | 11 (u)      | 1           | 22              | 0         |              |        |
    | Pediculus humanus capitis |             |             |                 |           | Hello World! | ATGATG |
    | icode - colcode - colnum  | 2           | 1           |                 |           | A pin?       |        |
    _______________________________________________________________________________________________________________
@@ -122,6 +124,12 @@
     <DescriptiveConcepts>
       <DescriptiveConcept id='dc1'><Representation><Label>A group</Label></Representation></DescriptiveConcept>
       <DescriptiveConcept id='dc2'><Representation><Label>Another group</Label></Representation></DescriptiveConcept>
+      <DescriptiveConcept id='dc3'>
+        <Modifiers>
+          <Modifier id="mod1"><Representation><Label>rarely</Label></Representation></Modifier>
+          <Modifier id="mod2"><Representation><Label>uncertain</Label></Representation></Modifier>
+        </Modifiers>
+      </DescriptiveConcept>
     </DescriptiveConcepts>
     <CharacterTrees>
       <CharacterTree id='t1'>
@@ -168,7 +176,7 @@
             <State ref='s1' />
           </Categorical>
           <Categorical ref='c4'>
-            <State ref='s4' />
+            <State ref='s4'><Modifier ref='mod1' /></State>
           </Categorical>
         </SummaryData>
       </CodedDescription>
@@ -179,6 +187,7 @@
         <SummaryData>
           <Quantitative ref='c1'>
             <Measure value='11' />
+            <Modifier ref='mod2' />
           </Quantitative>
           <Quantitative ref='c2'>
             <Measure value='22' />

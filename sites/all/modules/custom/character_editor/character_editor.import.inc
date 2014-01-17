@@ -1617,13 +1617,17 @@ class CharacterEditorSDDImport{
         'inherited',
         'computed'
       );
-      for($i = 0; $i < count($this->project_w->field_char_proj_flags); $i++){
-        $f = $this->project_w->field_char_proj_flags[$i]->value();
-        $i = field_get_item('field_collection_item', $f, 'field_char_proj_flags_id');
-        if(!in_array($i, $keep_defaults)){
-          entity_delete('field_collection_item', $f);
+      $e = $this->project_w->raw();
+      $keep_flags = array();
+      for($i = 0; $i < count($e->field_char_proj_flags[LANGUAGE_NONE]); $i++){
+        if(!empty($e->field_char_proj_flags[LANGUAGE_NONE][$i]['field_char_proj_flags_id'])){
+          $v = $e->field_char_proj_flags[LANGUAGE_NONE][$i]['field_char_proj_flags_id'][LANGUAGE_NONE][0]['value'];
+          if(in_array($v, $keep_defaults)){
+            $keep_flags[] = $e->field_char_proj_flags[LANGUAGE_NONE][$i];
+          }
         }
       }
+      $e->field_char_proj_flags[LANGUAGE_NONE] = $keep_flags;
     }
     try{
       $this->map->mapXML(reverse_schema_array('sdd_modifiers', REVERSE_SCHEMA_ARRAY_CREATE | REVERSE_SCHEMA_ARRAY_GET, array(
