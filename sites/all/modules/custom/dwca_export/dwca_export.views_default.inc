@@ -457,17 +457,21 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['uuid_3']['table'] = 'users';
   $handler->display->display_options['fields']['uuid_3']['field'] = 'uuid';
   $handler->display->display_options['fields']['uuid_3']['relationship'] = 'uid';
-  /* Field: Global: Custom text */
-  $handler->display->display_options['fields']['nothing']['id'] = 'nothing';
-  $handler->display->display_options['fields']['nothing']['table'] = 'views';
-  $handler->display->display_options['fields']['nothing']['field'] = 'nothing';
-  $handler->display->display_options['fields']['nothing']['alter']['text'] = 'http://purl.org/dc/dcmitype/StillImage';
+  /* Field: File: DCMI file type */
+  $handler->display->display_options['fields']['dcmitype']['id'] = 'dcmitype';
+  $handler->display->display_options['fields']['dcmitype']['table'] = 'file_managed';
+  $handler->display->display_options['fields']['dcmitype']['field'] = 'dcmitype';
   /* Field: File: File ID */
   $handler->display->display_options['fields']['fid']['id'] = 'fid';
   $handler->display->display_options['fields']['fid']['table'] = 'file_managed';
   $handler->display->display_options['fields']['fid']['field'] = 'fid';
   $handler->display->display_options['fields']['fid']['alter']['alter_text'] = TRUE;
   $handler->display->display_options['fields']['fid']['alter']['text'] = $base_url . '/file/[fid]';
+  $handler->display->display_options['filter_groups']['operator'] = 'OR';
+  $handler->display->display_options['filter_groups']['groups'] = array(
+    1 => 'AND',
+    2 => 'AND',
+  );
   /* Field: File: Licence */
   $handler->display->display_options['fields']['field_cc_licence_1']['id'] = 'field_cc_licence_1';
   $handler->display->display_options['fields']['field_cc_licence_1']['table'] = 'field_data_field_cc_licence';
@@ -488,12 +492,28 @@ function dwca_export_views_default_views(){
     'image' => 'image',
     'video' => 'video'
   );
+  $handler->display->display_options['filters']['type']['group'] = 1;
   /* Filter criterion: File: Path */
   $handler->display->display_options['filters']['uri']['id'] = 'uri';
   $handler->display->display_options['filters']['uri']['table'] = 'file_managed';
   $handler->display->display_options['filters']['uri']['field'] = 'uri';
   $handler->display->display_options['filters']['uri']['operator'] = 'not';
   $handler->display->display_options['filters']['uri']['value'] = '/eolapi/';
+  $handler->display->display_options['filters']['uri']['group'] = 1;
+  /* Filter criterion: File: Name */
+  $handler->display->display_options['filters']['filename']['id'] = 'filename';
+  $handler->display->display_options['filters']['filename']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['filename']['field'] = 'filename';
+  $handler->display->display_options['filters']['filename']['operator'] = 'regular_expression';
+  $handler->display->display_options['filters']['filename']['value'] = '\\.(xml|nex|phy|nhx)$';
+  $handler->display->display_options['filters']['filename']['group'] = 2;
+  /* Filter criterion: File: Path */
+  $handler->display->display_options['filters']['uri_1']['id'] = 'uri_1';
+  $handler->display->display_options['filters']['uri_1']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['uri_1']['field'] = 'uri';
+  $handler->display->display_options['filters']['uri_1']['operator'] = 'not';
+  $handler->display->display_options['filters']['uri_1']['value'] = '/eolapi/';
+  $handler->display->display_options['filters']['uri_1']['group'] = 2;
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'some';
