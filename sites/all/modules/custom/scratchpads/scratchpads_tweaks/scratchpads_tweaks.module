@@ -666,3 +666,16 @@ function scratchpads_tweaks_form_node_type_form_alter(&$form, &$form_state){
   $form['workflow']['node_options']['sticky']['#description'] = t('Select to always have the content ordered on top of all lists that it appears in.');
   $form['workflow']['node_options']['#description'] = '';
 }
+
+/**
+ * Implementation hook_file_mimetype_mapping_alter
+ *
+ */
+function scratchpads_tweaks_file_mimetype_mapping_alter(&$mapping){
+  $mapping['mimetypes']['nexus'] = 'text/plain';
+  $mapping['extensions']['nex'] = 'nexus';
+  $mapping['mimetypes']['phylip'] = 'text/plain';
+  $mapping['extensions']['phy'] = 'phylip';
+  $mapping['mimetypes']['new-hampshire extended'] = 'text/plain';
+  $mapping['extensions']['nhx'] = 'new-hampshire extended';
+}
