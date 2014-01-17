@@ -114,6 +114,7 @@ function darwincore_form_field_ui_display_overview_form_alter(&$form, &$form_sta
  */
 function darwincore_specimen_observation_node_form_submit($form, &$form_state){
   if(@isset($form_state['values']['field_taxonomic_name'][LANGUAGE_NONE][0]['tid']) && @isset($form_state['values']['field_media'][LANGUAGE_NONE][0]['fid'])){
+    $send_message = FALSE;
     foreach($form_state['values']['field_media'][LANGUAGE_NONE] as $file){
       if($file['fid'] && ($file = file_load($file['fid'])) != FALSE){
         if(!count($file->field_taxonomic_name)){
@@ -131,10 +132,14 @@ function darwincore_specimen_observation_node_form_submit($form, &$form_state){
             $file->field_taxonomic_name[LANGUAGE_NONE][] = array(
               'tid' => $term['tid']
             );
+            $send_message = TRUE;
           }
         }
         file_save($file);
       }
+    }
+    if($send_message){
+      drupal_set_message(t('Any additional terms added to this specimen/observation, have been added to attached images.'));
     }
   }
 }
