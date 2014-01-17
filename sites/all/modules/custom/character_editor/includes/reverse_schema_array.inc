@@ -796,6 +796,24 @@ function reverse_schema_array_process_map($xml_map, $value, $entity_type, $optio
 }
 
 /**
+ * reverse_schema_array_process_boolean
+ */
+function reverse_schema_array_process_boolean($xml_map, $value){
+  $accept = array(
+    'true' => 1,
+    '1' => 1,
+    'false' => 0,
+    '0' => 0
+  );
+  $v = strtolower(trim($xml_map->nodeToString($value)));
+  if(isset($accept[$v])){
+    return $accept[$v];
+  }else{
+    return 0;
+  }
+}
+
+/**
  * reverse_schema_array_process_attach_field_collection
  *
  * A #create process function used to attach the created

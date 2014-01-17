@@ -746,6 +746,9 @@ function character_editor_reverse_schema_array_sdd_character_dna($variables){
  *
  * Defines how an SDD CategoricalCharacter is mapped to a Character.
  *
+ * Note that we assume that a continuous character is necessarily
+ * ordered.
+ *
  */
 function character_editor_reverse_schema_array_sdd_character_controlled($variables){
   global $user;
@@ -763,7 +766,14 @@ function character_editor_reverse_schema_array_sdd_character_controlled($variabl
         'created' => isset($variables['created']) ? $variables['created'] : time(),
         'changed' => isset($variables['changed']) ? $variables['changed'] : time(),
         'type' => 'controlled',
-        'title' => '(controlled character)'
+        'title' => '(controlled character)',
+        'field_char_and_or' => array(
+          LANGUAGE_NONE => array(
+            array(
+              'value' => 'AND'
+            )
+          )
+        )
       ),
       'title' => 'Representation/Label[1]',
       'field_char_description' => 'Representation/Detail[1]',
@@ -785,6 +795,10 @@ function character_editor_reverse_schema_array_sdd_character_controlled($variabl
             'action' => REVERSE_SCHEMA_ARRAY_SKIP_VALUE
           )
         )
+      ),
+      'field_char_ordered' => array(
+        '#xpath' => 'Assumptions/NaturallyContinuous',
+        '#process' => 'reverse_schema_array_process_boolean'
       )
     )
   );

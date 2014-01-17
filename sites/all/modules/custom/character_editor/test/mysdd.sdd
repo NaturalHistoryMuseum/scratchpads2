@@ -24,7 +24,9 @@
      project root ;
    - Character "Type of blood sucker" should have states "0: The good type",
      "1: The baaaaad type" ;
+   - Character "Type of blood sucker" should be an ordered, 'AND' character ;
    - Character "Eye color" should have states "0: Blueish green" and "1: Greenish blue" ;
+   - Character "Eye color" should be an un-ordered, 'AND' character ;
    - Text Character "Famous Last Words" should have an associated image (the Scratchpads logo) ;
    - State "The good type" should have an associated image (computer with scratchpad logo) ;
    - State "The baaaaad type" should have an associated image (spider).
@@ -79,6 +81,9 @@
       </QuantitativeCharacter>
       <CategoricalCharacter id='c3'>
         <Representation><Label>Type of blood sucker</Label></Representation>
+        <Assumptions>
+          <NaturallyContinous>true</NaturallyContinous>
+        </Assumptions>
         <States>
           <StateDefinition id='s1'>
             <Representation>
