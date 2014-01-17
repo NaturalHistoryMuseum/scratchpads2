@@ -48,13 +48,13 @@ class RelationEntityCollectorTestCase extends RelationTestCase {
       ->execute());
     $path = 'relation/' . $result[0];
     $link = l($relation_type, $path);
-    // Rebuild the message using the known bundle and entity labels to make sure
-    // the message contains those.
-    $node1_label = _relation_get_bundle_label('node', 'article') . ': ' . entity_label('node', $this->node1);
-    $node3_label = _relation_get_bundle_label('node', 'page') . ': ' . entity_label('node', $this->node3);
+    // Rebuild the message. Use the known node labels to make sure the message
+    // contains those.
+    $node1_label = entity_label('node', $this->node1);
+    $node3_label = entity_label('node', $this->node3);
     $items = array(
-      $node1_label,
-      $node3_label,
+      "article: " . $node1_label,
+      "page: " . $node3_label,
     );
     $item_list = array(
       '#theme' => 'item_list',
@@ -62,11 +62,12 @@ class RelationEntityCollectorTestCase extends RelationTestCase {
     );
     $list = drupal_render($item_list);
     $message = t('Created new !link from !list', array('!link' => $link, '!list' => $list));
+    $message = array_shift(explode("\n", $message));
     $this->assertRaw($message, 'Created a new relation.');
     $this->drupalGet($path);
     $node1_uri = entity_uri('node', $this->node1);
     $node3_uri = entity_uri('node', $this->node3);
-    $this->assertRaw(l(entity_label('node', $this->node1), $node1_uri['path'], $node1_uri['options']), 'Node1 link found');
-    $this->assertRaw(l(entity_label('node', $this->node3), $node3_uri['path'], $node3_uri['options']), 'Node1 link found');
+    $this->assertRaw(l($node1_label, $node1_uri['path'], $node1_uri['options']), 'Node1 link found');
+    $this->assertRaw(l($node3_label, $node3_uri['path'], $node3_uri['options']), 'Node1 link found');
   }
 }
