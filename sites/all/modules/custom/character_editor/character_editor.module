@@ -1164,11 +1164,14 @@ function character_editor_state_form_validate($form, &$form_state){
         break;
       case 'numeric':
         if(!empty($form_state['values']['field_character_state_data'][$language][0]['value'])){
-          $value = $form_state['values']['field_character_state_data'][$language][0]['value'];
-          if(!is_numeric($value)){
-            $err = t('Character state needs to be a numeric value.');
-          }else if($character_w->field_char_integer->value() && strpos((string)$value, '.') !== false){
-            $err = t('Character state needs to be a integer value.');
+          if($character_w->field_char_integer->value()){
+            if(!preg_match('/^\s*(-?\s*[0-9]+)(?:\s*-\s*(-?\s*[0-9]+))?\s*$/', $form_state['values']['field_character_state_data'][$language][0]['value'])){
+              $err = t("Character state needs to be a integer value or the form '9', or a range of the form '-4 - -1'");
+            }
+          }else{
+            if(!preg_match('/^\s*(-?\s*[0-9.]+)(?:\s*-\s*(-?\s*[0-9.]+))?\s*$/', $form_state['values']['field_character_state_data'][$language][0]['value'])){
+              $err = t("Character state needs to be a numeric value or the form '9.3', or a range of the form '-4.3 - -1'");
+            }
           }
         }
         break;
