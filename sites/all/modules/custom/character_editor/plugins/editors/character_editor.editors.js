@@ -80,6 +80,9 @@
             this.toggleValue(val);
             if (!this.multiple){
               this.commit();
+            } else {
+              // Return focus to the text input
+              this.focus();
             }
           }
 
