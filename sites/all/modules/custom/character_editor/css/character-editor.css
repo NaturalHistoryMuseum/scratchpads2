@@ -172,3 +172,64 @@
   font-weight: bold;
   font-size: 1.5em;
 }
+
+/* Popup styling (context menu, select box, etc.) */
+.character-editor-popup {
+  background: #FFF;
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 4px;
+  box-shadow: 5px 5px 6px 0px rgb(50, 50, 50, 0.3);
+}
+
+.character-editor-popup-header {
+  border-bottom: 1px solid #AAA;
+  font-size: 0.9em;
+  font-weight: bold;
+}
+
+.character-editor-popup-row {
+  background: #FFF;
+  padding: 2px 18px 2px 18px;
+}
+
+.character-editor-popup-row-highlight {
+  background: #DDD;
+}
+
+.character-editor-popup-row:hover {
+  background: #DDD;
+  cursor: pointer;
+}
+
+.character-editor-popup-button{
+  background: #EEE;
+  border: 1px solid #888;
+  font-size: 0.9em;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 4px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.character-editor-popup-button:hover,
+div.character-editor-popup-button-highlight {
+  background: #FFF;
+  border: 1px solid #000;
+}
+
+#slickgrid .character-context-menu-active-cell{
+  border: 1px solid #000;
+}
+
+
+/* Cell metadata */
+#slickgrid div.slick-cell:after {
+  content: attr(character-flag);
+  position: absolute;
+  right: 1px;
+  bottom: -4px;
+  font-size: 0.9em;
+  color: #444;
+}

@@ -348,3 +348,168 @@ function character_editor_update_7004(){
     field_create_instance($definitions['character_editor_project-default_character_project-field_char_proj_specimen']['field_instance']);
   }
 }
+
+/**
+ * Add the flags field to character projects
+ */
+function character_editor_update_7005(){
+  // Enable the field collection & field collection table modules
+  if(!module_exists('field_collection')){
+    module_enable(array(
+      'field_collection'
+    ));
+  }
+  if(!module_exists('field_collection_table')){
+    module_enable(array(
+      'field_collection_table'
+    ));
+  }
+  // Create the field collection and it's fields
+  module_load_include('features.field.inc', 'character_editor');
+  $definitions = character_editor_field_default_fields();
+  $create = array(
+    'character_editor_project' => array(
+      'default_character_project' => array(
+        'field_char_proj_flags'
+      )
+    ),
+    'field_collection_item' => array(
+      'field_char_proj_flags' => array(
+        'field_char_proj_flags_flag',
+        'field_char_proj_flags_abbr',
+        'field_char_proj_flags_id'
+      )
+    ),
+    'relation' => array(
+      'character_state' => array(
+        'field_character_state_meta'
+      )
+    )
+  );
+  foreach($create as $entity_type => $bundles){
+    foreach($bundles as $bundle => $fields){
+      foreach($fields as $field_name){
+        $info = field_info_field($field_name);
+        if(!$info){
+          field_create_field($definitions["$entity_type-$bundle-$field_name"]['field_config']);
+        }
+        $instance = field_info_instance($entity_type, $field_name, $bundle);
+        if(!$instance){
+          field_create_instance($definitions["$entity_type-$bundle-$field_name"]['field_instance']);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Update characters
+ */
+function character_editor_update_7006(){
+  module_load_include('features.field.inc', 'character_editor');
+  $definitions = character_editor_field_default_fields();
+  $create = array(
+    'character_editor_character' => array(
+      'controlled' => array(
+        'field_char_ordered' => false,
+        'field_char_and_or' => 'AND'
+      ),
+      'numeric' => array(
+        'field_char_integer' => false
+      )
+    )
+  );
+  // Create new fields
+  foreach($create as $entity_type => $bundles){
+    foreach($bundles as $bundle => $fields){
+      foreach($fields as $field_name => $default){
+        $info = field_info_field($field_name);
+        if(!$info){
+          field_create_field($definitions["$entity_type-$bundle-$field_name"]['field_config']);
+        }
+        $instance = field_info_instance($entity_type, $field_name, $bundle);
+        if(!$instance){
+          field_create_instance($definitions["$entity_type-$bundle-$field_name"]['field_instance']);
+        }
+      }
+    }
+  }
+  // Set default values on existing characters
+  foreach($create as $entity_type => $bundles){
+    foreach($bundles as $bundle => $fields){
+      $efq = new EntityFieldQuery();
+      $efq->entityCondition('entity_type', $entity_type);
+      $efq->entityCondition('bundle', $bundle);
+      $r = $efq->execute();
+      if(isset($r[$entity_type])){
+        foreach(array_keys($r[$entity_type]) as $entity_id){
+          $w = entity_metadata_wrapper($entity_type, entity_load_single($entity_type, $entity_id));
+          if(!$w){
+            continue;
+          }
+          foreach($fields as $field_name => $default){
+            $w->{$field_name} = $default;
+          }
+          $w->save();
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Set default flags for existing character projects
+ */
+function character_editor_update_7007(){
+  $flag_defaults = array(
+    'c' => 'computed',
+    'i' => 'inherited',
+    'a' => 'approximate',
+    'g' => 'guessed',
+    'r' => 'rare'
+  );
+  module_load_include('features.field.inc', 'character_editor');
+  $definitions = character_editor_field_default_fields();
+  $efq = new EntityFieldQuery();
+  $efq->entityCondition('entity_type', 'character_editor_project');
+  $r = $efq->execute();
+  if(isset($r['character_editor_project'])){
+    foreach(array_keys($r['character_editor_project']) as $entity_id){
+      $project = entity_load_single('character_editor_project', $entity_id);
+      if(empty($project->field_char_proj_flags)){
+        foreach($flag_defaults as $flag_abbr => $flag){
+          $f = entity_create('field_collection_item', array(
+            'item_id' => NULL,
+            'revision_id' => NULL,
+            'field_name' => 'field_char_proj_flags',
+            'default_revision' => TRUE,
+            'archived' => FALSE,
+            'field_char_proj_flags_abbr' => array(
+              LANGUAGE_NONE => array(
+                array(
+                  'value' => $flag_abbr
+                )
+              )
+            ),
+            'field_char_proj_flags_flag' => array(
+              LANGUAGE_NONE => array(
+                array(
+                  'value' => $flag
+                )
+              )
+            ),
+            'field_char_proj_flags_id' => array(
+              LANGUAGE_NONE => array(
+                array(
+                  'value' => $flag
+                )
+              )
+            )
+          ));
+          $f->setHostEntity('character_editor_project', $project);
+          $f->save();
+        }
+      }
+    }
+  }
+}

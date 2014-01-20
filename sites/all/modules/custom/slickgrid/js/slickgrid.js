@@ -102,6 +102,7 @@ if(!Array.prototype.indexOf) {
         loadingIndicator.fadeIn();
       });
       loader.onDataLoaded.subscribe(function(e, args){
+        $(container).trigger('onSlickgridDataLoaded', [args.from, args.to, loader.data]);
         for( var i = args.from; i <= args.to; i++) {
           grid.invalidateRow(i);
         }

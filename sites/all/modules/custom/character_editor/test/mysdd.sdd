@@ -15,6 +15,8 @@
   - Successfull creation of 3 media items, 2 character groups, 6 characters and 10 coded descriptions.
 
   The resultuing character project should have:
+   - Two flags (on top of the default 'computer' and 'inherited'): 'rarely' (abbrev 'r')
+     and 'uncertain' (abbrev 'u') ;
    - Two groups: "A group" and "Another group" such that "Another group" is a child
      of "A group" ;
    - "A group" should have characters "Number of Heads" and "Type of blood sucker" ;
@@ -24,7 +26,11 @@
      project root ;
    - Character "Type of blood sucker" should have states "0: The good type",
      "1: The baaaaad type" ;
+   - Character "Type of blood sucker" should be an ordered, 'AND' character ;
    - Character "Eye color" should have states "0: Blueish green" and "1: Greenish blue" ;
+   - Character "Eye color" should be an un-ordered, 'AND' character ;
+   - Numeric Character "Number of heads" should be an integer character ;
+   - Numeric Character "Number of blood sucking appendix" should be a real character ;
    - Text Character "Famous Last Words" should have an associated image (the Scratchpads logo) ;
    - State "The good type" should have an associated image (computer with scratchpad logo) ;
    - State "The baaaaad type" should have an associated image (spider).
@@ -34,8 +40,9 @@
    _______________________________________________________________________________________________________________
    |                           | Nb of heads | Type of ... | Nb of blood ... | Eye color | Famous...    | DNA    |
    _______________________________________________________________________________________________________________
-   | Pediculus clavicornis     | 1           | 0           | 2               | 1         |              |        |
-   | Pediculus humanus         | 11          | 1           | 22              | 0         |              |        |
+   | Pediculus clavicornis     | 1           | The good... | 2               | G...  (r) |              |        |
+   |                           |             | and The ba..|
+   | Pediculus humanus         | 11 (u)      | The baaa... | 22 - 33         | Blueis... |              |        |
    | Pediculus humanus capitis |             |             |                 |           | Hello World! | ATGATG |
    | icode - colcode - colnum  | 2           | 1           |                 |           | A pin?       |        |
    _______________________________________________________________________________________________________________
@@ -73,12 +80,16 @@
       <QuantitativeCharacter id='c1'>
         <Representation><Label>Number of heads</Label></Representation>
         <MeasurementUnit><Label>heads</Label></MeasurementUnit>
+        <Assumptions><ValuesAreInteger>true</ValuesAreInteger></Assumptions>
       </QuantitativeCharacter>
       <QuantitativeCharacter id='c2'>
         <Representation><Label>Number of blood sucking appendix</Label></Representation>
       </QuantitativeCharacter>
       <CategoricalCharacter id='c3'>
         <Representation><Label>Type of blood sucker</Label></Representation>
+        <Assumptions>
+          <NaturallyContinous>true</NaturallyContinous>
+        </Assumptions>
         <States>
           <StateDefinition id='s1'>
             <Representation>
@@ -117,6 +128,12 @@
     <DescriptiveConcepts>
       <DescriptiveConcept id='dc1'><Representation><Label>A group</Label></Representation></DescriptiveConcept>
       <DescriptiveConcept id='dc2'><Representation><Label>Another group</Label></Representation></DescriptiveConcept>
+      <DescriptiveConcept id='dc3'>
+        <Modifiers>
+          <Modifier id="mod1"><Representation><Label>rarely</Label></Representation></Modifier>
+          <Modifier id="mod2"><Representation><Label>uncertain</Label></Representation></Modifier>
+        </Modifiers>
+      </DescriptiveConcept>
     </DescriptiveConcepts>
     <CharacterTrees>
       <CharacterTree id='t1'>
@@ -161,9 +178,10 @@
           </Quantitative>
           <Categorical ref='c3'>
             <State ref='s1' />
+            <State ref='s2' />
           </Categorical>
           <Categorical ref='c4'>
-            <State ref='s4' />
+            <State ref='s4'><Modifier ref='mod1' /></State>
           </Categorical>
         </SummaryData>
       </CodedDescription>
@@ -174,9 +192,11 @@
         <SummaryData>
           <Quantitative ref='c1'>
             <Measure value='11' />
+            <Modifier ref='mod2' />
           </Quantitative>
           <Quantitative ref='c2'>
-            <Measure value='22' />
+            <Measure type='Min' value='22' />
+            <Measure type='Max' value='33' />
           </Quantitative>
           <Categorical ref='c3'>
             <State ref='s2' />
