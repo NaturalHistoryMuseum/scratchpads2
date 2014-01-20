@@ -1206,7 +1206,6 @@ function field_collection_field_formatter_view($entity_type, $entity, $field, $i
 
     case 'field_collection_view':
 
-      $element['#attached']['css'][] = drupal_get_path('module', 'field_collection') . '/field_collection.theme.css';
       $view_mode = !empty($display['settings']['view_mode']) ? $display['settings']['view_mode'] : 'full';
       foreach ($items as $delta => $item) {
         if ($field_collection = field_collection_field_get_entity($item)) {
@@ -1233,6 +1232,9 @@ function field_collection_field_formatter_view($entity_type, $entity, $field, $i
         }
       }
       field_collection_field_formatter_links($element, $entity_type, $entity, $field, $instance, $langcode, $items, $display);
+      if (!empty($items) || !empty($element['#suffix'])) {
+        $element['#attached']['css'][] = drupal_get_path('module', 'field_collection') . '/field_collection.theme.css';
+      }
       break;
 
     case 'field_collection_fields':
@@ -1254,6 +1256,7 @@ function field_collection_field_formatter_view($entity_type, $entity, $field, $i
  */
 function field_collection_field_formatter_links(&$element, $entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $settings = $display['settings'];
+  $allow_create_item = FALSE;
 
   if ($settings['add'] && ($field['cardinality'] == FIELD_CARDINALITY_UNLIMITED || count($items) < $field['cardinality'])) {
     // Check whether the current is allowed to create a new item.
@@ -1261,6 +1264,7 @@ function field_collection_field_formatter_links(&$element, $entity_type, $entity
     $field_collection_item->setHostEntity($entity_type, $entity, LANGUAGE_NONE, FALSE);
 
     if (field_collection_item_access('create', $field_collection_item)) {
+      $allow_create_item = TRUE;
       $path = field_collection_field_get_path($field);
       list($id) = entity_extract_ids($entity_type, $entity);
       $element['#suffix'] = '';
@@ -1275,14 +1279,16 @@ function field_collection_field_formatter_links(&$element, $entity_type, $entity
     }
   }
   // If there is no add link, add a special class to the last item.
-  if (empty($element['#suffix'])) {
-    $index = count(element_children($element)) - 1;
-    $element[$index]['#attributes']['class'][] = 'field-collection-view-final';
-  }
+  if (!empty($items) || $allow_create_item) {
+    if (empty($element['#suffix'])) {
+      $index = count(element_children($element)) - 1;
+      $element[$index]['#attributes']['class'][] = 'field-collection-view-final';
+    }
 
-  $element += array('#prefix' => '', '#suffix' => '');
-  $element['#prefix'] .= '<div class="field-collection-container clearfix">';
-  $element['#suffix'] .= '</div>';
+    $element += array('#prefix' => '', '#suffix' => '');
+    $element['#prefix'] .= '<div class="field-collection-container clearfix">';
+    $element['#suffix'] .= '</div>';
+  }
 
   return $element;
 }
