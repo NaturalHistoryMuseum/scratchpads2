@@ -39,9 +39,8 @@ function scratchpads_tweaks_init(){
   if(arg(0) == 'media' && arg(1) == 'browser'){
     unset($_GET['schemes']);
   }
-  // We tweak the expire time of the session cookie, to ensure that users can
-  // go a full three days (or whatever the server is configured to allow) with
-  // out using the site, but still be logged in.
+  // Update the expire time on the cookie after every request.  This may not
+  // actually be necessary.
   global $user;
   if($user->uid){
     $params = session_get_cookie_params();
@@ -86,6 +85,19 @@ function scratchpads_tweaks_node_view_alter(&$build){
   }
   if(($build['#view_mode'] == 'linked_node') && (isset($build['sharethis']))){
     unset($build['sharethis']);
+  }
+}
+
+/**
+ * Implements hook_user_presave()
+ */
+function scratchpads_tweaks_user_presave(&$edit, $account, $category){
+  if($_GET['q'] == 'openid/authenticate'){
+    // If we're logging in via OpenID, we force the site to remember the user.
+    // This is being added because Shoddy Vince threw a stroppy strop, and
+    // insisted that without this feature, the Scratchpads are shitter than a
+    // shitty pile of steaming shit.
+    $edit['data']['remember_me'] = TRUE;
   }
 }
 
@@ -489,16 +501,17 @@ function scratchpads_tweaks_redirect(){
  * Implements hook_module_implements_alter().
  */
 function scratchpads_tweaks_module_implements_alter(&$implementations, $hook){
-  if($hook == 'library_alter' && isset($implementations['jquery_update'])){
+  // Move to the end
+  if(in_array($hook, array(
+    'library_alter',
+    'form_block_admin_configure_alter',
+    'user_presave'
+  )) && isset($implementations[$hook])){
     // Move jquery update to the end. This will make sure our hook_library_alter
     // is always called before the jquery_update.
-    $jquery_update = $implementations['jquery_update'];
-    unset($implementations['jquery_update']);
-    $implementations['jquery_update'] = $jquery_update;
-  }elseif($hook == 'form_block_admin_configure_alter'){
-    $jquery_update = $implementations['scratchpads_tweaks'];
-    unset($implementations['scratchpads_tweaks']);
-    $implementations['scratchpads_tweaks'] = $jquery_update;
+    $move = $implementations[$hook];
+    unset($implementations[$hook]);
+    $implementations[$hook] = $move;
   }
 }
 
