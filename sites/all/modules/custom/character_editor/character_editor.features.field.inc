@@ -1132,6 +1132,8 @@ other|Other',
       )
     )
   );
+  $flag_defaults = array();
+  /*
   $flag_defaults = array(
     'c' => 'computed',
     'i' => 'inherited',
@@ -1139,6 +1141,7 @@ other|Other',
     'g' => 'guessed',
     'r' => 'rare'
   );
+  */
   foreach($flag_defaults as $flag_abbr => $flag){
     $fields['character_editor_project-default_character_project-field_char_proj_flags']['field_instance']['default_value'][] = array(
       'field_char_proj_flags_abbr' => array(
