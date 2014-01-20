@@ -39,6 +39,15 @@ function scratchpads_tweaks_init(){
   if(arg(0) == 'media' && arg(1) == 'browser'){
     unset($_GET['schemes']);
   }
+  // We tweak the expire time of the session cookie, to ensure that users can
+  // go a full three days (or whatever the server is configured to allow) with
+  // out using the site, but still be logged in.
+  global $user;
+  if($user->uid){
+    $params = session_get_cookie_params();
+    $expire = $params['lifetime'] ? REQUEST_TIME + $params['lifetime'] : 0;
+    setcookie(session_name(), $_COOKIE[session_name()], $expire, $params['path'], $params['domain'], FALSE, $params['httponly']);
+  }
   // Alter the exception handler so that we can ignore certain exceptions.
   //set_exception_handler('scratchpads_tweaks_exception_handler');
 }
