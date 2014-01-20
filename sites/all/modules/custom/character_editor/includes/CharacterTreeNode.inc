@@ -152,11 +152,15 @@ class CharacterTreeNode{
       }
       $char_id = $value['entity_w']->type() . ':' . $value['entity_w']->getIdentifier();
       if(!empty($value_map)){
-        $value = explode(',', $data);
+        $value = array_filter(explode(',', $data));
         sort($value);
         $data = array();
         foreach($value as $d){
-          $data[] = $value_map[$d];
+          if (isset($value_map[$d])){
+            $data[] = $value_map[$d];
+          } else {
+            $data[] = '?';
+          }
         }
         $conj = ' <em>' . strtolower($this->model->wrapper()->field_char_and_or->value()) . '</em> ';
         $result[$char_id][$this->column_id] = array(
