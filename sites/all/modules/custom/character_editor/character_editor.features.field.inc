@@ -1163,16 +1163,34 @@ other|Other',
         )
       ),
       'remove_button' => 'Remove',
-      'entity' => entity_import('field_collection_item', '{
-            "item_id" : null,
-            "revision_id" : null,
-            "field_name" : "field_char_proj_flags",
-            "default_revision" : true,
-            "archived" : false,
-            "field_char_proj_flags_abbr" : { "und" : [ { "value" : "' . $flag_abbr . '" } ] },
-            "field_char_proj_flags_flag" : { "und" : [ { "value" : "' . $flag . '" } ] },
-            "field_char_proj_flags_id" : { "und" : [ { "value" : "' . $flag . '" } ] }
-          }')
+      'entity' => (object)(array(
+        'item_id' => NULL,
+        'revision_id' => NULL,
+        'field_name' => 'field_char_proj_flags',
+        'default_revision' => TRUE,
+        'archived' => FALSE,
+        'field_char_proj_flags_abbr' => array(
+          LANGUAGE_NONE => array(
+            array(
+              'value' => $flag_abbr
+            )
+          )
+        ),
+        'field_char_proj_flags_flag' => array(
+          LANGUAGE_NONE => array(
+            array(
+              'value' => $flag
+            )
+          )
+        ),
+        'field_char_proj_flags_id' => array(
+          LANGUAGE_NONE => array(
+            array(
+              'value' => $flag
+            )
+          )
+        )
+      ))
     );
   }
   // Exported field: 'character_editor_project-default_character_project-field_taxonomic_name'

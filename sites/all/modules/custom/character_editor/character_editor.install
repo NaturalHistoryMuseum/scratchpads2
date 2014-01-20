@@ -456,3 +456,60 @@ function character_editor_update_7006(){
     }
   }
 }
+
+/**
+ * Set default flags for existing character projects
+ */
+function character_editor_update_7007(){
+  $flag_defaults = array(
+    'c' => 'computed',
+    'i' => 'inherited',
+    'a' => 'approximate',
+    'g' => 'guessed',
+    'r' => 'rare'
+  );
+  module_load_include('features.field.inc', 'character_editor');
+  $definitions = character_editor_field_default_fields();
+  $efq = new EntityFieldQuery();
+  $efq->entityCondition('entity_type', 'character_editor_project');
+  $r = $efq->execute();
+  if(isset($r['character_editor_project'])){
+    foreach(array_keys($r['character_editor_project']) as $entity_id){
+      $project = entity_load_single('character_editor_project', $entity_id);
+      if(empty($project->field_char_proj_flags)){
+        foreach($flag_defaults as $flag_abbr => $flag){
+          $f = entity_create('field_collection_item', array(
+            'item_id' => NULL,
+            'revision_id' => NULL,
+            'field_name' => 'field_char_proj_flags',
+            'default_revision' => TRUE,
+            'archived' => FALSE,
+            'field_char_proj_flags_abbr' => array(
+              LANGUAGE_NONE => array(
+                array(
+                  'value' => $flag_abbr
+                )
+              )
+            ),
+            'field_char_proj_flags_flag' => array(
+              LANGUAGE_NONE => array(
+                array(
+                  'value' => $flag
+                )
+              )
+            ),
+            'field_char_proj_flags_id' => array(
+              LANGUAGE_NONE => array(
+                array(
+                  'value' => $flag
+                )
+              )
+            )
+          ));
+          $f->setHostEntity('character_editor_project', $project);
+          $f->save();
+        }
+      }
+    }
+  }
+}
