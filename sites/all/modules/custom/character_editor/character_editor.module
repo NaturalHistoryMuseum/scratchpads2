@@ -388,6 +388,61 @@ function character_editor_form_entity_admin_entity_delete_form_alter(&$form, &$f
   }
 }
 
+/**
+ * Implement hook_field_create_instance
+ *
+ * Ensure we have the right default values for the character project flags field
+ * set up.
+ */
+function character_editor_field_create_instance($instance){
+  if($instance['field_name'] != 'field_char_proj_flags'){return;}
+  if(!empty($instance['default_value'])){return;}
+  $flag_defaults = array(
+    'c' => 'computed',
+    'i' => 'inherited',
+    'a' => 'approximate',
+    'g' => 'guessed',
+    'r' => 'rare'
+  );
+  foreach($flag_defaults as $flag_abbr => $flag){
+    $instance['default_value'][] = array(
+      'field_char_proj_flags_abbr' => array(
+        'und' => array(
+          0 => array(
+            'value' => $flag_abbr
+          )
+        )
+      ),
+      'field_char_proj_flags_flag' => array(
+        'und' => array(
+          0 => array(
+            'value' => $flag
+          )
+        )
+      ),
+      'field_char_proj_flags_id' => array(
+        'und' => array(
+          0 => array(
+            'value' => $flag
+          )
+        )
+      ),
+      'remove_button' => 'Remove',
+      'entity' => entity_import('field_collection_item', '{
+        "item_id" : null,
+        "revision_id" : null,
+        "field_name" : "field_char_proj_flags",
+        "default_revision" : true,
+        "archived" : false,
+        "field_char_proj_flags_abbr" : { "und" : [ { "value" : "' . $flag_abbr . '" } ] },
+        "field_char_proj_flags_flag" : { "und" : [ { "value" : "' . $flag . '" } ] },
+        "field_char_proj_flags_id" : { "und" : [ { "value" : "' . $flag . '" } ] }
+       }')
+    );
+  }
+  field_update_instance($instance);
+}
+
 /*********************************************************************************************
  * 
  * ENTITY HOOKS & CALLBACKS
