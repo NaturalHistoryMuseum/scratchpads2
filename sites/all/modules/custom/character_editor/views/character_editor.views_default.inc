@@ -48,6 +48,7 @@ function character_editor_views_default_views(){
   $handler->display->display_options['style_options']['add'] = array(
     'character_editor_character/controlled' => 'character_editor_character/controlled',
     'character_editor_character/dna' => 'character_editor_character/dna',
+    'character_editor_character/computed' => 'character_editor_character/computed',
     'character_editor_character/numeric' => 'character_editor_character/numeric',
     'character_editor_character/text' => 'character_editor_character/text',
     'character_editor_character/group' => 'character_editor_character/group'

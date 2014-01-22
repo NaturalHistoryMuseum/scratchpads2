@@ -368,8 +368,33 @@ function character_editor_form_character_editor_character_alter(&$form, &$form_s
     }
     $form['actions']['submit']['#update'] = TRUE;
   }
+  // If this is a Computed character, update the help
+  if(isset($form['field_char_expr'])){
+    $form['field_char_expr'][LANGUAGE_NONE][0]['value']['#description'] = t("You can enter mathematical (+-*/) and boolean (is,isn't,>,>=,<,<=) expressions using numbers, \"text\", {character values:id} and 'character states:id'. Lists [3,4] and ranges [-5 .. 5] are supported with 'in' and 'not in' operators. With ordered controlled characters, ranges of states can be used too, ['yellow:1' to 'red:2']");
+    $available = "<div>" . t('Available characters and states') . ':<br/>';
+    $available .= '<ul><li>' . implode('</li><li>', $project_model->getAvailableVariables()) . '</li></ul>';
+    $available .= '</div>';
+    $form['field_char_expr'][LANGUAGE_NONE]['#suffix'] .= $available;
+    $form['#validate'][] = 'character_editor_character_form_validate';
+  }
   $form['actions']['submit']['#submit'][] = 'character_editor_character_form_submit';
   $form['#after_build'][] = 'character_editor_character_form_after_build';
+}
+
+/**
+ * character_editor_character_form_validate
+ */
+function character_editor_character_form_validate($form, &$form_state){
+  if(!empty($form_state['values']['field_char_expr'][LANGUAGE_NONE][0]['value'])){
+    module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
+    try{
+      $e = new CharacterExpressionParser($form_state['values']['field_char_expr'][LANGUAGE_NONE][0]['value']);
+    }
+    catch(Exception $e){
+      form_set_error('field_char_expr', t("Expression could not be parsed:") . $e->getMessage());
+    }
+  }
+  echo '';
 }
 
 /**
@@ -1345,6 +1370,7 @@ function character_editor_preprocess_slickgrid_control__add(&$variables){
   $variables['add_links'] = array();
   // Reorder the characters (reversed cos they're floated)
   foreach(array(
+    'character_editor_character/computed',
     'character_editor_character/dna',
     'character_editor_character/numeric',
     'character_editor_character/text',

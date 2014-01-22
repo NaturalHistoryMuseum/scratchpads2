@@ -49,6 +49,24 @@ class CharacterModel{
   }
 
   /**
+   * isComputed
+   *
+   * Return TRUE if this model is a computed character, false otherwise
+   */
+  public function isComputed(){
+    return $this->w->getBundle() == 'computed';
+  }
+
+  /**
+   * isControlled
+   * 
+   * Return TRUE if this model is a controlled character, false otherwise
+   */
+  public function isControlled(){
+    return $this->w->getBundle() == 'controlled';
+  }
+
+  /**
    * wrapper
    * 
    * Return the entity metadata wrapper for this character
@@ -140,6 +158,8 @@ class CharacterModel{
       case 'controlled':
         return 'ControlledCharacter';
         break;
+      default:
+        return FALSE;
     }
   }
 
@@ -150,9 +170,51 @@ class CharacterModel{
    *
    * $row_ids may define an array of rows for which to fetch the values (otherwise
    * all values are defined), as an array parsable by character_editor_parse_entities.
+   * 
+   * Note that that this does not evaluate computed or inherited values ; it only returns
+   * defined values.
    */
   public function getValues($row_ids = array()){
     return character_editor_get_character_values($this->w, $row_ids);
+  }
+
+  /**
+   * getComputedValue
+   * 
+   * Given a list of rows of the form:
+   * $row_id => array(
+   *   $character_id => value
+   * )
+   * 
+   * Return the computed value for this character within that row.
+   */
+  public function getComputedValues($rows){
+    if(!$this->isComputed()){return array();}
+    module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
+    $result = array();
+    try{
+      $parser = new CharacterExpressionParser($this->w->field_char_expr->value());
+    }
+    catch(Exception $e){
+      $error = t("Could not parse the expression:") . $e->getMessage();
+    }
+    foreach($rows as $row_id => $row){
+      if($error){
+        $result[$row_id] = $error;
+      }else{
+        try{
+          $result[$row_id] = $parser->evaluate($row);
+        }
+        catch(Exception $e){
+          if($e->getCode() == CharacterExpressionParser::MISSING_VARIABLE){
+            $result[$row_id] = FALSE;
+          }else{
+            $result[$row_id] = $e->getMessage();
+          }
+        }
+      }
+    }
+    return $result;
   }
 
   /**

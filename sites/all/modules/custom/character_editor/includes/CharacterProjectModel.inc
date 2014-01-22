@@ -93,6 +93,36 @@ class CharacterProjectModel{
   }
 
   /**
+   * getAvailableVariables
+   * 
+   * Returns the list of variables available for calculating
+   * expressions
+   */
+  public function getAvailableVariables(){
+    $tree = $this->getTree();
+    $result = array();
+    foreach ($tree as $item){
+      if (!$item->model()->isGroup() && !$item->model()->isComputed()){
+        $r = '{' . $item->model()->label() . ':' . preg_replace('/^.+:/', '', $item->model()->id()) . '}';
+        if ($item->model()->isControlled()){
+          $map = $item->model()->getControlledMap();
+          if (count($map)){
+            $r .= '(states: ';
+            $states = array();
+            foreach ($map as $id => $label){
+              $states[] = "'$label:$id'";
+            }
+            $r .= implode(', ', $states);
+            $r .= ')';
+          }
+        }
+        $result[] = $r;
+      }
+    }
+    return $result;
+  }
+  
+  /**
    * getTree
    * 
    * Return the tree of characters of this project as a flat
@@ -152,6 +182,12 @@ class CharacterProjectModel{
     $characters = array();
     foreach($this->getTree() as $item_key => $tree_item){
       $characters = array_merge_recursive($characters, $tree_item->getValues($row_ids));
+    }
+    // Compute values
+    foreach($this->getTree() as $item_key => $tree_item){
+      if ($tree_item->model()->isComputed()){
+        $characters = $tree_item->updateComputedValues($characters);
+      }
     }
     // Assign them to the rows
     $ids = array();

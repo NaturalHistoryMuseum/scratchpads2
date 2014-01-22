@@ -392,6 +392,8 @@ function character_editor_set_character_value(EntityDrupalWrapper $character_w, 
  * $entities may be an item or array of items that can be fetched using character_editor_wrapper.
  * 
  * In which case the returned values are those for the given character and given entities.
+ * 
+ * Note that this does not evaluate computed or inherited values ; it only returns defined values.
  */
 function character_editor_get_character_values(EntityDrupalWrapper $character_w, $entities = NULL){
   // Build the query

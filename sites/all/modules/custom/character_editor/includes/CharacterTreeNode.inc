@@ -134,47 +134,85 @@ class CharacterTreeNode{
    *
    * $row_ids may define an array of rows for which to fetch the values (otherwise
    * all values are defined), as an array parsable by character_editor_parse_entities.
+   * 
+   * This return placeholder values for computed characters
    */
   public function getValues($row_ids = array()){
     $result = array();
-    $values = $this->model->getValues($row_ids);
-    if($this->model->wrapper()->getBundle() == 'controlled'){
-      $value_map = $this->model->getControlledMap();
-    }
-    foreach($values as $value){
-      $data = '';
-      $metadata = '';
-      if(isset($value['data'][0]['safe_value'])){
-        $data = $value['data'][0]['safe_value'];
+    if($this->model()->isComputed()){
+      foreach($row_ids as $id){
+        $result[$id][$this->column_id] = array(
+          'data' => '',
+          'metadata' => 'computed'
+        );
       }
-      if(isset($value['metadata'][0]['safe_value'])){
-        $metadata = $value['metadata'][0]['safe_value'];
+    }else{
+      $values = $this->model->getValues($row_ids);
+      if($this->model->wrapper()->getBundle() == 'controlled'){
+        $value_map = $this->model->getControlledMap();
       }
-      $char_id = $value['entity_w']->type() . ':' . $value['entity_w']->getIdentifier();
-      if(!empty($value_map)){
-        $value = array_filter(explode(',', $data));
-        sort($value);
-        $data = array();
-        foreach($value as $d){
-          if (isset($value_map[$d])){
-            $data[] = $value_map[$d];
-          } else {
-            $data[] = '?';
-          }
+      foreach($values as $value){
+        $data = '';
+        $metadata = '';
+        if(isset($value['data'][0]['safe_value'])){
+          $data = $value['data'][0]['safe_value'];
         }
-        $conj = ' <em>' . strtolower($this->model->wrapper()->field_char_and_or->value()) . '</em> ';
-        $result[$char_id][$this->column_id] = array(
-          'data' => implode($conj, $data),
-          'value' => implode(',', $value),
-          'metadata' => $metadata
-        );
-      }else{
-        $result[$char_id][$this->column_id] = array(
-          'data' => $data,
-          'metadata' => $metadata
-        );
+        if(isset($value['metadata'][0]['safe_value'])){
+          $metadata = $value['metadata'][0]['safe_value'];
+        }
+        $char_id = $value['entity_w']->type() . ':' . $value['entity_w']->getIdentifier();
+        if(!empty($value_map)){
+          $value = array_filter(explode(',', $data));
+          sort($value);
+          $data = array();
+          foreach($value as $d){
+            if(isset($value_map[$d])){
+              $data[] = $value_map[$d];
+            }else{
+              $data[] = '?';
+            }
+          }
+          $conj = ' <em>' . strtolower($this->model->wrapper()->field_char_and_or->value()) . '</em> ';
+          $result[$char_id][$this->column_id] = array(
+            'data' => implode($conj, $data),
+            'value' => implode(',', $value),
+            'metadata' => $metadata
+          );
+        }else{
+          $result[$char_id][$this->column_id] = array(
+            'data' => $data,
+            'metadata' => $metadata
+          );
+        }
       }
     }
     return $result;
+  }
+
+  /**
+   * updateComputedValues
+   * 
+   * Inserts the computed values of this character into the row of value
+   * The rows are formatted as per getValues.
+   */
+  public function updateComputedValues($rows){
+    if(!$this->model()->isComputed()){return $rows;}
+    $srows = array();
+    foreach($rows as $row_id => $row){
+      $srows[$row_id] = array();
+      foreach($row as $char_id => $char_value){
+        $stripped_id = preg_replace('/^character_(\d+)_\d+$/', '$1', $char_id);
+        $srows[$row_id][$stripped_id] = isset($char_value['value']) ? $char_value['value'] : $char_value['data'];
+      }
+    }
+    $values = $this->model->getComputedValues($srows);
+    foreach($values as $row_id => $v){
+      if($v !== FALSE){
+        $rows[$row_id][$this->column_id]['data'] = $v;
+      }else{
+        unset($rows[$row_id][$this->column_id]);
+      }
+    }
+    return $rows;
   }
 }
