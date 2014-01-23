@@ -111,6 +111,7 @@ function scratchpads_group_menu_alter(&$items){
  */
 function scratchpads_group_scratchpads_hands_off_urls_alter(&$urls){
   $urls[] = 'admin/config/group';
+  $urls[] = 'group/%/%/admin/people/permissions';
 }
 
 /**
