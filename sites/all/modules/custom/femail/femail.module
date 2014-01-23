@@ -320,8 +320,10 @@ function femail_node_insert($node){
       module_load_include('mail.inc', 'femail');
       $files = array();
       $lang = field_language('node', $node, 'femail_files');
-      foreach($node->femail_files[$lang] as $file){
-        $files[] = file_load($file['fid']);
+      if(isset($node->femail_files[$lang])){
+        foreach($node->femail_files[$lang] as $file){
+          $files[] = file_load($file['fid']);
+        }
       }
       // Aquire node access first, before trying to send.
       node_access_acquire_grants($node);
