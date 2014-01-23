@@ -1,15 +1,6 @@
 <?php
 
 /**
- * Implements hook_install().
- */
-function anymals_contenttype_export_install(){
-  // We register the darwincore content type with the anymals+plants server.
-  // Each time the content type is updated, the server will need to be pinged
-  // with an update.
-}
-
-/**
  * Implements hook_schema()
  */
 function anymals_contenttype_export_schema(){
