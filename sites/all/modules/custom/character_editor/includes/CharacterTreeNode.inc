@@ -195,17 +195,38 @@ class CharacterTreeNode{
    * Inserts the computed values of this character into the row of value
    * The rows are formatted as per getValues.
    */
-  public function updateComputedValues($rows){
+  public function updateComputedValues($rows, $tree, $state_order){
     if(!$this->model()->isComputed()){return $rows;}
     $srows = array();
     foreach($rows as $row_id => $row){
       $srows[$row_id] = array();
       foreach($row as $char_id => $char_value){
+        $tree_id = preg_replace('/^character_(\d+)_(\d+)$/', 'character_editor_character:$1:$2', $char_id);
         $stripped_id = preg_replace('/^character_(\d+)_\d+$/', '$1', $char_id);
-        $srows[$row_id][$stripped_id] = isset($char_value['value']) ? $char_value['value'] : $char_value['data'];
+        $data = isset($char_value['value']) ? $char_value['value'] : $char_value['data'];
+        if($tree[$tree_id]->model()->isControlled()){
+          $data = explode(',', $data);
+          foreach($data as $data_idx => $data_value){
+            $data[$data_idx] = array(
+              'type' => 'symbol',
+              'value' => $data_value
+            );
+          }
+          if(count($data) == 1){
+            $data = reset($data);
+          }
+        }else if($tree[$tree_id]->model()->isNumeric() == 'numeric'){
+          if(preg_match('/^\s*(-?\s*[0-9.]+)\s*-\s*(-?\s*[0-9.]+)\s*?$/', $data, $matches)){
+            $data = array(
+              'min' => $matches[1],
+              'max' => $matches[2]
+            );
+          }
+        }
+        $srows[$row_id][$stripped_id] = $data;
       }
     }
-    $values = $this->model->getComputedValues($srows);
+    $values = $this->model->getComputedValues($srows, $state_order);
     foreach($values as $row_id => $v){
       if($v !== FALSE){
         $rows[$row_id][$this->column_id]['data'] = $v;

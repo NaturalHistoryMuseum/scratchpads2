@@ -60,8 +60,12 @@
  *   
  */
 class CharacterExpressionParser{
-
+  /* Exception Error codes */
   const MISSING_VARIABLE = 1;
+  /* Formatting style for output */
+  const FORMAT_EXPRESSION = 1;
+
+  const FORMAT_EDITOR = 2;
   // Operators in order of precedence, with associated arity. Unariy "-" is allowed
   // but replaced at parse time with "neg". "," and ".." are parsed as operators,
   // but internally used to build lists and ranges.
@@ -103,12 +107,12 @@ class CharacterExpressionParser{
    * 
    * Evaluate the value of the expression with the given variables
    */
-  public function evaluate($variable_map = array(), $symbol_order = array()){
+  public function evaluate($variable_map = array(), $symbol_order = array(), $format = CharacterExpressionParser::FORMAT_EXPRESSION){
     $val = $this->evaluateRecursive($this->tree, array(
       'variable_map' => $variable_map,
       'symbol_order' => $symbol_order
     ));
-    return $val->evaluate();
+    return $val->toString($format);
   }
 
   /**
@@ -533,12 +537,11 @@ abstract class CharacterExpressionValue{
   }
 
   /**
-   * evaluate
+   * toString
    * 
-   * Evaluate differs from 'value' in that it should be recursive - lists should
-   * return lists of values, not lists of objects.
+   * Generate the result to be returned to the caller for this item
    */
-  public function evaluate(){
+  public function toString($format = CharacterExpressionParser::FORMAT_EXPRESSION){
     return $this->val;
   }
 
@@ -816,14 +819,18 @@ class CharacterExpressionList extends CharacterExpressionValue{
   }
 
   /**
-   * evaluate
+   * toString
    */
-  public function evaluate(){
+  public function toString($format = CharacterExpressionParser::FORMAT_EXPRESSION){
     $a = array();
     foreach($this->val as $item){
       $a[] = $item->evaluate();
     }
-    return $a;
+    if($format == CharacterExpressionParser::FORMAT_EXPRESSION){
+      return '[' . implode(', ', $a) . ']';
+    }else{
+      return implode(',', $a);
+    }
   }
 
   /**
@@ -990,13 +997,14 @@ class CharacterExpressionRange extends CharacterExpressionValue{
   }
 
   /**
-   * evaluate
+   * toString
    */
-  public function evaluate(){
-    return array(
-      'min' => $this->val['min']->evaluate(),
-      'max' => $this->val['max']->evaluate()
-    );
+  public function toString($format = CharacterExpressionParser::FORMAT_EXPRESSION){
+    if($format == CharacterExpressionParser::FORMAT_EXPRESSION){
+      return '[' . $this->val['min']->toString($format) . ' .. ' . $this->val['max']->toString($format) . ']';
+    }else{
+      return $this->val['min']->toString($format) . ' - ' . $this->val['max']->toString($format);
+    }
   }
 
   /**
@@ -1066,11 +1074,23 @@ class CharacterExpressionRange extends CharacterExpressionValue{
       }
       if($o == '+' || $o == '-' || $o == '*' || $o == '/'){
         if($reverse){
-          $min_val = $v->applyBinaryOperator($o, $this->val['min']);
-          $max_val = $v->applyBinaryOperator($o, $this->val['max']);
+          if($v->type() == 'range'){
+            $other_r = $v->value();
+            $min_val = $other_r['min']->applyBinaryOperator($o, $this->val['min']);
+            $max_val = $other_r['max']->applyBinaryOperator($o, $this->val['max']);
+          }else{
+            $min_val = $v->applyBinaryOperator($o, $this->val['min']);
+            $max_val = $v->applyBinaryOperator($o, $this->val['max']);
+          }
         }else{
-          $min_val = $this->val['min']->applyBinaryOperator($o, $v);
-          $max_val = $this->val['max']->applyBinaryOperator($o, $v);
+          if($v->type() == 'range'){
+            $other_r = $v->value();
+            $min_val = $this->val['min']->applyBinaryOperator($o, $other_r['min']);
+            $max_val = $this->val['max']->applyBinaryOperator($o, $other_r['max']);
+          }else{
+            $min_val = $this->val['min']->applyBinaryOperator($o, $v);
+            $max_val = $this->val['max']->applyBinaryOperator($o, $v);
+          }
         }
         return new CharacterExpressionRange($min_val, $max_val, $this->context);
       }
@@ -1142,11 +1162,11 @@ class CharacterExpressionVariable extends CharacterExpressionValue{
   }
 
   /**
-   * evaluate
+   * toString
    */
-  public function evaluate(){
+  public function toString(){
     $this->fetchItem();
-    return $this->item->evaluate();
+    return $this->item->toString();
   }
 
   /**
@@ -1197,11 +1217,13 @@ class CharacterExpressionVariable extends CharacterExpressionValue{
     }else if(is_string($val) && $type == 'symbol'){
       return new CharacterExpressionSymbol($val, $this->context);
     }else if(isset($val['min']) && isset($val['max']) && count($val) == 2 && (!$type || $type == 'range')){
-      return new CharacterExpressionRange($val['min'], $val['max'], $this->context);
+      $min = $this->getValueObject($val['min']);
+      $max = $this->getValueObject($val['max']);
+      return new CharacterExpressionRange($min, $max, $this->context);
     }else if(is_array($val) && (!$type || $type == 'list')){
       $a = array();
       foreach($val as $v){
-        $a[] = $this->getValueItem($v);
+        $a[] = $this->getValueObject($v);
       }
       return new CharacterExpressionList($a, $this->context);
     }else{

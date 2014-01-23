@@ -67,6 +67,13 @@ class CharacterModel{
   }
 
   /**
+   * isNumeric
+   */
+  public function isNumeric(){
+    return $this->w->getBundle() == 'numeric';
+  }
+
+  /**
    * wrapper
    * 
    * Return the entity metadata wrapper for this character
@@ -188,7 +195,7 @@ class CharacterModel{
    * 
    * Return the computed value for this character within that row.
    */
-  public function getComputedValues($rows){
+  public function getComputedValues($rows, $order){
     if(!$this->isComputed()){return array();}
     module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
     $result = array();
@@ -203,7 +210,7 @@ class CharacterModel{
         $result[$row_id] = $error;
       }else{
         try{
-          $result[$row_id] = $parser->evaluate($row);
+          $result[$row_id] = $parser->evaluate($row, $order, CharacterExpressionParser::FORMAT_EDITOR);
         }
         catch(Exception $e){
           if($e->getCode() == CharacterExpressionParser::MISSING_VARIABLE){
