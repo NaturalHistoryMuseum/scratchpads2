@@ -503,15 +503,12 @@ function scratchpads_tweaks_redirect(){
 function scratchpads_tweaks_module_implements_alter(&$implementations, $hook){
   // Move to the end
   if(in_array($hook, array(
-    'library_alter',
     'form_block_admin_configure_alter',
     'user_presave'
   )) && isset($implementations[$hook])){
-    // Move jquery update to the end. This will make sure our hook_library_alter
-    // is always called before the jquery_update.
-    $move = $implementations[$hook];
-    unset($implementations[$hook]);
-    $implementations[$hook] = $move;
+    $move = $implementations['scratchpads_tweaks'];
+    unset($implementations['scratchpads_tweaks']);
+    $implementations['scratchpads_tweaks'] = $move;
   }
 }
 
