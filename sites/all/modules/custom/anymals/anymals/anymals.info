@@ -5,6 +5,7 @@ dependencies[] = anymals_login
 dependencies[] = anymals_contenttype_export
 dependencies[] = "ctools"
 dependencies[] = "feeds"
+dependencies[] = "feeds_xpathparser"
 features[ctools][] = "feeds:feeds_importer_default:1"
 features[feeds_importer][] = "anymals_plants"
 core = 7.x
