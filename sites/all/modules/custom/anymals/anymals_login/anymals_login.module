@@ -69,8 +69,13 @@ function anymals_login_add_client_id($clientid, $account = FALSE){
       'client_id' => $clientid
     ))->execute();
     // We add this user to the group.
-    $response = drupal_http_request('https://www.anymals.org/intercom/?request=addClients&key=' . variable_get('anymals_key', '') . '&token=' . variable_get('anymals_token', '') . '&clientid=' . $clientid, array(
-      'method' => 'POST'
+    $response = drupal_http_request('https://www.anymals.org/intercom/?request=addClients', array(
+      'method' => 'POST',
+      'data' => http_build_query(array(
+        'key' => variable_get('anymals_key', ''),
+        'token' => variable_get('anymals_token', ''),
+        'clientid' => $clientid
+      ))
     ));
     watchdog('anymals', 'Response from anymals+plants server: !response', array(
       '!response' => print_r($response, 1)
@@ -115,8 +120,13 @@ function anymals_login_user_delete($account){
   // entry from the table.
   if($account->anymals_client_ids){
     foreach($account->anymals_client_ids as $clientid){
-      $response = drupal_http_request('https://www.anymals.org/intercom/?request=removeClients&key=' . variable_get('anymals_key', '') . '&token=' . variable_get('anymals_token', '') . '&clientid=' . $clientid, array(
-        'method' => 'POST'
+      $response = drupal_http_request('https://www.anymals.org/intercom/?request=removeClients', array(
+        'method' => 'POST',
+        'data' => http_build_query(array(
+          'key' => variable_get('anymals_key', ''),
+          'token' => variable_get('anymals_token', ''),
+          'clientid' => $clientid
+        ))
       ));
       watchdog('anymals', 'Response from anymals+plants server: !response', array(
         '!response' => print_r($response, 1)

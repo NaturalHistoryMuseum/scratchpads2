@@ -49,10 +49,15 @@ function anymals_configuration_form(){
  */
 function anymals_configuration_form_submit($form, $form_state){
   // FIXME - Check the response of the XML to ensure anymals+plants is happy.
-  $response = drupal_http_request('https://www.anymals.org/intercom/?request=addSightingFormByURL&token=' . $form_state['values']['anymals_token'] . '&key=' . $form_state['values']['anymals_key'] . '&xmlurl=' . url('ecml/forms/node/' . implode(',', array_filter($form_state['values']['anymals_forms'])), array(
-    'absolute' => TRUE
-  )), array(
-    'method' => 'POST'
+  $response = drupal_http_request('https://www.anymals.org/intercom/?request=addSightingFormByURL', array(
+    'method' => 'POST',
+    'data' => http_build_query(array(
+      'token' => $form_state['values']['anymals_token'],
+      'key' => $form_state['values']['anymals_key'],
+      'xmlurl' => url('ecml/forms/node/' . implode(',', array_filter($form_state['values']['anymals_forms'])), array(
+        'absolute' => TRUE
+      ))
+    ))
   ));
   watchdog('anymals', 'Response from anymals+plants server: !response', array(
     '!response' => print_r($response, 1)
