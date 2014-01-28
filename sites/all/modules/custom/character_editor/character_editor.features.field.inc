@@ -1196,7 +1196,7 @@ other|Other',
       'bundle' => 'computed',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => "You can enter mathematical (+-*/) and boolean (is,isn't,>,>=,<,<=) expressions using numbers, \"text\", {character variables} and 'character states'. Lists [3,4] and ranges [-5 .. 5] are supported with 'in' and 'not in' operators. With ordered controlled characters ranges of states can be used too: ['yellow:1' to 'red:2'].",
+      'description' => "You can enter mathematical (+-*/) and boolean (is,is-not,>,>=,<,<=) expressions using numbers, \"text\", {character variables} and 'character states'. Boolean operators return '1' for TRUE and '0' for FALSE. Lists [3,4] and ranges [-5 .. 5] are supported with 'in' and 'not in' operators. With ordered controlled characters ranges of states can be used too: ['yellow:1' to 'red:2'].",
       'display' => array(
         'default' => array(
           'label' => 'hidden',

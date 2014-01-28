@@ -2,7 +2,7 @@
  * This file contains Javascript for the computed character form
  */
 (function($){
-  
+
   /**
    * CharacterExpressionHighlighter
    * 
@@ -57,6 +57,173 @@
   };
 
   /**
+   * CharacterExpressionTextarea
+   * 
+   * Class to transform a textarea into an expression editor. This includes
+   * - Syntax highligting of the expression ;
+   * - List of variables and symbols can be clicked for auto-insertion
+   */
+  function CharacterExpressionTextarea($textarea){
+    /**
+     * init
+     */
+    this.init = function(){
+      // Setup
+      this.$textarea = $textarea;
+      this.$root = this.$textarea.parent();
+      this.$table = this.$textarea.closest('.field-widget-text-textarea').find('table.character-editor-variable');
+      this.$names = $('.character-editor-variable, .character-editor-symbol', this.$table);
+      // Prepare the new editor
+      this.$hg = $('<div></div>');
+      this.$textarea.css('display', 'none');
+      this.$hg.addClass('character-editor-expression-editor')
+      .css({
+        width: this.$textarea.css('width'),
+        height: this.$textarea.css('height')
+      })
+      .attr('contentEditable', true)
+      .appendTo(this.$root);
+      // Bind events
+      this.$hg.on('keyup', $.proxy(this, 'highlight'));
+      this.$names.on('mousedown', $.proxy(this, 'insertName'));
+      // And fire
+      this.setContent($textarea.val());
+      this.highlight();
+    }
+    
+    /**
+     * getContent
+     * 
+     * Return the plain (non-highlighted) content
+     * of the editor
+     */
+    this.getContent = function(){
+      var raw = this.$hg.html().replace(/<[^>]+>/ig, '');
+      return $('<textarea>').html(raw).text();
+    }
+    
+    /**
+     * setContent
+     * 
+     * Set the content of the editor
+     */
+    this.setContent = function(content, selection){
+      if (typeof selection == 'undefined'){
+        selection = characterSaveSelection(this.$hg.get(0));
+      }
+      this.$hg.html('<pre>' + content + '</pre>')
+      characterRestoreSelection(this.$hg.get(0), selection);
+    }
+    
+    /**
+     * highlight
+     * 
+     * Highlight the text in the textarea
+     */
+    this.highlight = function(){
+      var content = this.getContent();
+      var hg = new CharacterExpressionHighlighter(content);
+      this.setContent(hg.getHighlighted());
+      $textarea.val(content);
+    }
+    
+    /**
+     * insertName
+     * 
+     * Callback when a name to insert is clicked
+     */
+    this.insertName = function(e){
+      var position = characterSaveSelection(this.$hg.get(0));
+      var raw = this.getContent();
+      var insert = ' ' + $(e.target).text() + ' ';
+      var text = [raw.slice(0, position.start), insert, raw.slice(position.start)].join('');
+      position.start = position.start + insert.length;
+      position.end = position.end + insert.length;
+      this.setContent(text, position);
+      this.highlight();
+      return false;
+    }
+    
+    this.init();
+  }
+
+  /**
+   * characterSaveSelection
+   * 
+   * Cross-browser function to save the current cursor position in an editable div
+   */
+  function characterSaveSelection(containerEl){
+    if (window.getSelection && document.createRange) {
+      var range = window.getSelection().getRangeAt(0);
+      var preSelectionRange = range.cloneRange();
+      preSelectionRange.selectNodeContents(containerEl);
+      preSelectionRange.setEnd(range.startContainer, range.startOffset);
+      var start = preSelectionRange.toString().length;
+
+      return {
+        start: start,
+        end: start + range.toString().length
+      };
+    } else if (document.selection) {
+      var selectedTextRange = document.selection.createRange();
+      var preSelectionTextRange = document.body.createTextRange();
+      preSelectionTextRange.moveToElementText(containerEl);
+      preSelectionTextRange.setEndPoint("EndToStart", selectedTextRange);
+      var start = preSelectionTextRange.text.length;
+
+      return {
+        start: start,
+        end: start + selectedTextRange.text.length
+      };
+    }
+  }
+
+  /**
+   * characterRestoreSelection
+   * 
+   * Cross-browser function to restore the current cursor position in an editable div
+   */
+  function characterRestoreSelection(containerEl, savedSel){
+    if (window.getSelection && document.createRange) {
+      var charIndex = 0, range = document.createRange();
+      range.setStart(containerEl, 0);
+      range.collapse(true);
+      var nodeStack = [containerEl], node, foundStart = false, stop = false;
+
+      while (!stop && (node = nodeStack.pop())) {
+          if (node.nodeType == 3) {
+              var nextCharIndex = charIndex + node.length;
+              if (!foundStart && savedSel.start >= charIndex && savedSel.start <= nextCharIndex) {
+                  range.setStart(node, savedSel.start - charIndex);
+                  foundStart = true;
+              }
+              if (foundStart && savedSel.end >= charIndex && savedSel.end <= nextCharIndex) {
+                  range.setEnd(node, savedSel.end - charIndex);
+                  stop = true;
+              }
+              charIndex = nextCharIndex;
+          } else {
+              var i = node.childNodes.length;
+              while (i--) {
+                  nodeStack.push(node.childNodes[i]);
+              }
+          }
+      }
+
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    } else if (document.selection) {
+      var textRange = document.body.createTextRange();
+      textRange.moveToElementText(containerEl);
+      textRange.collapse(true);
+      textRange.moveEnd("character", savedSel.end);
+      textRange.moveStart("character", savedSel.start);
+      textRange.select();
+    }
+  }
+  
+  /**
    * Drupal.behaviors.characterEditorExpression
    */
   Drupal.behaviors.characterEditorExpression = {
@@ -65,115 +232,13 @@
       if (((!window.getSelection || !document.createRange) && !document.selection) || (!"contentEditable" in document.body)){
         return;
       }
-      // Replace the textarea with an editable div, and provide text highligting
-      var $textarea = $('#edit-field-char-expr textarea', context);
-      var $root = $textarea.parent();
-      var $hg = $('<div></div>')
-      .addClass('character-editor-expression-editor').css({
-        width: $textarea.css('width'),
-        height: $textarea.css('height'),
-      }).attr('contentEditable', true)
-      .html('<pre>' + $textarea.val() + '</pre>')
-      .appendTo($root)
-      .on('keyup', function(){
-        var selection = characterSaveSelection(this);
-        var raw = $(this).html().replace(/<[^>]+>/ig, '');
-        raw = $('<textarea>').html(raw).text();
-        var out = (new CharacterExpressionHighlighter(raw)).getHighlighted();
-        $(this).html('<pre>' + out + '</pre>');
-        $textarea.val(raw);
-        characterRestoreSelection(this, selection);
-      })
-      .trigger('keyup');
-      $textarea.css('display', 'none');
-      // Insert variables/symbols when clicked
-      var $table = $('#edit-field-char-expr table', context)
-      var $select = $('.character-editor-variable, .character-editor-symbol', $table);
-      $select.on('mousedown', function(e){
-        var position = characterSaveSelection($hg.get(0));
-        var raw = $hg.html().replace(/<[^>]+>/ig, '');
-        raw = $('<textarea>').html(raw).text();
-        var insert = ' ' + $(this).text() + ' ';
-        var text = [raw.slice(0, position.start), insert, raw.slice(position.start)].join('');
-        $hg.html('<pre>' + text + '</pre>');
-        position.start = position.start + insert.length;
-        position.end = position.end + insert.length;
-        characterRestoreSelection($hg.get(0), position);
-        $hg.trigger('keyup');
-        return false;
-      });
+      if (typeof Drupal.CharacterEditorExpression == 'undefined'){
+        Drupal.CharacterEditorExpression = [];
+      }
+      var $textareas = $('#edit-field-char-expr textarea, #edit-field-char-condition textarea', context);
+      for (var i = 0; i < $textareas.length; i++){
+        Drupal.CharacterEditorExpression.push(new CharacterExpressionTextarea($($textareas.get(i))));
+      }
     }
   };
 })(jQuery);
-
-/**
- * characterSaveSelection
- */
-function characterSaveSelection(containerEl){
-  if (window.getSelection && document.createRange) {
-    var range = window.getSelection().getRangeAt(0);
-    var preSelectionRange = range.cloneRange();
-    preSelectionRange.selectNodeContents(containerEl);
-    preSelectionRange.setEnd(range.startContainer, range.startOffset);
-    var start = preSelectionRange.toString().length;
-
-    return {
-      start: start,
-      end: start + range.toString().length
-    };
-  } else if (document.selection) {
-    var selectedTextRange = document.selection.createRange();
-    var preSelectionTextRange = document.body.createTextRange();
-    preSelectionTextRange.moveToElementText(containerEl);
-    preSelectionTextRange.setEndPoint("EndToStart", selectedTextRange);
-    var start = preSelectionTextRange.text.length;
-
-    return {
-      start: start,
-      end: start + selectedTextRange.text.length
-    };
-  }
-}
-
-/**
- * characterRestoreSelection
- */
-function characterRestoreSelection(containerEl, savedSel){
-  if (window.getSelection && document.createRange) {
-    var charIndex = 0, range = document.createRange();
-    range.setStart(containerEl, 0);
-    range.collapse(true);
-    var nodeStack = [containerEl], node, foundStart = false, stop = false;
-
-    while (!stop && (node = nodeStack.pop())) {
-        if (node.nodeType == 3) {
-            var nextCharIndex = charIndex + node.length;
-            if (!foundStart && savedSel.start >= charIndex && savedSel.start <= nextCharIndex) {
-                range.setStart(node, savedSel.start - charIndex);
-                foundStart = true;
-            }
-            if (foundStart && savedSel.end >= charIndex && savedSel.end <= nextCharIndex) {
-                range.setEnd(node, savedSel.end - charIndex);
-                stop = true;
-            }
-            charIndex = nextCharIndex;
-        } else {
-            var i = node.childNodes.length;
-            while (i--) {
-                nodeStack.push(node.childNodes[i]);
-            }
-        }
-    }
-
-    var sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-  } else if (document.selection) {
-    var textRange = document.body.createTextRange();
-    textRange.moveToElementText(containerEl);
-    textRange.collapse(true);
-    textRange.moveEnd("character", savedSel.end);
-    textRange.moveStart("character", savedSel.start);
-    textRange.select();
-  }
-}

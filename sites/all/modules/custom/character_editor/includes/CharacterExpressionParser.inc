@@ -29,7 +29,7 @@
  *   
  * - Mathematical operators which act on numbers: +,-,*,/
  * 
- * - Comparaison operators: <, <=, >, >=, is, isn't. Comparaison operators
+ * - Comparaison operators: <, <=, >, >=, is, is-not. Comparaison operators
  *   return '1' for true and '0' for false ;
  *   
  * - List and range test operators: in, not-in (eg. ("blue" in ["blue", "red"])
@@ -68,7 +68,7 @@ class CharacterExpressionParser{
     '<=' => 2,
     '>' => 2,
     '>=' => 2,
-    'isn\'t' => 2,
+    'is-not' => 2,
     'is' => 2,
     'in' => 2,
     'not-in' => 2,
@@ -627,7 +627,7 @@ class CharacterExpressionNumber extends CharacterExpressionValue{
           return new CharacterExpressionNumber((int)($this->val <= $v->value()), $this->context);
         case 'is':
           return new CharacterExpressionNumber((int)($this->val == $v->value()), $this->context);
-        case 'isn\'t':
+        case 'is-not':
           return new CharacterExpressionNumber((int)($this->val != $v->value()), $this->context);
         case 'and':
           return new CharacterExpressionNumber((int)($this->val && $v->value()), $this->context);
@@ -664,6 +664,17 @@ class CharacterExpressionText extends CharacterExpressionValue{
   }
 
   /**
+   * toString
+   */
+  public function toString($format = CharacterExpressionParser::FORMAT_EXPRESSION){
+    if ($format == CharacterExpressionParser::FORMAT_EXPRESSION){
+      return '"' . $this->val . '"';
+    } else {
+      return $this->val;
+    }
+  }
+  
+  /**
    * applyUnaryOperator
    */
   public function applyUnaryOperator($o){
@@ -685,7 +696,7 @@ class CharacterExpressionText extends CharacterExpressionValue{
           return new CharacterExpressionText($this->val . $v->value(), $this->context);
         case 'is':
           return new CharacterExpressionNumber((int)($this->val == $v->value()), $this->context);
-        case 'isn\'t':
+        case 'is-not':
           return new CharacterExpressionNumber((int)($this->val != $v->value()), $this->context);
         default:
           throw new Exception(t("Operator %op cannot be used between text strings", array(
@@ -725,6 +736,17 @@ class CharacterExpressionSymbol extends CharacterExpressionValue{
   }
 
   /**
+   * toString
+   */
+  public function toString($format = CharacterExpressionParser::FORMAT_EXPRESSION){
+    if ($format == CharacterExpressionParser::FORMAT_EXPRESSION){
+      return '\'' . $this->val . '\'';
+    } else {
+      return $this->val;
+    }
+  }
+  
+  /**
    * applyUnaryOperator
    */
   public function applyUnaryOperator($o){
@@ -760,7 +782,7 @@ class CharacterExpressionSymbol extends CharacterExpressionValue{
           return new CharacterExpressionNumber((int)(array_search($this->val, $symbol_order) <= array_search($v->value(), $symbol_order)), $this->context);
         case 'is':
           return new CharacterExpressionNumber((int)($this->val == $v->value()), $this->context);
-        case 'isn\'t':
+        case 'is-not':
           return new CharacterExpressionNumber((int)($this->val != $v->value()), $this->context);
         default:
           throw new Exception(t("Operator %op cannot be used between symbols", array(
@@ -771,7 +793,7 @@ class CharacterExpressionSymbol extends CharacterExpressionValue{
       switch($o){
         case 'is':
           return new CharacterExpressionNumber((int)($this->val == $v->value()), $this->context);
-        case 'isn\'t':
+        case 'is-not':
           return new CharacterExpressionNumber((int)($this->val != $v->value()), $this->context);
         default:
           throw new Exception(t("Operator %op cannot be used between a symbol and a text string", array(
@@ -858,7 +880,7 @@ class CharacterExpressionList extends CharacterExpressionValue{
         case 'is':
           return new CharacterExpressionNumber((int)(count(array_diff($a1, $a2)) == 0 && count(array_diff($a2, $a1)) == 0), $this->context);
           ;
-        case 'isn\'t':
+        case 'is-not':
           return new CharacterExpressionNumber((int)(count(array_diff($a1, $a2)) > 0), $this->context);
         case 'in':
           return new CharacterExpressionNumber((int)(count(array_diff($a1, $a2)) == 0), $this->context);
@@ -1032,9 +1054,9 @@ class CharacterExpressionRange extends CharacterExpressionValue{
           $min = $this->val['min']->applyBinaryOperator('is', $v->value());
           $max = $this->val['max']->applyBinaryOperator('is', $v->value());
           return new CharacterExpressionNumber((int)($min->value() && $max->value()), $this->context);
-        case 'isn\'t':
-          $min = $this->val['min']->applyBinaryOperator('isn\'t', $v->value());
-          $max = $this->val['max']->applyBinaryOperator('isn\'t', $v->value());
+        case 'is-not':
+          $min = $this->val['min']->applyBinaryOperator('is-not', $v->value());
+          $max = $this->val['max']->applyBinaryOperator('is-not', $v->value());
           return new CharacterExpressionNumber((int)($min->value() || $max->value()), $this->context);
         default:
           throw new Exception(t("Operator %op cannot be used between ranges", array(
@@ -1086,7 +1108,7 @@ class CharacterExpressionRange extends CharacterExpressionValue{
       }
       switch($o){
         case 'is':
-        case 'isn\'t':
+        case 'is-not':
           return new CharacterExpressionNumber(0, $this->context);
         case 'in':
           $min = $v->applyBinaryOperator('>=', $this->val['min']);
