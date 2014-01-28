@@ -1196,7 +1196,7 @@ other|Other',
       'bundle' => 'computed',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => 'Enter the expression to evaluate here',
+      'description' => "You can enter mathematical (+-*/) and boolean (is,isn't,>,>=,<,<=) expressions using numbers, \"text\", {character variables} and 'character states'. Lists [3,4] and ranges [-5 .. 5] are supported with 'in' and 'not in' operators. With ordered controlled characters ranges of states can be used too: ['yellow:1' to 'red:2'].",
       'display' => array(
         'default' => array(
           'label' => 'hidden',
@@ -1221,7 +1221,7 @@ other|Other',
           'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '3'
+        'weight' => '4'
       )
     )
   );

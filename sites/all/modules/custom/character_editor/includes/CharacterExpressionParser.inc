@@ -13,15 +13,11 @@
  * 
  * - Text, which should be enclosed in double quotes, eg. "hello" ;
  * 
- * - Symbols, which should be enclosed in single quotes. If a symbol is build as
- *   'label:id' then only the 'id' part is taken into consideration in tests. So 
- *   for instance ('hello:1' is 'world:1') is true, while ('hello:1' is 'hello:2') 
- *   is not. If symbols are constructed without an id, then they are treated as
- *   text.
+ * - Symbols, which should be enclosed in single quotes, eg. 'blue'.
+ *   Symbols differ from text in that they can be ordered to create
+ *   ranges (see 'Ranges') and renamed via 'rename' method ;
  *     
  * - Variables, which should be enclosed in curly brackets, eg. {height}
- *   If a variable is build as {label:id} then when evaluating the expression
- *   only the id part is looked up in the variable list ;
  * 
  * - Lists of expressions, enclosed in square brackets and with expressions separated
  *   by commas, eg. ["green", "blue", "yellow"] ;
@@ -46,26 +42,18 @@
  * 
  * Some notes:
  *   
- * - Operations between numbers and ranges apply to both end of the
- *   range - so adding a number and a range returns the range with
- *   the value added to both min and max.
- *   
- *   However testing for equality between a value and a range is always FALSE.
- *   
- * - Lists are not ordered, and the + operator can be used to add items to a list ;
+ * - Testing for equality between a value and a range is always FALSE.
  * 
- * - The fact boolean return 0/1 can be used to construct simple tests:
- *   {var1} * ({var3} is 'state1:1') + {var2} * ({var3} is 'state2:2')
- *   Though this only works for numeric values.
- *   
  */
 class CharacterExpressionParser{
   /* Exception Error codes */
   const MISSING_VARIABLE = 1;
-  /* Formatting style for output */
-  const FORMAT_EXPRESSION = 1;
+  /* Formatting style for output. EXPRESSION will format values as they are represented in
+   * expressions, while  VALUE will format values as the result would be output.
+   */
+  const FORMAT_EXPRESSION = 0;
 
-  const FORMAT_EDITOR = 2;
+  const FORMAT_VALUE = 1;
   // Operators in order of precedence, with associated arity. Unariy "-" is allowed
   // but replaced at parse time with "neg". "," and ".." are parsed as operators,
   // but internally used to build lists and ranges.
@@ -107,7 +95,7 @@ class CharacterExpressionParser{
    * 
    * Evaluate the value of the expression with the given variables
    */
-  public function evaluate($variable_map = array(), $symbol_order = array(), $format = CharacterExpressionParser::FORMAT_EXPRESSION){
+  public function evaluate($variable_map = array(), $symbol_order = array(), $format = CharacterExpressionParser::FORMAT_VALUE){
     $val = $this->evaluateRecursive($this->tree, array(
       'variable_map' => $variable_map,
       'symbol_order' => $symbol_order
@@ -149,20 +137,43 @@ class CharacterExpressionParser{
   }
 
   /**
-   * getExpression
+   * rename
    * 
-   * Generate a string represenation of the expression, mapping variables
-   * and symbols using the given maps.
+   * Rename the variables and symbol in this expression
    */
-  public function getExpression($var_map = array(), $sym_map = array()){
+  public function rename($var_map = array(), $sym_map = array()){
+    foreach($this->tokens as $t){
+      if(is_object($t) && $t instanceof CharacterExpressionVariable){
+        if(isset($var_map[$t->name()])){
+          $t->rename($var_map[$t->name()]);
+        }
+      }else if(is_object($t) && $t instanceof CharacterExpressionSymbol){
+        if(isset($sym_map[$t->value()])){
+          $t->set($sym_map[$t->value()]);
+        }
+      }
+    }
+  }
+
+  /**
+   * toString
+   * 
+   * Output the expression
+   */
+  public function toString(){
     $out = '';
     $tokens = $this->tokens;
     foreach($this->expression as $item){
       if($item == 'o'){
-        $out .= array_shift($tokens);
+        $v = array_shift($tokens);
+        if($this->operators[$v] == 2){
+          $out .= ' ' . $v . ' ';
+        }else{
+          $out .= $v;
+        }
       }else if($item == 'v'){
         $v = array_shift($tokens);
-        $out .= $v->toString();
+        $out .= $v->toString(CharacterExpressionParser::FORMAT_EXPRESSION);
       }else{
         $out .= $item;
       }
@@ -668,7 +679,7 @@ class CharacterExpressionText extends CharacterExpressionValue{
    * applyBinaryOperator
   */
   public function applyBinaryOperator($o, $v){
-    if($v->type() == 'text'){
+    if($v->type() == 'text' || $v->type() == 'symbol'){
       switch($o){
         case '+':
           return new CharacterExpressionText($this->val . $v->value(), $this->context);
@@ -680,15 +691,6 @@ class CharacterExpressionText extends CharacterExpressionValue{
           throw new Exception(t("Operator %op cannot be used between text strings", array(
             '%op' => $o
           )));
-      }
-    }else if($v->type() == 'symbol'){
-      switch($o){
-        case 'is':
-          return new CharacterExpressionNumber((int)($this->val == $v->stringValue()), $this->context);
-        case 'isn\'t':
-          return new CharacterExpressionNumber((int)($this->val != $v->stringValue()), $this->context);
-        default:
-          throw new Exception("Operator $o cannot be used between a text string and a symbol");
       }
     }else if($v->type() == 'list' || $v->type() == 'range'){
       return $v->applyBinaryOperator($o, $this, TRUE);
@@ -712,22 +714,14 @@ class CharacterExpressionSymbol extends CharacterExpressionValue{
    * __construct
    */
   public function __construct($val, $context = array()){
-    $this->type = 'symbol';
-    $this->context = $context;
-    if(preg_match('/^(.*):([^:]+)$/', $val, $matches)){
-      $this->val = $matches[2];
-      $this->string = $matches[1];
-    }else{
-      $this->val = $val;
-      $this->string = $val;
-    }
+    parent::__construct($val, 'symbol', $context);
   }
 
   /**
-   * stringValue
+   * set
    */
-  public function stringValue(){
-    return $this->string;
+  public function set($val){
+    $this->val = $val;
   }
 
   /**
@@ -776,9 +770,9 @@ class CharacterExpressionSymbol extends CharacterExpressionValue{
     }else if($v->type() == 'text'){
       switch($o){
         case 'is':
-          return new CharacterExpressionNumber((int)($this->string == $v->value()), $this->context);
+          return new CharacterExpressionNumber((int)($this->val == $v->value()), $this->context);
         case 'isn\'t':
-          return new CharacterExpressionNumber((int)($this->string != $v->value()), $this->context);
+          return new CharacterExpressionNumber((int)($this->val != $v->value()), $this->context);
         default:
           throw new Exception(t("Operator %op cannot be used between a symbol and a text string", array(
             '%op' => $o
@@ -828,9 +822,7 @@ class CharacterExpressionList extends CharacterExpressionValue{
     }
     if($format == CharacterExpressionParser::FORMAT_EXPRESSION){
       return '[' . implode(', ', $a) . ']';
-    }else{
-      return implode(',', $a);
-    }
+    }else if($format == CharacterExpressionParser::FORMAT_VALUE){return implode(',', $a);}
   }
 
   /**
@@ -1002,9 +994,7 @@ class CharacterExpressionRange extends CharacterExpressionValue{
   public function toString($format = CharacterExpressionParser::FORMAT_EXPRESSION){
     if($format == CharacterExpressionParser::FORMAT_EXPRESSION){
       return '[' . $this->val['min']->toString($format) . ' .. ' . $this->val['max']->toString($format) . ']';
-    }else{
-      return $this->val['min']->toString($format) . ' - ' . $this->val['max']->toString($format);
-    }
+    }else if($format == CharacterExpressionParser::FORMAT_VALUE){return $this->val['min']->toString($format) . ' - ' . $this->val['max']->toString($format);}
   }
 
   /**
@@ -1162,11 +1152,29 @@ class CharacterExpressionVariable extends CharacterExpressionValue{
   }
 
   /**
+   * name
+   */
+  public function name(){
+    return $this->name;
+  }
+
+  /**
+   * rename
+   */
+  public function rename($name){
+    $this->name = $name;
+  }
+
+  /**
    * toString
    */
-  public function toString(){
-    $this->fetchItem();
-    return $this->item->toString();
+  public function toString($format = CharacterExpressionParser::FORMAT_EXPRESSION){
+    if($format == CharacterExpressionParser::FORMAT_EXPRESSION){
+      return '{' . $this->name . '}';
+    }else if($format == CharacterExpressionParser::FORMAT_VALUE){
+      $this->fetchItem();
+      return $this->item->toString($format);
+    }
   }
 
   /**
@@ -1190,15 +1198,10 @@ class CharacterExpressionVariable extends CharacterExpressionValue{
    */
   private function fetchItem(){
     if(!empty($this->item)){return $this->item;}
-    if(preg_match('/:([^:]+)$/', $this->name, $matches)){
-      $name = $matches[1];
-    }else{
-      $name = $this->name;
-    }
-    if(empty($this->context['variable_map']) || !isset($this->context['variable_map'][$name])){throw new Exception(t("Value for variable %name is not defined.", array(
+    if(empty($this->context['variable_map']) || !isset($this->context['variable_map'][$this->name])){throw new Exception(t("Value for variable %name is not defined.", array(
         '%name' => $this->name
       )), CharacterExpressionParser::MISSING_VARIABLE);}
-    $this->item = $this->getValueObject($this->context['variable_map'][$name]);
+    $this->item = $this->getValueObject($this->context['variable_map'][$this->name]);
   }
 
   /**

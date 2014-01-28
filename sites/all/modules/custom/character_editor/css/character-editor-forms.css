@@ -1,0 +1,26 @@
+
+#edit-field-char-expr span.character-editor-variable{
+  color: #F00;
+  font-weight: normal;
+}
+
+#edit-field-char-expr span.character-editor-symbol{
+  color: #00F;
+  font-weight: normal;
+}
+
+#edit-field-char-expr span.character-editor-literal{
+  font-weight: normal;
+}
+
+#edit-field-char-expr div.character-editor-expression-editor{
+  border: 1px solid #EEE;
+  overflow: auto;
+  font-weight: bold;
+  resize: vertical;
+}
+
+#edit-field-char-expr table span.character-editor-variable,
+#edit-field-char-expr table span.character-editor-symbol{
+  cursor: pointer;
+}

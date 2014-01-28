@@ -104,12 +104,12 @@ class CharacterTreeNode{
    * Returns the view style options for the field that will represent this node.
    * Note that this includes the rendered character for tooltips.
    */
-  public function getViewStyleOptions(){
+  public function getViewStyleOptions($project_model){
     $options = array(
       'width' => 35,
       'filter' => '',
       'headerCssClass' => 'character character-type-' . $this->model->wrapper()->getBundle() . ' ' . $this->column_id,
-      'data' => $this->model->getTooltip()
+      'data' => $this->model->getTooltip($project_model)
     );
     if($this->model->hasOptions()){
       $options['data'] = array_merge($options['data'], $this->model->getOptions());

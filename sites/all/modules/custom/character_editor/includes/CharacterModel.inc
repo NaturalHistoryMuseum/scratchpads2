@@ -88,7 +88,7 @@ class CharacterModel{
    * Return the information needed by slickgrid to generate the tooltip for this column.
    * This is formated for view's style options.
    */
-  function getTooltip(){
+  function getTooltip($project_model){
     $entity_info = $this->w->entityInfo();
     // The label
     $bt = t('<h2>!label</h2><span class="character-type">!type</span>', array(
@@ -100,6 +100,22 @@ class CharacterModel{
     $content = $controller->view(array(
       $this->w->getIdentifier() => clone $this->w->value()
     ));
+    if($this->isComputed() && count($content['character_editor_character'])){
+      $variables = $project_model->getAvailableVariables();
+      $children = element_children($content['character_editor_character']);
+      $child = reset($children);
+      $expr = $content['character_editor_character'][$child]['field_char_expr'][0]['#markup'];
+      module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
+      try{
+        $e = new CharacterExpressionParser($expr);
+        $e->rename(array_flip($variables['character_map']), array_flip($variables['state_map']));
+        $expr = $e->toString();
+      }
+      catch(Exception $e){
+        $expr = "Could not parse saved expression: " . $e->getMessage();
+      }
+      $content['character_editor_character'][$child]['field_char_expr'][0]['#markup'] = htmlspecialchars($expr);
+    }
     $tooltip = array(
       'bt' => $bt,
       'char' => drupal_render($content),
@@ -210,7 +226,7 @@ class CharacterModel{
         $result[$row_id] = $error;
       }else{
         try{
-          $result[$row_id] = $parser->evaluate($row, $order, CharacterExpressionParser::FORMAT_EDITOR);
+          $result[$row_id] = $parser->evaluate($row, $order, CharacterExpressionParser::FORMAT_VALUE);
         }
         catch(Exception $e){
           if($e->getCode() == CharacterExpressionParser::MISSING_VARIABLE){

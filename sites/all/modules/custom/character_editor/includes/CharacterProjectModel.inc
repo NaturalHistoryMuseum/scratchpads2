@@ -95,31 +95,55 @@ class CharacterProjectModel{
   /**
    * getAvailableVariables
    * 
-   * Returns the list of variables available for calculating
-   * expressions
+   * This method returns:
+   * - The list of availables characters for calculating expressions,
+   *    formatted as a tuple defining display name, type and available states ;
+   * - The map from the character display name to the character id ;
+   * - The map from the state display name to the state id.
+   * 
    */
   public function getAvailableVariables(){
     $tree = $this->getTree();
-    $result = array();
+    $list = array();
+    $character_map = array();
+    $state_map = array();
     foreach($tree as $item){
       if(!$item->model()->isGroup() && !$item->model()->isComputed()){
-        $r = '{' . $item->model()->label() . ':' . preg_replace('/^.+:/', '', $item->model()->id()) . '}';
+        $name = preg_replace('/[{}]/', ' ', $item->model()->label());
+        $count = 1;
+        while(isset($character_map[$name])){
+          $name = preg_replace('/[{}]/', ' ', $item->model()->label()) . ' (' + $count + ')';
+          $count++;
+        }
+        $character_map[$name] = $item->model()->wrapper()->getIdentifier();
+        $name = '{' . $name . '}';
+        $type = t(ucfirst($item->model()->wrapper()->getBundle()));
+        $states = array();
         if($item->model()->isControlled()){
-          $map = $item->model()->getControlledMap();
-          if(count($map)){
-            $r .= '(states: ';
-            $states = array();
-            foreach($map as $id => $label){
-              $states[] = "'$label:$id'";
+          $item_states = $item->model()->getControlledMap();
+          foreach($item_states as $id => $label){
+            $item_label = str_replace('\'', ' ', $label);
+            $count = 1;
+            while(isset($state_map[$item_label])){
+              $item_label = str_replace('\'', ' ', $label) . " (" . $count . ")";
+              $count++;
             }
-            $r .= implode(', ', $states);
-            $r .= ')';
+            $states[] = "'$item_label'";
+            $state_map[$item_label] = $id;
           }
         }
-        $result[] = $r;
+        $list[] = array(
+          $name,
+          $type,
+          $states
+        );
       }
     }
-    return $result;
+    return array(
+      'list' => $list,
+      'character_map' => $character_map,
+      'state_map' => $state_map
+    );
   }
 
   /**
