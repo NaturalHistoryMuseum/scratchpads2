@@ -1022,64 +1022,6 @@ function character_editor_get_default_view(){
   return key(character_editor_views_default_views());
 }
 
-/**
- * Get a list of all character types
- */
-function character_editor_get_character_types(){
-  $character_types = array();
-  foreach($entities = entity_admin_get_entities('character_editor_character_type') as $type => $entity){
-    $character_types[$type] = $entity->label();
-  }
-  return $character_types;
-}
-
-/**
- * Get a list of all character groups in a character project
- */
-function character_editor_get_groups($character_project_id){
-  $groups = array();
-  $query = relation_query('character_editor_project', $character_project_id);
-  $query->entityCondition('bundle', PROJECT_CHARACTER_RELATION_TYPE);
-  $results = $query->execute();
-  $group_ids = array();
-  foreach($results as $result){
-    $relation = relation_load($result->rid);
-    $language = field_language('relation', $relation, 'endpoints');
-    foreach($relation->endpoints[$language] as $endpoint){
-      if($endpoint['entity_type'] == 'character_editor_character'){
-        $group_ids[] = $endpoint['entity_id'];
-      }
-    }
-  }
-  $group_entities = entity_load('character_editor_character', $group_ids);
-  foreach($group_entities as $group_entity_id => $group_entity){
-    $groups[$group_entity_id] = $group_entity->label();
-  }
-  return $groups;
-}
-
-/**
- * Get the character group of a given character
- */
-function character_editor_get_group($character_id){
-  $query = relation_query('character_editor_character', $character_id);
-  $query->entityCondition('bundle', PROJECT_CHARACTER_RELATION_TYPE);
-  $results = $query->execute();
-  foreach($results as $result){
-    $relation = relation_load($result->rid);
-    $language = field_language('relation', $relation, 'endpoints');
-    foreach($relation->endpoints[$language] as $endpoint){
-      if($endpoint['entity_type'] != 'character_editor_character'){
-        continue;
-      }
-      $entity = reset(entity_load('character_editor_character', array(
-        $endpoint['entity_id']
-      )));
-      if($entity->type == 'group'){return $entity;}
-    }
-  }
-  return NULL;
-}
 
 /*********************************************************************************************
  * 
