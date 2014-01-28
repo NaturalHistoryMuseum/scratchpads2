@@ -1062,6 +1062,9 @@ function character_editor_ctools_plugin_api($module, $api){
   if($module == "relation" && $api == "relation_type_default"){return array(
       "version" => "1"
     );}
+  if($module == 'field_group' && $api == 'field_group'){return array(
+      'version' => '1'
+    );}
 }
 
 /**

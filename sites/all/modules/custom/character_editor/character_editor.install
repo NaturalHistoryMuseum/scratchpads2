@@ -517,8 +517,6 @@ function character_editor_update_7007(){
 /**
  * Add fields to computed character
  * 
- * XXX This will probably not work ; we need to do this *after*
- * the feature has been installed.
  */
 function character_editor_update_7008(){
   module_load_include('features.field.inc', 'character_editor');
@@ -536,6 +534,46 @@ function character_editor_update_7008(){
   foreach($create as $entity_type => $bundles){
     foreach($bundles as $bundle => $fields){
       foreach($fields as $field_name => $default){
+        $info = field_info_field($field_name);
+        if(!$info){
+          field_create_field($definitions["$entity_type-$bundle-$field_name"]['field_config']);
+        }
+        $instance = field_info_instance($entity_type, $field_name, $bundle);
+        if(!$instance){
+          field_create_instance($definitions["$entity_type-$bundle-$field_name"]['field_instance']);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Add conditional fields
+ *
+ */
+function character_editor_update_7009(){
+  module_load_include('features.field.inc', 'character_editor');
+  $definitions = character_editor_field_default_fields();
+  $new_fields = array(
+    'character_editor_character' => array(
+      'text' => array(
+        'field_char_condition'
+      ),
+      'dna' => array(
+        'field_char_condition'
+      ),
+      'numeric' => array(
+        'field_char_condition'
+      ),
+      'controlled' => array(
+        'field_char_condition'
+      )
+    )
+  );
+  // Create new fields
+  foreach($new_fields as $entity_type => $bundles){
+    foreach($bundles as $bundle => $fields){
+      foreach($fields as $field_name){
         $info = field_info_field($field_name);
         if(!$info){
           field_create_field($definitions["$entity_type-$bundle-$field_name"]['field_config']);
