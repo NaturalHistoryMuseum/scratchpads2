@@ -31,6 +31,8 @@
    - Character "Eye color" should be an un-ordered, 'AND' character ;
    - Numeric Character "Number of heads" should be an integer character ;
    - Numeric Character "Number of blood sucking appendix" should be a real character ;
+   - Numeric Character "Number of blood sucking appendix" should have a condition:
+     "'The baaaaaad type' in {Type of blood sucker}) and ('Greenish blue' not-in {Eye color})"
    - Text Character "Famous Last Words" should have an associated image (the Scratchpads logo) ;
    - State "The good type" should have an associated image (computer with scratchpad logo) ;
    - State "The baaaaad type" should have an associated image (spider).
@@ -156,6 +158,14 @@
           <CharNode>
             <Parent ref='cn2' />
             <Character ref='c2' />
+            <DependencyRules>
+              <OnlyApplicableIf>
+                <State ref="s2" />
+              </OnlyApplicableIf>
+              <InaplicableIf>
+                <State ref="s4" />
+              </InaplicableIf>
+            </DependencyRules>
           </CharNode>
           <CharNode>
             <Parent ref='cn2' />

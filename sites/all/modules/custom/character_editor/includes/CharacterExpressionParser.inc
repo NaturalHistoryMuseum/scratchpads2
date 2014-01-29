@@ -15,7 +15,7 @@
  * 
  * - Symbols, which should be enclosed in single quotes, eg. 'blue'.
  *   Symbols differ from text in that they can be ordered to create
- *   ranges (see 'Ranges') and renamed via 'rename' method ;
+ *   ranges (see 'Ranges') and renamed via the 'rename' method ;
  *     
  * - Variables, which should be enclosed in curly brackets, eg. {height}
  * 
@@ -26,7 +26,7 @@
  *   10 > [9, 11] is FALSE while 10 > [9 | 11] is TRUE ;
  *   
  * - Ranges, enclosed in square brackets and using the '..' operator, eg.
- *   [1 .. 5]. Ranges of strings or arrays are not permitted - however it is
+ *   [1 .. 5]. Ranges of strings or lists are not permitted - however it is
  *   possible to build ranges of symbols such as ['yellow' .. 'green'] provided
  *   the ordering of symbols is passed in when evaluating the expression ;
  *   
@@ -63,6 +63,10 @@
  *   is a variable the value of which is undefined will return FALSE rather than
  *   raise an exception (eg. {something} beeing undefined, {something} + 2 will raise
  *   an exception but {something} > 10 will evaluate to FALSE)
+ *   
+ * - For convenience, when 'in' and 'not-in' are used such that neither operands are
+ *   lists or ranges, then it is assumed the second operand is list with one item, eg.
+ *   'a' in 'a' is equivalent to 'a' in ['a'] (or 'a' is 'a').
  *
  */
 class CharacterExpressionParser{
@@ -706,8 +710,10 @@ class CharacterExpressionNumber extends CharacterExpressionValue{
         case '<=':
           return new CharacterExpressionNumber((int)($this->val <= $v->value()), $this->context);
         case 'is':
+        case 'in':
           return new CharacterExpressionNumber((int)($this->val == $v->value()), $this->context);
         case 'is-not':
+        case 'not-in':
           return new CharacterExpressionNumber((int)($this->val != $v->value()), $this->context);
         case 'and':
           return new CharacterExpressionNumber((int)($this->val && $v->value()), $this->context);
@@ -775,8 +781,10 @@ class CharacterExpressionText extends CharacterExpressionValue{
         case '+':
           return new CharacterExpressionText($this->val . $v->value(), $this->context);
         case 'is':
+        case 'in':
           return new CharacterExpressionNumber((int)($this->val == $v->value()), $this->context);
         case 'is-not':
+        case 'not-in':
           return new CharacterExpressionNumber((int)($this->val != $v->value()), $this->context);
         default:
           throw new Exception(t("Operator %op cannot be used between text strings", array(
@@ -861,8 +869,10 @@ class CharacterExpressionSymbol extends CharacterExpressionValue{
         case '<=':
           return new CharacterExpressionNumber((int)(array_search($this->val, $symbol_order) <= array_search($v->value(), $symbol_order)), $this->context);
         case 'is':
+        case 'in':
           return new CharacterExpressionNumber((int)($this->val == $v->value()), $this->context);
         case 'is-not':
+        case 'not-in':
           return new CharacterExpressionNumber((int)($this->val != $v->value()), $this->context);
         default:
           throw new Exception(t("Operator %op cannot be used between symbols", array(
@@ -872,8 +882,10 @@ class CharacterExpressionSymbol extends CharacterExpressionValue{
     }else if($v->type() == 'text'){
       switch($o){
         case 'is':
+        case 'in':
           return new CharacterExpressionNumber((int)($this->val == $v->value()), $this->context);
         case 'is-not':
+        case 'not-in':
           return new CharacterExpressionNumber((int)($this->val != $v->value()), $this->context);
         default:
           throw new Exception(t("Operator %op cannot be used between a symbol and a text string", array(
