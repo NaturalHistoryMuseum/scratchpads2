@@ -10,6 +10,14 @@
            * init
            */
           this.init = function(){
+            // Check if this cell is disabled
+            var m = Drupal.characterMetadataManager.getMetadata(editor.item.index, editor.column.id);
+            if (m.disabled){
+              setTimeout(function(){
+                editor.cancelChanges();
+              }, 0);
+              return;
+            }
             // We can have multiple values if this is a taxon, or if this is an 'and' character
             this.multiple = editor.column.data.type == 'AND' || editor.item.id.match(/^taxonomy_term:\d+$/);
             // Create the popup body
@@ -205,8 +213,12 @@
            * destroy
            */
           this.destroy = function(){
-            this.$overlay.remove();
-            this.$input.remove();
+            if (typeof this.$overlay !== 'undefined'){
+              this.$overlay.remove();
+            }
+            if (typeof this.$input !== 'undefined'){
+              this.$input.remove();
+            }
           }
 
           /**
@@ -287,6 +299,9 @@
            */
           this.loadValue = function(item) {
             var m = Drupal.characterMetadataManager.getMetadata(item.index, editor.column.id);
+            if (m.disabled){
+              return;
+            }
             if (m && typeof m.value !== 'undefined'){
               this.defaultValue = m.value;
             } else {
@@ -300,7 +315,9 @@
            * serializeValue
            */
           this.serializeValue = function() {
-            return this.$input.attr('value');
+            if (typeof this.$input !== 'undefined'){
+              return this.$input.attr('value');
+            }
           };
 
           /**
@@ -362,7 +379,14 @@
             var bt;
 
             this.init = function() {
-
+                // Check if this cell is disabled
+                var m = Drupal.characterMetadataManager.getMetadata(args.item.index, args.column.id);
+                if (m.disabled){
+                  setTimeout(function(){
+                    args.cancelChanges();
+                  }, 0);
+                  return;
+                }
                 $input = $("<INPUT type=text class='editor-text' />")
                 .appendTo(args.container)
                 .bind("keydown.nav",
@@ -373,12 +397,14 @@
                 })
                 .focus()
                 .select();                
-                scope.bt();                
+                scope.bt();
             };
 
             this.destroy = function() {
-                $input.btOff();
-                $input.remove();
+                if (typeof $input !== 'undefined'){
+                    $input.btOff();
+                    $input.remove();
+                }
             };
             
             this.bt = function(){
@@ -410,14 +436,18 @@
             };
 
             this.loadValue = function(item) {
-                defaultValue = item[args.column.field] || "";
-                $input.val(defaultValue);
-                $input[0].defaultValue = defaultValue;
-                $input.select();
+                if (typeof $input !== 'undefined'){
+                    defaultValue = item[args.column.field] || "";
+                    $input.val(defaultValue);
+                    $input[0].defaultValue = defaultValue;
+                    $input.select();
+                }
             };
 
             this.serializeValue = function() {
-                return $input.val();
+                if (typeof $input !== 'undefined'){
+                    return $input.val();
+                }
             };
 
             this.applyValue = function(item, value) {
@@ -474,7 +504,14 @@
             var element = $('#slickgrid');
 
             this.init = function() {
-
+                // Check if this cell is disabled
+                var m = Drupal.characterMetadataManager.getMetadata(args.item.index, args.column.id);
+                if (m.disabled){
+                  setTimeout(function(){
+                    args.cancelChanges();
+                  }, 0);
+                  return;
+                }
                 // Open a CTools modal dialog
                 Drupal.CTools.Modal.show('ctools-modal-slickgrid-fixed');
                 

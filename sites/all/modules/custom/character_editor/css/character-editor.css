@@ -233,3 +233,7 @@ div.character-editor-popup-button-highlight {
   font-size: 0.9em;
   color: #444;
 }
+
+#slickgrid div.character-editor-disabled-cell {
+  background: #E8E8E8;
+}

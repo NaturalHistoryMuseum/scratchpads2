@@ -20,7 +20,10 @@
  * - Variables, which should be enclosed in curly brackets, eg. {height}
  * 
  * - Lists of expressions, enclosed in square brackets and with expressions separated
- *   by commas, eg. ["green", "blue", "yellow"] ;
+ *   by commas (for conjoined lists) or pipes (for disjoint lists), 
+ *   eg. ["green", "blue", "yellow"].  Whether a list is conjoined or disjoint
+ *   differs in how boolean is, is-not, <, <=, >, >= operators apply: 
+ *   10 > [9, 11] is FALSE while 10 > [9 | 11] is TRUE ;
  *   
  * - Ranges, enclosed in square brackets and using the '..' operator, eg.
  *   [1 .. 5]. Ranges of strings or arrays are not permitted - however it is
@@ -40,10 +43,27 @@
  *   
  * - Parenthesized expressions
  * 
+ * When evaluating an expression, variables may be:
+ * 
+ * - Numbers ;
+ * - Text ;
+ * - Ranges, represented by an array defining 'min' and 'max' ;
+ * - Conjoined lists, represented by an Array ;
+ * - An array defining 'type' and 'data' where 'type' may be:
+ *   number, text, symbol, range, list, list-disjoint
+ * 
  * Some notes:
+ *   
+ * - Lists are not arrays ; so they are not ordered and it is not possible to have
+ *   multi-dimensional lists ([[1,2], 3] actually evaluates to [1,2,3])
  *   
  * - Testing for equality between a value and a range is always FALSE.
  * 
+ * - Evaluating a boolean binary operator where one (and only one) of the operands
+ *   is a variable the value of which is undefined will return FALSE rather than
+ *   raise an exception (eg. {something} beeing undefined, {something} + 2 will raise
+ *   an exception but {something} > 10 will evaluate to FALSE)
+ *
  */
 class CharacterExpressionParser{
   /* Exception Error codes */
@@ -58,24 +78,76 @@ class CharacterExpressionParser{
   // but replaced at parse time with "neg". "," and ".." are parsed as operators,
   // but internally used to build lists and ranges.
   private $operators = array(
-    'neg' => 1,
-    'not' => 1,
-    '*' => 2,
-    '/' => 2,
-    '+' => 2,
-    '-' => 2,
-    '<' => 2,
-    '<=' => 2,
-    '>' => 2,
-    '>=' => 2,
-    'is-not' => 2,
-    'is' => 2,
-    'in' => 2,
-    'not-in' => 2,
-    'and' => 2,
-    'or' => 2,
-    ',' => 2,
-    '..' => 2
+    'neg' => array(
+      'arity' => 1
+    ),
+    'not' => array(
+      'arity' => 1
+    ),
+    '*' => array(
+      'arity' => 2
+    ),
+    '/' => array(
+      'arity' => 2
+    ),
+    '+' => array(
+      'arity' => 2
+    ),
+    '-' => array(
+      'arity' => 2
+    ),
+    '<' => array(
+      'arity' => 2,
+      'boolean' => TRUE
+    ),
+    '<=' => array(
+      'arity' => 2,
+      'boolean' => TRUE
+    ),
+    '>' => array(
+      'arity' => 2,
+      'boolean' => TRUE
+    ),
+    '>=' => array(
+      'arity' => 2,
+      'boolean' => TRUE
+    ),
+    'is' => array(
+      'arity' => 2,
+      'boolean' => TRUE
+    ),
+    'is-not' => array(
+      'arity' => 2,
+      'boolean' => TRUE
+    ),
+    'in' => array(
+      'arity' => 2,
+      'boolean' => TRUE
+    ),
+    'not-in' => array(
+      'arity' => 2,
+      'boolean' => TRUE
+    ),
+    'and' => array(
+      'arity' => 2,
+      'boolean' => TRUE
+    ),
+    'or' => array(
+      'arity' => 2,
+      'boolean' => TRUE
+    ),
+    ',' => array(
+      'arity' => 2,
+      'constructor' => TRUE
+    ),
+    '|' => array(
+      'arity' => 2,
+      'constructor' => TRUE
+    ),
+    '..' => array(
+      'arity' => 2,
+      'constructor' => TRUE
+    )
   );
 
   /**
@@ -96,6 +168,7 @@ class CharacterExpressionParser{
    * Evaluate the value of the expression with the given variables
    */
   public function evaluate($variable_map = array(), $symbol_order = array(), $format = CharacterExpressionParser::FORMAT_VALUE){
+    if(empty($this->tree)){throw new Exception("No expression defined");}
     $val = $this->evaluateRecursive($this->tree, array(
       'variable_map' => $variable_map,
       'symbol_order' => $symbol_order
@@ -112,22 +185,29 @@ class CharacterExpressionParser{
       foreach($tree['operands'] as $operand){
         $ops[] = $this->evaluateRecursive($operand, $context);
       }
-      if($this->operators[$tree['operator']] == 1){
+      if($this->operators[$tree['operator']]['arity'] == 1){
         return $ops[0]->applyUnaryOperator($tree['operator']);
-      }else if($tree['operator'] == ','){
+      }else if($tree['operator'] == ',' || $tree['operator'] == '|'){
         if($ops[0]->type == 'list'){
+          if($tree['operator'] == ',' && !$ops[0]->isConjoined()){throw new Exception("Lists can be conjoined or disjoint but not both");}
           return $ops[0]->applyBinaryOperator('+', $ops[1]);
         }else if($ops[1]->type == 'list'){
+          if($tree['operator'] == ',' && !$ops[1]->isConjoined()){throw new Exception("Lists can be conjoined or disjoint but not both");}
           return $ops[1]->applyBinaryOperator('+', $ops[0]);
         }else{
           return new CharacterExpressionList(array(
             $ops[0],
             $ops[1]
-          ), $this->context);
+          ), ($tree['operator'] == ','), $this->context);
         }
       }else if($tree['operator'] == '..'){
         return new CharacterExpressionRange($ops[0], $ops[1]);
       }else{
+        if(!empty($this->operators[$tree['operator']]['boolean'])){
+          $v1d = !($ops[0] instanceof CharacterExpressionVariable) || $ops[0]->isDefined();
+          $v2d = !($ops[1] instanceof CharacterExpressionVariable) || $ops[1]->isDefined();
+          if($v1d xor $v2d){return new CharacterExpressionNumber(0, $context);}
+        }
         return $ops[0]->applyBinaryOperator($tree['operator'], $ops[1]);
       }
     }else if($tree['type'] == 'v'){
@@ -166,7 +246,7 @@ class CharacterExpressionParser{
     foreach($this->expression as $item){
       if($item == 'o'){
         $v = array_shift($tokens);
-        if($this->operators[$v] == 2){
+        if($this->operators[$v]['arity'] == 2){
           $out .= ' ' . $v . ' ';
         }else{
           $out .= $v;
@@ -402,7 +482,7 @@ class CharacterExpressionParser{
       if($next === NULL){return t('Symbol "%sym" cannot be at the end of the expression', array(
           '%sym' => $current
         ));}
-      if($next == 'o' && $next_token != "-" && $this->operators[$next_token] == 2){return t('Symbol "%sym" cannot be followed by binary operator %op', array(
+      if($next == 'o' && $next_token != "-" && $this->operators[$next_token]['arity'] == 2){return t('Symbol "%sym" cannot be followed by binary operator %op', array(
           '%sym' => $current,
           '%op' => $next_token
         ));}
@@ -417,7 +497,7 @@ class CharacterExpressionParser{
       if($next == 'v'){return t('Symbol ")" cannot be followed by value %value', array(
           '%value' => $next_token
         ));}
-    }else if($current == 'o' && $this->operators[$current_token] == 2){
+    }else if($current == 'o' && $this->operators[$current_token]['arity'] == 2){
       if($prev === NULL || $this->isSymbol($prev, 'start')){return t('Binary operator %op cannot be at start of expression or group', array(
           '%op' => $current_token
         ));}
@@ -468,7 +548,7 @@ class CharacterExpressionParser{
       foreach($node['nodes'] as $child_node){
         $tree[] = $this->buildTreeRecursive($child_node);
       }
-      foreach($this->operators as $operator => $arity){
+      foreach($this->operators as $operator => $info){
         do{
           $index = -1;
           foreach($tree as $i => $elem){
@@ -479,7 +559,7 @@ class CharacterExpressionParser{
           }
           if($index >= 0){
             $new_tree = array();
-            if($arity == 1){
+            if($info['arity'] == 1){
               $new_tree = array_slice($tree, 0, $index);
               $operands = array(
                 $tree[$index + 1]
@@ -667,13 +747,13 @@ class CharacterExpressionText extends CharacterExpressionValue{
    * toString
    */
   public function toString($format = CharacterExpressionParser::FORMAT_EXPRESSION){
-    if ($format == CharacterExpressionParser::FORMAT_EXPRESSION){
+    if($format == CharacterExpressionParser::FORMAT_EXPRESSION){
       return '"' . $this->val . '"';
-    } else {
+    }else{
       return $this->val;
     }
   }
-  
+
   /**
    * applyUnaryOperator
    */
@@ -739,13 +819,13 @@ class CharacterExpressionSymbol extends CharacterExpressionValue{
    * toString
    */
   public function toString($format = CharacterExpressionParser::FORMAT_EXPRESSION){
-    if ($format == CharacterExpressionParser::FORMAT_EXPRESSION){
+    if($format == CharacterExpressionParser::FORMAT_EXPRESSION){
       return '\'' . $this->val . '\'';
-    } else {
+    }else{
       return $this->val;
     }
   }
-  
+
   /**
    * applyUnaryOperator
    */
@@ -820,8 +900,16 @@ class CharacterExpressionList extends CharacterExpressionValue{
   /**
    * __construct
    */
-  public function __construct($val, $context){
+  public function __construct($val, $conjoined, $context){
     parent::__construct($val, 'list', $context);
+    $this->conjoined = $conjoined;
+  }
+
+  /**
+   * isConjoined
+   */
+  public function isConjoined(){
+    return $this->conjoined;
   }
 
   /**
@@ -843,7 +931,8 @@ class CharacterExpressionList extends CharacterExpressionValue{
       $a[] = $item->evaluate();
     }
     if($format == CharacterExpressionParser::FORMAT_EXPRESSION){
-      return '[' . implode(', ', $a) . ']';
+      $op = $this->conjoined ? ', ' : ' | ';
+      return '[' . implode($op, $a) . ']';
     }else if($format == CharacterExpressionParser::FORMAT_VALUE){return implode(',', $a);}
   }
 
@@ -876,11 +965,13 @@ class CharacterExpressionList extends CharacterExpressionValue{
       }
       switch($o){
         case '+':
-          return new CharacterExpressionList(array_merge($this->val, $v->value()), $this->context);
+          if(!($this->conjoined xor $v->isConjoined())){throw new Exception("Cannot join a disjoint and conjoined list together");}
+          return new CharacterExpressionList(array_merge($this->val, $v->value()), $this->conjoined, $this->context);
         case 'is':
+          if(!($this->conjoined xor $v->isConjoined())){return new CharacterExpressionNumber(0, $this->context);}
           return new CharacterExpressionNumber((int)(count(array_diff($a1, $a2)) == 0 && count(array_diff($a2, $a1)) == 0), $this->context);
-          ;
         case 'is-not':
+          if(!($this->conjoined xor $v->isConjoined())){return new CharacterExpressionNumber(1, $this->context);}
           return new CharacterExpressionNumber((int)(count(array_diff($a1, $a2)) > 0), $this->context);
         case 'in':
           return new CharacterExpressionNumber((int)(count(array_diff($a1, $a2)) == 0), $this->context);
@@ -913,11 +1004,7 @@ class CharacterExpressionList extends CharacterExpressionValue{
           )));
       }
     }else{
-      if($o == 'in' || $o == 'not-in'){
-        if(!$reverse && $op != '+'){throw new Exception(t("Operator %op cannot be used between a list and a %type", array(
-            '%op' => $o,
-            '%type' => $v->type()
-          )));}
+      if($o == 'in' || $o == 'not-in' || $o == 'is' || $o == 'is-not'){
         $a1 = array();
         foreach($this->val as $item){
           $a1[] = $item->value();
@@ -934,10 +1021,22 @@ class CharacterExpressionList extends CharacterExpressionValue{
         }
       }
       switch($o){
+        case 'is':
+          if($this->conjoined){
+            return new CharacterExpressionNumber(0, $this->context);
+          }else{
+            return new CharacterExpressionNumber((int)in_array($v->value(), $a1), $this->context);
+          }
+        case 'is-not':
+          if($this->conjoined){
+            return new CharacterExpressionNumber(1, $this->context);
+          }else{
+            return new CharacterExpressionNumber((int)!in_array($v->value(), $a1), $this->context);
+          }
         case '+':
           return new CharacterExpressionList(array_merge($this->val, array(
             $v
-          )), $this->context);
+          )), $this->conjoined, $this->context);
         case 'in':
           return new CharacterExpressionNumber((int)in_array($v->value(), $a1), $this->context);
         case 'not-in':
@@ -948,9 +1047,10 @@ class CharacterExpressionList extends CharacterExpressionValue{
         case '<=':
           foreach($this->val as $item){
             $c = $item->applyBinaryOperator($o, $v);
-            if(!$c->value()){return new CharacterExpressionNumber(0, $this->context);}
+            if($this->conjoined && !$c->value()){return new CharacterExpressionNumber(0, $this->context);}
+            if(!$this->conjoined && $c->value()){return new CharacterExpressionNumber(1, $this->context);}
           }
-          return new CharacterExpressionNumber(1, $this->context);
+          return new CharacterExpressionNumber((int)($this->conjoined), $this->context);
         default:
           throw new Exception(t("Operator %op cannot be used between an array and a %type", array(
             '%op' => $o,
@@ -1216,6 +1316,13 @@ class CharacterExpressionVariable extends CharacterExpressionValue{
   }
 
   /**
+   * isDefined
+   */
+  public function isDefined(){
+    return isset($this->context['variable_map'][$this->name]);
+  }
+
+  /**
    * fetchItem
    */
   private function fetchItem(){
@@ -1245,12 +1352,12 @@ class CharacterExpressionVariable extends CharacterExpressionValue{
       $min = $this->getValueObject($val['min']);
       $max = $this->getValueObject($val['max']);
       return new CharacterExpressionRange($min, $max, $this->context);
-    }else if(is_array($val) && (!$type || $type == 'list')){
+    }else if(is_array($val) && (!$type || $type == 'list' || $type = 'list-disjoint')){
       $a = array();
       foreach($val as $v){
         $a[] = $this->getValueObject($v);
       }
-      return new CharacterExpressionList($a, $this->context);
+      return new CharacterExpressionList($a, !$type || $type == 'list', $this->context);
     }else{
       throw new Exception(t("Could not work out variable type for %name", array(
         '%name' => $this->name

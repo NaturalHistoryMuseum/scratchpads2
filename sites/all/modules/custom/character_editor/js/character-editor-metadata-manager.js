@@ -26,15 +26,20 @@
             try{
               var decode = $.parseJSON(data[i][column]);
               if (typeof decode == 'object'){
-                row[column] = {};
-                if (typeof decode.data !== 'undefined'){
-                  data[i][column] = decode.data;
-                }
-                if (typeof decode.metadata !== 'undefined'){
-                  row[column].flag = decode.metadata;
-                }
-                if (typeof decode.value !== 'undefined'){
-                  row[column].value = decode.value;
+                row[column] = {disabled: false};
+                if (typeof decode.disabled !== 'undefined' && decode.disabled){
+                  data[i][column] = '';
+                  row[column].disabled = true;
+                } else {
+                  if (typeof decode.data !== 'undefined'){
+                    data[i][column] = decode.data;
+                  }
+                  if (typeof decode.metadata !== 'undefined'){
+                    row[column].flag = decode.metadata;
+                  }
+                  if (typeof decode.value !== 'undefined'){
+                    row[column].value = decode.value;
+                  }
                 }
               }
             } catch(e){
@@ -48,7 +53,10 @@
       window.setTimeout($.proxy(function(){
         for (var i = 0; i < this.metadata.length; i++){
           for (var column in this.metadata[i]){
-            if (this.metadata[i][column].flag && this.metadata[i][column].flag.length > 0){
+            if (this.metadata[i][column].disabled){
+              var node = grid.getCellNode(i, grid.getColumnIndex(column));
+              $(node).addClass('character-editor-disabled-cell');
+            } else if (this.metadata[i][column].flag && this.metadata[i][column].flag.length > 0){
               var node = grid.getCellNode(i, grid.getColumnIndex(column));
               var flag = Drupal.settings.CharacterEditorFlags[this.metadata[i][column].flag];
               $(node).attr('character-flag', flag.abbr);
@@ -69,6 +77,9 @@
       var elements = [];
       var cell_flag_id = this.metadata[info.cell.row][info.column.id].flag;
       if (cell_flag_id == 'computed' || cell_flag_id == 'inherited'){
+        return [];
+      }
+      if (this.metadata[info.cell.row][info.column.id].disabled){
         return [];
       }
       var selected_background = 'url("' + Drupal.settings.basePath + Drupal.settings.CharacterEditorPath + '/images/tick.png")';

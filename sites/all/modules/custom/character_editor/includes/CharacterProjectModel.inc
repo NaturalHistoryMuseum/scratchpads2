@@ -211,11 +211,13 @@ class CharacterProjectModel{
         $state_order = array_merge($state_order, array_keys($tree_item->model()->getControlledMap()));
       }
     }
-    // Compute values
+    // Compute values and conditions
+    $variables = $this->rowsToVariables($characters);
     foreach($this->getTree() as $item_key => $tree_item){
       if($tree_item->model()->isComputed()){
-        $characters = $tree_item->updateComputedValues($characters, $this->getTree(), $state_order);
+        $characters = $tree_item->updateComputedValues($characters, $variables, $state_order);
       }
+      $characters = $tree_item->updateConditions($characters, $variables, $state_order);
     }
     // Assign them to the rows
     $ids = array();
@@ -258,6 +260,53 @@ class CharacterProjectModel{
     }
     // And order the items
     return $this->assign_tree_values($tree, 0);
+  }
+
+  /**
+   * rowsToVariables
+   * 
+   * Transform rows of values (as returned by CharacterTreeNode::getValues())
+   * into variables usabled by the expression parser
+   */
+  private function rowsToVariables($rows){
+    $tree = $this->getTree();
+    $variables = array();
+    foreach($rows as $row_id => $row){
+      $variables[$row_id] = array();
+      foreach($row as $char_id => $char_value){
+        $tree_id = preg_replace('/^character_(\d+)_(\d+)$/', 'character_editor_character:$1:$2', $char_id);
+        $stripped_id = preg_replace('/^character_(\d+)_\d+$/', '$1', $char_id);
+        $data = isset($char_value['value']) ? $char_value['value'] : $char_value['data'];
+        if($tree[$tree_id]->model()->isControlled()){
+          $data = explode(',', $data);
+          foreach($data as $data_idx => $data_value){
+            $data[$data_idx] = array(
+              'type' => 'symbol',
+              'value' => $data_value
+            );
+          }
+          if(count($data) == 1){
+            $data = reset($data);
+          }else{
+            if($tree[$tree_id]->model()->isOrCharacter()){
+              $data = array(
+                'type' => 'list-disjoint',
+                'value' => $data
+              );
+            }
+          }
+        }else if($tree[$tree_id]->model()->isNumeric() == 'numeric'){
+          if(preg_match('/^\s*(-?\s*[0-9.]+)\s*-\s*(-?\s*[0-9.]+)\s*?$/', $data, $matches)){
+            $data = array(
+              'min' => $matches[1],
+              'max' => $matches[2]
+            );
+          }
+        }
+        $variables[$row_id][$stripped_id] = $data;
+      }
+    }
+    return $variables;
   }
 
   /**

@@ -67,6 +67,15 @@ class CharacterModel{
   }
 
   /**
+   * isOrCharacter
+   * 
+   * For controlled characters, returns TRUE if this is an OR character
+   */
+  public function isOrCharacter(){
+    return $this->w->getBundle() == 'controlled' && $this->w->field_char_and_or->value() == 'OR';
+  }
+
+  /**
    * isNumeric
    */
   public function isNumeric(){
@@ -104,7 +113,7 @@ class CharacterModel{
       $variables = $project_model->getAvailableVariables();
       $children = element_children($content['character_editor_character']);
       $child = reset($children);
-      $expr = $content['character_editor_character'][$child]['field_char_expr'][0]['#markup'];
+      $expr = $this->w->field_char_expr->value();
       module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
       try{
         $e = new CharacterExpressionParser($expr);
@@ -235,6 +244,48 @@ class CharacterModel{
             $result[$row_id] = $e->getMessage();
           }
         }
+      }
+    }
+    return $result;
+  }
+
+  /**
+   * hasCondition
+   * 
+   * Return true if this character has a condition
+   */
+  public function hasCondition(){
+    if($this->isGroup() || $this->isComputed()){return FALSE;}
+    return $this->w->field_char_condition->value() != '';
+  }
+
+  /**
+   * getConditions
+   *
+   * Given a list of rows of the form:
+   * $row_id => array(
+   *   $character_id => value
+   * )
+   *
+   * Return a matching list of boolean equal to the evaluation of the character's condition.
+   * Note that if a row is not included in the result, then it should be assumed the condition
+   * evaluated to TRUE.
+   */
+  public function getConditions($rows, $order){
+    if(!$this->hasCondition()){return array();}
+    $result = array();
+    module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
+    try{
+      $parser = new CharacterExpressionParser($this->w->field_char_condition->value());
+    }
+    catch(Exception $e){
+      return $result;
+    }
+    foreach($rows as $row_id => $row){
+      try{
+        $result[$row_id] = ($parser->evaluate($row, $order, CharacterExpressionParser::FORMAT_VALUE) !== 0);
+      }
+      catch(Exception $e){
       }
     }
     return $result;
