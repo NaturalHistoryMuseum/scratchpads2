@@ -808,7 +808,7 @@ function character_editor_project_view($entity){
 function character_editor_character_form_submit(&$form, &$form_state){
   if(empty($form_state['entity'])){return;}
   $character_w = character_editor_wrapper('character_editor_character', $form_state['entity']);
-  character_editor_detach_character($character_w);
+  // Attach to it's new parents, and detach from old parents
   $parents = array();
   if(isset($form_state['values']['group'])){
     foreach($form_state['values']['group'] as $group_id){
@@ -818,9 +818,18 @@ function character_editor_character_form_submit(&$form, &$form_state){
   if(empty($parents)){
     $parents[] = character_editor_wrapper('character_editor_project', $form_state['character_project_id']);
   }
+  $existing_parents = character_editor_get_parents($character_w);
+  $new_parents_ids = array();
   foreach($parents as $parent_w){
     character_editor_associate_character($parent_w, $character_w);
+    $new_parents_ids[] = $parent_w->type() . ':' . $parent_w->getIdentifier();
   }
+  foreach($existing_parents as $parent_w){
+    if(!in_array($parent_w->type() . ':' . $parent_w->getIdentifier(), $new_parents_ids)){
+      character_editor_detach_character($character_w, $parent_w);
+    }
+  }
+  // Feedback and redirect
   if(empty($form_state['triggering_element']['#update'])){
     drupal_set_message(t("%type character added", array(
       "%type" => ucfirst($character_entity->type)

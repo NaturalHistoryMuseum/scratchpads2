@@ -216,20 +216,23 @@ function character_editor_get_tree($entity_w, $mode = 'flat', $parent_id = 0, $e
  * Note that the entities must have an ID before a relation can be
  * created - so the entities must be saved.
  * 
- * Returns the created relation.
+ * Returns the created/loaded relation.
  */
 function character_editor_associate_character(EntityDrupalWrapper $parent_w, EntityDrupalWrapper $child_w){
-  $relation = relation_create('character', array(
-    0 => array(
-      'entity_type' => $parent_w->type(),
-      'entity_id' => $parent_w->getIdentifier()
-    ),
-    1 => array(
-      'entity_type' => $child_w->type(),
-      'entity_id' => $child_w->getIdentifier()
-    )
-  ));
-  relation_save($relation);
+  $relation = character_editor_association_exists($parent_w, $child_w);
+  if(!$relation){
+    $relation = relation_create('character', array(
+      0 => array(
+        'entity_type' => $parent_w->type(),
+        'entity_id' => $parent_w->getIdentifier()
+      ),
+      1 => array(
+        'entity_type' => $child_w->type(),
+        'entity_id' => $child_w->getIdentifier()
+      )
+    ));
+    relation_save($relation);
+  }
   return $relation;
 }
 
@@ -330,7 +333,7 @@ function character_editor_set_character_value(EntityDrupalWrapper $character_w, 
   // Get the relation or create a new one
   $values = character_editor_get_character_values($character_w, $entity_w);
   $values = reset($values);
-  if (empty($values) || empty($values['relation_w'])){
+  if(empty($values) || empty($values['relation_w'])){
     $relation = (object)(array(
       'relation_type' => 'character_state',
       'uid' => $user->uid,
@@ -351,11 +354,11 @@ function character_editor_set_character_value(EntityDrupalWrapper $character_w, 
         )
       )
     ));
-  } else {
+  }else{
     $relation = $values['relation_w']->raw();
   }
   // Assign the field values
-  if ($data !== NULL){
+  if($data !== NULL){
     $relation->field_character_state_data = array(
       LANGUAGE_NONE => array(
         array(
@@ -364,7 +367,7 @@ function character_editor_set_character_value(EntityDrupalWrapper $character_w, 
       )
     );
   }
-  if ($flag !== NULL){
+  if($flag !== NULL){
     $relation->field_character_state_meta = array(
       LANGUAGE_NONE => array(
         array(
