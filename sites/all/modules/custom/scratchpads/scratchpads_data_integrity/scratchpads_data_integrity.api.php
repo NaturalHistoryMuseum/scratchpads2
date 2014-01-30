@@ -14,6 +14,8 @@
  *     'frequency' => time in seconds between checks, defaults to 86400,
  *     'file' => file that the function can be found in, relative to the 
  *       module's folder.
+ *     'mail' => Boolean to state whether the error should be mailed. Defaults
+ *       to FALSE.
  *   );
  * );
  */
