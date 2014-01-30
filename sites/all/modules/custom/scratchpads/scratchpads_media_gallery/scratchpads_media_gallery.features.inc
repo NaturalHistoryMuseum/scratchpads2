@@ -25,7 +25,21 @@ function scratchpads_media_gallery_node_info(){
  * Implements hook_styles_default_presets_alter().
  */
 function scratchpads_media_gallery_styles_default_presets_alter(&$presets){
-  $styles = styles_default_styles();
+  foreach(array(
+    'medium',
+    'species_slideshow_large',
+    'species_slideshow_thumbnail'
+  ) as $image_style_to_link_to_media){
+    foreach(array(
+      'default',
+      'image'
+    ) as $file_type){
+      array_unshift($presets['file']['containers'][$file_type]['presets'][$image_style_to_link_to_media], array(
+        'name' => 'linkToMedia',
+        'settings' => array()
+      ));
+    }
+  }
   $presets['file']['containers']['image']['styles']['square_thumbnail'] = array(
     'default preset' => 'linked_square_thumbnail',
     'preset' => 'linked_square_thumbnail'
