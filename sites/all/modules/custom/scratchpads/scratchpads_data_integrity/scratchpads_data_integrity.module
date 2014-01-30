@@ -7,11 +7,12 @@ function scratchpads_data_integrity_mail($key, &$message, $params){
   switch($key){
     case 'maintainer':
       $message = array_merge($message, array(
-        'subject' => t('Your Scratchpad has incomplete data'),
+        'subject' => t('Your Scratchpad has a data issue'),
         'body' => array(
           'Dear Scratchpad Maintainer',
           'There appears to be an issue with the data on your site.  The Scratchpads Team has been informed of this issue, so we will already be working on repairing your data.',
-          'This is nothing to be concerned about, but if you would like further information, then please don\'t hesitate to reply to this message.',
+          'Depending on the issue, this may well affect how your site is functioning.  If you have experienced any problems, then please report them to us.',
+          'There is no reason to be concerned by this, but if you would like further information, then please do not hesitate to reply to this message.',
           'Thanks,',
           'Scratchpads Support Team',
           "--\nsupport@scratchpads.eu"
