@@ -51,26 +51,34 @@
           .appendTo($menu);
           // Add the elements from the hooks
           for (var i = 0; i < elements.length; i++){
-            if (typeof elements[i].element == 'undefined'){
-              continue;
-            }
-            var $elem = $('<div></div>').addClass('character-editor-popup-row');
-            if (typeof elements[i].css !== 'undefined'){
-              $elem.css(elements[i].css);
-            }
-            if (typeof elements[i].element == 'string'){
-              $elem.html(elements[i].element)
+            var $elem;
+            if (typeof elements[i].separator != 'undefined' && elements[i].separator){
+              $elem = $('<div></div>').addClass('character-editor-popup-separator');
+            } else if (typeof elements[i].element != 'undefined'){
+              if (typeof elements[i].subtitle !== 'undefined' && elements[i].subtitle){
+                $elem = $('<div></div>').addClass('character-editor-popup-subtitle');
+              } else {
+                $elem = $('<div></div>').addClass('character-editor-popup-row');
+              }
+              if (typeof elements[i].element == 'string'){
+                $elem.html(elements[i].element)
+              } else {
+                $elem.append($(elements[i].element));
+              }
+              if (typeof elements[i].css !== 'undefined'){
+                $elem.css(elements[i].css);
+              }
+              if (typeof elements[i].callback !== 'undefined'){
+                var that = this;
+                (function(callback){
+                  $elem.click($.proxy(function(){
+                    callback();
+                    that.close();
+                  }, this));
+                })(elements[i].callback);
+              }
             } else {
-              $elem.append($(elements[i].element));
-            }
-            if (typeof elements[i].callback !== 'undefined'){
-              var that = this;
-              (function(callback){
-                $elem.click($.proxy(function(){
-                  callback();
-                  that.close();
-                }, this));
-              })(elements[i].callback);
+              continue;
             }
             $menu.append($elem);
           }

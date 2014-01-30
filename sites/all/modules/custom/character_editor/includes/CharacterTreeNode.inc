@@ -143,7 +143,9 @@ class CharacterTreeNode{
       foreach($row_ids as $id){
         $result[$id][$this->column_id] = array(
           'data' => '',
-          'metadata' => 'computed'
+          'metadata' => json_encode(array(
+            'flag' => 'computed'
+          ))
         );
       }
     }else{
@@ -153,12 +155,12 @@ class CharacterTreeNode{
       }
       foreach($values as $value){
         $data = '';
-        $metadata = '';
+        $metadata = array();
         if(isset($value['data'][0]['safe_value'])){
           $data = $value['data'][0]['safe_value'];
         }
         if(isset($value['metadata'][0]['safe_value'])){
-          $metadata = $value['metadata'][0]['safe_value'];
+          $metadata = unserialize($value['metadata'][0]['value']);
         }
         $char_id = $value['entity_w']->type() . ':' . $value['entity_w']->getIdentifier();
         if(!empty($value_map)){

@@ -188,6 +188,18 @@
   font-weight: bold;
 }
 
+.character-editor-popup-subtitle {
+  background: #EEE;
+  text-align: center;
+}
+
+.character-editor-popup-separator {
+  height: 2px;
+  width: 100%;
+  margin: 2px 0;
+  background: #DDD;
+}
+
 .character-editor-popup-row {
   background: #FFF;
   padding: 2px 18px 2px 18px;

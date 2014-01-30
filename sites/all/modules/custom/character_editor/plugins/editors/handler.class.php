@@ -41,7 +41,16 @@ class character_metadata_editor_handler{
    */
   function __construct($definition){
     $this->errors = array();
-    $this->flag = $_POST['flag'];
+    $this->metadata = array();
+    if(isset($_POST['flag'])){
+      $this->metadata['flag'] = $_POST['flag'];
+    }
+    if(isset($_POST['send_up'])){
+      $this->metadata['sendUp'] = $_POST['send_up'];
+    }
+    if(isset($_POST['send_down'])){
+      $this->metadata['sendDown'] = $_POST['send_down'];
+    }
     // Get the character
     if(isset($_POST['column_id']) && preg_match('/^character_(\d+)_(\d+)$/', $_POST['column_id'], $matches)){
       $character_id = $matches[1];
@@ -70,7 +79,7 @@ class character_metadata_editor_handler{
    */
   function update(){
     if(empty($this->errors)){
-      $r = character_editor_set_character_value($this->character_w, $this->entity_w, NULL, $this->flag);
+      $r = character_editor_set_character_value($this->character_w, $this->entity_w, NULL, $this->metadata);
       if(!$r){
         $this->errors[] = "Could not update or save the value";
       }

@@ -328,7 +328,7 @@ function character_editor_association_exists(EntityDrupalWrapper $wrap_1, Entity
  * This will update the existing relation, or create a new one
  * if none exist
  */
-function character_editor_set_character_value(EntityDrupalWrapper $character_w, EntityDrupalWrapper $entity_w, $data = NULL, $flag = NULL){
+function character_editor_set_character_value(EntityDrupalWrapper $character_w, EntityDrupalWrapper $entity_w, $data = NULL, $metadata = NULL){
   global $user;
   // Get the relation or create a new one
   $values = character_editor_get_character_values($character_w, $entity_w);
@@ -367,11 +367,15 @@ function character_editor_set_character_value(EntityDrupalWrapper $character_w, 
       )
     );
   }
-  if($flag !== NULL){
+  if($metadata !== NULL){
+    $existing_metadata = unserialize($relation->field_character_state_meta[LANGUAGE_NONE][0]['value']);
+    if($existing_metadata){
+      $metadata = array_merge($existing_metadata, $metadata);
+    }
     $relation->field_character_state_meta = array(
       LANGUAGE_NONE => array(
         array(
-          'value' => $flag
+          'value' => serialize($metadata)
         )
       )
     );

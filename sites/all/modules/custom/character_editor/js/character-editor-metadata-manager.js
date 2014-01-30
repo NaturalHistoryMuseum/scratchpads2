@@ -6,10 +6,18 @@
     this.init = function(){
       this.$slick = $(slickgrid.getContainer());
       this.metadata = []
+      this.subscriptions = [$.proxy(this, 'updateCell')];
       // Bind to 'onSlickgridDataLoaded'
       this.$slick.bind('onSlickgridDataLoaded', $.proxy(this, 'slickgridDataLoaded'));
       // Subscribe to the context menu
       Drupal.characterContextMenu.subscribe($.proxy(this, 'contextMenu'));
+    }
+    
+    /**
+     * updateCellSubscribe
+     */
+    this.updateCellSubscribe = function(fn){
+      this.subscriptions.push(fn);
     }
     
     /**
@@ -34,8 +42,14 @@
                   if (typeof decode.data !== 'undefined'){
                     data[i][column] = decode.data;
                   }
-                  if (typeof decode.metadata !== 'undefined'){
-                    row[column].flag = decode.metadata;
+                  if (typeof decode.metadata.flag !== 'undefined'){
+                    row[column].flag = decode.metadata.flag;
+                  }
+                  if (typeof decode.metadata.sendUp !== 'undefined'){
+                    row[column].sendUp = decode.metadata.sendUp == 0 ? false: true;
+                  }
+                  if (typeof decode.metadata.sendDown !== 'undefined'){
+                    row[column].sendDown = decode.metadata.sendDown == 0 ? false : true;
                   }
                   if (typeof decode.value !== 'undefined'){
                     row[column].value = decode.value;
@@ -56,14 +70,27 @@
             if (this.metadata[i][column].disabled){
               var node = grid.getCellNode(i, grid.getColumnIndex(column));
               $(node).addClass('character-editor-disabled-cell');
-            } else if (this.metadata[i][column].flag && this.metadata[i][column].flag.length > 0){
+            } else {
               var node = grid.getCellNode(i, grid.getColumnIndex(column));
-              var flag = Drupal.settings.CharacterEditorFlags[this.metadata[i][column].flag];
-              $(node).attr('character-flag', flag.abbr);
+              for (var s in this.subscriptions){
+                (this.subscriptions[s])(this.metadata[i][column], node)
+              }
             }
           }
         }
       }, this), 0);
+    }
+    
+    /**
+     * updataCell
+     */
+    this.updateCell = function(metadata, node){
+      if (metadata.flag && metadata.flag.length > 0){
+        var flag = Drupal.settings.CharacterEditorFlags[metadata.flag];
+        $(node).attr('character-flag', flag.abbr);
+      } else {
+        $(node).attr('character-flag', '');
+      }
     }
     
     /**
@@ -74,7 +101,6 @@
       if (info.cell.cell == 0){
         return [];
       }
-      var elements = [];
       var cell_flag_id = this.metadata[info.cell.row][info.column.id].flag;
       if (cell_flag_id == 'computed' || cell_flag_id == 'inherited'){
         return [];
@@ -83,6 +109,11 @@
         return [];
       }
       var selected_background = 'url("' + Drupal.settings.basePath + Drupal.settings.CharacterEditorPath + '/images/tick.png")';
+      var elements = [];
+      elements.push({
+        element: Drupal.t('Modifiers'),
+        subtitle: true
+      });
       for (var flag_id in Drupal.settings.CharacterEditorFlags){
         if (flag_id == 'computed' || flag_id == 'inherited'){
           continue;
@@ -109,18 +140,17 @@
       var node = grid.getCellNode(info.cell.row, info.cell.cell);
       var cell_flag_id = this.metadata[info.cell.row][info.column.id].flag;
       if (cell_flag_id == selected_flag.id){
-        $(node).attr('character-flag', '');
         this.metadata[info.cell.row][info.column.id].flag = '';
       } else {
-        $(node).attr('character-flag', selected_flag.abbr);
         this.metadata[info.cell.row][info.column.id].flag = selected_flag.id;
       }
+      this.updateCell(this.metadata[info.cell.row][info.column.id], node);
       // And send the data to be saved.
       slickgrid.callback('update', {
         entity_id: info.row.id,
         column_id: info.column.id,
         flag: cell_flag_id == selected_flag.id ? '' : selected_flag.id,
-        plugin: 'CharacterFlag'
+        plugin: 'CharacterMetadata'
       });
     }
     
