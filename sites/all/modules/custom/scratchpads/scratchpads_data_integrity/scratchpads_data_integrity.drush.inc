@@ -11,7 +11,7 @@ function scratchpads_data_integrity_drush_command(){
 
 function scratchpads_data_integrity_drush_check(){
   if(module_exists('scratchpads_data_integrity')){
-    foreach(scratchpads_data_integrity_get_messages(TRUE) as $message){
+    foreach(scratchpads_data_integrity_get_messages(TRUE, TRUE) as $message){
       drush_log($message, 'warning');
     }
   }
