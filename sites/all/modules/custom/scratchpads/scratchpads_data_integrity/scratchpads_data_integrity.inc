@@ -109,7 +109,7 @@ function scratchpads_data_integrity_check_taxonomy_for_loops(){
       $tid_in_loop += $loop['tids'];
       $loop_str = implode(' => ', $loop['loop']);
       if(!in_array($loop_str, $loops)){
-        $loops[] = $loop_str;
+        $loops[] = " - " . $loop_str;
       }
     }
   }
