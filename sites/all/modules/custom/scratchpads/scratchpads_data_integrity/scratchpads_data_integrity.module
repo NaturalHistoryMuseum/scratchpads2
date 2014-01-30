@@ -61,26 +61,33 @@ function scratchpads_data_integrity_menu(){
 function scratchpads_data_integrity_scratchpads_data_integrity(){
   return array(
     'scratchpads_data_integrity_check_all_terms_have_parents' => array(
-      'file' => 'scratchpads_data_integrity.inc'
+      'file' => 'scratchpads_data_integrity.inc',
+      'mail' => TRUE
     ),
     'scratchpads_data_integrity_check_taxonomy_for_loops' => array(
-      'file' => 'scratchpads_data_integrity.inc'
+      'file' => 'scratchpads_data_integrity.inc',
+      'mail' => TRUE
     ),
     'scratchpads_data_integrity_check_for_terms_in_deleted_vocabularies' => array(
       'file' => 'scratchpads_data_integrity.inc',
-      'frequency' => 604800
+      'frequency' => 604800,
+      'mail' => FALSE
     ),
     'scratchpads_data_integrity_check_for_deleted_files' => array(
       'file' => 'scratchpads_data_integrity.inc',
-      'frequency' => 604800
+      'frequency' => 604800,
+      'mail' => FALSE
     )
   );
 }
 
 /**
  * Helper function to get a list of messages.
+ * 
+ * $mail = Whether or not to return messages that are not for mailing.
+ * $all = Whether or not to ignore the last run time
  */
-function scratchpads_data_integrity_get_messages($get_all = FALSE){
+function scratchpads_data_integrity_get_messages($mail = FALSE, $all = FALSE){
   // Get a list of functions to run.
   $data_ints = array();
   foreach(module_implements('scratchpads_data_integrity') as $module){
@@ -103,7 +110,7 @@ function scratchpads_data_integrity_get_messages($get_all = FALSE){
   $messages = array();
   $time = time();
   foreach($data_ints as $func => $int){
-    if($get_all || empty($last_run[$func]) || $last_run[$func] + $int['frequency'] < $time){
+    if(($mail || !empty($int['mail'])) && ($all || empty($last_run[$func]) || $last_run[$func] + $int['frequency'] < $time)){
       if(!empty($int['file'])){
         require_once $int['file'];
       }
@@ -117,42 +124,42 @@ function scratchpads_data_integrity_get_messages($get_all = FALSE){
       $last_run[$func] = $time;
     }
   }
-  if(!$get_all){
+  if(!$all){
     variable_set('scratchpads_data_integrity_last_run', $last_run);
   }
   return $messages;
 }
 
-// /**
-//  * Implements hook_cron().
-//  */
-// function scratchpads_data_integrity_cron(){
-//   // Get a list of messages
-//   $messages = scratchpads_data_integrity_get_messages();
-//   if(count($messages)){
-//     global $language;
-//     /*
-//      * The following code will be allowed to run once we are confident that
-//      * there are no sites with large quantities of problematic data.
-//      * 
-//     $query = db_select('users', 'u');
-//     $query->innerJoin('users_roles', 'r', 'u.uid = r.uid');
-//     $results = $query->condition('rid', 5)->fields('u', array(
-//       'mail'
-//     ))->execute();
-//     foreach($results as $row){
-//       drupal_mail('scratchpads_data_integrity', 'maintainer', $row->mail, $language, array(
-//         'site_url' => url('', array(
-//           'absolute' => TRUE
-//         ))
-//       ), 'Scratchpads Support Team <support@scratchpads.eu>');
-//     }
-//     */
-//     drupal_mail('scratchpads_data_integrity', 'scratchpads_team', 'Simon Rycroft <s.rycroft@nhm.ac.uk>', $language, array(
-//       'site_url' => url('', array(
-//         'absolute' => TRUE
-//       )),
-//       'messages' => $messages
-//     ), 'Scratchpads Team (No reply) <no-reply@scratchpads.eu>');
-//   }
-// }
+/**
+ * Implements hook_cron().
+ */
+function scratchpads_data_integrity_cron(){
+  // Get a list of messages
+  $messages = scratchpads_data_integrity_get_messages();
+  if(count($messages)){
+    global $language;
+    /*
+     * The following code will be allowed to run once we are confident that
+     * there are no sites with large quantities of problematic data.
+     * 
+    $query = db_select('users', 'u');
+    $query->innerJoin('users_roles', 'r', 'u.uid = r.uid');
+    $results = $query->condition('rid', 5)->fields('u', array(
+      'mail'
+    ))->execute();
+    foreach($results as $row){
+      drupal_mail('scratchpads_data_integrity', 'maintainer', $row->mail, $language, array(
+        'site_url' => url('', array(
+          'absolute' => TRUE
+        ))
+      ), 'Scratchpads Support Team <support@scratchpads.eu>');
+    }
+    */
+    drupal_mail('scratchpads_data_integrity', 'scratchpads_team', 'Scratchpads Support Team <support@scratchpads.eu>', $language, array(
+      'site_url' => url('', array(
+        'absolute' => TRUE
+      )),
+      'messages' => $messages
+    ), 'Scratchpads Team (No reply) <no-reply@scratchpads.eu>');
+  }
+}
