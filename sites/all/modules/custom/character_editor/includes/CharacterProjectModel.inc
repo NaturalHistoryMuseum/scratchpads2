@@ -107,7 +107,13 @@ class CharacterProjectModel{
     $list = array();
     $character_map = array();
     $state_map = array();
+    $found = array();
     foreach($tree as $item){
+      if(in_array($item->model()->wrapper()->getIdentifier(), $found)){
+        // Characters can be in the tree multiple times, but the variable value is always the same.
+        continue;
+      }
+      $found[] = $item->model()->wrapper()->getIdentifier();
       if(!$item->model()->isGroup() && !$item->model()->isComputed()){
         $name = preg_replace('/[{}]/', ' ', $item->model()->label());
         $count = 1;
@@ -276,31 +282,20 @@ class CharacterProjectModel{
       foreach($row as $char_id => $char_value){
         $tree_id = preg_replace('/^character_(\d+)_(\d+)$/', 'character_editor_character:$1:$2', $char_id);
         $stripped_id = preg_replace('/^character_(\d+)_\d+$/', '$1', $char_id);
-        $data = isset($char_value['value']) ? $char_value['value'] : $char_value['data'];
+        $data = isset($char_value['variable']) ? $char_value['variable'] : $char_value['data'];
         if($tree[$tree_id]->model()->isControlled()){
-          $data = explode(',', $data);
-          foreach($data as $data_idx => $data_value){
-            $data[$data_idx] = array(
-              'type' => 'symbol',
-              'value' => $data_value
-            );
-          }
-          if(count($data) == 1){
-            $data = reset($data);
-          }else{
-            if($tree[$tree_id]->model()->isOrCharacter()){
-              $data = array(
-                'type' => 'list-disjoint',
-                'value' => $data
-              );
-            }
-          }
+          $data = array(
+            'type' => 'expr',
+            'value' => $data
+          );
         }else if($tree[$tree_id]->model()->isNumeric() == 'numeric'){
           if(preg_match('/^\s*(-?\s*[0-9.]+)\s*-\s*(-?\s*[0-9.]+)\s*?$/', $data, $matches)){
             $data = array(
-              'min' => $matches[1],
-              'max' => $matches[2]
+              'min' => $matches[1] + 0,
+              'max' => $matches[2] + 0
             );
+          }else{
+            $data = $data + 0;
           }
         }
         $variables[$row_id][$stripped_id] = $data;

@@ -33,7 +33,7 @@ class CharacterTreeNode{
     $this->id = $id;
     $this->column_id = preg_replace('/^.+:(\d+):(\d+)$/', 'character_$1_$2', $id);
     $this->model = new CharacterModel($node['wrapper']);
-    $this->relation = $node['relation'];
+    $this->relation = isset($node['relation']) ? $node['relation'] : NULL;
     $this->parent_id = $node['parent_id'];
     $this->depth = $node['depth'];
     $this->weight = $node['weight'];
@@ -156,30 +156,40 @@ class CharacterTreeNode{
       foreach($values as $value){
         $data = '';
         $metadata = array();
-        if(isset($value['data'][0]['safe_value'])){
-          $data = $value['data'][0]['safe_value'];
+        if(isset($value['data'][0]['value'])){
+          $data = $value['data'][0]['value'];
         }
         if(isset($value['metadata'][0]['safe_value'])){
           $metadata = unserialize($value['metadata'][0]['value']);
         }
         $char_id = $value['entity_w']->type() . ':' . $value['entity_w']->getIdentifier();
         if(!empty($value_map)){
-          $value = array_filter(explode(',', $data));
-          sort($value);
-          $data = array();
-          foreach($value as $d){
-            if(isset($value_map[$d])){
-              $data[] = $value_map[$d];
+          try{
+            $expression = new CharacterExpressionParser($data);
+            $expr_result = $expression->evaluate();
+            if($expr_result->type() == 'list'){
+              $expr_flat = $expression->evaluate()->getFlattenedValue();
+              $expr_str = $expression->rename(array(), $value_map)->evaluate()->asString();
             }else{
-              $data[] = '?';
+              $expr_flat = array(
+                (string)$expr_result->value()
+              );
+              $expr_str = (string)$expression->rename(array(), $value_map)->evaluate()->value();
             }
+            $result[$char_id][$this->column_id] = array(
+              'data' => $expr_str,
+              'value' => implode(',', $expr_flat),
+              'variable' => $data,
+              'metadata' => $metadata
+            );
           }
-          $conj = ' <em>' . strtolower($this->model->wrapper()->field_char_and_or->value()) . '</em> ';
-          $result[$char_id][$this->column_id] = array(
-            'data' => implode($conj, $data),
-            'value' => implode(',', $value),
-            'metadata' => $metadata
-          );
+          catch(Exception $e){
+            $result[$char_id][$this->column_id] = array(
+              'data' => "Invalid expression: " . $e->getMessage(),
+              'value' => '',
+              'metadata' => $metadata
+            );
+          }
         }else{
           $result[$char_id][$this->column_id] = array(
             'data' => $data,

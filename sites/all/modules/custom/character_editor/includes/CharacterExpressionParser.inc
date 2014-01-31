@@ -19,23 +19,20 @@
  *     
  * - Variables, which should be enclosed in curly brackets, eg. {height}
  * 
- * - Lists of expressions, enclosed in square brackets and with expressions separated
- *   by commas (for conjoined lists) or pipes (for disjoint lists), 
- *   eg. ["green", "blue", "yellow"].  Whether a list is conjoined or disjoint
- *   differs in how boolean is, is-not, <, <=, >, >= operators apply: 
- *   10 > [9, 11] is FALSE while 10 > [9 | 11] is TRUE ;
- *   
  * - Ranges, enclosed in square brackets and using the '..' operator, eg.
  *   [1 .. 5]. Ranges of strings or lists are not permitted - however it is
  *   possible to build ranges of symbols such as ['yellow' .. 'green'] provided
  *   the ordering of symbols is passed in when evaluating the expression ;
+ *   
+ * - Lists of alternatives, enclosed in square brackets, built with & (for and) 
+ *   and | (for or) operators, eg. ["blue" | "green"], [('tall' & 'thin') | 'small'] ;
  *   
  * - Mathematical operators which act on numbers: +,-,*,/
  * 
  * - Comparaison operators: <, <=, >, >=, is, is-not. Comparaison operators
  *   return '1' for true and '0' for false ;
  *   
- * - List and range test operators: in, not-in (eg. ("blue" in ["blue", "red"])
+ * - List and range test operators: in, not-in (eg. ("blue" in ["blue" | "red"])
  *   or (2 in [1 .. 5]) ;
  *   
  * - Boolean operators: and, or, not. These will cast their operands such that
@@ -43,20 +40,22 @@
  *   
  * - Parenthesized expressions
  * 
- * When evaluating an expression, variables may be:
+ * When an expression is evaluated, a list of variables and on order for possible symbols
+ * can be provided. The variables is map from name to value. The value can directly
+ * be an instance of CharacterExpressionValue, however for simplicity of storage
+ * simpler types can also be provided directly:
  * 
- * - Numbers ;
+ * - Numbers (strict, 12 is a number but "12" isn't) ;
  * - Text ;
- * - Ranges, represented by an array defining 'min' and 'max' ;
- * - Conjoined lists, represented by an Array ;
- * - An array defining 'type' and 'data' where 'type' may be:
- *   number, text, symbol, range, list, list-disjoint
+ * - Ranges, represented by an array defining 'min' and 'max' (and nothing else) ;
+ * - Arrays of conjunctions, represented by an array with numeric keys ;
+ * - An array defining 'type' and 'value', where 'type' may be:
+ *   'number', 'text', 'symbol', 'range', 'list-and', 'list-or' and 'expr'.
+ *   'symbol' is needed to differentiate from 'text'. Lists can be build
+ *   using 'list-and' and 'list-or' trees, though it's simpler to use
+ *   'expr' type which will parse it's value as af it was an expression.
  * 
  * Some notes:
- *   
- * - Lists are not arrays ; so they are not ordered and it is not possible to have
- *   multi-dimensional lists ([[1,2], 3] actually evaluates to [1,2,3])
- *   
  * - Testing for equality between a value and a range is always FALSE.
  * 
  * - Evaluating a boolean binary operator where one (and only one) of the operands
@@ -65,19 +64,23 @@
  *   an exception but {something} > 10 will evaluate to FALSE)
  *   
  * - For convenience, when 'in' and 'not-in' are used such that neither operands are
- *   lists or ranges, then it is assumed the second operand is list with one item, eg.
+ *   lists or ranges, then it is assumed the second operand is a list with one item, eg.
  *   'a' in 'a' is equivalent to 'a' in ['a'] (or 'a' is 'a').
- *
+ *   
+ * - Mathematical operators and the 'and' and 'or' operators apply on all elements of a list:
+ *   so 10 * [1 & 2 | 3] is [10 & 20 | 30] ;
+ *   
+ * - Equality and comparaison operators apply as expected on the elements of a list:
+ *   10 > [1 & 11] is FALSE while 10 > [1 | 11] is TRUE. The 'in' (or 'not-in') operators
+ *   will test for one of the alternatives ; eg. 'blue' in ['blue' | 'green'] is TRUE.
+ *   Note that only ['blue' & 'green'] is equal to ['blue' & 'green'], though
+ *   ['blue' & 'green'] in [('blue' & 'green') | 'yellow'] is TRUE, and
+ *   ['thin' & 'blue'] is [('thin' | 'thick') & ('blue' | 'green')] is TRUE.
+ *   
  */
 class CharacterExpressionParser{
   /* Exception Error codes */
   const MISSING_VARIABLE = 1;
-  /* Formatting style for output. EXPRESSION will format values as they are represented in
-   * expressions, while  VALUE will format values as the result would be output.
-   */
-  const FORMAT_EXPRESSION = 0;
-
-  const FORMAT_VALUE = 1;
   // Operators in order of precedence, with associated arity. Unariy "-" is allowed
   // but replaced at parse time with "neg". "," and ".." are parsed as operators,
   // but internally used to build lists and ranges.
@@ -140,7 +143,7 @@ class CharacterExpressionParser{
       'arity' => 2,
       'boolean' => TRUE
     ),
-    ',' => array(
+    '&' => array(
       'arity' => 2,
       'constructor' => TRUE
     ),
@@ -169,15 +172,17 @@ class CharacterExpressionParser{
   /**
    * evaluate
    * 
-   * Evaluate the value of the expression with the given variables
+   * Evaluate the value of the expression with the given variables.
+   * 
+   * This will return an object which inherits from CharacterExpressionValue.
    */
-  public function evaluate($variable_map = array(), $symbol_order = array(), $format = CharacterExpressionParser::FORMAT_VALUE){
+  public function evaluate($variable_map = array(), $symbol_order = array()){
     if(empty($this->tree)){throw new Exception("No expression defined");}
     $val = $this->evaluateRecursive($this->tree, array(
       'variable_map' => $variable_map,
       'symbol_order' => $symbol_order
     ));
-    return $val->toString($format);
+    return $val;
   }
 
   /**
@@ -191,19 +196,11 @@ class CharacterExpressionParser{
       }
       if($this->operators[$tree['operator']]['arity'] == 1){
         return $ops[0]->applyUnaryOperator($tree['operator']);
-      }else if($tree['operator'] == ',' || $tree['operator'] == '|'){
-        if($ops[0]->type == 'list'){
-          if($tree['operator'] == ',' && !$ops[0]->isConjoined()){throw new Exception("Lists can be conjoined or disjoint but not both");}
-          return $ops[0]->applyBinaryOperator('+', $ops[1]);
-        }else if($ops[1]->type == 'list'){
-          if($tree['operator'] == ',' && !$ops[1]->isConjoined()){throw new Exception("Lists can be conjoined or disjoint but not both");}
-          return $ops[1]->applyBinaryOperator('+', $ops[0]);
-        }else{
-          return new CharacterExpressionList(array(
-            $ops[0],
-            $ops[1]
-          ), ($tree['operator'] == ','), $this->context);
-        }
+      }else if($tree['operator'] == '&' || $tree['operator'] == '|'){
+        return new CharacterExpressionList(array(
+          $ops[0],
+          $ops[1]
+        ), ($tree['operator'] == '&'), $this->context);
       }else if($tree['operator'] == '..'){
         return new CharacterExpressionRange($ops[0], $ops[1]);
       }else{
@@ -237,14 +234,15 @@ class CharacterExpressionParser{
         }
       }
     }
+    return $this;
   }
 
   /**
    * toString
    * 
-   * Output the expression
+   * Returns the parsed expression as a string
    */
-  public function toString(){
+  public function getExpression(){
     $out = '';
     $tokens = $this->tokens;
     foreach($this->expression as $item){
@@ -257,7 +255,7 @@ class CharacterExpressionParser{
         }
       }else if($item == 'v'){
         $v = array_shift($tokens);
-        $out .= $v->toString(CharacterExpressionParser::FORMAT_EXPRESSION);
+        $out .= $v->asExpression();
       }else{
         $out .= $item;
       }
@@ -414,6 +412,7 @@ class CharacterExpressionParser{
         }
       }else{
         $next = NULL;
+        $next_token = NULL;
       }
       // Replace '-' with 'neg' if required
       if($current == 'o' && $current_token == '-'){
@@ -632,11 +631,21 @@ abstract class CharacterExpressionValue{
   }
 
   /**
-   * toString
+   * asExpression
    * 
-   * Generate the result to be returned to the caller for this item
+   * Return a string representing this value as a parsable expression
    */
-  public function toString($format = CharacterExpressionParser::FORMAT_EXPRESSION){
+  public function asExpression(){
+    return $this->val;
+  }
+
+  /**
+   * asVariable
+   * 
+   * Return this value of this object as a type which can be used as an
+   * input variable
+   */
+  public function asVariable(){
     return $this->val;
   }
 
@@ -669,7 +678,7 @@ class CharacterExpressionNumber extends CharacterExpressionValue{
    * __construct
    */
   public function __construct($v, $context = array()){
-    parent::__construct($v, 'number', $context);
+    parent::__construct($v + 0, 'number', $context);
   }
 
   /**
@@ -750,14 +759,10 @@ class CharacterExpressionText extends CharacterExpressionValue{
   }
 
   /**
-   * toString
+   * asExpression
    */
-  public function toString($format = CharacterExpressionParser::FORMAT_EXPRESSION){
-    if($format == CharacterExpressionParser::FORMAT_EXPRESSION){
-      return '"' . $this->val . '"';
-    }else{
-      return $this->val;
-    }
+  public function asExpression(){
+    return '"' . $this->val . '"';
   }
 
   /**
@@ -824,14 +829,20 @@ class CharacterExpressionSymbol extends CharacterExpressionValue{
   }
 
   /**
-   * toString
+   * asExpression
    */
-  public function toString($format = CharacterExpressionParser::FORMAT_EXPRESSION){
-    if($format == CharacterExpressionParser::FORMAT_EXPRESSION){
-      return '\'' . $this->val . '\'';
-    }else{
-      return $this->val;
-    }
+  public function asExpression(){
+    return '\'' . $this->val . '\'';
+  }
+
+  /**
+   * asVariable
+   */
+  public function asVariable(){
+    return array(
+      'type' => 'symbol',
+      'value' => $this->val
+    );
   }
 
   /**
@@ -915,6 +926,15 @@ class CharacterExpressionList extends CharacterExpressionValue{
   public function __construct($val, $conjoined, $context){
     parent::__construct($val, 'list', $context);
     $this->conjoined = $conjoined;
+    $new_values = array();
+    foreach($this->val as $v){
+      if(($v instanceof CharacterExpressionList) && $v->isConjoined() == $this->conjoined){
+        $new_values = array_merge($new_values, $v->value());
+      }else{
+        $new_values[] = $v;
+      }
+    }
+    $this->val = $new_values;
   }
 
   /**
@@ -935,29 +955,75 @@ class CharacterExpressionList extends CharacterExpressionValue{
   }
 
   /**
-   * toString
+   * asExpression
    */
-  public function toString($format = CharacterExpressionParser::FORMAT_EXPRESSION){
+  public function asExpression(){
     $a = array();
     foreach($this->val as $item){
-      $a[] = $item->evaluate();
+      if($item instanceof CharacterExpressionList){
+        $item_str = $item->asExpression();
+        $a[] = '(' . substr($item_str, 1, strlen($item_str) - 2) . ')';
+      }else{
+        $a[] = $item->asExpression();
+      }
     }
-    if($format == CharacterExpressionParser::FORMAT_EXPRESSION){
-      $op = $this->conjoined ? ', ' : ' | ';
-      return '[' . implode($op, $a) . ']';
-    }else if($format == CharacterExpressionParser::FORMAT_VALUE){return implode(',', $a);}
+    $op = $this->conjoined ? ' & ' : ' | ';
+    return '[' . implode($op, $a) . ']';
+  }
+
+  /**
+   * asString
+   */
+  public function asString(){
+    $a = array();
+    foreach($this->val as $item){
+      if($item instanceof CharacterExpressionList){
+        $item_str = $item->asString();
+        $a[] = '(' . $item_str . ')';
+      }else{
+        $a[] = (string)$item->value();
+      }
+    }
+    $op = $this->conjoined ? ' <em>and</em> ' : ' <em>or</em> ';
+    return implode($op, $a);
+  }
+
+  /**
+   * asVariable
+   */
+  public function asVariable(){
+    $a = array();
+    foreach($this->val as $item){
+      $a[] = $item->asVariable();
+    }
+    return array(
+      'list-' . ($this->conjoined ? 'and' : 'or'),
+      'value' => $a
+    );
+  }
+
+  /**
+   * getFlattenedValue
+   */
+  public function getFlattenedValue(){
+    $out = array();
+    foreach($this->val as $item){
+      if($item instanceof CharacterExpressionList){
+        $out = array_merge($out, $item->getFlattenedValue());
+      }else{
+        $out[] = $item->value();
+      }
+    }
+    return $out;
   }
 
   /**
    * applyUnaryOperator
    */
   public function applyUnaryOperator($o){
-    if($o == 'neg'){
-      $o = '-';
+    foreach($this->val as $item){
+      $item->applyUnaryOperator($o);
     }
-    throw new Exception(t("Operator %op cannot be applied to lists", array(
-      '%op' => $o
-    )));
   }
 
   /**
@@ -966,110 +1032,121 @@ class CharacterExpressionList extends CharacterExpressionValue{
    * $reverse may be true for numbers, texts and symbols which may call this directly.
    */
   public function applyBinaryOperator($o, $v, $reverse = FALSE){
-    if($v->type() == 'list'){
-      $a1 = array();
-      $a2 = array();
-      foreach($this->val as $item){
-        $a1[] = $item->value();
+    if($reverse){
+      if($o == '>'){
+        $o = '<=';
+      }else if($o == '>='){
+        $o = '<';
+      }else if($o == '<'){
+        $o = '>=';
+      }else if($o == '<='){
+        $o = '>';
       }
-      foreach($v->value() as $item){
-        $a2[] = $item->value();
-      }
+    }
+    if($v->type() != 'list'){
       switch($o){
-        case '+':
-          if(!($this->conjoined xor $v->isConjoined())){throw new Exception("Cannot join a disjoint and conjoined list together");}
-          return new CharacterExpressionList(array_merge($this->val, $v->value()), $this->conjoined, $this->context);
+        case 'in':
         case 'is':
-          if(!($this->conjoined xor $v->isConjoined())){return new CharacterExpressionNumber(0, $this->context);}
-          return new CharacterExpressionNumber((int)(count(array_diff($a1, $a2)) == 0 && count(array_diff($a2, $a1)) == 0), $this->context);
+        case 'not-in':
         case 'is-not':
-          if(!($this->conjoined xor $v->isConjoined())){return new CharacterExpressionNumber(1, $this->context);}
-          return new CharacterExpressionNumber((int)(count(array_diff($a1, $a2)) > 0), $this->context);
-        case 'in':
-          return new CharacterExpressionNumber((int)(count(array_diff($a1, $a2)) == 0), $this->context);
-        case 'not-in':
-          return new CharacterExpressionNumber((int)(count(array_diff($a1, $a2)) > 0), $this->context);
-        default:
-          throw new Exception(t("Operator %op cannot be used between lists", array(
-            '%op' => $o
-          )));
-      }
-    }else if($v->type() == 'range'){
-      $range = $v->value();
-      $in = FALSE;
-      foreach($this->val as $item){
-        $ismin = $item->applyBinaryOperator('>=', $range['min']);
-        $ismax = $item->applyBinaryOperator('<=', $range['max']);
-        $in = $in && $ismin->value() && $ismax->value();
-        if(!$in){
-          break;
-        }
-      }
-      switch($o){
-        case 'in':
-          return new CharacterExpressionNumber((int)$in, $this->context);
-        case 'not-in':
-          return new CharacterExpressionNumber((int)!$in, $this->context);
-        default:
-          throw new Exception(t("Operator %op cannot be used between a list and a range", array(
-            '%op' => $o
-          )));
-      }
-    }else{
-      if($o == 'in' || $o == 'not-in' || $o == 'is' || $o == 'is-not'){
-        $a1 = array();
-        foreach($this->val as $item){
-          $a1[] = $item->value();
-        }
-      }else if($reverse){
-        if($o == '>'){
-          $o = '<=';
-        }else if($o == '>='){
-          $o = '<';
-        }else if($o == '<'){
-          $o = '>=';
-        }else if($o == '<='){
-          $o = '>';
-        }
-      }
-      switch($o){
-        case 'is':
-          if($this->conjoined){
-            return new CharacterExpressionNumber(0, $this->context);
-          }else{
-            return new CharacterExpressionNumber((int)in_array($v->value(), $a1), $this->context);
-          }
-        case 'is-not':
-          if($this->conjoined){
-            return new CharacterExpressionNumber(1, $this->context);
-          }else{
-            return new CharacterExpressionNumber((int)!in_array($v->value(), $a1), $this->context);
-          }
-        case '+':
-          return new CharacterExpressionList(array_merge($this->val, array(
-            $v
-          )), $this->conjoined, $this->context);
-        case 'in':
-          return new CharacterExpressionNumber((int)in_array($v->value(), $a1), $this->context);
-        case 'not-in':
-          return new CharacterExpressionNumber((int)!in_array($v->value(), $a1), $this->context);
         case '>':
         case '>=':
         case '<':
         case '<=':
           foreach($this->val as $item){
-            $c = $item->applyBinaryOperator($o, $v);
-            if($this->conjoined && !$c->value()){return new CharacterExpressionNumber(0, $this->context);}
-            if(!$this->conjoined && $c->value()){return new CharacterExpressionNumber(1, $this->context);}
+            $test = $item->applyBinaryOperator($o, $v)->value();
+            if($test && !$this->conjoined){
+              return new CharacterExpressionNumber(1, $this->context);
+            }else if(!$test && $this->conjoined){return new CharacterExpressionNumber(0, $this->context);}
           }
           return new CharacterExpressionNumber((int)($this->conjoined), $this->context);
+        case '+':
+        case '-':
+        case '*':
+        case '/':
+        case 'and':
+        case 'or':
+          $new_array = array();
+          foreach($this->val as $index => $item){
+            if($reverse){
+              $new_array[] = $v->applyBinaryOperator($o, $item);
+            }else{
+              $new_array[] = $item->applyBinaryOperator($o, $v);
+            }
+          }
+          return new CharacterExpressionList($new_array, $this->conjoined, $this->context);
         default:
           throw new Exception(t("Operator %op cannot be used between an array and a %type", array(
             '%op' => $o,
             '%type' => $v->type()
           )));
       }
+    }else{
+      switch($o){
+        case 'is':
+          $r1 = $this->applyBinaryOperator('in', $v);
+          if($r1->value() == 0){return $r1;}
+          return $v->applyBinaryOperator('in', $this);
+        case 'is-not':
+          $r1 = $this->applyBinaryOperator('not-in', $v);
+          if($v1->value() != 0){return $r1;}
+          return $v->applyBinaryOperator('not-in', $this);
+        case 'not-in':
+          return new CharacterExpressionNumber((int)(!$this->applyBinaryOperator('in', $v)->value()), $this->context);
+        case 'in':
+          if(!$this->conjoined){
+            foreach($this->val as $item){
+              if($item->applyBinaryOperator($o, $v)->value()){return new CharacterExpressionNumber(1, $this->context);}
+            }
+            return new CharacterExpressionNumber(0, $this->context);
+          }else{
+            if($v->isConjoined()){
+              // We must ensure that for every element in this list,
+              // there is a matching element in the other list ; but
+              // the same element in the other list cannot match two
+              // elements in this list.
+              $matches = array();
+              foreach($this->val as $this_index => $this_val){
+                foreach($v->value() as $v_index => $v_item){
+                  if($this_val->applyBinaryOperator('in', $v_item)->value()){
+                    $matches[$this_index][] = $v_index;
+                  }
+                }
+                if(empty($matches[$this_index])){return new CharacterExpressionNumber(0, $this->context);}
+              }
+              // Ensure we have a partitioning
+              if($this->partitioningExists($matches)){
+                return new CharacterExpressionNumber(1, $this->context);
+              }else{
+                return new CharacterExpressionNumber(0, $this->context);
+              }
+            }else{
+              return $v->applyBinaryOperator('in', $this);
+            }
+          }
+      }
     }
+  }
+
+  /**
+   * partitioningExists
+   * 
+   * Given a two dimensional values where the first dimension
+   * represents a partition and the second dimension the values
+   * that are allowed in that partition, ensure it is possible to
+   * reduce the available values such that no parition is empty
+   * and no value is used in more than one partition.
+   * 
+   */
+  private function partitioningExists($values, $exclude = array()){
+    $start = array_diff(array_shift($values), $exclude);
+    if(empty($values)){return count($start) > 0;}
+    foreach($start as $v){
+      if($this->partitioningExists($values, array_merge($exclude, array(
+        $v
+      )))){return TRUE;}
+    }
+    return FALSE;
   }
 }
 
@@ -1123,12 +1200,20 @@ class CharacterExpressionRange extends CharacterExpressionValue{
   }
 
   /**
-   * toString
+   * asExpression
    */
-  public function toString($format = CharacterExpressionParser::FORMAT_EXPRESSION){
-    if($format == CharacterExpressionParser::FORMAT_EXPRESSION){
-      return '[' . $this->val['min']->toString($format) . ' .. ' . $this->val['max']->toString($format) . ']';
-    }else if($format == CharacterExpressionParser::FORMAT_VALUE){return $this->val['min']->toString($format) . ' - ' . $this->val['max']->toString($format);}
+  public function asExpression(){
+    return '[' . $this->val['min']->toString($format) . ' .. ' . $this->val['max']->toString($format) . ']';
+  }
+
+  /**
+   * asVariable
+   */
+  public function asVariable(){
+    return array(
+      'min' => $this->val['min']->asVariable(),
+      'max' => $this->val['max']->asVariable()
+    );
   }
 
   /**
@@ -1300,15 +1385,21 @@ class CharacterExpressionVariable extends CharacterExpressionValue{
   }
 
   /**
-   * toString
+   * asExpression
+   * 
+   * Note that 'asExpression' returns the name of the variable, while
+   * 'asVariable' evaluates it.
    */
-  public function toString($format = CharacterExpressionParser::FORMAT_EXPRESSION){
-    if($format == CharacterExpressionParser::FORMAT_EXPRESSION){
-      return '{' . $this->name . '}';
-    }else if($format == CharacterExpressionParser::FORMAT_VALUE){
-      $this->fetchItem();
-      return $this->item->toString($format);
-    }
+  public function asExpression(){
+    return '{' . $this->name . '}';
+  }
+
+  /**
+   * asVariable
+   */
+  public function asVariable(){
+    $this->fetchItem();
+    return $this->item->asVariable();
   }
 
   /**
@@ -1354,7 +1445,9 @@ class CharacterExpressionVariable extends CharacterExpressionValue{
       $type = $val['type'];
       $val = $val['value'];
     }
-    if(is_numeric($val) && (!$type || $type == 'number')){
+    if(is_object($val) && ($val instanceof CharacterExpressionValue)){
+      return $val;
+    }else if((is_int($val) || is_float($val)) && (!$type || $type == 'number')){
       return new CharacterExpressionNumber($val, $this->context);
     }else if(is_string($val) && (!$type || $type == 'text')){
       return new CharacterExpressionText($val, $this->context);
@@ -1364,12 +1457,16 @@ class CharacterExpressionVariable extends CharacterExpressionValue{
       $min = $this->getValueObject($val['min']);
       $max = $this->getValueObject($val['max']);
       return new CharacterExpressionRange($min, $max, $this->context);
-    }else if(is_array($val) && (!$type || $type == 'list' || $type = 'list-disjoint')){
+    }else if(is_array($val) && (!$type || $type == 'list-and' || $type = 'list-or')){
       $a = array();
       foreach($val as $v){
         $a[] = $this->getValueObject($v);
       }
-      return new CharacterExpressionList($a, !$type || $type == 'list', $this->context);
+      return new CharacterExpressionList($a, !$type || $type == 'list-and', $this->context);
+    }else if(is_string($val) && $type == 'expr'){
+      $expr = new CharacterExpressionParser($val);
+      $new_val = $expr->evaluate($this->context['variable_map'], $this->context['symbol_order']);
+      return $this->getValueObject($new_val);
     }else{
       throw new Exception(t("Could not work out variable type for %name", array(
         '%name' => $this->name

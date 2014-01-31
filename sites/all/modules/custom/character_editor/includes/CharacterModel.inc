@@ -118,7 +118,7 @@ class CharacterModel{
       try{
         $e = new CharacterExpressionParser($expr);
         $e->rename(array_flip($variables['character_map']), array_flip($variables['state_map']));
-        $expr = $e->toString();
+        $expr = $e->getExpression();
       }
       catch(Exception $e){
         $expr = "Could not parse saved expression: " . $e->getMessage();
@@ -235,7 +235,17 @@ class CharacterModel{
         $result[$row_id] = $error;
       }else{
         try{
-          $result[$row_id] = $parser->evaluate($row, $order, CharacterExpressionParser::FORMAT_VALUE);
+          $var = $parser->evaluate($row, $order);
+          $value = '';
+          if($var->type() == 'range'){
+            $value = $var->value();
+            $value = $value['min']->value() . ' - ' . $value['max']->value();
+          }else if($var->type() == 'list'){
+            $value = $var->asExpression();
+          }else{
+            $value = $var->value();
+          }
+          $result[$row_id] = $value;
         }
         catch(Exception $e){
           if($e->getCode() == CharacterExpressionParser::MISSING_VARIABLE){
@@ -283,7 +293,7 @@ class CharacterModel{
     }
     foreach($rows as $row_id => $row){
       try{
-        $result[$row_id] = ($parser->evaluate($row, $order, CharacterExpressionParser::FORMAT_VALUE) !== 0);
+        $result[$row_id] = ($parser->evaluate($row, $order) !== 0);
       }
       catch(Exception $e){
       }
