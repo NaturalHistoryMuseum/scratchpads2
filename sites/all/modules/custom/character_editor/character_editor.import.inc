@@ -1161,7 +1161,11 @@ function character_editor_sdd_import_set_categorical_state($map, $entity_w, $fie
       'action' => REVERSE_SCHEMA_ARRAY_SKIP_ENTITY
     ));
   }
-  $entity_w->field_character_state_data = implode(',', $result);
+  if(empty($result)){
+    $entity_w->field_character_state_data = '';
+  }else{
+    $entity_w->field_character_state_data = "['" . implode("' & '", $result) . "']";
+  }
 }
 
 /**
