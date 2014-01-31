@@ -42,17 +42,19 @@
                   if (typeof decode.data !== 'undefined'){
                     data[i][column] = decode.data;
                   }
-                  if (typeof decode.metadata.flag !== 'undefined'){
-                    row[column].flag = decode.metadata.flag;
-                  }
-                  if (typeof decode.metadata.sendUp !== 'undefined'){
-                    row[column].sendUp = decode.metadata.sendUp == 0 ? false: true;
-                  }
-                  if (typeof decode.metadata.sendDown !== 'undefined'){
-                    row[column].sendDown = decode.metadata.sendDown == 0 ? false : true;
-                  }
                   if (typeof decode.value !== 'undefined'){
                     row[column].value = decode.value;
+                  }
+                  if (typeof decode.metadata !== 'undefined'){
+                    for (var attr in decode.metadata){
+                      if (decode.metadata[attr] == "0"){
+                        row[column][attr] = false;
+                      } else if (decode.metadata[attr] == "1"){
+                        row[column][attr] = true;
+                      } else {
+                        row[column][attr] = decode.metadata[attr];
+                      }
+                    }
                   }
                 }
               }

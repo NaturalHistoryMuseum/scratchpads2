@@ -45,8 +45,8 @@ class character_metadata_editor_handler{
     if(isset($_POST['flag'])){
       $this->metadata['flag'] = $_POST['flag'];
     }
-    if(isset($_POST['send_up'])){
-      $this->metadata['sendUp'] = $_POST['send_up'];
+    if(isset($_POST['aggregate'])){
+      $this->metadata['aggregate'] = $_POST['aggregate'];
     }
     if(isset($_POST['send_down'])){
       $this->metadata['sendDown'] = $_POST['send_down'];

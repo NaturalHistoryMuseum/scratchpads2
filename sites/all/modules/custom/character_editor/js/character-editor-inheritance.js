@@ -18,8 +18,11 @@
       if (info.cell.cell == 0){
         return [];
       }
+      if (!info.row.id.match(/^taxonomy_term:/)){
+        return [];
+      }
       var metadata = Drupal.characterMetadataManager.getMetadata(info.cell.row, info.column.id);
-      var send_up = (typeof metadata.sendUp != 'undefined' && metadata.sendUp);
+      var aggregate = (typeof metadata.aggregate != 'undefined' && metadata.aggregate);
       var send_down = (typeof metadata.sendDown != 'undefined' && metadata.sendDown);
       if (metadata.flag == 'computed' || metadata.disabled){
         return [];
@@ -27,20 +30,20 @@
       var selected_background = 'url("' + Drupal.settings.basePath + Drupal.settings.CharacterEditorPath + '/images/tick.png")';
       var elements = [];
       elements.push({
-        element: Drupal.t('Inheritance'),
+        element: Drupal.t('Values'),
         subtitle: true
       });
       elements.push({
-        element: Drupal.t('send values up'),
-        callback: $.proxy(this, 'contextClickCallback', info, metadata, 'sendUp', send_up),
+        element: Drupal.t('get from descendants'),
+        callback: $.proxy(this, 'contextClickCallback', info, metadata, 'aggregate', aggregate),
         css: {
-          backgroundImage: send_up ? selected_background: '',
+          backgroundImage: aggregate ? selected_background: '',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: '0 center'
         }
       });
       elements.push({
-        element: Drupal.t('send values down'),
+        element: Drupal.t('pass down to descendants'),
         callback: $.proxy(this, 'contextClickCallback', info, metadata, 'sendDown', send_down),
         css: {
           backgroundImage: send_down ? selected_background: '',
@@ -54,15 +57,15 @@
     /**
      * contextClickCallback
      */
-    this.contextClickCallback = function(info, metadata, direction, current){
+    this.contextClickCallback = function(info, metadata, type, current){
       // Update the cell
       this.updateCell(metadata, grid.getCellNode(info.cell.row, info.cell.cell));
-      metadata[direction] = !current;
+      metadata[type] = !current;
       // And send the data to be saved.
       slickgrid.callback('update', {
         entity_id: info.row.id,
         column_id: info.column.id,
-        send_up: (typeof metadata.sendUp != 'undefined' && metadata.sendUp) ? 1 : 0,
+        aggregate: (typeof metadata.aggregate != 'undefined' && metadata.aggregate) ? 1 : 0,
         send_down: (typeof metadata.sendDown != 'undefined' && metadata.sendDown) ? 1 : 0,
         plugin: 'CharacterMetadata'
       });
@@ -72,12 +75,12 @@
      * updateCell
      */
     this.updateCell = function(metadata, node){
-      var send_up = (typeof metadata.sendUp != 'undefined' && metadata.sendUp);
+      var aggregate = (typeof metadata.aggregate != 'undefined' && metadata.aggregate);
       var send_down = (typeof metadata.sendDown != 'undefined' && metadata.sendDown);
       var image = 'none';
-      if (send_up && send_down){
+      if (aggregate && send_down){
         image = 'url("' + Drupal.settings.basePath + Drupal.settings.CharacterEditorPath + '/images/pass-up-down.png")';
-      } else if (send_up) {
+      } else if (aggregate) {
         image = 'url("' + Drupal.settings.basePath + Drupal.settings.CharacterEditorPath + '/images/pass-up.png")';
       } else if (send_down) {
         image = 'url("' + Drupal.settings.basePath + Drupal.settings.CharacterEditorPath + '/images/pass-down.png")';
