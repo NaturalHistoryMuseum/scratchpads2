@@ -143,9 +143,9 @@ class CharacterTreeNode{
       foreach($row_ids as $id){
         $result[$id][$this->column_id] = array(
           'data' => '',
-          'metadata' => json_encode(array(
+          'metadata' => array(
             'flag' => 'computed'
-          ))
+          )
         );
       }
     }else{
