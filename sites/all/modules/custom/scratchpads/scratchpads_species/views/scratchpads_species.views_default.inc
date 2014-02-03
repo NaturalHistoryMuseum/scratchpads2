@@ -588,7 +588,7 @@ function scratchpads_species_views_default_views(){
   $view->disabled = FALSE;
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'SUMMARY';
-  $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
+  $handler->display->display_options['css_class'] = 'alpha omega';
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
@@ -684,7 +684,7 @@ function scratchpads_species_views_default_views(){
   $view->disabled = FALSE;
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Distribution';
-  $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
+  $handler->display->display_options['css_class'] = 'alpha omega';
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
@@ -844,7 +844,7 @@ function scratchpads_species_views_default_views(){
   $view->disabled = FALSE;
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Literature';
-  $handler->display->display_options['css_class'] = 'grid-8 alpha omega biblio';
+  $handler->display->display_options['css_class'] = 'alpha omega biblio';
   $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['use_more'] = TRUE;
   $handler->display->display_options['use_more_always'] = TRUE;
@@ -1014,7 +1014,7 @@ function scratchpads_species_views_default_views(){
     $view->disabled = FALSE;
     $handler = $view->new_display('default', 'Master', 'default');
     $handler->display->display_options['title'] = 'Specimen count';
-    $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
+    $handler->display->display_options['css_class'] = 'alpha omega';
     $handler->display->display_options['group_by'] = TRUE;
     $handler->display->display_options['access']['type'] = 'perm';
     $handler->display->display_options['cache']['type'] = 'none';
@@ -1398,7 +1398,7 @@ function scratchpads_species_views_default_views(){
   $view->disabled = FALSE;
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Literature';
-  $handler->display->display_options['css_class'] = 'grid-8 alpha omega biblio';
+  $handler->display->display_options['css_class'] = 'alpha omega biblio';
   $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['use_more'] = TRUE;
   $handler->display->display_options['use_more_always'] = TRUE;
@@ -1576,7 +1576,7 @@ function scratchpads_species_views_default_views(){
   $view->disabled = FALSE;
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Distribution';
-  $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
+  $handler->display->display_options['css_class'] = 'alpha omega';
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
@@ -1912,7 +1912,7 @@ function scratchpads_species_views_default_views(){
     /* Display: Master */
     $handler = $view->new_display('default', 'Master', 'default');
     $handler->display->display_options['title'] = $name;
-    $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
+    $handler->display->display_options['css_class'] = 'alpha omega';
     $handler->display->display_options['use_ajax'] = TRUE;
     $handler->display->display_options['use_more'] = TRUE;
     $handler->display->display_options['use_more_always'] = TRUE;
@@ -2053,7 +2053,7 @@ function scratchpads_species_views_default_views(){
     /* Display: Block */
     $handler = $view->new_display('block', 'Block', 'block');
     $handler->display->display_options['defaults']['css_class'] = FALSE;
-    $handler->display->display_options['css_class'] = 'view-inline-filters grid-8 alpha omega';
+    $handler->display->display_options['css_class'] = 'view-inline-filters alpha omega';
     /* Display: Count images */
     $handler = $view->new_display('attachment', 'Count images', 'attachment_1');
     $handler->display->display_options['defaults']['group_by'] = FALSE;
