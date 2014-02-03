@@ -19,7 +19,7 @@ function eolapi_views_default_views(){
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'EOL Images';
-  $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
+  $handler->display->display_options['css_class'] = 'alpha omega';
   $handler->display->display_options['access']['type'] = 'none';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
@@ -99,7 +99,7 @@ function eolapi_views_default_views(){
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'EOL Videos';
-  $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
+  $handler->display->display_options['css_class'] = 'alpha omega';
   $handler->display->display_options['access']['type'] = 'none';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
@@ -179,7 +179,7 @@ function eolapi_views_default_views(){
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'EOL Text';
-  $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
+  $handler->display->display_options['css_class'] = 'alpha omega';
   $handler->display->display_options['access']['type'] = 'none';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
