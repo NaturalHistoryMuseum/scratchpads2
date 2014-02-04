@@ -76,21 +76,28 @@
         this.metadata[i] = row;
       }
       // Once the data has been displayed we can assign the flags to the cells.
-      window.setTimeout($.proxy(function(){
-        for (var i = 0; i < this.metadata.length; i++){
-          for (var column in this.metadata[i]){
-            if (this.metadata[i][column].disabled){
-              var node = grid.getCellNode(i, grid.getColumnIndex(column));
-              $(node).addClass('character-editor-disabled-cell');
-            } else {
-              var node = grid.getCellNode(i, grid.getColumnIndex(column));
-              for (var s in this.subscriptions){
-                (this.subscriptions[s])(this.metadata[i][column], node)
-              }
+      grid.onViewportChanged.subscribe($.proxy(this, 'updateViewportRows'));
+      window.setTimeout($.proxy(this, 'updateViewportRows'));
+    }
+
+    /**
+     * updateViewportRows
+     */
+    this.updateViewportRows = function(){
+      var vp = grid.getViewport();
+      for (var i = vp.top; i <= vp.bottom; i++){
+        for (var column in this.metadata[i]){
+          if (this.metadata[i][column].disabled){
+            var node = grid.getCellNode(i, grid.getColumnIndex(column));
+            $(node).addClass('character-editor-disabled-cell');
+          } else {
+            var node = grid.getCellNode(i, grid.getColumnIndex(column));
+            for (var s in this.subscriptions){
+              (this.subscriptions[s])(this.metadata[i][column], node)
             }
           }
         }
-      }, this), 0);
+      }
     }
     
     /**
