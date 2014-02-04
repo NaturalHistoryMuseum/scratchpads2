@@ -39,13 +39,14 @@ function scratchpads_data_integrity_check_for_deleted_files(){
     'uri',
     'fid',
     'uid',
-    'filesize'
+    'filesize',
+    'filename'
   ))->execute();
   $messages = array();
   foreach($results as $row){
     $delete_file = FALSE;
     if(!file_exists($row->uri)){
-      if(!$row->filesize || !$row->uid || !trim($row->uri) || substr($row->uri, 0, 12) == 'temporary://'){
+      if(!$row->filesize || !$row->uid || !trim($row->uri) || substr($row->uri, 0, 12) == 'temporary://' || preg_match('/file[A-Za-z][A-Za-z][A-Za-z][A-Za-z][A-Za-z][A-Za-z]/', $row->filename)){
         // Simply delete the file if it is owned by anon or is a temporary file,
         // or is a file with no filename, or has zero filesize.
         file_delete(file_load($row->fid), TRUE);
