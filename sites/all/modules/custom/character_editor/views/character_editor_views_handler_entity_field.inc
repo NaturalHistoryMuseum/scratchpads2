@@ -58,9 +58,21 @@ class character_editor_views_handler_entity_field extends views_handler_field{
     }
     // And merge the two.
     $merged = $q1->union($q2, 'UNION ALL');
+    // Prepare the count query. With unions we can't rely on countQuery.
+    $count_q1 = db_select("field_data_field_taxonomic_name", "ft");
+    $count_q1->addField('ft', 'field_taxonomic_name_tid', 'tid');
+    $count_q1->condition('ft.entity_type', 'character_editor_project');
+    $count_q1->condition('ft.entity_id', $character_project);
+    $count_q2 = db_select("field_data_field_char_proj_specimen", "fs");
+    $count_q2->addField('fs', 'field_char_proj_specimen_nid', 'nid');
+    $count_q2->condition('fs.entity_type', 'character_editor_project');
+    $count_q2->condition('fs.entity_id', $character_project);
+    $count_query = db_select($count_q1->union($count_q2, 'UNION ALL'));
+    $count_query->addExpression('COUNT(*)');
     // We cannot set the final query here - this will ensure it gets set during
     // hook_views_pre_execute.
     $this->view->character_editor_query = $merged;
+    $this->view->character_editor_count_query = $count_query;
   }
 
   function render($values){

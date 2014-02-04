@@ -200,7 +200,7 @@ class CharacterExpressionParser{
         return new CharacterExpressionList(array(
           $ops[0],
           $ops[1]
-        ), ($tree['operator'] == '&'), $this->context);
+        ), ($tree['operator'] == '&'), $context);
       }else if($tree['operator'] == '..'){
         return new CharacterExpressionRange($ops[0], $ops[1]);
       }else{

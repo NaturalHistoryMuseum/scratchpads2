@@ -198,15 +198,55 @@ class CharacterProjectModel{
    * the character values for this project.
    */
   public function getRowValues($rows){
-    // Read the ids
-    $row_ids = array();
-    foreach($rows as $r){
-      $row_ids[] = $r->id;
+    // Index the rows
+    $ids = array();
+    foreach($rows as $index => $row){
+      $ids[$row->id] = $index;
     }
-    // Check for collapsed rows
+    // Determine collapsed rows & query limits
     $collapsed = array();
     if(isset($_GET['character_entity_field'])){
       $collapsed = explode(',', $_GET['character_entity_field']);
+    }
+    if(arg(0) == 'character_editor' && arg(1) == 'get' && arg(2) == 'data'){
+      $offset = arg(5);
+      $limit = arg(6);
+    }else{
+      $offset = 0;
+      $limit = 50;
+    }
+    // Build the tree
+    $tree = array();
+    foreach($ids as $id => $row_index){
+      $list = array();
+      $pid = $id;
+      while($pid && !preg_match('/:0$/', $pid)){
+        if(isset($ids[$pid])){
+          $list[] = $pid;
+          $pid = $rows[$ids[$pid]]->parent;
+        }else{
+          $pid = 0;
+        }
+      }
+      $list = array_reverse($list);
+      $ptr = & $tree;
+      foreach($list as $pid){
+        if(!isset($ptr[$pid])){
+          $ptr[$pid] = array(
+            'value' => &$rows[$ids[$pid]],
+            'children' => array(),
+            'collapsed' => in_array($pid, $collapsed)
+          );
+        }
+        $ptr = & $ptr[$pid]['children'];
+      }
+      unset($ptr);
+    }
+    // Flatten and prune it
+    $rows = $this->flattenPruneTree($tree, 0, $offset, $limit);
+    $row_ids = array();
+    foreach($rows as $row){
+      $row_ids[] = $row->id;
     }
     // Fetch the values
     $characters = array();
@@ -226,46 +266,40 @@ class CharacterProjectModel{
       $characters = $tree_item->updateConditions($characters, $variables, $state_order);
     }
     // Assign them to the rows
-    $ids = array();
     foreach($rows as $row){
-      $id = $row->id;
-      // Assign character values
-      if(isset($characters[$id]) && is_array($characters[$id])){
-        foreach($characters[$id] as $field => $value){
+      if(isset($characters[$row->id]) && is_array($characters[$row->id])){
+        foreach($characters[$row->id] as $field => $value){
           $row->{$field} = drupal_json_encode($value);
         }
       }
-      $ids[$id] = $row;
     }
-    // Build the tree
-    $tree = array();
-    foreach($ids as $id => $row){
-      $list = array();
-      $pid = $id;
-      while($pid && !preg_match('/:0$/', $pid)){
-        if(isset($ids[$pid])){
-          $list[] = $pid;
-          $pid = $ids[$pid]->parent;
-        }else{
-          $pid = 0;
-        }
+    return $rows;
+  }
+
+  /**
+   * flattenPruneTree
+   *
+   * Given a tree of rows, prune and flatten the tree.
+   */
+  function flattenPruneTree($tree, $depth, &$offset, &$limit){
+    if($limit == 0){return array();}
+    $result = array();
+    foreach($tree as $item){
+      $item['value']->depth = $depth;
+      $item['value']->children = count($item['children']);
+      $item['value']->collapsed = $item['collapsed'];
+      if($offset == 0){
+        $result[] = $item['value'];
+        $limit--;
+      }else{
+        $offset--;
       }
-      $list = array_reverse($list);
-      $ptr = & $tree;
-      foreach($list as $pid){
-        if(!isset($ptr[$pid])){
-          $ptr[$pid] = array(
-            'value' => $ids[$pid],
-            'children' => array(),
-            'collapsed' => in_array($pid, $collapsed)
-          );
-        }
-        $ptr = & $ptr[$pid]['children'];
+      if(!$item['collapsed']){
+        $result = array_merge($result, $this->flattenPruneTree($item['children'], $depth + 1, $offset, $limit));
       }
-      unset($ptr);
+      if($limit == 0){return $result;}
     }
-    // And order the items
-    return $this->assign_tree_values($tree, 0);
+    return $result;
   }
 
   /**

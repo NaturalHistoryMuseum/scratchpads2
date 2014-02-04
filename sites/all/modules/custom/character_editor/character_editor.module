@@ -153,6 +153,7 @@ function character_editor_views_api(){
 function character_editor_views_pre_execute(&$view){
   if(!property_exists($view, 'character_editor_query') || !$view->character_editor_query){return;}
   $view->build_info['query'] = $view->character_editor_query;
+  $view->build_info['count_query'] = $view->character_editor_count_query;
 }
 
 /**

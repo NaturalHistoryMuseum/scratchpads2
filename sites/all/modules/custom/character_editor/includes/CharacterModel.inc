@@ -224,6 +224,7 @@ class CharacterModel{
     if(!$this->isComputed()){return array();}
     module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
     $result = array();
+    $error = FALSE;
     try{
       $parser = new CharacterExpressionParser($this->w->field_char_expr->value());
     }
