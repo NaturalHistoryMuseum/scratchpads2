@@ -1912,7 +1912,7 @@ function scratchpads_species_views_default_views(){
     /* Display: Master */
     $handler = $view->new_display('default', 'Master', 'default');
     $handler->display->display_options['title'] = $name;
-    $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
+    $handler->display->display_options['css_class'] = 'alpha omega';
     $handler->display->display_options['use_ajax'] = TRUE;
     $handler->display->display_options['use_more'] = TRUE;
     $handler->display->display_options['use_more_always'] = TRUE;
