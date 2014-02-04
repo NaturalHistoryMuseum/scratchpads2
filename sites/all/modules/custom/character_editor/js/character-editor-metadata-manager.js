@@ -26,15 +26,25 @@
      * Callback - read the metadata and remove it from the cell content.
      */
     this.slickgridDataLoaded = function(e, from, to, data){
+      var char_columns = {};
+      var slick_cols = slickgrid.getColumns();
+      for (var c in slick_cols){
+        if (slick_cols[c].id.match(/^character_\d+_\d+$/)){
+          char_columns[slick_cols[c].id] = true;
+        }
+      }
       for (var i = from; i <= to; i++){
         var row = {};
         var col = 0;
         for (var column in data[i]){
-          if (column.match(/^character_\d+_\d+$/)){
+          if (char_columns[column]){
             try{
+              row[column] = {disabled: false};
+              if (data[i][column] === ""){
+                continue;
+              }
               var decode = $.parseJSON(data[i][column]);
-              if (typeof decode == 'object'){
-                row[column] = {disabled: false};
+              if (decode !== null){
                 if (typeof decode.disabled !== 'undefined' && decode.disabled){
                   data[i][column] = '';
                   row[column].disabled = true;
