@@ -710,7 +710,7 @@ function scratchpads_biblio_search_block_view($delta = ''){
         if($pager_total[0] > 1){
           $href = str_replace('biblio/export', 'admin/biblio_search_export', $link['href']);
         }else{
-          $href = str_replace('export', 'biblio_search_export', $link['href']);
+          $href = str_replace('biblio/export', 'biblio_search_export', $link['href']);
         }
         if($is_node){
           $href = preg_replace('/\/?$/', '/' . arg(1), $href);
