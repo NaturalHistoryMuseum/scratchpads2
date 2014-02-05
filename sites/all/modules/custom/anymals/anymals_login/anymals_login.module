@@ -69,36 +69,9 @@ function anymals_login_add_client_id($clientid, $account = FALSE){
       'client_id' => $clientid
     ))->execute();
     // If the anymals module is enabled (it is possible that it's not), then we
-    // add a node for this user if one does not already exist.
-    if(($anymals_token = variable_get('anymals_token', FALSE)) != FALSE && ($anymals_key = variable_get('anymals_key', FALSE))){
-      if(function_exists('anymals_feeds_importer_default')){
-        foreach(array_keys(anymals_feeds_importer_default()) as $id){
-          if(strpos($id, $clientid)){
-            if(!db_select('node')->condition('title', $id)->countQuery()->execute()->fetchField()){
-              // We do not have a node for this id, we therefore create one.
-              $node = array(
-                'uid' => $user->uid,
-                'title' => $id,
-                'status' => 1,
-                'comment' => 1,
-                'promote' => 0,
-                'sticky' => 0,
-                'type' => md5($id),
-                'language' => LANGUAGE_NONE,
-                'translate' => 0,
-                'feeds' => array(
-                  'FeedsHTTPFetcher' => array(
-                    'source' => 'https://www.anymals.org/intercom/?request=harvestSightings&token=' . $anymals_token . '&key=' . $anymals_key . '&harvesttype=all&language=en'
-                  )
-                )
-              );
-              $node = (object)$node;
-              node_save($node);
-              drupal_flush_all_caches();
-            }
-          }
-        }
-      }
+    // execute its cron function
+    if(function_exists('anymals_cron')){
+      anymals_cron();
     }
     // We add this user to the group.
     $response = drupal_http_request('https://www.anymals.org/intercom/?request=addClients', array(

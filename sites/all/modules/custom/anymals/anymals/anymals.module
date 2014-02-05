@@ -38,6 +38,44 @@ function anymals_node_info(){
 }
 
 /**
+ * Implements hook_cron().
+ * 
+ * Ensure we have import nodes ready!
+ */
+function anymals_cron(){
+  // If the anymals module is enabled (it is possible that it's not), then we
+  // add a node for this user if one does not already exist.
+  if(($anymals_token = variable_get('anymals_token', FALSE)) != FALSE && ($anymals_key = variable_get('anymals_key', FALSE))){
+    if(function_exists('anymals_feeds_importer_default')){
+      foreach(array_keys(anymals_feeds_importer_default()) as $id){
+        if(!db_select('node')->condition('title', $id)->countQuery()->execute()->fetchField()){
+          // We do not have a node for this id, we therefore create one.
+          $node = array(
+            'uid' => $user->uid,
+            'title' => $id,
+            'status' => 1,
+            'comment' => 1,
+            'promote' => 0,
+            'sticky' => 0,
+            'type' => md5($id),
+            'language' => LANGUAGE_NONE,
+            'translate' => 0,
+            'feeds' => array(
+              'FeedsHTTPFetcher' => array(
+                'source' => 'https://www.anymals.org/intercom/?request=harvestSightings&token=' . $anymals_token . '&key=' . $anymals_key . '&harvesttype=all&language=en'
+              )
+            )
+          );
+          $node = (object)$node;
+          node_save($node);
+          drupal_flush_all_caches();
+        }
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_preprocess_page()
  * 
  * Remove the anymals+plants content types from the content type overview.
@@ -116,7 +154,7 @@ function anymals_feeds_importer_default(){
           'plugin_key' => 'FeedsNodeProcessor',
           'config' => array(
             'expire' => '-1',
-            'author' => 0,
+            'author' => $row->uid,
             'authorize' => 0,
             'mappings' => array(
               array(
