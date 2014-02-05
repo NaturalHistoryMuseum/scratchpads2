@@ -41,6 +41,7 @@ function scratchpads_backend_admin_content(){
     switch($entity_type){
       case 'node':
         $node_types = node_type_get_types();
+        drupal_alter('scratchpads_backend_node_types', $node_types);
         $statistics = scratchpads_backend_statistics($entity_info);
         foreach(array_keys($entity_info['bundles']) as $bundle){
           if(!$node_types[$bundle]->disabled){

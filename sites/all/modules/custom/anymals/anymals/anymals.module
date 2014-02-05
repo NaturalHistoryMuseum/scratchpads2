@@ -11,99 +11,184 @@ function anymals_ctools_plugin_api(){
 }
 
 /**
+ * Implements hook_node_info().
+ */
+function anymals_node_info(){
+  // Create an content type for every importer.  This is unfortunately necessary
+  $types = array();
+  $results = db_select('anymals_client_ids', 'a')->fields('a')->execute();
+  $export = array();
+  module_load_include('pages.inc', 'anymals_contenttype_export');
+  foreach($results as $row){
+    foreach(array_filter(variable_get('anymals_forms', array(
+      'specimen_observation'
+    ))) as $bundle){
+      $types[md5('anymals_plants_' . $bundle . '_' . $row->client_id)] = array(
+        'name' => t('anymals+plants importer'),
+        'base' => 'node_content',
+        'description' => '',
+        'has_title' => TRUE,
+        'title_label' => 'Importer',
+        'help' => '',
+        'locked' => TRUE
+      );
+    }
+  }
+  return $types;
+}
+
+/**
+ * Implements hook_preprocess_page()
+ * 
+ * Remove the anymals+plants content types from the content type overview.
+ */
+function anymals_preprocess_page(&$vars){
+  if($_GET['q'] == 'admin/structure/types'){
+    foreach($vars['page']['content']['system_main']['node_table']['#rows'] as $key => $values){
+      if(strpos($values[0], 'anymals+plants importer') === 0){
+        unset($vars['page']['content']['system_main']['node_table']['#rows'][$key]);
+      }
+    }
+  }
+}
+
+/**
+ * Implements scratchpads_backend_node_types_alter()
+ */
+function anymals_scratchpads_backend_node_types_alter(&$node_types){
+  foreach(array_keys(anymals_node_info()) as $id){
+    $node_types[$id]->disabled = TRUE;
+  }
+}
+
+/**
  * Implements hook_feeds_importer_default().
 */
 function anymals_feeds_importer_default(){
+  // Create an importer for each registered ID and each form (e.g. 2 forms, and
+  // 2 users = 2*2 importers).
+  $results = db_select('anymals_client_ids', 'a')->fields('a')->execute();
   $export = array();
-  $feeds_importer = new stdClass();
-  $feeds_importer->disabled = FALSE; /* Edit this to true to make a default feeds_importer disabled initially */
-  $feeds_importer->api_version = 1;
-  $feeds_importer->id = 'anymals_plants';
-  $feeds_importer->config = array(
-    'name' => 'anymals+plants',
-    'description' => 'Periodically import records from the anymals+plants server',
-    'fetcher' => array(
-      'plugin_key' => 'FeedsHTTPFetcher',
-      'config' => array(
-        'auto_detect_feeds' => FALSE,
-        'use_pubsubhubbub' => FALSE,
-        'designated_hub' => '',
-        'request_timeout' => NULL
-      )
-    ),
-    'parser' => array(
-      'plugin_key' => 'FeedsXPathParserXML',
-      'config' => array(
-        'sources' => array(
-          'xpathparser:0' => 'UnitExtension/SightingForms/form/select1[label="Basis of record"]/inputValue',
-          'xpathparser:1' => 'UnitExtension/SightingForms/form/input[label="Catalogue number"]/inputValue',
-          'xpathparser:2' => 'UnitExtension/SightingForms/form/input[label="Collection code"]/inputValue',
-          'xpathparser:3' => 'UnitExtension/SightingForms/form/input[label="Institution code"]/inputValue'
-        ),
-        'rawXML' => array(
-          'xpathparser:0' => 0,
-          'xpathparser:1' => 0,
-          'xpathparser:2' => 0,
-          'xpathparser:3' => 0
-        ),
-        'context' => '//DataSets/DataSet[DatasetGUID="87901689-8C9F-44AA-843F-4A05DA55F1C5"]/Units/Unit',
-        'exp' => array(
-          'errors' => 0,
-          'tidy' => 0,
-          'tidy_encoding' => 'UTF8',
-          'debug' => array(
-            'context' => 0,
-            'xpathparser:0' => 0,
-            'xpathparser:1' => 0,
-            'xpathparser:2' => 0,
-            'xpathparser:3' => 0
+  module_load_include('pages.inc', 'anymals_contenttype_export');
+  foreach($results as $row){
+    foreach(array_filter(variable_get('anymals_forms', array(
+      'specimen_observation'
+    ))) as $bundle){
+      $feeds_importer = new stdClass();
+      $feeds_importer->disabled = FALSE; /* Edit this to true to make a default feeds_importer disabled initially */
+      $feeds_importer->api_version = 1;
+      $feeds_importer->id = 'anymals_plants_' . $bundle . '_' . $row->client_id;
+      $feeds_importer->config = array(
+        'name' => 'anymals+plants (' . $row->client_id . ')',
+        'description' => 'Periodically import records from the anymals+plants server for the client ' . $row->client_id,
+        'fetcher' => array(
+          'plugin_key' => 'FeedsHTTPFetcher',
+          'config' => array(
+            'auto_detect_feeds' => FALSE,
+            'use_pubsubhubbub' => FALSE,
+            'designated_hub' => '',
+            'request_timeout' => NULL
           )
         ),
-        'allow_override' => 1
-      )
-    ),
-    'processor' => array(
-      'plugin_key' => 'FeedsNodeProcessor',
-      'config' => array(
-        'expire' => '-1',
-        'author' => 0,
-        'authorize' => 0,
-        'mappings' => array(
-          0 => array(
-            'source' => 'xpathparser:0',
-            'target' => 'field_basis_of_record',
-            'unique' => FALSE
-          ),
-          1 => array(
-            'source' => 'xpathparser:1',
-            'target' => 'field_catalogue_number',
-            'unique' => FALSE
-          ),
-          2 => array(
-            'source' => 'xpathparser:2',
-            'target' => 'field_collection_code',
-            'unique' => FALSE
-          ),
-          3 => array(
-            'source' => 'xpathparser:3',
-            'target' => 'field_institution_code',
-            'unique' => FALSE
+        'parser' => array(
+          'plugin_key' => 'FeedsXPathParserXML',
+          'config' => array(
+            'sources' => array(
+              'xpathparser:0' => 'UnitID'
+            ),
+            'rawXML' => array(
+              'xpathparser:0' => 0
+            ),
+            'context' => '//DataSets/DataSet[DatasetGUID="' . $row->client_id . '"]/Units/Unit',
+            'exp' => array(
+              'errors' => 0,
+              'tidy' => 0,
+              'tidy_encoding' => 'UTF8',
+              'debug' => array(
+                'context' => 0,
+                'xpathparser:0' => 0
+              )
+            ),
+            'allow_override' => 0
           )
         ),
-        'update_existing' => '2',
-        'input_format' => 'plain_text',
-        'skip_hash_check' => 0,
-        'bundle' => 'specimen_observation'
-      )
-    ),
-    'content_type' => '',
-    'update' => 0,
-    'import_period' => '86400',
-    'expire_period' => 3600,
-    'import_on_create' => 1,
-    'process_in_background' => 0
-  );
-  $export['anymals_plants'] = $feeds_importer;
+        'processor' => array(
+          'plugin_key' => 'FeedsNodeProcessor',
+          'config' => array(
+            'expire' => '-1',
+            'author' => 0,
+            'authorize' => 0,
+            'mappings' => array(
+              array(
+                'source' => 'xpathparser:0',
+                'target' => 'guid',
+                'unique' => TRUE
+              )
+            ),
+            'update_existing' => '2',
+            'input_format' => 'plain_text',
+            'skip_hash_check' => 0,
+            'bundle' => $bundle
+          )
+        ),
+        'content_type' => md5('anymals_plants_' . $bundle . '_' . $row->client_id),
+        'update' => 0,
+        'import_period' => 86400,
+        'expire_period' => 3600,
+        'import_on_create' => 0,
+        'process_in_background' => 0
+      );
+      $fields = _anymals_contenttype_export_get_sorted_fields('node', $bundle);
+      foreach($fields as $key => $field){
+        $value = FALSE;
+        switch($field['widget']['type']){
+          case 'options_select':
+          case 'select':
+            $label = $field['label'];
+            $field = field_info_field($key);
+            if(count($field['settings']['allowed_values'])){
+              if($field['cardinality'] == 1){
+                $value = 'UnitExtension/SightingForms/form/select1[label="' . $label . '"]/inputValue';
+              }else{
+                $value = 'UnitExtension/SightingForms/form/select[label="' . $label . '"]/inputValue';
+              }
+            }
+            break;
+          case 'gm3_point_gm3':
+          case 'gm3_combination_gm3':
+          case 'gm3_point_text':
+          case 'gm3_combination_text':
+            // FIXME - This needs adding.
+            break;
+          case 'text_textfield':
+          case 'text_textarea_with_summary':
+          case 'text_textarea':
+            $value = 'UnitExtension/SightingForms/form/input[label="' . $field['label'] . '"]/inputValue';
+            break;
+          case 'number':
+            break;
+          case 'user_reference_autocomplete':
+            break;
+          case 'date_text':
+            break;
+          case 'taxonomy_autocomplete':
+            break;
+        }
+        if($value){
+          $count = count($feeds_importer->config['parser']['config']['sources']);
+          $feeds_importer->config['parser']['config']['sources']['xpathparser:' . $count] = $value;
+          $feeds_importer->config['parser']['config']['rawXML']['xpathparser:' . $count] = 0;
+          $feeds_importer->config['parser']['config']['exp']['debug']['xpathparser:' . $count] = 0;
+          $feeds_importer->config['processor']['config']['mappings'][] = array(
+            'source' => 'xpathparser:' . $count,
+            'target' => $key,
+            'unique' => FALSE
+          );
+        }
+      }
+      $export[$feeds_importer->id] = $feeds_importer;
+    }
+  }
   return $export;
 }
 
