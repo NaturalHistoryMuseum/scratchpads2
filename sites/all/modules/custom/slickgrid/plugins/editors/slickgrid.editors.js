@@ -38,6 +38,10 @@
       display_id: slickgrid.getViewDisplayID(), view: slickgrid.getViewName(), entity_ids: slickgrid.getEntityIDs(item), field_id: args.column.id, field_name: args.column.fieldName, entity_type: options['entity_type'], revision: options['undo'], value: value, plugin: 'InlineCell'};
       // Perform the update
       slickgrid.callback('update', data);
+      // And update the cell
+      slickgrid.invalidateRow(item.index);
+      $(args.grid.getActiveCellNode()).addClass('slickgrid-cell-loading');
+      item[args.column.id] = value;
     }
     this.isValueChanged = function(){
       return (!($input.val() == "" && defaultValue == null)) && ($input.val() != defaultValue);
@@ -90,7 +94,9 @@
       return(state !== defaultValue);
     };
     this.applyValue = function(item){
-      item[args.column.field] = state;
+      slickgrid.invalidateRow(item.index);
+      $(args.grid.getActiveCellNode()).addClass('slickgrid-cell-loading');
+      item[args.column.field] = "";
     };
     this.cancel = function(){
       args.cancelChanges();
