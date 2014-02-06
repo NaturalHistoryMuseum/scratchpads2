@@ -12,7 +12,7 @@
           this.init = function(){
             // Check if this cell is disabled
             var m = Drupal.characterMetadataManager.getMetadata(editor.item.index, editor.column.id);
-            if (m.disabled){
+            if (m && m.disabled){
               setTimeout(function(){
                 editor.cancelChanges();
               }, 0);
@@ -299,7 +299,7 @@
            */
           this.loadValue = function(item) {
             var m = Drupal.characterMetadataManager.getMetadata(item.index, editor.column.id);
-            if (m.disabled){
+            if (m && m.disabled){
               return;
             }
             if (m && typeof m.value !== 'undefined'){
@@ -340,6 +340,14 @@
             };
             // Perform the update
             slickgrid.callback('update', data);
+            // And update the cell
+            slickgrid.invalidateRow(item.index);
+            $(editor.grid.getActiveCellNode()).css({
+              backgroundImage: "url(" + Drupal.settings.basePath + "misc/throbber.gif)",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "0 -20px",
+            });
+            item[editor.column.id] = "...";
           }
 
           /**
@@ -381,7 +389,7 @@
             this.init = function() {
                 // Check if this cell is disabled
                 var m = Drupal.characterMetadataManager.getMetadata(args.item.index, args.column.id);
-                if (m.disabled){
+                if (m && m.disabled){
                   setTimeout(function(){
                     args.cancelChanges();
                   }, 0);
@@ -467,8 +475,15 @@
                   id: args.item.id
               };              
               // Perform the update
-              slickgrid.callback('update', data);        
-              
+              slickgrid.callback('update', data);
+              // And update the cell
+              slickgrid.invalidateRow(item.index);
+              $(args.grid.getActiveCellNode()).css({
+                backgroundImage: "url(" + Drupal.settings.basePath + "misc/throbber.gif)",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "0 -20px",
+              });
+              item[args.column.id] = value;
             }
             
             this.isValueChanged = function() {
@@ -506,7 +521,7 @@
             this.init = function() {
                 // Check if this cell is disabled
                 var m = Drupal.characterMetadataManager.getMetadata(args.item.index, args.column.id);
-                if (m.disabled){
+                if (m && m.disabled){
                   setTimeout(function(){
                     args.cancelChanges();
                   }, 0);
@@ -559,7 +574,13 @@
             };
 
             this.applyValue = function(item) {
-                item[args.column.field] = state;
+              slickgrid.invalidateRow(item.index);
+              $(args.grid.getActiveCellNode()).css({
+                backgroundImage: "url(" + Drupal.settings.basePath + "misc/throbber.gif)",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "0 -20px",
+              });
+              item[args.column.id] = "...";
             };
             
             this.cancel = function(){
