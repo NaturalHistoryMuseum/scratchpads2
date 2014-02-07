@@ -149,6 +149,15 @@ class CharacterTreeNode{
         );
       }
     }else{
+      // Pre-fill empty values
+      foreach($row_ids as $id){
+        $result[$id][$this->column_id] = array(
+          'data' => '',
+          'metadata' => array(
+          )
+        );
+      }
+      // Get the values from the character, and insert them.
       $values = $this->model->getValues($row_ids);
       if($this->model->wrapper()->getBundle() == 'controlled'){
         $value_map = $this->model->getControlledMap();

@@ -67,6 +67,15 @@ class CharacterModel{
   }
 
   /**
+   * isTextual
+   *
+   * Return TRUE if this model is a textual (text or dna) character
+   */
+  public function isTextual(){
+    return $this->w->getBundle() == 'text' || $this->w->getBundle() == 'dna';
+  }
+
+  /**
    * isOrCharacter
    * 
    * For controlled characters, returns TRUE if this is an OR character

@@ -317,7 +317,9 @@ class CharacterProjectModel{
         $tree_id = preg_replace('/^character_(\d+)_(\d+)$/', 'character_editor_character:$1:$2', $char_id);
         $stripped_id = preg_replace('/^character_(\d+)_\d+$/', '$1', $char_id);
         $data = isset($char_value['variable']) ? $char_value['variable'] : $char_value['data'];
-        if($tree[$tree_id]->model()->isControlled()){
+        if (empty($data) && !$tree[$tree_id]->model()->isTextual()){
+          continue;
+        } else if($tree[$tree_id]->model()->isControlled()){
           $data = array(
             'type' => 'expr',
             'value' => $data

@@ -50,18 +50,16 @@
  * - Ranges, represented by an array defining 'min' and 'max' (and nothing else) ;
  * - Arrays of conjunctions, represented by an array with numeric keys ;
  * - An array defining 'type' and 'value', where 'type' may be:
- *   'number', 'text', 'symbol', 'range', 'list-and', 'list-or' and 'expr'.
- *   'symbol' is needed to differentiate from 'text'. Lists can be build
- *   using 'list-and' and 'list-or' trees, though it's simpler to use
- *   'expr' type which will parse it's value as af it was an expression.
+ *   'number', 'text', 'symbol', 'range', 'list-and', 'list-or', 'expr' and
+ *   'undefined'.
+ *
+ *     . 'symbol' is needed to differentiate from 'text'.
+ *     . Lists can be build using 'list-and' and 'list-or' trees, though it's simpler
+ *      to use 'expr' type which will parse it's value as af it was an expression
+ *     . 'undefined' is used to represent undefined values (see notes).
  * 
  * Some notes:
  * - Testing for equality between a value and a range is always FALSE.
- * 
- * - Evaluating a boolean binary operator where one (and only one) of the operands
- *   is a variable the value of which is undefined will return FALSE rather than
- *   raise an exception (eg. {something} beeing undefined, {something} + 2 will raise
- *   an exception but {something} > 10 will evaluate to FALSE)
  *   
  * - For convenience, when 'in' and 'not-in' are used such that neither operands are
  *   lists or ranges, then it is assumed the second operand is a list with one item, eg.
@@ -76,7 +74,14 @@
  *   Note that only ['blue' & 'green'] is equal to ['blue' & 'green'], though
  *   ['blue' & 'green'] in [('blue' & 'green') | 'yellow'] is TRUE, and
  *   ['thin' & 'blue'] is [('thin' | 'thick') & ('blue' | 'green')] is TRUE.
- *   
+ *
+ * - Undefined variables evaluate to <undefined> ;
+ *
+ * - Operators which are not comparaison operators return <undefined> when
+ *   applied to <undefined>. Inequality operators (not-in, is-not) return TRUE
+ *   when applied to <undefined> and other comparaison operators return FALSE
+ *   when applied to <undefined>.
+ *
  */
 class CharacterExpressionParser{
   /* Exception Error codes */
@@ -204,11 +209,6 @@ class CharacterExpressionParser{
       }else if($tree['operator'] == '..'){
         return new CharacterExpressionRange($ops[0], $ops[1]);
       }else{
-        if(!empty($this->operators[$tree['operator']]['boolean'])){
-          $v1d = !($ops[0] instanceof CharacterExpressionVariable) || $ops[0]->isDefined();
-          $v2d = !($ops[1] instanceof CharacterExpressionVariable) || $ops[1]->isDefined();
-          if($v1d xor $v2d){return new CharacterExpressionNumber(0, $context);}
-        }
         return $ops[0]->applyBinaryOperator($tree['operator'], $ops[1]);
       }
     }else if($tree['type'] == 'v'){
@@ -303,6 +303,10 @@ class CharacterExpressionParser{
         $this->expression[] = 'v';
         $end_pos = $pos + strlen($matches[1]) - 1;
         $type = 'number';
+      }else if(substr($this->raw, $pos, strlen('<undefined>')) == '<undefined>'){
+        $this->expression[] = 'v';
+        $end_pos = $pos + strlen('<undefined>');
+        $type = 'undefined';
       }else if($this->isSymbol($this->raw[$pos])){
         $end_pos = $pos;
         $this->expression[] = $this->raw[$pos];
@@ -348,6 +352,8 @@ class CharacterExpressionParser{
           $this->tokens[] = new CharacterExpressionVariable($str);
         }else if($type == 'number'){
           $this->tokens[] = new CharacterExpressionNumber($str);
+        }else if($type == 'undefined'){
+          $this->tokens[] = new CharacterExpressionUndefined();
         }else{
           $this->tokens[] = $str;
         }
@@ -700,7 +706,9 @@ class CharacterExpressionNumber extends CharacterExpressionValue{
    * applyBinaryOperator
    */
   public function applyBinaryOperator($o, $v){
-    if($v->type() == 'number'){
+    if($v->type() == 'undefined'){
+      return $v->applyBinaryOperator($o, $this);
+    }else if($v->type() == 'number'){
       switch($o){
         case '+':
           return new CharacterExpressionNumber($this->val + $v->value(), $this->context);
@@ -781,7 +789,9 @@ class CharacterExpressionText extends CharacterExpressionValue{
    * applyBinaryOperator
   */
   public function applyBinaryOperator($o, $v){
-    if($v->type() == 'text' || $v->type() == 'symbol'){
+    if($v->type() == 'undefined'){
+      return $v->applyBinaryOperator($o, $this);
+    }else if($v->type() == 'text' || $v->type() == 'symbol'){
       switch($o){
         case '+':
           return new CharacterExpressionText($this->val . $v->value(), $this->context);
@@ -861,6 +871,7 @@ class CharacterExpressionSymbol extends CharacterExpressionValue{
    * applyBinaryOperator
    */
   public function applyBinaryOperator($o, $v){
+    if($v->type() == 'undefined'){return $v->applyBinaryOperator($o, $this);}
     if(isset($this->context['symbol_order'])){
       $symbol_order = $this->context['symbol_order'];
     }else{
@@ -1032,6 +1043,7 @@ class CharacterExpressionList extends CharacterExpressionValue{
    * $reverse may be true for numbers, texts and symbols which may call this directly.
    */
   public function applyBinaryOperator($o, $v, $reverse = FALSE){
+    if($v->type() == 'undefined'){return $v->applyBinaryOperator($o, $this);}
     if($reverse){
       if($o == '>'){
         $o = '<=';
@@ -1237,7 +1249,9 @@ class CharacterExpressionRange extends CharacterExpressionValue{
    * $reverse may be true for numbers, texts and symbols which may call this directly.
    */
   public function applyBinaryOperator($o, $v, $reverse = FALSE){
-    if($v->type == 'range'){
+    if($v->type() == 'undefined'){
+      return $v->applyBinaryOperator($o, $this);
+    }else if($v->type() == 'range'){
       switch($o){
         case 'in':
           $min = $this->val['min']->applyBinaryOperator('>=', $v->value());
@@ -1419,21 +1433,15 @@ class CharacterExpressionVariable extends CharacterExpressionValue{
   }
 
   /**
-   * isDefined
-   */
-  public function isDefined(){
-    return isset($this->context['variable_map'][$this->name]);
-  }
-
-  /**
    * fetchItem
    */
   private function fetchItem(){
     if(!empty($this->item)){return $this->item;}
-    if(empty($this->context['variable_map']) || !isset($this->context['variable_map'][$this->name])){throw new Exception(t("Value for variable %name is not defined.", array(
-        '%name' => $this->name
-      )), CharacterExpressionParser::MISSING_VARIABLE);}
-    $this->item = $this->getValueObject($this->context['variable_map'][$this->name]);
+    if(empty($this->context['variable_map']) || !isset($this->context['variable_map'][$this->name])){
+      $this->item = new CharacterExpressionUndefined();
+    }else{
+      $this->item = $this->getValueObject($this->context['variable_map'][$this->name]);
+    }
   }
 
   /**
@@ -1441,11 +1449,16 @@ class CharacterExpressionVariable extends CharacterExpressionValue{
    */
   private function getValueObject($val){
     $type = FALSE;
-    if(is_array($val) && count($val) == 2 && isset($val['type']) && isset($val['value'])){
+    if(is_array($val) && count($val) == 1 && isset($val['type'])){
+      $type = $val['type'];
+      $val = '';
+    }else if(is_array($val) && count($val) == 2 && isset($val['type']) && isset($val['value'])){
       $type = $val['type'];
       $val = $val['value'];
     }
-    if(is_object($val) && ($val instanceof CharacterExpressionValue)){
+    if($type == 'undefined'){
+      return new CharacterExpressionUndefined();
+    }else if(is_object($val) && ($val instanceof CharacterExpressionValue)){
       return $val;
     }else if((is_int($val) || is_float($val)) && (!$type || $type == 'number')){
       return new CharacterExpressionNumber($val, $this->context);
@@ -1471,6 +1484,70 @@ class CharacterExpressionVariable extends CharacterExpressionValue{
       throw new Exception(t("Could not work out variable type for %name", array(
         '%name' => $this->name
       )));
+    }
+  }
+}
+
+/**
+ * CharacterExpressionUndefined
+ *
+ * Represent an undefined value
+ *
+ */
+class CharacterExpressionUndefined extends CharacterExpressionValue{
+
+  /**
+   * __construct
+   */
+  public function __construct($context){
+    parent::__construct(NULL, 'undefined', $context);
+  }
+
+  /**
+   * asExpression
+   *
+   * Return a string representing this value as a parsable expression
+   */
+  public function asExpression(){
+    return '<undefined>';
+  }
+
+  /**
+   * asVariable
+   *
+   * Return this value of this object as a type which can be used as an
+   * input variable
+   */
+  public function asVariable(){
+    return array(
+      'type' => 'undefined'
+    );
+  }
+
+  /**
+   * applyUnaryOperator
+   *
+   * Called when the given unrary operator is applied to this value.
+   * Should return a new value or raise an exception.
+   */
+  public function applyUnaryOperator($o){
+    return new CharacterExpressionNumber(0, $this->context);
+  }
+
+  /**
+   * applyBinaryOperator
+   *
+   * Called when the given binary operator is applied to this value,
+   * such that this value is on the left of the expression.
+   * Should return a new value or raise an exception.
+  */
+  public function applyBinaryOperator($o, $v){
+    if($o == 'is-not' || $o == 'not-in'){
+      return new CharacterExpressionNumber(1, $this->context);
+    }else if($o == 'is' || $o == 'in' || $o == '<' || $o == '<=' || $o == '>' || $o == '>='){
+      return new CharacterExpressionNumber(0, $this->context);
+    }else{
+      return new CharacterExpressionUndefined();
     }
   }
 }
