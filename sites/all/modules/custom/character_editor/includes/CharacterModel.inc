@@ -109,21 +109,36 @@ class CharacterModel{
     $content = $controller->view(array(
       $this->w->getIdentifier() => clone $this->w->value()
     ));
-    if($this->isComputed() && count($content['character_editor_character'])){
+    // Translate the expressions and conditions to human readable form
+    if(count($content['character_editor_character']) && ($this->isComputed() || $this->hasCondition())){
       $variables = $project_model->getAvailableVariables();
       $children = element_children($content['character_editor_character']);
       $child = reset($children);
-      $expr = $this->w->field_char_expr->value();
       module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
-      try{
-        $e = new CharacterExpressionParser($expr);
-        $e->rename(array_flip($variables['character_map']), array_flip($variables['state_map']));
-        $expr = $e->getExpression();
+      if($this->isComputed()){
+        $expr = $this->w->field_char_expr->value();
+        try{
+          $e = new CharacterExpressionParser($expr);
+          $e->rename(array_flip($variables['character_map']), array_flip($variables['state_map']));
+          $expr = $e->getExpression();
+        }
+        catch(Exception $e){
+          $expr = "Could not parse saved expression: " . $e->getMessage();
+        }
+        $content['character_editor_character'][$child]['field_char_expr'][0]['#markup'] = htmlspecialchars($expr);
       }
-      catch(Exception $e){
-        $expr = "Could not parse saved expression: " . $e->getMessage();
+      if($this->hasCondition()){
+        $expr = $this->w->field_char_condition->value();
+        try{
+          $e = new CharacterExpressionParser($expr);
+          $e->rename(array_flip($variables['character_map']), array_flip($variables['state_map']));
+          $expr = $e->getExpression();
+        }
+        catch(Exception $e){
+          $expr = "Could not parse condition: " . $e->getMessage();
+        }
+        $content['character_editor_character'][$child]['field_char_condition'][0]['#markup'] = htmlspecialchars($expr);
       }
-      $content['character_editor_character'][$child]['field_char_expr'][0]['#markup'] = htmlspecialchars($expr);
     }
     $tooltip = array(
       'bt' => $bt,
@@ -294,7 +309,7 @@ class CharacterModel{
     }
     foreach($rows as $row_id => $row){
       try{
-        $result[$row_id] = ($parser->evaluate($row, $order) !== 0);
+        $result[$row_id] = ($parser->evaluate($row, $order)->value() !== 0);
       }
       catch(Exception $e){
       }
