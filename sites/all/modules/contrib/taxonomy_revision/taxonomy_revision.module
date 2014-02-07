@@ -1,0 +1,483 @@
+<?php
+
+/**
+ * @file
+ * This is the main module file for the Taxonomy revision module.
+ */
+
+/**
+ * Implements hook_views_api().
+ */
+function taxonomy_revision_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'taxonomy_revision') . '/views',
+  );
+}
+
+/**
+ * Access callback for taxonomy revision.
+ */
+function _taxonomy_revision_access($term, $perm) {
+  if (!is_array($perm)) {
+    $perm = array($perm);
+  }
+  $access = FALSE;
+  foreach ($perm as $permission) {
+    $access = user_access($permission) || $access;
+    if ($access) {
+      return $access;
+    }
+  }
+  return $access;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function taxonomy_revision_permission() {
+  return array(
+    'view taxonomy term revisions' => array(
+      'title' => t('View revisions'),
+    ),
+    'revert taxonomy term revisions' => array(
+      'title' => t('Revert revisions'),
+    ),
+    'delete taxonomy term revisions' => array(
+      'title' => t('Delete revisions'),
+    ),
+    'choose taxonomy term revisions' => array(
+      'title' => t('Choose to create revisions'),
+      'description' => t('Allow users to create taxonomy term revisions'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function taxonomy_revision_menu() {
+  $items['taxonomy/term/%taxonomy_term/revisions'] = array(
+    'title' => 'Revisions',
+    'page callback' => 'taxonomy_revision_overview',
+    'page arguments' => array(2),
+    'access callback' => '_taxonomy_revision_access',
+    'access arguments' => array(1, array('view taxonomy term revisions', 'view own taxonomy term revisions')),
+    'weight' => 20,
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'taxonomy_revision.pages.inc',
+  );
+
+  $items['taxonomy/term/%taxonomy_term/revisions/view/%/%'] = array(
+    'title' => 'Compare revisions',
+    'page callback' => 'taxonomy_revision_diffs_show',
+    'page arguments' => array(2, 5, 6),
+    'access arguments' => array('view taxonomy revisions'),
+    'file' => 'taxonomy_revision.pages.inc',
+  );
+
+  $items['taxonomy/term/%taxonomy_revision_term/revisions/%/revert'] = array(
+    'title' => 'Revert to earlier revision',
+    'load arguments' => array(4),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('taxonomy_revision_revert_confirm', 2, 4),
+    'access callback' => '_taxonomy_revision_access',
+    'access arguments' => array(1, array('revert taxonomy term revisions', 'revert own taxonomy term revisions')),
+    'file' => 'taxonomy_revision.pages.inc',
+  );
+
+  $items['taxonomy/term/%taxonomy_revision_term/revisions/%/delete'] = array(
+    'title' => 'Delete earlier revision',
+    'load arguments' => array(4),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('taxonomy_revision_delete_confirm', 2, 4),
+    'access callback' => '_taxonomy_revision_access',
+    'access arguments' => array(1, array('delete taxonomy term revisions', 'delete own taxonomy term revisions')),
+    'file' => 'taxonomy_revision.pages.inc',
+  );
+
+  $items['taxonomy/term/%taxonomy_revision_term/revisions/%/view'] = array(
+    'title' => 'View revision',
+    'load arguments' => array(4),
+    'page callback' => 'taxonomy_revision_show',
+    'page arguments' => array(2, TRUE),
+    'access callback' => '_taxonomy_revision_access',
+    'access arguments' => array(1, array('view taxonomy term revisions')),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function taxonomy_revision_theme() {
+  return array(
+    'taxonomy_revision_taxonomy_revisions' => array(
+      'render element' => 'form',
+      'file' => 'taxonomy_revision.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Returns a list of all the existing revision numbers.
+ *
+ * @param $term
+ *   The term entity.
+ *
+ * @return
+ *   An associative array keyed by term revision number.
+ */
+function taxonomy_revision_list($term) {
+  $revisions = array();
+
+  $result = db_query('SELECT r.revision_id, r.name, r.log, r.uid, t.revision_id AS current_revision_id, r.timestamp, u.name FROM {taxonomy_term_data_revision} r LEFT JOIN {taxonomy_term_data} t ON t.revision_id = r.revision_id INNER JOIN {users} u ON u.uid = r.uid WHERE r.tid = :tid ORDER BY r.revision_id DESC', array(':tid' => $term->tid));
+  foreach ($result as $revision) {
+    $revisions[$revision->revision_id] = $revision;
+  }
+
+  return $revisions;
+}
+
+/**
+ * Implements hook_entity_diff().
+ *
+ * This function compares core taxonomy term properties. This is currently limited to:
+ *   - name: The title of term.
+ *   - description: The description of the term.
+ */
+function taxonomy_revision_entity_diff($old_term, $new_term, $context) {
+  $result = array();
+  if ($context['entity_type'] == 'taxonomy_term') {
+    // The wrappers are created for each field even though there are no
+    // differences for the title (name) for example.
+    $taxonomy_term_properties = entity_get_property_info('taxonomy_term');
+    $new_term_wrapper = entity_metadata_wrapper('taxonomy_term', $new_term);
+    $old_term_wrapper = entity_metadata_wrapper('taxonomy_term', $old_term);
+    // We unset the entity id property because we don't want to diff it.
+    unset($taxonomy_term_properties['properties']['tid']);
+    $old_term_rendered = taxonomy_term_view($old_term);
+    $new_term_rendered = taxonomy_term_view($new_term);
+    foreach ($taxonomy_term_properties['properties'] as $property_name => $property) {
+      if (empty($property['vocabulary'])) {
+
+      }
+      if (empty($property['computed'])) {
+        // Not taking into much consideration how the settings for the node are made,
+        // we create our settings similarly for each of our fields.
+        $result[$property_name] = array(
+          '#name' => $property['label'],
+          '#states' => array(),
+          '#weight' => -5,
+          '#settings' => array(
+            'compare_format' => 0,
+            'markdown' => 'drupal_html_to_text',
+            'line_counter' => '',
+            'compare_summary' => 0,
+            'show_header' => 1,
+          ),
+        );
+
+        foreach ($context['states'] as $state) {
+          // We need use the raw() not the value() function (Entity Wrapper).
+          // The value() includes html tags which we don't need.
+          // This however doesn't recognize some values correctly, but those values are not relevant for our task.
+          $old_property = $old_term_wrapper->$property_name->raw();
+          $new_property = $new_term_wrapper->$property_name->raw();
+
+          // The Entity Wrapper generates objects.
+          if (!is_object($old_property) && !is_object($new_property)) {
+            switch ($state) {
+              case 'rendered':
+                $result[$property_name]['#states'][$state] = array(
+                  '#old' => isset($old_term_rendered[$property_name]) ? drupal_render($old_term_rendered[$property_name]) : $old_term_rendered->{$property_name}->raw(),
+                  '#new' => isset($new_term_rendered[$property_name]) ? drupal_render($new_term_rendered[$property_name]) : $new_term_rendered->{$property_name}->raw(),
+                );
+              break;
+              // In case of raw_plain (taxonomy_revision only), for the node_revision there is only raw,
+              // We create our array efficiently for our diff (module) functions to identify the parameters correctly.
+              case 'raw_plain':
+                $result[$property_name]['#states']['raw'] = array(
+                  '#old' => $old_property,
+                  '#new' => $new_property,
+                );
+              break;
+              // Anything out of the ordinary will be considered : raw.
+              default:
+                $result[$property_name]['#states'][$state] = array(
+                  '#old' => $old_property,
+                  '#new' => $new_property,
+                );
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  return $result;
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function taxonomy_revision_entity_info_alter(&$entity_info) {
+  $entity_info['taxonomy_term']['revision table'] = 'taxonomy_term_data_revision';
+  $entity_info['taxonomy_term']['entity keys']['revision'] = 'revision_id';
+
+  require_once dirname(__FILE__) . '/taxonomy_revision.install';
+  $schema = taxonomy_revision_schema();
+  foreach ($schema['taxonomy_term_data_revision']['fields'] as $column_name => $column) {
+    $entity_info['taxonomy_term']['schema_fields_sql']['revision table'][] = $column_name;
+  }
+}
+
+/**
+ * Implements hook_field_attach_form().
+ */
+function taxonomy_revision_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode) {
+  if ($entity_type == 'taxonomy_term' && !empty($entity->tid)) {
+    $form['revision_information'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Revision information'),
+      '#collapsible' => TRUE,
+      '#weight' => 20,
+      '#access' => user_access('choose taxonomy term revisions'),
+    );
+    if (!variable_get("taxonomy_revision_by_default[{$entity->vid}]", FALSE)) {
+      $form['revision_information']['revision'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Create new revision'),
+      );
+    }
+    else {
+      $form['revision_information']['revision'] = array(
+        '#type' => 'markup',
+        '#markup' => t('New revision will be created automatically.'),
+      );
+    }
+    $form['revision_information']['log'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Revision log message'),
+      '#rows' => 4,
+      '#description' => t('Provide an explanation of the changes you are making. This will help other authors understand your motivations.'),
+    );
+    if (!variable_get("taxonomy_revision_by_default[{$entity->vid}]", FALSE)) {
+      $form['revision_information']['log']['#states'] = array(
+        'invisible' => array(
+          'input[name="revision"]' => array('checked' => FALSE),
+        ),
+      );
+    }
+
+    $form['#entity_builders'][] = 'taxonomy_revision_taxonomy_form_term_submit_build_term';
+  }
+}
+
+/**
+ * Entity builder for the taxonomy term entity.
+ *
+ * @see taxonomy_revision_field_attach_form()
+ */
+function taxonomy_revision_taxonomy_form_term_submit_build_term($entity_type, $entity, $form, $form_state) {
+  switch ($entity_type) {
+    case 'taxonomy_term':
+      if (!empty($form_state['values']['revision']) || variable_get("taxonomy_revision_by_default[{$entity->vid}]", FALSE)) {
+        $entity->revision = TRUE;
+        $entity->log = check_plain($form_state['values']['log']);
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_taxonomy_term_presave().
+ */
+function taxonomy_revision_taxonomy_term_presave($term) {
+  // Prevent taxonomy from overriding old revision with new data.
+  // For existing terms only.
+  if (!empty($term->tid)) {
+    // Deleting the revision_id to get a new revision.
+    $term_revision = clone($term);
+    unset($term_revision->revision_id);
+    $term_revision->timestamp = REQUEST_TIME;
+
+    global $user;
+    $term_revision->uid = $user->uid;
+
+    drupal_write_record('taxonomy_term_data_revision', $term_revision);
+
+    $term->revision_id = $term_revision->revision_id;
+    $term->revision = TRUE;
+  }
+}
+
+/**
+ * Saves the term.
+ *
+ * @param stdClass $term
+ *  Term to be saved.
+ */
+function _taxonomy_revision_taxonomy_term_save_revision($term) {
+  // Deleting the revision_id to get a new revision.
+  $term_revision = clone($term);
+  unset($term_revision->revision_id);
+  $term_revision->timestamp = REQUEST_TIME;
+
+  global $user;
+  $term_revision->uid = $user->uid;
+
+  drupal_write_record('taxonomy_term_data_revision', $term_revision);
+
+  $term_update = array(
+    'tid' => $term_revision->tid,
+    'revision_id' => $term_revision->revision_id,
+  );
+
+  drupal_write_record('taxonomy_term_data', $term_update, array('tid'));
+  // Update fields revisions.
+  field_attach_update('taxonomy_term', $term_revision);
+}
+
+/**
+ * Implements hook_taxonomy_term_insert().
+ */
+function taxonomy_revision_taxonomy_term_insert($term) {
+  // Saving the term in the revision table.
+  _taxonomy_revision_taxonomy_term_save_revision($term);
+}
+
+/**
+ * Implements hook_taxonomy_term_delete().
+ */
+function taxonomy_revision_taxonomy_term_delete($term) {
+  db_delete('taxonomy_term_data_revision')
+    ->condition('tid', $term->tid)
+    ->execute();
+}
+
+/**
+ * Deletes a taxonomy term revision.
+ *
+ * @param taxonomy_term $revision
+ *  The revision to delete.
+ */
+function taxonomy_revision_delete($revision) {
+  db_delete('taxonomy_term_data_revision')
+    ->condition('tid', $revision->tid)
+    ->condition('revision_id', $revision->revision_id)
+    ->execute();
+  module_invoke_all('taxonomy_revision_delete', $revision);
+  field_attach_delete_revision('taxonomy_revision', $revision);
+  return TRUE;
+}
+
+/**
+ * Loads a taxonomy term revision.
+ *
+ * @param $tid
+ *  Term id of the term to be loaded.
+ * @param $revision_id
+ *  Revision id of the term to be loaded.
+ * @return mixed
+ */
+function taxonomy_revision_term_load($tid, $revision_id) {
+  $terms = entity_load('taxonomy_term', array($tid), array('revision_id' => $revision_id));
+
+  return reset($terms);
+}
+
+/**
+ * Generate an array which displays a taxonomy term detail page.
+ *
+ * @param $term
+ *   A taxonomy term object.
+ * @param $message
+ *   A flag which sets a page title relevant to the revision being viewed.
+ * @return
+ *   A $page element suitable for use by drupal_render().
+ */
+function taxonomy_revision_show($term, $message = FALSE) {
+  if ($message) {
+    drupal_set_title(t('Revision of %name from %date', array('%name' => $term->name, '%date' => format_date($term->timestamp))), PASS_THROUGH);
+  }
+
+  // Emulates non existing taxonomy_term_view_multiple().
+  // See http://drupal.org/node/708730.
+  // See node_show().
+  $terms = array($term->tid => $term);
+  $view_mode = 'full';
+
+  field_attach_prepare_view('taxonomy_term', $terms, $view_mode);
+  entity_prepare_view('taxonomy_term', $terms);
+  $build = array();
+  $weight = 0;
+  foreach ($terms as $term) {
+    $build['terms'][$term->tid] = taxonomy_term_view($term, $view_mode);
+    $build['terms'][$term->tid]['#weight'] = $weight;
+    $weight++;
+  }
+  $build['terms']['#sorted'] = TRUE;
+  return $build;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function taxonomy_revision_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id) {
+  if (empty($form_state['confirm_delete'])) {
+    $form['revision_information'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Revision information'),
+      '#collapsible' => TRUE,
+      '#weight' => 20,
+      '#access' => user_access('choose taxonomy term revisions'),
+    );
+    if (!empty($form_state['vocabulary'])) {
+      $revision_by_default = variable_get("taxonomy_revision_by_default[{$form_state['vocabulary']->vid}]");
+    }
+    else {
+      $revision_by_default = FALSE;
+    }
+
+    $form['revision_information']['revision_by_default'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Create new revision by default'),
+      '#default_value' => $revision_by_default,
+    );
+    $form['#submit'][] = 'taxonomy_revision_taxonomy_form_vocabulary_submit';
+  }
+}
+
+/**
+ * Submit handler for the taxonomy_form_vocabulary form.
+ * @see taxonomy_revision_form_taxonomy_form_vocabulary_alter().
+ */
+function taxonomy_revision_taxonomy_form_vocabulary_submit($form, &$form_state) {
+  if (!empty($form_state['vid'])) {
+    variable_set("taxonomy_revision_by_default[{$form_state['vid']}]", !empty($form_state['values']['revision_by_default']));
+  }
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ *
+ * Add support for the 'Taxonomy Revision settings' to be re-ordered by the user on the
+ * 'Manage Fields' tab of vocabularies.
+ */
+function taxonomy_revision_field_extra_fields() {
+  $info = array();
+  $vocabularies = taxonomy_get_vocabularies();
+  foreach ($vocabularies as $vocabulary) {
+    if (!isset($info['taxonomy_term'][$vocabulary->machine_name]['form']['revision_information'])) {
+      $info['taxonomy_term'][$vocabulary->machine_name]['form']['revision_information'] = array(
+        'label' => t('Taxonomy Revision settings'),
+        'description' => t('Taxonomy Revision module form elements'),
+        'weight' => 30,
+      );
+    }
+  }
+
+  return $info;
+}
