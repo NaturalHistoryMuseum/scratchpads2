@@ -27,7 +27,7 @@
      */
     this.slickgridDataLoaded = function(e, from, to, data){
       var char_columns = {};
-      var slick_cols = slickgrid.getColumns();
+      var slick_cols = slickgrid.getColumns(true);
       for (var c in slick_cols){
         if (slick_cols[c].id.match(/^character_\d+_\d+$/)){
           char_columns[slick_cols[c].id] = true;
