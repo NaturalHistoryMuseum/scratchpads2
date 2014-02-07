@@ -145,6 +145,7 @@
             item.input.prop('checked', true);
           }
           item.elem.click($.proxy(this, 'treeElemClick', item));
+          item.elem.bind("contextmenu", $.proxy(this, 'openContextMenu', item));
           $input.hover($.proxy(this, 'treeElemHover', item));
         }
         this.$elem.removeClass('character-editor-tree-collapsed').addClass('character-editor-tree-expanded');
@@ -433,6 +434,79 @@
     this.toggle = function(){
       this.mode = (this.mode == 'collapsed') ? 'expanded' : 'collapsed';
       this.display();
+    }
+
+    /**
+     * openContextMenu
+     *
+     * This is called as an event callback and should open the context menu
+     */
+    this.openContextMenu = function(item, e){
+      // Generate the list of options that apply to this item
+      var options = [];
+      if (!item.group){
+        // Add Go to column
+        var $item = $('<div></div>').addClass('character-editor-popup-row')
+        .html('Go to column').click($.proxy(function(){
+          this.closeContextMenu(item);
+          this.goToColumn(item.id);
+        }, this));
+        options.push($item);
+      }
+      if (options.length == 0){
+        return;
+      }
+      // Prepare the menu
+      var $menu = $('<div id="character-context-menu"></div>').css({
+        position: 'absolute',
+        zIndex: '100',
+        left: e.pageX,
+        top: e.pageY,
+      }).addClass('character-editor-popup');
+      $('<div></div>').addClass('character-editor-popup-header')
+      .html(item.label).appendTo($menu);
+      // Add the options
+      for (var i = 0; i < options.length; i++){
+        options[i].appendTo($menu);
+      }
+      // Add the menu to the document
+      $menu.appendTo('body').show();
+      // Add an overlay for click-out
+      $('<div id="character-context-menu-out"></div>').css({
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: $(document).width().toString() + "px",
+        height: $(document).height().toString() + "px",
+        zIndex: '99'
+      }).appendTo('body').one('click', $.proxy(function(e){
+        this.closeContextMenu(item);
+      }, this));
+      $(item.elem).css('background', '#DDD');
+      e.preventDefault();
+    }
+
+    /**
+     * closeContextMenu
+     */
+    this.closeContextMenu = function(item){
+      $(item.elem).css('background', '');
+      $('#character-context-menu').remove();
+      $('#character-context-menu-out').remove();
+    }
+
+    /**
+     * goToColumn
+     *
+     * Scroll the editor so that the given column is in view
+     */
+    this.goToColumn = function(id){
+      var $viewport = $('#slickgrid div.slick-viewport');
+      var offset = $('div.' + id).offset().left - $viewport.offset().left + $viewport.scrollLeft();
+      console.log(offset);
+      $viewport.animate({
+        scrollLeft: offset
+      });
     }
 
     this.init();
