@@ -313,7 +313,6 @@ function scratchpads_tweaks_install(){
   }
   // Set the jQuery settings
   variable_set('jquery_update_jquery_version', '1.8');
-  variable_set('jquery_update_jquery_cdn', 'google');
   // Prevent optimize from running on Solr.
   variable_set('apachesolr_optimize_interval', PHP_INT_MAX);
   // Allow insecure derivatives
@@ -1071,7 +1070,6 @@ function scratchpads_tweaks_update_7047(){
  */
 function scratchpads_tweaks_update_7049(){
   variable_set('jquery_update_jquery_version', '1.8');
-  variable_set('jquery_update_jquery_cdn', 'microsoft');
 }
 
 /**
@@ -1392,8 +1390,9 @@ function scratchpads_tweaks_update_7075(){
 }
 
 /**
- * Set the jQuery CDN to Google's rather than Microsoft's
+ * Don't use a CDN, as we have fixed an issue with jQuery UI that is only
+ * available when serving locally.
  */
-function scratchpads_tweaks_update_7076(){
-  variable_set('jquery_update_jquery_cdn', 'google');
+function scratchpads_tweaks_update_7077(){
+  variable_del('jquery_update_jquery_cdn');
 }
