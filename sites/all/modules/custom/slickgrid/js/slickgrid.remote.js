@@ -133,7 +133,7 @@
       if (typeof resp.data == 'undefined' || resp.data === null){
         return;
       }
-      if (from + resp.data.length < to){
+      if (from + resp.data.length - 1 < to){
         // We've hit the last row - store the full count.
         total_row_count = from + resp.data.length;
       }
@@ -199,8 +199,9 @@
         clear();
         window.clearTimeout(timeoutID);
         timeoutID = window.setTimeout(function(){
-          ensureData(0, length);
-        }, 700);
+          total_row_count = 0;
+          ensureData(0, length, 50);
+        }, 50);
       }
     }
 
