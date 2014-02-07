@@ -83,7 +83,7 @@ $.fn.extend({
 			}).eq(0);
 		} else {
 			scrollParent = this.parents().filter(function() {
-				return (/(auto|scroll)/).test($.curCSS(this,'overflow',1)+$.curCSS(this,'overflow-y',1)+$.curCSS(this,'overflow-x',1));
+				return (/(auto|scroll)/).test($.curCSS(this,'overflow')+$.curCSS(this,'overflow-y')+$.curCSS(this,'overflow-x'));
 			}).eq(0);
 		}
 
