@@ -444,6 +444,12 @@
     this.openContextMenu = function(item, e){
       // Generate the list of options that apply to this item
       var options = [];
+      var $item = $('<div></div>').addClass('character-editor-popup-row')
+        .html('Select only this ' + (item.group ? 'group' : 'item')).click($.proxy(function(){
+        this.closeContextMenu(item);
+        this.deselectOthers(item);
+      }, this));
+      options.push($item);
       if (!item.group){
         // Add Go to column
         var $item = $('<div></div>').addClass('character-editor-popup-row')
@@ -507,6 +513,22 @@
       $viewport.animate({
         scrollLeft: offset
       });
+    }
+
+    /**
+     * deselectOthers
+     *
+     * Given an item in the tree, un-select all the other items
+     */
+    this.deselectOthers = function(item){
+      // Deselect all columns
+      for (var i in this.tree){
+        this.tree[i].input.prop('checked', false);
+        this.tree[i].visible = false;
+      }
+      // Re-select the given column and apply.
+      this.setItemStatus(item, true);
+      this.setColumns();
     }
 
     this.init();
