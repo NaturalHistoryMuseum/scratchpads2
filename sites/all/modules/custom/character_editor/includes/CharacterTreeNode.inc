@@ -152,6 +152,7 @@ class CharacterTreeNode{
       $values = $this->model->getValues($row_ids);
       if($this->model->wrapper()->getBundle() == 'controlled'){
         $value_map = $this->model->getControlledMap();
+        module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
       }
       foreach($values as $value){
         $data = '';
