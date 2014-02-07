@@ -209,7 +209,7 @@
       tui_recurse_highlight($(this).parent().data('tui-this-term'));
     });
     // SORTING
-    $('#tui-tree-subcontainer>ol').nestedSortable({cursorAt: {top: 15}, disableNesting: 'no-nest', forcePlaceholderSize: true, handle: 'div', helper: 'clone', items: 'li', opacity: .8, placeholder: 'placeholder', revert: 250, tabSize: 25, tolerance: 'pointer', toleranceElement: '> div', update: function(event, ui){
+    $('#tui-tree-subcontainer>ol').nestedSortable({scrollSensitivity: 40, scrollSpeed: 40, cursorAt: {top: 15}, disableNesting: 'no-nest', forcePlaceholderSize: true, handle: 'div', helper: 'clone', items: 'li', opacity: .8, placeholder: 'placeholder', revert: 250, tabSize: 25, tolerance: 'pointer', toleranceElement: '> div', update: function(event, ui){
       if($('li[data-tui-child-of="' + ui.item.data('tui-child-of') + '"]').length == 1) {
         $('li[data-tui-this-term="' + ui.item.data('tui-child-of') + '"]').removeClass('tui-open');
         $('li[data-tui-this-term="' + ui.item.data('tui-child-of') + '"]').removeClass('tui-has-children');
