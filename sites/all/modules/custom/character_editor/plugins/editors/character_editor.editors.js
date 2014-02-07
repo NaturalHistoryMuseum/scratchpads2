@@ -119,7 +119,7 @@
               var textInputVal = '';
               var start = this.$textinput.val();
               $('div.character-editor-popup-row', this.$input).filter(function(){
-                if ($(this).html().indexOf(start) != 0){
+                if ($(this).html().toLowerCase().indexOf(start.toLowerCase()) != 0){
                   return true;
                 } else if (textInputAuto.length == 0) {
                   textInputAuto = $(this).html();
