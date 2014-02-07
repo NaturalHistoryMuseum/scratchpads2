@@ -20,7 +20,8 @@
         Drupal.settings.CharacterEditorInit = true;
         $slick.bind('onSlickgridInit', function(event, slickgrid){
           // Create the tree
-          Drupal.characterTreeUI = new Drupal.CharacterTreeUI(Drupal.settings.CharacterTreeUI.mode, Drupal.settings.CharacterTreeUI.tree, context, slickgrid);
+          Drupal.characterTreeUI = new Drupal.CharacterTreeUI(Drupal.settings.CharacterTreeUI.mode,
+              Drupal.settings.CharacterTreeUI.width, Drupal.settings.CharacterTreeUI.tree, context, slickgrid);
           Drupal.settings.CharacterTreeUI.tree = {};
           // Create the cell hover
           Drupal.characterHoverUI = new Drupal.ColumnHoverUI(slickgrid);

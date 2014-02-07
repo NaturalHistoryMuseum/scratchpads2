@@ -4,7 +4,7 @@
    *
    * This class represents the character tree used to show/hide characters on the slickgrid
    */
-  Drupal.CharacterTreeUI = function(character_tree_mode, tree, context, slickgrid){
+  Drupal.CharacterTreeUI = function(character_tree_mode, character_tree_width, tree, context, slickgrid){
     /**
      * init
      */
@@ -12,7 +12,7 @@
       var that = this;
       // Settings
       this.spacing = 8;
-      this.expanded_width = 200;
+      this.expanded_width = parseInt(character_tree_width);
       this.collapsed_width = 8;
       this.group_box_height = 32;
       this.mode = character_tree_mode;
@@ -22,6 +22,9 @@
       this.$wrapper = this.$slick.closest('div.slickgrid-wrapper');
       this.$root = this.$slick.closest('div.view-character-editor').parent();
       // Setup
+      if (this.expanded_width > $(document).width() * 0.75){
+        this.expanded_width = Math.floor($(document).width() * 0.75);
+      }
       this.$wrapper.css('position', 'relative');
       this.$elem = $('<div id="character-editor-tree"></div>').css({
         float: 'left',
@@ -94,6 +97,7 @@
           $(this).remove();
         });
         $('div.character-editor-tree-arrow', this.$elem).remove();
+        $('div.character-editor-tree-resize', this.$elem).remove();
         $('<div></div>').addClass('character-editor-tree-arrow').html('&#9654;').prependTo(this.$elem);
         this.resize(this.collapsed_width);
         $('div.character-editor-tree-arrow', this.$elem).stop().css({
@@ -118,12 +122,15 @@
         var $tree = $('<div></div>').addClass('character-editor-tree');
         $tree.css({
           overflow: 'auto',
+          position: 'relative',
           width: this.expanded_width.toString() + "px"
         });
         $('<div>Character Tree</div>').addClass('character-editor-tree-header').appendTo($tree);
         $('<div>&otimes;</div>').addClass('character-editor-tree-close').css({
           display: 'none'
         }).appendTo($tree).fadeIn().click($.proxy(this, 'treeClick'));
+        $('<div></div>').addClass('character-editor-tree-resize')
+        .appendTo(this.$elem).on('mousedown', $.proxy(this, 'resizeHandleMouseDown'));
         for (var i in this.tree){
           var item = this.tree[i];
           html = item.label;
@@ -266,6 +273,35 @@
       this.treeElemHover(item, {type: 'mouseenter'});
       // Cancel event
       event.stopPropagation();
+    }
+
+    /**
+     * resizeHandleMouseDown
+     *
+     * Event called on mousedown on the resize handlebar
+     */
+    this.resizeHandleMouseDown = function(event){
+      var last_position = event.pageX;
+      var wrapper_diff = this.$wrapper.width() + this.expanded_width;
+
+      $(window).bind('mousemove.characterTree', $.proxy(function(e){
+        var delta = e.pageX - last_position;
+        if (this.expanded_width + delta < 100 || this.expanded_width + delta > $(document).width() * 0.75 ){
+          return;
+        }
+        last_position = e.pageX;
+        this.expanded_width = this.expanded_width + delta;
+        this.$wrapper.css('margin-left', (this.expanded_width + this.spacing).toString() + 'px');
+        this.$wrapper.width(wrapper_diff - this.expanded_width);
+        this.$elem.width(this.expanded_width);
+        $('div.character-editor-tree', this.$elem).width(this.expanded_width);
+      }, this));
+      $(window).bind('mouseup.characterTree', $.proxy(function(){
+        $(window).unbind('mousemove.characterTree');
+        $(window).unbind('mouseup.characterTree');
+        slickgrid.updateSettings('character_tree_width', this.expanded_width);
+      }, this));
+      event.preventDefault();
     }
 
     /**

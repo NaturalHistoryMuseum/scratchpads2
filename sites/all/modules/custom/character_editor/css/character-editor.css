@@ -173,6 +173,17 @@
   font-size: 1.5em;
 }
 
+#character-editor-tree .character-editor-tree-resize {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  cursor: col-resize;
+  width: 8px;
+  height: 100%;
+  z-index: 10;
+  border-right: 1px solid #DDD;
+}
+
 /* Popup styling (context menu, select box, etc.) */
 .character-editor-popup {
   background: #FFF;

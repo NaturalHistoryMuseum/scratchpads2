@@ -218,6 +218,7 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
     'CharacterTreeUI' => array(
       'editable' => $editable,
       'mode' => isset($style_options['character_tree_mode']) ? $style_options['character_tree_mode'] : 'collapsed',
+      'width' => isset($style_options['character_tree_width']) ? $style_options['character_tree_width'] : '200',
       'tree' => $editor_tree,
       'project' => $project_model->id()
     )
