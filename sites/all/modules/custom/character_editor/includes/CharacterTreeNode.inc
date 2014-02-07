@@ -164,7 +164,7 @@ class CharacterTreeNode{
           $metadata = unserialize($value['metadata'][0]['value']);
         }
         $char_id = $value['entity_w']->type() . ':' . $value['entity_w']->getIdentifier();
-        if(!empty($value_map)){
+        if(!empty($value_map) && $data){
           try{
             $expression = new CharacterExpressionParser($data);
             $expr_result = $expression->evaluate();
