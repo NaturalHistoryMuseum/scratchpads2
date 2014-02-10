@@ -140,6 +140,7 @@ function silver_feeds_importer_default(){
       );
     }
     $field_info = field_info_instances('node', $node_type);
+    $field_info = _silver_feeds_sort_field_info('node', $node_type, $field_info);
     _silver_feeds_importer_default_helper($field_info, $feeds_importer, "node:$node_type:");
     $export['node_importer_' . $node_type] = $feeds_importer;
   }
@@ -297,6 +298,44 @@ function silver_feeds_importer_default(){
 }
 
 /**
+ * Helper function to sort the field_info array
+ */
+function _silver_feeds_sort_field_info($entity_type, $bundle, $field_info){
+  $groups = field_group_info_groups($entity_type, $bundle, 'form');
+  foreach($groups as $key => $group){
+    foreach($group->children as $child_key => $child){
+      if(isset($groups[$child])){
+        $groups[$key]->children[$child_key] = $groups[$child];
+        unset($groups[$child]);
+      }
+    }
+  }
+  foreach($groups as $key => $group){
+    uasort($groups[$key]->children, '_silver_sort_groups');
+    foreach($group->children as $child_key => $child){
+      foreach($child->children as $gchild_key => $gchild){
+        if(isset($field_info[$gchild])){
+          $groups[$key]->children[$child_key]->children[$gchild_key] = $field_info[$gchild];
+          unset($field_info[$gchild]);
+        }else{
+          unset($groups[$key]->children[$child_key]->children[$gchild_key]);
+        }
+      }
+      uasort($groups[$key]->children[$child_key]->children, '_silver_sort_groups');
+    }
+  }
+  uasort($groups, '_silver_sort_groups');
+  foreach(array_keys($groups) as $key){
+    foreach(array_keys($groups[$key]->children) as $child_key){
+      foreach(array_keys($groups[$key]->children[$child_key]->children) as $gchild_key){
+        $field_info[$groups[$key]->children[$child_key]->children[$gchild_key]['field_name']] = $groups[$key]->children[$child_key]->children[$gchild_key];
+      }
+    }
+  }
+  return $field_info;
+}
+
+/**
  * Helper function which creates the correct mapping for certain field types.
  */
 function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $additional = '', $map_field_collection = FALSE, $field_collection_label_addition = ''){
@@ -420,4 +459,11 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
         );
     }
   }
+}
+
+function _silver_sort_groups($a, $b){
+  $a_weight = (is_object($a) && isset($a->weight)) ? $a->weight : 0;
+  $b_weight = (is_object($b) && isset($b->weight)) ? $b->weight : 0;
+  if($a_weight == $b_weight){return 0;}
+  return ($a_weight < $b_weight) ? -1 : 1;
 }
