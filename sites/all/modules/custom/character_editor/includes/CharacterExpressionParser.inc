@@ -156,6 +156,10 @@ class CharacterExpressionParser{
       'arity' => 2,
       'constructor' => TRUE
     ),
+    ',' => array(
+      'arity' => 2,
+      'constructor' => TRUE
+    ),
     '..' => array(
       'arity' => 2,
       'constructor' => TRUE
@@ -425,6 +429,10 @@ class CharacterExpressionParser{
         if(!$prev || $this->isSymbol($prev, 'start') || $prev == 'o'){
           $current_token = 'neg';
         }
+      }
+      // Replace ',' with '|'
+      if($current == 'o' && $current_token == ','){
+        $current_token = '|';
       }
       // Validate
       $val = $this->validateParseElement($prev, $prev_token, $current, $current_token, $next, $next_token);
@@ -1438,7 +1446,7 @@ class CharacterExpressionVariable extends CharacterExpressionValue{
   private function fetchItem(){
     if(!empty($this->item)){return $this->item;}
     if(empty($this->context['variable_map']) || !isset($this->context['variable_map'][$this->name])){
-      $this->item = new CharacterExpressionUndefined();
+      $this->item = new CharacterExpressionUndefined($this->context);
     }else{
       $this->item = $this->getValueObject($this->context['variable_map'][$this->name]);
     }
