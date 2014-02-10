@@ -207,7 +207,8 @@
       } else {
         var header = $('div.' + item.id, this.$slick);
         if (header.length > 0){
-          if (hoverin){
+          var pos = header.offset().left - this.$slick.offset().left;
+          if (hoverin && pos >= 0 && pos < this.$slick.width()){
             header.trigger('mouseenter');
           } else {
             header.trigger('mouseleave');
@@ -444,10 +445,11 @@
     this.openContextMenu = function(item, e){
       // Generate the list of options that apply to this item
       var options = [];
+      // Add 'edit' option
       var $item = $('<div></div>').addClass('character-editor-popup-row')
-        .html('Select only this ' + (item.group ? 'group' : 'item')).click($.proxy(function(){
+      .html('Edit').click($.proxy(function(){
         this.closeContextMenu(item);
-        this.deselectOthers(item);
+        this.openCharacterEditor(item);
       }, this));
       options.push($item);
       if (!item.group){
@@ -459,6 +461,13 @@
         }, this));
         options.push($item);
       }
+      // Add 'select on this item'
+      var $item = $('<div></div>').addClass('character-editor-popup-row')
+        .html('Select only this ' + (item.group ? 'group' : 'item')).click($.proxy(function(){
+        this.closeContextMenu(item);
+        this.deselectOthers(item);
+      }, this));
+      options.push($item);
       if (options.length == 0){
         return;
       }
@@ -502,16 +511,60 @@
     }
 
     /**
+     * openCharacterEditor
+     *
+     * Open a modal to edit a character
+     */
+    this.openCharacterEditor = function(item){
+      Drupal.CTools.Modal.show('ctools-modal-slickgrid-scale');
+      var base = 'ctools-modal-slickgrid';
+      var element_settings = {
+        event: 'modal',
+        url: Drupal.settings.slickgrid.slickgrid_callback_url + 'update',
+        submit: {
+          js: true,
+          display_id: slickgrid.getViewDisplayID(),
+          view: slickgrid.getViewName(),
+          plugin: 'CharacterEntity',
+          modal_character_id: item.id
+        }
+      };
+      Drupal.ajax[base] = new Drupal.ajax(base, item.input, element_settings);
+      item.input.trigger('modal');
+    }
+
+    /**
      * goToColumn
      *
      * Scroll the editor so that the given column is in view
      */
     this.goToColumn = function(id){
+      // Create a top-level layer to prevent hovering events on other columns
+      var $layer = $('<div></div>').css({
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: $(document).width().toString() + "px",
+        height: $(document).height().toString() + "px",
+        zIndex: '99'
+      }).appendTo('body');
       var $viewport = $('#slickgrid div.slick-viewport');
-      var offset = $('div.' + id).offset().left - $viewport.offset().left + $viewport.scrollLeft();
-      console.log(offset);
+      var $item = $('div.' + id, this.$slick);
+      var offset = $item.offset().left - $viewport.offset().left + $viewport.scrollLeft();
       $viewport.animate({
         scrollLeft: offset
+      }, {
+        duration: ($viewport.scrollLeft() ==  offset) ? 1 : 400,
+        complete: $.proxy(function() {
+          $item.trigger('mouseenter');
+          // Give it a quarter of a second, then re-instante normal hovering after the next mouse move.
+          setTimeout($.proxy(function(){
+            $layer.one('mousemove', $.proxy(function(e){
+              $item.trigger('mouseleave');
+              $layer.remove();
+            }, this));
+          }, this), 250);
+        }, this)
       });
     }
 

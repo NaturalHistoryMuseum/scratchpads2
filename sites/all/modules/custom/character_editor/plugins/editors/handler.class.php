@@ -112,3 +112,72 @@ class character_metadata_editor_handler{
     );
   }
 }
+
+/**
+ * character_metadata_editor_handler
+ *
+ * Special handler for handling character entities
+ */
+class character_entity_editor_handler{
+
+  /**
+   * __construct
+   */
+  function __construct($definition){
+    $this->errors = array();
+    $this->metadata = array();
+    if(isset($_POST['modal_character_id'])){
+      $this->character_id = preg_replace('/^(?:character_)?(\d+)(?:_\d+)?$/', '$1', $_POST['modal_character_id']);
+    }else{
+      $this->errors[] = t('Missing character id');
+    }
+  }
+
+  /**
+   * update
+   */
+  function update(){
+    if($this->errors){return array(
+        'errors' => $this->errors
+      );}
+    $character_w = character_editor_wrapper('character_editor_character', $this->character_id);
+    $form_state = array(
+      'build_info' => array(
+        'args' => array(
+          $character_w->raw()
+        )
+      ),
+      'ajax' => TRUE,
+      'modal' => 'CharacterEntity',
+      're_render' => FALSE,
+      'no_redirect' => TRUE
+    );
+    $form = drupal_build_form('entity_admin_entity_form', $form_state);
+    if(!$form_state['executed'] || $form_state['rebuild']){
+      print ajax_render(ctools_modal_form_render($form_state, $form));
+      exit();
+    }else{
+      $output = array();
+      $output[] = ctools_modal_command_dismiss();
+      $project_w = character_editor_get_character_project($character_w);
+      $args = array(
+        $project_w->getIdentifier()
+      );
+      $result = array();
+      $result = module_invoke_all('slickgrid_add_entity', 'character_editor_character', $character_w->getBundle(), $args, $character_w->raw());
+      slickgrid_callback_add_messages($result);
+      $output[] = array(
+        'command' => 'slickgrid',
+        'response' => array(
+          'result' => array_merge(array(
+            'data' => array(
+              'length' => 0
+            )
+          ), $result)
+        )
+      );
+      print ajax_render($output);
+      exit();
+    }
+  }
+}

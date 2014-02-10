@@ -358,18 +358,30 @@ function character_editor_form_character_editor_character_alter(&$form, &$form_s
     }
   }
   if(!$form_state['entity']->is_new){
-    // The tabs have been changed so there's no longer delete - add delete button
-    $form['actions']['delete'] = array(
-      '#type' => 'submit',
-      '#value' => t('Delete'),
-      '#submit' => array(
-        'character_editor_character_delete_submit'
-      )
-    );
-    if(!empty($form_state['character_project_id'])){
-      $form['actions']['cancel'] = array(
-        '#type' => 'markup',
-        '#markup' => l('Cancel', 'character-editor-project/' . $form_state['character_project_id'] . '/characters')
+    // The tabs have been changed so there's no longer delete - add delete button, unless
+    // we're editing from a modal.
+    if(empty($form_state['modal'])){
+      $form['actions']['delete'] = array(
+        '#type' => 'submit',
+        '#value' => t('Delete'),
+        '#submit' => array(
+          'character_editor_character_delete_submit'
+        )
+      );
+      if(!empty($form_state['character_project_id'])){
+        $form['actions']['cancel'] = array(
+          '#type' => 'markup',
+          '#markup' => l('Cancel', 'character-editor-project/' . $form_state['character_project_id'] . '/characters')
+        );
+      }
+    }else{
+      $form['plugin'] = array(
+        '#type' => 'hidden',
+        '#value' => $form_state['modal']
+      );
+      $form['modal_character_id'] = array(
+        '#type' => 'hidden',
+        '#value' => $form_state['entity']->id
       );
     }
     $form['actions']['submit']['#update'] = TRUE;

@@ -12,6 +12,7 @@ files[] = plugins/editors/handler.class.php
 files[] = plugins/formatters/characterCollapsibleFormatter.inc
 files[] = plugins/editors/CharacterMetadata.inc
 files[] = plugins/editors/ControlledCharacter.inc
+files[] = plugins/editors/CharacterEntity.inc
 ; Entity UI
 files[] = includes/CharacterProjectEntityController.inc
 
