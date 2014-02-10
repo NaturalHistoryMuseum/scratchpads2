@@ -388,11 +388,11 @@ function scratchpads_species_views_pre_view(&$view, &$display_id, &$args){
         break;
       case 'species_media':
       case 'species_slideshow':
-        // Add children to media views
+      case 'species_biblio':
+      case 'species_specimen_observation':
+        // Add children to media, literature and specimen views
         if(!count($args)){
-          $args[0] = implode('+', array_merge(array(
-            arg(2)
-          ), array_keys(taxonomy_get_children(arg(2)))));
+          $args[0] = _scratchpads_species_get_descendant_tids(arg(2));
         }
         break;
       default:
@@ -420,6 +420,23 @@ function scratchpads_species_views_pre_view(&$view, &$display_id, &$args){
         }
     }
   }
+}
+
+/**
+ * Get a list of TIDs descendant of the passed tid as a string suitable for
+ * using by views for the arguments of a view.
+ */
+function _scratchpads_species_get_descendant_tids($tid){
+  $tids = array(
+    $tid
+  );
+  for($i = 0; $i < count($tids); $i++){
+    $results = db_select('taxonomy_term_hierarchy', 't')->condition('parent', $tids[$i])->fields('t', array(
+      'tid'
+    ))->execute()->fetchCol();
+    $tids = array_merge($tids, $results);
+  }
+  return implode('+', $tids);
 }
 
 /**
@@ -472,12 +489,8 @@ function scratchpads_species_preprocess_views_view(&$vars){
     case 'species_nomenclature':
       if(!scratchpads_blocks_show_placeholders()){
         // If species slideshow is empty, expand this block
-        if($view = views_get_view('species_slideshow')){
-          $view->args = array(
-            implode('+', array_merge(array(
-              arg(2)
-            ), array_keys(taxonomy_get_children(arg(2)))))
-          );
+        if(($view = views_get_view('species_slideshow')) != FALSE){
+          $view->args = array(_scratchpads_species_get_descendant_tids(arg(2)));
           $view->execute();
           if(!count($view->result)){
             foreach($vars['classes_array'] as $id => $class_string){
