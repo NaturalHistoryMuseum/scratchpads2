@@ -15,19 +15,9 @@ function scratchpads_data_integrity_check_for_terms_in_deleted_vocabularies(){
   $tids = array();
   $messages = array();
   foreach($results as $row){
-    //taxonomy_term_delete($row->tid);
-    // Before we delete, we'll send emails just to guage how many terms we could
-    // be deleting.
-    $messages[] = " - {$row->name} ($row->tid)";
+    taxonomy_term_delete($row->tid);
   }
-  if(count($messages)){
-    $messages = implode("\n", $messages);
-    $messages = array(
-      t('The following term(s) were associated with a deleted vocabulary and have been deleted:'),
-      $messages
-    );
-  }
-  return $messages;
+  return array();
 }
 
 /**
@@ -82,9 +72,19 @@ function scratchpads_data_integrity_check_all_terms_have_parents(){
     $messages[] = " - {$row->name} ({$row->tid})";
   }
   if(count($messages)){
+    // We add a parent for the terms that are missing one.
+    $query = db_select('taxonomy_term_data', 't')->fields('t', array(
+      'tid'
+    ))->condition('tid', $not_in, 'NOT IN');
+    $query->addExpression('0', 'parent');
+    db_insert('taxonomy_term_hierarchy')->fields(array(
+      'tid',
+      'parent'
+    ))->from($query)->execute();
+    // And also report that they have been added
     $messages = implode("\n", $messages);
     $messages = array(
-      t('The following term(s) are missing a parent:'),
+      t('The following term(s) were missing a parent and have been moved to the root of their classification:'),
       $messages
     );
   }
