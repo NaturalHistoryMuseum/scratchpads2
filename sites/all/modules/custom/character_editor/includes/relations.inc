@@ -328,7 +328,7 @@ function character_editor_association_exists(EntityDrupalWrapper $wrap_1, Entity
  * This will update the existing relation, or create a new one
  * if none exist
  */
-function character_editor_set_character_value(EntityDrupalWrapper $character_w, EntityDrupalWrapper $entity_w, $data = NULL, $metadata = NULL){
+function character_editor_set_character_value(EntityDrupalWrapper $character_w, EntityDrupalWrapper $entity_w, $data = NULL, $metadata = NULL, $pass = NULL){
   global $user;
   // Get the relation or create a new one
   $values = character_editor_get_character_values($character_w, $entity_w);
@@ -376,6 +376,15 @@ function character_editor_set_character_value(EntityDrupalWrapper $character_w, 
       LANGUAGE_NONE => array(
         array(
           'value' => serialize($metadata)
+        )
+      )
+    );
+  }
+  if($pass !== NULL){
+    $relation->field_character_state_pass = array(
+      LANGUAGE_NONE => array(
+        array(
+          'value' => $pass
         )
       )
     );
@@ -455,11 +464,13 @@ function character_editor_get_character_values(EntityDrupalWrapper $character_w,
     $entity_w = entity_metadata_wrapper($row->entity_type, entity_load_single($row->entity_type, $row->entity_id));
     $data = field_get_items('relation', $relation_w->raw(), 'field_character_state_data');
     $metadata = field_get_items('relation', $relation_w->raw(), 'field_character_state_meta');
+    $pass = field_get_items('relation', $relation_w->raw(), 'field_character_state_pass');
     $values[] = array(
       'entity_w' => $entity_w,
       'relation_w' => $relation_w,
       'data' => $data,
-      'metadata' => $metadata
+      'metadata' => $metadata,
+      'pass' => $pass
     );
   }
   return $values;

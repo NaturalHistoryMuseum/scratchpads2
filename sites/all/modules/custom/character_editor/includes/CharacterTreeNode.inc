@@ -153,8 +153,7 @@ class CharacterTreeNode{
       foreach($row_ids as $id){
         $result[$id][$this->column_id] = array(
           'data' => '',
-          'metadata' => array(
-          )
+          'metadata' => array()
         );
       }
       // Get the values from the character, and insert them.
@@ -169,8 +168,11 @@ class CharacterTreeNode{
         if(isset($value['data'][0]['value'])){
           $data = $value['data'][0]['value'];
         }
-        if(isset($value['metadata'][0]['safe_value'])){
+        if(isset($value['metadata'][0]['value'])){
           $metadata = unserialize($value['metadata'][0]['value']);
+        }
+        if(isset($value['pass'][0]['value'])){
+          $metadata['pass'] = $value['pass'][0]['value'];
         }
         $char_id = $value['entity_w']->type() . ':' . $value['entity_w']->getIdentifier();
         if(!empty($value_map) && $data){

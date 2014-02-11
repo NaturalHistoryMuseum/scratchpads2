@@ -1477,6 +1477,69 @@ other|Other',
       )
     )
   );
+  // Exported field: 'character_editor_character-computed-field_char_condition'
+  $fields['character_editor_character-computed-field_char_condition'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_condition',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'text_long'
+    ),
+    'field_instance' => array(
+      'bundle' => 'computed',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => 'The character will be available if the expression is empty, evaluates to a non-zero number or fails to evaluate. You can enter mathematical (+-*/) and boolean (is,is-not,>,>=,<,<=) expressions using numbers, \\"text\\", {character variables} and \'character states\'. Boolean expressions return \'1\' for TRUE and \'0\' for false. Lists [3,4] and ranges [-5 .. 5] are supported with \'in\' and \'not in\' operators. With ordered controlled characters ranges of states can be used too: [ \'yellow:1\' to \'red:2\' ]. Example: {Eye Color} in [\'Red\', \'Blue\'].',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 2
+        )
+      ),
+      'entity_type' => 'character_editor_character',
+      'field_name' => 'field_char_condition',
+      'label' => 'Condition',
+      'required' => 0,
+      'settings' => array(
+        'linkit' => array(
+          'enable' => 0,
+          'insert_plugin' => ''
+        ),
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5'
+        ),
+        'type' => 'text_textarea',
+        'weight' => '4'
+      )
+    )
+  );
   // Exported field: 'character_editor_project-default_character_project-field_char_proj_description'
   $fields['character_editor_project-default_character_project-field_char_proj_description'] = array(
     'field_config' => array(
@@ -2104,6 +2167,65 @@ other|Other',
       'entity_type' => 'relation',
       'field_name' => 'field_character_state_meta',
       'label' => 'Metadata',
+      'required' => 0,
+      'settings' => array(
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5'
+        ),
+        'type' => 'text_textarea',
+        'weight' => '1'
+      )
+    )
+  );
+  // Exported field: 'relation-character_state-field_character_state_pass'
+  $fields['relation-character_state-field_character_state_pass'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_character_state_pass',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'text_long'
+    ),
+    'field_instance' => array(
+      'bundle' => 'character_state',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 1
+        )
+      ),
+      'entity_type' => 'relation',
+      'field_name' => 'field_character_state_pass',
+      'label' => 'Pass up/down',
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',

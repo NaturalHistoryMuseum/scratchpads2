@@ -290,7 +290,7 @@ class CharacterModel{
    * Return true if this character has a condition
    */
   public function hasCondition(){
-    if($this->isGroup() || $this->isComputed()){return FALSE;}
+    if($this->isGroup()){return FALSE;}
     return $this->w->field_char_condition->value() != '';
   }
 

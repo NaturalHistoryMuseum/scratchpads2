@@ -15,18 +15,18 @@
      * 
      */
     this.contextMenu = function(info){
-      if (info.cell.cell == 0){
+      if (info.column.field == 'character_entity_field' || info.column.field == 'sel'){
         return [];
       }
       if (!info.row.id.match(/^taxonomy_term:/)){
         return [];
       }
       var metadata = Drupal.characterMetadataManager.getMetadata(info.cell.row, info.column.id);
-      var aggregate = (typeof metadata.aggregate != 'undefined' && metadata.aggregate);
-      var send_down = (typeof metadata.sendDown != 'undefined' && metadata.sendDown);
       if (metadata.flag == 'computed' || metadata.disabled){
         return [];
-      }
+      }      
+      var pass_up = (typeof metadata.pass != 'undefined' && (metadata.pass == 'up' || metadata.pass == 'both'));
+      var pass_down = (typeof metadata.pass != 'undefined' && (metadata.pass == 'down' || metadata.pass == 'both'));
       var selected_background = 'url("' + Drupal.settings.basePath + Drupal.settings.CharacterEditorPath + '/images/tick.png")';
       var elements = [];
       elements.push({
@@ -35,18 +35,18 @@
       });
       elements.push({
         element: Drupal.t('get from descendants'),
-        callback: $.proxy(this, 'contextClickCallback', info, metadata, 'aggregate', aggregate),
+        callback: $.proxy(this, 'contextClickCallback', info, metadata, 'up'),
         css: {
-          backgroundImage: aggregate ? selected_background: '',
+          backgroundImage: pass_up ? selected_background: '',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: '0 center'
         }
       });
       elements.push({
         element: Drupal.t('pass down to descendants'),
-        callback: $.proxy(this, 'contextClickCallback', info, metadata, 'sendDown', send_down),
+        callback: $.proxy(this, 'contextClickCallback', info, metadata, 'down'),
         css: {
-          backgroundImage: send_down ? selected_background: '',
+          backgroundImage: pass_down ? selected_background: '',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: '0 center'
         }
@@ -57,16 +57,27 @@
     /**
      * contextClickCallback
      */
-    this.contextClickCallback = function(info, metadata, type, current){
+    this.contextClickCallback = function(info, metadata, type){
       // Update the cell
+      if (typeof metadata.pass == 'undefined' || metadata.pass == ''){
+        metadata.pass = type;
+      } else if (type == metadata.pass){
+        metadata.pass = '';
+      } else if (metadata.pass == 'both'){
+        if (type == 'up'){
+          metadata.pass = 'down';
+        } else {
+          metadata.pass ='up';
+        }
+      } else {
+        metadata.pass = 'both'
+      };
       this.updateCell(metadata, grid.getCellNode(info.cell.row, info.cell.cell));
-      metadata[type] = !current;
       // And send the data to be saved.
       slickgrid.callback('update', {
-        entity_id: info.row.id,
+        entity_ids: slickgrid.getEntityIDs(info.row),
         column_id: info.column.id,
-        aggregate: (typeof metadata.aggregate != 'undefined' && metadata.aggregate) ? 1 : 0,
-        send_down: (typeof metadata.sendDown != 'undefined' && metadata.sendDown) ? 1 : 0,
+        pass: metadata.pass,
         plugin: 'CharacterMetadata'
       });
     }
@@ -75,14 +86,14 @@
      * updateCell
      */
     this.updateCell = function(metadata, node){
-      var aggregate = (typeof metadata.aggregate != 'undefined' && metadata.aggregate);
-      var send_down = (typeof metadata.sendDown != 'undefined' && metadata.sendDown);
+      var pass_up = (typeof metadata.pass != 'undefined' && (metadata.pass == 'up' || metadata.pass == 'both'));
+      var pass_down = (typeof metadata.pass != 'undefined' && (metadata.pass == 'down' || metadata.pass == 'both'));
       var image = 'none';
-      if (aggregate && send_down){
+      if (pass_up && pass_down){
         image = 'url("' + Drupal.settings.basePath + Drupal.settings.CharacterEditorPath + '/images/pass-up-down.png")';
-      } else if (aggregate) {
+      } else if (pass_up) {
         image = 'url("' + Drupal.settings.basePath + Drupal.settings.CharacterEditorPath + '/images/pass-up.png")';
-      } else if (send_down) {
+      } else if (pass_down) {
         image = 'url("' + Drupal.settings.basePath + Drupal.settings.CharacterEditorPath + '/images/pass-down.png")';
       }
       $(node).css({

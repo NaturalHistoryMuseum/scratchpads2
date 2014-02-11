@@ -42,14 +42,12 @@ class character_metadata_editor_handler{
   function __construct($definition){
     $this->errors = array();
     $this->metadata = array();
+    $this->pass = '';
     if(isset($_POST['flag'])){
       $this->metadata['flag'] = $_POST['flag'];
     }
-    if(isset($_POST['aggregate'])){
-      $this->metadata['aggregate'] = $_POST['aggregate'];
-    }
-    if(isset($_POST['send_down'])){
-      $this->metadata['sendDown'] = $_POST['send_down'];
+    if(isset($_POST['pass'])){
+      $this->pass = $_POST['pass'];
     }
     // Get the character
     if(isset($_POST['column_id']) && preg_match('/^character_(\d+)_(\d+)$/', $_POST['column_id'], $matches)){
@@ -87,7 +85,7 @@ class character_metadata_editor_handler{
       if(!$entity_w){
         continue;
       }
-      $r = character_editor_set_character_value($this->character_w, $entity_w, NULL, $this->metadata);
+      $r = character_editor_set_character_value($this->character_w, $entity_w, NULL, $this->metadata, $this->pass);
       if(!$r){
         $this->errors[] = t("Could not update or save the value for entity %entity", array(
           '%entity' => $entity_w->label()

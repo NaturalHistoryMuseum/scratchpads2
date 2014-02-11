@@ -586,3 +586,39 @@ function character_editor_update_7009(){
     }
   }
 }
+
+/**
+ * Create the inheritance flag field, and add a condition field to computed
+ * characters.
+ */
+function character_editor_update_7010(){
+  module_load_include('features.field.inc', 'character_editor');
+  $definitions = character_editor_field_default_fields();
+  $new_fields = array(
+    'character_editor_character' => array(
+      'computed' => array(
+        'field_char_condition'
+      )
+    ),
+    'relation' => array(
+      'character_state' => array(
+        'field_character_state_pass'
+      )
+    )
+  );
+  // Create new fields
+  foreach($new_fields as $entity_type => $bundles){
+    foreach($bundles as $bundle => $fields){
+      foreach($fields as $field_name){
+        $info = field_info_field($field_name);
+        if(!$info){
+          field_create_field($definitions["$entity_type-$bundle-$field_name"]['field_config']);
+        }
+        $instance = field_info_instance($entity_type, $field_name, $bundle);
+        if(!$instance){
+          field_create_instance($definitions["$entity_type-$bundle-$field_name"]['field_instance']);
+        }
+      }
+    }
+  }
+}

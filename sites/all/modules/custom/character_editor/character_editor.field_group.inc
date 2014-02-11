@@ -145,6 +145,13 @@ function character_editor_field_group_info(){
         'label' => 'Groups',
         'weight' => 2,
         'children' => array()
+      ),
+      'group_char_condition' => array(
+        'label' => 'Conditions',
+        'weight' => 3,
+        'children' => array(
+          'field_char_condition'
+        )
       )
     ),
     'group' => array(
