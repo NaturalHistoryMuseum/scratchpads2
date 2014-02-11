@@ -83,6 +83,17 @@ function scratchpads_group_scratchpads_hands_off_urls_alter(&$urls){
 }
 
 /**
+ * Implements hook_og_ui_get_group_admin_alter().
+ * 
+ * Remove the "Roles" and "Permissions" menu items from the node/%nid/group
+ * pages.
+ */
+function scratchpads_group_og_ui_get_group_admin_alter(&$data, $gid){
+  unset($data['roles']);
+  unset($data['permissions']);
+}
+
+/**
  * Implementation of hook_scratchpads_solr_info().
  */
 function scratchpads_group_scratchpads_solr_info(){

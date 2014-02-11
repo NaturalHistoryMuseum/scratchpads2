@@ -388,7 +388,7 @@ function theme_slickgrid_controls($variables){
 function theme_slickgrid_control($variables){
   $output = '';
   $control = $variables['control'];
-  if($variables['view']->style_plugin->options[$control]){
+  if(!empty($variables['view']->style_plugin->options[$control])){
     drupal_add_js($variables['path'] . '/js/controls/slickgrid.control.js');
     drupal_add_js($variables['path'] . '/js/controls/slickgrid.' . $control . '.js');
     drupal_add_js(array(

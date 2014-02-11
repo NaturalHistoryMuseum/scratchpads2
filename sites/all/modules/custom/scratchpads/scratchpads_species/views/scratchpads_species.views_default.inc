@@ -366,6 +366,15 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['defaults']['arguments'] = FALSE;
   $handler->display->display_options['defaults']['filter_groups'] = FALSE;
   $handler->display->display_options['defaults']['filters'] = FALSE;
+  /* Contextual filter: Field: Taxonomic name (field_taxonomic_name) */
+  $handler->display->display_options['arguments']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
+  $handler->display->display_options['arguments']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
+  $handler->display->display_options['arguments']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
+  $handler->display->display_options['arguments']['field_taxonomic_name_tid']['relationship'] = 'reverse_field_taxonomic_name_node';
+  $handler->display->display_options['arguments']['field_taxonomic_name_tid']['default_action'] = 'not found';
+  $handler->display->display_options['arguments']['field_taxonomic_name_tid']['default_argument_type'] = 'fixed';
+  $handler->display->display_options['defaults']['filter_groups'] = FALSE;
+  $handler->display->display_options['defaults']['filters'] = FALSE;
   /* Filter criterion: Content: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'node';
@@ -1903,7 +1912,7 @@ function scratchpads_species_views_default_views(){
     /* Display: Master */
     $handler = $view->new_display('default', 'Master', 'default');
     $handler->display->display_options['title'] = $name;
-    $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
+    $handler->display->display_options['css_class'] = 'alpha omega';
     $handler->display->display_options['use_ajax'] = TRUE;
     $handler->display->display_options['use_more'] = TRUE;
     $handler->display->display_options['use_more_always'] = TRUE;
