@@ -1,0 +1,10 @@
+name = Show Taxonomy revision
+description = Show taxonomy revision editor and revision date on each taxonomy overview tab.<br/><span class="error">Enabling this feature may have an adverse effect on the performance of your site, only enable if you are certain you need this functionality.</span>
+core = 7.x
+package = Taxonomy
+tool=true
+dependencies[] = taxonomy_revision
+dependencies[] = "ctools"
+dependencies[] = "views"
+features[ctools][] = "views:views_default:3.0"
+features[views_view][] = "taxonomy_revision"

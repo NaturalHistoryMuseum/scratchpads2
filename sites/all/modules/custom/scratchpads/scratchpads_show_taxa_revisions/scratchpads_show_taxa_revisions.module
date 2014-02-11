@@ -1,0 +1,292 @@
+<?php
+
+/**
+ * Implements hook_views_api().
+ */
+function scratchpads_show_taxa_revisions_views_api(){
+  list($module, $api) = func_get_args();
+  if($module == "views" && $api == "views_default"){return array(
+      "version" => "3.0"
+    );}
+}
+
+function scratchpads_show_taxa_revisions_init(){
+  $module_path = drupal_get_path('module', 'scratchpads_show_taxa_revisions');
+  drupal_add_css($module_path . '/css/scratchpads_show_taxa_revisions.css');
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function scratchpads_show_taxa_revisions_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'view taxonomy term revisions',
+      'revert taxonomy term revisions',
+      'delete taxonomy term revisions',
+      'choose taxonomy term revisions'
+    ),
+    'editor' => array(
+      'view taxonomy term revisions',
+      'revert taxonomy term revisions',
+      'delete taxonomy term revisions',
+      'choose taxonomy term revisions'
+    ),
+    'contributor' => array(
+      'view taxonomy term revisions'
+    )
+  );
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_show_taxa_revisions_module_implements_alter(&$implementations, $hook){
+  //Any change here requires Caches to be cleared.
+  //Order of executions hook_form_alter before called hook_module_implements_alter
+  //dpm($implementations);  
+  if($hook == 'form_alter' && isset($implementations['scratchpads_show_taxa_revisions'])){
+    // Move scratchpads_show_taxa_revisions to the end of the list.
+    $group = $implementations['scratchpads_show_taxa_revisions'];
+    unset($implementations['scratchpads_show_taxa_revisions']);
+    $implementations['scratchpads_show_taxa_revisions'] = $group;
+  }
+  //Order of executions after called this hook
+  //dpm($implementations);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function scratchpads_show_taxa_revisions_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id){
+  if(empty($form_state['confirm_delete'])){
+    if(module_exists('taxonomy_revision')){
+      if(!empty($form_state['vocabulary'])){
+        $show_revision_attribution = variable_get("show_revision_w_vocabulary[{$form_state['vocabulary']->vid}]");
+        if($show_revision_attribution){
+          $show_revision_attribution_long = variable_get("show_revision_w_vocabulary_long[{$form_state['vocabulary']->vid}]");
+        }else{
+          $show_revision_attribution_long = FALSE;
+        }
+      }else{
+        $show_revision_attribution = FALSE;
+        $show_revision_attribution_long = FALSE;
+      }
+      // have to alter module implementation with hook_module_implements_alter to get form['revision_information'] first
+      $form['revision_information']['show_revision_attribution'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Show revision attribution on taxonomy overview pages. Note: This may effect performance when displaying your taxonomy page.'),
+        '#default_value' => $show_revision_attribution,
+        '#states' => array(
+          'visible' => array( // Only show this field when the show_revision_attribution checkbox is enabled.
+            ':input[name="revision_by_default"]' => array(
+              'checked' => TRUE
+            )
+          )
+        )
+      );
+      $form['revision_information']['show_revision_attribution_long'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Show revision attribution with revision log'),
+        '#default_value' => $show_revision_attribution_long,
+        '#states' => array(
+          'visible' => array( // Only show this field when the show_revision_attribution checkbox is enabled.
+            ':input[name="revision_by_default"]' => array(
+              'checked' => TRUE
+            ),
+            ':input[name="show_revision_attribution"]' => array(
+              'checked' => TRUE
+            )
+          )
+        )
+      );
+      $form['#submit'][] = 'scratchpads_show_taxa_revisions_taxonomy_form_vocabulary_submit';
+    }
+  }
+}
+
+/**
+ * Submit handler for the taxonomy_form_vocabulary form.
+ * @see scratchpads_show_taxa_revisions_form_taxonomy_form_vocabulary_alter().
+ */
+function scratchpads_show_taxa_revisions_taxonomy_form_vocabulary_submit($form, &$form_state){
+  if(!empty($form_state['vid'])){
+    variable_set("show_revision_w_vocabulary[{$form_state['vid']}]", !empty($form_state['values']['show_revision_attribution']));
+    variable_set("show_revision_w_vocabulary_long[{$form_state['vid']}]", !empty($form_state['values']['show_revision_attribution_long']));
+  }
+}
+
+
+/**
+ * Implements hook_views_pre_views_pre_view().
+ */
+function scratchpads_show_taxa_revisions_views_pre_view(&$view, &$display_id, &$args){
+  if($view->name == 'species_nomenclature' && $display_id == 'attachment_2'){
+    if(module_exists('taxonomy_revision')){
+      $term = menu_get_object('taxonomy_term', 2);
+      $show_revision_attribution = variable_get("show_revision_w_vocabulary[{$term->vid}]");
+      if($show_revision_attribution == 1){
+        $show_revision_w_vocabulary_long = variable_get("show_revision_w_vocabulary_long[{$term->vid}]");
+        if($show_revision_w_vocabulary_long == 1){
+          $view_to_use_as_footer = 'taxonomy_revision:block_2';
+        }else{
+          $view_to_use_as_footer = 'taxonomy_revision:block_1';
+        }
+        $options = array(
+          'view' => array(
+            'id' => 'view',
+            'table' => 'views',
+            'field' => 'view',
+            'view_to_insert' => $view_to_use_as_footer,
+            'inherit_arguments' => 1
+          )
+        );
+        $view->display_handler->set_option('footer', $options);
+        
+        
+        
+        $latest_changes_block = block_load('scratchpads_show_taxa_revisions', 'taxa_revision_latest_change');
+        $block_content = render(_block_get_renderable_array( _block_render_blocks(array($latest_changes_block))));
+        
+        
+        $block_options = array(
+            'text' => array(
+                'id' => 'area',
+                'table' => 'views',
+                'field' => 'area',
+                'empty' => FALSE,
+                'format' => 'filtered_html',
+                'content' => $block_content
+            )
+        );
+       // $view->display_handler->set_option('footer', $block_options);
+        
+        $view->add_item('attachment_2', 'footer', 'views', 'area', array('content' => 'sssssssss', 'format' => 'full_html'));
+      //  dpm($block_content);
+         
+     //   $view->attachment_after = $block_content;
+      }
+      
+      
+    }
+  }
+}
+
+/* 
+ * TO DO
+ * add tiny tax block to species revisions tab/page
+ */
+/**
+ * Implements hook_ctools_plugin_api()
+ */
+function scratchpads_show_taxa_revisions_ctools_plugin_apiOLD(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
+/**
+ * Implementation of hook_context_default_contexts().
+ */
+function scratchpads_show_taxa_revisions_context_default_contextsOLD(){
+  global $conf;
+  $export = array();
+  if(isset($conf['biological_vids'])){
+    foreach(taxonomy_get_vocabularies() as $vocabulary){
+      if(array_key_exists($vocabulary->vid, $conf['biological_vids'])){
+        $context = new stdClass();
+        $context->disabled = FALSE; /* Edit this to true to make a default context disabled initially */
+        $context->api_version = 3;
+        $context->name = 'taxonomy_revisions_' . $vocabulary->machine_name;
+        $context->description = t('Display tinytax @vocabulary on taxonomy revisions page', array(
+          '@vocabulary' => $vocabulary->name
+        ));
+        $context->tag = 'Species';
+        $context->conditions = array(
+          'path' => array(
+            'values' => array(
+              'taxonomy/term/*/revisions' => 'taxonomy/term/*/revisions'
+            )
+          )
+        );
+        $context->reactions = array(
+          'block' => array(
+            'blocks' => array(
+              'tinytax-' . $vocabulary->vid => array(
+                'module' => 'tinytax',
+                'delta' => $vocabulary->vid,
+                'region' => 'sidebar',
+                'weight' => '-10'
+              )
+            )
+          )
+        );
+        $context->condition_mode = 0;
+        $export[$context->name] = $context;
+      }
+    }
+  }
+  // Translatables
+  // Included for use with string extractors like potx.
+  t('Species');
+  return $export;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function scratchpads_show_taxa_revisions_block_info(){
+  $blocks = array();
+  $blocks['taxa_revision_latest_change'] = array(
+    'info' => t('Taxa revision last change'),
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'pages' => 'taxonomy/term/*'
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function scratchpads_show_taxa_revisions_block_view($delta = ''){
+  $block = array();
+  switch($delta){
+    case 'taxa_revision_latest_change':
+      if(user_access('view taxonomy term revisions')){
+        $block['subject'] = '';
+        $block['content'] = _scratchpads_show_taxa_revisions_content();
+      }
+      break;
+  }
+  return $block;
+}
+
+function _scratchpads_show_taxa_revisions_content(){
+  if(arg(0) == "taxonomy" && arg(1) == "term" && is_numeric(arg(2)) && !arg(3)){
+    if(module_exists('taxonomy_revision')){
+      module_load_include('inc', 'taxonomy_revision', 'taxonomy_revision.pages');
+      $tid = arg(2);
+      $term = taxonomy_term_load($tid);
+      $term_revisions = taxonomy_revision_list($term);
+      $new_revision_id = $term->revision_id;
+      $old_revision_id = _taxonomy_revision_diff_get_previous_revision_id($term_revisions, $new_revision_id);
+      $old_term = taxonomy_revision_term_load($term->tid, $old_revision_id);
+      $new_term = taxonomy_revision_term_load($term->tid, $new_revision_id);
+      $rows = array();
+      $rows = array_merge($rows, _taxonomy_revision_diff_body_rows($old_term, $new_term, 'raw'));
+      $build['diff_table'] = array(
+        '#theme' => 'table__diff__standard',
+        '#rows' => $rows,
+        '#attributes' => array(
+          'class' => array(
+            'diff'
+          )
+        ),
+        '#colgroups' => _diff_default_cols(),
+        '#sticky' => FALSE
+      );
+      return $build;
+    }
+  }
+}

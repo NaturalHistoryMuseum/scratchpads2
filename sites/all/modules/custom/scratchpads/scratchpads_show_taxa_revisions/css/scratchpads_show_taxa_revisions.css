@@ -1,0 +1,10 @@
+.block-species-nomenclature-block .view-footer .view-taxonomy-revision {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  font-size: 0.9em;
+  color: #888
+}
+
+.form-item.form-type-checkbox.form-item-show-revision-attribution-long {
+  margin-left: 1em;
+}
