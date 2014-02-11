@@ -155,18 +155,29 @@
      * contextClickCallback
      */
     this.contextClickCallback = function(info, selected_flag){
-      // Update the cell
-      var node = grid.getCellNode(info.cell.row, info.cell.cell);
+      // Get the value
       var cell_flag_id = this.metadata[info.cell.row][info.column.id].flag;
-      if (cell_flag_id == selected_flag.id){
-        this.metadata[info.cell.row][info.column.id].flag = '';
-      } else {
-        this.metadata[info.cell.row][info.column.id].flag = selected_flag.id;
+      var update_value = '';
+      if (cell_flag_id != selected_flag.id){
+        update_value = selected_flag.id;
       }
-      this.updateCell(this.metadata[info.cell.row][info.column.id], node);
+      // Apply the value to all selected cells
+      var rows = grid.getSelectedRows();
+      rows.push(info.cell.row);
+      for (var i = 0; i < rows.length; i++){
+        this.metadata[rows[i]][info.column.id].flag = update_value;
+        slickgrid.invalidateRow(rows[i]);
+        var sel_node = grid.getCellNode(rows[i], info.cell.cell);
+        this.updateCell(this.metadata[rows[i]][info.column.id], sel_node);
+        $(sel_node).css({
+          backgroundImage: "url(" + Drupal.settings.basePath + "misc/throbber.gif)",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "0 -20px",
+        });
+      }
       // And send the data to be saved.
       slickgrid.callback('update', {
-        entity_id: info.row.id,
+        entity_ids: slickgrid.getEntityIDs(info.row),
         column_id: info.column.id,
         flag: cell_flag_id == selected_flag.id ? '' : selected_flag.id,
         plugin: 'CharacterMetadata'

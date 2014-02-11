@@ -63,14 +63,19 @@ class character_metadata_editor_handler{
       $this->errors[] = t('No column defined ; could not update character flag');
     }
     // Get the entity
-    if(isset($_POST['entity_id'])){
-      $this->entity_id = $_POST['entity_id'];
-      $this->entity_w = character_editor_wrapper($this->entity_id);
-      if(!$this->entity_w){
-        $this->errors[] = t('Could not get entity');
+    if(isset($_POST['entity_ids'])){
+      $this->entity_ids = $_POST['entity_ids'];
+      $this->wrappers = array();
+      foreach($this->entity_ids as $id){
+        $this->wrappers[$id] = character_editor_wrapper($id);
+        if(empty($this->wrappers[$id])){
+          $this->errors[] = t('Could not load entity %entity_id', array(
+            '%entity_id' => $id
+          ));
+        }
       }
     }else{
-      $this->errors[] = t('Missing entitiy');
+      $this->errors[] = t('No entities defined');
     }
   }
 
@@ -78,10 +83,15 @@ class character_metadata_editor_handler{
    * update
    */
   function update(){
-    if(empty($this->errors)){
-      $r = character_editor_set_character_value($this->character_w, $this->entity_w, NULL, $this->metadata);
+    foreach($this->wrappers as $entity_w){
+      if(!$entity_w){
+        continue;
+      }
+      $r = character_editor_set_character_value($this->character_w, $entity_w, NULL, $this->metadata);
       if(!$r){
-        $this->errors[] = "Could not update or save the value";
+        $this->errors[] = t("Could not update or save the value for entity %entity", array(
+          '%entity' => $entity_w->label()
+        ));
       }
     }
     return $this->get_result();
