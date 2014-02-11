@@ -312,6 +312,19 @@ if(!Array.prototype.indexOf) {
     function invalidateRow(row){
       loader.invalidateRange(row, row);
     }
+    // Invalidate all selected rows, and return the
+    // list of rows that were invalidated.
+    function invalidateSelectedRows(){
+      var rows_to_invalidate = grid.getSelectedRows();
+      var active_cell = grid.getActiveCell();
+      if (active_cell !== null && $.inArray(active_cell.row, rows_to_invalidate) == -1){
+        rows_to_invalidate.push(active_cell.row);
+      }
+      for (var i = 0; i < rows_to_invalidate.length; i++){
+        loader.invalidateRange(rows_to_invalidate[i], rows_to_invalidate[i]);
+      }
+      return rows_to_invalidate;
+    }
     function handleModalResponse(ajax, modal, status){
       if (grid.getActiveCell() !== null){
         grid.getEditController().commitCurrentEdit();
@@ -673,7 +686,7 @@ if(!Array.prototype.indexOf) {
         grid.scrollRowToTop(state.row);
       }
     }
-    $.extend(this, {"callback": callback, "getViewName": getViewName, "getViewDisplayID": getViewDisplayID, "getEntityIDs": getEntityIDs, "getContainer": getContainer, "getColumns": getColumns, "setColumns": setColumns, "openDialog": openDialog, "closeDialog": closeDialog, "reload": reload, 'setColumnFilter': setColumnFilter, 'updateFilters': updateFilters, 'updateSettings': updateSettings, 'updateStatus': updateStatus, 'getGridState': getGridState, 'setGridState': setGridState, 'invalidateRow' : invalidateRow});
+    $.extend(this, {"callback": callback, "getViewName": getViewName, "getViewDisplayID": getViewDisplayID, "getEntityIDs": getEntityIDs, "getContainer": getContainer, "getColumns": getColumns, "setColumns": setColumns, "openDialog": openDialog, "closeDialog": closeDialog, "reload": reload, 'setColumnFilter': setColumnFilter, 'updateFilters': updateFilters, 'updateSettings': updateSettings, 'updateStatus': updateStatus, 'getGridState': getGridState, 'setGridState': setGridState, 'invalidateRow' : invalidateRow, 'invalidateSelectedRows': invalidateSelectedRows});
     init(this);
     $(container).trigger('onSlickgridInit', this);
   }
