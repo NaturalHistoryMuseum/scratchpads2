@@ -116,7 +116,6 @@ function scratchpads_show_taxa_revisions_taxonomy_form_vocabulary_submit($form, 
   }
 }
 
-
 /**
  * Implements hook_views_pre_views_pre_view().
  */
@@ -142,36 +141,22 @@ function scratchpads_show_taxa_revisions_views_pre_view(&$view, &$display_id, &$
           )
         );
         $view->display_handler->set_option('footer', $options);
-        
-        
-        
         $latest_changes_block = block_load('scratchpads_show_taxa_revisions', 'taxa_revision_latest_change');
-        $block_content = render(_block_get_renderable_array( _block_render_blocks(array($latest_changes_block))));
-        
-        
+        $block_content = render(_block_get_renderable_array(_block_render_blocks(array(
+          $latest_changes_block
+        ))));
         $block_options = array(
-            'text' => array(
-                'id' => 'area',
-                'table' => 'views',
-                'field' => 'area',
-                'empty' => FALSE,
-                'format' => 'filtered_html',
-                'content' => $block_content
-            )
+          'label' => t('Header text'), // Administrative label. Not really needed here.
+          'content' => $block_content, // Content.
+          'empty' => 1 // Show even when there are no results. Set to zero otherwise.
         );
-       // $view->display_handler->set_option('footer', $block_options);
-        
-        $view->add_item('attachment_2', 'footer', 'views', 'area', array('content' => 'sssssssss', 'format' => 'full_html'));
-      //  dpm($block_content);
-         
-     //   $view->attachment_after = $block_content;
+        // This adds a handler for a text area. The table is views because it is not
+        // a database field. The field is area because it is a text area.
+        $view->add_item($display_id, 'footer', 'views', 'area', $block_options);
       }
-      
-      
     }
   }
 }
-
 /* 
  * TO DO
  * add tiny tax block to species revisions tab/page
