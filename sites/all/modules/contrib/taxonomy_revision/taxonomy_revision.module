@@ -72,7 +72,7 @@ function taxonomy_revision_menu() {
     'title' => 'Compare revisions',
     'page callback' => 'taxonomy_revision_diffs_show',
     'page arguments' => array(2, 5, 6),
-    'access arguments' => array('view taxonomy revisions'),
+    'access arguments' => array('view taxonomy term revisions'),
     'file' => 'taxonomy_revision.pages.inc',
   );
 
