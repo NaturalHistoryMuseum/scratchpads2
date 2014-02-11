@@ -114,7 +114,7 @@ class character_metadata_editor_handler{
 }
 
 /**
- * character_metadata_editor_handler
+ * character_entity_editor_handler
  *
  * Special handler for handling character entities
  */

@@ -341,13 +341,18 @@
             // Perform the update
             slickgrid.callback('update', data);
             // And update the cell
-            slickgrid.invalidateRow(item.index);
-            $(editor.grid.getActiveCellNode()).css({
-              backgroundImage: "url(" + Drupal.settings.basePath + "misc/throbber.gif)",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "0 -20px",
-            });
-            item[editor.column.id] = "...";
+            var column_index = grid.getColumnIndex(editor.column.id);
+            var invalid_rows = slickgrid.invalidateSelectedRows();
+            for (var i = 0; i < invalid_rows.length; i++){
+              $(editor.grid.getCellNode(invalid_rows[i], column_index)).css({
+                backgroundImage: "url(" + Drupal.settings.basePath + "misc/throbber.gif)",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "0 -20px",
+              });
+              var row_item = grid.getDataItem(invalid_rows[i]);
+              row_item[editor.column.id] = "...";
+              grid.updateCell(invalid_rows[i], column_index);
+            }
           }
 
           /**
@@ -477,13 +482,18 @@
               // Perform the update
               slickgrid.callback('update', data);
               // And update the cell
-              slickgrid.invalidateRow(item.index);
-              $(args.grid.getActiveCellNode()).css({
-                backgroundImage: "url(" + Drupal.settings.basePath + "misc/throbber.gif)",
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "0 -20px",
-              });
-              item[args.column.id] = value;
+              var column_index = grid.getColumnIndex(args.column.id);
+              var invalid_rows = slickgrid.invalidateSelectedRows();
+              for (var i = 0; i < invalid_rows.length; i++){
+                $(args.grid.getCellNode(invalid_rows[i], column_index)).css({
+                  backgroundImage: "url(" + Drupal.settings.basePath + "misc/throbber.gif)",
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "0 -20px",
+                });
+                var row_item = grid.getDataItem(invalid_rows[i]);
+                row_item[args.column.id] = value;
+                grid.updateCell(invalid_rows[i], column_index);
+              }
             }
             
             this.isValueChanged = function() {
@@ -574,13 +584,18 @@
             };
 
             this.applyValue = function(item) {
-              slickgrid.invalidateRow(item.index);
-              $(args.grid.getActiveCellNode()).css({
-                backgroundImage: "url(" + Drupal.settings.basePath + "misc/throbber.gif)",
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "0 -20px",
-              });
-              item[args.column.id] = "...";
+              var column_index = grid.getColumnIndex(args.column.id);
+              var invalid_rows = slickgrid.invalidateSelectedRows();
+              for (var i = 0; i < invalid_rows.length; i++){
+                $(args.grid.getCellNode(invalid_rows[i], column_index)).css({
+                  backgroundImage: "url(" + Drupal.settings.basePath + "misc/throbber.gif)",
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "0 -20px",
+                });
+                var row_item = grid.getDataItem(invalid_rows[i]);
+                row_item[args.column.id] = "...";
+                grid.updateCell(invalid_rows[i], column_index);
+              }
             };
             
             this.cancel = function(){

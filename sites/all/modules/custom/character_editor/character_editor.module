@@ -182,6 +182,8 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
     $editable = true;
     $style_options['editable'] = TRUE;
     $style_options['enableCellNavigation'] = TRUE;
+    $style_options['row_selection_checkbox'] = true;
+    $style_options['multi_edit'] = true;
   }else{
     drupal_access_denied();
     drupal_exit();
@@ -1139,6 +1141,9 @@ function character_editor_state_form_process($editor){
   // Additional form_state settings required for ctools modal forms
   $editor->entity_info = entity_get_info($editor->entity_type);
   list(, $character_entity_id) = explode('_', $editor->field_id);
+  list($entity_type, $entity_id) = explode(':', reset($form_state['values']['entity_ids']));
+  $form_state['entity_type'] = $entity_type;
+  $form_state['entity_id'] = $entity_id;
   $character_entity = entity_load_single('character_editor_character', $character_entity_id);
   $form_state['title'] = t("Editing %label (!type)", array(
     '%label' => $character_entity->label(),
@@ -1147,8 +1152,17 @@ function character_editor_state_form_process($editor){
   $form_state['ajax'] = true;
   // Pass the editor object into the form_state
   $form_state['editor'] = $editor;
-  $output = ctools_modal_form_wrapper($editor->plugin['form_id'], $form_state);
-  if(!empty($form_state['executed'])){ // Form has succesfully completed  	
+  $nfs = array_merge(array(), $form_state);
+  $output = ctools_modal_form_wrapper($editor->plugin['form_id'], $nfs);
+  if(!empty($nfs['executed'])){
+    // Form has succesfully completed, submit the other entities too
+    foreach($form_state['values']['entity_ids'] as $entity_desc){
+      $nfs = array_merge(array(), $form_state);
+      list($entity_type, $entity_id) = explode(':', $entity_desc);
+      $nfs['entity_type'] = $entity_type;
+      $nfs['entity_id'] = $entity_id;
+      drupal_build_form($editor->plugin['form_id'], $nfs);
+    }
     // We're going to exit the process, so get editor result manually
     $result = $form_state['editor']->get_result();
     slickgrid_callback_add_messages($result);
@@ -1195,7 +1209,13 @@ function character_editor_inline_cell_process($editor){
   $form_state['re_render'] = true;
   $form_state['no_redirect'] = true;
   // Build & submit the form
-  drupal_build_form($editor->plugin['form_id'], $form_state);
+  foreach($form_state['values']['entity_ids'] as $entity_id){
+    $nfs = array_merge(array(), $form_state);
+    list($entity_type, $entity_id) = explode(':', $entity_id);
+    $nfs['entity_id'] = $entity_id;
+    $nfs['entity_type'] = $entity_type;
+    drupal_build_form($editor->plugin['form_id'], $nfs);
+  }
 }
 
 /**
@@ -1206,11 +1226,8 @@ function character_editor_state_form($form, &$form_state){
   $form = array();
   $form_state['character_id'] = preg_replace('/^character_(\d+)_\d+$/', '$1', $_POST['field_id']);
   $form_state['field_id'] = $_POST['field_id'];
-  list($entity_type, $entity_id) = explode(':', reset($form_state['values']['entity_ids']));
-  $form_state['entity_id'] = $entity_id;
-  $form_state['entity_type'] = $entity_type;
   $character_w = character_editor_wrapper('character_editor_character', $form_state['character_id']);
-  $entity_w = entity_metadata_wrapper($entity_type, entity_load_single($entity_type, $entity_id));
+  $entity_w = entity_metadata_wrapper($form_state['entity_type'], entity_load_single($form_state['entity_type'], $form_state['entity_id']));
   $values = character_editor_get_character_values($character_w, $entity_w);
   if(!empty($values)){
     $form_state['relation'] = $values[0]['relation_w']->raw();

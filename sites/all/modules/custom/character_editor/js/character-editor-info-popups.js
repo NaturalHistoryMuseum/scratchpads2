@@ -28,7 +28,7 @@
           positions: ['bottom']
       };
       $.each(slickgrid.getColumns(), function(i, col){
-        if(col.field != "character_entity_field") {
+        if(col.field != "character_entity_field" && col.field != 'sel') {
           $('.' + col.id).bt(col.data.char, ops);
         }
       });

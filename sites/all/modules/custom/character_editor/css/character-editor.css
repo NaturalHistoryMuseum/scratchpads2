@@ -4,7 +4,7 @@
   display: none;
 }
 
-#slickgrid .slick-cell.l0,
+#slickgrid .slick-cell.l1,
 #slickgrid .slick-header-column{
    text-align: left;
 }
@@ -19,6 +19,12 @@
   background: none;
   border: none;
   text-align: left;
+}
+
+#slickgrid div.slick-header-columns input{
+  /* This functionality doesn't really work as we load in chunks.
+     Hide the input until it's fixed */
+  display: none;
 }
 
 .bt-content h2{

@@ -117,7 +117,7 @@
      * 
      */
     this.contextMenu = function(info){
-      if (info.cell.cell == 0){
+      if (info.column.field == 'character_entity_field' || info.column.field == 'sel'){
         return [];
       }
       var cell_flag_id = this.metadata[info.cell.row][info.column.id].flag;
