@@ -39,9 +39,14 @@
       // Perform the update
       slickgrid.callback('update', data);
       // And update the cell
-      slickgrid.invalidateRow(item.index);
-      $(args.grid.getActiveCellNode()).addClass('slickgrid-cell-loading');
-      item[args.column.id] = value;
+      var column_index = grid.getColumnIndex(args.column.id);
+      var invalid_rows = slickgrid.invalidateSelectedRows();
+      for (var i = 0; i < invalid_rows.length; i++){
+        $(args.grid.getCellNode(rows_to_invalidate[i], column_index)).addClass('slickgrid-cell-loading');
+        var row_item = grid.getDataItem(invalid_rows[i]);
+        row_item[args.column.id] = value;
+        grid.updateCell(invalid_rows[i], column_index);
+      }
     }
     this.isValueChanged = function(){
       return (!($input.val() == "" && defaultValue == null)) && ($input.val() != defaultValue);
@@ -94,9 +99,14 @@
       return(state !== defaultValue);
     };
     this.applyValue = function(item){
-      slickgrid.invalidateRow(item.index);
-      $(args.grid.getActiveCellNode()).addClass('slickgrid-cell-loading');
-      item[args.column.field] = "";
+      var column_index = grid.getColumnIndex(args.column.id);
+      var invalid_rows = slickgrid.invalidateSelectedRows();
+      for (var i = 0; i < invalid_rows.length; i++){
+        $(args.grid.getCellNode(rows_to_invalidate[i], column_index)).addClass('slickgrid-cell-loading');
+        var row_item = grid.getDataItem(invalid_rows[i]);
+        row_item[args.column.id] = "";
+        grid.updateCell(invalid_rows[i], column_index);
+      }
     };
     this.cancel = function(){
       args.cancelChanges();
