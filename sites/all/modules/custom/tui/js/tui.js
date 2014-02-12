@@ -195,17 +195,21 @@
       Drupal.tui.resize_frame();
     });
     // CLICK TO HIGHLIGHT
-    $('#tui-tree-subcontainer li>div').click(function(){
+    $('#tui-tree-subcontainer li>div').once().click(function(e){
       function tui_recurse_highlight(parent_tid){
         $('li[data-tui-child-of="' + parent_tid + '"]').each(function(){
           $(this).children('div').each(function(){
-            $(this).addClass('tui-highlight');
+            $(this).toggleClass('tui-highlight');
             tui_recurse_highlight($(this).parent().data('tui-this-term'));
           });
         });
       }
-      $('.tui-highlight').removeClass('tui-highlight');
-      $(this).addClass('tui-highlight');
+      // If we are not holding control or apple, we remove the highlight from
+      // other terms.
+      if(!e.ctrlKey && !e.metaKey) {
+        $('.tui-highlight').removeClass('tui-highlight');
+      }
+      $(this).toggleClass('tui-highlight');
       tui_recurse_highlight($(this).parent().data('tui-this-term'));
     });
     // SORTING
