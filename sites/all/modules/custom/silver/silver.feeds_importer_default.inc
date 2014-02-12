@@ -314,12 +314,14 @@ function _silver_feeds_sort_field_info($entity_type, $bundle, $field_info){
     foreach($groups as $key => $group){
       uasort($groups[$key]->children, '_silver_sort_groups');
       foreach($group->children as $child_key => $child){
-        foreach($child->children as $gchild_key => $gchild){
-          if(is_string($gchild) && isset($field_info[$gchild])){
-            $groups[$key]->children[$child_key]->children[$gchild_key] = $field_info[$gchild];
-            unset($field_info[$gchild]);
-          }else{
-            unset($groups[$key]->children[$child_key]->children[$gchild_key]);
+        if(is_array($child->children)){
+          foreach($child->children as $gchild_key => $gchild){
+            if(is_string($gchild) && isset($field_info[$gchild])){
+              $groups[$key]->children[$child_key]->children[$gchild_key] = $field_info[$gchild];
+              unset($field_info[$gchild]);
+            }else{
+              unset($groups[$key]->children[$child_key]->children[$gchild_key]);
+            }
           }
         }
         uasort($groups[$key]->children[$child_key]->children, '_silver_sort_groups');
