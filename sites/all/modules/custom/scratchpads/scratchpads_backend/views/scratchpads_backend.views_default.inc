@@ -1330,14 +1330,16 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
     usort($groups, 'scratchpads_backend_usort_comparison');
     foreach($groups as $group){
       // Does this group have fields
-      if(count(array_intersect($group->children, array_keys($fields)))){
-        $handler->display->display_options['style_options']['tabs'] .= $group->label . PHP_EOL;
-        foreach($group->children as $field){
-          if(array_key_exists($field, $fields)){
-            $table = 'field_data_' . $field;
-            $module = $fields[$field]['widget']['module'];
-            scratchpads_backend_views_add_field($handler, $module, $table, $field, $fields[$field], $group->label);
-            unset($fields[$field]);
+      if(!(isset($group->children[0]) && !is_string($group->children[0]))){
+        if(count(array_intersect($group->children, array_keys($fields)))){
+          $handler->display->display_options['style_options']['tabs'] .= $group->label . PHP_EOL;
+          foreach($group->children as $field){
+            if(array_key_exists($field, $fields)){
+              $table = 'field_data_' . $field;
+              $module = $fields[$field]['widget']['module'];
+              scratchpads_backend_views_add_field($handler, $module, $table, $field, $fields[$field], $group->label);
+              unset($fields[$field]);
+            }
           }
         }
       }
