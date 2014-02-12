@@ -535,6 +535,28 @@ function scratchpads_tweaks_mail_alter(&$message){
 }
 
 /**
+ * Implements hook_mail().
+ */
+function scratchpads_tweaks_mail($key, &$message, $params){
+  switch($key){
+    case 'nominate-for-deletion':
+      $url = url('', array(
+        'absolute' => TRUE
+      ));
+      $message['subject'] = '[Inactive Scratchpad] ' . $url . ' may be inactive';
+      $site_created = format_date(variable_get('install_time', 0));
+      $message['body'] = array(
+        "The Scratchpad at $url has been inactive for over six months, or has fewer than ten nodes:",
+        "Site created: {$site_created}\nLast login: {$params['login']}\nLast edit: {$params['edit']}\nNumber of nodes: {$params['nodes']}\n",
+        'Thanks,',
+        'Scratchpads Support Team',
+        "--\nsupport@scratchpads.eu"
+      );
+      break;
+  }
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  */
 function scratchpads_tweaks_form_user_profile_form_alter(&$form, &$form_state, $form_id){
