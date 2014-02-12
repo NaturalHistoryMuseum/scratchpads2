@@ -50,42 +50,44 @@ function scratchpads_pages_views_default_views(){
   $groups = field_group_info_groups('node', 'specimen_observation', 'form', true);
   usort($groups, 'scratchpads_species_usort_comparison');
   foreach($groups as $group){
-    if(count(array_intersect($group->children, array_keys($fields)))){
-      $handler->display->display_options['style_options']['tabs'] .= $group->label . PHP_EOL;
-      foreach($group->children as $field){
-        if(array_key_exists($field, $fields)){
-          $handler->display->display_options['fields'][$field]['id'] = $field;
-          $handler->display->display_options['fields'][$field]['table'] = 'field_data_' . $field;
-          $handler->display->display_options['fields'][$field]['field'] = $field;
-          $handler->display->display_options['fields'][$field]['label'] = $fields[$field]['label'];
-          $handler->display->display_options['fields'][$field]['alter']['alter_text'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['make_link'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['absolute'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['external'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['replace_spaces'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['trim_whitespace'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['nl2br'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['word_boundary'] = 1;
-          $handler->display->display_options['fields'][$field]['alter']['ellipsis'] = 1;
-          $handler->display->display_options['fields'][$field]['alter']['strip_tags'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['trim'] = 0;
-          $handler->display->display_options['fields'][$field]['alter']['html'] = 0;
-          $handler->display->display_options['fields'][$field]['element_type'] = '0';
-          $handler->display->display_options['fields'][$field]['element_label_type'] = 'strong';
-          $handler->display->display_options['fields'][$field]['element_label_colon'] = 1;
-          $handler->display->display_options['fields'][$field]['element_default_classes'] = 0;
-          $handler->display->display_options['fields'][$field]['hide_empty'] = 0;
-          $handler->display->display_options['fields'][$field]['empty_zero'] = 0;
-          $handler->display->display_options['fields'][$field]['hide_alter_empty'] = 1;
-          $handler->display->display_options['fields'][$field]['field_api_classes'] = 0;
-          $handler->display->display_options['style_options']['columns'][$field] = array(
-            'width' => 120,
-            'sortable' => 1,
-            'tab' => $group->label,
-            'filter' => 'textFilter'
-          );
-          if($field == 'field_genbank_number'){
-            $handler->display->display_options['fields'][$field]['type'] = 'darwincore_link_to_ncbi';
+    if(!(isset($group->children[0]) && !is_string($group->children[0]))){
+      if(count(array_intersect($group->children, array_keys($fields)))){
+        $handler->display->display_options['style_options']['tabs'] .= $group->label . PHP_EOL;
+        foreach($group->children as $field){
+          if(array_key_exists($field, $fields)){
+            $handler->display->display_options['fields'][$field]['id'] = $field;
+            $handler->display->display_options['fields'][$field]['table'] = 'field_data_' . $field;
+            $handler->display->display_options['fields'][$field]['field'] = $field;
+            $handler->display->display_options['fields'][$field]['label'] = $fields[$field]['label'];
+            $handler->display->display_options['fields'][$field]['alter']['alter_text'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['make_link'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['absolute'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['external'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['replace_spaces'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['trim_whitespace'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['nl2br'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['word_boundary'] = 1;
+            $handler->display->display_options['fields'][$field]['alter']['ellipsis'] = 1;
+            $handler->display->display_options['fields'][$field]['alter']['strip_tags'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['trim'] = 0;
+            $handler->display->display_options['fields'][$field]['alter']['html'] = 0;
+            $handler->display->display_options['fields'][$field]['element_type'] = '0';
+            $handler->display->display_options['fields'][$field]['element_label_type'] = 'strong';
+            $handler->display->display_options['fields'][$field]['element_label_colon'] = 1;
+            $handler->display->display_options['fields'][$field]['element_default_classes'] = 0;
+            $handler->display->display_options['fields'][$field]['hide_empty'] = 0;
+            $handler->display->display_options['fields'][$field]['empty_zero'] = 0;
+            $handler->display->display_options['fields'][$field]['hide_alter_empty'] = 1;
+            $handler->display->display_options['fields'][$field]['field_api_classes'] = 0;
+            $handler->display->display_options['style_options']['columns'][$field] = array(
+              'width' => 120,
+              'sortable' => 1,
+              'tab' => $group->label,
+              'filter' => 'textFilter'
+            );
+            if($field == 'field_genbank_number'){
+              $handler->display->display_options['fields'][$field]['type'] = 'darwincore_link_to_ncbi';
+            }
           }
         }
       }
