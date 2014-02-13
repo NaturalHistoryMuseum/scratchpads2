@@ -4,7 +4,7 @@
    *
    * This class represents the character tree used to show/hide characters on the slickgrid
    */
-  Drupal.CharacterTreeUI = function(character_tree_mode, tree, context, slickgrid){
+  Drupal.CharacterTreeUI = function(character_tree_mode, character_tree_width, tree, context, slickgrid){
     /**
      * init
      */
@@ -12,7 +12,7 @@
       var that = this;
       // Settings
       this.spacing = 8;
-      this.expanded_width = 200;
+      this.expanded_width = parseInt(character_tree_width);
       this.collapsed_width = 8;
       this.group_box_height = 32;
       this.mode = character_tree_mode;
@@ -22,6 +22,9 @@
       this.$wrapper = this.$slick.closest('div.slickgrid-wrapper');
       this.$root = this.$slick.closest('div.view-character-editor').parent();
       // Setup
+      if (this.expanded_width > $(document).width() * 0.75){
+        this.expanded_width = Math.floor($(document).width() * 0.75);
+      }
       this.$wrapper.css('position', 'relative');
       this.$elem = $('<div id="character-editor-tree"></div>').css({
         float: 'left',
@@ -94,6 +97,7 @@
           $(this).remove();
         });
         $('div.character-editor-tree-arrow', this.$elem).remove();
+        $('div.character-editor-tree-resize', this.$elem).remove();
         $('<div></div>').addClass('character-editor-tree-arrow').html('&#9654;').prependTo(this.$elem);
         this.resize(this.collapsed_width);
         $('div.character-editor-tree-arrow', this.$elem).stop().css({
@@ -118,12 +122,15 @@
         var $tree = $('<div></div>').addClass('character-editor-tree');
         $tree.css({
           overflow: 'auto',
+          position: 'relative',
           width: this.expanded_width.toString() + "px"
         });
         $('<div>Character Tree</div>').addClass('character-editor-tree-header').appendTo($tree);
         $('<div>&otimes;</div>').addClass('character-editor-tree-close').css({
           display: 'none'
         }).appendTo($tree).fadeIn().click($.proxy(this, 'treeClick'));
+        $('<div></div>').addClass('character-editor-tree-resize')
+        .appendTo(this.$elem).on('mousedown', $.proxy(this, 'resizeHandleMouseDown'));
         for (var i in this.tree){
           var item = this.tree[i];
           html = item.label;
@@ -138,6 +145,7 @@
             item.input.prop('checked', true);
           }
           item.elem.click($.proxy(this, 'treeElemClick', item));
+          item.elem.bind("contextmenu", $.proxy(this, 'openContextMenu', item));
           $input.hover($.proxy(this, 'treeElemHover', item));
         }
         this.$elem.removeClass('character-editor-tree-collapsed').addClass('character-editor-tree-expanded');
@@ -199,7 +207,8 @@
       } else {
         var header = $('div.' + item.id, this.$slick);
         if (header.length > 0){
-          if (hoverin){
+          var pos = header.offset().left - this.$slick.offset().left;
+          if (hoverin && pos >= 0 && pos < this.$slick.width()){
             header.trigger('mouseenter');
           } else {
             header.trigger('mouseleave');
@@ -266,6 +275,35 @@
       this.treeElemHover(item, {type: 'mouseenter'});
       // Cancel event
       event.stopPropagation();
+    }
+
+    /**
+     * resizeHandleMouseDown
+     *
+     * Event called on mousedown on the resize handlebar
+     */
+    this.resizeHandleMouseDown = function(event){
+      var last_position = event.pageX;
+      var wrapper_diff = this.$wrapper.width() + this.expanded_width;
+
+      $(window).bind('mousemove.characterTree', $.proxy(function(e){
+        var delta = e.pageX - last_position;
+        if (this.expanded_width + delta < 100 || this.expanded_width + delta > $(document).width() * 0.75 ){
+          return;
+        }
+        last_position = e.pageX;
+        this.expanded_width = this.expanded_width + delta;
+        this.$wrapper.css('margin-left', (this.expanded_width + this.spacing).toString() + 'px');
+        this.$wrapper.width(wrapper_diff - this.expanded_width);
+        this.$elem.width(this.expanded_width);
+        $('div.character-editor-tree', this.$elem).width(this.expanded_width);
+      }, this));
+      $(window).bind('mouseup.characterTree', $.proxy(function(){
+        $(window).unbind('mousemove.characterTree');
+        $(window).unbind('mouseup.characterTree');
+        slickgrid.updateSettings('character_tree_width', this.expanded_width);
+      }, this));
+      event.preventDefault();
     }
 
     /**
@@ -397,6 +435,153 @@
     this.toggle = function(){
       this.mode = (this.mode == 'collapsed') ? 'expanded' : 'collapsed';
       this.display();
+    }
+
+    /**
+     * openContextMenu
+     *
+     * This is called as an event callback and should open the context menu
+     */
+    this.openContextMenu = function(item, e){
+      // Generate the list of options that apply to this item
+      var options = [];
+      // Add 'edit' option
+      var $item = $('<div></div>').addClass('character-editor-popup-row')
+      .html('Edit').click($.proxy(function(){
+        this.closeContextMenu(item);
+        this.openCharacterEditor(item);
+      }, this));
+      options.push($item);
+      if (!item.group){
+        // Add Go to column
+        var $item = $('<div></div>').addClass('character-editor-popup-row')
+        .html('Go to column').click($.proxy(function(){
+          this.closeContextMenu(item);
+          this.goToColumn(item.id);
+        }, this));
+        options.push($item);
+      }
+      // Add 'select on this item'
+      var $item = $('<div></div>').addClass('character-editor-popup-row')
+        .html('Select only this ' + (item.group ? 'group' : 'item')).click($.proxy(function(){
+        this.closeContextMenu(item);
+        this.deselectOthers(item);
+      }, this));
+      options.push($item);
+      if (options.length == 0){
+        return;
+      }
+      // Prepare the menu
+      var $menu = $('<div id="character-context-menu"></div>').css({
+        position: 'absolute',
+        zIndex: '100',
+        left: e.pageX,
+        top: e.pageY,
+      }).addClass('character-editor-popup');
+      $('<div></div>').addClass('character-editor-popup-header')
+      .html(item.label).appendTo($menu);
+      // Add the options
+      for (var i = 0; i < options.length; i++){
+        options[i].appendTo($menu);
+      }
+      // Add the menu to the document
+      $menu.appendTo('body').show();
+      // Add an overlay for click-out
+      $('<div id="character-context-menu-out"></div>').css({
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: $(document).width().toString() + "px",
+        height: $(document).height().toString() + "px",
+        zIndex: '99'
+      }).appendTo('body').one('click', $.proxy(function(e){
+        this.closeContextMenu(item);
+      }, this));
+      $(item.elem).css('background', '#DDD');
+      e.preventDefault();
+    }
+
+    /**
+     * closeContextMenu
+     */
+    this.closeContextMenu = function(item){
+      $(item.elem).css('background', '');
+      $('#character-context-menu').remove();
+      $('#character-context-menu-out').remove();
+    }
+
+    /**
+     * openCharacterEditor
+     *
+     * Open a modal to edit a character
+     */
+    this.openCharacterEditor = function(item){
+      Drupal.CTools.Modal.show('ctools-modal-slickgrid-scale');
+      var base = 'ctools-modal-slickgrid';
+      var element_settings = {
+        event: 'modal',
+        url: Drupal.settings.slickgrid.slickgrid_callback_url + 'update',
+        submit: {
+          js: true,
+          display_id: slickgrid.getViewDisplayID(),
+          view: slickgrid.getViewName(),
+          plugin: 'CharacterEntity',
+          modal_character_id: item.id
+        }
+      };
+      Drupal.ajax[base] = new Drupal.ajax(base, item.input, element_settings);
+      item.input.trigger('modal');
+    }
+
+    /**
+     * goToColumn
+     *
+     * Scroll the editor so that the given column is in view
+     */
+    this.goToColumn = function(id){
+      // Create a top-level layer to prevent hovering events on other columns
+      var $layer = $('<div></div>').css({
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: $(document).width().toString() + "px",
+        height: $(document).height().toString() + "px",
+        zIndex: '99'
+      }).appendTo('body');
+      var $viewport = $('#slickgrid div.slick-viewport');
+      var $item = $('div.' + id, this.$slick);
+      var offset = $item.offset().left - $viewport.offset().left + $viewport.scrollLeft();
+      $viewport.animate({
+        scrollLeft: offset
+      }, {
+        duration: ($viewport.scrollLeft() ==  offset) ? 1 : 400,
+        complete: $.proxy(function() {
+          $item.trigger('mouseenter');
+          // Give it a quarter of a second, then re-instante normal hovering after the next mouse move.
+          setTimeout($.proxy(function(){
+            $layer.one('mousemove', $.proxy(function(e){
+              $item.trigger('mouseleave');
+              $layer.remove();
+            }, this));
+          }, this), 250);
+        }, this)
+      });
+    }
+
+    /**
+     * deselectOthers
+     *
+     * Given an item in the tree, un-select all the other items
+     */
+    this.deselectOthers = function(item){
+      // Deselect all columns
+      for (var i in this.tree){
+        this.tree[i].input.prop('checked', false);
+        this.tree[i].visible = false;
+      }
+      // Re-select the given column and apply.
+      this.setItemStatus(item, true);
+      this.setColumns();
     }
 
     this.init();

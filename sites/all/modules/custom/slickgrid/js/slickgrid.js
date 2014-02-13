@@ -19,12 +19,12 @@ if(!Array.prototype.indexOf) {
   var loadingIndicator = null;
   // Slickgrid class implementation
   function Slickgrid(container, viewName, viewDisplayID){
+    var PAGESIZE = 50;
     var columnFilters = {};
-    var objHttpDataRequest;
     var checkboxSelector;
     var $dialog; // $dialog (at the moment a beautytips instance)
     var activeRow; // The row currently being edited
-    var commandQueue = [];
+    var commandHandler;
     var locked;
     var loader;
     // Remove
@@ -50,7 +50,8 @@ if(!Array.prototype.indexOf) {
         undoControl = new Slick.Controls.Undo($("#slickgrid-undo"));
       }
       // Initialise the remotemodel & slickgrid
-      loader = new Slick.Data.RemoteModel(viewName);
+      commandHandler = new Slick.Data.CommandHandler();
+      loader = new Slick.Data.RemoteModel(viewName, commandHandler);
       // Temporarily show the header row.
       options.showHeaderRow = true;
       $.extend(true, options, {defaultFormatter: function(row, cell, value, columnDef, dataContext){
@@ -64,7 +65,7 @@ if(!Array.prototype.indexOf) {
       // Load the data when the scroll bar is touched (etc).
       grid.onViewportChanged.subscribe(function(e, args){
         var vp = grid.getViewport();
-        loader.ensureData(vp.top, vp.bottom);
+        loader.ensureData(vp.top, vp.bottom, PAGESIZE);
       });
       // Are sortable columns enabled?
       // Sortable columns won't work with collapsible taxonomy fields
@@ -72,10 +73,10 @@ if(!Array.prototype.indexOf) {
         grid.onSort.subscribe(function(e, args){
           loader.setSort(args.sortCol.field, args.sortAsc ? 1 : -1);
           var vp = grid.getViewport();
-          loader.ensureData(vp.top, vp.bottom);
+          loader.ensureData(vp.top, vp.bottom, PAGESIZE);
         });
       }
-      loader.onDataLoading.subscribe(function(){
+      loader.onDataLoading.subscribe(function(event, range){
         if(!loadingIndicator) {
           loadingIndicator = $('<div class="loading-indicator"><div><img src="' + Drupal.settings.slickgrid.loading_image_url + '"/></div></div>').appendTo(document.body);
           loadingIndicator.css("position", "absolute");
@@ -99,12 +100,16 @@ if(!Array.prototype.indexOf) {
           // the grid is set correctly.
           grid.resizeCanvas();
         }
-        loadingIndicator.fadeIn();
+        if (range.to - range.from + 1 >= PAGESIZE){
+          loadingIndicator.fadeIn();
+        }
       });
       loader.onDataLoaded.subscribe(function(e, args){
         $(container).trigger('onSlickgridDataLoaded', [args.from, args.to, loader.data]);
         for( var i = args.from; i <= args.to; i++) {
-          grid.invalidateRow(i);
+          if (!loader.isRowLocked(i)){
+            grid.invalidateRow(i);
+          }
         }
         grid.updateRowCount();
         grid.render();
@@ -287,20 +292,43 @@ if(!Array.prototype.indexOf) {
     // User has started editing a cell
     // Need to add row to the selected rows
     function handleBeforeEditCell(e, ui){
-      // If this grid is locked, prevent editing
-      if(locked) {
+      var row = parseInt(ui.row);
+      if (locked || loader.isRowLoading(row) || loader.isRowInvalid(row)){
         return false;
       }
+      loader.lockRow(row);
       setActiveRow(ui.row);
       cellNode = grid.getCellNode(ui.row, ui.cell);
       $(cellNode).removeClass('invalid');
     }
     // User has stopped editing a cell
     // Deselect the row being actively edited
-    function handleBeforeCellEditorDestroy(editor){
+    function handleBeforeCellEditorDestroy(event, args){
+      var row = parseInt(args.grid.getActiveCell().row);
+      loader.unlockRow(row);
       unsetActiveRow();
     }
+    // Invalidate a row so we know to reload it
+    function invalidateRow(row){
+      loader.invalidateRange(row, row);
+    }
+    // Invalidate all selected rows, and return the
+    // list of rows that were invalidated.
+    function invalidateSelectedRows(){
+      var rows_to_invalidate = grid.getSelectedRows();
+      var active_cell = grid.getActiveCell();
+      if (active_cell !== null && $.inArray(active_cell.row, rows_to_invalidate) == -1){
+        rows_to_invalidate.push(active_cell.row);
+      }
+      for (var i = 0; i < rows_to_invalidate.length; i++){
+        loader.invalidateRange(rows_to_invalidate[i], rows_to_invalidate[i]);
+      }
+      return rows_to_invalidate;
+    }
     function handleModalResponse(ajax, modal, status){
+      if (grid.getActiveCell() !== null){
+        grid.getEditController().commitCurrentEdit();
+      }
       if(typeof modal.response.result === 'object') {
         callbackSuccess(modal.response.result);
       }
@@ -439,28 +467,38 @@ if(!Array.prototype.indexOf) {
       selectionModel.setSelectedRanges(ranges);
     }
     function updateSettings(setting, value){
-      // We get a form, and then submit the form.
-      $.ajax({type: 'POST', dataType: "json", success: function(response, status){
-        if(response[1]['arguments'][0]) {
-          // $(response[1]['arguments'][0]).appendTo('body').css({top:'-10000px'}).children('form').submit();
-          $.post($(response[1]['arguments'][0]).children('form').attr('action'), $(response[1]['arguments'][0]).children('form').serialize());
+      commandHandler.addCommand('update-setting', {
+        type: 'POST',
+        dataType: 'json',
+        url: Drupal.settings.slickgrid.get_form_callback_url + 'slickgrid_settings_form',
+        data: {
+          'view': viewName,
+          'setting': setting,
+          'display_id': viewDisplayID,
+          'value': value
+        },
+        success: function(response, status){
+          commandHandler.addCommand('update-setting', {
+            type: 'POST',
+            url: $(response[1]['arguments'][0]).children('form').attr('action'),
+            data: $(response[1]['arguments'][0]).children('form').serialize()
+          });
         }
-      }, url: Drupal.settings.slickgrid.get_form_callback_url + 'slickgrid_settings_form', data: {'view': viewName, 'setting': setting, 'display_id': viewDisplayID, 'value': value}});
+      });
     }
     // All callbacks should be routed through this function
     function callback(op, data){
-      // Prevent further edits while this callback is running
-      lock();
       // Show loading bar is working
       updateStatus({loading: true});
-      // Check to see if there is an AJAX request already in
-      // progress that needs to be stopped.
-      if(objHttpDataRequest) {
-        // Abort the AJAX request.
-        objHttpDataRequest.abort();
-      }
-      ajaxOptions = {type: 'POST', dataType: "json", success: callbackSuccess, error: callbackError, complete: callbackComplete, url: Drupal.settings.slickgrid.slickgrid_callback_url + op, data: data};
-      objHttpDataRequest = $.ajax(ajaxOptions);
+      // Queue the command
+      commandHandler.addCommand('update-cell', {
+        type: 'POST',
+        dataType: 'json',
+        url: Drupal.settings.slickgrid.slickgrid_callback_url + op,
+        data: data,
+        success: $.proxy(callbackSuccess, this),
+        error: callbackError
+      });
     }
     // Error handling function
     function callbackError(jqXHR, status, errorThrown){
@@ -511,22 +549,20 @@ if(!Array.prototype.indexOf) {
           status.errors++;
         });
       }
-      loader.reloadData(0, loader.data.length);
       updateStatus(status, response.messages);
       // If the callback has returned a new data array (which will happen on
-      // node clone & node add) reload the data
+      // node clone & node add) reload all rows ; otherwise expect rows will
+      // have been invalidated already.
       if(typeof response.data === 'object') {
-        reload(response.data);
+        loader.reloadData(0, loader.data.length - 1);
+      } else {
+        loader.ensureData(0, loader.data.length - 1);
       }
       // If the callback has returned a column array, update the columns
       if(typeof response.columns === 'string') {
         updateColumns(response.columns);
       }
       $(container).trigger('onSlickgridCallback', {status: status, response: response});
-    }
-    // Callback has completed - unlock the grid for further edits
-    function callbackComplete(args){
-      unlock();
     }
     function updateStatus(status, statusMessages){
       $status.empty();
@@ -650,7 +686,7 @@ if(!Array.prototype.indexOf) {
         grid.scrollRowToTop(state.row);
       }
     }
-    $.extend(this, {"callback": callback, "getViewName": getViewName, "getViewDisplayID": getViewDisplayID, "getEntityIDs": getEntityIDs, "getContainer": getContainer, "getColumns": getColumns, "setColumns": setColumns, "openDialog": openDialog, "closeDialog": closeDialog, "reload": reload, 'setColumnFilter': setColumnFilter, 'updateFilters': updateFilters, 'updateSettings': updateSettings, 'updateStatus': updateStatus, 'getGridState': getGridState, 'setGridState': setGridState});
+    $.extend(this, {"callback": callback, "getViewName": getViewName, "getViewDisplayID": getViewDisplayID, "getEntityIDs": getEntityIDs, "getContainer": getContainer, "getColumns": getColumns, "setColumns": setColumns, "openDialog": openDialog, "closeDialog": closeDialog, "reload": reload, 'setColumnFilter': setColumnFilter, 'updateFilters': updateFilters, 'updateSettings': updateSettings, 'updateStatus': updateStatus, 'getGridState': getGridState, 'setGridState': setGridState, 'invalidateRow' : invalidateRow, 'invalidateSelectedRows': invalidateSelectedRows});
     init(this);
     $(container).trigger('onSlickgridInit', this);
   }

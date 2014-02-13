@@ -52,7 +52,7 @@ function character_editor_field_default_fields(){
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'type' => 'list_default',
+          'type' => 'hidden',
           'settings' => array(),
           'module' => 'list',
           'weight' => 5
@@ -117,7 +117,7 @@ function character_editor_field_default_fields(){
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'type' => 'list_default',
+          'type' => 'hidden',
           'settings' => array(),
           'module' => 'list',
           'weight' => 6
@@ -329,6 +329,69 @@ function character_editor_field_default_fields(){
       )
     )
   );
+  // Exported field: 'character_editor_character-controlled-field_char_condition'
+  $fields['character_editor_character-controlled-field_char_condition'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_condition',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'text_long'
+    ),
+    'field_instance' => array(
+      'bundle' => 'controlled',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => 'The character will be available if the expression is empty, evaluates to a non-zero number or fails to evaluate. You can enter mathematical (+-*/) and boolean (is,is-not,>,>=,<,<=) expressions using numbers, \\"text\\", {character variables} and \'character states\'. Boolean expressions return \'1\' for TRUE and \'0\' for false. Lists [3,4] and ranges [-5 .. 5] are supported with \'in\' and \'not in\' operators. With ordered controlled characters ranges of states can be used too: [ \'yellow:1\' to \'red:2\' ]. Example: {Eye Color} in [\'Red\', \'Blue\'].',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 2
+        )
+      ),
+      'entity_type' => 'character_editor_character',
+      'field_name' => 'field_char_condition',
+      'label' => 'Condition',
+      'required' => 0,
+      'settings' => array(
+        'linkit' => array(
+          'enable' => 0,
+          'insert_plugin' => ''
+        ),
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5'
+        ),
+        'type' => 'text_textarea',
+        'weight' => '4'
+      )
+    )
+  );
   // Exported field: 'character_editor_character-dna-field_char_description'
   $fields['character_editor_character-dna-field_char_description'] = array(
     'field_config' => array(
@@ -466,6 +529,69 @@ function character_editor_field_default_fields(){
         ),
         'type' => 'media_generic',
         'weight' => '3'
+      )
+    )
+  );
+  // Exported field: 'character_editor_character-dna-field_char_condition'
+  $fields['character_editor_character-dna-field_char_condition'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_condition',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'text_long'
+    ),
+    'field_instance' => array(
+      'bundle' => 'dna',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => 'The character will be available if the expression is empty, evaluates to a non-zero number or fails to evaluate. You can enter mathematical (+-*/) and boolean (is,is-not,>,>=,<,<=) expressions using numbers, \\"text\\", {character variables} and \'character states\'. Boolean expressions return \'1\' for TRUE and \'0\' for false. Lists [3,4] and ranges [-5 .. 5] are supported with \'in\' and \'not in\' operators. With ordered controlled characters ranges of states can be used too: [ \'yellow:1\' to \'red:2\' ]. Example: {Eye Color} in [\'Red\', \'Blue\'].',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 2
+        )
+      ),
+      'entity_type' => 'character_editor_character',
+      'field_name' => 'field_char_condition',
+      'label' => 'Condition',
+      'required' => 0,
+      'settings' => array(
+        'linkit' => array(
+          'enable' => 0,
+          'insert_plugin' => ''
+        ),
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5'
+        ),
+        'type' => 'text_textarea',
+        'weight' => '4'
       )
     )
   );
@@ -652,7 +778,7 @@ function character_editor_field_default_fields(){
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'type' => 'list_default',
+          'type' => 'hidden',
           'settings' => array(),
           'module' => 'list',
           'weight' => 5
@@ -884,6 +1010,69 @@ other|Other',
       )
     )
   );
+  // Exported field: 'character_editor_character-numeric-field_char_condition'
+  $fields['character_editor_character-numeric-field_char_condition'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_condition',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'text_long'
+    ),
+    'field_instance' => array(
+      'bundle' => 'numeric',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => 'The character will be available if the expression is empty, evaluates to a non-zero number or fails to evaluate. You can enter mathematical (+-*/) and boolean (is,is-not,>,>=,<,<=) expressions using numbers, \\"text\\", {character variables} and \'character states\'. Boolean expressions return \'1\' for TRUE and \'0\' for false. Lists [3,4] and ranges [-5 .. 5] are supported with \'in\' and \'not in\' operators. With ordered controlled characters ranges of states can be used too: [ \'yellow:1\' to \'red:2\' ]. Example: {Eye Color} in [\'Red\', \'Blue\'].',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 2
+        )
+      ),
+      'entity_type' => 'character_editor_character',
+      'field_name' => 'field_char_condition',
+      'label' => 'Condition',
+      'required' => 0,
+      'settings' => array(
+        'linkit' => array(
+          'enable' => 0,
+          'insert_plugin' => ''
+        ),
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5'
+        ),
+        'type' => 'text_textarea',
+        'weight' => '4'
+      )
+    )
+  );
   // Exported field: 'character_editor_character-text-field_char_description'
   $fields['character_editor_character-text-field_char_description'] = array(
     'field_config' => array(
@@ -1021,6 +1210,333 @@ other|Other',
         ),
         'type' => 'media_generic',
         'weight' => '3'
+      )
+    )
+  );
+  // Exported field: 'character_editor_character-text-field_char_condition'
+  $fields['character_editor_character-text-field_char_condition'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_condition',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'text_long'
+    ),
+    'field_instance' => array(
+      'bundle' => 'text',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => 'The character will be available if the expression is empty, evaluates to a non-zero number or fails to evaluate. You can enter mathematical (+-*/) and boolean (is,is-not,>,>=,<,<=) expressions using numbers, \\"text\\", {character variables} and \'character states\'. Boolean expressions return \'1\' for TRUE and \'0\' for false. Lists [3,4] and ranges [-5 .. 5] are supported with \'in\' and \'not in\' operators. With ordered controlled characters ranges of states can be used too: [ \'yellow:1\' to \'red:2\' ]. Example: {Eye Color} in [\'Red\', \'Blue\'].',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 2
+        )
+      ),
+      'entity_type' => 'character_editor_character',
+      'field_name' => 'field_char_condition',
+      'label' => 'Condition',
+      'required' => 0,
+      'settings' => array(
+        'linkit' => array(
+          'enable' => 0,
+          'insert_plugin' => ''
+        ),
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5'
+        ),
+        'type' => 'text_textarea',
+        'weight' => '4'
+      )
+    )
+  );
+  // Exported field: 'character_editor_character-computed-field_char_description'
+  $fields['character_editor_character-computed-field_char_description'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_description',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'profile2_private' => FALSE
+      ),
+      'translatable' => '0',
+      'type' => 'text_long'
+    ),
+    'field_instance' => array(
+      'bundle' => 'computed',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => '0'
+        )
+      ),
+      'entity_type' => 'character_editor_character',
+      'field_name' => 'field_char_description',
+      'label' => 'Description',
+      'required' => 0,
+      'settings' => array(
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5'
+        ),
+        'type' => 'text_textarea',
+        'weight' => '2'
+      )
+    )
+  );
+  // Exported field: 'character_editor_character-computed-field_char_image'
+  $fields['character_editor_character-computed-field_char_image'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_image',
+      'foreign keys' => array(
+        'fid' => array(
+          'columns' => array(
+            'fid' => 'fid'
+          ),
+          'table' => 'file_managed'
+        )
+      ),
+      'indexes' => array(
+        'fid' => array(
+          0 => 'fid'
+        )
+      ),
+      'module' => 'image',
+      'settings' => array(
+        'default_image' => 0,
+        'uri_scheme' => 'public'
+      ),
+      'translatable' => '0',
+      'type' => 'image'
+    ),
+    'field_instance' => array(
+      'bundle' => 'computed',
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'module' => 'image',
+          'settings' => array(
+            'image_link' => '',
+            'image_style' => 'thumbnail'
+          ),
+          'type' => 'image',
+          'weight' => '1'
+        )
+      ),
+      'entity_type' => 'character_editor_character',
+      'field_name' => 'field_char_image',
+      'label' => 'Image',
+      'required' => 0,
+      'settings' => array(
+        'alt_field' => 0,
+        'file_directory' => '',
+        'file_extensions' => 'png gif jpg jpeg',
+        'max_filesize' => '',
+        'max_resolution' => '',
+        'min_resolution' => '',
+        'title_field' => 0,
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'media',
+        'settings' => array(
+          'allowed_schemes' => array(
+            0 => 'public',
+            1 => 'private'
+          ),
+          'allowed_types' => array(
+            0 => 'image'
+          ),
+          'browser_plugins' => array(),
+          'preview_image_style' => 'thumbnail',
+          'progress_indicator' => 'throbber'
+        ),
+        'type' => 'media_generic',
+        'weight' => '3'
+      )
+    )
+  );
+  // Exported field: 'character_editor_character-computed-field_char_expr'
+  $fields['character_editor_character-computed-field_char_expr'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_expr',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'profile2_private' => FALSE
+      ),
+      'translatable' => '0',
+      'type' => 'text_long'
+    ),
+    'field_instance' => array(
+      'bundle' => 'computed',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => "You can enter mathematical (+-*/) and boolean (is,is-not,>,>=,<,<=) expressions using numbers, \"text\", {character variables} and 'character states'. Boolean operators return '1' for TRUE and '0' for FALSE. Lists [3,4] and ranges [-5 .. 5] are supported with 'in' and 'not in' operators. With ordered controlled characters ranges of states can be used too: ['yellow:1' to 'red:2'].",
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => '0'
+        )
+      ),
+      'entity_type' => 'character_editor_character',
+      'field_name' => 'field_char_expr',
+      'label' => 'Expression',
+      'required' => 0,
+      'settings' => array(
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5'
+        ),
+        'type' => 'text_textarea',
+        'weight' => '4'
+      )
+    )
+  );
+  // Exported field: 'character_editor_character-computed-field_char_condition'
+  $fields['character_editor_character-computed-field_char_condition'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_condition',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'text_long'
+    ),
+    'field_instance' => array(
+      'bundle' => 'computed',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => 'The character will be available if the expression is empty, evaluates to a non-zero number or fails to evaluate. You can enter mathematical (+-*/) and boolean (is,is-not,>,>=,<,<=) expressions using numbers, \\"text\\", {character variables} and \'character states\'. Boolean expressions return \'1\' for TRUE and \'0\' for false. Lists [3,4] and ranges [-5 .. 5] are supported with \'in\' and \'not in\' operators. With ordered controlled characters ranges of states can be used too: [ \'yellow:1\' to \'red:2\' ]. Example: {Eye Color} in [\'Red\', \'Blue\'].',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 2
+        )
+      ),
+      'entity_type' => 'character_editor_character',
+      'field_name' => 'field_char_condition',
+      'label' => 'Condition',
+      'required' => 0,
+      'settings' => array(
+        'linkit' => array(
+          'enable' => 0,
+          'insert_plugin' => ''
+        ),
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5'
+        ),
+        'type' => 'text_textarea',
+        'weight' => '4'
       )
     )
   );
@@ -1608,14 +2124,14 @@ other|Other',
       )
     )
   );
-  // Exported field: 'relation-character_state-field_character_state_meta'
-  $fields['relation-character_state-field_character_state_meta'] = array(
+  // Exported field: 'relation-character_state-field_character_state_flag'
+  $fields['relation-character_state-field_character_state_flag'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_character_state_meta',
+      'field_name' => 'field_character_state_flag',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
@@ -1649,8 +2165,67 @@ other|Other',
         )
       ),
       'entity_type' => 'relation',
-      'field_name' => 'field_character_state_meta',
-      'label' => 'Metadata',
+      'field_name' => 'field_character_state_flag',
+      'label' => 'Annotation',
+      'required' => 0,
+      'settings' => array(
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5'
+        ),
+        'type' => 'text_textarea',
+        'weight' => '1'
+      )
+    )
+  );
+  // Exported field: 'relation-character_state-field_character_state_pass'
+  $fields['relation-character_state-field_character_state_pass'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_character_state_pass',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'text_long'
+    ),
+    'field_instance' => array(
+      'bundle' => 'character_state',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 1
+        )
+      ),
+      'entity_type' => 'relation',
+      'field_name' => 'field_character_state_pass',
+      'label' => 'Pass up/down',
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',

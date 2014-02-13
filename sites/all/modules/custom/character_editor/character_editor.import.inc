@@ -841,6 +841,9 @@ function character_editor_sdd_import_set_character_state($xml_map, $entity_w, $f
     }
   }
   $state->setHostEntity($entity_w->type(), $entity_w->raw());
+  // XXX We save it now because we need the entity id (if the collection gets saved via the host entity, then
+  // this object does not get updated) ; however it means we'll need to delete this in case of failure.
+  $state->save(TRUE);
   // Add it to the map so it can be referenced
   $xml_id = $xml_map->nodeToString($value->xpath('@id'));
   $state_w = entity_metadata_wrapper('field_collection_item', $state);
@@ -1158,7 +1161,11 @@ function character_editor_sdd_import_set_categorical_state($map, $entity_w, $fie
       'action' => REVERSE_SCHEMA_ARRAY_SKIP_ENTITY
     ));
   }
-  $entity_w->field_character_state_data = implode(',', $result);
+  if(empty($result)){
+    $entity_w->field_character_state_data = '';
+  }else{
+    $entity_w->field_character_state_data = "['" . implode("' & '", $result) . "']";
+  }
 }
 
 /**
@@ -1502,6 +1509,7 @@ class CharacterEditorSDDImport{
     if(!$this->importModifiers($new)){return FALSE;}
     if($this->options['import_selection'] != 'data'){
       $this->importStructure();
+      $this->importConditions();
     }
     if($this->options['import_selection'] != 'structure'){
       if(!$this->importData()){return FALSE;}
@@ -1747,6 +1755,55 @@ class CharacterEditorSDDImport{
     $this->map->flushMessages();
     $this->map->flushInfo();
     return TRUE;
+  }
+
+  /**
+   * importConditions
+   * 
+   * Import the character dependencies. Note that dependencies are per node rather than per
+   * character ; so the import isn't exact.
+   */
+  private function importConditions(){
+    $found = array();
+    foreach($this->dom->xpath('/Datasets/Dataset/CharacterTrees/CharacterTree/Nodes/CharNode/DependencyRules') as $tree_node){
+      // Get the character
+      $elem_ref = $this->map->nodeToString($tree_node->xpath('../Character/@ref[1]'));
+      if(!$elem_ref){
+        continue; // Error will be raised by importStructure already.
+      }
+      $elem_w = $this->map->getEntity('character_editor_character', $elem_ref);
+      if(!$elem_w){
+        continue; // Error will be raised by importStructure already.
+      }
+      if(in_array($elem_ref, $found)){
+        $this->addMessage("Condition for character " . $elem_w->label() . " is defined multiple time ; however only one condition per character can be imported.", 'warning');
+        continue;
+      }
+      $found[] = $elem_ref;
+      // Build the condition
+      $conditions = array();
+      foreach($tree_node->xpath('OnlyApplicableIf/State/@ref') as $state_ref){
+        $state_ref = $this->map->nodeToString($state_ref);
+        $state_w = $this->map->getEntity('field_collection_item', $state_ref);
+        if(!$state_w){
+          $this->addMessage("State $state_ref defined in condition does not exist, skipping.", 'warning');
+          continue;
+        }
+        $conditions[] = "('" . $state_w->getIdentifier() . "' in {" . $state_w->raw()->hostEntity()->id . "})";
+      }
+      foreach($tree_node->xpath('InaplicableIf/State/@ref') as $state_ref){
+        $state_ref = $this->map->nodeToString($state_ref);
+        $state_w = $this->map->getEntity('field_collection_item', $state_ref);
+        if(!$state_w){
+          $this->addMessage("State $state_ref defined in condition does not exist, skipping.", 'warning');
+          continue;
+        }
+        $conditions[] = "('" . $state_w->getIdentifier() . "' not-in {" . $state_w->raw()->hostEntity()->id . "})";
+      }
+      $elem_w->field_char_condition = implode(' and ', $conditions);
+      // We need to re-save the element. We are only here is structure is imported, so this is not destructive.
+      $elem_w->save();
+    }
   }
 
   /**

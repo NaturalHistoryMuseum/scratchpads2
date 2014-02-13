@@ -10,6 +10,14 @@
            * init
            */
           this.init = function(){
+            // Check if this cell is disabled
+            var m = Drupal.characterMetadataManager.getMetadata(editor.item.index, editor.column.id);
+            if (m && (m.disabled || m.pass == 'up' || m.pass == 'both')){
+              setTimeout(function(){
+                editor.cancelChanges();
+              }, 0);
+              return;
+            }
             // We can have multiple values if this is a taxon, or if this is an 'and' character
             this.multiple = editor.column.data.type == 'AND' || editor.item.id.match(/^taxonomy_term:\d+$/);
             // Create the popup body
@@ -111,7 +119,7 @@
               var textInputVal = '';
               var start = this.$textinput.val();
               $('div.character-editor-popup-row', this.$input).filter(function(){
-                if ($(this).html().indexOf(start) != 0){
+                if ($(this).html().toLowerCase().indexOf(start.toLowerCase()) != 0){
                   return true;
                 } else if (textInputAuto.length == 0) {
                   textInputAuto = $(this).html();
@@ -205,8 +213,12 @@
            * destroy
            */
           this.destroy = function(){
-            this.$overlay.remove();
-            this.$input.remove();
+            if (typeof this.$overlay !== 'undefined'){
+              this.$overlay.remove();
+            }
+            if (typeof this.$input !== 'undefined'){
+              this.$input.remove();
+            }
           }
 
           /**
@@ -287,6 +299,9 @@
            */
           this.loadValue = function(item) {
             var m = Drupal.characterMetadataManager.getMetadata(item.index, editor.column.id);
+            if (m && m.disabled){
+              return;
+            }
             if (m && typeof m.value !== 'undefined'){
               this.defaultValue = m.value;
             } else {
@@ -300,7 +315,9 @@
            * serializeValue
            */
           this.serializeValue = function() {
-            return this.$input.attr('value');
+            if (typeof this.$input !== 'undefined'){
+              return this.$input.attr('value');
+            }
           };
 
           /**
@@ -323,6 +340,19 @@
             };
             // Perform the update
             slickgrid.callback('update', data);
+            // And update the cell
+            var column_index = grid.getColumnIndex(editor.column.id);
+            var invalid_rows = slickgrid.invalidateSelectedRows();
+            for (var i = 0; i < invalid_rows.length; i++){
+              $(editor.grid.getCellNode(invalid_rows[i], column_index)).css({
+                backgroundImage: "url(" + Drupal.settings.basePath + "misc/throbber.gif)",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "0 -20px",
+              });
+              var row_item = grid.getDataItem(invalid_rows[i]);
+              row_item[editor.column.id] = "...";
+              grid.updateCell(invalid_rows[i], column_index);
+            }
           }
 
           /**
@@ -362,7 +392,14 @@
             var bt;
 
             this.init = function() {
-
+                // Check if this cell is disabled
+                var m = Drupal.characterMetadataManager.getMetadata(args.item.index, args.column.id);
+                if (m && (m.disabled || m.pass == 'up' || m.pass == 'both')){
+                  setTimeout(function(){
+                    args.cancelChanges();
+                  }, 0);
+                  return;
+                }
                 $input = $("<INPUT type=text class='editor-text' />")
                 .appendTo(args.container)
                 .bind("keydown.nav",
@@ -373,12 +410,14 @@
                 })
                 .focus()
                 .select();                
-                scope.bt();                
+                scope.bt();
             };
 
             this.destroy = function() {
-                $input.btOff();
-                $input.remove();
+                if (typeof $input !== 'undefined'){
+                    $input.btOff();
+                    $input.remove();
+                }
             };
             
             this.bt = function(){
@@ -410,14 +449,18 @@
             };
 
             this.loadValue = function(item) {
-                defaultValue = item[args.column.field] || "";
-                $input.val(defaultValue);
-                $input[0].defaultValue = defaultValue;
-                $input.select();
+                if (typeof $input !== 'undefined'){
+                    defaultValue = item[args.column.field] || "";
+                    $input.val(defaultValue);
+                    $input[0].defaultValue = defaultValue;
+                    $input.select();
+                }
             };
 
             this.serializeValue = function() {
-                return $input.val();
+                if (typeof $input !== 'undefined'){
+                    return $input.val();
+                }
             };
 
             this.applyValue = function(item, value) {
@@ -437,8 +480,20 @@
                   id: args.item.id
               };              
               // Perform the update
-              slickgrid.callback('update', data);        
-              
+              slickgrid.callback('update', data);
+              // And update the cell
+              var column_index = grid.getColumnIndex(args.column.id);
+              var invalid_rows = slickgrid.invalidateSelectedRows();
+              for (var i = 0; i < invalid_rows.length; i++){
+                $(args.grid.getCellNode(invalid_rows[i], column_index)).css({
+                  backgroundImage: "url(" + Drupal.settings.basePath + "misc/throbber.gif)",
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "0 -20px",
+                });
+                var row_item = grid.getDataItem(invalid_rows[i]);
+                row_item[args.column.id] = value;
+                grid.updateCell(invalid_rows[i], column_index);
+              }
             }
             
             this.isValueChanged = function() {
@@ -474,7 +529,14 @@
             var element = $('#slickgrid');
 
             this.init = function() {
-
+                // Check if this cell is disabled
+                var m = Drupal.characterMetadataManager.getMetadata(args.item.index, args.column.id);
+                if (m && (m.disabled || m.pass == 'up' || m.pass == 'both')){
+                  setTimeout(function(){
+                    args.cancelChanges();
+                  }, 0);
+                  return;
+                }
                 // Open a CTools modal dialog
                 Drupal.CTools.Modal.show('ctools-modal-slickgrid-fixed');
                 
@@ -522,7 +584,18 @@
             };
 
             this.applyValue = function(item) {
-                item[args.column.field] = state;
+              var column_index = grid.getColumnIndex(args.column.id);
+              var invalid_rows = slickgrid.invalidateSelectedRows();
+              for (var i = 0; i < invalid_rows.length; i++){
+                $(args.grid.getCellNode(invalid_rows[i], column_index)).css({
+                  backgroundImage: "url(" + Drupal.settings.basePath + "misc/throbber.gif)",
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "0 -20px",
+                });
+                var row_item = grid.getDataItem(invalid_rows[i]);
+                row_item[args.column.id] = "...";
+                grid.updateCell(invalid_rows[i], column_index);
+              }
             };
             
             this.cancel = function(){

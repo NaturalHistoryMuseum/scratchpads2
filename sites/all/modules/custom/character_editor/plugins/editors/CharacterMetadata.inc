@@ -1,7 +1,7 @@
 <?php
 $plugin = array(
-  'title' => t('Character Flag Editor'),
-  'description' => t('Edit a character\'s flag - from code only'),
+  'title' => t('Character Metadata Editor'),
+  'description' => t('Edit a character\'s metadata - from code only'),
   'handler' => array(
     'class' => 'character_metadata_editor_handler'
   ),

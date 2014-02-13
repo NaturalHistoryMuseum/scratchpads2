@@ -43,6 +43,23 @@ function character_editor_menu(){
         'create character editor'
       ),
       'file' => 'character_editor.import.inc'
+    ),
+    'character-editor-project/%entity_object/apply-inheritance' => array(
+      'type' => MENU_CALLBACK,
+      'file' => 'character_editor.inheritance.inc',
+      'load arguments' => array(
+        'character_editor_project'
+      ),
+      'page callback' => 'character_editor_process_inheritance',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => 'entity_access',
+      'access arguments' => array(
+        'update',
+        'character_editor_project',
+        1
+      )
     )
   );
 }
@@ -129,6 +146,25 @@ function character_editor_menu_local_tasks_alter(&$data, $router_item, $root_pat
   }
 }
 
+/**
+ * Implementation of hook_theme_registry_alter
+ *
+ * Override slickgrid control theme
+ */
+function character_editor_theme_registry_alter(&$theme_registry){
+  $theme_registry['slickgrid_controls'] = array(
+    'arguments' => array(
+      'view' => array()
+    ),
+    'path' => drupal_get_path('module', 'character_editor') . '/theme',
+    'file' => 'theme.inc',
+    'includes' => array(
+      drupal_get_path('module', 'character_editor') . '/theme/theme.inc'
+    ),
+    'function' => 'character_editor_theme_slickgrid_controls'
+  );
+}
+
 /*********************************************************************************************
  * 
  * VIEWS HOOKS
@@ -153,6 +189,7 @@ function character_editor_views_api(){
 function character_editor_views_pre_execute(&$view){
   if(!property_exists($view, 'character_editor_query') || !$view->character_editor_query){return;}
   $view->build_info['query'] = $view->character_editor_query;
+  $view->build_info['count_query'] = $view->character_editor_count_query;
 }
 
 /**
@@ -181,6 +218,8 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
     $editable = true;
     $style_options['editable'] = TRUE;
     $style_options['enableCellNavigation'] = TRUE;
+    $style_options['row_selection_checkbox'] = true;
+    $style_options['multi_edit'] = true;
   }else{
     drupal_access_denied();
     drupal_exit();
@@ -197,7 +236,7 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
     }
     $field = $tree_item->getViewFieldDefinition();
     $view->add_item('page', 'field', 'views', 'character_field', $field, $column_id);
-    $style_options['columns'][$column_id] = $tree_item->getViewStyleOptions();
+    $style_options['columns'][$column_id] = $tree_item->getViewStyleOptions($project_model);
     // Only add the editor if it's editable
     if($editable){
       $style_options['columns'][$column_id]['editor'] = $tree_item->model()->getEditorName();
@@ -217,6 +256,7 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
     'CharacterTreeUI' => array(
       'editable' => $editable,
       'mode' => isset($style_options['character_tree_mode']) ? $style_options['character_tree_mode'] : 'collapsed',
+      'width' => isset($style_options['character_tree_width']) ? $style_options['character_tree_width'] : '200',
       'tree' => $editor_tree,
       'project' => $project_model->id()
     )
@@ -324,6 +364,7 @@ function character_editor_form_character_editor_character_alter(&$form, &$form_s
   }else{
     $project_model = new CharacterProjectModel('character_editor_project', $form_state['character_project_id']);
   }
+  // Add the group select
   $groups = $project_model->getGroupSelect();
   if(count($groups)){
     $character_w = character_editor_wrapper('character_editor_character', $form_state['entity']);
@@ -350,26 +391,155 @@ function character_editor_form_character_editor_character_alter(&$form, &$form_s
       '#multiple' => TRUE,
       '#weight' => $title_weight + 0.5
     );
+    if(isset($form['#group_children'])){
+      $form['#group_children']['group'] = 'group_char_group';
+    }
   }
   if(!$form_state['entity']->is_new){
-    // The tabs have been changed so there's no longer delete - add delete button
-    $form['actions']['delete'] = array(
-      '#type' => 'submit',
-      '#value' => t('Delete'),
-      '#submit' => array(
-        'character_editor_character_delete_submit'
-      )
-    );
-    if(!empty($form_state['character_project_id'])){
-      $form['actions']['cancel'] = array(
-        '#type' => 'markup',
-        '#markup' => l('Cancel', 'character-editor-project/' . $form_state['character_project_id'] . '/characters')
+    // The tabs have been changed so there's no longer delete - add delete button, unless
+    // we're editing from a modal.
+    if(empty($form_state['modal'])){
+      $form['actions']['delete'] = array(
+        '#type' => 'submit',
+        '#value' => t('Delete'),
+        '#submit' => array(
+          'character_editor_character_delete_submit'
+        )
+      );
+      if(!empty($form_state['character_project_id'])){
+        $form['actions']['cancel'] = array(
+          '#type' => 'markup',
+          '#markup' => l('Cancel', 'character-editor-project/' . $form_state['character_project_id'] . '/characters')
+        );
+      }
+    }else{
+      $form['plugin'] = array(
+        '#type' => 'hidden',
+        '#value' => $form_state['modal']
+      );
+      $form['modal_character_id'] = array(
+        '#type' => 'hidden',
+        '#value' => $form_state['entity']->id
       );
     }
     $form['actions']['submit']['#update'] = TRUE;
   }
+  // Generate the help for the conditions and expresion fields.
+  if(isset($form['field_char_condition']) || isset($form['field_char_expr'])){
+    $variables = $project_model->getAvailableVariables();
+    foreach($variables['list'] as $var_id => $var_row){
+      $variables['list'][$var_id][0] = '<span class="character-editor-variable">' . htmlspecialchars($var_row[0]) . '</span>';
+      if(!empty($var_row[2])){
+        foreach($var_row[2] as $state_idx => $state_label){
+          $var_row[2][$state_idx] = '<span class="character-editor-symbol">' . htmlspecialchars($state_label) . '</span>';
+        }
+        $variables['list'][$var_id][2] = "<ul><li>" . implode('</li><li>', $var_row[2]) . '<li></ul>';
+      }
+    }
+    $table_html = theme('table', array(
+      'header' => array(
+        t('Character'),
+        t('Type'),
+        t('States')
+      ),
+      'rows' => $variables['list'],
+      'attributes' => array(
+        'class' => array(
+          "character-editor-variable"
+        )
+      )
+    ));
+    $expression_fields = array(
+      'field_char_expr',
+      'field_char_condition'
+    );
+    foreach($expression_fields as $expr_field){
+      if(!isset($form[$expr_field])){
+        continue;
+      }
+      $form[$expr_field][LANGUAGE_NONE][] = array(
+        '#type' => 'fieldset',
+        '#collapsible' => FALSE,
+        '#description' => t('List of characters that can be used in the expression. Characters are enclosed in {curly} brackets and states in \'single quotes\'.  Click on a character or state to insert it into the text editor.'),
+        '#title' => t('Characters'),
+        'table' => array(
+          '#markup' => $table_html
+        )
+      );
+      // Replace ids in the expression with names
+      $expr = $form[$expr_field][LANGUAGE_NONE][0]['value']['#default_value'];
+      if($expr){
+        module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
+        try{
+          $e = new CharacterExpressionParser($expr);
+          $e->rename(array_flip($variables['character_map']), array_flip($variables['state_map']));
+          $expr = $e->getExpression();
+        }
+        catch(Exception $e){
+          $expr = "Could not parse saved expression: " . $e->getMessage();
+        }
+        $form[$expr_field][LANGUAGE_NONE][0]['value']['#default_value'] = $expr;
+      }
+    }
+    $form['#attached']['js'][] = drupal_get_path('module', 'character_editor') . '/js/character-editor-expression.js';
+    $form['#validate'][] = 'character_editor_character_form_validate';
+    $form['actions']['submit']['#submit'] = array_merge(array(
+      'character_editor_character_form_submit_expression'
+    ), $form['actions']['submit']['#submit']);
+  }
+  $form['#attached']['css'][] = drupal_get_path('module', 'character_editor') . '/css/character-editor-forms.css';
   $form['actions']['submit']['#submit'][] = 'character_editor_character_form_submit';
   $form['#after_build'][] = 'character_editor_character_form_after_build';
+}
+
+/**
+ * character_editor_character_form_validate
+ */
+function character_editor_character_form_validate($form, &$form_state){
+  $expression_fields = array(
+    'field_char_expr',
+    'field_char_condition'
+  );
+  foreach($expression_fields as $expr_field){
+    if(!empty($form_state['values'][$expr_field][LANGUAGE_NONE][0]['value'])){
+      module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
+      try{
+        $e = new CharacterExpressionParser($form_state['values'][$expr_field][LANGUAGE_NONE][0]['value']);
+      }
+      catch(Exception $e){
+        form_set_error($expr_field, t("Expression could not be parsed:") . $e->getMessage());
+      }
+    }
+  }
+}
+
+/**
+ * character_editor_character_form_submit_expression
+ * 
+ * Called before other submit handlers so we can change the value of the
+ * expression to use identifiers rather than labels
+ */
+function character_editor_character_form_submit_expression($form, &$form_state){
+  $expression_fields = array(
+    'field_char_expr',
+    'field_char_condition'
+  );
+  foreach($expression_fields as $expr_field){
+    if(!empty($form_state['values'][$expr_field][LANGUAGE_NONE][0]['value'])){
+      $project_model = new CharacterProjectModel('character_editor_project', $form_state['character_project_id']);
+      $variables = $project_model->getAvailableVariables();
+      module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
+      try{
+        $e = new CharacterExpressionParser($form_state['values'][$expr_field][LANGUAGE_NONE][0]['value']);
+        $e->rename($variables['character_map'], $variables['state_map']);
+        $expr = $e->getExpression();
+      }
+      catch(Exception $e){
+        $expr = '';
+      }
+      $form_state['values'][$expr_field][LANGUAGE_NONE][0]['value'] = $expr;
+    }
+  }
 }
 
 /**
@@ -652,6 +822,7 @@ function character_editor_project_view($entity){
           $path . '/js/character-editor-character-tree.js',
           $path . '/js/character-editor-context-menu.js',
           $path . '/js/character-editor-metadata-manager.js',
+          $path . '/js/character-editor-inheritance.js',
           $path . '/js/character-editor.js',
           array(
             'data' => array(
@@ -690,7 +861,7 @@ function character_editor_project_view($entity){
 function character_editor_character_form_submit(&$form, &$form_state){
   if(empty($form_state['entity'])){return;}
   $character_w = character_editor_wrapper('character_editor_character', $form_state['entity']);
-  character_editor_detach_character($character_w);
+  // Attach to it's new parents, and detach from old parents
   $parents = array();
   if(isset($form_state['values']['group'])){
     foreach($form_state['values']['group'] as $group_id){
@@ -700,9 +871,18 @@ function character_editor_character_form_submit(&$form, &$form_state){
   if(empty($parents)){
     $parents[] = character_editor_wrapper('character_editor_project', $form_state['character_project_id']);
   }
+  $existing_parents = character_editor_get_parents($character_w);
+  $new_parents_ids = array();
   foreach($parents as $parent_w){
     character_editor_associate_character($parent_w, $character_w);
+    $new_parents_ids[] = $parent_w->type() . ':' . $parent_w->getIdentifier();
   }
+  foreach($existing_parents as $parent_w){
+    if(!in_array($parent_w->type() . ':' . $parent_w->getIdentifier(), $new_parents_ids)){
+      character_editor_detach_character($character_w, $parent_w);
+    }
+  }
+  // Feedback and redirect
   if(empty($form_state['triggering_element']['#update'])){
     drupal_set_message(t("%type character added", array(
       "%type" => ucfirst($character_entity->type)
@@ -929,65 +1109,6 @@ function character_editor_get_default_view(){
   return key(character_editor_views_default_views());
 }
 
-/**
- * Get a list of all character types
- */
-function character_editor_get_character_types(){
-  $character_types = array();
-  foreach($entities = entity_admin_get_entities('character_editor_character_type') as $type => $entity){
-    $character_types[$type] = $entity->label();
-  }
-  return $character_types;
-}
-
-/**
- * Get a list of all character groups in a character project
- */
-function character_editor_get_groups($character_project_id){
-  $groups = array();
-  $query = relation_query('character_editor_project', $character_project_id);
-  $query->entityCondition('bundle', PROJECT_CHARACTER_RELATION_TYPE);
-  $results = $query->execute();
-  $group_ids = array();
-  foreach($results as $result){
-    $relation = relation_load($result->rid);
-    $language = field_language('relation', $relation, 'endpoints');
-    foreach($relation->endpoints[$language] as $endpoint){
-      if($endpoint['entity_type'] == 'character_editor_character'){
-        $group_ids[] = $endpoint['entity_id'];
-      }
-    }
-  }
-  $group_entities = entity_load('character_editor_character', $group_ids);
-  foreach($group_entities as $group_entity_id => $group_entity){
-    $groups[$group_entity_id] = $group_entity->label();
-  }
-  return $groups;
-}
-
-/**
- * Get the character group of a given character
- */
-function character_editor_get_group($character_id){
-  $query = relation_query('character_editor_character', $character_id);
-  $query->entityCondition('bundle', PROJECT_CHARACTER_RELATION_TYPE);
-  $results = $query->execute();
-  foreach($results as $result){
-    $relation = relation_load($result->rid);
-    $language = field_language('relation', $relation, 'endpoints');
-    foreach($relation->endpoints[$language] as $endpoint){
-      if($endpoint['entity_type'] != 'character_editor_character'){
-        continue;
-      }
-      $entity = reset(entity_load('character_editor_character', array(
-        $endpoint['entity_id']
-      )));
-      if($entity->type == 'group'){return $entity;}
-    }
-  }
-  return NULL;
-}
-
 /*********************************************************************************************
  * 
  * CTOOLS PLUGIN INTEGRATION
@@ -1002,6 +1123,9 @@ function character_editor_ctools_plugin_api($module, $api){
     );}
   if($module == "relation" && $api == "relation_type_default"){return array(
       "version" => "1"
+    );}
+  if($module == 'field_group' && $api == 'field_group'){return array(
+      'version' => '1'
     );}
 }
 
@@ -1053,6 +1177,9 @@ function character_editor_state_form_process($editor){
   // Additional form_state settings required for ctools modal forms
   $editor->entity_info = entity_get_info($editor->entity_type);
   list(, $character_entity_id) = explode('_', $editor->field_id);
+  list($entity_type, $entity_id) = explode(':', reset($form_state['values']['entity_ids']));
+  $form_state['entity_type'] = $entity_type;
+  $form_state['entity_id'] = $entity_id;
   $character_entity = entity_load_single('character_editor_character', $character_entity_id);
   $form_state['title'] = t("Editing %label (!type)", array(
     '%label' => $character_entity->label(),
@@ -1061,8 +1188,17 @@ function character_editor_state_form_process($editor){
   $form_state['ajax'] = true;
   // Pass the editor object into the form_state
   $form_state['editor'] = $editor;
-  $output = ctools_modal_form_wrapper($editor->plugin['form_id'], $form_state);
-  if(!empty($form_state['executed'])){ // Form has succesfully completed  	
+  $nfs = array_merge(array(), $form_state);
+  $output = ctools_modal_form_wrapper($editor->plugin['form_id'], $nfs);
+  if(!empty($nfs['executed'])){
+    // Form has succesfully completed, submit the other entities too
+    foreach($form_state['values']['entity_ids'] as $entity_desc){
+      $nfs = array_merge(array(), $form_state);
+      list($entity_type, $entity_id) = explode(':', $entity_desc);
+      $nfs['entity_type'] = $entity_type;
+      $nfs['entity_id'] = $entity_id;
+      drupal_build_form($editor->plugin['form_id'], $nfs);
+    }
     // We're going to exit the process, so get editor result manually
     $result = $form_state['editor']->get_result();
     slickgrid_callback_add_messages($result);
@@ -1109,7 +1245,13 @@ function character_editor_inline_cell_process($editor){
   $form_state['re_render'] = true;
   $form_state['no_redirect'] = true;
   // Build & submit the form
-  drupal_build_form($editor->plugin['form_id'], $form_state);
+  foreach($form_state['values']['entity_ids'] as $entity_id){
+    $nfs = array_merge(array(), $form_state);
+    list($entity_type, $entity_id) = explode(':', $entity_id);
+    $nfs['entity_id'] = $entity_id;
+    $nfs['entity_type'] = $entity_type;
+    drupal_build_form($editor->plugin['form_id'], $nfs);
+  }
 }
 
 /**
@@ -1120,11 +1262,8 @@ function character_editor_state_form($form, &$form_state){
   $form = array();
   $form_state['character_id'] = preg_replace('/^character_(\d+)_\d+$/', '$1', $_POST['field_id']);
   $form_state['field_id'] = $_POST['field_id'];
-  list($entity_type, $entity_id) = explode(':', reset($form_state['values']['entity_ids']));
-  $form_state['entity_id'] = $entity_id;
-  $form_state['entity_type'] = $entity_type;
   $character_w = character_editor_wrapper('character_editor_character', $form_state['character_id']);
-  $entity_w = entity_metadata_wrapper($entity_type, entity_load_single($entity_type, $entity_id));
+  $entity_w = entity_metadata_wrapper($form_state['entity_type'], entity_load_single($form_state['entity_type'], $form_state['entity_id']));
   $values = character_editor_get_character_values($character_w, $entity_w);
   if(!empty($values)){
     $form_state['relation'] = $values[0]['relation_w']->raw();
@@ -1150,7 +1289,8 @@ function character_editor_state_form($form, &$form_state){
     'entity_ids',
     'id',
     'character_type',
-    'field_character_state_meta'
+    'field_character_state_flag',
+    'field_character_state_pass'
   ) as $element_name){
     if(is_array($form_state['values'][$element_name])){ // entity ids will be passed as an array
       foreach($form_state['values'][$element_name] as $element_value){
@@ -1252,6 +1392,23 @@ function character_editor_state_form_validate($form, &$form_state){
  */
 function character_editor_state_form_submit($form, &$form_state){
   $editor = &$form_state['editor'];
+  if($form_state['values']['character_type'] == 'controlled'){
+    // The UI only supports simple selection of states ; however the storage and backend
+    // processing supports advanced expressions. Transform the given value into an expression.
+    $values = array_filter(explode(',', $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value']));
+    if(!empty($values)){
+      $character = entity_load_single('character_editor_character', $form_state['character_id']);
+      $character_w = entity_metadata_wrapper('character_editor_character', $character);
+      if($character_w->field_char_and_or->value() == 'AND'){
+        $conj = '\' & \'';
+      }else{
+        $conj = '\' | \'';
+      }
+      $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'] = '[\'' . implode($conj, $values) . '\']';
+    }else{
+      $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'] = '';
+    }
+  }
   try{
     // If we just created a dummy relation for the field form, add endpoints etc.,
     if(!isset($form_state['relation']->rid)){
@@ -1269,6 +1426,10 @@ function character_editor_state_form_submit($form, &$form_state){
       $relation = relation_create('character_state', $entity_keys);
     }else{
       $relation = $form_state['relation'];
+      if(isset($relation->field_character_state_flag[LANGUAGE_NONE][0]['value']) && $relation->field_character_state_flag[LANGUAGE_NONE][0]['value'] == 'inherited'){
+        // Values directly submited via a form should loose the 'inherited' flag to ensure they don't get overwritten.
+        $relation->field_character_state_flag[LANGUAGE_NONE][0]['value'] = '';
+      }
     }
     entity_form_submit_build_entity('relation', $relation, $form, $form_state);
     relation_save($relation);
@@ -1345,6 +1506,7 @@ function character_editor_preprocess_slickgrid_control__add(&$variables){
   $variables['add_links'] = array();
   // Reorder the characters (reversed cos they're floated)
   foreach(array(
+    'character_editor_character/computed',
     'character_editor_character/dna',
     'character_editor_character/numeric',
     'character_editor_character/text',

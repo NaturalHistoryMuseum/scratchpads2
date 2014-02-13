@@ -4,7 +4,7 @@
   display: none;
 }
 
-#slickgrid .slick-cell.l0,
+#slickgrid .slick-cell.l1,
 #slickgrid .slick-header-column{
    text-align: left;
 }
@@ -19,6 +19,12 @@
   background: none;
   border: none;
   text-align: left;
+}
+
+#slickgrid div.slick-header-columns input{
+  /* This functionality doesn't really work as we load in chunks.
+     Hide the input until it's fixed */
+  display: none;
 }
 
 .bt-content h2{
@@ -48,6 +54,22 @@
   display: inline-block;
 }
 
+#controls div.slickgrid-refresh-inheritance {
+  width: auto;
+  float: left;
+  text-align: center;
+}
+
+#controls div.slickgrid-refresh-inheritance img {
+  margin: 7px 4px 0 4px;
+}
+
+#controls div.slickgrid-refresh-inheritance span.slickgrid-control-button {
+  color: #000;
+  width: auto;
+  line-height: 30px;
+  float: right;
+}
 
 /* CHARACTER FORM*/
 
@@ -173,6 +195,17 @@
   font-size: 1.5em;
 }
 
+#character-editor-tree .character-editor-tree-resize {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  cursor: col-resize;
+  width: 8px;
+  height: 100%;
+  z-index: 10;
+  border-right: 1px solid #DDD;
+}
+
 /* Popup styling (context menu, select box, etc.) */
 .character-editor-popup {
   background: #FFF;
@@ -186,6 +219,18 @@
   border-bottom: 1px solid #AAA;
   font-size: 0.9em;
   font-weight: bold;
+}
+
+.character-editor-popup-subtitle {
+  background: #EEE;
+  text-align: center;
+}
+
+.character-editor-popup-separator {
+  height: 2px;
+  width: 100%;
+  margin: 2px 0;
+  background: #DDD;
 }
 
 .character-editor-popup-row {
@@ -232,4 +277,8 @@ div.character-editor-popup-button-highlight {
   bottom: -4px;
   font-size: 0.9em;
   color: #444;
+}
+
+#slickgrid div.character-editor-disabled-cell {
+  background: #E8E8E8;
 }

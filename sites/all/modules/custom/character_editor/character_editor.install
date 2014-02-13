@@ -513,3 +513,169 @@ function character_editor_update_7007(){
     }
   }
 }
+
+/**
+ * Add fields to computed character
+ * 
+ */
+function character_editor_update_7008(){
+  module_load_include('features.field.inc', 'character_editor');
+  $definitions = character_editor_field_default_fields();
+  $create = array(
+    'character_editor_character' => array(
+      'computed' => array(
+        'field_char_image' => false,
+        'field_char_description' => false,
+        'field_char_expr' => false
+      )
+    )
+  );
+  // Create new fields
+  foreach($create as $entity_type => $bundles){
+    foreach($bundles as $bundle => $fields){
+      foreach($fields as $field_name => $default){
+        $info = field_info_field($field_name);
+        if(!$info){
+          field_create_field($definitions["$entity_type-$bundle-$field_name"]['field_config']);
+        }
+        $instance = field_info_instance($entity_type, $field_name, $bundle);
+        if(!$instance){
+          field_create_instance($definitions["$entity_type-$bundle-$field_name"]['field_instance']);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Add conditional fields
+ *
+ */
+function character_editor_update_7009(){
+  module_load_include('features.field.inc', 'character_editor');
+  $definitions = character_editor_field_default_fields();
+  $new_fields = array(
+    'character_editor_character' => array(
+      'text' => array(
+        'field_char_condition'
+      ),
+      'dna' => array(
+        'field_char_condition'
+      ),
+      'numeric' => array(
+        'field_char_condition'
+      ),
+      'controlled' => array(
+        'field_char_condition'
+      )
+    )
+  );
+  // Create new fields
+  foreach($new_fields as $entity_type => $bundles){
+    foreach($bundles as $bundle => $fields){
+      foreach($fields as $field_name){
+        $info = field_info_field($field_name);
+        if(!$info){
+          field_create_field($definitions["$entity_type-$bundle-$field_name"]['field_config']);
+        }
+        $instance = field_info_instance($entity_type, $field_name, $bundle);
+        if(!$instance){
+          field_create_instance($definitions["$entity_type-$bundle-$field_name"]['field_instance']);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Create the inheritance flag field, and add a condition field to computed
+ * characters.
+ */
+function character_editor_update_7010(){
+  module_load_include('features.field.inc', 'character_editor');
+  $definitions = character_editor_field_default_fields();
+  $new_fields = array(
+    'character_editor_character' => array(
+      'computed' => array(
+        'field_char_condition'
+      )
+    ),
+    'relation' => array(
+      'character_state' => array(
+        'field_character_state_pass'
+      )
+    )
+  );
+  // Create new fields
+  foreach($new_fields as $entity_type => $bundles){
+    foreach($bundles as $bundle => $fields){
+      foreach($fields as $field_name){
+        $info = field_info_field($field_name);
+        if(!$info){
+          field_create_field($definitions["$entity_type-$bundle-$field_name"]['field_config']);
+        }
+        $instance = field_info_instance($entity_type, $field_name, $bundle);
+        if(!$instance){
+          field_create_instance($definitions["$entity_type-$bundle-$field_name"]['field_instance']);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Switch metadata from a serialized value to a number of fields
+ */
+function character_editor_update_7011(){
+  // Create the new 'flag' field
+  module_load_include('features.field.inc', 'character_editor');
+  $definitions = character_editor_field_default_fields();
+  $new_fields = array(
+    'relation' => array(
+      'character_state' => array(
+        'field_character_state_flag'
+      )
+    )
+  );
+  // Create new fields
+  foreach($new_fields as $entity_type => $bundles){
+    foreach($bundles as $bundle => $fields){
+      foreach($fields as $field_name){
+        $info = field_info_field($field_name);
+        if(!$info){
+          field_create_field($definitions["$entity_type-$bundle-$field_name"]['field_config']);
+        }
+        $instance = field_info_instance($entity_type, $field_name, $bundle);
+        if(!$instance){
+          field_create_instance($definitions["$entity_type-$bundle-$field_name"]['field_instance']);
+        }
+      }
+    }
+  }
+  // Copy existing data from meta to flag
+  $efq = new EntityFieldQuery();
+  $efq->entityCondition('entity_type', 'relation');
+  $efq->entityCondition('bundle', 'character_state');
+  $efq->fieldCondition('field_character_state_meta', 'value', '', '!=');
+  $result = $efq->execute();
+  if(!empty($result['relation'])){
+    $relations = array_keys($result['relation']);
+    foreach($relations as $rid){
+      $relation = relation_load($rid);
+      $meta = unserialize($relation->field_character_state_meta[LANGUAGE_NONE][0]['value']);
+      $relation->field_character_state_flag = array(
+        LANGUAGE_NONE => array(
+          0 => array(
+            'value' => $meta['flag']
+          )
+        )
+      );
+      relation_save($relation);
+    }
+  }
+  // Delete the meta field
+  $meta_field = field_info_instance('relation', 'field_character_state_meta', 'character_state');
+  if($meta_field){
+    field_delete_instance($meta_field);
+  }
+}

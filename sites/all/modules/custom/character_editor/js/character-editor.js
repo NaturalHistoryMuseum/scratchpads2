@@ -20,7 +20,8 @@
         Drupal.settings.CharacterEditorInit = true;
         $slick.bind('onSlickgridInit', function(event, slickgrid){
           // Create the tree
-          Drupal.characterTreeUI = new Drupal.CharacterTreeUI(Drupal.settings.CharacterTreeUI.mode, Drupal.settings.CharacterTreeUI.tree, context, slickgrid);
+          Drupal.characterTreeUI = new Drupal.CharacterTreeUI(Drupal.settings.CharacterTreeUI.mode,
+              Drupal.settings.CharacterTreeUI.width, Drupal.settings.CharacterTreeUI.tree, context, slickgrid);
           Drupal.settings.CharacterTreeUI.tree = {};
           // Create the cell hover
           Drupal.characterHoverUI = new Drupal.ColumnHoverUI(slickgrid);
@@ -28,6 +29,8 @@
           Drupal.characterContextMenu = new Drupal.CharacterContextMenu(slickgrid);
           // Create the metadata manager
           Drupal.characterMetadataManager = new Drupal.CharacterMetadataManager(slickgrid);
+          // Create the inheritance context menu
+          Drupal.characterInheritance = new Drupal.CharacterInheritance();
           // Alter Slickgrid ajax call to specifiy which character project this is (slickgrid typically
           // only specifies the view/display)
           $.ajaxSetup({

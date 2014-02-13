@@ -10,8 +10,9 @@ files[] = views/character_editor_views_handler_entity_field.inc
 ; Plugins
 files[] = plugins/editors/handler.class.php
 files[] = plugins/formatters/characterCollapsibleFormatter.inc
-files[] = plugins/editors/CharacterFlag.inc
+files[] = plugins/editors/CharacterMetadata.inc
 files[] = plugins/editors/ControlledCharacter.inc
+files[] = plugins/editors/CharacterEntity.inc
 ; Entity UI
 files[] = includes/CharacterProjectEntityController.inc
 
@@ -21,37 +22,70 @@ features[character_editor_character_type][] = "dna"
 features[character_editor_character_type][] = "group"
 features[character_editor_character_type][] = "numeric"
 features[character_editor_character_type][] = "text"
+features[character_editor_character_type][] = "computed"
 features[character_editor_project_type][] = "default_character_project"
 features[field][] = "character_editor_character-controlled-field_char_ordered"
 features[field][] = "character_editor_character-controlled-field_char_and_or"
 features[field][] = "character_editor_character-controlled-field_char_description"
 features[field][] = "character_editor_character-controlled-field_char_image"
 features[field][] = "character_editor_character-controlled-field_char_states"
+features[field][] = "character_editor_character-controlled-field_char_condition"
 features[field][] = "character_editor_character-dna-field_char_description"
 features[field][] = "character_editor_character-dna-field_char_image"
+features[field][] = "character_editor_character-dna-field_char_condition"
 features[field][] = "character_editor_character-group-field_char_description"
 features[field][] = "character_editor_character-group-field_char_image"
 features[field][] = "character_editor_character-numeric-field_char_description"
 features[field][] = "character_editor_character-numeric-field_char_image"
+features[field][] = "character_editor_character-numeric-field_char_integer"
 features[field][] = "character_editor_character-numeric-field_char_unit"
+features[field][] = "character_editor_character-numeric-field_char_condition"
 features[field][] = "character_editor_character-text-field_char_description"
 features[field][] = "character_editor_character-text-field_char_image"
+features[field][] = "character_editor_character-text-field_char_condition"
+features[field][] = "character_editor_character-computed-field_char_description"
+features[field][] = "character_editor_character-computed-field_char_image"
+features[field][] = "character_editor_character-computed-field_char_expr"
 features[field][] = "character_editor_project-default_character_project-field_char_proj_description"
-features[field][] = "character_editor_project-default_character_project-field_field_taxonomic_name"
+features[field][] = "character_editor_project-default_character_project-field_taxonomic_name"
+features[field][] = "character_editor_project-default_character_project-field_char_proj_specimen"
 features[field][] = "field_collection_item-field_char_states-field_char_state_image"
 features[field][] = "field_collection_item-field_char_states-field_char_state_label"
 features[field][] = "character_editor_project-default_character_project-field_char_proj_flags"
 features[field][] = "field_collection_item-field_char_proj_flags-field_char_proj_flags_abbr"
 features[field][] = "field_collection_item-field_char_proj_flags-field_char_proj_flags_flag"
 features[field][] = "field_collection_item-field_char_proj_flags-field_char_proj_flags_id"
+
+; Field group features
+features[ctools][] = "field_group:field_group:1"
 features[field_group][] = "character_editor_project-default_character_project-form-group_char_proj_metadata"
 features[field_group][] = "character_editor_project-default_character_project-form-group_field_taxonomic_name"
 features[field_group][] = "character_editor_project-default_character_project-form-group_characters"
+features[field_group][] = "group_char_condition|character_editor_character|text|form"
+features[field_group][] = "group_char_definition|character_editor_character|text|form"
+features[field_group][] = "group_char_group|character_editor_character|text|form"
+features[field_group][] = "group_char_tabs|character_editor_character|text|form"
+features[field_group][] = "group_char_condition|character_editor_character|controlled|form"
+features[field_group][] = "group_char_definition|character_editor_character|controlled|form"
+features[field_group][] = "group_char_group|character_editor_character|controlled|form"
+features[field_group][] = "group_char_state|character_editor_character|controlled|form"
+features[field_group][] = "group_char_tabs|character_editor_character|controlled|form"
+features[field_group][] = "group_char_condition|character_editor_character|dna|form"
+features[field_group][] = "group_char_definition|character_editor_character|dna|form"
+features[field_group][] = "group_char_group|character_editor_character|dna|form"
+features[field_group][] = "group_char_tabs|character_editor_character|dna|form"
+features[field_group][] = "group_char_condition|character_editor_character|numeric|form"
+features[field_group][] = "group_char_definition|character_editor_character|numeric|form"
+features[field_group][] = "group_char_group|character_editor_character|numeric|form"
+features[field_group][] = "group_char_tabs|character_editor_character|numeric|form"
+
 ; Relation features
 features[ctools][] = "relation:relation_type_default:1"
 features[field][] = "relation-character-endpoints"
 features[field][] = "relation-character_state-endpoints"
 features[field][] = "relation-character_state-field_character_state_data"
+features[field][] = "relation-character_state-field_character_state_meta"
+features[field][] = "relation-character-field_character_weight"
 features[relation_type][] = "character"
 features[relation_type][] = "character_state"
 
