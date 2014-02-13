@@ -127,7 +127,10 @@ class CharacterTreeNode{
    *   <character id> => array(
    *     <this column's id> => array(
    *       'data' => <cell value>
-   *       'metadata' => <cell metadata>
+   *       'value' => <if different from data, the internal value for the cell>'
+   *       'variable' => <if different from data, the value of the cell to be used
+   *                      as variable in the expression parser>
+   *       'metadata' => <cell metadata, as array defining 'flag' and 'pass'>
    *     )
    *   )
    * )
@@ -144,7 +147,8 @@ class CharacterTreeNode{
         $result[$id][$this->column_id] = array(
           'data' => '',
           'metadata' => array(
-            'flag' => 'computed'
+            'flag' => 'computed',
+            'pass' => ''
           )
         );
       }
@@ -153,7 +157,10 @@ class CharacterTreeNode{
       foreach($row_ids as $id){
         $result[$id][$this->column_id] = array(
           'data' => '',
-          'metadata' => array()
+          'metadata' => array(
+            'flag' => '',
+            'pass' => ''
+          )
         );
       }
       // Get the values from the character, and insert them.
@@ -168,8 +175,8 @@ class CharacterTreeNode{
         if(isset($value['data'][0]['value'])){
           $data = $value['data'][0]['value'];
         }
-        if(isset($value['metadata'][0]['value'])){
-          $metadata = unserialize($value['metadata'][0]['value']);
+        if(isset($value['flag'][0]['value'])){
+          $metadata['flag'] = $value['flag'][0]['value'];
         }
         if(isset($value['pass'][0]['value'])){
           $metadata['pass'] = $value['pass'][0]['value'];
@@ -180,6 +187,8 @@ class CharacterTreeNode{
             $expression = new CharacterExpressionParser($data);
             $expr_result = $expression->evaluate();
             if($expr_result->type() == 'list'){
+              // A manually entered value will always be either 'or' or 'and', so
+              // the flattened value is safe to use.
               $expr_flat = $expression->evaluate()->getFlattenedValue();
               $expr_str = $expression->rename(array(), $value_map)->evaluate()->asString();
             }else{

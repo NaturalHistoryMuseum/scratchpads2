@@ -2124,14 +2124,14 @@ other|Other',
       )
     )
   );
-  // Exported field: 'relation-character_state-field_character_state_meta'
-  $fields['relation-character_state-field_character_state_meta'] = array(
+  // Exported field: 'relation-character_state-field_character_state_flag'
+  $fields['relation-character_state-field_character_state_flag'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_character_state_meta',
+      'field_name' => 'field_character_state_flag',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
@@ -2165,8 +2165,8 @@ other|Other',
         )
       ),
       'entity_type' => 'relation',
-      'field_name' => 'field_character_state_meta',
-      'label' => 'Metadata',
+      'field_name' => 'field_character_state_flag',
+      'label' => 'Annotation',
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',

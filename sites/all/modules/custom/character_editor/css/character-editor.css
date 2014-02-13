@@ -54,6 +54,22 @@
   display: inline-block;
 }
 
+#controls div.slickgrid-refresh-inheritance {
+  width: auto;
+  float: left;
+  text-align: center;
+}
+
+#controls div.slickgrid-refresh-inheritance img {
+  margin: 7px 4px 0 4px;
+}
+
+#controls div.slickgrid-refresh-inheritance span.slickgrid-control-button {
+  color: #000;
+  width: auto;
+  line-height: 30px;
+  float: right;
+}
 
 /* CHARACTER FORM*/
 

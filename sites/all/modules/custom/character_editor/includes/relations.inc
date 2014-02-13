@@ -328,7 +328,7 @@ function character_editor_association_exists(EntityDrupalWrapper $wrap_1, Entity
  * This will update the existing relation, or create a new one
  * if none exist
  */
-function character_editor_set_character_value(EntityDrupalWrapper $character_w, EntityDrupalWrapper $entity_w, $data = NULL, $metadata = NULL, $pass = NULL){
+function character_editor_set_character_value(EntityDrupalWrapper $character_w, EntityDrupalWrapper $entity_w, $data = NULL, $metadata = NULL){
   global $user;
   // Get the relation or create a new one
   $values = character_editor_get_character_values($character_w, $entity_w);
@@ -367,24 +367,20 @@ function character_editor_set_character_value(EntityDrupalWrapper $character_w, 
       )
     );
   }
-  if($metadata !== NULL){
-    $existing_metadata = unserialize($relation->field_character_state_meta[LANGUAGE_NONE][0]['value']);
-    if($existing_metadata){
-      $metadata = array_merge($existing_metadata, $metadata);
-    }
-    $relation->field_character_state_meta = array(
+  if($metadata !== NULL && isset($metadata['flag'])){
+    $relation->field_character_state_flag = array(
       LANGUAGE_NONE => array(
         array(
-          'value' => serialize($metadata)
+          'value' => $metadata['flag']
         )
       )
     );
   }
-  if($pass !== NULL){
+  if($metadata !== NULL && isset($metadata['pass'])){
     $relation->field_character_state_pass = array(
       LANGUAGE_NONE => array(
         array(
-          'value' => $pass
+          'value' => $metadata['pass']
         )
       )
     );
@@ -463,13 +459,13 @@ function character_editor_get_character_values(EntityDrupalWrapper $character_w,
     $relation_w = entity_metadata_wrapper('relation', relation_load($row->relation_id));
     $entity_w = entity_metadata_wrapper($row->entity_type, entity_load_single($row->entity_type, $row->entity_id));
     $data = field_get_items('relation', $relation_w->raw(), 'field_character_state_data');
-    $metadata = field_get_items('relation', $relation_w->raw(), 'field_character_state_meta');
+    $flag = field_get_items('relation', $relation_w->raw(), 'field_character_state_flag');
     $pass = field_get_items('relation', $relation_w->raw(), 'field_character_state_pass');
     $values[] = array(
       'entity_w' => $entity_w,
       'relation_w' => $relation_w,
       'data' => $data,
-      'metadata' => $metadata,
+      'flag' => $flag,
       'pass' => $pass
     );
   }

@@ -355,4 +355,160 @@ class CharacterModel{
       return array();
     }
   }
+
+  /**
+   * getTaxonAggregatedValue
+   *
+   * Get the aggregated (or 'pass-up') value for a given taxon
+   * in the given tree (as returned by CharacterProjectModel::getInheritanceTree)
+   *
+   * If the taxon has a value just return that value, unless it's tid is in the
+   * $force array.
+   */
+  public function getTaxonAggregatedValue($tid, $tree, $force = array()){
+    // Get the value for this tid
+    $entity_w = character_editor_wrapper('taxonomy_term', $tid);
+    if(!in_array($tid, $force)){
+      $values = character_editor_get_character_values($this->w, $entity_w);
+      if(strlen($values[0]['data'][0]['value']) > 0){return $values[0]['data'][0]['value'];}
+    }
+    $value = '';
+    // Recurse to children tids
+    foreach($tree['tree'][$tid]['children'] as $child_tid){
+      $child_value = $this->getTaxonAggregatedValue($child_tid, $tree, $force);
+      $value = $this->mergeValues($value, $child_value);
+    }
+    // Get the specimen values. Using proper entity API would be too expensive here, so
+    // we query directly.
+    $values = db_query("
+          SELECT DISTINCT s.field_character_state_data_value
+            FROM {field_data_field_character_state_data} s
+      INNER JOIN {field_data_endpoints} e_spec
+              ON e_spec.entity_id = s.entity_id
+      INNER JOIN {field_data_endpoints} e_char
+              ON e_char.entity_id = s.entity_id
+      INNER JOIN {field_data_field_taxonomic_name} t
+              ON t.entity_id = e_spec.endpoints_entity_id
+           WHERE e_spec.endpoints_entity_type = 'node'
+             AND e_char.endpoints_entity_type = 'character_editor_character'
+             AND e_char.endpoints_entity_id = :character_id
+             AND t.field_taxonomic_name_tid = :tid
+             AND t.entity_type = 'node'
+             AND t.bundle = 'specimen_observation'
+      ", array(
+      ':character_id' => $this->w->getIdentifier(),
+      ':tid' => $tid
+    ))->fetchCol();
+    foreach($values as $spec_value){
+      $value = $this->mergeValues($value, $spec_value);
+    }
+    return $value;
+  }
+
+  /**
+   * getPassDownEntities
+   *
+   * Given a taxon, return all the entity ids whose value should be set to that
+   * taxon's value through pass-down inheritance
+   */
+  public function getPassDownEntities($tid, $project_id, $tree, $ignore = array()){
+    $result = array();
+    // Include this taxon?
+    if(!in_array($tid, $ignore)){
+      $entity_w = character_editor_wrapper('taxonomy_term', $tid);
+      $values = character_editor_get_character_values($this->w, $entity_w);
+      if(!isset($values[0]['data'][0]['value']) || strlen($values[0]['data'][0]['value']) == 0){
+        $result[] = 'taxonomy_term:' . $tid;
+      }
+    }
+    // Recurse to children tids
+    foreach($tree['tree'][$tid]['children'] as $child_tid){
+      $child_result = $this->getPassDownEntities($child_tid, $project_id, $tree, $ignore);
+      $result = array_merge($result, $child_result);
+    }
+    // Check specimen
+    $specimens = db_query("
+          SELECT DISTINCT ps.field_char_proj_specimen_nid
+            FROM {field_data_field_char_proj_specimen} ps
+      INNER JOIN {field_data_field_taxonomic_name} tn
+              ON tn.entity_id = ps.field_char_proj_specimen_nid
+       LEFT JOIN ({field_data_endpoints} e_spec
+                  INNER JOIN {field_data_endpoints} e_char
+                          ON e_char.entity_id = e_spec.entity_id
+                         AND e_char.endpoints_entity_type = 'character_editor_character'
+                         AND e_char.endpoints_entity_id = :character_id
+                  INNER JOIN {field_data_field_character_state_data} d
+                          ON d.entity_id = e_char.entity_id
+                   LEFT JOIN {field_data_field_character_state_flag} f
+                          ON f.entity_id = e_char.entity_id
+                 )
+              ON e_spec.endpoints_entity_id = ps.field_char_proj_specimen_nid
+             AND e_spec.endpoints_entity_type = 'node'
+           WHERE ps.entity_id = :project_id
+             AND tn.entity_type = 'node'
+             AND tn.field_taxonomic_name_tid = :tid
+             AND (d.field_character_state_data_value IS NULL
+                  OR d.field_character_state_data_value = ''
+                  OR f.field_character_state_flag_value = 'inherited')
+   ", array(
+      ':character_id' => $this->w->getIdentifier(),
+      ':tid' => $tid,
+      ':project_id' => $project_id
+    ))->fetchCol();
+    foreach($specimens as $nid){
+      $result[] = 'node:' . $nid;
+    }
+    return $result;
+  }
+
+  /**
+   * mergeValues
+   *
+   * Merge too values into one encompassing both values
+   * (used for inheritance) for this character.
+   *
+   */
+  public function mergeValues($v1, $v2){
+    if(strlen($v1) == 0){
+      return $v2;
+    }else if(strlen($v2) == 0){return $v1;}
+    // Merge numeric values
+    if($this->isNumeric()){
+      if(preg_match('/^\s*(-?\d+(?:\.\d+)?)\s*-\s*(-?\d+(?:\.\d+)?)\s*$/', $v1, $matches)){
+        $min = $matches[1] > $matches[2] ? $matches[2] : $matches[1];
+        $max = $matches[1] > $matches[2] ? $matches[1] : $matches[2];
+      }else{
+        $min = floatval($v1);
+        $max = floatval($v1);
+      }
+      if(preg_match('/^\s*(-?\d+(?:\.\d+)?)\s*-\s*(-?\d+(?:\.\d+)?)\s*$/', $v2, $matches)){
+        $min = $matches[1] < $min ? $matches[1] : $min;
+        $min = $matches[2] < $min ? $matches[2] : $min;
+        $max = $matches[1] > $max ? $matches[1] : $max;
+        $max = $matches[2] > $max ? $matches[2] : $max;
+      }else{
+        $min = $v2 < $min ? $v2 : $min;
+        $max = $v2 > $max ? $v2 : $max;
+      }
+      if($min == $max){
+        return $min;
+      }else{
+        return "$min - $max";
+      }
+    }
+    // Merge controlled characters
+    if($this->isControlled()){
+      module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
+      try{
+        $e = new CharacterExpressionParser("[$v1|$v2]");
+        return $e->evaluate()->asExpression();
+      }
+      catch(Exception $e){
+        return '';
+      }
+    }
+    // Merge text characters?
+    if($this->isTextual()){return $v1 . ' ' . $v2;}
+    return '';
+  }
 }

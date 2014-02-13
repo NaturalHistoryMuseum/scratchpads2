@@ -12,7 +12,7 @@
           this.init = function(){
             // Check if this cell is disabled
             var m = Drupal.characterMetadataManager.getMetadata(editor.item.index, editor.column.id);
-            if (m && m.disabled){
+            if (m && (m.disabled || m.pass == 'up' || m.pass == 'both')){
               setTimeout(function(){
                 editor.cancelChanges();
               }, 0);
@@ -394,7 +394,7 @@
             this.init = function() {
                 // Check if this cell is disabled
                 var m = Drupal.characterMetadataManager.getMetadata(args.item.index, args.column.id);
-                if (m && m.disabled){
+                if (m && (m.disabled || m.pass == 'up' || m.pass == 'both')){
                   setTimeout(function(){
                     args.cancelChanges();
                   }, 0);
@@ -531,7 +531,7 @@
             this.init = function() {
                 // Check if this cell is disabled
                 var m = Drupal.characterMetadataManager.getMetadata(args.item.index, args.column.id);
-                if (m && m.disabled){
+                if (m && (m.disabled || m.pass == 'up' || m.pass == 'both')){
                   setTimeout(function(){
                     args.cancelChanges();
                   }, 0);

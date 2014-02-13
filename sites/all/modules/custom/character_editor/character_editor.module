@@ -43,6 +43,23 @@ function character_editor_menu(){
         'create character editor'
       ),
       'file' => 'character_editor.import.inc'
+    ),
+    'character-editor-project/%entity_object/apply-inheritance' => array(
+      'type' => MENU_CALLBACK,
+      'file' => 'character_editor.inheritance.inc',
+      'load arguments' => array(
+        'character_editor_project'
+      ),
+      'page callback' => 'character_editor_process_inheritance',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => 'entity_access',
+      'access arguments' => array(
+        'update',
+        'character_editor_project',
+        1
+      )
     )
   );
 }
@@ -127,6 +144,25 @@ function character_editor_menu_local_tasks_alter(&$data, $router_item, $root_pat
   if(isset($router_item['map'][0]) && $router_item['map'][0] == 'character-editor-character' && isset($router_item['map'][1])){
     $data['tabs'] = array();
   }
+}
+
+/**
+ * Implementation of hook_theme_registry_alter
+ *
+ * Override slickgrid control theme
+ */
+function character_editor_theme_registry_alter(&$theme_registry){
+  $theme_registry['slickgrid_controls'] = array(
+    'arguments' => array(
+      'view' => array()
+    ),
+    'path' => drupal_get_path('module', 'character_editor') . '/theme',
+    'file' => 'theme.inc',
+    'includes' => array(
+      drupal_get_path('module', 'character_editor') . '/theme/theme.inc'
+    ),
+    'function' => 'character_editor_theme_slickgrid_controls'
+  );
 }
 
 /*********************************************************************************************

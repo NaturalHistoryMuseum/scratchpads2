@@ -946,6 +946,7 @@ class CharacterExpressionList extends CharacterExpressionValue{
     parent::__construct($val, 'list', $context);
     $this->conjoined = $conjoined;
     $new_values = array();
+    // Merge lists
     foreach($this->val as $v){
       if(($v instanceof CharacterExpressionList) && $v->isConjoined() == $this->conjoined){
         $new_values = array_merge($new_values, $v->value());
@@ -953,7 +954,22 @@ class CharacterExpressionList extends CharacterExpressionValue{
         $new_values[] = $v;
       }
     }
-    $this->val = $new_values;
+    // Remove duplicate terms
+    $this->val = array();
+    for($i = 0; $i < count($new_values); $i++){
+      $dup = FALSE;
+      if($i < count($new_values) - 1){
+        for($j = $i + 1; $j < count($new_values); $j++){
+          if(get_class($new_values[$i]) == get_class($new_values[$j]) && $new_values[$i]->asExpression() == $new_values[$j]->asExpression()){
+            $dup = TRUE;
+            break;
+          }
+        }
+      }
+      if(!$dup){
+        $this->val[] = $new_values[$i];
+      }
+    }
   }
 
   /**
@@ -1023,6 +1039,10 @@ class CharacterExpressionList extends CharacterExpressionValue{
 
   /**
    * getFlattenedValue
+   *
+   * Return an array containing the elements in this list and sublists ;
+   * note that this does not indiciate the type of operators used between
+   * the elements.
    */
   public function getFlattenedValue(){
     $out = array();

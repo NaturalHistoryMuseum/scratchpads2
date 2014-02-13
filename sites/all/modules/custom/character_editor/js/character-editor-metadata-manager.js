@@ -6,11 +6,13 @@
     this.init = function(){
       this.$slick = $(slickgrid.getContainer());
       this.metadata = []
-      this.subscriptions = [$.proxy(this, 'updateCell')];
+      this.subscriptions = [$.proxy(this, 'updateCellFlag')];
       // Bind to 'onSlickgridDataLoaded'
       this.$slick.bind('onSlickgridDataLoaded', $.proxy(this, 'slickgridDataLoaded'));
       // Subscribe to the context menu
       Drupal.characterContextMenu.subscribe($.proxy(this, 'contextMenu'));
+      // React when rows are selected to restore metadata
+      grid.onSelectedRowsChanged.subscribe($.proxy(this, 'selectedRowsChanged'));
     }
     
     /**
@@ -92,18 +94,25 @@
             $(node).addClass('character-editor-disabled-cell');
           } else {
             var node = grid.getCellNode(i, grid.getColumnIndex(column));
-            for (var s in this.subscriptions){
-              (this.subscriptions[s])(this.metadata[i][column], node)
-            }
+            this.updateCell(this.metadata[i][column], node);
           }
         }
       }
     }
     
     /**
-     * updataCell
+     * updateCell
      */
     this.updateCell = function(metadata, node){
+      for (var s in this.subscriptions){
+        (this.subscriptions[s])(metadata, node);
+      }
+    }
+
+    /**
+     * updateCellFlag
+     */
+    this.updateCellFlag = function(metadata, node){
       if (metadata.flag && metadata.flag.length > 0){
         var flag = Drupal.settings.CharacterEditorFlags[metadata.flag];
         $(node).attr('character-flag', flag.abbr);
@@ -112,6 +121,13 @@
       }
     }
     
+    /**
+     * selectedRowsChanged
+     */
+    this.selectedRowsChanged = function(event, data){
+      this.updateViewportRows();
+    }
+
     /**
      * contextMenu
      * 

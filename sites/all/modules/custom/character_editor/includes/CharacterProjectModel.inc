@@ -359,4 +359,108 @@ class CharacterProjectModel{
     }
     return $result;
   }
+
+  /**
+   * getInheritanceTree
+   *
+   * This methods returns a structure that defines:
+   *
+   * - tree: A flat array, indexed by term id, representing all the
+   *         taxons in the project, each element defining the term id
+   *         (tid), the parent term id (parent - iff included in the
+   *         project), the list of character ids for which this taxon
+   *         has the pass up flag (up) and the list of character ids
+   *         for which this taxon has the pass down flag (down) ;
+   *
+   * - up:   An array of character ids to array of tids which have the pass
+   *         up flag for that character id. The array is organised with
+   *         the deepest tids first ;
+   *
+   * - down: An array of character ids to array of tids which have the pass
+   *         down flag for that character id. The array is organised with
+   *         the shallowest tids first.
+   *
+   * Note that this tree does *not* include the specimen.
+   */
+  public function getInheritanceTree(){
+    // Build the tree
+    $tree = array();
+    $up = array();
+    $down = array();
+    $taxons = field_get_items('character_editor_project', $this->w->raw(), 'field_taxonomic_name');
+    foreach($taxons as $t){
+      $tree[$t['tid']] = array(
+        'tid' => $t['tid'],
+        'parent' => 0,
+        'children' => array(),
+        'up' => array(),
+        'down' => array(),
+        'depth' => 0
+      );
+    }
+    foreach($tree as $tid => $tree_item){
+      $parent_tid = db_query("
+        SELECT parent
+          FROM {taxonomy_term_hierarchy}
+         WHERE tid = :tid
+      ", array(
+        ':tid' => $tid
+      ))->fetchField();
+      if($parent_tid && isset($tree[$parent_tid])){
+        $tree[$tid]['parent'] = $parent_tid;
+        $tree[$parent_tid]['children'][] = $tid;
+      }
+    }
+    foreach($tree as $tid => $tree_item){
+      if($tree_item['parent'] == 0){
+        continue;
+      }
+      $p = $tree_item['parent'];
+      while($p){
+        $tree[$tid]['depth']++;
+        $p = $tree[$p]['parent'];
+      }
+    }
+    // Get all cells that have been marked as 'pass up' or 'pass down' ;
+    $character_tree = $this->getTree();
+    foreach($character_tree as $tree_node){
+      $character_id = $tree_node->model()->wrapper()->getIdentifier();
+      $term_pass = db_query("
+        SELECT e_tax.endpoints_entity_id, f.field_character_state_pass_value
+          FROM {field_data_field_character_state_pass} f
+        INNER JOIN {field_data_endpoints} e_char
+                ON f.entity_id = e_char.entity_id
+        INNER JOIN {field_data_endpoints} e_tax
+                ON f.entity_id = e_tax.entity_id
+             WHERE e_char.endpoints_entity_type = 'character_editor_character'
+               AND e_char.endpoints_entity_id = :character_id
+               AND e_tax.endpoints_entity_type = 'taxonomy_term'
+      ", array(
+        ':character_id' => $character_id
+      ))->fetchAllKeyed();
+      foreach($term_pass as $tid => $pass){
+        if($pass == 'up' || $pass == 'both'){
+          $tree[$tid]['up'][] = $character_id;
+          $up[$character_id][$tree[$tid]['depth']][] = $tid;
+        }
+        if($pass == 'down' || $pass == 'both'){
+          $tree[$tid]['down'][] = $character_id;
+          $down[$character_id][$tree[$tid]['depth']][] = $tid;
+        }
+      }
+    }
+    foreach($up as $character_id => $tids){
+      krsort($tids);
+      $up[$character_id] = call_user_func_array('array_merge', $tids);
+    }
+    foreach($down as $character_id => $tids){
+      ksort($tids);
+      $down[$character_id] = call_user_func_array('array_merge', $tids);
+    }
+    return array(
+      'tree' => $tree,
+      'up' => $up,
+      'down' => $down
+    );
+  }
 }

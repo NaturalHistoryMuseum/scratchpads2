@@ -622,3 +622,60 @@ function character_editor_update_7010(){
     }
   }
 }
+
+/**
+ * Switch metadata from a serialized value to a number of fields
+ */
+function character_editor_update_7011(){
+  // Create the new 'flag' field
+  module_load_include('features.field.inc', 'character_editor');
+  $definitions = character_editor_field_default_fields();
+  $new_fields = array(
+    'relation' => array(
+      'character_state' => array(
+        'field_character_state_flag'
+      )
+    )
+  );
+  // Create new fields
+  foreach($new_fields as $entity_type => $bundles){
+    foreach($bundles as $bundle => $fields){
+      foreach($fields as $field_name){
+        $info = field_info_field($field_name);
+        if(!$info){
+          field_create_field($definitions["$entity_type-$bundle-$field_name"]['field_config']);
+        }
+        $instance = field_info_instance($entity_type, $field_name, $bundle);
+        if(!$instance){
+          field_create_instance($definitions["$entity_type-$bundle-$field_name"]['field_instance']);
+        }
+      }
+    }
+  }
+  // Copy existing data from meta to flag
+  $efq = new EntityFieldQuery();
+  $efq->entityCondition('entity_type', 'relation');
+  $efq->entityCondition('bundle', 'character_state');
+  $efq->fieldCondition('field_character_state_meta', 'value', '', '!=');
+  $result = $efq->execute();
+  if(!empty($result['relation'])){
+    $relations = array_keys($result['relation']);
+    foreach($relations as $rid){
+      $relation = relation_load($rid);
+      $meta = unserialize($relation->field_character_state_meta[LANGUAGE_NONE][0]['value']);
+      $relation->field_character_state_flag = array(
+        LANGUAGE_NONE => array(
+          0 => array(
+            'value' => $meta['flag']
+          )
+        )
+      );
+      relation_save($relation);
+    }
+  }
+  // Delete the meta field
+  $meta_field = field_info_instance('relation', 'field_character_state_meta', 'character_state');
+  if($meta_field){
+    field_delete_instance($meta_field);
+  }
+}
