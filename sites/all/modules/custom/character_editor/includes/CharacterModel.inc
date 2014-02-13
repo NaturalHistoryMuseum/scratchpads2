@@ -417,7 +417,7 @@ class CharacterModel{
     if(!in_array($tid, $ignore)){
       $entity_w = character_editor_wrapper('taxonomy_term', $tid);
       $values = character_editor_get_character_values($this->w, $entity_w);
-      if(!isset($values[0]['data'][0]['value']) || strlen($values[0]['data'][0]['value']) == 0){
+      if(!isset($values[0]['data'][0]['value']) || strlen($values[0]['data'][0]['value']) == 0 || (isset($values[0]['flag'][0]['value']) && $values[0]['flag'][0]['value'] == 'inherited')){
         $result[] = 'taxonomy_term:' . $tid;
       }
     }
