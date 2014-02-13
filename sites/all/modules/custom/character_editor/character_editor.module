@@ -1289,7 +1289,8 @@ function character_editor_state_form($form, &$form_state){
     'entity_ids',
     'id',
     'character_type',
-    'field_character_state_meta'
+    'field_character_state_flag',
+    'field_character_state_pass'
   ) as $element_name){
     if(is_array($form_state['values'][$element_name])){ // entity ids will be passed as an array
       foreach($form_state['values'][$element_name] as $element_value){
