@@ -1426,6 +1426,10 @@ function character_editor_state_form_submit($form, &$form_state){
       $relation = relation_create('character_state', $entity_keys);
     }else{
       $relation = $form_state['relation'];
+      if(isset($relation->field_character_state_flag[LANGUAGE_NONE][0]['value']) && $relation->field_character_state_flag[LANGUAGE_NONE][0]['value'] == 'inherited'){
+        // Values directly submited via a form should loose the 'inherited' flag to ensure they don't get overwritten.
+        $relation->field_character_state_flag[LANGUAGE_NONE][0]['value'] = '';
+      }
     }
     entity_form_submit_build_entity('relation', $relation, $form, $form_state);
     relation_save($relation);
