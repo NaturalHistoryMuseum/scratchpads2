@@ -59,27 +59,53 @@
      */
     this.contextClickCallback = function(info, metadata, type){
       // Update the cell
+      var new_pass = '';
       if (typeof metadata.pass == 'undefined' || metadata.pass == ''){
-        metadata.pass = type;
+        //metadata.pass = type;
+        new_pass = type;
       } else if (type == metadata.pass){
-        metadata.pass = '';
+        new_pass = '';
       } else if (metadata.pass == 'both'){
         if (type == 'up'){
-          metadata.pass = 'down';
+          new_pass = 'down';
         } else {
-          metadata.pass ='up';
+          new_pass = 'up';
         }
       } else {
-        metadata.pass = 'both'
+        new_pass = 'both'
       };
-      this.updateCell(metadata, grid.getCellNode(info.cell.row, info.cell.cell));
-      // And send the data to be saved.
-      slickgrid.callback('update', {
-        entity_ids: slickgrid.getEntityIDs(info.row),
-        column_id: info.column.id,
-        pass: metadata.pass,
-        plugin: 'CharacterMetadata'
-      });
+      // Apply the value to all selected cells
+      var rows = grid.getSelectedRows();
+      if ($.inArray(info.cell.row, rows) == -1){
+        rows.push(info.cell.row);
+      }
+      for (var i = 0; i < rows.length; i++){
+        var data = grid.getDataItem(rows[i]);
+        if (!data.id.match(/^taxonomy_term/)){
+          continue;
+        }
+        var cell_metadata = Drupal.characterMetadataManager.getMetadata(rows[i], info.column.id);
+        cell_metadata.pass = new_pass;
+        if (new_pass == '' && cell_metadata.flag == 'inherited'){
+          cell_metadata.flag = '';
+        }
+        slickgrid.invalidateRow(rows[i]);
+        var sel_node = grid.getCellNode(rows[i], info.cell.cell);
+        Drupal.characterMetadataManager.updateCell(cell_metadata, sel_node);
+        $(sel_node).css({
+          backgroundImage: "url(" + Drupal.settings.basePath + "misc/throbber.gif)",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "0 -20px",
+        });
+        // And send the data to be saved ; this may be different per row so we have to do them one by one
+        slickgrid.callback('update', {
+          entity_ids: [data.id],
+          column_id: info.column.id,
+          pass: cell_metadata.pass,
+          flag: cell_metadata.flag,
+          plugin: 'CharacterMetadata'
+        });
+      }
     }
     
     /**
