@@ -152,34 +152,34 @@ function taxonomy_formatter_field_formatter_view($entity_type, $entity, $field, 
     $wrapper[0] = '';
     $wrapper[1] = '';
   }
-  $formatted = '';
+  $formatted = array();
+  // We convert the items array into an array of terms (keyed by delta).
+  $tids = array();
+  foreach($items as $tidarray){
+    $tids[] = $tidarray['tid'];
+  }
+  $terms = entity_load('taxonomy_term', $tids);
   foreach ($items as $delta => $item) {
-    $termid = $item['tid'];
-    $term[] = $termid;
-    $actterm = entity_load('taxonomy_term', $term);
-    if(isset($actterm[$termid])) {
-      $uri = entity_uri('taxonomy_term', $actterm[$termid]);
-      $link_text = $actterm[$termid]->name;
+    if(isset($terms[$item['tid']])) {
+      $link_text = $terms[$item['tid']]->name;
       if ($settings['append_vocabulary']){
-        $vocabularies = drupal_static(__FUNCTION__, array());
-        if(!isset($vocabularies[$actterm[$termid]->vid])){
-          $vocabularies[$actterm[$termid]->vid] = taxonomy_vocabulary_load($actterm[$termid]->vid);
+        $vocabularies = &drupal_static(__FUNCTION__, array());
+        if(!isset($vocabularies[$terms[$item['tid']]->vid])){
+          $vocabularies[$terms[$item['tid']]->vid] = taxonomy_vocabulary_load($terms[$item['tid']]->vid);
         }
-        $link_text .= ' ('.$vocabularies[$actterm[$termid]->vid]->name.')';
+        $link_text .= ' ('.$vocabularies[$terms[$item['tid']]->vid]->name.')';
       }
       if ($settings['links_option']) {
-        $formatted .= $elementwrap[0] . l($link_text, $uri['path'], $uri['options']) . $elementwrap[1] . $separator;
+        $uri = entity_uri('taxonomy_term', $terms[$item['tid']]);
+        $formatted[] = $elementwrap[0] . l($link_text, $uri['path'], $uri['options']) . $elementwrap[1];
       }
       else {
-        $formatted .= $elementwrap[0] . check_plain($link_text) . $elementwrap[1] . $separator;
+        $formatted[] = $elementwrap[0] . check_plain($link_text) . $elementwrap[1];
       }
     }
   }
-  $length = strlen($separator);
-  $formatted = substr($formatted, 0 , -($length));
-  $formatted = $wrapper[0] . $formatted . $wrapper[1];
-  if($formatted){
-    $element[0]['#markup'] = $formatted;
+  if(count($formatted)){
+    $element[0]['#markup'] = $wrapper[0] . implode($separator, $formatted) . $wrapper[1];
   }
   return $element;
 }
