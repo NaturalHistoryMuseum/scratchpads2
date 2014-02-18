@@ -72,6 +72,15 @@ class CharacterProjectModel{
   }
 
   /**
+   * label
+   *
+   * Return this project's label
+   */
+  public function label(){
+    return $this->w->label();
+  }
+
+  /**
    * getFlags
    * 
    * Return the list of available flags for this project.

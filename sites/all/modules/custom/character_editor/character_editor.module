@@ -130,6 +130,14 @@ function character_editor_theme(){
     ),
     'character_editor_characters_order' => array(
       'render element' => 'element'
+    ),
+    'character_editor_description_row' => array(
+      'file' => 'theme.inc',
+      'path' => $path . '/theme',
+      'variables' => array(
+        'project_id' => '',
+        'tid' => ''
+      )
     )
   );
 }
@@ -163,6 +171,63 @@ function character_editor_theme_registry_alter(&$theme_registry){
     ),
     'function' => 'character_editor_theme_slickgrid_controls'
   );
+}
+
+/**
+ * Implementation of hook_block_info
+ *
+ * Provide a block on the taxon overview page
+ */
+function character_editor_block_info(){
+  return array(
+    'default' => array(
+      'info' => t('Characgter editor Species Page Block'),
+      'cache' => DRUPAL_CACHE_PER_PAGE,
+      'pages' => 'taxonomy/term/*/descriptions',
+      'visibility' => BLOCK_VISIBILITY_LISTED,
+      'status' => 1,
+      'region' => 'content',
+      'weight' => 100
+    )
+  );
+}
+
+/**
+ * Implements hook_block_view()
+ *
+ * Provide a block on the taxon overview page
+ */
+function character_editor_block_view($delta = ''){
+  // Get the character projects this term is linked too
+  $efq = new EntityFieldQuery();
+  $efq->entityCondition('entity_type', 'character_editor_project');
+  $efq->fieldCondition('field_taxonomic_name', 'tid', arg(2));
+  $result = $efq->execute();
+  if(empty($result['character_editor_project'])){return NULL;}
+  $rows = array();
+  foreach(array_keys($result['character_editor_project']) as $project_id){
+    $rows[] = theme('character_editor_description_row', array(
+      'project_id' => $project_id,
+      'tid' => arg(2)
+    ));
+  }
+  $rows = array_filter($rows);
+  if(!empty($rows)){
+    return array(
+      'subject' => t('Character matrix'),
+      'content' => array(
+        '#type' => 'markup',
+        '#markup' => implode('', $rows),
+        '#attached' => array(
+          'css' => array(
+            drupal_get_path('module', 'character_editor') . '/css/character-editor-row.css'
+          )
+        )
+      )
+    );
+  }else{
+    return NULL;
+  }
 }
 
 /*********************************************************************************************
