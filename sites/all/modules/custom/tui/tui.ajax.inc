@@ -189,7 +189,12 @@ function tui_sort_callback(){
   $results = array();
   if(isset($_POST['parent_change'])){
     $term = taxonomy_term_load($_POST['parent_change']['tid']);
-    if($term){
+    $parent = taxonomy_term_load($_POST['parent_change']['parent']);
+    $parents = array();
+    foreach(taxonomy_get_parents_all($parent->tid) as $higherparent){
+      $parents[$higherparent->tid] = $higherparent->tid;
+    }
+    if($term && $parent && !isset($parents[$term->tid])){
       $term->parent = isset($_POST['parent_change']['parent']) ? $_POST['parent_change']['parent'] : 0;
       taxonomy_term_save($term);
     }else{
