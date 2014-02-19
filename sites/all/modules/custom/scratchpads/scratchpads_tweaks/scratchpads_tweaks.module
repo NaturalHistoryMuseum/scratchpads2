@@ -547,7 +547,7 @@ function scratchpads_tweaks_mail($key, &$message, $params){
       $site_created = format_date(variable_get('install_time', 0));
       $message['body'] = array(
         "The Scratchpad at $url has been inactive for over six months, or has fewer than ten nodes:",
-        "Site created: {$site_created}\nLast login: {$params['login']}\nLast edit: {$params['edit']}\nNumber of nodes: {$params['nodes']}\n",
+        "Site created: {$site_created}\nLast login: {$params['login']}\nLast edit: {$params['edit']}\nNumber of nodes (not including biblio): {$params['nodes']}\n",
         'Thanks,',
         'Scratchpads Support Team',
         "--\nsupport@scratchpads.eu"
