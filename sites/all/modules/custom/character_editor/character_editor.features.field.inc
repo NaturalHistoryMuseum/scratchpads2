@@ -1623,7 +1623,7 @@ other|Other',
       'bundle' => 'default_character_project',
       'default_value' => array(),
       'deleted' => '0',
-      'description' => 'List of flags (and abbreviation) that can be used to mark values, such as "rare" or "guessed". "computed" and "inherited" are reserved for computed and inherited values, but you can change the abbreviation here.',
+      'description' => 'List of annotations (and abbreviation) that can be used to mark values, such as "rare" or "guessed". "computed" and "inherited" are reserved for computed and inherited values, but you can change the abbreviation here.',
       'display' => array(
         'default' => array(
           'label' => 'hidden',
@@ -1634,7 +1634,7 @@ other|Other',
       ),
       'entity_type' => 'character_editor_project',
       'field_name' => 'field_char_proj_flags',
-      'label' => 'Flags',
+      'label' => 'Annotations',
       'required' => 0,
       'settings' => array(
         'user_register_form' => FALSE
@@ -2363,7 +2363,7 @@ other|Other',
       ),
       'entity_type' => 'field_collection_item',
       'field_name' => 'field_char_proj_flags_flag',
-      'label' => 'Flag',
+      'label' => 'Annotation',
       'required' => 0,
       'settings' => array(
         'linkit' => array(
@@ -2467,9 +2467,9 @@ other|Other',
   t('Taxa');
   t('Unit');
   t('Abbreviation');
-  t('Flag');
-  t('Flags');
+  t('Annotation');
+  t('Annotations');
   t('Id');
-  t('List of flags (and abbreviation) that can be used to mark values, such as "rare" or "guessed". "computed" and "inherited" are reserved for computed and inherited values, but you can change the abbreviation here.');
+  t('List of annotations (and abbreviation) that can be used to mark values, such as "rare" or "guessed". "computed" and "inherited" are reserved for computed and inherited values, but you can change the abbreviation here.');
   return $fields;
 }

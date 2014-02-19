@@ -430,7 +430,7 @@ function character_editor_form_character_editor_project_alter(&$form, &$form_sta
       foreach($disable as $field_lang){
         $elem = & $form['field_char_proj_flags'][$lang][$delta]['field_char_proj_flags_flag'];
         $elem[$field_lang][0]['value']['#disabled'] = TRUE;
-        $elem[$field_lang][0]['value']['#description'] = t('This is a system flag and cannot be edited.');
+        $elem[$field_lang][0]['value']['#description'] = t('This is a system annotation and cannot be edited.');
         $elem['#attributes']['class'][] = 'character-editor-flag-flag-fixed';
       }
     }
