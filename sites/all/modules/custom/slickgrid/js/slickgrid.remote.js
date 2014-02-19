@@ -192,6 +192,7 @@
         if(fltrs[keys[i]] !== filters[keys[i]]) {
           doSetFilters = true;
           filters[keys[i]] = fltrs[keys[i]];
+          total_row_count = -1;
         }
       }
       if(doSetFilters && (typeof no_reload == 'undefined' || !no_reload)) {
@@ -286,7 +287,9 @@
      * data within that range.
      */
     function getInvalidRange(from, to){
-      if (total_row_count > 0 && to >= total_row_count){
+      if (total_row_count == 0){
+        return false;
+      } else if (total_row_count > 0 && to >= total_row_count){
         to = total_row_count - 1;
       }
       for (var i = 0; i < validData.length; i++){
