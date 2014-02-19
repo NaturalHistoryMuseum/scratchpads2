@@ -425,8 +425,11 @@ function scratchpads_species_views_pre_view(&$view, &$display_id, &$args){
 /**
  * Get a list of TIDs descendant of the passed tid as a string suitable for
  * using by views for the arguments of a view.
+ * 
+ * Note, we need to set a limit due to a potential bug with views (possibly due
+ * to a memory error due to the length of the arguments string).
  */
-function _scratchpads_species_get_descendant_tids($tid){
+function _scratchpads_species_get_descendant_tids($tid, $character_limit = 22000){
   $tids = array(
     $tid
   );
@@ -435,8 +438,11 @@ function _scratchpads_species_get_descendant_tids($tid){
       'tid'
     ))->execute()->fetchCol();
     $tids = array_merge($tids, $results);
+    if(strlen(implode('+', $tids)) > $character_limit){
+      break;
+    }
   }
-  return implode('+', $tids);
+  return substr(implode('+', $tids), 0, $character_limit);
 }
 
 /**
@@ -490,7 +496,9 @@ function scratchpads_species_preprocess_views_view(&$vars){
       if(!scratchpads_blocks_show_placeholders()){
         // If species slideshow is empty, expand this block
         if(($view = views_get_view('species_slideshow')) != FALSE){
-          $view->args = array(_scratchpads_species_get_descendant_tids(arg(2)));
+          $view->args = array(
+            _scratchpads_species_get_descendant_tids(arg(2))
+          );
           $view->execute();
           if(!count($view->result)){
             foreach($vars['classes_array'] as $id => $class_string){
