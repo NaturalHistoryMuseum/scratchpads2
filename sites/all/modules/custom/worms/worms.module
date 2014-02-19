@@ -164,7 +164,17 @@ function worms_batch_importer($id, $vid, &$context){
     $parent = $context['sandbox']['ids'][$id];
     unset($context['sandbox']['ids'][$id]);
     // Save the record
-    $record = $client->getAphiaRecordByID($id);
+    $record = FALSE;
+    $sub_attempt = 0;
+    while(!$record && $sub_attempt < 5){
+      try{
+        $record = $client->getAphiaRecordByID($id);
+      }
+      catch(Exception $e){
+        ;
+      }
+      $sub_attempt++;
+    }
     // Check if this name is valid.  If it isn't, we NEED the name it points to
     if($record->valid_AphiaID != $record->AphiaID){
       // Check we have saved this term already.  If we have, we can carry on, if
@@ -186,19 +196,31 @@ function worms_batch_importer($id, $vid, &$context){
     return;
   }
   // Get the vernaculars for this ID.
-  $vernaculars = $client->getAphiaVernacularsByID($id);
+  $vernaculars = FALSE;
+  $sub_attempt = 0;
+  while(!$vernaculars && $sub_attempt < 5){
+    try{
+      $vernaculars = $client->getAphiaVernacularsByID($id);
+    }
+    catch(Exception $e){
+      ;
+    }
+    $sub_attempt++;
+  }
   // As we sadly don't support saving a vernacular name's language, we just pick
   // the english ones.
   $vernacular_names = array();
   include_once ('sites/all/libraries/ISO639.php');
   if(class_exists('Text_LanguageDetect_ISO639')){
-    foreach($vernaculars as $vernacular){
-      $code = Text_LanguageDetect_ISO639::nameToCode2(Text_LanguageDetect_ISO639::code3ToName($vernacular->language_code));
-      if($code){
-        $vernacular_names[] = array(
-          'code' => $code,
-          'name' => $vernacular->vernacular
-        );
+    if($vernaculars){
+      foreach($vernaculars as $vernacular){
+        $code = Text_LanguageDetect_ISO639::nameToCode2(Text_LanguageDetect_ISO639::code3ToName($vernacular->language_code));
+        if($code){
+          $vernacular_names[] = array(
+            'code' => $code,
+            'name' => $vernacular->vernacular
+          );
+        }
       }
     }
   }
@@ -284,12 +306,24 @@ function worms_batch_importer($id, $vid, &$context){
   $reached_last_child = FALSE;
   $offset = 1;
   while(!$reached_last_child){
-    $children = $client->getAphiaChildrenByID($id, $offset);
-    foreach($children as $child){
-      $context['sandbox']['ids'][$child->AphiaID] = $term->tid;
+    $children = FALSE;
+    $sub_attempt = 0;
+    while(!$children && $sub_attempt < 5){
+      try{
+        $children = $client->getAphiaChildrenByID($id, $offset);
+      }
+      catch(Exception $e){
+        ;
+      }
+      $sub_attempt++;
     }
-    if(count($children) != 50){
-      $reached_last_child = TRUE;
+    if($children){
+      foreach($children as $child){
+        $context['sandbox']['ids'][$child->AphiaID] = $term->tid;
+      }
+      if(count($children) != 50){
+        $reached_last_child = TRUE;
+      }
     }
     $offset += 50;
   }
