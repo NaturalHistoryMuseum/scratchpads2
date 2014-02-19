@@ -185,7 +185,7 @@
      * setFilters
      *
      */
-    function setFilters(fltrs){
+    function setFilters(fltrs, no_reload){
       var doSetFilters = false;
       var keys = Object.keys(fltrs);
       for( var i in keys) {
@@ -194,14 +194,12 @@
           filters[keys[i]] = fltrs[keys[i]];
         }
       }
-      if(doSetFilters) {
-        var length = data.length - 1;
-        clear();
-        window.clearTimeout(timeoutID);
-        timeoutID = window.setTimeout(function(){
-          total_row_count = 0;
-          ensureData(0, length, 50);
-        }, 50);
+      if(doSetFilters && (typeof no_reload == 'undefined' || !no_reload)) {
+        window.setTimeout(function(){
+          commandHandler.cancelReload();
+          clear();
+          ensureData(0, 50, 50);
+        }, 0);
       }
     }
 

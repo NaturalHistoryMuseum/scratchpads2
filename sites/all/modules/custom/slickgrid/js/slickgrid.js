@@ -52,8 +52,6 @@ if(!Array.prototype.indexOf) {
       // Initialise the remotemodel & slickgrid
       commandHandler = new Slick.Data.CommandHandler();
       loader = new Slick.Data.RemoteModel(viewName, commandHandler);
-      // Temporarily show the header row.
-      options.showHeaderRow = true;
       $.extend(true, options, {defaultFormatter: function(row, cell, value, columnDef, dataContext){
         if(value == null) {
           return "";
@@ -61,7 +59,10 @@ if(!Array.prototype.indexOf) {
           return value;
         }
       }});
+      // Make sure this is switched on otherwise slickgrid will not generate it
+      options.showHeaderRow = true;
       grid = new Slick.Grid(container, loader.data, columns, options);
+      grid.setHeaderRowVisibility(false); // Now hide it - filters will take of this.
       // Load the data when the scroll bar is touched (etc).
       grid.onViewportChanged.subscribe(function(e, args){
         var vp = grid.getViewport();
@@ -366,9 +367,19 @@ if(!Array.prototype.indexOf) {
       });
       updateFilters();
       // Apply filters to the input kep up event
+      var keyup_timer = false;
       $(grid.getHeaderRow()).delegate(":input", "change keyup", function(e){
         columnFilters[$(this).data("columnId")] = $.trim($(this).val());
-        loader.setFilters(columnFilters);
+        if (keyup_timer){
+          clearTimeout(keyup_timer);
+        }
+        if (e.type == 'change'){
+          loader.setFilters(columnFilters);
+        } else {
+          keyup_timer = setTimeout(function(){
+            loader.setFilters(columnFilters);
+          }, 1000);
+        }
       });
       // Register events for the header inputs
       grid.onColumnsReordered.subscribe(function(e, args){
@@ -377,6 +388,15 @@ if(!Array.prototype.indexOf) {
       grid.onColumnsResized.subscribe(function(e, args){
         updateFilters();
       });
+      // Set initial status
+      if (!$.isEmptyObject(columnFilters)){
+        // Do this once the height has been calculated
+        setTimeout(function(){
+          grid.setHeaderRowVisibility(true);
+        }, 0);
+      }
+      grid.setOptions({headerRowHeight:$(grid.getHeaderRow()).parent().height()});
+      loader.setFilters(columnFilters, true);
     }
     function updateFilters(){
       // add the header inputs
