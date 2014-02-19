@@ -214,8 +214,8 @@ class CharacterProjectModel{
     }
     // Determine collapsed rows & query limits
     $collapsed = array();
-    if(isset($_GET['character_entity_field'])){
-      $collapsed = explode(',', $_GET['character_entity_field']);
+    if(isset($_GET['character_entity_collapse'])){
+      $collapsed = explode(',', $_GET['character_entity_collapse']);
     }
     if(arg(0) == 'character_editor' && arg(1) == 'get' && arg(2) == 'data'){
       $offset = arg(5);

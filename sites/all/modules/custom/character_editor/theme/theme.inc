@@ -81,5 +81,14 @@ function theme_character_editor_description_row($variables){
     ),
     'sticky' => FALSE
   ));
-  return "<div class='character-matrix-row'><h3>" . $project_model->label() . "</h3>" . $table . '</div>';
+  $term = taxonomy_term_load($variables['tid']);
+  $link = l($project_model->label(), 'character-editor-project/' . $variables['project_id'], array(
+    'attributes' => array(
+      'title' => t('View in matrix editor')
+    ),
+    'query' => array(
+      'character_entity_field' => $term->name
+    )
+  ));
+  return "<div class='character-matrix-row'><h3>" . $link . "</h3>" . "<div class='character-matrix-table'>" . $table . '</div></div>';
 }

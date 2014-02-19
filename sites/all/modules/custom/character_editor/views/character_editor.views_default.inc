@@ -30,7 +30,7 @@ function character_editor_views_default_views(){
     'character_entity_field' => array(
       'tab' => '',
       'width' => '100',
-      'filter' => 'characterCollapsibleFilter',
+      'filter' => 'characterTaxonFilter',
       'formatter' => 'characterCollapsibleFormatter'
     )
   );

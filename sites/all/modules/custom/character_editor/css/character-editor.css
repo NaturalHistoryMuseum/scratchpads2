@@ -71,6 +71,15 @@
   float: right;
 }
 
+div.slick-headerrow .slickgrid-filter input {
+  background: #FFF;
+  border: 1px solid #AAA;
+  border-radius: 4px;
+  height: 1.5em;
+  margin: 4px 0 0;
+  width: 100%;
+}
+
 /* CHARACTER FORM*/
 
 #field-char-proj-groups-values tr td div.field-name-field-char-image{
@@ -113,6 +122,10 @@
 
 .character-editor div.l0{
   background: #F6F6F6;
+}
+
+.character-editor .slick-headerrow-columns div.l0{
+  background: transparent;
 }
 
 .character-editor .odd div.l0{

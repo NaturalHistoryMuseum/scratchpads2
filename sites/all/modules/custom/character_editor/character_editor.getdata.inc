@@ -17,7 +17,7 @@ function character_editor_get_data($entity_id){
     $view->execute_display($display_id, $args);
   }
   echo drupal_json_encode(array(
-    'data' => $view->data
+    'data' => empty($view->data) ? array() : $view->data
   ));
   ajax_footer();
 }

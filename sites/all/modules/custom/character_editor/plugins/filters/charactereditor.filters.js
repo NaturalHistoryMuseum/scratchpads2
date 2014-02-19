@@ -1,5 +1,10 @@
 (function($){
-  function characterCollapsibleFilter(field){
+  function characterTaxonFilter(field){
+    /**
+     * init
+     *
+     * Add events to perform the collapsible filter function
+     */
     function init(){
       grid.onClick.subscribe(function(e, args){
         if($(e.target).hasClass("characterToggle")) {
@@ -14,12 +19,23 @@
               characterCollapsedItems.splice(index, 1);
             }
           }
-          slickgrid.setColumnFilter(field, characterCollapsedItems.join(','), true);
+          slickgrid.setColumnFilter('character_entity_collapse', characterCollapsedItems.join(','), true);
           e.stopImmediatePropagation();
         }
       });
     }
+
+    /**
+     * input
+     *
+     * Return the text filter input
+     */
+    function input(){
+      return $("<input type='text' />");
+    }
+
     init();
+    $.extend(this, {'input': input});
   }
-  $.extend(true, window, {Slick: {Filter: {CharacterCollapsible: characterCollapsibleFilter}}});
+  $.extend(true, window, {Slick: {Filter: {CharacterTaxonFilter: characterTaxonFilter}}});
 })(jQuery);

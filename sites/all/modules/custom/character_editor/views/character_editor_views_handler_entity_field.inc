@@ -19,12 +19,15 @@ class character_editor_views_handler_entity_field extends views_handler_field{
 
   function option_definition(){
     $options = parent::option_definition();
-    $options['type'] = array('default' => 'character_entity_field');
+    $options['type'] = array(
+      'default' => 'character_entity_field'
+    );
     return $options;
   }
-  
+
   function query(){
-    if (empty($this->view->args[0])){return;}
+    if(empty($this->view->args[0])){return;}
+    $filter = !empty($_GET['character_entity_field']) ? $_GET['character_entity_field'] : '';
     $base_field = $this->view->base_field;
     $character_project = $this->view->args[0];
     // We cannot use the views query system to build our query, as it requires unions,
@@ -39,8 +42,11 @@ class character_editor_views_handler_entity_field extends views_handler_field{
     $q1->addField('t', 'name', 'name');
     $q1->addExpression('CONCAT(\'taxonomy_term:\', h.parent)', 'parent');
     $q1->addExpression('0', 'depth');
-    if ($base_field != 'id'){
+    if($base_field != 'id'){
       $q1->addExpression('CONCAT(\'taxonomy_term:\', t.tid)', $base_field);
+    }
+    if($filter){
+      $q1->condition('t.name', $filter . '%', 'LIKE');
     }
     // Create a query to select the project's specimens
     $q2 = db_select('field_data_field_char_proj_specimen', 'f');
@@ -53,8 +59,11 @@ class character_editor_views_handler_entity_field extends views_handler_field{
     $q2->addField('n', 'title', 'name');
     $q2->addExpression('CONCAT(\'taxonomy_term:\', tn.field_taxonomic_name_tid)', 'parent');
     $q2->addExpression('0', 'depth');
-    if ($base_field != 'id'){
+    if($base_field != 'id'){
       $q2->addExpression('CONCAT(\'node:\', nid)', $base_field);
+    }
+    if($filter){
+      $q2->condition('n.title', $filter . '%', 'LIKE');
     }
     // And merge the two.
     $merged = $q1->union($q2, 'UNION ALL');
@@ -63,14 +72,23 @@ class character_editor_views_handler_entity_field extends views_handler_field{
     $count_q1->addField('ft', 'field_taxonomic_name_tid', 'tid');
     $count_q1->condition('ft.entity_type', 'character_editor_project');
     $count_q1->condition('ft.entity_id', $character_project);
+    if($filter){
+      $count_q1->addJoin('INNER', 'taxonomy_term_data', 't', 't.tid = ft.field_taxonomic_name_tid');
+      $count_q1->condition('t.name', $filter . '%', 'LIKE');
+    }
     $count_q2 = db_select("field_data_field_char_proj_specimen", "fs");
     $count_q2->addField('fs', 'field_char_proj_specimen_nid', 'nid');
     $count_q2->condition('fs.entity_type', 'character_editor_project');
     $count_q2->condition('fs.entity_id', $character_project);
+    if($filter){
+      $count_q2->addJoin('INNER', 'node', 'n', 'n.nid = fs.field_char_proj_specimen_nid');
+      $count_q2->condition('n.title', $filter . '%', 'LIKE');
+    }
     $count_query = db_select($count_q1->union($count_q2, 'UNION ALL'));
     $count_query->addExpression('COUNT(*)');
     // We cannot set the final query here - this will ensure it gets set during
     // hook_views_pre_execute.
+    $str = (string)$merged;
     $this->view->character_editor_query = $merged;
     $this->view->character_editor_count_query = $count_query;
   }
@@ -80,18 +98,18 @@ class character_editor_views_handler_entity_field extends views_handler_field{
       'depth' => $values->depth,
       'treestate' => ''
     );
-    if ($values->children > 0){
+    if($values->children > 0){
       $attributes['treestate'] = $values->collapsed ? 'collapsed' : 'expanded';
     }
     $name = '';
-    if (preg_match('/^taxonomy_term:/', $values->id)){
+    if(preg_match('/^taxonomy_term:/', $values->id)){
       $name = l($values->name, preg_replace('/^taxonomy_term:/', 'term/', $values->id));
       $name = "<strong>$name</strong>";
-    } else {
+    }else{
       $name = l($values->name, preg_replace('/^node:/', 'node/', $values->id));
     }
     $result = '<span';
-    foreach ($attributes as $key => $attr){
+    foreach($attributes as $key => $attr){
       $result .= " $key=\"$attr\"";
     }
     $result .= $name . '</span>';
