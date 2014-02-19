@@ -230,6 +230,43 @@ function character_editor_block_view($delta = ''){
   }
 }
 
+/**
+ * Implement hook_node_view
+ *
+ * Add a link to relevant character projects for this specimen
+ */
+function character_editor_node_view($node, $view_mode, $langcode){
+  if($view_mode != 'full' || $node->type != 'specimen_observation'){return;}
+  // Get the character projects this specimen is linked too
+  $efq = new EntityFieldQuery();
+  $efq->entityCondition('entity_type', 'character_editor_project');
+  $efq->fieldCondition('field_char_proj_specimen', 'nid', $node->nid);
+  $result = $efq->execute();
+  if(empty($result['character_editor_project'])){return;}
+  $rows = array();
+  foreach(array_keys($result['character_editor_project']) as $project_id){
+    $project_w = character_editor_wrapper('character_editor_project', $project_id);
+    $rows[] = l($project_w->label(), 'character-editor-project/' . $project_id, array(
+      'query' => array(
+        'character_entity_field' => $node->title
+      )
+    ));
+  }
+  $rows = array_filter($rows);
+  if(empty($rows)){return;}
+  $node->content['character_editor'] = array(
+    '#type' => 'markup',
+    '#weight' => 1001,
+    '#markup' => '
+      <div class="stripy-div-group clearfix">
+        <div  class="field">
+          <div class="field-label">' . t('Character Matrix') . ':</div>
+          <div class="field-items"><ul><li>' . implode('</li><li>', $rows) . '</li></ul></div>
+        </div>
+      </div>'
+  );
+}
+
 /*********************************************************************************************
  * 
  * VIEWS HOOKS
