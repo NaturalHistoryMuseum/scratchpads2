@@ -49,6 +49,7 @@
       };
       this.reloadPaused = false;
       this.dispatchTriggered = false;
+      this.nextCommandID = 0;
     }
 
     /**
@@ -109,6 +110,17 @@
     }
 
     /**
+     * cancelReload
+     *
+     * Cancel any running, queued or paused reload operation
+     */
+    this.cancelReload = function(){
+      this.queues.pausedReload = [];
+      this.queues.reload = [];
+      this.runningCommands.reload = {};
+    }
+
+    /**
      * dispatch
      *
      * Run any command in the queue that may be run. 
@@ -148,12 +160,13 @@
      */
     this.runCommand = function(type, args){
       // Generate a unique id for this command and store it
-      var count = 0;
+      var count = this.nextCommandID;
       var id = type + count.toString();
       while(typeof this.runningCommands[type][id] !== 'undefined'){
         count = count + 1;
         id = type + count.toString();
       }
+      this.nextCommandID = count + 1;
       this.runningCommands[type][id] = args;
       // Clone the command and add ouw own success/error wrappers
       args = jQuery.extend({}, args);
