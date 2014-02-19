@@ -169,7 +169,7 @@ function _scratchpads_tweaks_cron(){
       if((variable_get('install_time', 0) + 15778800 < $time && $norecentlogin) || (variable_get('install_time', 0) + 8000000 < $time && !variable_get('scratchpads_tweaks_site_active', FALSE))){
         // Get a count of the number of nodes, if we're less than 5, we ping a
         // message
-        if(($num_nodes = db_select('node')->countQuery()->execute()->fetchField()) < 10 || $norecentlogin){
+        if(($num_nodes = db_select('node')->condition('type', 'biblio', '!=')->countQuery()->execute()->fetchField()) < 10 || $norecentlogin){
           $query = db_select('node');
           $query->addExpression('MAX(changed)', 'lastedit');
           $lastedit = $query->execute()->fetchField();
