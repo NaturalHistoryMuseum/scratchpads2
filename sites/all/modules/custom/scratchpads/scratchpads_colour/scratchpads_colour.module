@@ -119,6 +119,7 @@ function scratchpads_colour_add_dynamic_css(){
   foreach(scratchpads_colour_get_colours() as $colour){
     $css[] = 'body.scratchpad-colour-' . $colour . ' .section-header{ background-color: #' . $colour . ';}';
     $css[] = 'body.scratchpad-colour-' . $colour . ' #region-content h2{ background-color: #' . $colour . ';}';
+    $css[] = 'body.scratchpad-colour-' . $colour . ' #region-content h2 a{ color: #FFFFFF;}'; // required or link in h2 gets hidden by background color
     $css[] = 'body.scratchpad-colour-' . $colour . ' a{ color: #' . $colour . ';}';
     $css[] = 'body.scratchpad-colour-' . $colour . ' h1{ color: #' . $colour . ';}';
     $css[] = 'body.scratchpad-colour-' . $colour . ' #region-sidebar ul.menu ul li{ color: #' . $colour . ';}';
