@@ -39,12 +39,14 @@
         // Display the menu if we have any plugins
         if (elements.length > 0){
           e.preventDefault();
+          // Drupal offset the admin overlay from the top level menu by adding margin to the body.
+          var body_offset = parseInt($('body').css('margin-top'));
           // Create the menu div
           var $menu = $('<div id="character-context-menu"></div>').css({
             position: 'absolute',
             zIndex: '100',
             left: e.pageX,
-            top: e.pageY,
+            top: e.pageY - body_offset,
           }).addClass('character-editor-popup');
           $('<div></div>').addClass('character-editor-popup-header')
           .html($(info.row.character_entity_field).text() + ' / ' + info.column.name)

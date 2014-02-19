@@ -21,13 +21,14 @@
             // We can have multiple values if this is a taxon, or if this is an 'and' character
             this.multiple = editor.column.data.type == 'AND' || editor.item.id.match(/^taxonomy_term:\d+$/);
             // Create the popup body
+            var body_offset = parseInt($('body').css('margin-top')); // Drupal admin overlay adds this
             this.$input = $('<div></div>')
             .addClass('character-editor-popup')
             .attr('value', '')
             .css({
               position: 'absolute',
               zIndex: '100',
-              top: $(editor.container).offset().top,
+              top: $(editor.container).offset().top - body_offset,
               left: $(editor.container).offset().left
             });
             // Set up the text input
