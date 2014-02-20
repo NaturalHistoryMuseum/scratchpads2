@@ -990,7 +990,7 @@ function character_editor_reverse_schema_array_sdd_character_data_numeric($varia
         )
       ),
       'field_character_state_data' => $value,
-      'field_character_state_meta' => 'Modifier/@ref[1]'
+      'field_character_state_flag' => 'Modifier/@ref[1]'
     )
   );
 }
@@ -1058,7 +1058,7 @@ function character_editor_reverse_schema_array_sdd_character_data_text($variable
         )
       ),
       'field_character_state_data' => 'Content',
-      'field_character_state_meta' => 'Modifier/@ref[1]'
+      'field_character_state_flag' => 'Modifier/@ref[1]'
     )
   );
 }
@@ -1098,7 +1098,7 @@ function character_editor_reverse_schema_array_sdd_character_data_dna($variables
         )
       ),
       'field_character_state_data' => 'Sequence',
-      'field_character_state_meta' => 'Modifier/@ref[1]'
+      'field_character_state_flag' => 'Modifier/@ref[1]'
     )
   );
 }
@@ -1142,7 +1142,7 @@ function character_editor_reverse_schema_array_sdd_character_data_controlled($va
         '#combine' => TRUE,
         '#set' => 'character_editor_sdd_import_set_categorical_state'
       ),
-      'field_character_state_meta' => 'State/Modifier/@ref[1]'
+      'field_character_state_flag' => 'State/Modifier/@ref[1]'
     )
   );
 }
@@ -1357,6 +1357,9 @@ class CharacterEditorSDDImport{
     $fail = FALSE;
     if($dom->xpath('/Datasets/Dataset/IdentificationKeys')){
       $this->addMessage(t('Identification keys are not supported and will not be imported.'), 'warning');
+    }
+    if($dom->xpath('/Datasets/Dataset/Characters/SequenceCharacter')){
+      $this->addMessage(t('Sequence Characters are not supported and will not be imported.'), 'warning');
     }
     if(!$dom->xpath('/Datasets/Dataset/TaxonNames') || !$dom->xpath('/Datasets/Dataset/Characters')){
       $this->addMessage(t('The SDD file cannot be imported: it must define some Taxon Names and some Characters.'), 'error');
@@ -1718,7 +1721,6 @@ class CharacterEditorSDDImport{
       $character_types = array(
         'sdd_character_text',
         'sdd_character_numeric',
-        'sdd_character_dna',
         'sdd_character_controlled'
       );
       foreach($character_types as $character_type){
@@ -1871,7 +1873,6 @@ class CharacterEditorSDDImport{
         'sdd_character_data_numeric',
         'sdd_character_data_controlled',
         'sdd_character_data_text',
-        'sdd_character_data_dna'
       );
       $variables = array(
         array(),

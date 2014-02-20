@@ -1609,7 +1609,6 @@ function character_editor_preprocess_slickgrid_control__add(&$variables){
   // Reorder the characters (reversed cos they're floated)
   foreach(array(
     'character_editor_character/computed',
-    'character_editor_character/dna',
     'character_editor_character/numeric',
     'character_editor_character/text',
     'character_editor_character/controlled',
