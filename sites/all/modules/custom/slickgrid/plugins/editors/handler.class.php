@@ -75,7 +75,7 @@ class slickgrid_editors{
    */
   function set_error($id, $error, $op = 'validate'){
     // Register the error
-    $this->errors[$id] = t('%title can not be edited: @error', array(
+    $this->errors[$id] = t('%title can not be edited: <strong>@error</strong>', array(
       '%title' => $this->entities[$id]->title,
       '@error' => $error
     ));
