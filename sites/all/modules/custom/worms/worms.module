@@ -166,7 +166,7 @@ function worms_batch_importer($id, $vid, &$context){
     // Save the record
     $record = FALSE;
     $sub_attempt = 0;
-    while(!$record && $sub_attempt < 5){
+    while($record === FALSE && $sub_attempt < 5){
       try{
         $record = $client->getAphiaRecordByID($id);
       }
@@ -176,7 +176,7 @@ function worms_batch_importer($id, $vid, &$context){
       $sub_attempt++;
     }
     // Check if this name is valid.  If it isn't, we NEED the name it points to
-    if($record->valid_AphiaID != $record->AphiaID){
+    if($record && $record->valid_AphiaID != $record->AphiaID){
       // Check we have saved this term already.  If we have, we can carry on, if
       // not, we add this id back on to the list.
       if(isset($context['sandbox']['map'][$record->valid_AphiaID])){
@@ -198,7 +198,7 @@ function worms_batch_importer($id, $vid, &$context){
   // Get the vernaculars for this ID.
   $vernaculars = FALSE;
   $sub_attempt = 0;
-  while(!$vernaculars && $sub_attempt < 5){
+  while($vernaculars === FALSE && $sub_attempt < 5){
     try{
       $vernaculars = $client->getAphiaVernacularsByID($id);
     }
@@ -306,24 +306,18 @@ function worms_batch_importer($id, $vid, &$context){
   $reached_last_child = FALSE;
   $offset = 1;
   while(!$reached_last_child){
-    $children = FALSE;
-    $sub_attempt = 0;
-    while(!$children && $sub_attempt < 5){
-      try{
-        $children = $client->getAphiaChildrenByID($id, $offset);
-      }
-      catch(Exception $e){
-        ;
-      }
-      $sub_attempt++;
-    }
+	try{
+      $children = $client->getAphiaChildrenByID($id, $offset);
+    } catch(Exception $e){;}
     if($children){
       foreach($children as $child){
         $context['sandbox']['ids'][$child->AphiaID] = $term->tid;
       }
-      if(count($children) != 50){
-        $reached_last_child = TRUE;
-      }
+    } else {
+      $reached_last_child = TRUE;
+    }
+    if(count($children) != 50){
+      $reached_last_child = TRUE;
     }
     $offset += 50;
   }
