@@ -75,6 +75,9 @@ function character_editor_views_default_views(){
   $handler->display->display_options['arguments']['id']['summary_options']['items_per_page'] = '25';
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
+  $handler->display->display_options['defaults']['pager'] = FALSE;
+  $handler->display->display_options['pager']['type'] = 'none';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['path'] = 'character-editor';
   /* Display: XML */
   $handler = $view->new_display('views_data_export', 'XML', 'views_data_export_1');

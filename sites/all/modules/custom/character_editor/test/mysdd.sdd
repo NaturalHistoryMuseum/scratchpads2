@@ -12,6 +12,7 @@
   - Warning that 2 coded descriptions were not imported due to invalid character
     reference 'nosuchref' and missing categorical state 'nosuchstate' ;
   - Warning about a reference to a local file (nosuchfile.jpg) that needs to be uploaded separately ;
+  - Warning that sequence characters are not supported and will not be imported
   - Successfull creation of 3 media items, 2 character groups, 6 characters and 10 coded descriptions.
 
   The resultuing character project should have:
@@ -22,7 +23,7 @@
    - "A group" should have characters "Number of Heads" and "Type of blood sucker" ;
    - "Another group" should have characters "Number of blood sucking appendix" 
      and "Eye color" ;
-   - Characters "Famous last words" and "DNA stuff" should be associated with the
+   - Characters "Famous last words" should be associated with the
      project root ;
    - Character "Type of blood sucker" should have states "0: The good type",
      "1: The baaaaad type" ;
@@ -39,15 +40,15 @@
 
    The imported data should be:
 
-   _______________________________________________________________________________________________________________
-   |                           | Nb of heads | Type of ... | Nb of blood ... | Eye color | Famous...    | DNA    |
-   _______________________________________________________________________________________________________________
-   | Pediculus clavicornis     | 1           | The good... | 2               | G...  (r) |              |        |
+   ______________________________________________________________________________________________________
+   |                           | Nb of heads | Type of ... | Nb of blood ... | Eye color | Famous...    |
+   ______________________________________________________________________________________________________
+   | Pediculus clavicornis     | 1           | The good... | 2               | G...  (r) |              |
    |                           |             | and The ba..|
-   | Pediculus humanus         | 11 (u)      | The baaa... | 22 - 33         | Blueis... |              |        |
-   | Pediculus humanus capitis |             |             |                 |           | Hello World! | ATGATG |
-   | icode - colcode - colnum  | 2           | 1           |                 |           | A pin?       |        |
-   _______________________________________________________________________________________________________________
+   | Pediculus humanus         | 11 (u)      | The baaa... | 22 - 33         | Blueis... |              |
+   | Pediculus humanus capitis |             |             |                 |           | Hello World! |
+   | icode - colcode - colnum  | 2           | 1           |                 |           | A pin?       |
+   ______________________________________________________________________________________________________
 
 
   Note that:

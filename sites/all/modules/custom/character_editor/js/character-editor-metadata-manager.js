@@ -146,7 +146,7 @@
       var selected_background = 'url("' + Drupal.settings.basePath + Drupal.settings.CharacterEditorPath + '/images/tick.png")';
       var elements = [];
       elements.push({
-        element: Drupal.t('Modifiers'),
+        element: Drupal.t('Annotations'),
         subtitle: true
       });
       for (var flag_id in Drupal.settings.CharacterEditorFlags){

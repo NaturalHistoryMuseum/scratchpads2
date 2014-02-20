@@ -679,3 +679,41 @@ function character_editor_update_7011(){
     field_delete_instance($meta_field);
   }
 }
+
+/**
+ * Rename 'flags' to 'annotations'
+ */
+function character_editor_update_7012(){
+  module_load_include('features.field.inc', 'character_editor');
+  $definitions = character_editor_field_default_fields();
+  $update_fields = array(
+    'character_editor_project' => array(
+      'default_character_project' => array(
+        'field_char_proj_flags'
+      )
+    ),
+    'field_collection_item' => array(
+      'field_char_proj_flags' => array(
+        'field_char_proj_flags_flag'
+      )
+    ),
+    'relation' => array(
+      'character_state' => array(
+        'field_character_state_flag'
+      )
+    )
+  );
+  // Update the fields
+  foreach($update_fields as $entity_type => $bundles){
+    foreach($bundles as $bundle => $fields){
+      foreach($fields as $field_name){
+        $instance = field_info_instance($entity_type, $field_name, $bundle);
+        if($instance){
+          $instance['label'] = $definitions["$entity_type-$bundle-$field_name"]['field_instance']['label'];
+          $instance['description'] = $definitions["$entity_type-$bundle-$field_name"]['field_instance']['description'];
+          field_update_instance($instance);
+        }
+      }
+    }
+  }
+}
