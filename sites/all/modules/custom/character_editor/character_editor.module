@@ -527,71 +527,214 @@ function character_editor_form_character_editor_character_alter(&$form, &$form_s
     $form['actions']['submit']['#update'] = TRUE;
   }
   // Generate the help for the conditions and expresion fields.
-  if(isset($form['field_char_condition']) || isset($form['field_char_expr'])){
-    $variables = $project_model->getAvailableVariables();
-    foreach($variables['list'] as $var_id => $var_row){
-      $variables['list'][$var_id][0] = '<span class="character-editor-variable">' . htmlspecialchars($var_row[0]) . '</span>';
-      if(!empty($var_row[2])){
-        foreach($var_row[2] as $state_idx => $state_label){
-          $var_row[2][$state_idx] = '<span class="character-editor-symbol">' . htmlspecialchars($state_label) . '</span>';
-        }
-        $variables['list'][$var_id][2] = "<ul><li>" . implode('</li><li>', $var_row[2]) . '<li></ul>';
-      }
-    }
-    $table_html = theme('table', array(
-      'header' => array(
-        t('Character'),
-        t('Type'),
-        t('States')
-      ),
-      'rows' => $variables['list'],
-      'attributes' => array(
-        'class' => array(
-          "character-editor-variable"
-        )
-      )
-    ));
-    $expression_fields = array(
-      'field_char_expr',
-      'field_char_condition'
-    );
-    foreach($expression_fields as $expr_field){
-      if(!isset($form[$expr_field])){
-        continue;
-      }
-      $form[$expr_field][LANGUAGE_NONE][] = array(
-        '#type' => 'fieldset',
-        '#collapsible' => FALSE,
-        '#description' => t('List of characters that can be used in the expression. Characters are enclosed in {curly} brackets and states in \'single quotes\'.  Click on a character or state to insert it into the text editor.'),
-        '#title' => t('Characters'),
-        'table' => array(
-          '#markup' => $table_html
-        )
-      );
-      // Replace ids in the expression with names
-      $expr = $form[$expr_field][LANGUAGE_NONE][0]['value']['#default_value'];
-      if($expr){
-        module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
-        try{
-          $e = new CharacterExpressionParser($expr);
-          $e->rename(array_flip($variables['character_map']), array_flip($variables['state_map']));
-          $expr = $e->getExpression();
-        }
-        catch(Exception $e){
-          $expr = "Could not parse saved expression: " . $e->getMessage();
-        }
-        $form[$expr_field][LANGUAGE_NONE][0]['value']['#default_value'] = $expr;
-      }
-    }
-    $form['#attached']['js'][] = drupal_get_path('module', 'character_editor') . '/js/character-editor-expression.js';
-    $form['#validate'][] = 'character_editor_character_form_validate';
-    $form['actions']['submit']['#submit'] = array_merge(array(
-      'character_editor_character_form_submit_expression'
-    ), $form['actions']['submit']['#submit']);
+  if(isset($form['field_char_expr'])){
+    _character_editor_entity_form_expression($form, 'field_char_expr', $project_model);
+  }
+  if(isset($form['field_char_condition'])){
+    _character_editor_entity_form_expression($form, 'field_char_condition', $project_model);
   }
   $form['#attached']['css'][] = drupal_get_path('module', 'character_editor') . '/css/character-editor-forms.css';
   $form['actions']['submit']['#submit'][] = 'character_editor_character_form_submit';
   $form['#after_build'][] = 'character_editor_character_form_after_build';
+}
+
+/**
+ * _character_editor_entity_form_expression
+ *
+ * Helper function for hook_form_entity_admin_entity_form_alter to help
+ * generate the expression/condition form
+ */
+function _character_editor_entity_form_expression(&$form, $expr_field, $project_model){
+  // Get the variable list and prepare them for display
+  $variables = $project_model->getAvailableVariables();
+  $themed_variables = array();
+  $controlled_characters = array();
+  $available_states = array();
+  foreach($variables['list'] as $var_id => $var_row){
+    $themed_variables[$var_id][0] = '<span class="character-editor-variable">{' . htmlspecialchars($var_row['name']) . '}</span>';
+    $themed_variables[$var_id][1] = t(ucfirst($var_row['type']));
+    if(!empty($var_row['states'])){
+      $themed_states = array();
+      foreach($var_row['states'] as $state_id => $state_label){
+        $themed_states[$state_id] = '<span class="character-editor-symbol">\'' . htmlspecialchars($state_label) . '\'</span>';
+      }
+      $themed_variables[$var_id][2] = "<ul><li>" . implode('</li><li>', $themed_states) . '<li></ul>';
+    }else{
+      $themed_variables[$var_id][2] = '';
+    }
+    if($var_row['type'] == 'controlled'){
+      $controlled_characters[$var_id] = $var_row['name'];
+      $available_states[$var_id] = $var_row['states'];
+    }
+  }
+  // Replace ids in the expression with names
+  $expr = $form[$expr_field][LANGUAGE_NONE][0]['value']['#default_value'];
+  $e = NULL;
+  if($expr){
+    module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
+    try{
+      $e = new CharacterExpressionParser($expr);
+      $e->rename(array_flip($variables['character_map']), array_flip($variables['state_map']));
+      $expr = $e->getExpression();
+    }
+    catch(Exception $exp){
+      $expr = "Could not parse saved expression: " . $exp->getMessage();
+      $e = NULL;
+    }
+    $form[$expr_field][LANGUAGE_NONE][0]['value']['#default_value'] = $expr;
+  }
+  // Add the helper table with the variable and value names
+  $table_html = theme('table', array(
+    'header' => array(
+      t('Character'),
+      t('Type'),
+      t('States')
+    ),
+    'rows' => $themed_variables,
+    'attributes' => array(
+      'class' => array(
+        "character-editor-variable"
+      )
+    )
+  ));
+  $form[$expr_field][LANGUAGE_NONE][] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#description' => t('List of characters that can be used in the expression. Characters are enclosed in {curly} brackets and states in \'single quotes\'.  Click on a character or state to insert it into the text editor.'),
+    '#title' => t('Characters'),
+    'table' => array(
+      '#markup' => $table_html
+    ),
+    '#attributes' => array(
+      'class' => array(
+        'condition-form-mode-advanced'
+      )
+    )
+  );
+  // If this is a condition editor, add the simple/advanced switch and the html for the simple form.
+  if($expr_field == 'field_char_condition'){
+    $use_simple_editor = TRUE;
+    $default_variable = '';
+    $default_operator = '';
+    $default_value = array();
+    if(!empty($form_state['values']['simple_cond_var'])){
+      $default_variable = $form_state['values']['simple_cond_var'];
+      $default_operator = $form_state['values']['simple_cond_op'];
+    }
+    if($e){
+      if($match = $e->match("{v} in ['values']")){
+        $variable_id = $variables['character_map'][$match['{v}']->name()];
+        if($variables['list'][$variable_id]['type'] != 'controlled'){
+          $use_simple_editor = FALSE;
+        }else if(!$default_operator){
+          $default_variable = $variable_id;
+          if($match["['values']"]->isConjoined()){
+            $default_operator = 'is all of';
+          }else{
+            $default_operator = 'is one of';
+          }
+          foreach($match["['values']"]->value() as $list_value){
+            if(!($list_value instanceof CharacterExpressionSymbol)){
+              $use_simple_editor = FALSE;
+              break;
+            }
+            $state_label = $list_value->value();
+            $state_id = $variables['state_map'][$state_label];
+            $default_value[$state_id] = $state_id;
+          }
+        }
+      }else if($match = $e->match("{v} not-in ['values']")){
+        $variable_id = $variables['character_map'][$match['{v}']->name()];
+        if($variables['list'][$variable_id]['type'] != 'controlled'){
+          $use_simple_editor = FALSE;
+        }else if(!$default_operator){
+          $default_variable = $variable_id;
+          if($match["['values']"]->isConjoined()){
+            $default_operator = 'is not';
+          }else{
+            $default_operator = 'is none of';
+          }
+          foreach($match["['values']"]->value() as $list_value){
+            if(!($list_value instanceof CharacterExpressionSymbol)){
+              $use_simple_editor = FALSE;
+              break;
+            }
+            $state_label = $list_value->value();
+            $state_id = $variables['state_map'][$state_label];
+            $default_value[$state_id] = $state_id;
+          }
+        }
+      }else{
+        $use_simple_editor = FALSE;
+      }
+    }else{
+      $use_simple_editor = FALSE;
+    }
+    $form[$expr_field][LANGUAGE_NONE]['condition_simple_editor'] = array(
+      'simple_cond_var' => array(
+        '#type' => 'select',
+        '#empty_option' => t('- Select Character -'),
+        '#options' => $controlled_characters,
+        '#default_value' => $default_variable,
+        '#attributes' => array(
+          'class' => array(
+            'condition-form-mode-simple',
+            'condition-form-var-selector'
+          )
+        )
+      ),
+      'simple_cond_op' => array(
+        '#type' => 'select',
+        '#empty_option' => t('- Select operator -'),
+        '#options' => array(
+          'is one of' => t('is one of'),
+          'is all of' => t('is all of'),
+          'is none of' => t('is none of'),
+          'is not' => t('is not')
+        ),
+        '#default_value' => $default_operator,
+        '#attributes' => array(
+          'class' => array(
+            'condition-form-mode-simple'
+          )
+        )
+      ),
+      'simple_cond_value' => array(
+        '#type' => 'select',
+        '#options' => $available_states,
+        '#multiple' => TRUE,
+        '#default_value' => $default_value,
+        '#size' => max(array_map('count', $available_states)) + 1,
+        '#attributes' => array(
+          'class' => array(
+            'condition-form-mode-simple',
+            'condition-form-val-selector'
+          )
+        )
+      )
+    );
+    $form[$expr_field][LANGUAGE_NONE]['condition_editor_mode'] = array(
+      '#type' => 'select',
+      '#options' => array(
+        'simple' => t('Simple'),
+        'advanced' => t('Advanced')
+      ),
+      '#required' => TRUE,
+      '#title' => t('Condition Editor Mode'),
+      '#default_value' => $use_simple_editor ? 'simple' : 'advanced',
+      '#weight' => '-1',
+      '#attributes' => array(
+        'class' => array(
+          'condition-form-mode-selector'
+        )
+      )
+    );
+  }
+  $form['#attached']['js'][] = drupal_get_path('module', 'character_editor') . '/js/character-editor-expression.js';
+  $form['#validate'][] = 'character_editor_character_form_validate';
+  $form['actions']['submit']['#submit'] = array_merge(array(
+    'character_editor_character_form_submit_expression'
+  ), $form['actions']['submit']['#submit']);
 }
 
 /**
@@ -603,7 +746,9 @@ function character_editor_character_form_validate($form, &$form_state){
     'field_char_condition'
   );
   foreach($expression_fields as $expr_field){
-    if(!empty($form_state['values'][$expr_field][LANGUAGE_NONE][0]['value'])){
+    if($expr_field == 'field_char_condition' && $form_state['values'][$expr_field][LANGUAGE_NONE]['condition_editor_mode'] == 'simple'){
+      continue;
+    }else if(!empty($form_state['values'][$expr_field][LANGUAGE_NONE][0]['value'])){
       module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
       try{
         $e = new CharacterExpressionParser($form_state['values'][$expr_field][LANGUAGE_NONE][0]['value']);
@@ -618,8 +763,9 @@ function character_editor_character_form_validate($form, &$form_state){
 /**
  * character_editor_character_form_submit_expression
  * 
- * Called before other submit handlers so we can change the value of the
- * expression to use identifiers rather than labels
+ * Called before other submit handlers so we can:
+ * - Select to use the simple or advanced editor input ;
+ * - change the value of the expression to use identifiers rather than labels
  */
 function character_editor_character_form_submit_expression($form, &$form_state){
   $expression_fields = array(
@@ -627,7 +773,30 @@ function character_editor_character_form_submit_expression($form, &$form_state){
     'field_char_condition'
   );
   foreach($expression_fields as $expr_field){
-    if(!empty($form_state['values'][$expr_field][LANGUAGE_NONE][0]['value'])){
+    if($expr_field == 'field_char_condition' && $form_state['values'][$expr_field][LANGUAGE_NONE]['condition_editor_mode'] == 'simple'){
+      $variable_id = $form_state['values'][$expr_field][LANGUAGE_NONE]['condition_simple_editor']['simple_cond_var'];
+      $operator = $form_state['values'][$expr_field][LANGUAGE_NONE]['condition_simple_editor']['simple_cond_op'];
+      $values = $form_state['values'][$expr_field][LANGUAGE_NONE]['condition_simple_editor']['simple_cond_value'];
+      if(!$variable_id || !$operator || empty($values)){
+        $expr = '';
+      }else{
+        switch($operator){
+          case 'is one of':
+            $expr = '{' . $variable_id . '}' . " in ['" . implode("' | '", $values) . "']";
+            break;
+          case 'is all of':
+            $expr = '{' . $variable_id . '}' . " in ['" . implode("' & '", $values) . "']";
+            break;
+          case 'is none of':
+            $expr = '{' . $variable_id . '}' . " not-in ['" . implode("' | '", $values) . "']";
+            break;
+          case 'is not':
+            $expr = '{' . $variable_id . '}' . " not-in ['" . implode("' & '", $values) . "']";
+            break;
+        }
+      }
+      $form_state['values'][$expr_field][LANGUAGE_NONE][0]['value'] = $expr;
+    }else if(!empty($form_state['values'][$expr_field][LANGUAGE_NONE][0]['value'])){
       $project_model = new CharacterProjectModel('character_editor_project', $form_state['character_project_id']);
       $variables = $project_model->getAvailableVariables();
       module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');

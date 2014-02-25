@@ -131,8 +131,7 @@ class CharacterProjectModel{
           $count++;
         }
         $character_map[$name] = $item->model()->wrapper()->getIdentifier();
-        $name = '{' . $name . '}';
-        $type = t(ucfirst($item->model()->wrapper()->getBundle()));
+        $type = $item->model()->wrapper()->getBundle();
         $states = array();
         if($item->model()->isControlled()){
           $item_states = $item->model()->getControlledMap();
@@ -143,14 +142,14 @@ class CharacterProjectModel{
               $item_label = str_replace('\'', ' ', $label) . " (" . $count . ")";
               $count++;
             }
-            $states[] = "'$item_label'";
+            $states[$id] = $item_label;
             $state_map[$item_label] = $id;
           }
         }
-        $list[] = array(
-          $name,
-          $type,
-          $states
+        $list[$item->model()->wrapper()->getIdentifier()] = array(
+          'name' => $name,
+          'type' => $type,
+          'states' => $states
         );
       }
     }

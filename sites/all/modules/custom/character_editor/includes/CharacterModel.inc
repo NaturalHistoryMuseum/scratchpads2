@@ -329,7 +329,8 @@ class CharacterModel{
   /**
    * hasOptions
    *
-   * Return TRUE if this character has options to pass on to the editor
+   * Return TRUE if this character has options to pass on to the
+   * slickgrid editor
    */
   public function hasOptions(){
     return $this->w->getBundle() == 'controlled';
@@ -338,7 +339,7 @@ class CharacterModel{
   /**
    * getOptions
    *
-   * Return the options to pass on to the editor
+   * Return the options to pass on to the slickgrid editor
    */
   public function getOptions(){
     if($this->w->getBundle() == 'controlled'){
@@ -464,11 +465,12 @@ class CharacterModel{
   /**
    * mergeValues
    *
+   * Helper function used when evaluating inheritance:
    * Merge too values into one encompassing both values
-   * (used for inheritance) for this character.
+   * for this character.
    *
    */
-  public function mergeValues($v1, $v2){
+  private function mergeValues($v1, $v2){
     if(strlen($v1) == 0){
       return $v2;
     }else if(strlen($v2) == 0){return $v1;}

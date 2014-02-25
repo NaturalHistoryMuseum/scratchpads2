@@ -71,7 +71,8 @@
       // Setup
       this.$textarea = $textarea;
       this.$root = this.$textarea.parent();
-      this.$table = this.$textarea.closest('.field-widget-text-textarea').find('table.character-editor-variable');
+      this.$widget_root = this.$textarea.closest('.field-widget-text-textarea');
+      this.$table = this.$widget_root.find('table.character-editor-variable');
       this.$names = $('.character-editor-variable, .character-editor-symbol', this.$table);
       // Prepare the new editor
       this.$hg = $('<div></div>');
@@ -83,12 +84,15 @@
       })
       .attr('contentEditable', true)
       .appendTo(this.$root);
+      // Init the simple form
+      this.initSimpleForm();
       // Bind events
       this.$hg.on('keyup', $.proxy(this, 'highlight'));
       this.$names.on('mousedown', $.proxy(this, 'insertName'));
       // And fire
       this.setContent($textarea.val());
       this.highlight();
+      this.selectForm();
     }
     
     /**
@@ -124,7 +128,12 @@
       var content = this.getContent();
       var hg = new CharacterExpressionHighlighter(content);
       this.setContent(hg.getHighlighted());
-      $textarea.val(content);
+      if (content != $textarea.val()){
+        // Unselect simple editor options, so as not to confuse user
+        $('.condition-form-mode-simple option', this.$widget_root).prop('selected', false);
+        // And save the value in the input textarea field
+        $textarea.val(content);
+      }
     }
     
     /**
@@ -142,6 +151,49 @@
       this.setContent(text, position);
       this.highlight();
       return false;
+    }
+    
+    /**
+     * initSimpleForm
+     * 
+     * Init the simple form mode, if applicable
+     */
+    this.initSimpleForm = function(){
+      $('.condition-form-mode-selector', this.$widget_root).change($.proxy(this, 'selectForm'));
+      $('.condition-form-val-selector optgroup', this.$widget_root).each(function(){
+        $(this).attr('character_id', $(this).attr('label'));
+        $(this).attr('label', '');
+      });
+      $('.condition-form-var-selector', this.$widget_root).change($.proxy(function(){
+        var char_id = $('.condition-form-var-selector', this.$widget_root).val();
+        $('.condition-form-val-selector optgroup', this.$widget_root).css('display', 'none');
+        $('.condition-form-val-selector optgroup[character_id!="' + char_id.toString() + '"] option', this.$widget_root).prop('selected', false);
+        $('.condition-form-val-selector optgroup[character_id="' + char_id.toString() + '"]', this.$widget_root).css('display', 'block');
+      }, this)).trigger('change');
+      // Empty the advanced editor version when the simple editor is changed to avoid confusing the user.
+      $('.condition-form-mode-simple').change($.proxy(function(){
+        this.setContent('');
+      }, this));
+    }
+    
+    /**
+     * selectForm
+     * 
+     * Switch between simple and advanced form
+     */
+    this.selectForm = function(){
+      if ($('.condition-form-mode-selector', this.$widget_root).length == 0){
+        return;
+      }
+      if ($('.condition-form-mode-selector', this.$widget_root).val() == 'simple'){
+        this.$hg.css('display', 'none');
+        $('.condition-form-mode-advanced', this.$widget_root).css('display', 'none');
+        $('.condition-form-mode-simple', this.$widget_root).css('display', 'block');
+      } else {
+        this.$hg.css('display', 'block');
+        $('.condition-form-mode-advanced', this.$widget_root).css('display', 'block');
+        $('.condition-form-mode-simple', this.$widget_root).css('display', 'none');
+      }
     }
     
     this.init();
@@ -235,6 +287,7 @@
       if (typeof Drupal.CharacterEditorExpression == 'undefined'){
         Drupal.CharacterEditorExpression = [];
       }
+      // Attach the editor class to each textarea
       var $textareas = $('#edit-field-char-expr textarea, #edit-field-char-condition textarea', context);
       for (var i = 0; i < $textareas.length; i++){
         Drupal.CharacterEditorExpression.push(new CharacterExpressionTextarea($($textareas.get(i))));

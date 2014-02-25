@@ -39,6 +39,9 @@
  *   non-zero numbers are true, and everything else is false.
  *   
  * - Parenthesized expressions
+ *
+ * - function calls, which consist of a function name followed by a parenthesized
+ *   comma separated list of arguments, eg. round(sqrt(3), 2)
  * 
  * When an expression is evaluated, a list of variables and on order for possible symbols
  * can be provided. The variables is map from name to value. The value can directly
@@ -87,8 +90,9 @@ class CharacterExpressionParser{
   /* Exception Error codes */
   const MISSING_VARIABLE = 1;
   // Operators in order of precedence, with associated arity. Unariy "-" is allowed
-  // but replaced at parse time with "neg". "," and ".." are parsed as operators,
-  // but internally used to build lists and ranges.
+  // but replaced at parse time with "neg". '&', '|' and ',' are operators that return
+  // lists constructed from their operands ; while '..' is an operator that
+  // returns a range made from it's operands.
   private $operators = array(
     'neg' => array(
       'arity' => 1
@@ -165,6 +169,36 @@ class CharacterExpressionParser{
       'constructor' => TRUE
     )
   );
+  // functions
+  private $functions = array(
+    '_ensure_list' => array(
+      'description' => 'Internal function that ensures it\'s argument is a list',
+      'call' => array(
+        'CharacterExpressionFunctions',
+        '_ensure_list'
+      )
+    ),
+    'round' => array(
+      'description' => 'Round the first value to the number of decimals provided in the second',
+      'call' => array(
+        'CharacterExpressionFunctions',
+        'round'
+      )
+    ),
+    'sqrt' => array(
+      'call' => array(
+        'CharacterExpressionFunctions',
+        'sqrt'
+      )
+    ),
+    'rand' => array(
+      'description' => 'Returns a random float between 0 and 1 (if called without an argument), or a random int between 0 and the given argument',
+      'call' => array(
+        'CharacterExpressionFunctions',
+        'rand'
+      )
+    )
+  );
 
   /**
    * __construct
@@ -203,17 +237,22 @@ class CharacterExpressionParser{
       foreach($tree['operands'] as $operand){
         $ops[] = $this->evaluateRecursive($operand, $context);
       }
-      if($this->operators[$tree['operator']]['arity'] == 1){
-        return $ops[0]->applyUnaryOperator($tree['operator']);
-      }else if($tree['operator'] == '&' || $tree['operator'] == '|'){
-        return new CharacterExpressionList(array(
-          $ops[0],
-          $ops[1]
-        ), ($tree['operator'] == '&'), $context);
-      }else if($tree['operator'] == '..'){
-        return new CharacterExpressionRange($ops[0], $ops[1]);
+      if(isset($tree['function'])){
+        $callable = $this->functions[$tree['function']]['call'];
+        return call_user_func($callable, reset($ops));
       }else{
-        return $ops[0]->applyBinaryOperator($tree['operator'], $ops[1]);
+        if($this->operators[$tree['operator']]['arity'] == 1){
+          return $ops[0]->applyUnaryOperator($tree['operator']);
+        }else if($tree['operator'] == '&' || $tree['operator'] == '|' || $tree['operator'] == ','){
+          return new CharacterExpressionList(array(
+            $ops[0],
+            $ops[1]
+          ), $tree['operator'], $context);
+        }else if($tree['operator'] == '..'){
+          return new CharacterExpressionRange($ops[0], $ops[1]);
+        }else{
+          return $ops[0]->applyBinaryOperator($tree['operator'], $ops[1]);
+        }
       }
     }else if($tree['type'] == 'v'){
       $tree['value']->setContext($context);
@@ -242,6 +281,94 @@ class CharacterExpressionParser{
   }
 
   /**
+   * match
+   *
+   * This checks if two expressions are equivalent in structure, and
+   * if so returns a mapping between values.
+   *
+   * For example:
+   * $expr = new ExpressionParser("{color} in ['Blue' | 'Green']");
+   * $match = $expr->match("{v} in ['values']")
+   *
+   * $match will now contain :
+   * array(
+   *   "{v}" => <CharacterExpressionVariable object>,
+   *   "['values']" => <CharacterExpressionList object>
+   *
+   * Notes:
+   * - Operators and functions match only if they are exactly the same,
+   *   and thus are not returned in the mapping ;
+   * - Values and variables match if they have the same type ; so a
+   *   number matches a number, a symbol a symbol, a list a list ;
+   * - The matching is done on the parsed tree, so parentheses are
+   *   simplified ;
+   * - The matching is lexical, not logical, so 'a < b' does not
+   *   match 'b > a' ;
+   * - Matching does not happen within values - so a list always
+   *   matches a list regardless of how the list is constructed
+   *
+   */
+  public function match($str){
+    $expr = new CharacterExpressionParser($str);
+    return $this->matchTrees($this->tree, $expr->tree);
+  }
+
+  /**
+   * matchTrees
+   *
+   * Helper function for match which matches the internal tree represenation
+   * of the expressions
+   */
+  private function matchTrees($t1, $t2){
+    $matches = array();
+    if($t1['type'] != $t2['type']){return FALSE;}
+    if($t1['type'] == 'application'){
+      if(isset($t1['operator'])){
+        if((!isset($t2['operator']) || $t1['operator'] != $t2['operator'])){return FALSE;}
+        if(count($t1['operands']) != count($t2['operands'])){return FALSE;}
+        $child_match = FALSE;
+        for($i = 0; $i < count($t1['operands']); $i++){
+          $child_match = $this->matchTrees($t1['operands'][$i], $t2['operands'][$i]);
+          if($child_match === FALSE){return FALSE;}
+          $matches = array_merge($matches, $child_match);
+        }
+        return $matches;
+      }else{
+        if((!isset($t2['function']) || $t1['function'] != $t2['function'])){return FALSE;}
+        if(count($t1['operands']) != count($t2['operands'])){return FALSE;}
+        if(count($t1['operands']) == 0){return array();}
+        // If the function is _ensure_list, then evaluate both branches ; otherwise evaluate
+        // operands (which are alwats calls to _ensure_list). Both will create lists
+        // but their components are not evaluated, so variables are preserved.
+        if($t1['function'] == '_ensure_list'){
+          $sub1 = $t1;
+          $sub2 = $t2;
+        }else{
+          $sub1 = $t1['operands'][0];
+          $sub2 = $t2['operands'][0];
+        }
+        $val1 = $this->evaluateRecursive($sub1, array(
+          'variable_map' => array(),
+          'symbol_order' => array()
+        ));
+        $val2 = $this->evaluateRecursive($sub2, array(
+          'variable_map' => array(),
+          'symbol_order' => array()
+        ));
+        return array(
+          $val2->asExpression($t1['function'] != '_ensure_list') => $val1
+        );
+      }
+    }else if($t1['type'] == 'v'){
+      if(get_class($t1['value']) != get_class($t2['value'])){return FALSE;}
+      return array(
+        $t2['value']->asExpression() => $t1['value']
+      );
+    }
+    return array();
+  }
+
+  /**
    * toString
    * 
    * Returns the parsed expression as a string
@@ -257,6 +384,9 @@ class CharacterExpressionParser{
         }else{
           $out .= $v;
         }
+      }else if($item == 'f'){
+        $v = array_shift($tokens);
+        $out .= $v;
       }else if($item == 'v'){
         $v = array_shift($tokens);
         $out .= $v->asExpression();
@@ -311,20 +441,31 @@ class CharacterExpressionParser{
         $this->expression[] = 'v';
         $end_pos = $pos + strlen('<undefined>');
         $type = 'undefined';
-      }else if($this->isSymbol($this->raw[$pos])){
+      }else if($this->isGroupSymbol($this->raw[$pos])){
         $end_pos = $pos;
         $this->expression[] = $this->raw[$pos];
         $no_token = TRUE;
       }else{
+        // Find the longest matching function
+        $matched = 'o';
+        foreach($this->functions as $function => $info){
+          if(substr($this->raw, $pos, strlen($function)) == $function){
+            if($pos + strlen($function) - 1 > $end_pos){
+              $end_pos = $pos + strlen($function) - 1;
+              $matched = 'f';
+            }
+          }
+        }
         // Find the longest matching operator
         foreach($this->operators as $op => $info){
           if(substr($this->raw, $pos, strlen($op)) == $op){
             if($pos + strlen($op) - 1 > $end_pos){
               $end_pos = $pos + strlen($op) - 1;
+              $matched = 'o';
             }
           }
         }
-        $this->expression[] = 'o';
+        $this->expression[] = $matched;
       }
       // Report errors
       if($end_pos == -1){
@@ -335,7 +476,7 @@ class CharacterExpressionParser{
             '%pos' => $pos
           )));
         }else{
-          throw new Exception(t("Item at position %pos and begining with '%start...' is neither an operator, literal or accepted symbol. Maybe it should be enclosed in quotes?", array(
+          throw new Exception(t("Item at position %pos and begining with '%start...' is neither an operator, function, literal or accepted symbol. Maybe it should be enclosed in quotes?", array(
             '%pos' => $pos,
             '%start' => substr($this->raw, $pos, 5)
           )));
@@ -388,7 +529,7 @@ class CharacterExpressionParser{
    * If $type is start/end only return true for start/end symbols.
    * 
    */
-  private function isSymbol($char, $type = 'all'){
+  private function isGroupSymbol($char, $type = 'all'){
     if(($type == 'all' || $type == 'start') && ($char == '(' || $char == '[')){return TRUE;}
     if(($type == 'all' || $type == 'end') && ($char == ')' || $char == ']')){return TRUE;}
     return FALSE;
@@ -408,14 +549,14 @@ class CharacterExpressionParser{
       $prev = $current;
       $prev_token = $current_token;
       $current = array_shift($expr);
-      if(!$this->isSymbol($current)){
+      if(!$this->isGroupSymbol($current)){
         $current_token = array_shift($tokens);
       }else{
         $current_token = NULL;
       }
       if(count($expr)){
         $next = reset($expr);
-        if(!$this->isSymbol($next)){
+        if(!$this->isGroupSymbol($next)){
           $next_token = reset($tokens);
         }else{
           $next_token = NULL;
@@ -426,13 +567,9 @@ class CharacterExpressionParser{
       }
       // Replace '-' with 'neg' if required
       if($current == 'o' && $current_token == '-'){
-        if(!$prev || $this->isSymbol($prev, 'start') || $prev == 'o'){
+        if(!$prev || $this->isGroupSymbol($prev, 'start') || $prev == 'o'){
           $current_token = 'neg';
         }
-      }
-      // Replace ',' with '|'
-      if($current == 'o' && $current_token == ','){
-        $current_token = '|';
       }
       // Validate
       $val = $this->validateParseElement($prev, $prev_token, $current, $current_token, $next, $next_token);
@@ -440,19 +577,37 @@ class CharacterExpressionParser{
       // Create node
       if($current == '('){
         $children = $this->parseRecursive($expr, $tokens, $current);
-        if(count($children) == 0){
-          throw new Exception("Cannot not have empty groups");
-        }else if(count($children) == 1){
-          $node = reset($children);
-          $current = $node['type'];
-          $current_token = $node['value'];
-          $nodes[] = $current;
-        }else{
+        if($prev == 'f'){
+          // brackets have a different meaning when preceded by a function name
           $nodes[] = array(
             'type' => 'group',
-            'nodes' => $children
+            'nodes' => array(
+              array(
+                'type' => 'f',
+                'value' => '_ensure_list'
+              ),
+              array(
+                'type' => 'group',
+                'nodes' => $children
+              )
+            )
           );
           $current = ')';
+        }else{
+          if(count($children) == 0){
+            throw new Exception("Cannot not have empty groups");
+          }else if(count($children) == 1){
+            $node = reset($children);
+            $current = $node['type'];
+            $current_token = $node['value'];
+            $nodes[] = $current;
+          }else{
+            $nodes[] = array(
+              'type' => 'group',
+              'nodes' => $children
+            );
+            $current = ')';
+          }
         }
       }else if($current == ')'){
         if($initial != '('){throw new Exception(t("Found a closing bracket without a matching opening bracket", array(
@@ -461,10 +616,18 @@ class CharacterExpressionParser{
         return $nodes;
       }else if($current == '['){
         $children = $this->parseRecursive($expr, $tokens, $current);
-        $nodes[] = array(
-          'type' => 'group',
-          'nodes' => $children
-        );
+        if(count($children) == 1 && $children[0]['type'] == 'o' && $children[0]['token'] == '..'){
+          $nodes[] = $children[0];
+        }else{
+          $nodes[] = array(
+            'type' => 'f',
+            'value' => '_ensure_list'
+          );
+          $nodes[] = array(
+            'type' => 'group',
+            'nodes' => $children
+          );
+        }
         $current = ']';
       }else if($current == ']'){
         if($initial != '['){throw new Exception(t("Found a closing square bracket without a matching opening bracket", array(
@@ -491,7 +654,7 @@ class CharacterExpressionParser{
    * Validate that an element is ok given it's context
    */
   private function validateParseElement($prev, $prev_token, $current, $current_token, $next, $next_token){
-    if($this->isSymbol($current, 'start')){
+    if($this->isGroupSymbol($current, 'start')){
       if($prev == 'v'){return t('Symbol "%sym" cannot be preceded by value %value', array(
           '%sym' => $current,
           '%value' => $prev_token
@@ -503,11 +666,11 @@ class CharacterExpressionParser{
           '%sym' => $current,
           '%op' => $next_token
         ));}
-    }else if($this->isSymbol($current, 'end')){
+    }else if($this->isGroupSymbol($current, 'end')){
       if($prev == NULL){return t('Symbol "%sym" cannot be at the begining of the expression', array(
           '%sym' => $current
         ));}
-      if($prev == 'o'){return t('Symbol "%sym" cannot be preceded by operator %op', array(
+      if($prev == 'o' || $prev == 'f'){return t('Symbol "%sym" cannot be preceded by operator or function %op', array(
           '%sym' => $current,
           '%op' => $prev_token
         ));}
@@ -515,18 +678,18 @@ class CharacterExpressionParser{
           '%value' => $next_token
         ));}
     }else if($current == 'o' && $this->operators[$current_token]['arity'] == 2){
-      if($prev === NULL || $this->isSymbol($prev, 'start')){return t('Binary operator %op cannot be at start of expression or group', array(
+      if($prev === NULL || $this->isGroupSymbol($prev, 'start')){return t('Binary operator %op cannot be at start of expression or group', array(
           '%op' => $current_token
         ));}
-      if($next === NULL || $this->isSymbol($next, 'end')){return t('Binary operator %op cannot be at end of expression or group', array(
+      if($next === NULL || $this->isGroupSymbol($next, 'end')){return t('Binary operator %op cannot be at end of expression or group', array(
           '%op' => $current_token
         ));}
-    }else if($current == 'o'){
-      if($prev == 'v'){return t('Unary operator %op cannot be preceded by value %value', array(
+    }else if($current == 'o' || $current == 'f'){
+      if($prev == 'v'){return t('Unary operator/function %op cannot be preceded by value %value', array(
           '%value' => $prev_token,
           '%op' => $current_token
         ));}
-      if($next === NULL || $this->isSymbol($next, 'end')){return t('Unary operator %op cannot be at end of expression or group', array(
+      if($next === NULL || $this->isGroupSymbol($next, 'end')){return t('Unary operator/function %op cannot be at end of expression or group', array(
           '%op' => $current_token
         ));}
     }else if($current == 'v'){
@@ -539,7 +702,7 @@ class CharacterExpressionParser{
           '%p_type' => $translate[$next],
           '%p_value' => $next_token
         ));}
-      if($this->isSymbol($next, 'start')){return t("Value %value cannot be followed by symbol \"%sym\"", array(
+      if($this->isGroupSymbol($next, 'start')){return t("Value %value cannot be followed by symbol \"%sym\"", array(
           '%sym' => $next,
           '%value' => $current_token
         ));}
@@ -565,6 +728,24 @@ class CharacterExpressionParser{
       foreach($node['nodes'] as $child_node){
         $tree[] = $this->buildTreeRecursive($child_node);
       }
+      // Apply the functions
+      $new_tree = array();
+      for($i = 0; $i < count($tree); $i++){
+        if($tree[$i]['type'] == 'f'){
+          $new_tree[] = array(
+            'type' => 'application',
+            'function' => $tree[$i]['value'],
+            'operands' => array(
+              $tree[$i + 1]
+            )
+          );
+          $i++;
+        }else{
+          $new_tree[] = $tree[$i];
+        }
+      }
+      $tree = $new_tree;
+      // Apply the operators
       foreach($this->operators as $operator => $info){
         do{
           $index = -1;
@@ -942,32 +1123,34 @@ class CharacterExpressionList extends CharacterExpressionValue{
   /**
    * __construct
    */
-  public function __construct($val, $conjoined, $context){
+  public function __construct($val, $join_mode, $context){
     parent::__construct($val, 'list', $context);
-    $this->conjoined = $conjoined;
+    $this->conjoined = $join_mode == '&';
     $new_values = array();
-    // Merge lists
-    foreach($this->val as $v){
-      if(($v instanceof CharacterExpressionList) && $v->isConjoined() == $this->conjoined){
-        $new_values = array_merge($new_values, $v->value());
-      }else{
-        $new_values[] = $v;
-      }
-    }
-    // Remove duplicate terms
-    $this->val = array();
-    for($i = 0; $i < count($new_values); $i++){
-      $dup = FALSE;
-      if($i < count($new_values) - 1){
-        for($j = $i + 1; $j < count($new_values); $j++){
-          if(get_class($new_values[$i]) == get_class($new_values[$j]) && $new_values[$i]->asExpression() == $new_values[$j]->asExpression()){
-            $dup = TRUE;
-            break;
-          }
+    if($join_mode == '&' || $join_mode == '|'){
+      // Merge lists
+      foreach($this->val as $v){
+        if(($v instanceof CharacterExpressionList) && $v->isConjoined() == $this->conjoined){
+          $new_values = array_merge($new_values, $v->value());
+        }else{
+          $new_values[] = $v;
         }
       }
-      if(!$dup){
-        $this->val[] = $new_values[$i];
+      // Remove duplicate terms
+      $this->val = array();
+      for($i = 0; $i < count($new_values); $i++){
+        $dup = FALSE;
+        if($i < count($new_values) - 1){
+          for($j = $i + 1; $j < count($new_values); $j++){
+            if(get_class($new_values[$i]) == get_class($new_values[$j]) && $new_values[$i]->asExpression() == $new_values[$j]->asExpression()){
+              $dup = TRUE;
+              break;
+            }
+          }
+        }
+        if(!$dup){
+          $this->val[] = $new_values[$i];
+        }
       }
     }
   }
@@ -991,19 +1174,30 @@ class CharacterExpressionList extends CharacterExpressionValue{
 
   /**
    * asExpression
+   * 
+   * if $function_param this is retunred as a list defining function parameters
+   * (a,b,[c]) otherwise it is returned as a list of items [a|b|(c)].
    */
-  public function asExpression(){
+  public function asExpression($function_param = FALSE){
     $a = array();
     foreach($this->val as $item){
       if($item instanceof CharacterExpressionList){
         $item_str = $item->asExpression();
-        $a[] = '(' . substr($item_str, 1, strlen($item_str) - 2) . ')';
+        if($function_param){
+          $a[] = $item_str;
+        }else{
+          $a[] = '(' . substr($item_str, 1, strlen($item_str) - 2) . ')';
+        }
       }else{
         $a[] = $item->asExpression();
       }
     }
-    $op = $this->conjoined ? ' & ' : ' | ';
-    return '[' . implode($op, $a) . ']';
+    if($function_param){
+      return '(' . implode(', ', $a) . ')';
+    }else{
+      $op = $this->conjoined ? ' & ' : ' | ';
+      return '[' . implode($op, $a) . ']';
+    }
   }
 
   /**
@@ -1576,6 +1770,111 @@ class CharacterExpressionUndefined extends CharacterExpressionValue{
       return new CharacterExpressionNumber(0, $this->context);
     }else{
       return new CharacterExpressionUndefined();
+    }
+  }
+}
+
+/**
+ * CharacterExpressionFunctions
+ *
+ * This class contains static methods that provide the default
+ * set of functions available to the parser
+ */
+class CharacterExpressionFunctions{
+
+  /**
+   * _ensure_list
+   *
+   * Ensure that the given argument is a list. Lists objects are build
+   * when the ',', '|' or '&' operators are applied - however this means
+   * single element lists need a call to _ensure_list as no operators are
+   * applied.
+   *
+   * Note that a call to _ensure_list is added to all function arguments, so
+   * the only function that may not receive a list as argument is _ensure_list.
+   */
+  static function _ensure_list($p){
+    if($p instanceof CharacterExpressionList){
+      return $p;
+    }else if($p === NULL){
+      return new CharacterExpressionList(array());
+    }else{
+      return new CharacterExpressionList(array(
+        $p
+      ));
+    }
+  }
+
+  /**
+   * round
+   *
+   * Round the numerical value to the number of digits
+   */
+  static function round(CharacterExpressionList $p){
+    if(count($p->value()) != 2){throw new Exception("Function round takes two parameters");}
+    $values = $p->value();
+    if($values[1]->type() != 'number'){throw new Exception("Second parameter of round must be a number");}
+    if($values[0]->type() == 'range'){
+      $range = $values[0]->value();
+      $min = new CharacterExpressionNumber(round($range['min']->value(), $values[1]->value()));
+      $max = new CharacterExpressionNumber(round($range['max']->value(), $values[1]->value()));
+      return new CharacterExpressionRange($min, $max);
+    }else if($values[0]->type() == 'number'){
+      return new CharacterExpressionNumber(round($values[0]->value(), $values[1]->value()));
+    }else if($values[0]->type() == 'undefined'){return new CharacterExpressionUndefined();}
+  }
+
+  /**
+   * sqrt
+   *
+   * Square root
+   */
+  static function sqrt(CharacterExpressionList $p){
+    if(count($p->value()) != 1){throw new Exception("Function sqrt takes one parameter");}
+    $values = $p->value();
+    if($values[0]->type() == 'range'){
+      $range = $values[0]->value();
+      if($range['min']->value() < 0 || $range['max']->value() < 0){throw new Exception("Function sqrt requires positive number");}
+      $min = new CharacterExpressionNumber(sqrt($range['min']->value()));
+      $max = new CharacterExpressionNumber(sqrt($range['max']->value()));
+      return new CharacterExpressionRange($min, $max);
+    }else if($values[0]->type() == 'number'){
+      if($values[0]->value() < 0){throw new Exception("Function sqrt requires positive number");}
+      return new CharacterExpressionNumber(sqrt($values[0]->value()));
+    }else if($values[0]->type() == 'undefined'){
+      return new CharacterExpressionUndefined();
+    }else{
+      throw new Exception("Function sqrt takes a number/range as parameter");
+    }
+  }
+
+  /**
+   * rand
+   *
+   * Random float between 0 and 1 (when called with no argument), and
+   * random int between 0 and the given int (when called with a number argument)
+   */
+  static function rand(CharacterExpressionList $p){
+    if(count($p->value()) == 0){
+      return new CharacterExpressionNumber(rand() / getrandmax());
+    }else if(count($p->value()) == 1){
+      $values = $p->value();
+      if($values[0]->type() == 'range'){
+        $range = $values[0]->value();
+        $min = new CharacterExpressionNumber(rand(0, $range['min']->value()));
+        $max = new CharacterExpressionNumber(rand(0, $range['max']->value()));
+        return new CharacterExpressionRange($min, $max);
+      }else if($values[0]->type() == 'number'){
+        $val = rand(0, $values[0]->value());
+        return new CharacterExpressionNumber(rand(0, $values[0]->value()));
+      }else if($values[0]->type() == 'undefined'){
+        return new CharacterExpressionUndefined();
+      }else{
+        throw new Exception("Function rand() works with numbers and ranges only");
+      }
+      $v = $values[0]->value();
+    }else{
+      throw new Exception("Function rand() takes 0 or one argument");
     }
   }
 }

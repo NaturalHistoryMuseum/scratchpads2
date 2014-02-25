@@ -1,11 +1,17 @@
 <?php
 
 /**
- * class CharacterTree
+ * class CharacterTreeNode
+ *
+ * This class represents a character at a specific position within a character
+ * tree (eg. under a specific parent).
+ *
+ * It covers the functionality that is specific to a character when at a particular
+ * position - such as the definition for Views fields.
+ *
+ * It also stands in between the CharacterProjectModel and the CharacterModel to
+ * ensure that the data is formatted as expected by the slickgrid/character editor.
  * 
- * This class represents a node in a character tree. Note that for processing
- * character trees are passed as flat arrays of tree nodes, presented in the
- * correct order (rather than an acutal tree structure)
  */
 class CharacterTreeNode{
 
@@ -61,7 +67,8 @@ class CharacterTreeNode{
   /**
    * model
    * 
-   * Return the model associated with this node
+   * Return the model associated with this node, as an instance
+   * of CharacterModel object
    */
   public function model(){
     return $this->model;
@@ -70,7 +77,7 @@ class CharacterTreeNode{
   /**
    * getEditorTreeDefinition
    * 
-   * Return an array definition this node to be used by the character tree widget
+   * Return an array definition of this node to be used by the character tree widget
    */
   public function getEditorTreeDefinition(){
     return array(
