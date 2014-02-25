@@ -545,6 +545,7 @@ function character_editor_form_character_editor_character_alter(&$form, &$form_s
  * generate the expression/condition form
  */
 function _character_editor_entity_form_expression(&$form, $expr_field, $project_model){
+  $lang = field_language('character_editor_character', $form['#entity'], $expr_field);
   // Get the variable list and prepare them for display
   $variables = $project_model->getAvailableVariables();
   $themed_variables = array();
@@ -568,7 +569,7 @@ function _character_editor_entity_form_expression(&$form, $expr_field, $project_
     }
   }
   // Replace ids in the expression with names
-  $expr = $form[$expr_field][LANGUAGE_NONE][0]['value']['#default_value'];
+  $expr = $form[$expr_field][$lang][0]['value']['#default_value'];
   $e = NULL;
   if($expr){
     module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
@@ -581,7 +582,7 @@ function _character_editor_entity_form_expression(&$form, $expr_field, $project_
       $expr = "Could not parse saved expression: " . $exp->getMessage();
       $e = NULL;
     }
-    $form[$expr_field][LANGUAGE_NONE][0]['value']['#default_value'] = $expr;
+    $form[$expr_field][$lang][0]['value']['#default_value'] = $expr;
   }
   // Add the helper table with the variable and value names
   $table_html = theme('table', array(
@@ -597,7 +598,7 @@ function _character_editor_entity_form_expression(&$form, $expr_field, $project_
       )
     )
   ));
-  $form[$expr_field][LANGUAGE_NONE][] = array(
+  $form[$expr_field][$lang][] = array(
     '#type' => 'fieldset',
     '#collapsible' => FALSE,
     '#description' => t('List of characters that can be used in the expression. Characters are enclosed in {curly} brackets and states in \'single quotes\'.  Click on a character or state to insert it into the text editor.'),
@@ -670,7 +671,7 @@ function _character_editor_entity_form_expression(&$form, $expr_field, $project_
     }else{
       $use_simple_editor = FALSE;
     }
-    $form[$expr_field][LANGUAGE_NONE]['condition_simple_editor'] = array(
+    $form[$expr_field][$lang]['condition_simple_editor'] = array(
       'simple_cond_var' => array(
         '#type' => 'select',
         '#empty_option' => t('- Select Character -'),
@@ -713,7 +714,7 @@ function _character_editor_entity_form_expression(&$form, $expr_field, $project_
         )
       )
     );
-    $form[$expr_field][LANGUAGE_NONE]['condition_editor_mode'] = array(
+    $form[$expr_field][$lang]['condition_editor_mode'] = array(
       '#type' => 'select',
       '#options' => array(
         'simple' => t('Simple'),
@@ -746,12 +747,16 @@ function character_editor_character_form_validate($form, &$form_state){
     'field_char_condition'
   );
   foreach($expression_fields as $expr_field){
-    if($expr_field == 'field_char_condition' && $form_state['values'][$expr_field][LANGUAGE_NONE]['condition_editor_mode'] == 'simple'){
+    if (!isset($form[$expr_field])){
       continue;
-    }else if(!empty($form_state['values'][$expr_field][LANGUAGE_NONE][0]['value'])){
+    }
+    $lang = field_language('character_editor_character', $form['#entity'], $expr_field);
+    if($expr_field == 'field_char_condition' && $form_state['values'][$expr_field][$lang]['condition_editor_mode'] == 'simple'){
+      continue;
+    }else if(!empty($form_state['values'][$expr_field][$lang][0]['value'])){
       module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
       try{
-        $e = new CharacterExpressionParser($form_state['values'][$expr_field][LANGUAGE_NONE][0]['value']);
+        $e = new CharacterExpressionParser($form_state['values'][$expr_field][$lang][0]['value']);
       }
       catch(Exception $e){
         form_set_error($expr_field, t("Expression could not be parsed:") . $e->getMessage());
@@ -773,10 +778,14 @@ function character_editor_character_form_submit_expression($form, &$form_state){
     'field_char_condition'
   );
   foreach($expression_fields as $expr_field){
-    if($expr_field == 'field_char_condition' && $form_state['values'][$expr_field][LANGUAGE_NONE]['condition_editor_mode'] == 'simple'){
-      $variable_id = $form_state['values'][$expr_field][LANGUAGE_NONE]['condition_simple_editor']['simple_cond_var'];
-      $operator = $form_state['values'][$expr_field][LANGUAGE_NONE]['condition_simple_editor']['simple_cond_op'];
-      $values = $form_state['values'][$expr_field][LANGUAGE_NONE]['condition_simple_editor']['simple_cond_value'];
+    if (!isset($form[$expr_field])){
+      continue;
+    }
+    $lang = field_language('character_editor_character', $form['#entity'], $expr_field);
+    if($expr_field == 'field_char_condition' && $form_state['values'][$expr_field][$lang]['condition_editor_mode'] == 'simple'){
+      $variable_id = $form_state['values'][$expr_field][$lang]['condition_simple_editor']['simple_cond_var'];
+      $operator = $form_state['values'][$expr_field][$lang]['condition_simple_editor']['simple_cond_op'];
+      $values = $form_state['values'][$expr_field][$lang]['condition_simple_editor']['simple_cond_value'];
       if(!$variable_id || !$operator || empty($values)){
         $expr = '';
       }else{
@@ -795,20 +804,20 @@ function character_editor_character_form_submit_expression($form, &$form_state){
             break;
         }
       }
-      $form_state['values'][$expr_field][LANGUAGE_NONE][0]['value'] = $expr;
-    }else if(!empty($form_state['values'][$expr_field][LANGUAGE_NONE][0]['value'])){
+      $form_state['values'][$expr_field][$lang][0]['value'] = $expr;
+    }else if(!empty($form_state['values'][$expr_field][$lang][0]['value'])){
       $project_model = new CharacterProjectModel('character_editor_project', $form_state['character_project_id']);
       $variables = $project_model->getAvailableVariables();
       module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
       try{
-        $e = new CharacterExpressionParser($form_state['values'][$expr_field][LANGUAGE_NONE][0]['value']);
+        $e = new CharacterExpressionParser($form_state['values'][$expr_field][$lang][0]['value']);
         $e->rename($variables['character_map'], $variables['state_map']);
         $expr = $e->getExpression();
       }
       catch(Exception $e){
         $expr = '';
       }
-      $form_state['values'][$expr_field][LANGUAGE_NONE][0]['value'] = $expr;
+      $form_state['values'][$expr_field][$lang][0]['value'] = $expr;
     }
   }
 }
@@ -1663,10 +1672,13 @@ function character_editor_state_form_validate($form, &$form_state){
  */
 function character_editor_state_form_submit($form, &$form_state){
   $editor = &$form_state['editor'];
+  // Note that we do not support per-character languages ; so at the character level language is
+  // always 'und'
+  $lang = LANGUAGE_NONE;
   if($form_state['values']['character_type'] == 'controlled'){
     // The UI only supports simple selection of states ; however the storage and backend
     // processing supports advanced expressions. Transform the given value into an expression.
-    $values = array_filter(explode(',', $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value']));
+    $values = array_filter(explode(',', $form_state['values']['field_character_state_data'][$lang][0]['value']));
     if(!empty($values)){
       $character = entity_load_single('character_editor_character', $form_state['character_id']);
       $character_w = entity_metadata_wrapper('character_editor_character', $character);
@@ -1675,9 +1687,9 @@ function character_editor_state_form_submit($form, &$form_state){
       }else{
         $conj = '\' | \'';
       }
-      $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'] = '[\'' . implode($conj, $values) . '\']';
+      $form_state['values']['field_character_state_data'][$lang][0]['value'] = '[\'' . implode($conj, $values) . '\']';
     }else{
-      $form_state['values']['field_character_state_data'][LANGUAGE_NONE][0]['value'] = '';
+      $form_state['values']['field_character_state_data'][$lang][0]['value'] = '';
     }
   }
   try{
@@ -1697,16 +1709,15 @@ function character_editor_state_form_submit($form, &$form_state){
       $relation = relation_create('character_state', $entity_keys);
     }else{
       $relation = $form_state['relation'];
-      if(isset($relation->field_character_state_flag[LANGUAGE_NONE][0]['value']) && $relation->field_character_state_flag[LANGUAGE_NONE][0]['value'] == 'inherited'){
+      if(isset($relation->field_character_state_flag[$lang][0]['value']) && $relation->field_character_state_flag[$lang][0]['value'] == 'inherited'){
         // Values directly submited via a form should loose the 'inherited' flag to ensure they don't get overwritten.
-        $relation->field_character_state_flag[LANGUAGE_NONE][0]['value'] = '';
+        $relation->field_character_state_flag[$lang][0]['value'] = '';
       }
     }
     entity_form_submit_build_entity('relation', $relation, $form, $form_state);
     relation_save($relation);
     // Return input value, not values value as this may have been changed.
-    $language = field_language('relation', $relation, 'field_character_state_data');
-    $editor->updated[$form_state['values']['id']]['value'] = $form_state['input']['field_character_state_data'][$language][0]['value'];
+    $editor->updated[$form_state['values']['id']]['value'] = $form_state['input']['field_character_state_data'][$lang][0]['value'];
   }
   // ERROR: Entity save callback has thrown an exception
   catch(Exception $e){

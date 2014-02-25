@@ -333,6 +333,8 @@ function character_editor_set_character_value(EntityDrupalWrapper $character_w, 
   // Get the relation or create a new one
   $values = character_editor_get_character_values($character_w, $entity_w);
   $values = reset($values);
+  // Note that languages are per-project only, all values are language independent.
+  $lang = LANGUAGE_NONE;
   if(empty($values) || empty($values['relation_w'])){
     $relation = (object)(array(
       'relation_type' => 'character_state',
@@ -340,7 +342,7 @@ function character_editor_set_character_value(EntityDrupalWrapper $character_w, 
       'created' => time(),
       'changed' => time(),
       'endpoints' => array(
-        LANGUAGE_NONE => array(
+        $lang => array(
           array(
             'entity_type' => $entity_w->type(),
             'entity_id' => $entity_w->getIdentifier(),
@@ -360,7 +362,7 @@ function character_editor_set_character_value(EntityDrupalWrapper $character_w, 
   // Assign the field values
   if($data !== NULL){
     $relation->field_character_state_data = array(
-      LANGUAGE_NONE => array(
+      $lang => array(
         array(
           'value' => $data
         )
@@ -369,7 +371,7 @@ function character_editor_set_character_value(EntityDrupalWrapper $character_w, 
   }
   if($metadata !== NULL && isset($metadata['flag'])){
     $relation->field_character_state_flag = array(
-      LANGUAGE_NONE => array(
+      $lang => array(
         array(
           'value' => $metadata['flag']
         )
@@ -378,7 +380,7 @@ function character_editor_set_character_value(EntityDrupalWrapper $character_w, 
   }
   if($metadata !== NULL && isset($metadata['pass'])){
     $relation->field_character_state_pass = array(
-      LANGUAGE_NONE => array(
+      $lang => array(
         array(
           'value' => $metadata['pass']
         )
