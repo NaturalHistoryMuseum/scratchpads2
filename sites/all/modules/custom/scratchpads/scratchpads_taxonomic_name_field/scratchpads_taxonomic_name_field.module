@@ -185,6 +185,7 @@ function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed 
     $query->addTag('translatable');
     $query->addTag('term_access');
     $query->join('taxonomy_vocabulary', 'v', 't.vid = v.vid');
+    $query->innerJoin('taxonomy_term_hierarchy', 'h', 'h.tid = t.tid');
     $query->addField('v', 'name', 'vocab_name');
     // Do not select already entered terms.
     if(!empty($tags_typed)){
