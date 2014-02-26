@@ -263,9 +263,7 @@ function statistics_access_log($aid) {
     );
     return $build;
   }
-  else {
-    drupal_not_found();
-  }
+  return MENU_NOT_FOUND;
 }
 
 /**
@@ -307,7 +305,7 @@ function statistics_settings_form() {
   );
   $form['content']['statistics_count_content_views_ajax'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Use AJAX to increment the counter'),
+    '#title' => t('Use Ajax to increment the counter'),
     '#default_value' => variable_get('statistics_count_content_views_ajax', 0),
     '#description' => t('Perform the count asynchronously after page load rather than during page generation.'),
     '#states' => array(
