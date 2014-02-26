@@ -34,6 +34,10 @@ function darwincore_field_group_info() {
       'formatter' => 'open',
     ),
   );
+  // This code should be removed once all migrated sites have fixed their data.
+  if(field_info_field('field_collector_copy')){
+    array_unshift($field_group->data['children'], 'field_collector_copy');
+  }
   $export['group_collection_display|node|specimen_observation|default'] = $field_group;
 
   $field_group = new stdClass;
@@ -66,6 +70,10 @@ function darwincore_field_group_info() {
       'formatter' => 'closed',
     ),
   );
+  // This code should be removed once all migrated sites have fixed their data.
+  if(field_info_field('field_collector_copy')){
+    array_unshift($field_group->data['children'], 'field_collector_copy');
+  }
   $export['group_collection|node|specimen_observation|form'] = $field_group;
 
   $field_group = new stdClass;
@@ -344,7 +352,8 @@ function darwincore_field_group_info() {
       0 => 'field_basis_of_record',
       1 => 'field_catalogue_number',
       2 => 'field_collection_code',
-      3 => 'field_institution_code'
+      3 => 'field_institution_code',
+      4 => 'title'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
