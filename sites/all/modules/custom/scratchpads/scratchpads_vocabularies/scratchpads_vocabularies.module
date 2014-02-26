@@ -396,8 +396,8 @@ function scratchpads_vocabularies_form_alter(&$form, &$form_state, $form_id){
       if($our_voc['field'] == $field_name){
         // Always disable the form
         $form['field']['settings']['allowed_values']['#disabled'] = TRUE;
-        $form['field']['settings']['allowed_values']['#description'] = t('This field is a managed vocabulary and the allowed values cannot be changed manualy. Please see !link for more information', array(
-          '!link' => l('admin/config/services/vocabularies/' . $info_id, 'admin/config/services/vocabularies/' . $info_id)
+        $form['field']['settings']['allowed_values']['#description'] = t('This field is a managed vocabulary and the allowed values cannot be changed manualy (<a href="!link" target="_blank">Additional information</a>).', array(
+          '!link' => url('admin/config/services/vocabularies/' . $info_id)
         ));
         break;
       }
@@ -483,9 +483,9 @@ function _scratchpads_vocabularies_info_build($info){
  * Regularly apply updates
  */
 function scratchpads_vocabularies_cron(){
-  $period = variable_get('scratchpads_vocabularies_update_period', 60*60*24*7);
+  $period = variable_get('scratchpads_vocabularies_update_period', 60 * 60 * 24 * 7);
   $last_run = variable_get('scratchpads_vocabularies_update_last_run', 0);
-  if (time() > ($last_run + $period)) {
+  if(time() > ($last_run + $period)){
     scratchpads_vocabularies_process_updates();
     variable_set('scratchpads_vocabularies_update_last_run', time());
   }
