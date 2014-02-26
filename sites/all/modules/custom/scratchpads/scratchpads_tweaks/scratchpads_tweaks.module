@@ -686,6 +686,16 @@ function scratchpads_tweaks_apachesolr_search_page_alter(&$build, $search_page){
 }
 
 /**
+ * Implements hook_apache_solr_sortstring_alter().
+ */
+function scratchpads_tweaks_apache_solr_sortstring_alter(&$sortstring, $params){
+  if(!trim($params['q']) && !$sortstring){
+    // Set the default sort string to display newest items first.
+    $sortstring = 'ds_created desc';
+  }
+}
+
+/**
  * Implements hook_field_widget_info_alter()
  */
 function scratchpads_tweaks_field_widget_info_alter(&$info){
