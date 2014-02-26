@@ -6,3 +6,8 @@
 .view-collections-profiles .view-footer {
   margin-top: 20px;
 }
+
+/* help text for date floats in the wrong position */
+.page-content .date-no-float .form-item .description {
+  left: -15px;
+}
