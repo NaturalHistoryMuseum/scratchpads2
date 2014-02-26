@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Handles counts of node views via AJAX with minimal bootstrap.
+ * Handles counts of node views via Ajax with minimal bootstrap.
  */
 
 /**
