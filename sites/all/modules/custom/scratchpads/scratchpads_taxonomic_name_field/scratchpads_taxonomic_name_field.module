@@ -185,6 +185,7 @@ function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed 
     $query->addTag('translatable');
     $query->addTag('term_access');
     $query->join('taxonomy_vocabulary', 'v', 't.vid = v.vid');
+    $query->innerJoin('taxonomy_term_hierarchy', 'h', 'h.tid = t.tid');
     $query->addField('v', 'name', 'vocab_name');
     // Do not select already entered terms.
     if(!empty($tags_typed)){
@@ -230,7 +231,7 @@ function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed 
         if(!@empty($parent->field_authors['und'][0]['value'])){
           $authors = " {$parent->field_authors['und'][0]['value']}";
         }
-        $parent_names[] = check_plain($parent->name.$authors);
+        $parent_names[] = check_plain($parent->name . $authors);
       }
       $link_text = implode(" &raquo; ", $parent_names);
       $term_matches[$prefix . $n] = (count($field['settings']['allowed_values']) > 1) ? $link_text . ' (' . check_plain($tag->vocab_name) . ')' : $link_text;
