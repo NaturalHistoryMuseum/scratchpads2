@@ -186,6 +186,22 @@ function darwincore_specimen_observation_node_form_validate($form, &$form_state)
       }
     }
   }
+  // Check that the field_collector_copy and field_identified_by_copy fields are
+  // empty.
+  foreach(array(
+    'field_collector_copy',
+    'field_identified_by_copy'
+  ) as $field_name){
+    if(!empty($form_state['values'][$field_name][LANGUAGE_NONE][0]['value'])){
+      $field_label = explode('_', $field_name);
+      array_pop($field_label);
+      array_shift($field_label);
+      $field_label = ucwords(implode(' ', $field_label));
+      form_set_error($field_name, t('You must empty the "@field_name (COPY)" field, populating the "@field_name" field instead.', array(
+        '@field_name' => $field_label
+      )));
+    }
+  }
 }
 
 /**

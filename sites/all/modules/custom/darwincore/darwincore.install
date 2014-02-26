@@ -309,11 +309,84 @@ function darwincore_update_7018(){
     field_update_instance($fields['node-specimen_observation-field_media']['field_instance']);
   }
 }
+/**
+ * Fix an issue with migration that resulted in Collector and Identifier fields
+ * being created as text fields, and not user reference fields.
+ */
+function darwincore_update_7019(){
+  // First check if we need to do this update by counting the number of rows
+  // from the field_config table (0, 1 or 2) that have module = 'text' and 
+  // field_name of field_collector or field_identified_by
+  $condition = db_or()->condition('field_name', 'field_collector')->condition('field_name', 'field_identified_by');
+  $rows = db_select('field_config', 'f')->condition($condition)->condition('module', 'text')->fields('f', array(
+    'field_name'
+  ))->execute()->fetchCol();
+  if(count($rows)){
+    foreach($rows as $field_name){
+      // We need to do the update.  We create a new field for copying the data
+      // across, then delete the old field, and create the correct fields.  Note,
+      // this update does not copy the data across to the new field, that is for
+      // the user to do.  We will not allow nodes to be saved with data in these
+      // new fields, so they will eventually be deleted.
+      $current_field = field_info_field($field_name);
+      $current_field['field_name'] .= '_copy';
+      if(!field_info_field($current_field['field_name'])){
+        field_create_field($current_field);
+      }
+      $current_field_instance = field_info_instance('node', $field_name, 'specimen_observation');
+      $current_field_instance['field_name'] .= '_copy';
+      $current_field_instance['label'] .= ' (COPY)';
+      $current_field_instance['description'] .= ' This field must be EMPTY before this node can be saved.';
+      $current_field_instance['widget']['module'] = 'text';
+      $current_field_instance['widget']['type'] = 'text_textfield';
+      $current_field_instance['display'] = array(
+        'default' => array(
+          'label' => 'above',
+          'type' => 'text_default',
+          'weight' => 5,
+          'settings' => array(),
+          'module' => 'text'
+        )
+      );
+      unset($current_field_instance['widget']['settings']['autocomplete_match']);
+      unset($current_field_instance['widget']['settings']['autocomplete_path']);
+      if(!field_info_instance('node', $current_field_instance['field_name'], 'specimen_observation')){
+        field_create_instance($current_field_instance);
+      }
+      // Now we copy the data, using a simple SQL query.
+      foreach(array(
+        'field_revision_',
+        'field_data_'
+      ) as $table){
+        // If this query fails, then the update must fail.  We do not want to
+        // get to a point where we've created a new field, not copied the data
+        // across, and then deleted the old field.
+        $select_query = db_select($table . $field_name, 's')->fields('s');
+        $schema = drupal_get_schema($table . $field_name . '_copy');
+        $query = db_insert($table . $field_name . '_copy')->fields(array_keys($schema['fields']))->from($select_query);
+        $query->execute();
+      }
+      // Next we delete the old version of the field and all of its instances, and
+      // then we create the new user_reference version of the field.
+      field_delete_field($field_name);
+      // Purge the deleted field
+      module_load_include('crud.inc', 'field');
+      field_purge_batch(10000);
+      // Finally, create the new version of the field.
+      module_load_include('features.field.inc', 'darwincore');
+      $fields = darwincore_field_default_fields();
+      field_create_field($fields['node-specimen_observation-' . $field_name]['field_config']);
+      field_create_instance($fields['node-specimen_observation-' . $field_name]['field_instance']);
+    }
+    // Finally, we flush all caches
+    drupal_flush_all_caches();
+  }
+}
 
 /**
  * Enable the auto_entitylabel module
  */
-function darwincore_update_7019(){
+function darwincore_update_7020(){
   darwincore_update_7015();
   module_enable(array(
     'auto_entitylabel'
