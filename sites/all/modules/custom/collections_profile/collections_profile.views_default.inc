@@ -95,16 +95,16 @@ function collections_profile_views_default_views(){
   $handler->display->display_options['defaults']['style_plugin'] = FALSE;
   $handler->display->display_options['style_plugin'] = 'table';
   $handler->display->display_options['style_options']['columns'] = array(
-    'field_coll_institution_image' => 'field_coll_institution_image',
-    'field_coll_institution_code' => 'field_coll_institution_image',
-    'nid' => 'field_coll_institution_image',
+    'field_media' => 'field_media',
+    'field_coll_institution_code' => 'field_media',
+    'nid' => 'field_media',
     'title' => 'title',
     'body' => 'title',
     'field_coll_website' => 'title'
   );
   $handler->display->display_options['style_options']['default'] = '-1';
   $handler->display->display_options['style_options']['info'] = array(
-    'field_coll_institution_image' => array(
+    'field_media' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
@@ -161,17 +161,16 @@ function collections_profile_views_default_views(){
   $handler->display->display_options['empty']['area']['content'] = 'Sorry there is not yet any content of this type.';
   $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
   $handler->display->display_options['defaults']['fields'] = FALSE;
-  /* Field: Content: Institution image */
-  $handler->display->display_options['fields']['field_coll_institution_image']['id'] = 'field_coll_institution_image';
-  $handler->display->display_options['fields']['field_coll_institution_image']['table'] = 'field_data_field_coll_institution_image';
-  $handler->display->display_options['fields']['field_coll_institution_image']['field'] = 'field_coll_institution_image';
-  $handler->display->display_options['fields']['field_coll_institution_image']['label'] = '';
-  $handler->display->display_options['fields']['field_coll_institution_image']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['field_coll_institution_image']['click_sort_column'] = 'fid';
-  $handler->display->display_options['fields']['field_coll_institution_image']['settings'] = array(
-    'image_style' => 'square_thumbnail',
-    'image_link' => ''
-  );
+  /* Field: Content: Media */
+  $handler->display->display_options['fields']['field_media']['id'] = 'field_media';
+  $handler->display->display_options['fields']['field_media']['table'] = 'field_data_field_media';
+  $handler->display->display_options['fields']['field_media']['field'] = 'field_media';
+  $handler->display->display_options['fields']['field_media']['label'] = '';
+  $handler->display->display_options['fields']['field_media']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['field_media']['click_sort_column'] = 'fid';
+  $handler->display->display_options['fields']['field_media']['type'] = 'styles_file_square_thumbnail';
+  $handler->display->display_options['fields']['field_media']['group_rows'] = FALSE;
+  $handler->display->display_options['fields']['field_media']['delta_offset'] = '0';
   /* Field: Content: Institution collection code */
   $handler->display->display_options['fields']['field_coll_institution_code']['id'] = 'field_coll_institution_code';
   $handler->display->display_options['fields']['field_coll_institution_code']['table'] = 'field_data_field_coll_institution_code';
@@ -285,18 +284,17 @@ function collections_profile_views_default_views(){
   $handler->display->display_options['footer']['area']['content'] = '<p><a href="/collections_profile">Return to collections profiles list</a></p>';
   $handler->display->display_options['footer']['area']['format'] = 'filtered_html';
   $handler->display->display_options['defaults']['fields'] = FALSE;
-  /* Field: Content: Institution image */
-  $handler->display->display_options['fields']['field_coll_institution_image']['id'] = 'field_coll_institution_image';
-  $handler->display->display_options['fields']['field_coll_institution_image']['table'] = 'field_data_field_coll_institution_image';
-  $handler->display->display_options['fields']['field_coll_institution_image']['field'] = 'field_coll_institution_image';
-  $handler->display->display_options['fields']['field_coll_institution_image']['label'] = '';
-  $handler->display->display_options['fields']['field_coll_institution_image']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['field_coll_institution_image']['element_wrapper_type'] = 'div';
-  $handler->display->display_options['fields']['field_coll_institution_image']['click_sort_column'] = 'fid';
-  $handler->display->display_options['fields']['field_coll_institution_image']['settings'] = array(
-    'image_style' => 'square_thumbnail',
-    'image_link' => ''
-  );
+  /* Field: Content: Media */
+  $handler->display->display_options['fields']['field_media']['id'] = 'field_media';
+  $handler->display->display_options['fields']['field_media']['table'] = 'field_data_field_media';
+  $handler->display->display_options['fields']['field_media']['field'] = 'field_media';
+  $handler->display->display_options['fields']['field_media']['label'] = '';
+  $handler->display->display_options['fields']['field_media']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['field_media']['element_wrapper_type'] = 'div';
+  $handler->display->display_options['fields']['field_media']['click_sort_column'] = 'fid';
+  $handler->display->display_options['fields']['field_media']['type'] = 'styles_file_square_thumbnail';
+  $handler->display->display_options['fields']['field_media']['group_rows'] = FALSE;
+  $handler->display->display_options['fields']['field_media']['delta_offset'] = '0';
   /* Field: Content: Nid */
   $handler->display->display_options['fields']['nid']['id'] = 'nid';
   $handler->display->display_options['fields']['nid']['table'] = 'node';
@@ -414,7 +412,7 @@ function collections_profile_views_default_views(){
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   
   /* Display: Master */
-    $handler = $view->new_display('default', 'Master', 'default');
+              $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Specimen count by date';
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['group_by'] = TRUE;

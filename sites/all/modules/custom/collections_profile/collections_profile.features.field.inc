@@ -411,13 +411,13 @@ function collections_profile_field_default_fields(){
           0 => 'fid'
         )
       ),
-      'module' => 'image',
+      'module' => 'file',
       'settings' => array(
         'default_image' => 0,
         'uri_scheme' => 'public'
       ),
       'translatable' => '0',
-      'type' => 'image'
+      'type' => 'file'
     ),
     'field_instance' => array(
       'bundle' => 'collections_profile',
@@ -426,13 +426,10 @@ function collections_profile_field_default_fields(){
       'display' => array(
         'default' => array(
           'label' => 'hidden',
-          'module' => 'image',
-          'settings' => array(
-            'image_link' => '',
-            'image_style' => 'square_thumbnail'
-          ),
-          'type' => 'image',
-          'weight' => '0'
+          'module' => 'styles',
+          'settings' => array(),
+          'type' => 'styles_file_square_thumbnail',
+          'weight' => '1'
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -463,29 +460,20 @@ function collections_profile_field_default_fields(){
         'user_register_form' => FALSE
       ),
       'widget' => array(
-        'active' => 1,
-        'module' => 'media',
+        'module' => 'media_multiselect',
         'settings' => array(
           'allowed_schemes' => array(
             'module' => 0,
             'public' => 'public'
           ),
           'allowed_types' => array(
-            0 => 0,
-            'audio' => 0,
-            'default' => 0,
-            'image' => 'image',
-            'video' => 0
+            'image' => 'image'
           ),
-          'browser_plugins' => array(
-            'media_default--media_browser_1' => 'media_default--media_browser_1',
-            'media_default--media_browser_my_files' => 0,
-            'upload' => 'upload'
-          ),
+          'browser_plugins' => array(),
           'progress_indicator' => 'throbber'
         ),
-        'type' => 'media_generic',
-        'weight' => '3'
+        'type' => 'media_multiselect',
+        'weight' => '4'
       )
     )
   );
