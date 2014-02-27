@@ -6,8 +6,8 @@ core = 7.x
 dependencies[] = field
 files[] = tests/file.test
 
-; Information added by  packaging script on 2013-11-20
-version = "7.24"
+; Information added by Drupal.org packaging script on 2014-01-15
+version = "7.26"
 project = "drupal"
-datestamp = "1384983240"
+datestamp = "1389815930"
 

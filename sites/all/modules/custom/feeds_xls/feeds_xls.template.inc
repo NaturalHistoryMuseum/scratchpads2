@@ -568,7 +568,7 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
           }
         }else if($field['type'] == 'node_reference'){
           // If the view name is set, we can not do anything.
-          if(!$field['settings']['view']['view_name']){
+          if(!$field['settings']['view']['view_name'] && array_filter($field['settings']['referenceable_types'])){
             $results = db_select('node', 'n')->condition('type', $field['settings']['referenceable_types'])->fields('n', array(
               'nid',
               'title'
