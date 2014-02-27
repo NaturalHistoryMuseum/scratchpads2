@@ -6,6 +6,11 @@
     this.init = function(){
       this.$slick = $(slickgrid.getContainer());
       this.metadata = []
+      this.updatedCells = {
+          from: -1,
+          to: -1
+      };
+      this.selectedRows = [];
       this.subscriptions = [$.proxy(this, 'updateCellFlag')];
       // Bind to 'onSlickgridDataLoaded'
       this.$slick.bind('onSlickgridDataLoaded', $.proxy(this, 'slickgridDataLoaded'));
@@ -13,6 +18,7 @@
       Drupal.characterContextMenu.subscribe($.proxy(this, 'contextMenu'));
       // React when rows are selected to restore metadata
       grid.onSelectedRowsChanged.subscribe($.proxy(this, 'selectedRowsChanged'));
+      grid.onViewportChanged.subscribe($.proxy(this, 'viewportChanged'));
     }
     
     /**
@@ -78,16 +84,56 @@
         this.metadata[i] = row;
       }
       // Once the data has been displayed we can assign the flags to the cells.
-      grid.onViewportChanged.subscribe($.proxy(this, 'updateViewportRows'));
       window.setTimeout($.proxy(this, 'updateViewportRows'));
+    }
+
+    /**
+     * viewportChanged
+     */
+    this.viewportChanged = function(){
+      this.updateViewportRows();
     }
 
     /**
      * updateViewportRows
      */
-    this.updateViewportRows = function(){
-      var vp = grid.getViewport();
-      for (var i = vp.top; i <= vp.bottom; i++){
+    this.updateViewportRows = function(range){
+      if (typeof(range) == 'undefined'){
+        var vp = grid.getViewport();
+        range = {
+          from: vp.top,
+          to: vp.bottom
+        };
+        var new_range = range;
+        if (this.updatedCells.from <= range.from && this.updatedCells.to >= range.to){
+          return;
+        }
+        if (this.updatedCells.from <= range.from && this.updatedCells.to > range.from){
+          new_range = {
+            from: this.updatedCells.to,
+            to: range.to
+          };
+        } else if (this.updatedCells.from <= range.to && this.updatedCells.to >= range.to){
+          new_range = {
+            from: range.from,
+            to: this.updatedCells.from
+          };
+        } else {
+          // We should udpate the whole range. When this happens though it's possible
+          // slickgrid hasn't actually displayed the cells yet - so we must delay this
+          // update.
+          if (typeof this.timer != 'undefined'){
+            clearTimeout(this.timer);
+          }
+          this.timer = window.setTimeout($.proxy(this, 'updateViewportRows', range), 50);
+          return;
+        }
+        this.updatedCells = range;
+        range = new_range;
+      } else {
+        this.updatedCells = range;
+      }
+      for (var i = range.from; i <= range.to; i++){
         for (var column in this.metadata[i]){
           if (this.metadata[i][column].disabled){
             var node = grid.getCellNode(i, grid.getColumnIndex(column));
@@ -125,7 +171,13 @@
      * selectedRowsChanged
      */
     this.selectedRowsChanged = function(event, data){
-      this.updateViewportRows();
+      var rows_to_update = this.selectedRows.concat(data.rows);
+      var range = {
+        from: Math.min.apply(Math, rows_to_update),
+        to: Math.max.apply(Math, rows_to_update)
+      };
+      this.updateViewportRows(range);
+      this.selectedRows = data.rows.slice();
     }
 
     /**
