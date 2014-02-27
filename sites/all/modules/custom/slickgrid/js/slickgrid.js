@@ -64,9 +64,12 @@ if(!Array.prototype.indexOf) {
       grid = new Slick.Grid(container, loader.data, columns, options);
       grid.setHeaderRowVisibility(false); // Now hide it - filters will take of this.
       // Load the data when the scroll bar is touched (etc).
-      grid.onViewportChanged.subscribe(function(e, args){
+      grid.onViewportChanged.subscribe(function(e){
         var vp = grid.getViewport();
-        loader.ensureData(vp.top, vp.bottom, PAGESIZE);
+        if (vp.bottom >= loader.data.length - 1 && !loader.allRowsLoaded()){
+          displayLoadingIndicator();
+        }
+        ensureViewportData(false);
       });
       // Are sortable columns enabled?
       // Sortable columns won't work with collapsible taxonomy fields
@@ -74,37 +77,9 @@ if(!Array.prototype.indexOf) {
         grid.onSort.subscribe(function(e, args){
           loader.setSort(args.sortCol.field, args.sortAsc ? 1 : -1);
           var vp = grid.getViewport();
-          loader.ensureData(vp.top, vp.bottom, PAGESIZE);
+          loader.ensureData(vp.top, vp.bottom);
         });
       }
-      loader.onDataLoading.subscribe(function(event, range){
-        if(!loadingIndicator) {
-          loadingIndicator = $('<div class="loading-indicator"><div><img src="' + Drupal.settings.slickgrid.loading_image_url + '"/></div></div>').appendTo(document.body);
-          loadingIndicator.css("position", "absolute");
-          // FIXME - The following "position" command may or may not be
-          // required.
-          // This feels like a similar issue to what we were having with the
-          // toolbar module.
-          $('body').css('position', 'relative');
-          loadingIndicator.css("top", $(container).offset().top);
-          loadingIndicator.css("left", $(container).offset().left);
-          loadingIndicator.css("width", $(container).width());
-          loadingIndicator.css("height", $(container).height());
-          loadingIndicator.css("background-color", "#232323");
-          loadingIndicator.css("z-index", 100000);
-          loadingIndicator.css("border", "solid 1px #232323");
-          loadingIndicator.fadeTo("fast", 0.3);
-          loadingIndicator.children().css("position", "relative");
-          loadingIndicator.children().css('top', (loadingIndicator.height() / 2) - 24);
-          loadingIndicator.children().css('left', (loadingIndicator.width() / 2) - 24);
-          // We set the header row as initially visible so that the height of
-          // the grid is set correctly.
-          grid.resizeCanvas();
-        }
-        if (range.to - range.from + 1 >= PAGESIZE){
-          loadingIndicator.fadeIn();
-        }
-      });
       loader.onDataLoaded.subscribe(function(e, args){
         $(container).trigger('onSlickgridDataLoaded', [args.from, args.to, loader.data]);
         for( var i = args.from; i <= args.to; i++) {
@@ -116,10 +91,11 @@ if(!Array.prototype.indexOf) {
         grid.render();
         // FIXME - The loading indicator is causing the horizontal scroll bar
         // to appear on screen.
-        loadingIndicator.fadeOut();
+        hideLoadingIndicator();
       });
       // load the first page
       grid.onViewportChanged.notify();
+      displayLoadingIndicator();
       // Add all the controls
       // delete control (requires row selection checkbox)
       if(options['delete'] && options['row_selection_checkbox']) {
@@ -212,6 +188,60 @@ if(!Array.prototype.indexOf) {
     }
     function handleSelectedRowsChanged(){
       closeDialog();
+    }
+    // Display the loading indicator
+    function displayLoadingIndicator(){
+      if(!loadingIndicator) {
+        loadingIndicator = $('<div class="loading-indicator"><div><img src="' + Drupal.settings.slickgrid.loading_image_url + '"/></div></div>').appendTo(document.body);
+        loadingIndicator.css("position", "absolute");
+        // FIXME - The following "position" command may or may not be
+        // required.
+        // This feels like a similar issue to what we were having with the
+        // toolbar module.
+        $('body').css('position', 'relative');
+        loadingIndicator.css("top", $(container).offset().top);
+        loadingIndicator.css("left", $(container).offset().left);
+        loadingIndicator.css("width", $(container).width());
+        loadingIndicator.css("height", $(container).height());
+        loadingIndicator.css("background-color", "#232323");
+        loadingIndicator.css("z-index", 100000);
+        loadingIndicator.css("border", "solid 1px #232323");
+        loadingIndicator.fadeTo("fast", 0.3);
+        loadingIndicator.children().css("position", "relative");
+        loadingIndicator.children().css('top', (loadingIndicator.height() / 2) - 24);
+        loadingIndicator.children().css('left', (loadingIndicator.width() / 2) - 24);
+        // We set the header row as initially visible so that the height of
+        // the grid is set correctly.
+        grid.resizeCanvas();
+      }
+      if (loadingIndicator.css('display') == 'none'){
+        loadingIndicator.fadeIn();
+      }
+    }
+    // Hide the loading indicator
+    function hideLoadingIndicator(){
+      if (loadingIndicator && loadingIndicator.css('display') == 'block'){
+        loadingIndicator.fadeOut();
+      }
+    }
+    // Ensure we have the viewport data available
+    function ensureViewportData(reset){
+      var vp = grid.getViewport();
+      if (reset){
+        vp.bottom = vp.bottom - vp.top;
+        vp.top = 0;
+        grid.scrollRowToTop(0);
+      }
+      var page_size = Math.max(Math.floor((vp.bottom - vp.top + 11)/10)*10, 20);
+      var start = vp.top <= page_size ? 0 : Math.floor((vp.top - 1 - page_size)/page_size)*page_size;
+      var end = Math.floor((vp.bottom+1+2*page_size)/page_size)*page_size;
+      if (start > 1){
+        //loader.removeRange(0, start - 1);
+      }
+      if (end < loader.data.length - 1){
+        //loader.removeRange(end + 1, loader.data.length - 1)
+      }
+      loader.ensureData(start, end);
     }
     // User has reodered the columns - save it to the backend
     function handleColumnsReordered(e, ui){
@@ -316,7 +346,7 @@ if(!Array.prototype.indexOf) {
     // Invalidate all selected rows, and return the
     // list of rows that were invalidated.
     function invalidateSelectedRows(){
-      var rows_to_invalidate = grid.getSelectedRows();
+      var rows_to_invalidate = grid.getSelectedRows().slice();
       var active_cell = grid.getActiveCell();
       if (active_cell !== null && $.inArray(active_cell.row, rows_to_invalidate) == -1){
         rows_to_invalidate.push(active_cell.row);
@@ -369,15 +399,24 @@ if(!Array.prototype.indexOf) {
       // Apply filters to the input kep up event
       var keyup_timer = false;
       $(grid.getHeaderRow()).delegate(":input", "change keyup", function(e){
-        columnFilters[$(this).data("columnId")] = $.trim($(this).val());
+        var new_filter_value = $.trim($(this).val());
+        var column_id = $(this).data("columnId");
+        if (columnFilters[column_id] == new_filter_value){
+          return;
+        }
+        columnFilters[column_id] = new_filter_value;
         if (keyup_timer){
           clearTimeout(keyup_timer);
         }
         if (e.type == 'change'){
           loader.setFilters(columnFilters);
+          ensureViewportData(true);
+          displayLoadingIndicator();
         } else {
           keyup_timer = setTimeout(function(){
             loader.setFilters(columnFilters);
+            ensureViewportData(true);
+            displayLoadingIndicator();
           }, 1000);
         }
       });
@@ -396,7 +435,7 @@ if(!Array.prototype.indexOf) {
         }, 0);
       }
       grid.setOptions({headerRowHeight:$(grid.getHeaderRow()).parent().height()});
-      loader.setFilters(columnFilters, true);
+      loader.setFilters(columnFilters);
     }
     function updateFilters(){
       // add the header inputs
@@ -571,13 +610,12 @@ if(!Array.prototype.indexOf) {
       }
       updateStatus(status, response.messages);
       // If the callback has returned a new data array (which will happen on
-      // node clone & node add) reload all rows ; otherwise expect rows will
+      // node clone & node add) or new columns reload all rows ; otherwise expect rows will
       // have been invalidated already.
-      if(typeof response.data === 'object') {
-        loader.reloadData(0, loader.data.length - 1);
-      } else {
-        loader.ensureData(0, loader.data.length - 1);
+      if(typeof response.data === 'object' || typeof response.columns != "undefined") {
+        loader.invalidateRange(0, loader.data.length - 1);
       }
+      ensureViewportData();
       // If the callback has returned a column array, update the columns
       if(typeof response.columns === 'string') {
         updateColumns(response.columns);
@@ -678,6 +716,8 @@ if(!Array.prototype.indexOf) {
       columnFilters[field] = value;
       if (typeof refresh !== 'undefined' && refresh){
         loader.setFilters(columnFilters);
+        ensureViewportData(true);
+        displayLoadingIndicator();
       }
     }
     function getContainer(){
@@ -706,7 +746,7 @@ if(!Array.prototype.indexOf) {
         grid.scrollRowToTop(state.row);
       }
     }
-    $.extend(this, {"callback": callback, "getViewName": getViewName, "getViewDisplayID": getViewDisplayID, "getEntityIDs": getEntityIDs, "getContainer": getContainer, "getColumns": getColumns, "setColumns": setColumns, "openDialog": openDialog, "closeDialog": closeDialog, "reload": reload, 'setColumnFilter': setColumnFilter, 'updateFilters': updateFilters, 'updateSettings': updateSettings, 'updateStatus': updateStatus, 'getGridState': getGridState, 'setGridState': setGridState, 'invalidateRow' : invalidateRow, 'invalidateSelectedRows': invalidateSelectedRows});
+    $.extend(this, {"callback": callback, "getViewName": getViewName, "getViewDisplayID": getViewDisplayID, "getEntityIDs": getEntityIDs, "getContainer": getContainer, "getColumns": getColumns, "setColumns": setColumns, "openDialog": openDialog, "closeDialog": closeDialog, "reload": reload, 'setColumnFilter': setColumnFilter, 'updateFilters': updateFilters, 'updateSettings': updateSettings, 'updateStatus': updateStatus, 'getGridState': getGridState, 'setGridState': setGridState, 'invalidateRow' : invalidateRow, 'invalidateSelectedRows': invalidateSelectedRows, 'deselectAllRows': deselectAllRows});
     init(this);
     $(container).trigger('onSlickgridInit', this);
   }

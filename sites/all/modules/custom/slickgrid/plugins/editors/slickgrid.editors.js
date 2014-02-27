@@ -41,8 +41,9 @@
       // And update the cell
       var column_index = grid.getColumnIndex(args.column.id);
       var invalid_rows = slickgrid.invalidateSelectedRows();
+      slickgrid.deselectAllRows();
       for (var i = 0; i < invalid_rows.length; i++){
-        $(args.grid.getCellNode(rows_to_invalidate[i], column_index)).addClass('slickgrid-cell-loading');
+        $(args.grid.getCellNode(invalid_rows[i], column_index)).addClass('slickgrid-cell-loading');
         var row_item = grid.getDataItem(invalid_rows[i]);
         row_item[args.column.id] = value;
         grid.updateCell(invalid_rows[i], column_index);
@@ -101,6 +102,7 @@
     this.applyValue = function(item){
       var column_index = grid.getColumnIndex(args.column.id);
       var invalid_rows = slickgrid.invalidateSelectedRows();
+      slickgrid.deselectAllRows();
       for (var i = 0; i < invalid_rows.length; i++){
         $(args.grid.getCellNode(rows_to_invalidate[i], column_index)).addClass('slickgrid-cell-loading');
         var row_item = grid.getDataItem(invalid_rows[i]);
