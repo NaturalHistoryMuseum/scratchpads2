@@ -292,6 +292,17 @@ div.character-editor-popup-button-highlight {
   color: #444;
 }
 
+#slickgrid div.slick-cell.slickgrid-cell-loading:after {
+  content: '';
+  width: 15px;
+  height: 20px;
+  left: 0;
+  top: 0;
+  background-image: url("/misc/throbber.gif");
+  background-repeat: no-repeat;
+  background-position: 0 -20px;
+}
+
 #slickgrid div.character-editor-disabled-cell {
   background: #E8E8E8;
 }

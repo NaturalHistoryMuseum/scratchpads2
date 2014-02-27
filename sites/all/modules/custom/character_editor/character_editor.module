@@ -160,7 +160,7 @@ function character_editor_menu_local_tasks_alter(&$data, $router_item, $root_pat
  * Override slickgrid control theme
  */
 function character_editor_theme_registry_alter(&$theme_registry){
-  $theme_registry['slickgrid_controls'] = array(
+  $theme_registry['slickgrid_controls'] = array_merge($theme_registry['slickgrid_controls'], array(
     'arguments' => array(
       'view' => array()
     ),
@@ -170,7 +170,7 @@ function character_editor_theme_registry_alter(&$theme_registry){
       drupal_get_path('module', 'character_editor') . '/theme/theme.inc'
     ),
     'function' => 'character_editor_theme_slickgrid_controls'
-  );
+  ));
 }
 
 /**
@@ -367,6 +367,17 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
   drupal_add_js(array(
     'CharacterEditorFlags' => $project_model->getFlags()
   ), 'setting');
+}
+
+/**
+ * Implementation of hook_views_pre_render
+ * 
+ * - Assign the values of the characters ;
+ * - Order the taxon/specimens in a tree ;
+ * - Filter out collapsed values.
+ */
+function character_editor_views_pre_render($view){
+  $view->result = $view->project_model->getRowValues($view->result);
 }
 
 /*********************************************************************************************
@@ -747,7 +758,7 @@ function character_editor_character_form_validate($form, &$form_state){
     'field_char_condition'
   );
   foreach($expression_fields as $expr_field){
-    if (!isset($form[$expr_field])){
+    if(!isset($form[$expr_field])){
       continue;
     }
     $lang = field_language('character_editor_character', $form['#entity'], $expr_field);
@@ -778,7 +789,7 @@ function character_editor_character_form_submit_expression($form, &$form_state){
     'field_char_condition'
   );
   foreach($expression_fields as $expr_field){
-    if (!isset($form[$expr_field])){
+    if(!isset($form[$expr_field])){
       continue;
     }
     $lang = field_language('character_editor_character', $form['#entity'], $expr_field);

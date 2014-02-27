@@ -23,15 +23,5 @@ class character_editor_views_plugin extends slickgrid_views_plugin{
       unset($form['editing'][$control]);
     }
   }
-
-  /**
-   * Pre-render is used to:
-   * - Assign the values of the characters ;
-   * - Order the taxon/specimens in a tree ;
-   * - Filter out collapsed values.
-   */
-  function pre_render(&$result){
-    $result = $this->view->project_model->getRowValues($result);
-  }
 }
 ?>

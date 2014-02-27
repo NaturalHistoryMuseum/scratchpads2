@@ -75,7 +75,7 @@ class CharacterProjectViewsController extends EntityDefaultViewsController{
     // Add a field used to display both taxonomic terms and specimens
     $data['character_editor']['table']['group'] = t('Character Editor');
     $data['character_editor']['table']['join'] = array(
-      '#global' => array(),
+      '#global' => array()
     );
     $data['character_editor']['character_entity_field'] = array(
       'title' => t('Taxon and Specimen'),

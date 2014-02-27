@@ -239,7 +239,7 @@ class CharacterExpressionParser{
       }
       if(isset($tree['function'])){
         $callable = $this->functions[$tree['function']]['call'];
-        return call_user_func($callable, reset($ops));
+        return call_user_func($callable, reset($ops), $context);
       }else{
         if($this->operators[$tree['operator']]['arity'] == 1){
           return $ops[0]->applyUnaryOperator($tree['operator']);
@@ -249,7 +249,7 @@ class CharacterExpressionParser{
             $ops[1]
           ), $tree['operator'], $context);
         }else if($tree['operator'] == '..'){
-          return new CharacterExpressionRange($ops[0], $ops[1]);
+          return new CharacterExpressionRange($ops[0], $ops[1], $context);
         }else{
           return $ops[0]->applyBinaryOperator($tree['operator'], $ops[1]);
         }
@@ -490,15 +490,15 @@ class CharacterExpressionParser{
           $str = substr($this->raw, $pos, $end_pos - $pos + 1);
         }
         if($type == 'symbol'){
-          $this->tokens[] = new CharacterExpressionSymbol($str);
+          $this->tokens[] = new CharacterExpressionSymbol($str, array());
         }else if($type == 'text'){
-          $this->tokens[] = new CharacterExpressionText($str);
+          $this->tokens[] = new CharacterExpressionText($str, array());
         }else if($type == 'variable'){
-          $this->tokens[] = new CharacterExpressionVariable($str);
+          $this->tokens[] = new CharacterExpressionVariable($str, array());
         }else if($type == 'number'){
-          $this->tokens[] = new CharacterExpressionNumber($str);
+          $this->tokens[] = new CharacterExpressionNumber($str, array());
         }else if($type == 'undefined'){
-          $this->tokens[] = new CharacterExpressionUndefined();
+          $this->tokens[] = new CharacterExpressionUndefined(array());
         }else{
           $this->tokens[] = $str;
         }
@@ -1308,7 +1308,7 @@ class CharacterExpressionList extends CharacterExpressionValue{
               $new_array[] = $item->applyBinaryOperator($o, $v);
             }
           }
-          return new CharacterExpressionList($new_array, $this->conjoined, $this->context);
+          return new CharacterExpressionList($new_array, $this->conjoined ? '&' : '|', $this->context);
         default:
           throw new Exception(t("Operator %op cannot be used between an array and a %type", array(
             '%op' => $o,
@@ -1679,7 +1679,7 @@ class CharacterExpressionVariable extends CharacterExpressionValue{
       $val = $val['value'];
     }
     if($type == 'undefined'){
-      return new CharacterExpressionUndefined();
+      return new CharacterExpressionUndefined($this->context);
     }else if(is_object($val) && ($val instanceof CharacterExpressionValue)){
       return $val;
     }else if((is_int($val) || is_float($val)) && (!$type || $type == 'number')){
@@ -1697,7 +1697,7 @@ class CharacterExpressionVariable extends CharacterExpressionValue{
       foreach($val as $v){
         $a[] = $this->getValueObject($v);
       }
-      return new CharacterExpressionList($a, !$type || $type == 'list-and', $this->context);
+      return new CharacterExpressionList($a, (!$type || $type == 'list-and') ? '&' : '|', $this->context);
     }else if(is_string($val) && $type == 'expr'){
       $expr = new CharacterExpressionParser($val);
       $new_val = $expr->evaluate($this->context['variable_map'], $this->context['symbol_order']);
@@ -1769,7 +1769,7 @@ class CharacterExpressionUndefined extends CharacterExpressionValue{
     }else if($o == 'is' || $o == 'in' || $o == '<' || $o == '<=' || $o == '>' || $o == '>='){
       return new CharacterExpressionNumber(0, $this->context);
     }else{
-      return new CharacterExpressionUndefined();
+      return new CharacterExpressionUndefined($this->context);
     }
   }
 }
@@ -1793,15 +1793,15 @@ class CharacterExpressionFunctions{
    * Note that a call to _ensure_list is added to all function arguments, so
    * the only function that may not receive a list as argument is _ensure_list.
    */
-  static function _ensure_list($p){
+  static function _ensure_list($p, $context){
     if($p instanceof CharacterExpressionList){
       return $p;
     }else if($p === NULL){
-      return new CharacterExpressionList(array());
+      return new CharacterExpressionList(array(), '|', $context);
     }else{
       return new CharacterExpressionList(array(
         $p
-      ));
+      ), '|', $context);
     }
   }
 
@@ -1810,18 +1810,18 @@ class CharacterExpressionFunctions{
    *
    * Round the numerical value to the number of digits
    */
-  static function round(CharacterExpressionList $p){
+  static function round(CharacterExpressionList $p, $context){
     if(count($p->value()) != 2){throw new Exception("Function round takes two parameters");}
     $values = $p->value();
     if($values[1]->type() != 'number'){throw new Exception("Second parameter of round must be a number");}
     if($values[0]->type() == 'range'){
       $range = $values[0]->value();
-      $min = new CharacterExpressionNumber(round($range['min']->value(), $values[1]->value()));
-      $max = new CharacterExpressionNumber(round($range['max']->value(), $values[1]->value()));
-      return new CharacterExpressionRange($min, $max);
+      $min = new CharacterExpressionNumber(round($range['min']->value(), $values[1]->value()), $context);
+      $max = new CharacterExpressionNumber(round($range['max']->value(), $values[1]->value()), $context);
+      return new CharacterExpressionRange($min, $max, $context);
     }else if($values[0]->type() == 'number'){
-      return new CharacterExpressionNumber(round($values[0]->value(), $values[1]->value()));
-    }else if($values[0]->type() == 'undefined'){return new CharacterExpressionUndefined();}
+      return new CharacterExpressionNumber(round($values[0]->value(), $values[1]->value()), $context);
+    }else if($values[0]->type() == 'undefined'){return new CharacterExpressionUndefined($context);}
   }
 
   /**
@@ -1829,20 +1829,20 @@ class CharacterExpressionFunctions{
    *
    * Square root
    */
-  static function sqrt(CharacterExpressionList $p){
+  static function sqrt(CharacterExpressionList $p, $context){
     if(count($p->value()) != 1){throw new Exception("Function sqrt takes one parameter");}
     $values = $p->value();
     if($values[0]->type() == 'range'){
       $range = $values[0]->value();
       if($range['min']->value() < 0 || $range['max']->value() < 0){throw new Exception("Function sqrt requires positive number");}
-      $min = new CharacterExpressionNumber(sqrt($range['min']->value()));
-      $max = new CharacterExpressionNumber(sqrt($range['max']->value()));
-      return new CharacterExpressionRange($min, $max);
+      $min = new CharacterExpressionNumber(sqrt($range['min']->value()), $context);
+      $max = new CharacterExpressionNumber(sqrt($range['max']->value()), $context);
+      return new CharacterExpressionRange($min, $max, $context);
     }else if($values[0]->type() == 'number'){
       if($values[0]->value() < 0){throw new Exception("Function sqrt requires positive number");}
-      return new CharacterExpressionNumber(sqrt($values[0]->value()));
+      return new CharacterExpressionNumber(sqrt($values[0]->value()), $context);
     }else if($values[0]->type() == 'undefined'){
-      return new CharacterExpressionUndefined();
+      return new CharacterExpressionUndefined($context);
     }else{
       throw new Exception("Function sqrt takes a number/range as parameter");
     }
@@ -1854,21 +1854,21 @@ class CharacterExpressionFunctions{
    * Random float between 0 and 1 (when called with no argument), and
    * random int between 0 and the given int (when called with a number argument)
    */
-  static function rand(CharacterExpressionList $p){
+  static function rand(CharacterExpressionList $p, $context){
     if(count($p->value()) == 0){
-      return new CharacterExpressionNumber(rand() / getrandmax());
+      return new CharacterExpressionNumber(rand() / getrandmax(), $context);
     }else if(count($p->value()) == 1){
       $values = $p->value();
       if($values[0]->type() == 'range'){
         $range = $values[0]->value();
-        $min = new CharacterExpressionNumber(rand(0, $range['min']->value()));
-        $max = new CharacterExpressionNumber(rand(0, $range['max']->value()));
-        return new CharacterExpressionRange($min, $max);
+        $min = new CharacterExpressionNumber(rand(0, $range['min']->value()), $context);
+        $max = new CharacterExpressionNumber(rand(0, $range['max']->value()), $context);
+        return new CharacterExpressionRange($min, $max, $context);
       }else if($values[0]->type() == 'number'){
         $val = rand(0, $values[0]->value());
-        return new CharacterExpressionNumber(rand(0, $values[0]->value()));
+        return new CharacterExpressionNumber(rand(0, $values[0]->value()), $context);
       }else if($values[0]->type() == 'undefined'){
-        return new CharacterExpressionUndefined();
+        return new CharacterExpressionUndefined($context);
       }else{
         throw new Exception("Function rand() works with numbers and ranges only");
       }
