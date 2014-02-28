@@ -113,7 +113,7 @@ class CharacterTreeNode{
    */
   public function getViewStyleOptions($project_model){
     $options = array(
-      'width' => 35,
+      'width' => 55,
       'filter' => '',
       'headerCssClass' => 'character character-type-' . $this->model->wrapper()->getBundle() . ' ' . $this->column_id,
       'data' => $this->model->getTooltip($project_model)

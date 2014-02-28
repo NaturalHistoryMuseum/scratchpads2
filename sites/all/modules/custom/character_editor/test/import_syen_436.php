@@ -106,9 +106,8 @@ foreach ($matrix as $taxon => $row){
 }
 
 // Create a new character project
-global $user;
 $project = entity_create('character_editor_project', array(
-  'uid' => $user->uid,
+  'uid' => 1,
   'created' => time(),
   'changed' => time(),
   'type' => 'default_character_project',
@@ -125,7 +124,7 @@ $project_w->save();
 // Create characters
 foreach ($characters as $cid => $char_desc){
   $character = entity_create('character_editor_character', array(
-    'uid' => $user->uid,
+    'uid' => 1,
     'created' => time(),
     'changed' => time(),
     'type' => 'controlled'
@@ -134,7 +133,7 @@ foreach ($characters as $cid => $char_desc){
   $character_w->title = $char_desc['abbr'];
   $character_w->field_char_and_or = 'OR';
   $character_w->field_char_ordered = 0;
-  $character_w->field_char_description->value = $char_desc['description'];
+  $character_w->field_char_description = $char_desc['description'];
   foreach ($char_desc['states'] as $sid => $state_desc){
     $state = entity_create('field_collection_item', array(
       'field_name' => 'field_char_states'
@@ -159,7 +158,7 @@ foreach ($characters as $cid => $char_desc){
 foreach ($matrix as $taxon => $row){
   $taxon_entity = taxonomy_term_load($tids[$taxon]);
   $taxon_w = entity_metadata_wrapper('taxonomy_term', $taxon_entity);
-  foreach (array_slice($row, 0, 5) as $idx => $sidx){
+  foreach ($row as $idx => $sidx){
     $character_w = $characters[$idx]['w'];
     $data = "'" . $characters[$idx]['states'][$sidx]['sid'] . "'";
     character_editor_set_character_value($character_w, $taxon_w, $data);
