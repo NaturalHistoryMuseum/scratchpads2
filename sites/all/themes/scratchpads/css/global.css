@@ -1117,3 +1117,7 @@ table.views-table ul {
   padding-left: 1em;
   text-indent: -1em;
 }
+
+td.views-field-contextual-links {
+  position:relative
+}
