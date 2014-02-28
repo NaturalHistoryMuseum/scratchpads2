@@ -299,12 +299,6 @@ function scratchpads_tweaks_install(){
   // Set the image toolkit as imagemagick.
   variable_set('image_toolkit', 'imagemagick');
   variable_set('imagemagick_convert', 'convert');
-  // Set the logging level
-  variable_set('error_level', ERROR_REPORTING_HIDE);
-  // Display warnings on development machines.
-  if(isset($_SERVER['SERVER_ADDR']) && strpos($_SERVER['SERVER_ADDR'], '157.140.126') === 0){
-    variable_set('error_level', ERROR_REPORTING_DISPLAY_ALL);
-  }
   // Set the comment form defaults.
   foreach(node_type_get_names() as $type => $name){
     if($type != 'forum'){
@@ -1395,4 +1389,12 @@ function scratchpads_tweaks_update_7075(){
  */
 function scratchpads_tweaks_update_7077(){
   variable_del('jquery_update_jquery_cdn');
+}
+
+/**
+ * Don't set the error reporting level.  We use aegir's global includes file to
+ * set this, so now dev machines can easily set their own value too.
+ */
+function scratchpads_tweaks_update_7078(){
+  variable_del('error_level');
 }
