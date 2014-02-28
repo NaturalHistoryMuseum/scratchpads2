@@ -625,7 +625,7 @@ function slickgrid_editor_form_validate($form, &$form_state){
       }
       catch(FieldValidationException $e){
         foreach($e->errors as $field_name => $field_errors){
-          $error .= $field_errors;
+          $error .= strip_tags(_slickgrid_editor_get_form_error_message($field_errors));
         }
       }
     }elseif(!isset($form['#entity_property'])){
@@ -637,6 +637,22 @@ function slickgrid_editor_form_validate($form, &$form_state){
       // Set form error to prevent form submission
       form_set_error($editor->field_id, t('Validation error'));
     }
+  }
+}
+
+/**
+ * Helper function to recurse into an error to get the actual text.
+ */
+function _slickgrid_editor_get_form_error_message($error){
+  if(is_array($error)){
+    if(isset($error['message'])){
+      return $error['message'];
+    }else{
+      $error = array_pop($error);
+      return _slickgrid_editor_get_form_error_message($error);
+    }
+  }else{
+    return t('Unknown error');
   }
 }
 
