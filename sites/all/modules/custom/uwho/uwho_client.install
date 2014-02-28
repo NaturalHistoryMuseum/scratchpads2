@@ -8,7 +8,8 @@ function uwho_client_requirements($phase){
     'mcrypt' => array(
       'title' => 'PHP Mcrypt',
       'description' => 'PHP MCrypt module (<a href="http://www.php.net/manual/en/book.mcrypt.php">http://www.php.net/manual/en/book.mcrypt.php</a>) installation status',
-      'severity' => function_exists('mcrypt_module_open') ? REQUIREMENT_OK : REQUIREMENT_ERROR
+      'severity' => function_exists('mcrypt_module_open') ? REQUIREMENT_OK : REQUIREMENT_ERROR,
+      'value' => function_exists('mcrypt_module_open') ? 'Installed' : 'Not installed'
     )
   );
 }
