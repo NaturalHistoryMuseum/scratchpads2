@@ -93,6 +93,19 @@ if(!Array.prototype.indexOf) {
         // to appear on screen.
         hideLoadingIndicator();
       });
+      // We dynamically increase the height of the grid so that it fills the
+      // window.
+      if(options['height_expand']) {
+        // At this point we do not usually have the margin-top for the body, so
+        // the "100" has been added to allow for that.
+        // (window.height - (top offset + header and footer height + body top \
+        // margin + 100)) - current height
+        var increase_by = ($(window).height() - ($('#slickgrid').offset().top + ($('#slickgrid').parent().height() - $('#slickgrid').height() + parseInt($('body').css('marginTop')) + 100))) - $('#slickgrid').height();
+        console.log(increase_by);
+        if(increase_by > 20) {
+          $('#slickgrid').animate().height($('#slickgrid').height() + increase_by);
+        }
+      }
       // load the first page
       grid.onViewportChanged.notify();
       displayLoadingIndicator();
@@ -170,18 +183,6 @@ if(!Array.prototype.indexOf) {
           handleViewportResized(ui.size.height);
         }
       }});
-      // We dynamically increase the height of the grid so that it fills the
-      // window.
-      if(options['height_expand']) {
-        // At this point we do not usually have the margin-top for the body, so
-        // the "100" has been added to allow for that.
-        // (window.height - (top offset + header and footer height + body top \
-        // margin + 100)) - current height
-        var increase_by = ($(window).height() - ($('#slickgrid').offset().top + ($('#slickgrid').parent().height() - $('#slickgrid').height() + parseInt($('body').css('marginTop')) + 100))) - $('#slickgrid').height();
-        if(increase_by > 20) {
-          $('#slickgrid').animate().height($('#slickgrid').height() + increase_by);
-        }
-      }
     }
     function handleValidationError(eventData, error){
       alert(Drupal.t('There has been an error, please reload the page.'))
