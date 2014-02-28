@@ -1397,4 +1397,11 @@ function scratchpads_tweaks_update_7077(){
  */
 function scratchpads_tweaks_update_7078(){
   variable_del('error_level');
+  module_disable(array(
+    'dblog'
+  ));
+  drupal_uninstall_modules(array(
+    'dblog'
+  ));
+  module_enable('syslog');
 }
