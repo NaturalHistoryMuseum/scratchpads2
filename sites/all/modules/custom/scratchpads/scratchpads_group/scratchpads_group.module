@@ -91,6 +91,15 @@ function scratchpads_group_scratchpads_hands_off_urls_alter(&$urls){
 function scratchpads_group_og_ui_get_group_admin_alter(&$data, $gid){
   unset($data['roles']);
   unset($data['permissions']);
+  $data = array(
+    'add_people' => $data['add_people'],
+    'bulk_add_people' => array(
+      'title' => t('Bulk add people'),
+      'description' => t('Add multiple group members.'),
+      'href' => 'admin/people/bulk-add-user'
+    ),
+    'people' => $data['people']
+  );
 }
 
 /**
@@ -266,12 +275,50 @@ function scratchpads_group_node_view($node, $view_mode, $langcode){
 }
 
 /**
+ * Implements hook_menu()
+ */
+function scratchpads_group_menu(){
+  return array(
+    'group/%/%/admin/people/bulk-add-user' => array(
+      'page callback' => 'drupal_get_form',
+      'title' => 'Bulk add members',
+      'page arguments' => array(
+        'scratchpads_group_add_users',
+        1,
+        2
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'scratchpads_group.admin.inc',
+      'weight' => 5,
+      'access callback' => 'og_user_access_by_entity',
+      'access arguments' => array(
+        'add user',
+        1,
+        2
+      )
+    )
+  );
+}
+
+/**
  * Implementation of hook_page_alter().
  */
 function scratchpads_group_menu_local_tasks_alter(&$data, $router_item, $root_path){
   if($router_item['path'] == 'group' && $nid = scratchpads_group_is_group_node()){
     // Add a tab linking to node/add to all pages.
     if(node_access('update', node_load($nid))){
+      $data['tabs'][0]['output'][] = array(
+        '#theme' => 'menu_local_task',
+        '#link' => array(
+          'title' => t('View'),
+          'href' => 'node/' . $nid,
+          'localized_options' => array(
+            'attributes' => array(
+              'title' => t('View this group')
+            )
+          )
+        )
+      );
       $data['tabs'][0]['output'][] = array(
         '#theme' => 'menu_local_task',
         '#link' => array(
@@ -302,7 +349,7 @@ function scratchpads_group_menu_local_tasks_alter(&$data, $router_item, $root_pa
         )
       );
       $data['tabs'][0]['output'][0]['#active'] = TRUE;
-      $data['tabs'][0]['count'] = 2;
+      $data['tabs'][0]['count'] = 3;
     }
   }
 }
