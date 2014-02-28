@@ -333,7 +333,9 @@ function _silver_feeds_sort_field_info($entity_type, $bundle, $field_info){
             }
           }
         }
-        uasort($groups[$key]->children[$child_key]->children, '_silver_sort_groups');
+        if($groups[$key]->children[$child_key]->children){
+          uasort($groups[$key]->children[$child_key]->children, '_silver_sort_groups');
+        }
       }
     }
     uasort($groups, '_silver_sort_groups');
