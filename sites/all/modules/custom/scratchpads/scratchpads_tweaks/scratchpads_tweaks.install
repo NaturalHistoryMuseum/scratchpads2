@@ -1403,5 +1403,7 @@ function scratchpads_tweaks_update_7078(){
   drupal_uninstall_modules(array(
     'dblog'
   ));
-  module_enable('syslog');
+  module_enable(array(
+    'syslog'
+  ));
 }
