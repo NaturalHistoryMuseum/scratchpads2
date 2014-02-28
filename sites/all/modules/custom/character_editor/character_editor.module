@@ -377,6 +377,7 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
  * - Filter out collapsed values.
  */
 function character_editor_views_pre_render($view){
+  if($view->display_handler->get_option('style_plugin') != 'character_editor'){return;}
   $view->result = $view->project_model->getRowValues($view->result);
 }
 
