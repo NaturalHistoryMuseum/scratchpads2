@@ -231,7 +231,40 @@ class CharacterModel{
    * defined values.
    */
   public function getValues($row_ids = array()){
-    return character_editor_get_character_values($this->w, $row_ids);
+    // We could use character_editor_get_character_values but that's too slow for mass processing.
+    // Build the query
+    $query = db_select('field_data_endpoints', 'e');
+    // Select a relation
+    $query->condition('e.entity_type', 'relation');
+    $query->condition('e.bundle', 'character_state');
+    $query->addExpression('CONCAT(e.endpoints_entity_type, \':\', e.endpoints_entity_id)', 'entity_char_id');
+    // Ensure it has our character as one of it's endpoints
+    $query->innerJoin('field_data_endpoints', 'e1', 'e1.entity_type = e.entity_type AND e1.entity_id = e.entity_id');
+    $query->condition('e1.endpoints_entity_type', 'character_editor_character');
+    $query->condition('e1.endpoints_entity_id', $this->w->getIdentifier());
+    // Match the row ids.
+    $entity_types = array();
+    $db_or = db_or();
+    foreach($row_ids as $row_id){
+      list($row_entity_type, $row_entity_id) = explode(':', $row_id);
+      $entity_types[$row_entity_type][] = $row_entity_id;
+    }
+    foreach($entity_types as $entity_type => $entity_ids){
+      $db_and = db_and();
+      $db_and->condition('e.endpoints_entity_type', $entity_type);
+      $db_and->condition('e.endpoints_entity_id', $entity_ids, 'IN');
+      $db_or->condition($db_and);
+    }
+    $query->condition($db_or);
+    // Fetch the relation data
+    $query->leftJoin('field_data_field_character_state_data', 'data', 'data.entity_id = e.entity_id');
+    $query->addField('data', 'field_character_state_data_value', 'data');
+    $query->leftJoin('field_data_field_character_state_flag', 'flag', 'flag.entity_id = e.entity_id');
+    $query->addField('flag', 'field_character_state_flag_value', 'flag');
+    $query->leftJoin('field_data_field_character_state_pass', 'pass', 'pass.entity_id = e.entity_id');
+    $query->addField('pass', 'field_character_state_pass_value', 'pass');
+    $results = $query->execute()->fetchAll();
+    return $results;
   }
 
   /**

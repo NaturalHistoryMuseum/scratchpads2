@@ -220,8 +220,9 @@ class CharacterProjectModel{
       $offset = arg(5);
       $limit = arg(6);
     }else{
+      // Return one row otherwise the view won't display.
       $offset = 0;
-      $limit = 50;
+      $limit = 1;
     }
     // Build the tree
     $tree = array();

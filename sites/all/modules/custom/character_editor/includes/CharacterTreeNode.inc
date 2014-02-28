@@ -177,21 +177,13 @@ class CharacterTreeNode{
         module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
       }
       foreach($values as $value){
-        $data = '';
-        $metadata = array();
-        if(isset($value['data'][0]['value'])){
-          $data = $value['data'][0]['value'];
-        }
-        if(isset($value['flag'][0]['value'])){
-          $metadata['flag'] = $value['flag'][0]['value'];
-        }
-        if(isset($value['pass'][0]['value'])){
-          $metadata['pass'] = $value['pass'][0]['value'];
-        }
-        $char_id = $value['entity_w']->type() . ':' . $value['entity_w']->getIdentifier();
-        if(!empty($value_map) && $data){
+        $metadata = array(
+          'flag' => $value->flag,
+          'pass' => $value->pass
+        );
+        if(!empty($value_map) && $value->data){
           try{
-            $expression = new CharacterExpressionParser($data);
+            $expression = new CharacterExpressionParser($value->data);
             $expr_result = $expression->evaluate();
             if($expr_result->type() == 'list'){
               // A manually entered value will always be either 'or' or 'and', so
@@ -204,23 +196,23 @@ class CharacterTreeNode{
               );
               $expr_str = (string)$expression->rename(array(), $value_map)->evaluate()->value();
             }
-            $result[$char_id][$this->column_id] = array(
+            $result[$value->entity_char_id][$this->column_id] = array(
               'data' => $expr_str,
               'value' => implode(',', $expr_flat),
-              'variable' => $data,
+              'variable' => $value->data,
               'metadata' => $metadata
             );
           }
           catch(Exception $e){
-            $result[$char_id][$this->column_id] = array(
+            $result[$value->entity_char_id][$this->column_id] = array(
               'data' => "Invalid expression: " . $e->getMessage(),
               'value' => '',
               'metadata' => $metadata
             );
           }
         }else{
-          $result[$char_id][$this->column_id] = array(
-            'data' => $data,
+          $result[$value->entity_char_id][$this->column_id] = array(
+            'data' => $value->data,
             'metadata' => $metadata
           );
         }
