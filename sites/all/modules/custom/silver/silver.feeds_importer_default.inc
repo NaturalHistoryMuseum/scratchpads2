@@ -314,7 +314,7 @@ function _silver_feeds_sort_field_info($entity_type, $bundle, $field_info){
     $groups = field_group_info_groups($entity_type, $bundle, 'form');
     foreach($groups as $key => $group){
       foreach($group->children as $child_key => $child){
-        if(isset($groups[$child])){
+        if($child && is_string($child) && isset($groups[$child])){
           $groups[$key]->children[$child_key] = $groups[$child];
           unset($groups[$child]);
         }
@@ -323,7 +323,7 @@ function _silver_feeds_sort_field_info($entity_type, $bundle, $field_info){
     foreach($groups as $key => $group){
       uasort($groups[$key]->children, '_silver_sort_groups');
       foreach($group->children as $child_key => $child){
-        if(is_array($child->children)){
+        if(is_object($child) && isset($child->children) && is_array($child->children)){
           foreach($child->children as $gchild_key => $gchild){
             if(is_string($gchild) && isset($field_info[$gchild])){
               $groups[$key]->children[$child_key]->children[$gchild_key] = $field_info[$gchild];
@@ -333,7 +333,7 @@ function _silver_feeds_sort_field_info($entity_type, $bundle, $field_info){
             }
           }
         }
-        if($groups[$key]->children[$child_key]->children){
+        if(@is_object($groups[$key]->children[$child_key]->children)){
           uasort($groups[$key]->children[$child_key]->children, '_silver_sort_groups');
         }
       }
