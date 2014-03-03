@@ -1,3 +1,3 @@
 name = "Scratchpads Load Time and Memory Log"
-description = "Logs the time and memory it takes for a page to load, to a file."
+description = "Logs the time and memory it takes for a page to load to the watchdog (syslog)."
 core = "7.x"
