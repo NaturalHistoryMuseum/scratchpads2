@@ -19,71 +19,15 @@ function scratchpads_load_time_log_shutdown(){
   }else{
     $path = variable_get('site_frontpage', 'node');
   }
-  if(($filename = variable_get('scratchpads_load_time_log_filename', FALSE)) != FALSE){
-    // We clear the log at the start of the week.
-    $time = time();
-    if((variable_get('scratchpads_load_time_log_last_clear', 0) + 604800) < $time){
-      variable_set('scratchpads_load_time_log_last_clear', $time);
-      @file_put_contents($filename, '"' . implode('","', array(
-        'Path',
-        'Load time',
-        'UID',
-        'Timestamp',
-        'Method',
-        'Peak Memory (MB)',
-        'End Memory (MB)'
-      )) . "\"\n");
-    }
-    global $user;
-    @file_put_contents($filename, '"' . implode('","', array(
-      $path,
-      timer_read('page'),
-      $user->uid,
-      $time,
-      $_SERVER['REQUEST_METHOD'],
-      round(memory_get_usage() / 1024 / 1024, 2),
-      round(memory_get_peak_usage(TRUE) / 1024 / 1024, 2)
-    )) . "\"\n", FILE_APPEND);
-  }else{
-    // This really shouldn't happen, but in case it does, we'll try to run the
-    // install again.
-    module_load_include('install', 'scratchpads_load_time_log');
-    scratchpads_load_time_log_install();
-  }
-}
-
-/**
- * Implements hook_file_download()
- */
-function scratchpads_load_time_log_file_download($uri){
-  if($uri && $uri == variable_get('scratchpads_load_time_log_filename', FALSE)){
-    $url = parse_url(url('', array(
-      'absolute' => TRUE
-    )));
-    return array(
-      'Content-Type' => 'text/csv',
-      'Content-Disposition' => 'attachment; filename="' . $url['host'] . '-load-times-log.csv"',
-      'Cache-Control' => 'private'
-    );
-  }
-}
-
-/**
- * Implements hook_menu()
- */
-function scratchpads_load_time_log_menu(){
-  $filename = variable_get('scratchpads_load_time_log_filename', FALSE);
-  if($filename){return array(
-      'load-times-log.csv' => array(
-        'title' => t('Load times CSV'),
-        'page callback' => 'file_download',
-        'page arguments' => array(
-          'public',
-          substr($filename, 9)
-        ),
-        'access arguments' => array(
-          'scratchpad team'
-        )
-      )
-    );}
+  $time = time();
+  global $user;
+  watchdog('scratchpads load time', 'Path: !path, Timer: !timer, UID: !uid, Time: !time, Request type: !request_method, Memory usage: !memory_usage, Peak memory usage: !peak_memory_usage', array(
+    '!path' => $path,
+    '!timer' => timer_read('page'),
+    '!uid' => $user->uid,
+    '!time' => $time,
+    '!request_method' => $_SERVER['REQUEST_METHOD'],
+    '!memory_usage' => round(memory_get_usage() / 1024 / 1024, 2),
+    '!peak_memory_usage' => round(memory_get_peak_usage(TRUE) / 1024 / 1024, 2)
+  ));
 }
