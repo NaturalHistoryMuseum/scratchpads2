@@ -389,6 +389,12 @@
       if (Drupal.settings.CharacterTreeUI.editable){
         slickgrid.updateSettings('hidden_columns', hidden_columns);
       }
+      // Re-apply metadata as it gets hidden when columns are toggled.
+      var vp = grid.getViewport();
+      Drupal.characterMetadataManager.updateViewportRows({
+        from: vp.top,
+        to: vp.bottom
+      });
     }
 
     /**
