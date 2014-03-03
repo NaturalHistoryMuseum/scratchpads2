@@ -341,8 +341,10 @@ function _silver_feeds_sort_field_info($entity_type, $bundle, $field_info){
     uasort($groups, '_silver_sort_groups');
     foreach(array_keys($groups) as $key){
       foreach(array_keys($groups[$key]->children) as $child_key){
-        foreach(array_keys($groups[$key]->children[$child_key]->children) as $gchild_key){
-          $field_info[$groups[$key]->children[$child_key]->children[$gchild_key]['field_name']] = $groups[$key]->children[$child_key]->children[$gchild_key];
+        if(@is_array($groups[$key]->children[$child_key]->children)){
+          foreach(array_keys($groups[$key]->children[$child_key]->children) as $gchild_key){
+            $field_info[$groups[$key]->children[$child_key]->children[$gchild_key]['field_name']] = $groups[$key]->children[$child_key]->children[$gchild_key];
+          }
         }
       }
     }
