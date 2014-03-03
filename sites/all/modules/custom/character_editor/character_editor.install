@@ -647,7 +647,9 @@ function character_editor_update_7011(){
       }
     }
   }
-  // Copy existing data from meta to flag
+  // If there is a meta field, copy existing data from meta to flag
+  $info = field_info_field('field_character_state_meta');
+  if (!$info){return;}
   $efq = new EntityFieldQuery();
   $efq->entityCondition('entity_type', 'relation');
   $efq->entityCondition('bundle', 'character_state');
