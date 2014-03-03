@@ -1,21 +1,12 @@
 <?php
 
 /**
- * Implements hook_install().
+ * Change to using watchdog (as we have moved to using syslog).
  */
-function scratchpads_load_time_log_install(){
-  // Generate a randomly named file.
-  $time = time();
-  variable_set('scratchpads_load_time_log_last_clear', $time);
-  $filename = 'public://scratchpads_load_time_log-' . md5($time) . '.csv';
-  variable_set('scratchpads_load_time_log_filename', $filename);
-  @file_put_contents($filename, '"Path","Load time","UID","Timestamp"' . "\n");
-}
-
-/**
- * Implements hook_uninstall().
- */
-function scratchpads_load_time_log_uninstall(){
-  variable_del('scratchpads_load_time_log_filename');
+function scratchpads_load_time_log_update_7001(){
   variable_del('scratchpads_load_time_log_last_clear');
+  variable_del('scratchpads_load_time_log_filename');
+  foreach(file_scan_directory('public://', '/scratchpads_load_time_log-/') as $file){
+    file_unmanaged_delete($file->uri);
+  }
 }
