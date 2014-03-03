@@ -161,7 +161,11 @@
     this.updateCellFlag = function(metadata, node){
       if (metadata.flag && metadata.flag.length > 0){
         var flag = Drupal.settings.CharacterEditorFlags[metadata.flag];
-        $(node).attr('character-flag', flag.abbr);
+        if (flag){
+          $(node).attr('character-flag', flag.abbr);
+        } else {
+          $(node).attr('character-flag', '');
+        }
       } else {
         $(node).attr('character-flag', '');
       }
