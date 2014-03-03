@@ -101,7 +101,6 @@ if(!Array.prototype.indexOf) {
         // (window.height - (top offset + header and footer height + body top \
         // margin + 100)) - current height
         var increase_by = ($(window).height() - ($('#slickgrid').offset().top + ($('#slickgrid').parent().height() - $('#slickgrid').height() + parseInt($('body').css('marginTop')) + 100))) - $('#slickgrid').height();
-        console.log(increase_by);
         if(increase_by > 20) {
           $('#slickgrid').animate().height($('#slickgrid').height() + increase_by);
         }
