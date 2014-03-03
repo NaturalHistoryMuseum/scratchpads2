@@ -442,7 +442,7 @@ function emonocot_checklist_views_default_views(){
     'valid' => 'valid'
   );
   $handler->display->display_options['path'] = 'checklist/valid';
-  $views[] = $view;
+  $views[$view->name] = $view;
   $view = new view();
   $view->name = 'checklist_types';
   $view->description = '';
@@ -600,6 +600,6 @@ function emonocot_checklist_views_default_views(){
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
   $handler->display->display_options['path'] = 'checklist-types';
-  $views[] = $view;
+  $views[$view->name] = $view;
   return $views;
 }
