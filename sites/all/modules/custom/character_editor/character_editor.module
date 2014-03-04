@@ -680,8 +680,6 @@ function _character_editor_entity_form_expression(&$form, $expr_field, $project_
       }else{
         $use_simple_editor = FALSE;
       }
-    }else{
-      $use_simple_editor = FALSE;
     }
     $form[$expr_field][$lang]['condition_simple_editor'] = array(
       'simple_cond_var' => array(
