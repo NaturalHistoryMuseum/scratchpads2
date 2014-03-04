@@ -21,7 +21,7 @@ function entityconnectpreview_form_alter(&$form, &$form_state, $form_id){
     }
     if(isset($form[$field_name])){
       foreach(array_keys($form[$field_name]) as $field_language){
-        if($form[$field_name][$field_language]['#type'] == 'select'){
+        if(@isset($form[$field_name][$field_language]['#type']) && $form[$field_name][$field_language]['#type'] == 'select'){
           // We only add our preview if there isn't an ajax function already
           // associated with the select box.  This could be altered to work
           // if there is already an ajax function associated with the box.
