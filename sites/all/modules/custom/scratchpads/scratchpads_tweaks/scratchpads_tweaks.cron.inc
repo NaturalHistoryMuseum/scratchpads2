@@ -121,27 +121,6 @@ function _scratchpads_tweaks_cron(){
       }
     }
   }
-  // Delete certain messages from the watchdog as we know they can be safely
-  // ignored.
-  $db_or = db_or();
-  $db_or->condition('message', array(
-    '%module module enabled.',
-    '%module module installed.',
-    "Action '%action' added.",
-    'There is new syndicated content from %site.',
-    'Flushed all files (%count) from static page cache.',
-    '@actioning @module_name / @component.',
-    '@action completed for @module_name / @component.',
-    'Updated site meta data',
-    'Fetched site meta data',
-    'Expired %count stale files from static page cache.',
-    'Cron run completed.',
-    '"@openid" logged in as "@user"'
-  ));
-  $db_or->condition('type', array(
-    'scratchpads_tweaks_install'
-  ));
-  db_delete('watchdog')->condition($db_or)->execute();
   // Clean up the file_display table now that we have removed its primary key
   db_query('CREATE TEMPORARY TABLE file_display_temp AS SELECT DISTINCT * FROM {file_display}; TRUNCATE {file_display}; INSERT INTO {file_display} SELECT * FROM file_display_temp;');
   // Rebuild caches
