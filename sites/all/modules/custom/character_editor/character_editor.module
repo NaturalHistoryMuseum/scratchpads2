@@ -793,12 +793,11 @@ function character_editor_character_form_submit_expression($form, &$form_state){
     }
     $lang = field_language('character_editor_character', $form['#entity'], $expr_field);
     if($expr_field == 'field_char_condition' && $form_state['values'][$expr_field][$lang]['condition_editor_mode'] == 'simple'){
-      $variable_id = $form_state['values'][$expr_field][$lang]['condition_simple_editor']['simple_cond_var'];
-      $operator = $form_state['values'][$expr_field][$lang]['condition_simple_editor']['simple_cond_op'];
+      $variable_id = trim($form_state['values'][$expr_field][$lang]['condition_simple_editor']['simple_cond_var']);
+      $operator = trim($form_state['values'][$expr_field][$lang]['condition_simple_editor']['simple_cond_op']);
       $values = $form_state['values'][$expr_field][$lang]['condition_simple_editor']['simple_cond_value'];
-      if(!$variable_id || !$operator || empty($values)){
-        $expr = '';
-      }else{
+      $expr = '';
+      if($variable_id && $operator && is_array($values) && !empty($values)){
         switch($operator){
           case 'is one of':
             $expr = '{' . $variable_id . '}' . " in ['" . implode("' | '", $values) . "']";
@@ -812,6 +811,8 @@ function character_editor_character_form_submit_expression($form, &$form_state){
           case 'is not':
             $expr = '{' . $variable_id . '}' . " not-in ['" . implode("' & '", $values) . "']";
             break;
+          default:
+            $expr = '';
         }
       }
       $form_state['values'][$expr_field][$lang][0]['value'] = $expr;
@@ -828,6 +829,8 @@ function character_editor_character_form_submit_expression($form, &$form_state){
         $expr = '';
       }
       $form_state['values'][$expr_field][$lang][0]['value'] = $expr;
+    }else{
+      $form_state['values'][$expr_field][$lang][0]['value'] = '';
     }
   }
 }

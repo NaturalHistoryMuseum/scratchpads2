@@ -177,7 +177,7 @@
       this.simple_options = simple_options;
       $('.condition-form-var-selector', this.$widget_root).change($.proxy(function(){
         var char_id = $('.condition-form-var-selector', this.$widget_root).val();
-        $('.condition-form-val-selector').empty();
+        $('.condition-form-val-selector', this.$widget_root).empty();
         if (char_id && typeof this.simple_options[char_id] !== 'undefined'){
           for (var i in this.simple_options[char_id]){
             $('<option>')
@@ -190,7 +190,7 @@
         }
       }, this)).trigger('change');
       // Empty the advanced editor version when the simple editor is changed to avoid confusing the user.
-      $('.condition-form-mode-simple').change($.proxy(function(){
+      $('.condition-form-mode-simple', this.$widget_root).change($.proxy(function(){
         this.setContent('');
       }, this));
     }
