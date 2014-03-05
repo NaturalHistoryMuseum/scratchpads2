@@ -124,7 +124,7 @@ function media_multiselect_form_file_entity_add_upload_multiple_alter(&$form, &$
  * Note, this is NOT dynamic, and is actually pretty shit.
  */
 function media_multiselect_temporary_submit_function($form, &$form_state){
-  if($_GET['render'] == 'media-popup'){
+  if(isset($_GET['render']) && $_GET['render'] == 'media-popup'){
     $query = _scratchpads_tweaks_get_media_browser_query();
     $query['enabledPlugins'] = array(
       'media_default--media_browser_1' => 'media_default--media_browser_1'
