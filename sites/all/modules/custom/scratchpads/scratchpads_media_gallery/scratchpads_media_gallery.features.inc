@@ -34,10 +34,12 @@ function scratchpads_media_gallery_styles_default_presets_alter(&$presets){
       'default',
       'image'
     ) as $file_type){
-      array_unshift($presets['file']['containers'][$file_type]['presets'][$image_style_to_link_to_media], array(
-        'name' => 'linkToMedia',
-        'settings' => array()
-      ));
+      if(@isset($presets['file']['containers'][$file_type]['presets'][$image_style_to_link_to_media]) && is_array($presets['file']['containers'][$file_type]['presets'][$image_style_to_link_to_media])){
+        array_unshift($presets['file']['containers'][$file_type]['presets'][$image_style_to_link_to_media], array(
+          'name' => 'linkToMedia',
+          'settings' => array()
+        ));
+      }
     }
   }
   $presets['file']['containers']['image']['styles']['square_thumbnail'] = array(
