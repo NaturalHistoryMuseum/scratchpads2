@@ -385,7 +385,7 @@ function emonocot_itis_fields($vid){
             'label' => 'above',
             'module' => 'text',
             'settings' => array(),
-            'type' => 'text_default',
+            'type' => 'hidden',
             'weight' => 20
           ),
           'linked_node' => array(
