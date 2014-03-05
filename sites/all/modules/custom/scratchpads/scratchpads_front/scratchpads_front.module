@@ -67,7 +67,7 @@ function scratchpads_front_block_view_alter(&$data, $block){
   // only do this for front page blocks
   if(isset($block->context) && substr($block->bid, 0, -1) == 'views-front_page_blocks-block_'){
     // if the form has passed in the argument of custom
-    if($data['content']['#views_contextual_links_info']['views_ui']['view']->args[0] == 'custom'){
+    if(@isset($data['content']['#views_contextual_links_info']['views_ui']['view']->args[0]) && $data['content']['#views_contextual_links_info']['views_ui']['view']->args[0] == 'custom'){
       $display_id = $data['content']['#views_contextual_links_info']['views_ui']['view_display_id'];
       $var = 'front_page_' . $display_id . '_node_type';
       $custom_block = scratchpads_front_get_custom_block($var);
