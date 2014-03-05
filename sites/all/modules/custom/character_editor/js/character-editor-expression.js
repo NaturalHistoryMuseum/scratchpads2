@@ -77,6 +77,8 @@
       // Prepare the new editor
       this.$hg = $('<div></div>');
       this.$textarea.css('display', 'none');
+      this.$textarea.closest('.form-type-textarea').find('.description').css('display', 'none');
+      this.$textarea.closest('.form-type-textarea').find('.grippie').css('display', 'none');
       this.$hg.addClass('character-editor-expression-editor')
       .css({
         width: this.$textarea.css('width'),
@@ -160,18 +162,35 @@
      */
     this.initSimpleForm = function(){
       $('.condition-form-mode-selector', this.$widget_root).change($.proxy(this, 'selectForm'));
+      var simple_options = {};
       $('.condition-form-val-selector optgroup', this.$widget_root).each(function(){
-        $(this).attr('character_id', $(this).attr('label'));
-        $(this).attr('label', '');
+        var name = $(this).attr('label');
+        simple_options[name] = {};
+        $(this).find('option').each(function(){
+          var val = $(this).attr('value');
+          simple_options[name][val] = {
+              selected: $(this).prop('selected'),
+              text: $(this).html()
+          }
+        });
       });
+      this.simple_options = simple_options;
       $('.condition-form-var-selector', this.$widget_root).change($.proxy(function(){
         var char_id = $('.condition-form-var-selector', this.$widget_root).val();
-        $('.condition-form-val-selector optgroup', this.$widget_root).css('display', 'none');
-        $('.condition-form-val-selector optgroup[character_id!="' + char_id.toString() + '"] option', this.$widget_root).prop('selected', false);
-        $('.condition-form-val-selector optgroup[character_id="' + char_id.toString() + '"]', this.$widget_root).css('display', 'block');
+        $('.condition-form-val-selector', this.$widget_root).empty();
+        if (char_id && typeof this.simple_options[char_id] !== 'undefined'){
+          for (var i in this.simple_options[char_id]){
+            $('<option>')
+            .attr('value', i)
+            .prop('selected', this.simple_options[char_id][i].selected)
+            .html(this.simple_options[char_id][i].text)
+            .appendTo($('.condition-form-val-selector', this.$widget_root));
+            this.simple_options[char_id][i].selected = false;
+          }
+        }
       }, this)).trigger('change');
       // Empty the advanced editor version when the simple editor is changed to avoid confusing the user.
-      $('.condition-form-mode-simple').change($.proxy(function(){
+      $('.condition-form-mode-simple', this.$widget_root).change($.proxy(function(){
         this.setContent('');
       }, this));
     }
@@ -187,10 +206,12 @@
       }
       if ($('.condition-form-mode-selector', this.$widget_root).val() == 'simple'){
         this.$hg.css('display', 'none');
+        this.$textarea.closest('.form-type-textarea').css('border-width', '0').find('label').css('display', 'none');
         $('.condition-form-mode-advanced', this.$widget_root).css('display', 'none');
         $('.condition-form-mode-simple', this.$widget_root).css('display', 'block');
       } else {
         this.$hg.css('display', 'block');
+        this.$textarea.closest('.form-type-textarea').css('border-width', '1px').find('label').css('display', 'block');
         $('.condition-form-mode-advanced', this.$widget_root).css('display', 'block');
         $('.condition-form-mode-simple', this.$widget_root).css('display', 'none');
       }
@@ -205,29 +226,33 @@
    * Cross-browser function to save the current cursor position in an editable div
    */
   function characterSaveSelection(containerEl){
-    if (window.getSelection && document.createRange) {
-      var range = window.getSelection().getRangeAt(0);
-      var preSelectionRange = range.cloneRange();
-      preSelectionRange.selectNodeContents(containerEl);
-      preSelectionRange.setEnd(range.startContainer, range.startOffset);
-      var start = preSelectionRange.toString().length;
+    try{
+      if (window.getSelection && document.createRange) {
+        var range = window.getSelection().getRangeAt(0);
+        var preSelectionRange = range.cloneRange();
+        preSelectionRange.selectNodeContents(containerEl);
+        preSelectionRange.setEnd(range.startContainer, range.startOffset);
+        var start = preSelectionRange.toString().length;
 
-      return {
-        start: start,
-        end: start + range.toString().length
-      };
-    } else if (document.selection) {
-      var selectedTextRange = document.selection.createRange();
-      var preSelectionTextRange = document.body.createTextRange();
-      preSelectionTextRange.moveToElementText(containerEl);
-      preSelectionTextRange.setEndPoint("EndToStart", selectedTextRange);
-      var start = preSelectionTextRange.text.length;
+        return {
+          start: start,
+          end: start + range.toString().length
+        };
+      } else if (document.selection) {
+        var selectedTextRange = document.selection.createRange();
+        var preSelectionTextRange = document.body.createTextRange();
+        preSelectionTextRange.moveToElementText(containerEl);
+        preSelectionTextRange.setEndPoint("EndToStart", selectedTextRange);
+        var start = preSelectionTextRange.text.length;
 
-      return {
-        start: start,
-        end: start + selectedTextRange.text.length
-      };
-    }
+        return {
+          start: start,
+          end: start + selectedTextRange.text.length
+        };
+      }
+    } catch(e){
+      return false;
+    } 
   }
 
   /**
@@ -236,6 +261,9 @@
    * Cross-browser function to restore the current cursor position in an editable div
    */
   function characterRestoreSelection(containerEl, savedSel){
+    if (savedSel === false){
+      return;
+    }
     if (window.getSelection && document.createRange) {
       var charIndex = 0, range = document.createRange();
       range.setStart(containerEl, 0);
