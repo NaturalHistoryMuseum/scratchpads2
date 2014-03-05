@@ -292,6 +292,7 @@ function theme_slickgrid($variables){
   drupal_add_js($path . '/js/slickgrid.js');
   drupal_add_js($path . '/js/slickgrid.theme.js');
   drupal_add_js($path . '/js/slickgrid.remote.js');
+  drupal_add_js($path . '/js/slickgrid.command.js');
   drupal_add_css($path . '/css/slickgrid.css');
   drupal_add_js(array(
     'slickgrid' => array(
