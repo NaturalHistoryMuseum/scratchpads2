@@ -12,7 +12,7 @@ function scratchpads_front_views_default_views(){
   $view->human_name = 'Scratchpads front page blocks';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE;  
+  $view->disabled = FALSE;
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Home page block';
@@ -595,6 +595,12 @@ function scratchpads_front_views_default_views(){
   $handler->display->display_options['filters']['uri_2']['field'] = 'uri';
   $handler->display->display_options['filters']['uri_2']['operator'] = 'not';
   $handler->display->display_options['filters']['uri_2']['value'] = '/signature/';
+  /* Filter criterion: File: Path */
+  $handler->display->display_options['filters']['uri_3']['id'] = 'uri_3';
+  $handler->display->display_options['filters']['uri_3']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['uri_3']['field'] = 'uri';
+  $handler->display->display_options['filters']['uri_3']['operator'] = 'contains';
+  $handler->display->display_options['filters']['uri_3']['value'] = 'public';
   /* Display: Latest images */
   $handler = $view->new_display('block', 'Latest images', 'block_1');
   $views['front_page_slideshow'] = $view;
