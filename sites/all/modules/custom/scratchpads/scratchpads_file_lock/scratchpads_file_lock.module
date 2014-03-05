@@ -15,6 +15,16 @@ function scratchpads_file_lock_menu_alter(&$items){
 }
 
 /**
+ * Default to allow the download of ALL files
+ */
+function scratchpads_file_lock_file_download($uri){
+  $info = image_get_info($uri);
+  return array(
+    'Content-Type' => $info['mime_type']
+  );
+}
+
+/**
  * Implements hook_module_implements_alter().
  * 
  * Change the order in which the hooks are run.

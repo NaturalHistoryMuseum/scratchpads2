@@ -19,12 +19,12 @@ if(!Array.prototype.indexOf) {
   var loadingIndicator = null;
   // Slickgrid class implementation
   function Slickgrid(container, viewName, viewDisplayID){
+    var PAGESIZE = 50;
     var columnFilters = {};
-    var objHttpDataRequest;
     var checkboxSelector;
     var $dialog; // $dialog (at the moment a beautytips instance)
     var activeRow; // The row currently being edited
-    var commandQueue = [];
+    var commandHandler;
     var locked;
     var loader;
     // Remove
@@ -50,9 +50,8 @@ if(!Array.prototype.indexOf) {
         undoControl = new Slick.Controls.Undo($("#slickgrid-undo"));
       }
       // Initialise the remotemodel & slickgrid
-      loader = new Slick.Data.RemoteModel(viewName);
-      // Temporarily show the header row.
-      options.showHeaderRow = true;
+      commandHandler = new Slick.Data.CommandHandler();
+      loader = new Slick.Data.RemoteModel(viewName, commandHandler);
       $.extend(true, options, {defaultFormatter: function(row, cell, value, columnDef, dataContext){
         if(value == null) {
           return "";
@@ -60,11 +59,17 @@ if(!Array.prototype.indexOf) {
           return value;
         }
       }});
+      // Make sure this is switched on otherwise slickgrid will not generate it
+      options.showHeaderRow = true;
       grid = new Slick.Grid(container, loader.data, columns, options);
+      grid.setHeaderRowVisibility(false); // Now hide it - filters will take of this.
       // Load the data when the scroll bar is touched (etc).
-      grid.onViewportChanged.subscribe(function(e, args){
+      grid.onViewportChanged.subscribe(function(e){
         var vp = grid.getViewport();
-        loader.ensureData(vp.top, vp.bottom);
+        if (vp.bottom >= loader.data.length - 1 && !loader.allRowsLoaded()){
+          displayLoadingIndicator();
+        }
+        ensureViewportData(false);
       });
       // Are sortable columns enabled?
       // Sortable columns won't work with collapsible taxonomy fields
@@ -75,44 +80,34 @@ if(!Array.prototype.indexOf) {
           loader.ensureData(vp.top, vp.bottom);
         });
       }
-      loader.onDataLoading.subscribe(function(){
-        if(!loadingIndicator) {
-          loadingIndicator = $('<div class="loading-indicator"><div><img src="' + Drupal.settings.slickgrid.loading_image_url + '"/></div></div>').appendTo(document.body);
-          loadingIndicator.css("position", "absolute");
-          // FIXME - The following "position" command may or may not be
-          // required.
-          // This feels like a similar issue to what we were having with the
-          // toolbar module.
-          $('body').css('position', 'relative');
-          loadingIndicator.css("top", $(container).offset().top);
-          loadingIndicator.css("left", $(container).offset().left);
-          loadingIndicator.css("width", $(container).width());
-          loadingIndicator.css("height", $(container).height());
-          loadingIndicator.css("background-color", "#232323");
-          loadingIndicator.css("z-index", 100000);
-          loadingIndicator.css("border", "solid 1px #232323");
-          loadingIndicator.fadeTo("fast", 0.3);
-          loadingIndicator.children().css("position", "relative");
-          loadingIndicator.children().css('top', (loadingIndicator.height() / 2) - 24);
-          loadingIndicator.children().css('left', (loadingIndicator.width() / 2) - 24);
-          // We set the header row as initially visible so that the height of
-          // the grid is set correctly.
-          grid.resizeCanvas();
-        }
-        loadingIndicator.fadeIn();
-      });
       loader.onDataLoaded.subscribe(function(e, args){
+        $(container).trigger('onSlickgridDataLoaded', [args.from, args.to, loader.data]);
         for( var i = args.from; i <= args.to; i++) {
-          grid.invalidateRow(i);
+          if (!loader.isRowLocked(i)){
+            grid.invalidateRow(i);
+          }
         }
         grid.updateRowCount();
         grid.render();
         // FIXME - The loading indicator is causing the horizontal scroll bar
         // to appear on screen.
-        loadingIndicator.fadeOut();
+        hideLoadingIndicator();
       });
+      // We dynamically increase the height of the grid so that it fills the
+      // window.
+      if(options['height_expand']) {
+        // At this point we do not usually have the margin-top for the body, so
+        // the "100" has been added to allow for that.
+        // (window.height - (top offset + header and footer height + body top \
+        // margin + 100)) - current height
+        var increase_by = ($(window).height() - ($('#slickgrid').offset().top + ($('#slickgrid').parent().height() - $('#slickgrid').height() + parseInt($('body').css('marginTop')) + 100))) - $('#slickgrid').height();
+        if(increase_by > 20) {
+          $('#slickgrid').animate().height($('#slickgrid').height() + increase_by);
+        }
+      }
       // load the first page
       grid.onViewportChanged.notify();
+      displayLoadingIndicator();
       // Add all the controls
       // delete control (requires row selection checkbox)
       if(options['delete'] && options['row_selection_checkbox']) {
@@ -187,25 +182,66 @@ if(!Array.prototype.indexOf) {
           handleViewportResized(ui.size.height);
         }
       }});
-      // We dynamically increase the height of the grid so that it fills the
-      // window.
-      if(options['height_expand']) {
-        // At this point we do not usually have the margin-top for the body, so
-        // the "100" has been added to allow for that.
-        // (window.height - (top offset + header and footer height + body top \
-        // margin + 100)) - current height
-        var increase_by = ($(window).height() - ($('#slickgrid').offset().top + ($('#slickgrid').parent().height() - $('#slickgrid').height() + parseInt($('body').css('marginTop')) + 100))) - $('#slickgrid').height();
-        if(increase_by > 20) {
-          $('#slickgrid').animate().height($('#slickgrid').height() + increase_by);
-        }
-      }
-      $(container).trigger('onSlickgridInit');
     }
     function handleValidationError(eventData, error){
       alert(Drupal.t('There has been an error, please reload the page.'))
     }
     function handleSelectedRowsChanged(){
       closeDialog();
+    }
+    // Display the loading indicator
+    function displayLoadingIndicator(){
+      if(!loadingIndicator) {
+        loadingIndicator = $('<div class="loading-indicator"><div><img src="' + Drupal.settings.slickgrid.loading_image_url + '"/></div></div>').appendTo(document.body);
+        loadingIndicator.css("position", "absolute");
+        // FIXME - The following "position" command may or may not be
+        // required.
+        // This feels like a similar issue to what we were having with the
+        // toolbar module.
+        $('body').css('position', 'relative');
+        loadingIndicator.css("top", $(container).offset().top);
+        loadingIndicator.css("left", $(container).offset().left);
+        loadingIndicator.css("width", $(container).width());
+        loadingIndicator.css("height", $(container).height());
+        loadingIndicator.css("background-color", "#232323");
+        loadingIndicator.css("z-index", 100000);
+        loadingIndicator.css("border", "solid 1px #232323");
+        loadingIndicator.fadeTo("fast", 0.3);
+        loadingIndicator.children().css("position", "relative");
+        loadingIndicator.children().css('top', (loadingIndicator.height() / 2) - 24);
+        loadingIndicator.children().css('left', (loadingIndicator.width() / 2) - 24);
+        // We set the header row as initially visible so that the height of
+        // the grid is set correctly.
+        grid.resizeCanvas();
+      }
+      if (loadingIndicator.css('display') == 'none'){
+        loadingIndicator.fadeIn();
+      }
+    }
+    // Hide the loading indicator
+    function hideLoadingIndicator(){
+      if (loadingIndicator && loadingIndicator.css('display') == 'block'){
+        loadingIndicator.fadeOut();
+      }
+    }
+    // Ensure we have the viewport data available
+    function ensureViewportData(reset){
+      var vp = grid.getViewport();
+      if (reset){
+        vp.bottom = vp.bottom - vp.top;
+        vp.top = 0;
+        grid.scrollRowToTop(0);
+      }
+      var page_size = Math.max(Math.floor((vp.bottom - vp.top + 11)/10)*10, 20);
+      var start = vp.top <= page_size ? 0 : Math.floor((vp.top - 1 - page_size)/page_size)*page_size;
+      var end = Math.floor((vp.bottom+1+2*page_size)/page_size)*page_size;
+      if (start > 1){
+        //loader.removeRange(0, start - 1);
+      }
+      if (end < loader.data.length - 1){
+        //loader.removeRange(end + 1, loader.data.length - 1)
+      }
+      loader.ensureData(start, end);
     }
     // User has reodered the columns - save it to the backend
     function handleColumnsReordered(e, ui){
@@ -287,20 +323,43 @@ if(!Array.prototype.indexOf) {
     // User has started editing a cell
     // Need to add row to the selected rows
     function handleBeforeEditCell(e, ui){
-      // If this grid is locked, prevent editing
-      if(locked) {
+      var row = parseInt(ui.row);
+      if (locked || loader.isRowLoading(row) || loader.isRowInvalid(row)){
         return false;
       }
+      loader.lockRow(row);
       setActiveRow(ui.row);
       cellNode = grid.getCellNode(ui.row, ui.cell);
       $(cellNode).removeClass('invalid');
     }
     // User has stopped editing a cell
     // Deselect the row being actively edited
-    function handleBeforeCellEditorDestroy(editor){
+    function handleBeforeCellEditorDestroy(event, args){
+      var row = parseInt(args.grid.getActiveCell().row);
+      loader.unlockRow(row);
       unsetActiveRow();
     }
+    // Invalidate a row so we know to reload it
+    function invalidateRow(row){
+      loader.invalidateRange(row, row);
+    }
+    // Invalidate all selected rows, and return the
+    // list of rows that were invalidated.
+    function invalidateSelectedRows(){
+      var rows_to_invalidate = grid.getSelectedRows().slice();
+      var active_cell = grid.getActiveCell();
+      if (active_cell !== null && $.inArray(active_cell.row, rows_to_invalidate) == -1){
+        rows_to_invalidate.push(active_cell.row);
+      }
+      for (var i = 0; i < rows_to_invalidate.length; i++){
+        loader.invalidateRange(rows_to_invalidate[i], rows_to_invalidate[i]);
+      }
+      return rows_to_invalidate;
+    }
     function handleModalResponse(ajax, modal, status){
+      if (grid.getActiveCell() !== null){
+        grid.getEditController().commitCurrentEdit();
+      }
       if(typeof modal.response.result === 'object') {
         callbackSuccess(modal.response.result);
       }
@@ -338,9 +397,28 @@ if(!Array.prototype.indexOf) {
       });
       updateFilters();
       // Apply filters to the input kep up event
+      var keyup_timer = false;
       $(grid.getHeaderRow()).delegate(":input", "change keyup", function(e){
-        columnFilters[$(this).data("columnId")] = $.trim($(this).val());
-        loader.setFilters(columnFilters);
+        var new_filter_value = $.trim($(this).val());
+        var column_id = $(this).data("columnId");
+        if (columnFilters[column_id] == new_filter_value){
+          return;
+        }
+        columnFilters[column_id] = new_filter_value;
+        if (keyup_timer){
+          clearTimeout(keyup_timer);
+        }
+        if (e.type == 'change'){
+          loader.setFilters(columnFilters);
+          ensureViewportData(true);
+          displayLoadingIndicator();
+        } else {
+          keyup_timer = setTimeout(function(){
+            loader.setFilters(columnFilters);
+            ensureViewportData(true);
+            displayLoadingIndicator();
+          }, 1000);
+        }
       });
       // Register events for the header inputs
       grid.onColumnsReordered.subscribe(function(e, args){
@@ -349,6 +427,15 @@ if(!Array.prototype.indexOf) {
       grid.onColumnsResized.subscribe(function(e, args){
         updateFilters();
       });
+      // Set initial status
+      if (!$.isEmptyObject(columnFilters)){
+        // Do this once the height has been calculated
+        setTimeout(function(){
+          grid.setHeaderRowVisibility(true);
+        }, 0);
+      }
+      grid.setOptions({headerRowHeight:$(grid.getHeaderRow()).parent().height()});
+      loader.setFilters(columnFilters);
     }
     function updateFilters(){
       // add the header inputs
@@ -439,28 +526,38 @@ if(!Array.prototype.indexOf) {
       selectionModel.setSelectedRanges(ranges);
     }
     function updateSettings(setting, value){
-      // We get a form, and then submit the form.
-      $.ajax({type: 'POST', dataType: "json", success: function(response, status){
-        if(response[1]['arguments'][0]) {
-          // $(response[1]['arguments'][0]).appendTo('body').css({top:'-10000px'}).children('form').submit();
-          $.post($(response[1]['arguments'][0]).children('form').attr('action'), $(response[1]['arguments'][0]).children('form').serialize());
+      commandHandler.addCommand('update-setting', {
+        type: 'POST',
+        dataType: 'json',
+        url: Drupal.settings.slickgrid.get_form_callback_url + 'slickgrid_settings_form',
+        data: {
+          'view': viewName,
+          'setting': setting,
+          'display_id': viewDisplayID,
+          'value': value
+        },
+        success: function(response, status){
+          commandHandler.addCommand('update-setting', {
+            type: 'POST',
+            url: $(response[1]['arguments'][0]).children('form').attr('action'),
+            data: $(response[1]['arguments'][0]).children('form').serialize()
+          });
         }
-      }, url: Drupal.settings.slickgrid.get_form_callback_url + 'slickgrid_settings_form', data: {'view': viewName, 'setting': setting, 'display_id': viewDisplayID, 'value': value}});
+      });
     }
     // All callbacks should be routed through this function
     function callback(op, data){
-      // Prevent further edits while this callback is running
-      lock();
       // Show loading bar is working
       updateStatus({loading: true});
-      // Check to see if there is an AJAX request already in
-      // progress that needs to be stopped.
-      if(objHttpDataRequest) {
-        // Abort the AJAX request.
-        objHttpDataRequest.abort();
-      }
-      ajaxOptions = {type: 'POST', dataType: "json", success: callbackSuccess, error: callbackError, complete: callbackComplete, url: Drupal.settings.slickgrid.slickgrid_callback_url + op, data: data};
-      objHttpDataRequest = $.ajax(ajaxOptions);
+      // Queue the command
+      commandHandler.addCommand('update-cell', {
+        type: 'POST',
+        dataType: 'json',
+        url: Drupal.settings.slickgrid.slickgrid_callback_url + op,
+        data: data,
+        success: $.proxy(callbackSuccess, this),
+        error: callbackError
+      });
     }
     // Error handling function
     function callbackError(jqXHR, status, errorThrown){
@@ -511,22 +608,19 @@ if(!Array.prototype.indexOf) {
           status.errors++;
         });
       }
-      loader.reloadData(0, loader.data.length);
       updateStatus(status, response.messages);
       // If the callback has returned a new data array (which will happen on
-      // node clone & node add) reload the data
-      if(typeof response.data === 'object') {
-        reload(response.data);
+      // node clone & node add) or new columns reload all rows ; otherwise expect rows will
+      // have been invalidated already.
+      if(typeof response.data === 'object' || typeof response.columns != "undefined") {
+        loader.invalidateRange(0, loader.data.length - 1);
       }
+      ensureViewportData();
       // If the callback has returned a column array, update the columns
       if(typeof response.columns === 'string') {
         updateColumns(response.columns);
       }
       $(container).trigger('onSlickgridCallback', {status: status, response: response});
-    }
-    // Callback has completed - unlock the grid for further edits
-    function callbackComplete(args){
-      unlock();
     }
     function updateStatus(status, statusMessages){
       $status.empty();
@@ -591,8 +685,40 @@ if(!Array.prototype.indexOf) {
         tabs.rebuild();
       }
     }
-    function setColumnFilter(field, value){
+    // Return the current active columns, or the entire list if 'all' is defined and true.
+    function getColumns(all){
+      if (typeof all !== 'undefined' && all){
+        // Make sure properties are up to date
+        var grid_cols = grid.getColumns();
+        for (var i = 0; i < columns.length; i++){
+          var existing_col = grid.getColumnIndex(columns[i].id);
+          if (typeof existing_col !== 'undefined'){
+            $.extend(columns[i], grid_cols[existing_col]);
+          }
+        }
+        return columns;
+      } else {
+        return grid.getColumns();
+      }
+    }
+    // Batch change the columns.
+    function setColumns(cols){
+      columns = cols;
+      var new_grid_cols = [];
+      for (var i = 0; i < columns.length; i++){
+        if (!columns[i].hidden){
+          new_grid_cols.push(columns[i]);
+        }
+      }
+      grid.setColumns(new_grid_cols);
+    }
+    function setColumnFilter(field, value, refresh){
       columnFilters[field] = value;
+      if (typeof refresh !== 'undefined' && refresh){
+        loader.setFilters(columnFilters);
+        ensureViewportData(true);
+        displayLoadingIndicator();
+      }
     }
     function getContainer(){
       return container;
@@ -620,7 +746,8 @@ if(!Array.prototype.indexOf) {
         grid.scrollRowToTop(state.row);
       }
     }
-    $.extend(this, {"callback": callback, "getViewName": getViewName, "getViewDisplayID": getViewDisplayID, "getEntityIDs": getEntityIDs, "getContainer": getContainer, "openDialog": openDialog, "closeDialog": closeDialog, "reload": reload, 'setColumnFilter': setColumnFilter, 'updateFilters': updateFilters, 'updateStatus': updateStatus, 'getGridState': getGridState, 'setGridState': setGridState});
-    init();
+    $.extend(this, {"callback": callback, "getViewName": getViewName, "getViewDisplayID": getViewDisplayID, "getEntityIDs": getEntityIDs, "getContainer": getContainer, "getColumns": getColumns, "setColumns": setColumns, "openDialog": openDialog, "closeDialog": closeDialog, "reload": reload, 'setColumnFilter': setColumnFilter, 'updateFilters': updateFilters, 'updateSettings': updateSettings, 'updateStatus': updateStatus, 'getGridState': getGridState, 'setGridState': setGridState, 'invalidateRow' : invalidateRow, 'invalidateSelectedRows': invalidateSelectedRows, 'deselectAllRows': deselectAllRows});
+    init(this);
+    $(container).trigger('onSlickgridInit', this);
   }
 })(jQuery);
