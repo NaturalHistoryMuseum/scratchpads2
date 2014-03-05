@@ -8,7 +8,7 @@
  */
 function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortdir = 'asc'){
   // Ensure this page is not cached
-  drupal_add_http_header('Cache-Control','private, no-cache, no-store, must-revalidate, max-age=0');
+  drupal_add_http_header('Cache-Control', 'private, no-cache, no-store, must-revalidate, max-age=0');
   $view = views_get_view($view_name);
   if($sortcol){
     $sort = array(
@@ -70,7 +70,7 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
           }
         }
     }
-    $view->display['default']->display_options['sorts'][$key] = $sort;
+    array_unshift($view->display['default']->display_options['sorts'], $sort);
   }
   $potential_filters = $_GET;
   unset($potential_filters['q']);
@@ -122,6 +122,23 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
               }
             }
             switch($real_field['type']){
+              case 'user_reference':
+                if(($operator == 'regular_expression') && ($op_val != '')){
+                  $val = $op_val;
+                  $op = 'RLIKE';
+                }else{
+                  $val = '%' . db_like($value) . '%';
+                  $op = 'LIKE';
+                }
+                $filter['value'] = drupal_map_assoc(db_select('users', 'u')->condition('name', $val, $op)->fields('u', array(
+                  'uid'
+                ))->execute()->fetchCol());
+                // Ensure that empty sets don't display items
+                if(empty($filter['value'])){
+                  $filter['value'] = $val;
+                }
+                unset($filter['operator']);
+                break;
               case 'node_reference':
                 if(($operator == 'regular_expression') && ($op_val != '')){
                   $val = $op_val;
@@ -159,6 +176,20 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
                     }
                   }
                 }
+                break;
+              case 'list_text':
+                $filter['operator'] = 'or';
+                $filter['value'] = array(
+                  $filter['value'] => $filter['value']
+                );
+                break;
+              case 'number_integer':
+                $filter['operator'] = '=';
+                $filter['value'] = array(
+                  'min' => '',
+                  'max' => '',
+                  'value' => $filter['value']
+                );
                 break;
             }
           }
