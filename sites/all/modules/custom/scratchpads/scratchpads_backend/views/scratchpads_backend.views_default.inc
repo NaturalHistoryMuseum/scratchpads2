@@ -184,6 +184,13 @@ function scratchpads_backend_views_default_views(){
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => ''
+    ),
+    'action::scratchpads_fine_grained_file_access_swap_file' => array(
+      'selected' => 1,
+      'postpone_processing' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => ''
     )
   );
   /* Field: File: Name */
@@ -396,6 +403,13 @@ function scratchpads_backend_views_default_views(){
     ),
     'action::system_send_email_action' => array(
       'selected' => 0,
+      'postpone_processing' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => ''
+    ),
+    'action::scratchpads_fine_grained_file_access_swap_file' => array(
+      'selected' => 1,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
@@ -752,6 +766,13 @@ function scratchpads_backend_views_default_views(){
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => ''
+    ),
+    'action::scratchpads_fine_grained_file_access_swap_file' => array(
+      'selected' => 1,
+      'postpone_processing' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => ''
     )
   );
   /* Field: File: Rendered File */
@@ -1029,6 +1050,13 @@ function scratchpads_backend_views_default_views(){
     ),
     'action::system_send_email_action' => array(
       'selected' => 0,
+      'postpone_processing' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => ''
+    ),
+    'action::scratchpads_fine_grained_file_access_swap_file' => array(
+      'selected' => 1,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
