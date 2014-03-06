@@ -4,7 +4,6 @@
 
 - Fix e-monocot portal feedback (#3465)
 - Hide WCM ID field from nomenclature block (#2885)
-- Increase the flexibility of the front page (#1174)
 - Fix and improve Slickgrid (#3992,#3899,#3896,#3713,#3231,#1317)
 - Reduce the number of PHP errors, and log errors to syslog rather than the DB
 - Ensure the entityconnectpreview module is enabled (#1297)
