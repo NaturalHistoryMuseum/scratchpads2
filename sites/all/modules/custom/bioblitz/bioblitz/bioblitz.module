@@ -124,7 +124,7 @@ function bioblitz_form_alter_specimen_observation_node(&$form, &$form_state, $fo
       $collection_code = 'anon';
     }
     //Some of these fields are pretty hard to understand - let's autocomplete as much as possible, hide as much as we can and give better descriptions
-    $form['field_basis_of_record']['und']['#default_value'] = 'Living Specimen';
+    $form['field_basis_of_record']['und']['#default_value'] = 'LivingSpecimen';
     $form['field_basis_of_record']['und'][0]['value']['#description'] = 'Does this record come from observation of a living specimen, a fossil or a historic record?';
     $form['field_institution_code']['und'][0]['value']['#default_value'] = 'BioBlitz'; //Set to custom on install
     $form['field_institution_code']['#type'] = 'hidden';
