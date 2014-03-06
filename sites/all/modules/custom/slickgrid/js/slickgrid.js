@@ -62,7 +62,7 @@ if(!Array.prototype.indexOf) {
       // Make sure this is switched on otherwise slickgrid will not generate it
       options.showHeaderRow = true;
       grid = new Slick.Grid(container, loader.data, columns, options);
-      grid.setHeaderRowVisibility(false); // Now hide it - filters will take of this.
+      grid.setHeaderRowVisibility(true); // We always display it to prevent a bug which prevents the filters dislpaying without switching tabs
       // Load the data when the scroll bar is touched (etc).
       grid.onViewportChanged.subscribe(function(e){
         var vp = grid.getViewport();
