@@ -2,6 +2,7 @@
 
 - Enable the use of a private file system (#909)
 
+- Ensure taxonomy terms are available to search for the anonymous user (#3919)
 - Add roles and permissions to Groups (#3961)
 - Fix e-monocot portal feedback (#3465)
 - Hide WCM ID field from nomenclature block (#2885)
