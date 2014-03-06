@@ -391,6 +391,9 @@ function darwincore_update_7019(){
  * the entity API but changing the database directly to avoid timeouts.
  */
 function darwincore_update_7020(){
+  module_enable(array(
+    'scratchpads_vocabularies'
+  ));
   module_load_include('features.field.inc', 'darwincore');
   $definitions = darwincore_field_default_fields();
   // See #3185 for the map
