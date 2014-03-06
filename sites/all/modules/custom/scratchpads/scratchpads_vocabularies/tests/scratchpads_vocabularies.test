@@ -1,0 +1,951 @@
+<?php
+
+/**
+ * ScratchpadsVocabulariesBaseTestCase
+ * 
+ * This is a unit test used to test the various classes that
+ * underlie the module's functionality. These classes can be
+ * tested in isolation.
+ * 
+ * These classes are:
+ * 
+ * - ScratchpadsVocabularies\VocabularyStructure
+ * - ScratchpadsVocabularies\VocabularyUpdate
+ */
+class ScratchpadsVocabulariesBaseTestCase extends DrupalUnitTestCase{
+
+  /**
+   * getInfo()
+   * 
+   * Implements getInfo()
+   */
+  public static function getInfo(){
+    return array(
+      'name' => t('Scratchpads Vocabularies base'),
+      'description' => t('This is a unit test used to test the generic classes that underlie the module\'s functionality. These can be tested in isolation. This tests ScratchpadsVocabularies\VocabularyStructure and ScratchpadsVocabularies\VocabularyUpdate.'),
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * testAll()
+   * 
+   * This will perform all the tests we can.
+   * 
+   */
+  public function testAll(){
+    require_once (str_replace('scratchpads_vocabularies.test', '../includes/classes.inc', __FILE__));
+    $this->subTestStructure();
+    $this->subTestUpdate();
+  }
+
+  /**
+   * subTestStructure()
+   * 
+   * Perform the tests on VocabularyStructure.
+   * 
+   */
+  public function subTestStructure(){
+    // The test structure
+    $test_struct = array(
+      'v1' => 'value 1',
+      'v2' => 'value 2',
+      'v3' => array(
+        'label' => 'value 3',
+        'children' => array(
+          'v31' => 'value 3.1',
+          'v32' => 'value 3.2',
+          'v33' => array(
+            'label' => 'value 3.3',
+            'children' => array(
+              'v331' => 'value 3.3.1'
+            )
+          )
+        )
+      ),
+      'v4' => 'value 4'
+    );
+    // The test item data
+    $test_item_data = array(
+      'v31' => 'value 3.1 item data'
+    );
+    // The test structure, flattened
+    $test_flat = array(
+      'v1' => 'value 1',
+      'v2' => 'value 2',
+      'v3' => 'value 3',
+      'v31' => 'value 3.1',
+      'v32' => 'value 3.2',
+      'v33' => 'value 3.3',
+      'v331' => 'value 3.3.1',
+      'v4' => 'value 4'
+    );
+    // The test structrure, as id => parent
+    $test_par = array(
+      'v1' => NULL,
+      'v2' => NULL,
+      'v3' => NULL,
+      'v31' => 'v3',
+      'v32' => 'v3',
+      'v33' => 'v3',
+      'v331' => 'v33',
+      'v4' => NULL
+    );
+    // The parents of v331 in the test structure
+    $test_v331_par = array(
+      'v3' => 'value 3',
+      'v33' => 'value 3.3'
+    );
+    // Structure to update to.
+    $test_struct_2 = array(
+      'v2' => 'value 2, renamed',
+      'v3' => array(
+        'label' => 'value 3',
+        'children' => array(
+          'v31' => 'value 3.1, renamed',
+          'v32' => 'value 3.2',
+          'v33' => array(
+            'label' => 'value 3.3',
+            'children' => array(
+              'v331' => 'value 3.3.1',
+              'v4' => 'value 4, reparented and renamed'
+            )
+          )
+        )
+      ),
+      'v5' => 'value 5'
+    );
+    $test_item_data_2 = array(
+      'v31' => 'value 3.1 item data modified'
+    );
+    $test_expected_updates = array(
+      ScratchpadsVocabularies\VocabularyUpdate::T_REMOVE => array(
+        'v1' => 'value 1'
+      ),
+      ScratchpadsVocabularies\VocabularyUpdate::T_RENAME => array(
+        'v2' => 'value 2, renamed',
+        'v31' => 'value 3.1, renamed'
+      ),
+      ScratchpadsVocabularies\VocabularyUpdate::T_REPARENT => array(
+        'v4' => 'value 4, reparented and renamed'
+      ),
+      ScratchpadsVocabularies\VocabularyUpdate::T_ADD => array(
+        'v5' => 'value 5'
+      ),
+      ScratchpadsVocabularies\VocabularyUpdate::T_DATA => array(
+        'v31' => 'value 3.1, renamed'
+      )
+    );
+    // Test constructor of VocabularyStructure
+    $structure = new ScratchpadsVocabularies\VocabularyStructure($test_struct, $test_item_data);
+    $this->assertEqual($structure->structure(), $test_struct, "Test constructing a VocabularyStructure with an array");
+    $structure2 = new ScratchpadsVocabularies\VocabularyStructure($structure, $test_item_data);
+    $this->assertEqual($structure2->structure(), $test_struct, "Test constructing a VocabularyStructure with a VocabularyStructure object");
+    $raised = FALSE;
+    try{
+      $structure3 = new VocabularyStructure('wrong');
+    }
+    catch(Exception $e){
+      $raised = TRUE;
+    }
+    $this->assertTrue($raised, "Ensure attempting to construct a VocabularyStructure with string raises an exception");
+    // Test flatStructure
+    $ret_flat = $structure->flatStructure();
+    $diff = array_diff_assoc($test_flat, $ret_flat);
+    $this->assertTrue(is_array($ret_flat) && !empty($ret_flat) && empty($diff), "Test VocabularyStructure::flatStructure returns the expected value");
+    // Test allParents
+    $ret_par = $structure->allParents();
+    $diff = array_diff_assoc($test_par, $ret_par);
+    $this->assertTrue(is_array($ret_par) && !empty($ret_par) && empty($diff), "Test VocabularyStructure::allParents returns the expected value");
+    // Test itemParents
+    $ret_v331_par = $structure->itemParents('v331');
+    $this->assertEqual($ret_v331_par, $test_v331_par, "Test VocabularyStructure::itemParents returns the expected value");
+    // Test itemData
+    $this->assertEqual(NULL, $structure->itemData('v1'), "Test VocabularyStructure::itemData returns NULL on undefined");
+    $this->assertEqual('value 3.1 item data', $structure->itemData('v31'), "Test VocabularyStructure::itemData returns the correct value");
+    // Test updatesToUpgrade
+    $updates = $structure->updatesToUpgrade(new ScratchpadsVocabularies\VocabularyStructure($test_struct_2, $test_item_data_2));
+    $this->assertTrue(count($updates) == 5, "Ensure there is the correct number o updates to apply after call to VocabularyStructure::updatesToUpgrade");
+    foreach($updates as $u){
+      $items = $u->items();
+      $diff = array_diff_assoc($items, $test_expected_updates[$u->type()]);
+      $this->assertTrue(is_array($items) && !empty($items) && empty($diff), "Ensure update of type " . $u->type() . " has expected values after call to VocabularyStructure::updatesToUpgrade");
+      unset($test_expected_updates[$u->type()]);
+    }
+    $this->assertTrue(empty($test_expected_updates), "Ensure all the expected updates were found after call to VocabularyStructure::updatesToUpgrade");
+  }
+
+  /**
+   * subTestUpdate()
+   * 
+   * Perform the tests on VocabularyUpdate
+   * 
+   */
+  public function subTestUpdate(){
+    $test_items = array(
+      'v1' => 'value 1',
+      'v2' => 'value 2'
+    );
+    // Test VocabularyUpdate constructor
+    $update = new ScratchpadsVocabularies\VocabularyUpdate(ScratchpadsVocabularies\VocabularyUpdate::T_ADD, $test_items);
+    $this->assertEqual($update->type(), ScratchpadsVocabularies\VocabularyUpdate::T_ADD, "Test VocabularyUpdate::type returns the expected value");
+    $this->assertEqual($update->items(), $test_items, "Test VocabularyUpdate::items returns the expected value");
+    $this->assertEqual($update->status(), ScratchpadsVocabularies\VocabularyUpdate::S_INITIAL, "Test VocabularyUpdate::status returns the expected value");
+    // Test setStatus
+    $update->setStatus(ScratchpadsVocabularies\VocabularyUpdate::S_STRUCTURE_APPLIED);
+    $this->assertEqual($update->status(), ScratchpadsVocabularies\VocabularyUpdate::S_STRUCTURE_APPLIED, "Test VocabularyUpdate::setStatus works");
+    // Test removeItem
+    $update->removeItem('v1');
+    $this->assertEqual($update->items(), array(
+      'v2' => 'value 2'
+    ), "Test VocabularyUpdate::removeItem works");
+    // Test removeItem
+    $update->updateItem('v2', 'value 2, renamed');
+    $this->assertEqual($update->items(), array(
+      'v2' => 'value 2, renamed'
+    ), "Test VocabularyUpdate::updateItem works");
+  }
+}
+/**
+ * PersistentTestOne
+ * 
+ * This class is used for testing the Persistent class
+ */
+require_once (str_replace('scratchpads_vocabularies.test', '../includes/persistent.inc', __FILE__));
+
+class PersistentTestOne extends ScratchpadsVocabularies\Persistent{
+
+  public $persistPub;
+
+  public $persistPub2;
+
+  public $forgetPub;
+
+  public $reinit;
+
+  protected $persistPriv;
+
+  private $forgetPriv;
+
+  public function __construct($id){
+    $this->persistentKey($id);
+    $this->persistentProperties(array(
+      'persistPub',
+      'persistPub2',
+      'persistPriv'
+    ));
+    $this->loadPersistentProperties();
+    $this->reinit = 'r';
+  }
+
+  public function save(){
+    $this->savePersistentProperties();
+  }
+
+  public function setPriv($persist_priv, $forget_priv){
+    $this->persistPriv = $persist_priv;
+    $this->forgetPriv = $forget_priv;
+  }
+
+  public function getPriv(){
+    return array(
+      $this->persistPriv,
+      $this->forgetPriv
+    );
+  }
+
+  public function getKey(){
+    return $this->persistentKey();
+  }
+
+  public function __wakeup(){
+    parent::__wakeup();
+    $this->reinit = 'r';
+  }
+}
+
+/**
+ * ScratchpadsVocabulariesPersistentTestCase
+ * 
+ * This tests the Persistent functionality
+ */
+class ScratchpadsVocabulariesPersistentTestCase extends DrupalWebTestCase{
+
+  /**
+   * getInfo()
+   *
+   *  Implements getInfo()
+   */
+  public static function getInfo(){
+    return array(
+      'name' => t('Scratchpads Vocabularies Persistent'),
+      'description' => t('This tests the Persistent helper class'),
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * setUp()
+   *
+   * Implement setUp. Ensure that required modules are enabled, and include
+   * the classes we want to test.
+   */
+  public function setUp(){
+    // Include files
+    parent::setUp('scratchpads_vocabularies', 'list', 'entity');
+  }
+
+  /**
+   * testAll
+   * 
+   * Perform all the tests
+   */
+  public function testAll(){
+    // Create an object, and save it.
+    $o1 = new PersistentTestOne('pt1');
+    $o1->persistPub = 'pp1';
+    $o1->persistPub2 = 'pp2';
+    $o1->forgetPub = 'fp';
+    $o1->setPriv('xpp', 'xfp');
+    $o1->save();
+    // Check the key has the class prefix
+    $this->assertEqual($o1->getKey(), 'PersistentTestOne::pt1', 'Ensure that the persistent key is correct and prefixed with the class name');
+    // Create a second object with the same key, and compare values
+    $o2 = new PersistentTestOne('pt1');
+    $priv = $o2->getPriv();
+    $this->assertEqual($o2->persistPub, 'pp1', 'Ensure persistent properties are saved and restored');
+    $this->assertEqual($o2->persistPub2, 'pp2', 'Ensure multiple persistent properties are saved and restored');
+    $this->assertEqual($o2->forgetPub, NULL, 'Ensure non persistent properties are forgotten');
+    $this->assertEqual($priv[0], 'xpp', 'Ensure protected properties are persisted');
+    $this->assertEqual($priv[1], NULL, 'Ensure non-persisted private properties are forgotten');
+    // Serialize the first object
+    $s = serialize($o1);
+    $t = preg_match('/(pp1|pp2|fp|xpp|xfp)/', $s);
+    $this->assertTrue(!$t, 'Ensure none of the properties get serialized');
+    // De-serialize the object
+    $o3 = unserialize($s);
+    $priv = $o3->getPriv();
+    $this->assertEqual($o3->persistPub, 'pp1', 'Ensure persistent properties are restored on unserialize');
+    $this->assertEqual($o3->forgetPub, NULL, 'Ensure non-persistent properties are forgotten on unserialize');
+    $this->assertEqual($o3->reinit, 'r', 'Ensure __wakeup is called on unserialize');
+    // Now check loops
+    $o1->persistPub = $o1;
+    $s = serialize($o1);
+    $o4 = unserialize($s);
+    // If we make this far, the loop was avoided. Check that the data was properly extracted for the inner object
+    $priv = $o4->getPriv();
+    $this->assertEqual($o4->persistPub->persistPub2, 'pp2', 'Ensure unserialize loops are handled properly and inner object\'s public properties are restored');
+    $this->assertEqual($o4->persistPub->reinit, 'r', 'Ensure __wakeup is called on self-referential unserialize');
+    $this->assertEqual($priv[0], 'xpp', 'Ensure unserialize loops are handled properly and inner object\'s public properties are restored');
+  }
+}
+
+/**
+ * ScratchpadsVocabulariesSelectFieldTestCase
+ * 
+ * This WEB test case tests the SelectFieldReceiver class.
+ * 
+ */
+class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
+
+  /**
+   * getInfo()
+   * 
+   *  Implements getInfo()
+   */
+  public static function getInfo(){
+    return array(
+      'name' => t('Scratchpads Vocabularies SelectField'),
+      'description' => t('This tests the SelectField receiver functionalities.'),
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * setUp()
+   * 
+   * Implement setUp. Ensure that required modules are enabled, and include
+   * the classes we want to test.
+   */
+  public function setUp(){
+    // Include files
+    parent::setUp('scratchpads_vocabularies', 'list', 'entity', 'views');
+    module_load_include('receiver.inc', 'scratchpads_vocabularies', 'includes/selectfield');
+    module_load_include('vocabulary.inc', 'scratchpads_vocabularies', 'tests/test');
+  }
+
+  /**
+   * testAll()
+   * 
+   * Run all the tests on the SelectFieldReceiver
+   * 
+   * Currently, the following is not tested:
+   * - multilingual ;
+   * - update merge ;
+   * - limited number of entities when updating content ;
+   * 
+   * We don't need to test itemData as that is not used by the field.
+   */
+  function testAll(){
+    // Create a content type with a select field
+    $this->content_type = $this->drupalCreateContentType();
+    $this->test_nodes = array();
+    $field = field_create_field(array(
+      'cardinality' => -1,
+      'field_name' => 'field_test_selectfield',
+      'type' => 'list_text',
+      'module' => 'list'
+    ));
+    $field_instance = field_create_instance(array(
+      'field_name' => 'field_test_selectfield',
+      'entity_type' => 'node',
+      'bundle' => $this->content_type->name,
+      'required' => FALSE,
+      'default_value' => 'initial:4'
+    ));
+    // Get a vocabulary and a receiver
+    $voc = new ScratchpadsVocabularies\TestVocabulary();
+    $field = new ScratchpadsVocabularies\SelectFieldReceiver('field_test_selectfield');
+    // Create some nodes
+    $this->test_nodes[0] = array(
+      'initial value' => array(),
+      'node' => $this->drupalCreateNode(array(
+        'type' => $this->content_type->type
+      ))
+    );
+    $this->test_nodes[1] = array(
+      'initial value' => array(
+        0 => array(
+          'value' => 'initial:1'
+        )
+      ),
+      'node' => $this->drupalCreateNode(array(
+        'type' => $this->content_type->type
+      ))
+    );
+    $this->test_nodes[2] = array(
+      'initial value' => array(
+        0 => array(
+          'value' => 'initial:1'
+        ),
+        1 => array(
+          'value' => 'initial:2'
+        ),
+        2 => array(
+          'value' => 'initial:1'
+        )
+      ),
+      'node' => $this->drupalCreateNode(array(
+        'type' => $this->content_type->type
+      ))
+    );
+    $this->test_nodes[3] = array(
+      'initial value' => array(
+        0 => array(
+          'value' => 'initial:2'
+        )
+      ),
+      'node' => $this->drupalCreateNode(array(
+        'type' => $this->content_type->type
+      ))
+    );
+    $this->test_nodes[4] = array(
+      'initial value' => array(
+        0 => array(
+          'value' => 'initial:3'
+        )
+      ),
+      'node' => $this->drupalCreateNode(array(
+        'type' => $this->content_type->type
+      ))
+    );
+    // Do the initial setup, and check that the field updates as expected.
+    $this->vocDataReset($voc, $field);
+    $this->basicFieldTests('Initial field update', $field, $voc, array(
+      'allowed values' => array(
+        'initial:1' => 'Initial value 1',
+        'initial:2' => 'Initial value 2',
+        'initial:3' => 'Initial value 2 > Initial value 3',
+        'initial:4' => 'Initial value 4'
+      )
+    ));
+    // Now perform all subtests
+    $subtests = array(
+      'subTestAdd',
+      'subTestRename',
+      'subTestReparent',
+      'subTestRemove1',
+      'subTestRemove2',
+      'subTestMerge'
+    );
+    foreach($subtests as $subtest){
+      $this->{$subtest}($voc, $field);
+      $this->vocDataReset($voc, $field);
+    }
+    // Change the field to be a required field, and test again for the relevant tests
+    $field_instance['required'] = TRUE;
+    field_update_instance($field_instance);
+    $required_field_subtests = array(
+      'subTestRemove1',
+      'subTestRemove2'
+    );
+    foreach($required_field_subtests as $subtest){
+      $this->{$subtest}($voc, $field, TRUE);
+      $this->vocDataReset($voc, $field);
+    }
+    // Now tests views get updated properly
+    $this->vocDataReset($voc, $field);
+    $this->subTestViews($voc, $field);
+  }
+
+  /**
+   * subTestAdd
+   * 
+   * Add sub test. This is straightforward, and should
+   * behave the same regardless of the field settings
+   */
+  protected function subTestAdd($voc, $field){
+    // Now do a first upgrade. This will simply add some items
+    $voc->testAdd();
+    $this->assertTrue($field->canUpgradeStructure($voc), "Ensure we can upgrade the structure for subTestAdd");
+    $field->upgradeStructure($voc);
+    $field->applyPendingUpdates();
+    $field->applyModifications();
+    $this->basicFieldTests('Adding items to the structure', $field, $voc, array(
+      'allowed values' => array(
+        'initial:1' => 'Initial value 1',
+        'initial:2' => 'Initial value 2',
+        'initial:3' => 'Initial value 2 > Initial value 3',
+        'add:1' => 'Add test 1 (root)',
+        'add:2' => 'Initial value 2 > Add test 2 (under initial value 2)',
+        'initial:4' => 'Initial value 4'
+      )
+    ));
+  }
+
+  /**
+   * subTestRename
+   * 
+   * This is straight forward, and should behave the same
+   * regardless of the field settings
+   */
+  protected function subTestRename($voc, $field){
+    $voc->testRename();
+    $this->assertTrue($field->canUpgradeStructure($voc), "Ensure we can upgrade the structure for subTestRename");
+    $field->upgradeStructure($voc);
+    $field->applyPendingUpdates();
+    $field->applyModifications();
+    $this->basicFieldTests('Renaming items in the structure', $field, $voc, array(
+      'allowed values' => array(
+        'initial:1' => 'Initial value 1, renamed',
+        'initial:2' => 'Initial value 2',
+        'initial:3' => 'Initial value 2 > Initial value 3, renamed',
+        'initial:4' => 'Initial value 4'
+      )
+    ));
+  }
+
+  /**
+   * subTestReparent
+   *
+   * This is straight forward, and should behave the same
+   * regardless of the field settings
+   */
+  protected function subTestReparent($voc, $field){
+    $voc->testReparent();
+    $this->assertTrue($field->canUpgradeStructure($voc), "Ensure we can upgrade the structure for subTestReparent");
+    $field->upgradeStructure($voc);
+    $field->applyPendingUpdates();
+    $field->applyModifications();
+    $this->basicFieldTests('Reparenting items in the structure', $field, $voc, array(
+      'allowed values' => array(
+        'initial:2' => 'Initial value 2',
+        'initial:3' => 'Initial value 2 > Initial value 3',
+        'initial:1' => 'Initial value 2 > Initial value 1',
+        'initial:4' => 'Initial value 4'
+      )
+    ));
+  }
+
+  /**
+   * subTestRemove1
+   *
+   * This tests removing items, without providing any mapping.
+   * Non required fields should get removed while required ones
+   * should get the default instance value of 'initial:4'.
+   */
+  protected function subTestRemove1($voc, $field, $required = FALSE){
+    $voc->testRemove();
+    $this->assertTrue($field->canUpgradeStructure($voc), "Ensure we can upgrade the structure for subTestRemove1");
+    $field->upgradeStructure($voc);
+    // Test structure update only
+    $field->applyPendingUpdates();
+    $this->basicFieldTests('Deleting items in the structure, structural update, required is ' . ($required ? 'true' : 'false'), $field, $voc, array(
+      'allowed values' => array(
+        'initial:1' => 'Initial value 1 [DELETED]',
+        'initial:2' => 'Initial value 2',
+        'initial:3' => 'Initial value 2 > Initial value 3',
+        'initial:4' => 'Initial value 4'
+      ),
+      'number of updates' => 1
+    ), 1);
+    $pending_updates = $field->pendingUpdates();
+    $pending_update = reset($pending_updates);
+    $modification = $pending_update->modification();
+    $this->assertEqual(get_class($modification), 'ScratchpadsVocabularies\RemapModification', 'Check removing an item with existing content provies a RemapModification');
+    // Test content update
+    $field->applyModifications();
+    $this->basicFieldTests('Deleting items in the structure, complete update, required is ' . ($required ? 'true' : 'false'), $field, $voc, array(
+      'allowed values' => array(
+        'initial:2' => 'Initial value 2',
+        'initial:3' => 'Initial value 2 > Initial value 3',
+        'initial:4' => 'Initial value 4'
+      ),
+      'value changes' => array(
+        'initial:1' => $required ? 'initial:4' : ''
+      )
+    ));
+  }
+
+  /**
+   * subTestRemove2
+   *
+   * This tests removing items, while providing a mapping.
+   * The mapping should rename 'initial:1' to 'initial:2'
+   * (but only for the node in $this->test_nodes[2], not
+   * for the node in $this->test_nodes[1])
+   * and set 'initial:3' to the default value (initial:4)
+   * if the field is required, or remove it if not.
+   */
+  protected function subTestRemove2($voc, $field, $required = FALSE){
+    $voc->testRemove2();
+    $this->assertTrue($field->canUpgradeStructure($voc), "Ensure we can upgrade the structure for subTestRemove2");
+    $field->upgradeStructure($voc);
+    // Test structure update only
+    $field->applyPendingUpdates();
+    $this->basicFieldTests('Deleting items in the structure 2nd pass, structural update required is ' . ($required ? 'true' : 'false'), $field, $voc, array(
+      'allowed values' => array(
+        'initial:1' => 'Initial value 1 [DELETED]',
+        'initial:2' => 'Initial value 2',
+        'initial:3' => 'Initial value 2 > Initial value 3 [DELETED]',
+        'initial:4' => 'Initial value 4'
+      ),
+      'number of updates' => 1
+    ));
+    $pending_updates = $field->pendingUpdates();
+    $pending_update = reset($pending_updates);
+    $modification = $pending_update->modification();
+    $this->assertEqual(get_class($modification), 'ScratchpadsVocabularies\RemapModification', 'Check removing an item with existing content provies a RemapModification');
+    // Test content update
+    $entity_limit = array(
+      'node' => array(
+        $this->test_nodes[0]['node']->nid,
+        $this->test_nodes[2]['node']->nid,
+        $this->test_nodes[3]['node']->nid,
+        $this->test_nodes[4]['node']->nid
+      )
+    );
+    $field->applyModifications($entity_limit, array(), array(
+      'initial:1' => array(
+        'value' => 'initial:2'
+      )
+    ));
+    $this->basicFieldTests('Deleting items in the structure 2nd pass, complete update, required is ' . ($required ? 'true' : 'false'), $field, $voc, array(
+      'allowed values' => array(
+        'initial:1' => 'Initial value 1 [DELETED]',
+        'initial:2' => 'Initial value 2',
+        'initial:4' => 'Initial value 4'
+      ),
+      'value changes' => array(
+        'initial:1' => 'initial:2',
+        'initial:3' => $required ? 'initial:4' : ''
+      ),
+      'number of updates' => 1,
+      'entity limit' => $entity_limit
+    ));
+  }
+
+  /**
+   * subTestMerge
+   *
+   * Test merging of updates
+   */
+  protected function subTestMerge($voc, $field){
+    // Reset the vocabulary for this test
+    $voc->testMergePrepare();
+    $this->assertTrue($field->canUpgradeStructure($voc), "Ensure we can upgrade the structure for subTestMerge(1)");
+    $field->upgradeStructure($voc);
+    $field->applyPendingUpdates();
+    $field->applyModifications();
+    // Now do two upgrades without applying anything
+    $voc->testMergeStart();
+    $this->assertTrue($field->canUpgradeStructure($voc), "Ensure we can upgrade the structure for subTestMerge(2)");
+    $field->upgradeStructure($voc);
+    $voc->testMergeEnd();
+    $this->assertTrue($field->canUpgradeStructure($voc), "Ensure we can upgrade the structure for subTestMerge(3)");
+    $field->upgradeStructure($voc);
+    // And test we have something sensible at the end.
+    $updates = $field->pendingUpdates();
+    $expected_updates = array(
+      ScratchpadsVocabularies\VocabularyUpdate::T_ADD => array(
+        'merge:add:2' => 'Merge: add + rename, renamed',
+        'merge:add:3' => 'Merge: add + reparent'
+      ),
+      ScratchpadsVocabularies\VocabularyUpdate::T_REMOVE => array(
+        'merge:rename:1' => 'Merge: rename + remove, renamed',
+        'merge:reparent:1' => 'Merge: reparent + remove'
+      ),
+      ScratchpadsVocabularies\VocabularyUpdate::T_RENAME => array(
+        'merge:remove:2' => 'Merge: remove + add, with rename, renamed',
+        'merge:rename:2' => 'Merge: rename + rename, renamed twice'
+      ),
+      ScratchpadsVocabularies\VocabularyUpdate::T_REPARENT => array(
+        'merge:remove:3' => 'Merge: remove + add, with reparent',
+        'merge:rename:3' => 'Merge: rename + reparent, renamed',
+        'merge:reparent:2' => 'Merge: reparent + rename, renamed',
+        'merge:reparent:3' => 'Merge: reparent + reparent' // XXX was in rename
+      )
+    );
+    $missing_other = 0;
+    foreach($updates as $update){
+      foreach($update->items() as $item_id => $label){
+        if(isset($expected_updates[$update->type()][$item_id]) && $expected_updates[$update->type()][$item_id] == $label){
+          unset($expected_updates[$update->type()][$item_id]);
+          if(empty($expected_updates[$update->type()])){
+            unset($expected_updates[$update->type()]);
+          }
+        }else{
+          $missing_other++;
+        }
+      }
+    }
+    $this->assertTrue(($missing_other == 0) && empty($expected_updates), "Merge test: ensure that updates are merged as expected");
+  }
+
+  /**
+   * resetVocData
+   * 
+   * Reset vocabulary and nodes to their original value so further tests know what to expect
+   * (allows us to run multiple tests without the costs of multiple re-installs)
+   * 
+   * $vocabulary reset does not reset the version.
+   */
+  private function vocDataReset($voc, $field){
+    $field->applyPendingUpdates();
+    $field->applyModifications();
+    $voc->reset();
+    $field->upgradeStructure($voc);
+    $field->applyPendingUpdates();
+    $field->applyModifications();
+    foreach($this->test_nodes as $node_info){
+      $node = $node_info['node'];
+      $node->field_test_selectfield[LANGUAGE_NONE] = $node_info['initial value'];
+      node_save($node);
+    }
+  }
+
+  /**
+   * basicFieldTests()
+   * 
+   * Helper methods that performs a series of tests we want to run in different contexts.
+   */
+  private function basicFieldTests($msg, $field, $voc, $settings){
+    $settings += array(
+      'allowed values' => array(),
+      'number of updates' => 0,
+      'value changes' => array(),
+      'entity limit' => array()
+    );
+    // Ensure we start anew
+    cache_clear_all();
+    drupal_static_reset();
+    // Tests on the field
+    $this->assertEqual($field->version(), $voc->version(), "Ensure SelectFieldReceiver::version returns the right version after update (Testing $msg)");
+    $this->assertEqual($field->structure()->structure(), $voc->structure()->structure(), "Ensure SelectFieldReceiver::structure returns the right structure after update (Testing $msg)");
+    $this->assertTrue(count($field->pendingUpdates()) == $settings['number of updates'], "Ensure SelectfieldReceiver has " . $settings['number of updates'] . " pending updates after update (Testing $msg)");
+    $updated_field = field_info_field('field_test_selectfield');
+    $diff = array_diff_assoc($settings['allowed values'], $updated_field['settings']['allowed_values']);
+    $this->assertTrue(empty($diff), "Ensure the field associated with the SelectFieldReceiver has the expected allowed values after update (Testing $msg)" . implode(',', array_keys($updated_field['settings']['allowed_values'])) . '//' . implode(',', $updated_field['settings']['allowed_values']));
+    // Test on the nodes.
+    if(!empty($this->test_nodes)){
+      $count = db_query("
+      SELECT COUNT(*)
+        FROM {node}
+        WHERE type = :type
+      ", array(
+        ':type' => $this->content_type->type
+      ))->fetchField();
+      $this->assertEqual($count, count($this->test_nodes), "Ensure no nodes have been deleted by SelectFieldReceiver update (Testing $msg)");
+      foreach($this->test_nodes as $node_info){
+        $initial = $node_info['initial value'];
+        $expected = array();
+        $original = array();
+        // Apply maps to the initial value to get the expected value
+        // (unless the entity limit is defined and the node isn't in it)
+        foreach($initial as $delta => $value){
+          $value = $value['value'];
+          $original[] = $value;
+          if((empty($settings['entity limit']['node']) || in_array($node_info['node']->nid, $settings['entity limit']['node'])) && isset($settings['value changes'][$value])){
+            if(!empty($settings['value changes'][$value])){
+              $expected[] = $settings['value changes'][$value];
+            }
+          }else if($value){
+            $expected[] = $value;
+          }
+        }
+        $original = implode(',', $original);
+        // Now get the value we actual have
+        $node = node_load($node_info['node']->nid, NULL, TRUE);
+        $obtained = array();
+        if(isset($node->field_test_selectfield[LANGUAGE_NONE])){
+          foreach($node->field_test_selectfield[LANGUAGE_NONE] as $delta => $value){
+            if($value['value']){
+              $obtained[] = $value['value'];
+            }
+          }
+        }
+        // Check they are the same
+        $diff = array_diff_assoc(array_values($expected), array_values($obtained));
+        $this->assertTrue(is_array($diff) && empty($diff), "Ensure that, after a SelectFieldReceiver update, the node with initial value '$original' has value '" . implode(',', $expected) . "' got '" . implode(',', $obtained) . "' (Testing $msg)");
+      }
+    }
+  }
+
+  /**
+   * subTestViews
+   *
+   * Test that a view using a field will prevent upgrade
+   */
+  private function subTestViews($voc, $field){
+    // Create a view
+    $view = new view();
+    $view->name = 'sub_test_views_view';
+    $view->description = '';
+    $view->tag = 'default';
+    $view->base_table = 'node';
+    $view->human_name = 'Sub test views view';
+    $view->core = 7;
+    $view->api_version = '3.0';
+    $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+    /* Display: Master */
+        $handler = $view->new_display('default', 'Master', 'default');
+    $handler->display->display_options['use_more_always'] = FALSE;
+    $handler->display->display_options['access']['type'] = 'perm';
+    $handler->display->display_options['cache']['type'] = 'none';
+    $handler->display->display_options['query']['type'] = 'views_query';
+    $handler->display->display_options['exposed_form']['type'] = 'basic';
+    $handler->display->display_options['pager']['type'] = 'full';
+    $handler->display->display_options['style_plugin'] = 'default';
+    $handler->display->display_options['row_plugin'] = 'fields';
+    /* Field: Content: Title */
+    $handler->display->display_options['fields']['title']['id'] = 'title';
+    $handler->display->display_options['fields']['title']['table'] = 'node';
+    $handler->display->display_options['fields']['title']['field'] = 'title';
+    $handler->display->display_options['fields']['title']['label'] = '';
+    $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+    $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+    /* Filter criterion: Content: testvals (field_testvals) */
+    $handler->display->display_options['filters']['field_test_selectfield_value']['id'] = 'field_test_selectfield_value';
+    $handler->display->display_options['filters']['field_test_selectfield_value']['table'] = 'field_data_field_test_selectfield';
+    $handler->display->display_options['filters']['field_test_selectfield_value']['field'] = 'field_test_selectfield_value';
+    $handler->display->display_options['filters']['field_test_selectfield_value']['value'] = array(
+      'initial:1' => 'initial:1',
+      'initial:2' => 'initial:2',
+      'initial:3' => 'initial:3'
+    );
+    $view->save();
+    // Run the test
+    $field->resetViewsList();
+    $voc->testRemove();
+    $this->assertFalse($field->canUpgradeStructure($voc), "Ensure that a view using a field prevents us from upgrading");
+  }
+}
+
+/**
+ * ScratchpadsVocabulariesGbifXmlTestCase
+ * 
+ * This is a web test used to test the GbifXmlVocabulary implementation.
+ * XXX 'refresh' and 'description' are not tested.
+ */
+class ScratchpadsVocabulariesGbifXmlTestCase extends DrupalWebTestCase{
+
+  /**
+   * getInfo()
+   *
+   * Implements getInfo()
+   */
+  public static function getInfo(){
+    return array(
+      'name' => t('Scratchpads Vocabularies GbifXmlVocabulary'),
+      'description' => t('This is a web test used to test the GbifXmlVocabulary implementation. Note that this tests against a local copy of some sample data - so the test won\'t fail if the remote format changes.'),
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * setUp()
+   *
+   * Implement setUp. Ensure that required modules are enabled, and include
+   * the classes we want to test.
+   */
+  public function setUp(){
+    // Include files
+    parent::setUp('scratchpads_vocabularies', 'list', 'entity');
+    module_load_include('vocabulary.inc', 'scratchpads_vocabularies', 'includes/gbifxml');
+  }
+
+  /**
+   * testAll()
+   *
+   * This will perform all the tests we can.
+   *
+   */
+  public function testAll(){
+    $expected_struct = array(
+      "PreservedSpecimen" => "Preserved Specimen",
+      "FossilSpecimen" => "Fossil Specimen",
+      "LivingSpecimen" => "Living Specimen",
+      "HumanObservation" => "Human Observation",
+      "MachineObservation" => "Machine Observation",
+      "NomenclaturalChecklist" => "Nomenclatural Checklist",
+      "Sample" => "Sample",
+      "Occurrence" => "Occurrence"
+    );
+    $one_expected_item = array(
+      "terms" => array(
+        "en" => array(
+          "title" => "Preserved Specimen",
+          "source" => "Darwin Core"
+        ),
+        "pt" => array(
+          "title" => "Espécime Preservado",
+          "source" => "Darwin Core"
+        )
+      ),
+      "id" => "PreservedSpecimen",
+      "uri" => "http://rs.tdwg.org/dwc/dwctype/PreservedSpecimen",
+      "relation" => "http://rs.tdwg.org/dwc/terms/type-vocabulary/#PreservedSpecimen",
+      "description" => "",
+      "label" => "Preserved Specimen"
+    );
+    // Test it when it works
+    $file = drupal_realpath(drupal_get_path('module', 'scratchpads_vocabularies') . '/tests/basis_of_record.xml');
+    $voc = new ScratchpadsVocabularies\GbifXmlVocabulary($file);
+    $this->assertEqual($voc->name(), 'Darwin Core Type Vocabulary', 'Test GbifXmlVocabulary name()');
+    $this->assertEqual($voc->id(), $file, 'Test GbifXmlVocabulary id()');
+    $this->assertEqual($voc->version(), '1163da6ac1c9b1a711171be5a1f86da3', 'Test GbifXmlVocabulary version()');
+    $this->assertEqual($voc->structure()->structure(), $expected_struct, 'Test GbifXmlVocabulary generated structure');
+    $item_data = $voc->structure()->itemData('PreservedSpecimen');
+    unset($item_data['render']); // Don't test this
+    $this->assertEqual($item_data, $one_expected_item, 'Test GbifXmlVocabulary generated structure/data items');
+    // Test it when it's broken
+    $raise = FALSE;
+    try{
+      $voc = new ScratchpadsVocabularies\GbifXmlVocabulary(drupal_realpath(drupal_get_path('module', 'scratchpads_vocabularies') . '/tests/basis_of_record.broken.xml'));
+    }
+    catch(Exception $e){
+      $raise = TRUE;
+    }
+    $this->assertTrue($raise, 'Ensure constructing a GbifXmlVocabulary with data that doesn\'t match expected format raises an exception');
+  }
+}

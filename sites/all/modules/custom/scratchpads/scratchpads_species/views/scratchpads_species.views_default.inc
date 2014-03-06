@@ -1108,7 +1108,7 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['fields']['nid']['label'] = '';
     $handler->display->display_options['fields']['nid']['alter']['alter_text'] = 0;
     $handler->display->display_options['fields']['nid']['alter']['make_link'] = 1;
-    $handler->display->display_options['fields']['nid']['alter']['path'] = 'taxonomy/term/!1/specimens?field_type_status=Paratype';
+    $handler->display->display_options['fields']['nid']['alter']['path'] = 'taxonomy/term/!1/specimens?field_type_status=paratype';
     $handler->display->display_options['fields']['nid']['alter']['absolute'] = 0;
     $handler->display->display_options['fields']['nid']['alter']['external'] = 0;
     $handler->display->display_options['fields']['nid']['alter']['replace_spaces'] = 0;
@@ -1151,7 +1151,7 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['filters']['field_type_status_value']['table'] = 'field_data_field_type_status';
     $handler->display->display_options['filters']['field_type_status_value']['field'] = 'field_type_status_value';
     $handler->display->display_options['filters']['field_type_status_value']['value'] = array(
-      'Paratype' => 'Paratype'
+      'paratype' => 'paratype'
     );
     $handler->display->display_options['displays'] = array(
       'default' => 'default',
@@ -1172,7 +1172,7 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['fields']['nid']['label'] = '';
     $handler->display->display_options['fields']['nid']['alter']['alter_text'] = 0;
     $handler->display->display_options['fields']['nid']['alter']['make_link'] = 1;
-    $handler->display->display_options['fields']['nid']['alter']['path'] = 'taxonomy/term/!1/specimens?field_type_status=Syntype';
+    $handler->display->display_options['fields']['nid']['alter']['path'] = 'taxonomy/term/!1/specimens?field_type_status=syntype';
     $handler->display->display_options['fields']['nid']['alter']['absolute'] = 0;
     $handler->display->display_options['fields']['nid']['alter']['external'] = 0;
     $handler->display->display_options['fields']['nid']['alter']['replace_spaces'] = 0;
@@ -1216,7 +1216,7 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['filters']['field_type_status_value']['table'] = 'field_data_field_type_status';
     $handler->display->display_options['filters']['field_type_status_value']['field'] = 'field_type_status_value';
     $handler->display->display_options['filters']['field_type_status_value']['value'] = array(
-      'Syntype' => 'Syntype'
+      'syntype' => 'syntype'
     );
     $handler->display->display_options['displays'] = array(
       'default' => 'default',
@@ -1370,9 +1370,9 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['filters']['field_type_status_value']['table'] = 'field_data_field_type_status';
     $handler->display->display_options['filters']['field_type_status_value']['field'] = 'field_type_status_value';
     $handler->display->display_options['filters']['field_type_status_value']['value'] = array(
-      'Holotype' => 'Holotype',
-      'Lectotype' => 'Lectotype',
-      'Neotype' => 'Neotype'
+      'holotype' => 'holotype',
+      'lectotype' => 'lectotype',
+      'neotype' => 'neotype'
     );
     $handler->display->display_options['displays'] = array(
       'default' => 'default',
