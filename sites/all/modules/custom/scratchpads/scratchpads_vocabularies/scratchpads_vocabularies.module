@@ -335,13 +335,18 @@ function scratchpads_vocabularies_field_widget_form_alter(&$element, &$form_stat
       $field_name,
       $element['#language']
     );
-    $subform['#description'] = check_plain($vocabulary->name()) . ' (' . l(t('more information'), 'vocabularies/info/' . $voc_id) . ')';
+    $subform['#description'] = check_plain($vocabulary->name()) . ' (' . l(t('more information'), 'vocabularies/info/' . $voc_id, array(
+      'attributes' => array(
+        'target' => '_blank'
+      )
+    )) . ')';
     // Generate the vocabulary info
     if(isset($form_state['values'][$field_name])){
       $selected = $form_state['values'][$field_name][$element['#language']][0]['value'];
     }else{
       $selected = reset($subform['#default_value']);
     }
+    $content = '';
     if($selected){
       $content = $receiver->structure()->renderItem($selected);
     }
@@ -417,22 +422,24 @@ function scratchpads_vocabularies_scratchpads_vocabulary_info(){
   $elements = array();
   $our_vocs = variable_get('scratchpads_vocabularies_ui_vocabularies', array());
   foreach($our_vocs as $voc_id => $our_voc){
-    $field = $our_voc['field'];
-    $url = $our_voc['url'];
-    $title = $our_voc['title'];
-    $elements[$voc_id] = array(
-      'title' => $title,
-      'vocabulary' => array(
-        'create callback' => function () use($url){
-          return new ScratchpadsVocabularies\GbifXmlVocabulary($url);
-        }
-      ),
-      'receiver' => array(
-        'create callback' => function () use($field){
-          return new ScratchpadsVocabularies\SelectFieldReceiver($field);
-        }
-      )
-    );
+    if(field_info_field($our_voc['field'])){
+      $field = $our_voc['field'];
+      $url = $our_voc['url'];
+      $title = $our_voc['title'];
+      $elements[$voc_id] = array(
+        'title' => $title,
+        'vocabulary' => array(
+          'create callback' => function () use($url){
+            return new ScratchpadsVocabularies\GbifXmlVocabulary($url);
+          }
+        ),
+        'receiver' => array(
+          'create callback' => function () use($field){
+            return new ScratchpadsVocabularies\SelectFieldReceiver($field);
+          }
+        )
+      );
+    }
   }
   return $elements;
 }
