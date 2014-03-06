@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/style/human.xsl"?>
+<thesaurus 
+	dc:URI="http://rs.tdwg.org/dwc/dwctype/" 
+	dc:description="The Type Vocabulary is a recommended set of values to use for the basisOfRecord term to categorize Darwin Core resources. The Darwin Core Type Vocabulary extends and refines terms from the Dublin Core Type Vocabulary to describe and categorize resources more specifically for biodiversity applications. The basisOfRecord should be populated with the value from the Darwin Core Type Vocabulary that best corresponds to the resource being shared." 
+	dc:title="Darwin Core Type Vocabulary" 
+	dc:relation="http://rs.tdwg.org/dwc/terms/type-vocabulary/"
+	xmlns="http://rs.gbif.org/thesaurus/" xmlns:dc="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://rs.gbif.org/thesaurus/  http://rs.gbif.org/schema/thesaurus.xsd">
+	
+ <concept dc:identifier="PreservedSpecimen" 
+	 dc:URI="http://rs.tdwg.org/dwc/dwctype/PreservedSpecimen"
+     dc:relation="http://rs.tdwg.org/dwc/terms/type-vocabulary/#PreservedSpecimen"
+     dc:description="">
+  <preferred>
+   <term dc:source="Darwin Core" dc:title="Preserved Specimen" xml:lang="en"/>
+   <term dc:source="Darwin Core" dc:title="Espécime Preservado" xml:lang="pt"/>
+  </preferred>
+  <alternative>
+  </alternative>
+ </concept>
+
+ <concept dc:identifier="FossilSpecimen" 
+	 dc:URI="http://rs.tdwg.org/dwc/dwctype/FossilSpecimen"
+     dc:relation="http://rs.tdwg.org/dwc/terms/type-vocabulary/#FossilSpecimen"
+     dc:description="A resource describing a fossilized specimen.">
+  <preferred>
+   <term dc:source="Darwin Core" dc:title="Fossil Specimen" xml:lang="en"/>
+   <term dc:source="Darwin Core" dc:title="Espécime Fóssil" xml:lang="pt"/>
+  </preferred>
+  <alternative>
+  </alternative>
+ </concept>
+
+ <concept dc:identifier="LivingSpecimen" 
+	 dc:URI="http://rs.tdwg.org/dwc/dwctype/LivingSpecimen"
+     dc:relation="http://rs.tdwg.org/dwc/terms/type-vocabulary/#LivingSpecimen"
+     dc:description="A resource describing a living specimen.">
+  <preferred>
+   <term dc:source="Darwin Core" dc:title="Living Specimen" xml:lang="en"/>
+   <term dc:source="Darwin Core" dc:title="Espécime Vivo" xml:lang="pt"/>
+  </preferred>
+  <alternative>
+  </alternative>
+ </concept>
+
+ <concept dc:identifier="HumanObservation" 
+	 dc:URI="http://rs.tdwg.org/dwc/dwctype/HumanObservation"
+     dc:relation="http://rs.tdwg.org/dwc/terms/type-vocabulary/#HumanObservation"
+     dc:description="A resource describing an observation made by one or more people.">
+  <preferred>
+   <term dc:source="Darwin Core" dc:title="Human Observation" xml:lang="en"/>
+   <term dc:source="Darwin Core" dc:title="Observação por Humano" xml:lang="pt"/>
+  </preferred>
+  <alternative>
+  </alternative>
+ </concept>
+
+ <concept dc:identifier="MachineObservation" 
+	 dc:URI="http://rs.tdwg.org/dwc/dwctype/MachineObservation"
+     dc:relation="http://rs.tdwg.org/dwc/terms/type-vocabulary/#MachineObservation"
+     dc:description="A resource describing an observation made by a machine.">
+  <preferred>
+   <term dc:source="Darwin Core" dc:title="Machine Observation" xml:lang="en"/>
+   <term dc:source="Darwin Core" dc:title="Observação por Máquina" xml:lang="pt"/>
+  </preferred>
+  <alternative>
+  </alternative>
+ </concept>
+
+ <concept dc:identifier="NomenclaturalChecklist" 
+	 dc:URI="http://rs.tdwg.org/dwc/dwctype/NomenclaturalChecklist"
+     dc:relation="http://rs.tdwg.org/dwc/terms/type-vocabulary/#NomenclaturalChecklist"
+     dc:description="A resource describing a nomenclatural checklist.">
+  <preferred>
+   <term dc:source="Darwin Core" dc:title="Nomenclatural Checklist" xml:lang="en"/>
+   <term dc:source="Darwin Core" dc:title="Checklist Nomenclatural" xml:lang="pt"/>
+  </preferred>
+  <alternative>
+   <term dc:source="Darwin Core" dc:title="Lista de Checagem Nomenclatural" xml:lang="pt"/>
+  </alternative>
+ </concept>
+
+ <concept dc:identifier="Sample" 
+	 dc:URI="http://rs.tdwg.org/dwc/dwctype/Sample"
+     dc:relation="http://rs.tdwg.org/dwc/terms/type-vocabulary/#Sample"
+     dc:description="A resource describing a sample taken from a specimen or environment.">
+  <preferred>
+   <term dc:source="Darwin Core" dc:title="Sample" xml:lang="en"/>
+   <term dc:source="Darwin Core" dc:title="Amostra" xml:lang="pt"/>
+  </preferred>
+  <alternative>
+  </alternative>
+ </concept>
+ 
+ <concept dc:identifier="Occurrence" 
+	 dc:URI="http://rs.tdwg.org/dwc/dwctype/Occurrence"
+     dc:relation="http://rs.tdwg.org/dwc/terms/type-vocabulary/#Occurrence"
+     dc:description="A resource describing an instance of the Occurrence class.">
+  <preferred>
+   <term dc:source="Darwin Core" dc:title="Occurrence" xml:lang="en"/>
+   <term dc:source="Darwin Core" dc:title="Ocorrência" xml:lang="pt"/>
+  </preferred>
+  <alternative>
+  </alternative>
+ </concept>
+
+</thesaurus>
