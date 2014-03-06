@@ -191,3 +191,28 @@ function scratchpads_group_update_7007(){
     ;
   }
 }
+
+/**
+ * Add the contributor and editor group roles, and set the permissions for them
+ */
+function scratchpads_group_update_7008(){
+  try{
+    db_insert('og_role')->fields(array(
+      'rid',
+      'gid',
+      'name'
+    ))->values(array(
+      'rid' => 4,
+      'gid' => 0,
+      'name' => 'contributor'
+    ))->values(array(
+      'rid' => 5,
+      'gid' => 0,
+      'name' => 'editor'
+    ))->execute();
+  }
+  catch(Exception $e){
+    ;
+  }
+  drupal_flush_all_caches();
+}
