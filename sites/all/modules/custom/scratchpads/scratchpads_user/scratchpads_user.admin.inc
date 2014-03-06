@@ -16,7 +16,6 @@ function scratchpads_user_admin($callback_arg = '', $status_filter = NULL){
       if(!empty($_POST['accounts']) && isset($_POST['operation']) && ($_POST['operation'] == 'cancel')){
         $build['user_multiple_cancel_confirm'] = drupal_get_form('user_multiple_cancel_confirm');
       }else{
-        $build['user_filter_form'] = drupal_get_form('user_filter_form');
         $build['user_admin_account'] = drupal_get_form('scratchpads_user_admin_account', $status_filter);
       }
   }
@@ -261,6 +260,8 @@ function scratchpads_user_admin_account($form, &$form_state, $status_filter = NU
       '#value' => t('Clear filter')
     )
   );
+  /*module_load_include('admin.inc', 'user');
+  $form['filters']['user_filter_form'] = drupal_get_form('user_filter_form');*/
   // Add some CSS
   $form['#attached']['css'][] = drupal_get_path('module', 'scratchpads_user') . '/css/scratchpads_user.css';
   $form['accounts'] = array(
