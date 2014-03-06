@@ -1,0 +1,659 @@
+<?php
+
+/**
+ * scratchpads_vocabularies_menu
+ * 
+ * Implement hook_menu
+ */
+function scratchpads_vocabularies_menu(){
+  return array(
+    'admin/config/services/vocabularies' => array(
+      'title' => 'Vocabularies',
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_vocabularies_admin_list'
+      ),
+      'file' => 'scratchpads_vocabularies.admin.inc',
+      'access arguments' => array(
+        'update vocabularies'
+      )
+    ),
+    'admin/config/services/vocabularies/%' => array(
+      'title' => t('Manage'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_vocabularies_admin_form',
+        4
+      ),
+      'file' => 'scratchpads_vocabularies.admin.inc',
+      'access arguments' => array(
+        'update vocabularies'
+      )
+    ),
+    'admin/config/services/vocabularies/%/manage' => array(
+      'title' => t('General'),
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_vocabularies_admin_form',
+        4
+      ),
+      'file' => 'scratchpads_vocabularies.admin.inc',
+      'access arguments' => array(
+        'update vocabularies'
+      )
+    ),
+    'admin/config/services/vocabularies/%/updates' => array(
+      'title' => t('Updates'),
+      'type' => MENU_LOCAL_TASK,
+      'page callback' => 'scratchpads_vocabularies_update_page',
+      'page arguments' => array(
+        4
+      ),
+      'file' => 'scratchpads_vocabularies.admin.inc',
+      'access arguments' => array(
+        'update vocabularies'
+      )
+    ),
+    'admin/config/services/vocabularies/%/delete' => array(
+      'title' => 'Delete Vocabulary',
+      'type' => MENU_CALLBACK,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_vocabularies_delete_form',
+        4
+      ),
+      'file' => 'scratchpads_vocabularies.admin.inc',
+      'access arguments' => array(
+        'update vocabularies'
+      )
+    ),
+    'vocabularies/info/%' => array(
+      'title' => t('Vocabulary'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'scratchpads_vocabularies_info_page',
+      'page arguments' => array(
+        2
+      ),
+      'access arguments' => array(
+        'view vocabularies'
+      )
+    )
+  );
+}
+
+/**
+ * scratchpads_vocabularies_form
+ * 
+ * Implement hook_forms
+ */
+function scratchpads_vocabularies_forms($form_id, $args){
+  $forms = array();
+  if(preg_match('/^scratchpads_vocabularies_modification_form_(\d+)$/', $form_id)){
+    $forms[$form_id] = array(
+      'callback' => 'scratchpads_vocabularies_modification_form'
+    );
+  }
+  return $forms;
+}
+
+/**
+ * scratchpads_vocabularies_modification_form
+ */
+function scratchpads_vocabularies_modification_form($form, &$form_state){
+  $modification = $form_state['build_info']['args'][0];
+  if(method_exists($modification, 'getForm')){
+    return $modification->getForm($form, $form_state);
+  }else{
+    return array();
+  }
+}
+
+/**
+ * scratchpads_vocabularies_modification_form_validate
+ */
+function scratchpads_vocabularies_modification_form_validate($form, &$form_state){
+  $modification = $form_state['build_info']['args'][0];
+  if(method_exists($modification, 'validateForm')){
+    $modification->validateForm($form, $form_state);
+  }
+}
+
+/**
+ * scratchpads_vocabularies_modification_form_submit
+ */
+function scratchpads_vocabularies_modification_form_submit($form, &$form_state){
+  $modification = $form_state['build_info']['args'][0];
+  if(method_exists($modification, 'submitForm')){
+    $modification->submitForm($form, $form_state);
+  }
+}
+
+/**
+ * scratchpads_vocabularies_permission
+ *
+ * Implement hook_permission
+ *
+ * XXX This could be refined - in particular we
+ * could differentiate 'update own vocabularies'
+ * and 'update any vocabulary'. However as it is now
+ * covers current use cases.
+ */
+function scratchpads_vocabularies_permission(){
+  return array(
+    'view vocabularies' => array(
+      'title' => t('View vocabulary mappings')
+    ),
+    'add vocabulary mappings' => array(
+      'title' => t('Add vocabulary mappings')
+    ),
+    'delete any vocabulary mapping' => array(
+      'title' => t('Delete all vocabulary mappings')
+    ),
+    'update vocabularies' => array(
+      'title' => t('Update Vocabularies')
+    )
+  );
+}
+
+/**
+ * scratchpads_vocabularies_scratchpads_default_permissions
+ *
+ * Implement hook_scratchpads_default_permissions
+ */
+function scratchpads_vocabularies_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'view vocabularies',
+      'update vocabularies',
+      'add vocabulary mappings'
+    ),
+    'contributor' => array(
+      'view vocabularies'
+    ),
+    'editor' => array(
+      'view vocabularies'
+    )
+  );
+}
+
+/**
+ * scratchpads_vocabularies_theme
+ * 
+ * Implement hook_theme
+ */
+function scratchpads_vocabularies_theme($existing, $type, $theme, $path){
+  return array(
+    'scratchpads_vocabularies_info' => array(
+      'variables' => array(
+        'title' => NULL,
+        'receiver' => NULL,
+        'vocabulary' => NULL,
+        'info' => NULL
+      ),
+      'path' => $path . '/theme',
+      'template' => 'scratchpads_vocabularies_info'
+    ),
+    'scratchpads_vocabularies_gbif_term' => array(
+      'variables' => array(
+        'label' => NULL,
+        'description' => NULL,
+        'relation' => NULL,
+        'uri' => NULL,
+        'wiki' => NULL
+      ),
+      'path' => $path . '/theme',
+      'template' => 'scratchpads_vocabularies_gbif_term'
+    )
+  );
+}
+
+/**
+ * scratchpads_vocabularies_preprocess_field
+ * 
+ * Implement hook_preprocess_field
+ * 
+ * We ensure that [DELETED] is removed from the fields
+ * we manage.
+ */
+function scratchpads_vocabularies_preprocess_field(&$variables){
+  static $fields = NULL;
+  if($fields === NULL){
+    $fields = array();
+    $our_vocs = variable_get('scratchpads_vocabularies_ui_vocabularies', array());
+    foreach($our_vocs as $info_id => $our_voc){
+      $fields[] = $our_voc['field'];
+    }
+  }
+  if(in_array($variables['element']['#field_name'], $fields)){
+    foreach($variables['items'] as $id => $item){
+      $variables['items'][$id]['#markup'] = preg_replace('/\s*\[DELETED\]\s*/', '', $item['#markup']);
+    }
+  }
+}
+
+/**
+ * Implement hook_block_info
+ *
+ * Create an update block to display in the dashboard
+ */
+function scratchpads_vocabularies_block_info(){
+  return array(
+    'updates' => array(
+      'info' => t('Vocabulaires updates'),
+      'cache' => DRUPAL_NO_CACHE,
+      'properties' => array(
+        'administrative' => TRUE
+      ),
+      'status' => 1,
+      'region' => 'dashboard_main'
+    )
+  );
+}
+
+/**
+ * scratchpads_vocabularies_block_view
+ *
+ * The dashboard block
+ */
+function scratchpads_vocabularies_block_view($delta = ''){
+  if($delta != 'updates'){return;}
+  $all_info = module_invoke_all('scratchpads_vocabulary_info');
+  $pending = array();
+  foreach($all_info as $name => $info){
+    list($vocabulary, $receiver) = _scratchpads_vocabularies_info_build($info);
+    if(!$receiver || count($receiver->pendingUpdates()) == 0){
+      continue;
+    }
+    $update_table = array();
+    foreach($receiver->pendingUpdates() as $update_id => $update){
+      // Work out why it's pending
+      $modification = $update->modification();
+      if(!$modification){
+        $reason = t('Unknown. Please report an issue on the Scratchpads issue queue about this problem');
+        $action_table = array(
+          '#markup' => t('No available actions')
+        );
+      }else{
+        $reason = $modification->explanation();
+        $action_table = drupal_get_form('scratchpads_vocabularies_modification_form_' . $update_id, $modification);
+      }
+      $update_table[] = array(
+        check_plain($update->type()),
+        $reason,
+        $action_table
+      );
+    }
+    $pending['pending_' . $name] = array(
+      'info_' . $name => array(
+        '#type' => 'markup',
+        '#markup' => t('Vocabulary @voc has some pending updates', array(
+          '@voc' => $info['title']
+        ))
+      )
+    );
+    $pending['update_' . $name] = _scratchpads_vocabularies_form_table(array(
+      t('Update type'),
+      t('Reason this is pending'),
+      t('Action')
+    ), $update_table);
+  }
+  if(empty($pending)){return array(
+      'subject' => t('Vocabularies updates'),
+      'content' => array(
+        '#markup' => t('All vocabularies are up to date')
+      )
+    );}
+  return array(
+    'subject' => t('Vocabularies updates'),
+    'content' => $pending
+  );
+}
+
+/**
+ * Implement hook_field_widget_form_alter
+ *
+ * Add external definition to field widgets
+ */
+function scratchpads_vocabularies_field_widget_form_alter(&$element, &$form_state, $context){
+  if(!isset($element['#type']) || $element['#type'] != 'select'){return;}
+  $field_name = $element['#field_name'];
+  $all_vocs = module_invoke_all('scratchpads_vocabulary_info');
+  $our_vocs = variable_get('scratchpads_vocabularies_ui_vocabularies', array());
+  foreach($our_vocs as $voc_id => $our_voc){
+    if($field_name != $our_voc['field']){
+      continue;
+    }
+    list($vocabulary, $receiver) = _scratchpads_vocabularies_info_build($all_vocs[$voc_id]);
+    if(!$vocabulary || !$receiver){return;}
+    // Copy the form away
+    $subform = array_combine(array_keys($element), array_values($element));
+    $subform['#tree'] = FALSE;
+    $subform['#parents'] = array(
+      $field_name,
+      $element['#language']
+    );
+    $subform['#description'] = check_plain($vocabulary->name()) . ' (' . l(t('more information'), 'vocabularies/info/' . $voc_id) . ')';
+    // Generate the vocabulary info
+    if(isset($form_state['values'][$field_name])){
+      $selected = $form_state['values'][$field_name][$element['#language']][0]['value'];
+    }else{
+      $selected = reset($subform['#default_value']);
+    }
+    if($selected){
+      $content = $receiver->structure()->renderItem($selected);
+    }
+    $ajax_id = 'scratchpads_vocabularies_ajax_' . $field_name;
+    // Add the ajax
+    $subform['#ajax'] = array(
+      'callback' => '_scratchpads_vocabularies_select_field_ajax_change',
+      'wrapper' => $ajax_id,
+      'effect' => 'fade',
+      'speed' => 1200
+    );
+    $info = array(
+      '#type' => 'markup',
+      '#markup' => '<div id="' . $ajax_id . '" class="scratchpads-vocabularies-field-info scratchpads-vocabularies-items">' . $content . '</div>'
+    );
+    $element = array(
+      '#prefix' => '<div class="scratchpads-vocabularies-field-container">',
+      '#suffix' => '</div>',
+      'widget' => $subform,
+      'info' => $info
+    );
+    $form_state['scratchpads_vocabularies_ajax'][$field_name] = $info;
+    drupal_add_css(drupal_get_path('module', 'scratchpads_vocabularies') . '/theme/scratchpads_vocabularies.css');
+    return;
+  }
+}
+
+/**
+ * _scratchpads_vocabularies_select_field_ajax_change
+ */
+function _scratchpads_vocabularies_select_field_ajax_change($form, &$form_state){
+  return $form_state['scratchpads_vocabularies_ajax'][$form_state['triggering_element']['#field_name']];
+}
+
+/**
+ * scratchpads_vocabularies_form_alter
+ *
+ * Implement hook_form_alter
+ *
+ * Disallow editing of the allowed values of the fields we manage.
+ */
+function scratchpads_vocabularies_form_alter(&$form, &$form_state, $form_id){
+  if($form_id == 'field_ui_field_edit_form' || $form_id == 'field_ui_field_settings_form'){
+    $our_vocs = variable_get('scratchpads_vocabularies_ui_vocabularies', array());
+    if($form_id == 'field_ui_field_edit_form'){
+      $field_name = $form['#field']['field_name'];
+    }else if($form_id == 'field_ui_field_settings_form'){
+      $field_name = $form['field']['field_name']['#value'];
+    }
+    $all_info = module_invoke_all('scratchpads_vocabulary_info');
+    foreach($our_vocs as $info_id => $our_voc){
+      if($our_voc['field'] == $field_name){
+        // Always disable the form
+        $form['field']['settings']['allowed_values']['#disabled'] = TRUE;
+        $form['field']['settings']['allowed_values']['#description'] = t('This field is a managed vocabulary and the allowed values cannot be changed manualy (<a href="!link" target="_blank">Additional information</a>).', array(
+          '!link' => url('admin/config/services/vocabularies/' . $info_id)
+        ));
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * scratchpads_vocabularies_scratchpads_vocabulary_info
+ * 
+ * Implements hook_scratchpads_vocabulary_info
+ *
+ */
+function scratchpads_vocabularies_scratchpads_vocabulary_info(){
+  module_load_include('receiver.inc', 'scratchpads_vocabularies', 'includes/selectfield');
+  module_load_include('vocabulary.inc', 'scratchpads_vocabularies', 'includes/gbifxml');
+  $elements = array();
+  $our_vocs = variable_get('scratchpads_vocabularies_ui_vocabularies', array());
+  foreach($our_vocs as $voc_id => $our_voc){
+    $field = $our_voc['field'];
+    $url = $our_voc['url'];
+    $title = $our_voc['title'];
+    $elements[$voc_id] = array(
+      'title' => $title,
+      'vocabulary' => array(
+        'create callback' => function () use($url){
+          return new ScratchpadsVocabularies\GbifXmlVocabulary($url);
+        }
+      ),
+      'receiver' => array(
+        'create callback' => function () use($field){
+          return new ScratchpadsVocabularies\SelectFieldReceiver($field);
+        }
+      )
+    );
+  }
+  return $elements;
+}
+
+/**
+ * _scratchpads_vocabularies_info_build
+ * 
+ * Returns the VocabularyInterface and ReceiverInterface objects that
+ * are defined by the given parameter, as:
+ * 
+ * array(
+ *   'title' => <string>,
+ *   'vocabulary' => array(
+ *     'create callback' => <callable>
+ *   ),
+ *   'receiver' => array(
+ *     'create callback' => <callable>
+ *   )
+ * )
+ * 
+ * This is the same structre expected by hook_scratchpads_vocabulary_info.
+ * 
+ * If it is not possible to create the objects, then a drupal_message
+ * error is logged, and FALSE is returned.
+ */
+function _scratchpads_vocabularies_info_build($info){
+  $vocabulary = FALSE;
+  $receiver = FALSE;
+  try{
+    $vocabulary = call_user_func($info['vocabulary']['create callback']);
+    $receiver = call_user_func($info['receiver']['create callback']);
+  }
+  catch(Exception $e){
+    drupal_set_message(t('It was not possible to gather information about the vocabulary mapping %v. Error message: %e', array(
+      '%v' => $info['title'],
+      '%e' => $e->getMessage()
+    )), 'error');
+  }
+  return array(
+    $vocabulary,
+    $receiver
+  );
+}
+
+/**
+ * hook_cron
+ *
+ * Regularly apply updates
+ */
+function scratchpads_vocabularies_cron(){
+  $period = variable_get('scratchpads_vocabularies_update_period', 60 * 60 * 24 * 7);
+  $last_run = variable_get('scratchpads_vocabularies_update_last_run', 0);
+  if(time() > ($last_run + $period)){
+    scratchpads_vocabularies_process_updates();
+    variable_set('scratchpads_vocabularies_update_last_run', time());
+  }
+}
+
+/**
+ * scratchpads_vocabularies_process_updates
+ * 
+ * This function gathers the information from hook_scratchpads_vocabulary_info,
+ * looks for and applies updates.
+ * 
+ */
+function scratchpads_vocabularies_process_updates(){
+  module_load_include('inc', 'scratchpads_vocabularies', 'includes/classes');
+  $all_info = module_invoke_all('scratchpads_vocabulary_info');
+  foreach($all_info as $info){
+    list($vocabulary, $receiver) = _scratchpads_vocabularies_info_build($info);
+    if(!$vocabulary || !$receiver){
+      continue;
+    }
+    _scratchpads_vocabularies_update_vocabulary($vocabulary, $receiver);
+  }
+  cache_clear_all();
+}
+
+/**
+ * _scratchpads_vocabularies_update_vocabulary
+ * 
+ * Update a vocabulary
+ */
+function _scratchpads_vocabularies_update_vocabulary($vocabulary, $receiver, $status = TRUE){
+  if($vocabulary->version() != $receiver->version()){
+    if(!$receiver->canUpgradeStructure($vocabulary)){
+      drupal_set_message(t("The uptade of vocabulary %name (applied to receiver %receiver) cannot be applied at this time - please contact your site Administrator.", array(
+        '%name' => $vocabulary->name(),
+        '%receiver' => $receiver->name()
+      )), 'warning');
+    }else{
+      $receiver->upgradeStructure($vocabulary);
+      $receiver->applyPendingUpdates();
+      if(count($receiver->pendingUpdates())){
+        if(!$status){
+          drupal_set_message(t("Vocabulary '%name' (applied to receiver '%receiver') has some pending updates that require your attention.", array(
+            '%name' => $vocabulary->name(),
+            '%receiver' => $receiver->name()
+          )), 'warning');
+        }else{
+        }
+      }else if(!$status){
+        drupal_set_message(t("Vocabulary '%name' (applied to receiver '%receiver') was updated succefully.", array(
+          '%name' => $vocabulary->name(),
+          '%receiver' => $receiver->name()
+        )), 'warning');
+      }
+    }
+  }
+}
+
+/**
+ * _scratchpads_vocabularies_form_table
+ *
+ * Generate a table that is a FORM API render array
+ */
+function _scratchpads_vocabularies_form_table($header, $rows){
+  $table = array(
+    '#prefix' => '<table>',
+    '#suffix' => '</table>',
+    'header' => array(
+      '#prefix' => '<thead><tr>',
+      '#suffix' => '</tr></thead>'
+    ),
+    'body' => array(
+      '#prefix' => '<tbody>',
+      '#suffix' => '</tbody>'
+    )
+  );
+  foreach($header as $h){
+    if(is_string($h)){
+      $h = array(
+        '#markup' => $h
+      );
+    }
+    $table['header'][] = array(
+      '#prefix' => '<th>',
+      '#suffix' => '</th>',
+      'header' => $h
+    );
+  }
+  $odd = TRUE;
+  foreach($rows as $row){
+    $row_array = array();
+    foreach($row as $row_value){
+      if(is_string($row_value)){
+        $row_value = array(
+          '#markup' => $row_value
+        );
+      }
+      $row_array[] = array(
+        '#prefix' => '<td>',
+        '#suffix' => '</td>',
+        'value' => $row_value
+      );
+    }
+    $table['body'][] = array(
+      '#prefix' => '<tr class="' . ($odd ? 'odd' : 'even') . '">',
+      '#suffix' => '</tr>',
+      'row' => $row_array
+    );
+    $odd = !$odd;
+  }
+  return $table;
+}
+
+/**
+ * Implements hook_scratchpads_data_integrity().
+ */
+function scratchpads_vocabularies_scratchpads_data_integrity(){
+  return array(
+    'scratchpads_vocabularies_check_for_failed_upgrades' => array(
+      'description' => t('Check for vocabulary upgrades that could not be applied')
+    )
+  );
+}
+
+/**
+ * Data integrity check: ensure no upgrades are failing
+ */
+function scratchpads_vocabularies_check_for_failed_upgrades(){
+  $messages = array();
+  module_load_include('inc', 'scratchpads_vocabularies', 'includes/classes');
+  $all_info = module_invoke_all('scratchpads_vocabulary_info');
+  foreach($all_info as $info){
+    list($vocabulary, $receiver) = _scratchpads_vocabularies_info_build($info);
+    if(!$vocabulary || !$receiver){
+      continue;
+    }
+    if($vocabulary->version() != $receiver->version()){
+      if(!$receiver->canUpgradeStructure($vocabulary)){
+        $messages[] = t("It was not possible to upgrade vocabulary %name (applied to receiver %receiver) as it requires changes to Views", array(
+          '%name' => $vocabulary->name(),
+          '%receiver' => $receiver->name()
+        ));
+      }
+    }
+  }
+  return $messages;
+}
+
+/**
+ * scratchpads_vocabularies_info_page
+ */
+function scratchpads_vocabularies_info_page($info_id){
+  $all_info = module_invoke_all('scratchpads_vocabulary_info');
+  if(!isset($all_info[$info_id])){
+    drupal_not_found();
+    return;
+  }
+  $info = $all_info[$info_id];
+  list($vocabulary, $receiver) = _scratchpads_vocabularies_info_build($info);
+  if(!$vocabulary || !$receiver){return array(
+      '#markup' => t('There was an error loading the mapping')
+    );}
+  drupal_add_css(drupal_get_path('module', 'scratchpads_vocabularies') . '/theme/scratchpads_vocabularies.css', 'file');
+  drupal_set_title($info['title']);
+  $out = '<div class="scratchpads-vocabularies-info-page">';
+  $out .= "<h3>" . $vocabulary->name() . "</h3>";
+  $out .= "<p>" . $vocabulary->description() . "</p>";
+  $out .= $receiver->structure()->render();
+  $out .= '</div>';
+  return $out;
+}
