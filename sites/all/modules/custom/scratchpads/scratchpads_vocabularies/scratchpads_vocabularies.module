@@ -318,6 +318,11 @@ function scratchpads_vocabularies_block_view($delta = ''){
  * Add external definition to field widgets
  */
 function scratchpads_vocabularies_field_widget_form_alter(&$element, &$form_state, $context){
+  if($_GET['q'] == 'slickgrid/callback/update'){
+    // We don't add the formatting to slickgrid, as it over complicates the
+    // UI.
+    return;
+  }
   if(!isset($element['#type']) || $element['#type'] != 'select'){return;}
   $field_name = $element['#field_name'];
   $all_vocs = module_invoke_all('scratchpads_vocabulary_info');
