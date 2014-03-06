@@ -1,0 +1,80 @@
+#scratchpads-vocabularies-admin-form div.scratchpads_vocabularies_info {
+  margin-bottom: 1em;
+}
+
+#scratchpads-vocabularies-admin-form fieldset div.fieldset-content input.form-submit,
+#scratchpads-vocabularies-admin-form fieldset div.fieldset-content .vocabularies_status {
+  margin-right: 1em;
+}
+
+#scratchpads-vocabularies-admin-form #edit-all-updates {
+  margin-bottom: 1em;
+}
+
+#scratchpads-vocabularies-pending-update-form table table {
+  margin-bottom: 1em;
+}
+
+div.scratchpads-vocabularies-items {
+  margin-top: 1em;
+}
+
+.vertical-tabs .vertical-tabs-panes .vertical-tabs-pane div.scratchpads-vocabularies-items fieldset legend {
+  display: block;
+}
+
+div.scratchpads-vocabularies-items div.scratchpads-vocabularies-term {
+  margin-bottom: 1em;
+}
+
+div.scratchpads-vocabularies-items div.scratchpads-vocabularies-term-label {
+  font-weight: bold;
+}
+
+div.scratchpads-vocabularies-items div.scratchpads-vocabularies-term-other {
+  font-size: small;
+  margin-left: 1em;
+}
+
+div.scratchpads-vocabularies-field-container:after {
+  content: ".";
+  visibility: hidden;
+  display: block;
+  height: 0;
+  clear: both;
+}
+
+div.scratchpads-vocabularies-field-container div.form-item {
+  float: left;
+}
+
+div.scratchpads-vocabularies-field-container div.form-item select {
+  width: 200px;
+}
+
+div.scratchpads-vocabularies-field-info {
+  margin-left: 210px;
+}
+
+div.scratchpads-vocabularies-field-info div.scratchpads-vocabularies-term-label {
+  display: none;
+}
+
+div.scratchpads-vocabularies-field-info div.scratchpads-vocabularies-term-other {
+  color: #999999;
+  border-left: 1px solid #EEEEEE;
+  font-size: 1em;
+  padding-top: 1.2em;
+  padding-bottom: 1.2em;
+  margin-left: 0;
+  padding-left: 10px;
+}
+
+div.scratchpads-vocabularies-info-page div.scratchpads-vocabularies-term-label {
+  font-size: 1.1em;
+  font-weight: bold;
+}
+div.scratchpads-vocabularies-info-page div.scratchpads-vocabularies-term-other {
+  margin-left: 32px;
+  margin-bottom: 1em;
+}
