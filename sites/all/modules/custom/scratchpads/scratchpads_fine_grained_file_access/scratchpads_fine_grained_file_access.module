@@ -286,9 +286,6 @@ function scratchpads_fine_grained_file_access_permission(){
  * Access control callback for finer control.
  */
 function scratchpads_fine_grained_file_access_access($op = 'view', $file = FALSE){
-  /*print_r($op);
-  print_r($file);
-  exit();*/
   global $user;
   switch($op){
     case 'view':
