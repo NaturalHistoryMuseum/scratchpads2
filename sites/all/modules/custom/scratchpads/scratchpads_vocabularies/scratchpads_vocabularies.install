@@ -1,0 +1,68 @@
+<?php
+
+/**
+ * scrathcpads_vocabularies_schema
+ * 
+ * Implementation of hook_schema()
+ */
+function scratchpads_vocabularies_schema(){
+  $schema['scratchpads_vocabularies'] = array(
+    'description' => 'Table where fields from objects in the scratchpads_vocabularies module are serialized',
+    'fields' => array(
+      'pid' => array(
+        'description' => 'The unique ID for persistent data',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE
+      ),
+      'data' => array(
+        'description' => 'Serialized data',
+        'type' => 'blob',
+        'size' => 'big',
+        'not null' => TRUE
+      )
+    ),
+    'primary key' => array(
+      'pid'
+    )
+  );
+  return $schema;
+}
+
+/**
+ * scratchpads_vocabularies_install
+ *
+ * Implementation of hook_install.
+ *
+ * Set the default vocabularies.
+ */
+function scratchpads_vocabularies_install(){
+  variable_set('scratchpads_vocabularies_ui_vocabularies', array(
+    'gbif_type_status' => array(
+      'title' => 'Gbif Type status',
+      'url' => 'http://rs.gbif.org/vocabulary/gbif/type_status.xml',
+      'field' => 'field_type_status',
+      'uid' => 1
+    ),
+    'gbif_basis_of_record' => array(
+      'title' => 'GBif basis of record',
+      'url' => 'http://rs.gbif.org/vocabulary/dwc/basis_of_record.xml',
+      'field' => 'field_basis_of_record',
+      'uid' => 1
+    )
+  ));
+}
+
+/**
+ * Implements hook_enable
+ *
+ * Once the module has been installed, run a first update of the
+ * vocabularies.
+ */
+function scratchpads_vocabularies_enable(){
+  $done = variable_get('scratchpads_vocabularies_enabled', FALSE);
+  if (!$done){
+    scratchpads_vocabularies_process_updates();
+    variable_set('scratchpads_vocabularies_enabled', TRUE);
+  }
+}
