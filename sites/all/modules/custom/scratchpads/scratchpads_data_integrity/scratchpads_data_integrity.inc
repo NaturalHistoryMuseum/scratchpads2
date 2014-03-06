@@ -142,3 +142,40 @@ function scratchpads_data_integrity_check_taxonomy_for_loops_rotate_array($a){
   if($pos == 0){return $a;}
   return array_merge(array_slice($a, $pos), array_slice($a, 0, $pos));
 }
+
+/**
+ * Check for field data that doesn't have an associated entity.
+ *
+ * This only checks for non-deleted, active fields.
+ *
+ */
+function scratchpads_data_integrity_check_for_orphan_field_values(){
+  $messages = array();
+  $fields = field_read_fields();
+  foreach($fields as $field_name => $field){
+    if(empty($field['indexes']['value'])){
+      continue;
+    }
+    // We want to find entities that have this field set, so
+    // we can match for not null on any of the index columns.
+    $index = reset($field['indexes']['value']);
+    $field_query = new EntityFieldQuery();
+    $field_query->fieldCondition($field_name, $index, 'NULL', '!=');
+    $field_result = $field_query->execute();
+    foreach($field_result as $entity_type => $entity_ids){
+      // Get all the entities of that type
+      $entity_query = new EntityFieldQuery();
+      $entity_query->entityCondition('entity_type', $entity_type);
+      $entity_result = $entity_query->execute();
+      $left = array_diff(array_keys($entity_ids), array_keys($entity_result[$entity_type]));
+      if(count($left) > 0){
+        $messages[] = t("Field !field has !left values for entity type !type whereby the entity itself does not exist", array(
+          '!field' => $field_name,
+          '!left' => count($left),
+          '!type' => $entity_type
+        ));
+      }
+    }
+  }
+  return $messages;
+}
