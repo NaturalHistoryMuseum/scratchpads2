@@ -134,6 +134,80 @@ function scratchpads_group_og_ui_get_group_admin_alter(&$data, $gid){
 }
 
 /**
+ * Implement hook_og_default_roles()
+ */
+function scratchpads_group_og_default_roles(){
+  return array(
+    'contributor',
+    'editor'
+  );
+}
+
+/**
+ * Implements hook_flush_caches
+ */
+function scratchpads_group_flush_caches(){
+  _scratchpads_group_register_shutdown();
+}
+
+/**
+ * Helper function to ensure we only register the shutdown function once.
+ */
+function _scratchpads_group_register_shutdown(){
+  $shutdown_registered = &drupal_static(__FUNCTION__);
+  if(!$shutdown_registered){
+    $shutdown_registered = TRUE;
+    drupal_register_shutdown_function('scratchpads_group_shutdown');
+  }
+}
+
+/**
+ * The following function sets the og permissions.
+ */
+function scratchpads_group_shutdown(){
+  // editor = 5
+  // contributor = 4
+  // maintainer = 3
+  // authenticated user = 2
+  $default_permissions = module_invoke_all('scratchpads_default_permissions');
+  drupal_alter('scratchpads_default_permissions', $default_permissions);
+  $allowed_permissions = og_get_permissions();
+  foreach(array_keys($allowed_permissions) as $key){
+    $allowed_permissions[$key] = FALSE;
+  }
+  $additional_permissions = array(
+    5 => array(),
+    4 => array(),
+    3 => array(
+      'update group',
+      'approve and deny subscription',
+      'add user'
+    ),
+    2 => array(
+      'unsubscribe'
+    )
+  );
+  foreach(array(
+    5 => 'editor',
+    4 => 'contributor',
+    3 => 'maintainer',
+    2 => 'authenticated user'
+  ) as $rid => $role_name){
+    $permissions = array_merge($default_permissions[$role_name], $additional_permissions[$rid]);
+    $permissions_to_set = $allowed_permissions;
+    foreach($permissions as $key => $permission){
+      if(preg_match('/^edit\ any.*content$/', $permission) || preg_match('/^edit\ own.*content$/', $permission)){
+        $permission = 'update' . substr($permission, 4);
+      }
+      if(isset($allowed_permissions[$permission])){
+        $permissions_to_set[$permission] = $permission;
+      }
+    }
+    og_role_change_permissions($rid, $permissions_to_set);
+  }
+}
+
+/**
  * Implementation of hook_scratchpads_solr_info().
  */
 function scratchpads_group_scratchpads_solr_info(){
