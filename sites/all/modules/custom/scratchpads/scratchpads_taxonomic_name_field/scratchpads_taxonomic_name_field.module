@@ -510,6 +510,15 @@ function scratchpads_taxonomic_name_field_facet_autocomplete($type, $search){
 }
 
 /**
+ * Implementation of hook_apachesolr_index_document_build($document, $entity, $entity_type, $env_id)
+ */
+function scratchpads_taxonomic_name_field_apachesolr_index_document_build(ApacheSolrDocument $document, $entity, $entity_type, $env_id){
+  if($entity_type == 'taxonomy_term'){
+    $document->addField('access__all', 0);
+  }
+}
+
+/**
  * Implements hook_ctools_plugin_api().
  *
  * Magic happens just because this function exists (fucked up, I know).
