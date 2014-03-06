@@ -385,9 +385,139 @@ function darwincore_update_7019(){
 }
 
 /**
- * Enable the auto_entitylabel module
+ * Prepare for switch to GBIF names
+ *
+ * We are going to update fields on (potentially) all entities, so we won't be using
+ * the entity API but changing the database directly to avoid timeouts.
  */
 function darwincore_update_7020(){
+  module_load_include('features.field.inc', 'darwincore');
+  $definitions = darwincore_field_default_fields();
+  // See #3185 for the map
+  $map = array(
+    'field_basis_of_record' => array(
+      'Fossil Specimen' => 'FossilSpecimen',
+      'Human Observation' => 'HumanObservation',
+      'Living Specimen' => 'LivingSpecimen',
+      'Preserved Specimen' => 'PreservedSpecimen',
+      'Machine Observation' => 'MachineObservation',
+      'Moving Image' => 'MachineObservation',
+      'Other Specimen' => 'PreservedSpecimen',
+      'Sound Recording' => 'MachineObservation',
+      'Still Image' => 'MachineObservation',
+      'Frozen specimen' => 'PreservedSpecimen',
+      'Pinned Specimen' => 'PreservedSpecimen',
+      'Specimen in vial' => 'PreservedSpecimen',
+      'Specimen in vial (70% ethanol)' => 'PreservedSpecimen',
+      'Specimen in vial + genital' => 'PreservedSpecimen'
+    ),
+    'field_type_status' => array(
+      'Holotype' => 'holotype',
+      'Isotype' => 'isotype',
+      'Lectotype' => 'lectotype',
+      'Neotype' => 'neotype',
+      'Nontype' => NULL,
+      'nontype' => NULL,
+      'Not Provided' => NULL,
+      'Paralectotype' => 'paralectotype',
+      'paraLectotype' => 'paralectotype',
+      'Paratype' => 'paratype',
+      'Syntype' => 'syntype',
+      'Syntypes of T. pacificum wilsoni' => 'syntype',
+      'Type status' => NULL,
+      'Neotype' => 'neotype',
+      'Not a Type' => 'notatype',
+      'female' => NULL,
+      '1 ex. holotype on slide 80/49 at Berlese Acaroteca, Cascine del Riccio, Firenze, Italy' => 'holotype',
+      '1 ex., holotype on slide 23/9 inside finger-like air bubbles but recognizable, 1 ex. on 23/10, 1 ex. on 23/8 and 1 ex. on 23/11 in poor condition, 1 ex. on 23/7, useful, at Berlese Acaroteca, Cascine del Riccio, Firenze, Italy' => 'holotype',
+      '3 females' => NULL,
+      '3 specimens' => NULL,
+      'des adultes des deux sexes (les mâles étant aussi nombreux que les femelles), les 3 sortes de nymphes et un exemplaire de la larve.' => NULL,
+      'des adultes, les 3 sortes de nymphes et la larve. Les adultes étaient peu nombreux, et je n\'ai pu en examiner que 9 (8 femelles et 1 mâle)' => NULL,
+      'female — Holotype and 2 females — paratypes' => NULL,
+      'holotype as Alicus oblongus on a slide' => 'holotype',
+      'holotype on slide N1952109' => 'holotype',
+      'holotype on slide no. 20.02/7560' => 'holotype',
+      'Holotype specimen # 2 of Protacarus crani Hirst, 1923' => 'holotype',
+      'lost' => NULL,
+      'male — Holotype, male — paratype, female — paratype and I paratype tritonymph' => 'type',
+      'Material estudiado: Holotipo fem. (28 -X-81); 9 paratipos: 4 fem. (7-VIII-81; 28-X-81); 2 deutoninfas (7-VIII-81; 14-III-82) y 3 tritoninfas (20-XI-81; 14-III-82).' => 'type',
+      'not stated' => NULL
+    )
+  );
+  $stats = array(
+    '@rev_deleted' => 0,
+    '@data_deleted' => 0,
+    '@rev_updated' => 0,
+    '@data_updated' => 0
+  );
+  foreach($map as $field_name => $map){
+    // Change the field definition
+    $field = field_info_field($field_name);
+    $field['settings']['allowed_values'] = $definitions['node-specimen_observation-' . $field_name]['field_config']['settings']['allowed_values'];
+    $data = $field;
+    unset($data['columns'], $data['field_name'], $data['type'], $data['locked'], $data['module'], $data['cardinality'], $data['active'], $data['deleted']);
+    unset($data['bundles']);
+    $field['data'] = $data;
+    $primary_key = array(
+      'id'
+    );
+    drupal_write_record('field_config', $field, $primary_key);
+    //field_cache_clear(TRUE);
+    //module_invoke_all('field_update_field', $new_field, $field_info['field'], field_has_data($new_field));
+    // Update values
+    foreach($map as $old => $new){
+      $data_table = "{field_data_" . $field_name . "}";
+      $revision_table = "{field_revision_" . $field_name . "}";
+      $field_value = $field_name . "_value";
+      if($new === NULL){
+        $result = db_query("
+          DELETE r.* FROM $revision_table r
+          INNER JOIN $data_table d ON d.entity_id = r.entity_id AND d.revision_id = r.revision_id
+          WHERE BINARY r.$field_value = :old
+        ", array(
+          ':old' => $old
+        ));
+        $stats['@rev_deleted'] += $result->rowCount();
+        $result = db_query("
+          DELETE FROM $data_table
+          WHERE BINARY $field_value = :old
+        ", array(
+          ':old' => $old
+        ));
+        $stats['@data_deleted'] += $result->rowCount();
+      }else{
+        $result = db_query("
+        UPDATE $revision_table r
+        INNER JOIN $data_table d ON d.entity_id = r.entity_id AND d.revision_id = r.revision_id
+        SET r.$field_value = :new
+        WHERE BINARY r.$field_value = :old
+     ", array(
+          ':new' => $new,
+          ':old' => $old
+        ));
+        $stats['@rev_updated'] += $result->rowCount();
+        db_query("
+        UPDATE $data_table
+        SET $field_value = :new
+        WHERE BINARY $field_value = :old
+     ", array(
+          ':new' => $new,
+          ':old' => $old
+        ));
+        $stats['@data_updated'] += $result->rowCount();
+      }
+    }
+  }
+  watchdog('darwincore', "Vocbularies update statistics. Number of field revisions that were deleted: @rev_deleted ; Number of field entries that were deleted: @data_deleted ; Number of of field revisions that were updated: @rev_updated ; Number of field entries that were updated: @data_updated", $stats);
+  // We've worked on the database directly, so ensure everything is cleaned up.
+  drupal_flush_all_caches();
+}
+
+/**
+ * Enable the auto_entitylabel module
+ */
+function darwincore_update_7021(){
   darwincore_update_7015();
   module_enable(array(
     'auto_entitylabel'
