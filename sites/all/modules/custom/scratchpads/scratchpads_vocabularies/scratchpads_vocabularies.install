@@ -61,7 +61,7 @@ function scratchpads_vocabularies_install(){
  */
 function scratchpads_vocabularies_enable(){
   $done = variable_get('scratchpads_vocabularies_enabled', FALSE);
-  if (!$done){
+  if(!$done){
     scratchpads_vocabularies_process_updates();
     variable_set('scratchpads_vocabularies_enabled', TRUE);
   }
