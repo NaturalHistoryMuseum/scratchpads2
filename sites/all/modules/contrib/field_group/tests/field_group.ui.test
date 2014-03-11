@@ -2,53 +2,39 @@
 
 /**
  * @file
- * Unit test file for groups.
- *
- * @todo - fill along if we know more.
- *
- * - nest a group under another group and see if parent_name is first group
- * - nest a group under second group and see if parent_name is second group
- * - settings: open f and verify on front-end (classes)
- * - settings: collapsible f and verify on front-end (classes)
- * - settings: collapsed f and verify on front-end (classes)
- * - settings: vertical tabs and verify on front-end (classes)
- * - settings: horizontal item and verify on front-end (classes)
- * - settings: vertical item  and verify on front-end (classes)
- * - settings: hidden (simple div) and verify on front-end (classes)
- * - settings: label and verify on front-end
- * - delete a fieldgroup - make sure we have a couple with the same name
- *   and make sure the right one is deleted!
+ * Test file for fieldgroup UI.
  */
 
 /**
  * Group UI tests.
  */
 class GroupUITestCase extends DrupalWebTestCase {
+
   public static function getInfo() {
     return array(
-      'name' => 'Group UI tests',
-      'description' => 'Test the group UI functionality.',
+      'name' => 'UI tests',
+      'description' => 'Test the field group UI.',
       'group' => 'Field group',
     );
   }
 
   function setUp() {
-    parent::setUp('field_test', 'field_group');
+    parent::setUp('field_test', 'field_group', 'field_group_test');
 
     // Create test user.
-    $admin_user = $this->drupalCreateUser(array('administer content types'));
+    $admin_user = $this->drupalCreateUser(array('administer content types', 'administer nodes', 'access administration pages', 'bypass node access'));
     $this->drupalLogin($admin_user);
+  }
+
+  /**
+   * Test the creation a group on the article content type.
+   */
+  function createGroup() {
 
     // Create random group name.
     $this->group_label = $this->randomName(8);
     $this->group_name_input = drupal_strtolower($this->randomName(8));
     $this->group_name = 'group_' . $this->group_name_input;
-  }
-
-  /**
-   * Creates a group on the article content type.
-   */
-  function createGroup() {
 
     // Setup new group.
     $group = array(
@@ -57,7 +43,8 @@ class GroupUITestCase extends DrupalWebTestCase {
     );
 
     // Add new group on the 'Manage fields' page.
-    $this->drupalPost('admin/structure/types/manage/article/fields',  $group, t('Save'));
+    $this->drupalPost('admin/structure/types/manage/article/fields', $group, t('Save'));
+
     $this->assertRaw(t('New group %label successfully created.', array('%label' => $this->group_label)), t('Group message displayed on screen.'));
 
     // Test if group is in the $groups array.
@@ -65,7 +52,7 @@ class GroupUITestCase extends DrupalWebTestCase {
     $this->assertTrue(array_key_exists($this->group_name, $groups), t('Group found in groups array'));
 
     // Add new group on the 'Manage display' page.
-    $this->drupalPost('admin/structure/types/manage/article/display',  $group, t('Save'));
+    $this->drupalPost('admin/structure/types/manage/article/display', $group, t('Save'));
     $this->assertRaw(t('New group %label successfully created.', array('%label' => $this->group_label)), t('Group message displayed on screen.'));
 
     // Test if group is in the $groups array.
@@ -77,6 +64,7 @@ class GroupUITestCase extends DrupalWebTestCase {
    * Delete a group.
    */
   function deleteGroup() {
+
     $this->drupalPost('admin/structure/types/manage/article/groups/' . $this->group_name . '/delete/form', array(), t('Delete'));
     $this->assertRaw(t('The group %label has been deleted from the %article content type.', array('%label' => $this->group_label, '%article' => 'Article')), t('Group removal message displayed on screen.'));
 
@@ -104,13 +92,18 @@ class GroupUITestCase extends DrupalWebTestCase {
    * Nest a field underneath a group.
    */
   function testNestField() {
+
     $this->createGroup();
+
     $edit = array(
       'fields[field_image][parent]' => $this->group_name,
     );
     $this->drupalPost('admin/structure/types/manage/article/fields', $edit, t('Save'));
     $this->assertRaw(t('Your settings have been saved.'), t('Settings saved'));
+
     $groups = field_group_info_groups('node', 'article', 'form', TRUE);
-    $this->assertTrue(in_array('field_image', $groups[$this->group_name]->children), t('Image is a child of %group', array('%group' => $this->group_label)));
+    $this->assertTrue(in_array('field_image', $groups[$this->group_name]->children), t('Image is a child of %group', array('%group' => $this->group_name)));
   }
+
 }
+
