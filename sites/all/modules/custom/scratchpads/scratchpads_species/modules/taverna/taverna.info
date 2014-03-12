@@ -1,6 +1,0 @@
-core = "7.x"
-name = "Taverna : Ecological Niche Modelling Widget"
-description = "Enables the running of an ecological niche model on Scratchpads data."
-package = "Widgets"
-dependencies[] = scratchpads_species
-tool=yes

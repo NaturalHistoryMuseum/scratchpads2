@@ -1,0 +1,172 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function taverna_menu(){
+  return array(
+    'admin/taverna/%' => array(
+      'title' => 'Taverna',
+      'access arguments' => array(
+        'access content'
+      ),
+      'page callback' => 'taverna_overlay_page',
+      'page arguments' => array(
+        2
+      ),
+      'file' => 'taverna.pages.inc'
+    ),
+    'admin/services/taverna' => array(
+      'title' => 'Taverna',
+      'access arguments' => array(
+        'access content'
+      ),
+      'page callback' => 'taverna_json_interface',
+      'file' => 'taverna.json.inc'
+    ),
+    'taverna/add' => array(
+      'title' => 'Add Taverna job',
+      'page callback' => 'taverna_add_job', //node_add_page
+      'access callback' => 'taverna_add_access', //_node_add_access
+      'file' => 'taverna.pages.inc'
+    ),
+    'taverna/%taverna' => array(
+      'title callback' => 'taverna_page_title',
+      'title arguments' => array(
+        1
+      ),
+      'page callback' => 'taverna_page_view',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => 'taverna_entity_access',
+      'access arguments' => array(
+        'view',
+        FALSE,
+        1
+      )
+    )
+  );
+  foreach(TavernaService::get_job_types() as $key => $job_type){
+    $menu['taverna/add/' . $key] = array(
+      'title' => $job_type,
+      'description' => '',
+      'title callback' => 'check_plain',
+      'page callback' => 'oboe_add',
+      'page arguments' => array(
+        $key
+      ),
+      'access callback' => 'oboe_access',
+      'access arguments' => array(
+        'create',
+        $key
+      ),
+      'file' => 'oboe.pages.inc'
+    );
+  }
+}
+
+/**
+ * Taverna load
+ */
+function taverna_load($oid = NULL){
+  $oids = (isset($oid) ? array(
+    $oid
+  ) : array());
+  $taverna = taverna_load_multiple($oids);
+  return $taverna ? reset($taverna) : FALSE;
+}
+
+/**
+ * Load multiple Taverna entities.
+ */
+function taverna_load_multiple($ids = array(), $conditions = array(), $reset = FALSE){
+  return entity_load('taverna', $ids, $conditions, $reset);
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function taverna_entity_info(){
+  $info = array(
+    'taverna' => array(
+      'label' => t('Taverna run'),
+      'entity class' => 'Taverna',
+      'controller class' => 'EntityAPIController',
+      'base table' => 'taverna',
+      'fieldable' => TRUE,
+      'uri callback' => 'taverna_uri',
+      'bundles' => array(),
+      'exportable' => FALSE,
+      'entity keys' => array(
+        'id' => 'oid',
+        'name' => 'type',
+        'label' => 'label',
+        'status' => 'status',
+        'module' => 'module'
+      ),
+      'access callback' => 'taverna_entity_access',
+      'module' => 'taverna'
+    )
+  );
+  // Add the Taverna services
+  foreach(TavernaService::get_job_types() as $key => $job_type){
+    $info['taverna']['bundles'][$key] = array(
+      'label' => $job_type,
+      'description' => ''
+    );
+  }
+  return $info;
+}
+
+/**
+ * Entity access callback
+ */
+function taverna_entity_access($a = TRUE, $b = TRUE){
+  return TRUE;
+}
+
+/**
+ * Callback to get a URI for a Taverna entity.
+ */
+function taverna_uri($taverna){
+  return array(
+    'path' => 'taverna/' . $taverna->tvid
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function taverna_block_info(){
+  return array(
+    'default' => array(
+      'info' => t('Taverna Ecological Niche Modelling Species Page Block'),
+      'cache' => DRUPAL_CACHE_PER_PAGE,
+      // FIXME - Does the following URL make sense for a Taverna player?
+      'pages' => 'taxonomy/term/*/descriptions',
+      'visibility' => BLOCK_VISIBILITY_LISTED,
+      'status' => 1,
+      'region' => 'content',
+      'weight' => 100
+    )
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function taverna_block_view($delta = ''){
+  switch($delta){
+    default:
+      return array(
+        'subject' => t('Run an Ecological Niche Model via BioVeL'),
+        'content' => array(
+          'iframe' => array(
+            '#markup' => l(t('Run a workflow'), 'admin/taverna/' . arg(2))
+          )
+        )
+      );
+  }
+  return array();
+}
