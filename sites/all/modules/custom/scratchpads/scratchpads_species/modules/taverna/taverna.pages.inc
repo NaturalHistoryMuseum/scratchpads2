@@ -9,7 +9,7 @@ function taverna_overlay_page($tid){
     'subject' => t('Run an Ecological Niche Model via BioVeL'),
     'content' => array(
       'iframe' => array(
-        '#markup' => '<iframe src="http://player.at.biovel.eu/workflows/5/runs/new?embedded=true&url=' . url('taxonomy/term/' . arg(2) . '/enm.csv', array(
+        '#markup' => '<iframe src="http://dev.at.biovel.eu/workflows/5/runs/new?embedded=true&input_url=' . url('taxonomy/term/' . arg(2) . '/enm.csv', array(
           'absolute' => TRUE
         )) . '" width="100%" height="800px"/>'
       )
