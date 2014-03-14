@@ -5,7 +5,7 @@
  */
 function taverna_schema(){
   return array(
-    'cache_taverna_output' => drupal_get_schema_unprocessed('system', 'cache'),
+    'cache_taverna' => drupal_get_schema_unprocessed('system', 'cache'),
     'taverna' => array(
       'fields' => array(
         'tvid' => array(
@@ -27,18 +27,18 @@ function taverna_schema(){
           'unsigned' => TRUE
         ),
         'label' => array(
-          'description' => 'The label for this taverna job.',
+          'description' => 'The label for this taverna run.',
           'type' => 'varchar',
           'length' => 255,
           'not null' => TRUE
         ),
         'description' => array(
-          'description' => 'The description for this taverna job.',
+          'description' => 'The description for this taverna run.',
           'type' => 'varchar',
           'length' => 255
         ),
         'data' => array(
-          'description' => 'The response data for this taverna job.',
+          'description' => 'The response data for this taverna run.',
           'type' => 'blob',
           'not null' => TRUE,
           'size' => 'big',
@@ -46,7 +46,7 @@ function taverna_schema(){
           'serialize' => TRUE
         ),
         'type' => array(
-          'description' => 'The type of this taverna job.',
+          'description' => 'The type of this taverna run.',
           'type' => 'varchar',
           'length' => 32,
           'not null' => TRUE,

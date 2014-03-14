@@ -2,11 +2,9 @@
 // Taverna interface class
 class TavernaService{
 
-  private $auth_token;
+  private $run_name;
 
-  private $job_name;
-
-  private $job_description;
+  private $run_description;
 
   private $type;
 
@@ -18,38 +16,34 @@ class TavernaService{
 
   private $parameters = array();
 
-  private $inputurl;
-
-  private static $service = 'https://oboe.oerc.ox.ac.uk/';
+  private static $service = 'http://157.140.126.157:3000/';
 
   /**
    * Standard constructor for the TavernaService class.  A user should pass either
-   * an ID, or an array of job details.
+   * an ID, or an array of run details.
    * 
-   * @param unknown_type $job_details
+   * @param unknown_type $run_details
    * 
-   * This should either be an ID of a job that has already been created on the
-   * Taverna server, or an array of new job details
-   * 
-   * @param String $at
-   * 
-   * Auth token.
+   * This should either be an ID of a run that has already been created on the
+   * Taverna server, or an array of new run details
    */
-  function __construct($job_details = FALSE, $at = FALSE){
+  function __construct($run_details = FALSE){
     // Check for the PECL extension.
     if(!function_exists('http_post_data')){throw new TavernaServiceException(t('PECL pecl_http is not installed.'));}
-    $this->auth_token = self::get_auth_token($at);
-    if($job_details){
-      if(is_array($job_details)){
-        foreach($job_details as $key => $value){
+    if($run_details){
+      if(is_array($run_details)){
+        foreach($run_details as $key => $value){
           $this->{$key} = $value;
         }
       }else{
-        $this->id = $job_details;
+        $this->id = $run_details;
       }
     }
   }
 
+  /**
+   * Set username and password for authentication
+   */
   /**
    * Set the parameters for a Taverna Job
    * @param array $parameters
@@ -61,20 +55,15 @@ class TavernaService{
     if($reset){
       $this->parameters = array();
     }
-    // inputurl is a special parameter, so we pull it out (if set).
-    if(isset($parameters['inputurl']) && is_string($parameters['inputurl'])){
-      $this->inputurl = $parameters['inputurl'];
-      unset($parameters['inputurl']);
+    // run_name is a special parameter, so we pull it out (if set).
+    if(isset($parameters['run_name']) && is_string($parameters['run_name'])){
+      $this->run_name = $parameters['run_name'];
+      unset($parameters['run_name']);
     }
-    // job_name is a special parameter, so we pull it out (if set).
-    if(isset($parameters['job_name']) && is_string($parameters['job_name'])){
-      $this->job_name = $parameters['job_name'];
-      unset($parameters['job_name']);
-    }
-    // job_name is a special parameter, so we pull it out (if set).
-    if(isset($parameters['job_description']) && is_string($parameters['job_description'])){
-      $this->job_description = $parameters['job_description'];
-      unset($parameters['job_description']);
+    // run_description is a special parameter, so we pull it out (if set).
+    if(isset($parameters['run_description']) && is_string($parameters['run_description'])){
+      $this->run_description = $parameters['run_description'];
+      unset($parameters['run_description']);
     }
     foreach($parameters as $key => $value){
       $this->parameters[$key] = $value;
@@ -89,75 +78,58 @@ class TavernaService{
   }
 
   /**
-   * Set the input URL for a job.
-   * @param unknown_type $inputurl
+   * Set the run name.
+   * @param unknown_type $run_name
    */
-  function set_inputurl($inputurl){
-    if(is_string($inputurl)){
-      $this->inputurl = $inputurl;
+  function set_run_name($run_name){
+    if(is_string($run_name)){
+      $this->run_name = $run_name;
     }
   }
 
   /**
-   * Get the currently set inputurl.
+   * Get the run name.
    */
-  function get_inputurl(){
-    return $this->inputurl;
+  function get_run_name(){
+    return $this->run_name;
   }
 
   /**
-   * Set the job name.
-   * @param unknown_type $job_name
+   * Set the run description.
+   * @param string $run_description
    */
-  function set_job_name($job_name){
-    if(is_string($job_name)){
-      $this->job_name = $job_name;
+  function set_run_description($run_description){
+    if(is_string($run_description)){
+      $this->run_description = $run_description;
     }
   }
 
   /**
-   * Get the job name.
+   * Get the run description.
    */
-  function get_job_name(){
-    return $this->job_name;
+  function get_run_description(){
+    return $this->run_description;
   }
 
   /**
-   * Set the job description.
-   * @param string $job_description
-   */
-  function set_job_description($job_description){
-    if(is_string($job_description)){
-      $this->job_description = $job_description;
-    }
-  }
-
-  /**
-   * Get the job description.
-   */
-  function get_job_description(){
-    return $this->job_description;
-  }
-
-  /**
-   * Set the job type.  This checks that the type is in the array of job types.
+   * Set the run type.  This checks that the type is in the array of run types.
    * @param unknown_type $type
    */
   function set_type($type){
-    if(is_string($type) && in_array($type, array_keys(self::get_job_types()))){
+    if(is_string($type) && in_array($type, array_keys(self::get_run_types()))){
       $this->type = $type;
     }
   }
 
   /**
-   * Return the currently set job type.
+   * Return the currently set run type.
    */
   function get_type(){
     return $this->type;
   }
 
   /**
-   * Return the response for this job.  If the response isn't set, we update it.
+   * Return the response for this run.  If the response isn't set, we update it.
    * @param unknown_type $update
    */
   function get_response($update = FALSE){
@@ -166,7 +138,18 @@ class TavernaService{
     }else{
       // We don't have a response set, or we want to update it.
       if($this->id){
-        return json_decode(file_get_contents(self::$service . 'jobs/' . $this->id . '.json?auth_token=' . $this->auth_token), TRUE);
+        $context = stream_context_create(array(
+          'http' => array(
+            'method' => 'GET',
+            'header' => implode("\r\n", array(
+              'Accept: application/json',
+              'Authorization: ' . self::get_authentication_string()
+            ))
+          )
+        ));
+        $response = file_get_contents(self::$service . 'runs/' . $this->id, FALSE, $context);
+        $this->response = json_decode($response, TRUE);
+        return $this->response;
       }else{
         return FALSE;
       }
@@ -182,26 +165,50 @@ class TavernaService{
   }
 
   /**
-   * Submit the job to the Taverna server.
+   * Do an interaction
+   */
+  function interact(){
+    $this->get_response(TRUE);
+    $raw_data = file_get_contents("php://input");
+    $response = http_post_data($this->response['interaction']['reply_uri'], $raw_data, array(
+      'timeout' => 10,
+      'headers' => array(
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json',
+        'Authorization' => self::get_authentication_string(),
+        'X-Taverna-Interaction-Reply' => $_SERVER['HTTP_X_TAVERNA_INTERACTION_REPLY']
+      )
+    ), $info);
+  }
+
+  /**
+   * Submit the run to the Taverna server.
    */
   function run(){
-    $this->job_description = $this->job_description ? $this->job_description : date('c');
-    $this->job_name = $this->job_name ? $this->job_name : microtime();
-    $fields = array(
-      'auth_token' => $this->auth_token,
-      'job' => array(
-        'job_name' => $this->job_name,
-        'job_description' => $this->job_description,
-        'type' => $this->type,
-        'parameters' => $this->parameters
+    // Add logic for creating a new run.
+    $run_type = $this->get_run_types($this->type);
+    $json = array(
+      'run' => array(
+        'workflow_id' => $run_type['workflow_id'],
+        'name' => "{$run_type['name']} ({$this->run_description})"
       )
     );
-    if(isset($this->inputurl)){
-      $fields['job']['inputurl'] = $this->inputurl;
+    if(count($this->get_parameters())){
+      $json['run']['inputs_attributes'] = array();
+      foreach($this->get_parameters() as $name => $value){
+        $json['run']['inputs_attributes'][] = array(
+          'name' => $name,
+          'value' => $value
+        );
+      }
     }
-    $info = array();
-    $this->response = http_post_data(self::$service . 'jobs.json', http_build_query($fields), array(
-      'timeout' => 10
+    $this->response = http_post_data(self::$service . 'runs', json_encode($json), array(
+      'timeout' => 10,
+      'headers' => array(
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json',
+        'Authorization' => self::get_authentication_string()
+      )
     ), $info);
     if($this->response){
       $http_reply = http_parse_message($this->response);
@@ -217,24 +224,86 @@ class TavernaService{
   }
 
   /**
-   * Return a download URL for this job.
+   * Return a download URL for this run.
    */
   function get_download_url(){
     if($this->id){
-      return self::$service . 'download/' . $this->id . '?auth_token=' . $this->auth_token;
+      return self::$service . 'download/' . $this->id;
     }else{
       return FALSE;
     }
   }
 
   /**
-   * Simple function to return an array of job types as returned from the Taverna
+   * Simple function to return an array of run types as returned from the Taverna
    * service.
    */
-  static function get_job_types(){
-    return array(
-      'noddy' => 'Example Taverna workflow'
-    );
+  static function get_run_types($type_to_return = FALSE, $reset = FALSE){
+    $types = array();
+    if(!$reset){
+      $data = cache_get('taverna_run_types', 'cache_taverna');
+      if($data && $data->data){
+        $types = $data->data;
+      }
+    }
+    if(!$types){
+      $context = stream_context_create(array(
+        'http' => array(
+          'method' => 'GET',
+          'header' => implode("\r\n", array(
+            'Accept: application/json',
+            'Authorization: ' . self::get_authentication_string()
+          ))
+        )
+      ));
+      $types = array();
+      $json = @file_get_contents(self::$service . 'workflows', FALSE, $context);
+      if($json){
+        $types = json_decode($json, TRUE);
+        foreach($types as $key => $type){
+          unset($types[$key]);
+          $types[str_replace(' ', '', strtolower($type['title']))] = $type;
+        }
+      }
+      cache_set('taverna_run_types', $types, 'cache_taverna', time() + 86400);
+    }
+    if($type_to_return){
+      if(!$reset){
+        $data = cache_get('taverna_run_types_' . $type_to_return, 'cache_taverna');
+        if($data && $data->data){return $data->data;}
+      }
+      $context = stream_context_create(array(
+        'http' => array(
+          'method' => 'GET',
+          'header' => implode("\r\n", array(
+            'Accept: application/json',
+            'Authorization: ' . self::get_authentication_string()
+          ))
+        )
+      ));
+      $types[$type_to_return] = json_decode(file_get_contents(self::$service . 'runs/new?workflow_id=' . $types[$type_to_return]['id'], FALSE, $context), TRUE);
+      if(isset($types[$type_to_return]['run'])){
+        $types[$type_to_return] = $types[$type_to_return]['run'];
+      }
+      cache_set('taverna_run_types_' . $type_to_return, $types[$type_to_return], 'cache_taverna', time() + 86400);
+      return $types[$type_to_return];
+    }
+    return $types;
+  }
+
+  /**
+   * Static function to return a basic authentication string (or better if the
+   * portal is upgraded).
+   */
+  static function get_authentication_string(){
+    // We try and read the authtoken from a configuration file.
+    if(function_exists('drupal_get_path')){
+      $user_and_password = file_get_contents(drupal_get_path('module', 'taverna') . '/auth_token.ini');
+    }else{
+      $user_and_password = file_get_contents(drupal_get_path('module', 'taverna') . '/auth_token.ini');
+    }
+    if(!$user_and_password){throw new TavernaServiceException('Auth token is not set');}
+    return 'Basic ' . base64_encode(trim($user_and_password));
   }
 }
 // Error class for the above.  This allows us to behave a little!
