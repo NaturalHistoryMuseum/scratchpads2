@@ -55,6 +55,20 @@ function taverna_menu(){
       'type' => MENU_DEFAULT_LOCAL_TASK,
       'weight' => -10
     ),
+    'taverna/%taverna/getinteraction' => array(
+      'title' => 'Taverna interaction loader',
+      'page callback' => 'taverna_interaction_getinteraction',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => 'taverna_entity_access',
+      'access arguments' => array(
+        'update',
+        FALSE,
+        1,
+        FALSE
+      )
+    ),
     'taverna/%taverna/interaction' => array(
       'title' => 'Taverna interaction',
       'page callback' => 'taverna_interaction',
@@ -155,6 +169,14 @@ function taverna_forms($form_id, $args){
     );
   }
   return $forms;
+}
+
+/**
+ * taverna_interaction_getinteraction
+ */
+function taverna_interaction_getinteraction($taverna){
+  echo TavernaService::get_interaction($taverna->data['interaction']['uri']);
+  exit();
 }
 
 /**
@@ -259,7 +281,12 @@ function taverna_view($taverna, $view_mode, $langcode){
         )
       )
     );
-    $taverna_iframe = '<div class="taverna-dialogue"><iframe width="100%" height="600px" src="' . $taverna->data['interaction']['uri'] . '"></iframe></div>';
+    if($taverna->data['interaction']['uri'] == $taverna->data['interaction']['reply_uri']){
+      $url = url('taverna/' . arg(1) . '/getinteraction');
+    }else{
+      $url = $taverna->data['interaction']['uri'];
+    }
+    $taverna_iframe = '<div class="taverna-dialogue"><iframe width="100%" height="600px" src="' . $url . '"></iframe></div>';
   }
   $rows_data = array();
   $run_type = TavernaService::get_run_types($taverna->type);

@@ -306,6 +306,23 @@ class TavernaService{
   }
 
   /**
+   * Simple function to return an interaction from the portal.
+   */
+  static function get_interaction($url){
+    $context = stream_context_create(array(
+      'http' => array(
+        'method' => 'GET',
+        'header' => implode("\r\n", array(
+          'Accept: application/json',
+          'Authorization: ' . self::get_authentication_string()
+        ))
+      )
+    ));
+    $content = file_get_contents($url, FALSE, $context);
+    return str_replace('/assets/taverna_player/application.js', self::$service . 'assets/taverna_player/application.js', $content);
+  }
+
+  /**
    * Static function to return a basic authentication string (or better if the
    * portal is upgraded).
    */
