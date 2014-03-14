@@ -16,16 +16,13 @@
     pmrpc.register({publicProcedureName: "setTitle", procedure: function(title){
       return "OK";
     }});
-    $('.taverna-dialogue').dialog({
-      title:Drupal.settings.taverna.interaction.title,
-      modal: true,
-      width: 2*(window.innerWidth/3)
-    });
+    $('.taverna-dialogue').dialog({title: Drupal.settings.taverna.interaction.title, modal: true, width: 2 * (window.innerWidth / 3)});
   });
 })(jQuery);
 
 function interaction_reply(status, results){
   var outputData = JSON.stringify(results);
   jQuery.ajax({url: Drupal.settings.taverna.interaction.callback_url, type: "POST", async: false, data: outputData, headers: {"X-Taverna-Interaction-Reply": escape(status)}});
+  jQuery('.taverna-dialogue').dialog('close');
   return false;
 }

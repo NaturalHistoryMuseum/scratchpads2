@@ -16,7 +16,7 @@ class TavernaService{
 
   private $parameters = array();
 
-  private static $service = 'http://157.140.126.157:3000/';
+  private static $service = 'https://dev.at.biovel.eu/';
 
   /**
    * Standard constructor for the TavernaService class.  A user should pass either
@@ -226,9 +226,23 @@ class TavernaService{
   /**
    * Return a download URL for this run.
    */
-  function get_download_url(){
+  function get_download(){
     if($this->id){
-      return self::$service . 'download/' . $this->id;
+      $response = $this->get_response(TRUE);
+      $context = stream_context_create(array(
+        'http' => array(
+          'method' => 'GET',
+          'header' => implode("\r\n", array(
+            'Accept: application/json',
+            'Authorization: ' . self::get_authentication_string()
+          ))
+        )
+      ));
+      $file = file_save_data(file_get_contents(self::$service . $response['outputs_zip'], FALSE, $context));
+      $file = file_move($file, 'public://taverna-' . $this->id . '.zip');
+      $file->filename = 'taverna-' . $this->id . '.zip';
+      file_save($file);
+      return $file->fid;
     }else{
       return FALSE;
     }

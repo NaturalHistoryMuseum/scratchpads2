@@ -197,7 +197,7 @@ function taverna_admin_runs(){
       'author' => theme('username', array(
         'account' => user_load($taverna->uid)
       )),
-      'status' => isset($taverna->data['status']) ? $taverna->data['status'] : '',
+      'status' => isset($taverna->data['state']) ? ucfirst($taverna->data['state']) : '',
       'changed' => format_date($taverna->changed, 'short')
     );
     // Build a list of all the accessible operations for the current taverna.

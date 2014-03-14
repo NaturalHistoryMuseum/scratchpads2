@@ -264,13 +264,27 @@ function taverna_view($taverna, $view_mode, $langcode){
   $rows_data = array();
   $run_type = TavernaService::get_run_types($taverna->type);
   foreach($taverna->data as $key => $value){
-    $rows_data[] = array(
-      array(
-        'data' => $key,
-        'class' => 'biblio-row-title'
-      ),
-      $value
-    );
+    switch($key){
+      default:
+        $rows_data[] = array(
+          array(
+            'data' => ucfirst(str_replace('_', ' ', $key)),
+            'class' => 'biblio-row-title'
+          ),
+          $value
+        );
+        break;
+      case 'outputs':
+      case 'sweep_id':
+        break;
+      case 'outputs_zip':
+        if($taverna->data['state'] == 'finished' && !$taverna->fid){
+          $taverna_service = new TavernaService($taverna->data['id']);
+          $taverna->fid = $taverna_service->get_download();
+          $taverna->changed = time();
+          entity_save('taverna', $taverna);
+        }
+    }
   }
   $rows = array(
     array(
