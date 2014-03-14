@@ -6,7 +6,8 @@ function emonocot_citation_block_info(){
     'status' => TRUE,
     'region' => 'content',
     'weight' => 90,
-    'visibility' => 1
+    'visibility' => 1,
+    'cache' => DRUPAL_CACHE_PER_PAGE
   );
   return $blocks;
 }
