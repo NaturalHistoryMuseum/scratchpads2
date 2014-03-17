@@ -553,10 +553,19 @@ function itis_term_theme($existing, $type, $theme, $path){
       'render element' => 'elements',
       'template' => 'biological-taxonomy-term',
       'preprocess functions' => array(
-        'template_preprocess_taxonomy_term'
+        'template_preprocess_taxonomy_term',
+        'itis_term_preprocess_biological_taxonomy_term'
       )
     )
   );
+}
+
+/**
+ * Preprocess to prevent errors due to missing variables.
+ */
+function itis_term_preprocess_biological_taxonomy_term(&$variables){
+  $variables['title_attributes_array'] = FALSE;
+  $variables['content_attributes_array'] = FALSE;
 }
 
 /**
