@@ -291,7 +291,7 @@ function scratchpads_fine_grained_file_access_access($op = 'view', $file = FALSE
     case 'view':
       if(user_access('view file')){
         if(module_exists('scratchpads_group')){
-          if($file->{OG_CONTENT_ACCESS_FIELD}[LANGUAGE_NONE][0]['value'] != 1){
+          if(@isset($file->{OG_CONTENT_ACCESS_FIELD}[LANGUAGE_NONE][0]['value']) && $file->{OG_CONTENT_ACCESS_FIELD}[LANGUAGE_NONE][0]['value'] != 1){
             if(isset($file->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE][0]['gid'])){
               $group = og_load($file->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE][0]['gid']);
               $group = $group->getEntity();
