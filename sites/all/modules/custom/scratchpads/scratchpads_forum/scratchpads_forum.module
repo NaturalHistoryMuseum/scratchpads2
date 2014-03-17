@@ -5,7 +5,7 @@ include_once ('scratchpads_forum.features.inc');
  * Specifies the argument that should be used on forum/% links.
  */
 function forum_forum_to_arg($arg, $map, $index){
-  return FALSE;
+  return 0;
 }
 
 /**
