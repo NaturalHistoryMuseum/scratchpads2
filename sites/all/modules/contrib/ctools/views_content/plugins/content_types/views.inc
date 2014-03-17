@@ -144,13 +144,13 @@ function views_content_views_content_type_render($subtype, $conf, $panel_args, $
         list($cid, $converter) = explode('.', $context_info, 2);
       }
       if (!empty($contexts[$cid])) {
-        $arg = ctools_context_convert_context($contexts[$cid], $converter);
-        array_splice($args, $count, 0, array($arg));
+        $arg = ctools_context_convert_context($contexts[$cid], $converter, array('sanitize' => FALSE));
       }
       else {
         // Make sure we put an argument in even if it was not there.
         $arg = NULL;
       }
+      array_splice($args, $count, 0, array($arg));
     }
   }
 

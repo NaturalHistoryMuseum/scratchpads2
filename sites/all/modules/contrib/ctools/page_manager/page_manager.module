@@ -838,9 +838,6 @@ function page_manager_get_task_subtasks($task) {
     if (is_array($retval)) {
       return $retval;
     }
-    else {
-      dsm($retval);
-    }
   }
 
   return array();

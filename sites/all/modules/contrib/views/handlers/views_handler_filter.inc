@@ -91,7 +91,11 @@ class views_handler_filter extends views_handler {
     }
 
     if ($this->multiple_exposed_input()) {
-      $this->group_info = array_filter($options['group_info']['default_group_multiple']);
+      $this->group_info = NULL;
+      if (!empty($options['group_info']['default_group_multiple'])) {
+        $this->group_info = array_filter($options['group_info']['default_group_multiple']);
+      }
+
       $this->options['expose']['multiple'] = TRUE;
     }
 

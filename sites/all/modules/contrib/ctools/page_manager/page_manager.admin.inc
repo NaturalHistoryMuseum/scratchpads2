@@ -14,7 +14,7 @@
 function page_manager_list_page($js = NULL) {
   // Prevent this page from showing up when random other links fail.
   if ($js && $js != 'ajax' && $js != 'nojs') {
-    return drupal_not_found();
+    return MENU_NOT_FOUND;
   }
 
   // TRUE if 'ajax', FALSE if otherwise.
@@ -62,7 +62,7 @@ function page_manager_list_page($js = NULL) {
   if (isset($input['op']) && $input['op'] == t('Reset')) {
     unset($_SESSION['page_manager']['#admin']);
     if (!$js) {
-      return drupal_goto($_GET['q']);
+      drupal_goto($_GET['q']);
     }
     // clear everything but form id, form build id and form token:
     $keys = array_keys($input);
@@ -158,7 +158,7 @@ function page_manager_get_pages($tasks, &$pages, $task_id = NULL) {
     $visible_path = '';
     if (!empty($task['admin path'])) {
       foreach (explode('/', $task['admin path']) as $bit) {
-        if ($bit[0] != '!') {
+        if (isset($bit[0]) && $bit[0] != '!') {
           $path[] = $bit;
         }
       }
@@ -930,7 +930,7 @@ function _page_manager_get_operation_content($js, &$page, $active, $operation, $
     $output = drupal_render($built_form);
     $title = empty($form_state['title']) ? $operation['title'] : $form_state['title'];
     $titles[] = $title;
-    $title = implode(' &raquo ', array_filter($titles));
+    $title = implode(' &raquo; ', array_filter($titles));
 
     // If there are messages for the form, render them.
     if ($messages = theme('status_messages')) {
@@ -1126,9 +1126,11 @@ function page_manager_render_operations(&$page, $operations, $active_trail, $att
     // We only render an li for things in the same nav tree.
     if (empty($operation['location']) || $operation['location'] == $location) {
       if (!is_array($attributes['class'])) {
-        dsm($attributes['class']);
+        $attributes['class'] = array($attributes['class']);
       }
+
       $class = empty($attributes['class']) || !is_array($attributes['class']) ? array() : $attributes['class'];
+
       if ($id == $first) {
         $class[] = 'operation-first';
       }
