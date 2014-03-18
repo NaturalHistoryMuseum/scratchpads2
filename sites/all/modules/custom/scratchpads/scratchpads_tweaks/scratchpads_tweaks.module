@@ -9,11 +9,7 @@ define('SCRATCHPADS_VERSION', 'TAG');
  */
 function scratchpads_tweaks_init(){
   setlocale(LC_ALL, 'C.UTF-8');
-  if($_GET['q'] == 'admin/config' && !user_access('scratchpad team')){
-    // Set the REQUIREMENT_ERROR variable so that no errors are displayed when
-    // viewing the admin/config page as a non-admin user.
-    define('REQUIREMENT_ERROR', 'Hide requirement error');
-  }else if($_GET['q'] == 'admin/appearance/settings/scratchpads' || $_GET['q'] == 'admin/appearance/settings/scratchpads_em'){
+  if($_GET['q'] == 'admin/appearance/settings/scratchpads' || $_GET['q'] == 'admin/appearance/settings/scratchpads_em'){
     // Check to see if we're trying to view the admin/appearance/settings/scratchpads
     // page, and if so we redirect to the general settings page.
     if(!user_access('scratchpad team')){
