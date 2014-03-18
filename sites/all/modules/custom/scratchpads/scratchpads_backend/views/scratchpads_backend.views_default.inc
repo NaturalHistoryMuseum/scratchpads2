@@ -1340,7 +1340,7 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
   $handler->display->display_options['style_options']['autoEdit'] = 1;
   // Add the fields
   $fields = field_info_instances($entity_type, $bundle);
-  $groups = field_group_info_groups($entity_type, $bundle, 'form', true);
+  $groups = field_group_info_groups($entity_type, $bundle, 'form');
   $entity_info = entity_get_info($entity_type);
   $default_group = NULL;
   // Specimen observation has a title field but it is auto-populated so ignore it
