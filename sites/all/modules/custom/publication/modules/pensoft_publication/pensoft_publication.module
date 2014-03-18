@@ -210,7 +210,7 @@ function _pensoft_publication_field_group_sort($a, $b){
  */
 function _pensoft_publication_treatment_spm_fields_form($form, $selected_fields, $entity = NULL, $key = 0){
   $form = array();
-  $field_groups = field_group_info_groups('node', 'spm', 'form', true);
+  $field_groups = field_group_info_groups('node', 'spm', 'form');
   uasort($field_groups, '_pensoft_publication_field_group_sort');
   $field_instances = field_info_instances('node', 'spm');
   $all_empty = TRUE;
