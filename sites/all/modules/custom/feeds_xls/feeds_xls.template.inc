@@ -302,7 +302,7 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
                     foreach($value as $subkey => $item){
                       // Change to the allowed values array().
                       $field = field_info_field($mapping['target']);
-                      if($field && @isset($field['settings']['allowed_values'][$item])){
+                      if($field && !empty($field['settings']['allowed_values'][$item])){
                         $item = $field['settings']['allowed_values'][$item];
                       }
                       if($item){
@@ -620,7 +620,10 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
               }
               $break_at_end = FALSE;
             }else{
-              foreach($allowed_values as $term){
+              foreach($allowed_values as $key => $term){
+                if(!$term){
+                  $term = $key;
+                }
                 $row++;
                 $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", _feeds_xls_get_value($term));
               }
