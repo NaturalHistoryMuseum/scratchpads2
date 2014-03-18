@@ -438,7 +438,7 @@ function feeds_xls_download_template($feeds_importer){
   ini_set('memory_limit', '1500M');
   ini_set('max_execution_time', 240);
   if(get_class($feeds_importer->parser) == 'FeedsExcelParser'){
-    if(!$feeds_importer->parser->config['no_headers']){
+    if(empty($feeds_importer->parser->config['no_headers'])){
       feeds_xls_download_template_helper($feeds_importer);
       exit();
     }else{
