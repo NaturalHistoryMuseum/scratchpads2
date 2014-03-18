@@ -1,9 +1,9 @@
 <?php
 
 /*********************************************************************************************
- *
+ * 
  * HOOKS
- *
+ * 
  ********************************************************************************************/
 /**
  * Implements hook_menu().
@@ -48,7 +48,17 @@ function scratchpads_species_menu_alter(&$items){
 }
 
 /**
- *
+ * Implements hook_scratchpads_hands_off_hidden_views_alter()
+ */
+function scratchpads_species_scratchpads_hands_off_hidden_views_alter(&$view_ids){
+  $view_ids = array_merge($view_ids, array(
+    'species_nomenclature',
+    'species_overview_map'
+  ));
+}
+
+/**
+ * 
  * Implementation of hook_theme
  */
 function scratchpads_species_theme(){
@@ -62,7 +72,7 @@ function scratchpads_species_theme(){
 }
 
 /**
- *
+ * 
  * Implementation of hook_entity_info_alter
  */
 function scratchpads_species_entity_info_alter(&$info){
@@ -81,7 +91,7 @@ function scratchpads_species_entity_info_alter(&$info){
  * Implements hook_module_implements_alter().
  */
 function scratchpads_species_module_implements_alter(&$implementations, $hook){
-  if(($hook == 'form_taxonomy_form_vocabulary_alter' || $hook == 'form_alter' || $hook == 'menu_alter') && isset($implementations['scratchpads_species'])){
+  if($hook == 'form_taxonomy_form_vocabulary_alter' || $hook == 'form_alter' && isset($implementations['scratchpads_species'])){
     $group = $implementations['scratchpads_species'];
     unset($implementations['scratchpads_species']);
     $implementations['scratchpads_species'] = $group;
@@ -92,7 +102,7 @@ function scratchpads_species_module_implements_alter(&$implementations, $hook){
  * Implements hook_form_FORM_ID_alter().
  */
 function scratchpads_species_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id){
-  // A little clunky here, as this module does not depend on the
+  // A little clunky here, as this module does not depend on the 
   // scratchpads_simple_taxonomy_page module that is providing the fieldset that
   // we are adding to.
   if(!isset($form_state['confirm_delete'])){
@@ -250,9 +260,9 @@ function scratchpads_species_taxonomy_term_insert($term){
 }
 
 /*********************************************************************************************
- *
+ * 
  * MENU CALLBACKS
- *
+ * 
  ********************************************************************************************/
 function scratchpads_species_title_callback($term){
   if(scratchpads_species_term_is_biological_classification($term)){
@@ -263,9 +273,9 @@ function scratchpads_species_title_callback($term){
 }
 
 /**
- *
+ * 
  * Access callback for species page
- * Hide tabs on non-species pages & if there's no content
+ * Hide tabs on non-species pages & if there's no content 
  * @param array $term
  * @param string - tab $op
  */
@@ -308,7 +318,7 @@ function scratchpads_species_term_page($term, $op = 'overview'){
     $path = drupal_get_path('module', 'scratchpads_species');
     drupal_add_css($path . '/css/scratchpads_species.css');
     // Copied from context_entity_prepare_view()
-    // Trigger the taxonomy viewing condition
+    // Trigger the taxonomy viewing condition 
     if($plugin = context_get_plugin('condition', 'taxonomy_term')){
       $plugin->execute($term, 'view');
     }
@@ -320,13 +330,11 @@ function scratchpads_species_term_page($term, $op = 'overview'){
       'term' => $term
     ));
     $subtitle = '&nbsp;';
-    $lang = field_language('taxonomy_term', $term, 'field_authors');
-    if(isset($term->field_authors[$lang][0]['safe_value'])){
-      $subtitle = $term->field_authors[$lang][0]['safe_value'] . ' ';
+    if(isset($term->field_authors[LANGUAGE_NONE][0]['safe_value'])){
+      $subtitle = $term->field_authors[LANGUAGE_NONE][0]['safe_value'] . ' ';
     }
-    $lang = field_language('taxonomy_term', $term, 'field_usage');
-    if(isset($term->field_usage[$lang][0]['value']) && ($term->field_usage[$lang][0]['value'] == 'invalid' || $term->field_usage[$lang][0]['value'] == 'unaccepted')){
-      $subtitle .= '[' . ucfirst($term->field_usage[$lang][0]['value']) . ']';
+    if(isset($term->field_usage[LANGUAGE_NONE][0]['value']) && ($term->field_usage[LANGUAGE_NONE][0]['value'] == 'invalid' || $term->field_usage[LANGUAGE_NONE][0]['value'] == 'unaccepted')){
+      $subtitle .= '[' . ucfirst($term->field_usage[LANGUAGE_NONE][0]['value']) . ']';
     }
     // Return a blank page contextual links
     $build = array(
@@ -362,9 +370,9 @@ function scratchpads_species_term_page($term, $op = 'overview'){
 }
 
 /*********************************************************************************************
- *
+ * 
  * VIEWS
- *
+ * 
  ********************************************************************************************/
 /**
  * Implementation of hook_views_api
@@ -482,9 +490,9 @@ function scratchpads_species_slickgrid_view_arguments_alter(&$arguments, $view){
 }
 
 /*********************************************************************************************
- *
+ * 
  * THEME & PREPROCESS FUNCTIONS
- *
+ * 
  ********************************************************************************************/
 /**
  * Preprocessor for theme('block').
@@ -576,33 +584,24 @@ function theme_scratchpads_species_name($vars){
   $term = $vars['term'];
   // Give the default name as the term name, we will try and overwite this below
   $name = $term->name;
-  $lang = field_language('taxonomy_term', $term, 'field_rank');
-  $rank = (isset($term->field_rank[$lang][0]['value']) ? strtolower($term->field_rank[$lang][0]['value']) : null);
-  $lang = field_language('taxonomy_term', $term, 'field_unit_name1');
-  $unit1 = (isset($term->field_unit_name1[$lang][0]['value']) ? $term->field_unit_name1[$lang][0]['value'] : null);
-  $lang = field_language('taxonomy_term', $term, 'field_unit_name2');
-  $unit2 = (isset($term->field_unit_name2[$lang][0]['value']) ? $term->field_unit_name2[$lang][0]['value'] : null);
-  $lang = field_language('taxonomy_term', $term, 'field_unit_name3');
-  $unit3 = (isset($term->field_unit_name3[$lang][0]['value']) ? $term->field_unit_name3[$lang][0]['value'] : null);
-  $lang = field_language('taxonomy_term', $term, 'field_unit_name4');
-  $unit4 = (isset($term->field_unit_name4[$lang][0]['value']) ? $term->field_unit_name4[$lang][0]['value'] : null);
-  $lang = field_language('taxonomy_term', $term, 'field_unit_indicator1');
-  $unit_ind1 = (isset($term->field_unit_indicator1[$lang][0]['value']) ? $term->field_unit_indicator1[$lang][0]['value'] . (in_array($term->field_unit_indicator1[$lang][0]['value'], array(
+  $rank = (isset($term->field_rank[LANGUAGE_NONE][0]['value']) ? strtolower($term->field_rank[LANGUAGE_NONE][0]['value']) : null);
+  $unit1 = (isset($term->field_unit_name1[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name1[LANGUAGE_NONE][0]['value'] : null);
+  $unit2 = (isset($term->field_unit_name2[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name2[LANGUAGE_NONE][0]['value'] : null);
+  $unit3 = (isset($term->field_unit_name3[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name3[LANGUAGE_NONE][0]['value'] : null);
+  $unit4 = (isset($term->field_unit_name4[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name4[LANGUAGE_NONE][0]['value'] : null);
+  $unit_ind1 = (isset($term->field_unit_indicator1[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator1[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
     '×',
     'x'
   )) ? '' : ' ') : '');
-  $lang = field_language('taxonomy_term', $term, 'field_unit_indicator2');
-  $unit_ind2 = (isset($term->field_unit_indicator2[$lang][0]['value']) ? $term->field_unit_indicator2[$lang][0]['value'] . (in_array($term->field_unit_indicator1[$lang][0]['value'], array(
+  $unit_ind2 = (isset($term->field_unit_indicator2[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator2[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
     '×',
     'x'
   )) ? '' : ' ') : '');
-  $lang = field_language('taxonomy_term', $term, 'field_unit_indicator3');
-  $unit_ind3 = (isset($term->field_unit_indicator3[$lang][0]['value']) ? $term->field_unit_indicator3[$lang][0]['value'] . (in_array($term->field_unit_indicator1[$lang][0]['value'], array(
+  $unit_ind3 = (isset($term->field_unit_indicator3[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator3[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
     '×',
     'x'
   )) ? '' : ' ') : '');
-  $lang = field_language('taxonomy_term', $term, 'field_unit_indicator4');
-  $unit_ind4 = (isset($term->field_unit_indicator4[$lang][0]['value']) ? $term->field_unit_indicator4[$lang][0]['value'] . (in_array($term->field_unit_indicator1[$lang][0]['value'], array(
+  $unit_ind4 = (isset($term->field_unit_indicator4[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator4[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
     '×',
     'x'
   )) ? '' : ' ') : '');
@@ -719,9 +718,9 @@ function theme_scratchpads_species_name($vars){
 }
 
 /*********************************************************************************************
- *
+ * 
  * CONTEXT
- *
+ * 
  ********************************************************************************************/
 /**
  * Implementation of hook_ctools_plugin_type().
@@ -781,9 +780,9 @@ function scratchpads_species_context_registry(){
 }
 
 /*********************************************************************************************
- *
+ * 
  * MODULE FUNCTIONS
- *
+ * 
  ********************************************************************************************/
 /**
  * Check if a term is a biological classification
@@ -846,7 +845,7 @@ function scratchpads_species_get_context_views($context){
 }
 
 /**
- *
+ * 
  * Get a list of all views
  * Can't use views_get_all_views() as it's indexed & sorted by name
  * Use the view definition order to provide block weight
@@ -861,7 +860,7 @@ function scratchpads_species_get_all_views(){
 }
 
 /**
- *
+ * 
  * Usort comparison function for ordering field groups
  * @param object $a
  * @param object $b
@@ -875,7 +874,7 @@ function scratchpads_species_usort_comparison($a, $b){
 }
 
 /**
- *
+ * 
  * Helper function for variable_get
  * @param string $name
  */
@@ -885,7 +884,7 @@ function scratchpads_species_variable_get($name){
 }
 
 /**
- *
+ * 
  * Helper function for variable defaults
  * @param string $name
  */
@@ -907,9 +906,9 @@ function scratchpads_species_variable_defaults($name = NULL){
 }
 
 /*********************************************************************************************
- *
+ * 
  * IMAGE STYLES
- *
+ * 
  ********************************************************************************************/
 /**
  * Implementation of hook_styles_default_styles().
