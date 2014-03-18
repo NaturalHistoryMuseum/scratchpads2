@@ -451,9 +451,13 @@ function scratchpads_hands_off_field_ui_field_delete_form_submit($form, &$form_s
  * Implements hook_init().
  */
 function scratchpads_hands_off_init(){
-  if(!user_access('scratchpad team') && in_array($_GET['q'], _scratchpads_hands_off_hidden_urls())){
-    drupal_access_denied();
-    exit();
+  if(!user_access('scratchpad team')){
+    foreach(_scratchpads_hands_off_hidden_urls() as $hidden_url){
+      if(strpos($_GET['q'], $hidden_url) === 0){
+        drupal_access_denied();
+        exit();
+      }
+    }
   }
 }
 
@@ -461,7 +465,7 @@ function scratchpads_hands_off_init(){
  * Get an array of hidden URLs
  */
 function _scratchpads_hands_off_hidden_urls(){
-  return array(
+  $hidden_urls = array(
     'admin/appearance/settings/scratchpads',
     'admin/appearance/settings/scratchpads_admin',
     'admin/config/content/biblio/basic',
@@ -518,6 +522,110 @@ function _scratchpads_hands_off_hidden_urls(){
     'user/1/edit',
     'user/%user/spambot'
   );
+  foreach(_scratchpads_hands_off_hidden_views() as $hidden_view){
+    $hidden_urls[] = 'admin/structure/views/view/' . $hidden_view;
+  }
+  return $hidden_urls;
+}
+
+/**
+ * Get an array of hidden URLs
+ */
+function _scratchpads_hands_off_hidden_views(){
+  $hidden_views = array(
+    'ecological_niche_modelling',
+    'front_page_slideshow',
+    'geocat_csv',
+    'legal_users',
+    'legal_terms',
+    'media_default',
+    'simple_taxonomy_page_images',
+    'slickgrid_admin_media_gallery',
+    'species_map',
+    'species_specimen_observation',
+    'users_references',
+    'weight'
+  );
+  foreach(array_keys(views_get_all_views()) as $key){
+    if(strpos($key, 'admin_vbo') === 0){
+      $hidden_views[] = $key;
+    }
+  }
+  drupal_alter('scratchpads_hands_off_hidden_views', $hidden_views);
+  return drupal_map_assoc($hidden_views);
+}
+
+/**
+ * Implements hook_preprocess_HOOK
+ */
+function scratchpads_hands_off_preprocess_table(&$variables){
+  if(strpos($_GET['q'], 'admin/structure/views') === 0){
+    foreach(_scratchpads_hands_off_hidden_views() as $key){
+      unset($variables['rows'][$key]);
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK
+ */
+function scratchpads_hands_off_preprocess_views_view(&$variables){
+  scratchpads_hands_off_remove_contextual_links($variables['view_array'], $variables['view']);
+}
+
+/**
+ * Implements hook_page_alter()
+ */
+function scratchpads_hands_off_page_alter(&$page){
+  $view = views_get_page_view();
+  if(!empty($view)){
+    if(is_subclass_of($view, 'views_plugin_display')){
+      $view = $view->view;
+    }
+    scratchpads_hands_off_remove_contextual_links($page, $view);
+  }
+}
+
+/**
+ * Remove contextual links to Views UI from an element
+ */
+function scratchpads_hands_off_remove_contextual_links(&$render_element, $view){
+  if(@isset($render_element['#contextual_links']['views_ui']) || @isset($render_element['#views_contextual_links_info']['views_ui'])){
+    $hidden_views = _scratchpads_hands_off_hidden_views();
+    if(isset($hidden_views[$view->name])){
+      unset($render_element['#contextual_links']['views_ui']);
+      if(empty($render_element['#contextual_links'])){
+        unset($render_element['#contextual_links']);
+      }
+      unset($render_element['#views_contextual_links_info']['views_ui']);
+      if(empty($render_element['#views_contextual_links_info'])){
+        unset($render_element['#views_contextual_links_info']);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter()
+ */
+function scratchpads_hands_off_module_implements_alter(&$implementations, $hook){
+  // Move to the end and then move contextual to after that to ensure that
+  // contextual links are removed before the contextual module gets to mess with
+  // them.
+  if(in_array($hook, array(
+    'page_alter',
+    'preprocess_table',
+    'preprocess'
+  )) && isset($implementations['scratchpads_hands_off'])){
+    $move = $implementations['scratchpads_hands_off'];
+    unset($implementations['scratchpads_hands_off']);
+    $implementations['scratchpads_hands_off'] = $move;
+    if(isset($implementations['contextual'])){
+      $move = $implementations['contextual'];
+      unset($implementations['contextual']);
+      $implementations['contextual'] = $move;
+    }
+  }
 }
 
 /**
@@ -554,6 +662,12 @@ function scratchpads_hands_off_file_entity_list_types_page(){
  * Implements hook_theme_registry_alter().
  */
 function scratchpads_hands_off_theme_registry_alter(&$theme_registry){
+  if(($contextual_key = array_search('contextual_preprocess', $theme_registry['views_view']['preprocess functions'])) < ($hands_off_key = array_search('scratchpads_hands_off_preprocess_views_view', $theme_registry['views_view']['preprocess functions']))){
+    if($contextual_key !== FALSE && $hands_off_key !== FALSE){
+      $theme_registry['views_view']['preprocess functions'][$contextual_key] = 'scratchpads_hands_off_preprocess_views_view';
+      $theme_registry['views_view']['preprocess functions'][$hands_off_key] = 'contextual_preprocess';
+    }
+  }
   $theme_registry['dashboard_disabled_blocks']['function'] = 'theme_scratchpads_hands_off_dashboard_disabled_blocks';
 }
 

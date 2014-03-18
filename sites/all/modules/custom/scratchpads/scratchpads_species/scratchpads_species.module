@@ -48,6 +48,16 @@ function scratchpads_species_menu_alter(&$items){
 }
 
 /**
+ * Implements hook_scratchpads_hands_off_hidden_views_alter()
+ */
+function scratchpads_species_scratchpads_hands_off_hidden_views_alter(&$view_ids){
+  $view_ids = array_merge($view_ids, array(
+    'species_nomenclature',
+    'species_overview_map'
+  ));
+}
+
+/**
  * 
  * Implementation of hook_theme
  */
