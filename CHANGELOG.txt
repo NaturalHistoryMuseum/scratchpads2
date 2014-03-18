@@ -1,3 +1,7 @@
+2.4.0.1 (2014-03-18)
+
+- Prevent field_group_info_groups() from clearing ctools caches (#4026,#4029,#4030)
+
 2.4.0 (2014-03-06)
 
 - Enable the use of a private file system (#909)
