@@ -115,6 +115,11 @@ class FeedsExcelParser extends FeedsParser{
         }
         $column++;
       }
+      // A special case.  We need to ensure that the GUID column has a value
+      // defined, even if that value is the empty string.
+      if(count($row_values) && $column < count($this->state->column_names) && !isset($row_values['GUID']) && array_search('GUID', $this->state->column_names)){
+        $row_values['GUID'] = '';
+      }
       if(!isset($this->state->column_names)){
         $this->state->column_names = $row_values;
       }else{
