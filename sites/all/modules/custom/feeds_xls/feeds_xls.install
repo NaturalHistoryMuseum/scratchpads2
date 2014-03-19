@@ -47,3 +47,11 @@ function feeds_xls_requirements($phase){
   }
   return $requirements;
 }
+
+/**
+ * Delete any item from the feeds_item table which has an empty GUID
+ */
+function feeds_xls_update_7001(){
+  // Delete any instances from feeds_item with blank GUIDs.
+  db_delete('feeds_item')->condition('guid', '')->execute();
+}
