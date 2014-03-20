@@ -107,7 +107,7 @@ function scratchpads_citethispage_parse_taxonomy_term($path, $page){
   return array(
     'taxonomy_term' => array(
       $tid => array_merge($author_data, array(
-        'title' => strip_tags($page['title'] . ' ' . $page['subtitle'])
+        'title' => (isset($page['title']) && isset($page['subtitle'])) ? strip_tags($page['title'] . ' ' . $page['subtitle']) : $term->name
       ))
     )
   );
