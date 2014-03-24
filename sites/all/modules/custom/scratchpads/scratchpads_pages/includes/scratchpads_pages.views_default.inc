@@ -47,7 +47,7 @@ function scratchpads_pages_views_default_views(){
   $handler->display->display_options['style_options']['columns'] = array();
   $handler->display->display_options['style_options']['tabs'] = '';
   $fields = field_info_instances('node', 'specimen_observation');
-  $groups = field_group_info_groups('node', 'specimen_observation', 'form');
+  $groups = field_group_info_groups('node', 'specimen_observation', 'form', TRUE);
   usort($groups, 'scratchpads_species_usort_comparison');
   foreach($groups as $group){
     if(!(isset($group->children[0]) && !is_string($group->children[0]))){
