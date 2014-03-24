@@ -34,6 +34,19 @@ function scratchpads_roles_and_permissions_scratchpads_default_permissions_alter
 /**
  * Implements hook_scratchpads_default_permissions().
  */
+function advanced_help_scratchpads_default_permissions(){
+  return array(
+    'editor' => array(
+      'view advanced help topic',
+      'view advanced help popup',
+      'view advanced help index'
+    )
+  );
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
 function og_scratchpads_default_permissions(){
   return array(
     'maintainer' => array(
