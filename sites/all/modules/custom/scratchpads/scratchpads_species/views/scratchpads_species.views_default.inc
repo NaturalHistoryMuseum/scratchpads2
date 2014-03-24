@@ -1724,7 +1724,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['relationships']['field_location_nid']['delta'] = '0';
   $fields = field_info_instances('node', 'specimen_observation');
   $location_fields = field_info_instances('node', 'location');
-  $groups = field_group_info_groups('node', 'specimen_observation', 'form');
+  $groups = field_group_info_groups('node', 'specimen_observation', 'form', TRUE);
   usort($groups, 'scratchpads_species_usort_comparison');
   foreach($groups as $group){
     if(isset($group->label) && $group->identifier == 'group_location|node|specimen_observation|form'){
