@@ -457,9 +457,6 @@ function feeds_xls_download_template($feeds_importer){
  */
 function feeds_xls_field_type_help_text($field){
   switch($field['type']){
-    case 'date':
-    case 'datetime':
-      return "Dates should be entered in the format 'YYYY/MM/DD'.  You may need to specify that this column is a 'text' column type to ensure the formatting is preserved.";
     case 'gm3_combination':
       return 'Please enter data in the following format, entering multiple values on a single line (this is easier to do in a text editor, and then paste into Excel):
 
