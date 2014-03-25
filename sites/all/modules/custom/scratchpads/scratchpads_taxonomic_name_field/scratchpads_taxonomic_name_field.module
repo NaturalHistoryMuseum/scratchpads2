@@ -520,10 +520,16 @@ function scratchpads_taxonomic_name_field_apachesolr_index_document_build(Apache
 
 /**
  * Implements hook_ctools_plugin_api().
- *
- * Magic happens just because this function exists (fucked up, I know).
  */
-function scratchpads_taxonomic_name_field_ctools_plugin_api(){}
+function scratchpads_taxonomic_name_field_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == 'facetapi'){return array(
+      'version' => 1
+    );}
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
 
 /**
  * Implements hook_facetapi_default_facet_settings().
