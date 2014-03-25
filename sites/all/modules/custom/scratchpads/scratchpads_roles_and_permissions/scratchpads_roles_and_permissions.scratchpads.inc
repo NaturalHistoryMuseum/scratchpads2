@@ -47,6 +47,17 @@ function advanced_help_scratchpads_default_permissions(){
 /**
  * Implements hook_scratchpads_default_permissions().
  */
+function bigmenu_scratchpads_default_permissions(){
+  return array(
+    'contributor' => array(
+      'use bigmenu'
+    )
+  );
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
 function og_scratchpads_default_permissions(){
   return array(
     'maintainer' => array(
