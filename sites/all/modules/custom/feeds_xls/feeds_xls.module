@@ -126,6 +126,9 @@ function feeds_xls_get_or_generate_feeds_item_entry($entity_type, $entity_id, $i
  * 3|Banana
  * 
  * allow the entry of the text "Something", or "Rocking" instead of "1" or "2".
+ * 
+ * We alter date field types, so that "days since epoch" values can be imported
+ * without changing the format in Excel
  */
 function feeds_xls_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name){
   $numeric_types = array(
@@ -142,8 +145,43 @@ function feeds_xls_feeds_processor_targets_alter(&$targets, $entity_type, $bundl
       $targets[$name]['callback'] = 'feeds_xls_feeds_set_target_numeric';
     }elseif($info['type'] == 'list_text'){
       $targets[$name]['callback'] = 'feeds_xls_feeds_set_target_list_text';
+    }elseif(in_array($info['type'], array(
+      'date',
+      'datestamp',
+      'datetime'
+    ))){
+      $targets[$name . ':start'] = array(
+        'name' => t('@name: Start', array(
+          '@name' => $instance['label']
+        )),
+        'callback' => 'feeds_xls_feeds_set_target_date',
+        'description' => t('The start date for the @name field. Also use if mapping both start and end.', array(
+          '@name' => $instance['label']
+        )),
+        'real_target' => $name
+      );
+      $targets[$name . ':end'] = array(
+        'name' => t('@name: End', array(
+          '@name' => $instance['label']
+        )),
+        'callback' => 'feeds_xls_feeds_set_target_date',
+        'description' => t('The end date for the @name field.', array(
+          '@name' => $instance['label']
+        )),
+        'real_target' => $name
+      );
     }
   }
+}
+
+/**
+ * Callback for setting date fields
+ */
+function feeds_xls_feeds_set_target_date($source, $entity, $target, $value){
+  if(strpos(get_class($source->importer->parser), 'FeedsExcelParser') !== FALSE && is_numeric($value)){
+    $value = date("Y-m-d", mktime(0, 0, 0, 1, $value - 1, 1900));
+  }
+  return date_feeds_set_target($source, $entity, $target, $value);
 }
 
 /**
