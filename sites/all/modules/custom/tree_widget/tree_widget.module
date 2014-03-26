@@ -169,6 +169,7 @@ function theme_options_tree($variables){
   if(isset($variables['tid'])){
     $term = taxonomy_term_load($variables['tid']);
     $root_terms = taxonomy_get_tree($term->vid, $variables['tid'], 1);
+    $num_vocabularies = 1;
   }elseif(!isset($variables['vid'])){
     $vocabularies = array();
     $num_vocabularies = 0;
