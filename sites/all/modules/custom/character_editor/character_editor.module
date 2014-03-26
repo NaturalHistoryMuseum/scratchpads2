@@ -855,6 +855,8 @@ function character_editor_form_entity_admin_entity_delete_form_alter(&$form, &$f
     if($project_w){
       $form['actions']['cancel']['#href'] = 'character-editor-project/' . $project_w->getIdentifier() . '/characters';
     }
+  }elseif(preg_match('/^\/character-editor-project\/\d+\/delete(\?.*)?$/', $form['#action'])){
+    array_unshift($form['#submit'], 'character_editor_project_delete_submit');
   }
 }
 
@@ -1089,9 +1091,15 @@ function character_editor_entity_delete($entity, $type){
       // help as part of the relations - so they will get deleted automatically.
       $wrapper = character_editor_wrapper($type, $entity);
       $children = character_editor_get_characters($wrapper);
+      $ids = array();
       foreach($children as $child){
-        $child->delete();
+        $ids[] = $child->id->value();
+        $more_children = character_editor_get_characters($child);
+        foreach($more_children as $more_child){
+          $ids[] = $more_child->id->value();
+        }
       }
+      entity_delete_multiple('character_editor_character', $ids);
       break;
   }
 }
@@ -1191,6 +1199,21 @@ function character_editor_character_form_submit(&$form, &$form_state){
   }else{
     if(!empty($form_state['character_project_id'])){
       $form_state['redirect'] = 'character-editor-project/' . $form_state['character_project_id'] . '/characters';
+    }
+  }
+}
+
+/**
+ * Handle submission of project form delete button
+ */
+function character_editor_project_delete_submit($form, &$form_state){
+  if(isset($form_state['build_info']['args'][0])){
+    character_editor_entity_delete($form_state['build_info']['args'][0], 'character_editor_project');
+    $messages = drupal_get_messages('status');
+    foreach($messages['status'] as $message){
+      if(!preg_match('/Relations.*have been deleted/', $message)){
+        drupal_set_message($message);
+      }
     }
   }
 }
