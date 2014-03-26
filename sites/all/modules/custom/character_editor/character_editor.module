@@ -414,6 +414,9 @@ function character_editor_form_character_editor_project_alter(&$form, &$form_sta
   $existing_ids = array();
   foreach(element_children($form['field_char_proj_flags']) as $lang){
     foreach(element_children($form['field_char_proj_flags'][$lang]) as $delta){
+      if($delta == 'add_more'){
+        continue;
+      }
       $disable = array();
       $elem = & $form['field_char_proj_flags'][$lang][$delta]['field_char_proj_flags_id'];
       foreach(element_children($elem) as $field_lang){
