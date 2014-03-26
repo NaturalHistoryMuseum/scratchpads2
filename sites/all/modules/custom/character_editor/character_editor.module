@@ -835,6 +835,10 @@ function character_editor_character_form_submit_expression($form, &$form_state){
     }else{
       $form_state['values'][$expr_field][$lang][0]['value'] = '';
     }
+    if(empty($form_state['values'][$expr_field][$lang][0]['value'])){
+      unset($form_state['values'][$expr_field]);
+      unset($form_state['character_editor_character']->{$expr_field});
+    }
   }
 }
 

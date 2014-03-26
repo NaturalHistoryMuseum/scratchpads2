@@ -649,7 +649,7 @@ function character_editor_update_7011(){
   }
   // If there is a meta field, copy existing data from meta to flag
   $info = field_info_field('field_character_state_meta');
-  if (!$info){return;}
+  if(!$info){return;}
   $efq = new EntityFieldQuery();
   $efq->entityCondition('entity_type', 'relation');
   $efq->entityCondition('bundle', 'character_state');
@@ -712,5 +712,18 @@ function character_editor_update_7012(){
         }
       }
     }
+  }
+}
+
+/**
+ * Delete any "s" conditions
+ */
+function character_editor_update_7013(){
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'character_editor_character')->fieldCondition('field_char_condition', 'value', 's', '=');
+  $result = $query->execute();
+  if(!empty($result)){
+    db_delete('field_data_field_char_condition')->condition('entity_id', array_keys($result['character_editor_character']))->condition('field_char_condition_value', 's')->execute();
+    db_delete('field_revision_field_char_condition')->condition('entity_id', array_keys($result['character_editor_character']))->condition('field_char_condition_value', 's')->execute();
   }
 }
