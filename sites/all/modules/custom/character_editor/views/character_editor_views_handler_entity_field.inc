@@ -103,7 +103,7 @@ class character_editor_views_handler_entity_field extends views_handler_field{
     }
     $name = '';
     if(preg_match('/^taxonomy_term:/', $values->id)){
-      $name = l($values->name, preg_replace('/^taxonomy_term:/', 'term/', $values->id));
+      $name = l($values->name, preg_replace('/^taxonomy_term:/', 'taxonomy/term/', $values->id));
       $name = "<strong>$name</strong>";
     }else{
       $name = l($values->name, preg_replace('/^node:/', 'node/', $values->id));
