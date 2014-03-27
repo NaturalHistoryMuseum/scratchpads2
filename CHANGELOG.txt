@@ -1,3 +1,7 @@
+2.4.0.2 (2014-03-27)
+
+- Prevent field_group_info_groups() from clearing ctools caches and prevent further errors(#4026,#4029,#4030,#4061)
+
 2.4.0.1 (2014-03-18)
 
 - Prevent field_group_info_groups() from clearing ctools caches (#4026,#4029,#4030)
