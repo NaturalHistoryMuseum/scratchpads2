@@ -1340,7 +1340,7 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
   $handler->display->display_options['style_options']['autoEdit'] = 1;
   // Add the fields
   $fields = field_info_instances($entity_type, $bundle);
-  $groups = field_group_info_groups($entity_type, $bundle, 'form');
+  $groups = field_group_info_groups($entity_type, $bundle, 'form', TRUE);
   $entity_info = entity_get_info($entity_type);
   $default_group = NULL;
   // Specimen observation has a title field but it is auto-populated so ignore it
@@ -1358,11 +1358,18 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
     usort($groups, 'scratchpads_backend_usort_comparison');
     foreach($groups as $group){
       // Does this group have fields
-      if(!(isset($group->children[0]) && !is_string($group->children[0]))){
+      $all_are_strings = TRUE;
+      foreach($group->children as $value){
+        if(!is_string($value)){
+          $all_are_strings = FALSE;
+          break;
+        }
+      }
+      if($all_are_strings){
         if(count(array_intersect($group->children, array_keys($fields)))){
           $handler->display->display_options['style_options']['tabs'] .= $group->label . PHP_EOL;
           foreach($group->children as $field){
-            if(array_key_exists($field, $fields)){
+            if(is_string($field) && array_key_exists($field, $fields)){
               $table = 'field_data_' . $field;
               $module = $fields[$field]['widget']['module'];
               scratchpads_backend_views_add_field($handler, $module, $table, $field, $fields[$field], $group->label);
