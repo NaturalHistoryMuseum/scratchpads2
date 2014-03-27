@@ -830,6 +830,11 @@ function scratchpads_species_get_species_node_types($tab = NULL){
  * Return a list of default species tabs
  */
 function scratchpads_species_get_default_tabs(){
+  t('Descriptions');
+  t('Media');
+  t('Literature');
+  t('Maps');
+  t('Specimens');
   $tabs = array(
     'descriptions' => 'Descriptions',
     'media' => 'Media',
