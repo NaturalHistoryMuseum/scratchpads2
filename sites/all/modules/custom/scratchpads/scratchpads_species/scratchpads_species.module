@@ -95,7 +95,7 @@ function scratchpads_species_module_implements_alter(&$implementations, $hook){
     'form_taxonomy_form_vocabulary_alter',
     'form_alter',
     'menu',
-    'menu_alter',
+    'menu_alter'
   )) && isset($implementations['scratchpads_species'])){
     $group = $implementations['scratchpads_species'];
     unset($implementations['scratchpads_species']);
@@ -831,11 +831,11 @@ function scratchpads_species_get_species_node_types($tab = NULL){
  */
 function scratchpads_species_get_default_tabs(){
   $tabs = array(
-    'descriptions' => t('Descriptions'),
-    'media' => t('Media'),
-    'literature' => t('Literature'),
-    'maps' => t('Maps'),
-    'specimens' => t('Specimens')
+    'descriptions' => 'Descriptions',
+    'media' => 'Media',
+    'literature' => 'Literature',
+    'maps' => 'Maps',
+    'specimens' => 'Specimens'
   );
   drupal_alter('scratchpads_species_tabs', $tabs);
   return $tabs;
