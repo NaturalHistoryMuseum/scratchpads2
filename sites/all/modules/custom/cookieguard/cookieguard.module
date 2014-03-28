@@ -20,7 +20,7 @@ function cookieguard_init(){
     }
   }else{
     // Add a check here to see if the cookie settings have changed.
-    if(empty($user->cookieguard) || $_COOKIE['cookieguard_disallowedCookies'] != $user->cookieguard['disallowed'] || $_COOKIE['cookieguard_allowedCookies'] != $user->cookieguard['allowed']){
+    if(empty($user->cookieguard) || (isset($_COOKIE['cookieguard_disallowedCookies']) && $_COOKIE['cookieguard_disallowedCookies'] != $user->cookieguard['disallowed']) || (isset($_COOKIE['cookieguard_allowedCookies']) && $_COOKIE['cookieguard_allowedCookies'] != $user->cookieguard['allowed'])){
       cookieguard_save_settings();
     }
   }
