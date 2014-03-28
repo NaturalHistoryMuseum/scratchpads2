@@ -255,6 +255,15 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
         }
       }else{
         switch($mapping['target']){
+          case 'group_audience':
+            $gids = array();
+            foreach($entity->{$mapping['target']} as $language => $values){
+              foreach($entity->{$mapping['target']}[$language] as $value){
+                $gids[] = $value['gid'];
+              }
+            }
+            $row_values[$key] = implode('|', $gids);
+            break;
           case 'guid':
             // Look for this entity in the feeds_item table.  If not there, we
             // generate an entry for it.
