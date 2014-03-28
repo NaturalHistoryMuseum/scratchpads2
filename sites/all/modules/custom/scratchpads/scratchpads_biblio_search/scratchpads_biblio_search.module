@@ -643,10 +643,16 @@ function scratchpads_biblio_search_facet_autocomplete($type, $search){
   $matches = array();
   switch($type){
     case 'im_biblio_contributor':
-      $matches = db_select('biblio_contributor_data', 'b')->fields('b', array(
+      $condition = db_or()->condition('name', "$search%", 'LIKE')->condition('lastname', "$search%", 'LIKE');
+      $query = db_select('biblio_contributor_data', 'b')->fields('b', array(
         'name',
         'name'
-      ))->condition('name', "$search%", 'LIKE')->range(0, 10)->execute()->fetchAllKeyed();
+      ));
+      $query->innerJoin('biblio_contributor', 'c', 'c.cid = b.cid');
+      $query->groupBy('name');
+      $query->orderBy('lastname');
+      $query->condition($condition)->range(0, 10);
+      $matches = $query->execute()->fetchAllKeyed();
       break;
     case 'tus_biblio_year':
       $matches = db_select('biblio', 'b')->fields('b', array(
