@@ -163,12 +163,30 @@ function silver_silver(){
   return array(
     array(
       'type' => 'Nodes',
+      'name' => 'CSV file import',
+      //'access callback' => 'user_access',
+      'access arguments' => array(
+        'create page content' // FIXME
+      ),
+      'form_id' => 'silver_pages_csv_form'
+    ),
+    array(
+      'type' => 'Nodes',
       'name' => 'Excel file import',
       //'access callback' => 'user_access',
       'access arguments' => array(
         'create page content' // FIXME
       ),
       'form_id' => 'silver_pages_excel_form'
+    ),
+    array(
+      'type' => 'Taxonomy',
+      'name' => 'CSV file import',
+      //'access callback' => 'user_access',
+      'access arguments' => array(
+        'administer taxonomy'
+      ),
+      'form_id' => 'silver_taxonomy_csv_form'
     ),
     array(
       'type' => 'Taxonomy',
@@ -181,6 +199,14 @@ function silver_silver(){
     ),
     array(
       'type' => 'Files',
+      'name' => 'CSV file update',
+      'access arguments' => array(
+        'edit file'
+      ),
+      'form_id' => 'silver_file_csv_form'
+    ),
+    array(
+      'type' => 'Files',
       'name' => 'Excel file update',
       'access arguments' => array(
         'edit file'
@@ -189,11 +215,19 @@ function silver_silver(){
     ),
     array(
       'type' => 'Users',
+      'name' => 'CSV file import',
+      'access arguments' => array(
+        'administer users'
+      ),
+      'redirect' => 'import/user_importer_user_csv'
+    ),
+    array(
+      'type' => 'Users',
       'name' => 'Excel file import',
       'access arguments' => array(
         'administer users'
       ),
-      'redirect' => 'import/user_importer_user'
+      'redirect' => 'import/user_importer_user_csv'
     )
   );
 }
@@ -410,7 +444,30 @@ function theme_silver_import_form($variables){
 function silver_taxonomy_excel_form(){
   $vocabularies = taxonomy_get_vocabularies();
   foreach($vocabularies as $vocabulary){
-    $taxonomies['taxonomy_importer_' . $vocabulary->machine_name] = $vocabulary->name;
+    $taxonomies['taxonomy_importer_' . $vocabulary->machine_name . '_xls'] = $vocabulary->name;
+  }
+  return array(
+    'silver_import_subform_feeds' => array(
+      '#type' => 'select',
+      '#title' => '',
+      '#options' => $taxonomies,
+      '#empty_option' => t('Select vocabulary'),
+      '#ajax' => array(
+        'callback' => 'silver_ajax_callback',
+        'wrapper' => 'silver_import_subform_feeds'
+      )
+    ),
+    '#suffix' => '<div id="silver_import_subform_feeds"></div>'
+  );
+}
+
+/**
+ * silver_taxonomy_excel_form
+ */
+function silver_taxonomy_csv_form(){
+  $vocabularies = taxonomy_get_vocabularies();
+  foreach($vocabularies as $vocabulary){
+    $taxonomies['taxonomy_importer_' . $vocabulary->machine_name . '_csv'] = $vocabulary->name;
   }
   return array(
     'silver_import_subform_feeds' => array(
@@ -433,7 +490,30 @@ function silver_taxonomy_excel_form(){
 function silver_file_excel_form(){
   $entity_info = entity_get_info('file');
   foreach($entity_info['bundles'] as $file_type => $file_type_info){
-    $file_types['file_importer_' . $file_type] = check_plain($file_type_info['label']);
+    $file_types['file_importer_' . $file_type . '_xls'] = check_plain($file_type_info['label']);
+  }
+  return array(
+    'silver_import_subform_feeds' => array(
+      '#type' => 'select',
+      '#title' => '',
+      '#options' => $file_types,
+      '#empty_option' => t('Select file type'),
+      '#ajax' => array(
+        'callback' => 'silver_ajax_callback',
+        'wrapper' => 'silver_import_subform_feeds'
+      )
+    ),
+    '#suffix' => '<div id="silver_import_subform_feeds"></div>'
+  );
+}
+
+/**
+ * silver_file_excel_form
+ */
+function silver_file_csv_form(){
+  $entity_info = entity_get_info('file');
+  foreach($entity_info['bundles'] as $file_type => $file_type_info){
+    $file_types['file_importer_' . $file_type . '_csv'] = check_plain($file_type_info['label']);
   }
   return array(
     'silver_import_subform_feeds' => array(
@@ -469,7 +549,37 @@ function silver_pages_excel_form(){
       //'biblio',
       'media_gallery'
     )))){
-      $content_types['node_importer_' . $node_type] = $node_type_info['label'];
+      $content_types['node_importer_' . $node_type . '_xls'] = $node_type_info['label'];
+    }
+  }
+  return array(
+    'silver_import_subform_feeds' => array(
+      '#weight' => -100,
+      '#type' => 'select',
+      '#title' => '',
+      '#options' => $content_types,
+      '#empty_option' => t('Select content type'),
+      '#ajax' => array(
+        'callback' => 'silver_ajax_callback',
+        'wrapper' => 'silver_import_subform_feeds'
+      )
+    ),
+    '#suffix' => '<div id="silver_import_subform_feeds"></div>'
+  );
+}
+
+/**
+ * silver_pages_excel_form
+ */
+function silver_pages_csv_form(){
+  $content_types = array();
+  $entity_info = entity_get_info('node');
+  foreach($entity_info['bundles'] as $node_type => $node_type_info){
+    if(!in_array($node_type, variable_get('silver_restricted_node_types', array(
+      //'biblio',
+      'media_gallery'
+    )))){
+      $content_types['node_importer_' . $node_type . '_csv'] = $node_type_info['label'];
     }
   }
   return array(
