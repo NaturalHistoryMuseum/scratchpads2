@@ -351,13 +351,19 @@ function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
       }else if(substr($form_id, -10) == '_node_form'){
         // Add the UUID to the title of the page.
         if($form['nid']['#value']){
+          $extra = '';
+          if($form['type']['#value'] == 'group'){
+            if(($og = og_get_group('node', $form['nid']['#value'])) !== FALSE){
+              $extra = ' : Group ID = ' . $og->gid;
+            }
+          }
           $guid = db_select('feeds_item', 'f')->fields('f', array(
             'guid'
           ))->condition('entity_type', 'node')->condition('entity_id', $form['nid']['#value'])->execute()->fetchField();
           if(!$guid){
             $guid = $form['#node']->uuid;
           }
-          drupal_set_title(drupal_get_title() . ' <span class="uuid" title="NID : GUID">(' . $form['nid']['#value'] . ' : ' . $guid . ')</span>', PASS_THROUGH);
+          drupal_set_title(drupal_get_title() . ' <span class="uuid" title="NID : GUID">(' . $form['nid']['#value'] . ' : ' . $guid . $extra . ')</span>', PASS_THROUGH);
         }
       }
   }
