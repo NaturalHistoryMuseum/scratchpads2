@@ -1,20 +1,21 @@
-# Ignore configuration files that may contain sensitive information.
+# Ignore configuration files that may contain sensitive information and user-generated content
 sites/*/settings*.php
-
-# Ignore paths that contain user-generated content.
 sites/*/files
 sites/*/private
 
+# Examples module
+sites/all/modules/contrib/examples
+
+# Mac shite and SQL files
 *.DS_Store
 *.sql
 *.dump
+
+# Zend studio files
 .buildpath
 .cache
 .project
 .settings
-sites/all/modules/contrib/examples/
-scratchpad_1_database.php
+
+# Development files
 index2.php
-cache
-sites/default/files
-sites/default/settings.php
