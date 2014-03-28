@@ -36,6 +36,48 @@ function scratchpads_group_file_download($uri){
   }
 }
 
+/**
+ * Implements hook_feeds_processor_targets_alter().
+ */
+function scratchpads_group_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name){
+  foreach(field_info_instances($entity_type, $bundle_name) as $name => $instance){
+    $info = field_info_field($name);
+    if($info['type'] == 'group' && $name == 'group_audience'){
+      $targets[$name] = array(
+        'name' => check_plain($instance['label']),
+        'callback' => 'scratchpads_group_feeds_set_target',
+        'description' => t('The @label field of the entity.', array(
+          '@label' => $instance['label']
+        ))
+      );
+    }
+  }
+}
+
+/**
+ * Callback for mapping. Here is where the actual mapping happens.
+ *
+ * @todo Do not create new terms for non-autotag fields.
+ */
+function scratchpads_group_feeds_set_target($source, $entity, $target, $values, $mapping = array()){
+  if(!is_array($values)){
+    $values = array(
+      $values
+    );
+  }
+  $ogs_saved = array();
+  foreach($values as $key => $value){
+    if(og_load($value) && !isset($ogs_saved[$value])){
+      $ogs_saved[$value] = $value;
+      $entity->{$target}[LANGUAGE_NONE][$key] = array(
+        'gid' => $value,
+        'state' => 1,
+        'created' => time()
+      );
+    }
+  }
+}
+
 function scratchpads_group_tools_pre_disable(){
   $tools_settings = array(
     'can_disable' => TRUE,
