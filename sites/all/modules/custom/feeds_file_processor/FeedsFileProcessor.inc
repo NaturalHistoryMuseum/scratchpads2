@@ -225,7 +225,7 @@ class FeedsFileProcessor extends FeedsProcessor{
         '!feed_id' => $this->id
       )),
       '#options' => $types,
-      '#default_value' => $this->config['content_type']
+      '#default_value' => $this->config['bundle']
     );
     $period = drupal_map_assoc(array(
       FEEDS_EXPIRE_NEVER,
