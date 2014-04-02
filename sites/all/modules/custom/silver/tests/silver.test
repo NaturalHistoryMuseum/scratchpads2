@@ -148,8 +148,6 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
     'guid' => 'G11'
   );
 
-  
-
   /**
    *  A wrapper for all user import tests
    */
@@ -162,14 +160,14 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
     // Test users with no username, email or password
     $this->validateXlsUserImportNoLogin();
   }
-  
+
   /**
    * A wrapper containing all node import tests
    */
   function testNodeImports(){
     $this->drupalLogin($this->maintainer);
     //  create a term for a biological vocabulary so that we can reference it in imports
-    $tid = $this->createTerm('myterm'); 
+    $tid = $this->createTerm('myterm');
     $this->validateXlsLocationImport();
     $this->validateXlsPageImport();
     $this->validateXlsPageImportWithTerm($tid);
@@ -194,7 +192,7 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
     $term_name = 'test_term';
     $tid = $this->createTerm($term_name);
     // navigate to the importer
-    $path_to_importer = "import/taxonomy_importer_" . $term_name;
+    $path_to_importer = "import/taxonomy_importer_" . $term_name . '_xls';
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/taxonomy.xls');
     $this->drupalPost($path_to_importer, array(
       'feeds[FeedsHTTPFetcher][source]' => $rpath

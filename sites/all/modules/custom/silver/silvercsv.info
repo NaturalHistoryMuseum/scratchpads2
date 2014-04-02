@@ -1,0 +1,5 @@
+name = CSV Import
+description = "Enables the importing of data into the Scratchpads from CSV text files."
+package = "Import"
+core = 7.x
+tool = tool
