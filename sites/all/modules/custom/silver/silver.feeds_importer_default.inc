@@ -12,10 +12,11 @@ function silver_feeds_importer_default(){
     $feeds_importer = new stdClass();
     $feeds_importer->disabled = FALSE;
     $feeds_importer->api_version = 1;
-    $feeds_importer->id = 'taxonomy_importer_' . $vocabulary->machine_name;
+    $feeds_importer->id = 'taxonomy_importer_' . $vocabulary->machine_name . '_xls';
     $feeds_importer->config = array(
-      'name' => t('Import into: !vocabulary_name', array(
-        '!vocabulary_name' => $vocabulary->name
+      'name' => t('Import into: !vocabulary_name (!type)', array(
+        '!vocabulary_name' => $vocabulary->name,
+        '!type' => 'XLS'
       )),
       'description' => t('Import a classification into a specific vocabulary.'),
       'fetcher' => array(
@@ -78,7 +79,23 @@ function silver_feeds_importer_default(){
     );
     $field_info = field_info_instances('taxonomy_term', $vocabulary->machine_name);
     _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'taxonomy_term:' . $vocabulary->machine_name . ':');
-    $export['taxonomy_importer_' . $vocabulary->machine_name] = $feeds_importer;
+    $export['taxonomy_importer_' . $vocabulary->machine_name . '_xls'] = $feeds_importer;
+    if(module_exists('silvercsv')){
+      $csv_importer = clone $feeds_importer;
+      $csv_importer->id = 'taxonomy_importer_' . $vocabulary->machine_name . '_csv';
+      $csv_importer->config['name'] = t('Import into: !vocabulary_name (!type)', array(
+        '!vocabulary_name' => $vocabulary->name,
+        '!type' => 'CSV'
+      ));
+      $csv_importer->config['parser'] = array(
+        'plugin_key' => 'FeedsCSVParser',
+        'config' => array(
+          'delimiter' => ',',
+          'no_headers' => 0
+        )
+      );
+      $export['taxonomy_importer_' . $vocabulary->machine_name . '_csv'] = $csv_importer;
+    }
   }
   // Get a list of the content types.
   $entity_info = entity_get_info('node');
@@ -86,10 +103,11 @@ function silver_feeds_importer_default(){
     $feeds_importer = new stdClass();
     $feeds_importer->disabled = FALSE;
     $feeds_importer->api_version = 1;
-    $feeds_importer->id = 'node_importer_' . $node_type;
+    $feeds_importer->id = 'node_importer_' . $node_type . '_xls';
     $feeds_importer->config = array(
-      'name' => t('Import into: !node_type_name', array(
-        '!node_type_name' => $node_type_info['label']
+      'name' => t('Import into: !node_type_name (!type)', array(
+        '!node_type_name' => $node_type_info['label'],
+        '!type' => 'XLS'
       )),
       'description' => t('Import a classification into a specific content type.'),
       'fetcher' => array(
@@ -151,7 +169,23 @@ function silver_feeds_importer_default(){
     $field_info = field_info_instances('node', $node_type);
     $field_info = _silver_feeds_sort_field_info('node', $node_type, $field_info);
     _silver_feeds_importer_default_helper($field_info, $feeds_importer, "node:$node_type:");
-    $export['node_importer_' . $node_type] = $feeds_importer;
+    $export['node_importer_' . $node_type . '_xls'] = $feeds_importer;
+    if(module_exists('silvercsv')){
+      $csv_importer = clone $feeds_importer;
+      $csv_importer->id = 'node_importer_' . $node_type . '_csv';
+      $csv_importer->config['name'] = t('Import into: !node_type_name (!type)', array(
+        '!node_type_name' => $node_type_info['label'],
+        '!type' => 'CSV'
+      ));
+      $csv_importer->config['parser'] = array(
+        'plugin_key' => 'FeedsCSVParser',
+        'config' => array(
+          'delimiter' => ',',
+          'no_headers' => 0
+        )
+      );
+      $export['node_importer_' . $node_type . '_csv'] = $csv_importer;
+    }
   }
   // Get a list of the file types.
   $entity_info = entity_get_info('file');
@@ -159,10 +193,11 @@ function silver_feeds_importer_default(){
     $feeds_importer = new stdClass();
     $feeds_importer->disabled = FALSE;
     $feeds_importer->api_version = 1;
-    $feeds_importer->id = 'file_importer_' . $file_type;
+    $feeds_importer->id = 'file_importer_' . $file_type . '_xls';
     $feeds_importer->config = array(
-      'name' => t('Import into: @file_type_name', array(
-        '@file_type_name' => $file_type_info['label']
+      'name' => t('Import into: @file_type_name (!type)', array(
+        '@file_type_name' => $file_type_info['label'],
+        '!type' => 'XLS'
       )),
       'description' => t('Update the metadata for a specific file type.'),
       'fetcher' => array(
@@ -207,7 +242,23 @@ function silver_feeds_importer_default(){
     );
     $field_info = field_info_instances('file', $file_type);
     _silver_feeds_importer_default_helper($field_info, $feeds_importer, "file:$file_type:");
-    $export['file_importer_' . $file_type] = $feeds_importer;
+    $export['file_importer_' . $file_type . '_xls'] = $feeds_importer;
+    if(module_exists('silvercsv')){
+      $csv_importer = clone $feeds_importer;
+      $csv_importer->id = 'file_importer_' . $file_type . '_csv';
+      $csv_importer->config['name'] = t('Import into: @file_type_name (!type)', array(
+        '@file_type_name' => $file_type_info['label'],
+        '!type' => 'CSV'
+      ));
+      $csv_importer->config['parser'] = array(
+        'plugin_key' => 'FeedsCSVParser',
+        'config' => array(
+          'delimiter' => ',',
+          'no_headers' => 0
+        )
+      );
+      $export['file_importer_' . $file_type . '_csv'] = $csv_importer;
+    }
   }
   // Users ---------------------------------------------------------------------
   if(user_access('administer users')){
@@ -216,9 +267,11 @@ function silver_feeds_importer_default(){
     $feeds_importer = new stdClass();
     $feeds_importer->disabled = FALSE;
     $feeds_importer->api_version = 1;
-    $feeds_importer->id = 'user_importer_user';
+    $feeds_importer->id = 'user_importer_user_xls';
     $feeds_importer->config = array(
-      'name' => t('Import into: Users'),
+      'name' => t('Import into: Users (!type)', array(
+        '!type' => 'XLS'
+      )),
       'description' => t('Add and Update users.'),
       'fetcher' => array(
         'plugin_key' => 'FeedsFileFetcher',
@@ -301,7 +354,22 @@ function silver_feeds_importer_default(){
       'target' => 'guid',
       'unique' => 1
     );
-    $export['user_importer_user'] = $feeds_importer;
+    $export['user_importer_user_xls'] = $feeds_importer;
+    if(module_exists('silvercsv')){
+      $csv_importer = clone $feeds_importer;
+      $csv_importer->id = 'user_importer_user_csv';
+      $csv_importer->config['name'] = t('Import into: Users (!type)', array(
+        '!type' => 'CSV'
+      ));
+      $csv_importer->config['parser'] = array(
+        'plugin_key' => 'FeedsCSVParser',
+        'config' => array(
+          'delimiter' => ',',
+          'no_headers' => 0
+        )
+      );
+      $export['user_importer_user_csv'] = $csv_importer;
+    }
   }
   return $export;
 }
