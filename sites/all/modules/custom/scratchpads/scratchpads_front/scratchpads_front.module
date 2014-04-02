@@ -71,7 +71,40 @@ function scratchpads_front_block_view_alter(&$data, $block){
       $display_id = $data['content']['#views_contextual_links_info']['views_ui']['view_display_id'];
       $var = 'front_page_' . $display_id . '_node_type';
       $custom_block = scratchpads_front_get_custom_block($var);
-      $data['title'] = $custom_block->title;
+      if($custom_block->module != 'views'){
+        $data['title'] = $custom_block->title;
+      }else if($custom_block->module == 'views'){
+        // title too long so it is md5 hashed by views
+        if(strlen($custom_block->delta) == 32){
+          $hashes = variable_get('views_block_hashes', array());
+          if(!empty($hashes[$custom_block->delta])){
+            $unhashed_delta = $hashes[$custom_block->delta];
+            $hashed_views_block = module_invoke('views', 'block_view', $unhashed_delta);
+            $views_block_title = $hashed_views_block['subject'];
+          }
+          $view_name = substr($unhashed_delta, 0, strpos($unhashed_delta, '-'));
+          $view = views_get_view($view_name);
+          if($views_block_title){
+            $data['title'] = $views_block_title;
+          }else{
+            $data['title'] = $title;
+          }
+        }else{
+          $view_name = substr($custom_block->delta, 0, strpos($custom_block->delta, '-'));
+          $view = views_get_view($view_name);
+          // if view requires an argument don't show it
+          $arguments = $view->get_items('argument');
+          if(!$arguments){
+            $views_block = module_invoke('views', 'block_view', $custom_block->delta);
+            $views_block_title = $views_block['subject'];
+            if($views_block_title){
+              $data['title'] = $views_block_title;
+            }else{
+              $data['title'] = $view->get_human_name();
+            }
+          }
+        }
+      }
     }
   }
   if(isset($block->context) && substr($block->bid, 0, -1) == 'views-front_page_blocks-block_' && substr($data['subject'], -3) == 'rys'){
@@ -768,7 +801,7 @@ function scratchpads_front_image_default_styles(){
 /* adding custom blocks */
 function scratchpads_front_blocks_as_options(){
   $query = db_select('block', 'b');
-  $result = $query->fields('b')->orderBy('b.title', 'ASC')->orderBy('b.module', 'ASC')->condition(db_or()->condition('b.module', 'views', '=')->condition('b.module', 'block', '='))->condition('b.theme', 'scratchpads_admin', '!=')->condition('b.delta', array(
+  $result = $query->fields('b')->orderBy('b.title', 'ASC')->orderBy('b.module', 'ASC')->condition(db_or()->condition('b.module', 'views', '=')->condition('b.module', 'block', '='))->condition('b.theme', 'scratchpads', '=')->condition('b.delta', array(
     'front_page_blocks-block_1',
     'front_page_blocks-block_2',
     'front_page_blocks-block_3',
@@ -782,7 +815,40 @@ function scratchpads_front_blocks_as_options(){
     if($blockTitle){
       $options["{$block->module}:{$block->delta}"] = "{$blockTitle}";
     }else{
-      $options["{$block->module}:{$block->delta}"] = "{$block->module}:{$block->delta}";
+      if($block->module == 'views'){
+        // title too long so it is md5 hashed by views
+        if(strlen($block->delta) == 32){
+          $hashes = variable_get('views_block_hashes', array());
+          if(!empty($hashes[$block->delta])){
+            $unhashed_delta = $hashes[$block->delta];
+            $hashed_views_block = module_invoke('views', 'block_view', $unhashed_delta);
+            $views_block_title = $hashed_views_block['subject'];
+          }
+          $view_name = substr($unhashed_delta, 0, strpos($unhashed_delta, '-'));
+          $view = views_get_view($view_name);
+          if($views_block_title){
+            $options["{$block->module}:{$block->delta}"] = "{$views_block_title}";
+          }else{
+            $options["{$block->module}:{$block->delta}"] = "{$view->get_human_name()}";
+          }
+        }else{
+          /* problem - from here down this is not picking up multiple blocks from one view */
+          $view_name = substr($block->delta, 0, strpos($block->delta, '-'));
+          $view = views_get_view($view_name);
+          if($view){
+            $arguments = $view->get_items('argument');
+            if(!$arguments){
+              $views_block = module_invoke('views', 'block_view', $block->delta);
+              $views_block_title = $views_block['subject'];
+              if($views_block_title){
+                $options["{$block->module}:{$block->delta}"] = "{$views_block_title}";
+              }else{
+                $options["{$block->module}:{$block->delta}"] = "{$view->get_human_name()}";
+              }
+            }
+          }
+        }
+      }
     }
   }
   $options = array_merge(array(
