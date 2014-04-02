@@ -160,16 +160,7 @@ function silver_menu(){
  */
 function silver_silver(){
   // Here we tell ourselves about the Feeds module forms, and such like.
-  return array(
-    array(
-      'type' => 'Nodes',
-      'name' => 'CSV file import',
-      //'access callback' => 'user_access',
-      'access arguments' => array(
-        'create page content' // FIXME
-      ),
-      'form_id' => 'silver_pages_csv_form'
-    ),
+  $silvers = array(
     array(
       'type' => 'Nodes',
       'name' => 'Excel file import',
@@ -178,15 +169,6 @@ function silver_silver(){
         'create page content' // FIXME
       ),
       'form_id' => 'silver_pages_excel_form'
-    ),
-    array(
-      'type' => 'Taxonomy',
-      'name' => 'CSV file import',
-      //'access callback' => 'user_access',
-      'access arguments' => array(
-        'administer taxonomy'
-      ),
-      'form_id' => 'silver_taxonomy_csv_form'
     ),
     array(
       'type' => 'Taxonomy',
@@ -199,27 +181,11 @@ function silver_silver(){
     ),
     array(
       'type' => 'Files',
-      'name' => 'CSV file update',
-      'access arguments' => array(
-        'edit file'
-      ),
-      'form_id' => 'silver_file_csv_form'
-    ),
-    array(
-      'type' => 'Files',
       'name' => 'Excel file update',
       'access arguments' => array(
         'edit file'
       ),
       'form_id' => 'silver_file_excel_form'
-    ),
-    array(
-      'type' => 'Users',
-      'name' => 'CSV file import',
-      'access arguments' => array(
-        'administer users'
-      ),
-      'redirect' => 'import/user_importer_user_csv'
     ),
     array(
       'type' => 'Users',
@@ -230,6 +196,45 @@ function silver_silver(){
       'redirect' => 'import/user_importer_user_csv'
     )
   );
+  if(module_exists('silvercsv')){
+    $silvers = array_merge($silvers, array(
+      array(
+        'type' => 'Nodes',
+        'name' => 'CSV file import',
+        //'access callback' => 'user_access',
+        'access arguments' => array(
+          'create page content' // FIXME
+        ),
+        'form_id' => 'silver_pages_csv_form'
+      ),
+      array(
+        'type' => 'Taxonomy',
+        'name' => 'CSV file import',
+        //'access callback' => 'user_access',
+        'access arguments' => array(
+          'administer taxonomy'
+        ),
+        'form_id' => 'silver_taxonomy_csv_form'
+      ),
+      array(
+        'type' => 'Files',
+        'name' => 'CSV file update',
+        'access arguments' => array(
+          'edit file'
+        ),
+        'form_id' => 'silver_file_csv_form'
+      ),
+      array(
+        'type' => 'Users',
+        'name' => 'CSV file import',
+        'access arguments' => array(
+          'administer users'
+        ),
+        'redirect' => 'import/user_importer_user_csv'
+      )
+    ));
+  }
+  return $silvers;
 }
 
 /**
