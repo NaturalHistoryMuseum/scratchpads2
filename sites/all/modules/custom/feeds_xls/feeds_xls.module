@@ -23,7 +23,7 @@ function feeds_xls_feeds_plugins(){
  */
 function feeds_xls_menu(){
   return array(
-    'import/%feeds_importer/template' => array(
+    'import/%feeds_importer/xlstemplate' => array(
       'title' => 'Excel template',
       'page callback' => 'feeds_xls_download_template',
       'page arguments' => array(
@@ -247,6 +247,6 @@ function feeds_xls_feeds_set_target_numeric($source, $entity, $target, $value){
  */
 function feeds_xls_admin_paths(){
   return array(
-    'import/*/template' => FALSE
+    'import/*/xlstemplate' => FALSE
   );
 }
