@@ -211,6 +211,7 @@ function silver_feeds_importer_default(){
           'bundle' => $file_type,
           'expire' => '-1',
           'author' => 0,
+          'input_format' => 'filtered_html',
           'mappings' => array(
             array(
               'source' => 'GUID',
