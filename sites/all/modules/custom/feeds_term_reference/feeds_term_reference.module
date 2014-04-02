@@ -58,12 +58,6 @@ function feeds_term_reference_feeds_set_target(FeedsSource $source, $entity, $ta
   $target_info = explode(':', $target);
   list($target, $match_key) = $target_info; // matchkey=guid or tid
   $info = field_info_field($target);
-  // See http://drupal.org/node/881530
-  if(isset($info['settings']['allowed_values'][0]['vocabulary'])){
-    $vocabulary = taxonomy_vocabulary_machine_name_load($info['settings']['allowed_values'][0]['vocabulary']);
-  }else{
-    $vocabulary = taxonomy_vocabulary_load($info['settings']['allowed_values'][0]['vid']);
-  }
   $i = 0;
   $entity->$target = isset($entity->$target) ? $entity->$target : array();
   foreach($value as $v){
