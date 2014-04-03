@@ -166,4 +166,15 @@ function _scratchpads_tweaks_cron(){
       }
     }
   }
+  // Delete files from the temporary directory (assuming the path is different
+  // to the files folder) if they're overy one month old.
+  $temp_folder = drupal_realpath('temporary://');
+  if($temp_folder != '/tmp' && $temp_folder != drupal_realpath('public://') && $temp_folder != drupal_realpath('private://')){
+    foreach(scandir($temp_folder) as $file){
+      if(is_file("$temp_folder/$file") && filemtime("$temp_folder/$file") + 2419200 < time()){
+        file_unmanaged_delete("$temp_folder/$file");
+        db_delete('file_managed')->condition('uri', 'temporary://' . $file)->execute();
+      }
+    }
+  }
 }
