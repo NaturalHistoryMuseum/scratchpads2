@@ -656,7 +656,7 @@ function scratchpads_taxonomic_name_field_context_default_contexts(){
         'module' => 'facetapi',
         'delta' => $delta,
         'region' => 'sidebar',
-        'weight' => -27
+        'weight' => 25
       );
     }
   }
