@@ -490,6 +490,12 @@ function scratchpads_species_slickgrid_view_arguments_alter(&$arguments, $view){
         }
         $arguments[0] = implode('+', $tids);
       }
+      switch($view->name){
+        case 'species_specimen_observation':
+          // Add children to media, literature and specimen views
+          $arguments[0] = _scratchpads_species_get_descendant_tids($term->tid);
+          break;
+      }
     }
   }
 }
