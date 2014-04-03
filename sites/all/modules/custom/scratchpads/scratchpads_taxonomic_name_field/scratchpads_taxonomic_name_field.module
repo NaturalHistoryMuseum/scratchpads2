@@ -377,9 +377,26 @@ function scratchpads_taxonomic_name_field_facetapi_facet_info($searcher_info = F
       'query types' => array(
         'term'
       ),
-      'map callback' => 'facetapi_map_taxonomy_terms'
+      'map callback' => 'scratchpads_taxonomic_name_facetapi_map_taxonomy_terms'
     )
   );
+}
+
+/**
+ * Map callback for taxonomy terms.
+ */
+function scratchpads_taxonomic_name_facetapi_map_taxonomy_terms(array $values){
+  $map = array();
+  $terms = taxonomy_term_load_multiple($values);
+  $biological_vids = variable_get('biological_vids', array());
+  foreach($terms as $term){
+    if(empty($biological_vids[$term->vid])){
+      $map[$term->tid] = $term->name;
+    }else{
+      $map[$term->tid] = '---HIDE THIS TERM---';
+    }
+  }
+  return $map;
 }
 
 /**
@@ -400,6 +417,15 @@ function scratchpads_taxonomic_name_field_block_view_alter(&$data, $block){
               '#markup' => drupal_render($form),
               '#weight' => -100
             );
+          }
+        }elseif($facet->facet == 'tid'){
+          foreach($data['content']['tid']['#items'] as $key => $data2){
+            if(strpos($data2['data'], '---HIDE THIS TERM---')){
+              unset($data['content']['tid']['#items'][$key]);
+            }
+          }
+          if(!count($data['content']['tid']['#items'])){
+            $data['content'] = array();
           }
         }
         break;
