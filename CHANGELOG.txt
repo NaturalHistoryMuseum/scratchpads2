@@ -1,3 +1,7 @@
+2.4.1.1 (2014-04-03)
+
+- Prevent taxonomic name terms from displaying in the terms facet (#4081)
+
 2.4.1 (2014-04-03)
 
 - Delete temporary files older than one month to free up valuable disk space
