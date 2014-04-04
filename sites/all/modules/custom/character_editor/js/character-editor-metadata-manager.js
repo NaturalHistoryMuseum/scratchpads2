@@ -104,32 +104,11 @@
           from: vp.top,
           to: vp.bottom
         };
-        var new_range = range;
-        if (this.updatedCells.from <= range.from && this.updatedCells.to >= range.to){
-          return;
+        if (typeof this.timer != 'undefined'){
+          clearTimeout(this.timer);
         }
-        if (this.updatedCells.from <= range.from && this.updatedCells.to > range.from){
-          new_range = {
-            from: this.updatedCells.to,
-            to: range.to
-          };
-        } else if (this.updatedCells.from <= range.to && this.updatedCells.to >= range.to){
-          new_range = {
-            from: range.from,
-            to: this.updatedCells.from
-          };
-        } else {
-          // We should udpate the whole range. When this happens though it's possible
-          // slickgrid hasn't actually displayed the cells yet - so we must delay this
-          // update.
-          if (typeof this.timer != 'undefined'){
-            clearTimeout(this.timer);
-          }
-          this.timer = window.setTimeout($.proxy(this, 'updateViewportRows', range), 50);
-          return;
-        }
-        this.updatedCells = range;
-        range = new_range;
+        this.timer = window.setTimeout($.proxy(this, 'updateViewportRows', range), 50);
+        return;
       } else {
         this.updatedCells = range;
       }
