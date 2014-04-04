@@ -189,17 +189,22 @@ function tui_sort_callback(){
   $results = array();
   if(isset($_POST['parent_change'])){
     $term = taxonomy_term_load($_POST['parent_change']['tid']);
-    $parent = taxonomy_term_load($_POST['parent_change']['parent']);
-    $parents = array();
-    foreach(taxonomy_get_parents_all($parent->tid) as $higherparent){
-      $parents[$higherparent->tid] = $higherparent->tid;
-    }
-    if($term && $parent && !isset($parents[$term->tid])){
-      $term->parent = isset($_POST['parent_change']['parent']) ? $_POST['parent_change']['parent'] : 0;
-      taxonomy_term_save($term);
+    if(isset($_POST['parent_change']['parent'])){
+      $parent = taxonomy_term_load($_POST['parent_change']['parent']);
+      $parents = array();
+      foreach(taxonomy_get_parents_all($parent->tid) as $higherparent){
+        $parents[$higherparent->tid] = $higherparent->tid;
+      }
+      if($term && $parent && !isset($parents[$term->tid])){
+        $term->parent = isset($_POST['parent_change']['parent']) ? $_POST['parent_change']['parent'] : 0;
+        taxonomy_term_save($term);
+      }else{
+        $results[] = ajax_command_html('#tui-tree-form', '<div class="messages error"><h2 class="element-invisible">Error message</h2>' . t('There has been an error.  Please reload this page.') . '</div>');
+        watchdog('tui', 'Attempted to move a nonexistent term');
+      }
     }else{
-      $results[] = ajax_command_html('#tui-tree-form', '<div class="messages error"><h2 class="element-invisible">Error message</h2>' . t('There has been an error.  Please reload this page.') . '</div>');
-      watchdog('tui', 'Attempted to move a nonexistent term');
+      $term->parent = 0;
+      taxonomy_term_save($term);
     }
   }
   if(isset($_POST['sort_change'])){
