@@ -1,3 +1,7 @@
+2.4.1.2 (2014-04-04)
+
+- Ensure TUI allows a term to be moved to the root of a tree. (#4084)
+
 2.4.1.1 (2014-04-03)
 
 - Prevent taxonomic name terms from displaying in the terms facet (#4081)
