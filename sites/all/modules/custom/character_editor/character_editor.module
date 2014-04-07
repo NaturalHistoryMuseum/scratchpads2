@@ -471,7 +471,7 @@ function character_editor_form_character_editor_character_alter(&$form, &$form_s
   $project_w = FALSE;
   $project_model = FALSE;
   if(!isset($form_state['character_project_id'])){
-    if($form_state['entity']->is_new){
+    if(!empty($form_state['entity']->is_new)){
       $form_state['character_project_id'] = arg(5);
       $project_model = new CharacterProjectModel('character_editor_project', arg(5));
     }else{
@@ -512,7 +512,7 @@ function character_editor_form_character_editor_character_alter(&$form, &$form_s
       $form['#group_children']['group'] = 'group_char_group';
     }
   }
-  if(!$form_state['entity']->is_new){
+  if(empty($form_state['entity']->is_new)){
     // The tabs have been changed so there's no longer delete - add delete button, unless
     // we're editing from a modal.
     if(empty($form_state['modal'])){
