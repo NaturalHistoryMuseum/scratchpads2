@@ -727,3 +727,40 @@ function character_editor_update_7013(){
     db_delete('field_revision_field_char_condition')->condition('entity_id', array_keys($result['character_editor_character']))->condition('field_char_condition_value', 's')->execute();
   }
 }
+
+/**
+ * Create the Alternative wording fields
+ */
+function character_editor_update_7014(){
+  module_load_include('features.field.inc', 'character_editor');
+  $fields = character_editor_field_default_fields();
+  $fields_to_add = array(
+    'field_collection_item' => array(
+      'field_char_state_alt_wording' => array(
+        'field_char_states'
+      )
+    ),
+    'character_editor_character' => array(
+      'field_char_alt_wording' => array(
+        'controlled',
+        'dna',
+        'group',
+        'numeric',
+        'text',
+        'computed'
+      )
+    )
+  );
+  foreach($fields_to_add as $entity => $bundles_and_field){
+    foreach($bundles_and_field as $field => $bundles){
+      foreach($bundles as $bundle){
+        if(!field_info_field($field)){
+          field_create_field($fields["{$entity}-{$bundle}-{$field}"]['field_config']);
+        }
+        if(!field_info_instance($entity, $field, $bundle)){
+          field_create_instance($fields["{$entity}-{$bundle}-{$field}"]['field_instance']);
+        }
+      }
+    }
+  }
+}

@@ -13,6 +13,7 @@ function character_editor_field_group_info(){
         'children' => array(
           'field_char_description',
           'field_char_image',
+          'field_char_alt_wording',
           'title'
         )
       ),
@@ -43,6 +44,7 @@ function character_editor_field_group_info(){
         'children' => array(
           'field_char_description',
           'field_char_image',
+          'field_char_alt_wording',
           'title'
         )
       ),
@@ -60,6 +62,7 @@ function character_editor_field_group_info(){
           'field_char_and_or',
           'field_char_description',
           'field_char_image',
+          'field_char_alt_wording',
           'field_char_ordered',
           'title'
         )
@@ -99,6 +102,7 @@ function character_editor_field_group_info(){
         'children' => array(
           'field_char_description',
           'field_char_image',
+          'field_char_alt_wording',
           'field_char_integer',
           'field_char_unit',
           'title'
@@ -131,6 +135,7 @@ function character_editor_field_group_info(){
         'children' => array(
           'field_char_description',
           'field_char_image',
+          'field_char_alt_wording',
           'title'
         )
       ),
@@ -161,6 +166,7 @@ function character_editor_field_group_info(){
         'children' => array(
           'field_char_description',
           'field_char_image',
+          'field_char_alt_wording',
           'title'
         )
       ),

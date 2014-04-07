@@ -276,6 +276,71 @@ function character_editor_field_default_fields(){
       )
     )
   );
+  // Exported field: 'character_editor_character-controlled-field_char_alt_wording'
+  $fields['character_editor_character-controlled-field_char_alt_wording'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_alt_wording',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255',
+      ),
+      'translatable' => '0',
+      'type' => 'text',
+    ),
+    'field_instance' => array(
+      'bundle' => 'controlled',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 7,
+        ),
+      ),
+      'entity_type' => 'character_editor_character',
+      'field_name' => 'field_char_alt_wording',
+      'label' => 'Alternative wording',
+      'required' => 0,
+      'settings' => array(
+        'linkit' => array(
+          'enable' => 0,
+          'insert_plugin' => '',
+        ),
+        'text_processing' => '0',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'size' => '60',
+        ),
+        'type' => 'text_textfield',
+        'weight' => '-2',
+      ),
+    ),
+  );
   // Exported field: 'character_editor_character-controlled-field_char_states'
   $fields['character_editor_character-controlled-field_char_states'] = array(
     'field_config' => array(
@@ -532,6 +597,71 @@ function character_editor_field_default_fields(){
       )
     )
   );
+  // Exported field: 'character_editor_character-controlled-field_char_alt_wording'
+  $fields['character_editor_character-dna-field_char_alt_wording'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_alt_wording',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255',
+      ),
+      'translatable' => '0',
+      'type' => 'text',
+    ),
+    'field_instance' => array(
+      'bundle' => 'dna',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 7,
+        ),
+      ),
+      'entity_type' => 'character_editor_character',
+      'field_name' => 'field_char_alt_wording',
+      'label' => 'Alternative wording',
+      'required' => 0,
+      'settings' => array(
+      'linkit' => array(
+      'enable' => 0,
+      'insert_plugin' => '',
+      ),
+      'text_processing' => '0',
+      'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+      'active' => 1,
+      'module' => 'text',
+      'settings' => array(
+      'size' => '60',
+      ),
+      'type' => 'text_textfield',
+      'weight' => '-2',
+      ),
+    ),
+  );
   // Exported field: 'character_editor_character-dna-field_char_condition'
   $fields['character_editor_character-dna-field_char_condition'] = array(
     'field_config' => array(
@@ -735,6 +865,71 @@ function character_editor_field_default_fields(){
       )
     )
   );
+  // Exported field: 'character_editor_character-controlled-field_char_alt_wording'
+  $fields['character_editor_character-group-field_char_alt_wording'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_alt_wording',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255',
+      ),
+      'translatable' => '0',
+      'type' => 'text',
+    ),
+    'field_instance' => array(
+      'bundle' => 'group',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 7,
+        ),
+      ),
+      'entity_type' => 'character_editor_character',
+      'field_name' => 'field_char_alt_wording',
+      'label' => 'Alternative wording',
+      'required' => 0,
+      'settings' => array(
+      'linkit' => array(
+      'enable' => 0,
+      'insert_plugin' => '',
+      ),
+      'text_processing' => '0',
+      'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+      'active' => 1,
+      'module' => 'text',
+      'settings' => array(
+      'size' => '60',
+      ),
+      'type' => 'text_textfield',
+      'weight' => '-2',
+      ),
+    ),
+  );
   // Exported field: 'character_editor_character-numeric-field_char_integer'
   $fields['character_editor_character-numeric-field_char_integer'] = array(
     'field_config' => array(
@@ -936,6 +1131,71 @@ function character_editor_field_default_fields(){
         'weight' => '3'
       )
     )
+  );
+  // Exported field: 'character_editor_character-controlled-field_char_alt_wording'
+  $fields['character_editor_character-numeric-field_char_alt_wording'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_alt_wording',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255',
+      ),
+      'translatable' => '0',
+      'type' => 'text',
+    ),
+    'field_instance' => array(
+      'bundle' => 'numeric',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 7,
+        ),
+      ),
+      'entity_type' => 'character_editor_character',
+      'field_name' => 'field_char_alt_wording',
+      'label' => 'Alternative wording',
+      'required' => 0,
+      'settings' => array(
+      'linkit' => array(
+      'enable' => 0,
+      'insert_plugin' => '',
+      ),
+      'text_processing' => '0',
+      'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+      'active' => 1,
+      'module' => 'text',
+      'settings' => array(
+      'size' => '60',
+      ),
+      'type' => 'text_textfield',
+      'weight' => '-2',
+      ),
+    ),
   );
   // Exported field: 'character_editor_character-numeric-field_char_unit'
   $fields['character_editor_character-numeric-field_char_unit'] = array(
@@ -1213,6 +1473,71 @@ other|Other',
       )
     )
   );
+  // Exported field: 'character_editor_character-controlled-field_char_alt_wording'
+  $fields['character_editor_character-text-field_char_alt_wording'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_alt_wording',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255',
+      ),
+      'translatable' => '0',
+      'type' => 'text',
+    ),
+    'field_instance' => array(
+      'bundle' => 'text',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 7,
+        ),
+      ),
+      'entity_type' => 'character_editor_character',
+      'field_name' => 'field_char_alt_wording',
+      'label' => 'Alternative wording',
+      'required' => 0,
+      'settings' => array(
+      'linkit' => array(
+      'enable' => 0,
+      'insert_plugin' => '',
+      ),
+      'text_processing' => '0',
+      'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+      'active' => 1,
+      'module' => 'text',
+      'settings' => array(
+      'size' => '60',
+      ),
+      'type' => 'text_textfield',
+      'weight' => '-2',
+      ),
+    ),
+  );
   // Exported field: 'character_editor_character-text-field_char_condition'
   $fields['character_editor_character-text-field_char_condition'] = array(
     'field_config' => array(
@@ -1415,6 +1740,71 @@ other|Other',
         'weight' => '3'
       )
     )
+  );
+  // Exported field: 'character_editor_character-controlled-field_char_alt_wording'
+  $fields['character_editor_character-computed-field_char_alt_wording'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_alt_wording',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255',
+      ),
+      'translatable' => '0',
+      'type' => 'text',
+    ),
+    'field_instance' => array(
+      'bundle' => 'computed',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 7,
+        ),
+      ),
+      'entity_type' => 'character_editor_character',
+      'field_name' => 'field_char_alt_wording',
+      'label' => 'Alternative wording',
+      'required' => 0,
+      'settings' => array(
+      'linkit' => array(
+      'enable' => 0,
+      'insert_plugin' => '',
+      ),
+      'text_processing' => '0',
+      'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+      'active' => 1,
+      'module' => 'text',
+      'settings' => array(
+      'size' => '60',
+      ),
+      'type' => 'text_textfield',
+      'weight' => '-2',
+      ),
+    ),
   );
   // Exported field: 'character_editor_character-computed-field_char_expr'
   $fields['character_editor_character-computed-field_char_expr'] = array(
@@ -1849,6 +2239,77 @@ other|Other',
         'weight' => '3'
       )
     )
+  );
+  // Exported field: 'field_collection_item-field_char_states-field_char_state_alt_wording'
+  $fields['field_collection_item-field_char_states-field_char_state_alt_wording'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_char_state_alt_wording',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255',
+      ),
+      'translatable' => '0',
+      'type' => 'text',
+    ),
+    'field_instance' => array(
+      'bundle' => 'field_char_states',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 2,
+        ),
+        'linked_node' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'field_collection_item',
+      'field_name' => 'field_char_state_alt_wording',
+      'label' => 'Alternative wording',
+      'required' => 0,
+      'settings' => array(
+      'linkit' => array(
+      'enable' => 0,
+      'insert_plugin' => '',
+      ),
+      'text_processing' => '0',
+      'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+      'active' => 1,
+      'module' => 'text',
+      'settings' => array(
+      'size' => '60',
+      ),
+      'type' => 'text_textfield',
+      'weight' => '4',
+      ),
+    ),
   );
   // Exported field: 'field_collection_item-field_char_states-field_char_state_label'
   $fields['field_collection_item-field_char_states-field_char_state_label'] = array(
