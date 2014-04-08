@@ -196,11 +196,14 @@ class CharacterTreeNode{
               );
               $expr_str = (string)$expression->rename(array(), $value_map)->evaluate()->value();
             }
+            $expr_delimited = preg_replace('| <em>[^<]*</em> |', ',', $expr_str);
             $result[$value->entity_char_id][$this->column_id] = array(
               'data' => $expr_str,
+              'data_delimited' => $expr_delimited,
               'value' => implode(',', $expr_flat),
               'variable' => $value->data,
-              'metadata' => $metadata
+              'metadata' => $metadata,
+              'list' => ''
             );
           }
           catch(Exception $e){

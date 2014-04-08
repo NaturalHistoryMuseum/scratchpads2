@@ -205,7 +205,7 @@ class CharacterProjectModel{
    * Given a set of rows (as a Views result), returns the row extended to include all
    * the character values for this project.
    */
-  public function getRowValues($rows){
+  public function getRowValues($rows, $offset = 0, $limit = 1){
     // Index the rows
     $ids = array();
     foreach($rows as $index => $row){
@@ -219,10 +219,6 @@ class CharacterProjectModel{
     if(arg(0) == 'character_editor' && arg(1) == 'get' && arg(2) == 'data'){
       $offset = arg(5);
       $limit = arg(6);
-    }else{
-      // Return one row otherwise the view won't display.
-      $offset = 0;
-      $limit = 1;
     }
     // Build the tree
     $tree = array();

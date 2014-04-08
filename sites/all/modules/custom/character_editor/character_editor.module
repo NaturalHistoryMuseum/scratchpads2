@@ -65,6 +65,25 @@ function character_editor_menu(){
 }
 
 /**
+ * Implements hook_feeds_plugins().
+ */
+function character_editor_feeds_plugins(){
+  return array(
+    'FeedsCharacterEditorProcessor' => array(
+      'name' => 'Character project processor',
+      'description' => 'Add data to a character project.',
+      'help' => 'Add data to a character project.',
+      'handler' => array(
+        'parent' => 'FeedsProcessor',
+        'class' => 'FeedsCharacterEditorProcessor',
+        'file' => 'FeedsCharacterEditorProcessor.inc',
+        'path' => drupal_get_path('module', 'character_editor') . '/feeds'
+      )
+    )
+  );
+}
+
+/**
  * Implementation of hook_help().
  */
 function character_editor_help($path, $arg){
@@ -952,6 +971,11 @@ function character_editor_entity_info(){
     ),
     'views controller class' => 'CharacterProjectViewsController'
   );
+  $return['character_editor_project_row'] = array(
+    'label' => t('Character project row'),
+    'entity class' => 'CharacterEditorRow',
+    'controller class' => 'CharacterEditorRow'
+  );
   // The entity that holds information about the entity types	  
   $return['character_editor_project_type'] = array(
     'label' => t('Character project type'),
@@ -1441,6 +1465,12 @@ function character_editor_get_default_view(){
  * Implements hook_ctools_plugin_api().
  */
 function character_editor_ctools_plugin_api($module, $api){
+  if($module == "feeds" && ($api == "feeds_importer_default" || $api == 'plugins')){return array(
+      "version" => "1"
+    );}
+  if($module == "feeds_tamper" && $api == "feeds_tamper_default"){return array(
+      "version" => "2"
+    );}
   if($module == 'slickgrid'){return array(
       'version' => 1
     );}
@@ -1457,7 +1487,9 @@ function character_editor_ctools_plugin_api($module, $api){
  * we implement task and task_handler plugins.
  */
 function character_editor_ctools_plugin_directory($module, $plugin){
-  if($module == 'slickgrid'){return 'plugins/' . $plugin . 's';}
+  if($module == 'slickgrid'){
+    return 'plugins/' . $plugin . 's';
+  }
 }
 
 /*********************************************************************************************

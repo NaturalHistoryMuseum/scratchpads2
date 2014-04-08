@@ -115,6 +115,7 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
     $context['sandbox']['entity'] = '';
     $context['sandbox']['entity_ids'] = array();
     $context['sandbox']['row'] = 0;
+    $context['sandbox']['conditions'] = array();
     switch($entity_guess){
       case 'node':
         $results = db_select('node', 'e')->fields('e', array(
@@ -145,6 +146,21 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
         $entity_key = 'uid';
         $context['sandbox']['entity'] = 'user';
         break;
+      case 'charactereditor':
+        // Here we need to load all of the characters and character states
+        // associated with the specific project.
+        //$project_w = character_editor_wrapper('character_editor_project', $feeds_importer->processor->config['character_project']);
+        $first_select = db_select('field_data_field_taxonomic_name', 't')->condition('entity_type', 'character_editor_project')->condition('entity_id', $feeds_importer->processor->config['character_project']);
+        $first_select->addExpression("CONCAT('taxonomy_term:', t.field_taxonomic_name_tid)", 'entity_id');
+        $second_select = db_select('field_data_field_char_proj_specimen', 's')->condition('entity_type', 'character_editor_project')->condition('entity_id', $feeds_importer->processor->config['character_project']);
+        $second_select->addExpression("CONCAT('node:', s.field_char_proj_specimen_nid)", 'entity_id');
+        $first_select->union($second_select);
+        $entity_key = 'entity_id';
+        $context['sandbox']['entity'] = 'character_editor_project_row';
+        $results = $first_select->execute();
+        // The only entity type that requires conditions
+        $context['sandbox']['conditions']['character_project_id'] = $feeds_importer->processor->config['character_project'];
+        break;
     }
     $context['sandbox']['progress'] = 0;
     foreach($results as $row){
@@ -172,18 +188,41 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
   // Load the entites
   $loop = 0;
   $ids_to_load = array();
-  while($loop < 500 && ($id = array_pop($context['sandbox']['entity_ids'])) != FALSE){
+  $num_to_loop = 500;
+  if($context['sandbox']['entity'] == 'character_editor_project_row'){
+    $num_to_loop = 20;
+  }
+  while($loop < $num_to_loop && ($id = array_pop($context['sandbox']['entity_ids'])) != FALSE){
     $ids_to_load[] = $id;
     $loop++;
   }
-  $entities = entity_load($context['sandbox']['entity'], $ids_to_load);
+  $entities = entity_load($context['sandbox']['entity'], $ids_to_load, $context['sandbox']['conditions']);
   // Loop through each of the entities
   foreach($entities as $entity_id => $entity){
     // Create a row array for each entity.
     $row_values = array();
     foreach($feeds_importer->processor->config['mappings'] as $key => $mapping){
       $row_values[$key] = '';
-      if(strpos($mapping['target'], ':')){
+      if($context['sandbox']['entity'] == 'character_editor_project_row'){
+        switch($mapping['target']){
+          case 'id':
+            $id_parts = explode(':', $entity->id);
+            $id_entity = entity_load($id_parts[0], array($id_parts[1]));
+            $entity_info = entity_get_info($id_parts[0]);
+            $row_values[$key] = $id_entity[$id_parts[1]]->{$entity_info['entity keys']['label']};
+            break;
+          default:
+            foreach($entity as $entity_key => $values){
+              if(substr($entity_key, 0, strlen($mapping['target'])) == $mapping['target']){
+                $values = json_decode($values, TRUE);
+                if($values && isset($values['data_delimited'])){
+                  $row_values[$key] = $values['data_delimited'];
+                }
+              }
+            }
+            break;
+        }
+      }else if(strpos($mapping['target'], ':')){
         // We currently know of two mappings (node:title and node:nid) that use
         // this format.  We'll try to work out which this one is.        
         $target = $mapping['target'];
