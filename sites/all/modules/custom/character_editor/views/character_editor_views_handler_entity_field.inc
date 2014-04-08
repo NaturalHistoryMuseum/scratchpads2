@@ -105,14 +105,33 @@ class character_editor_views_handler_entity_field extends views_handler_field{
     if(preg_match('/^taxonomy_term:/', $values->id)){
       $name = l($values->name, preg_replace('/^taxonomy_term:/', 'taxonomy/term/', $values->id));
       $name = "<strong>$name</strong>";
+      $parents = taxonomy_get_parents_all(str_replace('taxonomy_term:', '', $values->id));
+      $parents = array_reverse($parents);
+      array_pop($parents);
+      if(count($parents)){
+        foreach($parents as $key => $term){
+          $parents[$key] = $term->name;
+        }
+        $attributes = array(
+          'title' => implode(' &raquo; ', $parents)
+        );
+      }
     }else{
       $name = l($values->name, preg_replace('/^node:/', 'node/', $values->id));
+      $parent = taxonomy_term_load(str_replace('taxonomy_term:', '', $values->parent));
+      if($parent){
+        $attributes = array(
+          'title' => t('Specimen of @taxon_name', array(
+            '@taxon_name' => $parent->name
+          ))
+        );
+      }
     }
     $result = '<span';
     foreach($attributes as $key => $attr){
       $result .= " $key=\"$attr\"";
     }
-    $result .= $name . '</span>';
+    $result .= '>' . $name . '</span>';
     return $result;
   }
 }
