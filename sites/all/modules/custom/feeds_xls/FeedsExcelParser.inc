@@ -92,7 +92,7 @@ class FeedsExcelParser extends FeedsParser{
     }
     // P A R S E !
     $rows = array();
-    $this->chunk_filter->setRows($this->state->pointer, $source_config['chunk_size']);
+    $this->chunk_filter->setRows($this->state->pointer, isset($source_config['chunk_size']) ? $source_config['chunk_size'] : 50);
     // Excel object for doing the do.
     $excel_obj = $this->reader->load($import_file_path);
     $excel_obj->setActiveSheetIndex();
@@ -188,7 +188,7 @@ class FeedsExcelParser extends FeedsParser{
       'chunk_size' => array(
         '#type' => 'select',
         '#title' => t('Number of rows to read in per pass'),
-        '#description' => t('Select the number of Excel rows to read in per pass.  The default should be fine in most cases, but if using a fancy pants processor, you may need to reduce the number.'),
+        '#description' => t('Select the number of Excel rows to read in per pass.  The default should be fine in most cases, but if using a complex processor, you may need to reduce the number.'),
         '#default_value' => $this->config['chunk_size'],
         '#options' => array(
           1 => 1,
@@ -271,6 +271,10 @@ class FeedsExcelParser extends FeedsParser{
       '#title' => t('All worksheets'),
       '#description' => t('Check this box if you would like to import data from all worksheets, and not just the first sheet.'),
       '#default_value' => $this->config['all_worksheets']
+    );
+    $form['chunk_size'] = array(
+      '#type' => 'hidden',
+      '#value' => $this->config['chunk_size']
     );
     $form['max_rows'] = array(
       '#type' => 'select',
