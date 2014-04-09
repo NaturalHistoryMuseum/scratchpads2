@@ -6,7 +6,65 @@
 class FeedsCharacterEditorProcessor extends FeedsProcessor{
 
   /**
-   * 
+   * Process the result of the parsing stage.
+   *
+   * @param FeedsSource $source
+   *   Source information about this import.
+   * @param FeedsParserResult $parser_result
+   *   The result of the parsing stage.
+   */
+  public function process(FeedsSource $source, FeedsParserResult $parser_result){
+    // Load the character project
+    $project_w = character_editor_wrapper('character_editor_project', $source->importer->processor->config['character_project']);
+    $project_model = new CharacterProjectModel($project_w);
+    $variables = $project_model->getAvailableVariables();
+    module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
+    $state = $source->state(FEEDS_PROCESS);
+    $mappings = $source->importer->processor->config['mappings'];
+    foreach($mappings as $key => $value){
+      unset($mappings[$key]);
+      $mappings[$value['source']] = $value;
+    }
+    while(($item = $parser_result->shiftItem()) != FALSE){
+      $relation_entity = FALSE;
+      foreach($item as $key => $value){
+        // We loop through once, simply to find the ID and to load what
+        // entity we're linking to.
+        if($mappings[$key]['target'] == 'id'){
+          $entity_w = character_editor_wrapper($value);
+          break;
+        }
+      }
+      if($entity_w){
+        foreach($item as $key => $value){
+          if(substr($mappings[$key]['target'], 0, 27) == 'character_editor_character:'){
+            $character_w = character_editor_wrapper($mappings[$key]['target']);
+            $map = character_editor_get_states_map($character_w);
+            try{
+              switch($character_w->field_char_and_or->value()){
+                case 'AND':
+                  $value = "['" . implode("'&'", str_getcsv($value)) . "']";
+                  break;
+                case 'OR':
+                  $value = "['" . implode("'|'", str_getcsv($value)) . "']";
+                  break;
+              }
+              $e = new CharacterExpressionParser($value); // $expr is ['stalk'|'body']
+              $e->rename($variables['character_map'], $map);
+              $value = $e->getExpression(); // now $expr is ['123'|'43']
+            }
+            catch(Exception $e){
+              $a = $e;
+            }
+            character_editor_set_character_value($character_w, $entity_w, $value);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * We don't do anything here.
    */
   public function entityDeleteMultiple($entity_ids){}
 
@@ -23,10 +81,7 @@ class FeedsCharacterEditorProcessor extends FeedsProcessor{
   protected function newEntity(FeedsSource $source){}
 
   /**
-   * Saves a term.
-   *
-   * We de-array parent fields with only one item.
-   * This stops leftandright module from freaking out.
+   * Do nothing here, the entity is effectively saved at the processing stage.
    */
   protected function entitySave($relation){}
 
@@ -71,11 +126,6 @@ class FeedsCharacterEditorProcessor extends FeedsProcessor{
   }
 
   /**
-   * Override setTargetElement to operate on a target item that is a taxonomy term.
-   */
-  public function setTargetElement(FeedsSource $source, $target_term, $target_element, $value){}
-
-  /**
    * Return available mapping targets.
    */
   public function getMappingTargets(){
@@ -91,7 +141,7 @@ class FeedsCharacterEditorProcessor extends FeedsProcessor{
     $tree = character_editor_get_tree($project_w);
     foreach($tree as $character){
       if($character['wrapper']->type->value() != 'group'){
-        $targets['character_' . $character['wrapper']->id->value() . '_'] = array(
+        $targets['character_editor_character:' . $character['wrapper']->id->value()] = array(
           'name' => $character['wrapper']->title->value(),
           'description' => $character['wrapper']->field_char_description->value()
         );

@@ -32,7 +32,8 @@ function character_editor_feeds_importer_default(){
         'plugin_key' => 'FeedsExcelParser',
         'config' => array(
           'all_worksheets' => 0,
-          'max_rows' => 65535
+          'max_rows' => 65535,
+          'chunk_size' => 5
         )
       ),
       'processor' => array(
@@ -61,7 +62,7 @@ function character_editor_feeds_importer_default(){
       if($character['wrapper']->type->value() != 'group'){
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => $character['wrapper']->title->value(),
-          'target' => 'character_' . $character['wrapper']->id->value() . '_',
+          'target' => 'character_editor_character:' . $character['wrapper']->id->value(),
           'unique' => FALSE
         );
       }

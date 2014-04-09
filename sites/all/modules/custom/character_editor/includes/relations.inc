@@ -206,6 +206,21 @@ function character_editor_get_tree($entity_w, $mode = 'flat', $parent_id = 0, $e
 }
 
 /**
+ * character_editor_get_states_map
+ */
+function character_editor_get_states_map(EntityDrupalWrapper $character_w){
+  $map = array();
+  foreach($character_w->field_char_states->value() as $state){
+    $character_state = entity_load('field_collection_item', array(
+      $state->item_id
+    ));
+    $character_state_w = entity_metadata_wrapper('field_collection_item', $character_state[$state->item_id]);
+    $map[$character_state_w->field_char_state_label->value()] = $state->item_id;
+  }
+  return $map;
+}
+
+/**
  * character_editor_associate_character
  * 
  * Associate two characters (or a project and a character) via a relation. 

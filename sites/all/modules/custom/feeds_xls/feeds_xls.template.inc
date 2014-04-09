@@ -206,10 +206,7 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
       if($context['sandbox']['entity'] == 'character_editor_project_row'){
         switch($mapping['target']){
           case 'id':
-            $id_parts = explode(':', $entity->id);
-            $id_entity = entity_load($id_parts[0], array($id_parts[1]));
-            $entity_info = entity_get_info($id_parts[0]);
-            $row_values[$key] = $id_entity[$id_parts[1]]->{$entity_info['entity keys']['label']};
+            $row_values[$key] = $entity->id;
             break;
           default:
             foreach($entity as $entity_key => $values){
