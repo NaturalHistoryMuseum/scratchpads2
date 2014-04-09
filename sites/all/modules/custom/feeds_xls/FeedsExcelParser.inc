@@ -40,8 +40,6 @@ class FeedsExcelParser extends FeedsParser{
 
   private $state;
 
-  private $chunk_size = 50;
-
   private $chunk_filter;
 
   private $reader;
@@ -94,7 +92,7 @@ class FeedsExcelParser extends FeedsParser{
     }
     // P A R S E !
     $rows = array();
-    $this->chunk_filter->setRows($this->state->pointer, $this->chunk_size);
+    $this->chunk_filter->setRows($this->state->pointer, $source_config['chunk_size']);
     // Excel object for doing the do.
     $excel_obj = $this->reader->load($import_file_path);
     $excel_obj->setActiveSheetIndex();
@@ -186,6 +184,22 @@ class FeedsExcelParser extends FeedsParser{
           65535 => t('65535 XLS Maximum'),
           1000000000000 => t('Unlimited. NO PROGRESS FEEDBACK')
         )
+      ),
+      'chunk_size' => array(
+        '#type' => 'select',
+        '#title' => t('Number of rows to read in per pass'),
+        '#description' => t('Select the number of Excel rows to read in per pass.  The default should be fine in most cases, but if using a fancy pants processor, you may need to reduce the number.'),
+        '#default_value' => $this->config['chunk_size'],
+        '#options' => array(
+          1 => 1,
+          2 => 2,
+          5 => 5,
+          10 => 10,
+          20 => 20,
+          30 => 30,
+          40 => 40,
+          50 => 50
+        )
       )
     );
   }
@@ -196,7 +210,8 @@ class FeedsExcelParser extends FeedsParser{
   public function configDefaults(){
     return array(
       'all_worksheets' => 0,
-      'max_rows' => 65535
+      'max_rows' => 65535,
+      'chunk_size' => 50
     );
   }
 
@@ -206,7 +221,8 @@ class FeedsExcelParser extends FeedsParser{
   public function sourceDefaults(){
     return array(
       'all_worksheets' => $this->config['all_worksheets'],
-      'max_rows' => $this->config['max_rows']
+      'max_rows' => $this->config['max_rows'],
+      'chunk_size' => $this->config['chunk_size']
     );
   }
 
