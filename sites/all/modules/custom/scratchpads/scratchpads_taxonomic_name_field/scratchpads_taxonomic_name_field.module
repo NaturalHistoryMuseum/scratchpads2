@@ -418,7 +418,7 @@ function scratchpads_taxonomic_name_field_block_view_alter(&$data, $block){
               '#weight' => -100
             );
           }
-        }elseif(isset($data['content']) && $facet->facet == 'tid'){
+        }elseif(@isset($data['content']['tid']['#items']) && $facet->facet == 'tid'){
           foreach($data['content']['tid']['#items'] as $key => $data2){
             if(strpos($data2['data'], '---HIDE THIS TERM---')){
               unset($data['content']['tid']['#items'][$key]);
@@ -656,7 +656,7 @@ function scratchpads_taxonomic_name_field_context_default_contexts(){
         'module' => 'facetapi',
         'delta' => $delta,
         'region' => 'sidebar',
-        'weight' => 25
+        'weight' => -27
       );
     }
   }
