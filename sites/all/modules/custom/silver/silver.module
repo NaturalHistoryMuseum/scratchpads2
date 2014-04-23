@@ -193,7 +193,7 @@ function silver_silver(){
       'access arguments' => array(
         'administer users'
       ),
-      'redirect' => 'import/user_importer_user_csv'
+      'redirect' => 'import/user_importer_user_xls'
     )
   );
   if(module_exists('silvercsv')){
