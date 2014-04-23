@@ -559,9 +559,11 @@ function _scratchpads_hands_off_hidden_views(){
  * Implements hook_preprocess_HOOK
  */
 function scratchpads_hands_off_preprocess_table(&$variables){
-  if(strpos($_GET['q'], 'admin/structure/views') === 0 && !user_access('scratchpad team')){
-    foreach(_scratchpads_hands_off_hidden_views() as $key){
-      unset($variables['rows'][$key]);
+  if(!user_access('scratchpad team')){
+    if(strpos($_GET['q'], 'admin/structure/views') === 0 && !user_access('scratchpad team')){
+      foreach(_scratchpads_hands_off_hidden_views() as $key){
+        unset($variables['rows'][$key]);
+      }
     }
   }
 }
