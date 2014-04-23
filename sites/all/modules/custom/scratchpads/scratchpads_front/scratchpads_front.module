@@ -236,7 +236,7 @@ function scratchpads_front_page_edit($form, &$form_state){
   $node_types = scratchpads_front_node_types();
   $form['site_information'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Site details'),
+    '#title' => t('Site details')
   );
   $form['site_information']['site_name'] = array(
     '#type' => 'textfield',
@@ -248,14 +248,14 @@ function scratchpads_front_page_edit($form, &$form_state){
     '#type' => 'textfield',
     '#title' => t('Slogan'),
     '#default_value' => variable_get('site_slogan', ''),
-    '#description' => t("How this is used depends on your site's theme."),
+    '#description' => t("How this is used depends on your site's theme.")
   );
   $form['site_information']['site_mail'] = array(
     '#type' => 'textfield',
     '#title' => t('E-mail address'),
     '#default_value' => variable_get('site_mail', ini_get('sendmail_from')),
     '#description' => t("The <em>From</em> address in automated e-mails sent during registration and new password requests, and other notifications. (Use an address ending in your site's domain to help prevent this e-mail being flagged as spam.)"),
-    '#required' => TRUE,
+    '#required' => TRUE
   );
   $form['front_page_welcome'] = array(
     '#type' => 'fieldset',
