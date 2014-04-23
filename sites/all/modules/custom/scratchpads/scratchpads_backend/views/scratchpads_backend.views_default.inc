@@ -1971,17 +1971,17 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
   );
   if($bundle == 'biblio'){
     /* Filter criterion: Biblio: Type of Publication */
-    $handler->display->display_options['filters']['tid_5']['id'] = 'tid_5';
-    $handler->display->display_options['filters']['tid_5']['table'] = 'biblio_types';
-    $handler->display->display_options['filters']['tid_5']['field'] = 'tid';
-    $handler->display->display_options['filters']['tid_5']['exposed'] = TRUE;
-    $handler->display->display_options['filters']['tid_5']['expose']['operator_id'] = 'tid_5_op';
-    $handler->display->display_options['filters']['tid_5']['expose']['label'] = 'Type of Publication';
-    $handler->display->display_options['filters']['tid_5']['expose']['use_operator'] = TRUE;
-    $handler->display->display_options['filters']['tid_5']['expose']['operator'] = 'tid_5_op';
-    $handler->display->display_options['filters']['tid_5']['expose']['identifier'] = 'tid_5';
-    $handler->display->display_options['filters']['tid_5']['expose']['multiple'] = TRUE;
-    $handler->display->display_options['filters']['tid_5']['expose']['remember_roles'] = array(
+    $handler->display->display_options['filters']['biblio_type']['id'] = 'biblio_type';
+    $handler->display->display_options['filters']['biblio_type']['table'] = 'biblio_types';
+    $handler->display->display_options['filters']['biblio_type']['field'] = 'tid';
+    $handler->display->display_options['filters']['biblio_type']['exposed'] = TRUE;
+    $handler->display->display_options['filters']['biblio_type']['expose']['operator_id'] = 'biblio_type_op';
+    $handler->display->display_options['filters']['biblio_type']['expose']['label'] = 'Type of Publication';
+    $handler->display->display_options['filters']['biblio_type']['expose']['use_operator'] = TRUE;
+    $handler->display->display_options['filters']['biblio_type']['expose']['operator'] = 'biblio_type_op';
+    $handler->display->display_options['filters']['biblio_type']['expose']['identifier'] = 'biblio_type';
+    $handler->display->display_options['filters']['biblio_type']['expose']['multiple'] = TRUE;
+    $handler->display->display_options['filters']['biblio_type']['expose']['remember_roles'] = array(
       2 => '2',
       1 => 0,
       3 => 0,
