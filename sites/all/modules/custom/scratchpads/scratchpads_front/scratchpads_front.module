@@ -568,9 +568,6 @@ function scratchpads_front_variable_default($name = NULL){
       }
     }
   }
-  // $name returns front_page_block_3_node_type
-  // $defaults['front_page_block_3_node_type'] = 'spm' 
-  // $defaults['front_page_block_3_node_type_custom'] = 0 
   if(!isset($name)){return $defaults;}
   if(isset($defaults[$name])){return $defaults[$name];}
 }
