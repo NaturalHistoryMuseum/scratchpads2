@@ -64,7 +64,7 @@ function scratchpads_front_menu(){
  * Implements hook_block_view_alter
  */
 function scratchpads_front_block_view_alter(&$data, $block){
-  // only do this for front page blocks
+  // We need to set the block title for the "Custom" views blocks.
   if(isset($block->context) && substr($block->bid, 0, -1) == 'views-front_page_blocks-block_'){
     // if the form has passed in the argument of custom
     if(@isset($data['content']['#views_contextual_links_info']['views_ui']['view']->args[0]) && $data['content']['#views_contextual_links_info']['views_ui']['view']->args[0] == 'custom'){
@@ -487,7 +487,9 @@ function scratchpads_front_page_edit($form, &$form_state){
       '#type' => 'select',
       '#title' => t('Block ' . $count . ' custom'),
       '#options' => scratchpads_front_blocks_as_options(),
-      '#default_value' => scratchpads_front_variable_get($var . '_custom')
+      '#default_value' => scratchpads_front_variable_get($var . '_custom'),
+      '#empty_option' => '- SELECT -',
+      '#empty_value' => 0
     );
     $count++;
   }
@@ -798,59 +800,37 @@ function scratchpads_front_image_default_styles(){
 /* adding custom blocks */
 function scratchpads_front_blocks_as_options(){
   $query = db_select('block', 'b');
-  $result = $query->fields('b')->orderBy('b.title', 'ASC')->orderBy('b.module', 'ASC')->condition(db_or()->condition('b.module', 'views', '=')->condition('b.module', 'block', '='))->condition('b.theme', 'scratchpads', '=')->condition('b.delta', array(
+  $or_cond = db_or()->condition('b.module', 'views', '=')->condition('b.module', 'block', '=');
+  $block_info = $query->fields('b')->orderBy('b.title')->orderBy('b.module')->condition($or_cond)->condition('b.theme', 'scratchpads')->condition('b.delta', array(
     'front_page_blocks-block_1',
     'front_page_blocks-block_2',
     'front_page_blocks-block_3',
     'front_page_slideshow-block_1',
     'front_page_content-block'
-  ), 'NOT IN')->addTag('block_load')->addTag('translatable')->execute();
-  $block_info = $result->fetchAllAssoc('bid');
+  ), 'NOT IN')->addTag('block_load')->addTag('translatable')->execute()->fetchAllAssoc('bid');
   $options = array();
   foreach($block_info as $block){
     $blockTitle = strip_tags($block->title);
     if($blockTitle){
-      $options["{$block->module}:{$block->delta}"] = "{$blockTitle}";
-    }else{
-      if($block->module == 'views'){
-        // title too long so it is md5 hashed by views
-        if(strlen($block->delta) == 32){
-          $hashes = variable_get('views_block_hashes', array());
-          if(!empty($hashes[$block->delta])){
-            $unhashed_delta = $hashes[$block->delta];
-            $hashed_views_block = module_invoke('views', 'block_view', $unhashed_delta);
-            $views_block_title = $hashed_views_block['subject'];
-          }
-          $view_name = substr($unhashed_delta, 0, strpos($unhashed_delta, '-'));
-          $view = views_get_view($view_name);
-          if($views_block_title){
-            $options["{$block->module}:{$block->delta}"] = "{$views_block_title}";
-          }else{
-            $options["{$block->module}:{$block->delta}"] = "{$view->get_human_name()}";
-          }
-        }else{
-          /* problem - from here down this is not picking up multiple blocks from one view */
-          $view_name = substr($block->delta, 0, strpos($block->delta, '-'));
-          $view = views_get_view($view_name);
-          if($view){
-            $arguments = $view->get_items('argument');
-            if(!$arguments){
-              $views_block = module_invoke('views', 'block_view', $block->delta);
-              $views_block_title = $views_block['subject'];
-              if($views_block_title){
-                $options["{$block->module}:{$block->delta}"] = "{$views_block_title}";
-              }else{
-                $options["{$block->module}:{$block->delta}"] = "{$view->get_human_name()}";
-              }
-            }
-          }
+      $options['Block']["{$block->module}:{$block->delta}"] = "{$blockTitle}";
+    }elseif($block->module == 'views'){
+      // title too long so it is md5 hashed by views
+      if(strlen($block->delta) == 32){
+        $hashes = variable_get('views_block_hashes', array());
+        if(!empty($hashes[$block->delta])){
+          $block->delta = $hashes[$block->delta];
+        }
+      }
+      $view_and_display = explode('-', $block->delta);
+      $view = views_get_view($view_and_display[0]);
+      if($view){
+        $arguments = $view->get_items('argument', $view_and_display[1]);
+        if(!$arguments){
+          $options[$view->get_human_name()]["{$block->module}:{$block->delta}"] = $view->get_human_name();
         }
       }
     }
   }
-  $options = array_merge(array(
-    '0' => '- Select -'
-  ), $options);
   return $options;
 }
 
