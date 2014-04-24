@@ -763,6 +763,7 @@ function scratchpads_front_blocks_as_options(){
     'front_page_content-block'
   ), 'NOT IN')->addTag('block_load')->addTag('translatable')->execute()->fetchAllAssoc('bid');
   $options = array();
+  $hidden_views = _scratchpads_hands_off_hidden_views();
   foreach($block_info as $block){
     $blockTitle = strip_tags($block->title);
     if($blockTitle){
@@ -776,11 +777,13 @@ function scratchpads_front_blocks_as_options(){
         }
       }
       $view_and_display = explode('-', $block->delta);
-      $view = views_get_view($view_and_display[0]);
-      if($view){
-        $arguments = $view->get_items('argument', $view_and_display[1]);
-        if(!$arguments){
-          $options[$view->get_human_name()]["{$block->module}:{$block->delta}"] = $view->display[$view_and_display[1]]->display_title;
+      if(!in_array($view_and_display[0], $hidden_views)){
+        $view = views_get_view($view_and_display[0]);
+        if($view){
+          $arguments = $view->get_items('argument', $view_and_display[1]);
+          if(!$arguments){
+            $options[$view->get_human_name()]["{$block->module}:{$block->delta}"] = $view->display[$view_and_display[1]]->display_title;
+          }
         }
       }
     }
