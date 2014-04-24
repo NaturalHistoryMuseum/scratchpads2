@@ -543,6 +543,7 @@ function _scratchpads_hands_off_hidden_views(){
     'slickgrid_admin_media_gallery',
     'species_map',
     'species_specimen_observation',
+    'tweets',
     'users_references',
     'weight'
   );
