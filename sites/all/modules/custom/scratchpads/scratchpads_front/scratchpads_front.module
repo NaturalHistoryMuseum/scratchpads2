@@ -79,7 +79,7 @@ function scratchpads_front_block_view_alter(&$data, $block){
         }
         $view_and_display = explode('-', $custom_block->delta);
         $view = views_get_view($view_and_display[0]);
-        $data['title'] = $view->display[$view_and_display[1]]->display_title;
+        $data['title'] = $view->display[$view_and_display[1]]->display_options['title'];
       }elseif(isset($custom_block->title)){
         $data['title'] = $custom_block->title;
       }
