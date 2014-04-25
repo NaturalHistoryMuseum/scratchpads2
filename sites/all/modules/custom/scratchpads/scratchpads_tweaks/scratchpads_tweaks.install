@@ -1407,3 +1407,15 @@ function scratchpads_tweaks_update_7078(){
     'syslog'
   ));
 }
+
+/**
+ * Uninstall Google Scholar module (Google broke it).
+ */
+function scratchpads_tweaks_update_7079(){
+  module_disable(array(
+    'googlescholar'
+  ));
+  drupal_uninstall_modules(array(
+    'googlescholar'
+  ));
+}
