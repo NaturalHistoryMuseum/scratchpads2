@@ -142,9 +142,10 @@ function scratchpads_show_taxa_revisions_views_pre_view(&$view, &$display_id, &$
         );
         $view->display_handler->set_option('footer', $options);
         $latest_changes_block = block_load('scratchpads_show_taxa_revisions', 'taxa_revision_latest_change');
-        $block_content = render(_block_get_renderable_array(_block_render_blocks(array(
+        $element = _block_get_renderable_array(_block_render_blocks(array(
           $latest_changes_block
-        ))));
+        )));
+        $block_content = render($element);
         $block_options = array(
           'label' => t('Header text'), // Administrative label. Not really needed here.
           'content' => $block_content, // Content.
