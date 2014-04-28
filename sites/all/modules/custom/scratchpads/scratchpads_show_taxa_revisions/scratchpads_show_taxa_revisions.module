@@ -10,11 +10,6 @@ function scratchpads_show_taxa_revisions_views_api(){
     );}
 }
 
-function scratchpads_show_taxa_revisions_init(){
-  $module_path = drupal_get_path('module', 'scratchpads_show_taxa_revisions');
-  drupal_add_css($module_path . '/css/scratchpads_show_taxa_revisions.css');
-}
-
 /**
  * Implements hook_scratchpads_default_permissions().
  */
@@ -241,7 +236,14 @@ function scratchpads_show_taxa_revisions_block_view($delta = ''){
     case 'taxa_revision_latest_change':
       if(user_access('view taxonomy term revisions')){
         $block['subject'] = '';
-        $block['content'] = _scratchpads_show_taxa_revisions_content();
+        $block['content'] = array(
+          '#attached' => array(
+            'css' => array(
+              drupal_get_path('module', 'scratchpads_show_taxa_revisions') . '/css/scratchpads_show_taxa_revisions.css'
+            )
+          ),
+          'block_content' => _scratchpads_show_taxa_revisions_content()
+        );
       }
       break;
   }
