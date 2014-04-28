@@ -268,7 +268,7 @@ function _scratchpads_show_taxa_revisions_content(){
       $rows = array_merge($rows, _taxonomy_revision_diff_body_rows($old_term, $new_term, 'raw'));
       return array(
         'toggle' => array(
-          '#markup' => '<p><a class="scratchpads-show-taxa-toggle" data="' . t('Hide diff') . '">' . t('Show diff') . '</a></p><div id="scratchpads-show-taxa-table">'
+          '#markup' => '<p><a class="scratchpads-show-taxa-toggle" data-toggle="' . t('Hide diff') . '" href="#">' . t('Show diff') . '</a></p><div id="scratchpads-show-taxa-table">'
         ),
         'diff_table' => array(
           '#theme' => 'table__diff__standard',
