@@ -8,3 +8,7 @@
 .form-item.form-type-checkbox.form-item-show-revision-attribution-long {
   margin-left: 1em;
 }
+
+table.diff {
+  table-layout: auto !important;
+}

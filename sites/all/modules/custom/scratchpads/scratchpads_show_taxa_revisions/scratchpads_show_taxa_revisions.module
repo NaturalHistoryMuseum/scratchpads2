@@ -239,7 +239,7 @@ function scratchpads_show_taxa_revisions_block_view($delta = ''){
         $block['content'] = array(
           '#attached' => array(
             'css' => array(
-              drupal_get_path('module', 'scratchpads_show_taxa_revisions') . '/css/scratchpads_show_taxa_revisions.css'
+              drupal_get_path('module', 'diff') . '/css/diff.default.css'
             )
           ),
           'block_content' => _scratchpads_show_taxa_revisions_content()

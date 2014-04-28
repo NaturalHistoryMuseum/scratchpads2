@@ -8,3 +8,4 @@ dependencies[] = "ctools"
 dependencies[] = "views"
 features[ctools][] = "views:views_default:3.0"
 features[views_view][] = "taxonomy_revision"
+stylesheets[all][] = css/scratchpads_show_taxa_revisions.css
