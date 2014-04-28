@@ -240,6 +240,9 @@ function scratchpads_show_taxa_revisions_block_view($delta = ''){
           '#attached' => array(
             'css' => array(
               drupal_get_path('module', 'diff') . '/css/diff.default.css'
+            ),
+            'js' => array(
+              drupal_get_path('module', 'scratchpads_show_taxa_revisions') . '/js/scratchpads_show_taxa_revisions.js'
             )
           ),
           'block_content' => _scratchpads_show_taxa_revisions_content()
@@ -263,18 +266,25 @@ function _scratchpads_show_taxa_revisions_content(){
       $new_term = taxonomy_revision_term_load($term->tid, $new_revision_id);
       $rows = array();
       $rows = array_merge($rows, _taxonomy_revision_diff_body_rows($old_term, $new_term, 'raw'));
-      $build['diff_table'] = array(
-        '#theme' => 'table__diff__standard',
-        '#rows' => $rows,
-        '#attributes' => array(
-          'class' => array(
-            'diff'
-          )
+      return array(
+        'toggle' => array(
+          '#markup' => '<p><a class="scratchpads-show-taxa-toggle" data="' . t('Hide diff') . '">' . t('Show diff') . '</a></p><div id="scratchpads-show-taxa-table">'
         ),
-        '#colgroups' => _diff_default_cols(),
-        '#sticky' => FALSE
+        'diff_table' => array(
+          '#theme' => 'table__diff__standard',
+          '#rows' => $rows,
+          '#attributes' => array(
+            'class' => array(
+              'diff'
+            )
+          ),
+          '#colgroups' => _diff_default_cols(),
+          '#sticky' => FALSE
+        ),
+        'after_table' => array(
+          '#markup' => '</div>'
+        )
       );
-      return $build;
     }
   }
 }
