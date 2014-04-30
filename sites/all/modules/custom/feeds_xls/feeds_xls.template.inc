@@ -210,10 +210,15 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
             break;
           default:
             foreach($entity as $entity_key => $values){
-              if(substr($entity_key, 0, strlen($mapping['target'])) == $mapping['target']){
+              $mapping_target = str_replace(':', '_', substr($mapping['target'], 17));
+              if(substr($entity_key, 0, strlen($mapping_target)) == $mapping_target){
                 $values = json_decode($values, TRUE);
-                if($values && isset($values['data_delimited'])){
-                  $row_values[$key] = $values['data_delimited'];
+                if($values){
+                  if(isset($values['data_delimited'])){
+                    $row_values[$key] = $values['data_delimited'];
+                  }elseif(isset($values['data'])){
+                    $row_values[$key] = $values['data'];
+                  }
                 }
               }
             }

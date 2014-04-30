@@ -41,17 +41,21 @@ class FeedsCharacterEditorProcessor extends FeedsProcessor{
             $character_w = character_editor_wrapper($mappings[$key]['target']);
             $map = character_editor_get_states_map($character_w);
             try{
-              switch($character_w->field_char_and_or->value()){
-                case 'AND':
-                  $value = "['" . implode("'&'", str_getcsv($value)) . "']";
-                  break;
-                case 'OR':
-                  $value = "['" . implode("'|'", str_getcsv($value)) . "']";
-                  break;
+              if($map){
+                switch($character_w->field_char_and_or->value()){
+                  case 'AND':
+                    $value = "['" . implode("'&'", str_getcsv($value)) . "']";
+                    break;
+                  case 'OR':
+                    $value = "['" . implode("'|'", str_getcsv($value)) . "']";
+                    break;
+                    $e = new CharacterExpressionParser($value); // $expr is ['stalk'|'body']
+                    $e->rename($variables['character_map'], $map);
+                    $value = $e->getExpression(); // now $expr is ['123'|'43']
+                }
+              }else{
+                $value = str_getcsv($value);
               }
-              $e = new CharacterExpressionParser($value); // $expr is ['stalk'|'body']
-              $e->rename($variables['character_map'], $map);
-              $value = $e->getExpression(); // now $expr is ['123'|'43']
             }
             catch(Exception $e){
               $a = $e;
