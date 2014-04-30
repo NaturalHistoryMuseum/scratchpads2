@@ -1487,9 +1487,7 @@ function character_editor_ctools_plugin_api($module, $api){
  * we implement task and task_handler plugins.
  */
 function character_editor_ctools_plugin_directory($module, $plugin){
-  if($module == 'slickgrid'){
-    return 'plugins/' . $plugin . 's';
-  }
+  if($module == 'slickgrid'){return 'plugins/' . $plugin . 's';}
 }
 
 /*********************************************************************************************
@@ -1917,6 +1915,16 @@ function character_editor_silver(){
         'create character editor'
       ),
       'form_id' => 'character_editor_sdd_import_form',
+      'file' => 'character_editor.import.inc'
+    ),
+    array(
+      'type' => 'Character data',
+      'name' => 'Excel file import',
+      'access callback' => 'user_access',
+      'access arguments' => array(
+        'create character editor'
+      ),
+      'form_id' => 'character_editor_excel_form',
       'file' => 'character_editor.import.inc'
     )
   );

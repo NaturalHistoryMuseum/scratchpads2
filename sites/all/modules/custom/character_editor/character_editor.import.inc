@@ -1,6 +1,30 @@
 <?php
 
 /**
+ * character_editor_excel_form
+ */
+function character_editor_excel_form(){
+  $query = db_select('character_editor_project', 'c')->fields('c', array(
+    'title'
+  ));
+  $query->addExpression("CONCAT('character_editor_import_', id)", 'id');
+  $projects = $query->execute()->fetchAllKeyed(1, 0);
+  return array(
+    'silver_import_subform_feeds' => array(
+      '#type' => 'select',
+      '#title' => '',
+      '#options' => $projects,
+      '#empty_option' => t('Select project'),
+      '#ajax' => array(
+        'callback' => 'silver_ajax_callback',
+        'wrapper' => 'silver_import_subform_feeds'
+      )
+    ),
+    '#suffix' => '<div id="silver_import_subform_feeds"></div>'
+  );
+}
+
+/**
  * character_editor_sdd_import_form
  *
  * This is a multi-ajax-step form.
@@ -1872,7 +1896,7 @@ class CharacterEditorSDDImport{
       $character_data_types = array(
         'sdd_character_data_numeric',
         'sdd_character_data_controlled',
-        'sdd_character_data_text',
+        'sdd_character_data_text'
       );
       $variables = array(
         array(),
