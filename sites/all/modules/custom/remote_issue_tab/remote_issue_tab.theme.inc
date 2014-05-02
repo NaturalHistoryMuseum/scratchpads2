@@ -37,11 +37,11 @@ function theme_remote_issue_tab_block($variables = array()){
  </div>
  <div class="items">
   ' . theme('remote_issue_tab_feed_items', array(
-       'items' => $items,
-       'uwho_key' => $variables['uwho_key'],
-       'uwho_url' => $variables['uwho_url'],
-       'feed' => $variables['feed']
-     )) . '
+      'items' => $items,
+      'uwho_key' => $variables['uwho_key'],
+      'uwho_url' => $variables['uwho_url'],
+      'feed' => $variables['feed']
+    )) . '
  </div>
  <div class="footer">
   ' . variable_get('remote_issue_tab_footer', '') . '
@@ -56,11 +56,10 @@ function theme_remote_issue_tab_block($variables = array()){
     ));
   }
 }
-
 // Copy of aggregator_feed_items_load, but without the pager shite!
-function remote_issue_tab_aggregator_feed_items_load($type, $data = NULL) {
+function remote_issue_tab_aggregator_feed_items_load($type, $data = NULL){
   $items = array();
-  switch ($type) {
+  switch($type){
     case 'sum':
       $query = db_select('aggregator_item', 'i');
       $query->join('aggregator_feed', 'f', 'i.fid = f.fid');
@@ -70,32 +69,24 @@ function remote_issue_tab_aggregator_feed_items_load($type, $data = NULL) {
       break;
     case 'source':
       $query = db_select('aggregator_item', 'i');
-      $query
-        ->fields('i')
-        ->condition('i.fid', $data->fid);
+      $query->fields('i')->condition('i.fid', $data->fid);
       break;
     case 'category':
       $query = db_select('aggregator_category_item', 'c');
       $query->leftJoin('aggregator_item', 'i', 'c.iid = i.iid');
       $query->leftJoin('aggregator_feed', 'f', 'i.fid = f.fid');
-      $query
-        ->fields('i')
-        ->condition('cid', $data['cid']);
+      $query->fields('i')->condition('cid', $data['cid']);
       $query->addField('f', 'title', 'ftitle');
       $query->addField('f', 'link', 'flink');
       break;
   }
-
-  $result = $query
-    ->orderBy('i.timestamp', 'DESC')
-    ->orderBy('i.iid', 'DESC')
-    ->execute();
-
-  foreach ($result as $item) {
-    $item->categories = db_query('SELECT c.title, c.cid FROM {aggregator_category_item} ci LEFT JOIN {aggregator_category} c ON ci.cid = c.cid WHERE ci.iid = :iid ORDER BY c.title', array(':iid' => $item->iid))->fetchAll();
+  $result = $query->orderBy('i.timestamp', 'DESC')->orderBy('i.iid', 'DESC')->execute();
+  foreach($result as $item){
+    $item->categories = db_query('SELECT c.title, c.cid FROM {aggregator_category_item} ci LEFT JOIN {aggregator_category} c ON ci.cid = c.cid WHERE ci.iid = :iid ORDER BY c.title', array(
+      ':iid' => $item->iid
+    ))->fetchAll();
     $items[] = $item;
   }
-
   return $items;
 }
 
@@ -135,5 +126,12 @@ function theme_remote_issue_tab_feed_items($variables = array()){
 function theme_remote_issue_tab_feed_item($variables = array()){
   // Note, we remove the "read more" link, as it could prevent users being
   // logged in by uwho.
-  return '<li class="' . ($variables['item_count'] % 2 ? 'odd' : 'even') . ($variables['item_count'] ? '' : ' first') . '"><div><h3>' . uwho_client_block_content($variables['uwho_key'], $variables['uwho_url'], $variables['item']->link, $variables['item']->title) . '</h3><div class="remote_issue_item">' . preg_replace('/<a href[^>]*>read more<\/a>/', '', $variables['item']->description) . '</div></div></li>';
+  // Note, we capitalise &lti&gt; tags to ensure they don't get converted into
+  // real tags. 
+  return '<li class="' . ($variables['item_count'] % 2 ? 'odd' : 'even') . ($variables['item_count'] ? '' : ' first') . '"><div><h3>' . uwho_client_block_content($variables['uwho_key'], $variables['uwho_url'], $variables['item']->link, $variables['item']->title) . '</h3><div class="remote_issue_item">' . preg_replace('/<a href[^>]*>read more<\/a>/', '', strtr($variables['item']->description, array(
+    '&lt;i&gt;' => '&LT;I&GT;',
+    '&lt;em&gt;' => '&LT;EM&GT',
+    '&lt;/i&gt;' => '&lt;/I&GT;',
+    '&lt;/em&gt;' => '&lt;/EM&GT;'
+  ))) . '</div></div></li>';
 }
