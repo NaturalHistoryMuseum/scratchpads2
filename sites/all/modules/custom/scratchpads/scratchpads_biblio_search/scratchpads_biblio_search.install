@@ -102,3 +102,13 @@ function scratchpads_biblio_search_update_7002(){
     'page_id' => 'biblio_search'
   ))->execute();
 }
+
+/**
+ * Reindex all biblio nodes to ensure they're sorted correctly on the biblio
+ * page.
+ */
+function scratchpads_biblio_search_update_7003(){
+  db_update('apachesolr_index_entities_node')->fields(array(
+    'changed' => time()
+  ))->condition('entity_type', 'node')->condition('bundle', 'biblio')->execute();
+}
