@@ -44,6 +44,7 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'subpermissions',
       'system',
       'taxonomy',
+      'taxonomy_revision',
       'toolbar',
       'tools',
       'user',
