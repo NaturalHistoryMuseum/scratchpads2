@@ -434,7 +434,7 @@ function taxonomy_revision_form_taxonomy_form_vocabulary_alter(&$form, &$form_st
       '#weight' => 20,
       '#access' => user_access('choose taxonomy term revisions'),
     );
-    if (!empty($form_state['vocabulary'])) {
+    if (!empty($form_state['vocabulary']->vid)) {
       $revision_by_default = variable_get("taxonomy_revision_by_default[{$form_state['vocabulary']->vid}]");
     }
     else {
