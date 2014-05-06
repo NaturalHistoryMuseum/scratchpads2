@@ -56,7 +56,7 @@ function scratchpads_show_taxa_revisions_module_implements_alter(&$implementatio
 function scratchpads_show_taxa_revisions_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id){
   if(empty($form_state['confirm_delete'])){
     if(module_exists('taxonomy_revision')){
-      if(!empty($form_state['vocabulary'])){
+      if(!empty($form_state['vocabulary']->vid)){
         $show_revision_attribution = variable_get("show_revision_w_vocabulary[{$form_state['vocabulary']->vid}]");
         if($show_revision_attribution){
           $show_revision_attribution_long = variable_get("show_revision_w_vocabulary_long[{$form_state['vocabulary']->vid}]");
