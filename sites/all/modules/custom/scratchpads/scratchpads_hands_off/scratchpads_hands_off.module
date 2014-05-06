@@ -285,6 +285,7 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
           case 'system':
           case 'scratchpads_pages':
           case 'uwho_client':
+          case 'scratchpads_show_taxa_revisions':
             unset($form['blocks'][$form_block_key]);
             break;
           case 'views':
@@ -641,7 +642,8 @@ function scratchpads_hands_off_contextual_links_view_alter(&$element, $items){
     'facetapi',
     'apachesolr_search',
     'scratchpads_blocks',
-    'system'
+    'system',
+    'scratchpads_show_taxa_revisions'
   )) && !user_access('scratchpad team')){
     $element = array();
   }
