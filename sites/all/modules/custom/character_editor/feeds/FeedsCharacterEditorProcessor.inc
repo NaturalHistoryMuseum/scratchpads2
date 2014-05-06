@@ -49,10 +49,10 @@ class FeedsCharacterEditorProcessor extends FeedsProcessor{
                   case 'OR':
                     $value = "['" . implode("'|'", str_getcsv($value)) . "']";
                     break;
-                    $e = new CharacterExpressionParser($value); // $expr is ['stalk'|'body']
-                    $e->rename($variables['character_map'], $map);
-                    $value = $e->getExpression(); // now $expr is ['123'|'43']
                 }
+                $e = new CharacterExpressionParser($value); // $expr is ['stalk'|'body']
+                $e->rename($variables['character_map'], $map);
+                $value = $e->getExpression(); // now $expr is ['123'|'43']
               }else{
                 $value = str_getcsv($value);
                 $value = $value[0];
