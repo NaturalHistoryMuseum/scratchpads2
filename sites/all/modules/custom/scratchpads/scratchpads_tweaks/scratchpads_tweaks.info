@@ -89,6 +89,7 @@ dependencies[] = scratchpads_roles_and_permissions
 dependencies[] = scratchpads_search_block
 dependencies[] = scratchpads_security
 dependencies[] = scratchpads_setup
+dependencies[] = scratchpads_show_taxa_revisions
 dependencies[] = scratchpads_simple_taxonomy_page
 dependencies[] = scratchpads_solr
 dependencies[] = scratchpads_species
