@@ -55,6 +55,7 @@ class FeedsCharacterEditorProcessor extends FeedsProcessor{
                 }
               }else{
                 $value = str_getcsv($value);
+                $value = $value[0];
               }
             }
             catch(Exception $e){
