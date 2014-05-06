@@ -19,16 +19,27 @@ function scratchpads_biblio_search_menu_alter(&$items){
  * Implementation of hook_apache_solr_default_sorts_alter()
  */
 function scratchpads_biblio_search_apache_solr_default_sorts_alter(&$default_sorts){
-  $default_sorts = array_merge(array(
+  $new_sorts = array(
     'tus_biblio_year' => array(
       'title' => t('Year'),
       'default' => 'desc'
-    ),
-    'tus_biblio_first_author_lastname' => array(
-      'title' => t('First author surname'),
-      'default' => 'asc'
     )
-  ), $default_sorts);
+  );
+  for($i = 1; $i < 10; $i++){
+    $new_sorts['tus_biblio_author_lastname_' . $i] = array(
+      'title' => t('Author !index last name', array(
+        '!index' => $i
+      )),
+      'default' => 'asc'
+    );
+    $new_sorts['tus_biblio_author_name_' . $i] = array(
+      'title' => t('Author !index full name', array(
+        '!index' => $i
+      )),
+      'default' => 'asc'
+    );
+  }
+  $default_sorts = array_merge($new_sorts, $default_sorts);
 }
 
 /**
@@ -55,7 +66,13 @@ function scratchpads_biblio_search_apache_solr_sortstring_alter(&$sortstring){
         $sortstring = 'tus_biblio_year ' . (isset($_GET['sort']) ? $_GET['sort'] : 'desc');
         break;
       case t('Authors'):
-        $sortstring = 'tus_biblio_first_author_lastname ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
+        $sortstring = array();
+        for($i = 1; $i < 10; $i++){
+          $sortstring[] = 'tus_biblio_author_lastname_' . $i . ' ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
+          $sortstring[] = 'tus_biblio_author_name_' . $i . ' ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
+        }
+        $sortstring[] = 'tus_biblio_year ' . ((isset($_GET['sort']) && $_GET['sort'] == 'desc') ? 'asc' : 'desc');
+        $sortstring = implode(',', $sortstring);
         break;
       case t('Title'):
         $sortstring = 'sort_label ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
@@ -559,11 +576,12 @@ function scratchpads_biblio_search_apachesolr_index_document_build(ApacheSolrDoc
             }else if(is_array($value)){
               switch($key){
                 case 'biblio_contributors':
-                  $set_first_author_surname = TRUE;
+                  $i = 0;
                   foreach($value as $contributor){
-                    if($set_first_author_surname){
-                      $document->setField('tus_biblio_first_author_lastname', $contributor['lastname']);
-                      $set_first_author_surname = FALSE;
+                    $i++;
+                    if($i < 10){
+                      $document->setField('tus_biblio_author_lastname_' . $i, $contributor['lastname']);
+                      $document->setField('tus_biblio_author_name_' . $i, $contributor['name']);
                     }
                     $document->addField('im_biblio_contributor', $contributor['cid']);
                   }
