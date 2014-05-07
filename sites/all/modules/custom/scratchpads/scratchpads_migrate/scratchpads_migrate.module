@@ -43,6 +43,9 @@ function _scratchpads_migrate_settings(){
   }else if(preg_match('/\.migration\.local$/', $host)){
     $s1_domain = str_replace('.migration.local', '', $host);
     $is_dev = TRUE;
+  }else if($host == 'monkey.nhm.ac.uk'){
+    $s1_domain = 's1.monkey.nhm.ac.uk';
+    $is_dev = TRUE;
   }
   $filename = SCRATCHPADS_MIGRATE_SPAD1_SETTINGS_PATH . $s1_domain . '.scratchpad_1.php';
   if(!file_exists($filename) && !$is_dev){
@@ -649,8 +652,8 @@ function scratchpads_migrate_register_migrations(){
   /*********************************************************************************************
    * Webform
   *********************************************************************************************/
-  if (scratchpads_migrate_source_module_exists('webform')){
-    if (!module_exists('webform')){
+  if(scratchpads_migrate_source_module_exists('webform')){
+    if(!module_exists('webform')){
       module_enable(array(
         'webform'
       ));
