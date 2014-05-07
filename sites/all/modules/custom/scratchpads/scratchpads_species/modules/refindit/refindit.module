@@ -27,33 +27,34 @@ function refindit_block_view($delta = ''){
       $term = menu_get_object('taxonomy_term', 2);
       if($term){
         $items = array();
-        $results = json_decode(file_get_contents('http://refinder.org/find?search=simple&text=' . urlencode($term->name)));
-        print_r($results);exit;
-        for($i = 0; $i < 20; $i++){
-          if(!$results[$i]){
-            break;
+        $results = json_decode(str_replace('][', ',', file_get_contents('http://refinder.org/find?search=simple&text=' . urlencode($term->name))));
+        if($results){
+          for($i = 0; $i < 20; $i++){
+            if(empty($results[$i])){
+              break;
+            }
+            $items[] = array(
+              'data' => '<a target="_blank" href="' . (isset($results[$i]->href) ? $results[$i]->href : $results[$i]->infoUrl) . '">' . (isset($results[$i]->fullCitation) ? $results[$i]->fullCitation : $results[$i]->title) . '</a>',
+              'style' => 'list-style:disc;padding-bottom:3px;'
+            );
           }
-          $items[] = array(
-            'data' => '<a target="_blank" href="' . $results[$i]->link . '">' . $results[$i]->title . '</a>',
-            'style' => 'list-style:disc;padding-bottom:3px;'
-          );
-        }
-        if(count($items)){return array(
-            'subject' => t('Google Scholar'),
-            'content' => array(
-              'list' => array(
-                '#theme' => 'item_list',
-                '#items' => $items
-              ),
-              'link_to_gscholar' => array(
-                '#markup' => '<p><strong>' . l(t('View all results on Google Scholar.'), 'http://scholar.google.co.uk/scholar?q=' . urlencode('"' . $term->name . '"'), array(
-                  'attributes' => array(
-                    'target' => '_blank'
-                  )
-                )) . '</strong></p>'
+          if(count($items)){return array(
+              'subject' => t('ReFindit'),
+              'content' => array(
+                'list' => array(
+                  '#theme' => 'item_list',
+                  '#items' => $items
+                ),
+                'link_to_gscholar' => array(
+                  '#markup' => '<p><strong>' . l(t('ReFindit'), 'http://www.refinder.org/', array(
+                    'attributes' => array(
+                      'target' => '_blank'
+                    )
+                  )) . '</strong></p>'
+                )
               )
-            )
-          );}
+            );}
+        }
       }
   }
   return array();
