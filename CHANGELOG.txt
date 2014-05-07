@@ -1,3 +1,14 @@
+2.5.0 (2014-05-07)
+
+- Enable the revisioning of taxonomy terms (#3892)
+- Replace Google Scholar module with ReFindit (#4105,#1174)
+
+- Improve sorting of Biblio pages (#4110)
+- Prevent <i> or <em> tags being presented on Scratchpads pages in the Issues... block (#4113)
+- Fixed an issue with multiple taxonomy fields on biblio nodes (#4099)
+- Minor presentation tweak (#3884)
+- Aggregate slickgrid views on taxonomy pages (#4082)
+
 2.4.1.2 (2014-04-22)
 
 - Prevent a WSOD on some pages with facets. (#4097)
