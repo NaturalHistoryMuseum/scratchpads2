@@ -149,6 +149,12 @@ class CharacterModel{
         $content['character_editor_character'][$child]['field_char_condition'][0]['#markup'] = htmlspecialchars($expr);
       }
     }
+    foreach($content['character_editor_character'] as $key => $values){
+      if(isset($values['field_char_image'])){
+        $content['character_editor_character'][$key]['field_char_image'][0]['#prefix'] = '<a href="' . url('file/' . $content['character_editor_character'][$key]['field_char_image'][0]['#item']['fid']) . '" target="_blank">';
+        $content['character_editor_character'][$key]['field_char_image'][0]['#suffix'] = '</a>';
+      }
+    }
     $tooltip = array(
       'bt' => $bt,
       'char' => drupal_render($content),
