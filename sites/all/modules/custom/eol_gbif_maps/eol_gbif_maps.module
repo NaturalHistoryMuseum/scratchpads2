@@ -8,7 +8,7 @@ function eol_gbif_maps_gm3_map_alter(&$map){
   //if($term = menu_get_object('taxonomy_term', 2) && $map['id'] == 'gm3-map'){
   if($term = menu_get_object('taxonomy_term', 2)){
     // Now we need to calculate the GBIF taxon id for this term name, and then
-    // add the eol/gbif library to the map.
+    // add the gbif library to the map.
     // First we check to see if we've loaded this term before, and if so, we
     // use that data.
     $col = db_select('eol_gbif_maps_tid_map', 'e')->fields('e')->condition('tid', arg(2))->execute()->fetchCol(1);
@@ -63,7 +63,7 @@ function eol_gbif_maps_taxonomy_term_delete($term){
 function eol_gbif_maps_library(){
   return array(
     'eol_gbif_maps_overlay' => array(
-      'title' => t('EOL/GBIF taxon data overlay'),
+      'title' => t('GBIF taxon data overlay'),
       'website' => 'http://eol.org/',
       'version' => '1',
       'js' => array(
@@ -75,7 +75,7 @@ function eol_gbif_maps_library(){
             'gm3' => array(
               'settings' => array(
                 'eol_gbif_maps' => array(
-                  'tile_url' => 'http://maps.eol.org/php/map/getEolTile.php?tile='
+                  'tile_url' => ' http://api.gbif.org/v0.9/map/density/tile?type=TAXON&key='
                 )
               )
             )
