@@ -41,7 +41,7 @@
     this.contextClickCallback = function(info, metadata, type){
       // Update the cell
       var new_pass = '';
-      if(typeof metadata.pass == 'undefined' || metadata.pass == '') {
+      if(typeof metadata.pass == 'undefined' || metadata.pass == '' || !metadata.pass) {
         // metadata.pass = type;
         new_pass = type;
       } else if(type == metadata.pass) {
