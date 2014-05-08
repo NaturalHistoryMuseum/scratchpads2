@@ -1156,6 +1156,7 @@ function character_editor_project_view($entity){
           $path . '/js/character-editor-metadata-manager.js',
           $path . '/js/character-editor-inheritance.js',
           $path . '/js/character-editor.js',
+          $path . '/js/jquery.hoverIntent.js',
           array(
             'data' => array(
               'CharacterEditorPath' => drupal_get_path('module', 'character_editor')

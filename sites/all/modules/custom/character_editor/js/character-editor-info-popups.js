@@ -25,7 +25,9 @@
           spikeLength: 8,
           shrinkToFit: true,
           offsetParent: slickgrid.getContainer(),
-          positions: ['bottom']
+          positions: ['bottom'],
+          trigger: 'hoverIntent',
+          hoverIntentOpts: {interval:500,timeout:2000}
       };
       $.each(slickgrid.getColumns(), function(i, col){
         if(col.field != "character_entity_field" && col.field != 'sel') {
