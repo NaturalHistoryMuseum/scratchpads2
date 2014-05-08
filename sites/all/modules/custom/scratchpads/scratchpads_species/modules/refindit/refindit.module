@@ -46,7 +46,7 @@ function refindit_block_view($delta = ''){
                   '#items' => $items
                 ),
                 'link_to_gscholar' => array(
-                  '#markup' => '<p><strong>' . l(t('ReFindit'), 'http://www.refinder.org/', array(
+                  '#markup' => '<p><strong>' . l(t('View results on ReFindit'), 'http://refindit.org/?search=simple&text=' . urlencode($term->name), array(
                     'attributes' => array(
                       'target' => '_blank'
                     )
