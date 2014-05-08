@@ -126,3 +126,10 @@ a.view-filter {
   margin-bottom: 1px;
   margin-left: 1px;
 }
+
+.references ol, .references li{
+  list-style:none outside decimal !important;
+}
+.view-species-description .references ol{
+  padding-left:30px;
+}
