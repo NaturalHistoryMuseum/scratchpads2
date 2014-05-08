@@ -1,3 +1,7 @@
+2.5.0.1 (2014-05-08)
+
+- Updated the EoL/GBIF maps layer module to use the GBIF service (EoL have pulled theirs). (#4117)
+
 2.5.0 (2014-05-07)
 
 - Enable the revisioning of taxonomy terms (#3892)
