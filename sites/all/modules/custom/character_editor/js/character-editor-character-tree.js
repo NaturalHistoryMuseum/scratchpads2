@@ -460,12 +460,14 @@
       options.push($item);
       if (!item.group){
         // Add Go to column
-        var $item = $('<div></div>').addClass('character-editor-popup-row')
-        .html('Go to column').click($.proxy(function(){
-          this.closeContextMenu(item);
-          this.goToColumn(item.id);
-        }, this));
-        options.push($item);
+        if(item.visible){
+          var $item = $('<div></div>').addClass('character-editor-popup-row')
+          .html('Go to column').click($.proxy(function(){
+            this.closeContextMenu(item);
+            this.goToColumn(item.id);
+          }, this));
+          options.push($item);
+        }
       }
       // Add 'select on this item'
       var $item = $('<div></div>').addClass('character-editor-popup-row')
