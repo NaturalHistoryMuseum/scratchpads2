@@ -228,7 +228,11 @@ class CharacterProjectModel{
       while($pid && !preg_match('/:0$/', $pid)){
         if(isset($ids[$pid])){
           $list[] = $pid;
-          $pid = $rows[$ids[$pid]]->parent;
+          if(!empty($rows[$ids[$pid]]->parent)){
+            $pid = $rows[$ids[$pid]]->parent;
+          }else{
+            $pid = 0;
+          }
         }else{
           $pid = 0;
         }
