@@ -200,6 +200,7 @@
     var $add_more = $('<div><a href="#" title="' + text + '">(' + text + ')</a></div>').appendTo(info.widget);
     $('a', $add_more).click(function(){
       open_overlay(info);
+      return false;
     });
     // And the list of nodes
     var $ul = $('<ul class="insert-from-view-sortable"></ul>').appendTo(info.widget);
@@ -239,6 +240,7 @@
       event : 'loadView',
     });
     $.colorbox({
+      fixed: true,
       inline : true,
       iframe : false,
       href : info.overlay,
