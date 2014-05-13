@@ -281,6 +281,9 @@ div.character-editor-popup-button-highlight {
   border: 1px solid #000;
 }
 
+div.ui-widget-content.slick-row.active>div{
+  background-color: pink !important;
+}
 
 /* Cell metadata */
 #slickgrid div.slick-cell:after {
