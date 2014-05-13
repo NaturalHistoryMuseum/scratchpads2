@@ -7,7 +7,17 @@
     var self = this;
     EOLGBIFMapType.prototype.getTile = function(coord, zoom, ownerDocument){
       var div = ownerDocument.createElement('DIV');
-      div.innerHTML = '<img class="eol_gbif_map_tile" src="' + Drupal.settings.gm3.settings.eol_gbif_maps.tile_url + self.GM3.libraries.eol_gbif_maps_overlay.taxon_id + '&x=' + coord.x + '&y=' + coord.y + '&z=' + zoom + '' + '"/>';
+      var resolution = 1;
+      if(zoom > 11){
+        resolution = 16;
+      } else if(zoom > 8){
+        resolution = 8;
+      } else if(zoom > 7){
+        resolution = 4;
+      } else if(zoom > 3){
+        resolution = 2;
+      }
+      div.innerHTML = '<img class="eol_gbif_map_tile" src="' + Drupal.settings.gm3.settings.eol_gbif_maps.tile_url + self.GM3.libraries.eol_gbif_maps_overlay.taxon_id + '&x=' + coord.x + '&y=' + coord.y + '&z=' + zoom + '&resolution=' + resolution + '"/>';
       div.style.width = this.tileSize.width + 'px';
       div.style.height = this.tileSize.height + 'px';
       return div;
