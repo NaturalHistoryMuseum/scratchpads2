@@ -127,7 +127,7 @@ class CharacterProjectModel{
         $name = preg_replace('/[{}]/', ' ', $item->model()->label());
         $count = 1;
         while(isset($character_map[$name])){
-          $name = preg_replace('/[{}]/', ' ', $item->model()->label()) . ' (' + $count + ')';
+          $name = preg_replace('/[{}]/', ' ', $item->model()->label()) . ' (' . $count . ')';
           $count++;
         }
         $character_map[$name] = $item->model()->wrapper()->getIdentifier();
