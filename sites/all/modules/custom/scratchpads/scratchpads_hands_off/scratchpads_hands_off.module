@@ -534,6 +534,7 @@ function _scratchpads_hands_off_hidden_urls(){
  */
 function _scratchpads_hands_off_hidden_views(){
   $hidden_views = array(
+    'character_editor',
     'ecological_niche_modelling',
     'front_page_slideshow',
     'geocat_csv',
