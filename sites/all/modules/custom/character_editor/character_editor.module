@@ -784,7 +784,16 @@ function character_editor_character_form_validate($form, &$form_state){
     }
     $lang = field_language('character_editor_character', $form['#entity'], $expr_field);
     if($expr_field == 'field_char_condition' && $form_state['values'][$expr_field][$lang]['condition_editor_mode'] == 'simple'){
-      continue;
+      // If a character has been selected, ensure we have values for the other
+      // fields.
+      if(!empty($form_state['values'][$expr_field][$lang]['condition_simple_editor']['simple_cond_var'])){
+        if(empty($form_state['values'][$expr_field][$lang]['condition_simple_editor']['simple_cond_op'])){
+          form_set_error("$expr_field][$lang][condition_simple_editor][simple_cond_op", 'If selecting a character, ensure you select an operator');
+        }
+        if(empty($form_state['values'][$expr_field][$lang]['condition_simple_editor']['simple_cond_value'])){
+          form_set_error("$expr_field][$lang][condition_simple_editor][simple_cond_value", 'Please ensure you select values to match against');
+        }
+      }
     }else if(!empty($form_state['values'][$expr_field][$lang][0]['value'])){
       module_load_include('inc', 'character_editor', 'includes/CharacterExpressionParser');
       try{
