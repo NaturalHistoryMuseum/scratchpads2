@@ -1,21 +1,20 @@
-div.character-matrix-row{
+div.character-matrix-row {
   width: 100%;
   margin-bottom: 20px;
 }
 
 div.character-matrix-table {
+  padding-bottom: 5px;
   overflow-x: scroll;
   width: 100%;
 }
 
-div.character-matrix-row td.character-matrix-row-disabled{
+div.character-matrix-row td.character-matrix-row-disabled {
   background-color: #EBEDED;
 }
 
-div.character-matrix-row table,
-div.character-matrix-row tbody,
-div.character-matrix-row tr,
-div.character-matrix-row td {
+div.character-matrix-row table,div.character-matrix-row tbody,div.character-matrix-row tr,div.character-matrix-row td
+  {
   height: 100%;
 }
 
@@ -25,6 +24,13 @@ div.character-matrix-row table {
 
 div.character-matrix-row tr td {
   padding: 0 0 6px 0;
+  vertical-align: top !important;
+  border: 1px solid #CCC
+}
+
+div.character-matrix-row tr th {
+  border: 1px solid #CCC;
+  vertical-align: top !important;  
 }
 
 div.character-matrix-row div.character-matrix-row-data {
@@ -36,8 +42,5 @@ div.character-matrix-row div.character-matrix-row-cell {
 }
 
 div.character-matrix-row div.character-matrix-row-flag {
-  font-style: italic;
-  font-size: 0.9em;
-  height: 1.5em;
-  padding: 0 5px;
+  display: none;
 }
