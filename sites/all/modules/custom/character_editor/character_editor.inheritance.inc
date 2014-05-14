@@ -33,7 +33,19 @@ function character_editor_process_inheritance($project){
     'file' => drupal_get_path('module', 'character_editor') . '/character_editor.inheritance.inc'
   );
   batch_set($batch);
-  batch_process('character-editor-project/' . $project->id . '/edit');
+  if(isset($_COOKIE['character_editor_url'])){
+    $url = parse_url($_COOKIE['character_editor_url']);
+    $redirect = array(
+      substr($url['path'], 1),
+      array(
+        'fragment' => $url['fragment']
+      )
+    );
+    unset($_COOKIE['character_editor_url']);
+  }else{
+    $redirect = 'character-editor-project/' . $project->id . '/edit';
+  }
+  batch_process($redirect);
 }
 
 /**

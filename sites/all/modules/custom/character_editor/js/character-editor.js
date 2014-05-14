@@ -10,6 +10,10 @@
    */
   Drupal.behaviors.characterEditor = {
     attach: function(context, settings){
+      $('.slickgrid-refresh-inheritance span').click(function(){
+        // Set a cookie for the current URL for redirection purposes
+        $.cookie('character_editor_url', window.parent.location.href, {expires: 1, path: '/'});
+      });
       var $slick = $('#slickgrid', context);
       // Overlay width fix
       if(typeof settings.overlay === 'undefined') {
