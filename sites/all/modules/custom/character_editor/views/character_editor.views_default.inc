@@ -79,31 +79,6 @@ function character_editor_views_default_views(){
   $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['path'] = 'character-editor';
-  /* Display: XML */
-  $handler = $view->new_display('views_data_export', 'XML', 'views_data_export_1');
-  $handler->display->display_options['pager']['type'] = 'some';
-  $handler->display->display_options['style_plugin'] = 'views_data_export_xml';
-  $handler->display->display_options['style_options']['provide_file'] = 1;
-  $handler->display->display_options['style_options']['filename'] = '%view%timestamp-full.xml';
-  $handler->display->display_options['style_options']['parent_sort'] = 0;
-  $handler->display->display_options['style_options']['transform'] = 1;
-  $handler->display->display_options['path'] = 'character-editor/export/xml';
-  $handler->display->display_options['displays'] = array(
-    'page' => 'page',
-    'default' => 0
-  );
-  /* Display: TXT */
-  $handler = $view->new_display('views_data_export', 'TXT', 'views_data_export_2');
-  $handler->display->display_options['pager']['type'] = 'some';
-  $handler->display->display_options['style_plugin'] = 'views_data_export_txt';
-  $handler->display->display_options['style_options']['provide_file'] = 1;
-  $handler->display->display_options['style_options']['filename'] = '%view%timestamp-full.txt';
-  $handler->display->display_options['style_options']['parent_sort'] = 0;
-  $handler->display->display_options['path'] = 'character-editor/export/txt';
-  $handler->display->display_options['displays'] = array(
-    'default' => 'default',
-    'page' => 0
-  );
   $views['character_editor'] = $view;
   /*
    * The specimen selection view (used from "insert from view")
