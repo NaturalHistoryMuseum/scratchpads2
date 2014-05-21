@@ -21,3 +21,16 @@ function scratchpads_pretty_urls_scratchpads_hands_off_urls_alter(&$urls){
   $urls[] = 'admin/config/search/path/settings';
   $urls[] = 'admin/config/search/path/patterns';
 }
+
+/**
+ * Implements hook_cron().
+ */
+function scratchpads_pretty_urls_cron(){
+  // Ensure we don't have any redirect loops.
+  $query = db_select('redirect', 'r')->fields('r', array(
+    'rid'
+  ))->distinct();
+  $query->innerJoin('url_alias', 'u', 'u.source = r.redirect AND u.alias = r.source');
+  $rids = $query->execute()->fetchCol();
+  db_delete('redirect')->condition('rid', $rids)->execute();
+}
