@@ -76,7 +76,7 @@ function _pensoft_publication_xml_process_continent_ocean($context, $value, $cho
  */
 function _pensoft_publication_xml_process_classification($context){
   $term = $context->raw_value;
-  $family = _publication_xml_load_parent_term($context, $term, 'Family');
+  $family = _schemaxml_xml_load_parent_term($context, $term, 'Family');
   if ($family){
     return $family->name;
   } else {
@@ -200,14 +200,14 @@ function pensoft_publication_schema_array_pensoft_publication_article_metadata($
     '#field' => 'field_publication_authors',
     '#value' => '',
     '#child_entity' => array(
-      '_publication_xml_load_entity',
+      '_schemaxml_xml_load_entity',
       'field_collection_item'
     ),
     '#error_info' => 'Authors',
     'fields' => array(
       'e-mail' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_publication_author_user',
           'user'
         ),
@@ -218,7 +218,7 @@ function pensoft_publication_schema_array_pensoft_publication_article_metadata($
       ),
       'salutation' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_publication_author_user',
           'user'
         ),
@@ -231,39 +231,39 @@ function pensoft_publication_schema_array_pensoft_publication_article_metadata($
       ),
       'first_name' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_publication_author_user',
           'user'
         ),
         'value' => array(
           '#field' => 'field_user_given_names',
           '#process' => array(
-            '_publication_xml_process_user',
+            '_schemaxml_xml_process_user',
             'first'
           )
         )
       ),
       'middle_name' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_publication_author_user',
           'user'
         ),
         '#condition' => array(
-          '_publication_xml_process_user',
+          '_schemaxml_xml_process_user',
           'middle'
         ),
         'value' => array(
           '#field' => 'field_user_given_names',
           '#process' => array(
-            '_publication_xml_process_user',
+            '_schemaxml_xml_process_user',
             'middle'
           )
         )
       ),
       'last_name' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_publication_author_user',
           'user'
         ),
@@ -283,13 +283,13 @@ function pensoft_publication_schema_array_pensoft_publication_article_metadata($
       'submitting_author' => array(
         'value' => array(
           '#field' => 'field_publication_author_submit',
-          '#process' => '_publication_xml_boolean_to_int'
+          '#process' => '_schemaxml_xml_boolean_to_int'
         )
       )
     ),
     'address' => array(
       '#entity' => array(
-        '_publication_xml_load_entity_from_field',
+        '_schemaxml_xml_load_entity_from_field',
         'field_publication_author_user',
         'user'
       ),
@@ -304,7 +304,7 @@ function pensoft_publication_schema_array_pensoft_publication_article_metadata($
         'country' => array(
           'value' => array(
             '#field' => 'field_user_country',
-            '#process' => '_publication_xml_process_country'
+            '#process' => '_schemaxml_xml_process_country'
           )
         )
       )
@@ -341,13 +341,13 @@ function pensoft_publication_schema_array_pensoft_publication_article_metadata($
       '#field' => 'field_publication_contributors',
       '#value' => '',
       '#child_entity' => array(
-        '_publication_xml_load_entity',
+        '_schemaxml_xml_load_entity',
         'field_collection_item'
       ),
       'fields' => array(
         'e-mail' => array(
           '#entity' => array(
-            '_publication_xml_load_entity_from_field',
+            '_schemaxml_xml_load_entity_from_field',
             'field_publication_cbtor_user',
             'user'
           ),
@@ -357,7 +357,7 @@ function pensoft_publication_schema_array_pensoft_publication_article_metadata($
         ),
         'salutation' => array(
           '#entity' => array(
-            '_publication_xml_load_entity_from_field',
+            '_schemaxml_xml_load_entity_from_field',
             'field_publication_cbtor_user',
             'user'
           ),
@@ -370,39 +370,39 @@ function pensoft_publication_schema_array_pensoft_publication_article_metadata($
         ),
         'first_name' => array(
           '#entity' => array(
-            '_publication_xml_load_entity_from_field',
+            '_schemaxml_xml_load_entity_from_field',
             'field_publication_cbtor_user',
             'user'
           ),
           'value' => array(
             '#field' => 'field_user_given_names',
             '#process' => array(
-              '_publication_xml_process_user',
+              '_schemaxml_xml_process_user',
               'first'
             )
           )
         ),
         'middle_name' => array(
           '#entity' => array(
-            '_publication_xml_load_entity_from_field',
+            '_schemaxml_xml_load_entity_from_field',
             'field_publication_cbtor_user',
             'user'
           ),
           '#condition' => array(
-            '_publication_xml_process_user',
+            '_schemaxml_xml_process_user',
             'middle'
           ),
           'value' => array(
             '#field' => 'field_user_given_names',
             '#process' => array(
-              '_publication_xml_process_user',
+              '_schemaxml_xml_process_user',
               'middle'
             )
           ),
         ),
         'last_name' => array(
           '#entity' => array(
-            '_publication_xml_load_entity_from_field',
+            '_schemaxml_xml_load_entity_from_field',
             'field_publication_cbtor_user',
             'user'
           ),
@@ -425,7 +425,7 @@ function pensoft_publication_schema_array_pensoft_publication_article_metadata($
       ),
       'address' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_publication_cbtor_user',
           'user'
         ),
@@ -440,7 +440,7 @@ function pensoft_publication_schema_array_pensoft_publication_article_metadata($
           'country' => array(
             'value' => array(
               '#field' => 'field_user_country',
-              '#process' => '_publication_xml_process_country'
+              '#process' => '_schemaxml_xml_process_country'
             )
           )
         )
@@ -1305,7 +1305,7 @@ function pensoft_publication_schema_array_pensoft_publication_systematics($varia
     ),
     'rank' => array(
       'value' => array(
-        '#entity' => '_publication_xml_load_taxonomic_name',
+        '#entity' => '_schemaxml_xml_load_taxonomic_name',
         '#field' => 'field_rank',
         '#comment' => "from the term, only 'Species' or 'Genus' allowed"
       )
@@ -1316,7 +1316,7 @@ function pensoft_publication_schema_array_pensoft_publication_systematics($varia
       )
     ),
     'select_type' => array(
-      '#entity' => '_publication_xml_load_taxonomic_name',
+      '#entity' => '_schemaxml_xml_load_taxonomic_name',
       '#condition' => function($context) {
         return $context->wrapper->field_rank->value() == 'Species';
       },
@@ -1502,7 +1502,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
   $type_template = array(
     '#field' => 'field_publication_treat_holotype',
     '#value' => '',
-    '#child_entity' => '_publication_xml_load_entity',
+    '#child_entity' => '_schemaxml_xml_load_entity',
     'fields' => array(
       'type_status' => array(
         'value' => array(
@@ -1527,7 +1527,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         '#condition' => 'field_collector',
         'value' => array(
           '#field' => 'field_collector',
-          '#merge' => '_publication_xml_merge_user' // XXX check that method
+          '#merge' => '_schemaxml_xml_merge_user' // XXX check that method
         )
       ),
       //individualid - would that be the title ? XXX
@@ -1571,7 +1571,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       // locationid,highergeographid,higergeography
       'continent' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => array(
@@ -1588,7 +1588,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       'waterbody' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => array(
@@ -1605,7 +1605,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       'islandgroup' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_island_group',
@@ -1615,7 +1615,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       'island' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_island',
@@ -1625,32 +1625,32 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       'country' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_country',
         'value' => array(
           '#field' => 'field_country',
-          '#process' => '_publication_xml_process_country'
+          '#process' => '_schemaxml_xml_process_country'
         )
       ),
       'countrycode' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_country',
         'value' => array(
           '#field' => 'field_country',
           '#process' => array(
-            '_publication_xml_process_country',
+            '_schemaxml_xml_process_country',
             'iso2'
           )
         )
       ),
       'stateprovince' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_state_province',
@@ -1660,7 +1660,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       'county' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_county',
@@ -1671,7 +1671,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       //municipality
       'locality' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_locality',
@@ -1681,7 +1681,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       'verbatimlocality' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_locality',
@@ -1692,7 +1692,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       //verbatimelevation
       'minimumelevationinmeters' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_min_elevation',
@@ -1702,7 +1702,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       'maximumelevationinmeters' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_max_elevation',
@@ -1713,7 +1713,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       //verbatimdepth
       'minimumdepthinmeters' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_min_depth',
@@ -1723,7 +1723,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       'maximumdepthinmeters' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_max_depth',
@@ -1736,35 +1736,35 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       //verbatimcoordinates
       'verbatimlatitude' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_map',
         'value' => array(
           '#field' => 'field_map',
           '#process' => array(
-            '_publication_xml_process_map',
+            '_schemaxml_xml_process_map',
             'latitude'
           )
         )
       ),
       'verbatimlongitude' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_map',
         'value' => array(
           '#field' => 'field_map',
           '#process' => array(
-            '_publication_xml_process_map',
+            '_schemaxml_xml_process_map',
             'longitude'
           )
         )
       ),
       'verbatimcoordinatesystem' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_coordinate_system',
@@ -1774,35 +1774,35 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       'decimallatitude' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_map',
         'value' => array(
           '#field' => 'field_map',
           '#process' => array(
-            '_publication_xml_process_map',
+            '_schemaxml_xml_process_map',
             'latitude'
           )
         )
       ),
       'decimallongitude' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_map',
         'value' => array(
           '#field' => 'field_map',
           '#process' => array(
-            '_publication_xml_process_map',
+            '_schemaxml_xml_process_map',
             'longitude'
           )
         )
       ),
       'geodeticdatum' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_geodetic_datum',
@@ -1812,7 +1812,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       ),
       'coordinateuncertaintyinmeters' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_coordinate_uncertainty',
@@ -1824,7 +1824,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       //footprintspatialfit,georeferencedby,
       'georeferenceprotocol' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_georeference_protocol',
@@ -1835,7 +1835,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
       //georeferencesources, georeferenceverificationstatus,
       'georeferenceremarks' => array(
         '#entity' => array(
-          '_publication_xml_load_entity_from_field',
+          '_schemaxml_xml_load_entity_from_field',
           'field_location'
         ),
         '#condition' => 'field_georeference_remarks',
@@ -1854,7 +1854,7 @@ function _pensoft_publication_xml_systematics_materials_schema(){
         '#field' => 'field_identified_by',
         '#value' => '',
         '#child_entity' => array(
-          '_publication_xml_load_entity',
+          '_schemaxml_xml_load_entity',
           'user'
         ),
         'value' => array(
@@ -1986,7 +1986,7 @@ function pensoft_publication_schema_array_pensoft_publication_references($variab
       ),
       '#field' => 'field_publication_references',
       '#value' => '',
-      '#child_entity' => '_publication_xml_load_entity',
+      '#child_entity' => '_schemaxml_xml_load_entity',
       'fields' => array(
         'reference_type' => array(
           'value' => array(
@@ -2287,7 +2287,7 @@ function pensoft_publication_schema_array_pensoft_publication_sup_files($variabl
       'fields' => array(
         '#field' => 'field_pensoft_files',
         '#value' => '',
-        '#child_entity' => '_publication_xml_load_file',
+        '#child_entity' => '_schemaxml_xml_load_file',
         'title' => array(
           'value' => array(
             '#field' => 'title'
@@ -2320,7 +2320,7 @@ function pensoft_publication_schema_array_pensoft_publication_figures($variables
       '#field' => 'field_publication_figures',
       '#value' => '',
       '#child_entity' => array(
-        '_publication_xml_load_entity',
+        '_schemaxml_xml_load_entity',
         'field_collection_item'
       ),
       '#attributes' => array(
@@ -2335,7 +2335,7 @@ function pensoft_publication_schema_array_pensoft_publication_figures($variables
       ),
       'url' => array(
         '#field' => 'field_publication_figure_figure',
-        '#process' => '_publication_xml_process_get_file_url'
+        '#process' => '_schemaxml_xml_process_get_file_url'
         //'#attributes' => array(
         //  'id' => ''
         //)
@@ -2373,7 +2373,7 @@ function pensoft_publication_schema_array_pensoft_publication_tables($variables)
       '#field' => 'field_publication_tables',
       '#value' => '',
       '#child_entity' => array(
-        '_publication_xml_load_entity',
+        '_schemaxml_xml_load_entity',
         'field_collection_item'
       ),
       '#attributes' => array(

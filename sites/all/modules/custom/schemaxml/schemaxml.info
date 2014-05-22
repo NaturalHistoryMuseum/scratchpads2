@@ -1,0 +1,4 @@
+name = Schema XML
+description = Enables the exporting of data models to an XML file/string.
+core = 7.x
+files[] = SchemaXMLBuilder.class.php

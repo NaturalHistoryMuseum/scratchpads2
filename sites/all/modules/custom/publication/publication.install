@@ -163,3 +163,12 @@ function publication_update_7000(){
   );
   db_add_field('publication', 'publisher_data', $publisher_data);
 }
+
+/**
+ * Ensure the schemaxml module is enabled.
+ */
+function publication_update_7001(){
+  module_enable(array(
+    'schemaxml'
+  ));
+}

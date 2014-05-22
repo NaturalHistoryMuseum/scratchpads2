@@ -130,7 +130,7 @@
  * It will get the schemas returned by module that implement
  * 'schema_array($schema_name, $variables)' and
  * 'schema_array_<schema_name>($variables)'
- * and merge them using PublicationXSDParser::merge_schemas
+ * and merge them using SchemaXSDParser::merge_schemas
  * 
  * The final schema will be altered by calling
  * 'schema_array_alter($schema_name, $schema, $variables)' and
@@ -143,13 +143,13 @@ function schema_array($schema_name, $variables = array()){
   foreach($modules as $module){
     $fn = $module . '_schema_array';
     $sc = $fn($schema_name, $variables);
-    $result = PublicationXSDParser::merge_schemas($result, $sc);
+    $result = SchemaXSDParser::merge_schemas($result, $sc);
   }
   $modules = module_implements('schema_array_' . $schema_name);
   foreach ($modules as $module){
     $fn = $module . '_schema_array_' . $safe_name;
     $sc = $fn($variables);
-    $result = PublicationXSDParser::merge_schemas($result, $sc);
+    $result = SchemaXSDParser::merge_schemas($result, $sc);
   }
   $modules = module_implements('schema_array_alter');
   foreach ($modules as $module){
@@ -168,7 +168,7 @@ function schema_array($schema_name, $variables = array()){
  * This class is used to parse an XSD schema into a schema array
  * 
  */
-class PublicationXSDParser{
+class SchemaXSDParser{
 
   /**
    * Construct the parser from the URL
@@ -364,13 +364,13 @@ class PublicationXSDParser{
           $r['#comment'] .= " DIFF: $a_key missing in provided schema;";
         }
       }else{
-        $r[$a_key] = PublicationXSDParser::merge_schemas($a[$a_key], $b[$a_key], $diff);
+        $r[$a_key] = SchemaXSDParser::merge_schemas($a[$a_key], $b[$a_key], $diff);
         unset($b[$a_key]);
       }
       // Match number #x keys
       foreach($b_keys as $b_key){
         if(preg_match('/^' . preg_quote($a_key, '/') . '#\d+$/', $b_key)){
-          $r[$b_key] = PublicationXSDParser::merge_schemas($a[$a_key], $b[$b_key], $diff);
+          $r[$b_key] = SchemaXSDParser::merge_schemas($a[$a_key], $b[$b_key], $diff);
           unset($b[$b_key]);
         }
       }
@@ -441,7 +441,7 @@ class PublicationXSDParser{
         }
       }else{
         // XXX For enumerations we should do an array diff rather than recurse
-        $rec_state = PublicationXSDParser::compare_schemas($a[$a_key], $b[$a_key], $description, $path . '>' . $a_key);
+        $rec_state = SchemaXSDParser::compare_schemas($a[$a_key], $b[$a_key], $description, $path . '>' . $a_key);
         $state = $rec_state && $state;
       }
       unset($b[$a_key]);
@@ -472,11 +472,11 @@ class PublicationXSDParser{
  * This class is used to build XML from an array schema
  * 
  */
-class PublicationXMLBuilder{
+class SchemaXMLBuilder{
 
   /**
    * Creatre a new builder from a schema and settings and
-   * a number of modifiers (objects that implement PublicationXMLModifierInterface)
+   * a number of modifiers (objects that implement SchemaXMLModifierInterface)
    * 
    * The settings is an associative array which may define:
    * 'force-empty-values' : If the schema defines that a tag associated with
@@ -487,8 +487,8 @@ class PublicationXMLBuilder{
    * 'no-error' : Ignore contraint errors (no exception thrown). Default
    *              is FALSE
    */
-  function __construct($publication_name, $array_schema, $settings, $modifiers = array()){
-    $this->publication_name = $publication_name;
+  function __construct($name, $array_schema, $settings, $modifiers = array()){
+    $this->name = $name;
     $this->array_schema = $array_schema;
     $this->settings = $settings;
     $this->modifiers = $modifiers;
@@ -653,7 +653,7 @@ class PublicationXMLBuilder{
             continue;
           }
         }else{
-          if(isset($child_schema['#child_relation'])){throw new Excpetion("Schema cannot define both #child_relation and a #condition that relies on a field");}
+          if(isset($child_schema['#child_relation'])){throw new Exception("Schema cannot define both #child_relation and a #condition that relies on a field");}
           $cond_field = $child_schema['#condition'];
           $cond_value = $this->_read_values($wrapper, $cond_field);
           if(empty($cond_value)){
@@ -988,7 +988,7 @@ class PublicationXMLBuilder{
         $final_value = '<div>' . $final_value . '</div>';
       }
       // Ensure entities are numerical
-      $final_value = _publication_xml_translate_entities($final_value);
+      $final_value = _schemaxml_xml_translate_entities($final_value);
       if($final_value !== FALSE && $final_value !== NULL && trim($final_value) !== ''){
         $fragment->appendXML($final_value);
         $child_element->appendChild($fragment);
@@ -1064,8 +1064,8 @@ class PublicationXMLBuilder{
    * throwing an exception, or logs the error and returns
    */
   function _generate_error($message){
-    $message = t('The publication %publication could not be generated, because !message. (XML Path where error occured: %path)', array(
-      '%publication' => $this->publication_name,
+    $message = t('The XML for %name could not be generated, because !message. (XML Path where error occured: %path)', array(
+      '%name' => $this->name,
       '!message' => $message,
       '%path' => implode(' >> ', $this->path)
     ));
@@ -1178,9 +1178,9 @@ class PublicationXMLBuilder{
 }
 
 /**
- * This interface defines a publication xml modifier
+ * This interface defines a schema xml modifier
  *
- * Such objects are given to the PublicationXMLBuilder,
+ * Such objects are given to the SchemaXMLBuilder,
  * and are called at every iteration. They can be used
  * to:
  * - Track references ;
@@ -1194,7 +1194,7 @@ class PublicationXMLBuilder{
  * we keep context throughout the process which is
  * not always practical with hooks.
  */
-interface PublicationXMLModifierInterface{
+interface SchemaXMLModifierInterface{
 
   /**
    * function start_building
@@ -1248,7 +1248,7 @@ interface PublicationXMLModifierInterface{
 /**
  * Return an int from a boolean
  */
-function _publication_xml_boolean_to_int($context){
+function _schemaxml_xml_boolean_to_int($context){
   if($context->value_to_insert){
     return '1';
   }else{
@@ -1261,7 +1261,7 @@ function _publication_xml_boolean_to_int($context){
  * the country name
  *
  */
-function _publication_xml_process_country($context, $type = 'name'){
+function _schemaxml_xml_process_country($context, $type = 'name'){
   $value = $context->value_to_insert;
   if($type == 'iso2'){
     return $value['iso2'];
@@ -1274,14 +1274,14 @@ function _publication_xml_process_country($context, $type = 'name'){
 /**
  * Process an URI and return a file url
  */
-function _publication_xml_process_get_file_url($context){
+function _schemaxml_xml_process_get_file_url($context){
   return file_create_url($context->value_to_insert['uri']);
 }
 
 /**
  * Process a map field to return just one property (by default the latitude)
  */
-function _publication_xml_process_map($context, $type = 'latitude'){
+function _schemaxml_xml_process_map($context, $type = 'latitude'){
   $value = $context->value_to_insert;
   if(isset($value[0])){
     $map = (array)($value[0]);
@@ -1294,7 +1294,7 @@ function _publication_xml_process_map($context, $type = 'latitude'){
 /**
  * Merge function for merging multiple users into one
  */
-function _publication_xml_merge_user($values){
+function _schemaxml_xml_merge_user($values){
   $output = array();
   foreach($values as $value){
     $wrapper = entity_metadata_wrapper('user', $value);
@@ -1311,7 +1311,7 @@ function _publication_xml_merge_user($values){
 /**
  * Return full name/first name/middle names of current user object
  */
-function _publication_xml_process_user($context, $type = 'full'){
+function _schemaxml_xml_process_user($context, $type = 'full'){
   switch($type){
     case 'full':
       return implode(' ', array(
@@ -1335,7 +1335,7 @@ function _publication_xml_process_user($context, $type = 'full'){
 /**
  * Loader function for files
  */
-function _publication_xml_load_file($context, $value){
+function _schemaxml_xml_load_file($context, $value){
   $file = entity_load('file', $value['fid']);
   return array(
     'entity' => $file,
@@ -1350,7 +1350,7 @@ function _publication_xml_load_file($context, $value){
  * as the value given by the meta data wrapper is the loaded
  * entity.
  */
-function _publication_xml_load_entity($context, $value, $type = 'node'){
+function _schemaxml_xml_load_entity($context, $value, $type = 'node'){
   return array(
     'entity_type' => $type,
     'entity' => $value
@@ -1360,19 +1360,19 @@ function _publication_xml_load_entity($context, $value, $type = 'node'){
 /**
  * Return the given field value as an entity of the given type
  */
-function _publication_xml_load_entity_from_field($context, $field, $type = 'node'){
+function _schemaxml_xml_load_entity_from_field($context, $field, $type = 'node'){
   $value = $context->wrapper->get($field)->value();
   if(is_array($value) && strpos($context->wrapper->get($field)->type(), 'list<') === 0){
     $value = reset($value);
   }
-  return _publication_xml_load_entity($context, $value, $type);
+  return _schemaxml_xml_load_entity($context, $value, $type);
 }
 
 /**
  * Loads a term that is referenced by the field_taxonomic_name field
  * of a node
  */
-function _publication_xml_load_taxonomic_name($context, $value = NULL){
+function _schemaxml_xml_load_taxonomic_name($context, $value = NULL){
   $entity = $context->wrapper->field_taxonomic_name[0]->value();
   return array(
     'entity_type' => 'taxonomy_term',
@@ -1383,7 +1383,7 @@ function _publication_xml_load_taxonomic_name($context, $value = NULL){
 /**
  * Loads the parent of the given term
  */
-function _publication_xml_load_parent_term($context, $value, $rank = NULL){
+function _schemaxml_xml_load_parent_term($context, $value, $rank = NULL){
   if(is_array($value) && isset($value['tid'])){
     $value = $value['tid'];
   }else if(is_object($value) && isset($value->tid)){
@@ -1407,7 +1407,7 @@ function _publication_xml_load_parent_term($context, $value, $rank = NULL){
  * XXX we can't do this anymore - merge specimen and location together.
  * We need to find another approach for this
  */
-function _publication_xml_load_specimen($context, $value){
+function _schemaxml_xml_load_specimen($context, $value){
   $specimen = node_load($value['nid']);
   if(!empty($specimen->field_location[$specimen->language][0]['nid'])){
     $location = node_load($specimen->field_location[$specimen->language][0]['nid']);
@@ -1424,7 +1424,7 @@ function _publication_xml_load_specimen($context, $value){
  * Translate charater entities into numeric entities, as vanilla XML does
  * not accept all HTML entities.
  */
-function _publication_xml_translate_entities($str){
+function _schemaxml_xml_translate_entities($str){
   $map = array(
     "&quot;" => "&#x0022;",
     "&amp;" => "&#x0026;",

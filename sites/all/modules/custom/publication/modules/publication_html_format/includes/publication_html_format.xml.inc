@@ -2,21 +2,21 @@
 /**
  * class PublicationHtmlFormatXMLModifier
  *
- * Implement a PublicationXMLModifierInterface that is used to
+ * Implement a SchemaXMLModifierInterface that is used to
  * track citations (figures/tables/references) in
  * the generated content, rename and reorder them
  * appropriately (extending PublicationHtmlFormatChangeCitations for
  * this functionality)
  */
-class PublicationHtmlFormatXMLModifier extends PublicationHtmlFormatChangeCitations implements PublicationXMLModifierInterface{
+class PublicationHtmlFormatXMLModifier extends PublicationHtmlFormatChangeCitations implements SchemaXMLModifierInterface{
 
   /**
-   * Implement PublicationXMLModifierInterface::start_building
+   * Implement SchemaXMLModifierInterface::start_building
    */
   public function start_building($schema, $entity_type, $entity, $dom){}
 
   /**
-   * Implement PublicationXMLModifierInterface::insert_value
+   * Implement SchemaXMLModifierInterface::insert_value
    */
   public function insert_value($schema, $tag, $value){
     if(is_string($value)){
@@ -40,7 +40,7 @@ class PublicationHtmlFormatXMLModifier extends PublicationHtmlFormatChangeCitati
   }
 
   /**
-   * Implement PublicationXMLModifierInterface::insert_value_array
+   * Implement SchemaXMLModifierInterface::insert_value_array
    * to re-order the figures and tables.
    * XXX This only works if tables/figures are added after the
    * fields that cite them (which is fine with the current schema, but

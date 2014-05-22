@@ -3,6 +3,7 @@ description = Scratchpad publication
 core = 7.x
 dependencies[] = entity
 dependencies[] = relation_select
+dependencies[] = schemaxml
 package = Publication
 
 files[] = publication.admin.inc

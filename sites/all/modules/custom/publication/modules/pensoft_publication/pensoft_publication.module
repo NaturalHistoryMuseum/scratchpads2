@@ -98,9 +98,7 @@ function pensoft_publication_publication_prepare_build(&$build){
  * 
  */
 function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_state, $form_id){
-  if (!empty($form['#entity']) && _pensoft_publication_redirect_if_published($form['#entity'])){
-    return;
-  }
+  if(!empty($form['#entity']) && _pensoft_publication_redirect_if_published($form['#entity'])){return;}
   // Attach resources
   $form['#attached']['css'][] = drupal_get_path('module', 'pensoft_publication') . '/css/pensoft.css';
   $form['#attached']['css'][] = drupal_get_path('module', 'pensoft_publication') . '/css/pensoft_tabs.css';
@@ -445,9 +443,9 @@ function pensoft_publication_form_publication_type_form_alter(&$form, &$form_sta
   );
   // Test if the schema has changed
   $fail = FALSE;
-  module_load_include('xml.inc', 'publication', 'includes/publication');
+  //module_load_include('class.php', 'schemaxml', 'SchemaXMLBuilder');
   $used_schema_url = variable_get('pensoft_publication_xml_schema_url', drupal_get_path('module', 'pensoft_publication') . '/taxonomic_paper.xsd');
-  $used_parser = new PublicationXSDParser($used_schema_url);
+  $used_parser = new SchemaXSDParser($used_schema_url);
   try{
     $used_schema = $used_parser->get_schema_array();
   }
@@ -458,7 +456,7 @@ function pensoft_publication_form_publication_type_form_alter(&$form, &$form_sta
     $fail = TRUE;
   }
   $pensoft_schema_url = variable_get('pensoft_schema_url', 'http://pwt.pensoft.net/dev/taxonomic_paper.xsd');
-  $pensoft_parser = new PublicationXSDParser($pensoft_schema_url);
+  $pensoft_parser = new SchemaXSDParser($pensoft_schema_url);
   $fail = FALSE;
   try{
     $pensoft_schema = $pensoft_parser->get_schema_array();
@@ -471,7 +469,7 @@ function pensoft_publication_form_publication_type_form_alter(&$form, &$form_sta
   }
   if(!$fail){
     $description = array();
-    if(!PublicationXSDParser::compare_schemas($used_schema, $pensoft_schema, $description)){
+    if(!SchemaXSDParser::compare_schemas($used_schema, $pensoft_schema, $description)){
       drupal_set_message(t('The Pensoft schema does not match the schema in use. See below for a list of differences.'), 'error');
       $form['schema_diff_detail'] = array(
         '#type' => 'fieldset',
@@ -524,11 +522,11 @@ function pensoft_publication_type_form_submit($form, &$form_state){
  * Return TRUE if a redirection took place, false otherwise.
  */
 function _pensoft_publication_redirect_if_published($publication){
-  if ($publication->published){
+  if($publication->published){
     $data = unserialize($publication->publisher_data);
     drupal_set_message(t("This publication has already been sent to Pensoft. The document id is %id and the link is !link", array(
-          '%id' => $data['document_id'],
-          '!link' => l($data['document_link'], $data['document_link'])
+      '%id' => $data['document_id'],
+      '!link' => l($data['document_link'], $data['document_link'])
     )));
     drupal_goto('publication/' . $publication->pid);
     return TRUE;
@@ -544,13 +542,11 @@ function pensoft_publication_publish_form($form, &$form_state, $publication){
   drupal_set_message(t("It is not currently possible to publish this to the Pensoft Writting Tool. We hope to have this working in the near future."), 'warning');
   drupal_goto('publication/' . $publication->pid);
   // Check if we have already published this
-  if (_pensoft_publication_redirect_if_published($publication)){
-    return;
-  }
+  if(_pensoft_publication_redirect_if_published($publication)){return;}
   // Test if the schema has changed
-  module_load_include('xml.inc', 'publication', 'includes/publication');
+  //module_load_include('class.php', 'schemaxml', 'SchemaXMLBuilder');
   $used_schema_url = variable_get('pensoft_publication_xml_schema_url', drupal_get_path('module', 'pensoft_publication') . '/taxonomic_paper.xsd');
-  $used_parser = new PublicationXSDParser($used_schema_url);
+  $used_parser = new SchemaXSDParser($used_schema_url);
   try{
     $used_schema = $used_parser->get_schema_array();
   }
@@ -564,7 +560,7 @@ function pensoft_publication_publish_form($form, &$form_state, $publication){
     return $form;
   }
   $pensoft_schema_url = variable_get('pensoft_schema_url', 'http://pwt.pensoft.net/dev/taxonomic_paper.xsd');
-  $pensoft_parser = new PublicationXSDParser($pensoft_schema_url);
+  $pensoft_parser = new SchemaXSDParser($pensoft_schema_url);
   $fail = FALSE;
   try{
     $pensoft_schema = $pensoft_parser->get_schema_array();
@@ -579,7 +575,7 @@ function pensoft_publication_publish_form($form, &$form_state, $publication){
     return $form;
   }
   $description = array();
-  if(!PublicationXSDParser::compare_schemas($used_schema, $pensoft_schema, $description)){
+  if(!SchemaXSDParser::compare_schemas($used_schema, $pensoft_schema, $description)){
     $form['fail'] = array(
       '#type' => 'markup',
       '#markup' => '<p>' . t('It is not possible to publish this as the Pensoft publication schema differs from the schema in use. Please report this issue to the site administrator.')
@@ -587,7 +583,8 @@ function pensoft_publication_publish_form($form, &$form_state, $publication){
     return $form;
   }
   // Validate the publication
-  module_load_include('xml.inc', 'pensoft_publication');
+  // File should already be loaded above!
+  //module_load_include('class.php', 'schemaxml', 'SchemaXMLBuilder');
   $xml = _pensoft_publication_build_xml($publication);
   if(empty($xml)){
     $form['fail'] = array(
@@ -647,7 +644,7 @@ function pensoft_publication_publish_form_validate($form, &$form_state){
  * Publish page form submit handler
  */
 function pensoft_publication_publish_form_submit($form, &$form_state){
-  module_load_include('xml.inc', 'pensoft_publication');
+  //module_load_include('class.php', 'schemaxml', 'SchemaXMLBuilder');
   $publication = $form_state['values']['pensoft_publication'];
   $xml = _pensoft_publication_build_xml($publication);
   if(user_access('preview publication xml')){
@@ -730,12 +727,12 @@ function pensoft_publication_publish_form_submit($form, &$form_state){
  */
 function pensoft_publication_schema_array_pensoft_publication($variables){
   $diff = isset($variables['diff']) ? $variables['diff'] : FALSE;
-  module_load_include('xml.inc', 'publication', 'includes/publication');
+  //module_load_include('class.php', 'schemaxml', 'SchemaXMLBuilder');
   module_load_include('xml.schema.inc', 'pensoft_publication');
   // Parse the schema
   $url = variable_get('pensoft_publication_xml_schema_url', drupal_get_path('module', 'pensoft_publication') . '/taxonomic_paper.xsd');
   try{
-    $parser = new PublicationXSDParser($url);
+    $parser = new SchemaXSDParser($url);
     $source_schema = $parser->get_schema_array();
   }
   catch(Exception $e){
@@ -760,10 +757,10 @@ function pensoft_publication_schema_array_pensoft_publication($variables){
         'supplementary_files' => schema_array('pensoft_publication_sup_files'),
         'figures' => schema_array('pensoft_publication_figures'),
         'tables' => schema_array('pensoft_publication_tables')
-      ),
+      )
     )
   );
-  $schema = PublicationXSDParser::merge_schemas($source_schema, $map_schema, $diff);
+  $schema = SchemaXSDParser::merge_schemas($source_schema, $map_schema, $diff);
   return $schema;
 }
 
@@ -773,7 +770,7 @@ function pensoft_publication_schema_array_pensoft_publication($variables){
  * each section.
  */
 function _pensoft_publication_build_xml($publication){
-  module_load_include('xml.inc', 'publication', 'includes/publication');
+  module_load_include('class.php', 'schemaxml', 'SchemaXMLBuilder');
   module_load_include('xml.schema.inc', 'pensoft_publication');
   $url = variable_get('pensoft_publication_xml_schema_url', drupal_get_path('module', 'pensoft_publication') . '/taxonomic_paper.xsd');
   // Get the schema
@@ -783,7 +780,7 @@ function _pensoft_publication_build_xml($publication){
   $modifier = new PublicationHtmlFormatXMLModifier();
   // Build the XML
   try{
-    $builder = new PublicationXMLBuilder('Pensoft Publication', $schema, array(
+    $builder = new SchemaXMLBuilder('Pensoft Publication', $schema, array(
       'force-empty-values' => FALSE
     ), array(
       $modifier
