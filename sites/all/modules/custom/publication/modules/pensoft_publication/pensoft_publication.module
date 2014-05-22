@@ -443,7 +443,6 @@ function pensoft_publication_form_publication_type_form_alter(&$form, &$form_sta
   );
   // Test if the schema has changed
   $fail = FALSE;
-  //module_load_include('class.php', 'schemaxml', 'SchemaXMLBuilder');
   $used_schema_url = variable_get('pensoft_publication_xml_schema_url', drupal_get_path('module', 'pensoft_publication') . '/taxonomic_paper.xsd');
   $used_parser = new SchemaXSDParser($used_schema_url);
   try{
@@ -544,7 +543,6 @@ function pensoft_publication_publish_form($form, &$form_state, $publication){
   // Check if we have already published this
   if(_pensoft_publication_redirect_if_published($publication)){return;}
   // Test if the schema has changed
-  //module_load_include('class.php', 'schemaxml', 'SchemaXMLBuilder');
   $used_schema_url = variable_get('pensoft_publication_xml_schema_url', drupal_get_path('module', 'pensoft_publication') . '/taxonomic_paper.xsd');
   $used_parser = new SchemaXSDParser($used_schema_url);
   try{
@@ -584,7 +582,6 @@ function pensoft_publication_publish_form($form, &$form_state, $publication){
   }
   // Validate the publication
   // File should already be loaded above!
-  //module_load_include('class.php', 'schemaxml', 'SchemaXMLBuilder');
   $xml = _pensoft_publication_build_xml($publication);
   if(empty($xml)){
     $form['fail'] = array(
@@ -644,7 +641,6 @@ function pensoft_publication_publish_form_validate($form, &$form_state){
  * Publish page form submit handler
  */
 function pensoft_publication_publish_form_submit($form, &$form_state){
-  //module_load_include('class.php', 'schemaxml', 'SchemaXMLBuilder');
   $publication = $form_state['values']['pensoft_publication'];
   $xml = _pensoft_publication_build_xml($publication);
   if(user_access('preview publication xml')){
@@ -727,7 +723,6 @@ function pensoft_publication_publish_form_submit($form, &$form_state){
  */
 function pensoft_publication_schema_array_pensoft_publication($variables){
   $diff = isset($variables['diff']) ? $variables['diff'] : FALSE;
-  //module_load_include('class.php', 'schemaxml', 'SchemaXMLBuilder');
   module_load_include('xml.schema.inc', 'pensoft_publication');
   // Parse the schema
   $url = variable_get('pensoft_publication_xml_schema_url', drupal_get_path('module', 'pensoft_publication') . '/taxonomic_paper.xsd');
@@ -770,7 +765,6 @@ function pensoft_publication_schema_array_pensoft_publication($variables){
  * each section.
  */
 function _pensoft_publication_build_xml($publication){
-  module_load_include('class.php', 'schemaxml', 'SchemaXMLBuilder');
   module_load_include('xml.schema.inc', 'pensoft_publication');
   $url = variable_get('pensoft_publication_xml_schema_url', drupal_get_path('module', 'pensoft_publication') . '/taxonomic_paper.xsd');
   // Get the schema

@@ -4,7 +4,6 @@
  * Output the schema array of the given XSD file
  *
  */
-//module_load_include('class.php', 'schemaxml', 'SchemaXMLBuilder');
 
 $f1 =  'file://' . drupal_realpath(drush_get_option('f1'));
 $f2 =  'file://' . drupal_realpath(drush_get_option('f2'));
