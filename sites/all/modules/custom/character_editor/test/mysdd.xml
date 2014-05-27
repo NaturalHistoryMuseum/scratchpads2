@@ -1,0 +1,288 @@
+<?xml version='1.0'?>
+<!--
+  This is a hand made test file for importing SDD into the Scratchpads Character Editor.
+  The test site should include the following taxon names:
+  'Pediculus Clavicornis', 'Pediculus Humanus', 'Pediculus Humanus Capitis'
+  but not 'NoSuchTerm'. It should include a specimen named 'icode - colcode - colnum'
+  but no specimen named 'NoSuchSpecimen'.
+
+  Expected Result (when doing full structure + data import on a new project):
+  - Warning about missing taxon name match 'NoSuchTerm' ;
+  - Warning about missing specimen match 'NoSuchSpecimen' ;
+  - Warning that 2 coded descriptions were not imported due to invalid character
+    reference 'nosuchref' and missing categorical state 'nosuchstate' ;
+  - Warning about a reference to a local file (nosuchfile.jpg) that needs to be uploaded separately ;
+  - Warning that sequence characters are not supported and will not be imported
+  - Successfull creation of 3 media items, 2 character groups, 6 characters and 10 coded descriptions.
+
+  The resultuing character project should have:
+   - Two flags (on top of the default 'computer' and 'inherited'): 'rarely' (abbrev 'r')
+     and 'uncertain' (abbrev 'u') ;
+   - Two groups: "A group" and "Another group" such that "Another group" is a child
+     of "A group" ;
+   - "A group" should have characters "Number of Heads" and "Type of blood sucker" ;
+   - "Another group" should have characters "Number of blood sucking appendix" 
+     and "Eye color" ;
+   - Characters "Famous last words" should be associated with the
+     project root ;
+   - Character "Type of blood sucker" should have states "0: The good type",
+     "1: The baaaaad type" ;
+   - Character "Type of blood sucker" should be an ordered, 'AND' character ;
+   - Character "Eye color" should have states "0: Blueish green" and "1: Greenish blue" ;
+   - Character "Eye color" should be an un-ordered, 'AND' character ;
+   - Numeric Character "Number of heads" should be an integer character ;
+   - Numeric Character "Number of blood sucking appendix" should be a real character ;
+   - Numeric Character "Number of blood sucking appendix" should have a condition:
+     "'The baaaaaad type' in {Type of blood sucker}) and ('Greenish blue' not-in {Eye color})"
+   - Text Character "Famous Last Words" should have an associated image (the Scratchpads logo) ;
+   - State "The good type" should have an associated image (computer with scratchpad logo) ;
+   - State "The baaaaad type" should have an associated image (spider).
+
+   The imported data should be:
+
+   ______________________________________________________________________________________________________
+   |                           | Nb of heads | Type of ... | Nb of blood ... | Eye color | Famous...    |
+   ______________________________________________________________________________________________________
+   | Pediculus clavicornis     | 1           | The good... | 2               | G...  (r) |              |
+   |                           |             | and The ba..|
+   | Pediculus humanus         | 11 (u)      | The baaa... | 22 - 33         | Blueis... |              |
+   | Pediculus humanus capitis |             |             |                 |           | Hello World! |
+   | icode - colcode - colnum  | 2           | 1           |                 |           | A pin?       |
+   ______________________________________________________________________________________________________
+
+
+  Note that:
+  - There are two characters which do not have a valid group. These are automatically added to the
+     default group.
+-->
+<Datasets>
+  <Dataset>
+    <TaxonNames>
+      <TaxonName id='tn1'>
+        <Representation><Label>Pediculus Clavicornis</Label></Representation>
+      </TaxonName>
+      <TaxonName id='tn2'>
+        <Representation><Label>Pediculus Humanus</Label></Representation>
+      </TaxonName>
+      <TaxonName id='tn3'>
+        <Representation><Label>Pediculus Humanus Capitis</Label></Representation>
+      </TaxonName>
+      <TaxonName id='tn4'>
+        <Representation><Label>NoSuchTerm</Label></Representation>
+      </TaxonName>
+    </TaxonNames>
+    <Specimens>
+      <Specimen id='sp1'>
+        <Representation><Label>icode - colcode - colnum</Label></Representation>
+      </Specimen>
+      <Specimen id='sp2'>
+        <Representation><Label>NoSuchSpecimen</Label></Representation>
+      </Specimen>
+    </Specimens>
+    <Characters>
+      <QuantitativeCharacter id='c1'>
+        <Representation><Label>Number of heads</Label></Representation>
+        <MeasurementUnit><Label>heads</Label></MeasurementUnit>
+        <Assumptions><ValuesAreInteger>true</ValuesAreInteger></Assumptions>
+      </QuantitativeCharacter>
+      <QuantitativeCharacter id='c2'>
+        <Representation><Label>Number of blood sucking appendix</Label></Representation>
+      </QuantitativeCharacter>
+      <CategoricalCharacter id='c3'>
+        <Representation><Label>Type of blood sucker</Label></Representation>
+        <Assumptions>
+          <NaturallyContinous>true</NaturallyContinous>
+        </Assumptions>
+        <States>
+          <StateDefinition id='s1'>
+            <Representation>
+              <Label>The good type</Label>
+              <MediaObject ref='mo2' />
+            </Representation>
+          </StateDefinition>
+          <StateDefinition id='s2'>
+            <Representation>
+              <Label>The baaaaad type</Label>
+              <MediaObject ref='mo3' />
+            </Representation>
+          </StateDefinition>
+        </States>
+      </CategoricalCharacter>
+      <CategoricalCharacter id='c4'>
+        <Representation><Label>Eye color</Label></Representation>
+        <States>
+          <StateDefinition id='s3'><Representation><Label>Blueish green</Label></Representation></StateDefinition>
+          <StateDefinition id='s4'><Representation><Label>Greenish blue</Label></Representation></StateDefinition>
+        </States>
+      </CategoricalCharacter>
+      <TextCharacter id='c5'>
+        <Representation>
+          <Label>Famous Last Words</Label>
+          <MediaObject ref='mo1' />
+        </Representation>
+      </TextCharacter>
+      <SequenceCharacter id='c6'>
+        <Representation>
+          <Label>DNA stuff</Label>
+          <MediaObject ref='mo4' />
+        </Representation>
+      </SequenceCharacter>
+    </Characters>
+    <DescriptiveConcepts>
+      <DescriptiveConcept id='dc1'><Representation><Label>A group</Label></Representation></DescriptiveConcept>
+      <DescriptiveConcept id='dc2'><Representation><Label>Another group</Label></Representation></DescriptiveConcept>
+      <DescriptiveConcept id='dc3'>
+        <Modifiers>
+          <Modifier id="mod1"><Representation><Label>rarely</Label></Representation></Modifier>
+          <Modifier id="mod2"><Representation><Label>uncertain</Label></Representation></Modifier>
+        </Modifiers>
+      </DescriptiveConcept>
+    </DescriptiveConcepts>
+    <CharacterTrees>
+      <CharacterTree id='t1'>
+        <Nodes>
+          <Node id='cn1'>
+            <DescriptiveConcept ref='dc1' />
+          </Node>
+          <Node id='cn2'>
+            <Parent ref='cn1' />
+            <DescriptiveConcept ref='dc2' />
+          </Node>
+          <CharNode>
+            <Parent ref='cn1' />
+            <Character ref='c1' />
+          </CharNode>
+          <CharNode>
+            <Parent ref='cn1' />
+            <Character ref='c3' />
+          </CharNode>
+          <CharNode>
+            <Parent ref='cn2' />
+            <Character ref='c2' />
+            <DependencyRules>
+              <OnlyApplicableIf>
+                <State ref="s2" />
+              </OnlyApplicableIf>
+              <InaplicableIf>
+                <State ref="s4" />
+              </InaplicableIf>
+            </DependencyRules>
+          </CharNode>
+          <CharNode>
+            <Parent ref='cn2' />
+            <Character ref='c4' />
+          </CharNode>
+        </Nodes>
+      </CharacterTree>
+    </CharacterTrees>
+    <CodedDescriptions>
+      <CodedDescription id='cd1'>
+        <Scope>
+          <TaxonName ref='tn1' />
+        </Scope>
+        <SummaryData>
+          <Quantitative ref='c1'>
+            <Measure value='1' />
+          </Quantitative>
+          <Quantitative ref='c2'>
+            <Measure value='2' />
+          </Quantitative>
+          <Categorical ref='c3'>
+            <State ref='s1' />
+            <State ref='s2' />
+          </Categorical>
+          <Categorical ref='c4'>
+            <State ref='s4'><Modifier ref='mod1' /></State>
+          </Categorical>
+        </SummaryData>
+      </CodedDescription>
+      <CodedDescription id='cd2'>
+        <Scope>
+          <TaxonName ref='tn2' />
+        </Scope>
+        <SummaryData>
+          <Quantitative ref='c1'>
+            <Measure value='11' />
+            <Modifier ref='mod2' />
+          </Quantitative>
+          <Quantitative ref='c2'>
+            <Measure type='Min' value='22' />
+            <Measure type='Max' value='33' />
+          </Quantitative>
+          <Categorical ref='c3'>
+            <State ref='s2' />
+          </Categorical>
+          <Categorical ref='c4'>
+            <State ref='s3' />
+          </Categorical>
+        </SummaryData>
+      </CodedDescription>
+      <CodedDescription id='cd3'>
+        <Scope>
+          <TaxonName ref='tn3' />
+        </Scope>
+        <SummaryData>
+          <Text ref='c5'>
+            <Content>Hello World!</Content>
+          </Text>
+          <Sequence ref='c6'>
+            <Sequence>ATGATG</Sequence>
+          </Sequence>
+          <Quantitative ref='nosuchref'>
+            <Measure value='999' />
+          </Quantitative>
+          <Categorical ref='c3'>
+            <State ref='nosuchstate' />
+          </Categorical>
+        </SummaryData>
+      </CodedDescription>
+      <CodedDescription id='cd4'>
+        <SampleData>
+          <SamplingEvent id='icode - colcode - colnum'>
+            <SamplingUnit>
+              <Quantitative ref='c1' value='2' />
+              <Categorical ref='c3'>
+                <State ref='s2' />
+               </Categorical>
+            </SamplingUnit>
+            <SamplingUnit>
+              <Text ref='c5'>
+                <Content>A pin?</Content>
+              </Text>
+            </SamplingUnit>
+          </SamplingEvent>
+        </SampleData>
+      </CodedDescription>
+    </CodedDescriptions>
+    <MediaObjects>
+      <MediaObject id='mo1'>
+        <Representation>
+          <Label>Scratchpads Logo!</Label>
+        </Representation>
+        <Type>Image</Type>
+        <Source href="http://scratchpads.eu/sites/all/themes/scratchpads_eu/images/logo-purple.png" />
+      </MediaObject>
+      <MediaObject id='mo2'>
+        <Representation>
+          <Label>Computer with Scratchpads</Label>
+        </Representation>
+        <Type>Image</Type>
+        <Source href="http://scratchpads.eu/sites/scratchpads.eu/files/why-create.png" />
+      </MediaObject>
+      <MediaObject id='mo3'>
+        <Representation>
+          <Label>Scary Spider!</Label>
+        </Representation>
+        <Type>Image</Type>
+        <Source href="http://scratchpads.eu/sites/scratchpads.eu/files/why-contribute.png" />
+      </MediaObject>
+      <MediaObject id='mo4'>
+        <Representation>
+          <Label>No such file</Label>
+        </Representation>
+        <Type>Image</Type>
+        <Source href="file://nosuchfile.jpg" />
+      </MediaObject>
+    </MediaObjects>
+  </Dataset>
+</Datasets>
