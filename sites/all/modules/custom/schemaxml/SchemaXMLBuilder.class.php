@@ -19,7 +19,7 @@ class SchemaXMLBuilder{
    * 'no-error' : Ignore contraint errors (no exception thrown). Default
    *              is FALSE
    */
-  function __construct($name, $array_schema, $settings, $modifiers = array()){
+  function __construct($name, $array_schema, $settings = array(), $modifiers = array()){
     $this->name = $name;
     $this->array_schema = $array_schema;
     $this->settings = $settings;
@@ -538,7 +538,7 @@ class SchemaXMLBuilder{
    */
   function _build_xml_check_constraint(&$schema, $tag, $wrapper){
     $min_occurence = isset($schema['#min_occurence']) ? $schema['#min_occurence'] : 1;
-    $max_occurence = isset($schema['#max_occurence']) ? $schema['#max_occurence'] : 1;
+    $max_occurence = isset($schema['#max_occurence']) ? $schema['#max_occurence'] : PHP_INT_MAX;
     if(!empty($schema['#values_contexts'])){
       $count = count($schema['#values_contexts']);
       if($count < $min_occurence || ($max_occurence >= 0 && $count > $max_occurence)){
@@ -647,17 +647,22 @@ class SchemaXMLBuilder{
     // Not all fields are exposed to wrappers - so if we can't get it
     // through the wrapper, try directly. Also some wrapper implementations
     // have bugs (eg. countries) so we avoid them.
-    $value = field_get_items($wrapper->type(), $wrapper->raw(), $field);
-    if(!is_array($value)){
-      return array_filter(array(
-        $value
-      ));
-    }else{
-      $ak = array_keys($value);
-      if(!empty($ak) && !is_int(reset($ak))){return array_filter(array(
+    try{
+      $value = field_get_items($wrapper->type(), $wrapper->raw(), $field);
+      if(!is_array($value)){
+        return array_filter(array(
           $value
-        ));}
-      return array_filter($value);
+        ));
+      }else{
+        $ak = array_keys($value);
+        if(!empty($ak) && !is_int(reset($ak))){return array_filter(array(
+            $value
+          ));}
+        return array_filter($value);
+      }
+    }
+    catch(Exception $e){
+      ;
     }
   }
 

@@ -1099,6 +1099,7 @@ function character_editor_entity_property_info_alter(&$info){
 function character_editor_entity_access($op){
   switch($op){
     case 'access':
+    case 'export':
       $op = 'view';
       break;
     case 'update':
@@ -1190,6 +1191,212 @@ function character_editor_project_view($entity){
   // views_get_view overwites the title so need to reset it here 
   drupal_set_title($entity->label());
   return $build;
+}
+
+function character_editor_project_export($form, $form_state, $entity){
+  // Get a list of export types that we support.  If we support only one, we
+  // redirect to that.  If we support multiple, we give the user an option.
+  $export = array();
+  $count = 0;
+  foreach(module_implements('character_editor_export_info') as $module){
+    $export[$module] = module_invoke($module, 'character_editor_export_info');
+    $count += count($export[$module]);
+  }
+  if($count == 1){
+    $info = array_pop($export[$module]);
+    call_user_func($info['callback'], $entity);
+  }elseif($count > 1){
+  }
+}
+
+/**
+ * SDD Export
+ */
+function character_editor_export_sdd($entity){
+  $schema = schema_array('character_project');
+  try{
+    $builder = new SchemaXMLBuilder('', $schema);
+    // We pin everything to the project entity to allow us to convert them to
+    // XML.
+    // Add the data.
+    $ids = array();
+    foreach(array_keys($entity->field_taxonomic_name) as $lang){
+      foreach($entity->field_taxonomic_name[$lang] as $key => $value){
+        $ids[] = 'taxonomy_term:' . $value['tid'];
+      }
+    }
+    $rows = entity_load('character_editor_project_row', $ids, array(
+      'character_project_id' => $entity->id
+    ));
+    // Add the Characters.
+    $entity->characters_text = array();
+    $entity->characters_numeric = array();
+    $entity->characters_controlled = array();
+    $project_w = character_editor_wrapper('character_editor_project', $entity->id);
+    $tree = character_editor_get_tree($project_w);
+    foreach($tree as $character){
+      switch($character['wrapper']->type->value()){
+        case 'numeric':
+        case 'controlled':
+        case 'text':
+          $entity->{'characters_' . $character['wrapper']->type->value()}[] = $character;
+      }
+    }
+    drupal_add_http_header('Content-Type', 'text/xml; charset=utf-8');
+    echo $builder->build_xml('character_editor_project', $entity);
+    drupal_exit();
+  }
+  catch(Exception $e){
+    // ...
+  }
+}
+
+/**
+ * Function to define the schema for the export of XML.
+ */
+function character_editor_schema_array_character_project($variables){
+  $schema = array(
+    'Datasets' => array(
+      'Dataset' => array(
+        'TaxonNames' => array(
+          'TaxonName' => array(
+            // Link the current tag to this field, so that the tag is output as many times
+            // as the field has values.
+            '#field' => 'field_taxonomic_name',
+            '#attributes' => array(
+              'id' => 'character_editor_taxon_name_id' // Function to generate id
+            ),
+            // For children tags use the entity in the current field
+            '#child_entity' => array(
+              '_schemaxml_xml_load_entity',
+              'taxonomy_term'
+            ),
+            '#value' => '',
+            'Representation' => array(
+              'Label' => array(
+                // Output the taxonomic term title here.
+                '#field' => 'name'
+              )
+            )
+          )
+        ),
+        'Specimens' => array(
+          'Specimen' => array(
+            '#field' => 'field_char_proj_specimen',
+            '#attributes' => array(
+              'id' => 'character_editor_specimen_id'
+            ),
+            '#child_entity' => '_schemaxml_xml_load_entity'
+          )
+        ),
+        'Characters' => array(
+          'CategoricalCharacter' => array(
+            '#attributes' => array(
+              'id' => 'character_editor_character_id'
+            ),
+            'Representation' => array(
+              'Label' => array(
+                '#process' => 'characters_controlled'
+              )
+            ),
+            'States' => array(
+              'StateDefinition' => array(
+                /*'#field' => 'field_char_states',
+                '#attributes' => array(
+                  'id' => 'character_editor_controlled_state_id'
+                ),
+                '#child_entity' => '_schemaxml_xml_load_entity',
+                '#value' => '',
+                'Representation' => array(
+                  'Label' => array(
+                    '#field' => 'field_char_state_label'
+                  )
+                )*/
+              )
+            )
+          ),
+          'QuantitativeCharacter' => array(
+            'Representation' => array(
+              'Label' => array(
+                '#value' => ''
+              )
+            ),
+            'MeasurementUnit' => array(
+              'Label' => array(
+                '#value' => ''
+              )
+            ),
+            'Assumptions' => array(
+              'ValuesAreInteger' => array(
+                '#value' => ''
+              ),
+              'NaturallyContinuous' => array(
+                '#value' => ''
+              )
+            )
+          )
+        ),
+        'CodedDescriptions' => array(
+          'CodedDescription' => array(
+            'Scope' => array(
+              'TaxonName' => array(
+                '#attribute' => array(
+                  'ref' => ''
+                )
+              )
+            ),
+            'SummaryData' => array(
+              'Quantitative' => array(
+                '#attributes' => array(
+                  'ref' => array()
+                ),
+                'Measure' => array(
+                  '#attributes' => array(
+                    'value' => array()
+                  )
+                )
+              ),
+              'Categorical' => array(
+                '#attributes' => array(
+                  'ref' => array()
+                )
+              ),
+              'Text' => array(
+                'Content' => array()
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+  return $schema;
+}
+
+function characters_controlled(){
+  return 'arse';
+}
+
+/**
+ * Return an ID for a taxonomy term.
+ */
+function character_editor_taxon_name_id($context){
+  return url('taxonomy/term/' . $context->child_entity->tid, array(
+    'absolute' => TRUE
+  ));
+  //return 'taxonomy-term:' . $context->child_entity->tid;
+}
+
+/**
+ * Implements hook_character_editor_export_info()
+ */
+function character_editor_character_editor_export_info(){
+  return array(
+    'sdd' => array(
+      'label' => 'SDD',
+      'callback' => 'character_editor_export_sdd'
+    )
+  );
 }
 
 /*********************************************************************************************
