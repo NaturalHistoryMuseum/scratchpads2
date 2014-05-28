@@ -427,6 +427,11 @@ function _silver_feeds_sort_field_info($entity_type, $bundle, $field_info){
 function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $additional = '', $map_field_collection = FALSE, $field_collection_label_addition = ''){
   if(is_array($field_info)){
     foreach($field_info as $key => $field){
+      // Don't add the title_field, as it has already been added (or not depending
+      // on settings).
+      if($key == 'title_field'){
+        continue;
+      }
       $field_info = field_info_field($field['field_name']);
       switch($field_info['type']){
         case 'file':
