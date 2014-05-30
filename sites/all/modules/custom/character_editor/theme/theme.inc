@@ -43,18 +43,15 @@ function theme_character_editor_description_row($variables){
   $header = array();
   $row = array();
   foreach($tree as $tree_item){
+    $tree_item_entity = character_editor_wrapper($tree_item->id());
+    if($tree_item_entity->type->value() == 'group'){
+      continue;
+    }
     $field = $tree_item->columnId();
-    $header[] = $tree_item->model()->label();
     if(property_exists($taxon_values, $field)){
       $data = (array)json_decode($taxon_values->{$field});
       if(!empty($data['disabled'])){
-        $row[] = array(
-          'data' => '',
-          'class' => array(
-            'character-matrix-row-disabled'
-          ),
-          'title' => t('disabled')
-        );
+        continue;
       }else{
         $cell = '<div class="character-matrix-row-cell">';
         $title = '';
@@ -76,6 +73,7 @@ function theme_character_editor_description_row($variables){
     }else{
       $row[] = '';
     }
+    $header[] = $tree_item->model()->label();
   }
   $table = theme('table', array(
     'header' => $header,
