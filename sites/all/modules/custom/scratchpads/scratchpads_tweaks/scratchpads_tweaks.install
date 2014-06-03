@@ -318,6 +318,8 @@ function scratchpads_tweaks_install(){
   ));
   // Use our mirror of the CC images site
   variable_set('creative_commons_image_uri', 'http://cc-mirror.scratchpads.eu/l');
+  // Set the advagg module settings
+  scratchpads_tweaks_update_7081();
 }
 
 /**
@@ -1422,4 +1424,38 @@ function scratchpads_tweaks_update_7079(){
   module_enable(array(
     'scratchpads_show_taxa_revisions'
   ));
+}
+
+/**
+ * Enable the advagg modules.
+ */
+function scratchpads_tweaks_update_7080(){
+  module_enable(array(
+    'advagg',
+    'advagg_css_compress',
+    'advagg_js_compress'
+  ));
+}
+
+/**
+ * Set the settings for the advagg module.
+ */
+function scratchpads_tweaks_update_7081(){
+  variable_set('advagg_enabled', TRUE);
+  variable_set('advagg_gzip', TRUE);
+  variable_set('advagg_core_groups', FALSE);
+  variable_set('advagg_use_httprl', FALSE);
+  variable_set('advagg_cache_level', 1);
+  variable_set('advagg_combine_css_media', 1);
+  variable_set('advagg_ie_css_selector_limiter', 1);
+  variable_set('advagg_ie_css_selector_limiter_value', 4095);
+  variable_set('advagg_css_fix_type', 1);
+  variable_set('advagg_js_fix_type', 1);
+  variable_set('advagg_css_compressor', 2);
+  variable_set('advagg_css_inline_compressor', 2);
+  variable_set('advagg_css_inline_compress_if_not_cacheable', 1);
+  variable_set('advagg_js_compressor', 1);
+  variable_set('advagg_js_inline_compressor', 1);
+  variable_set('advagg_js_inline_compress_if_not_cacheable', 1);
+  variable_set('advagg_js_compress_packer', 1);
 }
