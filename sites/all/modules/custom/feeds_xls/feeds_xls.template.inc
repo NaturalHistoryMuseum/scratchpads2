@@ -548,6 +548,7 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
   // Add the Column headers.
   $required_cells = array();
   foreach($feeds_importer->processor->config['mappings'] as $key => $header){
+    $allowed_values = array();
     $first_letter = floor(($key) / 26);
     $second_letter = ($key % 26) + 1;
     $cell = chr(64 + $second_letter);
@@ -604,7 +605,6 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
         }
         $objValidation->setShowInputMessage(TRUE);
         $objValidation->setShowErrorMessage(TRUE);
-        $allowed_values = array();
         if(isset($field['settings']['allowed_values_function']) && function_exists($field['settings']['allowed_values_function'])){
           $allowed_values = call_user_func($field['settings']['allowed_values_function'], $field);
         }else if(isset($field['settings']['allowed_values']) && is_array($field['settings']['allowed_values'])){
@@ -640,51 +640,15 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
             $allowed_values[] = $row->$target_parts[1];
           }
         }
-        if(count($allowed_values)){
-          $objValidation->setType(PHPExcel_Cell_DataValidation::TYPE_LIST);
-          $objValidation->setErrorStyle(PHPExcel_Cell_DataValidation::STYLE_STOP);
-          $objValidation->setShowDropDown(TRUE);
-          $objValidation->setErrorTitle('Input error');
-          $objValidation->setError(t('Your input did not match one of the allowed values.'));
-          $objValidation->setPromptTitle(t('Allowed input'));
-          foreach($allowed_values as $allowed_value){
-            $num_sheets = count($objPHPExcel->getAllSheets());
-            if($num_sheets == 1){
-              $objPHPExcel->createSheet();
-              $objPHPExcel->getSheet(1)->setTitle('PermittedValues');
-            }
-            $row = 0;
-            if(is_array($allowed_value) && isset($allowed_value['vocabulary'])){
-              // Get the vocabulary so we can get the vid.
-              $vocabulary = taxonomy_vocabulary_machine_name_load($allowed_value['vocabulary']);
-              if($vocabulary){
-                $results = db_select('taxonomy_term_data', 't')->fields('t', array(
-                  'name'
-                ))->condition('vid', $vocabulary->vid)->distinct()->execute();
-                foreach($results as $term){
-                  $row++;
-                  $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", _feeds_xls_get_value($term->name));
-                }
-              }
-              $break_at_end = FALSE;
-            }else{
-              foreach($allowed_values as $key => $term){
-                if(!$term){
-                  $term = $key;
-                }
-                $row++;
-                $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", _feeds_xls_get_value($term));
-              }
-              $break_at_end = TRUE;
-            }
-            $objValidation->setPrompt(t("Only values from column '!column' in the 'PermittedValues' worksheet are allowed.", array(
-              '!columnn' => $column
-            )) . "\n\n" . ($field_instance['required'] ? t('This cell may not be left blank.') : t('This cell may be left blank.')));
-            $objValidation->setFormula1('PermittedValues!$' . $column . '$1:$' . $column . '$' . ($row));
-            if($break_at_end){
-              break;
-            }
-          }
+      }
+    }elseif(!empty($feeds_importer->processor->config['character_project'])){
+      if(isset($header['target']) && strpos($header['target'], 'character_editor_character:') !== FALSE){
+        $character_w = character_editor_wrapper($header['target']);
+        if($character_w->type->value() == 'controlled'){
+          $map = character_editor_get_states_map($character_w);
+          $allowed_values = array_keys($map);
+          $objValidation = $sheet->getDataValidation($column . '2:' . $column . '65536');
+          $objValidation->setShowInputMessage(TRUE);
         }
       }
     }else{
@@ -697,6 +661,52 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
         $objValidation->setPromptTitle(t('Required'));
         $objValidation->setPrompt(t('This cell may not be left blank'));
         $objValidation->setShowInputMessage(TRUE);
+      }
+    }
+    if(count($allowed_values)){
+      $objValidation->setType(PHPExcel_Cell_DataValidation::TYPE_LIST);
+      $objValidation->setErrorStyle(PHPExcel_Cell_DataValidation::STYLE_STOP);
+      $objValidation->setShowDropDown(TRUE);
+      $objValidation->setErrorTitle('Input error');
+      $objValidation->setError(t('Your input did not match one of the allowed values.'));
+      $objValidation->setPromptTitle(t('Allowed input'));
+      foreach($allowed_values as $allowed_value){
+        $num_sheets = count($objPHPExcel->getAllSheets());
+        if($num_sheets == 1){
+          $objPHPExcel->createSheet();
+          $objPHPExcel->getSheet(1)->setTitle('PermittedValues');
+        }
+        $row = 0;
+        if(is_array($allowed_value) && isset($allowed_value['vocabulary'])){
+          // Get the vocabulary so we can get the vid.
+          $vocabulary = taxonomy_vocabulary_machine_name_load($allowed_value['vocabulary']);
+          if($vocabulary){
+            $results = db_select('taxonomy_term_data', 't')->fields('t', array(
+              'name'
+            ))->condition('vid', $vocabulary->vid)->distinct()->execute();
+            foreach($results as $term){
+              $row++;
+              $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", _feeds_xls_get_value($term->name));
+            }
+          }
+          $break_at_end = FALSE;
+        }else{
+          foreach($allowed_values as $key => $term){
+            if(!$term){
+              $term = $key;
+            }
+            $row++;
+            $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", _feeds_xls_get_value($term));
+          }
+          $break_at_end = TRUE;
+        }
+        $objValidation->setPrompt(t("Only values from column '!column' in the 'PermittedValues' worksheet are allowed.", array(
+          '!columnn' => $column
+        )) . "\n\n" . ($field_instance['required'] ? t('This cell may not be left blank.') : t('This cell may be left blank.')));
+        $objValidation->setFormula1('PermittedValues!$' . $column . '$1:$' . $column . '$' . ($row));
+        if($break_at_end){
+          break;
+        }
       }
     }
   }
