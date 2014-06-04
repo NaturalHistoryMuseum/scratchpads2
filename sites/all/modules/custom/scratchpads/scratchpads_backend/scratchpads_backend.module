@@ -163,7 +163,7 @@ function scratchpads_backend_menu_local_tasks_alter(&$data, $router_item, $root_
       if(arg(2) == 'biblio'){
         $local_tasks[] = 'biblio/import';
       }else{
-        $local_tasks[] = 'import/node_importer_' . str_replace('-', '_', arg(2));
+        $local_tasks[] = 'import/node_importer_' . str_replace('-', '_', arg(2)) . '_xls';
       }
       break;
     case 'admin/file/%':
