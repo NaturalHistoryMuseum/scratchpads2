@@ -62,6 +62,37 @@ class FeedsCharacterEditorProcessor extends FeedsProcessor{
               $a = $e;
             }
             character_editor_set_character_value($character_w, $entity_w, $value);
+            // Ensure the character project is associated with this row.
+            switch($entity_w->type()){
+              case 'taxonomy_term':
+                $term_found = FALSE;
+                foreach($project_w->field_taxonomic_name as $term){
+                  if($term->tid->value() == $entity_w->tid->value()){
+                    $term_found = TRUE;
+                  }
+                }
+                if(!$term_found){
+                  $new_value = $project_w->field_taxonomic_name->value();
+                  $new_value[] = taxonomy_term_load($entity_w->tid->value());
+                  $project_w->field_taxonomic_name->set($new_value);
+                  $project_w->save();
+                }
+                break;
+              case 'node':
+                $node_found = FALSE;
+                foreach($project_w->field_char_proj_specimen as $node){
+                  if($node->nid->value() == $entity_w->nid->value()){
+                    $node_found = TRUE;
+                  }
+                }
+                if(!$node_found){
+                  $new_value = $project_w->field_char_proj_specimen->value();
+                  $new_value[] = node_load($entity_w->nid->value());
+                  $project_w->field_char_proj_specimen->set($new_value);
+                  $project_w->save();
+                }
+                break;
+            }
           }
         }
       }
