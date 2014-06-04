@@ -588,7 +588,7 @@ function scratchpads_migrate_register_migrations(){
     'group' => MigrateGroup::getInstance('content'),
     'dependencies' => $all_node_dependencies
   );
-  Migration::registerMigration('FieldCollectionMigration', $arguments['machine_name'], $arguments);
+  //Migration::registerMigration('FieldCollectionMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
    * PathRedirect
    ********************************************************************************************/
