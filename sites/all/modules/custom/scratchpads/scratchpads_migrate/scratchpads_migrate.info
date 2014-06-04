@@ -60,7 +60,7 @@ files[] = sources/user_picture.inc
 files[] = sources/variable.inc
 files[] = sources/vocabulary.inc
 files[] = sources/femail.inc
-files[] = sources/field_collection.inc
+;files[] = sources/field_collection.inc
 files[] = sources/webform.inc
 
 ; Destination classes
