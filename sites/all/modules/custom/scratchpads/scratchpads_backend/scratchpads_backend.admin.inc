@@ -48,7 +48,7 @@ function scratchpads_backend_admin_content(){
             $operations = array(
               l(t('View'), $view_url),
               l(t('Add'), 'node/add/' . str_replace('_', '-', $bundle)),
-              $bundle == 'media_gallery' ? '<strike style="color:white">' . t('Import') . '</strike>' : l(t('Import'), ($bundle == 'biblio' ? 'biblio/import' : 'import/node_importer_' . $bundle))
+              $bundle == 'media_gallery' ? '<strike style="color:white">' . t('Import') . '</strike>' : l(t('Import'), ($bundle == 'biblio' ? 'biblio/import' : 'import/node_importer_' . $bundle . '_xls'))
             );
             // If there's a grid editor for this view, add a link
             if(views_get_view('slickgrid_admin_' . $bundle)){
