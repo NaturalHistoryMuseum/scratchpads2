@@ -106,7 +106,7 @@ class FeedsExcelParser extends FeedsParser{
           if(!isset($this->state->column_names)){
             $row_values[] = trim($cell->getCalculatedValue());
           }else{
-            if(trim('' . $cell->getCalculatedValue()) || (count($this->state->column_names) ? $this->state->column_names[$column] : $column) == 'GUID'){
+            if(strlen(trim('' . $cell->getCalculatedValue())) || (count($this->state->column_names) ? $this->state->column_names[$column] : $column) == 'GUID'){
               $row_values[count($this->state->column_names) ? $this->state->column_names[$column] : $column] = '' . $cell->getCalculatedValue();
             }
           }
