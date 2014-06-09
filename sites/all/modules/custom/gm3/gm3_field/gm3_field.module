@@ -905,7 +905,7 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
     case 'gm3_entity_map':
       // Set an ID based on the entity.
       $entity_info = entity_get_info($entity_type);
-      $id = "gm3_map-{$entity->{$entity_info['entity keys']['bundle']}}-{$entity->{$entity_info['entity keys']['id']}}";
+      $id = "gm3_map-{" . (!empty($entity_info['entity keys']['bundle']) ? $entity->{$entity_info['entity keys']['bundle']} : 'bundle') . "}-{$entity->{$entity_info['entity keys']['id']}}";
       break;
     case 'gm3_field_map':
       // Setting the ID here is easy, as we can simply use the field ID.
