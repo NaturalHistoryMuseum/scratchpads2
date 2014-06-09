@@ -106,6 +106,14 @@ function captcha_admin_settings() {
     '#options' => $captcha_type_options,
   );
 
+  // Checkbox to add default CAPTCHA to all non listed forms as well.
+  $form['captcha_form_protection']['captcha_default_challenge_on_nonlisted_forms'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Default challenge on non-listed forms.'),
+    '#default_value' => variable_get('captcha_default_challenge_on_nonlisted_forms', FALSE),
+    '#description' => t('Normally, no challenge is added to forms that are not listed above. Enabling this option will add the default challenge instead.'),
+  );
+
   // Field for the CAPTCHA administration mode.
   $form['captcha_form_protection']['captcha_administration_mode'] = array(
     '#type' => 'checkbox',
@@ -272,6 +280,7 @@ function captcha_admin_settings_submit($form, &$form_state) {
   variable_set('captcha_allow_on_admin_pages', $form_state['values']['captcha_allow_on_admin_pages']);
 
   variable_set('captcha_default_challenge', $form_state['values']['captcha_default_challenge']);
+  variable_set('captcha_default_challenge_on_nonlisted_forms', $form_state['values']['captcha_default_challenge_on_nonlisted_forms']);
 
   // Process CAPTCHA points
   if (isset($form_state['values']['captcha_form_id_overview']['captcha_captcha_points'])) {
