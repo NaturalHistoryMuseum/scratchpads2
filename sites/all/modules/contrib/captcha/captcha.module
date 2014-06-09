@@ -216,12 +216,20 @@ function captcha_element_process($element, &$form_state, $complete_form) {
     '#value' => $captcha_sid,
   );
 
-  // Additional one time CAPTCHA token: store in database and send with form.
-  $captcha_token = md5(mt_rand());
-  db_update('captcha_sessions')
-    ->fields(array('token' => $captcha_token))
+  $captcha_token = db_select('captcha_sessions', 'c')
+    ->fields('c', array('token'))
     ->condition('csid', $captcha_sid)
-    ->execute();
+    ->execute()
+    ->fetchField();
+  if (!isset($captcha_token) && !$form_state['submitted']) {
+    // Additional one-time CAPTCHA token: store in database and send with form.
+    $captcha_token = md5(mt_rand());
+    db_update('captcha_sessions')
+      ->fields(array('token' => $captcha_token))
+      ->condition('csid', $captcha_sid)
+      ->execute();
+  }
+
   $element['captcha_token'] = array(
     '#type' => 'hidden',
     '#value' => $captcha_token,
@@ -349,10 +357,10 @@ function captcha_form_alter(&$form, &$form_state, $form_id) {
       _captcha_insert_captcha_element($form, $captcha_placement, $captcha_element);
     }
   }
-  else if (
-  variable_get('captcha_administration_mode', FALSE)
-  && user_access('administer CAPTCHA settings')
-  && (arg(0) != 'admin' || variable_get('captcha_allow_on_admin_pages', FALSE))
+  elseif (
+    variable_get('captcha_administration_mode', FALSE)
+    && user_access('administer CAPTCHA settings')
+    && (arg(0) != 'admin' || variable_get('captcha_allow_on_admin_pages', FALSE))
   ) {
     // Add CAPTCHA administration tools.
     module_load_include('inc', 'captcha');
