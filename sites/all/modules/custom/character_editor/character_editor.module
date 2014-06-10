@@ -1243,6 +1243,7 @@ function character_editor_export_sdd($entity){
       }
     }
     drupal_add_http_header('Content-Type', 'text/xml; charset=utf-8');
+    //print_r($entity);exit;
     echo $builder->build_xml('character_editor_project', $entity);
     drupal_exit();
   }
@@ -1286,7 +1287,12 @@ function character_editor_schema_array_character_project($variables){
             '#attributes' => array(
               'id' => 'character_editor_specimen_id'
             ),
-            '#child_entity' => '_schemaxml_xml_load_entity'
+            '#child_entity' => '_schemaxml_xml_load_entity',
+            'Representation' => array(
+              'Label' => array(
+                '#field' => 'title'
+              )
+            )
           )
         ),
         'Characters' => array(
@@ -1296,7 +1302,11 @@ function character_editor_schema_array_character_project($variables){
             ),
             'Representation' => array(
               'Label' => array(
-                '#process' => 'characters_controlled'
+                '#field' => 'characters_controlled',
+                '#child_entity' => array(
+                  '_character_editor_pop_child',
+                  'something'
+                )
               )
             ),
             'States' => array(
@@ -1373,8 +1383,19 @@ function character_editor_schema_array_character_project($variables){
   return $schema;
 }
 
-function characters_controlled(){
+function _character_editor_pop_child($a, $b, $c){
+  return $a;
+}
+
+function characters_controlled_process($a, $b, $c){
   return 'arse';
+}
+
+/**
+ * Pop the child character from the project entity.
+ */
+function character_editor_character_id($a, $b, $c){
+  return 'Pants';
 }
 
 /**
@@ -1384,7 +1405,6 @@ function character_editor_taxon_name_id($context){
   return url('taxonomy/term/' . $context->child_entity->tid, array(
     'absolute' => TRUE
   ));
-  //return 'taxonomy-term:' . $context->child_entity->tid;
 }
 
 /**
