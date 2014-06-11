@@ -61,7 +61,7 @@
               var sel = editor.getSelection();
               var element = sel.getStartElement();
               if (element) {
-                element = element.getAscendant('reference_citation', true);
+                element = element.getAscendant('reference-citation', true);
               }
               this.element = element;
               this.setupContent(this.element);
@@ -85,7 +85,7 @@
           
           editor.contextMenu.addListener(function(element) {
             if (element) {
-              element = element.getAscendant('reference_citation', true);
+              element = element.getAscendant('reference-citation', true);
             }
             if (element && !element.data('cke-realelement')) {
               return {'reference_editor' : CKEDITOR.TRISTATE_OFF};

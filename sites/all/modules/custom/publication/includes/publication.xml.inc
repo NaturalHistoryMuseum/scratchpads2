@@ -1107,7 +1107,7 @@ class PublicationXMLBuilder{
       }
     }
     catch(Exception $e){
-      if(!isset($wrapper->raw()->{$field})){
+      if(!property_exists($wrapper->raw(), $field)){
         throw new Exception(t('Field %field not found at path %path', array(
           '%field' => $field,
           '%path' => implode(' > ', $this->path)

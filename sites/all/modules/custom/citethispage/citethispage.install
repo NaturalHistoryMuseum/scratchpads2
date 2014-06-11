@@ -29,7 +29,7 @@ function citethispage_schema(){
         'results' => array(
           'description' => 'The serialized parse results',
           'type' => 'text',
-          'size' => 'normal',
+          'size' => 'big',
           'not null' => TRUE
         )
       ),
@@ -47,4 +47,12 @@ function citethispage_update_7001(){
   if(!db_table_exists('citethispage')){
     drupal_install_schema('citethispage');
   }
+}
+
+/**
+ * Increase the size of the "results" column.
+ */
+function citethispage_update_7002(){
+  $schema = citethispage_schema();
+  db_change_field('citethispage', 'results', 'results', $schema['citethispage']['fields']['results']);
 }
