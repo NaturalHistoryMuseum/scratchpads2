@@ -39,9 +39,21 @@ function pensoft_publication_publication_prepare_build(&$build){
     $weight = 0;
     // Render the relation page
     $relation_page = relation_page($relation);
-    $alt_genus = htmlspecialchars(trim($relation->field_publication_treat_genus[LANGUAGE_NONE][0]['value']));
-    $alt_species = htmlspecialchars(trim($relation->field_publication_treat_species[LANGUAGE_NONE][0]['value']));
-    $alt_authy = htmlspecialchars(trim($relation->field_publication_treat_authy[LANGUAGE_NONE][0]['value']));
+    if (isset($relation->field_publication_treat_genus[LANGUAGE_NONE])){
+      $alt_genus = htmlspecialchars(trim($relation->field_publication_treat_genus[LANGUAGE_NONE][0]['value']));
+    } else {
+      $alt_genus = '';
+    }
+    if (isset($relation->field_publication_treat_species[LANGUAGE_NONE])){
+      $alt_species = htmlspecialchars(trim($relation->field_publication_treat_species[LANGUAGE_NONE][0]['value']));
+    } else {
+      $alt_species = '';
+    }
+    if (isset($relation->field_publication_treat_authy[LANGUAGE_NONE])){
+      $alt_authy = htmlspecialchars(trim($relation->field_publication_treat_authy[LANGUAGE_NONE][0]['value']));
+    } else {
+      $alt_authy = '';
+    }
     if($alt_genus || $alt_species || $alt_authy){
       $title = "<em>$alt_genus</em> <em>$alt_species</em> $alt_authy";
     }else{
@@ -530,8 +542,10 @@ function _pensoft_publication_redirect_if_published($publication){
           '%id' => $data['document_id'],
           '!link' => l($data['document_link'], $data['document_link'])
     )));
-    drupal_goto('publication/' . $publication->pid);
-    return TRUE;
+    if (!variable_get('pubmod_dev_mode', False)){
+      drupal_goto('publication/' . $publication->pid);
+      return TRUE;
+    }
   }
   return FALSE;
 }
@@ -541,8 +555,10 @@ function _pensoft_publication_redirect_if_published($publication){
  */
 function pensoft_publication_publish_form($form, &$form_state, $publication){
   // Just add a message saying that we can't publish at this time
-  drupal_set_message(t("It is not currently possible to publish this to the Pensoft Writting Tool. We hope to have this working in the near future."), 'warning');
-  drupal_goto('publication/' . $publication->pid);
+  if (!variable_get('pubmod_dev_mode', False)){
+    drupal_set_message(t("It is not currently possible to publish this to the Pensoft Writting Tool. We hope to have this working in the near future."), 'warning');
+    drupal_goto('publication/' . $publication->pid);
+  }
   // Check if we have already published this
   if (_pensoft_publication_redirect_if_published($publication)){
     return;
@@ -614,7 +630,7 @@ function pensoft_publication_publish_form($form, &$form_state, $publication){
     '#default_value' => '',
     '#required' => TRUE
   );
-  if(user_access('preview publication xml')){
+  if(variable_get('pubmod_dev_mode', False) || user_access('preview publication xml')){
     $form['pensoft_return_xml'] = array(
       '#type' => 'radios',
       '#title' => 'Data handling',
@@ -639,7 +655,9 @@ function pensoft_publication_publish_form($form, &$form_state, $publication){
 function pensoft_publication_publish_form_validate($form, &$form_state){
   $publication = $form_state['values']['pensoft_publication'];
   if($publication->published){
-    form_set_error('pensoft_publication', t('This publication has already been published'));
+    if (!variable_get('pubmod_dev_mode', False)){
+      form_set_error('pensoft_publication', t('This publication has already been published'));
+    }
   }
 }
 
@@ -650,7 +668,7 @@ function pensoft_publication_publish_form_submit($form, &$form_state){
   module_load_include('xml.inc', 'pensoft_publication');
   $publication = $form_state['values']['pensoft_publication'];
   $xml = _pensoft_publication_build_xml($publication);
-  if(user_access('preview publication xml')){
+  if(variable_get('pubmod_dev_mode', False) || user_access('preview publication xml')){
     $mode = $form_state['values']['pensoft_return_xml'];
     if($mode == 3){
       drupal_set_message(t('XML contains %bytes bytes', array(

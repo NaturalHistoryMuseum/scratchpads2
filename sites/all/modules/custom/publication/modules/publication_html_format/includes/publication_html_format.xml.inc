@@ -21,12 +21,12 @@ class PublicationHtmlFormatXMLModifier extends PublicationHtmlFormatChangeCitati
   public function insert_value($schema, $tag, $value){
     if(is_string($value)){
       // Replace and track table citations
-      $value = preg_replace_callback('/(<tbls_citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/tbls_citation>)/', array(
+      $value = preg_replace_callback('/(<tbls-citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/tbls-citation>)/', array(
         $this,
         '_replace_table_citation'
       ), $value);
       // Replace and track figure citations
-      $value = preg_replace_callback('/(<fig_citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/fig_citation>)/', array(
+      $value = preg_replace_callback('/(<fig-citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/fig-citation>)/', array(
         $this,
         '_replace_figure_citation'
       ), $value);
