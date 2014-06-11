@@ -232,7 +232,7 @@ function publication_field_formatter_view($entity_type, $entity, $field, $instan
         '#markup' => htmlspecialchars($name),
         '#publication_author_name' => $name,
         '#publication_author_id' => $user->uid,
-        '#publication_author_institution' => $user->field_user_institution[LANGUAGE_NONE][0]['safe_value']
+        '#publication_author_institution' => isset($user->field_user_institution[LANGUAGE_NONE]) ? $user->field_user_institution[LANGUAGE_NONE][0]['safe_value'] : ''
       );
     }
   }else if($display['type'] == 'publication_figure'){
