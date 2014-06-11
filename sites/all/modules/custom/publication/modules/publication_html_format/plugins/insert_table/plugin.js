@@ -62,9 +62,9 @@
                 // Handle single inserts
                 $row.click(function() {
                   editor.insertElement(CKEDITOR.dom.element.createFromHtml(
-                      '<tbls_citation citation_id="'+ id + '" contenteditable="false" title="'
+                      '<tbls-citation citation_id="'+ id + '" contenteditable="false" title="'
                       + Drupal.t('Table citation. These will be re-numbered when the publication is finalised.')
-                      +'">Table [id:' + id + ']</tbls_citation>'));
+                      +'">Table [id:' + id + ']</tbls-citation>'));
                   editor.updateElement();
                   $.colorbox.close();
                 });
@@ -77,9 +77,9 @@
               var elements = [];
               $tables.find('tr.pensoft_select_table_row input:checked').each(function() {
                 var id = $(this).attr('name');
-                var line = '<tbls_citation citation_id="'+ id + '" contenteditable="false" title="'
+                var line = '<tbls-citation citation_id="'+ id + '" contenteditable="false" title="'
                 + Drupal.t('Table citation. These will be re-numbered when the publication is finalised.')
-                + '">Table [id:' + id + ']</tbls_citation>';
+                + '">Table [id:' + id + ']</tbls-citation>';
 
                 editor.insertElement(CKEDITOR.dom.element.createFromHtml(line));
               });
