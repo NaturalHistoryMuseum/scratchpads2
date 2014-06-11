@@ -285,59 +285,6 @@
         this.settings['zoomControlOptions']['style'] = eval(this.settings['zoomControlOptions']['style']);
       }
     }
-    Drupal.GM3.prototype.get_bounds = function(type){
-      // Get the current map bounds. If type is 'center', returns center/zoom ;
-      // if type is 'bounds' return ne/sw corners. If type is undefined returns
-      // both.
-      var result = {};
-      var center = this.google_map.getCenter();
-      var zoom = this.google_map.getZoom();
-      if ((typeof type === 'undefined' || type == 'center' || type == 'centre') && center) {
-        result.center = {
-          lat: center.lat(),
-          lng: center.lng(),
-        };
-        result.zoom = zoom;
-      }
-      var bounds = this.google_map.getBounds();
-      if ((typeof type === 'undefined' || type == 'bounds') && bounds) {
-        var ne = bounds.getNorthEast();
-        var sw = bounds.getSouthWest();
-        result.sw = {
-          lat: sw.lat(),
-          lng: sw.lng()
-        };
-        result.ne = {
-          lat: ne.lat(),
-          lng: ne.lng()
-        }
-      }
-      return result;
-    }
-    Drupal.GM3.prototype.set_bounds = function(bounds){
-      // Set the map bounds
-      var old_bounds = this.get_bounds();
-      if (typeof bounds.center !== 'undefined' && bounds.zoom !== 'undefined') {
-        // This method is more exact if the width/height of the map is the same
-        var center = new google.maps.LatLng(bounds.center.lat, bounds.center.lng);
-        this.google_map.setCenter(center);
-        this.google_map.setZoom(bounds.zoom);
-      } else if (typeof bounds.sw !== 'undefined' && bounds.ne !== 'undefined') {
-        // This ensures the bounds are visible, but the map overall may be larger
-        var sw = new google.maps.LatLng(bounds.sw.lat, bounds.sw.lng);
-        var ne = new google.maps.LatLng(bounds.ne.lat, bounds.ne.lng);
-        this.google_map.fitBounds(new google.maps.LatLngBounds(sw, ne));
-      }
-      var new_bounds = this.get_bounds();
-      if (new_bounds.center.lat == old_bounds.center.lat &&
-          new_bounds.center.lng == old_bounds.center.lng &&
-          new_bounds.zoom == old_bounds.zoom) {
-        // If the bounds don't actually change, the clusters are removed
-        // and not redrawn. This ensures everything gets refreshed properly.
-        this.google_map.panBy(1,0);
-        this.google_map.panBy(-1,0);
-      }
-    }
     // Entry point. Add a map to a page. This should hopefully work via AJAX.
     Drupal.behaviors.gm3 = {attach: function(context, settings){
       // We run all the other behaviors before this one so that we've got the
