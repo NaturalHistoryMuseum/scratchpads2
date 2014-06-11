@@ -19,9 +19,9 @@ ol,ul,dl
     padding:0 40px;
 }
 
-reference_citation,
-fig_citation,
-tbls_citation {
+reference-citation,
+fig-citation,
+tbls-citation {
   background: #DDD;
   border: 1px dashed #AAA;
 }
