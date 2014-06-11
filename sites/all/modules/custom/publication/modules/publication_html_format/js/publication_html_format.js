@@ -27,10 +27,10 @@
             } else {
               authors_str = authors.join(" " + Drupal.t("and") + " ");
             }
-            inserts[i] = '<reference_citation citation_id="' + nid
+            inserts[i] = '<reference-citation citation_id="' + nid
                 + '" contenteditable="false" title="'
                 + Drupal.t('Reference citation. Right click to edit.')
-                + '">' + authors_str + " " + year + '</reference_citation>';
+                + '">' + authors_str + " " + year + '</reference-citation>';
 
             if (Drupal.settings["pensoft"].references_map[nid] == undefined) {
               Drupal.settings["pensoft"].references_map[nid] = true;
@@ -83,9 +83,9 @@
           if (matches != null && matches.length > 0) {
             var fid = matches[1];
             var filename = matches[2];
-            var tpl = '<fig_citation citation_id="%" contenteditable="false" title="'
+            var tpl = '<fig-citation citation_id="%" contenteditable="false" title="'
               + Drupal.t('Figure citation. These will be re-numbered when the publication is finalised.')
-              + '">Figure [filename:~]</fig_citation>';
+              + '">Figure [filename:~]</fig-citation>';
             if (Drupal.settings["pensoft"].figures_map[fid] != undefined) {
               inserts[i] = tpl.replace('%', fid).replace('~', filename);
             } else {
