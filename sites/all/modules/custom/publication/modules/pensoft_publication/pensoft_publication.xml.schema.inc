@@ -51,21 +51,19 @@ function _pensoft_publication_xml_treatment_field($context, $field, $alt = FALSE
   return $value;
 }
 
-function _pensoft_publication_xml_process_continent_ocean($context, $value, $choice){
-  if (!$value){
-    try{
-      $value = $context->wrapper->field_continent_or_ocean->value();
-    } catch (Exception $e){
-      throw new Exception("Failed to obtain continent");
-    }
+function _pensoft_publication_xml_process_continent_ocean($context, $select){
+  try{
+    $value = $context->wrapper->field_continent_or_ocean->value();
+  } catch (Exception $e){
+    throw new Exception("Failed to obtain continent");
   }
   if (empty($value)){
     return '';
   }
   $is_ocean = preg_match('/(ocean|atlantic|pacific)/i', $value);
-  if ($is_ocean && $choice == 'ocean'){
+  if ($is_ocean && $select == 'ocean'){
     return $value;
-  } else if (!$is_ocean && $choice == 'continent'){
+  } else if (!$is_ocean && $select == 'continent'){
     return $value;
   }
   return '';
@@ -87,7 +85,7 @@ function _pensoft_publication_xml_process_classification($context){
 /**
  * Process function for biblio values
  */
-function _pensoft_publication_xml_process_biblio($context, $value_type){
+function _publication_xml_process_biblio($context, $value_type){
   $type_map = array(
     100 => 'Book',
     101 => 'Book chapter',
@@ -1326,6 +1324,7 @@ function pensoft_publication_schema_array_pensoft_publication_systematics($varia
         '#comment' => "'extant' or 'fossil' or ''. This is part of Specimen for us, not taxon ?"
       ) // XXX
     ),
+    /*
     'habitat' => array(
       '#condition' => function($context) {
         $hab_value = $context->wrapper->field_habitat->value();
@@ -1341,6 +1340,7 @@ function pensoft_publication_schema_array_pensoft_publication_systematics($varia
         '#comment' => "'terrestrial', 'marine', 'freshwater', 'N/A' or 'empty'"
       )
     )
+    */
     // parasite_of, XXX we will have this with the Relation branch ?
     // classification_root_id, XXX Not sure what this is ?
     // taxon_treatment_host_of, XXX we will have this with the Relation branch ?
@@ -1981,7 +1981,7 @@ function pensoft_publication_schema_array_pensoft_publication_references($variab
     'reference' => array(
       '#attributes' => array(
         'id' => function($context) {
-          return $context->raw_value['nid'];
+          return $context->raw_value->nid;
         }
       ),
       '#field' => 'field_publication_references',
@@ -2325,14 +2325,23 @@ function pensoft_publication_schema_array_pensoft_publication_figures($variables
       ),
       '#attributes' => array(
         'id' => function($context) {
-           $collection = reset(entity_load('field_collection_item', array($context->raw_value['value'])));
-           $wrapper = entity_metadata_wrapper('field_collection_item', $collection);
+           $wrapper = entity_metadata_wrapper('field_collection_item', $context->raw_value);
            return $wrapper->field_publication_figure_figure->file->fid->value();
        }
       ),
-      'caption' => array(
-        '#field' => 'field_publication_figure_title'
+      // fields,
+      'image' => array(
+        'fields' => array(
+          'figure_caption' => array(
+            'value' => array(
+              '#field' => 'field_publication_figure_title'
+            )
+          )
+        )  
       ),
+      // video
+      // multple_image_plate
+      /*
       'url' => array(
         '#field' => 'field_publication_figure_figure',
         '#process' => '_publication_xml_process_get_file_url'
@@ -2346,11 +2355,6 @@ function pensoft_publication_schema_array_pensoft_publication_figures($variables
           '#field' => 'field_publication_figure_desc',
           '#raw' => TRUE
         )
-      ),
-      /*'#attributes' => array(
-        'id' => '',
-        'is_plate' => '',
-        'type' => ''
       ),
       */
     )
@@ -2383,14 +2387,19 @@ function pensoft_publication_schema_array_pensoft_publication_tables($variables)
            return $wrapper->field_publication_table_id->value();
         }
       ),
-      'caption' => array(
-          '#field' => 'field_publication_table_title'
-      ),
-      'content' => array(
-        'value' => array(
-          '#field' => 'field_publication_table',
-          '#raw' => TRUE
+      'fields' => array(
+        'table_caption' => array(
+          'value' => array(
+            '#field' => 'field_publication_table_title'
+          )
+        ),
+        'table_editor' => array(
+          'value' => array(
+            '#field' => 'field_publication_table',
+            '#raw' => TRUE
+          )
         )
+        // table_number
       )
     )
   );
