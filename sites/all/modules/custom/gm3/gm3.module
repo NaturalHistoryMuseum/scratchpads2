@@ -438,7 +438,7 @@ function gm3_settings(){
     ),
     'mapTypeId' => 'google.maps.MapTypeId.TERRAIN', // SATELLITE, TERRAIN, ROADMAP, HYBRID
     'maxZoom' => null,
-    'minZoom' => 2,
+    'minZoom' => null,
     'noClear' => FALSE,
     'overviewMapControl' => FALSE,
     'overviewMapControlOptions' => array(
