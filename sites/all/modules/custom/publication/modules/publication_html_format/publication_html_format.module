@@ -110,15 +110,15 @@ class PublicationHtmlFormatChangeCitations{
   */
   function process(&$build, $limit_to_fields = array(), $apply = FALSE){
     if(isset($build['#markup']) && $apply){
-      $build['#markup'] = preg_replace_callback('/(<tbls_citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/tbls_citation>)/', array(
+      $build['#markup'] = preg_replace_callback('/(<tbls-citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/tbls-citation>)/', array(
         $this,
         '_replace_table_citation'
       ), $build['#markup']);
-      $build['#markup'] = preg_replace_callback('/(<fig_citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/fig_citation>)/', array(
+      $build['#markup'] = preg_replace_callback('/(<fig-citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/fig-citation>)/', array(
         $this,
         '_replace_figure_citation'
       ), $build['#markup']);
-      $build['#markup'] = preg_replace_callback('/(<reference_citation.*?citation_id=["\'](.*?)["\'].*?>)(.*?)(<\/reference_citation>)/', array(
+      $build['#markup'] = preg_replace_callback('/(<reference-citation.*?citation_id=["\'](.*?)["\'].*?>)(.*?)(<\/reference-citation>)/', array(
         $this,
         '_replace_reference_citation'
       ), $build['#markup']);
@@ -146,7 +146,7 @@ class PublicationHtmlFormatChangeCitations{
       $this->table_ids[] = $id;
       $table_number = count($this->table_ids);
     }
-    $out = '<tbls_citation citation_id="' . $id . '" contenteditable="false">' . t('Table') . ' ' . $table_number . '</tbls_citation>';
+    $out = '<tbls-citation citation_id="' . $id . '" contenteditable="false">' . t('Table') . ' ' . $table_number . '</tbls-citation>';
     return $out;
   }
 
@@ -162,7 +162,7 @@ class PublicationHtmlFormatChangeCitations{
       $this->figure_ids[] = $id;
       $figure_number = count($this->figure_ids);
     }
-    $out = '<fig_citation citation_id="' . $id . '" contenteditable="false">' . t('Figure') . ' ' . $figure_number . '</fig_citation>';
+    $out = '<fig-citation citation_id="' . $id . '" contenteditable="false">' . t('Figure') . ' ' . $figure_number . '</fig-citation>';
     return $out;
   }
 
@@ -183,9 +183,9 @@ class PublicationHtmlFormatChangeCitations{
         $authors = implode(' and ', $all_authors);
       }
       $year = $node->biblio_year;
-      return '<reference_citation citation_id="' . $nid . '" contenteditable="false">' . "$authors $year</reference_citation>";
+      return '<reference-citation citation_id="' . $nid . '" contenteditable="false">' . "$authors $year</reference-citation>";
     }else{
-      return '<reference_citation citation_id="' . $nid . '" contenteditable="false">' . $matches[3] . "</reference_citation>";
+      return '<reference-citation citation_id="' . $nid . '" contenteditable="false">' . $matches[3] . "</reference-citation>";
     }
   }
 }
