@@ -39,6 +39,7 @@ function _character_editor_export_sdd($entity){
   $character_tree = $character_tree->addChild('CharacterTree');
   $nodes = $character_tree->addChild('Nodes');
   $tree = character_editor_get_tree($entity_w);
+  $character_ids_and_types = array();
   foreach($tree as $character){
     // TODO - Add media.
     switch($character['wrapper']->type->value()){
@@ -86,6 +87,7 @@ function _character_editor_export_sdd($entity){
         $node_xml->addAttribute('ref', 'character' . $character['wrapper']->id->value());
         break;
       default:
+        $character_ids_and_types[$character['wrapper']->id->value()] = $character['wrapper']->type->value();
         $node_xml = $nodes->addChild('CharNode');
         $node_xml = $node_xml->addChild('Character');
         $node_xml->addAttribute('ref', 'character' . $character['wrapper']->id->value());
@@ -121,13 +123,49 @@ function _character_editor_export_sdd($entity){
       case 'node':
         break;
     }
+    $summary_data = FALSE;
     foreach($row as $id => $data){
-      if(substr($id, 0, 10) == 'character_' && $data = json_decode($data, TRUE)){
-        if(isset($data['value'])){
-          foreach(explode(',', $data['value']) as $data_value){
-            
+      foreach($character_ids_and_types as $key => $type){
+        if(substr($id, 0, strlen($key) + 11) == 'character_' . $key . '_'){
+          switch($type){
+            case 'numeric':
+              if(($data = json_decode($data, TRUE)) != FALSE && isset($data['data']) && strlen($data['data'])){
+                if(!$summary_data){
+                  $summary_data = $coded_description->addChild('SummaryData');
+                }
+                $quantitative = $summary_data->addChild('Quantitative');
+                $quantitative->addAttribute('ref', 'character' . $key);
+                $measure = $quantitative->addChild('Measure');
+                $measure->addAttribute('value', $data['data']);
+                break;
+              }
+            case 'text':
+              if(($data = json_decode($data, TRUE)) != FALSE && isset($data['data']) && strlen($data['data'])){
+                if(!$summary_data){
+                  $summary_data = $coded_description->addChild('SummaryData');
+                }
+                $text = $summary_data->addChild('Text');
+                $text->addAttribute('ref', 'character' . $key);
+                $content = $text->addChild('Content', $data['data']);
+                break;
+              }
+              break;
+            case 'controlled':
+              if(($data = json_decode($data, TRUE)) != FALSE){
+                if(isset($data['value'])){
+                  if(!$summary_data){
+                    $summary_data = $coded_description->addChild('SummaryData');
+                  }
+                  $categorical = $summary_data->addChild('Categorical');
+                  $categorical->addAttribute('ref', 'character' . $key);
+                  foreach(explode(',', $data['value']) as $data_value){
+                    $state = $categorical->addChild('State');
+                    $state->addAttribute('ref', 'state' . $data_value);
+                  }
+                }
+              }
+              break;
           }
-        }elseif(isset($data['data'])){
         }
       }
     }
