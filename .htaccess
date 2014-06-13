@@ -133,7 +133,7 @@ DirectoryIndex index.php index.html index.htm
 
     # Serve correct content types, and prevent mod_deflate double gzip.
     RewriteRule \.css\.gz$ - [T=text/css,E=no-gzip:1]
-    RewriteRule \.js\.gz$ - [T=text/javascript,E=no-gzip:1]
+    RewriteRule \.js\.gz$ - [T=application/javascript,E=no-gzip:1]
 
     <FilesMatch "(\.js\.gz|\.css\.gz)$">
       # Serve correct encoding type.
