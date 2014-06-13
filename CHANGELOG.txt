@@ -1,3 +1,7 @@
+2.5.1.1 (2014-06-13)
+
+- Tweak the .htaccess file for the AdvAgg module
+
 2.5.1 (2014-06-13)
 
 - Fix a bug with Google Maps that prevented wide area points from displaying (#4150)
