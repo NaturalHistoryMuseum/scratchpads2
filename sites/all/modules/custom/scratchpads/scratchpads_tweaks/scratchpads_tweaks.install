@@ -1451,9 +1451,9 @@ function scratchpads_tweaks_update_7081(){
   variable_set('advagg_ie_css_selector_limiter_value', 4095);
   variable_set('advagg_css_fix_type', 1);
   variable_set('advagg_js_fix_type', 1);
-  variable_set('advagg_css_compressor', 2);
-  variable_set('advagg_css_inline_compressor', 2);
-  variable_set('advagg_css_inline_compress_if_not_cacheable', 1);
+  variable_set('advagg_css_compressor', 0);
+  variable_set('advagg_css_inline_compressor', 0);
+  variable_set('advagg_css_inline_compress_if_not_cacheable', 0);
   variable_set('advagg_js_compressor', 1);
   variable_set('advagg_js_inline_compressor', 1);
   variable_set('advagg_js_inline_compress_if_not_cacheable', 1);
