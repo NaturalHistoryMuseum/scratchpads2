@@ -1,3 +1,7 @@
+2.5.1.2 (2014-06-16)
+
+- Ensure GM3 fields render correctly (#4152)
+
 2.5.1.1 (2014-06-13)
 
 - Tweak the .htaccess file for the AdvAgg module
