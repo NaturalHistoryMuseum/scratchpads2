@@ -400,6 +400,50 @@ function scratchpads_media_gallery_node_update($node){
 }
 
 /**
+ * Implements hook_node_delete()
+ */
+function scratchpads_media_gallery_node_delete($node){
+  if($node->type == 'media_gallery'){
+    // We edit the file entities to add this node id to their respective field.
+    // We simply get a list of fids that currently have this node associated, and
+    // remove the ones that have been removed, and add ones that have been added.
+    $results = db_select('field_data_field_smg_galleries', 'f')->fields('f', array(
+      'entity_id'
+    ))->condition('field_smg_galleries_nid', $node->nid)->execute();
+    $current_fids = array();
+    while(($row = $results->fetch()) != FALSE){
+      $current_fids[$row->entity_id] = $row->entity_id;
+    }
+    $files = entity_load('file', $current_fids);
+    foreach($files as $file){
+      // Removing
+      $lang = field_language('file', $file, 'field_smg_galleries');
+      foreach($file->field_smg_galleries[$lang] as $delta => $value){
+        if($value['nid'] == $node->nid){
+          unset($file->field_smg_galleries[$lang][$delta]);
+        }
+      }
+      entity_save('file', $file);
+    }
+    // We're updating a media gallery node.  We therefore mark each file associated
+    // with the node as needing reindexing.
+    $table = apachesolr_get_indexer_table('file');
+    db_update($table)->fields(array(
+      'changed' => REQUEST_TIME
+    ))->condition('entity_id', $current_fids)->condition('entity_type', 'file')->execute();
+    // We set the last successfully indexed file based on the request time.
+    $query = db_select($table);
+    $query->addExpression('MAX(entity_id)', 'max_entity_id');
+    $last_entity_id = $query->condition('entity_type', 'file')->condition('changed', REQUEST_TIME, '<')->execute()->fetchField();
+    $env_id = apachesolr_default_environment();
+    $env = apachesolr_environment_load($env_id);
+    $env['conf']['apachesolr_index_last']['file']['last_entity_id'] = $last_entity_id ? $last_entity_id : 0;
+    apachesolr_environment_save($env);
+    apachesolr_environments_clear_cache();
+  }
+}
+
+/**
  * Implementation of hook_facetapi_facet_info().
  */
 function scratchpads_media_gallery_facetapi_facet_info($searcher_info = FALSE){
