@@ -120,4 +120,4 @@ dependencies[] = schemaxml
 
 package = Scratchpad tools
 
-;tool = true
+tool = true
