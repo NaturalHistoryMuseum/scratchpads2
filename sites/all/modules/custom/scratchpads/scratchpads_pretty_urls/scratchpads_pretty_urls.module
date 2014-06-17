@@ -32,5 +32,7 @@ function scratchpads_pretty_urls_cron(){
   ))->distinct();
   $query->innerJoin('url_alias', 'u', 'u.source = r.redirect AND u.alias = r.source');
   $rids = $query->execute()->fetchCol();
-  db_delete('redirect')->condition('rid', $rids)->execute();
+  if(count($rids)){
+    db_delete('redirect')->condition('rid', $rids)->execute();
+  }
 }
