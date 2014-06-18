@@ -169,6 +169,12 @@ function silver_feeds_importer_default(){
     $field_info = field_info_instances('node', $node_type);
     $field_info = _silver_feeds_sort_field_info('node', $node_type, $field_info);
     _silver_feeds_importer_default_helper($field_info, $feeds_importer, "node:$node_type:");
+    // Add a mapping for the author of the node
+    $feeds_importer->config['processor']['config']['mappings'][] = array(
+      'source' => 'Node Author (UID)',
+      'target' => 'uid',
+      'unique' => FALSE
+    );
     $export['node_importer_' . $node_type . '_xls'] = $feeds_importer;
     if(module_exists('silvercsv')){
       $csv_importer = clone $feeds_importer;
