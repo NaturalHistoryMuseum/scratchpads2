@@ -4,6 +4,17 @@ DEFINE('FIELD_MEDIA_FILE_EXTENSIONS', 'svg tiff jpg jpeg gif png txt doc docx xl
 include_once ('scratchpads_media_gallery.features.inc');
 
 /**
+ * Implements hook_query_media_browser_alter().
+ */
+function scratchpads_media_gallery_query_media_browser_alter($query){
+  // We're not actually altering the query here, we are instead altering $_GET
+  // so that the extensions are included in upper case too.
+  if(isset($_GET['file_extensions'])){
+    $_GET['file_extensions'] = strtolower($_GET['file_extensions']) . ' ' . strtoupper($_GET['file_extensions']);
+  }
+}
+
+/**
  * Implementation of hook_menu_alter().
  */
 function scratchpads_media_gallery_menu_alter(&$items){
