@@ -155,11 +155,11 @@ function _scratchpads_tweaks_cron(){
           $lastedit = $lastedit ? format_date($lastedit) : t('Never');
           global $language;
           variable_set('scratchpads_tweaks_site_active_check_time', $time);
-          drupal_mail('scratchpads_tweaks', 'nominate-for-deletion', 'Scratchpads Support Team <support@scratchpads.eu>', $language, array(
+          /*drupal_mail('scratchpads_tweaks', 'nominate-for-deletion', 'Scratchpads Support Team <support@scratchpads.eu>', $language, array(
             'nodes' => $num_nodes,
             'login' => $login,
             'edit' => $lastedit
-          ));
+          ));*/
         }else{
           variable_set('scratchpads_tweaks_site_active', TRUE);
         }
