@@ -28,6 +28,18 @@ function tcsdc_menu(){
 }
 
 /**
+ * Implements hook_cron()
+ */
+function tcsdc_cron(){
+  // Delete any records in the tcsdc_data table that are associated with batch
+  // objects that have failed.
+  $subquery = db_select('batch', 'b')->fields('b', array(
+    'bid'
+  ));
+  db_delete('tcsdc_data')->condition('bid', $subquery, 'NOT IN')->execute();
+}
+
+/**
  * Implementation of hook_silver().
  */
 function tcsdc_silver(){
