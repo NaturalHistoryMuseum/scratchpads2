@@ -362,6 +362,7 @@ function scratchpads_events_views_default_views() {
     'field_data_field_event_date.field_event_date_value' => 'field_data_field_event_date.field_event_date_value',
   );
   $handler->display->display_options['block_description'] = 'Events Calendar';
+  $handler->display->display_options['block_caching'] = 8;
 
   /* Display: Upcoming events Page */
   $handler = $view->new_display('page', 'Upcoming events Page', 'page_5');
@@ -673,6 +674,7 @@ function scratchpads_events_views_default_views() {
   $handler->display->display_options['filters']['field_event_date_value']['form_type'] = 'date_popup';
   $handler->display->display_options['filters']['field_event_date_value']['default_date'] = 'now';
   $handler->display->display_options['block_description'] = 'Upcoming events';
+  $handler->display->display_options['block_caching'] = 8;
   $export['event_calendar'] = $view;
 
   return $export;
