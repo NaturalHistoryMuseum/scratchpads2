@@ -676,6 +676,7 @@ function scratchpads_front_views_default_views(){
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'block');
   $handler->display->display_options['block_description'] = 'Front page content block';
+  $handler->display->display_options['block_caching'] = 8;
   $views['front_page_content'] = $view;
   return $views;
 }
