@@ -177,4 +177,7 @@ function _scratchpads_tweaks_cron(){
       }
     }
   }
+  // Remove any "batch" objects older than one week (they have almost definitely
+  // failed).
+  db_delete('batch')->condition('timestamp', time() - 604800, '<')->execute();
 }
