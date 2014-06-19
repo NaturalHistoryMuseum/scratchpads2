@@ -264,6 +264,21 @@ function scratchpads_front_page_view(){
 }
 
 /**
+ * Implements hook_entity_view
+ */
+function scratchpads_front_entity_view_alter(&$build, $type){
+  if($type == 'file' && isset($build['#view_mode']) && $build['#view_mode'] == 'file_styles_slideshow_large'){
+    $matches = FALSE;
+    preg_match('/<img [^>]*>/', $build['file']['#markup'], $matches);
+    if($matches){
+      $build['file']['#markup'] = str_replace($matches[0], l($matches[0], 'file/'.$build['file']['#file']->fid, array(
+        'html' => TRUE
+      )), $build['file']['#markup']);
+    }
+  }
+}
+
+/**
  * Menu callback
  * Edit the home page
  */
