@@ -562,7 +562,7 @@ function scratchpads_tweaks_views_default_views_alter(&$views){
     foreach(array_keys($views[$view_id]->display) as $display_id){
       $views[$view_id]->display[$display_id]->display_options['cache'] = array(
         'type' => 'time',
-        'results_lifespan' => 300,
+        'results_lifespan' => -1,
         'results_lifespan_custom' => 0,
         'output_lifespan' => 300,
         'output_lifespan_custom' => 0
