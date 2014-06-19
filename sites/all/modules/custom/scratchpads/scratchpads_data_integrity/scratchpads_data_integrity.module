@@ -79,11 +79,11 @@ function scratchpads_data_integrity_scratchpads_data_integrity(){
       'frequency' => 604800,
       'mail' => FALSE
     ),
-    'scratchpads_data_integrity_check_for_orphan_field_values' => array(
+    /*'scratchpads_data_integrity_check_for_orphan_field_values' => array(
       'file' => 'scratchpads_data_integrity.inc',
       'frequency' => 604800,
       'mail' => TRUE
-    )
+    )*/
   );
 }
 
