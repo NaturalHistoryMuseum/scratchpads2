@@ -976,9 +976,12 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
     case 'gm3_point':
       if(count($items)){
         // Set the items as not being editable.
-        foreach($items as $key => $item){
+        foreach(array_keys($items) as $key){
           $items[$key]['editable'] = FALSE;
           $items[$key]['colour'] = variable_get('gm3_default_point_colour', 0);
+          if(!isset($items[$key]['content'])){
+            $items[$key]['content'] = 'Latitude: ' . $items[$key]['latitude'] . '<br/>Longitude: ' . $items[$key]['longitude'];
+          }
         }
         module_load_include('theme.inc', 'gm3');
         $element = gm3_get_map(array(
