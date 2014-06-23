@@ -59,7 +59,8 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
       'taxonomy',
       'text',
       'options',
-      'tree_widget'
+      'tree_widget',
+      'cck_select_other'
     ))){
       $field_options[$key] = $instance['label'];
       if(substr($instance['widget']['type'], 0, 5) == 'text_'){
