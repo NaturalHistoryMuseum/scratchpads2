@@ -354,8 +354,7 @@ function pensoft_publication_publication_edit_form_submit($form, &$form_state){
         }
       }
     }
-    // FIXME - This also needs changing.
-    $values['relation_fields']['field_publication_treat_fields'][LANGUAGE_NONE][0]['value'] = implode(',', $fields_to_include);
+    $values['relation_fields']['field_publication_treat_fields'][$lang][0]['value'] = implode(',', $fields_to_include);
   }
 }
 

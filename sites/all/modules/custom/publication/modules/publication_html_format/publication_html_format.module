@@ -450,8 +450,9 @@ function publication_html_format_form_publication_edit_form_alter(&$form, &$form
     }
     $collection = & $form['field_publication_tables'][$lang][$elem_key];
     // FIXME - These need updating.  What entity is a collection (I'm guessing relation).
-    if(!empty($collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#default_value'])){
-      $table_id_value = $collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#default_value'];
+    $lang = field_language('field_collection', $collection, 'field_publication_table_id');
+    if(!empty($collection['field_publication_table_id'][$lang][0]['value']['#default_value'])){
+      $table_id_value = $collection['field_publication_table_id'][$lang][0]['value']['#default_value'];
       if($table_id_value >= $table_key){
         $table_key = $table_id_value + 1;
       }
