@@ -71,7 +71,7 @@ class PublicationHtmlFormatXMLModifier extends PublicationHtmlFormatChangeCitati
         $max_order = count($this->figure_ids);
         foreach($values as $collection){
           $lang = field_language('field_collection', $collection, 'field_publication_figure_figure');
-          $fid = $collection->field_publication_figure_figure[LANGUAGE_NONE][0]['fid'];
+          $fid = $collection->field_publication_figure_figure[$lang][0]['fid'];
           $order = array_search($fid, $this->figure_ids);
           if($order === FALSE){
             $order = $max_order++;
