@@ -1391,8 +1391,9 @@ function _publication_xml_load_parent_term($context, $value, $rank = NULL){
   }
   $terms = taxonomy_get_parents($value);
   while(!empty($terms)){
-    $current = array_shift($terms);
-    if($rank === NULL || $current->field_rank[LANGUAGE_NONE][0]['value'] == $rank){return array(
+    $current = array_shift($termmeds);
+    $lang = field_language('node', $current, 'field_rank');
+    if($rank === NULL || $current->field_rank[$lang][0]['value'] == $rank){return array(
         'entity_type' => 'taxonomy_term',
         'entity' => $current
       );}
@@ -1415,8 +1416,10 @@ function _publication_xml_load_specimen($context, $value){
     unset($location->title);
     $specimen = ((object)(array_merge((array)$specimen, (array)($location))));
   }
-  $specimen->field_collector[LANGUAGE_NONE] = array();
-  $specimen->field_identified_by[LANGUAGE_NONE] = array();
+  $lang = field_language('node', $specimen, 'field_collector');
+  $specimen->field_collector[$lang] = array();
+  $lang = field_language('node', $specimen, 'field_identified_by');
+  $specimen->field_identified_by[$lang] = array();
   return $specimen;
 }
 
