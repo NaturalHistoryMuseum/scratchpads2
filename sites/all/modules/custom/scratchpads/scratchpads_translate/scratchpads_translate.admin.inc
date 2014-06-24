@@ -138,7 +138,7 @@ function scratchpads_translate_setup_translation_form(){
 function scratchpads_translate_setup_translation_form_submit(&$form, &$form_state){
   $fields_to_translate = array();
   foreach($form_state['values'] as $entity_type => $values){
-    if(isset($values['bundles'])){
+    if(isset($values['bundles']) && is_array($values['bundles'])){
       foreach($values['bundles'] as $bundle_name => $set){
         switch($entity_type){
           case 'node':
