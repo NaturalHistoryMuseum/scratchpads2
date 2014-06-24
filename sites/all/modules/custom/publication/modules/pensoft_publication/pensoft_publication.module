@@ -164,8 +164,8 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
         $node = NULL;
       }
       if(isset($relation->field_publication_treat_fields)){
-        $lang3 = field_language('relation', $relation, 'field_publication_treat_fields');
-        $selected_fields = explode(',', $relation->field_publication_treat_fields[$lang3][0]['value']);
+        $lang2 = field_language('relation', $relation, 'field_publication_treat_fields');
+        $selected_fields = explode(',', $relation->field_publication_treat_fields[$lang2][0]['value']);
       }else{
         $selected_fields = array();
       }
@@ -174,11 +174,11 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
     hide($treatment_form['relation_fields']['field_publication_treat_fields']);
     // Hide Genus if rank is species
     if($node){
-      $lang4 = field_language('node', $node, 'field_taxonomic_name');
-      $tid = $node->field_taxonomic_name[$lang4][0]['tid'];
+      $lang2 = field_language('node', $node, 'field_taxonomic_name');
+      $tid = $node->field_taxonomic_name[$lang2][0]['tid'];
       $term = taxonomy_term_load($tid);
-      $lang4 = field_language('taxonomy_term', $term, 'field_rank');
-      if($term->field_rank[$lang4][0]['value'] != 'Species'){
+      $lang2 = field_language('taxonomy_term', $term, 'field_rank');
+      if($term->field_rank[$lang2][0]['value'] != 'Species'){
         hide($treatment_form['relation_fields']['field_publication_treat_species']);
       }
     }

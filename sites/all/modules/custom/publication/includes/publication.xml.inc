@@ -1391,8 +1391,8 @@ function _publication_xml_load_parent_term($context, $value, $rank = NULL){
   }
   $terms = taxonomy_get_parents($value);
   while(!empty($terms)){
-    $current = array_shift($termmeds);
-    $lang = field_language('node', $current, 'field_rank');
+    $current = array_shift($terms);
+    $lang = field_language('taxonomy_term', $current, 'field_rank');
     if($rank === NULL || $current->field_rank[$lang][0]['value'] == $rank){return array(
         'entity_type' => 'taxonomy_term',
         'entity' => $current
