@@ -177,7 +177,7 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
       $lang4 = field_language('node', $node, 'field_taxonomic_name');
       $tid = $node->field_taxonomic_name[$lang4][0]['tid'];
       $term = taxonomy_term_load($tid);
-      $lang4 = field_language('node', $node, 'field_rank');
+      $lang4 = field_language('taxonomy_term', $term, 'field_rank');
       if($term->field_rank[$lang4][0]['value'] != 'Species'){
         hide($treatment_form['relation_fields']['field_publication_treat_species']);
       }

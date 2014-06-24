@@ -55,7 +55,7 @@ class PublicationHtmlFormatXMLModifier extends PublicationHtmlFormatChangeCitati
         $new_values = array();
         $max_order = count($this->table_ids);
         foreach($values as $collection){
-          $lang = field_language('field_collection', $collection, 'field_publication_table_id');
+          $lang = field_language('field_collection_item', $collection, 'field_publication_table_id');
           $table_id = $collection->field_publication_table_id[$lang][0]['value'];
           $order = array_search($table_id, $this->table_ids);
           if($order === FALSE){
@@ -70,7 +70,7 @@ class PublicationHtmlFormatXMLModifier extends PublicationHtmlFormatChangeCitati
         $new_values = array();
         $max_order = count($this->figure_ids);
         foreach($values as $collection){
-          $lang = field_language('field_collection', $collection, 'field_publication_figure_figure');
+          $lang = field_language('field_collection_item', $collection, 'field_publication_figure_figure');
           $fid = $collection->field_publication_figure_figure[$lang][0]['fid'];
           $order = array_search($fid, $this->figure_ids);
           if($order === FALSE){

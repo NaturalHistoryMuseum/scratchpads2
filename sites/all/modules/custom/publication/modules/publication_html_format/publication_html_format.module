@@ -426,7 +426,7 @@ function publication_html_format_form_publication_edit_form_alter(&$form, &$form
         if(!empty($entity->is_new)){
           continue;
         }
-        $lang2 = field_language('publication', $entity, 'field_publication_figure_figure');
+        $lang2 = field_language('field_collection_item', $entity, 'field_publication_figure_figure');
         $fid = $entity->field_publication_figure_figure[$lang2][0]['fid'];
         $figures_map[$fid] = $fid;
       }
@@ -450,7 +450,7 @@ function publication_html_format_form_publication_edit_form_alter(&$form, &$form
     }
     $collection = & $form['field_publication_tables'][$lang][$elem_key];
     // FIXME - These need updating.  What entity is a collection (I'm guessing relation).
-    $lang = field_language('field_collection', $collection, 'field_publication_table_id');
+    $lang = field_language('field_collection_item', $collection['#entity'], 'field_publication_table_id');
     if(!empty($collection['field_publication_table_id'][$lang][0]['value']['#default_value'])){
       $table_id_value = $collection['field_publication_table_id'][$lang][0]['value']['#default_value'];
       if($table_id_value >= $table_key){
