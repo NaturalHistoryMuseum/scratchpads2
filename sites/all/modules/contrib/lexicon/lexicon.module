@@ -641,7 +641,7 @@ function _filter_lexicon_process($text, $filter, $format, $langcode, $cache, $ca
 
     // Get rid off any array items with value '0'.
     $vids = array_filter($vids);
-    $terms = _lexicon_get_terms($vids);
+    $terms = _lexicon_get_terms($vids, $langcode);
     $terms_replace = array();
     $tip_list = array();
 
@@ -1050,17 +1050,19 @@ function _lexicon_insertlink(&$text, &$terms_replace) {
  * Function that returns all Lexicon terms and synonyms from the Lexicon
  * vocabularies indicated by $vids as used by the input filter.
  */
-function _lexicon_get_terms(&$vids) {
+function _lexicon_get_terms(&$vids, $langcode = LANGUAGE_NONE) {
   static $got = array();
   $terms = array();
 
   // If the terms have not been loaded get the tree for each lexicon vocabulary.
-  if (!$got) {
+  if (!isset($got[$langcode])) {
     foreach ($vids as $vid) {
       // Load the entire vocabulary with all entities.
       if (module_exists('i18n_taxonomy')) {
-        global $language;
-        $tree = i18n_taxonomy_get_tree($vid, $language->language, 0, NULL, TRUE);
+        $tree = i18n_taxonomy_get_tree($vid, $langcode, 0, NULL, TRUE);
+        if(!$tree){
+          $tree = i18n_taxonomy_get_tree($vid, LANGUAGE_NONE, 0, NULL, TRUE);
+        }
       }
       else {
         $tree = taxonomy_get_tree($vid, 0, NULL, TRUE);
@@ -1074,17 +1076,17 @@ function _lexicon_get_terms(&$vids) {
       // Add extra information to each term in the tree.
       foreach ($tree as $term) {
         _lexicon_term_add_info($term, TRUE);
-        $terms[] = $term;
+        $terms[$langcode][] = $term;
       }
     }
     $got = $terms;
   }
   else {
     // Use the already loaded terms.
-    $terms = $got;
+    $terms[$langcode] = $got[$langcode];
   }
 
-  return $terms;
+  return $terms[$langcode];
 }
 
 /**
@@ -1122,7 +1124,7 @@ function _lexicon_term_add_info(&$term, $filter = FALSE) {
       $term->safe_description = strip_tags($term->description);
     }
     else {
-      $term->safe_description = check_markup($term->description, $term->format);
+      $term->safe_description = check_markup($term->description, $term->format, $term->language);
     }
 
     // If there is an image for the term add the image information to the $term
