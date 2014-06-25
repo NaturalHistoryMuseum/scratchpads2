@@ -46,8 +46,9 @@ function pensoft_publication_update_7003(){
   if(!empty($entities['relation'])){
     foreach(array_keys($entities['relation']) as $eid){
       $entity = entity_load_single('relation', $eid);
-      foreach($entity->field_publication_treat_type[LANGUAGE_NONE] as $k => $v){
-        $entity->field_publication_treat_type[LANGUAGE_NONE][$k]['value'] = 'Redescription or species observation';
+      $lang = field_language('relation', $entity, 'field_publication_treat_type');
+      foreach($entity->field_publication_treat_type[$lang] as $k => $v){
+        $entity->field_publication_treat_type[$lang][$k]['value'] = 'Redescription or species observation';
       }
       entity_save('relation', $entity);
     }
