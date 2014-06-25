@@ -62,6 +62,26 @@ function scratchpads_multilingual_menu(){
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter
+ * 
+ * Add an additional submit function so that we can remove the redirect that
+ * is pointlessly added byu the locale_translation_filter_form_submit() function
+ */
+function scratchpads_multilingual_form_locale_translation_filter_form_alter(&$form, &$form_state, $form_id){
+  $form['#submit'] = array(
+    'locale_translation_filter_form_submit',
+    'scratchpads_multilingual_remove_redirect_from_locale_translation_filter_form_submit'
+  );
+}
+
+/**
+ * Submit handler to remove the form redirect
+ */
+function scratchpads_multilingual_remove_redirect_from_locale_translation_filter_form_submit($form, &$form_state){
+  unset($form_state['redirect']);
+}
+
+/**
  * Implements hook_block_info
  */
 function scratchpads_multilingual_block_info(){
