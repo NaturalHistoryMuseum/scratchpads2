@@ -298,13 +298,14 @@ function _publication_html_format_entity_upsert($entity, $type){
   $references_to_add = array_merge($references_to_add, module_invoke_all('publication_parse_references', $entity));
   if(!empty($references_to_add)){
     $existing_references = array();
-    foreach($entity->field_publication_references[LANGUAGE_NONE] as $key => $value){
+    $lang = field_language('publication', $entity, 'field_publication_references');
+    foreach($entity->field_publication_references[$lang] as $key => $value){
       $existing_references[] = $value['nid'];
     }
     $references_to_add = array_unique(array_diff($references_to_add, $existing_references));
     foreach($references_to_add as $nid){
       if(!empty($nid)){
-        $entity->field_publication_references[LANGUAGE_NONE][] = array(
+        $entity->field_publication_references[$lang][] = array(
           'nid' => $nid
         );
       }
@@ -316,11 +317,13 @@ function _publication_html_format_entity_upsert($entity, $type){
   if(!empty($entity->pensoft_add_multiple_figures)){
     $figures_to_add = explode(',', $entity->pensoft_add_multiple_figures);
     $existing_figures = array();
-    foreach($entity->field_publication_figures[LANGUAGE_NONE] as $key => $value){
+    $lang = field_language('publication', $entity, 'field_publication_figures');
+    foreach($entity->field_publication_figures[$lang] as $key => $value){
       $figure_collection_item = reset(entity_load('field_collection_item', array(
         $value['value']
       )));
-      $fid = $figure_collection_item->field_publication_figure_figure[LANGUAGE_NONE][0]['fid'];
+      $lang = field_language('field_collection_item', $figure_collection_item, 'field_publication_figure_figure');
+      $fid = $figure_collection_item->field_publication_figure_figure[$lang][0]['fid'];
       $existing_figures[] = $fid;
     }
     $figures_to_add = array_unique(array_diff($figures_to_add, $existing_figures));
@@ -331,10 +334,14 @@ function _publication_html_format_entity_upsert($entity, $type){
         $figure_collection_item = entity_create('field_collection_item', array(
           'field_name' => 'field_publication_figures'
         ));
+        $file_lang = field_language('file', $file, 'field_description');
         $figure_collection_item->setHostEntity('publication', $entity);
-        $figure_collection_item->field_publication_figure_title[LANGUAGE_NONE][0]['value'] = $file->title;
-        $figure_collection_item->field_publication_figure_desc[LANGUAGE_NONE][0]['value'] = !empty($file->field_description[LANGUAGE_NONE][0]['value']) ? $file->field_description[LANGUAGE_NONE][0]['value'] : '';
-        $figure_collection_item->field_publication_figure_figure[LANGUAGE_NONE][0]['fid'] = $fid;
+        $lang = field_language('field_collection_item', $figure_collection_item, 'field_publication_figure_title');
+        $figure_collection_item->field_publication_figure_title[$lang][0]['value'] = $file->title;
+        $lang = field_language('field_collection_item', $figure_collection_item, 'field_publication_figure_desc');
+        $figure_collection_item->field_publication_figure_desc[$lang][0]['value'] = !empty($file->field_description[$file_lang][0]['value']) ? $file->field_description[$file_lang][0]['value'] : '';
+        $lang = field_language('field_collection_item', $figure_collection_item, 'field_publication_figure_figure');
+        $figure_collection_item->field_publication_figure_figure[$lang][0]['fid'] = $fid;
         // Beware, as calling this could cause recursion.
         $figure_collection_item->save();
         $need_saving = FALSE;
@@ -342,7 +349,8 @@ function _publication_html_format_entity_upsert($entity, $type){
     }
   }
   // Remove tables
-  foreach($entity->field_publication_tables[LANGUAGE_NONE] as $key => $value){
+  $lang = field_language('publication', $entity, 'field_publication_tables');
+  foreach($entity->field_publication_tables[$lang] as $key => $value){
     $table_collection_item = reset(entity_load('field_collection_item', array(
       $value['value']
     )));
@@ -394,8 +402,9 @@ function publication_html_format_form_publication_edit_form_alter(&$form, &$form
   // Handle automatic adding of references
   $entity = $form['#entity'];
   $references_map = array();
-  if(isset($entity->field_publication_references[LANGUAGE_NONE])){
-    foreach($entity->field_publication_references[LANGUAGE_NONE] as $ref_key => $ref){
+  $lang = field_language('publication', $entity, 'field_publication_references');
+  if(isset($entity->field_publication_references[$lang])){
+    foreach($entity->field_publication_references[$lang] as $ref_key => $ref){
       if(!empty($ref['nid'])){
         $references_map[$ref['nid']] = true;
       }
@@ -409,14 +418,16 @@ function publication_html_format_form_publication_edit_form_alter(&$form, &$form
   );
   // Handle automatic adding of figures
   $figures_map = array();
-  if(!empty($form['field_publication_figures'][LANGUAGE_NONE])){
-    foreach(element_children($form['field_publication_figures'][LANGUAGE_NONE]) as $fig_child){
-      if(isset($form['field_publication_figures'][LANGUAGE_NONE][$fig_child]['#entity'])){
-        $entity = $form['field_publication_figures'][LANGUAGE_NONE][$fig_child]['#entity'];
+  $lang = field_language('publication', $entity, 'field_publication_figures');
+  if(!empty($form['field_publication_figures'][$lang])){
+    foreach(element_children($form['field_publication_figures'][$lang]) as $fig_child){
+      if(isset($form['field_publication_figures'][$lang][$fig_child]['#entity'])){
+        $entity = $form['field_publication_figures'][$lang][$fig_child]['#entity'];
         if(!empty($entity->is_new)){
           continue;
         }
-        $fid = $entity->field_publication_figure_figure[LANGUAGE_NONE][0]['fid'];
+        $lang2 = field_language('field_collection_item', $entity, 'field_publication_figure_figure');
+        $fid = $entity->field_publication_figure_figure[$lang2][0]['fid'];
         $figures_map[$fid] = $fid;
       }
     }
@@ -432,27 +443,30 @@ function publication_html_format_form_publication_edit_form_alter(&$form, &$form
   $tables_map = array();
   $table_key = 1;
   $table_ids_to_assign = array();
-  foreach(element_children($form['field_publication_tables'][LANGUAGE_NONE]) as $elem_key){
+  $lang = field_language('publication', $entity, 'field_publication_tables');
+  foreach(element_children($form['field_publication_tables'][$lang]) as $elem_key){
     if($elem_key === 'add_more'){
       continue;
     }
-    $collection = & $form['field_publication_tables'][LANGUAGE_NONE][$elem_key];
-    if(!empty($collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#default_value'])){
-      $table_id_value = $collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#default_value'];
+    $collection = & $form['field_publication_tables'][$lang][$elem_key];
+    // FIXME - These need updating.  What entity is a collection (I'm guessing relation).
+    $lang = field_language('field_collection_item', $collection['#entity'], 'field_publication_table_id');
+    if(!empty($collection['field_publication_table_id'][$lang][0]['value']['#default_value'])){
+      $table_id_value = $collection['field_publication_table_id'][$lang][0]['value']['#default_value'];
       if($table_id_value >= $table_key){
         $table_key = $table_id_value + 1;
       }
-      $form['field_publication_tables'][LANGUAGE_NONE][$elem_key]['#prefix'] = '<p>Table id: ' . $table_id_value . '</p>';
-      $collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#type'] = 'hidden';
+      $form['field_publication_tables'][$lang][$elem_key]['#prefix'] = '<p>Table id: ' . $table_id_value . '</p>';
+      $collection['field_publication_table_id'][$lang][0]['value']['#type'] = 'hidden';
     }else{
       $table_ids_to_assign[] = $elem_key;
     }
   }
   foreach($table_ids_to_assign as $elem_key){
-    $collection = & $form['field_publication_tables'][LANGUAGE_NONE][$elem_key];
-    $collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#default_value'] = $table_key;
-    $collection['field_publication_table_id'][LANGUAGE_NONE][0]['value']['#type'] = 'hidden';
-    $form['field_publication_tables'][LANGUAGE_NONE][$elem_key]['#prefix'] = '<p>Table id: ' . $table_key . '</p>';
+    $collection = & $form['field_publication_tables'][$lang][$elem_key];
+    $collection['field_publication_table_id'][$lang][0]['value']['#default_value'] = $table_key;
+    $collection['field_publication_table_id'][$lang][0]['value']['#type'] = 'hidden';
+    $form['field_publication_tables'][$lang][$elem_key]['#prefix'] = '<p>Table id: ' . $table_key . '</p>';
     $table_key++;
   }
   // JS settings
