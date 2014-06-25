@@ -197,7 +197,13 @@ function scratchpads_multilingual_system_info_alter(&$info, $file, $type){
   }
   if(substr($file->uri, 0, 24) == 'sites/all/modules/custom'){
     if(empty($info['version']) || $info['version'] != VERSION){
-      $info['version'] = '7.x-' . SCRATCHPADS_VERSION;
+      if(SCRATCHPADS_VERSION == 'TAG'){
+        // Hard coded to allow sites on the 2317 branch to work.  This can be
+        // removed once the 2317 branch is merged.
+        $info['version'] = '7.x-2.5.1';
+      }else{
+        $info['version'] = '7.x-' . SCRATCHPADS_VERSION;
+      }
     }
   }
 }
