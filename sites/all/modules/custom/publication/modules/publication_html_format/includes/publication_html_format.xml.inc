@@ -1,4 +1,5 @@
 <?php
+
 /**
  * class PublicationHtmlFormatXMLModifier
  *
@@ -53,10 +54,11 @@ class PublicationHtmlFormatXMLModifier extends PublicationHtmlFormatChangeCitati
         // Re-order tables
         $new_values = array();
         $max_order = count($this->table_ids);
-        foreach ($values as $collection) {
-          $table_id = $collection->field_publication_table_id[LANGUAGE_NONE][0]['value'];
+        foreach($values as $collection){
+          $lang = field_language('field_collection_item', $collection, 'field_publication_table_id');
+          $table_id = $collection->field_publication_table_id[$lang][0]['value'];
           $order = array_search($table_id, $this->table_ids);
-          if ($order === FALSE) {
+          if($order === FALSE){
             $order = $max_order++;
           }
           $new_values[$order] = $collection;
@@ -67,10 +69,11 @@ class PublicationHtmlFormatXMLModifier extends PublicationHtmlFormatChangeCitati
         // Re-order figures
         $new_values = array();
         $max_order = count($this->figure_ids);
-        foreach ($values as $collection) {
-          $fid = $collection->field_publication_figure_figure[LANGUAGE_NONE][0]['fid'];
+        foreach($values as $collection){
+          $lang = field_language('field_collection_item', $collection, 'field_publication_figure_figure');
+          $fid = $collection->field_publication_figure_figure[$lang][0]['fid'];
           $order = array_search($fid, $this->figure_ids);
-          if ($order === FALSE) {
+          if($order === FALSE){
             $order = $max_order++;
           }
           $new_values[$order] = $collection;
