@@ -43,6 +43,25 @@ function scratchpads_multilingual_scratchpads_hands_off_urls_alter(&$urls){
 }
 
 /**
+ * Implements hook_menu()
+ */
+function scratchpads_multilingual_menu(){
+  return array(
+    'admin/config/regional/translate-strings' => array(
+      'title' => 'Translate interface',
+      'description' => 'Add or tweak translations for specific strings. You should use the "Interface Translate - Contribute" tool before using this.',
+      'weight' => 10,
+      'page callback' => 'locale_translate_seek_screen',
+      'access arguments' => array(
+        'translate interface'
+      ),
+      'file' => 'locale.admin.inc',
+      'file path' => drupal_get_path('module', 'locale')
+    )
+  );
+}
+
+/**
  * Implements hook_block_info
  */
 function scratchpads_multilingual_block_info(){
