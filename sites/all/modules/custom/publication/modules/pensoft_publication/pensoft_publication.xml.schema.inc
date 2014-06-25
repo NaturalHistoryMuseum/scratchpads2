@@ -537,7 +537,8 @@ function _pensoft_publication_treatment_section_test($context, $type){
   $term = $context->wrapper->field_taxonomic_name[0]->value();
   $tw = entity_metadata_wrapper('taxonomy_term', $term);
   $rank = $tw->field_rank->value();
-  $treatment_type = $context->relation->field_publication_treat_type[LANGUAGE_NONE][0]['value'];
+  $lang = field_language('relation', $context->relation, 'field_publication_treat_type');
+  $treatment_type = $context->relation->field_publication_treat_type[$lang][0]['value'];
   $biovids = variable_get('biological_vids', array());
   if (empty($biovids[$term->vid])){
     return FALSE;
@@ -570,7 +571,8 @@ function _pensoft_publication_xml_treatment_include_field($context, $field){
   if (!$context->wrapper->get($field)->value()){
     return FALSE;
   }
-  $include = explode(',', $context->relation->field_publication_treat_fields[LANGUAGE_NONE][0]['value']);
+  $lang = field_language('relation', $context->relation, 'field_publication_treat_fields');
+  $include = explode(',', $context->relation->field_publication_treat_fields[$lang][0]['value']);
   return in_array($field, $include);
 }
 

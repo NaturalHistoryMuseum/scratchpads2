@@ -39,19 +39,22 @@ function pensoft_publication_publication_prepare_build(&$build){
     $weight = 0;
     // Render the relation page
     $relation_page = relation_page($relation);
-    if (isset($relation->field_publication_treat_genus[LANGUAGE_NONE])){
-      $alt_genus = htmlspecialchars(trim($relation->field_publication_treat_genus[LANGUAGE_NONE][0]['value']));
-    } else {
+    $lang = field_language('relation', $relation, 'field_publication_treat_genus');
+    if(isset($relation->field_publication_treat_genus[$lang])){
+      $alt_genus = htmlspecialchars(trim($relation->field_publication_treat_genus[$lang][0]['value']));
+    }else{
       $alt_genus = '';
     }
-    if (isset($relation->field_publication_treat_species[LANGUAGE_NONE])){
-      $alt_species = htmlspecialchars(trim($relation->field_publication_treat_species[LANGUAGE_NONE][0]['value']));
-    } else {
+    $lang = field_language('relation', $relation, 'field_publication_treat_species');
+    if(isset($relation->field_publication_treat_species[$lang])){
+      $alt_species = htmlspecialchars(trim($relation->field_publication_treat_species[$lang][0]['value']));
+    }else{
       $alt_species = '';
     }
-    if (isset($relation->field_publication_treat_authy[LANGUAGE_NONE])){
-      $alt_authy = htmlspecialchars(trim($relation->field_publication_treat_authy[LANGUAGE_NONE][0]['value']));
-    } else {
+    $lang = field_language('relation', $relation, 'field_publication_treat_authy');
+    if(isset($relation->field_publication_treat_authy[$lang])){
+      $alt_authy = htmlspecialchars(trim($relation->field_publication_treat_authy[$lang][0]['value']));
+    }else{
       $alt_authy = '';
     }
     if($alt_genus || $alt_species || $alt_authy){
@@ -81,15 +84,17 @@ function pensoft_publication_publication_prepare_build(&$build){
       )
     );
     // Render the treatment fields
-    $fields = explode(',', $relation->field_publication_treat_fields[LANGUAGE_NONE][0]['value']);
+    $lang = field_language('relation', $relation, 'field_publication_treat_fields');
+    $fields = explode(',', $relation->field_publication_treat_fields[$lang][0]['value']);
     foreach($fields as $fdelta => $field_name){
       if(empty($field_name)){
         continue;
       }
       $field = field_view_field('node', $treatment, $field_name);
-      if(!empty($treatment->{$field_name}[LANGUAGE_NONE][0]['format'])){
+      $lang = field_language('node', $treatment, $field_name);
+      if(!empty($treatment->{$field_name}[$lang][0]['format'])){
         // We don't want all filters to run, only filter out html
-        $markup = $treatment->{$field_name}[LANGUAGE_NONE][0]['value'];
+        $markup = $treatment->{$field_name}[$lang][0]['value'];
         $field[0]['#markup'] = filter_xss($markup);
       }
       $field['#weight'] = $weight++;
@@ -125,10 +130,11 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
     hide($form['redirect']);
   }
   // Load the field selector for the treatments
-  foreach(element_children($form['field_publication_treatments'][LANGUAGE_NONE]) as $key){
-    $treatment_form = $form['field_publication_treatments'][LANGUAGE_NONE][$key];
+  $lang = field_language('publication', $form['#entity'], 'field_publication_treatments');
+  foreach(element_children($form['field_publication_treatments'][$lang]) as $key){
+    $treatment_form = $form['field_publication_treatments'][$lang][$key];
     if(isset($form_state['values']['field_publication_treatments'])){
-      $values = $form_state['values']['field_publication_treatments'][LANGUAGE_NONE][$key];
+      $values = $form_state['values']['field_publication_treatments'][$lang][$key];
     }else{
       $values = array();
     }
@@ -151,13 +157,15 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
       }
     }else{
       $relation = $treatment_form['relation_fields']['#entity'];
-      if(isset($relation->endpoints[LANGUAGE_NONE][1]['entity_id'])){
-        $node = node_load($relation->endpoints[LANGUAGE_NONE][1]['entity_id']);
+      $lang2 = field_language('relation', $relation, 'endpoints');
+      if(isset($relation->endpoints[$lang2][1]['entity_id'])){
+        $node = node_load($relation->endpoints[$lang2][1]['entity_id']);
       }else{
         $node = NULL;
       }
       if(isset($relation->field_publication_treat_fields)){
-        $selected_fields = explode(',', $relation->field_publication_treat_fields[LANGUAGE_NONE][0]['value']);
+        $lang2 = field_language('relation', $relation, 'field_publication_treat_fields');
+        $selected_fields = explode(',', $relation->field_publication_treat_fields[$lang2][0]['value']);
       }else{
         $selected_fields = array();
       }
@@ -166,9 +174,11 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
     hide($treatment_form['relation_fields']['field_publication_treat_fields']);
     // Hide Genus if rank is species
     if($node){
-      $tid = $node->field_taxonomic_name[LANGUAGE_NONE][0]['tid'];
+      $lang2 = field_language('node', $node, 'field_taxonomic_name');
+      $tid = $node->field_taxonomic_name[$lang2][0]['tid'];
       $term = taxonomy_term_load($tid);
-      if($term->field_rank[LANGUAGE_NONE][0]['value'] != 'Species'){
+      $lang2 = field_language('taxonomy_term', $term, 'field_rank');
+      if($term->field_rank[$lang2][0]['value'] != 'Species'){
         hide($treatment_form['relation_fields']['field_publication_treat_species']);
       }
     }
@@ -176,7 +186,7 @@ function pensoft_publication_form_publication_edit_form_alter(&$form, &$form_sta
     if(!empty($treatment_form['relation_fields']['redirect'])){
       hide($treatment_form['relation_fields']['redirect']);
     }
-    $form['field_publication_treatments'][LANGUAGE_NONE][$key] = array_merge($treatment_form, $treatment_field_form);
+    $form['field_publication_treatments'][$lang][$key] = array_merge($treatment_form, $treatment_field_form);
   }
   _pensoft_publication_relation_tab_prepare_form($form, 'field_publication_treatments');
   // Add our own submit function, ensuring it runs first  
@@ -252,7 +262,8 @@ function _pensoft_publication_treatment_spm_fields_form($form, $selected_fields,
       }
       $value = '';
       if($entity && count($entity->{$field_name})){
-        $elements = field_view_value('node', $entity, $field_name, $entity->{$field_name}[LANGUAGE_NONE][0]);
+        $lang = field_language('node', $entity, $field_name);
+        $elements = field_view_value('node', $entity, $field_name, $entity->{$field_name}[$lang][0]);
         $value = drupal_render($elements);
       }
       $child_form[$field_name] = array(
@@ -313,18 +324,22 @@ function pensoft_publication_entity_field_group_callback(&$form, &$form_state){
  */
 function pensoft_publication_publication_edit_form_submit($form, &$form_state){
   // Set title automatically
-  if(!empty($form_state['values']['field_publication_title'][LANGUAGE_NONE][0]['value'])){
-    $form_state['values']['title'] = html_entity_decode(strip_tags($form_state['values']['field_publication_title'][LANGUAGE_NONE][0]['value']));
+  if(!empty($form['#entity'])){
+    $lang = field_language('publication', $form['#entity'], 'field_publication_title');
+    if(!empty($form_state['values']['field_publication_title'][$lang][0]['value'])){
+      $form_state['values']['title'] = html_entity_decode(strip_tags($form_state['values']['field_publication_title'][$lang][0]['value']));
+    }
   }else{
     $form_state['values']['title'] = t('Publication');
   }
   // Copy the selected SPM fields
-  foreach(element_children($form['field_publication_treatments'][LANGUAGE_NONE]) as $key){
-    $treatment_form = $form['field_publication_treatments'][LANGUAGE_NONE][$key];
+  $lang = field_language('publication', $form['#entity'], 'field_publication_treatments');
+  foreach(element_children($form['field_publication_treatments'][$lang]) as $key){
+    $treatment_form = $form['field_publication_treatments'][$lang][$key];
     if(empty($treatment_form['#entity_type'])){
       continue;
     }
-    $values = & $form_state['values']['field_publication_treatments'][LANGUAGE_NONE][$key];
+    $values = & $form_state['values']['field_publication_treatments'][$lang][$key];
     if(empty($values['endpoints'][0])){
       continue;
     }
@@ -339,7 +354,7 @@ function pensoft_publication_publication_edit_form_submit($form, &$form_state){
         }
       }
     }
-    $values['relation_fields']['field_publication_treat_fields'][LANGUAGE_NONE][0]['value'] = implode(',', $fields_to_include);
+    $values['relation_fields']['field_publication_treat_fields'][$lang][0]['value'] = implode(',', $fields_to_include);
   }
 }
 
@@ -393,8 +408,9 @@ function pensoft_publication_publication_parse_references($entity){
   $references_to_add = array();
   foreach($wrapper->relation_publication_treatments_node->getIterator() as $delta => $treat_entity_wrapper){
     // Unfortunately entity metadata wrapper doesn't give access to the relation fields
-    $relation_fields = $entity->field_publication_treatments[LANGUAGE_NONE][$delta]['relation_fields'];
-    $treat_fields_str = $relation_fields['field_publication_treat_fields'][LANGUAGE_NONE][0]['value'];
+    $lang = field_language('pensoft', $entity, 'field_publication_treatments');
+    $relation_fields = $entity->field_publication_treatments[$lang][$delta]['relation_fields'];
+    $treat_fields_str = $relation_fields['field_publication_treat_fields'][$lang][0]['value'];
     $treat_fields = explode(',', $treat_fields_str);
     foreach($treat_fields as $treatment_field){
       $treatment_field = trim($treatment_field);
@@ -539,7 +555,7 @@ function _pensoft_publication_redirect_if_published($publication){
       '%id' => $data['document_id'],
       '!link' => l($data['document_link'], $data['document_link'])
     )));
-    if (!variable_get('pubmod_dev_mode', False)){
+    if(!variable_get('pubmod_dev_mode', False)){
       drupal_goto('publication/' . $publication->pid);
       return TRUE;
     }
@@ -552,7 +568,7 @@ function _pensoft_publication_redirect_if_published($publication){
  */
 function pensoft_publication_publish_form($form, &$form_state, $publication){
   // Just add a message saying that we can't publish at this time
-  if (!variable_get('pubmod_dev_mode', False)){
+  if(!variable_get('pubmod_dev_mode', False)){
     drupal_set_message(t("It is not currently possible to publish this to the Pensoft Writting Tool. We hope to have this working in the near future."), 'warning');
     drupal_goto('publication/' . $publication->pid);
   }
@@ -649,7 +665,7 @@ function pensoft_publication_publish_form($form, &$form_state, $publication){
 function pensoft_publication_publish_form_validate($form, &$form_state){
   $publication = $form_state['values']['pensoft_publication'];
   if($publication->published){
-    if (!variable_get('pubmod_dev_mode', False)){
+    if(!variable_get('pubmod_dev_mode', False)){
       form_set_error('pensoft_publication', t('This publication has already been published'));
     }
   }

@@ -221,18 +221,21 @@ function publication_field_formatter_view($entity_type, $entity, $field, $instan
   if($display['type'] == 'publication_author'){
     foreach($items as $key => $item){
       $user = user_load($item['uid']);
-      $name = isset($user->field_user_given_names[LANGUAGE_NONE]) ? $user->field_user_given_names[LANGUAGE_NONE][0]['safe_value'] : '';
+      $lang = field_language('user', $user, 'field_user_given_names');
+      $name = isset($user->field_user_given_names[$lang]) ? $user->field_user_given_names[$lang][0]['safe_value'] : '';
       $name = $name . ' ';
-      $name = $name . (isset($user->field_user_family_name[LANGUAGE_NONE]) ? $user->field_user_family_name[LANGUAGE_NONE][0]['safe_value'] : '');
+      $lang = field_language('user', $user, 'field_user_family_name');
+      $name = $name . (isset($user->field_user_family_name[$lang]) ? $user->field_user_family_name[$lang][0]['safe_value'] : '');
       $name = trim($name);
       if(!$name){
         $name = $user->name;
       }
+      $lang = field_language('user', $user, 'field_user_institution');
       $results[$key] = array(
         '#markup' => htmlspecialchars($name),
         '#publication_author_name' => $name,
         '#publication_author_id' => $user->uid,
-        '#publication_author_institution' => isset($user->field_user_institution[LANGUAGE_NONE]) ? $user->field_user_institution[LANGUAGE_NONE][0]['safe_value'] : ''
+        '#publication_author_institution' => isset($user->field_user_institution[$lang]) ? $user->field_user_institution[$lang][0]['safe_value'] : ''
       );
     }
   }else if($display['type'] == 'publication_figure'){
@@ -244,7 +247,8 @@ function publication_field_formatter_view($entity_type, $entity, $field, $instan
         'title' => $item['title']
       );
       $image = theme('image_style', $image_render);
-      $description_field = $item['field_description'][LANGUAGE_NONE][0];
+      $lang = field_language('user', $user, 'field_description');
+      $description_field = $item['field_description'][$lang][0];
       $description = '<div><strong>Figure</strong>' . check_markup($description_field['value'], $description_field['format']) . '</div>';
       $results[$key] = array(
         '#markup' => '<div class="publication_figure">' . $image . $description . '</div>'
