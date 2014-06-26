@@ -689,6 +689,7 @@ function scratchpads_tweaks_field_widget_info_alter(&$info){
 function scratchpads_tweaks_form_node_type_form_alter(&$form, &$form_state){
   // replace the element with its expanded items
   $form['workflow']['node_options']['#value'] = drupal_map_assoc($form['workflow']['node_options']['#default_value']);
+  $form['workflow']['node_options']['#attributes'] = array();
   $form['workflow']['node_options'] = form_process_checkboxes($form['workflow']['node_options']);
   $form['workflow']['node_options']['revision']['#description'] = t("Revisions let you track differences between multiple versions of a node. When enabled, all previous versions of a node will be visible under a new 'Revisions' tab in. Users will be able to view older versions of this node and editors will be able to revert the node to an older version.");
   $form['workflow']['node_options']['status']['#description'] = t('Select to make content visible to all users. If not selected content will only be visible through the administration menu.');
