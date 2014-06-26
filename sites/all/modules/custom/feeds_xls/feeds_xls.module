@@ -231,11 +231,13 @@ function feeds_xls_feeds_set_target_numeric($source, $entity, $target, $value){
     if(!is_numeric($v)){
       // We load the field and try to do the mapping.
       $field = field_info_field($target);
-      $key = array_search($v, $field['settings']['allowed_values']);
-      if($field && is_numeric($key)){
-        $value[$k] = $key;
-      }else{
-        unset($value[$k]);
+      if(isset($field['settings']['allowed_values'])){
+        $key = array_search($v, $field['settings']['allowed_values']);
+        if($field && is_numeric($key)){
+          $value[$k] = $key;
+        }else{
+          unset($value[$k]);
+        }
       }
     }
   }
