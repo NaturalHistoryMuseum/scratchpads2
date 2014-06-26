@@ -34,7 +34,7 @@ function text_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
  * Callback for mapping text fields.
  */
 function text_feeds_set_target($source, $entity, $target, $value) {
-  if (!strlen(trim($value))) {
+  if (is_string($value) && !strlen(trim($value))) {
     return;
   }
 
