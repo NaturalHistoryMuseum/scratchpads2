@@ -32,8 +32,12 @@ function silver_feeds_presave(FeedsSource $source, $entity){
       // Load the field to check if we're numeric.  If we are, we can skip this
       // step.
       $field = field_info_field($key);
+<<<<<<< HEAD
       $lang = field_language($entity_type, $entity, $field);
       if(isset($value[$lang][0]['value']) && !$value[$lang][0]['value'] && !(isset($field['settings']['allowed_values']) && isset($field['settings']['allowed_values'][$value[$lang][0]['value']]))){
+=======
+      if($field['module'] != 'number' && isset($value[LANGUAGE_NONE][0]['value']) && !$value[LANGUAGE_NONE][0]['value'] && !(isset($field['settings']['allowed_values']) && isset($field['settings']['allowed_values'][$value[LANGUAGE_NONE][0]['value']]))){
+>>>>>>> master
         unset($entity->$key);
       }
     }
