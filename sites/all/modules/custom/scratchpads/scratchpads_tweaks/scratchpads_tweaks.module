@@ -559,6 +559,12 @@ function scratchpads_tweaks_views_default_views_alter(&$views){
     unset($views['feeds_log']);
   }
   foreach(array_keys($views) as $view_id){
+    // Don't cache VBO or Slickgrid views.  Note, this relies on the
+    // Scratchpads Team naming convention for Slickgrid and VBO views, so may
+    // break if users create their own views.
+    if(strpos($view_id, '_vbo_') || strpos($view_id, 'slickgrid_') === 0){
+      continue;
+    }
     foreach(array_keys($views[$view_id]->display) as $display_id){
       $views[$view_id]->display[$display_id]->display_options['cache'] = array(
         'type' => 'time',
