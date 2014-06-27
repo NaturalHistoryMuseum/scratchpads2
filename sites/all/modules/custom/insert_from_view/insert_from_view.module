@@ -276,7 +276,7 @@ function insert_from_view_view_callback($machine_name){
       $arguments[] = arg($index);
       $index++;
     }
-    $view = views_get_view($settings[$machine_name]['view']);
+    $view = views_get_view($settings[$machine_name]['view'], TRUE);
     if(!$view || !$view->access($settings[$machine_name]['display'])){return;}
     $view->override_path = $_GET['q'];
     $view->set_display($settings[$machine_name]['display']);
