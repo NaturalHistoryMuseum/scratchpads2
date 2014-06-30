@@ -132,8 +132,8 @@ function exif_custom_permission(){
       'description' => t('See what image metdata import profiles have been created.')
     ),
     'administer image metadata' => array(
-      'title' => 'Administer image metadata',
-      'description' => 'Administer image metadata import profiles'
+      'title' => t('Administer image metadata'),
+      'description' => t('Administer image metadata import profiles')
     )
   );
 }
@@ -146,7 +146,7 @@ function exif_custom_settings_form(){
   return system_settings_form(array(
     'exif_custom_check' => array(
       '#type' => 'checkbox',
-      '#title' => 'Automatic import',
+      '#title' => t('Automatic import'),
       '#description' => t('Each user may set their own default mapping, in addition a site default may be set.'),
       '#default_value' => variable_get('exif_custom_check', 1)
     ),
@@ -155,7 +155,7 @@ function exif_custom_settings_form(){
       '#title' => 'Site default mapping',
       '#default_value' => variable_get('exif_custom_default', ''),
       '#options' => _exif_custom_get_maps(),
-      '#description' => 'Individual users may override the site default.'
+      '#description' => t('Individual users may override the site default.')
     )
   ));
 }
@@ -165,7 +165,7 @@ function exif_custom_settings_form_user($form, $form_state, $account){
   return array(
     'user-default' => array(
       '#type' => 'select',
-      '#title' => 'Personal default mapping',
+      '#title' => t('Personal default mapping'),
       '#default_value' => isset($account->exif_custom_mid) ? $account->exif_custom_mid : '',
       '#options' => _exif_custom_get_maps()
     ),
@@ -257,9 +257,9 @@ function exif_custom_map_edit_form($form, $form_state, $mappings){
     $select_fields[$field] = $field_data['label'];
   }
   $form['#header'] = array(
-    'EXIF field',
-    'Example',
-    'Mapped to'
+    t('EXIF field'),
+    t('Example'),
+    t('Mapped to')
   );
   $form['mid'] = array(
     '#type' => 'value',
@@ -330,7 +330,7 @@ function exif_custom_mappings(){
   $mappings = _exif_custom_get_maps();
   if(!count($mappings)){
     $output = array(
-      '#markup' => '<p>You have not yet created any mappings.</p>'
+      '#markup' => '<p>' . t('You have not yet created any mappings.') . '</p>'
     );
   }else{
     $rows = array();
@@ -351,12 +351,12 @@ function exif_custom_mappings(){
     $output = array(
       '#theme' => 'table',
       '#header' => array(
-        'Mapping',
+        t('Mapping'),
         array(
-          'data' => 'Operations',
+          'data' => t('Operations'),
           'colspan' => 2
         ),
-        'Default'
+        t('Default')
       ),
       '#rows' => $rows
     );
@@ -373,7 +373,7 @@ function exif_custom_new_map(){
       '#required' => TRUE
     ),
     'file' => array(
-      '#title' => t("Example file") . ' <span class="form-required" title="This field is required.">*</span>',
+      '#title' => t('Example file') . ' <span class="form-required" title="' . t('This field is required') . '">*</span>',
       '#type' => 'file',
       '#description' => t('A file with the EXIF fields you would like to map.')
     ),
