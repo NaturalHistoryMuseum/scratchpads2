@@ -1,6 +1,6 @@
 name = Custom EXIF mapping
 description = "Save EXIF data to custom fields"
-package = Image
+package = Images
 core = 7.x
 dependencies[] = file_entity
 tool = true
