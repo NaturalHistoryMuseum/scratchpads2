@@ -400,7 +400,7 @@ function exif_custom_new_map_validate($form, &$form_state){
   if(empty($_FILES['files']['name']['file'])){
     form_set_error('file', t('You must select an example file.'));
   }else{
-    $info = image_get_info($_FILES['files']['tmp_name']['file']);
+    $info = exif_custom_get_exif_fields($_FILES['files']['tmp_name']['file']);
     if(!$info){
       form_set_error('file', t('Unable to read the EXIF data of the file you uploaded. Did you upload an image file?'));
     }
@@ -409,9 +409,8 @@ function exif_custom_new_map_validate($form, &$form_state){
 
 function exif_custom_new_map_submit($form, &$form_state){
   // Save the file.
-  $info = image_get_info($_FILES['files']['tmp_name']['file']);
-  if(count($info)){
-    $fields = exif_custom_get_exif_fields($_FILES['files']['tmp_name']['file']);
+  $fields = exif_custom_get_exif_fields($_FILES['files']['tmp_name']['file']);
+  if($fields){
     //Add the mapping to the database
     $mid = db_insert('exif_custom_maps')->fields(array(
       'name' => $form_state['values']['name']
