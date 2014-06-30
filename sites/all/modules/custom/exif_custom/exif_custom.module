@@ -691,4 +691,4 @@ function exif_custom_xml_recursion($obj, &$fields, $name){
     'attributes' => $attributes,
     'children' => $children
   );
-} 
+}
