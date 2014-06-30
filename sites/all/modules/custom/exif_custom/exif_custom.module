@@ -506,7 +506,17 @@ function exif_custom_process_entity(&$file){
         $file->{$mapping->img_field}[$lang]['0']['value'] = strtotime($data[$mapping->exif_field]);
         break;
       default:
-        $file->{$mapping->img_field}[$lang]['0']['value'] = $data[$mapping->exif_field];
+        if(isset($data[$values->exif_field])){
+          if($field_info['settings']){
+            // If this field has been configured to use plain text formatting then strip all tags and run the check_plain filter.
+            if(empty($instance_info['settings']['text_processing'])){
+              $data[$values->exif_field] = check_plain(strip_tags($data[$values->exif_field]));
+            }
+            $array[$lang]['0']['value'] = truncate_utf8($data[$values->exif_field], $field_info['settings']['max_length'], TRUE);
+          }else{
+            $array[$lang]['0']['value'] = $data[$values->exif_field];
+          }
+        }
     }
   }
 }
