@@ -221,7 +221,7 @@ function exif_custom_user_load($users){
 function exif_custom_map_delete_form($form, $form_state, $mappings){
   $form['mid'] = array(
     '#type' => 'value',
-    '#value' => $mappings[0]->mid
+    '#value' => arg(5)
   );
   return confirm_form($form, t('Are you sure you want to delete %title?', array(
     '%title' => $mappings[0]->name
