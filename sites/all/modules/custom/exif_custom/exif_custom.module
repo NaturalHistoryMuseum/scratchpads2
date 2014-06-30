@@ -373,7 +373,7 @@ function exif_custom_new_map(){
       '#required' => TRUE
     ),
     'file' => array(
-      '#title' => t("Example file"),
+      '#title' => t("Example file") . ' <span class="form-required" title="This field is required.">*</span>',
       '#type' => 'file',
       '#description' => t('A file with the EXIF fields you would like to map.')
     ),
@@ -399,6 +399,11 @@ function exif_custom_new_map_validate($form, &$form_state){
   // the file field actually fucks up validation (possible Drupal bug).
   if(empty($_FILES['files']['name']['file'])){
     form_set_error('file', t('You must select an example file.'));
+  }else{
+    $info = image_get_info($_FILES['files']['tmp_name']['file']);
+    if(!$info){
+      form_set_error('file', t('Unable to read the EXIF data of the file you uploaded. Did you upload an image file?'));
+    }
   }
 }
 
