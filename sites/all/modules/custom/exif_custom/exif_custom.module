@@ -197,10 +197,13 @@ function exif_custom_settings_form_user_submit($form, $form_state){
 /**
  * Load exif mapping on mid
  */
-function exif_custom_load($mid){
+function exif_custom_load($mid, $include_empty = TRUE){
   $query = db_select('exif_custom_maps', 'e');
   $query->leftJoin('exif_custom_mapped_fields', 'f', 'f.mid = e.mid');
   $query->condition('e.mid', $mid);
+  if(!$include_empty){
+    $query->condition('img_field', 0, '!=');
+  }
   return $query->fields('e')->fields('f')->execute()->fetchAll();
 }
 
@@ -529,15 +532,15 @@ function exif_custom_process_entity(&$file){
         $file->{$mapping->img_field}[$lang]['0']['value'] = strtotime($data[$mapping->exif_field]);
         break;
       default:
-        if(isset($data[$values->exif_field])){
+        if(isset($data[$mapping->exif_field])){
           if($field_info['settings']){
             // If this field has been configured to use plain text formatting then strip all tags and run the check_plain filter.
             if(empty($instance_info['settings']['text_processing'])){
-              $data[$values->exif_field] = check_plain(strip_tags($data[$values->exif_field]));
+              $data[$mapping->exif_field] = check_plain(strip_tags($data[$mapping->exif_field]));
             }
-            $array[$lang]['0']['value'] = truncate_utf8($data[$values->exif_field], $field_info['settings']['max_length'], TRUE);
+            $file->{$mapping->img_field}[$lang]['0']['value'] = truncate_utf8($data[$mapping->exif_field], $field_info['settings']['max_length'], TRUE);
           }else{
-            $array[$lang]['0']['value'] = $data[$values->exif_field];
+            $file->{$mapping->img_field}[$lang]['0']['value'] = $data[$mapping->exif_field];
           }
         }
     }
@@ -558,7 +561,7 @@ function exif_custom_get_mapping(){
   }else{
     $mid = variable_get('exif_custom_default', 0);
   }
-  return exif_custom_load($mid);
+  return exif_custom_load($mid, FALSE);
 }
 
 /**
