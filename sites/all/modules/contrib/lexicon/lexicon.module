@@ -618,7 +618,7 @@ function _filter_lexicon_process($text, $filter, $format, $langcode, $cache, $ca
   $backtrace = debug_backtrace();
   foreach($backtrace as $back){
     if($back['function'] == __FUNCTION__){
-      return;
+      return $text;
     }
   }
   global $user;
