@@ -613,6 +613,14 @@ function _filter_lexicon_tips($filter, $format, $long) {
  * Marks terms in the content of the website.
  */
 function _filter_lexicon_process($text, $filter, $format, $langcode, $cache, $cache_id) {
+  // Prevent any loops.  We go no further if there is already a call to this
+  // function in the call hierarchy.
+  $backtrace = debug_backtrace();
+  foreach($backtrace as $back){
+    if($back['function'] == __FUNCTION__){
+      return;
+    }
+  }
   global $user;
   // If the Lexicon is setup so that users can indicate if they want terms to be
   // marked and the current user has indicated that they do not want terms to be
