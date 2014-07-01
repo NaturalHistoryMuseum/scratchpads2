@@ -1,0 +1,115 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ * 
+ * Provide the default configuration pages for adding DwC-A files
+ */
+function dwcarchiver_menu(){
+  //'admin/config/content/dwcarchiver/%dwcarchiver/delete' => array()
+  return array(
+    'admin/config/content/dwcarchiver' => array(
+      'title' => 'DwC-Archiver',
+      'description' => 'Add and configure custom DwC-Archives.',
+      'page callback' => 'dwcarchiver_overview_page',
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'file' => 'dwcarchiver.pages.inc'
+    ),
+    'admin/config/content/dwcarchiver/add' => array(
+      'title' => 'Add DwC-Archive',
+      'description' => 'Add custom DwC-Archive',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'dwcarchiver_add_archive_form'
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'file' => 'dwcarchiver.pages.inc',
+      'type' => MENU_LOCAL_ACTION
+    ),
+    'admin/config/content/dwcarchiver/%dwcarchiver' => array(
+      'title callback' => 'dwcarchiver_page_title',
+      'title arguments' => array(
+        4
+      ),
+      'page callback' => 'dwcarchiver_page_view',
+      'page arguments' => array(
+        4
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'title' => 'Edit',
+      'page callback' => 'dwcarchiver_edit',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => 'node_access',
+      'access arguments' => array(
+        'update',
+        1
+      ),
+      'weight' => 0,
+      'file' => 'node.pages.inc'
+    ),
+    'admin/config/content/dwcarchiver/%dwcarchiver/view' => array(
+      'title' => 'View',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10
+    ),
+    'admin/config/content/dwcarchiver/%dwcarchiver/edit' => array(
+      'title' => 'Edit',
+      'page callback' => 'dwcarchiver_edit',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => 'node_access',
+      'access arguments' => array(
+        'update',
+        1
+      ),
+      'weight' => 0,
+      'file' => 'node.pages.inc'
+    ),
+    'admin/config/content/dwcarchiver/%dwcarchiver/delete' => array(
+      'title' => 'Edit',
+      'page callback' => 'dwcarchiver_edit',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => 'node_access',
+      'access arguments' => array(
+        'update',
+        1
+      ),
+      'weight' => 0,
+      'file' => 'node.pages.inc'
+    )
+  );
+}
+
+/**
+ * Implements hook_menu_alter()
+ * 
+ * Add the DwC-A paths as defined in the settings above.
+ */
+function dwcarchiver_menu_alter(&$items){}
+
+/**
+ * Implements hook_permission()
+ */
+function dwcarchiver_permission(){
+  return array(
+    'configure dwcarchiver' => array(
+      'title' => t('Configure DwC-Archiver')
+    )
+  );
+}
+
+/**
+ * Load function
+ */
+function dwcarchiver_load($did){}

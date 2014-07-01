@@ -1,0 +1,117 @@
+<?php
+
+/**
+ * Implements hook_schema()
+ */
+function dwcarchiver_schema(){
+  return array(
+    'dwcarchiver_archive' => array(
+      'description' => 'Stores the settings for each DwC-A',
+      'fields' => array(
+        'did' => array(
+          'description' => 'The primary identifier for a DwC-A',
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'name' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Name of the DwC-A.',
+          'translatable' => TRUE
+        ),
+        'machine_name' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Machine name of the archive - used for links.'
+        )
+      ),
+      'primary key' => array(
+        'did'
+      ),
+      'unique keys' => array(
+        'machine_name' => array(
+          'machine_name'
+        )
+      )
+    ),
+    'dwcarchiver_extension' => array(
+      'description' => 'Describes an extension that can be used by multiple archives.',
+      'fields' => array(
+        'eid' => array(
+          'description' => 'The primary identifier for a DwC-A extension.',
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'name' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Name of the DwC-A extension.',
+          'translatable' => TRUE
+        ),
+        'machine_name' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Machine name of the archive extension - used for creating the filename in the zip.'
+        ),
+        'rowtype' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Rowtype of the extension (e.g. http://rs.gbif.org/terms/1.0/TypesAndSpecimen).',
+          'translatable' => TRUE
+        )
+      ),
+      'primary key' => array(
+        'eid'
+      )
+    ),
+    'dwcarvhiver_map' => array(
+      'description' => 'Stores the mappings from fields to DwC-A fields',
+      'fields' => array(
+        'did' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The {dwcarchiver_archive}.did of the archive.'
+        ),
+        'eid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The {dwcarchiver_extension}.eid of the extension.'
+        ),
+        'field' => array(
+          'type' => 'varchar',
+          'length' => 32,
+          'not null' => TRUE,
+          'description' => 'The name of the field.'
+        ),
+        'uri' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'URI of the column (e.g. http://rs.tdwg.org/dwc/terms/decimalLongitude).',
+          'translatable' => TRUE
+        )
+      ),
+      'primary key' => array(
+        'did',
+        'eid'
+      )
+    )
+  );
+}
