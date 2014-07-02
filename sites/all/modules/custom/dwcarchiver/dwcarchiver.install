@@ -28,6 +28,20 @@ function dwcarchiver_schema(){
           'not null' => TRUE,
           'default' => '',
           'description' => 'Machine name of the archive - used for links.'
+        ),
+        'core_entity' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Core entity.'
+        ),
+        'core_bundle' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Core bundle.'
         )
       ),
       'primary key' => array(
