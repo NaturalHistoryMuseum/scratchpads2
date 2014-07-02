@@ -616,10 +616,14 @@ function _filter_lexicon_process($text, $filter, $format, $langcode, $cache, $ca
   // Prevent any loops.  We go no further if there is already a call to this
   // function in the call hierarchy.
   $backtrace = debug_backtrace();
+  $number_of_recursion = 0;
   foreach($backtrace as $back){
     if($back['function'] == __FUNCTION__){
-      return $text;
+      $number_of_recursion ++;
     }
+  }
+  if($number_of_recursion >= 2){
+    return $text;
   }
   global $user;
   // If the Lexicon is setup so that users can indicate if they want terms to be
