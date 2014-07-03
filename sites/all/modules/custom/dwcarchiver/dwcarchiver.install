@@ -62,6 +62,13 @@ function dwcarchiver_schema(){
           'unsigned' => TRUE,
           'not null' => TRUE
         ),
+        'did' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The {dwcarchiver_archive}.did of the extension.'
+        ),
         'name' => array(
           'type' => 'varchar',
           'length' => 255,
@@ -84,28 +91,48 @@ function dwcarchiver_schema(){
           'default' => '',
           'description' => 'Rowtype of the extension (e.g. http://rs.gbif.org/terms/1.0/TypesAndSpecimen).',
           'translatable' => TRUE
+        ),
+        'extension_entity' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Extension entity.'
+        ),
+        'extension_bundle' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Extension bundle.'
+        ),
+        'field_name' => array(
+          'type' => 'varchar',
+          'length' => 32,
+          'not null' => TRUE,
+          'description' => 'The name of the field that links the core to this extension.'
         )
       ),
       'primary key' => array(
         'eid'
       )
     ),
-    'dwcarvhiver_map' => array(
+    'dwcarchiver_map' => array(
       'description' => 'Stores the mappings from fields to DwC-A fields',
       'fields' => array(
-        'did' => array(
-          'type' => 'int',
-          'unsigned' => TRUE,
-          'not null' => TRUE,
-          'default' => 0,
-          'description' => 'The {dwcarchiver_archive}.did of the archive.'
-        ),
         'eid' => array(
           'type' => 'int',
           'unsigned' => TRUE,
           'not null' => TRUE,
           'default' => 0,
           'description' => 'The {dwcarchiver_extension}.eid of the extension.'
+        ),
+        'did' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The {dwcarchiver_archive}.did of the extension.'
         ),
         'field' => array(
           'type' => 'varchar',
@@ -120,10 +147,18 @@ function dwcarchiver_schema(){
           'default' => '',
           'description' => 'URI of the column (e.g. http://rs.tdwg.org/dwc/terms/decimalLongitude).',
           'translatable' => TRUE
+        ),
+        'processor' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'ID of the processor for altering the data.',
+          'translatable' => TRUE
         )
       ),
       'primary key' => array(
-        'did',
+        'field',
         'eid'
       )
     )

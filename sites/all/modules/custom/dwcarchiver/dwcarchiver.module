@@ -68,8 +68,8 @@ function dwcarchiver_menu(){
       'file' => 'dwcarchiver.pages.inc'
     ),
     'admin/config/content/dwcarchiver/%dwcarchiver/delete' => array(
-      'title' => 'Edit',
-      'page callback' => 'dwcarchiver_edit',
+      'title' => 'Delete',
+      'page callback' => 'dwcarchiver_delete',
       'page arguments' => array(
         4
       ),
@@ -100,6 +100,10 @@ function dwcarchiver_theme($existing, $type, $theme, $path){
     'dwcarchiver_archive_form' => array(
       'render element' => 'form',
       'file' => 'dwcarchiver.theme.inc'
+    ),
+    'dwcarchiver_archiver_form_fields_table' => array(
+      'render element' => 'element',
+      'file' => 'dwcarchiver.theme.inc'
     )
   );
 }
@@ -110,6 +114,14 @@ function dwcarchiver_theme($existing, $type, $theme, $path){
  */
 function dwcarchiver_machine_name_load($name){
   return db_select('dwcarchiver_archive', 'd')->condition('machine_name', $name)->fields('d')->execute()->fetch();
+}
+
+/**
+ * Return the dwcarchiver extension object matching a machine name.
+ */
+function dwcarchiver_extension_machine_name_load($name, $element = FALSE, $form_state = FALSE){
+  // Machine names are not globally unique, but are only unique per archive.
+  return db_select('dwcarchiver_extension', 'd')->condition('machine_name', $name)->condition('did', $form_state['dwcarchiver']->did)->fields('d')->execute()->fetch();
 }
 
 /**
@@ -134,7 +146,27 @@ function dwcarchiver_permission(){
  * Load function
  */
 function dwcarchiver_load($did){
-  return db_select('dwcarchiver_archive', 'd')->fields('d')->condition('did', $did)->execute()->fetch();
+  $archive = db_select('dwcarchiver_archive', 'd')->fields('d')->condition('did', $did)->execute()->fetch();
+  if($archive){
+    $archive->extensions = db_select('dwcarchiver_extension', 'e')->fields('e')->condition('did', $did)->execute()->fetchAll();
+    $archive->maps = db_select('dwcarchiver_map', 'm')->fields('m')->condition('did', $did)->condition('eid', 0)->execute()->fetchAllAssoc('field');
+    foreach($archive->extensions as $key => $value){
+      $archive->extensions[$key]->maps = db_select('dwcarchiver_map', 'd')->fields('d')->condition('eid', $value->eid)->execute()->fetchAllAssoc('field');
+    }
+  }
+  return $archive;
+}
+
+/**
+ * Alter the list of processors
+ */
+function dwcarchiver_dwcarchiver_processors_alter(&$processors){
+  $processors['dwcarchiver_raw_text'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_raw',
+    'label' => t('Raw value')
+  );
 }
 
 /**
@@ -143,8 +175,25 @@ function dwcarchiver_load($did){
  */
 function taxonomy_dwcarchiver_core_types_alter(&$core_types){
   foreach(taxonomy_vocabulary_get_names() as $machine_name => $vocabulary){
-    $core_types['taxonomy_term/' . $machine_name] = t('Taxonomy terms (%vocabulary_name)', array(
-      '%vocabulary_name' => $vocabulary->name
-    ));
+    $core_types['taxonomy_term/' . $machine_name] = array(
+      'label' => t('Taxonomy term') . " (" . t($vocabulary->name) . ")",
+      'links' => array()
+    );
+  }
+  // Loop through all of the taxonomy term fields and add the entity/bundle that
+  // they're attached to to the links.
+  $entity_info = entity_get_info();
+  foreach(field_read_fields(array(
+    'type' => 'taxonomy_term_reference'
+  )) as $field){
+    foreach(field_read_instances(array(
+      'field_name' => $field['field_name']
+    )) as $instance){
+      foreach($field['settings']['allowed_values'] as $allowed_values){
+        if(!empty($allowed_values['vocabulary'])){
+          $core_types['taxonomy_term/' . $allowed_values['vocabulary']]['links'][$field['field_name'] . '/' . $instance['entity_type'] . '/' . $instance['bundle']] = $instance['label'] . ': ' . $entity_info[$instance['entity_type']]['label'] . " (" . $entity_info[$instance['entity_type']]['bundles'][$instance['bundle']]['label'] . ")";
+        }
+      }
+    }
   }
 }
