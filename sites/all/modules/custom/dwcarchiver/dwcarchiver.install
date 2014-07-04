@@ -1,6 +1,15 @@
 <?php
 
 /**
+ * Implements hook_install()
+ */
+function dwcarchiver_install(){
+  // Create the dwcarchiver directory.
+  $dir = 'public://dwcarchiver';
+  file_prepare_directory($dir, FILE_CREATE_DIRECTORY);
+}
+
+/**
  * Implements hook_schema()
  */
 function dwcarchiver_schema(){

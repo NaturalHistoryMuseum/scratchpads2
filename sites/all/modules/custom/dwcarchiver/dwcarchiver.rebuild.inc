@@ -2,30 +2,16 @@
 define('DWCARCHIVER_DATA_FILE_EXTENSION', 'txt');
 define('DWCARCHIVER_ARCHIVE_DIRECTORY_NAME', 'dwca/');
 
-function dwcarchiver_rebuild($dwcarchiver, $quiet = TRUE){
+function dwcarchiver_rebuild($dwcarchiver, $deliver = TRUE){
   // Create the ZIP file, and add files directly to it.
   $zip_filename = drupal_tempnam(file_directory_temp(), 'dwcarchiver');
   $zip = new ZipArchive();
-  if($zip->open($zip_filename, ZipArchive::CREATE) !== TRUE){
-    // We've not been able to create the zip, return an error.
-    _dwcarchiver_return_error_on_rebuild();
-  }
   _dwcarchiver_create_xml_file($dwcarchiver, $zip);
   $zip->close();
-  if(!$quiet){return array(
-      'message' => array(
-        '#markup' => t('Rebuilding the @name archive', array(
-          '@name' => $dwcarchiver->name
-        ))
-      )
-    );}
-}
-
-/**
- * Simple function that returns a 503 error
- */
-function _dwcarchiver_return_error_on_rebuild(){
-  // 503 error!
+  // Move the zip file to the dwcarchiver folder.
+  file_unmanaged_move($zip_filename, 'public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip', FILE_EXISTS_REPLACE);
+  drupal_set_message(t('The DwC-A has been rebuilt'));
+  drupal_goto('admin/config/content/dwcarchiver');
 }
 
 /**

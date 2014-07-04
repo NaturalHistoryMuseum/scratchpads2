@@ -138,7 +138,24 @@ function dwcarchiver_extension_machine_name_load($name, $element = FALSE, $form_
  * 
  * Add the DwC-A paths as defined in the settings above.
  */
-function dwcarchiver_menu_alter(&$items){}
+function dwcarchiver_menu_alter(&$items){
+  $results = db_select('dwcarchiver_archive', 'd')->fields('d')->execute();
+  foreach($results as $row){
+    $items[$row->machine_name . '.zip'] = array(
+      'title' => 'DwC-Archive',
+      'page callback' => 'dwcarchiver_deliver_archive',
+      'page arguments' => array(
+        $row->did
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'dwcarchiver.pages.inc',
+      'file path' => drupal_get_path('module', 'dwcarchiver')
+    );
+  }
+}
 
 /**
  * Implements hook_permission()

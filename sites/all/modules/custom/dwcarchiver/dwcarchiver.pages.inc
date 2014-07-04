@@ -15,7 +15,8 @@ function dwcarchiver_overview_page(){
       $result->core_entity . '/' . $result->core_bundle,
       l('Edit', 'admin/config/content/dwcarchiver/' . $result->did . '/edit'),
       l('Delete', 'admin/config/content/dwcarchiver/' . $result->did . '/delete'),
-      l('Rebuild', 'admin/config/content/dwcarchiver/' . $result->did . '/rebuild')
+      l('Rebuild', 'admin/config/content/dwcarchiver/' . $result->did . '/rebuild'),
+      l('Download', $result->machine_name . '.zip')
     );
   }
   return array(
@@ -26,11 +27,30 @@ function dwcarchiver_overview_page(){
       t('Entity/Bundle'),
       array(
         'data' => t('Operations'),
-        'colspan' => 3
+        'colspan' => 4
       )
     ),
     '#rows' => $rows
   );
+}
+
+/**
+ * Deliver the DwC-A
+ */
+function dwcarchiver_deliver_archive($did){
+  $dwcarchiver = dwcarchiver_load($did);
+  $filename = 'public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip';
+  if(file_exists($filename)){
+    // Set headers.
+    header('Content-type: application/octet-stream');
+    header('Content-Disposition: attachment; filename="' . $dwcarchiver->machine_name . '.zip"');
+    readfile($filename);
+  }else{
+    drupal_set_message(t('The archive "@archive_name" has not yet been created.', array(
+      '@archive_name' => $dwcarchiver->name
+    )), 'error');
+    drupal_goto('');
+  }
 }
 
 /**
@@ -352,6 +372,8 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
   }
   // Finally, we redirect to the edit form.
   $form_state['redirect'] = 'admin/config/content/dwcarchiver/' . $dwcarchiver->did . '/edit';
+  // Rebuild the menu so that the link to the archive works
+  menu_rebuild();
 }
 
 /**
@@ -379,4 +401,6 @@ function dwcarchiver_archive_delete_form_submit($form, &$form_state){
     db_delete('dwcarchiver_map')->condition('did', $form_state['values']['did'])->execute();
   }
   $form_state['redirect'] = 'admin/config/content/dwcarchiver';
+  // Rebuild the menu so that the link to the archive works
+  menu_rebuild();
 }
