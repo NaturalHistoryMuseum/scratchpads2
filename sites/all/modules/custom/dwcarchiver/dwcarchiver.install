@@ -42,6 +42,14 @@ function dwcarchiver_schema(){
           'not null' => TRUE,
           'default' => '',
           'description' => 'Core bundle.'
+        ),
+        'rowtype' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Rowtype of the extension (e.g. http://rs.gbif.org/terms/1.0/TypesAndSpecimen).',
+          'translatable' => TRUE
         )
       ),
       'primary key' => array(

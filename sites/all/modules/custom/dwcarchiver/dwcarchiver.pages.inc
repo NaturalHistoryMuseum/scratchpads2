@@ -13,7 +13,6 @@ function dwcarchiver_overview_page(){
       $result->machine_name,
       // FIXME - Improve display of entity/bundle (use label rather than machine name).
       $result->core_entity . '/' . $result->core_bundle,
-      l('View', 'admin/config/content/dwcarchiver/' . $result->did . '/view'),
       l('Edit', 'admin/config/content/dwcarchiver/' . $result->did . '/edit'),
       l('Delete', 'admin/config/content/dwcarchiver/' . $result->did . '/delete'),
       l('Rebuild', 'admin/config/content/dwcarchiver/' . $result->did . '/rebuild')
@@ -27,7 +26,7 @@ function dwcarchiver_overview_page(){
       t('Entity/Bundle'),
       array(
         'data' => t('Operations'),
-        'colspan' => 4
+        'colspan' => 3
       )
     ),
     '#rows' => $rows
@@ -45,6 +44,7 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
       'machine_name' => '',
       'core_entity' => '',
       'core_bundle' => '',
+      'rowtype' => '',
       'extensions' => array()
     );
     foreach($defaults as $key => $value){
@@ -95,6 +95,12 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
         '#title' => 'Entity/Bundle',
         '#default_value' => $dwcarchiver->core_entity . '/' . $dwcarchiver->core_bundle,
         '#required' => TRUE
+      ),
+      'rowtype' => array(
+        '#type' => 'textfield',
+        '#title' => t('Row Type/URI'),
+        '#default_value' => $dwcarchiver->rowtype,
+        '#maxlength' => 255
       )
     )
   );
@@ -145,7 +151,6 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
         '#required' => FALSE
       ),
       'rowtype' => array(
-        '#title_display' => 'invisible',
         '#type' => 'textfield',
         '#title' => t('Row Type/URI'),
         '#title_display' => 'invisible',
@@ -177,14 +182,9 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
  * entity/bundle.
  */
 function _dwcarchiver_archive_form_fields($entity, $bundle, $maps = array()){
-  $processors = drupal_static(__FUNCTION__, FALSE);
-  if(!$processors){
-    // Get the processors for processing text fields.
-    $processors = array();
-    drupal_alter('dwcarchiver_processors', $processors);
-    foreach($processors as $key => $value){
-      $processors[$key] = $value['label'];
-    }
+  $processors = dwcarchiver_get_processors();
+  foreach($processors as $key => $value){
+    $processors[$key] = $value['label'];
   }
   $form = array(
     '#type' => 'fieldset',
@@ -205,6 +205,28 @@ function _dwcarchiver_archive_form_fields($entity, $bundle, $maps = array()){
     'entity_type' => $entity,
     'bundle' => $bundle
   ));
+  foreach($maps as $field => $map){
+    $form[$field] = array(
+      'label' => array(
+        '#markup' => ''
+      ),
+      'term' => array(
+        '#title_display' => 'invisible',
+        '#type' => 'textfield',
+        '#title' => t('Maps to'),
+        '#default_value' => $map->uri,
+        '#disabled' => TRUE
+      ),
+      'processor' => array(
+        '#title_display' => 'invisible',
+        '#type' => 'select',
+        '#title' => t('Processor'),
+        '#options' => $processors,
+        '#default_value' => $map->processor,
+        '#disabled' => TRUE
+      )
+    );
+  }
   foreach($fields as $field){
     $form[$field['field_name']] = array(
       'label' => array(
@@ -266,7 +288,10 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
   // If we have mappings for the core item, we also work with them!
   if(!empty($form_state['values']['core']['fields'])){
     foreach($form_state['values']['core']['fields'] as $field => $values){
-      if($values['term']){
+      if($values['term'] && !in_array($field, array(
+        'id',
+        'coreid'
+      ))){
         $insert_into_mappings = TRUE;
         $insert->values(array(
           'eid' => 0,
@@ -301,7 +326,10 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
           $extension = dwcarchiver_extension_machine_name_load($key, FALSE, $form_state);
           if(!empty($form_state['values']['extensions'][$key]['fields'])){
             foreach($form_state['values']['extensions'][$key]['fields'] as $field => $values){
-              if($values['term']){
+              if($values['term'] && !in_array($field, array(
+                'id',
+                'coreid'
+              ))){
                 $insert_into_mappings = TRUE;
                 $insert->values(array(
                   'eid' => $extension->eid,
@@ -319,8 +347,36 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
   }
   // Insert the mappings if required
   if($insert_into_mappings){
+    db_delete('dwcarchiver_map')->condition('did', $dwcarchiver->did)->execute();
     $insert->execute();
   }
   // Finally, we redirect to the edit form.
   $form_state['redirect'] = 'admin/config/content/dwcarchiver/' . $dwcarchiver->did . '/edit';
+}
+
+/**
+ * Delete a mapping form.
+ */
+function dwcarchiver_archive_delete_form($form, $form_state, $dwcarchiver){
+  $form['did'] = array(
+    '#type' => 'value',
+    '#value' => arg(4)
+  );
+  return confirm_form($form, t('Are you sure you want to delete %title?', array(
+    '%title' => $dwcarchiver->name
+  )), 'admin/config/content/exif_custom', t('This action cannot be undone.'), t('Delete'), t('Cancel'));
+}
+
+/**
+ * Executes node deletion.
+ *
+ * @see node_delete_confirm()
+ */
+function dwcarchiver_archive_delete_form_submit($form, &$form_state){
+  if($form_state['values']['confirm']){
+    db_delete('dwcarchiver_archive')->condition('did', $form_state['values']['did'])->execute();
+    db_delete('dwcarchiver_extension')->condition('did', $form_state['values']['did'])->execute();
+    db_delete('dwcarchiver_map')->condition('did', $form_state['values']['did'])->execute();
+  }
+  $form_state['redirect'] = 'admin/config/content/dwcarchiver';
 }

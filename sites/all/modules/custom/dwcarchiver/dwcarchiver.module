@@ -30,33 +30,12 @@ function dwcarchiver_menu(){
       'type' => MENU_LOCAL_ACTION
     ),
     'admin/config/content/dwcarchiver/%dwcarchiver' => array(
-      'title callback' => 'dwcarchiver_page_title',
+      'title' => 'Edit %name',
+      'title callback' => 'dwcarchiver_title',
       'title arguments' => array(
+        'Edit @name',
         4
       ),
-      'page callback' => 'dwcarchiver_page_view',
-      'page arguments' => array(
-        4
-      ),
-      'access arguments' => array(
-        'configure dwcarchiver'
-      ),
-      'title' => 'Edit',
-      'page callback' => 'dwcarchiver_edit',
-      'page arguments' => array(
-        4
-      ),
-      'access arguments' => array(
-        'configure dwcarchiver'
-      ),
-      'file' => 'dwcarchiver.pages.inc'
-    ),
-    'admin/config/content/dwcarchiver/%dwcarchiver/view' => array(
-      'title' => 'View',
-      'type' => MENU_DEFAULT_LOCAL_TASK
-    ),
-    'admin/config/content/dwcarchiver/%dwcarchiver/edit' => array(
-      'title' => 'Edit',
       'page callback' => 'drupal_get_form',
       'page arguments' => array(
         'dwcarchiver_archive_form',
@@ -67,10 +46,25 @@ function dwcarchiver_menu(){
       ),
       'file' => 'dwcarchiver.pages.inc'
     ),
+    'admin/config/content/dwcarchiver/%dwcarchiver/edit' => array(
+      'title' => 'Edit',
+      'title callback' => 'dwcarchiver_title',
+      'title arguments' => array(
+        'Edit @name',
+        4
+      ),
+      'type' => MENU_DEFAULT_LOCAL_TASK
+    ),
     'admin/config/content/dwcarchiver/%dwcarchiver/delete' => array(
       'title' => 'Delete',
-      'page callback' => 'dwcarchiver_delete',
+      'title callback' => 'dwcarchiver_title',
+      'title arguments' => array(
+        'Delete @name',
+        4
+      ),
+      'page callback' => 'drupal_get_form',
       'page arguments' => array(
+        'dwcarchiver_archive_delete_form',
         4
       ),
       'access arguments' => array(
@@ -80,16 +74,31 @@ function dwcarchiver_menu(){
     ),
     'admin/config/content/dwcarchiver/%dwcarchiver/rebuild' => array(
       'title' => 'Rebuild',
+      'title callback' => 'dwcarchiver_title',
+      'title arguments' => array(
+        'Rebuild @name',
+        4
+      ),
       'page callback' => 'dwcarchiver_rebuild',
       'page arguments' => array(
-        4
+        4,
+        FALSE
       ),
       'access arguments' => array(
         'configure dwcarchiver'
       ),
-      'file' => 'dwcarchiver.pages.inc'
+      'file' => 'dwcarchiver.rebuild.inc'
     )
   );
+}
+
+/**
+ * Page title which takes a dwcarchiver object and extracts the label.
+ */
+function dwcarchiver_title($title, $dwcarchiver){
+  return t($title, array(
+    '@name' => $dwcarchiver->name
+  ));
 }
 
 /**
@@ -150,11 +159,42 @@ function dwcarchiver_load($did){
   if($archive){
     $archive->extensions = db_select('dwcarchiver_extension', 'e')->fields('e')->condition('did', $did)->execute()->fetchAll();
     $archive->maps = db_select('dwcarchiver_map', 'm')->fields('m')->condition('did', $did)->condition('eid', 0)->execute()->fetchAllAssoc('field');
+    $archive->maps = array_merge(array(
+      'id' => (object)array(
+        'eid' => 0,
+        'did' => $did,
+        'field' => 'uuid',
+        'uri' => 'id',
+        'processor' => 'dwcarchiver_raw_text'
+      )
+    ), $archive->maps);
     foreach($archive->extensions as $key => $value){
       $archive->extensions[$key]->maps = db_select('dwcarchiver_map', 'd')->fields('d')->condition('eid', $value->eid)->execute()->fetchAllAssoc('field');
+      $archive->extensions[$key]->maps = array_merge(array(
+        'coreid' => (object)array(
+          'eid' => $value->eid,
+          'did' => $did,
+          'field' => 'uuid',
+          'uri' => 'coreid',
+          'processor' => 'dwcarchiver_raw_text'
+        )
+      ), $archive->extensions[$key]->maps);
     }
   }
   return $archive;
+}
+
+/**
+ * Function for getting the processors
+ */
+function dwcarchiver_get_processors($reset = FALSE){
+  $processors = drupal_static(__FUNCTION__, $reset);
+  if(!$processors){
+    // Get the processors for processing text fields.
+    $processors = array();
+    drupal_alter('dwcarchiver_processors', $processors);
+  }
+  return $processors;
 }
 
 /**
@@ -197,3 +237,8 @@ function taxonomy_dwcarchiver_core_types_alter(&$core_types){
     }
   }
 }
+
+/**
+ * Rebuild the archive files on cron.
+ */
+function dwcarchiver_cron(){}
