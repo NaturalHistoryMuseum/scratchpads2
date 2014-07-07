@@ -1459,3 +1459,12 @@ function scratchpads_tweaks_update_7081(){
   variable_set('advagg_js_inline_compress_if_not_cacheable', 1);
   variable_set('advagg_js_compress_packer', 1);
 }
+
+/**
+ * Delete variables related to the emailing of inactive sites.
+ */
+function scratchpads_tweaks_update_7082(){
+  variable_del('scratchpads_tweaks_site_active');
+  variable_del('scratchpads_tweaks_account_notify');
+  variable_del('scratchpads_tweaks_site_active_check_time');
+}
