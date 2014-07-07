@@ -6,11 +6,15 @@ function dwcarchiver_rebuild($dwcarchiver, $deliver = TRUE){
   // Create the ZIP file, and add files directly to it.
   $zip_filename = drupal_tempnam(file_directory_temp(), 'dwcarchiver');
   $zip = new ZipArchive();
-  _dwcarchiver_create_xml_file($dwcarchiver, $zip);
-  $zip->close();
-  // Move the zip file to the dwcarchiver folder.
-  file_unmanaged_move($zip_filename, 'public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip', FILE_EXISTS_REPLACE);
-  drupal_set_message(t('The DwC-A has been rebuilt'));
+  if($zip->open($zip_filename, ZipArchive::CREATE) !== TRUE){
+    drupal_set_message(t('Unable to rebuild the archive, please contact an administrator.'), 'error');
+  }else{
+    _dwcarchiver_create_xml_file($dwcarchiver, $zip);
+    $zip->close();
+    // Move the zip file to the dwcarchiver folder.
+    file_unmanaged_move($zip_filename, 'public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip', FILE_EXISTS_REPLACE);
+    drupal_set_message(t('The DwC-A has been rebuilt'));
+  }
   drupal_goto('admin/config/content/dwcarchiver');
 }
 

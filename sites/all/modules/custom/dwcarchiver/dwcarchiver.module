@@ -14,6 +14,23 @@ function dwcarchiver_menu(){
       'access arguments' => array(
         'configure dwcarchiver'
       ),
+      'file' => 'dwcarchiver.pages.inc',
+      'type' => MENU_NORMAL_ITEM
+    ),
+    'admin/config/content/dwcarchiver/list' => array(
+      'title' => 'List',
+      'type' => MENU_DEFAULT_LOCAL_TASK
+    ),
+    'admin/config/content/dwcarchiver/settings' => array(
+      'title' => 'Settings',
+      'type' => MENU_LOCAL_TASK,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'dwcarchiver_settings'
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
       'file' => 'dwcarchiver.pages.inc'
     ),
     'admin/config/content/dwcarchiver/add' => array(
@@ -66,6 +83,23 @@ function dwcarchiver_menu(){
       'page arguments' => array(
         'dwcarchiver_archive_delete_form',
         4
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'file' => 'dwcarchiver.pages.inc'
+    ),
+    'admin/config/content/dwcarchiver/extension/%dwcarchiver_extension/delete' => array(
+      'title' => 'Delete',
+      'title callback' => 'dwcarchiver_title',
+      'title arguments' => array(
+        'Delete @name',
+        5
+      ),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'dwcarchiver_archive_extension_delete_form',
+        5
       ),
       'access arguments' => array(
         'configure dwcarchiver'
@@ -174,7 +208,13 @@ function dwcarchiver_permission(){
 function dwcarchiver_load($did){
   $archive = db_select('dwcarchiver_archive', 'd')->fields('d')->condition('did', $did)->execute()->fetch();
   if($archive){
-    $archive->extensions = db_select('dwcarchiver_extension', 'e')->fields('e')->condition('did', $did)->execute()->fetchAll();
+    $archive->extensions = array();
+    $eids = db_select('dwcarchiver_extension', 'e')->fields('e', array(
+      'eid'
+    ))->condition('did', $did)->execute()->fetchCol();
+    foreach($eids as $eid){
+      $archive->extensions[$eid] = dwcarchiver_extension_load($eid);
+    }
     $archive->maps = db_select('dwcarchiver_map', 'm')->fields('m')->condition('did', $did)->condition('eid', 0)->execute()->fetchAllAssoc('field');
     $archive->maps = array_merge(array(
       'id' => (object)array(
@@ -185,20 +225,26 @@ function dwcarchiver_load($did){
         'processor' => 'dwcarchiver_raw_text'
       )
     ), $archive->maps);
-    foreach($archive->extensions as $key => $value){
-      $archive->extensions[$key]->maps = db_select('dwcarchiver_map', 'd')->fields('d')->condition('eid', $value->eid)->execute()->fetchAllAssoc('field');
-      $archive->extensions[$key]->maps = array_merge(array(
-        'coreid' => (object)array(
-          'eid' => $value->eid,
-          'did' => $did,
-          'field' => 'uuid',
-          'uri' => 'coreid',
-          'processor' => 'dwcarchiver_raw_text'
-        )
-      ), $archive->extensions[$key]->maps);
-    }
   }
   return $archive;
+}
+
+/**
+ * Load an extension.
+ */
+function dwcarchiver_extension_load($eid){
+  $extension = db_select('dwcarchiver_extension', 'e')->condition('eid', $eid)->fields('e')->execute()->fetch();
+  $extension->maps = db_select('dwcarchiver_map', 'd')->fields('d')->condition('eid', $eid)->execute()->fetchAllAssoc('field');
+  $extension->maps = array_merge(array(
+    'coreid' => (object)array(
+      'eid' => $eid,
+      'did' => $extension->did,
+      'field' => 'uuid',
+      'uri' => 'coreid',
+      'processor' => 'dwcarchiver_raw_text'
+    )
+  ), $extension->maps);
+  return $extension;
 }
 
 /**

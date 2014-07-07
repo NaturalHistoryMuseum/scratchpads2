@@ -35,6 +35,37 @@ function dwcarchiver_overview_page(){
 }
 
 /**
+ * Settings for the DwC-Archiver
+ */
+function dwcarchiver_settings($form, &$form_state){
+  $form = system_settings_form(array(
+    'dwcarchiver_rebuild_frequency' => array(
+      '#type' => 'select',
+      '#title' => t('Rebuild frequency'),
+      '#options' => array(
+        'change' => t('When required'),
+        '24' => t('Once a day'),
+        '168' => t('Once a week'),
+        '672' => t('Once a month')
+      ),
+      '#default_value' => variable_get('dwcarchiver_rebuild_frequency', 'change'),
+      '#description' => t('Select how frequently ALL archives should be rebuilt. Note, "When required" will attempt to detect when changes have been made, and will automatically rebuild an archive.')
+    )
+  ));
+  // Need to specify the submit function, as the default system_settings_form
+  // prevents ours from being executed.
+  $form['#submit'][] = 'dwcarchiver_settings_submit';
+  return $form;
+}
+
+/**
+ * Submit for the above simply to redirect.
+ */
+function dwcarchiver_settings_submit($form, &$form_state){
+  $form_state['redirect'] = 'admin/config/content/dwcarchiver';
+}
+
+/**
  * Deliver the DwC-A
  */
 function dwcarchiver_deliver_archive($did){
@@ -138,6 +169,15 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
         '#title' => $extension->name,
         '#description' => $extension->rowtype,
         'fields' => _dwcarchiver_archive_form_fields($extension->extension_entity, $extension->extension_bundle, $extension->maps)
+      );
+      $form['extensions'][$extension->machine_name]['delete'] = array(
+        '#theme' => 'link',
+        '#path' => 'admin/config/content/dwcarchiver/extension/' . $extension->eid . '/delete',
+        '#options' => array(
+          'attributes' => array(),
+          'html' => FALSE
+        ),
+        '#text' => t('Delete extension')
       );
     }
     $form['extensions']['add'] = array(
@@ -395,6 +435,9 @@ function dwcarchiver_archive_delete_form($form, $form_state, $dwcarchiver){
  * @see node_delete_confirm()
  */
 function dwcarchiver_archive_delete_form_submit($form, &$form_state){
+  // Delete the zip file if we need to
+  $dwcarchiver = dwcarchiver_load($form_state['values']['did']);
+  drupal_unlink('public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip');
   if($form_state['values']['confirm']){
     db_delete('dwcarchiver_archive')->condition('did', $form_state['values']['did'])->execute();
     db_delete('dwcarchiver_extension')->condition('did', $form_state['values']['did'])->execute();
@@ -403,4 +446,31 @@ function dwcarchiver_archive_delete_form_submit($form, &$form_state){
   $form_state['redirect'] = 'admin/config/content/dwcarchiver';
   // Rebuild the menu so that the link to the archive works
   menu_rebuild();
+}
+
+/**
+ * Delete an extension form.
+ */
+function dwcarchiver_archive_extension_delete_form($form, $form_state, $dwcarchiver_extension){
+  $form['eid'] = array(
+    '#type' => 'value',
+    '#value' => arg(5)
+  );
+  return confirm_form($form, t('Are you sure you want to delete the extension %title?', array(
+    '%title' => $dwcarchiver_extension->name
+  )), 'admin/config/content/dwcarchiver/' . $dwcarchiver_extension->did . '/edit', t('This action cannot be undone.'), t('Delete'), t('Cancel'));
+}
+
+/**
+ * Executes node deletion.
+ *
+ * @see node_delete_confirm()
+ */
+function dwcarchiver_archive_extension_delete_form_submit($form, &$form_state){
+  $dwcarchiver_extension = dwcarchiver_extension_load($form_state['values']['eid']);
+  if($form_state['values']['confirm']){
+    db_delete('dwcarchiver_extension')->condition('eid', $form_state['values']['eid'])->execute();
+    db_delete('dwcarchiver_map')->condition('eid', $form_state['values']['eid'])->execute();
+  }
+  $form_state['redirect'] = 'admin/config/content/dwcarchiver/' . $dwcarchiver_extension->did . '/edit';
 }
