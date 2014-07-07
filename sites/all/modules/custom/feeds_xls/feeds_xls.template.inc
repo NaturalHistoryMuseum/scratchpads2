@@ -606,13 +606,13 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
           $objValidation->setErrorTitle('Input error');
           $objValidation->setError(t('Your input did not match one of the allowed values.'));
           $objValidation->setPromptTitle(t('Allowed input'));
+          $row = 0;
           foreach($allowed_values as $allowed_value){
             $num_sheets = count($objPHPExcel->getAllSheets());
             if($num_sheets == 1){
               $objPHPExcel->createSheet();
               $objPHPExcel->getSheet(1)->setTitle('PermittedValues');
             }
-            $row = 0;
             if(is_array($allowed_value) && isset($allowed_value['vocabulary'])){
               // Get the vocabulary so we can get the vid.
               $vocabulary = taxonomy_vocabulary_machine_name_load($allowed_value['vocabulary']);
