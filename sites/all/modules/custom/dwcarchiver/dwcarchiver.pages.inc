@@ -151,7 +151,8 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
         '#type' => 'textfield',
         '#title' => t('Row Type/URI'),
         '#default_value' => $dwcarchiver->rowtype,
-        '#maxlength' => 255
+        '#maxlength' => 255,
+        '#required' => TRUE
       )
     )
   );
@@ -241,11 +242,7 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
  * Helper function to return a form array for selecting fields for a specific
  * entity/bundle.
  */
-function _dwcarchiver_archive_form_fields($entity, $bundle, $maps = array()){
-  $processors = dwcarchiver_get_processors();
-  foreach($processors as $key => $value){
-    $processors[$key] = $value['label'];
-  }
+function _dwcarchiver_archive_form_fields($entity_type, $bundle, $maps = array(), $prefix = ''){
   $form = array(
     '#type' => 'fieldset',
     '#title' => t('Field maps'),
@@ -254,7 +251,7 @@ function _dwcarchiver_archive_form_fields($entity, $bundle, $maps = array()){
     '#table' => array(
       'header' => array(
         t('Label'),
-        t('Maps to - Enter the URI that this field maps to.  If left blank, this field will not be included in the DwC-A.'),
+        t('Maps to - Enter the URI that this field maps to.  If left blank, this field will not be included in the DwC-A. Multiple URIs can be entered as a pipe delimittted list.'),
         t('Processor')
       )
     ),
@@ -262,52 +259,95 @@ function _dwcarchiver_archive_form_fields($entity, $bundle, $maps = array()){
   );
   // Add the fields that are relevant for the bundle.
   $fields = field_read_instances(array(
-    'entity_type' => $entity,
+    'entity_type' => $entity_type,
     'bundle' => $bundle
   ));
+  // We run through the maps first to ensure they're at the top, and that any
+  // none field maps (such as id) are included.
   foreach($maps as $field => $map){
-    $form[$field] = array(
-      'label' => array(
-        '#markup' => ''
-      ),
-      'term' => array(
-        '#title_display' => 'invisible',
-        '#type' => 'textfield',
-        '#title' => t('Maps to'),
-        '#default_value' => $map->uri,
-        '#disabled' => TRUE
-      ),
-      'processor' => array(
-        '#title_display' => 'invisible',
-        '#type' => 'select',
-        '#title' => t('Processor'),
-        '#options' => $processors,
-        '#default_value' => $map->processor,
-        '#disabled' => TRUE
-      )
-    );
+    if((!$prefix && !strpos($field, ':')) || substr($field, 0, strlen($prefix) + 1) == $prefix . ':'){
+      $field_instance = field_info_instance($entity_type, $field, $bundle);
+      $label = ucfirst($field);
+      if($field_instance){
+        $label = $field_instance['label'];
+      }
+      $form['mapped:' . $field] = _dwcarchiver_archive_form_fields_row($label, $map->uri, $map->processor, TRUE);
+    }
   }
-  foreach($fields as $field){
-    $form[$field['field_name']] = array(
-      'label' => array(
-        '#markup' => $field['label']
-      ),
-      'term' => array(
-        '#title_display' => 'invisible',
-        '#type' => 'textfield',
-        '#title' => t('Maps to'),
-        '#default_value' => !empty($maps[$field['field_name']]) ? $maps[$field['field_name']]->uri : ''
-      ),
-      'processor' => array(
-        '#title_display' => 'invisible',
-        '#type' => 'select',
-        '#title' => t('Processor'),
-        '#options' => $processors,
-        '#default_value' => !empty($maps[$field['field_name']]) ? $maps[$field['field_name']]->processor : ''
-      )
-    );
+  // We add default maps for certain entity types.  All entity types have a 
+  // label, so we add that first.
+  $info = entity_get_info($entity_type);
+  $actual_prefix = '';
+  if($prefix){
+    $actual_prefix = $prefix . ':';
+  }
+  $form[$actual_prefix . $info['entity keys']['label']] = _dwcarchiver_archive_form_fields_row(t(ucfirst($info['entity keys']['label'])), !empty($maps[$actual_prefix . $info['entity keys']['label']]) ? $maps[$actual_prefix . $info['entity keys']['label']]->uri : '', !empty($maps[$actual_prefix . $info['entity keys']['label']]) ? $maps[$actual_prefix . $info['entity keys']['label']]->processor : '');
+  switch($entity_type){
+    case 'taxonomy_term':
+      $form['parent'] = _dwcarchiver_archive_form_fields_row(t('Parent'), !empty($maps['parent']) ? $maps['parent']->uri : '', !empty($maps['parent']) ? $maps['parent']->processor : '');
+      break;
+  }
+  foreach($fields as $field_instance){
+    // If we have some form of reference field (e.g. node reference, user
+    // reference, or term reference), then we check for the number of values
+    // that can be referenced.  If it's only one, we add ALL fields from the 
+    // linked item to a field set.  We do this only once to avoid loops.
+    $field_info = field_info_field($field_instance['field_name']);
+    switch($field_info['type']){
+      case 'user_reference':
+        break;
+      case 'node_reference':
+        // We create a fieldset, and add all of the fields from the linked/bundle
+        // entity to that fieldset.
+        if(!$prefix){
+          $bundle = array_filter($field_info['settings']['referenceable_types']);
+          // We only attempt to add the fields if there is only one referenceable type.
+          if(count($bundle == 1)){
+            $form[$field_instance['field_name']] = array(
+              '#type' => 'fieldset',
+              '#title' => $field_instance['label']
+            );
+            $bundle = array_pop($bundle);
+            $form[$field_instance['field_name']]['fields'] = _dwcarchiver_archive_form_fields('node', $bundle, $maps, $field_instance['field_name']);
+          }
+        }
+        break;
+      default:
+        $form[$actual_prefix . $field_instance['field_name']] = _dwcarchiver_archive_form_fields_row($field_instance['label'], !empty($maps[$actual_prefix . $field_instance['field_name']]) ? $maps[$actual_prefix . $field_instance['field_name']]->uri : '', !empty($maps[$actual_prefix . $field_instance['field_name']]) ? $maps[$actual_prefix . $field_instance['field_name']]->processor : '');
+        break;
+    }
   }
   return $form;
+}
+
+/**
+ * Helper function to create a row for a field form.
+ */
+function _dwcarchiver_archive_form_fields_row($label, $default_value_term, $default_value_processor, $disabled = FALSE){
+  $processors = dwcarchiver_get_processors();
+  foreach($processors as $key => $value){
+    $processors[$key] = $value['label'];
+  }
+  return array(
+    'label' => array(
+      '#markup' => $label
+    ),
+    'term' => array(
+      '#title_display' => 'invisible',
+      '#type' => 'textfield',
+      '#title' => t('Maps to'),
+      '#default_value' => $default_value_term,
+      '#disabled' => $disabled
+    ),
+    'processor' => array(
+      '#title_display' => 'invisible',
+      '#type' => 'select',
+      '#title' => t('Processor'),
+      '#options' => $processors,
+      '#default_value' => $default_value_processor,
+      '#disabled' => $disabled
+    )
+  );
 }
 
 /**
@@ -348,7 +388,7 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
   // If we have mappings for the core item, we also work with them!
   if(!empty($form_state['values']['core']['fields'])){
     foreach($form_state['values']['core']['fields'] as $field => $values){
-      if($values['term'] && !in_array($field, array(
+      if(!empty($values['term']) && !in_array($field, array(
         'id',
         'coreid'
       ))){
@@ -398,6 +438,19 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
                   'uri' => $values['term'],
                   'processor' => $values['processor']
                 ));
+              }elseif(!empty($values['fields']) && count($values['fields'])){
+                foreach($values['fields'] as $sub_field => $sub_values){
+                  if($sub_values['term']){
+                    $insert_into_mappings = TRUE;
+                    $insert->values(array(
+                      'eid' => $extension->eid,
+                      'did' => $dwcarchiver->did,
+                      'field' => $field . ':' . $sub_field,
+                      'uri' => $sub_values['term'],
+                      'processor' => $sub_values['processor']
+                    ));
+                  }
+                }
               }
             }
           }

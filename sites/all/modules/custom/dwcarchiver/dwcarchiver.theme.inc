@@ -15,7 +15,12 @@ function theme_dwcarchiver_archive_form($variables){
               $table['rows'] = array(
                 array(
                   drupal_render($variables['form'][$key][$key2]['name']) . drupal_render($variables['form'][$key][$key2]['machine_name']),
-                  drupal_render($variables['form'][$key][$key2]['rowtype']),
+                  array(
+                    'data' => drupal_render($variables['form'][$key][$key2]['rowtype']),
+                    'class' => array(
+                      'dwcarchiver-full-width'
+                    )
+                  ),
                   drupal_render($variables['form'][$key][$key2]['entity_bundle'])
                 )
               );
@@ -32,6 +37,7 @@ function theme_dwcarchiver_archive_form($variables){
         break;
     }
   }
+  drupal_add_css(drupal_get_path('module', 'dwcarchiver') . '/css/dwcarchiver.css');
   return $output;
 }
 
@@ -42,11 +48,31 @@ function theme_dwcarchiver_archiver_form_fields_table($variables){
   $table = $variables['element']['#table'];
   $table['rows'] = array();
   foreach(element_children($variables['element']) as $key3){
-    $table['rows'][] = array(
-      drupal_render($variables['element'][$key3]['label']),
-      drupal_render($variables['element'][$key3]['term']),
-      drupal_render($variables['element'][$key3]['processor'])
-    );
+    if(!empty($variables['element'][$key3]['#type']) && $variables['element'][$key3]['#type'] == 'fieldset'){
+      $table['rows'][] = array(
+        $variables['element'][$key3]['#title'],
+        array(
+          'data' => drupal_render_children($variables['element'][$key3]),
+          'colspan' => 2
+        )
+      );
+    }else{
+      $table['rows'][] = array(
+        drupal_render($variables['element'][$key3]['label']),
+        array(
+          'data' => drupal_render($variables['element'][$key3]['term']),
+          'class' => array(
+            'dwcarchiver-full-width'
+          )
+        ),
+        array(
+          'data' => drupal_render($variables['element'][$key3]['processor']),
+          'class' => array(
+            'dwcarchiver-full-width'
+          )
+        )
+      );
+    }
   }
   return theme('table', $table);
 }

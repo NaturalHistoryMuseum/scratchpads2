@@ -293,7 +293,7 @@ function taxonomy_dwcarchiver_core_types_alter(&$core_types){
       'field_name' => $field['field_name']
     )) as $instance){
       foreach($field['settings']['allowed_values'] as $allowed_values){
-        if(!empty($allowed_values['vocabulary'])){
+        if(!empty($allowed_values['vocabulary']) && isset($core_types['taxonomy_term/' . $allowed_values['vocabulary']])){
           $core_types['taxonomy_term/' . $allowed_values['vocabulary']]['links'][$field['field_name'] . '/' . $instance['entity_type'] . '/' . $instance['bundle']] = $instance['label'] . ': ' . $entity_info[$instance['entity_type']]['label'] . " (" . $entity_info[$instance['entity_type']]['bundles'][$instance['bundle']]['label'] . ")";
         }
       }
