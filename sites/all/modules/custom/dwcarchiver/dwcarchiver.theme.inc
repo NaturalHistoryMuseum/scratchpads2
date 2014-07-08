@@ -24,7 +24,7 @@ function theme_dwcarchiver_archive_form($variables){
                   drupal_render($variables['form'][$key][$key2]['entity_bundle'])
                 )
               );
-              $output .= theme('table', $table);
+              $output .= '<fieldset class="fieldset"><legend><span class="fieldset-title fieldset-legend">' . $variables['form'][$key][$key2]['#title'] . '</span>' . theme('table', $table) . '</fieldset>';
               break;
             default:
               $output .= drupal_render($variables['form'][$key][$key2]);

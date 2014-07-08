@@ -153,7 +153,7 @@ function dwcarchiver_schema(){
         ),
         'field' => array(
           'type' => 'varchar',
-          'length' => 32,
+          'length' => 65,
           'not null' => TRUE,
           'description' => 'The name of the field.'
         ),
@@ -173,10 +173,6 @@ function dwcarchiver_schema(){
           'description' => 'ID of the processor for altering the data.',
           'translatable' => TRUE
         )
-      ),
-      'primary key' => array(
-        'field',
-        'eid'
       )
     )
   );

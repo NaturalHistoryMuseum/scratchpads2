@@ -215,16 +215,18 @@ function dwcarchiver_load($did){
     foreach($eids as $eid){
       $archive->extensions[$eid] = dwcarchiver_extension_load($eid);
     }
-    $archive->maps = db_select('dwcarchiver_map', 'm')->fields('m')->condition('did', $did)->condition('eid', 0)->execute()->fetchAllAssoc('field');
-    $archive->maps = array_merge(array(
-      'id' => (object)array(
-        'eid' => 0,
-        'did' => $did,
-        'field' => 'uuid',
-        'uri' => 'id',
-        'processor' => 'dwcarchiver_raw_text'
-      )
-    ), $archive->maps);
+    $archive->maps = db_select('dwcarchiver_map', 'm')->fields('m')->condition('did', $did)->condition('eid', 0)->execute()->fetchAll();
+    if(!$archive->maps){
+      $archive->maps = array(
+        (object)array(
+          'eid' => 0,
+          'did' => $did,
+          'field' => 'uuid',
+          'uri' => 'id',
+          'processor' => 'dwcarchiver_raw_text'
+        )
+      );
+    }
   }
   return $archive;
 }
@@ -234,41 +236,140 @@ function dwcarchiver_load($did){
  */
 function dwcarchiver_extension_load($eid){
   $extension = db_select('dwcarchiver_extension', 'e')->condition('eid', $eid)->fields('e')->execute()->fetch();
-  $extension->maps = db_select('dwcarchiver_map', 'd')->fields('d')->condition('eid', $eid)->execute()->fetchAllAssoc('field');
-  $extension->maps = array_merge(array(
-    'coreid' => (object)array(
-      'eid' => $eid,
-      'did' => $extension->did,
-      'field' => 'uuid',
-      'uri' => 'coreid',
-      'processor' => 'dwcarchiver_raw_text'
-    )
-  ), $extension->maps);
+  $extension->maps = db_select('dwcarchiver_map', 'd')->fields('d')->condition('eid', $eid)->execute()->fetchAll();
+  if(!$extension->maps){
+    $extension->maps = array(
+      (object)array(
+        'eid' => $eid,
+        'did' => $extension->did,
+        'field' => 'uuid',
+        'uri' => 'coreid',
+        'processor' => 'dwcarchiver_raw_text'
+      )
+    );
+  }
   return $extension;
 }
 
 /**
  * Function for getting the processors
  */
-function dwcarchiver_get_processors($reset = FALSE){
+function dwcarchiver_get_processors($field_type = 'ALL', $reset = FALSE){
   $processors = drupal_static(__FUNCTION__, $reset);
   if(!$processors){
     // Get the processors for processing text fields.
     $processors = array();
     drupal_alter('dwcarchiver_processors', $processors);
   }
-  return $processors;
+  if($field_type == 'ALL'){return $processors;}
+  // We filter out the processors we can accept.
+  $processors_to_return = array();
+  foreach($processors as $key => $processor){
+    if(in_array($field_type, $processor['field types'])){
+      $processors_to_return[$key] = $processor;
+    }
+  }
+  return $processors_to_return;
 }
 
 /**
  * Alter the list of processors
  */
 function dwcarchiver_dwcarchiver_processors_alter(&$processors){
+  // FIXME - Add date, creativecommons, country and field_collection
   $processors['dwcarchiver_raw_text'] = array(
     'module' => 'dwcarchiver',
     'file' => 'dwcarchiver.processors.inc',
-    'callback' => 'dwcarchiver_processor_raw',
-    'label' => t('Raw value')
+    'callback' => 'dwcarchiver_processor_dwcarchiver_raw_text',
+    'label' => t('Raw value'),
+    'field types' => array(
+      'text',
+      'text_long',
+      'text_with_summary',
+      'number_integer',
+      'list_boolean',
+      'list_integer',
+      'list_text'
+    )
+  );
+  $processors['dwcarchiver_list'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_list',
+    'label' => t('List label'),
+    'field types' => array(
+      'list_boolean',
+      'list_integer',
+      'list_text'
+    )
+  );
+  $processors['dwcarchiver_path'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_path',
+    'label' => t('File path'),
+    'field types' => array(
+      'file'
+    )
+  );
+  $processors['dwcarchiver_date_from'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_date_from',
+    'label' => t('Date from'),
+    'field types' => array(
+      'date'
+    )
+  );
+  $processors['dwcarchiver_date_to'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_date_to',
+    'label' => t('Date to'),
+    'field types' => array(
+      'date'
+    )
+  );
+}
+
+/**
+ * Biblio module alter the list of processors
+ */
+function biblio_dwcarchiver_processors_alter(&$processors){
+  $processors['dwcarchiver_biblio'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_biblio',
+    'label' => t('Biblio magic processor'),
+    'field types' => array(
+      'biblio'
+    )
+  );
+}
+
+/**
+ * GM3 module alter the list of processors.
+ */
+function gm3_dwcarchiver_processors_alter(&$processors){
+  $processors['gm3_latitude'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_gm3_latitude',
+    'label' => t('Latitude'),
+    'field types' => array(
+      'gm3_point',
+      'gm3_combination'
+    )
+  );
+  $processors['gm3_longitude'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_gm3_longitude',
+    'label' => t('Longitude'),
+    'field types' => array(
+      'gm3_point',
+      'gm3_combination'
+    )
   );
 }
 
