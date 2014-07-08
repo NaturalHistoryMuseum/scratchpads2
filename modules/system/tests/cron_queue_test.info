@@ -1,5 +1,5 @@
-name = "Entity cache test dependency"
-description = "Support dependency module for testing entity cache."
+name = Cron Queue test
+description = 'Support module for the cron queue runner.'
 package = Testing
 version = VERSION
 core = 7.x

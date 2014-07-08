@@ -1145,7 +1145,7 @@ class DrupalWebTestCase extends DrupalTestCase {
   }
 
   /**
-   * Internal helper function; Create a role with specified permissions.
+   * Creates a role with specified permissions.
    *
    * @param $permissions
    *   Array of permission names to assign to role.
@@ -2269,6 +2269,13 @@ class DrupalWebTestCase extends DrupalTestCase {
             }
             break;
 
+          case 'updateBuildId':
+            $buildId = $xpath->query('//input[@name="form_build_id" and @value="' . $command['old'] . '"]')->item(0);
+            if ($buildId) {
+              $buildId->setAttribute('value', $command['new']);
+            }
+            break;
+
           // @todo Add suitable implementations for these commands in order to
           //   have full test coverage of what ajax.js can do.
           case 'remove':
@@ -2287,6 +2294,14 @@ class DrupalWebTestCase extends DrupalTestCase {
     }
     $this->drupalSetContent($content);
     $this->drupalSetSettings($drupal_settings);
+
+    $verbose = 'AJAX POST request to: ' . $path;
+    $verbose .= '<br />AJAX callback path: ' . $ajax_path;
+    $verbose .= '<hr />Ending URL: ' . $this->getUrl();
+    $verbose .= '<hr />' . $this->content;
+
+    $this->verbose($verbose);
+
     return $return;
   }
 
