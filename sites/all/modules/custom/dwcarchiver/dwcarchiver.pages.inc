@@ -286,7 +286,8 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundle, $maps = array()
         $disabled = FALSE;
         $field_info = field_info_field($field_instance['field_name']);
         $type = $field_info['type'];
-      }elseif($map->field == $info['entity keys']['label']){
+      }      //elseif($map->field == $info['entity keys']['label']){
+else{
         $disabled = FALSE;
       }
       $form["mapped-$index_str:" . $map->field] = _dwcarchiver_archive_form_fields_row($label, $type, $map->uri, $map->processor, $disabled);
@@ -309,7 +310,16 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundle, $maps = array()
       $form[$actual_prefix . 'edited'] = _dwcarchiver_archive_form_fields_row('Edited', 'date');
       break;
     case 'file':
-      $form[$actual_prefix . 'path'] = _dwcarchiver_archive_form_fields_row('Path', 'file');
+      if(!$prefix){
+        $form['user'] = array(
+          '#type' => 'fieldset',
+          '#title' => t('Contributor'),
+          'fields' => _dwcarchiver_archive_form_fields('user', 'user', $maps, 'user')
+        );
+      }
+      $form[$actual_prefix . 'path'] = _dwcarchiver_archive_form_fields_row('Path', 'uri');
+      $form[$actual_prefix . 'filename'] = _dwcarchiver_archive_form_fields_row('Filename', 'entity_property');
+      $form[$actual_prefix . 'filemime'] = _dwcarchiver_archive_form_fields_row('Mime', 'entity_property');
       break;
     case 'taxonomy_term':
       // We create a fieldset, and add all of the fields from the linked/bundle

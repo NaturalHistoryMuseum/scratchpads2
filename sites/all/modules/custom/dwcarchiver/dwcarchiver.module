@@ -283,6 +283,7 @@ function dwcarchiver_dwcarchiver_processors_alter(&$processors){
     'callback' => 'dwcarchiver_processor_dwcarchiver_raw_text',
     'label' => t('Raw value'),
     'field types' => array(
+      'entity_property',
       'text',
       'text_long',
       'text_with_summary',
@@ -328,6 +329,21 @@ function dwcarchiver_dwcarchiver_processors_alter(&$processors){
     'label' => t('Date to'),
     'field types' => array(
       'date'
+    )
+  );
+}
+
+/**
+ * Creative commons module alter the list of processors
+ */
+function creative_commons_dwcarchiver_processors_alter(&$processors){
+  $processors['dwcarchiver_creative_commons'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_creative_commons',
+    'label' => t('Creative Commons'),
+    'field types' => array(
+      'creative_commons'
     )
   );
 }
