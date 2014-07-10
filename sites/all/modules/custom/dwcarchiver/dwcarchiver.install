@@ -142,6 +142,13 @@ function dwcarchiver_schema(){
           'default' => 0,
           'description' => 'The {dwcarchiver_archive}.did of the extension.'
         ),
+        'delta' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The delta of the map'
+        ),
         'field' => array(
           'type' => 'varchar',
           'length' => 65,

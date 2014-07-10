@@ -5,3 +5,4 @@ package = "Export"
 configure = admin/config/system/dwcaexport
 tool = true
 dependencies[] = uuid
+dependencies[] = field

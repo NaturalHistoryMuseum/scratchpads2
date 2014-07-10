@@ -213,22 +213,52 @@ function dwcarchiver_load($did){
       'eid'
     ))->condition('did', $did)->execute()->fetchCol();
     foreach($eids as $eid){
-      $archive->extensions[$eid] = dwcarchiver_extension_load($eid);
+      $archive->extensions[$eid] = dwcarchiver_extension_load($eid, $did);
     }
-    $archive->maps = db_select('dwcarchiver_map', 'm')->fields('m')->condition('did', $did)->condition('eid', 0)->execute()->fetchAll();
-    if(!$archive->maps){
-      $archive->maps = array(
-        (object)array(
-          'eid' => 0,
-          'did' => $did,
-          'field' => 'uuid',
-          'uri' => 'id',
-          'processor' => 'dwcarchiver_raw_text'
-        )
-      );
-    }
+    $archive->maps = dwcarchiver_map_load(0, $did, 'id');
   }
   return $archive;
+}
+
+/**
+ * Load maps
+ */
+function dwcarchiver_map_load($eid, $did, $uri = 'coreid'){
+  $maps = db_select('dwcarchiver_map', 'd')->fields('d')->condition('eid', $eid)->orderBy('uri')->execute()->fetchAll();
+  if($maps){
+    $maps_to_return = array();
+    foreach($maps as $map){
+      if(in_array($map->uri, array(
+        'id',
+        'coreid'
+      ))){
+        $maps_to_return[$map->delta] = array(
+          $map
+        );
+      }
+    }
+    foreach($maps as $map){
+      if(!in_array($map->uri, array(
+        'id',
+        'coreid'
+      ))){
+        $maps_to_return[$map->delta][] = $map;
+      }
+    }
+    return $maps_to_return;
+  }else{
+    return array(
+      array(
+        (object)array(
+          'eid' => $eid,
+          'did' => $did,
+          'field' => 'uuid',
+          'uri' => 'coreid',
+          'processor' => 'dwcarchiver_raw_text'
+        )
+      )
+    );
+  }
 }
 
 /**
@@ -236,17 +266,8 @@ function dwcarchiver_load($did){
  */
 function dwcarchiver_extension_load($eid){
   $extension = db_select('dwcarchiver_extension', 'e')->condition('eid', $eid)->fields('e')->execute()->fetch();
-  $extension->maps = db_select('dwcarchiver_map', 'd')->fields('d')->condition('eid', $eid)->execute()->fetchAll();
-  if(!$extension->maps){
-    $extension->maps = array(
-      (object)array(
-        'eid' => $eid,
-        'did' => $extension->did,
-        'field' => 'uuid',
-        'uri' => 'coreid',
-        'processor' => 'dwcarchiver_raw_text'
-      )
-    );
+  if($extension){
+    $extension->maps = dwcarchiver_map_load($eid, $extension->did);
   }
   return $extension;
 }

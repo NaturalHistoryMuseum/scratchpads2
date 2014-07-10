@@ -7,6 +7,7 @@ form>div>.fieldset,form>div>table{
 }
 form>div>.fieldset>legend>span{
   font-size:120% !important;
+  border-bottom:solid 1px #ccc;
 }
 .fieldset-content .fieldset-content{
   padding: 29px 0 0 0 !important;
