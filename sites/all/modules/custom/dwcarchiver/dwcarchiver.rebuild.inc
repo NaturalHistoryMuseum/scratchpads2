@@ -1,6 +1,4 @@
 <?php
-define('DWCARCHIVER_DATA_FILE_EXTENSION', 'txt');
-define('DWCARCHIVER_ARCHIVE_DIRECTORY_NAME', 'dwca/');
 
 function dwcarchiver_rebuild($dwcarchiver, $deliver = TRUE){
   try{
@@ -50,21 +48,21 @@ function _dwcarchiver_create_xml_file($dwcarchiver, ZipArchive $zip){
   _dwcarchiver_add_default_attributes($core);
   $core->addAttribute('rowType', $dwcarchiver->rowtype);
   $files = $core->addChild('files');
-  $files->addChild('location', $dwcarchiver->machine_name . '.' . DWCARCHIVER_DATA_FILE_EXTENSION);
+  $files->addChild('location', $dwcarchiver->machine_name . '.' . variable_get('dwcarchiver_rebuild_frequency', 'txt'));
   _dwcarchiver_write_xml_for_fields($core, $dwcarchiver->maps[0], TRUE);
   // Write the data for the core to the archive.
   _dwcarchiver_create_and_add_data_file($dwcarchiver->core_entity, $dwcarchiver->core_bundle, $dwcarchiver->maps, $zip, $dwcarchiver->machine_name);
   foreach($dwcarchiver->extensions as $extension){
     $extension_element = $archive->addChild('extension');
     $files = $extension_element->addChild('files');
-    $files->addChild('location', $extension->machine_name . '.' . DWCARCHIVER_DATA_FILE_EXTENSION);
+    $files->addChild('location', $extension->machine_name . '.' . variable_get('dwcarchiver_rebuild_frequency', 'txt'));
     _dwcarchiver_add_default_attributes($extension_element);
     $extension_element->addAttribute('rowType', $extension->rowtype);
     _dwcarchiver_write_xml_for_fields($extension_element, $extension->maps[0]);
     // Write the data for the extension to the archive.
     _dwcarchiver_create_and_add_data_file($extension->extension_entity, $extension->extension_bundle, $extension->maps, $zip, $extension->machine_name);
   }
-  $zip->addFromString(DWCARCHIVER_ARCHIVE_DIRECTORY_NAME . 'meta.xml', $archive->saveXML());
+  $zip->addFromString(variable_get('dwcarchiver_folder_name', 'dwca') . '/meta.xml', $archive->saveXML());
 }
 
 /**
@@ -122,7 +120,7 @@ function _dwcarchiver_create_and_add_data_file($entity_type, $bundle, $maps, Zip
       fputcsv($f, $row, ',', '"');
     }
   }
-  $zip->addFile($csv_filename, DWCARCHIVER_ARCHIVE_DIRECTORY_NAME . $machine_name . '.' . DWCARCHIVER_DATA_FILE_EXTENSION);
+  $zip->addFile($csv_filename, variable_get('dwcarchiver_folder_name', 'dwca') . '/' . $machine_name . '.' . variable_get('dwcarchiver_rebuild_frequency', 'txt'));
   $zip_filename = $zip->filename;
   $zip->close();
   unlink($csv_filename);

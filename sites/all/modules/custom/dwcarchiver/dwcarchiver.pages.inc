@@ -50,12 +50,45 @@ function dwcarchiver_settings($form, &$form_state){
       ),
       '#default_value' => variable_get('dwcarchiver_rebuild_frequency', 'change'),
       '#description' => t('Select how frequently ALL archives should be rebuilt. Note, "When required" will attempt to detect when changes have been made, and will automatically rebuild an archive.')
+    ),
+    'dwcarchiver_data_file_extension' => array(
+      '#type' => 'select',
+      '#title' => t('Data file extension'),
+      '#options' => array(
+        'txt' => 'txt',
+        'csv' => 'csv'
+      ),
+      '#default_value' => variable_get('dwcarchiver_rebuild_frequency', 'txt'),
+      '#description' => t('The file extension used for the core and extension data files within the Darwincore archive.')
+    ),
+    'dwcarchiver_folder_name' => array(
+      '#type' => 'textfield',
+      '#title' => t('Archive folder'),
+      '#default_value' => variable_get('dwcarchiver_folder_name', 'dwca'),
+      '#description' => t('Select a path under which all data files will reside. Leaving this as the default "dwca" should be fine for most users. Only the letters A-Z are allowed.'),
+      '#size' => 60,
+      '#maxlength' => 64,
+      '#required' => TRUE,
+      '#element_validate' => array(
+        'dwcarchiver_settings_validate_folder_name'
+      )
     )
   ));
   // Need to specify the submit function, as the default system_settings_form
   // prevents ours from being executed.
   $form['#submit'][] = 'dwcarchiver_settings_submit';
   return $form;
+}
+
+/**
+ * Validate the folder name.
+ */
+function dwcarchiver_settings_validate_folder_name($element, &$form_state, $form){
+  $lower_of_value = strtolower($element['#value']);
+  preg_match('/[a-z]*/', $lower_of_value, $matches);
+  if($matches[0] != $lower_of_value){
+    form_error($element, t('Only use letters a-z for the archive folder.'));
+  }
 }
 
 /**
