@@ -377,6 +377,15 @@ function dwcarchiver_dwcarchiver_processors_alter(&$processors){
       'uri'
     )
   );
+  $processors['dwcarchiver_timestamp'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_timestamp',
+    'label' => t('Timestamp'),
+    'field types' => array(
+      'timestamp'
+    )
+  );
   $processors['dwcarchiver_date_from'] = array(
     'module' => 'dwcarchiver',
     'file' => 'dwcarchiver.processors.inc',

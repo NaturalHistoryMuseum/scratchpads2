@@ -53,6 +53,13 @@ function dwcarchiver_processor_dwcarchiver_date_to(SelectQuery $query, $field, $
 }
 
 /**
+ * 
+ */
+function dwcarchiver_processor_dwcarchiver_timestamp(SelectQuery $query, $field, $entity_info, $map_id, $map, $table = 'base'){
+  $query->addExpression("FROM_UNIXTIME({$table}.$field)");
+}
+
+/**
  * Return a URL for an entity.  Note, I'm not sure if this will work for all 
  * entity types, so possibly needs testing.
  */
@@ -127,11 +134,17 @@ function dwcarchiver_processor_dwcarchiver_biblio(SelectQuery $query, $field, $e
       $query->groupBy("table_{$map_id}.vid");
       //$query->addExpression("table_{$map_id}_data.name");
       break;
+    case 'biblio_date':
+    case 'biblio_year':
+      $joined_biblio = dwcarchiver_processor_dwcarchiver_biblio_join_biblio($query, $map_id, $table);
+      $query->addExpression("COALESCE({$joined_biblio}.{$field}, {$joined_biblio}.biblio_date, {$joined_biblio}.biblio_year)");
+      break;
     case 'biblio_type':
       //return;
       $joined_biblio = dwcarchiver_processor_dwcarchiver_biblio_join_biblio($query, $map_id, $table);
       $query->leftJoin('biblio_types', "biblio_types_{$map_id}", "{$joined_biblio}.biblio_type = biblio_types_{$map_id}.tid");
       $query->addExpression("biblio_types_{$map_id}.name");
+      break;
   }
 }
 

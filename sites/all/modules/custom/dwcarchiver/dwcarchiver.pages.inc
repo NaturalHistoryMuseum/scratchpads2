@@ -575,8 +575,8 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundle, $maps = array()
             ), 'user')
           );
         }
-        $form[$delta][$actual_prefix . 'created'] = _dwcarchiver_archive_form_fields_row('Created', 'date');
-        $form[$delta][$actual_prefix . 'edited'] = _dwcarchiver_archive_form_fields_row('Edited', 'date');
+        $form[$delta][$actual_prefix . 'created'] = _dwcarchiver_archive_form_fields_row('Created', 'timestamp');
+        $form[$delta][$actual_prefix . 'edited'] = _dwcarchiver_archive_form_fields_row('Edited', 'timestamp');
         $form[$delta][$actual_prefix . 'content_url'] = _dwcarchiver_archive_form_fields_row('URL', 'content_url');
         $form[$delta][$actual_prefix . 'content_language'] = _dwcarchiver_archive_form_fields_row('Language', 'content_language');
         break;
