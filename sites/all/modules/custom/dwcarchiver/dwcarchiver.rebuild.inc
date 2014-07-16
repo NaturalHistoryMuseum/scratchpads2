@@ -52,6 +52,12 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
   _dwcarchiver_write_xml_for_fields($core, $dwcarchiver->maps[0], TRUE);
   // Write the data for the core to the archive.
   _dwcarchiver_create_and_add_data_file($dwcarchiver, $dwcarchiver, $zip);
+  if(user_access('scratchpads team')){
+    $timer = timer_read('dwcarchiver_rebuild');
+    drupal_set_message(t('Starting extensions after @time miliseconds', array(
+      '@time' => $timer['time']
+    )));
+  }
   foreach($dwcarchiver->extensions as $extension){
     $extension_element = $archive->addChild('extension');
     $files = $extension_element->addChild('files');
@@ -61,6 +67,13 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
     _dwcarchiver_write_xml_for_fields($extension_element, $extension->maps[0]);
     // Write the data for the extension to the archive.
     _dwcarchiver_create_and_add_data_file($extension, $dwcarchiver, $zip);
+    if(user_access('scratchpads team')){
+      $timer = timer_read('dwcarchiver_rebuild');
+      drupal_set_message(t('Completed @extension after @time miliseconds', array(
+        '@time' => $timer['time'],
+        '@extension' => $extension->name
+      )));
+    }
   }
   $zip->addFromString(variable_get('dwcarchiver_folder_name', 'dwca') . '/meta.xml', $archive->saveXML());
 }
@@ -117,7 +130,7 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
       include_once ($path . '/' . $processors[$map->processor]['file']);
       if($map->uri == 'coreid'){
         module_load_include('processors.inc', 'dwcarchiver');
-        dwcarchiver_processor_core_map($dwcarchiver);
+        dwcarchiver_processor_core_map($archive_or_extension, $dwcarchiver, $query);
       }else if(function_exists($processors[$map->processor]['callback'])){
         call_user_func($processors[$map->processor]['callback'], $query, $field, $info, $map_id, $map, $table);
       }
@@ -137,7 +150,7 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
     fclose($f);
     $f = fopen($csv_filename, 'r');
     $rows = array();
-    while($row = fgetcsv($f)){
+    while(($row = fgetcsv($f)) != FALSE){
       $rows[] = $row;
     }
     unlink($csv_filename);

@@ -17,8 +17,24 @@ function dwcarchiver_processor_dwcarchiver_raw_text(SelectQuery $query, $field, 
  * Special processor (takes different args) for mapping back to the core 
  * entity.
  */
-function dwcarchiver_processor_core_map(){
-  
+function dwcarchiver_processor_core_map($archive_or_extension, $dwcarchiver, SelectQuery $query){
+  if(isset($archive_or_extension->eid)){
+    $entity_info = entity_get_info($archive_or_extension->entity);
+    $field_info = field_info_field($archive_or_extension->field_name);
+    $query->innerJoin('field_data_' . $archive_or_extension->field_name, 'table_core_link', "table_core_link.entity_id = base.{$entity_info['entity keys']['id']}");
+    switch($field_info['type']){
+      case 'taxonomy_term_reference':
+        $query->innerJoin('taxonomy_term_data', 'table_core', "table_core_link.{$archive_or_extension->field_name}_tid = table_core.tid");
+        $query->addExpression('table_core.uuid');
+        break;
+      default:
+        // FIXME.
+        drupal_set_message('Link not done.');
+        break;
+    }
+  }else{
+    $query->addExpression('base.uuid');
+  }
 }
 
 /**

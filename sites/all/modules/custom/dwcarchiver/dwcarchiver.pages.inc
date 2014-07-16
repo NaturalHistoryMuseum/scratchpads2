@@ -48,12 +48,12 @@ function dwcarchiver_preview($dwcarchiver){
     _dwcarchiver_add_default_attributes($core);
     $core->addAttribute('rowType', $dwcarchiver->rowtype);
     $files = $core->addChild('files');
-    $files->addChild('location', $dwcarchiver->machine_name . '.' . variable_get('dwcarchiver_rebuild_frequency', 'txt'));
+    $files->addChild('location', $dwcarchiver->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt'));
     _dwcarchiver_write_xml_for_fields($core, $dwcarchiver->maps[0], TRUE);
     foreach($dwcarchiver->extensions as $extension){
       $extension_element = $archive->addChild('extension');
       $files = $extension_element->addChild('files');
-      $files->addChild('location', $extension->machine_name . '.' . variable_get('dwcarchiver_rebuild_frequency', 'txt'));
+      $files->addChild('location', $extension->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt'));
       _dwcarchiver_add_default_attributes($extension_element);
       $extension_element->addAttribute('rowType', $extension->rowtype);
       _dwcarchiver_write_xml_for_fields($extension_element, $extension->maps[0]);
@@ -155,7 +155,7 @@ function dwcarchiver_settings($form, &$form_state){
         'txt' => 'txt',
         'csv' => 'csv'
       ),
-      '#default_value' => variable_get('dwcarchiver_rebuild_frequency', 'txt'),
+      '#default_value' => variable_get('dwcarchiver_data_file_extension', 'txt'),
       '#description' => t('The file extension used for the core and extension data files within the Darwincore archive.')
     ),
     'dwcarchiver_folder_name' => array(
