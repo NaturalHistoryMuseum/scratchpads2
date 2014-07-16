@@ -61,7 +61,7 @@ function dwcarchiver_preview($dwcarchiver){
     $dom = dom_import_simplexml($archive)->ownerDocument;
     $dom->formatOutput = true;
     $extensions = array();
-    $rows = _dwcarchiver_first_ten_rows($dwcarchiver->entity, $dwcarchiver->bundle, $dwcarchiver->maps, $dwcarchiver->machine_name, $dwcarchiver);
+    $rows = _dwcarchiver_create_and_add_data_file($dwcarchiver, $dwcarchiver, FALSE, 10);
     $rows[] = array(
       array(
         'data' => '...',
@@ -77,7 +77,7 @@ function dwcarchiver_preview($dwcarchiver){
       )
     );
     foreach($dwcarchiver->extensions as $extension){
-      $rows = _dwcarchiver_first_ten_rows($extension->entity, $extension->bundle, $extension->maps, $extension->machine_name, $dwcarchiver);
+      $rows = _dwcarchiver_create_and_add_data_file($extension, $dwcarchiver, FALSE, 10);
       $rows[] = array(
         array(
           'data' => '...',
@@ -118,69 +118,6 @@ function dwcarchiver_preview($dwcarchiver){
     )), 'error');
     drupal_goto('admin/config/content/dwcarchiver');
   }
-}
-
-/**
- * Return an array of rows suitable for adding to a table array.
- */
-function _dwcarchiver_first_ten_rows($entity_type, $bundle, $maps, $machine_name, $dwcarchiver, $limit = 10){
-  // We create an SQL query that will pull out all the data required for the map
-  $info = entity_get_info($entity_type);
-  $base_query = db_select($info['base table'], 'base');
-  $base_query->range(0, $limit);
-  switch($entity_type){
-    case 'taxonomy_term':
-      $vid = db_select('taxonomy_vocabulary', 'v')->fields('v', array(
-        'vid'
-      ))->condition('machine_name', $bundle)->execute()->fetchField();
-      $base_query->condition('base.vid', $vid);
-      break;
-    default:
-      $base_query->condition("base.{$info['entity keys']['bundle']}", $bundle);
-      break;
-  }
-  $processors = dwcarchiver_get_processors();
-  // Keep a track of the joins we've made - we only want to make a join once,
-  // and not multiple times.
-  // Create the temporary file for holding the CSV data
-  $csv_filename = drupal_tempnam(file_directory_temp(), 'dwcarchiver');
-  $rows = array();
-  foreach(array_keys($maps) as $delta){
-    $joins = array();
-    $query = clone $base_query;
-    foreach($maps[$delta] as $map_id => $map){
-      // Check to see if we need to join to another entity.
-      $field = explode(':', $map->field);
-      $table = 'base';
-      if(count($field) > 1){
-        if(empty($joins[$field[0]])){
-          // We haven't already joined to this object, so we do so, and keep
-          // record of the join!
-          $joins[$field[0]] = _dwcarchiver_join_from_field($field[0], $query, $info, $entity_type);
-        }
-        $table = $joins[$field[0]];
-        $field = $field[1];
-      }else{
-        $field = $field[0];
-      }
-      // Load the processor, and call it!
-      $path = drupal_get_path('module', $processors[$map->processor]['module']);
-      include_once ($path . '/' . $processors[$map->processor]['file']);
-      if($map->uri == 'coreid'){
-        module_load_include('processors.inc', 'dwcarchiver');
-        dwcarchiver_processor_core_map();
-      }else if(function_exists($processors[$map->processor]['callback'])){
-        call_user_func($processors[$map->processor]['callback'], $query, $field, $info, $map_id, $map, $table);
-      }else{
-        drupal_set_message($processors[$map->processor]['callback'] . ' does not exist');
-      }
-    }
-    $results = $query->execute();
-    while(($row = $results->fetch(PDO::FETCH_ASSOC)) != FALSE){
-      $rows[] = $row;
-    }
-  }
-  return $rows;
 }
 
 function xml_highlight($s, $breaks = FALSE){

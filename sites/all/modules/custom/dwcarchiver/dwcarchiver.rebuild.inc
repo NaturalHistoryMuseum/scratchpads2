@@ -51,7 +51,7 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
   $files->addChild('location', $dwcarchiver->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt'));
   _dwcarchiver_write_xml_for_fields($core, $dwcarchiver->maps[0], TRUE);
   // Write the data for the core to the archive.
-  _dwcarchiver_create_and_add_data_file($dwcarchiver->entity, $dwcarchiver->bundle, $dwcarchiver->maps, $zip, $dwcarchiver->machine_name, $dwcarchiver);
+  _dwcarchiver_create_and_add_data_file($dwcarchiver, $dwcarchiver, $zip);
   foreach($dwcarchiver->extensions as $extension){
     $extension_element = $archive->addChild('extension');
     $files = $extension_element->addChild('files');
@@ -60,7 +60,7 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
     $extension_element->addAttribute('rowType', $extension->rowtype);
     _dwcarchiver_write_xml_for_fields($extension_element, $extension->maps[0]);
     // Write the data for the extension to the archive.
-    _dwcarchiver_create_and_add_data_file($extension->entity, $extension->bundle, $extension->maps, $zip, $extension->machine_name, $dwcarchiver);
+    _dwcarchiver_create_and_add_data_file($extension, $dwcarchiver, $zip);
   }
   $zip->addFromString(variable_get('dwcarchiver_folder_name', 'dwca') . '/meta.xml', $archive->saveXML());
 }
@@ -69,19 +69,23 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
  * Write core/extension data to a temporary file, and then add the temporary
  * file to the zip.
  */
-function _dwcarchiver_create_and_add_data_file($entity_type, $bundle, $maps, ZipArchive $zip, $machine_name, $dwcarchiver){
+function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiver, $zip = FALSE, $limit = FALSE){
+  //$entity, $bundle, $maps, ZipArchive $zip, $machine_name, $dwcarchiver){
   // We create an SQL query that will pull out all the data required for the map
-  $info = entity_get_info($entity_type);
+  $info = entity_get_info($archive_or_extension->entity);
   $base_query = db_select($info['base table'], 'base');
-  switch($entity_type){
+  if($limit){
+    $base_query->range(0, $limit);
+  }
+  switch($archive_or_extension->entity){
     case 'taxonomy_term':
       $vid = db_select('taxonomy_vocabulary', 'v')->fields('v', array(
         'vid'
-      ))->condition('machine_name', $bundle)->execute()->fetchField();
+      ))->condition('machine_name', $archive_or_extension->bundle)->execute()->fetchField();
       $base_query->condition('base.vid', $vid);
       break;
     default:
-      $base_query->condition("base.{$info['entity keys']['bundle']}", $bundle);
+      $base_query->condition("base.{$info['entity keys']['bundle']}", $archive_or_extension->bundle);
       break;
   }
   $processors = dwcarchiver_get_processors();
@@ -90,10 +94,10 @@ function _dwcarchiver_create_and_add_data_file($entity_type, $bundle, $maps, Zip
   // Create the temporary file for holding the CSV data
   $csv_filename = drupal_tempnam(file_directory_temp(), 'dwcarchiver');
   $f = fopen($csv_filename, 'w');
-  foreach(array_keys($maps) as $delta){
+  foreach(array_keys($archive_or_extension->maps) as $delta){
     $joins = array();
     $query = clone $base_query;
-    foreach($maps[$delta] as $map_id => $map){
+    foreach($archive_or_extension->maps[$delta] as $map_id => $map){
       // Check to see if we need to join to another entity.
       $field = explode(':', $map->field);
       $table = 'base';
@@ -101,7 +105,7 @@ function _dwcarchiver_create_and_add_data_file($entity_type, $bundle, $maps, Zip
         if(empty($joins[$field[0]])){
           // We haven't already joined to this object, so we do so, and keep
           // record of the join!
-          $joins[$field[0]] = _dwcarchiver_join_from_field($field[0], $query, $info, $entity_type);
+          $joins[$field[0]] = _dwcarchiver_join_from_field($field[0], $query, $info, $archive_or_extension->entity);
         }
         $table = $joins[$field[0]];
         $field = $field[1];
@@ -123,17 +127,28 @@ function _dwcarchiver_create_and_add_data_file($entity_type, $bundle, $maps, Zip
       fputcsv($f, $row, ',', '"');
     }
   }
-  $zip->addFile($csv_filename, variable_get('dwcarchiver_folder_name', 'dwca') . '/' . $machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt'));
-  $zip_filename = $zip->filename;
-  $zip->close();
-  unlink($csv_filename);
-  $zip->open($zip_filename);
+  if($zip){
+    $zip->addFile($csv_filename, variable_get('dwcarchiver_folder_name', 'dwca') . '/' . $archive_or_extension->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt'));
+    $zip_filename = $zip->filename;
+    $zip->close();
+    unlink($csv_filename);
+    $zip->open($zip_filename);
+  }else{
+    fclose($f);
+    $f = fopen($csv_filename, 'r');
+    $rows = array();
+    while($row = fgetcsv($f)){
+      $rows[] = $row;
+    }
+    unlink($csv_filename);
+    return $rows;
+  }
 }
 
 /**
  * Helper function for joining to another entity by a field.
  */
-function _dwcarchiver_join_from_field($field, SelectQuery $query, $info, $entity_type){
+function _dwcarchiver_join_from_field($field, SelectQuery $query, $info, $entity){
   switch($field){
     case 'parent':
       $query->leftJoin('taxonomy_term_hierarchy', $field, $field . ".tid = base.{$info['entity keys']['id']}");
