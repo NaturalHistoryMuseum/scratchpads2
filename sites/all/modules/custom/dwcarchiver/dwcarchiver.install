@@ -29,14 +29,14 @@ function dwcarchiver_schema(){
           'default' => '',
           'description' => 'Machine name of the archive - used for links.'
         ),
-        'core_entity' => array(
+        'entity' => array(
           'type' => 'varchar',
           'length' => 255,
           'not null' => TRUE,
           'default' => '',
           'description' => 'Core entity.'
         ),
-        'core_bundle' => array(
+        'bundle' => array(
           'type' => 'varchar',
           'length' => 255,
           'not null' => TRUE,
@@ -100,14 +100,14 @@ function dwcarchiver_schema(){
           'description' => 'Rowtype of the extension (e.g. http://rs.gbif.org/terms/1.0/TypesAndSpecimen).',
           'translatable' => TRUE
         ),
-        'extension_entity' => array(
+        'entity' => array(
           'type' => 'varchar',
           'length' => 255,
           'not null' => TRUE,
           'default' => '',
           'description' => 'Extension entity.'
         ),
-        'extension_bundle' => array(
+        'bundle' => array(
           'type' => 'varchar',
           'length' => 255,
           'not null' => TRUE,

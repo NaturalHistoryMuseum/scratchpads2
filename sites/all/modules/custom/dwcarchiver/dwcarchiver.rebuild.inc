@@ -51,7 +51,7 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
   $files->addChild('location', $dwcarchiver->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt'));
   _dwcarchiver_write_xml_for_fields($core, $dwcarchiver->maps[0], TRUE);
   // Write the data for the core to the archive.
-  _dwcarchiver_create_and_add_data_file($dwcarchiver->core_entity, $dwcarchiver->core_bundle, $dwcarchiver->maps, $zip, $dwcarchiver->machine_name);
+  _dwcarchiver_create_and_add_data_file($dwcarchiver->entity, $dwcarchiver->bundle, $dwcarchiver->maps, $zip, $dwcarchiver->machine_name, $dwcarchiver);
   foreach($dwcarchiver->extensions as $extension){
     $extension_element = $archive->addChild('extension');
     $files = $extension_element->addChild('files');
@@ -60,7 +60,7 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
     $extension_element->addAttribute('rowType', $extension->rowtype);
     _dwcarchiver_write_xml_for_fields($extension_element, $extension->maps[0]);
     // Write the data for the extension to the archive.
-    _dwcarchiver_create_and_add_data_file($extension->extension_entity, $extension->extension_bundle, $extension->maps, $zip, $extension->machine_name);
+    _dwcarchiver_create_and_add_data_file($extension->entity, $extension->bundle, $extension->maps, $zip, $extension->machine_name, $dwcarchiver);
   }
   $zip->addFromString(variable_get('dwcarchiver_folder_name', 'dwca') . '/meta.xml', $archive->saveXML());
 }
@@ -69,7 +69,7 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
  * Write core/extension data to a temporary file, and then add the temporary
  * file to the zip.
  */
-function _dwcarchiver_create_and_add_data_file($entity_type, $bundle, $maps, ZipArchive $zip, $machine_name){
+function _dwcarchiver_create_and_add_data_file($entity_type, $bundle, $maps, ZipArchive $zip, $machine_name, $dwcarchiver){
   // We create an SQL query that will pull out all the data required for the map
   $info = entity_get_info($entity_type);
   $base_query = db_select($info['base table'], 'base');
@@ -111,7 +111,10 @@ function _dwcarchiver_create_and_add_data_file($entity_type, $bundle, $maps, Zip
       // Load the processor, and call it!
       $path = drupal_get_path('module', $processors[$map->processor]['module']);
       include_once ($path . '/' . $processors[$map->processor]['file']);
-      if(function_exists($processors[$map->processor]['callback'])){
+      if($map->uri == 'coreid'){
+        module_load_include('processors.inc', 'dwcarchiver');
+        dwcarchiver_processor_core_map($dwcarchiver);
+      }else if(function_exists($processors[$map->processor]['callback'])){
         call_user_func($processors[$map->processor]['callback'], $query, $field, $info, $map_id, $map, $table);
       }
     }

@@ -14,6 +14,14 @@ function dwcarchiver_processor_dwcarchiver_raw_text(SelectQuery $query, $field, 
 }
 
 /**
+ * Special processor (takes different args) for mapping back to the core 
+ * entity.
+ */
+function dwcarchiver_processor_core_map(){
+  
+}
+
+/**
  * A little trickier this, as the labels are only available in PHP (they're
  * serialized in the database).  We therefore get all possible values, and craft
  * the query accordingly.

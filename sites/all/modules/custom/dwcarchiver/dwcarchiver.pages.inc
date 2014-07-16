@@ -12,7 +12,7 @@ function dwcarchiver_overview_page(){
       $result->name,
       $result->machine_name,
       // FIXME - Improve display of entity/bundle (use label rather than machine name).
-      $result->core_entity . '/' . $result->core_bundle,
+      $result->entity . '/' . $result->bundle,
       l('Edit', 'admin/config/content/dwcarchiver/' . $result->did . '/edit'),
       l('Preview', 'admin/config/content/dwcarchiver/' . $result->did . '/preview'),
       l('Delete', 'admin/config/content/dwcarchiver/' . $result->did . '/delete'),
@@ -61,7 +61,7 @@ function dwcarchiver_preview($dwcarchiver){
     $dom = dom_import_simplexml($archive)->ownerDocument;
     $dom->formatOutput = true;
     $extensions = array();
-    $rows = _dwcarchiver_first_ten_rows($dwcarchiver->core_entity, $dwcarchiver->core_bundle, $dwcarchiver->maps, $dwcarchiver->machine_name);
+    $rows = _dwcarchiver_first_ten_rows($dwcarchiver->entity, $dwcarchiver->bundle, $dwcarchiver->maps, $dwcarchiver->machine_name, $dwcarchiver);
     $rows[] = array(
       array(
         'data' => '...',
@@ -77,7 +77,7 @@ function dwcarchiver_preview($dwcarchiver){
       )
     );
     foreach($dwcarchiver->extensions as $extension){
-      $rows = _dwcarchiver_first_ten_rows($extension->extension_entity, $extension->extension_bundle, $extension->maps, $extension->machine_name);
+      $rows = _dwcarchiver_first_ten_rows($extension->entity, $extension->bundle, $extension->maps, $extension->machine_name, $dwcarchiver);
       $rows[] = array(
         array(
           'data' => '...',
@@ -123,7 +123,7 @@ function dwcarchiver_preview($dwcarchiver){
 /**
  * Return an array of rows suitable for adding to a table array.
  */
-function _dwcarchiver_first_ten_rows($entity_type, $bundle, $maps, $machine_name, $limit = 10){
+function _dwcarchiver_first_ten_rows($entity_type, $bundle, $maps, $machine_name, $dwcarchiver, $limit = 10){
   // We create an SQL query that will pull out all the data required for the map
   $info = entity_get_info($entity_type);
   $base_query = db_select($info['base table'], 'base');
@@ -166,7 +166,10 @@ function _dwcarchiver_first_ten_rows($entity_type, $bundle, $maps, $machine_name
       // Load the processor, and call it!
       $path = drupal_get_path('module', $processors[$map->processor]['module']);
       include_once ($path . '/' . $processors[$map->processor]['file']);
-      if(function_exists($processors[$map->processor]['callback'])){
+      if($map->uri == 'coreid'){
+        module_load_include('processors.inc', 'dwcarchiver');
+        dwcarchiver_processor_core_map();
+      }else if(function_exists($processors[$map->processor]['callback'])){
         call_user_func($processors[$map->processor]['callback'], $query, $field, $info, $map_id, $map, $table);
       }else{
         drupal_set_message($processors[$map->processor]['callback'] . ' does not exist');
@@ -283,8 +286,8 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
     $defaults = array(
       'name' => '',
       'machine_name' => '',
-      'core_entity' => '',
-      'core_bundle' => '',
+      'entity' => '',
+      'bundle' => '',
       'rowtype' => '',
       'extensions' => array()
     );
@@ -334,7 +337,7 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
         '#type' => 'select',
         '#options' => $options,
         '#title' => 'Entity/Bundle',
-        '#default_value' => $dwcarchiver->core_entity . '/' . $dwcarchiver->core_bundle,
+        '#default_value' => $dwcarchiver->entity . '/' . $dwcarchiver->bundle,
         '#required' => TRUE
       ),
       'rowtype' => array(
@@ -353,13 +356,13 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
     // Prevent editing of certain fields once the archive has been created.
     $form['core']['entity_bundle']['#disabled'] = TRUE;
     $form['core']['machine_name']['#disabled'] = TRUE;
-    $form['core']['fields'] = _dwcarchiver_archive_form_fields($dwcarchiver->core_entity, $dwcarchiver->core_bundle, $dwcarchiver->maps);
+    $form['core']['fields'] = _dwcarchiver_archive_form_fields($dwcarchiver->entity, $dwcarchiver->bundle, $dwcarchiver->maps);
     foreach($dwcarchiver->extensions as $extension){
       $form['extensions'][$extension->machine_name] = array(
         '#type' => 'fieldset',
         '#title' => $extension->name,
         '#description' => $extension->rowtype,
-        'fields' => _dwcarchiver_archive_form_fields($extension->extension_entity, $extension->extension_bundle, $extension->maps)
+        'fields' => _dwcarchiver_archive_form_fields($extension->entity, $extension->bundle, $extension->maps)
       );
       $form['extensions'][$extension->machine_name]['fields']['#suffix'] = '<div id="' . $extension->machine_name . '-add-more-wrapper"></div>';
       $form['extensions'][$extension->machine_name]['add_another_mapping'] = array(
@@ -430,9 +433,9 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
       'entity_bundle' => array(
         '#title_display' => 'invisible',
         '#type' => 'select',
-        '#options' => $core_types[$dwcarchiver->core_entity . '/' . $dwcarchiver->core_bundle]['links'],
+        '#options' => $core_types[$dwcarchiver->entity . '/' . $dwcarchiver->bundle]['links'],
         '#title' => 'Entity/Bundle',
-        '#default_value' => $dwcarchiver->core_entity . '/' . $dwcarchiver->core_bundle,
+        '#default_value' => $dwcarchiver->entity . '/' . $dwcarchiver->bundle,
         '#required' => TRUE
       )
     );
@@ -476,7 +479,7 @@ function dwcarchiver_archive_form_add_another_mapping($form, &$form_state){
         )
       );
       // Need to add magic to the dwcarchiver object.
-      $form['extensions'][$extension_machine_name]['fields'] = _dwcarchiver_archive_form_fields($extension->extension_entity, $extension->extension_bundle, $extension->maps);
+      $form['extensions'][$extension_machine_name]['fields'] = _dwcarchiver_archive_form_fields($extension->entity, $extension->bundle, $extension->maps);
     }
   }
   $form_state['rebuild'] = TRUE;
@@ -576,7 +579,7 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundle, $maps = array()
           );
         }
         $form[$delta][$actual_prefix . 'created'] = _dwcarchiver_archive_form_fields_row('Created', 'timestamp');
-        $form[$delta][$actual_prefix . 'edited'] = _dwcarchiver_archive_form_fields_row('Edited', 'timestamp');
+        $form[$delta][$actual_prefix . 'changed'] = _dwcarchiver_archive_form_fields_row('Edited', 'timestamp');
         $form[$delta][$actual_prefix . 'content_url'] = _dwcarchiver_archive_form_fields_row('URL', 'content_url');
         $form[$delta][$actual_prefix . 'content_language'] = _dwcarchiver_archive_form_fields_row('Language', 'content_language');
         break;
@@ -771,8 +774,8 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
   $core = explode('/', $fields['entity_bundle']);
   unset($fields['entity_bundle']);
   unset($fields['fields']);
-  $fields['core_entity'] = $core[0];
-  $fields['core_bundle'] = $core[1];
+  $fields['entity'] = $core[0];
+  $fields['bundle'] = $core[1];
   $return = db_merge('dwcarchiver_archive')->key(array(
     'machine_name' => $form_state['values']['core']['machine_name']
   ))->fields($fields)->execute();
@@ -831,8 +834,8 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
             $core = explode('/', $fields['entity_bundle']);
             unset($fields['entity_bundle']);
             $fields['field_name'] = $core[0];
-            $fields['extension_entity'] = $core[1];
-            $fields['extension_bundle'] = $core[2];
+            $fields['entity'] = $core[1];
+            $fields['bundle'] = $core[2];
             db_insert('dwcarchiver_extension')->fields($fields)->execute();
           }
           break;
