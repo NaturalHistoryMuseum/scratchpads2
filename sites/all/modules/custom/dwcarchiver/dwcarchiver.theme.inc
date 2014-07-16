@@ -4,7 +4,6 @@
  * Theme the add/edit form.
  */
 function theme_dwcarchiver_archive_form($variables){
-  //print_r($variables['form']['core']);exit;
   $output = '';
   foreach(element_children($variables['form']) as $key){
     switch($key){

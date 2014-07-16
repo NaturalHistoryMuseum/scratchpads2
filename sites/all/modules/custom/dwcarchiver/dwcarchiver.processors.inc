@@ -60,6 +60,13 @@ function dwcarchiver_processor_dwcarchiver_content_url(SelectQuery $query, $fiel
   $url = url('', array(
     'absolute' => TRUE
   ));
+  if($table != 'base'){
+    $field_info = field_info_field($table);
+    if($field_info){
+      $referencable_type = str_replace('_reference', '', $field_info['type']);
+      $entity_info = entity_get_info($referencable_type);
+    }
+  }
   if(isset($entity_info['uri callback']) && function_exists($entity_info['uri callback'])){
     $entity = new stdClass();
     $entity->{$entity_info['entity keys']['id']} = '';
@@ -108,10 +115,7 @@ function dwcarchiver_processor_dwcarchiver_biblio(SelectQuery $query, $field, $e
   // check which ones don't currently work.
   switch($field){
     default:
-      static $joined_biblio = FALSE;
-      if(!$joined_biblio){
-        $joined_biblio = $query->leftJoin('biblio', "table_{$map_id}", "{$table}.vid = table_{$map_id}.vid");
-      }
+      $joined_biblio = dwcarchiver_processor_dwcarchiver_biblio_join_biblio($query, $map_id, $table);
       $query->addExpression("{$joined_biblio}.{$field}");
       break;
     case 'biblio_authors_field':
@@ -123,5 +127,21 @@ function dwcarchiver_processor_dwcarchiver_biblio(SelectQuery $query, $field, $e
       $query->groupBy("table_{$map_id}.vid");
       //$query->addExpression("table_{$map_id}_data.name");
       break;
+    case 'biblio_type':
+      //return;
+      $joined_biblio = dwcarchiver_processor_dwcarchiver_biblio_join_biblio($query, $map_id, $table);
+      $query->leftJoin('biblio_types', "biblio_types_{$map_id}", "{$joined_biblio}.biblio_type = biblio_types_{$map_id}.tid");
+      $query->addExpression("biblio_types_{$map_id}.name");
   }
+}
+
+/**
+ * Simple helper function to join to the biblio table.
+ */
+function dwcarchiver_processor_dwcarchiver_biblio_join_biblio($query, $map_id, $table){
+  static $joined_biblio = FALSE;
+  if(!$joined_biblio){
+    $joined_biblio = $query->leftJoin('biblio', "table_{$map_id}", "{$table}.vid = table_{$map_id}.vid");
+  }
+  return $joined_biblio;
 }
