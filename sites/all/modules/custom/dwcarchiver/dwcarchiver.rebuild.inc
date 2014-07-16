@@ -112,7 +112,7 @@ function _dwcarchiver_create_and_add_data_file($entity_type, $bundle, $maps, Zip
       $path = drupal_get_path('module', $processors[$map->processor]['module']);
       include_once ($path . '/' . $processors[$map->processor]['file']);
       if(function_exists($processors[$map->processor]['callback'])){
-        call_user_func($processors[$map->processor]['callback'], $query, $field, $info, $map_id, $table);
+        call_user_func($processors[$map->processor]['callback'], $query, $field, $info, $map_id, $map, $table);
       }
     }
     $results = $query->execute();

@@ -211,6 +211,12 @@ function dwcarchiver_schema(){
           'description' => 'The value to insert into the CSV file.',
           'translatable' => TRUE
         )
+      ),
+      'primary key' => array(
+        'eid',
+        'did',
+        'delta',
+        'field'
       )
     )
   );

@@ -158,7 +158,7 @@ function _dwcarchiver_first_ten_rows($entity_type, $bundle, $maps, $machine_name
       $path = drupal_get_path('module', $processors[$map->processor]['module']);
       include_once ($path . '/' . $processors[$map->processor]['file']);
       if(function_exists($processors[$map->processor]['callback'])){
-        call_user_func($processors[$map->processor]['callback'], $query, $field, $info, $map_id, $table);
+        call_user_func($processors[$map->processor]['callback'], $query, $field, $info, $map_id, $map, $table);
       }else{
         drupal_set_message($processors[$map->processor]['callback'] . ' does not exist');
       }
@@ -830,7 +830,12 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
                   'coreid'
                 ))){
                   if(isset($values['label'])){
-                    db_insert('dwcarchiver_value')->fields(array(
+                    db_merge('dwcarchiver_value')->key(array(
+                      'eid' => $extension->eid,
+                      'did' => $extension->did,
+                      'delta' => $delta,
+                      'field' => preg_replace('/mapped-[0-9]*:/', '', $field)
+                    ))->fields(array(
                       'eid' => $extension->eid,
                       'did' => $extension->did,
                       'delta' => $delta,
