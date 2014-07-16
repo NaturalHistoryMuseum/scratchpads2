@@ -14,6 +14,7 @@ function dwcarchiver_overview_page(){
       // FIXME - Improve display of entity/bundle (use label rather than machine name).
       $result->core_entity . '/' . $result->core_bundle,
       l('Edit', 'admin/config/content/dwcarchiver/' . $result->did . '/edit'),
+      l('Preview', 'admin/config/content/dwcarchiver/' . $result->did . '/preview'),
       l('Delete', 'admin/config/content/dwcarchiver/' . $result->did . '/delete'),
       l('Rebuild', 'admin/config/content/dwcarchiver/' . $result->did . '/rebuild'),
       l('Download', $result->machine_name . '.zip')
@@ -27,11 +28,158 @@ function dwcarchiver_overview_page(){
       t('Entity/Bundle'),
       array(
         'data' => t('Operations'),
-        'colspan' => 4
+        'colspan' => 5
       )
     ),
     '#rows' => $rows
   );
+}
+
+/**
+ * Preview the archive
+ */
+function dwcarchiver_preview($dwcarchiver){
+  // Firstly, we start with the XML file.
+  module_load_include('rebuild.inc', 'dwcarchiver');
+  $archive = new SimpleXMLElement('<archive/>');
+  $archive->addAttribute('xmlns', 'http://rs.tdwg.org/dwc/text/');
+  $core = $archive->addChild('core');
+  _dwcarchiver_add_default_attributes($core);
+  $core->addAttribute('rowType', $dwcarchiver->rowtype);
+  $files = $core->addChild('files');
+  $files->addChild('location', $dwcarchiver->machine_name . '.' . variable_get('dwcarchiver_rebuild_frequency', 'txt'));
+  _dwcarchiver_write_xml_for_fields($core, $dwcarchiver->maps[0], TRUE);
+  foreach($dwcarchiver->extensions as $extension){
+    $extension_element = $archive->addChild('extension');
+    $files = $extension_element->addChild('files');
+    $files->addChild('location', $extension->machine_name . '.' . variable_get('dwcarchiver_rebuild_frequency', 'txt'));
+    _dwcarchiver_add_default_attributes($extension_element);
+    $extension_element->addAttribute('rowType', $extension->rowtype);
+    _dwcarchiver_write_xml_for_fields($extension_element, $extension->maps[0]);
+  }
+  $dom = dom_import_simplexml($archive)->ownerDocument;
+  $dom->formatOutput = true;
+  $extensions = array();
+  $rows = _dwcarchiver_first_ten_rows($dwcarchiver->core_entity, $dwcarchiver->core_bundle, $dwcarchiver->maps, $dwcarchiver->machine_name);
+  $rows[] = array(
+    array(
+      'data' => '...',
+      'colspan' => count($dwcarchiver->maps)
+    )
+  );
+  $extensions[] = array(
+    'table' => array(
+      '#prefix' => '<div class="wrapper"><h2>' . $dwcarchiver->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt') . '</h2>',
+      '#suffix' => '</div>',
+      '#theme' => 'table',
+      '#rows' => $rows
+    )
+  );
+  foreach($dwcarchiver->extensions as $extension){
+    $rows = _dwcarchiver_first_ten_rows($extension->extension_entity, $extension->extension_bundle, $extension->maps, $extension->machine_name);
+    $rows[] = array(
+      array(
+        'data' => '...',
+        'colspan' => count($extension->maps)
+      )
+    );
+    $extensions[] = array(
+      'table' => array(
+        '#prefix' => '<div class="wrapper"><h2>' . $extension->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt') . '</h2>',
+        '#suffix' => '</div>',
+        '#theme' => 'table',
+        '#rows' => $rows
+      )
+    );
+  }
+  return array(
+    'dwcarchiverpreview' => array(
+      '#prefix' => '<div class="dwcarchiver-preview">',
+      '#suffix' => '</div>',
+      '#attached' => array(
+        'css' => array(
+          drupal_get_path('module', 'dwcarchiver') . '/css/dwcarchiver.css'
+        )
+      ),
+      'xml' => array(
+        '#prefix' => '<div class="wrapper"><h2>meta.xml</h2><pre>',
+        '#suffix' => '</pre></div>',
+        '#markup' => xml_highlight($dom->saveXML(), TRUE)
+      ),
+      'extensions' => $extensions
+    )
+  );
+}
+
+/**
+ * Return an array of rows suitable for adding to a table array.
+ */
+function _dwcarchiver_first_ten_rows($entity_type, $bundle, $maps, $machine_name, $limit = 10){
+  // We create an SQL query that will pull out all the data required for the map
+  $info = entity_get_info($entity_type);
+  $base_query = db_select($info['base table'], 'base');
+  $base_query->range(0, $limit);
+  switch($entity_type){
+    case 'taxonomy_term':
+      $vid = db_select('taxonomy_vocabulary', 'v')->fields('v', array(
+        'vid'
+      ))->condition('machine_name', $bundle)->execute()->fetchField();
+      $base_query->condition('base.vid', $vid);
+      break;
+    default:
+      $base_query->condition("base.{$info['entity keys']['bundle']}", $bundle);
+      break;
+  }
+  $processors = dwcarchiver_get_processors();
+  // Keep a track of the joins we've made - we only want to make a join once,
+  // and not multiple times.
+  // Create the temporary file for holding the CSV data
+  $csv_filename = drupal_tempnam(file_directory_temp(), 'dwcarchiver');
+  $rows = array();
+  foreach(array_keys($maps) as $delta){
+    $joins = array();
+    $query = clone $base_query;
+    foreach($maps[$delta] as $map_id => $map){
+      // Check to see if we need to join to another entity.
+      $field = explode(':', $map->field);
+      $table = 'base';
+      if(count($field) > 1){
+        if(empty($joins[$field[0]])){
+          // We haven't already joined to this object, so we do so, and keep
+          // record of the join!
+          $joins[$field[0]] = _dwcarchiver_join_from_field($field[0], $query, $info, $entity_type);
+        }
+        $table = $joins[$field[0]];
+        $field = $field[1];
+      }else{
+        $field = $field[0];
+      }
+      // Load the processor, and call it!
+      $path = drupal_get_path('module', $processors[$map->processor]['module']);
+      include_once ($path . '/' . $processors[$map->processor]['file']);
+      if(function_exists($processors[$map->processor]['callback'])){
+        call_user_func($processors[$map->processor]['callback'], $query, $field, $info, $map_id, $table);
+      }else{
+        drupal_set_message($processors[$map->processor]['callback'] . ' does not exist');
+      }
+    }
+    $results = $query->execute();
+    while(($row = $results->fetch(PDO::FETCH_ASSOC)) != FALSE){
+      $rows[] = $row;
+    }
+  }
+  return $rows;
+}
+
+function xml_highlight($s, $breaks = FALSE){
+  $s = htmlspecialchars($s);
+  $s = preg_replace("#&lt;([/]*?)(.*)([\s]*?)&gt;#sU", "<font color=\"#0000FF\">&lt;\\1\\2\\3&gt;</font>", $s);
+  $s = preg_replace("#&lt;([\?])(.*)([\?])&gt;#sU", "<font color=\"#800000\">&lt;\\1\\2\\3&gt;</font>", $s);
+  $s = preg_replace("#&lt;([^\s\?/=])(.*)([\[\s/]|&gt;)#iU", "&lt;<font color=\"#808000\">\\1\\2</font>\\3", $s);
+  $s = preg_replace("#&lt;([/])([^\s]*?)([\s\]]*?)&gt;#iU", "&lt;\\1<font color=\"#808000\">\\2</font>\\3&gt;", $s);
+  $s = preg_replace("#([^\s]*?)\=(&quot;|')(.*)(&quot;|')#isU", "<font color=\"#800080\">\\1</font>=<font color=\"#FF00FF\">\\2\\3\\4</font>", $s);
+  $s = preg_replace("#&lt;(.*)(\[)(.*)(\])&gt;#isU", "&lt;\\1<font color=\"#800080\">\\2\\3\\4</font>&gt;", $s);
+  return $breaks ? $s : nl2br($s);
 }
 
 /**
@@ -361,28 +509,39 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundle, $maps = array()
     // We run through the maps first to ensure they're at the top, and that any
     // none field maps (such as id) are included.
     $index = 0;
+    $dwcarchiver_text_entry_maps = 0;
     foreach($maps[$delta] as $map){
       $index++;
       $index_str = str_pad($index, 4, '0', STR_PAD_LEFT);
       if((!$prefix && !strpos($map->field, ':')) || substr($map->field, 0, strlen($prefix) + 1) == $prefix . ':'){
-        $field_instance = field_info_instance($entity_type, ($actual_prefix ? substr($map->field, strlen($actual_prefix)) : $map->field), $bundle);
-        $label = ucfirst($map->field);
-        $disabled = TRUE;
-        $type = 'text';
-        if($field_instance){
-          $label = $field_instance['label'];
-          $disabled = FALSE;
-          $field_info = field_info_field($field_instance['field_name']);
-          $type = $field_info['type'];
-        }elseif(substr($map->field, 0, 7) == 'biblio_'){
-          //$label = $field_instance['label'];
-          $disabled = FALSE;
-          $type = 'biblio';
-        }        //elseif($map->field == $info['entity keys']['label']){
+        if(substr($map->field, 0, 23) == 'dwcarchiver_text_entry_'){
+          $dwcarchiver_text_entry_maps++;
+          $value = db_select('dwcarchiver_value', 'v')->fields('v', array(
+            'value'
+          ))->condition('eid', $map->eid)->condition('did', $map->did)->condition('delta', $map->delta)->condition('field', $map->field)->execute()->fetchField();
+          $form[$delta]["mapped-$index_str:" . $map->field] = _dwcarchiver_archive_form_fields_row(t('Value: %value', array(
+            '%value' => $value
+          )), 'value', $map->uri, $map->processor);
+        }else{
+          $field_instance = field_info_instance($entity_type, ($actual_prefix ? substr($map->field, strlen($actual_prefix)) : $map->field), $bundle);
+          $label = ucfirst($map->field);
+          $disabled = TRUE;
+          $type = 'text';
+          if($field_instance){
+            $label = $field_instance['label'];
+            $disabled = FALSE;
+            $field_info = field_info_field($field_instance['field_name']);
+            $type = $field_info['type'];
+          }elseif(substr($map->field, 0, 7) == 'biblio_'){
+            //$label = $field_instance['label'];
+            $disabled = FALSE;
+            $type = 'biblio';
+          }          //elseif($map->field == $info['entity keys']['label']){
 else{
-          $disabled = FALSE;
+            $disabled = FALSE;
+          }
+          $form[$delta]["mapped-$index_str:" . $map->field] = _dwcarchiver_archive_form_fields_row($label, $type, $map->uri, $map->processor, $disabled);
         }
-        $form[$delta]["mapped-$index_str:" . $map->field] = _dwcarchiver_archive_form_fields_row($label, $type, $map->uri, $map->processor, $disabled);
       }
     }
     // We add default maps for certain entity types.  All entity types have a 
@@ -402,6 +561,8 @@ else{
         }
         $form[$delta][$actual_prefix . 'created'] = _dwcarchiver_archive_form_fields_row('Created', 'date');
         $form[$delta][$actual_prefix . 'edited'] = _dwcarchiver_archive_form_fields_row('Edited', 'date');
+        $form[$delta][$actual_prefix . 'url'] = _dwcarchiver_archive_form_fields_row('URL', 'content_url');
+        $form[$delta][$actual_prefix . 'language'] = _dwcarchiver_archive_form_fields_row('Language', 'content_language');
         break;
       case 'file':
         if(!$prefix){
@@ -416,6 +577,7 @@ else{
         $form[$delta][$actual_prefix . 'uri'] = _dwcarchiver_archive_form_fields_row('Path', 'uri');
         $form[$delta][$actual_prefix . 'filename'] = _dwcarchiver_archive_form_fields_row('Filename', 'entity_property');
         $form[$delta][$actual_prefix . 'filemime'] = _dwcarchiver_archive_form_fields_row('Mime', 'entity_property');
+        $form[$delta][$actual_prefix . 'url'] = _dwcarchiver_archive_form_fields_row('URL', 'content_url');
         break;
       case 'taxonomy_term':
         // We create a fieldset, and add all of the fields from the linked/bundle
@@ -429,6 +591,8 @@ else{
             ), 'parent')
           );
         }
+        $form[$delta][$actual_prefix . 'url'] = _dwcarchiver_archive_form_fields_row('URL', 'content_url');
+        $form[$delta][$actual_prefix . 'language'] = _dwcarchiver_archive_form_fields_row('Language', 'content_language');
         break;
     }
     foreach($fields as $field_instance){
@@ -492,6 +656,33 @@ else{
       }
     }
   }
+  // Finally, we add a single empty field so that text values can be inserted
+  // into the file. This is useful for the various mappings in the description
+  // file.
+  $form[$delta]['dwcarchiver_text_entry_' . $dwcarchiver_text_entry_maps] = array(
+    'label' => array(
+      '#title_display' => 'invisible',
+      '#type' => 'textfield',
+      '#title' => t('Value'),
+      '#default_value' => '',
+      '#description' => t('Optionally add a value to all rows<br/> of the file.  This is useful when using<br/> multiple mappings for a single extension.')
+    ),
+    'term' => array(
+      '#title_display' => 'invisible',
+      '#type' => 'textfield',
+      '#title' => t('Maps to'),
+      '#default_value' => ''
+    ),
+    'processor' => array(
+      '#title_display' => 'invisible',
+      '#type' => 'select',
+      '#title' => t('Processor'),
+      '#options' => array(
+        'dwcarchiver_value' => 'Value'
+      ),
+      '#default_value' => 'dwcarchiver_value'
+    )
+  );
   return $form;
 }
 
@@ -633,14 +824,20 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
           $extension = dwcarchiver_extension_machine_name_load($key, FALSE, $form_state);
           if(!empty($form_state['values']['extensions'][$key]['fields'])){
             foreach(array_keys($form_state['values']['extensions'][$key]['fields']) as $delta){
-              if($delta == 2){
-                $break = 'here';
-              }
               foreach($form_state['values']['extensions'][$key]['fields'][$delta] as $field => $values){
                 if(!empty($values['term']) && !in_array($field, array(
                   'id',
                   'coreid'
                 ))){
+                  if(isset($values['label'])){
+                    db_insert('dwcarchiver_value')->fields(array(
+                      'eid' => $extension->eid,
+                      'did' => $extension->did,
+                      'delta' => $delta,
+                      'field' => preg_replace('/mapped-[0-9]*:/', '', $field),
+                      'value' => $values['label']
+                    ))->execute();
+                  }
                   $insert_into_mappings = TRUE;
                   $insert->values(array(
                     'eid' => $extension->eid,

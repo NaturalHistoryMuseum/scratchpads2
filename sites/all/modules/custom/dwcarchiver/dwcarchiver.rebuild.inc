@@ -14,7 +14,7 @@ function dwcarchiver_rebuild($dwcarchiver, $deliver = TRUE){
     if($zip->open($zip_filename, ZipArchive::CREATE) !== TRUE){
       drupal_set_message(t('Unable to rebuild the archive, please contact an administrator.'), 'error');
     }else{
-      _dwcarchiver_create_xml_file($dwcarchiver, $zip);
+      _dwcarchiver_create_xml_and_data_files($dwcarchiver, $zip);
       $zip->close();
       // Move the zip file to the dwcarchiver folder.
       file_unmanaged_move($zip_filename, 'public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip', FILE_EXISTS_REPLACE);
@@ -40,7 +40,7 @@ function dwcarchiver_rebuild($dwcarchiver, $deliver = TRUE){
 /**
  * Helper function to create the XML file for an archive.
  */
-function _dwcarchiver_create_xml_file($dwcarchiver, ZipArchive $zip){
+function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
   // Firstly, we start with the XML file.
   $archive = new SimpleXMLElement('<archive/>');
   $archive->addAttribute('xmlns', 'http://rs.tdwg.org/dwc/text/');
@@ -48,14 +48,14 @@ function _dwcarchiver_create_xml_file($dwcarchiver, ZipArchive $zip){
   _dwcarchiver_add_default_attributes($core);
   $core->addAttribute('rowType', $dwcarchiver->rowtype);
   $files = $core->addChild('files');
-  $files->addChild('location', $dwcarchiver->machine_name . '.' . variable_get('dwcarchiver_rebuild_frequency', 'txt'));
+  $files->addChild('location', $dwcarchiver->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt'));
   _dwcarchiver_write_xml_for_fields($core, $dwcarchiver->maps[0], TRUE);
   // Write the data for the core to the archive.
   _dwcarchiver_create_and_add_data_file($dwcarchiver->core_entity, $dwcarchiver->core_bundle, $dwcarchiver->maps, $zip, $dwcarchiver->machine_name);
   foreach($dwcarchiver->extensions as $extension){
     $extension_element = $archive->addChild('extension');
     $files = $extension_element->addChild('files');
-    $files->addChild('location', $extension->machine_name . '.' . variable_get('dwcarchiver_rebuild_frequency', 'txt'));
+    $files->addChild('location', $extension->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt'));
     _dwcarchiver_add_default_attributes($extension_element);
     $extension_element->addAttribute('rowType', $extension->rowtype);
     _dwcarchiver_write_xml_for_fields($extension_element, $extension->maps[0]);
@@ -120,7 +120,7 @@ function _dwcarchiver_create_and_add_data_file($entity_type, $bundle, $maps, Zip
       fputcsv($f, $row, ',', '"');
     }
   }
-  $zip->addFile($csv_filename, variable_get('dwcarchiver_folder_name', 'dwca') . '/' . $machine_name . '.' . variable_get('dwcarchiver_rebuild_frequency', 'txt'));
+  $zip->addFile($csv_filename, variable_get('dwcarchiver_folder_name', 'dwca') . '/' . $machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt'));
   $zip_filename = $zip->filename;
   $zip->close();
   unlink($csv_filename);
@@ -163,13 +163,7 @@ function _dwcarchiver_join_from_field($field, SelectQuery $query, $info, $entity
  * Helper function to write out the fields to an XML element
  */
 function _dwcarchiver_write_xml_for_fields(SimpleXMLElement $element, $fields, $is_core = FALSE){
-  $id_name = 'coreid';
-  if($is_core){
-    $id_name = 'id';
-  }
-  $id_element = $element->addChild($id_name);
-  $id_element->addAttribute('index', 0);
-  $index = 1;
+  $index = 0;
   foreach($fields as $field){
     $field_element = $element->addChild('field');
     $field_element->addAttribute('index', $index);

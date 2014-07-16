@@ -72,6 +72,22 @@ function dwcarchiver_menu(){
       ),
       'type' => MENU_DEFAULT_LOCAL_TASK
     ),
+    'admin/config/content/dwcarchiver/%dwcarchiver/preview' => array(
+      'title' => 'Preview',
+      'title callback' => 'dwcarchiver_title',
+      'title arguments' => array(
+        'Preview @name',
+        4
+      ),
+      'page callback' => 'dwcarchiver_preview',
+      'page arguments' => array(
+        4
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'file' => 'dwcarchiver.pages.inc'
+    ),
     'admin/config/content/dwcarchiver/%dwcarchiver/delete' => array(
       'title' => 'Delete',
       'title callback' => 'dwcarchiver_title',
@@ -224,7 +240,7 @@ function dwcarchiver_load($did){
  * Load maps
  */
 function dwcarchiver_map_load($eid, $did, $uri = 'coreid'){
-  $maps = db_select('dwcarchiver_map', 'd')->fields('d')->condition('eid', $eid)->orderBy('uri')->execute()->fetchAll();
+  $maps = db_select('dwcarchiver_map', 'd')->fields('d')->condition('eid', $eid)->orderBy('uri', 'DESC')->execute()->fetchAll();
   if($maps){
     $maps_to_return = array();
     foreach($maps as $map){
@@ -325,13 +341,40 @@ function dwcarchiver_dwcarchiver_processors_alter(&$processors){
       'list_text'
     )
   );
-  $processors['dwcarchiver_path'] = array(
+  $processors['dwcarchiver_value'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_value',
+    'label' => t('Value'),
+    'field types' => array(
+      'value'
+    )
+  );
+  $processors['dwcarchiver_content_url'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_content_url',
+    'label' => t('URL'),
+    'field types' => array(
+      'content_url'
+    )
+  );
+  $processors['dwcarchiver_content_language'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_content_language',
+    'label' => t('Language'),
+    'field types' => array(
+      'content_language'
+    )
+  );
+  $processors['dwcarchiver_uri'] = array(
     'module' => 'dwcarchiver',
     'file' => 'dwcarchiver.processors.inc',
     'callback' => 'dwcarchiver_processor_dwcarchiver_path',
     'label' => t('File path'),
     'field types' => array(
-      'file'
+      'uri'
     )
   );
   $processors['dwcarchiver_date_from'] = array(

@@ -172,6 +172,46 @@ function dwcarchiver_schema(){
           'translatable' => TRUE
         )
       )
+    ),
+    'dwcarchiver_value' => array(
+      'description' => 'Stores raw values if they have been added to a mapping',
+      'fields' => array(
+        'eid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The {dwcarchiver_extension}.eid of the extension.'
+        ),
+        'did' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The {dwcarchiver_archive}.did of the extension.'
+        ),
+        'delta' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The delta of the map'
+        ),
+        'field' => array(
+          'type' => 'varchar',
+          'length' => 65,
+          'not null' => TRUE,
+          'description' => 'The name of the field.'
+        ),
+        'value' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'The value to insert into the CSV file.',
+          'translatable' => TRUE
+        )
+      )
     )
   );
 }
