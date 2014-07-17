@@ -131,8 +131,7 @@ function dwcarchiver_menu(){
       ),
       'page callback' => 'dwcarchiver_rebuild',
       'page arguments' => array(
-        4,
-        FALSE
+        4
       ),
       'access arguments' => array(
         'configure dwcarchiver'

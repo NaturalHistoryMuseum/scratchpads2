@@ -108,12 +108,12 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
       break;
   }
   $processors = dwcarchiver_get_processors();
-  // Keep a track of the joins we've made - we only want to make a join once,
-  // and not multiple times.
   // Create the temporary file for holding the CSV data
   $csv_filename = drupal_tempnam(file_directory_temp(), 'dwcarchiver');
   $f = fopen($csv_filename, 'w');
   foreach(array_keys($archive_or_extension->maps) as $delta){
+    // Keep a track of the joins we've made - we only want to make a join once,
+    // and not multiple times.
     $joins = array();
     $query = clone $base_query;
     foreach($archive_or_extension->maps[$delta] as $map_id => $map){

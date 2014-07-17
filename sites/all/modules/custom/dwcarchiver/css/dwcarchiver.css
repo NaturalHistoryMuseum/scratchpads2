@@ -40,11 +40,9 @@ form>div>.fieldset>legend>span {
   width: inherit !important;
 }
 
-.dwcarchiver-preview .wrapper>p{
+.dwcarchiver-preview .wrapper>pre{
   font-size:60%;
   margin:5px;
   padding:5px;
-  border:solid 1px white;
-  background-color:#222;
-  color:#fff;
+  border:solid 1px black;
 }

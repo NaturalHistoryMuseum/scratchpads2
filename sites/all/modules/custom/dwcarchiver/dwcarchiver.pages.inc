@@ -40,6 +40,8 @@ function dwcarchiver_overview_page(){
  */
 function dwcarchiver_preview($dwcarchiver){
   try{
+    // Load the SqlFormatter class
+    require_once drupal_get_path('module', 'dwcarchiver') . '/lib/SqlFormatter.php';
     // Firstly, we start with the XML file.
     module_load_include('rebuild.inc', 'dwcarchiver');
     $archive = new SimpleXMLElement('<archive/>');
@@ -68,6 +70,10 @@ function dwcarchiver_preview($dwcarchiver){
         'colspan' => count($dwcarchiver->maps)
       )
     );
+    $header = array();
+    foreach($dwcarchiver->maps[0] as $map){
+      $header[] = $map->uri;
+    }
     $extensions[] = array(
       'table' => array(
         '#prefix' => '<div class="wrapper">',
@@ -77,11 +83,12 @@ function dwcarchiver_preview($dwcarchiver){
         ),
         'table' => array(
           '#theme' => 'table',
+          '#header' => $header,
           '#rows' => $rows_and_query['rows']
         ),
         'query' => array(
           '#access' => user_access('scratchpads team'),
-          '#markup' => '<p>' . preg_replace('/[\{\}]/', '', $rows_and_query['query']) . '</p>'
+          '#markup' => SqlFormatter::format(preg_replace('/[\{\}]/', '', $rows_and_query['query']))
         )
       )
     );
@@ -93,6 +100,10 @@ function dwcarchiver_preview($dwcarchiver){
           'colspan' => count($extension->maps)
         )
       );
+      $header = array();
+      foreach($extension->maps[0] as $map){
+        $header[] = $map->uri;
+      }
       $extensions[] = array(
         '#prefix' => '<div class="wrapper">',
         '#suffix' => '</div>',
@@ -101,11 +112,12 @@ function dwcarchiver_preview($dwcarchiver){
         ),
         'table' => array(
           '#theme' => 'table',
+          '#header' => $header,
           '#rows' => $rows_and_query['rows']
         ),
         'query' => array(
           '#access' => user_access('scratchpads team'),
-          '#markup' => '<p>' . preg_replace('/[\{\}]/', '', $rows_and_query['query']) . '</p>'
+          '#markup' => SqlFormatter::format(preg_replace('/[\{\}]/', '', $rows_and_query['query']))
         )
       );
     }
