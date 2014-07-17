@@ -368,13 +368,13 @@ function dwcarchiver_dwcarchiver_processors_alter(&$processors){
       'content_language'
     )
   );
-  $processors['dwcarchiver_uri'] = array(
+  $processors['dwcarchiver_file_url'] = array(
     'module' => 'dwcarchiver',
     'file' => 'dwcarchiver.processors.inc',
     'callback' => 'dwcarchiver_processor_dwcarchiver_path',
-    'label' => t('File path'),
+    'label' => t('File URL'),
     'field types' => array(
-      'uri'
+      'file_url'
     )
   );
   $processors['dwcarchiver_timestamp'] = array(
@@ -415,6 +415,15 @@ function creative_commons_dwcarchiver_processors_alter(&$processors){
     'file' => 'dwcarchiver.processors.inc',
     'callback' => 'dwcarchiver_processor_dwcarchiver_creative_commons',
     'label' => t('Creative Commons'),
+    'field types' => array(
+      'creative_commons'
+    )
+  );
+  $processors['dwcarchiver_creative_commons_url'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_creative_commons_url',
+    'label' => t('Creative Commons URL'),
     'field types' => array(
       'creative_commons'
     )
@@ -492,6 +501,79 @@ function taxonomy_dwcarchiver_core_types_alter(&$core_types){
 }
 
 /**
+ * Implements hook_entity_insert()
+ */
+function dwcarchiver_entity_insert($entity, $type){
+  $set_to_rebuild = FALSE;
+  if(variable_get('dwcarchiver_rebuild_frequency', 'change') == 'change'){
+    switch($type){
+      case 'taxonomy_term':
+        $biological_vids = variable_get('biological_vids', array());
+        if(isset($biological_vids[$entity->vid]) && $biological_vids[$entity->vid]){
+          $set_to_rebuild = TRUE;
+        }
+        break;
+      case 'node':
+        if($entity->type == 'spm' || $entity->type == 'biblio' || $entity->type == 'specimen_observation'){
+          $set_to_rebuild = TRUE;
+        }
+    }
+  }
+  if($set_to_rebuild){
+    $query = db_select('dwcarchiver_archive', 'd')->fields('d', array(
+      'did'
+    ));
+    $query->addExpression("'change'");
+    variable_set('dwcarchiver_last_cron_run', $query->execute()->fetchAllKeyed());
+  }
+}
+
+/**
+ * Implements hook_entity_delete()
+ */
+function dwcarchiver_entity_delete($entity, $type){
+  dwcarchiver_entity_insert($entity, $type);
+}
+
+/**
+ * Implements hook_entity_update()
+ */
+function dwcarchiver_entity_update($entity, $type){
+  dwcarchiver_entity_insert($entity, $type);
+}
+
+/**
  * Rebuild the archive files on cron.
  */
-function dwcarchiver_cron(){}
+function dwcarchiver_cron(){
+  // We only rebuild one archive at a time, so if we have three archives, we 
+  // need three cron runs to rebuild them all.
+  $when = variable_get('dwcarchiver_rebuild_frequency', 'change');
+  $last = variable_get('dwcarchiver_last_cron_run', array());
+  $request_time = time();
+  $dids = db_select('dwcarchiver_archive', 'd')->fields('d', array(
+    'did'
+  ))->execute()->fetchCol();
+  $did_to_rebuild = FALSE;
+  if($when == 'change'){
+    foreach($last as $did => $change){
+      if($change == 'change'){
+        $did_to_rebuild = $did;
+        break;
+      }
+    }
+  }else{
+    foreach($dids as $did){
+      if(!isset($last[$did]) || $last[$did] + ($when * 86400) < $request_time){
+        $did_to_rebuild = $did;
+        $last[$did] = $request_time;
+        break;
+      }
+    }
+  }
+  if($did_to_rebuild){
+    $dwcarchiver = dwcarchiver_load($did_to_rebuild);
+    module_load_include('rebuild.inc', 'dwcarchiver');
+    dwcarchiver_rebuild($dwcarchiver, FALSE);
+  }
+}

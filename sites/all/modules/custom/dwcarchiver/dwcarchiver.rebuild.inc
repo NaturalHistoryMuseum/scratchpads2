@@ -18,22 +18,30 @@ function dwcarchiver_rebuild($dwcarchiver, $deliver = TRUE){
       $zip->close();
       // Move the zip file to the dwcarchiver folder.
       file_unmanaged_move($zip_filename, 'public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip', FILE_EXISTS_REPLACE);
-      drupal_set_message(t('The DwC-A has been rebuilt'));
+      if($deliver){
+        drupal_set_message(t('The DwC-A has been rebuilt'));
+      }
     }
     $timer = timer_stop('dwcarchiver_rebuild');
-    if(user_access('scratchpads team')){
-      drupal_set_message(t('Archive rebuilt in @time miliseconds', array(
-        '@time' => $timer['time']
-      )));
+    if($deliver){
+      if(user_access('scratchpads team')){
+        drupal_set_message(t('Archive rebuilt in @time miliseconds', array(
+          '@time' => $timer['time']
+        )));
+      }
     }
-    drupal_goto('admin/config/content/dwcarchiver');
+    if($deliver){
+      drupal_goto('admin/config/content/dwcarchiver');
+    }
   }
   catch(Exception $e){
     drupal_set_message(t('<strong>Unable to rebuild the archive. Please send the following error message to the Scratchpads team:</strong><p>@errormessage</p><pre>@errortrace</pre>', array(
       '@errormessage' => $e->getMessage(),
       '@errortrace' => (!empty($e->query_string) ? $e->query_string . "\n" : '') . $e->getTraceAsString()
     )), 'error');
-    drupal_goto('admin/config/content/dwcarchiver');
+    if($deliver){
+      drupal_goto('admin/config/content/dwcarchiver');
+    }
   }
 }
 
@@ -131,6 +139,10 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
         dwcarchiver_processor_core_map($archive_or_extension, $dwcarchiver, $query);
       }else if(function_exists($processors[$map->processor]['callback'])){
         call_user_func($processors[$map->processor]['callback'], $query, $field, $info, $map_id, $map, $table);
+      }else{
+        drupal_set_message(t('@function does not exist', array(
+          '@function' => $processors[$map->processor]['callback']
+        )));
       }
     }
     $results = $query->execute();
@@ -152,7 +164,10 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
       $rows[] = $row;
     }
     unlink($csv_filename);
-    return array('rows' => $rows, 'query' => (string)$query);
+    return array(
+      'rows' => $rows,
+      'query' => (string)$query
+    );
   }
 }
 

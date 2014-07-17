@@ -118,8 +118,13 @@ function dwcarchiver_processor_dwcarchiver_value(SelectQuery $query, $field, $en
 
 /**
  * 
-function dwcarchiver_processor_dwcarchiver_path(SelectQuery $query, $field, $entity_info, $map_id, $map, $table = 'base'){}
  */
+function dwcarchiver_processor_dwcarchiver_path(SelectQuery $query, $field, $entity_info, $map_id, $map, $table = 'base'){
+  $public_url = file_create_url('public://');
+  $private_url = file_create_url('private://');
+  $query->addExpression("(CASE WHEN {$table}.uri LIKE 'public://%' THEN CONCAT('{$public_url}', SUBSTRING({$table}.uri, 10)) WHEN {$table}.uri LIKE 'private://%' THEN CONCAT('{$private_url}', SUBSTRING({$table}.uri, 11)) END)");
+}
+
 /**
  * 
  */
@@ -135,6 +140,67 @@ function dwcarchiver_processor_dwcarchiver_creative_commons(SelectQuery $query, 
   }
   $expression .= ' END)';
   $query->addExpression($expression);
+}
+
+/**
+ * 
+ */
+function dwcarchiver_processor_dwcarchiver_creative_commons_url(SelectQuery $query, $field, $entity_info, $map_id, $map, $table = 'base'){
+  $jurisdiction = variable_get('creative_commons_block_jurisdiction', '');
+  if($jurisdiction && strpos($jurisdiction, '_')){
+    list($jurisdiction, $version) = explode('_', $jurisdiction);
+    $version = substr($version, 0, 1) . '.' . substr($version, 1, 1);
+  }else{
+    $version = CC_DEFAULT_VERSION;
+  }
+  $query->leftJoin('field_data_' . $field, "table_{$map_id}", "{$table}.{$entity_info['entity keys']['id']} = table_{$map_id}.entity_id");
+  $expression = '(CASE ';
+  foreach(creative_commons_get_licence_types() as $id => $text){
+    switch($id){
+      // These licence types are text only
+      case CC_NONE:
+        $url = '';
+        break;
+      case CC_0:
+        $url = 'http://creativecommons.org/about/cc0';
+        break;
+      case CC_PD:
+        $url = 'http://creativecommons.org/about/pdm';
+        break;
+      case CC_BY:
+        $url = CC_LICENCE_URI . '/by/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
+        break;
+      case CC_BY_SA:
+        $url = CC_LICENCE_URI . '/by-sa/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
+        break;
+      case CC_BY_ND:
+        $url = CC_LICENCE_URI . '/by-nd/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
+        break;
+      case CC_BY_NC:
+        $url = CC_LICENCE_URI . '/by-nc/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
+        break;
+      case CC_BY_NC_SA:
+        $url = CC_LICENCE_URI . '/by-nc-sa/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
+        break;
+      case CC_BY_NC_ND:
+        $url = CC_LICENCE_URI . '/by-nc-nd/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
+        break;
+    }
+    $url = Database::getConnection('default')->quote($url);
+    $expression .= " WHEN table_{$map_id}.{$field}_licence = {$id} THEN {$url}";
+  }
+  $expression .= ' END)';
+  $query->addExpression($expression);
+}
+
+/**
+ * dwcarchiver_processor_dwcarchiver_content_language
+ * 
+ * This may need a little more processing, perhaps converting "und" or "en" into
+ * "undefined" and "English" respectively.
+ */
+function dwcarchiver_processor_dwcarchiver_content_language(SelectQuery $query, $field, $entity_info, $map_id, $map, $table = 'base'){
+  $query->addExpression("{$table}.language");
 }
 
 /**

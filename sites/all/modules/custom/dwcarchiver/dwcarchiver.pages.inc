@@ -501,7 +501,7 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundle, $maps = array()
             //$label = $field_instance['label'];
             $disabled = FALSE;
             $type = 'biblio';
-          }else{
+          }elseif($map->uri != 'coreid'){
             // If we have a processor, get the type that it will be associated
             // with.
             if($map->processor){
@@ -546,10 +546,10 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundle, $maps = array()
             ), 'user')
           );
         }
-        $form[$delta][$actual_prefix . 'uri'] = _dwcarchiver_archive_form_fields_row('Path', 'uri');
+        $form[$delta][$actual_prefix . 'file_url'] = _dwcarchiver_archive_form_fields_row('File URL', 'file_url');
         $form[$delta][$actual_prefix . 'filename'] = _dwcarchiver_archive_form_fields_row('Filename', 'entity_property');
         $form[$delta][$actual_prefix . 'filemime'] = _dwcarchiver_archive_form_fields_row('Mime', 'entity_property');
-        $form[$delta][$actual_prefix . 'content_url'] = _dwcarchiver_archive_form_fields_row('URL', 'content_url');
+        $form[$delta][$actual_prefix . 'content_url'] = _dwcarchiver_archive_form_fields_row('Content URL', 'content_url');
         break;
       case 'taxonomy_term':
         // We create a fieldset, and add all of the fields from the linked/bundle
