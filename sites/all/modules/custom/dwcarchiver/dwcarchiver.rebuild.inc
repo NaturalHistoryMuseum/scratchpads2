@@ -53,9 +53,8 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
   // Write the data for the core to the archive.
   _dwcarchiver_create_and_add_data_file($dwcarchiver, $dwcarchiver, $zip);
   if(user_access('scratchpads team')){
-    $timer = timer_read('dwcarchiver_rebuild');
     drupal_set_message(t('Starting extensions after @time miliseconds', array(
-      '@time' => $timer['time']
+      '@time' => timer_read('dwcarchiver_rebuild')
     )));
   }
   foreach($dwcarchiver->extensions as $extension){
@@ -68,9 +67,8 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
     // Write the data for the extension to the archive.
     _dwcarchiver_create_and_add_data_file($extension, $dwcarchiver, $zip);
     if(user_access('scratchpads team')){
-      $timer = timer_read('dwcarchiver_rebuild');
       drupal_set_message(t('Completed @extension after @time miliseconds', array(
-        '@time' => $timer['time'],
+        '@time' => timer_read('dwcarchiver_rebuild'),
         '@extension' => $extension->name
       )));
     }
@@ -154,7 +152,7 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
       $rows[] = $row;
     }
     unlink($csv_filename);
-    return $rows;
+    return array('rows' => $rows, 'query' => (string)$query);
   }
 }
 

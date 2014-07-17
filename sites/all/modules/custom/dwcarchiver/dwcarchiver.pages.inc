@@ -61,8 +61,8 @@ function dwcarchiver_preview($dwcarchiver){
     $dom = dom_import_simplexml($archive)->ownerDocument;
     $dom->formatOutput = true;
     $extensions = array();
-    $rows = _dwcarchiver_create_and_add_data_file($dwcarchiver, $dwcarchiver, FALSE, 10);
-    $rows[] = array(
+    $rows_and_query = _dwcarchiver_create_and_add_data_file($dwcarchiver, $dwcarchiver, FALSE, 10);
+    $rows_and_query['rows'][] = array(
       array(
         'data' => '...',
         'colspan' => count($dwcarchiver->maps)
@@ -70,26 +70,42 @@ function dwcarchiver_preview($dwcarchiver){
     );
     $extensions[] = array(
       'table' => array(
-        '#prefix' => '<div class="wrapper"><h2>' . $dwcarchiver->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt') . '</h2>',
+        '#prefix' => '<div class="wrapper">',
         '#suffix' => '</div>',
-        '#theme' => 'table',
-        '#rows' => $rows
+        'header' => array(
+          '#markup' => '<h2>' . $dwcarchiver->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt') . '</h2>'
+        ),
+        'table' => array(
+          '#theme' => 'table',
+          '#rows' => $rows_and_query['rows']
+        ),
+        'query' => array(
+          '#access' => user_access('scratchpads team'),
+          '#markup' => '<p>' . preg_replace('/[\{\}]/', '', $rows_and_query['query']) . '</p>'
+        )
       )
     );
     foreach($dwcarchiver->extensions as $extension){
-      $rows = _dwcarchiver_create_and_add_data_file($extension, $dwcarchiver, FALSE, 10);
-      $rows[] = array(
+      $rows_and_query = _dwcarchiver_create_and_add_data_file($extension, $dwcarchiver, FALSE, 10);
+      $rows_and_query['rows'][] = array(
         array(
           'data' => '...',
           'colspan' => count($extension->maps)
         )
       );
       $extensions[] = array(
+        '#prefix' => '<div class="wrapper">',
+        '#suffix' => '</div>',
+        'header' => array(
+          '#markup' => '<h2>' . $extension->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt') . '</h2>'
+        ),
         'table' => array(
-          '#prefix' => '<div class="wrapper"><h2>' . $extension->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt') . '</h2>',
-          '#suffix' => '</div>',
           '#theme' => 'table',
-          '#rows' => $rows
+          '#rows' => $rows_and_query['rows']
+        ),
+        'query' => array(
+          '#access' => user_access('scratchpads team'),
+          '#markup' => '<p>' . preg_replace('/[\{\}]/', '', $rows_and_query['query']) . '</p>'
         )
       );
     }
