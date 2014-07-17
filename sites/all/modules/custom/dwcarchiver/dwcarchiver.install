@@ -163,6 +163,14 @@ function dwcarchiver_schema(){
           'description' => 'URI of the column (e.g. http://rs.tdwg.org/dwc/terms/decimalLongitude).',
           'translatable' => TRUE
         ),
+        'required' => array(
+          'type' => 'int',
+          'size' => 'tiny',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'Whether or not this field is required for a row of the export.'
+        ),
         'processor' => array(
           'type' => 'varchar',
           'length' => 255,

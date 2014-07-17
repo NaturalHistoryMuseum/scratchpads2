@@ -466,7 +466,8 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundle, $maps = array()
         'header' => array(
           t('Label'),
           t('Maps to - Enter the URI that this field maps to.  If left blank, this field will not be included in the DwC-A.'),
-          t('Processor')
+          t('Processor'),
+          t('Required')
         )
       ),
       '#theme' => 'dwcarchiver_archiver_form_fields_table'
@@ -498,7 +499,7 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundle, $maps = array()
           ))->condition('eid', $map->eid)->condition('did', $map->did)->condition('delta', $map->delta)->condition('field', $map->field)->execute()->fetchField();
           $form[$delta]["mapped-$index_str:" . $map->field] = _dwcarchiver_archive_form_fields_row(t('Value: %value', array(
             '%value' => $value
-          )), 'value', $map->uri, $map->processor);
+          )), 'value', $map->uri, $map->processor, $map->required);
         }else{
           $field_instance = field_info_instance($entity_type, ($actual_prefix ? substr($map->field, strlen($actual_prefix)) : $map->field), $bundle);
           $label = ucfirst($map->field);
@@ -524,7 +525,7 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundle, $maps = array()
             }
             $disabled = FALSE;
           }
-          $form[$delta]["mapped-$index_str:" . $map->field] = _dwcarchiver_archive_form_fields_row($label, $type, $map->uri, $map->processor, $disabled);
+          $form[$delta]["mapped-$index_str:" . $map->field] = _dwcarchiver_archive_form_fields_row($label, $type, $map->uri, $map->processor, $map->required, $disabled);
         }
       }
     }
@@ -673,7 +674,7 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundle, $maps = array()
 /**
  * Helper function to create a row for a field form.
  */
-function _dwcarchiver_archive_form_fields_row($label, $field_type = 'ALL', $default_value_term = '', $default_value_processor = '', $disabled = FALSE){
+function _dwcarchiver_archive_form_fields_row($label, $field_type = 'ALL', $default_value_term = '', $default_value_processor = '', $default_value_required = 0, $disabled = FALSE){
   if($label == 'Field_reference:content_url'){
     $breka = 'hetlj';
   }
@@ -700,6 +701,12 @@ function _dwcarchiver_archive_form_fields_row($label, $field_type = 'ALL', $defa
         '#options' => $processors,
         '#default_value' => $default_value_processor,
         '#disabled' => $disabled
+      ),
+      'required' => array(
+        '#title_display' => 'invisible',
+        '#type' => 'checkbox',
+        '#title' => t('Required'),
+        '#default_value' => $default_value_required
       )
     );
   }else{
@@ -753,7 +760,8 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
     'delta',
     'field',
     'uri',
-    'processor'
+    'processor',
+    'required'
   ));
   // If we have mappings for the core item, we also work with them!
   if(!empty($form_state['values']['core']['fields'][0])){
@@ -769,7 +777,8 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
           'delta' => 0,
           'field' => preg_replace('/mapped-[0-9]*:/', '', $field),
           'uri' => $values['term'],
-          'processor' => $values['processor']
+          'processor' => $values['processor'],
+          'required' => $values['required']
         ));
       }elseif(!empty($values['fields']) && count($values['fields'])){
         foreach($values['fields'][0] as $sub_field => $sub_values){
@@ -781,7 +790,8 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
               'delta' => 0,
               'field' => preg_replace('/mapped-[0-9]*:/', '', $sub_field),
               'uri' => $sub_values['term'],
-              'processor' => $sub_values['processor']
+              'processor' => $sub_values['processor'],
+              'required' => $sub_values['required']
             ));
           }
         }
@@ -829,6 +839,7 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
                       'field' => preg_replace('/mapped-[0-9]*:/', '', $field),
                       'value' => $values['label']
                     ))->execute();
+                    $values['required'] = 0;
                   }
                   $insert_into_mappings = TRUE;
                   $insert->values(array(
@@ -837,7 +848,8 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
                     'delta' => $delta,
                     'field' => preg_replace('/mapped-[0-9]*:/', '', $field),
                     'uri' => $values['term'],
-                    'processor' => $values['processor']
+                    'processor' => $values['processor'],
+                    'required' => $values['required']
                   ));
                 }elseif(!empty($values['fields']) && count($values['fields'])){
                   foreach($values['fields'][0] as $sub_field => $sub_values){
@@ -849,7 +861,8 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
                         'delta' => $delta,
                         'field' => preg_replace('/mapped-[0-9]*:/', '', $sub_field),
                         'uri' => $sub_values['term'],
-                        'processor' => $sub_values['processor']
+                        'processor' => $sub_values['processor'],
+                        'required' => $sub_values['required']
                       ));
                     }
                   }

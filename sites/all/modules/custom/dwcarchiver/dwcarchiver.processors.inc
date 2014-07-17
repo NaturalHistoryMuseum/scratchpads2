@@ -6,7 +6,7 @@
 function dwcarchiver_processor_dwcarchiver_raw_text(SelectQuery $query, $field, $entity_info, $map_id, $map, $table = 'base'){
   $field_info = field_info_field($field);
   if($field_info){
-    $query->leftJoin('field_data_' . $field, "table_{$map_id}", "{$table}.{$entity_info['entity keys']['id']} = table_{$map_id}.entity_id");
+    _dwcarchiver_processor_join_field_table($query, $field, $entity_info, $map_id, $map, $table);
     $query->addExpression("table_{$map_id}.{$field}_value");
   }else{
     $query->addExpression("{$table}.{$field}");
@@ -38,17 +38,27 @@ function dwcarchiver_processor_core_map($archive_or_extension, $dwcarchiver, Sel
 }
 
 /**
+ * Helper function to join to a field table.
+ */
+function _dwcarchiver_processor_join_field_table(SelectQuery $query, $field, $entity_info, $map_id, $map, $table){
+  if($map->required){
+    $query->innerJoin('field_data_' . $field, "table_{$map_id}", "{$table}.{$entity_info['entity keys']['id']} = table_{$map_id}.entity_id");
+  }else{
+    $query->leftJoin('field_data_' . $field, "table_{$map_id}", "{$table}.{$entity_info['entity keys']['id']} = table_{$map_id}.entity_id");
+  }
+}
+
+/**
  * A little trickier this, as the labels are only available in PHP (they're
  * serialized in the database).  We therefore get all possible values, and craft
  * the query accordingly.
- */
 function dwcarchiver_processor_dwcarchiver_list(SelectQuery $query, $field, $entity_info, $map_id, $map, $table = 'base'){}
-
+ */
 /**
  * Return the latitude
  */
 function dwcarchiver_processor_gm3_latitude(SelectQuery $query, $field, $entity_info, $map_id, $map, $table = 'base'){
-  $query->leftJoin('field_data_' . $field, "table_{$map_id}", "{$table}.{$entity_info['entity keys']['id']} = table_{$map_id}.entity_id");
+  _dwcarchiver_processor_join_field_table($query, $field, $entity_info, $map_id, $map, $table);
   $query->addExpression("table_{$map_id}.{$field}_latitude");
 }
 
@@ -56,7 +66,7 @@ function dwcarchiver_processor_gm3_latitude(SelectQuery $query, $field, $entity_
  * Return the longitude
  */
 function dwcarchiver_processor_gm3_longitude(SelectQuery $query, $field, $entity_info, $map_id, $map, $table = 'base'){
-  $query->leftJoin('field_data_' . $field, "table_{$map_id}", "{$table}.{$entity_info['entity keys']['id']} = table_{$map_id}.entity_id");
+  _dwcarchiver_processor_join_field_table($query, $field, $entity_info, $map_id, $map, $table);
   $query->addExpression("table_{$map_id}.{$field}_longitude");
 }
 
@@ -64,7 +74,7 @@ function dwcarchiver_processor_gm3_longitude(SelectQuery $query, $field, $entity
  * 
  */
 function dwcarchiver_processor_dwcarchiver_date_from(SelectQuery $query, $field, $entity_info, $map_id, $map, $table = 'base'){
-  $query->leftJoin('field_data_' . $field, "table_{$map_id}", "{$table}.{$entity_info['entity keys']['id']} = table_{$map_id}.entity_id");
+  _dwcarchiver_processor_join_field_table($query, $field, $entity_info, $map_id, $map, $table);
   $query->addExpression("table_{$map_id}.{$field}_value");
 }
 
@@ -72,7 +82,7 @@ function dwcarchiver_processor_dwcarchiver_date_from(SelectQuery $query, $field,
  * 
  */
 function dwcarchiver_processor_dwcarchiver_date_to(SelectQuery $query, $field, $entity_info, $map_id, $map, $table = 'base'){
-  $query->leftJoin('field_data_' . $field, "table_{$map_id}", "{$table}.{$entity_info['entity keys']['id']} = table_{$map_id}.entity_id");
+  _dwcarchiver_processor_join_field_table($query, $field, $entity_info, $map_id, $map, $table);
   $query->addExpression("table_{$map_id}.{$field}_value2");
 }
 
@@ -129,7 +139,7 @@ function dwcarchiver_processor_dwcarchiver_path(SelectQuery $query, $field, $ent
  * 
  */
 function dwcarchiver_processor_dwcarchiver_creative_commons(SelectQuery $query, $field, $entity_info, $map_id, $map, $table = 'base'){
-  $query->leftJoin('field_data_' . $field, "table_{$map_id}", "{$table}.{$entity_info['entity keys']['id']} = table_{$map_id}.entity_id");
+  _dwcarchiver_processor_join_field_table($query, $field, $entity_info, $map_id, $map, $table);
   $expression = '(CASE ';
   foreach(creative_commons_get_licence_types() as $id => $text){
     if(is_numeric($id)){
@@ -153,7 +163,7 @@ function dwcarchiver_processor_dwcarchiver_creative_commons_url(SelectQuery $que
   }else{
     $version = CC_DEFAULT_VERSION;
   }
-  $query->leftJoin('field_data_' . $field, "table_{$map_id}", "{$table}.{$entity_info['entity keys']['id']} = table_{$map_id}.entity_id");
+  _dwcarchiver_processor_join_field_table($query, $field, $entity_info, $map_id, $map, $table);
   $expression = '(CASE ';
   foreach(creative_commons_get_licence_types() as $id => $text){
     switch($id){

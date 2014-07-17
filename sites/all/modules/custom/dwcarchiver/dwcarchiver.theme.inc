@@ -53,7 +53,7 @@ function theme_dwcarchiver_archiver_form_fields_table($variables){
         $variables['element'][$key3]['#title'],
         array(
           'data' => drupal_render_children($variables['element'][$key3]),
-          'colspan' => 2
+          'colspan' => 3
         )
       );
     }else{
@@ -70,6 +70,9 @@ function theme_dwcarchiver_archiver_form_fields_table($variables){
           'class' => array(
             'dwcarchiver-full-width'
           )
+        ),
+        array(
+          'data' => drupal_render($variables['element'][$key3]['required'])
         )
       );
     }
