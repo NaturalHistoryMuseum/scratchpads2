@@ -339,9 +339,6 @@ function scratchpads_taxonomic_name_field_cron(){
  */
 function scratchpads_taxonomic_name_field_form_alter(&$form, &$form_state, $form_id){
   if(isset($form['field_taxonomic_name'])){
-    // Set the max length to a much higher value than 1024 (why the fuck is it
-    // set to 1024 anyway?)
-    $form['field_taxonomic_name'][LANGUAGE_NONE]['#maxlength'] = 1000000;
     $field = field_info_field('field_taxonomic_name');
     if(count($field['settings']['allowed_values']) && $field['settings']['allowed_values'][0]['vocabulary'] != '__temporary__'){
       // We check the number of terms per vocabulary. If any has a single term,
@@ -352,6 +349,17 @@ function scratchpads_taxonomic_name_field_form_alter(&$form, &$form_state, $form
       }
     }
     unset($form['field_taxonomic_name']);
+  }
+}
+
+/**
+ * Implements hook_field_widget_form_alter().
+ */
+function scratchpads_taxonomic_name_field_field_widget_form_alter(&$element, &$form_state, $context){
+  if($context['instance']['widget']['type'] == 'taxonomy_autocomplete'){
+    // Set the max length to a much higher value than 1024 (why the fuck is it
+    // set to 1024 anyway?)
+    $element['#maxlength'] = 1000000;
   }
 }
 
