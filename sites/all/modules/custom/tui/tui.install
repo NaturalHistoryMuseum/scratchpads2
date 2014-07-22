@@ -1,0 +1,14 @@
+<?php
+
+/**
+ * Update taxonomy_term_data to remove any duplicate UUIDs if present.
+ */
+function tui_update_7001(){
+  if(module_exists('uuid')){
+    $query = db_select('taxonomy_term_data', 'lft');
+    $query->innerJoin('taxonomy_term_data', 'rgt', '(lft.uuid = rgt.uuid AND lft.tid > rgt.tid)');
+    $query->fields('lft', array(
+      'tid'
+    ));
+  }
+}
