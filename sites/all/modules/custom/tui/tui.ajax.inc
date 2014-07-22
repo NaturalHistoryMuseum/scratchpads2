@@ -45,7 +45,7 @@ function tui_ajax_form_callback(&$form, &$form_state){
     // have errors (error forms may be submitted again).
     unset($form['actions']);
   }
-  $ajax['#commands'][] = ajax_command_insert(NULL, drupal_render($form));
+  $ajax['#commands'][] = ajax_command_insert('#tui-form-container form', drupal_render($form));
   $ajax['#commands'][] = ajax_command_prepend(NULL, theme('status_messages'));
   return $ajax;
 }
