@@ -171,7 +171,10 @@ function worms_batch_importer($id, $vid, &$context){
         $record = $client->getAphiaRecordByID($id);
       }
       catch(Exception $e){
-        ;
+        drupal_set_message(t('Unable to download the record for @id.  The following error message was provided: @error', array(
+          '@id' => $id,
+          '@error' => $e->getMessage()
+        )), 'error', FALSE);
       }
       $sub_attempt++;
     }
@@ -306,14 +309,17 @@ function worms_batch_importer($id, $vid, &$context){
   $reached_last_child = FALSE;
   $offset = 1;
   while(!$reached_last_child){
-	try{
+    try{
       $children = $client->getAphiaChildrenByID($id, $offset);
-    } catch(Exception $e){;}
+    }
+    catch(Exception $e){
+      ;
+    }
     if($children){
       foreach($children as $child){
         $context['sandbox']['ids'][$child->AphiaID] = $term->tid;
       }
-    } else {
+    }else{
       $reached_last_child = TRUE;
     }
     if(count($children) != 50){
