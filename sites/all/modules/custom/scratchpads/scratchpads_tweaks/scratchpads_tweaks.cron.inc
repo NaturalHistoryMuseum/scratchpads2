@@ -134,6 +134,22 @@ function _scratchpads_tweaks_cron(){
       }
     }
   }
+  // Add a revision for a term that doesn't currently have one, which prevents
+  // any new terms from being added
+  if(($term = db_select('taxonomy_term_data', 't')->condition('revision_id', 0)->fields('t')->execute()->fetch()) != FALSE){
+    unset($term->revision_id);
+    $term->timestamp = time();
+    $term->uid = 0;
+    $term->log = t('Automatically created revision.');
+    drupal_write_record('taxonomy_term_data_revision', $term);
+    $term_update = array(
+      'tid' => $term->tid,
+      'revision_id' => $term->revision_id
+    );
+    drupal_write_record('taxonomy_term_data', $term_update, array(
+      'tid'
+    ));
+  }
   // Remove any "batch" objects older than one week (they have almost definitely
   // failed).
   db_delete('batch')->condition('timestamp', time() - 604800, '<')->execute();
