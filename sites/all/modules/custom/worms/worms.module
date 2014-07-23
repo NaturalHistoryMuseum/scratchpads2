@@ -257,6 +257,13 @@ function worms_batch_importer($id, $vid, &$context){
       )
     )
   );
+  // Check to see if we have imported this ID to this Vocabulary before, and if
+  // we have, we update the tid associated.
+  if(($tid = db_select('worms', 'w')->fields('w', array(
+    'tid'
+  ))->condition('vid', $context['sandbox']['vid'])->condition('wid', $id)->execute()->fetchField()) != FALSE){
+    $term['tid'] = $tid;
+  }
   if($record->status != 'accepted'){
     $term['field_aan_' . $context['sandbox']['vid']] = array(
       LANGUAGE_NONE => array(
@@ -266,7 +273,7 @@ function worms_batch_importer($id, $vid, &$context){
       )
     );
   }
-  $name_parts = explode(" ", trim($record->scientificname));
+  $name_parts = explode(" ", preg_replace('/[\(\)]/', '', trim($record->scientificname)));
   $part_index = 1;
   foreach($name_parts as $name_part){
     $term['field_unit_name' . $part_index] = array(
@@ -280,6 +287,15 @@ function worms_batch_importer($id, $vid, &$context){
   }
   $term = (object)$term;
   taxonomy_term_save($term);
+  // Save the id to the worms table.
+  db_merge('worms')->key(array(
+    'vid' => $term->vid,
+    'wid' => $id
+  ))->fields(array(
+    'vid' => $term->vid,
+    'tid' => $term->tid,
+    'wid' => $id
+  ))->execute();
   foreach($vernacular_names as $vernacular_name){
     // Save the vernacular names.
     $entity = entity_create('field_collection_item', array(
