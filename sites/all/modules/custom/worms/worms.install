@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * Implements hook_schema()
+ */
+function worms_schema(){
+  return array(
+    'worms' => array(
+      'description' => '',
+      'fields' => array(
+        'wid' => array(
+          'description' => '',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE
+        ),
+        'vid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The {taxonomy_vocabulary}.vid of the vocabulary to which the term is assigned.'
+        ),
+        'tid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'Primary Key: The {taxonomy_term_data}.tid of the term.'
+        )
+      ),
+      'primary key' => array(
+        'wid',
+        'vid'
+      )
+    )
+  );
+}
+
+/**
+ * Add the tables.
+ */
+function worms_update_7001(){
+  foreach(worms_schema() as $name => $table){
+    db_create_table($name, $table);
+  }
+}

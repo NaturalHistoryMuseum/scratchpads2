@@ -1,3 +1,7 @@
+2.5.2.3 (2014-07-24)
+
+- Try and ensure that the WoRMS service does not timeout (#4199)
+
 2.5.2.2 (2014-07-22)
 
 - Prevent caching of all species page blocks (#4202)
