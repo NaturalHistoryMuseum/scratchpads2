@@ -40,7 +40,9 @@ function worms_silver(){
  */
 function worms_import_form($form, &$form_state){
   // Create a soap client to ensure that the service is up.
-  $worms_service_status = new SoapClient("http://www.marinespecies.org/aphia.php?p=soap&wsdl=1");
+  $worms_service_status = new SoapClient('http://www.marinespecies.org/aphia.php?p=soap&wsdl=1', array(
+    'connection_timeout' => 3
+  ));
   $vocabularies = taxonomy_get_vocabularies();
   $taxonomies = array(
     '- SELECT VOCABULARY -'
@@ -154,7 +156,9 @@ function worms_batch_importer($id, $vid, &$context){
   }
   static $client = FALSE;
   if(!$client){
-    $client = new SoapClient("http://www.marinespecies.org/aphia.php?p=soap&wsdl=1");
+    $client = new SoapClient('http://www.marinespecies.org/aphia.php?p=soap&wsdl=1', array(
+      'connection_timeout' => 3
+    ));
   }
   $keys = array_keys($context['sandbox']['ids']);
   $importable_found = FALSE;
@@ -306,14 +310,17 @@ function worms_batch_importer($id, $vid, &$context){
   $reached_last_child = FALSE;
   $offset = 1;
   while(!$reached_last_child){
-	try{
+    try{
       $children = $client->getAphiaChildrenByID($id, $offset);
-    } catch(Exception $e){;}
+    }
+    catch(Exception $e){
+      ;
+    }
     if($children){
       foreach($children as $child){
         $context['sandbox']['ids'][$child->AphiaID] = $term->tid;
       }
-    } else {
+    }else{
       $reached_last_child = TRUE;
     }
     if(count($children) != 50){
@@ -391,7 +398,9 @@ function _worms_de_nest($record){
  * Callback for the ajax
  */
 function worms_classifications_js($form, $form_state){
-  $client = new SoapClient("http://www.marinespecies.org/aphia.php?p=soap&wsdl=1");
+  $client = new SoapClient('http://www.marinespecies.org/aphia.php?p=soap&wsdl=1', array(
+    'connection_timeout' => 3
+  ));
   $records = $client->getAphiaRecords($_POST['worms-name'], TRUE, FALSE, FALSE, 0);
   if($records){
     foreach($records as $record){
