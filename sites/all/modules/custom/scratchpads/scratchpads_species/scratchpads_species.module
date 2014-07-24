@@ -405,7 +405,8 @@ function scratchpads_species_views_pre_view(&$view, &$display_id, &$args){
       case 'species_slideshow':
       case 'species_biblio':
       case 'species_specimen_observation':
-        // Add children to media, literature and specimen views
+      case 'species_map':
+        // Add children to media, literature, map and specimen views
         if(!count($args)){
           $args[0] = _scratchpads_species_get_descendant_tids(arg(2));
         }
