@@ -4,21 +4,30 @@
  * Callback for listing archives.
  */
 function dwcarchiver_overview_page(){
-  // Load the archives, and list 'em.
-  $results = db_select('dwcarchiver_archive', 'd')->fields('d')->execute();
+  $archives = dwcarchiver_load_all();
   $rows = array();
-  foreach($results as $result){
-    $rows[] = array(
-      $result->name,
-      $result->machine_name,
+  foreach($archives as $archive){
+    $row = array(
+      $archive->name,
+      $archive->machine_name,
       // FIXME - Improve display of entity/bundle (use label rather than machine name).
-      $result->entity . '/' . $result->bundle,
-      l('Edit', 'admin/config/content/dwcarchiver/' . $result->did . '/edit'),
-      l('Preview', 'admin/config/content/dwcarchiver/' . $result->did . '/preview'),
-      l('Delete', 'admin/config/content/dwcarchiver/' . $result->did . '/delete'),
-      l('Rebuild', 'admin/config/content/dwcarchiver/' . $result->did . '/rebuild'),
-      l('Download', $result->machine_name . '.zip')
+      $archive->entity . '/' . $archive->bundle
     );
+    if(!empty($archive->did)){
+      $row = array_merge($row, array(
+        l('Edit', 'admin/config/content/dwcarchiver/' . $archive->did . '/edit'),
+        l('Preview', 'admin/config/content/dwcarchiver/' . $archive->did . '/preview'),
+        l('Delete', 'admin/config/content/dwcarchiver/' . $archive->did . '/delete'),
+        l('Rebuild', 'admin/config/content/dwcarchiver/' . $archive->did . '/rebuild'),
+        l('Download', $archive->machine_name . '.zip')
+      ));
+    }else{
+      $row[] = array(
+        'data' => l('Override', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/override'),
+        'colspan' => 5
+      );
+    }
+    $rows[] = $row;
   }
   return array(
     '#theme' => 'table',

@@ -218,6 +218,17 @@ function dwcarchiver_permission(){
 }
 
 /**
+ * Implements hook_hook_info()
+ */
+function dwcarchiver_hook_info(){
+  return array(
+    'dwcarchiver_archives' => array(
+      'group' => 'dwcarchiver'
+    )
+  );
+}
+
+/**
  * Load function
  */
 function dwcarchiver_load($did){
@@ -235,6 +246,34 @@ function dwcarchiver_load($did){
   return $archive;
 }
 
+/**
+ * Load function to load ALL dwcarchives and return them, along with the archives
+ * that are stored in code.
+ * 
+ * FIXME - This needs caching or speeding up!
+ */
+function dwcarchiver_load_all(){
+  $dids = db_select('dwcarchiver_archive', 'd')->fields('d', array(
+    'did'
+  ))->orderBy('did')->execute()->fetchCol();
+  $archives = array();
+  $db_machine_names = array();
+  foreach($dids as $did){
+    $archives[$did] = dwcarchiver_load($did);
+    $db_machine_names[$archives[$did]->machine_name] = $archives[$did]->machine_name;
+  }
+  foreach(module_invoke_all('dwcarchiver_archives') as $code){
+    if(!isset($db_machine_names[$code->machine_name])){
+      $did++;
+      $archives[$did] = $code;
+    }
+  }
+  return $archives;
+}
+
+/**
+ * 
+ */
 /**
  * Load maps
  */
