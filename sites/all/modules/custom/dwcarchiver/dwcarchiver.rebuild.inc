@@ -18,15 +18,15 @@ function dwcarchiver_rebuild($dwcarchiver, $deliver = TRUE){
       $zip->close();
       // Move the zip file to the dwcarchiver folder.
       file_unmanaged_move($zip_filename, 'public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip', FILE_EXISTS_REPLACE);
-      if($deliver){
+      if($deliver && !user_access('scratchpads team')){
         drupal_set_message(t('The DwC-A has been rebuilt'));
       }
     }
     $timer = timer_stop('dwcarchiver_rebuild');
     if($deliver){
       if(user_access('scratchpads team')){
-        drupal_set_message(t('Archive rebuilt in @time miliseconds', array(
-          '@time' => $timer['time']
+        drupal_set_message(t('@time seconds: Archive rebuilt', array(
+          '@time' => round($timer['time'] / 1000, 2)
         )));
       }
     }
@@ -61,8 +61,8 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
   // Write the data for the core to the archive.
   _dwcarchiver_create_and_add_data_file($dwcarchiver, $dwcarchiver, $zip);
   if(user_access('scratchpads team')){
-    drupal_set_message(t('Starting extensions after @time miliseconds', array(
-      '@time' => timer_read('dwcarchiver_rebuild')
+    drupal_set_message(t('@time seconds: Starting extensions', array(
+      '@time' => round(timer_read('dwcarchiver_rebuild') / 1000, 2)
     )));
   }
   foreach($dwcarchiver->extensions as $extension){
@@ -75,8 +75,8 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
     // Write the data for the extension to the archive.
     _dwcarchiver_create_and_add_data_file($extension, $dwcarchiver, $zip);
     if(user_access('scratchpads team')){
-      drupal_set_message(t('Completed @extension after @time miliseconds', array(
-        '@time' => timer_read('dwcarchiver_rebuild'),
+      drupal_set_message(t('@time seconds: Completed @extension', array(
+        '@time' => round(timer_read('dwcarchiver_rebuild') / 1000, 2),
         '@extension' => $extension->name
       )));
     }

@@ -137,6 +137,17 @@ function dwcarchiver_menu(){
         'configure dwcarchiver'
       ),
       'file' => 'dwcarchiver.rebuild.inc'
+    ),
+    'admin/config/content/dwcarchiver/%/override' => array(
+      'title' => 'Override',
+      'page callback' => 'dwcarchiver_override',
+      'page arguments' => array(
+        4
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'file' => 'dwcarchiver.pages.inc'
     )
   );
 }
@@ -179,7 +190,11 @@ function dwcarchiver_machine_name_load($name){
  */
 function dwcarchiver_extension_machine_name_load($name, $element = FALSE, $form_state = FALSE){
   // Machine names are not globally unique, but are only unique per archive.
-  return db_select('dwcarchiver_extension', 'd')->condition('machine_name', $name)->condition('did', $form_state['dwcarchiver']->did)->fields('d')->execute()->fetch();
+  $query = db_select('dwcarchiver_extension', 'd')->condition('machine_name', $name)->fields('d');
+  if($form_state){
+    $query->condition('did', $form_state['dwcarchiver']->did);
+  }
+  return $query->execute()->fetch();
 }
 
 /**
@@ -252,35 +267,75 @@ function dwcarchiver_load($did){
  * 
  * FIXME - This needs caching or speeding up!
  */
-function dwcarchiver_load_all(){
-  $dids = db_select('dwcarchiver_archive', 'd')->fields('d', array(
-    'did'
-  ))->orderBy('did')->execute()->fetchCol();
-  $archives = array();
-  $db_machine_names = array();
-  foreach($dids as $did){
-    $archives[$did] = dwcarchiver_load($did);
-    $db_machine_names[$archives[$did]->machine_name] = $archives[$did]->machine_name;
+function dwcarchiver_load_all($reset = FALSE){
+  $cache = FALSE;
+  if(!$reset){
+    $cache = cache_get('all', 'cache_dwcarchiver');
   }
-  foreach(module_invoke_all('dwcarchiver_archives') as $code){
-    if(!isset($db_machine_names[$code->machine_name])){
-      $did++;
-      $archives[$did] = $code;
+  if(empty($cache) || empty($cache->data)){
+    $dids = db_select('dwcarchiver_archive', 'd')->fields('d', array(
+      'did'
+    ))->orderBy('did')->execute()->fetchCol();
+    $archives = array();
+    $db_machine_names = array();
+    $did = 0;
+    foreach($dids as $did){
+      $archives[$did] = dwcarchiver_load($did);
+      $db_machine_names[$archives[$did]->machine_name] = $archives[$did]->machine_name;
     }
+    foreach(module_invoke_all('dwcarchiver_archives') as $code){
+      if(!isset($db_machine_names[$code['machine_name']])){
+        $did++;
+        // We need to "objectify" the $code object, as we allow the definition
+        // of an archive as nested arrays.
+        $archives[$did] = _dwcarchiver_objectify_archive($code);
+      }
+    }
+    cache_set('all', $archives, 'cache_dwcarchiver');
+  }else{
+    $archives = $cache->data;
   }
   return $archives;
 }
 
 /**
- * 
+ * Objectify an archive array.
  */
+function _dwcarchiver_objectify_archive($archive){
+  $archive = (object)$archive;
+  foreach($archive->extensions as $key => $extension){
+    $archive->extensions[$key] = (object)$extension;
+    foreach(array_keys($archive->extensions[$key]->maps) as $delta){
+      foreach($archive->extensions[$key]->maps[$delta] as $map_key => $map){
+        $archive->extensions[$key]->maps[$delta][$map_key] = (object)$map;
+      }
+    }
+  }
+  foreach($archive->maps[0] as $map_key => $map){
+    $archive->maps[0][$map_key] = (object)$map;
+  }
+  return $archive;
+}
+
+/**
+ * Implements hook_flush_caches.
+ */
+function dwcarchiver_flush_caches(){
+  return array(
+    'cache_dwcarchiver'
+  );
+}
+
 /**
  * Load maps
  */
 function dwcarchiver_map_load($eid, $did, $uri = 'coreid'){
-  $maps = db_select('dwcarchiver_map', 'd')->fields('d')->condition('eid', $eid)->orderBy('uri', 'DESC')->execute()->fetchAll();
+  $maps = db_select('dwcarchiver_map', 'd')->fields('d')->condition('did', $did)->condition('eid', $eid)->orderBy('uri', 'DESC')->execute()->fetchAll();
+  $values = db_select('dwcarchiver_value', 'v')->fields('v')->condition('eid', $eid)->condition('did', $did)->execute()->fetchAll();
   if($maps){
     $maps_to_return = array();
+    // Run through the maps first, simply to ensure that "coreid" or "id" are at
+    // the top of the list.
     foreach($maps as $map){
       if(in_array($map->uri, array(
         'id',
@@ -296,6 +351,15 @@ function dwcarchiver_map_load($eid, $did, $uri = 'coreid'){
         'id',
         'coreid'
       ))){
+        // We only need to add "values" to maps here, and not above, as coreid
+        // and id should never be a "value".
+        if($map->processor == 'dwcarchiver_value'){
+          foreach($values as $value){
+            if($value->eid == $map->eid && $value->did == $map->did && $value->delta == $map->delta && $value->field == $map->field){
+              $map->value = $value->value;
+            }
+          }
+        }
         $maps_to_return[$map->delta][] = $map;
       }
     }
@@ -332,9 +396,18 @@ function dwcarchiver_extension_load($eid){
 function dwcarchiver_get_processors($field_type = 'ALL', $reset = FALSE){
   $processors = drupal_static(__FUNCTION__, $reset);
   if(!$processors){
-    // Get the processors for processing text fields.
-    $processors = array();
-    drupal_alter('dwcarchiver_processors', $processors);
+    if(!$reset){
+      $cache = cache_get('all_processors', 'cache_dwcarchiver');
+      if($cache && $cache->data){
+        $processors = $cache->data;
+      }
+    }
+    if(!$processors){
+      // Get the processors for processing text fields.
+      $processors = array();
+      drupal_alter('dwcarchiver_processors', $processors);
+      cache_set('all_processors', $processors, 'cache_dwcarchiver');
+    }
   }
   if($field_type == 'ALL'){return $processors;}
   // We filter out the processors we can accept.

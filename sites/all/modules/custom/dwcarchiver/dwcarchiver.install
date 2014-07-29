@@ -4,7 +4,10 @@
  * Implements hook_schema()
  */
 function dwcarchiver_schema(){
+  $cache = drupal_get_schema_unprocessed('system', 'cache');
+  $cache['description'] = 'Cache various DwC-Archiver objects.';
   return array(
+    'cache_dwcarchiver' => $cache,
     'dwcarchiver_archive' => array(
       'description' => 'Stores the settings for each DwC-A',
       'fields' => array(
