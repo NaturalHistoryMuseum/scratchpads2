@@ -421,6 +421,18 @@ function dwcarchiver_get_processors($field_type = 'ALL', $reset = FALSE){
 }
 
 /**
+ * Get the core types.
+ */
+function dwcarchiver_get_core_types($reset = FALSE){
+  $core_types = drupal_static(__FUNCTION__, FALSE, $reset);
+  if(!$core_types){
+    $core_types = array();
+    drupal_alter('dwcarchiver_core_types', $core_types);
+  }
+  return $core_types;
+}
+
+/**
  * Alter the list of processors
  */
 function dwcarchiver_dwcarchiver_processors_alter(&$processors){
@@ -587,15 +599,31 @@ function gm3_dwcarchiver_processors_alter(&$processors){
  * module.
  */
 function taxonomy_dwcarchiver_core_types_alter(&$core_types){
+  $entity_info = entity_get_info();
   foreach(taxonomy_vocabulary_get_names() as $machine_name => $vocabulary){
     $core_types['taxonomy_term/' . $machine_name] = array(
       'label' => t('Taxonomy term') . " (" . t($vocabulary->name) . ")",
       'links' => array()
     );
+    // Add any "field_collection" links right here.
+    $query = db_select('field_config', 'c')->fields('c', array(
+      'field_name'
+    ));
+    $query->innerJoin('field_config_instance', 'i', 'i.field_name = c.field_name');
+    $query->condition('bundle', $machine_name);
+    $query->condition('type', 'field_collection');
+    $rows = $query->execute()->fetchAll();
+    if($rows){
+      foreach($rows as $row){
+        $field_instance = field_info_instance('taxonomy_term', $row->field_name, $machine_name);
+        $core_types['taxonomy_term/' . $machine_name]['links'][$row->field_name . '/field_collection_item/' . $row->field_name] = t('Field Collection: @field_label', array(
+          '@field_label' => $entity_info['field_collection_item']['bundles'][$row->field_name]['label']
+        ));
+      }
+    }
   }
   // Loop through all of the taxonomy term fields and add the entity/bundle that
   // they're attached to to the links.
-  $entity_info = entity_get_info();
   foreach(field_read_fields(array(
     'type' => 'taxonomy_term_reference'
   )) as $field){

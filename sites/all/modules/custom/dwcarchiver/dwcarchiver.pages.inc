@@ -274,8 +274,7 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
   }else{
     $dwcarchiver = $form_state['dwcarchiver'];
   }
-  $core_types = array();
-  drupal_alter('dwcarchiver_core_types', $core_types);
+  $core_types = dwcarchiver_get_core_types();
   $options = array();
   foreach($core_types as $index => $core_type){
     $options[$index] = $core_type['label'];

@@ -9,6 +9,146 @@ function dwcarchiver_dwcarchiver_archives(){
   // archive.
   $bio_vids = variable_get('biological_vids');
   $archives = array();
+  // Get the site license URL
+  $jurisdiction = variable_get('creative_commons_block_jurisdiction', '');
+  if($jurisdiction && strpos($jurisdiction, '_')){
+    list($jurisdiction, $version) = explode('_', $jurisdiction);
+    $version = substr($version, 0, 1) . '.' . substr($version, 1, 1);
+  }else{
+    $version = CC_DEFAULT_VERSION;
+  }
+  switch(variable_get('creative_commons_block_licence_type', CC_BY)){
+    // These licence types are text only
+    case CC_NONE:
+      $url = '';
+      break;
+    case CC_0:
+      $url = 'http://creativecommons.org/about/cc0';
+      break;
+    case CC_PD:
+      $url = 'http://creativecommons.org/about/pdm';
+      break;
+    case CC_BY:
+      $url = CC_LICENCE_URI . '/by/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
+      break;
+    case CC_BY_SA:
+      $url = CC_LICENCE_URI . '/by-sa/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
+      break;
+    case CC_BY_ND:
+      $url = CC_LICENCE_URI . '/by-nd/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
+      break;
+    case CC_BY_NC:
+      $url = CC_LICENCE_URI . '/by-nc/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
+      break;
+    case CC_BY_NC_SA:
+      $url = CC_LICENCE_URI . '/by-nc-sa/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
+      break;
+    case CC_BY_NC_ND:
+      $url = CC_LICENCE_URI . '/by-nc-nd/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
+      break;
+  }
+  // We create the description extension first, as it is a little special.
+  $description_extension = array(
+    'name' => 'Description',
+    'machine_name' => 'description',
+    'rowtype' => 'http://rs.gbif.org/terms/1.0/Description',
+    'entity' => 'node',
+    'bundle' => 'spm',
+    'field_name' => 'field_taxonomic_name',
+    'maps' => array()
+  );
+  $replacements = array(
+    'general_description' => 'general',
+    'behavious' => 'behaviour',
+    'conservation_status' => 'conservation',
+    'diagnostic_description' => 'diagnostic',
+    'life_cycle' => 'lifecycle',
+    'life_expectancy' => 'lifespan',
+    'population_biology' => 'population',
+    'uses' => 'use'
+  );
+  foreach(array(
+    'general_description',
+    'morphology',
+    'behavious',
+    'biology',
+    'conservation_status',
+    'legislation',
+    'management',
+    'procedures',
+    'threats',
+    'associations',
+    'cyclicity',
+    'diagnostic_description',
+    'diseases',
+    'dispersal',
+    'distribution',
+    'ecology',
+    'evolution',
+    'genetics',
+    'growth',
+    'habitat',
+    'life_cycle',
+    'life_expectancy',
+    'look_alikes',
+    'migration',
+    'molecular_biology',
+    'physiology',
+    'population_biology',
+    'reproduction',
+    'risk_statement',
+    'size',
+    'taxon_biology',
+    'trophic_strategy',
+    'uses'
+  ) as $field){
+    $description_extension['maps'][] = array(
+      array(
+        'field' => 'uuid',
+        'uri' => 'coreid',
+        'required' => '0',
+        'processor' => 'dwcarchiver_raw_text'
+      ),
+      array(
+        'field' => 'dwcarchiver_text_entry_0',
+        'uri' => 'http://purl.org/dc/terms/type',
+        'required' => '0',
+        'processor' => 'dwcarchiver_value',
+        'value' => (isset($replacements[$field]) ? $replacements[$field] : $field)
+      ),
+      array(
+        'field' => 'content_url',
+        'uri' => 'http://purl.org/dc/terms/source',
+        'required' => '0',
+        'processor' => 'dwcarchiver_content_url'
+      ),
+      array(
+        'field' => 'dwcarchiver_text_entry_1',
+        'uri' => 'http://purl.org/dc/terms/license',
+        'required' => '0',
+        'processor' => 'dwcarchiver_value',
+        'value' => $url
+      ),
+      array(
+        'field' => 'content_language',
+        'uri' => 'http://purl.org/dc/terms/language',
+        'required' => '0',
+        'processor' => 'dwcarchiver_content_language'
+      ),
+      array(
+        'field' => 'uuid',
+        'uri' => 'http://purl.org/dc/terms/identifier',
+        'required' => '0',
+        'processor' => 'dwcarchiver_raw_text'
+      ),
+      array(
+        'field' => 'field_' . $field,
+        'uri' => 'http://purl.org/dc/terms/description',
+        'required' => '1',
+        'processor' => 'dwcarchiver_raw_text'
+      )
+    );
+  }
   foreach($bio_vids as $vid => $type){
     if($type){
       $vocabulary = taxonomy_vocabulary_load($vid);
@@ -229,281 +369,7 @@ function dwcarchiver_dwcarchiver_archives(){
               )
             )
           ),
-          array(
-            'name' => 'Description',
-            'machine_name' => 'description',
-            'rowtype' => 'http://rs.gbif.org/terms/1.0/Description',
-            'entity' => 'node',
-            'bundle' => 'spm',
-            'field_name' => 'field_taxonomic_name',
-            'maps' => array(
-              array(
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'coreid',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'dwcarchiver_text_entry_0',
-                  'uri' => 'http://purl.org/dc/terms/type',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_value',
-                  'value' => 'general description'
-                ),
-                array(
-                  'field' => 'content_url',
-                  'uri' => 'http://purl.org/dc/terms/source',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_content_url'
-                ),
-                array(
-                  'field' => 'dwcarchiver_text_entry_1',
-                  'uri' => 'http://purl.org/dc/terms/license',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_value'
-                ),
-                array(
-                  'field' => 'content_language',
-                  'uri' => 'http://purl.org/dc/terms/language',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_content_language'
-                ),
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'http://purl.org/dc/terms/identifier',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_general_description',
-                  'uri' => 'http://purl.org/dc/terms/description',
-                  'required' => '1',
-                  'processor' => 'dwcarchiver_raw_text'
-                )
-              ),
-              array(
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'coreid',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'dwcarchiver_text_entry_0',
-                  'uri' => 'http://purl.org/dc/terms/type',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_value'
-                ),
-                array(
-                  'field' => 'content_url',
-                  'uri' => 'http://purl.org/dc/terms/source',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_content_url'
-                ),
-                array(
-                  'field' => 'dwcarchiver_text_entry_1',
-                  'uri' => 'http://purl.org/dc/terms/license',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_value'
-                ),
-                array(
-                  'field' => 'content_language',
-                  'uri' => 'http://purl.org/dc/terms/language',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_content_language'
-                ),
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'http://purl.org/dc/terms/identifier',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_biology',
-                  'uri' => 'http://purl.org/dc/terms/description',
-                  'required' => '1',
-                  'processor' => 'dwcarchiver_raw_text'
-                )
-              ),
-              array(
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'coreid',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'dwcarchiver_text_entry_0',
-                  'uri' => 'http://purl.org/dc/terms/type',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_value'
-                ),
-                array(
-                  'field' => 'content_url',
-                  'uri' => 'http://purl.org/dc/terms/source',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_content_url'
-                ),
-                array(
-                  'field' => 'dwcarchiver_text_entry_1',
-                  'uri' => 'http://purl.org/dc/terms/license',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_value'
-                ),
-                array(
-                  'field' => 'content_language',
-                  'uri' => 'http://purl.org/dc/terms/language',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_content_language'
-                ),
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'http://purl.org/dc/terms/identifier',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_conservation_status',
-                  'uri' => 'http://purl.org/dc/terms/description',
-                  'required' => '1',
-                  'processor' => 'dwcarchiver_raw_text'
-                )
-              ),
-              array(
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'coreid',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'dwcarchiver_text_entry_0',
-                  'uri' => 'http://purl.org/dc/terms/type',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_value'
-                ),
-                array(
-                  'field' => 'content_url',
-                  'uri' => 'http://purl.org/dc/terms/source',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_content_url'
-                ),
-                array(
-                  'field' => 'dwcarchiver_text_entry_1',
-                  'uri' => 'http://purl.org/dc/terms/license',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_value'
-                ),
-                array(
-                  'field' => 'content_language',
-                  'uri' => 'http://purl.org/dc/terms/language',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_content_language'
-                ),
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'http://purl.org/dc/terms/identifier',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_distribution',
-                  'uri' => 'http://purl.org/dc/terms/description',
-                  'required' => '1',
-                  'processor' => 'dwcarchiver_raw_text'
-                )
-              ),
-              array(
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'coreid',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'dwcarchiver_text_entry_0',
-                  'uri' => 'http://purl.org/dc/terms/type',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_value'
-                ),
-                array(
-                  'field' => 'content_url',
-                  'uri' => 'http://purl.org/dc/terms/source',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_content_url'
-                ),
-                array(
-                  'field' => 'dwcarchiver_text_entry_1',
-                  'uri' => 'http://purl.org/dc/terms/license',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_value'
-                ),
-                array(
-                  'field' => 'content_language',
-                  'uri' => 'http://purl.org/dc/terms/language',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_content_language'
-                ),
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'http://purl.org/dc/terms/identifier',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_genetics',
-                  'uri' => 'http://purl.org/dc/terms/description',
-                  'required' => '1',
-                  'processor' => 'dwcarchiver_raw_text'
-                )
-              ),
-              array(
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'coreid',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'dwcarchiver_text_entry_0',
-                  'uri' => 'http://purl.org/dc/terms/type',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_value'
-                ),
-                array(
-                  'field' => 'content_url',
-                  'uri' => 'http://purl.org/dc/terms/source',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_content_url'
-                ),
-                array(
-                  'field' => 'dwcarchiver_text_entry_1',
-                  'uri' => 'http://purl.org/dc/terms/license',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_value'
-                ),
-                array(
-                  'field' => 'content_language',
-                  'uri' => 'http://purl.org/dc/terms/language',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_content_language'
-                ),
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'http://purl.org/dc/terms/identifier',
-                  'required' => '0',
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_uses',
-                  'uri' => 'http://purl.org/dc/terms/description',
-                  'required' => '1',
-                  'processor' => 'dwcarchiver_raw_text'
-                )
-              )
-            )
-          )
+          $description_extension
         ),
         'maps' => array(
           array(
