@@ -233,8 +233,8 @@ function dwcarchiver_settings_submit($form, &$form_state){
 /**
  * Deliver the DwC-A
  */
-function dwcarchiver_deliver_archive($did){
-  $dwcarchiver = dwcarchiver_load($did);
+function dwcarchiver_deliver_archive($machine_name){
+  $dwcarchiver = dwcarchiver_machine_name_load($machine_name);
   $filename = 'public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip';
   if(file_exists($filename)){
     // Set headers.
@@ -301,7 +301,9 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
           'source' => array(
             'core',
             'name'
-          )
+          ),
+          'replace_pattern' => '[^a-z0-9\-]+',
+          'replace' => '-'
         )
       ),
       'entity_bundle' => array(

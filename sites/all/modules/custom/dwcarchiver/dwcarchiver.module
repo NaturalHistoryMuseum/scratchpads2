@@ -213,13 +213,12 @@ function dwcarchiver_extension_machine_name_load($name, $element = FALSE, $form_
  * Add the DwC-A paths as defined in the settings above.
  */
 function dwcarchiver_menu_alter(&$items){
-  $results = db_select('dwcarchiver_archive', 'd')->fields('d')->execute();
-  foreach($results as $row){
-    $items[$row->machine_name . '.zip'] = array(
+  foreach(dwcarchiver_load_all() as $archive){
+    $items[$archive->machine_name . '.zip'] = array(
       'title' => 'DwC-Archive',
       'page callback' => 'dwcarchiver_deliver_archive',
       'page arguments' => array(
-        $row->did
+        $archive->machine_name
       ),
       'access arguments' => array(
         'access content'

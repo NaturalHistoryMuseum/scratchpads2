@@ -154,7 +154,7 @@ function dwcarchiver_dwcarchiver_archives(){
       $vocabulary = taxonomy_vocabulary_load($vid);
       $archives[] = array(
         'name' => 'GBIF DwCA',
-        'machine_name' => 'gbif_dwca',
+        'machine_name' => 'gbif-dwca',
         'entity' => 'taxonomy_term',
         'bundle' => $vocabulary->machine_name,
         'rowtype' => 'http://rs.tdwg.org/dwc/terms/Taxon',
