@@ -536,7 +536,7 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundle, $maps = array()
           if(!isset($map->required)){
             $break = 'here';
           }
-          $form[$delta]["mapped-$index_str:" . $map->field] = _dwcarchiver_archive_form_fields_row($label, $type, $map->uri, $map->processor, $map->required, $disabled);
+          $form[$delta]["mapped-$index_str:" . $map->field] = _dwcarchiver_archive_form_fields_row($label, $type, $map->uri, $map->processor, (isset($map->required) ? $map->required : 0), $disabled);
         }
       }
     }
@@ -888,7 +888,7 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
     $insert->execute();
   }
   // Finally, we redirect to the edit form.
-  $form_state['redirect'] = 'admin/config/content/dwcarchiver/' . $dwcarchiver->did . '/edit';
+  $form_state['redirect'] = 'admin/config/content/dwcarchiver/' . $dwcarchiver->machine_name . '/edit';
   // Rebuild the menu so that the link to the archive works
   menu_rebuild();
   // Clear the cache_dwcarchiver cache
@@ -1036,5 +1036,6 @@ function dwcarchiver_archive_extension_delete_form_submit($form, &$form_state){
     db_delete('dwcarchiver_extension')->condition('eid', $form_state['values']['eid'])->execute();
     db_delete('dwcarchiver_map')->condition('eid', $form_state['values']['eid'])->execute();
   }
-  $form_state['redirect'] = 'admin/config/content/dwcarchiver/' . $dwcarchiver_extension->did . '/edit';
+  $archive = dwcarchiver_load($dwcarchiver_extension->did);
+  $form_state['redirect'] = 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/edit';
 }
