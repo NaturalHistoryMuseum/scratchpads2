@@ -139,6 +139,7 @@ function dwcarchiver_processor_dwcarchiver_value(SelectQuery $query, $field, $en
     $value = db_select('dwcarchiver_value', 'd')->fields('d', array(
       'value'
     ))->condition('eid', $map->eid)->condition('did', $map->did)->condition('delta', $map->delta)->condition('field', $map->field)->execute()->fetchField();
+    $query->addExpression("'$value'");
   }
 }
 

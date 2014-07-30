@@ -334,7 +334,7 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
       $form['extensions'][$extension->machine_name] = array(
         '#type' => 'fieldset',
         '#title' => $extension->name,
-        '#description' => $extension->rowtype,
+        '#description' => $extension->rowtype . ' (' . $extension->machine_name . ')',
         'fields' => _dwcarchiver_archive_form_fields($extension->entity, $extension->bundle, $extension->maps)
       );
       $form['extensions'][$extension->machine_name]['fields']['#suffix'] = '<div id="' . $extension->machine_name . '-add-more-wrapper"></div>';
@@ -489,6 +489,9 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundle, $maps = array()
     // disabled (it shouldn't).
     $info = entity_get_info($entity_type);
     $actual_prefix = '';
+    if($prefix == 'parent'){
+      $break = 'here';
+    }
     if($prefix){
       $actual_prefix = $prefix . ':';
     }
@@ -542,7 +545,7 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundle, $maps = array()
     }
     // We add default maps for certain entity types.  All entity types have a 
     // label, so we add that first.
-    $form[$delta][$actual_prefix . empty($info['entity keys']['label']) ? 'name' : $info['entity keys']['label']] = _dwcarchiver_archive_form_fields_row(!empty($info['entity keys']['label']) ? t(ucfirst($info['entity keys']['label'])) : ucfirst($entity_type), 'text');
+    $form[$delta][$actual_prefix . (empty($info['entity keys']['label']) ? 'name' : $info['entity keys']['label'])] = _dwcarchiver_archive_form_fields_row(!empty($info['entity keys']['label']) ? t(ucfirst($info['entity keys']['label'])) : ucfirst($entity_type), 'text');
     $form[$delta][$actual_prefix . 'uuid'] = _dwcarchiver_archive_form_fields_row('UUID', 'text');
     switch($entity_type){
       case 'node':
