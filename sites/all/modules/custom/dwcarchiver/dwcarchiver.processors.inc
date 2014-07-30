@@ -18,18 +18,31 @@ function dwcarchiver_processor_dwcarchiver_raw_text(SelectQuery $query, $field, 
  * entity.
  */
 function dwcarchiver_processor_core_map($archive_or_extension, $dwcarchiver, SelectQuery $query){
-  if(isset($archive_or_extension->eid)){
+  if(!isset($archive_or_extension->extensions)){
     $entity_info = entity_get_info($archive_or_extension->entity);
     $field_info = field_info_field($archive_or_extension->field_name);
-    $query->innerJoin('field_data_' . $archive_or_extension->field_name, 'table_core_link', "table_core_link.entity_id = base.{$entity_info['entity keys']['id']}");
     switch($field_info['type']){
+      case 'field_collection':
+        $query->innerJoin('field_data_' . $archive_or_extension->field_name, 'table_core_link', "table_core_link.{$archive_or_extension->field_name}_value = base.{$entity_info['entity keys']['id']}");
+        foreach(array_keys($field_info['bundles']) as $entity_type){
+          switch($entity_type){
+            default:
+              $join_entity_info = entity_get_info($entity_type);
+              $query->innerJoin($join_entity_info['base table'], 'table_core', "table_core_link.entity_id = table_core.{$join_entity_info['entity keys']['id']}");
+              break;
+          }
+          break;
+        }
+        $query->addExpression('table_core.uuid');
+        break;
       case 'taxonomy_term_reference':
+        $query->innerJoin('field_data_' . $archive_or_extension->field_name, 'table_core_link', "table_core_link.entity_id = base.{$entity_info['entity keys']['id']}");
         $query->innerJoin('taxonomy_term_data', 'table_core', "table_core_link.{$archive_or_extension->field_name}_tid = table_core.tid");
         $query->addExpression('table_core.uuid');
         break;
       default:
         // FIXME.
-        drupal_set_message('Link not done.');
+        drupal_set_message(t('You have attempted to create a link to an entity that is not currently supported, please contact your site administrator.'), 'error');
         break;
     }
   }else{
@@ -120,10 +133,13 @@ function dwcarchiver_processor_dwcarchiver_content_url(SelectQuery $query, $fiel
  * Add a simple expression for a "value".
  */
 function dwcarchiver_processor_dwcarchiver_value(SelectQuery $query, $field, $entity_info, $map_id, $map, $table = 'base'){
-  $value = db_select('dwcarchiver_value', 'd')->fields('d', array(
-    'value'
-  ))->condition('eid', $map->eid)->condition('did', $map->did)->condition('delta', $map->delta)->condition('field', $map->field)->execute()->fetchField();
-  $query->addExpression("'{$value}'");
+  if(isset($map->value)){
+    $query->addExpression("'{$map->value}'");
+  }else{
+    $value = db_select('dwcarchiver_value', 'd')->fields('d', array(
+      'value'
+    ))->condition('eid', $map->eid)->condition('did', $map->did)->condition('delta', $map->delta)->condition('field', $map->field)->execute()->fetchField();
+  }
 }
 
 /**
@@ -211,6 +227,14 @@ function dwcarchiver_processor_dwcarchiver_creative_commons_url(SelectQuery $que
  */
 function dwcarchiver_processor_dwcarchiver_content_language(SelectQuery $query, $field, $entity_info, $map_id, $map, $table = 'base'){
   $query->addExpression("{$table}.language");
+}
+
+/**
+ * Processor for the language field.
+ */
+function dwcarchiver_processor_dwcarchiver_language_field(SelectQuery $query, $field, $entity_info, $map_id, $map, $table = 'base'){
+  _dwcarchiver_processor_join_field_table($query, $field, $entity_info, $map_id, $map, $table);
+  $query->addExpression("table_{$map_id}.{$field}_value");
 }
 
 /**

@@ -369,7 +369,49 @@ function dwcarchiver_dwcarchiver_archives(){
               )
             )
           ),
-          $description_extension
+          $description_extension,
+          array(
+            'name' => 'Vernacular Names',
+            'machine_name' => 'vernacularnames',
+            'rowtype' => 'http://rs.gbif.org/terms/1.0/VernacularName',
+            'entity' => 'field_collection_item',
+            'bundle' => 'field_vernacular_name_collection',
+            'field_name' => 'field_vernacular_name_collection',
+            'maps' => array(
+              array(
+                array(
+                  'field' => 'uuid',
+                  'uri' => 'coreid',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
+                  'field' => 'field_vernacular_name',
+                  'uri' => 'http://rs.tdwg.org/dwc/terms/vernacularName',
+                  'required' => 1,
+                  'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
+                  'field' => 'field_language',
+                  'uri' => 'http://purl.org/dc/terms/language',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
+                  'field' => 'field_vernacular_locality',
+                  'uri' => 'http://rs.tdwg.org/dwc/terms/locality',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
+                  'field' => 'field_vernacular_name_remarks',
+                  'uri' => 'http://rs.tdwg.org/dwc/terms/taxonRemarks',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
+                )
+              )
+            )
+          )
         ),
         'maps' => array(
           array(

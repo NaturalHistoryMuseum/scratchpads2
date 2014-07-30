@@ -11,22 +11,20 @@ function dwcarchiver_overview_page(){
     $row = array(
       $archive->name,
       $archive->machine_name,
-      (isset($entity_info['label']) ? $entity_info['label'] : $archive->entity) . '/' . (isset($entity_info['bundles'][$archive->bundle]['label'])?$entity_info['bundles'][$archive->bundle]['label']:$archive->bundle)
+      (isset($entity_info['label']) ? $entity_info['label'] : $archive->entity) . '/' . (isset($entity_info['bundles'][$archive->bundle]['label']) ? $entity_info['bundles'][$archive->bundle]['label'] : $archive->bundle)
     );
     if(!empty($archive->did)){
-      $row = array_merge($row, array(
-        l('Edit', 'admin/config/content/dwcarchiver/' . $archive->did . '/edit'),
-        l('Preview', 'admin/config/content/dwcarchiver/' . $archive->did . '/preview'),
-        l('Delete', 'admin/config/content/dwcarchiver/' . $archive->did . '/delete'),
-        l('Rebuild', 'admin/config/content/dwcarchiver/' . $archive->did . '/rebuild'),
-        l('Download', $archive->machine_name . '.zip')
-      ));
+      $row[] = l('Edit', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/edit');
+      $row[] = l('Delete', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/delete');
     }else{
       $row[] = array(
         'data' => l('Override', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/override'),
-        'colspan' => 5
+        'colspan' => 2
       );
     }
+    $row[] = l('Preview', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/preview');
+    $row[] = l('Rebuild', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/rebuild');
+    $row[] = l('Download', $archive->machine_name . '.zip');
     $rows[] = $row;
   }
   return array(
@@ -1009,7 +1007,7 @@ function dwcarchiver_override($machine_name){
   // Clear the cache_dwcarchiver cache
   cache_clear_all('*', 'cache_dwcarchiver', TRUE);
   // Redirect to the edit page for this archive.
-  drupal_goto('admin/config/content/dwcarchiver/' . $dwcarchiver->did . '/edit');
+  drupal_goto('admin/config/content/dwcarchiver/' . $dwcarchiver->machine_name . '/edit');
 }
 
 /**
