@@ -470,7 +470,7 @@ function dwcarchiver_dwcarchiver_archives(){
               'processor' => 'dwcarchiver_raw_text'
             ),
             array(
-              'field' => 'field_aan_5:uuid',
+              'field' => "field_aan_$vid:uuid",
               'uri' => 'http://rs.tdwg.org/dwc/terms/acceptedNameUsageID',
               'required' => '0',
               'processor' => 'dwcarchiver_raw_text'
