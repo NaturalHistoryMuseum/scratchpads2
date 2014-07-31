@@ -105,6 +105,23 @@ function dwcarchiver_menu(){
       ),
       'file' => 'dwcarchiver.pages.inc'
     ),
+    'admin/config/content/dwcarchiver/%dwcarchiver_machine_name/revert' => array(
+      'title' => 'Revert',
+      'title callback' => 'dwcarchiver_title',
+      'title arguments' => array(
+        'Revert @name',
+        4
+      ),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'dwcarchiver_archive_revert_form',
+        4
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'file' => 'dwcarchiver.pages.inc'
+    ),
     'admin/config/content/dwcarchiver/extension/%dwcarchiver_extension/delete' => array(
       'title' => 'Delete',
       'title callback' => 'dwcarchiver_title',
@@ -290,7 +307,7 @@ function dwcarchiver_load_all($reset = FALSE){
     $did = 0;
     foreach($dids as $did){
       $archives[$did] = dwcarchiver_load($did);
-      $db_machine_names[$archives[$did]->machine_name] = $archives[$did]->machine_name;
+      $db_machine_names[$archives[$did]->machine_name] = $archives[$did]->did;
     }
     foreach(module_invoke_all('dwcarchiver_archives') as $code){
       if(!isset($db_machine_names[$code['machine_name']])){
@@ -298,6 +315,8 @@ function dwcarchiver_load_all($reset = FALSE){
         // We need to "objectify" the $code object, as we allow the definition
         // of an archive as nested arrays.
         $archives[$did] = _dwcarchiver_objectify_archive($code);
+      }else{
+        $archives[$db_machine_names[$code['machine_name']]]->overridden = TRUE;
       }
     }
     cache_set('all', $archives, 'cache_dwcarchiver');

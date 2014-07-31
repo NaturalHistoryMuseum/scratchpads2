@@ -15,7 +15,11 @@ function dwcarchiver_overview_page(){
     );
     if(!empty($archive->did)){
       $row[] = l('Edit', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/edit');
-      $row[] = l('Delete', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/delete');
+      if(!empty($archive->overridden)){
+        $row[] = l('Revert', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/revert');
+      }else{
+        $row[] = l('Delete', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/delete');
+      }
     }else{
       $row[] = array(
         'data' => l('Override', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/override'),
@@ -901,31 +905,47 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
 /**
  * Delete a mapping form.
  */
-function dwcarchiver_archive_delete_form($form, $form_state, $dwcarchiver){
-  $form['did'] = array(
+function dwcarchiver_archive_delete_form($form, $form_state, $dwcarchiver, $revert = FALSE){
+  $form['machine_name'] = array(
     '#type' => 'value',
     '#value' => arg(4)
   );
-  return confirm_form($form, t('Are you sure you want to delete %title?', array(
+  return confirm_form($form, t('Are you sure you want to @operation %title?', array(
+    '@operation' => ($revert ? 'revert' : 'delete'),
     '%title' => $dwcarchiver->name
-  )), 'admin/config/content/exif_custom', t('This action cannot be undone.'), t('Delete'), t('Cancel'));
+  )), 'admin/config/content/exif_custom', t('This action cannot be undone.'), ($revert ? t('Revert') : t('Delete')), t('Cancel'));
 }
 
 /**
- * Executes node deletion.
- *
+ * Revert a mapping form.
+ * 
+ * Note, this is identical to the delete form, but has the words changed to
+ * revert.
+ */
+function dwcarchiver_archive_revert_form($form, $form_state, $dwcarchiver){
+  return dwcarchiver_archive_delete_form($form, $form_state, $dwcarchiver, TRUE);
+}
+
+/**
+ * Submit the form to the delete shizzle.
+ */
+function dwcarchiver_archive_revert_form_submit($form, &$form_state){
+  dwcarchiver_archive_delete_form_submit($form, $form_state);
+}
+
+/**
  * @see node_delete_confirm()
  */
 function dwcarchiver_archive_delete_form_submit($form, &$form_state){
   // Delete the zip file if we need to
-  $dwcarchiver = dwcarchiver_load($form_state['values']['did']);
+  $dwcarchiver = dwcarchiver_machine_name_load($form_state['values']['machine_name']);
   if(file_exists('public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip')){
     drupal_unlink('public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip');
   }
   if($form_state['values']['confirm']){
-    db_delete('dwcarchiver_archive')->condition('did', $form_state['values']['did'])->execute();
-    db_delete('dwcarchiver_extension')->condition('did', $form_state['values']['did'])->execute();
-    db_delete('dwcarchiver_map')->condition('did', $form_state['values']['did'])->execute();
+    db_delete('dwcarchiver_archive')->condition('did', $dwcarchiver->did)->execute();
+    db_delete('dwcarchiver_extension')->condition('did', $dwcarchiver->did)->execute();
+    db_delete('dwcarchiver_map')->condition('did', $dwcarchiver->did)->execute();
   }
   $form_state['redirect'] = 'admin/config/content/dwcarchiver';
   // Rebuild the menu so that the link to the archive works
