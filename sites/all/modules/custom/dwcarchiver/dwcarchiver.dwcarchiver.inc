@@ -655,6 +655,42 @@ function dwcarchiver_dwcarchiver_archives(){
                   'uri' => 'http://purl.org/dc/terms/type',
                   'required' => 0,
                   'processor' => 'dwcarchiver_mime_to_dcmitype'
+                ),
+                array(
+                  'field' => 'field_imaging_technique:name',
+                  'uri' => 'http://rs.tdwg.org/audubon_core/subtype',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
+                  'field' => 'filemime',
+                  'uri' => 'http://purl.org/dc/terms/format',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
+                  'field' => 'filename',
+                  'uri' => 'http://purl.org/dc/terms/title',
+                  'required' => 1,
+                  'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
+                  'field' => 'body',
+                  'uri' => 'http://purl.org/dc/terms/description',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
+                  'field' => 'file_url',
+                  'uri' => 'http://rs.tdwg.org/ac/terms/accessURI',
+                  'required' => 1,
+                  'processor' => 'dwcarchiver_file_url'
+                ),
+                array(
+                  'field' => 'content_url',
+                  'uri' => 'http://rs.tdwg.org/ac/terms/furtherInformationURL',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_content_url'
                 )
               )
             )
