@@ -545,6 +545,15 @@ function dwcarchiver_dwcarchiver_processors_alter(&$processors){
       'date'
     )
   );
+  $processors['dwcarchiver_mime_to_dcmitype'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_mime_to_dcmitype',
+    'label' => t('Mime to DCMI Type'),
+    'field types' => array(
+      'entity_property'
+    )
+  );
 }
 
 /**

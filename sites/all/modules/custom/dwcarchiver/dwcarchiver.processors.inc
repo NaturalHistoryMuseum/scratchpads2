@@ -51,6 +51,41 @@ function dwcarchiver_processor_core_map($archive_or_extension, $dwcarchiver, Sel
 }
 
 /**
+ * Convert a Mime type to DCMI Type
+ */
+function dwcarchiver_processor_dwcarchiver_mime_to_dcmitype(SelectQuery $query, $field, $entity_info, $map_id, $map, $table){
+  $field_info = field_info_field($field);
+  if($field_info){
+    _dwcarchiver_processor_join_field_table($query, $field, $entity_info, $map_id, $map, $table);
+    $column = "table_{$map_id}.{$field}_value";
+  }else{
+    $column = "{$table}.{$field}";
+  }
+  // FIXME - Add additional DCMI types.
+  // http://purl.org/dc/dcmitype/Collection
+  // http://purl.org/dc/dcmitype/Dataset
+  // http://purl.org/dc/dcmitype/Event
+  // http://purl.org/dc/dcmitype/InteractiveResource
+  // http://purl.org/dc/dcmitype/PhysicalObject
+  // http://purl.org/dc/dcmitype/Service
+  // http://purl.org/dc/dcmitype/Software
+  // http://purl.org/dc/dcmitype/StillImage
+  $mimes = array(
+    'application/%' => 'http://purl.org/dc/dcmitype/Dataset',
+    'audio/%' => 'http://purl.org/dc/dcmitype/Sound',
+    'image/%' => 'http://purl.org/dc/dcmitype/Image',
+    'text/%' => 'http://purl.org/dc/dcmitype/Text',
+    'video/%' => 'http://purl.org/dc/dcmitype/MovingImage'
+  );
+  $expressions = array();
+  foreach($mimes as $mime => $dcmi){
+    $expressions[] = "WHEN $column LIKE '$mime' THEN '$dcmi'";
+  }
+  $expressions[] = "ELSE 'http://purl.org/dc/dcmitype/Dataset'";
+  $query->addExpression('(CASE ' . implode(' ', $expressions) . ' END)');
+}
+
+/**
  * Helper function to join to a field table.
  */
 function _dwcarchiver_processor_join_field_table(SelectQuery $query, $field, $entity_info, $map_id, $map, $table){

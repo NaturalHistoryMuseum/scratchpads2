@@ -630,6 +630,36 @@ function dwcarchiver_dwcarchiver_archives(){
             )
           ),
           array(
+            'name' => 'Media',
+            'machine_name' => 'media',
+            'rowtype' => 'http://eol.org/schema/media/Document',
+            'entity' => 'file',
+            'bundle' => 'image',
+            'field_name' => 'field_taxonomic_name',
+            'maps' => array(
+              array(
+                array(
+                  'field' => 'uuid',
+                  'uri' => 'coreid',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
+                  'field' => 'uuid',
+                  'uri' => 'http://purl.org/dc/terms/identifier',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
+                  'field' => 'filemime',
+                  'uri' => 'http://purl.org/dc/terms/type',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_mime_to_dcmitype'
+                )
+              )
+            )
+          ),
+          array(
             'name' => 'Distribution',
             'machine_name' => 'distribution',
             'rowtype' => 'http://rs.gbif.org/terms/1.0/Distribution',
@@ -655,54 +685,6 @@ function dwcarchiver_dwcarchiver_archives(){
                   'uri' => 'http://rs.tdwg.org/dwc/terms/locationID',
                   'required' => 0,
                   'processor' => 'dwcarchiver_content_url'
-                )
-              )
-            )
-          ),
-          array(
-            'name' => 'Image',
-            'machine_name' => 'image',
-            'rowtype' => 'http://rs.gbif.org/terms/1.0/Image',
-            'entity' => 'file',
-            'bundle' => 'image',
-            'field_name' => 'field_taxonomic_name',
-            'maps' => array(
-              array(
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'coreid',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'file_url',
-                  'uri' => 'http://rs.tdwg.org/ac/terms/accessURI',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_file_url'
-                ),
-                array(
-                  'field' => 'filename',
-                  'uri' => 'http://purl.org/dc/terms/title',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'http://purl.org/dc/terms/identifier',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'filemime',
-                  'uri' => 'http://purl.org/dc/terms/format',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_cc_licence',
-                  'uri' => 'http://ns.adobe.com/xap/1.0/rights/UsageTerms',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_creative_commons_url'
                 )
               )
             )
