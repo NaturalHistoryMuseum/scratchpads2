@@ -691,6 +691,18 @@ function dwcarchiver_dwcarchiver_archives(){
                   'uri' => 'http://rs.tdwg.org/ac/terms/furtherInformationURL',
                   'required' => 0,
                   'processor' => 'dwcarchiver_content_url'
+                ),
+                array(
+                  'field' => 'timestamp',
+                  'uri' => 'http://ns.adobe.com/xap/1.0/CreateDate',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_timestamp'
+                ),
+                array(
+                  'field' => 'field_cc_licence',
+                  'uri' => 'http://purl.org/dc/terms/rights',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_creative_commons_url'
                 )
               )
             )
