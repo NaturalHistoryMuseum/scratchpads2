@@ -138,7 +138,7 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
         module_load_include('processors.inc', 'dwcarchiver');
         dwcarchiver_processor_core_map($archive_or_extension, $dwcarchiver, $query);
       }else if(function_exists($processors[$map->processor]['callback'])){
-        call_user_func($processors[$map->processor]['callback'], $query, $field, $info, $map_id, $map, $table);
+        call_user_func($processors[$map->processor]['callback'], $query, $field, $archive_or_extension->entity, $map_id, $map, $table);
       }else{
         drupal_set_message(t('@function does not exist', array(
           '@function' => $processors[$map->processor]['callback']
