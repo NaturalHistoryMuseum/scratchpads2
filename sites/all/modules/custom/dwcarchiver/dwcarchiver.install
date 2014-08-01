@@ -181,6 +181,12 @@ function dwcarchiver_schema(){
           'default' => '',
           'description' => 'ID of the processor for altering the data.',
           'translatable' => TRUE
+        ),
+        'condition' => array(
+          'type' => 'text',
+          'size' => 'big',
+          'not null' => FALSE,
+          'description' => 'Serialized array of conditions for this field.'
         )
       )
     ),
