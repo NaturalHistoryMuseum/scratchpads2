@@ -71,6 +71,22 @@ function femail_menu_local_tasks_alter(&$data, $router_item, $root_path){
 }
 
 /**
+ * Implements hook_cron().
+ */
+function femail_cron(){
+  // Delete the oldest 50 anonymously created forum topics that are unpublished.
+  // Note, we only do this if anon does not have the permission to create
+  // forum topics.
+  $account = user_load(0);
+  if(!user_access('create forum content', $account)){
+    $nids = db_select('node', 'n')->fields('n', array(
+      'nid'
+    ))->condition('type', 'forum')->condition('uid', 0)->condition('status', 0)->condition('created', time() - 604800, '<')->orderBy('nid')->range(0, 50)->execute()->fetchCol();
+    node_delete_multiple($nids);
+  }
+}
+
+/**
  * Implementation of hook_menu
  */
 function femail_menu(){
