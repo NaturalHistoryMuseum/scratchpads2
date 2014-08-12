@@ -259,6 +259,9 @@ function dwcarchiver_deliver_archive($machine_name){
 function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
   if(!isset($form_state['dwcarchiver'])){
     $dwcarchiver = is_object($edit) ? $edit : (object)$edit;
+    if(isset($dwcarchiver->machine_name) && !isset($dwcarchiver->did)){
+      drupal_goto('admin/config/content/dwcarchiver');
+    }
     $defaults = array(
       'name' => '',
       'machine_name' => '',
@@ -275,6 +278,8 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
     $form_state['dwcarchiver'] = $dwcarchiver;
   }else{
     $dwcarchiver = $form_state['dwcarchiver'];
+    echo "HERE";
+    exit();
   }
   $core_types = dwcarchiver_get_core_types();
   $options = array();
