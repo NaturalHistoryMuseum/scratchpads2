@@ -1,0 +1,86 @@
+<?php
+
+/**
+ * Implements hook_filter_info()
+ */
+function entityfilter_filter_info(){
+  return array(
+    'entityfilter' => array(
+      'title' => t('Entity property input filter'),
+      'description' => t('Allows you to dynamically reference the properties of an entity, including the label.'),
+      'process callback' => 'entityfilter_filter',
+      'tips callback' => 'entityfilter_filter_tips'
+    )
+  );
+}
+
+/**
+ * Tips callback for the above filter.
+ */
+function entityfilter_filter_tips(){
+  return 'Dynamically generate entity property text using <strong>[entity:<em>{entity type}</em>:<em>{entity ID}</em>(:<em>{property name - defaults to label}</em>)]</strong> e.g:' . theme('item_list', array(
+    'items' => array(
+      '[entity:taxonomy_term:3:name] would be converted to the name of term 3 e.g. "Banana"',
+      '[entity:user:2:name] would be converted to the name of user 2 e.g. "Mike Hunt"'
+    )
+  ));
+}
+
+/**
+ * Look for our special code, and replace the shizzle!
+ */
+function entityfilter_filter($text, $filter){
+  if(preg_match_all('/\[entity[^\]]*]/i', $text, $matches)){
+    if(count($matches[0])){
+      foreach($matches[0] as $match){
+        $replaced = FALSE;
+        // Wrap everything in a try/catch block to ensure that users can WSOD a
+        // site just be entering a property that doesn't exist (or something
+        // similar).
+        try{
+          // Get the bits and bobs we're looking for.
+          $match_parts = preg_replace('/[\[\]]/', '', $match);
+          $match_parts = explode(':', $match);
+          // Default to label.
+          if(count($match_parts) == 3){
+            $match_parts[] = 'label';
+          }
+          // If we have the right number of parts, we try to load the entity.
+          if(count($match_parts) == 4){
+            // We try to load the entity.
+            $entity = entity_load($match_parts[1], array(
+              $match_parts[2]
+            ));
+            if($entity){
+              // We have an entity, the user did something right.
+              $entity = array_pop($entity);
+              // Load an entity wrapper
+              $wrapper = entity_metadata_wrapper($match_parts[1], $entity);
+              // Find the property we want if we have "label".
+              if($match_parts[3] == 'label'){
+                $entity_info = entity_get_info($match_parts[1]);
+                $match_parts[3] = $entity_info['entity keys']['label'];
+              }
+              $value = $wrapper->{$match_parts[3]}->value();
+              if($value){
+                $replaced = TRUE;
+                $text = str_replace($match, $value, $text);
+              }
+            }
+          }
+        }
+        catch(Exception $e){
+          drupal_set_message(t('Error processing "@match"', array(
+            '@match' => $match
+          )), 'error');
+        }
+        if(!$replaced){
+          // Show the match wrapped in an error class so that it's obvious to
+          // the user where they have fucked up.
+          $text = str_replace($match, '<span class="error">' . $match . '</span>', $text);
+        }
+      }
+    }
+  }
+  return $text;
+}
