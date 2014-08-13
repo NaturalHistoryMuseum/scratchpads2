@@ -1477,5 +1477,8 @@ function scratchpads_tweaks_update_7082(){
  * Add the entityfilter filter
  */
 function scratchpads_tweaks_update_7083(){
+  module_enable(array(
+    'entityfilter'
+  ));
   scratchpads_tweaks_install_help_install_filters();
 }

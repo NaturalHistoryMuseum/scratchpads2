@@ -106,6 +106,7 @@ dependencies[] = biblio_refbank
 dependencies[] = biblio_dump
 dependencies[] = biblio_scholar
 dependencies[] = entityconnectpreview
+dependencies[] = entityfilter
 dependencies[] = eol
 dependencies[] = eol_gbif_maps
 dependencies[] = jsphylosvg
