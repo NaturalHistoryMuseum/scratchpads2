@@ -369,6 +369,10 @@ function scratchpads_tweaks_install_help_install_filters(){
         'weight' => 12,
         'status' => 1
       ),
+      'entityfilter' => array(
+        'weight' => 13,
+        'status' => 1
+      ),
       'twitter_filter_filter' => array(
         'weight' => 1000,
         'status' => 1
@@ -1467,4 +1471,11 @@ function scratchpads_tweaks_update_7082(){
   variable_del('scratchpads_tweaks_site_active');
   variable_del('scratchpads_tweaks_account_notify');
   variable_del('scratchpads_tweaks_site_active_check_time');
+}
+
+/**
+ * Add the entityfilter filter
+ */
+function scratchpads_tweaks_update_7083(){
+  scratchpads_tweaks_install_help_install_filters();
 }
