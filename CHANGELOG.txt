@@ -1,3 +1,11 @@
+2.6.0 (???)
+
+- Updated the EXIF Custom module enabling it for all Scratchpads (#4176)
+- Created a simple Entity filter (#4219)
+
+- Upgraded Drupal to 7.31
+- Enable any block to be embedded on the front page (#1174)
+
 2.5.3 (2014-08-14)
 
 - Delete unpublished anonymous forum nodes older than one week (likely to be spam)
