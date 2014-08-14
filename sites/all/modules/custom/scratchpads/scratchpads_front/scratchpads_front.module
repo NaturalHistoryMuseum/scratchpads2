@@ -84,13 +84,20 @@ function scratchpads_front_block_view_alter(&$data, $block){
         $data['title'] = $custom_block->title;
       }
     }
+    // Check to see whether or not the block has content.
+    $content = $data['content'];
+    $content = trim(str_replace("\n", '', strip_tags(drupal_render($content))));
+    if(!$content){
+      unset($data['content']);
+      unset($data['subject']);
+    }
   }
-  if(isset($block->context) && substr($block->bid, 0, -1) == 'views-front_page_blocks-block_' && substr($data['subject'], -3) == 'rys'){
+  if(isset($block->context) && substr($block->bid, 0, -1) == 'views-front_page_blocks-block_' && isset($data['subject']) && substr($data['subject'], -3) == 'rys'){
     $data['subject'] = substr($data['subject'], 0, -2) . 'ies';
   }
   if(isset($block->context) && (!user_access('administer front page'))){
     if($block->context == 'scratchpads_front_page'){
-      if(substr_count($data['content']['#markup'], 'class="view-empty"') > 1){
+      if(isset($data['content']) && substr_count($data['content']['#markup'], 'class="view-empty"') > 1){
         unset($data['content']);
         unset($data['subject']);
       }
@@ -271,7 +278,7 @@ function scratchpads_front_entity_view_alter(&$build, $type){
     $matches = FALSE;
     preg_match('/<img [^>]*>/', $build['file']['#markup'], $matches);
     if($matches){
-      $build['file']['#markup'] = str_replace($matches[0], l($matches[0], 'file/'.$build['file']['#file']->fid, array(
+      $build['file']['#markup'] = str_replace($matches[0], l($matches[0], 'file/' . $build['file']['#file']->fid, array(
         'html' => TRUE
       )), $build['file']['#markup']);
     }
