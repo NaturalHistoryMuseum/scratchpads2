@@ -7,8 +7,13 @@ function tui_update_7001(){
   if(module_exists('uuid')){
     $query = db_select('taxonomy_term_data', 'lft');
     $query->innerJoin('taxonomy_term_data', 'rgt', '(lft.uuid = rgt.uuid AND lft.tid > rgt.tid)');
-    $query->fields('lft', array(
+    $results = $query->fields('lft', array(
       'tid'
-    ));
+    ))->execute();
+    foreach($results as $row){
+      db_update('taxonomy_term_data')->fields(array(
+        'uuid' => uuid_generate()
+      ))->condition('tid', $row->tid)->execute();
+    }
   }
 }
