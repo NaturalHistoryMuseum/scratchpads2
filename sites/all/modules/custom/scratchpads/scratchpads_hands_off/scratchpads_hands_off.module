@@ -187,11 +187,13 @@ function scratchpads_hands_off_form_field_ui_field_overview_form_alter(&$form, &
 function scratchpads_hands_off_field_ui_overview_submit($form, &$form_state){
   // We get the error messages, and clear any thrown by the field_ui module
   $messages = drupal_get_messages('error');
-  foreach($messages['error'] as $message){
-    if($message != t('The field %label cannot be added because it is locked.', array(
-      '%label' => $form_state['values']['fields']['_add_existing_field']['label']
-    ))){
-      drupal_set_message($message, 'error');
+  if(!empty($messages['error'])){
+    foreach($messages['error'] as $message){
+      if($message != t('The field %label cannot be added because it is locked.', array(
+        '%label' => $form_state['values']['fields']['_add_existing_field']['label']
+      ))){
+        drupal_set_message($message, 'error');
+      }
     }
   }
   // Add existing field.
