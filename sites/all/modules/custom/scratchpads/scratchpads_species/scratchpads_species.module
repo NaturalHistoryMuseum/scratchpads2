@@ -531,7 +531,7 @@ function scratchpads_species_preprocess_views_view(&$vars){
           if(!count($view->result)){
             foreach($vars['classes_array'] as $id => $class_string){
               if(strpos($class_string, 'grid-4') !== FALSE){
-                $vars['classes_array'][$id] = str_replace('grid-4', 'grid-8', $class_string);
+                $vars['classes_array'][$id] = str_replace('grid-4', '', $class_string);
               }
             }
           }
