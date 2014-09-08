@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+
+# Get the external IP address for use further down the file
+IPADDRESS=`/sbin/ifconfig eth1 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
+
+# Add the Aegir package source
+echo "deb http://debian.aegirproject.org stable main" | tee -a /etc/apt/sources.list.d/aegir-stable.list
+wget -q http://debian.aegirproject.org/key.asc -O- | sudo apt-key add -
+
+# Update
+apt-get update
+apt-get upgrade -y
+apt-get install debconf-utils -y
+
+# Set the various options for the packages that aegir will drag in with it (Postfix/MySQL/etc)
+# MySQL
+echo "mysql-server-5.5 mysql-server/root_password_again password vagrant" | debconf-set-selections
+echo "mysql-server-5.5 mysql-server/root_password password vagrant" | debconf-set-selections
+# Postfix
+echo "postfix postfix/mailname string "$IPADDRESS|debconf-set-selections
+echo "postfix postfix/main_mailer_type select Internet Site"|debconf-set-selections
+echo "postfix postfix/destinations string "$IPADDRESS", vagrant, localhost.localdomain, localhost"|debconf-set-selections
+# Aegir
+echo "aegir2-hostmaster aegir/db_password password vagrant"|debconf-set-selections
+echo "aegir2-hostmaster aegir/db_user string root"|debconf-set-selections
+echo "aegir2-hostmaster aegir/email string aegir@"$IPADDRESS|debconf-set-selections
+echo "aegir2-hostmaster aegir/db_host string localhost"|debconf-set-selections
+echo "aegir2-hostmaster aegir/makefile string "|debconf-set-selections
+echo "aegir2-hostmaster aegir/site string "$IPADDRESS|debconf-set-selections
+echo "aegir2-hostmaster aegir/webserver select apache2"|debconf-set-selections
+
+# Install dependencies for the aegir2 package
+apt-get -y install apache2 drush git-core libapache2-mod-php5 mysql-client mysql-server php5 php5-mysql postfix rsync unzip
+# Install additional packages Scratchpads 2 require
+apt-get -y install dnsutils memcached solr-tomcat php5-gd php5-curl php5-memcached varnish
+
+# Tweak MySQL to skip-innodb
+echo -e "[mysqld]
+innodb=OFF
+default_storage_engine=MyISAM" > /etc/mysql/conf.d/skip-innodb.cnf
+service mysql restart
+
+# Tweak the memcached settings to allow large objects.
+sed "s/^-m\s[0-9]*/-m 256/" /etc/memcached.conf -i
+echo "# Increase the Maximum size of cached objects
+-I 16M" >> /etc/memcached.conf
+service memcached restart
+
+# Point web-scratchpad-solr at the local machine so the local solr instance should just work
+echo "127.0.0.1 web-scratchpad-solr.nhm.ac.uk" >> /etc/hosts
+echo -e "<VirtualHost *:80>
+ ServerName web-scratchpad-solr.nhm.ac.uk
+ DocumentRoot  /var/www
+ <Location /solr/scratchpads2-2>
+  Order deny,allow
+  Allow from all
+  ProxyPass http://localhost:8080/solr nocanon connectiontimeout=30 timeout=60
+  ProxyPassReverse http://localhost:8080/solr
+ </Location>
+</VirtualHost>" > /etc/apache2/sites-available/solr
+cd /etc/solr/conf
+cp /vagrant/sites/all/modules/contrib/apachesolr/solr-conf/solr-3.x/* .
+a2ensite solr
+a2enmod proxy proxy_http
+service apache2 reload
+service tomcat6 restart
+
+# Install our own custom Aegir packages, as there is a bug in the
+# standard package that results in the install attempting to ask
+# the user for a password.
+dpkg -i /vagrant/debian-packages/aegir2_2.1_all.deb /vagrant/debian-packages/aegir2-hostmaster_2.1_all_scratchpads.deb /vagrant/debian-packages/aegir2-provision_2.1_all.deb
+apt-get update -y
+apt-get upgrade -y
+
+# Download the memcache module for the hostmaster site
+mkdir -p /var/aegir/hostmaster-6.x-2.1/sites/all/modules
+wget http://ftp.drupal.org/files/projects/memcache-6.x-1.10.tar.gz -O - | tar xz -C /var/aegir/hostmaster-6.x-2.1/sites/all/modules
+
+# Set the password for the admin aegir user
+DB=`echo $IPADDRESS | sed "s/\.//g"`
+echo "UPDATE users SET pass = MD5('vagrant') WHERE uid = 1;" | mysql -uroot -pvagrant $DB
+
+# Add a global aegir config file
+echo "<?php
+global \$conf;
+\$conf['cron_safe_threshold'] = 0;
+\$conf['preprocess_css'] = 1;
+\$conf['preprocess_js'] = 1;
+\$conf['jquery_update_compression_type'] = 'min';
+\$conf['jquery_update_jquery_cdn'] = 'none';
+\$conf['error_level'] = ERROR_REPORTING_HIDE;
+\$conf['syslog_identity'] = \$_SERVER['HTTP_HOST'];
+
+// Cache
+\$conf['block_cache'] = TRUE;
+\$conf['cache'] = TRUE;
+\$conf['cache_lifetime'] = 3600;
+\$conf['page_cache_maximum_age'] = 10800;
+
+// Memcache
+\$conf['memcache_key_prefix'] = md5(\$db_url['default']);
+\$conf['memcache_servers'] = array('127.0.0.1:11211' => 'default');
+\$conf['cache_inc'] ='sites/all/modules/memcache/memcache.inc';
+\$conf['cache_backends'][] = 'sites/all/modules/contrib/memcache/memcache.inc';
+\$conf['cache_default_class'] = 'MemCacheDrupal';
+
+// Not everybody can run updates.
+\$update_free_access = 0;
+
+// Set some PHP settings
+@ini_set('pcre.backtrack_limit', 10000000);
+@ini_set('pcre.recursion_limit', 10000000);
+@ini_set('session.cookie_lifetime', 604800);
+@ini_set('session.gc_maxlifetime', 604800);
+@ini_set('session.use_cookies', 1);
+@ini_set('mysql.default_socket', '/var/lib/mysql/mysql.sock');" > /var/aegir/config/includes/global.inc
+
+# Create the Scratchpads web folder
+cd /var/aegir/platforms
+mkdir scratchpads
+cd scratchpads
+ln -s /vagrant/* /vagrant/.htaccess .
+rm sites
+mkdir sites
+cd sites
+ln -s /vagrant/sites/* .
+chown aegir:www-data .
+
+# Create the Scratchpads platform
+su -c /vagrant/bootstrap.aegir.sh aegir
+
+# Inform the user to ignore the previous messages
+echo -e "
+
+
+
+
+
+
+
+
+
+Login to the Aegir interface:
+http://"$IPADDRESS"/
+Username: admin
+Password: vagrant"
