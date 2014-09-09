@@ -159,6 +159,8 @@ cp /vagrant/scratchpads_twitter.ini /usr/local/share/scratchpads-global
 # Restart Apache so that the new global file is read
 service apache2 reload
 
+# Add a record to the hosts file so that the site can access itself
+echo "127.0.0.1 scratchpads.vagrant" >> /etc/hosts
 # Create the Scratchpads platform
 su -c /vagrant/bootstrap.aegir.sh aegir
 
