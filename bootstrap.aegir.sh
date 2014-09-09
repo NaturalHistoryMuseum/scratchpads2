@@ -6,5 +6,6 @@ drush @platform_scratchpads provision-verify
 drush @hostmaster hosting-import @platform_scratchpads
 
 # Create a site
-#drush provision-save '@scratchpads.local' --context_type='site' --uri='scratchpads.local' --platform='@platform_scratchpads' --server='@server_master' --db_server='@server_localhost' --profile='scratchpads_2_training' --client_name='admin'
-#drush @scratchpads.local provision-install
+drush provision-save '@scratchpads.vagrant' --context_type='site' --uri='scratchpads.vagrant' --platform='@platform_scratchpads' --server='@server_master' --db_server='@server_localhost' --profile='scratchpad_2_training' --client_name='admin'
+drush @scratchpads.vagrant provision-install
+drush @hostmaster hosting-task @platform_scratchpads verify
