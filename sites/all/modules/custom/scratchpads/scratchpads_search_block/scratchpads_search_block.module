@@ -52,9 +52,13 @@ function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_st
       $facet_parts = explode(":", $_GET['f'][0]);
       switch($facet_parts[0]){
         case 'bundle':
+          // FIXME - Not actually sure what this code is doing, but it causes 
+          // an error when the bundle is not a "node" bundle.
           $info = entity_get_info('node');
-          $options['bundle:' . $facet_parts[1]] = $info['bundles'][$facet_parts[1]]['label'];
-          $default_value = 'bundle:' . $facet_parts[1];
+          if(!empty($info['bundles'][$facet_parts[1]])){
+            $options['bundle:' . $facet_parts[1]] = $info['bundles'][$facet_parts[1]]['label'];
+            $default_value = 'bundle:' . $facet_parts[1];
+          }
           break;
         case 'entity_type':
           if($facet_parts[1] == 'file'){

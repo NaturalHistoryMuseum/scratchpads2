@@ -19,3 +19,6 @@ sites/all/modules/contrib/examples
 
 # Development files
 index2.php
+
+# Files included for Vagrant that should not be committed
+scratchpads_twitter.ini
