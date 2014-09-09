@@ -3,5 +3,11 @@
  * @file
  * Code for the Scratchpads error feature.
  */
+include_once ('scratchpads_error.features.inc');
 
-include_once('scratchpads_error.features.inc');
+/**
+ * Implements hook_modules_enabled()
+ */
+function scratchpads_error_modules_enabled($modules){
+  drupal_set_time_limit(0);
+}
