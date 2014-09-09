@@ -32,10 +32,19 @@ echo "aegir2-hostmaster aegir/webserver select apache2"|debconf-set-selections
 # Install dependencies for the aegir2 package
 apt-get -y install apache2 drush git-core libapache2-mod-php5 mysql-client mysql-server php5 php5-mysql postfix rsync unzip
 # Install additional packages Scratchpads 2 require
-apt-get -y install dnsutils memcached solr-tomcat php5-gd php5-curl php5-memcached varnish
+apt-get -y install dnsutils memcached solr-tomcat php5-gd php5-curl php5-memcached php5-mcrypt php5-dev php5-gmp varnish
+
+# Install a couple of PECL modules
+pecl install mailparse
+pecl install uploadprogress
+echo "extension=mailparse.so" > /etc/php5/conf.d/mailparse.ini
+echo "extension=uploadprogress.so" > /etc/php5/conf.d/uploadprogress.ini
+
+# Increase the memory limit for php
+sed "s/memory_limit\ =\ 128M/memory_limit = 256M/" -i /etc/php5/apache2/php.ini
 
 # Tweak MySQL to skip-innodb
-echo -e "[mysqld]
+echo "[mysqld]
 innodb=OFF
 default_storage_engine=MyISAM" > /etc/mysql/conf.d/skip-innodb.cnf
 service mysql restart
@@ -48,7 +57,7 @@ service memcached restart
 
 # Point web-scratchpad-solr at the local machine so the local solr instance should just work
 echo "127.0.0.1 web-scratchpad-solr.nhm.ac.uk" >> /etc/hosts
-echo -e "<VirtualHost *:80>
+echo "<VirtualHost *:80>
  ServerName web-scratchpad-solr.nhm.ac.uk
  DocumentRoot  /var/www
  <Location /solr/scratchpads2-2>
@@ -72,15 +81,13 @@ dpkg -i /vagrant/debian-packages/aegir2_2.1_all.deb /vagrant/debian-packages/aeg
 apt-get update -y
 apt-get upgrade -y
 
-# Download the memcache module for the hostmaster site
-mkdir -p /var/aegir/hostmaster-6.x-2.1/sites/all/modules
-wget http://ftp.drupal.org/files/projects/memcache-6.x-1.10.tar.gz -O - | tar xz -C /var/aegir/hostmaster-6.x-2.1/sites/all/modules
-
 # Set the password for the admin aegir user
 DB=`echo $IPADDRESS | sed "s/\.//g"`
 echo "UPDATE users SET pass = MD5('vagrant') WHERE uid = 1;" | mysql -uroot -pvagrant $DB
 
-# Add a global aegir config file
+VARNISHSECRET=`cat /etc/varnish/secret`
+
+# Add a global aegir config file which enables memcache, varnish and other caches
 echo "<?php
 global \$conf;
 \$conf['cron_safe_threshold'] = 0;
@@ -100,9 +107,23 @@ global \$conf;
 // Memcache
 \$conf['memcache_key_prefix'] = md5(\$db_url['default']);
 \$conf['memcache_servers'] = array('127.0.0.1:11211' => 'default');
-\$conf['cache_inc'] ='sites/all/modules/memcache/memcache.inc';
 \$conf['cache_backends'][] = 'sites/all/modules/contrib/memcache/memcache.inc';
 \$conf['cache_default_class'] = 'MemCacheDrupal';
+
+// Varnish
+\$conf['reverse_proxy'] = TRUE;
+\$conf['reverse_proxy_addresses'] = array('127.0.0.1');
+\$conf['varnish_flush_cron'] = 0;
+\$conf['varnish_version'] = 3;
+\$conf['varnish_control_terminal'] = '127.0.0.1:6082';
+\$conf['varnish_control_key'] = '"$VARNISHSECRET"';
+\$conf['varnish_socket_timeout'] = 200;
+\$conf['varnish_cache_clear'] = 0;
+\$conf['varnish_bantype'] = 0;
+\$conf['cache_backends'][] = 'sites/all/modules/contrib/varnish/varnish.cache.inc';
+\$conf['cache_class_cache_page'] = 'VarnishCache';
+\$conf['page_cache_invoke_hooks'] = FALSE;
+
 
 // Not everybody can run updates.
 \$update_free_access = 0;
@@ -124,13 +145,25 @@ rm sites
 mkdir sites
 cd sites
 ln -s /vagrant/sites/* .
-chown aegir:www-data .
+rm all
+mkdir all
+cd all
+ln -s /vagrant/sites/all/* .
+rm drush
+chown aegir:www-data /var/aegir/platforms/scratchpads/sites
+chown aegir:www-data /var/aegir/platforms/scratchpads/sites/all
+# Special copy for the scratchpads_twitter.ini file which may be in the /vagrant folder
+mkdir -p /usr/local/share/scratchpads-global
+cp /vagrant/scratchpads_twitter.ini /usr/local/share/scratchpads-global
+
+# Restart Apache so that the new global file is read
+service apache2 reload
 
 # Create the Scratchpads platform
 su -c /vagrant/bootstrap.aegir.sh aegir
 
-# Inform the user to ignore the previous messages
-echo -e "
+# Inform the user how they can login to the Aegir site.
+echo "
 
 
 
