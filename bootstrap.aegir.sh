@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 # Create the platform in Aegir
-echo -e "<?php\n\$aliases['platform_scratchpads'] = array (\n  'context_type' => 'platform',\n  'server' => '@server_master',\n  'web_server' => '@server_master',\n  'root' => '/var/aegir/platforms/scratchpads',\n  'makefile' => '',\n  'make_working_copy' => false,\n);" > /var/aegir/.drush/platform_scratchpads.alias.drushrc.php
+drush --root='/var/aegir/platforms/scratchpads-2' provision-save '@platform_scratchpads-2' --context_type='platform' --makefile='/vagrant/scratchpads2.make'
+drush --root='/var/aegir/platforms/scratchpads' provision-save '@platform_scratchpads' --context_type='platform'
+drush @platform_scratchpads-2 provision-verify
 drush @platform_scratchpads provision-verify
 drush @hostmaster hosting-import @platform_scratchpads
 
