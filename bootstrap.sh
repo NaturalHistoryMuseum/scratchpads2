@@ -40,6 +40,12 @@ echo "extension=uploadprogress.so" > /etc/php5/conf.d/uploadprogress.ini
 # Increase the memory limit for php
 sed "s/memory_limit\ =\ 128M/memory_limit = 256M/" -i /etc/php5/apache2/php.ini
 
+# Convert all of the databases tables to MyISAM
+#for i in $(echo "SELECT CONCAT(TABLE_SCHEMA, '.', TABLE_NAME) FROM information_schema.TABLES WHERE ENGINE='InnoDB'"|mysql -pvagrant|grep -v CONCAT)
+#do
+#	echo "ALTER TABLE "$i" ENGINE=MyISAM;" | mysql -pvagrant
+#done
+
 # Tweak MySQL to skip-innodb
 echo "[mysqld]
 innodb=OFF
