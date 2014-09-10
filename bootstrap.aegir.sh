@@ -5,6 +5,7 @@ drush --root='/var/aegir/platforms/scratchpads-2' provision-save '@platform_scra
 drush --root='/var/aegir/platforms/scratchpads' provision-save '@platform_scratchpads' --context_type='platform'
 drush @platform_scratchpads-2 provision-verify
 drush @platform_scratchpads provision-verify
+drush @hostmaster hosting-import @platform_scratchpads-2
 drush @hostmaster hosting-import @platform_scratchpads
 
 # Create a site
