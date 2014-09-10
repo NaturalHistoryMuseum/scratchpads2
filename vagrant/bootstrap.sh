@@ -40,6 +40,12 @@ echo "extension=uploadprogress.so" > /etc/php5/conf.d/uploadprogress.ini
 # Increase the memory limit for php
 sed "s/memory_limit\ =\ 128M/memory_limit = 256M/" -i /etc/php5/apache2/php.ini
 
+# Convert all of the databases tables to MyISAM
+#for i in $(echo "SELECT CONCAT(TABLE_SCHEMA, '.', TABLE_NAME) FROM information_schema.TABLES WHERE ENGINE='InnoDB'"|mysql -pvagrant|grep -v CONCAT)
+#do
+#	echo "ALTER TABLE "$i" ENGINE=MyISAM;" | mysql -pvagrant
+#done
+
 # Tweak MySQL to skip-innodb
 echo "[mysqld]
 innodb=OFF
@@ -74,7 +80,7 @@ service tomcat6 restart
 # Install our own custom Aegir packages, as there is a bug in the
 # standard package that results in the install attempting to ask
 # the user for a password.
-dpkg -i /vagrant/debian-packages/aegir2_2.1_all.deb /vagrant/debian-packages/aegir2-hostmaster_2.1_all_scratchpads.deb /vagrant/debian-packages/aegir2-provision_2.1_all.deb
+dpkg -i /vagrant/vagrant/debian-packages/aegir2_2.1_all.deb /vagrant/vagrant/debian-packages/aegir2-hostmaster_2.1_all_scratchpads.deb /vagrant/vagrant/debian-packages/aegir2-provision_2.1_all.deb
 apt-get update -y
 apt-get upgrade -y
 
@@ -158,7 +164,7 @@ service apache2 reload
 # Add a record to the hosts file so that the site can access itself
 echo "127.0.0.1 scratchpads.vagrant" >> /etc/hosts
 # Create the Scratchpads platform
-su -c /vagrant/bootstrap.aegir.sh aegir
+su -c /vagrant/vagrant/bootstrap.aegir.sh aegir
 
 # Get the external IP address to inform people to add it to their hosts file.
 IPADDRESS=`/sbin/ifconfig eth1 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
