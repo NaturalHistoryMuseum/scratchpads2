@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Get the external IP address for use further down the file
-IPADDRESS=`/sbin/ifconfig eth1 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
-
 # Add the Aegir package source
 echo "deb http://debian.aegirproject.org stable main" | tee -a /etc/apt/sources.list.d/aegir-stable.list
 wget -q http://debian.aegirproject.org/key.asc -O- | sudo apt-key add -
@@ -17,16 +14,16 @@ apt-get install debconf-utils -y
 echo "mysql-server-5.5 mysql-server/root_password_again password vagrant" | debconf-set-selections
 echo "mysql-server-5.5 mysql-server/root_password password vagrant" | debconf-set-selections
 # Postfix
-echo "postfix postfix/mailname string "$IPADDRESS|debconf-set-selections
+echo "postfix postfix/mailname string hostmaster.vagrant"|debconf-set-selections
 echo "postfix postfix/main_mailer_type select Internet Site"|debconf-set-selections
-echo "postfix postfix/destinations string "$IPADDRESS", vagrant, localhost.localdomain, localhost"|debconf-set-selections
+echo "postfix postfix/destinations string hostmaster.vagrant, vagrant, localhost.localdomain, localhost"|debconf-set-selections
 # Aegir
 echo "aegir2-hostmaster aegir/db_password password vagrant"|debconf-set-selections
 echo "aegir2-hostmaster aegir/db_user string root"|debconf-set-selections
-echo "aegir2-hostmaster aegir/email string aegir@"$IPADDRESS|debconf-set-selections
+echo "aegir2-hostmaster aegir/email string aegir@hostmaster.vagrant"|debconf-set-selections
 echo "aegir2-hostmaster aegir/db_host string localhost"|debconf-set-selections
 echo "aegir2-hostmaster aegir/makefile string "|debconf-set-selections
-echo "aegir2-hostmaster aegir/site string "$IPADDRESS|debconf-set-selections
+echo "aegir2-hostmaster aegir/site string hostmaster.vagrant"|debconf-set-selections
 echo "aegir2-hostmaster aegir/webserver select apache2"|debconf-set-selections
 
 # Install dependencies for the aegir2 package
@@ -82,8 +79,7 @@ apt-get update -y
 apt-get upgrade -y
 
 # Set the password for the admin aegir user
-DB=`echo $IPADDRESS | sed "s/\.//g"`
-echo "UPDATE users SET pass = MD5('vagrant') WHERE uid = 1;" | mysql -uroot -pvagrant $DB
+echo "UPDATE users SET pass = MD5('vagrant') WHERE uid = 1;" | mysql -uroot -pvagrant hostmastervagran
 
 VARNISHSECRET=`cat /etc/varnish/secret`
 
@@ -164,6 +160,9 @@ echo "127.0.0.1 scratchpads.vagrant" >> /etc/hosts
 # Create the Scratchpads platform
 su -c /vagrant/bootstrap.aegir.sh aegir
 
+# Get the external IP address to inform people to add it to their hosts file.
+IPADDRESS=`/sbin/ifconfig eth1 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
+
 # Inform the user how they can login to the Aegir site.
 echo "
 
@@ -175,7 +174,11 @@ echo "
 
 
 
-Login to the Aegir interface:
-http://"$IPADDRESS"/
+
+Add the following entry to your 'hosts' file (http://www.rackspace.com/knowledge_center/article/how-do-i-modify-my-hosts-file)
+"$IPADDRESS" scratchpads.vagrant hostmaster.vagrant
+
+Then login to the Aegir interface:
+http://hostmaster.vagrant/
 Username: admin
 Password: vagrant"
