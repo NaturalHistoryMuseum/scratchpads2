@@ -160,6 +160,9 @@ echo "127.0.0.1 scratchpads.vagrant" >> /etc/hosts
 # Create the Scratchpads platform
 su -c /vagrant/bootstrap.aegir.sh aegir
 
+# Get the external IP address to inform people to add it to their hosts file.
+IPADDRESS=`/sbin/ifconfig eth1 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
+
 # Inform the user how they can login to the Aegir site.
 echo "
 
@@ -171,7 +174,11 @@ echo "
 
 
 
-Login to the Aegir interface:
-http://"$IPADDRESS"/
+
+Add the following entry to your 'hosts' file (http://www.rackspace.com/knowledge_center/article/how-do-i-modify-my-hosts-file)
+"$IPADDRESS" scratchpads.vagrant hostmaster.vagrant
+
+Then login to the Aegir interface:
+http://hostmaster.vagrant/
 Username: admin
 Password: vagrant"
