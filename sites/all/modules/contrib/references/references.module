@@ -199,7 +199,7 @@ function references_potential_references_view($entity_type, $view_name, $display
   $view->display_handler->set_option('pager', array('type' => 'some', 'options' => array('items_per_page' => $limit)));
 
   // Make sure the query is not cached
-  $view->is_cacheable = FALSE;
+  $view->display_handler->set_option('cache', array('type' => 'none'));
 
   // Get the results.
   $results = $view->execute_display($display_name, $args);
