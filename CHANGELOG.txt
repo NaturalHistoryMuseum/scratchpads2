@@ -1,3 +1,7 @@
+2.5.3.1 (2014-09-15)
+
+- Fix an error that caused "odd" behaviour when importing into a user reference field by name (#4226)
+
 2.5.3 (2014-08-14)
 
 - Delete unpublished anonymous forum nodes older than one week (likely to be spam)
