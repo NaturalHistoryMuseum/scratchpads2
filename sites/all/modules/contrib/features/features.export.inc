@@ -14,6 +14,10 @@ function features_populate($items, $dependencies, $module_name) {
   $stub = array('features' => array(), 'dependencies' => array(), 'conflicts' => array());
   $export = _features_populate($items, $stub, $module_name);
 
+  // Add Features API version. Any module with this entry in the .info file
+  // will be treated as a Feature and included in the admin/build/features UI.
+  $export['features']['features_api']['api:' . FEATURES_API] = TRUE;
+
   // Allow other modules to alter the export.
   drupal_alter('features_export', $export, $module_name);
 
@@ -43,6 +47,7 @@ function features_populate($items, $dependencies, $module_name) {
 function _features_populate($pipe, &$export, $module_name = '') {
   features_include();
   foreach ($pipe as $component => $data) {
+    static $processed = array();
     // Convert already defined items to dependencies.
     _features_resolve_dependencies($data, $export, $module_name, $component);
     if (!empty($data) && $function = features_hook($component, 'features_export')) {
@@ -51,13 +56,26 @@ function _features_populate($pipe, &$export, $module_name = '') {
       $more = $function($data, $export, $module_name, $component);
       // Add the context information.
       $export['component'] = $component;
+      $export['module_name'] = $module_name;
       // Allow other modules to manipulate the pipe to add in additional modules.
       drupal_alter(array('features_pipe', 'features_pipe_' . $component), $more, $data, $export);
       // Remove the component information.
       unset($export['component']);
-      // Allow for export functions to request additional exports.
+      unset($export['module_name']);
+      // Allow for export functions to request additional exports, but avoid
+      // circular references on already processed components.
+      $processed[$component] = isset($processed[$component]) ? array_merge($processed[$component], $data) : $data;
+
       if (!empty($more)) {
-        _features_populate($more, $export, $module_name);
+        // Remove already processed components.
+        foreach ($more as $component_name => $component_data) {
+          if (isset($processed[$component_name])) {
+            $more[$component_name] = array_diff($component_data, $processed[$component_name]);
+          }
+        }
+        if ($more = array_filter($more)) {
+          _features_populate($more, $export, $module_name);
+        }
       }
     }
   }
@@ -235,12 +253,16 @@ function features_export_render($export, $module_name, $reset = FALSE) {
       $code[$file['name']] = array();
     }
 
-    foreach ($hooks as $hook_name => $hook_code) {
-      $code[$file['name']][$hook_name] = features_export_render_defaults($module_name, $hook_name, $hook_code);
+    foreach ($hooks as $hook_name => $hook_info) {
+      $hook_code = is_array($hook_info) ? $hook_info['code'] : $hook_info;
+      $hook_args = is_array($hook_info) && !empty($hook_info['args']) ? $hook_info['args'] : '';
+      $hook_file = is_array($hook_info) && !empty($hook_info['file']) ? $hook_info['file'] : $file['name'];
+      $code[$hook_file][$hook_name] = features_export_render_defaults($module_name, $hook_name, $hook_code, $hook_args);
     }
   }
 
   // Finalize strings to be written to files
+  $code = array_filter($code);
   foreach ($code as $filename => $contents) {
     $code[$filename] = "<?php\n/**\n * @file\n * {$module_name}.{$filename}.inc\n */\n\n". implode("\n\n", $contents) ."\n";
   }
@@ -279,10 +301,10 @@ function features_export_render($export, $module_name, $reset = FALSE) {
   }
   // Add a stub module to include the defaults
   else if (!empty($code['features'])) {
-    $code['module'] = "<?php\n/**\n * @file\n * Code for the {$export['name']} feature.\n */\n\ninclude_once('{$module_name}.features.inc');\n";
+    $code['module'] = "<?php\n/**\n * @file\n * Code for the {$export['name']} feature.\n */\n\ninclude_once '{$module_name}.features.inc';\n";
   }
   else {
-    $code['module'] = "<?php\n/**\n * @file\n */\n\n// Drupal needs this blank file.\n";
+    $code['module'] = "<?php\n/**\n * @file\n * Drupal needs this blank file.\n */\n";
   }
   return $code;
 }
@@ -335,34 +357,28 @@ function features_detect_overrides($module) {
  * Gets the available default hooks keyed by components.
  */
 function features_get_default_hooks($component = NULL, $reset = FALSE) {
-  static $hooks;
-  if (!isset($hooks) || $reset) {
-    $hooks = array();
-    features_include();
-    foreach (module_implements('features_api') as $module) {
-      $info = module_invoke($module, 'features_api');
-      foreach ($info as $k => $v) {
-        if (isset($v['default_hook'])) {
-          $hooks[$k] = $v['default_hook'];
-        }
-      }
-    }
-  }
-  if (isset($component)) {
-    return isset($hooks[$component]) ? $hooks[$component] : FALSE;
-  }
-  return $hooks;
+  return features_get_components($component, 'default_hook', $reset);
+}
+
+/**
+ * Gets the available default hooks keyed by components.
+ */
+function features_get_default_alter_hook($component) {
+  $default_hook = features_get_components($component, 'default_hook');
+  $alter_hook = features_get_components($component, 'alter_hook');
+  $alter_type = features_get_components($component, 'alter_type');
+  return empty($alter_type) || $alter_type != 'none' ? ($alter_hook ? $alter_hook : $default_hook) : FALSE;
 }
 
 /**
  * Return a code string representing an implementation of a defaults module hook.
  */
-function features_export_render_defaults($module, $hook, $code) {
+function features_export_render_defaults($module, $hook, $code, $args = '') {
   $output = array();
   $output[] = "/**";
   $output[] = " * Implements hook_{$hook}().";
   $output[] = " */";
-  $output[] = "function {$module}_{$hook}() {";
+  $output[] = "function {$module}_{$hook}(" . $args . ") {";
   $output[] = $code;
   $output[] = "}";
   return implode("\n", $output);
@@ -393,7 +409,7 @@ function features_export_info($info, $parents = array()) {
     foreach ($parents as $key) {
       $line .= is_numeric($key) ? "[]" : "[{$key}]";
     }
-    $line .=  " = \"{$info}\"\n";
+    $line .=  " = {$info}\n";
     return $line;
   }
   return $output;
@@ -449,7 +465,7 @@ function features_tar_create($name, $contents) {
  */
 function features_var_export($var, $prefix = '', $init = TRUE) {
   if (is_object($var)) {
-    $output = method_exists($var, 'export') ? $var->export() : features_var_export((array) $var);
+    $output = method_exists($var, 'export') ? $var->export() : features_var_export((array) $var, '', FALSE);
   }
   else if (is_array($var)) {
     if (empty($var)) {
@@ -655,8 +671,11 @@ function features_get_default($component, $module_name = NULL, $alter = TRUE, $r
       else {
         if ($default_hook && module_hook($m, $default_hook)) {
           $cache[$component][$m] = call_user_func("{$m}_{$default_hook}");
-          if ($alter) {
-            drupal_alter($default_hook, $cache[$component][$m]);
+          $alter_type = features_get_components('alter_type', $component);
+          if ($alter && (!isset($alter_type) || $alter_type == FEATURES_ALTER_TYPE_NORMAL)) {
+            if ($alter_hook = features_get_default_alter_hook($component)) {
+              drupal_alter($alter_hook, $cache[$component][$m]);
+            }
           }
         }
         else {
@@ -782,7 +801,7 @@ function features_get_component_states($features = array(), $rebuild_only = TRUE
                   $cache[$feature][$component] = FEATURES_OVERRIDDEN;
                 }
                 // DB has no modifications to prior code state (or this is initial install).
-                else if ($codecache == $normal || empty($codecache)) {
+                else if (empty($codecache) || $codecache == $normal) {
                   $cache[$feature][$component] = FEATURES_REBUILDABLE;
                 }
                 // None of the states match. Requires user intervention.
