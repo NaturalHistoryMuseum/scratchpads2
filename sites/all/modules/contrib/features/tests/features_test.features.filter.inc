@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * features_test.features.filter.inc
+ */
 
 /**
  * Implements hook_filter_default_formats().
