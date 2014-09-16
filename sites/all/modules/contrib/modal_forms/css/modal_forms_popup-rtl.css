@@ -1,0 +1,13 @@
+/* RTL CSS for modal forms. */
+
+div.modal-forms-modal-content .item-list ul li {
+  margin: 0 1.5em 0.25em 0;
+}
+
+div.modal-forms-modal-content .popups-container {
+  text-align: right;
+}
+
+div.modal-forms-modal-content .popups-close {
+  float: left;
+}
