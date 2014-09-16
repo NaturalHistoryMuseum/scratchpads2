@@ -33,7 +33,7 @@ function pathauto_install() {
  * Implements hook_uninstall().
  */
 function pathauto_uninstall() {
-  // Delete all the pathauto variables and then clear the variable cache
+  // Delete all the pathauto variables and then clear the variable cache.
   db_query("DELETE FROM {variable} WHERE name LIKE 'pathauto_%'");
   cache_clear_all('variables', 'cache');
 }
@@ -59,6 +59,12 @@ function pathauto_update_6201() {
 }
 
 /**
+ * Empty update since it is handled by pathauto_update_7004().
+ */
+function pathauto_update_6202() {
+}
+
+/**
  * Remove obsolete variables since batch API is now used.
  */
 function pathauto_update_7000() {
@@ -74,15 +80,9 @@ function pathauto_update_7000() {
 }
 
 /**
- * Taxonomy and forum feed suffixes changed from '0\/feed' to 'feed'.
+ * Empty update since feed paths are no longer supported.
  */
 function pathauto_update_7001() {
-  if (variable_get('pathauto_taxonomy_applytofeeds', '') == '0/feed') {
-    variable_set('pathauto_taxonomy_applytofeeds', 'feed');
-  }
-  if (variable_get('pathauto_forum_applytofeeds', '') == '0/feed') {
-    variable_set('pathauto_forum_applytofeeds', 'feed');
-  }
 }
 
 /**
@@ -108,7 +108,14 @@ function pathauto_update_7002() {
  * Rename 'taxonomy' variables to use the entity type 'taxonomy_term'.
  */
 function pathauto_update_7003() {
-  $variables = db_query("SELECT name FROM {variable} WHERE name LIKE :pattern AND name NOT LIKE :pattern2", array(':pattern' => db_like("pathauto_taxonomy_") . '%', ':pattern2' => db_like("pathauto_taxonomy_term_") . '%'))->fetchCol();
+  $variables = db_select('variable', 'v')
+    ->fields('v', array('name'))
+    ->condition(db_and()
+      ->condition('name', db_like("pathauto_taxonomy_") . '%', 'LIKE')
+      ->condition('name', db_like("pathauto_taxonomy_term_") . '%', 'NOT LIKE')
+    )
+    ->execute()
+    ->fetchCol();
   foreach ($variables as $variable) {
     $value = variable_get($variable);
     variable_del($variable);
@@ -134,14 +141,42 @@ function pathauto_update_7004() {
 }
 
 /**
+ * Fix original incorrect tokens in taxonomy and forum patterns.
+ */
+function pathauto_update_7005() {
+  $replacements = array(
+    '[vocabulary:name]' => '[term:vocabulary]',
+    '[vocabulary:' => '[term:vocabulary:',
+    '[term:catpath]' => '[term:name]',
+    '[term:path]' => '[term:name]',
+  );
+  $variables = db_select('variable', 'v')
+    ->fields('v', array('name'))
+    ->condition(db_or()
+      ->condition('name', db_like("pathauto_taxonomy_term_") . '%' . db_like('pattern'), 'LIKE')
+      ->condition('name', db_like("pathauto_forum_") . '%' . db_like('pattern'), 'LIKE')
+    )
+    ->execute()
+    ->fetchCol();
+  foreach ($variables as $variable) {
+    if ($pattern = variable_get($variable)) {
+      $pattern = strtr($pattern, $replacements);
+      variable_set($variable, $pattern);
+    }
+  }
+
+  return 'Your Pathauto taxonomy and forum patterns have been corrected. You may wish to regenerate your taxonomy and forum term URL aliases.';
+}
+
+/**
  * Build a list of Drupal 6 tokens and their Drupal 7 token names.
  */
 function _pathauto_upgrade_token_list() {
   $tokens = array(
     //'catpath' => 'node:term-lowest:parent:path][node:term-lowest',
     //'catalias' => 'node:term-lowest:path',
-    'termpath' => 'term:parent:path][term:name',
-    'termalias' => 'term:path',
-    'bookpathalias' => 'node:book:parent:path',
+    //'termpath' => 'term:parent:path][term:name',
+    //'termalias' => 'term:url:alias',
+    //'bookpathalias' => 'node:book:parent:path',
   );
 }
