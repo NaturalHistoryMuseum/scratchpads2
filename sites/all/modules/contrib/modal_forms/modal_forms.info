@@ -4,9 +4,9 @@ dependencies[] = ctools
 core = 7.x
 configure = admin/config/development/modal_forms
 
-; Information added by drupal.org packaging script on 2011-10-04
-version = "7.x-1.0"
+; Information added by drupal.org packaging script on 2012-11-19
+version = "7.x-1.2"
 core = "7.x"
 project = "modal_forms"
-datestamp = "1317720424"
+datestamp = "1353326875"
 

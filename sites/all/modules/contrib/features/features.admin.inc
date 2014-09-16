@@ -17,9 +17,8 @@ function features_export_form($form, $form_state, $feature = NULL) {
   );
   $form['info']['name'] = array(
     '#title' => t('Name'),
-    '#description' => t('Example: Image gallery'),
+    '#description' => t('Example: Image gallery') . ' (' . t('Do not begin name with numbers.') . ')',
     '#type' => 'textfield',
-    '#required' => TRUE,
     '#default_value' => !empty($feature->info['name']) ? $feature->info['name'] : '',
     '#attributes' => array('class' => array('feature-name')),
   );
@@ -43,8 +42,14 @@ function features_export_form($form, $form_state, $feature = NULL) {
     '#title' => t('Description'),
     '#description' => t('Provide a short description of what users should expect when they enable your feature.'),
     '#type' => 'textfield',
-    '#required' => TRUE,
     '#default_value' => !empty($feature->info['description']) ? $feature->info['description'] : '',
+  );
+  $form['info']['package'] = array(
+    '#title' => t('Package'),
+    '#description' => t('Organize your features in groups.'),
+    '#type' => 'textfield',
+    '#autocomplete_path' => 'features/autocomplete/packages',
+    '#default_value' => !empty($feature->info['package']) ? $feature->info['package'] : 'Features',
   );
   $form['info']['version'] = array(
     '#title' => t('Version'),
@@ -201,7 +206,7 @@ function features_export_build_form_submit($form, &$form_state) {
   $export = features_populate($stub, $form_state['values']['sources']['dependencies'], $module_name);
 
   // Directly copy the following attributes
-  $attr = array('name', 'description');
+  $attr = array('name', 'description', 'package');
   foreach ($attr as $key) {
     $export[$key] = isset($form_state['values'][$key]) ? $form_state['values'][$key] : NULL;
   }
@@ -340,7 +345,7 @@ function features_admin_form($form, $form_state) {
 
   if ( empty($features) ) {
     $form['no_features'] = array(
-      '#markup' => t('No Features were found. Please use the !create_link link to create 
+      '#markup' => t('No Features were found. Please use the !create_link link to create
       a new Feature module, or upload an existing Feature to your modules directory.', 
       array('!create_link' => l(t('Create Feature'), 'admin/structure/features/create'))),
     );
@@ -398,7 +403,9 @@ function features_admin_form($form, $form_state) {
     if (!empty($conflicts[$name])) {
       $module_conflicts = array();
       foreach (array_keys($conflicts[$name]) as $conflict) {
-        $module_conflicts[] = theme('features_module_status', array('status' => FEATURES_MODULE_MISSING, 'module' => $conflict));
+        // If conflicting module is disabled, indicate so in feature listing
+        $status = !module_exists($conflict) ? FEATURES_MODULE_DISABLED : FEATURES_MODULE_CONFLICT;
+        $module_conflicts[] = theme('features_module_status', array('status' => $status, 'module' => $conflict));
         // Only disable modules with conflicts if they are not already enabled.
         // If they are already enabled, somehow the user got themselves into a
         // bad situation and they need to be able to disable a conflicted module.
@@ -409,9 +416,11 @@ function features_admin_form($form, $form_state) {
       $description .= "<div class='conflicts'>". t('Conflicts with: !conflicts', array('!conflicts' => implode(', ', $module_conflicts))) ."</div>";
     }
 
+    $href = "admin/structure/features/{$name}";
+    $module_name = (user_access('administer features')) ? l($module->info['name'], $href) : $module->info['name'];
     $form[$package]['status'][$name] = array(
       '#type' => 'checkbox',
-      '#title' => $module->info['name'],
+      '#title' => $module_name,
       '#description' => $description,
       '#default_value' => $module->status,
       '#disabled' => $disabled,
@@ -432,9 +441,8 @@ function features_admin_form($form, $form_state) {
 
     if (user_access('administer features')) {
       // Add status link
-      $href = "admin/structure/features/{$name}";
       if ($module->status) {
-        $state = '<span class="admin-loading features-storage">' . t('Checking...') . '</span>';
+        $state = theme('features_storage_link', array('storage' => FEATURES_CHECKING, 'path' => $href));
         $state .= l(t('Check'), "admin/structure/features/{$name}/status", array('attributes' => array('class' => array('admin-check'))));
         $state .= theme('features_storage_link', array('storage' => FEATURES_REBUILDING, 'path' => $href));
         $state .= theme('features_storage_link', array('storage' => FEATURES_NEEDS_REVIEW, 'path' =>  $href));
@@ -769,17 +777,12 @@ function features_feature_diff($feature, $component = NULL) {
     }
 
     module_load_include('inc', 'diff', 'diff.engine');
-    $formatter = new DrupalDiffFormatter(); //- temporarily broken
-    //$formatter = new DiffFormatter();
-    $formatter->leading_context_lines = 2;
-    $formatter->trailing_context_lines = 2;
-    //$formatter->show_header = $show_header
+    $formatter = new DrupalDiffFormatter();
     
     $rows = array();
     foreach ($overrides as $component => $items) {
-      $rows[] = array(array(array('data' => $component, 'colspan' => 4, 'header' => TRUE)));
+      $rows[] = array(array('data' => $component, 'colspan' => 4, 'header' => TRUE));
       $diff = new Diff(explode("\n", $items['default']), explode("\n", $items['normal']));
-      //dpm($formatter->format($diff));
       $rows = array_merge($rows, $formatter->format($diff));
     }
     $header = array(
@@ -816,14 +819,7 @@ function features_feature_status($feature) {
  * safely referenced by JS behaviors.
  */
 function features_dom_encode_options($options = array(), $keys_only = TRUE) {
-  $replacements = array(
-    ':' => '__'. ord(':') .'__',
-    '/' => '__'. ord('/') .'__',
-    ',' => '__'. ord(',') .'__',
-    '.' => '__'. ord(',') .'__',
-    '<' => '__'. ord('<') .'__',
-    '>' => '__'. ord('>') .'__',
-  );
+  $replacements = features_dom_encode_map();
   $encoded = array();
   foreach ($options as $key => $value) {
     $encoded[strtr($key, $replacements)] = $keys_only ? $value : strtr($value, $replacements);
@@ -836,17 +832,46 @@ function features_dom_encode_options($options = array(), $keys_only = TRUE) {
  * features_dom_encode_options().
  */
 function features_dom_decode_options($options, $keys_only = FALSE) {
-  $replacements = array_flip(array(
-    ':' => '__'. ord(':') .'__',
-    '/' => '__'. ord('/') .'__',
-    ',' => '__'. ord(',') .'__',
-    '.' => '__'. ord(',') .'__',
-    '<' => '__'. ord('<') .'__',
-    '>' => '__'. ord('>') .'__',
-  ));
+  $replacements = array_flip(features_dom_encode_map());
   $encoded = array();
   foreach ($options as $key => $value) {
     $encoded[strtr($key, $replacements)] = $keys_only ? $value : strtr($value, $replacements);
   }
   return $encoded;
+}
+
+/**
+ * Returns encoding map for decode and encode options.
+ */
+function features_dom_encode_map() {
+  return array(
+    ':' => '__' . ord(':') . '__',
+    '/' => '__' . ord('/') . '__',
+    ',' => '__' . ord(',') . '__',
+    '.' => '__' . ord('.') . '__',
+    '<' => '__' . ord('<') . '__',
+    '>' => '__' . ord('>') . '__',
+  );
+}
+
+/**
+ * Page callback: Autocomplete field for features package.
+ *
+ * @param $search_string
+ *   The char or string that user have written in autocomplete field,
+ *   this is the string this function uses for filter.
+ *
+ * @see features_menu()
+ */
+function features_autocomplete_packages($search_string) {
+  $matched_packages = array();
+  //fetch all modules that are features and copy the package name into a new array.
+  foreach (features_get_features(NULL, TRUE) as $value) {
+    if (preg_match('/' . $search_string . '/i', $value->info['package'])) {
+      $matched_packages[$value->info['package']] = $value->info['package'];
+    }
+  }
+  //removes duplicated package, we wont a list of all unique packages.
+  $matched_packages = array_unique($matched_packages);
+  drupal_json_output($matched_packages);
 }

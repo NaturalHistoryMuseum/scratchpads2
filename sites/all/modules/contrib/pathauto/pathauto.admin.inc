@@ -199,7 +199,7 @@ function pathauto_settings_form($form) {
     }
     $form['punctuation']['pathauto_punctuation_' . $name] = array(
       '#type' => 'select',
-      '#title' => $details['name'],
+      '#title' => $details['name'] . ' (<code>' . check_plain($details['value']) . '</code>)',
       '#default_value' => variable_get('pathauto_punctuation_' . $name, $details['default']),
       '#options' => array(
         PATHAUTO_PUNCTUATION_REMOVE => t('Remove'),

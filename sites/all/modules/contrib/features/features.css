@@ -230,6 +230,10 @@ span.features-component-list span.features-conflict {
   color: #fff;
 }
 
+div.conflicts span.admin-disabled {
+  color: #955;
+}
+
 a.admin-update {
   background:transparent;
 }
