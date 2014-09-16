@@ -91,7 +91,6 @@ function field_features_export_render($module, $data, $export = NULL) {
   foreach ($data as $identifier) {
     if ($field = features_field_load($identifier)) {
       unset($field['field_config']['columns']);
-      unset($field['field_config']['locked']);
       // Only remove the 'storage' declaration if the field is using the default
       // storage type.
       if ($field['field_config']['storage']['type'] == variable_get('field_storage_default', 'field_sql_storage')) {
@@ -107,7 +106,7 @@ function field_features_export_render($module, $data, $export = NULL) {
       _field_features_export_sort($field);
       $field_export = features_var_export($field, '  ');
       $field_identifier = features_var_export($identifier);
-      $code[] = "  // Exported field: {$field_identifier}";
+      $code[] = "  // Exported field: {$field_identifier}.";
       $code[] = "  \$fields[{$field_identifier}] = {$field_export};";
       $code[] = "";
 
@@ -132,7 +131,10 @@ function field_features_export_render($module, $data, $export = NULL) {
 function _field_features_export_sort(&$field, $sort = TRUE) {
 
   // Some arrays are not sorted to preserve order (for example allowed_values).
-  static $sort_blacklist = array('allowed_values');
+  static $sort_blacklist = array(
+    'allowed_values',
+    'format_handlers',
+  );
 
   if ($sort) {
     ksort($field);
@@ -159,25 +161,40 @@ function field_features_rebuild($module) {
   if ($fields = features_get_default('field', $module)) {
     field_info_cache_clear();
 
+    // Load all the existing fields and instance up-front so that we don't
+    // have to rebuild the cache all the time.
+    $existing_fields = field_info_fields();
+    $existing_instances = field_info_instances();
+
     foreach ($fields as $field) {
       // Create or update field.
       $field_config = $field['field_config'];
-      if ($existing_field = field_info_field($field_config['field_name'])) {
-        field_update_field($field_config);
+      if (isset($existing_fields[$field_config['field_name']])) {
+        $existing_field = $existing_fields[$field_config['field_name']];
+        if ($field_config + $existing_field != $existing_field) {
+          field_update_field($field_config);
+        }
       }
       else {
         field_create_field($field_config);
+        $existing_fields[$field_config['field_name']] = $field_config;
       }
 
       // Create or update field instance.
       $field_instance = $field['field_instance'];
-      $existing_instance = field_info_instance($field_instance['entity_type'], $field_instance['field_name'], $field_instance['bundle']);
-      if ($existing_instance) {
-        field_update_instance($field_instance);
+      if (isset($existing_instances[$field_instance['entity_type']][$field_instance['bundle']][$field_instance['field_name']])) {
+        $existing_instance = $existing_instances[$field_instance['entity_type']][$field_instance['bundle']][$field_instance['field_name']];
+        if ($field_instance + $existing_instance != $existing_instance) {
+          field_update_instance($field_instance);
+        }
       }
       else {
         field_create_instance($field_instance);
+        $existing_instances[$field_instance['entity_type']][$field_instance['bundle']][$field_instance['field_name']] = $field_instance;
       }
+    }
+
+    if ($fields) {
       variable_set('menu_rebuild_needed', TRUE);
     }
   }
