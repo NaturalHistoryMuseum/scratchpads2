@@ -1,13 +1,13 @@
-name = "Google Analytics"
+name = Google Analytics
 description = Allows your site to be tracked by Google Analytics by adding a Javascript tracking code to every page.
 core = 7.x
 package = Statistics
 configure = admin/config/system/googleanalytics
 files[] = googleanalytics.test
-
-; Information added by drupal.org packaging script on 2011-03-28
-version = "7.x-1.2"
+test_dependencies[] = token
+; Information added by drupal.org packaging script on 2013-10-17
+version = "7.x-1.4"
 core = "7.x"
 project = "google_analytics"
-datestamp = "1301340367"
+datestamp = "1382021586"
 
