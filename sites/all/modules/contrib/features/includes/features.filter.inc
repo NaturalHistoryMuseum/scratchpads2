@@ -65,7 +65,7 @@ function filter_features_export_render($module, $data, $export = NULL) {
     if ($format = features_filter_format_load($name)) {
       $format_export = features_var_export($format, '  ');
       $format_identifier = features_var_export($format->format);
-      $code[] = "  // Exported format: {$format->name}";
+      $code[] = "  // Exported format: {$format->name}.";
       $code[] = "  \$formats[{$format_identifier}] = {$format_export};";
       $code[] = "";
     }

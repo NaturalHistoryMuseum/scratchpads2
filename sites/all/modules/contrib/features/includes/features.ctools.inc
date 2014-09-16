@@ -1,12 +1,12 @@
 <?php
 
-function ctools_features_declare_functions() {
+function ctools_features_declare_functions($reset = FALSE) {
 /**
  * This is called by Features to ensure ctools component functions are defined
  * Dynamically declare functions under a ctools component's namespace if they are not already declared.
  */
   if (function_exists('_ctools_features_get_info')) {
-   foreach (_ctools_features_get_info() as $component => $info) {
+   foreach (_ctools_features_get_info(NULL, $reset) as $component => $info) {
       $code = '';
       if (!function_exists("{$info['module']}_features_api")) {
         $code .= 'function '. $info['module'] .'_features_api() { return ctools_component_features_api("'. $info['module'] .'"); }';
@@ -70,19 +70,21 @@ function ctools_features_export($data, &$export, $module_name = '') {
  * Adds the ctools mothership hook, ctools_plugin_api().
  */
 function ctools_features_export_render($module, $data) {
-  $code = array();
-  $code[] = '  list($module, $api) = func_get_args();';
-
   $component_exports =  array();
   foreach ($data as $component) {
     $code = array();
-    $code[] = '  list($module, $api) = func_get_args();';
-
     if ($info = _ctools_features_get_info($component)) {
-
-      $code[] = '  if ($module == "'. $info['module'] .'" && $api == "'. $info['api'] .'") {';
-      $code[] = '    return array("version" => "'. $info['current_version'] .'");';
-      $code[] = '  }';
+      // For background on why we change the output for hook_views_api()
+      // see http://drupal.org/node/1459120.
+      if ($info['module'] == 'views') {
+        $code[] = '  return array("version" => "3.0");';
+      }
+      else {
+        $code[] = '  list($module, $api) = func_get_args();';
+        $code[] = '  if ($module == "'. $info['module'] .'" && $api == "'. $info['api'] .'") {';
+        $code[] = '    return array("version" => "'. $info['current_version'] .'");';
+        $code[] = '  }';
+      }
     }
     ctools_include('plugins');
     $plugin_api_hook_name = ctools_plugin_api_get_hook($info['module'], $info['api']);
@@ -171,6 +173,9 @@ function ctools_component_features_export($component, $data, &$export, $module_n
  * Master implementation of hook_features_export_render() for all ctools components.
  */
 function ctools_component_features_export_render($component, $module, $data) {
+  // Reset the export display static to prevent clashes.
+  drupal_static_reset('panels_export_display');
+
   ctools_include('export');
   $schema = ctools_export_get_schema($component);
 
@@ -206,7 +211,9 @@ function ctools_component_features_revert($component, $module) {
       // Some things (like views) do not use the machine name as key
       // and need to be loaded explicitly in order to be deleted.
       $object = ctools_export_crud_load($component, $name);
-      _ctools_features_export_crud_delete($component, $object);
+      if ($object && ($object->export_type & EXPORT_IN_DATABASE)) {
+        _ctools_features_export_crud_delete($component, $object);
+      }
     }
   }
 }
@@ -220,6 +227,7 @@ function _ctools_features_get_info($identifier = NULL, $reset = FALSE) {
     $components = array();
     $modules = features_get_info();
     ctools_include('export');
+    drupal_static('ctools_export_get_schemas', NULL, $reset);
     foreach (ctools_export_get_schemas_by_module() as $module => $schemas) {
       foreach ($schemas as $table => $schema) {
         if ($schema['export']['bulk export']) {
@@ -321,6 +329,9 @@ function _ctools_features_export_crud_delete($table, $object) {
  * Implements hook_features_export_render() for page_manager.
  */
 function page_manager_pages_features_export_render($module, $data) {
+  // Reset the export display static to prevent clashes.
+  drupal_static_reset('panels_export_display');
+
   // Ensure that handlers have their code included before exporting.
   page_manager_get_tasks();
   return ctools_component_features_export_render('page_manager_pages', $module, $data);
