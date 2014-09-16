@@ -7,9 +7,12 @@
  * entities which taken together statisfy a certain use-case.
  */
 
+define('FEATURES_API', '1');
+
 define('FEATURES_MODULE_ENABLED', 1);
 define('FEATURES_MODULE_DISABLED', 0);
 define('FEATURES_MODULE_MISSING', -1);
+define('FEATURES_MODULE_CONFLICT', 2);
 
 define('FEATURES_REBUILDABLE', -1);
 define('FEATURES_DEFAULT', 0);
@@ -18,6 +21,10 @@ define('FEATURES_NEEDS_REVIEW', 2);
 define('FEATURES_REBUILDING', 3);
 define('FEATURES_CONFLICT', 4);
 define('FEATURES_DISABLED', 5);
+define('FEATURES_CHECKING', 6);
+define('FEATURES_ALTER_TYPE_NORMAL', 'normal');
+define('FEATURES_ALTER_TYPE_INLINE', 'inline');
+define('FEATURES_ALTER_TYPE_NONE', 'none');
 
 // Duration of rebuild semaphore: 10 minutes.
 define('FEATURES_SEMAPHORE_TIMEOUT', 10 * 60);
@@ -154,6 +161,12 @@ function features_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'features.admin.inc',
   );
+  $items['features/autocomplete/packages'] = array(
+    'page callback' => 'features_autocomplete_packages',
+    'access arguments' => array('administer features'),
+    'type' => MENU_CALLBACK,
+    'file' => 'features.admin.inc',
+  );
   foreach ($items as $path => $item) {
     if (!isset($item['access callback'])) {
       $items[$path]['access callback'] = 'user_access';
@@ -214,7 +227,10 @@ function features_theme() {
  */
 function features_flush_caches() {
   features_rebuild();
-  features_get_modules(NULL, TRUE);
+  // Don't flush the modules cache during installation, for performance reasons.
+  if (variable_get('install_task') != 'done') {
+    features_get_modules(NULL, TRUE);
+  }
   return array();
 }
 
@@ -265,11 +281,18 @@ function features_help($path, $arg) {
  * Implements hook_modules_disabled().
  */
 function features_modules_disabled($modules) {
-  // Find any features modules that were disabled.
-  if ($modules = array_intersect(array_keys(features_get_features()), $modules)) {
-    foreach ($modules as $module) {
-      features_disable_feature($module);
+  // Go through all modules and gather features that can be disabled.
+  $items = array();
+  foreach ($modules as $module) {
+    if ($feature = feature_load($module)) {
+      $items[$module] = array_keys($feature->info['features']);
     }
+  }
+
+  if (!empty($items)) {
+    _features_restore('disable', $items);
+    // Rebuild the list of features includes.
+    features_include(TRUE);
   }
 }
 
@@ -277,11 +300,18 @@ function features_modules_disabled($modules) {
  * Implements hook_modules_enabled().
  */
 function features_modules_enabled($modules) {
-  // Find any features modules that were enabled.
-  if ($modules = array_intersect(array_keys(features_get_features()), $modules)) {
-    foreach ($modules as $module) {
-      features_enable_feature($module);
+  // Go through all modules and gather features that can be enabled.
+  $items = array();
+  foreach ($modules as $module) {
+    if ($feature = feature_load($module)) {
+      $items[$module] = array_keys($feature->info['features']);
     }
+  }
+
+  if (!empty($items)) {
+    _features_restore('enable', $items);
+    // Rebuild the list of features includes.
+    features_include(TRUE);
   }
 }
 
@@ -294,34 +324,26 @@ function features_include($reset = FALSE) {
   if (!isset($once) || $reset) {
     $once = TRUE;
 
-    // Check for implementing modules and make necessary inclusions.
-    foreach (module_implements('features_api') as $module) {
-      $info = module_invoke($module, 'features_api');
-      foreach ($info as $component) {
-        if (isset($component['file'])) {
-          require_once DRUPAL_ROOT . '/' . $component['file'];
-        }
-      }
-    }
-
     // Features provides integration on behalf of these modules.
     // The features include provides handling for the feature dependencies.
     // Note that ctools is placed last because it implements hooks "dynamically" for other modules.
-    $modules = array('features', 'block', 'context', 'field', 'filter', 'image', 'menu', 'node', 'taxonomy', 'user', 'views', 'ctools');
+    $modules = array('features', 'block', 'context', 'field', 'filter', 'image', 'locale', 'menu', 'node', 'taxonomy', 'user', 'views', 'ctools');
 
     foreach (array_filter($modules, 'module_exists') as $module) {
-      if (!module_hook($module, 'features_api')) {
-        module_load_include('inc', 'features', "includes/features.$module");
-      }
+      module_load_include('inc', 'features', "includes/features.$module");
     }
 
     if (module_exists('ctools')) {
       // Finally, add ctools eval'd implementations.
-      ctools_features_declare_functions();
+      ctools_features_declare_functions($reset);
     }
 
     // Clear static cache, since we've now included new implementers.
-    module_implements('features_api', FALSE, TRUE);
+    foreach (features_get_components(NULL, 'file', $reset) as $file) {
+      if (is_file(DRUPAL_ROOT . '/' . $file)) {
+        require_once DRUPAL_ROOT . '/' . $file;
+      }
+    }
   }
 }
 
@@ -350,19 +372,13 @@ function features_include_defaults($components = NULL, $reset = FALSE) {
   }
   // Use all include components if none are explicitly specified.
   else {
-    $components = $include_components;
+    $components = array_keys($include_components);
   }
   foreach ($components as $component) {
     if (isset($include_components[$component]) && (!isset($included[$component]) || $reset)) {
       $info = $include_components[$component];
       // Inclusion of defaults for Views.
-      if ($component === 'views') {
-        views_include('view');
-        views_include_handlers();
-        views_module_include('views_default.inc');
-      }
-      // Inclusion of defaults for CTools.
-      else if (isset($info['api'], $info['module'], $info['current_version'])) {
+      if (isset($info['api'], $info['module'], $info['current_version'])) {
         ctools_include('plugins');
         ctools_plugin_api_include($info['module'], $info['api'], $info['current_version'], $info['current_version']);
       }
@@ -382,7 +398,39 @@ function features_include_defaults($components = NULL, $reset = FALSE) {
  * Feature object loader.
  */
 function feature_load($name, $reset = FALSE) {
-  return features_get_features($name, $reset);
+  // Use an alternative code path during installation, for better performance.
+  if (variable_get('install_task') != 'done') {
+    static $features;
+
+    if (!isset($features[$name])) {
+      // Set defaults for module info.
+      $defaults = array(
+        'dependencies' => array(),
+        'description' => '',
+        'package' => 'Other',
+        'version' => NULL,
+        'php' => DRUPAL_MINIMUM_PHP,
+        'files' => array(),
+        'bootstrap' => 0,
+      );
+      $info = drupal_parse_info_file(drupal_get_path('module', $name) . '/' . $name . '.info');
+
+      $features[$name] = FALSE;
+      if (!empty($info['features']) && empty($info['hidden'])) {
+        // Build a fake file object with the data needed during installation.
+        $features[$name] = new stdClass;
+        $features[$name]->name = $name;
+        $features[$name]->filename = drupal_get_path('module', $name) . '/' . $name . '.module';
+        $features[$name]->type = 'module';
+        $features[$name]->info = $info + $defaults;
+      }
+    }
+
+    return $features[$name];
+  }
+  else {
+    return features_get_features($name, $reset);
+  }
 }
 
 /**
@@ -405,27 +453,55 @@ function features_get_modules($name = NULL, $reset = FALSE) {
 /**
  * Returns the array of supported components.
  *
- * @param $feature_source
- *   If set to to TRUE return feature sources only.
+ * @see hook_features_api
+ *
+ * @param $component
+ *   A specific type of component that supports features.
+ * @param $key
+ *   A key that hook_features_api supports.
+ *
  * @return An array of component labels keyed by the component names.
  */
-function features_get_components($feature_source = FALSE, $reset = FALSE) {
+function features_get_components($component = NULL, $key = NULL, $reset = FALSE) {
   features_include();
-  static $components_all;
-  static $components_source;
-  if (!isset($components_all) || $reset) {
-    $components_all = $components_source = array();
-    foreach (module_implements('features_api') as $module) {
-      $info = module_invoke($module, 'features_api');
-      foreach ($info as $k => $v) {
-        $components_all[$k] = $v;
-        if (!empty($v['feature_source'])) {
-          $components_source[$k] = $v;
-        }
+  $components = &drupal_static(__FUNCTION__);
+  $component_by_key = &drupal_static(__FUNCTION__ . '_by_key');
+
+  if ($reset || !isset($components) || !isset($component_by_key)) {
+    $components = $component_by_key = array();
+    if (!$reset && ($cache = cache_get('features_api'))) {
+      $components = $cache->data;
+    }
+    else {
+      $components = module_invoke_all('features_api');
+      drupal_alter('features_api', $components);
+      cache_set('features_api', $components);
+    }
+
+    foreach ($components as $component_type => $component_information) {
+      foreach ($component_information as $component_key => $component_value) {
+        $component_by_key[$component_key][$component_type] = $component_value;
       }
     }
   }
-  return $feature_source ? $components_source : $components_all;
+
+  if ($key && $component) {
+    return !empty($components[$component][$key]) ? $components[$component][$key] : NULL;
+  }
+  elseif ($key) {
+    return !empty($component_by_key[$key]) ? $component_by_key[$key] : array();
+  }
+  elseif ($component) {
+    return $components[$component];
+  }
+  return $components;
+}
+
+/**
+ * Returns components that are offered as an option on feature creation.
+ */
+function features_get_feature_components() {
+  return array_intersect_key(features_get_components(), array_filter(features_get_components(NULL, 'feature_source')));
 }
 
 /**
@@ -448,13 +524,9 @@ function features_invoke($component, $callback) {
  *   The function implementing the hook, or FALSE.
  */
 function features_hook($component, $hook, $reset = FALSE) {
-  $info = &drupal_static(__FUNCTION__);
-
-  if (!isset($info) || $reset) {
-    $info = module_invoke_all('features_api');
-  }
   // Determine the function callback base.
-  $base = isset($info[$component]['base']) ? $info[$component]['base'] : $component;
+  $base = features_get_components($component, 'base');
+  $base = isset($base) ? $base : $component;
   return function_exists($base . '_' . $hook) ? $base . '_' . $hook : FALSE;
 }
 
@@ -515,7 +587,10 @@ function features_get_info($type = 'module', $name = NULL, $reset = FALSE) {
     $cache = cache_get('features_module_info');
   }
   if (empty($cache) || $reset) {
-    $data = array();
+    $data = array(
+      'feature' => array(),
+      'module' => array(),
+    );
     $ignored = variable_get('features_ignored_orphans', array());
     $files = system_rebuild_module_data();
 
@@ -816,24 +891,6 @@ function features_revert($revert = array()) {
  */
 function features_rebuild($rebuild = array()) {
   return _features_restore('rebuild', $rebuild);
-}
-
-/**
- * Wrapper around _features_restore().
- */
-function features_disable_feature($module) {
-  $feature = feature_load($module);
-  $items[$module] = array_keys($feature->info['features']);
-  return _features_restore('disable', $items);
-}
-
-/**
- * Wrapper around _features_restore().
- */
-function features_enable_feature($module) {
-  $feature = feature_load($module);
-  $items[$module] = array_keys($feature->info['features']);
-  return _features_restore('enable', $items);
 }
 
 /**
