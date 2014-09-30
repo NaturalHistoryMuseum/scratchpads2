@@ -7,7 +7,7 @@ function dwcarchiver_dwcarchiver_archives(){
   // Get all of the "taxonomy" vocabularies, and create an archive for each.
   // Note, we may want to be able to allow multiple vocabularies for a single
   // archive.
-  $bio_vids = variable_get('biological_vids');
+  $bio_vids = variable_get('biological_vids', array());
   $archives = array();
   // Get the site license URL
   $jurisdiction = variable_get('creative_commons_block_jurisdiction', '');
