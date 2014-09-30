@@ -159,6 +159,25 @@ function taverna_permission(){
 }
 
 /**
+ * Implements hook_scratchpads_default_permissions()
+ */
+function taverna_scratchpads_default_permissions(){
+  $perms = array(
+    'maintainer' => array(
+      'administer taverna'
+    ),
+    'editor' => array(),
+    'contributor' => array()
+  );
+  foreach(TavernaService::get_run_types() as $key => $run_type){
+    $perms['contributor'][] = "create taverna $key content";
+    $perms['contributor'][] = "delete own taverna $key content";
+    $perms['editor'][] = "delete any taverna $key content";
+  }
+  return $perms;
+}
+
+/**
  * Implements hook_forms().
  */
 function taverna_forms($form_id, $args){
