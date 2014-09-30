@@ -16,7 +16,7 @@ class TavernaService{
 
   private $parameters = array();
 
-  private static $service = 'https://dev.at.biovel.eu/';
+  private static $service = 'https://portal.biovel.eu/';
 
   /**
    * Standard constructor for the TavernaService class.  A user should pass either
