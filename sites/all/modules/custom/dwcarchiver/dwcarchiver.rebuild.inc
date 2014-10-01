@@ -50,8 +50,14 @@ function dwcarchiver_rebuild($dwcarchiver, $deliver = TRUE){
  */
 function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
   // Firstly, we start with the XML file.
-  $archive = new SimpleXMLElement('<archive/>');
-  $archive->addAttribute('xmlns', 'http://rs.tdwg.org/dwc/text/');
+  // No elegant way of adding namespaces to SimpleXMLElement elements, so we
+  // simply read in the namespaces from a string.
+  // Note, this is possible using DOMDocument!
+  $archive = new SimpleXMLElement('<archive
+    xmlns="http://rs.tdwg.org/dwc/text/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://rs.tdwg.org/dwc/text/ http://rs.tdwg.org/dwc/text/tdwg_dwc_text.xsd"/>');
+  //$archive->addAttribute('xmlns', 'http://rs.tdwg.org/dwc/text/');
   $core = $archive->addChild('core');
   _dwcarchiver_add_default_attributes($core);
   $core->addAttribute('rowType', $dwcarchiver->rowtype);
@@ -209,9 +215,19 @@ function _dwcarchiver_join_from_field($field, SelectQuery $query, $info, $entity
 function _dwcarchiver_write_xml_for_fields(SimpleXMLElement $element, $fields, $is_core = FALSE){
   $index = 0;
   foreach($fields as $field){
-    $field_element = $element->addChild('field');
+    $field_element = 'field';
+    if($field->uri == 'coreid'){
+      if($is_core){
+        $field_element = 'id';
+      }else{
+        $field_element = 'coreid';
+      }
+    }
+    $field_element = $element->addChild($field_element);
     $field_element->addAttribute('index', $index);
-    $field_element->addAttribute('term', $field->uri);
+    if($field->uri != 'coreid'){
+      $field_element->addAttribute('term', $field->uri);
+    }
     $index++;
   }
 }
