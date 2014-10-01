@@ -81,7 +81,7 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
       )));
     }
   }
-  $zip->addFromString('meta.xml', $archive->saveXML());
+  $zip->addFromString(variable_get('dwcarchiver_folder_name', 'dwca') . '/meta.xml', $archive->saveXML());
 }
 
 /**
