@@ -7,7 +7,7 @@ function dwcarchiver_dwcarchiver_archives(){
   // Get all of the "taxonomy" vocabularies, and create an archive for each.
   // Note, we may want to be able to allow multiple vocabularies for a single
   // archive.
-  $bio_vids = variable_get('biological_vids', array());
+  $bio_vids = variable_get('biological_vids');
   $archives = array();
   // Get the site license URL
   $jurisdiction = variable_get('creative_commons_block_jurisdiction', '');
@@ -703,6 +703,12 @@ function dwcarchiver_dwcarchiver_archives(){
                   'uri' => 'http://purl.org/dc/terms/rights',
                   'required' => 0,
                   'processor' => 'dwcarchiver_creative_commons_url'
+                ),
+                array(
+                  'field' => 'field_creator',
+                  'uri' => 'http://ns.adobe.com/xap/1.0/rights/Owner',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
                 )
               )
             )
