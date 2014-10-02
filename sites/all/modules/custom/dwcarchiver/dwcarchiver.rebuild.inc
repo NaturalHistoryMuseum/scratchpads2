@@ -239,6 +239,7 @@ function _dwcarchiver_add_default_attributes(SimpleXMLElement $element){
   // encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://rs.tdwg.org/dwc/terms/Taxon"
   $element->addAttribute('encoding', 'UTF-8');
   $element->addAttribute('linesTerminatedBy', '\n');
+  $element->addAttribute('fieldsTerminatedBy', ',');
   $element->addAttribute('fieldsEnclosedBy', '"');
   $element->addAttribute('ignoreHeaderLines', 0);
 }
