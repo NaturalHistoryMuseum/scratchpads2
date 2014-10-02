@@ -35,7 +35,11 @@ function dwcarchiver_rebuild($dwcarchiver, $deliver = TRUE){
     }
   }
   catch(Exception $e){
-    drupal_set_message(t('<strong>Unable to rebuild the archive. Please send the following error message to the Scratchpads team:</strong><p>@errormessage</p><pre>@errortrace</pre>', array(
+    $function = 'drupsl_set_message';
+    if(function_exists('drush_log')){
+      $function = 'drush_log';
+    }
+    $function(t('<strong>Unable to rebuild the archive. Please send the following error message to the Scratchpads team:</strong><p>@errormessage</p><pre>@errortrace</pre>', array(
       '@errormessage' => $e->getMessage(),
       '@errortrace' => (!empty($e->query_string) ? $e->query_string . "\n" : '') . $e->getTraceAsString()
     )), 'error');

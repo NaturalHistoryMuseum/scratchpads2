@@ -323,7 +323,8 @@ function dwcarchiver_processor_dwcarchiver_biblio(SelectQuery $query, $field, $e
  */
 function dwcarchiver_processor_dwcarchiver_biblio_join_biblio($query, $map_id, $table){
   static $joined_biblio = FALSE;
-  if(!$joined_biblio){
+  if(!$query->hasTag('biblio_joined')){
+    $query->addTag('biblio_joined');
     $joined_biblio = $query->leftJoin('biblio', "table_{$map_id}", "{$table}.vid = table_{$map_id}.vid");
   }
   return $joined_biblio;
