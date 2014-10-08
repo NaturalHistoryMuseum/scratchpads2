@@ -271,7 +271,7 @@ class TavernaService{
         )
       ));
       $types = array();
-      $json = @file_get_contents(self::$service . 'workflows' . ($limit ? 'visibility=' . $limit : ''), FALSE, $context);
+      $json = @file_get_contents(self::$service . 'workflows' . ($limit ? '?visibility=' . $limit : ''), FALSE, $context);
       if($json){
         $types = json_decode($json, TRUE);
         foreach($types as $key => $type){
