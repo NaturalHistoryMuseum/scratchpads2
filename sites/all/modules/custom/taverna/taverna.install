@@ -48,7 +48,7 @@ function taverna_schema(){
         'type' => array(
           'description' => 'The type of this taverna run.',
           'type' => 'varchar',
-          'length' => 32,
+          'length' => 64,
           'not null' => TRUE,
           'default' => ''
         ),
@@ -70,4 +70,12 @@ function taverna_schema(){
       )
     )
   );
+}
+
+/**
+ * Increase the length of the type column
+ */
+function taverna_update_7001(){
+  $spec = taverna_schema();
+  db_change_field('taverna', 'type', 'type', $spec['taverna']['fields']['type']);
 }
