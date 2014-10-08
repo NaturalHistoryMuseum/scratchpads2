@@ -62,7 +62,7 @@ function taverna_delete_confirm_submit($form, &$form_state){
  * Returns an taverna submission form.
  */
 function taverna_add($type){
-  $types = TavernaService::get_run_types();
+  $types = TavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE));
   global $user;
   $taverna = (object)array(
     'uid' => $user->uid,
@@ -183,7 +183,7 @@ function taverna_admin_runs(){
   // Prepare the list of tavernas.
   $destination = drupal_get_destination();
   $options = array();
-  $run_types = tavernaService::get_run_types();
+  $run_types = tavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE));
   foreach($tavernas as $taverna){
     $options[$taverna->tvid] = array(
       'title' => array(

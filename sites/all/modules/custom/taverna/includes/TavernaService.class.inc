@@ -252,7 +252,7 @@ class TavernaService{
    * Simple function to return an array of run types as returned from the Taverna
    * service.
    */
-  static function get_run_types($type_to_return = FALSE, $reset = FALSE){
+  static function get_run_types($type_to_return = FALSE, $limit = FALSE, $reset = FALSE){
     $types = array();
     if(!$reset){
       $data = cache_get('taverna_run_types', 'cache_taverna');
@@ -271,7 +271,7 @@ class TavernaService{
         )
       ));
       $types = array();
-      $json = @file_get_contents(self::$service . 'workflows', FALSE, $context);
+      $json = @file_get_contents(self::$service . 'workflows' . ($limit ? 'visibility=' . $limit : ''), FALSE, $context);
       if($json){
         $types = json_decode($json, TRUE);
         foreach($types as $key => $type){

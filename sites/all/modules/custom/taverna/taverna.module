@@ -105,7 +105,7 @@ function taverna_menu(){
       'file' => 'taverna.pages.inc'
     )
   );
-  foreach(TavernaService::get_run_types() as $key => $run_type){
+  foreach(TavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE)) as $key => $run_type){
     $menu['taverna/add/' . $key] = array(
       'title' => $run_type['title'],
       'description' => isset($run_type['description']) ? $run_type['description'] : '',
@@ -136,7 +136,7 @@ function taverna_permission(){
       'title' => t('Administer Taverna')
     )
   );
-  foreach(TavernaService::get_run_types() as $key => $run_type){
+  foreach(TavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE)) as $key => $run_type){
     $perms += array(
       "create taverna $key content" => array(
         'title' => t('%type_name: Create new content', array(
@@ -169,7 +169,7 @@ function taverna_scratchpads_default_permissions(){
     'editor' => array(),
     'contributor' => array()
   );
-  foreach(TavernaService::get_run_types() as $key => $run_type){
+  foreach(TavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE)) as $key => $run_type){
     $perms['contributor'][] = "create taverna $key content";
     $perms['contributor'][] = "delete own taverna $key content";
     $perms['editor'][] = "delete any taverna $key content";
@@ -182,7 +182,7 @@ function taverna_scratchpads_default_permissions(){
  */
 function taverna_forms($form_id, $args){
   $forms = array();
-  foreach(TavernaService::get_run_types() as $key => $run_type){
+  foreach(TavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE)) as $key => $run_type){
     $forms[$key . '_taverna_form'] = array(
       'callback' => 'taverna_run_form' // Note, we don't use taverna_form here due to it being a hook name.
     );
@@ -483,7 +483,7 @@ function taverna_entity_info(){
     )
   );
   // Add the Taverna services
-  foreach(TavernaService::get_run_types() as $key => $run_type){
+  foreach(TavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE)) as $key => $run_type){
     $info['taverna']['bundles'][$key] = array(
       'label' => $run_type['title'],
       'description' => ''
@@ -497,7 +497,7 @@ function taverna_entity_info(){
  */
 function taverna_access($op = 'view', $type = FALSE, $entity_id = FALSE){
   if(user_access('administer taverna')){return TRUE;}
-  foreach(TavernaService::get_run_types() as $key => $run_type){
+  foreach(TavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE)) as $key => $run_type){
     if(user_access("create taverna $key content")){return TRUE;}
   }
   return FALSE;
