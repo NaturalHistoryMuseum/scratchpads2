@@ -18,6 +18,92 @@ function taverna_overlay_page($tid){
 }
 
 /**
+ * Menu callback.
+ * 
+ * View the output of a run.  Note, this only works with specific run types.  If
+ * the type is unknown, we display an error message.
+ */
+function taverna_page_view_output($taverna){
+  // If there is a menu link to this taverna, the link becomes the last part
+  // of the active trail, and the link name becomes the page title.
+  // Thus, we must explicitly set the page title to be the taverna title.
+  drupal_set_title("Output for: {$taverna->label}");
+  // Set the breadcrumb to include /admin/services in the trail.
+  $bc = drupal_get_breadcrumb();
+  $bc[] = l(t('Services'), 'admin/services');
+  drupal_set_breadcrumb($bc);
+  switch($taverna->type){
+    case 'killerwhaledemography(scratchpad)':
+      if($taverna->fid){
+        @drupal_mkdir('public://taverna');
+        @drupal_mkdir('public://taverna/' . $taverna->tvid);
+        $file = file_load($taverna->fid);
+        $zip = new ZipArchive();
+        if($zip->open(drupal_realpath($file->uri))){
+          if($zip->extractTo(drupal_realpath('public://taverna/' . $taverna->tvid . '/'))){
+            $zip->close();
+            $zip = new ZipArchive();
+            $zip->open(drupal_realpath('public://taverna/' . $taverna->tvid . '/zipFile.zip'));
+            if($zip->extractTo(drupal_realpath('public://taverna/' . $taverna->tvid . '/'))){
+              drupal_unlink('public://taverna/' . $taverna->tvid . '/zipFile.zip');
+              $content = array();
+              foreach(scandir('public://taverna/' . $taverna->tvid . '/') as $file){
+                if(strlen($file) > 2){
+                  $file_extension = explode('.', $file);
+                  switch($file_extension[1]){
+                    default:
+                    case 'pdf':
+                      $content[] = array(
+                        '#markup' => '<h2>' . $file . '</h2><p><a href="' . file_create_url('public://taverna/' . $taverna->tvid . '/' . $file) . '">Download PDF file</a>'
+                      );
+                      break;
+                    case 'csv':
+                      $f = fopen('public://taverna/' . $taverna->tvid . '/' . $file, 'r');
+                      $header = fgetcsv($f);
+                      if(count($header) > 100){
+                        $content[] = array(
+                          '#markup' => '<h2>' . $file . '</h2><p>Too big to display, please <a href="' . file_create_url('public://taverna/' . $taverna->tvid . '/' . $file) . '">download CSV file</a>.'
+                        );
+                      }else{
+                        $rows = array();
+                        while(($row = fgetcsv($f)) != FALSE){
+                          $rows[] = $row;
+                        }
+                        $content[] = array(
+                          'title' => array(
+                            '#markup' => '<h2>' . $file . '</h2>'
+                          ),
+                          array(
+                            '#theme' => 'table',
+                            '#rows' => $rows,
+                            '#header' => $header
+                          )
+                        );
+                      }
+                      break;
+                    case 'txt':
+                      $content[] = array(
+                        '#markup' => '<h2>' . $file . '</h2><div style="border:solid 1px grey; background-color:#eee;padding:10px;margin-bottom:15px"><p>' . check_plain(file_get_contents('public://taverna/' . $taverna->tvid . '/' . $file)) . '</p></div>'
+                      );
+                      break;
+                    case 'png':
+                      $content[] = array(
+                        '#markup' => '<h2>' . $file . '</h2><p><img src="' . file_create_url('public://taverna/' . $taverna->tvid . '/' . $file) . '"/></p>'
+                      );
+                      break;
+                  }
+                }
+              }
+              return $content;
+            }
+          }
+        }
+      }
+      break;
+  }
+}
+
+/**
  * Menu callback. 
  */
 function taverna_add_run(){

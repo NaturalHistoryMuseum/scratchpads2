@@ -55,6 +55,24 @@ function taverna_menu(){
       'type' => MENU_DEFAULT_LOCAL_TASK,
       'weight' => -10
     ),
+    'taverna/%taverna/output' => array(
+      'title' => 'Output',
+      'page callback' => 'taverna_page_view_output',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => 'taverna_entity_access',
+      'access arguments' => array(
+        'view output',
+        FALSE,
+        1,
+        FALSE
+      ),
+      'weight' => 1,
+      'type' => MENU_LOCAL_TASK,
+      'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+      'file' => 'taverna.pages.inc'
+    ),
     'taverna/%taverna/getinteraction' => array(
       'title' => 'Taverna interaction loader',
       'page callback' => 'taverna_interaction_getinteraction',
@@ -99,7 +117,7 @@ function taverna_menu(){
         1,
         FALSE
       ),
-      'weight' => 1,
+      'weight' => 2,
       'type' => MENU_LOCAL_TASK,
       'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
       'file' => 'taverna.pages.inc'
@@ -125,6 +143,13 @@ function taverna_menu(){
     );
   }
   return $menu;
+}
+
+/**
+ * Page title stuff.
+ */
+function taverna_page_title($taverna){
+  return $taverna->label;
 }
 
 /**
@@ -504,10 +529,26 @@ function taverna_access($op = 'view', $type = FALSE, $entity_id = FALSE){
 }
 
 /**
+ * An array of taverna types that we can display.
+ */
+function taverna_types_we_can_display(){
+  $types = array(
+    'killerwhaledemography(scratchpad)'
+  );
+  drupal_alter('taverna_types_we_can_display', $types);
+  $types = drupal_map_assoc($types);
+  return $types;
+}
+
+/**
  * Entity access callback
  */
 function taverna_entity_access($op, $entity_type, $entity = NULL, $account = NULL){
   switch($op){
+    case 'view output':
+      $types_we_can_display = taverna_types_we_can_display();
+      if($entity->data['state'] != 'finished' || !isset($types_we_can_display[$entity->type])){return FALSE;}
+    // We then slip through to the "view" operation, as it's the same perm!
     case 'view':
       return user_access('access content');
     case 'update':
