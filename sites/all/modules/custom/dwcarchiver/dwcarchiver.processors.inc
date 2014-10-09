@@ -15,6 +15,31 @@ function dwcarchiver_processor_dwcarchiver_raw_text(SelectQuery $query, $field, 
 }
 
 /**
+ * Similar to the above processor, but this concatenates a value to it.
+ * 
+ */
+function dwcarchiver_processor_dwcarchiver_raw_text_concatenate_value_after(SelectQuery $query, $field, $entity_type, $map_id, $map, $table = 'base'){
+  $concat_items = array();
+  $field_info = field_info_field($field);
+  if($field_info){
+    $entity_info = entity_get_info($entity_type);
+    _dwcarchiver_processor_join_field_table($query, $field, $entity_type, $map_id, $map, $table);
+    $concat_items[] = "table_{$map_id}.{$field}_value";
+  }else{
+    $concat_items[] = "{$table}.{$field}";
+  }
+  if(isset($map->value)){
+    $concat_items[] = "'{$map->value}'";
+  }else{
+    $value = db_select('dwcarchiver_value', 'd')->fields('d', array(
+      'value'
+    ))->condition('eid', $map->eid)->condition('did', $map->did)->condition('delta', $map->delta)->condition('field', $map->field)->execute()->fetchField();
+    $concat_items[] = "'$value'";
+  }
+  $query->addExpression('CONCAT(' . implode(',', $concat_items) . ')');
+}
+
+/**
  * Special processor (takes different args) for mapping back to the core 
  * entity.
  */
