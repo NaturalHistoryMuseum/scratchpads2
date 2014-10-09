@@ -48,10 +48,19 @@ function dwcarchiver_dwcarchiver_archives(){
       break;
   }
   // We create the description extension first, as it is a little special.
-  $description_extension = array(
+  $description_extension_gbif = array(
     'name' => 'Description',
     'machine_name' => 'description',
     'rowtype' => 'http://rs.gbif.org/terms/1.0/Description',
+    'entity' => 'node',
+    'bundle' => 'spm',
+    'field_name' => 'field_taxonomic_name',
+    'maps' => array()
+  );
+  $description_extension_eol = array(
+    'name' => 'Description',
+    'machine_name' => 'description',
+    'rowtype' => 'http://eol.org/schema/media/Document',
     'entity' => 'node',
     'bundle' => 'spm',
     'field_name' => 'field_taxonomic_name',
@@ -102,7 +111,7 @@ function dwcarchiver_dwcarchiver_archives(){
     'trophic_strategy',
     'uses'
   ) as $field){
-    $description_extension['maps'][] = array(
+    $description_extension_gbif['maps'][] = array(
       array(
         'field' => 'uuid',
         'uri' => 'coreid',
@@ -148,10 +157,63 @@ function dwcarchiver_dwcarchiver_archives(){
         'processor' => 'dwcarchiver_raw_text'
       )
     );
+    $description_extension_eol['maps'][] = array(
+      array(
+        'field' => 'uuid',
+        'uri' => 'coreid',
+        'required' => 0,
+        'processor' => 'dwcarchiver_raw_text'
+      ),
+      array(
+        'field' => 'dwcarchiver_text_entry_0',
+        'uri' => 'http://purl.org/dc/terms/type',
+        'required' => 0,
+        'processor' => 'dwcarchiver_value',
+        'value' => (isset($replacements[$field]) ? $replacements[$field] : $field)
+      ),
+      array(
+        'field' => 'content_url',
+        'uri' => 'http://purl.org/dc/terms/source',
+        'required' => 0,
+        'processor' => 'dwcarchiver_content_url'
+      ),
+      array(
+        'field' => 'dwcarchiver_text_entry_1',
+        'uri' => 'http://ns.adobe.com/xap/1.0/rights/UsageTerms',
+        'required' => 0,
+        'processor' => 'dwcarchiver_value',
+        'value' => $url
+      ),
+      array(
+        'field' => 'content_language',
+        'uri' => 'http://purl.org/dc/terms/language',
+        'required' => 0,
+        'processor' => 'dwcarchiver_content_language'
+      ),
+      array(
+        'field' => 'uuid',
+        'uri' => 'http://purl.org/dc/terms/identifier',
+        'required' => 0,
+        'processor' => 'dwcarchiver_raw_text'
+      ),
+      array(
+        'field' => 'field_' . $field,
+        'uri' => 'http://purl.org/dc/terms/description',
+        'required' => '1',
+        'processor' => 'dwcarchiver_raw_text'
+      )
+    );
   }
   foreach($bio_vids as $vid => $type){
     if($type){
       $vocabulary = taxonomy_vocabulary_load($vid);
+      //
+      //
+      //
+      // -- GBIF ---------------------------------------------------------------
+      //
+      //
+      //
       $archives[] = array(
         'name' => 'GBIF DwCA',
         'machine_name' => 'gbif-dwca',
@@ -369,7 +431,7 @@ function dwcarchiver_dwcarchiver_archives(){
               )
             )
           ),
-          $description_extension,
+          $description_extension_gbif,
           array(
             'name' => 'Vernacular Names',
             'machine_name' => 'vernacularnames',
@@ -478,6 +540,13 @@ function dwcarchiver_dwcarchiver_archives(){
           )
         )
       );
+      //
+      //
+      //
+      // -- EOL ----------------------------------------------------------------
+      //
+      //
+      //
       $archives[] = array(
         'name' => 'EOL DwCA',
         'machine_name' => 'eol-dwca',
@@ -744,6 +813,7 @@ function dwcarchiver_dwcarchiver_archives(){
             )
           ),
           $description_extension,
+          $description_extension_eol,
           array(
             'name' => 'Vernacular Names',
             'machine_name' => 'vernacularnames',
