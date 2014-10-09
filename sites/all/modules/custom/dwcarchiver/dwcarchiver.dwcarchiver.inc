@@ -66,7 +66,7 @@ function dwcarchiver_dwcarchiver_archives(){
     'field_name' => 'field_taxonomic_name',
     'maps' => array()
   );
-  $replacements = array(
+  $gbif_replacements = array(
     'general_description' => 'general',
     'behavious' => 'behaviour',
     'conservation_status' => 'conservation',
@@ -75,6 +75,9 @@ function dwcarchiver_dwcarchiver_archives(){
     'life_expectancy' => 'lifespan',
     'population_biology' => 'population',
     'uses' => 'use'
+  );
+  $eol_replacements = array(
+    'behavious' => 'behaviour'
   );
   foreach(array(
     'general_description',
@@ -119,11 +122,11 @@ function dwcarchiver_dwcarchiver_archives(){
         'processor' => 'dwcarchiver_raw_text'
       ),
       array(
-        'field' => 'dwcarchiver_text_entry_0',
+        'field' => 'dwcarchiver_text_entry',
         'uri' => 'http://purl.org/dc/terms/type',
         'required' => 0,
         'processor' => 'dwcarchiver_value',
-        'value' => (isset($replacements[$field]) ? $replacements[$field] : $field)
+        'value' => (isset($gbif_replacements[$field]) ? $gbif_replacements[$field] : $field)
       ),
       array(
         'field' => 'content_url',
@@ -132,7 +135,7 @@ function dwcarchiver_dwcarchiver_archives(){
         'processor' => 'dwcarchiver_content_url'
       ),
       array(
-        'field' => 'dwcarchiver_text_entry_1',
+        'field' => 'dwcarchiver_text_entry',
         'uri' => 'http://purl.org/dc/terms/license',
         'required' => 0,
         'processor' => 'dwcarchiver_value',
@@ -165,20 +168,61 @@ function dwcarchiver_dwcarchiver_archives(){
         'processor' => 'dwcarchiver_raw_text'
       ),
       array(
-        'field' => 'dwcarchiver_text_entry_0',
+        'field' => 'uuid',
+        'uri' => 'http://purl.org/dc/terms/identifier',
+        'required' => 0,
+        'processor' => 'dwcarchiver_raw_text_concatenate_value_after',
+        'value' => '#' . $field
+      ),
+      array(
+        'field' => 'dwcarchiver_text_entry',
         'uri' => 'http://purl.org/dc/terms/type',
         'required' => 0,
         'processor' => 'dwcarchiver_value',
-        'value' => (isset($replacements[$field]) ? $replacements[$field] : $field)
+        'value' => 'http://purl.org/dc/dcmitype/Text'
+      ),
+      array(
+        'field' => 'dwcarchiver_text_entry',
+        'uri' => 'http://rs.tdwg.org/audubon_core/subtype',
+        'required' => 0,
+        'processor' => 'dwcarchiver_value',
+        'value' => ''
+      ),
+      array(
+        'field' => 'dwcarchiver_text_entry',
+        'uri' => 'http://purl.org/dc/terms/format',
+        'required' => 0,
+        'processor' => 'dwcarchiver_value',
+        'value' => 'text/html'
+      ),
+      array(
+        'field' => 'dwcarchiver_text_entry',
+        'uri' => 'http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/CVterm',
+        'required' => 0,
+        'processor' => 'dwcarchiver_value',
+        'value' => 'http://rs.tdwg.org/ontology/voc/SPMInfoItems#' . str_replace('_', '', (isset($eol_replacements[$field]) ? $eol_replacements[$field] : $field))
+      ),
+      array(
+        'field' => 'dwcarchiver_text_entry',
+        'uri' => 'http://purl.org/dc/terms/title',
+        'required' => 0,
+        'processor' => 'dwcarchiver_value',
+        'value' => ''
+      ),
+      array(
+        'field' => 'field_' . $field,
+        'uri' => 'http://purl.org/dc/terms/description',
+        'required' => '1',
+        'processor' => 'dwcarchiver_raw_text'
       ),
       array(
         'field' => 'content_url',
-        'uri' => 'http://purl.org/dc/terms/source',
+        'uri' => 'http://rs.tdwg.org/ac/terms/furtherInformationURL',
         'required' => 0,
         'processor' => 'dwcarchiver_content_url'
       ),
       array(
-        'field' => 'dwcarchiver_text_entry_1',
+        'field' => 'dwcarchiver_text_entry',
         'uri' => 'http://ns.adobe.com/xap/1.0/rights/UsageTerms',
         'required' => 0,
         'processor' => 'dwcarchiver_value',
@@ -189,18 +233,6 @@ function dwcarchiver_dwcarchiver_archives(){
         'uri' => 'http://purl.org/dc/terms/language',
         'required' => 0,
         'processor' => 'dwcarchiver_content_language'
-      ),
-      array(
-        'field' => 'uuid',
-        'uri' => 'http://purl.org/dc/terms/identifier',
-        'required' => 0,
-        'processor' => 'dwcarchiver_raw_text'
-      ),
-      array(
-        'field' => 'field_' . $field,
-        'uri' => 'http://purl.org/dc/terms/description',
-        'required' => '1',
-        'processor' => 'dwcarchiver_raw_text'
       )
     );
   }
@@ -660,7 +692,7 @@ function dwcarchiver_dwcarchiver_archives(){
                   'processor' => 'dwcarchiver_raw_text'
                 ),
                 array(
-                  'field' => 'dwcarchiver_text_entry_0',
+                  'field' => 'dwcarchiver_text_entry',
                   'uri' => 'http://ns.adobe.com/xap/1.0/rights/UsageTerms',
                   'required' => 0,
                   'processor' => 'dwcarchiver_value',
@@ -679,10 +711,11 @@ function dwcarchiver_dwcarchiver_archives(){
                   'processor' => 'dwcarchiver_mime_to_dcmitype'
                 ),
                 array(
-                  'field' => 'field_imaging_technique:name',
+                  'field' => 'dwcarchiver_text_entry',
                   'uri' => 'http://rs.tdwg.org/audubon_core/subtype',
                   'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
+                  'processor' => 'dwcarchiver_value',
+                  'value' => ''
                 ),
                 array(
                   'field' => 'filemime',
