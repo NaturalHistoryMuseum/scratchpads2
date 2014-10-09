@@ -555,60 +555,6 @@ function dwcarchiver_dwcarchiver_archives(){
         'rowtype' => 'http://rs.tdwg.org/dwc/terms/Taxon',
         'extensions' => array(
           array(
-            'name' => 'Specimen',
-            'machine_name' => 'specimen',
-            'rowtype' => 'http://rs.gbif.org/terms/1.0/TypesAndSpecimen',
-            'entity' => 'node',
-            'bundle' => 'specimen_observation',
-            'field_name' => 'field_taxonomic_name',
-            'maps' => array(
-              array(
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'coreid',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_type_status',
-                  'uri' => 'http://rs.tdwg.org/dwc/terms/typeStatus',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_institution_code',
-                  'uri' => 'http://rs.tdwg.org/dwc/terms/institutionCode',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_location:field_map',
-                  'uri' => 'http://rs.tdwg.org/dwc/terms/decimalLongitude',
-                  'required' => 0,
-                  'processor' => 'gm3_longitude'
-                ),
-                array(
-                  'field' => 'field_location:field_map',
-                  'uri' => 'http://rs.tdwg.org/dwc/terms/decimalLatitude',
-                  'required' => 0,
-                  'processor' => 'gm3_latitude'
-                ),
-                array(
-                  'field' => 'field_collection_code',
-                  'uri' => 'http://rs.tdwg.org/dwc/terms/collectionCode',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_catalogue_number',
-                  'uri' => 'http://rs.tdwg.org/dwc/terms/catalogNumber',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                )
-              )
-            )
-          ),
-          array(
             'name' => 'Reference',
             'machine_name' => 'reference',
             'rowtype' => 'http://eol.org/schema/reference/Reference',
@@ -782,37 +728,6 @@ function dwcarchiver_dwcarchiver_archives(){
               )
             )
           ),
-          array(
-            'name' => 'Distribution',
-            'machine_name' => 'distribution',
-            'rowtype' => 'http://rs.gbif.org/terms/1.0/Distribution',
-            'entity' => 'node',
-            'bundle' => 'specimen_observation',
-            'field_name' => 'field_taxonomic_name',
-            'maps' => array(
-              array(
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'coreid',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'http://purl.org/dc/terms/identifier',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'content_url',
-                  'uri' => 'http://rs.tdwg.org/dwc/terms/locationID',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_content_url'
-                )
-              )
-            )
-          ),
-          $description_extension,
           $description_extension_eol,
           array(
             'name' => 'Vernacular Names',
