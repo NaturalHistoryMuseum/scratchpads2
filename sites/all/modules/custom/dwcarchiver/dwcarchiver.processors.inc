@@ -79,7 +79,7 @@ function dwcarchiver_processor_core_map($archive_or_extension, $dwcarchiver, Sel
 /**
  * Convert a Mime type to DCMI Type
  */
-function dwcarchiver_processor_dwcarchiver_mime_to_dcmitype(SelectQuery $query, $field, $entity_info, $map_id, $map, $table){
+function dwcarchiver_processor_dwcarchiver_mime_to_dcmitype(SelectQuery $query, $field, $entity_type, $map_id, $map, $table){
   $field_info = field_info_field($field);
   if($field_info){
     _dwcarchiver_processor_join_field_table($query, $field, $entity_type, $map_id, $map, $table);
@@ -97,9 +97,10 @@ function dwcarchiver_processor_dwcarchiver_mime_to_dcmitype(SelectQuery $query, 
   // http://purl.org/dc/dcmitype/Software
   // http://purl.org/dc/dcmitype/StillImage
   $mimes = array(
-    'application/%' => 'http://purl.org/dc/dcmitype/Dataset',
+    'application/%' => '
+  http://purl.org/dc/dcmitype/Dataset',
     'audio/%' => 'http://purl.org/dc/dcmitype/Sound',
-    'image/%' => 'http://purl.org/dc/dcmitype/Image',
+    'image/%' => 'http://purl.org/dc/dcmitype/StillImage',
     'text/%' => 'http://purl.org/dc/dcmitype/Text',
     'video/%' => 'http://purl.org/dc/dcmitype/MovingImage'
   );
