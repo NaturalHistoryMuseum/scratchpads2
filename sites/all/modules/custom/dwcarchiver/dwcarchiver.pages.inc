@@ -242,7 +242,7 @@ function dwcarchiver_deliver_archive($machine_name){
   $filename = 'public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip';
   if(file_exists($filename)){
     // Set headers.
-    header('Content-type: application/octet-stream');
+    header('Content-type: application/zip');
     header('Content-Disposition: attachment; filename="' . $dwcarchiver->machine_name . '.zip"');
     readfile($filename);
   }else{
