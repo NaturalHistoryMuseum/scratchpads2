@@ -66,7 +66,7 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
   _dwcarchiver_add_default_attributes($core);
   $core->addAttribute('rowType', $dwcarchiver->rowtype);
   $files = $core->addChild('files');
-  $files->addChild('location', $dwcarchiver->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt'));
+  $files->addChild('location', $dwcarchiver->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'csv'));
   _dwcarchiver_write_xml_for_fields($core, $dwcarchiver->maps[0], TRUE);
   // Write the data for the core to the archive.
   _dwcarchiver_create_and_add_data_file($dwcarchiver, $dwcarchiver, $zip);
@@ -78,7 +78,7 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
   foreach($dwcarchiver->extensions as $extension){
     $extension_element = $archive->addChild('extension');
     $files = $extension_element->addChild('files');
-    $files->addChild('location', $extension->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt'));
+    $files->addChild('location', $extension->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'csv'));
     _dwcarchiver_add_default_attributes($extension_element);
     $extension_element->addAttribute('rowType', $extension->rowtype);
     _dwcarchiver_write_xml_for_fields($extension_element, $extension->maps[0]);
@@ -161,7 +161,7 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
     }
   }
   if($zip){
-    $zip->addFile($csv_filename, variable_get('dwcarchiver_folder_name', 'dwca') . '/' . $archive_or_extension->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'txt'));
+    $zip->addFile($csv_filename, variable_get('dwcarchiver_folder_name', 'dwca') . '/' . $archive_or_extension->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'csv'));
     $zip_filename = $zip->filename;
     $zip->close();
     unlink($csv_filename);
