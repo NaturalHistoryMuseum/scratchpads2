@@ -160,6 +160,15 @@ function dwcarchiver_processor_dwcarchiver_date_from(SelectQuery $query, $field,
 /**
  * 
  */
+function dwcarchiver_processor_dwcarchiver_link(SelectQuery $query, $field, $entity_type, $map_id, $map, $table = 'base'){
+  $entity_info = entity_get_info($entity_type);
+  _dwcarchiver_processor_join_field_table($query, $field, $entity_type, $map_id, $map, $table);
+  $query->addExpression("table_{$map_id}.{$field}_url");
+}
+
+/**
+ * 
+ */
 function dwcarchiver_processor_dwcarchiver_date_to(SelectQuery $query, $field, $entity_type, $map_id, $map, $table = 'base'){
   $entity_info = entity_get_info($entity_type);
   _dwcarchiver_processor_join_field_table($query, $field, $entity_type, $map_id, $map, $table);

@@ -497,6 +497,15 @@ function dwcarchiver_dwcarchiver_processors_alter(&$processors){
       'list_text'
     )
   );
+  $processors['dwcarchiver_link'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_link',
+    'label' => t('Link URL'),
+    'field types' => array(
+      'link_field'
+    )
+  );
   $processors['dwcarchiver_list'] = array(
     'module' => 'dwcarchiver',
     'file' => 'dwcarchiver.processors.inc',
