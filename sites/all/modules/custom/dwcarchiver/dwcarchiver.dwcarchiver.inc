@@ -175,6 +175,12 @@ function dwcarchiver_dwcarchiver_archives(){
         'value' => '#' . $field
       ),
       array(
+        'field' => 'user:uuid',
+        'uri' => 'http://eol.org/schema/agent/agentID',
+        'required' => 1,
+        'processor' => 'dwcarchiver_raw_text'
+      ),
+      array(
         'field' => 'dwcarchiver_text_entry',
         'uri' => 'http://purl.org/dc/terms/type',
         'required' => 0,
@@ -618,6 +624,54 @@ function dwcarchiver_dwcarchiver_archives(){
                   'uri' => 'http://eol.org/schema/reference/full_reference',
                   'required' => 0,
                   'processor' => 'dwcarchiver_biblio'
+                )
+              )
+            )
+          ),
+          array(
+            'name' => 'Agents',
+            'machine_name' => 'agents',
+            'rowtype' => 'http://eol.org/schema/agent/Agent',
+            'entity' => 'user',
+            'bundle' => 'user',
+            'field_name' => '',
+            'maps' => array(
+              array(
+                array(
+                  'field' => 'uuid',
+                  'uri' => 'http://purl.org/dc/terms/identifier',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
+                  'field' => 'field_user_given_names',
+                  'uri' => 'http://xmlns.com/foaf/spec/#term_givenName',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
+                  'field' => 'field_user_family_name',
+                  'uri' => 'http://xmlns.com/foaf/spec/#term_familyName',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
+                  'field' => 'field_homepage',
+                  'uri' => 'http://xmlns.com/foaf/spec/#term_homepage',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_link'
+                ),
+                array(
+                  'field' => 'field_user_institution',
+                  'uri' => 'http://eol.org/schema/agent/organization',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
+                  'field' => 'name',
+                  'uri' => 'http://xmlns.com/foaf/spec/#term_accountName',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
                 )
               )
             )

@@ -113,6 +113,10 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
       ))->condition('machine_name', $archive_or_extension->bundle)->execute()->fetchField();
       $base_query->condition('base.vid', $vid);
       break;
+    case 'user':
+      // Prevent returning of Scratchpads Team, and Anonymous
+      $base_query->condition('base.uid', 1, '>');
+      break;
     default:
       $base_query->condition("base.{$info['entity keys']['bundle']}", $archive_or_extension->bundle);
       break;
