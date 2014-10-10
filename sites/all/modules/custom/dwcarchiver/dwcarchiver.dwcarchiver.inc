@@ -875,7 +875,7 @@ function dwcarchiver_dwcarchiver_archives(){
               'processor' => 'dwcarchiver_raw_text'
             ),
             array(
-              'field' => 'field_reference:nid',
+              'field' => 'field_reference:uuid',
               'uri' => 'http://eol.org/schema/media/referenceID',
               'required' => 0,
               'processor' => 'dwcarchiver_raw_text'
