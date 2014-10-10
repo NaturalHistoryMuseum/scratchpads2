@@ -161,7 +161,7 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
     }
     $results = $query->execute();
     while(($row = $results->fetch(PDO::FETCH_ASSOC)) != FALSE){
-      foreach($row as $key => $value){
+      /*foreach($row as $key => $value){
         $row[$key] = str_replace("\r", "", $value);
         // TEMPORARY UNTIL EOL FIX THEIR DwC-A parser.
         //
@@ -170,7 +170,7 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
         // reason, we need to escape the new lines to prevent them from causing
         // issues.
         $row[$key] = str_replace("\n", '\\n', $row[$key]);
-      }
+      }*/
       fputcsv($f, $row, ',', '"');
     }
   }

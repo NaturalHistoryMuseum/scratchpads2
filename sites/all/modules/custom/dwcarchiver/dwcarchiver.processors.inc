@@ -8,9 +8,9 @@ function dwcarchiver_processor_dwcarchiver_raw_text(SelectQuery $query, $field, 
   if($field_info){
     $entity_info = entity_get_info($entity_type);
     _dwcarchiver_processor_join_field_table($query, $field, $entity_type, $map_id, $map, $table);
-    $query->addExpression("table_{$map_id}.{$field}_value");
+    $query->addExpression("REPLACE(REPLACE(table_{$map_id}.{$field}_value, '\r', ''), '\n', '\\n')");
   }else{
-    $query->addExpression("{$table}.{$field}");
+    $query->addExpression("REPLACE(REPLACE({$table}.{$field}, '\r', ''), '\n', '\\n')");
   }
 }
 
