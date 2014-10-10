@@ -755,7 +755,7 @@ function dwcarchiver_dwcarchiver_archives(){
                 ),
                 array(
                   'field' => 'field_cc_licence',
-                  'uri' => 'http://purl.org/dc/terms/rights',
+                  'uri' => 'http://ns.adobe.com/xap/1.0/rights/UsageTerms',
                   'required' => 0,
                   'processor' => 'dwcarchiver_creative_commons_url'
                 ),
