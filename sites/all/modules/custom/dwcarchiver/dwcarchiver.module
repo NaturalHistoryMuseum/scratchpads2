@@ -705,6 +705,7 @@ function taxonomy_dwcarchiver_core_types_alter(&$core_types){
  * Implements hook_entity_insert()
  */
 function dwcarchiver_entity_insert($entity, $type){
+  // Update the flag so that we can rebuild the archive.
   $set_to_rebuild = FALSE;
   if(variable_get('dwcarchiver_rebuild_frequency', 'change') == 'change'){
     switch($type){
@@ -726,6 +727,22 @@ function dwcarchiver_entity_insert($entity, $type){
     ));
     $query->addExpression("'change'");
     variable_set('dwcarchiver_last_cron_run', $query->execute()->fetchAllKeyed());
+  }
+  // If we're updating a biblio node, we update the record in the
+  // dwcarchiver_biblio_citation table.
+  if($type == 'node' && $entity->type == 'biblio'){
+    $style = biblio_get_style();
+    $base = variable_get('biblio_base', 'biblio');
+    $query = db_merge('dwcarchiver_biblio_citation')->key(array(
+      'nid' => $entity->nid
+    ))->fields(array(
+      'nid' => $node->nid,
+      'citation' => strip_tags(theme('biblio_style', array(
+        'node' => $entity,
+        'base' => $base,
+        'style_name' => $style
+      )))
+    ))->execute();
   }
 }
 

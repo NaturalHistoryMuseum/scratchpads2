@@ -235,6 +235,78 @@ function dwcarchiver_schema(){
         'delta',
         'field'
       )
+    ),
+    'dwcarchiver_biblio_citation' => array(
+      'description' => 'Stores the full citation for a biblio node.  We do this so that we do not have to use PHP when building an archive.',
+      'fields' => array(
+        'nid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The {dwcarchiver_extension}.eid of the extension.'
+        ),
+        'citation' => array(
+          'type' => 'text',
+          'size' => 'big',
+          'not null' => FALSE,
+          'description' => 'Serialized array of conditions for this field.'
+        )
+      ),
+      'primary key' => array(
+        'nid'
+      )
     )
   );
+}
+
+/**
+ * Add the dwcarchiver_biblio_citation table.
+ */
+function dwcarchiver_update_7001(){
+  $schema = dwcarchiver_schema();
+  db_create_table('dwcarchiver_biblio_citation', $schema['dwcarchiver_biblio_citation']);
+}
+
+/**
+ * Populate the dwcarchiver_biblio_citation table.
+ */
+function dwcarchiver_update_7002(&$sandbox){
+  if(!isset($sandbox['nids'])){
+    $sandbox['nids'] = db_select('node', 'n')->fields('n', array(
+      'nid'
+    ))->condition('type', 'biblio')->orderBy('nid', 'DESC')->execute()->fetchCol();
+    $sandbox['max'] = count($sandbox['nids']);
+    // If we have no entites or too many (more than 5000), we skip this update.
+    if(!$sandbox['max']){
+      $sandbox['#finished'] = 1;
+      return;
+    }
+  }
+  $i = 0;
+  $nids = array();
+  while($i < 50 && count($sandbox['nids'])){
+    $i++;
+    $nids[] = array_pop($sandbox['nids']);
+  }
+  $nodes = node_load_multiple($nids, array(), FALSE);
+  $style = biblio_get_style();
+  $base = variable_get('biblio_base', 'biblio');
+  $query = db_insert('dwcarchiver_biblio_citation')->fields(array(
+    'nid',
+    'citation'
+  ));
+  foreach($nodes as $node){
+    $query->values(array(
+      'nid' => $node->nid,
+      'citation' => strip_tags(theme('biblio_style', array(
+        'node' => $node,
+        'base' => $base,
+        'style_name' => $style
+      )))
+    ));
+  }
+  $query->execute();
+  drupal_set_message(count($sandbox['nids']) . "/" . $sandbox['max']);
+  $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['nids'])) / $sandbox['max'];
 }
