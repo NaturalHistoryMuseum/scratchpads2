@@ -608,68 +608,14 @@ function dwcarchiver_dwcarchiver_archives(){
                   'processor' => 'dwcarchiver_raw_text'
                 ),
                 array(
-                  'field' => 'biblio_type',
-                  'uri' => 'http://eol.org/schema/reference/publicationType',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_biblio'
-                ),
-                array(
-                  'field' => 'title',
-                  'uri' => 'http://eol.org/schema/reference/primaryTitle',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'biblio_doi',
-                  'uri' => 'http://purl.org/ontology/bibo/doi',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_biblio'
-                ),
-                array(
-                  'field' => 'biblio_pages',
-                  'uri' => 'http://purl.org/ontology/bibo/pages',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_biblio'
-                ),
-                array(
-                  'field' => 'biblio_volume',
-                  'uri' => 'http://purl.org/ontology/bibo/volume',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_biblio'
-                ),
-                array(
-                  'field' => 'biblio_edition',
-                  'uri' => 'http://purl.org/ontology/bibo/edition',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_biblio'
-                ),
-                array(
-                  'field' => 'biblio_publisher',
-                  'uri' => 'http://purl.org/dc/terms/publisher',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_biblio'
-                ),
-                array(
-                  'field' => 'biblio_authors_field',
-                  'uri' => 'http://purl.org/ontology/bibo/authorList',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_biblio'
-                ),
-                array(
-                  'field' => 'content_language',
-                  'uri' => 'http://purl.org/dc/terms/language',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_content_language'
-                ),
-                array(
                   'field' => 'content_url',
                   'uri' => 'http://purl.org/ontology/bibo/uri',
                   'required' => 0,
                   'processor' => 'dwcarchiver_content_url'
                 ),
                 array(
-                  'field' => 'biblio_doi',
-                  'uri' => 'http://purl.org/ontology/bibo/doi',
+                  'field' => 'citation',
+                  'uri' => 'http://eol.org/schema/reference/full_reference',
                   'required' => 0,
                   'processor' => 'dwcarchiver_biblio'
                 )

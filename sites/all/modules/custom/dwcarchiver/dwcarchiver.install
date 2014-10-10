@@ -244,13 +244,13 @@ function dwcarchiver_schema(){
           'unsigned' => TRUE,
           'not null' => TRUE,
           'default' => 0,
-          'description' => 'The {dwcarchiver_extension}.eid of the extension.'
+          'description' => 'The {node}.vid.'
         ),
         'citation' => array(
           'type' => 'text',
           'size' => 'big',
           'not null' => FALSE,
-          'description' => 'Serialized array of conditions for this field.'
+          'description' => 'The full citation for the node.'
         )
       ),
       'primary key' => array(

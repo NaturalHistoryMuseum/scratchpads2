@@ -321,6 +321,10 @@ function dwcarchiver_processor_dwcarchiver_biblio(SelectQuery $query, $field, $e
       $joined_biblio = dwcarchiver_processor_dwcarchiver_biblio_join_biblio($query, $map_id, $table);
       $query->addExpression("{$joined_biblio}.{$field}");
       break;
+    case 'citation':
+      $query->leftJoin('dwcarchiver_biblio_citation', "table_{$map_id}", "{$table}.nid = table_{$map_id}.nid");
+      $query->addExpression("table_{$map_id}.citation");
+      break;
     case 'biblio_authors_field':
       // FIXME - May have to add a table that concatenates this for us - this is
       // far too slow.
